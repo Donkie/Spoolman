@@ -1,3 +1,4 @@
+uvicorn[standard]==0.21.1
 fastapi==0.95.0
 SQLAlchemy[asyncio]==2.0.8
 pydantic==1.10.7
