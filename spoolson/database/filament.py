@@ -5,9 +5,10 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolson.database import models, vendor
+from spoolson.exceptions import ItemNotFoundError
 
 
-async def create_filament(
+async def create(
     *,
     db: AsyncSession,
     density: float,
@@ -41,3 +42,37 @@ async def create_filament(
     db.add(db_item)
     await db.flush()
     return db_item
+
+
+async def get_by_id(db: AsyncSession, filament_id: int) -> models.Filament:
+    """Get a filament object from the database by the unique ID."""
+    filament = await db.get(models.Filament, filament_id)
+    if filament is None:
+        raise ItemNotFoundError(f"No filament with ID {filament_id} found.")
+    return filament
+
+
+async def update(
+    *,
+    db: AsyncSession,
+    filament_id: int,
+    data: dict,
+) -> models.Filament:
+    """Update the fields of a filament object."""
+    filament = await get_by_id(db, filament_id)
+    for k, v in data.items():
+        if k == "vendor_id":
+            if v is None:
+                filament.vendor = None
+            else:
+                filament.vendor = await vendor.get_by_id(db, v)
+        else:
+            setattr(filament, k, v)
+    await db.flush()
+    return filament
+
+
+async def delete(db: AsyncSession, filament_id: int) -> None:
+    """Delete a filament object."""
+    filament = await get_by_id(db, filament_id)
+    await db.delete(filament)

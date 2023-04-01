@@ -8,6 +8,10 @@ from pydantic import BaseModel, Field
 from spoolson.database import models
 
 
+class Message(BaseModel):
+    message: str = Field()
+
+
 class Vendor(BaseModel):
     id: int = Field(description="Unique internal ID of this vendor.")
     name: str = Field(max_length=64, description="Vendor name.")

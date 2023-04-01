@@ -3,12 +3,14 @@
 from typing import Annotated, Optional, Union
 
 from fastapi import APIRouter, Depends
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field
+from pydantic.error_wrappers import ErrorWrapper
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolson.api.v1.models import Filament, Vendor
+from spoolson.api.v1.models import Filament, Message
+from spoolson.database import filament
 from spoolson.database.database import get_db_session
-from spoolson.database.filament import create_filament
 
 router = APIRouter(
     prefix="/filament",
@@ -37,30 +39,23 @@ class FilamentParameters(BaseModel):
     comment: Optional[str] = Field(max_length=1024, description="Free text comment about this filament type.")
 
 
+class FilamentUpdateParameters(FilamentParameters):
+    density: Optional[float] = Field(gt=0, description="The density of this filament in g/cm3.")
+    diameter: Optional[float] = Field(gt=0, description="The diameter of this filament in mm.")
+
+
 @router.get("/")
 async def find(_vendor: Union[int, None] = None) -> list[Filament]:
     return []
 
 
 @router.get("/{filament_id}")
-async def get(_filament_id: int) -> Filament:
-    return Filament(
-        id=0,
-        name=None,
-        vendor=Vendor(
-            id=0,
-            name="asdf",
-            comment=None,
-        ),
-        material=None,
-        price=None,
-        density=1,
-        diameter=1,
-        weight=None,
-        spool_weight=None,
-        article_number=None,
-        comment=None,
-    )
+async def get(
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    filament_id: int,
+) -> Filament:
+    db_item = await filament.get_by_id(db, filament_id)
+    return Filament.from_db(db_item)
 
 
 @router.post("/")
@@ -68,7 +63,7 @@ async def create(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     body: FilamentParameters,
 ) -> Filament:
-    db_item = await create_filament(
+    db_item = await filament.create(
         db=db,
         density=body.density,
         diameter=body.diameter,
@@ -85,27 +80,32 @@ async def create(
     return Filament.from_db(db_item)
 
 
-@router.put("/{filament_id}")
-async def update() -> Filament:
-    return Filament(
-        id=0,
-        name=None,
-        vendor=Vendor(
-            id=0,
-            name="asdf",
-            comment=None,
-        ),
-        material=None,
-        price=None,
-        density=1,
-        diameter=1,
-        weight=None,
-        spool_weight=None,
-        article_number=None,
-        comment=None,
+@router.patch("/{filament_id}")
+async def update(
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    filament_id: int,
+    body: FilamentUpdateParameters,
+) -> Filament:
+    patch_data = body.dict(exclude_unset=True)
+
+    if "density" in patch_data and body.density is None:
+        raise RequestValidationError([ErrorWrapper(ValueError("density cannot be unset"), ("query", "density"))])
+    if "diameter" in patch_data and body.diameter is None:
+        raise RequestValidationError([ErrorWrapper(ValueError("diameter cannot be unset"), ("query", "diameter"))])
+
+    db_item = await filament.update(
+        db=db,
+        filament_id=filament_id,
+        data=patch_data,
     )
+
+    return Filament.from_db(db_item)
 
 
 @router.delete("/{filament_id}")
-async def delete() -> None:
-    pass
+async def delete(
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    filament_id: int,
+) -> Message:
+    await filament.delete(db, filament_id)
+    return Message(message="Success!")

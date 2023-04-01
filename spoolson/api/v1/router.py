@@ -7,7 +7,7 @@ from starlette.responses import Response
 
 from spoolson.exceptions import ItemNotFoundError
 
-from . import filament, spool, vendor
+from . import filament, models, spool, vendor
 
 # ruff: noqa: D103
 
@@ -15,6 +15,7 @@ app = FastAPI(
     title="Spoolson REST API v1",
     version="1.0.0",
     root_path_in_servers=False,
+    responses={404: {"model": models.Message}},
 )
 
 
