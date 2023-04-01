@@ -1,0 +1,18 @@
+[project]
+name = "Spoolson"
+description = "A web service that keeps track of 3D printing spools."
+version = "0.1.0"
+requires-python = ">=3.9"
+readme = "README.md"
+license = {text = "AGPL-3.0-only"}
+
+[tool.ruff]
+select = ["ALL"]
+ignore = ["A003", "D101", "D104"]
+line-length = 120
+target-version = "py39"
+
+[tool.black]
+line-length = 120
+target-version = ['py39']
+
