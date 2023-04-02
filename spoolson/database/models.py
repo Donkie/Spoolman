@@ -33,8 +33,8 @@ class Filament(Base):
     price: Mapped[Optional[float]] = mapped_column()
     density: Mapped[float] = mapped_column()
     diameter: Mapped[float] = mapped_column()
-    weight: Mapped[Optional[float]] = mapped_column()
-    spool_weight: Mapped[Optional[float]] = mapped_column()
+    weight: Mapped[Optional[float]] = mapped_column(comment="The filament weight of a full spool (net weight).")
+    spool_weight: Mapped[Optional[float]] = mapped_column(comment="The weight of an empty spool.")
     article_number: Mapped[Optional[str]] = mapped_column(String(64))
     comment: Mapped[Optional[str]] = mapped_column(String(1024))
     # TODO: Print settings
