@@ -5,9 +5,9 @@ from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolson.database import filament, models
-from spoolson.exceptions import ItemCreateError, ItemNotFoundError
-from spoolson.math import weight_from_length
+from spoolman.database import filament, models
+from spoolman.exceptions import ItemCreateError, ItemNotFoundError
+from spoolman.math import weight_from_length
 
 
 async def create(

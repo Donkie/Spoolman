@@ -5,7 +5,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from spoolson.database import models
+from spoolman.database import models
 
 
 class Message(BaseModel):

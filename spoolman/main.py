@@ -4,8 +4,8 @@
 import uvicorn
 from fastapi import FastAPI
 
-from spoolson.api.v1.router import app as v1_app
-from spoolson.database.database import setup_db
+from spoolman.api.v1.router import app as v1_app
+from spoolman.database.database import setup_db
 
 app = FastAPI(debug=True)
 app.mount("/api/v1", v1_app)

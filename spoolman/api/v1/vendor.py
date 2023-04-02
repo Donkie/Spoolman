@@ -8,9 +8,9 @@ from pydantic import BaseModel, Field
 from pydantic.error_wrappers import ErrorWrapper
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolson.api.v1.models import Message, Vendor
-from spoolson.database import vendor
-from spoolson.database.database import get_db_session
+from spoolman.api.v1.models import Message, Vendor
+from spoolman.database import vendor
+from spoolman.database.database import get_db_session
 
 router = APIRouter(
     prefix="/vendor",

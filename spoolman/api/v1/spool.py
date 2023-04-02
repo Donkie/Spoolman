@@ -10,10 +10,10 @@ from pydantic import BaseModel, Field
 from pydantic.error_wrappers import ErrorWrapper
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolson.api.v1.models import Message, Spool
-from spoolson.database import spool
-from spoolson.database.database import get_db_session
-from spoolson.exceptions import ItemCreateError
+from spoolman.api.v1.models import Message, Spool
+from spoolman.database import spool
+from spoolman.database.database import get_db_session
+from spoolman.exceptions import ItemCreateError
 
 router = APIRouter(
     prefix="/spool",

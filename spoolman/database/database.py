@@ -5,7 +5,7 @@ from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
-from spoolson.database.models import Base
+from spoolman.database.models import Base
 
 
 class Database:

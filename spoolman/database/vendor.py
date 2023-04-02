@@ -4,8 +4,8 @@ from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolson.database import models
-from spoolson.exceptions import ItemNotFoundError
+from spoolman.database import models
+from spoolman.exceptions import ItemNotFoundError
 
 
 async def create(

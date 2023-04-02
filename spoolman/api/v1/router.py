@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from starlette.requests import Request
 from starlette.responses import Response
 
-from spoolson.exceptions import ItemNotFoundError
+from spoolman.exceptions import ItemNotFoundError
 
 from . import filament, models, spool, vendor
 
