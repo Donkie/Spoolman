@@ -9,7 +9,7 @@
       "type": "python",
       "request": "launch",
       "module": "uvicorn",
-      "args": ["spoolson.main:app"],
+      "args": ["spoolman.main:app"],
       "jinja": true,
       "justMyCode": true
     }
