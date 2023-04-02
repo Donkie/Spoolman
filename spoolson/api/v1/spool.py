@@ -43,6 +43,11 @@ class SpoolUpdateParameters(SpoolParameters):
     filament_id: Optional[int] = Field(description="The ID of the filament type of this spool.")
 
 
+class SpoolUseParameters(BaseModel):
+    use_length: Optional[float] = Field(description="Length of filament to reduce by, in mm.")
+    use_weight: Optional[float] = Field(description="Filament weight to reduce by, in g.")
+
+
 @router.get("/")
 async def find(_filament: Union[int, None] = None) -> list[Spool]:
     return []
@@ -116,3 +121,35 @@ async def delete(
 ) -> Message:
     await spool.delete(db, spool_id)
     return Message(message="Success!")
+
+
+@router.put(
+    "/{spool_id}/use",
+    response_model=Spool,
+    responses={
+        400: {"model": Message},
+    },
+)
+async def use(  # noqa: ANN201
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    spool_id: int,
+    body: SpoolUseParameters,
+):
+    if body.use_weight is not None and body.use_length is not None:
+        return JSONResponse(
+            status_code=400,
+            content={"message": "Only specify either use_weight or use_length."},
+        )
+
+    if body.use_weight is not None:
+        db_item = await spool.use_weight(db, spool_id, body.use_weight)
+        return Spool.from_db(db_item)
+
+    if body.use_length is not None:
+        db_item = await spool.use_length(db, spool_id, body.use_length)
+        return Spool.from_db(db_item)
+
+    return JSONResponse(
+        status_code=400,
+        content={"message": "Either use_weight or use_length must be specified."},
+    )

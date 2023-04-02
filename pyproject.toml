@@ -8,7 +8,7 @@ license = {text = "AGPL-3.0-only"}
 
 [tool.ruff]
 select = ["ALL"]
-ignore = ["A003", "D101", "D104", "S104", "TRY201", "TRY003", "EM101", "EM102"]
+ignore = ["A003", "D101", "D104", "D407", "S104", "TRY201", "TRY003", "EM101", "EM102"]
 line-length = 120
 target-version = "py39"
 

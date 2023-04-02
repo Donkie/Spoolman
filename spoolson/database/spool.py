@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolson.database import filament, models
 from spoolson.exceptions import ItemCreateError, ItemNotFoundError
+from spoolson.math import weight_from_length
 
 
 async def create(
@@ -41,9 +42,9 @@ async def create(
     return db_item
 
 
-async def get_by_id(db: AsyncSession, spool_id: int) -> models.Spool:
+async def get_by_id(db: AsyncSession, spool_id: int, with_for_update: Optional[bool] = None) -> models.Spool:
     """Get a spool object from the database by the unique ID."""
-    spool = await db.get(models.Spool, spool_id)
+    spool = await db.get(models.Spool, spool_id, with_for_update=with_for_update)  # type: ignore  # noqa: PGH003
     if spool is None:
         raise ItemNotFoundError(f"No spool with ID {spool_id} found.")
     return spool
@@ -70,3 +71,50 @@ async def delete(db: AsyncSession, spool_id: int) -> None:
     """Delete a spool object."""
     spool = await get_by_id(db, spool_id)
     await db.delete(spool)
+
+
+# TODO: Make unit tests for race conditions on these
+async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.Spool:
+    """Reduce the weight of a spool.
+
+    Does nothing if the spool is empty.
+
+    Args:
+        db (AsyncSession): Database session
+        spool_id (int): Spool ID
+        weight (float): Weight loss in grams
+
+    Returns:
+        models.Spool: Updated spool object
+    """
+    spool = await get_by_id(db, spool_id, with_for_update=True)
+    spool.weight -= min(spool.weight, weight)
+    await db.flush()
+    return spool
+
+
+async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.Spool:
+    """Reduce the weight of a spool by using a length of filament.
+
+    Does nothing if the spool is empty.
+
+    Args:
+        db (AsyncSession): Database session
+        spool_id (int): Spool ID
+        length (float): Length of filament to reduce by
+
+    Returns:
+        models.Spool: Updated spool object
+    """
+    spool = await get_by_id(db, spool_id, with_for_update=True)
+
+    filament = spool.filament
+
+    weight = weight_from_length(
+        length=length,
+        radius=filament.diameter / 2,
+        density=filament.density,
+    )
+    spool.weight -= min(spool.weight, weight)
+    await db.flush()
+    return spool
