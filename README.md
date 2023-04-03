@@ -9,6 +9,8 @@ these services can e.g. list available spools, report filament consumption, etc.
 
 Currently, it has no client GUI, and only operates using HTTP REST commands.
 
+REST API: https://donkie.github.io/Spoolman/
+
 ## Prerequisites
 
 The data can be stored using any async SQLAlchemy supported database:
