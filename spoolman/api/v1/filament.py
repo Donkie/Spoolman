@@ -73,8 +73,13 @@ class FilamentUpdateParameters(FilamentParameters):
     description="Get a list of filaments that matches the search query.",
     response_model_exclude_none=True,
 )
-async def find(_vendor: Union[int, None] = None) -> list[Filament]:
-    return []
+async def find(
+    vendor_id: Optional[int] = None,
+    name: Optional[str] = None,
+    material: Optional[str] = None,
+    article_number: Optional[str] = None,
+) -> list[Filament]:
+    return []  # TODO: Implement
 
 
 @router.get(

@@ -63,8 +63,15 @@ class SpoolUseParameters(BaseModel):
     description="Get a list of spools that matches the search query.",
     response_model_exclude_none=True,
 )
-async def find(_filament: Union[int, None] = None) -> list[Spool]:
-    return []
+async def find(
+    filament_id: Optional[int] = None,
+    name: Optional[str] = None,
+    material: Optional[str] = None,
+    vendor: Optional[str] = None,
+    location: Optional[str] = None,
+    lot_nr: Optional[str] = None,
+) -> list[Spool]:
+    return []  # TODO: Implement
 
 
 @router.get(

@@ -44,8 +44,8 @@ class VendorUpdateParameters(VendorParameters):
     description="Get a list of vendors that matches the search query.",
     response_model_exclude_none=True,
 )
-async def find(_name: Union[int, None] = None) -> list[Vendor]:
-    return []
+async def find(name: Optional[str] = None) -> list[Vendor]:
+    return []  # TODO: Implement
 
 
 @router.get(
