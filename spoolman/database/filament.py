@@ -3,9 +3,10 @@
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 
 from spoolman.database import models, vendor
-from spoolman.exceptions import ItemNotFoundError
+from spoolman.exceptions import ItemDeleteError, ItemNotFoundError
 
 
 async def create(
@@ -76,3 +77,8 @@ async def delete(db: AsyncSession, filament_id: int) -> None:
     """Delete a filament object."""
     filament = await get_by_id(db, filament_id)
     await db.delete(filament)
+    try:
+        await db.flush()  # Flush immediately so any errors are propagated in this request.
+    except IntegrityError as exc:
+        await db.rollback()
+        raise ItemDeleteError("Failed to delete filament.") from exc

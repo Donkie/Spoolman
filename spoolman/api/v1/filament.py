@@ -4,6 +4,7 @@ from typing import Annotated, Optional, Union
 
 from fastapi import APIRouter, Depends
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from pydantic.error_wrappers import ErrorWrapper
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from spoolman.api.v1.models import Filament, Message
 from spoolman.database import filament
 from spoolman.database.database import get_db_session
+from spoolman.exceptions import ItemDeleteError
 
 router = APIRouter(
     prefix="/filament",
@@ -102,10 +104,22 @@ async def update(
     return Filament.from_db(db_item)
 
 
-@router.delete("/{filament_id}")
-async def delete(
+@router.delete(
+    "/{filament_id}",
+    response_model=Message,
+    responses={
+        403: {"model": Message},
+    },
+)
+async def delete(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
     filament_id: int,
-) -> Message:
-    await filament.delete(db, filament_id)
+):
+    try:
+        await filament.delete(db, filament_id)
+    except ItemDeleteError as exc:
+        return JSONResponse(
+            status_code=403,
+            content={"message": str(exc)},
+        )
     return Message(message="Success!")
