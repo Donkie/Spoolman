@@ -33,10 +33,19 @@ class SpoolParameters(BaseModel):
             "Remaining weight of filament on the spool. "
             "Leave empty to assume a full spool based on the weight parameters of the filament type."
         ),
+        example=500,
     )
-    location: Optional[str] = Field(max_length=64, description="Where this spool can be found.")
-    lot_nr: Optional[str] = Field(max_length=64, description="Vendor manufacturing lot/batch number of the spool.")
-    comment: Optional[str] = Field(max_length=1024, description="Free text comment about this specific spool.")
+    location: Optional[str] = Field(max_length=64, description="Where this spool can be found.", example="Shelf A")
+    lot_nr: Optional[str] = Field(
+        max_length=64,
+        description="Vendor manufacturing lot/batch number of the spool.",
+        example="52342",
+    )
+    comment: Optional[str] = Field(
+        max_length=1024,
+        description="Free text comment about this specific spool.",
+        example="",
+    )
 
 
 class SpoolUpdateParameters(SpoolParameters):
@@ -44,16 +53,26 @@ class SpoolUpdateParameters(SpoolParameters):
 
 
 class SpoolUseParameters(BaseModel):
-    use_length: Optional[float] = Field(description="Length of filament to reduce by, in mm.")
-    use_weight: Optional[float] = Field(description="Filament weight to reduce by, in g.")
+    use_length: Optional[float] = Field(description="Length of filament to reduce by, in mm.", example=2.2)
+    use_weight: Optional[float] = Field(description="Filament weight to reduce by, in g.", example=5.3)
 
 
-@router.get("/")
+@router.get(
+    "/",
+    name="Find spool",
+    description="Get a list of spools that matches the search query.",
+    response_model_exclude_none=True,
+)
 async def find(_filament: Union[int, None] = None) -> list[Spool]:
     return []
 
 
-@router.get("/{spool_id}")
+@router.get(
+    "/{spool_id}",
+    name="Get spool",
+    description="Get a specific spool.",
+    response_model_exclude_none=True,
+)
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     spool_id: int,
@@ -64,6 +83,9 @@ async def get(
 
 @router.post(
     "/",
+    name="Add spool",
+    description="Add a new spool to the database.",
+    response_model_exclude_none=True,
     response_model=Spool,
     responses={
         400: {"model": Message},
@@ -92,7 +114,12 @@ async def create(  # noqa: ANN201
         )
 
 
-@router.patch("/{spool_id}")
+@router.patch(
+    "/{spool_id}",
+    name="Update spool",
+    description="Update any attribute of a spool. Only fields specified in the request will be affected.",
+    response_model_exclude_none=True,
+)
 async def update(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     spool_id: int,
@@ -114,7 +141,11 @@ async def update(
     return Spool.from_db(db_item)
 
 
-@router.delete("/{spool_id}")
+@router.delete(
+    "/{spool_id}",
+    name="Delete spool",
+    description="Delete a spool.",
+)
 async def delete(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     spool_id: int,
@@ -125,6 +156,13 @@ async def delete(
 
 @router.put(
     "/{spool_id}/use",
+    name="Use spool filament",
+    description=(
+        "Use some length or weight of filament from the spool."
+        " Specify either a length or a weight, not both."
+        " Will do nothing if the spool is empty (you have to keep track of that by yourself)."
+    ),
+    response_model_exclude_none=True,
     response_model=Spool,
     responses={
         400: {"model": Message},

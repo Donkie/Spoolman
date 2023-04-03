@@ -29,29 +29,60 @@ class FilamentParameters(BaseModel):
             "Filament name, to distinguish this filament type among others from the same vendor."
             "Should contain its color for example."
         ),
+        example="PolyTerra™ Charcoal Black",
     )
     vendor_id: Optional[int] = Field(description="The ID of the vendor of this filament type.")
-    material: Optional[str] = Field(max_length=64, description="The material of this filament, e.g. PLA.")
-    price: Optional[float] = Field(ge=0, description="The price of this filament in the system configured currency.")
-    density: float = Field(gt=0, description="The density of this filament in g/cm3.")
-    diameter: float = Field(gt=0, description="The diameter of this filament in mm.")
-    weight: Optional[float] = Field(gt=0, description="The weight of the filament in a full spool.")
-    spool_weight: Optional[float] = Field(gt=0, description="The empty spool weight.")
-    article_number: Optional[str] = Field(max_length=64, description="Vendor article number, e.g. EAN, QR code, etc.")
-    comment: Optional[str] = Field(max_length=1024, description="Free text comment about this filament type.")
+    material: Optional[str] = Field(
+        max_length=64,
+        description="The material of this filament, e.g. PLA.",
+        example="PLA",
+    )
+    price: Optional[float] = Field(
+        ge=0,
+        description="The price of this filament in the system configured currency.",
+        example=20.0,
+    )
+    density: float = Field(gt=0, description="The density of this filament in g/cm3.", example=1.24)
+    diameter: float = Field(gt=0, description="The diameter of this filament in mm.", example=1.75)
+    weight: Optional[float] = Field(
+        gt=0,
+        description="The weight of the filament in a full spool, in grams. (net weight)",
+        example=1000,
+    )
+    spool_weight: Optional[float] = Field(gt=0, description="The empty spool weight, in grams.", example=140)
+    article_number: Optional[str] = Field(
+        max_length=64,
+        description="Vendor article number, e.g. EAN, QR code, etc.",
+        example="PM70820",
+    )
+    comment: Optional[str] = Field(
+        max_length=1024,
+        description="Free text comment about this filament type.",
+        example="",
+    )
 
 
 class FilamentUpdateParameters(FilamentParameters):
-    density: Optional[float] = Field(gt=0, description="The density of this filament in g/cm3.")
-    diameter: Optional[float] = Field(gt=0, description="The diameter of this filament in mm.")
+    density: Optional[float] = Field(gt=0, description="The density of this filament in g/cm3.", example=1.24)
+    diameter: Optional[float] = Field(gt=0, description="The diameter of this filament in mm.", example=1.75)
 
 
-@router.get("/")
+@router.get(
+    "/",
+    name="Find filaments",
+    description="Get a list of filaments that matches the search query.",
+    response_model_exclude_none=True,
+)
 async def find(_vendor: Union[int, None] = None) -> list[Filament]:
     return []
 
 
-@router.get("/{filament_id}")
+@router.get(
+    "/{filament_id}",
+    name="Get filament",
+    description="Get a specific filament.",
+    response_model_exclude_none=True,
+)
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     filament_id: int,
@@ -60,7 +91,12 @@ async def get(
     return Filament.from_db(db_item)
 
 
-@router.post("/")
+@router.post(
+    "/",
+    name="Add filament",
+    description="Add a new filament to the database.",
+    response_model_exclude_none=True,
+)
 async def create(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     body: FilamentParameters,
@@ -82,7 +118,12 @@ async def create(
     return Filament.from_db(db_item)
 
 
-@router.patch("/{filament_id}")
+@router.patch(
+    "/{filament_id}",
+    name="Update filament",
+    description="Update any attribute of a filament. Only fields specified in the request will be affected.",
+    response_model_exclude_none=True,
+)
 async def update(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     filament_id: int,
@@ -106,6 +147,8 @@ async def update(
 
 @router.delete(
     "/{filament_id}",
+    name="Delete filament",
+    description="Delete a filament.",
     response_model=Message,
     responses={
         403: {"model": Message},

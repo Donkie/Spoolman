@@ -2,8 +2,8 @@
 
 from typing import Optional
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.database import models, vendor
 from spoolman.exceptions import ItemDeleteError, ItemNotFoundError

@@ -21,21 +21,39 @@ router = APIRouter(
 
 
 class VendorParameters(BaseModel):
-    name: str = Field(max_length=64, description="Vendor name.")
-    comment: Optional[str] = Field(max_length=1024, description="Free text comment about this vendor.")
+    name: str = Field(max_length=64, description="Vendor name.", example="Polymaker")
+    comment: Optional[str] = Field(
+        max_length=1024,
+        description="Free text comment about this vendor.",
+        example="",
+    )
 
 
 class VendorUpdateParameters(VendorParameters):
-    name: Optional[str] = Field(max_length=64, description="Vendor name.")
-    comment: Optional[str] = Field(max_length=1024, description="Free text comment about this vendor.")
+    name: Optional[str] = Field(max_length=64, description="Vendor name.", example="Polymaker")
+    comment: Optional[str] = Field(
+        max_length=1024,
+        description="Free text comment about this vendor.",
+        example="",
+    )
 
 
-@router.get("/")
+@router.get(
+    "/",
+    name="Find vendor",
+    description="Get a list of vendors that matches the search query.",
+    response_model_exclude_none=True,
+)
 async def find(_name: Union[int, None] = None) -> list[Vendor]:
     return []
 
 
-@router.get("/{vendor_id}")
+@router.get(
+    "/{vendor_id}",
+    name="Get vendor",
+    description="Get a specific vendor.",
+    response_model_exclude_none=True,
+)
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     vendor_id: int,
@@ -44,7 +62,12 @@ async def get(
     return Vendor.from_db(db_item)
 
 
-@router.post("/")
+@router.post(
+    "/",
+    name="Add vendor",
+    description="Add a new vendor to the database.",
+    response_model_exclude_none=True,
+)
 async def create(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     body: VendorParameters,
@@ -58,7 +81,12 @@ async def create(
     return Vendor.from_db(db_item)
 
 
-@router.patch("/{vendor_id}")
+@router.patch(
+    "/{vendor_id}",
+    name="Update vendor",
+    description="Update any attribute of a vendor. Only fields specified in the request will be affected.",
+    response_model_exclude_none=True,
+)
 async def update(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     vendor_id: int,
@@ -78,7 +106,13 @@ async def update(
     return Vendor.from_db(db_item)
 
 
-@router.delete("/{vendor_id}")
+@router.delete(
+    "/{vendor_id}",
+    name="Delete vendor",
+    description=(
+        "Delete a vendor. The vendor attribute of any filaments who refer to the deleted vendor will be cleared."
+    ),
+)
 async def delete(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     vendor_id: int,
