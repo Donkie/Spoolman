@@ -2,6 +2,7 @@
 
 from typing import Optional
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.database import models
@@ -30,6 +31,20 @@ async def get_by_id(db: AsyncSession, vendor_id: int) -> models.Vendor:
     if vendor is None:
         raise ItemNotFoundError(f"No vendor with ID {vendor_id} found.")
     return vendor
+
+
+async def find(
+    *,
+    db: AsyncSession,
+    name: Optional[str] = None,
+) -> list[models.Vendor]:
+    """Find a list of vendor objects by search criteria."""
+    stmt = select(models.Vendor)
+    if name is not None:
+        stmt = stmt.where(models.Vendor.name.ilike(f"%{name}%"))
+
+    rows = await db.execute(stmt)
+    return list(rows.scalars().all())
 
 
 async def update(

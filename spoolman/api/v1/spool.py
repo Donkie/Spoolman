@@ -1,9 +1,9 @@
 """Spool related endpoints."""
 
 from datetime import datetime
-from typing import Annotated, Optional, Union
+from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -20,7 +20,7 @@ router = APIRouter(
     tags=["spool"],
 )
 
-# ruff: noqa: D103
+# ruff: noqa: D103,B008
 
 
 class SpoolParameters(BaseModel):
@@ -64,14 +64,55 @@ class SpoolUseParameters(BaseModel):
     response_model_exclude_none=True,
 )
 async def find(
-    filament_id: Optional[int] = None,
-    name: Optional[str] = None,
-    material: Optional[str] = None,
-    vendor: Optional[str] = None,
-    location: Optional[str] = None,
-    lot_nr: Optional[str] = None,
+    *,
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    filament_name: Optional[int] = Query(
+        default=None,
+        title="Filament Name",
+        description="Partial case-insensitive search term for the filament name.",
+    ),
+    filament_id: Optional[int] = Query(
+        default=None,
+        title="Filament ID",
+        description="Match an exact filament ID.",
+    ),
+    filament_material: Optional[str] = Query(
+        default=None,
+        title="Filament Material",
+        description="Partial case-insensitive search term for the filament material.",
+    ),
+    vendor_name: Optional[str] = Query(
+        default=None,
+        title="Vendor Name",
+        description="Partial case-insensitive search term for the filament vendor name.",
+    ),
+    vendor_id: Optional[int] = Query(
+        default=None,
+        title="Vendor ID",
+        description="Match an exact vendor ID.",
+    ),
+    location: Optional[str] = Query(
+        default=None,
+        title="Location",
+        description="Partial case-insensitive search term for the spool location.",
+    ),
+    lot_nr: Optional[str] = Query(
+        default=None,
+        title="Lot/Batch Number",
+        description="Partial case-insensitive search term for the spool lot number.",
+    ),
 ) -> list[Spool]:
-    return []  # TODO: Implement
+    db_items = await spool.find(
+        db=db,
+        filament_name=filament_name,
+        filament_id=filament_id,
+        filament_material=filament_material,
+        vendor_name=vendor_name,
+        vendor_id=vendor_id,
+        location=location,
+        lot_nr=lot_nr,
+    )
+    return [Spool.from_db(db_item) for db_item in db_items]
 
 
 @router.get(

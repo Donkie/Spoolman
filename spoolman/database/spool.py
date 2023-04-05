@@ -3,7 +3,9 @@
 from datetime import datetime
 from typing import Optional
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import contains_eager, joinedload
 
 from spoolman.database import filament, models
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError
@@ -44,10 +46,52 @@ async def create(
 
 async def get_by_id(db: AsyncSession, spool_id: int, with_for_update: Optional[bool] = None) -> models.Spool:
     """Get a spool object from the database by the unique ID."""
-    spool = await db.get(models.Spool, spool_id, with_for_update=with_for_update)  # type: ignore  # noqa: PGH003
+    spool = await db.get(
+        models.Spool,
+        spool_id,
+        with_for_update=with_for_update,  # type: ignore  # noqa: PGH003
+        options=[joinedload("*")],  # Load all nested objects as well
+    )
     if spool is None:
         raise ItemNotFoundError(f"No spool with ID {spool_id} found.")
     return spool
+
+
+async def find(
+    *,
+    db: AsyncSession,
+    filament_name: Optional[int] = None,
+    filament_id: Optional[int] = None,
+    filament_material: Optional[str] = None,
+    vendor_name: Optional[str] = None,
+    vendor_id: Optional[int] = None,
+    location: Optional[str] = None,
+    lot_nr: Optional[str] = None,
+) -> list[models.Spool]:
+    """Find a list of spool objects by search criteria."""
+    stmt = (
+        select(models.Spool)
+        .join(models.Spool.filament)
+        .join(models.Filament.vendor)
+        .options(contains_eager(models.Spool.filament).contains_eager(models.Filament.vendor))
+    )
+    if filament_name is not None:
+        stmt = stmt.where(models.Filament.name.ilike(f"%{filament_name}%"))
+    if filament_id is not None:
+        stmt = stmt.where(models.Spool.filament_id == filament_id)
+    if filament_material is not None:
+        stmt = stmt.where(models.Filament.material.ilike(f"%{filament_material}%"))
+    if vendor_name is not None:
+        stmt = stmt.where(models.Vendor.name.ilike(f"%{vendor_name}%"))
+    if vendor_id is not None:
+        stmt = stmt.where(models.Filament.vendor_id == vendor_id)
+    if location is not None:
+        stmt = stmt.where(models.Spool.location.ilike(f"%{location}%"))
+    if lot_nr is not None:
+        stmt = stmt.where(models.Spool.lot_nr.ilike(f"%{lot_nr}%"))
+
+    rows = await db.execute(stmt)
+    return list(rows.scalars().all())
 
 
 async def update(

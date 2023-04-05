@@ -1,8 +1,8 @@
 """Vendor related endpoints."""
 
-from typing import Annotated, Optional, Union
+from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field
 from pydantic.error_wrappers import ErrorWrapper
@@ -17,7 +17,7 @@ router = APIRouter(
     tags=["vendor"],
 )
 
-# ruff: noqa: D103
+# ruff: noqa: D103,B008
 
 
 class VendorParameters(BaseModel):
@@ -44,8 +44,19 @@ class VendorUpdateParameters(VendorParameters):
     description="Get a list of vendors that matches the search query.",
     response_model_exclude_none=True,
 )
-async def find(name: Optional[str] = None) -> list[Vendor]:
-    return []  # TODO: Implement
+async def find(
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    name: Optional[str] = Query(
+        default=None,
+        title="Vendor Name",
+        description="Partial case-insensitive search term for the vendor name.",
+    ),
+) -> list[Vendor]:
+    db_items = await vendor.find(
+        db=db,
+        name=name,
+    )
+    return [Vendor.from_db(db_item) for db_item in db_items]
 
 
 @router.get(

@@ -1,8 +1,8 @@
 """Filament related endpoints."""
 
-from typing import Annotated, Optional, Union
+from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -19,7 +19,7 @@ router = APIRouter(
     tags=["filament"],
 )
 
-# ruff: noqa: D103
+# ruff: noqa: D103, B008
 
 
 class FilamentParameters(BaseModel):
@@ -74,12 +74,43 @@ class FilamentUpdateParameters(FilamentParameters):
     response_model_exclude_none=True,
 )
 async def find(
-    vendor_id: Optional[int] = None,
-    name: Optional[str] = None,
-    material: Optional[str] = None,
-    article_number: Optional[str] = None,
+    *,
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    vendor_name: Optional[str] = Query(
+        default=None,
+        title="Vendor Name",
+        description="Partial case-insensitive search term for the filament vendor name.",
+    ),
+    vendor_id: Optional[int] = Query(
+        default=None,
+        title="Vendor ID",
+        description="Match an exact vendor ID.",
+    ),
+    name: Optional[str] = Query(
+        default=None,
+        title="Filament Name",
+        description="Partial case-insensitive search term for the filament name.",
+    ),
+    material: Optional[str] = Query(
+        default=None,
+        title="Filament Material",
+        description="Partial case-insensitive search term for the filament material.",
+    ),
+    article_number: Optional[str] = Query(
+        default=None,
+        title="Filament Article Number",
+        description="Partial case-insensitive search term for the filament article number.",
+    ),
 ) -> list[Filament]:
-    return []  # TODO: Implement
+    db_items = await filament.find(
+        db=db,
+        vendor_name=vendor_name,
+        vendor_id=vendor_id,
+        name=name,
+        material=material,
+        article_number=article_number,
+    )
+    return [Filament.from_db(db_item) for db_item in db_items]
 
 
 @router.get(
