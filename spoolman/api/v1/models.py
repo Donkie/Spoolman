@@ -14,6 +14,7 @@ class Message(BaseModel):
 
 class Vendor(BaseModel):
     id: int = Field(description="Unique internal ID of this vendor.")
+    registered: datetime = Field(description="When the vendor was registered in the database.")
     name: str = Field(max_length=64, description="Vendor name.", example="Polymaker")
     comment: Optional[str] = Field(max_length=1024, description="Free text comment about this vendor.", example="")
 
@@ -22,6 +23,7 @@ class Vendor(BaseModel):
         """Create a new Pydantic vendor object from a database vendor object."""
         return Vendor(
             id=item.id,
+            registered=item.registered,
             name=item.name,
             comment=item.comment,
         )
@@ -29,6 +31,7 @@ class Vendor(BaseModel):
 
 class Filament(BaseModel):
     id: int = Field(description="Unique internal ID of this filament type.")
+    registered: datetime = Field(description="When the filament was registered in the database.")
     name: Optional[str] = Field(
         max_length=64,
         description=(
@@ -72,6 +75,7 @@ class Filament(BaseModel):
         """Create a new Pydantic filament object from a database filament object."""
         return Filament(
             id=item.id,
+            registered=item.registered,
             name=item.name,
             vendor=Vendor.from_db(item.vendor) if item.vendor is not None else None,
             material=item.material,

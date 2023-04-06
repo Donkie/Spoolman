@@ -16,6 +16,7 @@ class Vendor(Base):
     __tablename__ = "vendor"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    registered: Mapped[datetime] = mapped_column(default=func.now())
     name: Mapped[str] = mapped_column(String(64))
     comment: Mapped[Optional[str]] = mapped_column(String(1024))
     filaments: Mapped[list["Filament"]] = relationship(back_populates="vendor")
@@ -25,6 +26,7 @@ class Filament(Base):
     __tablename__ = "filament"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    registered: Mapped[datetime] = mapped_column(default=func.now())
     name: Mapped[Optional[str]] = mapped_column(String(64))
     vendor_id: Mapped[Optional[int]] = mapped_column(ForeignKey("vendor.id"))
     vendor: Mapped[Optional["Vendor"]] = relationship(back_populates="filaments")
