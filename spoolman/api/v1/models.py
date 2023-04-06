@@ -91,7 +91,15 @@ class Spool(BaseModel):
     first_used: Optional[datetime] = Field(description="First logged occurence of spool usage.")
     last_used: Optional[datetime] = Field(description="Last logged occurence of spool usage.")
     filament: Filament = Field(description="The filament type of this spool.")
-    weight: float = Field(ge=0, description="Remaining weight of filament on the spool.", example=500)
+    remaining_weight: Optional[float] = Field(
+        default=None,
+        ge=0,
+        description=(
+            "Estimated remaining weight of filament on the spool. Only set if the filament type has a weight set."
+        ),
+        example=500,
+    )
+    used_weight: float = Field(ge=0, description="Consumed weight of filament from the spool.", example=500)
     location: Optional[str] = Field(max_length=64, description="Where this spool can be found.", example="Shelf A")
     lot_nr: Optional[str] = Field(
         max_length=64,
@@ -107,13 +115,19 @@ class Spool(BaseModel):
     @staticmethod
     def from_db(item: models.Spool) -> "Spool":
         """Create a new Pydantic spool object from a database spool object."""
+        filament = Filament.from_db(item.filament)
+        remaining_weight: Optional[float] = None
+        if filament.weight is not None:
+            remaining_weight = max(filament.weight - item.used_weight, 0)
+
         return Spool(
             id=item.id,
             registered=item.registered,
             first_used=item.first_used,
             last_used=item.last_used,
-            filament=Filament.from_db(item.filament),
-            weight=item.weight,
+            filament=filament,
+            used_weight=item.used_weight,
+            remaining_weight=remaining_weight,
             location=item.location,
             lot_nr=item.lot_nr,
             comment=item.comment,

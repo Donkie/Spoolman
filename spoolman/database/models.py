@@ -50,7 +50,7 @@ class Spool(Base):
     last_used: Mapped[Optional[datetime]] = mapped_column()
     filament_id: Mapped[int] = mapped_column(ForeignKey("filament.id"))
     filament: Mapped["Filament"] = relationship(back_populates="spools")
-    weight: Mapped[float] = mapped_column()
+    used_weight: Mapped[float] = mapped_column()
     location: Mapped[Optional[str]] = mapped_column(String(64))
     lot_nr: Mapped[Optional[str]] = mapped_column(String(64))
     comment: Mapped[Optional[str]] = mapped_column(String(1024))

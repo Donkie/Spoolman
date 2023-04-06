@@ -16,7 +16,8 @@ async def create(
     *,
     db: AsyncSession,
     filament_id: int,
-    weight: Optional[float] = None,
+    remaining_weight: Optional[float] = None,
+    used_weight: Optional[float] = None,
     first_used: Optional[datetime] = None,
     last_used: Optional[datetime] = None,
     location: Optional[str] = None,
@@ -25,14 +26,17 @@ async def create(
 ) -> models.Spool:
     """Add a new spool to the database. Leave weight empty to assume full spool."""
     filament_item = await filament.get_by_id(db, filament_id)
-    if weight is None:
-        if filament_item.weight is None:
-            raise ItemCreateError("The weight for neither the spool nor its filament type is set.")
-        weight = filament_item.weight
+    if used_weight is None:
+        if remaining_weight is not None:
+            if filament_item.weight is None:
+                raise ItemCreateError("remaining_weight can only be used if the filament type has a weight set.")
+            used_weight = max(filament_item.weight - remaining_weight, 0)
+        else:
+            used_weight = 0
 
     db_item = models.Spool(
         filament=filament_item,
-        weight=weight,
+        used_weight=used_weight,
         first_used=first_used,
         last_used=last_used,
         location=location,
@@ -105,6 +109,10 @@ async def update(
     for k, v in data.items():
         if k == "filament_id":
             spool.filament = await filament.get_by_id(db, v)
+        elif k == "remaining_weight":
+            if spool.filament.weight is None:
+                raise ItemCreateError("remaining_weight can only be used if the filament type has a weight set.")
+            spool.used_weight = max(spool.filament.weight - v, 0)
         else:
             setattr(spool, k, v)
     await db.flush()
@@ -119,33 +127,33 @@ async def delete(db: AsyncSession, spool_id: int) -> None:
 
 # TODO: Make unit tests for race conditions on these
 async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.Spool:
-    """Reduce the weight of a spool.
+    """Consume filament from a spool by weight.
 
     Does nothing if the spool is empty.
 
     Args:
         db (AsyncSession): Database session
         spool_id (int): Spool ID
-        weight (float): Weight loss in grams
+        weight (float): Filament weight to consume, in grams
 
     Returns:
         models.Spool: Updated spool object
     """
     spool = await get_by_id(db, spool_id, with_for_update=True)
-    spool.weight -= min(spool.weight, weight)
+    spool.used_weight += weight
     await db.flush()
     return spool
 
 
 async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.Spool:
-    """Reduce the weight of a spool by using a length of filament.
+    """Consume filament from a spool by length.
 
     Does nothing if the spool is empty.
 
     Args:
         db (AsyncSession): Database session
         spool_id (int): Spool ID
-        length (float): Length of filament to reduce by
+        length (float): Length of filament to consume, in mm
 
     Returns:
         models.Spool: Updated spool object
@@ -154,11 +162,10 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
 
     filament = spool.filament
 
-    weight = weight_from_length(
+    spool.used_weight += weight_from_length(
         length=length,
         radius=filament.diameter / 2,
         density=filament.density,
     )
-    spool.weight -= min(spool.weight, weight)
     await db.flush()
     return spool

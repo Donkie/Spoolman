@@ -27,14 +27,14 @@ class SpoolParameters(BaseModel):
     first_used: Optional[datetime] = Field(description="First logged occurence of spool usage.")
     last_used: Optional[datetime] = Field(description="Last logged occurence of spool usage.")
     filament_id: int = Field(description="The ID of the filament type of this spool.")
-    weight: Optional[float] = Field(
+    remaining_weight: Optional[float] = Field(
         ge=0,
         description=(
-            "Remaining weight of filament on the spool. "
-            "Leave empty to assume a full spool based on the weight parameters of the filament type."
+            "Remaining weight of filament on the spool. Can only be used if the filament type has a weight set."
         ),
-        example=500,
+        example=800,
     )
+    used_weight: Optional[float] = Field(ge=0, description="Used weight of filament on the spool.", example=200)
     location: Optional[str] = Field(max_length=64, description="Where this spool can be found.", example="Shelf A")
     lot_nr: Optional[str] = Field(
         max_length=64,
@@ -132,7 +132,11 @@ async def get(
 @router.post(
     "/",
     name="Add spool",
-    description="Add a new spool to the database.",
+    description=(
+        "Add a new spool to the database. "
+        "Only specify either remaining_weight or used_weight. "
+        "If no weight is set, the spool will be assumed to be full."
+    ),
     response_model_exclude_none=True,
     response_model=Spool,
     responses={
@@ -143,11 +147,18 @@ async def create(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
     body: SpoolParameters,
 ):
+    if body.remaining_weight is not None and body.used_weight is not None:
+        return JSONResponse(
+            status_code=400,
+            content={"message": "Only specify either remaining_weight or used_weight."},
+        )
+
     try:
         db_item = await spool.create(
             db=db,
             filament_id=body.filament_id,
-            weight=body.weight,
+            remaining_weight=body.remaining_weight,
+            used_weight=body.used_weight,
             first_used=body.first_used,
             last_used=body.last_used,
             location=body.location,
@@ -165,26 +176,46 @@ async def create(  # noqa: ANN201
 @router.patch(
     "/{spool_id}",
     name="Update spool",
-    description="Update any attribute of a spool. Only fields specified in the request will be affected.",
+    description=(
+        "Update any attribute of a spool. "
+        "Only fields specified in the request will be affected. "
+        "remaining_weight and used_weight can't be set at the same time."
+    ),
     response_model_exclude_none=True,
+    response_model=Spool,
+    responses={
+        400: {"model": Message},
+    },
 )
-async def update(
+async def update(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
     spool_id: int,
     body: SpoolUpdateParameters,
-) -> Spool:
+):
     patch_data = body.dict(exclude_unset=True)
+
+    if body.remaining_weight is not None and body.used_weight is not None:
+        return JSONResponse(
+            status_code=400,
+            content={"message": "Only specify either remaining_weight or used_weight."},
+        )
 
     if "filament_id" in patch_data and body.filament_id is None:
         raise RequestValidationError(
             [ErrorWrapper(ValueError("filament_id cannot be unset"), ("query", "filament_id"))],
         )
 
-    db_item = await spool.update(
-        db=db,
-        spool_id=spool_id,
-        data=patch_data,
-    )
+    try:
+        db_item = await spool.update(
+            db=db,
+            spool_id=spool_id,
+            data=patch_data,
+        )
+    except ItemCreateError as exc:
+        return JSONResponse(
+            status_code=400,
+            content={"message": str(exc)},
+        )
 
     return Spool.from_db(db_item)
 
