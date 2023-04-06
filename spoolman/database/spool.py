@@ -1,6 +1,6 @@
 """Helper functions for interacting with spool database objects."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import select
@@ -129,7 +129,8 @@ async def delete(db: AsyncSession, spool_id: int) -> None:
 async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.Spool:
     """Consume filament from a spool by weight.
 
-    Does nothing if the spool is empty.
+    Increases the used_weight attribute of the spool.
+    Updates the first_used and last_used attributes where appropriate.
 
     Args:
         db (AsyncSession): Database session
@@ -141,6 +142,11 @@ async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.S
     """
     spool = await get_by_id(db, spool_id, with_for_update=True)
     spool.used_weight += weight
+
+    if spool.first_used is None:
+        spool.first_used = datetime.now(tz=timezone.utc)
+    spool.last_used = datetime.now(tz=timezone.utc)
+
     await db.flush()
     return spool
 
@@ -148,7 +154,8 @@ async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.S
 async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.Spool:
     """Consume filament from a spool by length.
 
-    Does nothing if the spool is empty.
+    Increases the used_weight attribute of the spool.
+    Updates the first_used and last_used attributes where appropriate.
 
     Args:
         db (AsyncSession): Database session
@@ -167,5 +174,10 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
         radius=filament.diameter / 2,
         density=filament.density,
     )
+
+    if spool.first_used is None:
+        spool.first_used = datetime.now(tz=timezone.utc)
+    spool.last_used = datetime.now(tz=timezone.utc)
+
     await db.flush()
     return spool
