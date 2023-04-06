@@ -18,7 +18,19 @@ The data can be stored using any async SQLAlchemy supported database:
 - External databases: PostgreSQL, MySQL, MariaDB, CockroachDB
 - Internal database: SQLite
 
-By default, an internal SQLite database is used.
+If none of the below SPOOLMAN_DB_* environment variables are set, a SQLite database located in the user directory will be created and used.
+
+Database configuration:
+| Variable                  | Description                                                                                                                  |
+|---------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| SPOOLMAN_DB_TYPE          | Type of database, any of: "postgres", "mysql", "sqlite", "cockroachdb"                                                       |
+| SPOOLMAN_DB_HOST          | Database hostname                                                                                                            |
+| SPOOLMAN_DB_PORT          | Database port                                                                                                                |
+| SPOOLMAN_DB_NAME          | Database name                                                                                                                |
+| SPOOLMAN_DB_USERNAME      | Database username                                                                                                            |
+| SPOOLMAN_DB_PASSWORD_FILE | Path of file which contains the database password. This is more secure than using SPOOLMAN_DB_PASSWORD.                      |
+| SPOOLMAN_DB_PASSWORD      | Database password                                                                                                            |
+| SPOOLMAN_DB_QUERY         | Query parameters for the database connection, e.g. set to "unix_socket=/path/to/mysql.sock" to connect using a MySQL socket. |
 
 ## Data
 

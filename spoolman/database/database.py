@@ -3,17 +3,18 @@
 from collections.abc import AsyncGenerator
 from typing import Optional
 
+from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from spoolman.database.models import Base
 
 
 class Database:
-    connection_url: str
-    engine: AsyncEngine
-    session_maker: async_sessionmaker[AsyncSession]
+    connection_url: URL
+    engine: Optional[AsyncEngine]
+    session_maker: Optional[async_sessionmaker[AsyncSession]]
 
-    def __init__(self: "Database", connection_url: str) -> None:
+    def __init__(self: "Database", connection_url: URL) -> None:
         """Construct the Database wrapper and set config parameters."""
         self.connection_url = connection_url
 
@@ -24,6 +25,8 @@ class Database:
 
     async def create_tables(self: "Database") -> None:
         """Create tables for all defined models."""
+        if self.engine is None:
+            raise RuntimeError("DB is not connected.")
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
@@ -31,8 +34,12 @@ class Database:
 __db: Optional[Database] = None
 
 
-async def setup_db(connection_url: str) -> None:
-    """Connect the singleton DB object."""
+async def setup_db(connection_url: URL) -> None:
+    """Connect to the database.
+
+    Args:
+        connection_url: The URL to connect to the database.
+    """
     global __db  # noqa: PLW0603
     __db = Database(connection_url)
     __db.connect()
@@ -41,7 +48,7 @@ async def setup_db(connection_url: str) -> None:
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """Get a DB session to be used with FastAPI's dependency system."""
-    if __db is None:
+    if __db is None or __db.session_maker is None:
         raise RuntimeError("DB is not setup.")
     async with __db.session_maker() as session:
         try:
