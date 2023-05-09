@@ -1,5 +1,6 @@
 """Utilities for grabbing config from environment variables."""
 
+import logging
 import os
 from enum import Enum
 from pathlib import Path
@@ -153,3 +154,25 @@ def get_password() -> Optional[str]:
 
     # Second attempt: grab directly from an environment variable.
     return os.getenv("SPOOLMAN_DB_PASSWORD")
+
+
+def get_logging_level() -> int:
+    """Get the logging level from environment variables.
+
+    Returns "INFO" if no environment variable was set for the logging level.
+
+    Returns:
+        str: The logging level.
+    """
+    log_level_str = os.getenv("SPOOLMAN_LOGGING_LEVEL", "INFO").upper()
+    if log_level_str == "DEBUG":
+        return logging.DEBUG
+    if log_level_str == "INFO":
+        return logging.INFO
+    if log_level_str == "WARNING":
+        return logging.WARNING
+    if log_level_str == "ERROR":
+        return logging.ERROR
+    if log_level_str == "CRITICAL":
+        return logging.CRITICAL
+    raise ValueError(f"Failed to parse SPOOLMAN_LOGGING_LEVEL variable: Unknown logging level '{log_level_str}'.")

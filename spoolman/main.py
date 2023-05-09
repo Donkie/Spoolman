@@ -20,17 +20,21 @@ data_dir.mkdir(parents=True, exist_ok=True)
 logging.basicConfig(
     filename=data_dir.joinpath("spoolman.log"),
     filemode="w",
-    level=logging.INFO,
     format="%(asctime)s:%(levelname)s:%(message)s",
     datefmt="%Y-%m-%d %I:%M:%S%p",
 )
 
-# Setup console logger
+# Setup the base logger
+spoolman_logger = logging.getLogger("spoolman")
+spoolman_logger.setLevel(env.get_logging_level())
+
+# Log all messages to console
 formatter = logging.Formatter("%(name)-12s: %(levelname)-8s %(message)s")
 console = logging.StreamHandler()
-console.setLevel(logging.INFO)
+console.setLevel(env.get_logging_level())
 console.setFormatter(formatter)
-logging.getLogger("").addHandler(console)
+root_logger = logging.getLogger("")
+root_logger.addHandler(console)
 
 # Get logger instance
 logger = logging.getLogger(__name__)

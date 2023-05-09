@@ -1,5 +1,6 @@
 """SQLAlchemy database setup."""
 
+import logging
 from collections.abc import AsyncGenerator
 from typing import Optional
 
@@ -7,6 +8,7 @@ from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from spoolman.database.models import Base
+from spoolman.env import get_logging_level
 
 
 class Database:
@@ -20,13 +22,20 @@ class Database:
 
     def connect(self: "Database") -> None:
         """Connect to the database."""
+        if get_logging_level() == logging.DEBUG:
+            logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+
         connect_args = {}
         if self.connection_url.drivername == "sqlite":
             connect_args["check_same_thread"] = False
         elif self.connection_url.drivername == "postgresql":
             connect_args["options"] = "-c timezone=utc"
+            connect_args["max_inactive_connection_lifetime"] = 3
 
-        self.engine = create_async_engine(self.connection_url, connect_args=connect_args)
+        self.engine = create_async_engine(
+            self.connection_url,
+            connect_args=connect_args,
+        )
         self.session_maker = async_sessionmaker(self.engine, autocommit=False, autoflush=True)
 
     async def create_tables(self: "Database") -> None:

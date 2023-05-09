@@ -1,6 +1,6 @@
 """Helper functions for interacting with spool database objects."""
 
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional
 
 import sqlalchemy
