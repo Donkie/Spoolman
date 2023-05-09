@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import select
+import sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 
@@ -48,12 +48,11 @@ async def create(
     return db_item
 
 
-async def get_by_id(db: AsyncSession, spool_id: int, with_for_update: Optional[bool] = None) -> models.Spool:
+async def get_by_id(db: AsyncSession, spool_id: int) -> models.Spool:
     """Get a spool object from the database by the unique ID."""
     spool = await db.get(
         models.Spool,
         spool_id,
-        with_for_update=with_for_update,  # type: ignore  # noqa: PGH003
         options=[joinedload("*")],  # Load all nested objects as well
     )
     if spool is None:
@@ -74,7 +73,7 @@ async def find(
 ) -> list[models.Spool]:
     """Find a list of spool objects by search criteria."""
     stmt = (
-        select(models.Spool)
+        sqlalchemy.select(models.Spool)
         .join(models.Spool.filament)
         .join(models.Filament.vendor)
         .options(contains_eager(models.Spool.filament).contains_eager(models.Filament.vendor))
@@ -125,6 +124,21 @@ async def delete(db: AsyncSession, spool_id: int) -> None:
     await db.delete(spool)
 
 
+async def use_weight_safe(db: AsyncSession, spool_id: int, weight: float) -> None:
+    """Consume filament from a spool by weight in a way that is safe against race conditions.
+
+    Args:
+        db (AsyncSession): Database session
+        spool_id (int): Spool ID
+        weight (float): Filament weight to consume, in grams
+    """
+    await db.execute(
+        sqlalchemy.update(models.Spool)
+        .where(models.Spool.id == spool_id)
+        .values(used_weight=models.Spool.used_weight + weight),
+    )
+
+
 # TODO: Make unit tests for race conditions on these
 async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.Spool:
     """Consume filament from a spool by weight.
@@ -140,12 +154,13 @@ async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.S
     Returns:
         models.Spool: Updated spool object
     """
-    spool = await get_by_id(db, spool_id, with_for_update=True)
-    spool.used_weight += weight
+    await use_weight_safe(db, spool_id, weight)
+
+    spool = await get_by_id(db, spool_id)
 
     if spool.first_used is None:
-        spool.first_used = datetime.now(tz=timezone.utc)
-    spool.last_used = datetime.now(tz=timezone.utc)
+        spool.first_used = datetime.utcnow()
+    spool.last_used = datetime.utcnow()
 
     await db.flush()
     return spool
@@ -165,19 +180,28 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
     Returns:
         models.Spool: Updated spool object
     """
-    spool = await get_by_id(db, spool_id, with_for_update=True)
-
-    filament = spool.filament
-
-    spool.used_weight += weight_from_length(
-        length=length,
-        radius=filament.diameter / 2,
-        density=filament.density,
+    # Get filament diameter and density
+    result = await db.execute(
+        sqlalchemy.select(models.Filament.diameter, models.Filament.density)
+        .join(models.Spool, models.Spool.filament_id == models.Filament.id)
+        .where(models.Spool.id == spool_id),
     )
+    filament_info = result.one()
+
+    # Calculate and use weight
+    weight = weight_from_length(
+        length=length,
+        radius=filament_info[0] / 2,
+        density=filament_info[1],
+    )
+    await use_weight_safe(db, spool_id, weight)
+
+    # Get spool with new weight and update first_used and last_used
+    spool = await get_by_id(db, spool_id)
 
     if spool.first_used is None:
-        spool.first_used = datetime.now(tz=timezone.utc)
-    spool.last_used = datetime.now(tz=timezone.utc)
+        spool.first_used = datetime.utcnow()
+    spool.last_used = datetime.utcnow()
 
     await db.flush()
     return spool

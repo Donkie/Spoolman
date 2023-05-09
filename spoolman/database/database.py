@@ -20,7 +20,13 @@ class Database:
 
     def connect(self: "Database") -> None:
         """Connect to the database."""
-        self.engine = create_async_engine(self.connection_url, connect_args={"check_same_thread": False})
+        connect_args = {}
+        if self.connection_url.drivername == "sqlite":
+            connect_args["check_same_thread"] = False
+        elif self.connection_url.drivername == "postgresql":
+            connect_args["options"] = "-c timezone=utc"
+
+        self.engine = create_async_engine(self.connection_url, connect_args=connect_args)
         self.session_maker = async_sessionmaker(self.engine, autocommit=False, autoflush=True)
 
     async def create_tables(self: "Database") -> None:

@@ -12,7 +12,7 @@ dependencies = {file = ["requirements.txt"]}
 
 [tool.ruff]
 select = ["ALL"]
-ignore = ["A003", "D101", "D104", "D406", "D407", "S104", "TRY201", "TRY003", "EM101", "EM102"]
+ignore = ["A003", "D101", "D104", "D406", "D407", "S104", "TRY201", "TRY003", "EM101", "EM102", "DTZ003"]
 line-length = 120
 target-version = "py39"
 
