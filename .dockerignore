@@ -1,10 +1,2 @@
-.git
-.github
-.venv
-.vscode
-build
-Dockerfile
-tests
-
-client
-!client/dist
+client/dist
+client/node_modules
