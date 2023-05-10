@@ -7,6 +7,10 @@ RUN npm run build
 
 FROM python:3.11-alpine as runner
 
+LABEL org.opencontainers.image.source=https://github.com/Donkie/Spoolman
+LABEL org.opencontainers.image.description="Keep track of your inventory of 3D-printer filament spools."
+LABEL org.opencontainers.image.licenses=AGPL-3.0
+
 # Add local user so we don't run as root
 RUN adduser -D app
 USER app
