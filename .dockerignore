@@ -1,2 +1,10 @@
 .git
+.github
+.venv
+.vscode
+build
 Dockerfile
+tests
+
+client
+!client/dist

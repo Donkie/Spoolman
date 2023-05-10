@@ -10,6 +10,9 @@ dynamic = ["dependencies"]
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
 
+[tool.setuptools.packages.find]
+where = ["spoolman"]
+
 [tool.ruff]
 select = ["ALL"]
 ignore = ["A003", "D101", "D104", "D406", "D407", "S104", "TRY201", "TRY003", "EM101", "EM102", "DTZ003"]

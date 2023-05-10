@@ -5,6 +5,7 @@ from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from platformdirs import user_data_dir
 from sqlalchemy import URL
 
@@ -42,6 +43,7 @@ logger = logging.getLogger(__name__)
 # Setup FastAPI
 app = FastAPI(debug=True)
 app.mount("/api/v1", v1_app)
+app.mount("/", StaticFiles(directory="client/dist", html=True), name="client")
 
 
 def get_connection_url() -> URL:
