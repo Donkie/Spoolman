@@ -11,7 +11,8 @@ dynamic = ["dependencies"]
 dependencies = {file = ["requirements.txt"]}
 
 [tool.setuptools.packages.find]
-where = ["spoolman"]
+where = [""]
+exclude = ["client"]
 
 [tool.ruff]
 select = ["ALL"]
