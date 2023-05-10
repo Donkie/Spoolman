@@ -74,8 +74,8 @@ async def find(
     """Find a list of spool objects by search criteria."""
     stmt = (
         sqlalchemy.select(models.Spool)
-        .join(models.Spool.filament)
-        .join(models.Filament.vendor)
+        .join(models.Spool.filament, isouter=True)
+        .join(models.Filament.vendor, isouter=True)
         .options(contains_eager(models.Spool.filament).contains_eager(models.Filament.vendor))
     )
     if filament_name is not None:

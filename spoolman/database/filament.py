@@ -69,7 +69,11 @@ async def find(
     article_number: Optional[str] = None,
 ) -> list[models.Filament]:
     """Find a list of filament objects by search criteria."""
-    stmt = select(models.Filament).options(contains_eager(models.Filament.vendor)).join(models.Filament.vendor)
+    stmt = (
+        select(models.Filament)
+        .options(contains_eager(models.Filament.vendor))
+        .join(models.Filament.vendor, isouter=True)
+    )
     if vendor_name is not None:
         stmt = stmt.where(models.Vendor.name.ilike(f"%{vendor_name}%"))
     if vendor_id is not None:
