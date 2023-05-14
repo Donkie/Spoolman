@@ -1,5 +1,9 @@
 """Router setup for the v1 version of the API."""
 
+# ruff: noqa: D103
+
+import logging
+
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from starlette.requests import Request
@@ -9,7 +13,7 @@ from spoolman.exceptions import ItemNotFoundError
 
 from . import filament, models, spool, vendor
 
-# ruff: noqa: D103
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Spoolman REST API v1",
@@ -21,9 +25,10 @@ app = FastAPI(
 
 @app.exception_handler(ItemNotFoundError)
 async def itemnotfounderror_exception_handler(_request: Request, exc: ItemNotFoundError) -> Response:
+    logger.debug(exc, exc_info=True)
     return JSONResponse(
         status_code=404,
-        content={"message": str(exc)},
+        content={"message": "Item not found."},
     )
 
 

@@ -1,5 +1,6 @@
 """Spool related endpoints."""
 
+import logging
 from datetime import datetime
 from typing import Annotated, Optional
 
@@ -14,6 +15,8 @@ from spoolman.api.v1.models import Message, Spool
 from spoolman.database import spool
 from spoolman.database.database import get_db_session
 from spoolman.exceptions import ItemCreateError
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/spool",
@@ -166,10 +169,11 @@ async def create(  # noqa: ANN201
             comment=body.comment,
         )
         return Spool.from_db(db_item)
-    except ItemCreateError as exc:
+    except ItemCreateError:
+        logger.exception("Failed to create spool.")
         return JSONResponse(
             status_code=400,
-            content={"message": str(exc)},
+            content={"message": "Failed to create spool, see server logs for more information."},
         )
 
 
@@ -211,10 +215,11 @@ async def update(  # noqa: ANN201
             spool_id=spool_id,
             data=patch_data,
         )
-    except ItemCreateError as exc:
+    except ItemCreateError:
+        logger.exception("Failed to update spool.")
         return JSONResponse(
             status_code=400,
-            content={"message": str(exc)},
+            content={"message": "Failed to update spool, see server logs for more information."},
         )
 
     return Spool.from_db(db_item)

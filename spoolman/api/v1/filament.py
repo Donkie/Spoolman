@@ -1,5 +1,6 @@
 """Filament related endpoints."""
 
+import logging
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, Query
@@ -13,6 +14,8 @@ from spoolman.api.v1.models import Filament, Message
 from spoolman.database import filament
 from spoolman.database.database import get_db_session
 from spoolman.exceptions import ItemDeleteError
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/filament",
@@ -196,9 +199,10 @@ async def delete(  # noqa: ANN201
 ):
     try:
         await filament.delete(db, filament_id)
-    except ItemDeleteError as exc:
+    except ItemDeleteError:
+        logger.exception("Failed to delete filament.")
         return JSONResponse(
             status_code=403,
-            content={"message": str(exc)},
+            content={"message": "Failed to delete filament, see server logs for more information."},
         )
     return Message(message="Success!")
