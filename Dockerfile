@@ -31,4 +31,5 @@ COPY --chown=app:app --from=client-builder /client/dist /home/app/spoolman/clien
 
 # Run command
 EXPOSE 8000
-CMD ["uvicorn", "spoolman.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["uvicorn", "spoolman.main:app"]
+CMD ["--host", "0.0.0.0", "--port", "8000"]
