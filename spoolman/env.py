@@ -176,3 +176,19 @@ def get_logging_level() -> int:
     if log_level_str == "CRITICAL":
         return logging.CRITICAL
     raise ValueError(f"Failed to parse SPOOLMAN_LOGGING_LEVEL variable: Unknown logging level '{log_level_str}'.")
+
+
+def is_debug_mode() -> bool:
+    """Get whether debug mode is enabled from environment variables.
+
+    Returns False if no environment variable was set for debug mode.
+
+    Returns:
+        bool: Whether debug mode is enabled.
+    """
+    debug_mode = os.getenv("SPOOLMAN_DEBUG_MODE", "FALSE").upper()
+    if debug_mode == "FALSE" or debug_mode == "0":
+        return False
+    if debug_mode == "TRUE" or debug_mode == "1":
+        return True
+    raise ValueError(f"Failed to parse SPOOLMAN_DEBUG_MODE variable: Unknown debug mode '{debug_mode}'.")
