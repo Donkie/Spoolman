@@ -9,9 +9,22 @@ import { IFilament } from "../filaments/model";
 export const SpoolCreate: React.FC<IResourceComponentsProps> = () => {
   const { formProps, saveButtonProps } = useForm();
 
-  const { selectProps } = useSelect<IFilament>({
+  const { queryResult } = useSelect<IFilament>({
     resource: "filament",
-    optionLabel: "name",
+  });
+
+  const filamentOptions = queryResult.data?.data.map((item) => {
+    let label;
+    if (item.vendor) {
+      label = `${item.vendor.name} - ${item.name}`;
+    } else {
+      label = item.name;
+    }
+
+    return {
+      label: label,
+      value: item.id,
+    };
   });
 
   return (
@@ -54,7 +67,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps> = () => {
             },
           ]}
         >
-          <Select {...selectProps} />
+          <Select options={filamentOptions} />
         </Form.Item>
         <Form.Item
           label="Used Weight"
