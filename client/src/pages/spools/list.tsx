@@ -27,7 +27,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
         <Table.Column
           dataIndex="remaining_weight"
           title="Estimated Remaining Weight"
-          render={(value: any) => (
+          render={(value) => (
             <NumberField
               value={value}
               options={{

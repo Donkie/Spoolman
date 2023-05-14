@@ -26,7 +26,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
         <Table.Column
           dataIndex="density"
           title="Density"
-          render={(value: any) => (
+          render={(value) => (
             <NumberField
               value={value}
               options={{
@@ -41,7 +41,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
         <Table.Column
           dataIndex="diameter"
           title="Diameter"
-          render={(value: any) => (
+          render={(value) => (
             <NumberField
               value={value}
               options={{
@@ -56,7 +56,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
         <Table.Column
           dataIndex="weight"
           title="Weight"
-          render={(value: any) => (
+          render={(value) => (
             <NumberField
               value={value}
               options={{
@@ -71,7 +71,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
         <Table.Column
           dataIndex="spool_weight"
           title="Spool Weight"
-          render={(value: any) => (
+          render={(value) => (
             <NumberField
               value={value}
               options={{

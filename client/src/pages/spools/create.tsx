@@ -1,12 +1,17 @@
 import React from "react";
 import { IResourceComponentsProps } from "@refinedev/core";
-import { Create, useForm } from "@refinedev/antd";
+import { Create, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, DatePicker, Select, InputNumber } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 
 export const SpoolCreate: React.FC<IResourceComponentsProps> = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm();
+  const { formProps, saveButtonProps } = useForm();
+
+  const { selectProps } = useSelect<IFilament>({
+    resource: "filament",
+    optionLabel: "name",
+  });
 
   return (
     <Create saveButtonProps={saveButtonProps}>
@@ -41,14 +46,14 @@ export const SpoolCreate: React.FC<IResourceComponentsProps> = () => {
         </Form.Item>
         <Form.Item
           label="Filament"
-          name={["filament", "name"]}
+          name={["filament_id"]}
           rules={[
             {
               required: true,
             },
           ]}
         >
-          {/* <Select {...filamentSelectProps} /> */}
+          <Select {...selectProps} />
         </Form.Item>
         <Form.Item
           label="Used Weight"

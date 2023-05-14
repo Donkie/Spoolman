@@ -1,14 +1,22 @@
 import React from "react";
 import { IResourceComponentsProps } from "@refinedev/core";
-import { Edit, useForm } from "@refinedev/antd";
+import { Edit, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, DatePicker, Select, InputNumber } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 
 export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm();
+  const { formProps, saveButtonProps } = useForm();
 
-  const filamentData = queryResult?.data?.data;
+  const { selectProps } = useSelect<IVendor>({
+    resource: "vendor",
+    optionLabel: "name",
+  });
+
+  if (formProps.initialValues) {
+    formProps.initialValues["vendor_id"] =
+      formProps.initialValues["vendor"]?.id;
+  }
 
   return (
     <Edit saveButtonProps={saveButtonProps}>
@@ -52,14 +60,21 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
         </Form.Item>
         <Form.Item
           label="Vendor"
-          name={["vendor", "name"]}
+          name={["vendor_id"]}
           rules={[
             {
               required: false,
             },
           ]}
+          // Applying this to Form.Item Select's causes a cleared select to send null
+          normalize={(value) => {
+            if (value === undefined) {
+              return null;
+            }
+            return value;
+          }}
         >
-          {/* <Select {...vendorSelectProps} /> */}
+          <Select {...selectProps} allowClear />
         </Form.Item>
         <Form.Item
           label="Material"

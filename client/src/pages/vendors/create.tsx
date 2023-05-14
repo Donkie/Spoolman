@@ -1,12 +1,11 @@
 import React from "react";
 import { IResourceComponentsProps } from "@refinedev/core";
 import { Create, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker } from "antd";
-import dayjs from "dayjs";
+import { Form, Input } from "antd";
 import TextArea from "antd/es/input/TextArea";
 
 export const VendorCreate: React.FC<IResourceComponentsProps> = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm();
+  const { formProps, saveButtonProps } = useForm();
 
   return (
     <Create saveButtonProps={saveButtonProps}>

@@ -1,12 +1,16 @@
 import React from "react";
 import { IResourceComponentsProps } from "@refinedev/core";
-import { Create, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, InputNumber } from "antd";
-import dayjs from "dayjs";
+import { Create, useForm, useSelect } from "@refinedev/antd";
+import { Form, Input, Select, InputNumber } from "antd";
 import TextArea from "antd/es/input/TextArea";
 
 export const FilamentCreate: React.FC<IResourceComponentsProps> = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm();
+  const { formProps, saveButtonProps } = useForm();
+
+  const { selectProps } = useSelect<IVendor>({
+    resource: "vendor",
+    optionLabel: "name",
+  });
 
   return (
     <Create saveButtonProps={saveButtonProps}>
@@ -25,14 +29,14 @@ export const FilamentCreate: React.FC<IResourceComponentsProps> = () => {
         </Form.Item>
         <Form.Item
           label="Vendor"
-          name={["vendor", "name"]}
+          name={["vendor_id"]}
           rules={[
             {
               required: false,
             },
           ]}
         >
-          {/* <Select {...vendorSelectProps} /> */}
+          <Select {...selectProps} allowClear />
         </Form.Item>
         <Form.Item
           label="Material"

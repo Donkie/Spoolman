@@ -6,9 +6,7 @@ import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 
 export const VendorEdit: React.FC<IResourceComponentsProps> = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm();
-
-  const vendorData = queryResult?.data?.data;
+  const { formProps, saveButtonProps } = useForm();
 
   return (
     <Edit saveButtonProps={saveButtonProps}>

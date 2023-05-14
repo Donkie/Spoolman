@@ -1,14 +1,22 @@
 import React from "react";
 import { IResourceComponentsProps } from "@refinedev/core";
-import { Edit, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, InputNumber } from "antd";
+import { Edit, useForm, useSelect } from "@refinedev/antd";
+import { Form, Input, DatePicker, Select } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 
 export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm();
+  const { formProps, saveButtonProps } = useForm();
 
-  const spoolData = queryResult?.data?.data;
+  const { selectProps } = useSelect<IFilament>({
+    resource: "filament",
+    optionLabel: "name",
+  });
+
+  if (formProps.initialValues) {
+    formProps.initialValues["filament_id"] =
+      formProps.initialValues["filament"].id;
+  }
 
   return (
     <Edit saveButtonProps={saveButtonProps}>
@@ -43,7 +51,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
           name={["first_used"]}
           rules={[
             {
-              required: true,
+              required: false,
             },
           ]}
           getValueProps={(value) => ({
@@ -57,7 +65,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
           name={["last_used"]}
           rules={[
             {
-              required: true,
+              required: false,
             },
           ]}
           getValueProps={(value) => ({
@@ -68,14 +76,14 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
         </Form.Item>
         <Form.Item
           label="Filament"
-          name={["filament", "name"]}
+          name={["filament_id"]}
           rules={[
             {
               required: true,
             },
           ]}
         >
-          {/* <Select {...filamentSelectProps} /> */}
+          <Select {...selectProps} />
         </Form.Item>
         <Form.Item
           label="Used Weight"
