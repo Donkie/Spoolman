@@ -42,12 +42,16 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
         <Table.Column
           dataIndex={["first_used"]}
           title="First Used"
-          render={(value: any) => <DateField value={value} format="lll" />}
+          render={(value) => (
+            <DateField value={value} format="YYYY-MM-DD HH:mm:ss" />
+          )}
         />
         <Table.Column
           dataIndex={["last_used"]}
           title="Last Used"
-          render={(value: any) => <DateField value={value} format="lll" />}
+          render={(value) => (
+            <DateField value={value} format="YYYY-MM-DD HH:mm:ss" />
+          )}
         />
         <Table.Column dataIndex="location" title="Location" />
         <Table.Column dataIndex="lot_nr" title="Lot Nr" />

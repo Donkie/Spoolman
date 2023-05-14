@@ -87,7 +87,9 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
         <Table.Column
           dataIndex={["registered"]}
           title="Registered"
-          render={(value: any) => <DateField value={value} />}
+          render={(value) => (
+            <DateField value={value} format="YYYY-MM-DD HH:mm:ss" />
+          )}
         />
         <Table.Column dataIndex={["comment"]} title="Comment" />
         <Table.Column

@@ -16,7 +16,7 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       <Title level={5}>Id</Title>
       <NumberField value={record?.id ?? ""} />
       <Title level={5}>Registered</Title>
-      <DateField value={record?.registered} format="lll" />
+      <DateField value={record?.registered} format="YYYY-MM-DD HH:mm:ss" />
       <Title level={5}>Name</Title>
       <TextField value={record?.name} />
       <Title level={5}>Vendor</Title>

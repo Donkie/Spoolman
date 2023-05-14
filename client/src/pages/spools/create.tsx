@@ -28,7 +28,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps> = () => {
             value: value ? dayjs(value) : undefined,
           })}
         >
-          <DatePicker format="lll" />
+          <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" />
         </Form.Item>
         <Form.Item
           label="Last Used"
@@ -42,7 +42,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps> = () => {
             value: value ? dayjs(value) : undefined,
           })}
         >
-          <DatePicker format="lll" />
+          <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" />
         </Form.Item>
         <Form.Item
           label="Filament"

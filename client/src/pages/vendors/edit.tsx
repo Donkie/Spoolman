@@ -34,7 +34,7 @@ export const VendorEdit: React.FC<IResourceComponentsProps> = () => {
             value: value ? dayjs(value) : undefined,
           })}
         >
-          <DatePicker disabled format="lll" />
+          <DatePicker disabled showTime format="YYYY-MM-DD HH:mm:ss" />
         </Form.Item>
         <Form.Item
           label="Name"

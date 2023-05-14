@@ -16,11 +16,11 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       <Title level={5}>Id</Title>
       <NumberField value={record?.id ?? ""} />
       <Title level={5}>Registered</Title>
-      <DateField value={record?.registered} format="lll" />
+      <DateField value={record?.registered} format="YYYY-MM-DD HH:mm:ss" />
       <Title level={5}>First Used</Title>
-      <DateField value={record?.first_used} format="lll" />
+      <DateField value={record?.first_used} format="YYYY-MM-DD HH:mm:ss" />
       <Title level={5}>Last Used</Title>
-      <DateField value={record?.last_used} format="lll" />
+      <DateField value={record?.last_used} format="YYYY-MM-DD HH:mm:ss" />
       <Title level={5}>Filament</Title>
       {/* {filamentIsLoading ? (
                 <>Loading...</>
