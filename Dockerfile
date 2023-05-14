@@ -3,6 +3,8 @@ FROM node:16-alpine as client-builder
 COPY ./client /client
 WORKDIR /client
 RUN npm install
+
+RUN echo "VITE_APIURL=/api/v1" > .env.production
 RUN npm run build
 
 FROM python:3.11-alpine as runner

@@ -43,12 +43,24 @@ function App() {
     getLocale: () => i18n.language,
   };
 
+  if (!import.meta.env.VITE_APIURL) {
+    return (
+      <>
+        <h1>Missing API URL</h1>
+        <p>
+          App was built without an API URL. Please set the VITE_APIURL
+          environment variable to the URL of your Spoolman API.
+        </p>
+      </>
+    );
+  }
+
   return (
     <BrowserRouter>
       <RefineKbarProvider>
         <ColorModeContextProvider>
           <Refine
-            dataProvider={dataProvider("/api/v1")}
+            dataProvider={dataProvider(import.meta.env.VITE_APIURL)}
             notificationProvider={notificationProvider}
             i18nProvider={i18nProvider}
             routerProvider={routerBindings}
