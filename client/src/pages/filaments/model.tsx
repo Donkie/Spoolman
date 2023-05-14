@@ -1,4 +1,6 @@
-interface IFilament {
+import { IVendor } from "../vendors/model";
+
+export interface IFilament {
   id: string;
   registered: string;
   name?: string;

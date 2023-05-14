@@ -1,4 +1,6 @@
-interface ISpool {
+import { IFilament } from "../filaments/model";
+
+export interface ISpool {
   id: string;
   registered: string;
   first_used?: string;

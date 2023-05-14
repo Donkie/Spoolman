@@ -4,6 +4,7 @@ import { Create, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, DatePicker, Select, InputNumber } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
+import { IFilament } from "../filaments/model";
 
 export const SpoolCreate: React.FC<IResourceComponentsProps> = () => {
   const { formProps, saveButtonProps } = useForm();

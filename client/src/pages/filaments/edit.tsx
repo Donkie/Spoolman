@@ -4,6 +4,7 @@ import { Edit, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, DatePicker, Select, InputNumber } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
+import { IVendor } from "../vendors/model";
 
 export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
   const { formProps, saveButtonProps } = useForm();
