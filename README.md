@@ -1,4 +1,8 @@
-# Spoolman
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Donkie/Spoolman/assets/2332094/e6d396df-a8d1-4326-b618-02efc32d3fa2">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/Donkie/Spoolman/assets/2332094/a0e63a0b-45cb-4c16-8dfe-0806a09453a5">
+  <img alt="Icon of a filament spool" src="https://github.com/Donkie/Spoolman/assets/2332094/a0e63a0b-45cb-4c16-8dfe-0806a09453a5">
+</picture>
 
 _Keep track of your inventory of 3D-printer filament spools._
 
