@@ -56,32 +56,42 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
         <Table.Column
           dataIndex="weight"
           title="Weight"
-          render={(value) => (
-            <NumberField
-              value={value}
-              options={{
-                unitDisplay: "short",
-                unit: "gram",
-                style: "unit",
-                maximumFractionDigits: 1,
-              }}
-            />
-          )}
+          render={(value) => {
+            if (value === null || value === undefined) {
+              return <></>;
+            }
+            return (
+              <NumberField
+                value={value}
+                options={{
+                  unitDisplay: "short",
+                  unit: "gram",
+                  style: "unit",
+                  maximumFractionDigits: 1,
+                }}
+              />
+            );
+          }}
         />
         <Table.Column
           dataIndex="spool_weight"
           title="Spool Weight"
-          render={(value) => (
-            <NumberField
-              value={value}
-              options={{
-                unitDisplay: "short",
-                unit: "gram",
-                style: "unit",
-                maximumFractionDigits: 1,
-              }}
-            />
-          )}
+          render={(value) => {
+            if (value === null || value === undefined) {
+              return <></>;
+            }
+            return (
+              <NumberField
+                value={value}
+                options={{
+                  unitDisplay: "short",
+                  unit: "gram",
+                  style: "unit",
+                  maximumFractionDigits: 1,
+                }}
+              />
+            );
+          }}
         />
         <Table.Column dataIndex="article_number" title="Article Number" />
         <Table.Column
