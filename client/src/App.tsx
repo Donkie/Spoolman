@@ -17,7 +17,6 @@ import routerBindings, {
 import dataProvider from "@refinedev/simple-rest";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
-import { AppIcon } from "./components/app-icon";
 import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import { SpoolCreate, SpoolEdit, SpoolList, SpoolShow } from "./pages/spools";
@@ -33,6 +32,7 @@ import {
   VendorList,
   VendorShow,
 } from "./pages/vendors";
+import { ReactComponent as Logo } from "./icon.svg";
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -106,12 +106,16 @@ function App() {
                 element={
                   <ThemedLayoutV2
                     Header={() => <Header sticky />}
-                    Sider={() => <ThemedSiderV2 fixed />}
-                    Title={({ collapsed }) => (
-                      <ThemedTitleV2
-                        collapsed={collapsed}
-                        text="Spoolman"
-                        icon={<AppIcon />}
+                    Sider={() => (
+                      <ThemedSiderV2
+                        fixed
+                        Title={({ collapsed }) => (
+                          <ThemedTitleV2
+                            collapsed={collapsed}
+                            text="Spoolman"
+                            icon={<Logo />}
+                          />
+                        )}
                       />
                     )}
                   >

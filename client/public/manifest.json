@@ -1,0 +1,13 @@
+{
+  "name": "Spoolman",
+  "short_name": "Spoolman",
+  "icons": [
+    {
+      "src": "google-touch-icon.png",
+      "sizes": "512x512"
+    }
+  ],
+  "background_color": "#ffffff",
+  "theme_color": "#DC7734",
+  "display": "fullscreen"
+}
