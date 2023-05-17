@@ -1,8 +1,10 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Donkie/Spoolman/assets/2332094/e6d396df-a8d1-4326-b618-02efc32d3fa2">
-  <source media="(prefers-color-scheme: light)" srcset="https://github.com/Donkie/Spoolman/assets/2332094/a0e63a0b-45cb-4c16-8dfe-0806a09453a5">
-  <img alt="Icon of a filament spool" src="https://github.com/Donkie/Spoolman/assets/2332094/a0e63a0b-45cb-4c16-8dfe-0806a09453a5">
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Donkie/Spoolman/assets/2332094/4e6e80ac-c7be-4ad2-9a33-dedc1b5ba30e">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/Donkie/Spoolman/assets/2332094/3c120b3a-1422-42f6-a16b-8d5a07c33000">
+  <img alt="Icon of a filament spool" src="https://github.com/Donkie/Spoolman/assets/2332094/3c120b3a-1422-42f6-a16b-8d5a07c33000">
 </picture>
+
+<br/><br/>
 
 _Keep track of your inventory of 3D-printer filament spools._
 
