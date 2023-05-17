@@ -33,6 +33,11 @@ import {
   VendorShow,
 } from "./pages/vendors";
 import { ReactComponent as Logo } from "./icon.svg";
+import {
+  FileOutlined,
+  HighlightOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -73,6 +78,7 @@ function App() {
                 show: "/spool/show/:id",
                 meta: {
                   canDelete: true,
+                  icon: <FileOutlined />,
                 },
               },
               {
@@ -83,6 +89,7 @@ function App() {
                 show: "/filament/show/:id",
                 meta: {
                   canDelete: true,
+                  icon: <HighlightOutlined />,
                 },
               },
               {
@@ -93,6 +100,7 @@ function App() {
                 show: "/vendor/show/:id",
                 meta: {
                   canDelete: true,
+                  icon: <UserOutlined />,
                 },
               },
             ]}
