@@ -2,6 +2,7 @@ import React from "react";
 import { IResourceComponentsProps, useShow } from "@refinedev/core";
 import { Show, NumberField, DateField, TextField } from "@refinedev/antd";
 import { Typography } from "antd";
+import { NumberFieldUnit } from "../../components/numberField";
 
 const { Title } = Typography;
 
@@ -26,42 +27,34 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       <Title level={5}>Price</Title>
       <NumberField value={record?.price ?? ""} />
       <Title level={5}>Density</Title>
-      <NumberField
+      <NumberFieldUnit
         value={record?.density ?? ""}
+        unit="g/cm³"
         options={{
-          unitDisplay: "short",
-          unit: "gram",
-          style: "unit",
           maximumFractionDigits: 2,
         }}
       />
       <Title level={5}>Diameter</Title>
-      <NumberField
+      <NumberFieldUnit
         value={record?.diameter ?? ""}
+        unit="mm"
         options={{
-          unitDisplay: "short",
-          unit: "millimeter",
-          style: "unit",
           maximumFractionDigits: 2,
         }}
       />
       <Title level={5}>Weight</Title>
-      <NumberField
+      <NumberFieldUnit
         value={record?.weight ?? ""}
+        unit="g"
         options={{
-          unitDisplay: "short",
-          unit: "gram",
-          style: "unit",
           maximumFractionDigits: 1,
         }}
       />
       <Title level={5}>Spool Weight</Title>
-      <NumberField
+      <NumberFieldUnit
         value={record?.spool_weight ?? ""}
+        unit="g"
         options={{
-          unitDisplay: "short",
-          unit: "gram",
-          style: "unit",
           maximumFractionDigits: 1,
         }}
       />

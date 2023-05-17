@@ -6,10 +6,10 @@ import {
   EditButton,
   ShowButton,
   DateField,
-  NumberField,
   TextField,
 } from "@refinedev/antd";
 import { Table, Space } from "antd";
+import { NumberFieldUnit } from "../../components/numberField";
 
 export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const { tableProps } = useTable({
@@ -34,12 +34,10 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           title="Used Weight"
           render={(value) => {
             return (
-              <NumberField
+              <NumberFieldUnit
                 value={value}
+                unit="g"
                 options={{
-                  unitDisplay: "short",
-                  unit: "gram",
-                  style: "unit",
                   maximumFractionDigits: 1,
                 }}
               />
@@ -54,12 +52,10 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
               return <TextField value="Unknown" />;
             }
             return (
-              <NumberField
+              <NumberFieldUnit
                 value={Math.max(value, 0)}
+                unit="g"
                 options={{
-                  unitDisplay: "short",
-                  unit: "gram",
-                  style: "unit",
                   maximumFractionDigits: 1,
                 }}
               />

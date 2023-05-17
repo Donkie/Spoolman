@@ -2,6 +2,7 @@ import React from "react";
 import { IResourceComponentsProps, useShow } from "@refinedev/core";
 import { Show, NumberField, DateField, TextField } from "@refinedev/antd";
 import { Typography } from "antd";
+import { NumberFieldUnit } from "../../components/numberField";
 
 const { Title } = Typography;
 
@@ -28,22 +29,18 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
                 <>{filamentData?.data?.id}</>
             )} */}
       <Title level={5}>Remaining Weight</Title>
-      <NumberField
+      <NumberFieldUnit
         value={record?.remaining_weight ?? ""}
+        unit="g"
         options={{
-          unitDisplay: "short",
-          unit: "gram",
-          style: "unit",
           maximumFractionDigits: 1,
         }}
       />
       <Title level={5}>Used Weight</Title>
-      <NumberField
+      <NumberFieldUnit
         value={record?.used_weight ?? ""}
+        unit="g"
         options={{
-          unitDisplay: "short",
-          unit: "gram",
-          style: "unit",
           maximumFractionDigits: 1,
         }}
       />

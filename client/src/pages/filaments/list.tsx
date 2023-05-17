@@ -6,9 +6,9 @@ import {
   EditButton,
   ShowButton,
   DateField,
-  NumberField,
 } from "@refinedev/antd";
 import { Table, Space } from "antd";
+import { NumberFieldUnit } from "../../components/numberField";
 
 export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   const { tableProps } = useTable({
@@ -27,12 +27,10 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="density"
           title="Density"
           render={(value) => (
-            <NumberField
+            <NumberFieldUnit
               value={value}
+              unit="g/cm³"
               options={{
-                unitDisplay: "short",
-                unit: "gram",
-                style: "unit",
                 maximumFractionDigits: 2,
               }}
             />
@@ -42,12 +40,10 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="diameter"
           title="Diameter"
           render={(value) => (
-            <NumberField
+            <NumberFieldUnit
               value={value}
+              unit="mm"
               options={{
-                unitDisplay: "short",
-                unit: "millimeter",
-                style: "unit",
                 maximumFractionDigits: 2,
               }}
             />
@@ -61,12 +57,10 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
               return <></>;
             }
             return (
-              <NumberField
+              <NumberFieldUnit
                 value={value}
+                unit="g"
                 options={{
-                  unitDisplay: "short",
-                  unit: "gram",
-                  style: "unit",
                   maximumFractionDigits: 1,
                 }}
               />
@@ -81,12 +75,10 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
               return <></>;
             }
             return (
-              <NumberField
+              <NumberFieldUnit
                 value={value}
+                unit="g"
                 options={{
-                  unitDisplay: "short",
-                  unit: "gram",
-                  style: "unit",
                   maximumFractionDigits: 1,
                 }}
               />
