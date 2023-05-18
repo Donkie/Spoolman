@@ -63,8 +63,8 @@ jobs:
           path: /tmp
       - name: Load images
         run: |
-          docker load --input /tmp/spoolman
-          docker load --input /tmp/spoolman-tester
+          docker load --input /tmp/spoolman/spoolman.tar
+          docker load --input /tmp/spoolman-tester/spoolman-tester.tar
       - uses: isbang/compose-action@v1.4.1
         with:
           compose-file: "./tests_integration/docker-compose-${{ matrix.dbtype }}.yml"
