@@ -38,6 +38,7 @@ import {
   HighlightOutlined,
   UserOutlined,
 } from "@ant-design/icons";
+import { ConfigProvider } from "antd";
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -64,102 +65,110 @@ function App() {
     <BrowserRouter>
       <RefineKbarProvider>
         <ColorModeContextProvider>
-          <Refine
-            dataProvider={dataProvider(import.meta.env.VITE_APIURL)}
-            notificationProvider={notificationProvider}
-            i18nProvider={i18nProvider}
-            routerProvider={routerBindings}
-            resources={[
-              {
-                name: "spool",
-                list: "/spool",
-                create: "/spool/create",
-                edit: "/spool/edit/:id",
-                show: "/spool/show/:id",
-                meta: {
-                  canDelete: true,
-                  icon: <FileOutlined />,
-                },
+          <ConfigProvider
+            theme={{
+              token: {
+                colorPrimary: "#dc7734",
               },
-              {
-                name: "filament",
-                list: "/filament",
-                create: "/filament/create",
-                edit: "/filament/edit/:id",
-                show: "/filament/show/:id",
-                meta: {
-                  canDelete: true,
-                  icon: <HighlightOutlined />,
-                },
-              },
-              {
-                name: "vendor",
-                list: "/vendor",
-                create: "/vendor/create",
-                edit: "/vendor/edit/:id",
-                show: "/vendor/show/:id",
-                meta: {
-                  canDelete: true,
-                  icon: <UserOutlined />,
-                },
-              },
-            ]}
-            options={{
-              syncWithLocation: true,
-              warnWhenUnsavedChanges: true,
             }}
           >
-            <Routes>
-              <Route
-                element={
-                  <ThemedLayoutV2
-                    Header={() => <Header sticky />}
-                    Sider={() => (
-                      <ThemedSiderV2
-                        fixed
-                        Title={({ collapsed }) => (
-                          <ThemedTitleV2
-                            collapsed={collapsed}
-                            text="Spoolman"
-                            icon={<Logo />}
-                          />
-                        )}
-                      />
-                    )}
-                  >
-                    <Outlet />
-                  </ThemedLayoutV2>
-                }
-              >
+            <Refine
+              dataProvider={dataProvider(import.meta.env.VITE_APIURL)}
+              notificationProvider={notificationProvider}
+              i18nProvider={i18nProvider}
+              routerProvider={routerBindings}
+              resources={[
+                {
+                  name: "spool",
+                  list: "/spool",
+                  create: "/spool/create",
+                  edit: "/spool/edit/:id",
+                  show: "/spool/show/:id",
+                  meta: {
+                    canDelete: true,
+                    icon: <FileOutlined />,
+                  },
+                },
+                {
+                  name: "filament",
+                  list: "/filament",
+                  create: "/filament/create",
+                  edit: "/filament/edit/:id",
+                  show: "/filament/show/:id",
+                  meta: {
+                    canDelete: true,
+                    icon: <HighlightOutlined />,
+                  },
+                },
+                {
+                  name: "vendor",
+                  list: "/vendor",
+                  create: "/vendor/create",
+                  edit: "/vendor/edit/:id",
+                  show: "/vendor/show/:id",
+                  meta: {
+                    canDelete: true,
+                    icon: <UserOutlined />,
+                  },
+                },
+              ]}
+              options={{
+                syncWithLocation: true,
+                warnWhenUnsavedChanges: true,
+              }}
+            >
+              <Routes>
                 <Route
-                  index
-                  element={<NavigateToResource resource="spool" />}
-                />
-                <Route path="/spool">
-                  <Route index element={<SpoolList />} />
-                  <Route path="create" element={<SpoolCreate />} />
-                  <Route path="edit/:id" element={<SpoolEdit />} />
-                  <Route path="show/:id" element={<SpoolShow />} />
+                  element={
+                    <ThemedLayoutV2
+                      Header={() => <Header sticky />}
+                      Sider={() => (
+                        <ThemedSiderV2
+                          fixed
+                          Title={({ collapsed }) => (
+                            <ThemedTitleV2
+                              collapsed={collapsed}
+                              text="Spoolman"
+                              icon={<Logo />}
+                            />
+                          )}
+                        />
+                      )}
+                    >
+                      <Outlet />
+                    </ThemedLayoutV2>
+                  }
+                >
+                  <Route
+                    index
+                    element={<NavigateToResource resource="spool" />}
+                  />
+                  <Route path="/spool">
+                    <Route index element={<SpoolList />} />
+                    <Route path="create" element={<SpoolCreate />} />
+                    <Route path="edit/:id" element={<SpoolEdit />} />
+                    <Route path="show/:id" element={<SpoolShow />} />
+                  </Route>
+                  <Route path="/filament">
+                    <Route index element={<FilamentList />} />
+                    <Route path="create" element={<FilamentCreate />} />
+                    <Route path="edit/:id" element={<FilamentEdit />} />
+                    <Route path="show/:id" element={<FilamentShow />} />
+                  </Route>
+                  <Route path="/vendor">
+                    <Route index element={<VendorList />} />
+                    <Route path="create" element={<VendorCreate />} />
+                    <Route path="edit/:id" element={<VendorEdit />} />
+                    <Route path="show/:id" element={<VendorShow />} />
+                  </Route>
+                  <Route path="*" element={<ErrorComponent />} />
                 </Route>
-                <Route path="/filament">
-                  <Route index element={<FilamentList />} />
-                  <Route path="create" element={<FilamentCreate />} />
-                  <Route path="edit/:id" element={<FilamentEdit />} />
-                  <Route path="show/:id" element={<FilamentShow />} />
-                </Route>
-                <Route path="/vendor">
-                  <Route index element={<VendorList />} />
-                  <Route path="create" element={<VendorCreate />} />
-                  <Route path="edit/:id" element={<VendorEdit />} />
-                  <Route path="show/:id" element={<VendorShow />} />
-                </Route>
-                <Route path="*" element={<ErrorComponent />} />
-              </Route>
-            </Routes>
+              </Routes>
 
-            <RefineKbar />
-            <UnsavedChangesNotifier />
-          </Refine>
+              <RefineKbar />
+              <UnsavedChangesNotifier />
+            </Refine>
+          </ConfigProvider>
         </ColorModeContextProvider>
       </RefineKbarProvider>
     </BrowserRouter>
