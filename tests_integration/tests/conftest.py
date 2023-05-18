@@ -14,7 +14,7 @@ def _wait_for_server():  # noqa: ANN202
     start_time = time.time()
     while True:
         try:
-            response = httpx.get("http://spoolman:8000")
+            response = httpx.get("http://spoolman:8000", timeout=1)
             response.raise_for_status()
         except httpx.HTTPError:
             if time.time() - start_time > TIMEOUT:
