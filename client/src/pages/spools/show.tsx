@@ -3,6 +3,10 @@ import { IResourceComponentsProps, useShow } from "@refinedev/core";
 import { Show, NumberField, DateField, TextField } from "@refinedev/antd";
 import { Typography } from "antd";
 import { NumberFieldUnit } from "../../components/numberField";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 const { Title } = Typography;
 
@@ -17,11 +21,23 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       <Title level={5}>Id</Title>
       <NumberField value={record?.id ?? ""} />
       <Title level={5}>Registered</Title>
-      <DateField value={record?.registered} format="YYYY-MM-DD HH:mm:ss" />
+      <DateField
+        value={dayjs.utc(record?.registered).local()}
+        title={dayjs.utc(record?.registered).local().format()}
+        format="YYYY-MM-DD HH:mm:ss"
+      />
       <Title level={5}>First Used</Title>
-      <DateField value={record?.first_used} format="YYYY-MM-DD HH:mm:ss" />
+      <DateField
+        value={dayjs.utc(record?.first_used).local()}
+        title={dayjs.utc(record?.first_used).local().format()}
+        format="YYYY-MM-DD HH:mm:ss"
+      />
       <Title level={5}>Last Used</Title>
-      <DateField value={record?.last_used} format="YYYY-MM-DD HH:mm:ss" />
+      <DateField
+        value={dayjs.utc(record?.last_used).local()}
+        title={dayjs.utc(record?.last_used).local().format()}
+        format="YYYY-MM-DD HH:mm:ss"
+      />
       <Title level={5}>Filament</Title>
       {/* {filamentIsLoading ? (
                 <>Loading...</>

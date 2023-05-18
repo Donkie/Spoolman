@@ -9,6 +9,10 @@ import {
 } from "@refinedev/antd";
 import { Table, Space } from "antd";
 import { NumberFieldUnit } from "../../components/numberField";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   const { tableProps } = useTable({
@@ -90,7 +94,11 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex={["registered"]}
           title="Registered"
           render={(value) => (
-            <DateField value={value} format="YYYY-MM-DD HH:mm:ss" />
+            <DateField
+              value={dayjs.utc(value).local()}
+              title={dayjs.utc(value).local().format()}
+              format="YYYY-MM-DD HH:mm:ss"
+            />
           )}
         />
         <Table.Column dataIndex={["comment"]} title="Comment" />
