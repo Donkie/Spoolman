@@ -7,6 +7,9 @@ on:
     branches:
       - master
 
+env:
+  TEST_TAG: donkie/spoolman:test
+
 jobs:
   tests:
     strategy:
@@ -16,8 +19,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Build Spoolman
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          load: true
+          tags: donkie/spoolman:test
+      - name: Build Spoolman Tester
+        uses: docker/build-push-action@v4
+        with:
+          context: ./tests_integration
+          load: true
+          tags: donkie/spoolman-tester:latest
       - uses: isbang/compose-action@v1.4.1
         with:
           compose-file: "./tests_integration/docker-compose-${{ matrix.dbtype }}.yml"
-          up-flags: "--build --abort-on-container-exit"
+          up-flags: "--abort-on-container-exit"
           down-flags: "--volumes"

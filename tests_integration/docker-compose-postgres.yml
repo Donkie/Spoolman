@@ -5,7 +5,7 @@ services:
     environment:
       - POSTGRES_PASSWORD=abc
   spoolman:
-    build: ./../
+    image: donkie/spoolman:test
     environment:
       - SPOOLMAN_DB_TYPE=postgres
       - SPOOLMAN_DB_HOST=db
@@ -17,7 +17,7 @@ services:
     depends_on:
       - db
   tester:
-    build: .
+    image: donkie/spoolman-tester:latest
     volumes:
       - ./tests:/tester/tests
     depends_on:
