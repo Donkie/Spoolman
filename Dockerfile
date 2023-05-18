@@ -7,11 +7,14 @@ RUN npm install
 RUN echo "VITE_APIURL=/api/v1" > .env.production
 RUN npm run build
 
-FROM python:3.11-alpine as runner
+FROM python:3.11-alpine as python-builder
 
-LABEL org.opencontainers.image.source=https://github.com/Donkie/Spoolman
-LABEL org.opencontainers.image.description="Keep track of your inventory of 3D-printer filament spools."
-LABEL org.opencontainers.image.licenses=MIT
+RUN    apk update \
+    && apk add \
+    build-base \
+    python3-dev \
+    gcc \
+    libc-dev
 
 # Add local user so we don't run as root
 RUN adduser -D app
@@ -32,8 +35,27 @@ COPY --chown=app:app README.md /home/app/spoolman/
 WORKDIR /home/app/spoolman
 RUN pip install -e .
 
+FROM python:3.11-alpine as python-runner
+
+LABEL org.opencontainers.image.source=https://github.com/Donkie/Spoolman
+LABEL org.opencontainers.image.description="Keep track of your inventory of 3D-printer filament spools."
+LABEL org.opencontainers.image.licenses=MIT
+
+# Add local user so we don't run as root
+RUN adduser -D app
+USER app
+
 # Copy built client
 COPY --chown=app:app --from=client-builder /client/dist /home/app/spoolman/client/dist
+
+# Copy built app
+COPY --chown=app:app --from=python-builder /home/app/.local /home/app/.local
+COPY --chown=app:app --from=python-builder /home/app/spoolman /home/app/spoolman
+
+WORKDIR /home/app/spoolman
+
+ENV PATH="/home/app/.local/bin:${PATH}"
+ENV PYTHONPATH="/home/app/spoolman:${PYTHONPATH}"
 
 # Run command
 EXPOSE 8000
