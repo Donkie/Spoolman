@@ -21,6 +21,8 @@ jobs:
           context: .
           tags: donkie/spoolman:test
           outputs: type=docker,dest=/tmp/spoolman.tar
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
@@ -39,6 +41,8 @@ jobs:
           context: ./tests_integration
           tags: donkie/spoolman-tester:latest
           outputs: type=docker,dest=/tmp/spoolman-tester.tar
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
@@ -59,8 +63,8 @@ jobs:
           path: /tmp
       - name: Load images
         run: |
-          docker load --input /tmp/spoolman.tar
-          docker load --input /tmp/spoolman-tester.tar
+          docker load --input /tmp/spoolman
+          docker load --input /tmp/spoolman-tester
       - uses: isbang/compose-action@v1.4.1
         with:
           compose-file: "./tests_integration/docker-compose-${{ matrix.dbtype }}.yml"
