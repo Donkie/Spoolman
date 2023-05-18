@@ -1,0 +1,24 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:11-alpine
+    environment:
+      - POSTGRES_PASSWORD=abc
+  spoolman:
+    build: ./../
+    environment:
+      - SPOOLMAN_DB_TYPE=postgres
+      - SPOOLMAN_DB_HOST=db
+      - SPOOLMAN_DB_PORT=5432
+      - SPOOLMAN_DB_NAME=postgres
+      - SPOOLMAN_DB_USERNAME=postgres
+      - SPOOLMAN_DB_PASSWORD=abc
+      - SPOOLMAN_LOGGING_LEVEL=DEBUG
+    depends_on:
+      - db
+  tester:
+    build: .
+    volumes:
+      - ./tests:/tester/tests
+    depends_on:
+      - spoolman

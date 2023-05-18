@@ -1,0 +1,23 @@
+name: Integration Tests
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  tests:
+    strategy:
+      matrix:
+        dbtype: ["postgres"]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: isbang/compose-action@v1.4.1
+        with:
+          compose-file: "./tests_integration/docker-compose-${{ matrix.dbtype }}.yml"
+          up-flags: "--build --abort-on-container-exit"
+          down-flags: "--volumes"
