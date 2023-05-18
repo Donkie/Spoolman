@@ -61,7 +61,7 @@ class SpoolUseParameters(BaseModel):
 
 
 @router.get(
-    "/",
+    "",
     name="Find spool",
     description="Get a list of spools that matches the search query.",
     response_model_exclude_none=True,
@@ -133,7 +133,7 @@ async def get(
 
 
 @router.post(
-    "/",
+    "",
     name="Add spool",
     description=(
         "Add a new spool to the database. "

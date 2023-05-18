@@ -71,7 +71,7 @@ class FilamentUpdateParameters(FilamentParameters):
 
 
 @router.get(
-    "/",
+    "",
     name="Find filaments",
     description="Get a list of filaments that matches the search query.",
     response_model_exclude_none=True,
@@ -131,7 +131,7 @@ async def get(
 
 
 @router.post(
-    "/",
+    "",
     name="Add filament",
     description="Add a new filament to the database.",
     response_model_exclude_none=True,

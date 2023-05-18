@@ -39,7 +39,7 @@ class VendorUpdateParameters(VendorParameters):
 
 
 @router.get(
-    "/",
+    "",
     name="Find vendor",
     description="Get a list of vendors that matches the search query.",
     response_model_exclude_none=True,
@@ -74,7 +74,7 @@ async def get(
 
 
 @router.post(
-    "/",
+    "",
     name="Add vendor",
     description="Add a new vendor to the database.",
     response_model_exclude_none=True,
