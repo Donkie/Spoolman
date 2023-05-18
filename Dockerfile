@@ -17,7 +17,9 @@ LABEL org.opencontainers.image.licenses=MIT
 RUN adduser -D app
 USER app
 
-ENV PATH="/home/app/.local/bin:${PATH}"
+RUN python -m venv /home/app/.venv
+
+ENV PATH="/home/app/.venv/bin:${PATH}"
 
 # Copy and install app
 COPY --chown=app:app spoolman /home/app/spoolman/spoolman
