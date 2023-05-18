@@ -26,7 +26,7 @@ COPY --chown=app:app requirements.txt /home/app/spoolman/
 COPY --chown=app:app README.md /home/app/spoolman/
 
 WORKDIR /home/app/spoolman
-RUN pip install --user .
+RUN pip install -e --user .
 
 # Copy built client
 COPY --chown=app:app --from=client-builder /client/dist /home/app/spoolman/client/dist
