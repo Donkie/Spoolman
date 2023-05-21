@@ -63,7 +63,7 @@ async def get_by_id(db: AsyncSession, spool_id: int) -> models.Spool:
 async def find(
     *,
     db: AsyncSession,
-    filament_name: Optional[int] = None,
+    filament_name: Optional[str] = None,
     filament_id: Optional[int] = None,
     filament_material: Optional[str] = None,
     vendor_name: Optional[str] = None,

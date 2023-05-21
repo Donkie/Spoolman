@@ -69,7 +69,7 @@ class SpoolUseParameters(BaseModel):
 async def find(
     *,
     db: Annotated[AsyncSession, Depends(get_db_session)],
-    filament_name: Optional[int] = Query(
+    filament_name: Optional[str] = Query(
         default=None,
         title="Filament Name",
         description="Partial case-insensitive search term for the filament name.",
@@ -242,9 +242,7 @@ async def delete(
     "/{spool_id}/use",
     name="Use spool filament",
     description=(
-        "Use some length or weight of filament from the spool."
-        " Specify either a length or a weight, not both."
-        " Will do nothing if the spool is empty (you have to keep track of that by yourself)."
+        "Use some length or weight of filament from the spool. Specify either a length or a weight, not both."
     ),
     response_model_exclude_none=True,
     response_model=Spool,
