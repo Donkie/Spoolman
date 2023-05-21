@@ -1,4 +1,4 @@
-"""Integration tests for the API."""
+"""Integration tests for the Vendor API endpoint."""
 
 import httpx
 
@@ -56,6 +56,15 @@ def test_get_vendor():
     httpx.delete(f"{URL}/api/v1/vendor/{vendor['id']}").raise_for_status()
 
 
+def test_get_vendor_not_found():
+    """Test getting a vendor that does not exist."""
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/vendor/123456789")
+
+    # Verify
+    assert result.status_code == 404
+
+
 def test_find_vendors():
     """Test finding vendors from the database."""
     # Setup
@@ -93,11 +102,7 @@ def test_find_vendors():
     assert len(vendors) == 2
 
     for vendor in vendors:
-        added_vendor = added_vendors_by_id[vendor["id"]]
-        assert vendor["name"] == added_vendor["name"]
-        assert vendor["comment"] == added_vendor["comment"]
-        assert vendor["id"] == added_vendor["id"]
-        assert vendor["registered"] == added_vendor["registered"]
+        assert vendor == added_vendors_by_id[vendor["id"]]
 
     # Execute - Find a specific vendor
     result = httpx.get(
@@ -146,6 +151,15 @@ def test_delete_vendor():
     assert result.status_code == 404
 
 
+def test_delete_vendor_not_found():
+    """Test deleting a vendor that does not exist."""
+    # Execute
+    result = httpx.delete(f"{URL}/api/v1/vendor/123456789")
+
+    # Verify
+    assert result.status_code == 404
+
+
 def test_update_vendor():
     """Test update a vendor in the database."""
     # Setup
@@ -176,3 +190,12 @@ def test_update_vendor():
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/vendor/{vendor['id']}").raise_for_status()
+
+
+def test_update_vendor_not_found():
+    """Test updating a vendor that does not exist."""
+    # Execute
+    result = httpx.patch(f"{URL}/api/v1/vendor/123456789", json={"name": "John"})
+
+    # Verify
+    assert result.status_code == 404
