@@ -7,11 +7,19 @@ services:
       - MARIADB_RANDOM_ROOT_PASSWORD=yes
       - MARIADB_PASSWORD=abc
       - MARIADB_DATABASE=spoolman
+      - MARIADB_MYSQL_LOCALHOST_USER=true
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      test:
+        [
+          "CMD",
+          "/usr/local/bin/healthcheck.sh",
+          "--su-mysql",
+          "--connect",
+          "--innodb_initialized"
+        ]
       interval: 1s
-      timeout: 20s
-      retries: 10
+      timeout: 5s
+      retries: 30
   spoolman:
     image: donkie/spoolman:test
     environment:
