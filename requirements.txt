@@ -1,9 +1,10 @@
 uvicorn[standard]==0.21.1
 fastapi==0.95.0
-SQLAlchemy[asyncio,aiomysql,postgresql_asyncpg,aiosqlite]==2.0.8
+SQLAlchemy[asyncio,aiomysql,postgresql_asyncpg,aiosqlite]==2.0.15
 pydantic==1.10.7
 platformdirs==3.2.0
 
 # CockroachDB support
-sqlalchemy-cockroachdb==2.0.0
+sqlalchemy-cockroachdb==2.0.1
 asyncpg==0.27.0
+psycopg2-binary==2.9.6
