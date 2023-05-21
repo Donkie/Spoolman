@@ -35,6 +35,7 @@ class Database:
         self.engine = create_async_engine(
             self.connection_url,
             connect_args=connect_args,
+            pool_pre_ping=True,
         )
         self.session_maker = async_sessionmaker(self.engine, autocommit=False, autoflush=True)
 
