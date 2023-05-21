@@ -52,7 +52,7 @@ jobs:
     needs: [build, build-tester]
     strategy:
       matrix:
-        dbtype: ["postgres"]
+        dbtype: ["postgres", "sqlite", "mariadb", "cockroachdb"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

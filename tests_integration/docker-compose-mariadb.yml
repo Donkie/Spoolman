@@ -1,0 +1,33 @@
+version: '3.9'
+services:
+  db:
+    image: mariadb:latest
+    environment:
+      - MARIADB_USER=john
+      - MARIADB_RANDOM_ROOT_PASSWORD=yes
+      - MARIADB_PASSWORD=abc
+      - MARIADB_DATABASE=spoolman
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 1s
+      timeout: 20s
+      retries: 10
+  spoolman:
+    image: donkie/spoolman:test
+    environment:
+      - SPOOLMAN_DB_TYPE=mysql
+      - SPOOLMAN_DB_HOST=db
+      - SPOOLMAN_DB_PORT=3306
+      - SPOOLMAN_DB_NAME=spoolman
+      - SPOOLMAN_DB_USERNAME=john
+      - SPOOLMAN_DB_PASSWORD=abc
+      - SPOOLMAN_LOGGING_LEVEL=DEBUG
+    depends_on:
+      db:
+        condition: service_healthy
+  tester:
+    image: donkie/spoolman-tester:latest
+    volumes:
+      - ./tests:/tester/tests
+    depends_on:
+      - spoolman

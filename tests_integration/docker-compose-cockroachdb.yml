@@ -1,0 +1,39 @@
+version: '3.9'
+services:
+  db:
+    image: cockroachdb/cockroach:v23.1.1
+    command: start-single-node
+    environment:
+      - COCKROACH_USER=john
+      - COCKROACH_PASSWORD=abc
+      - COCKROACH_DATABASE=spoolman
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8080/health?ready=1"
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+  spoolman:
+    image: donkie/spoolman:test
+    environment:
+      - SPOOLMAN_DB_TYPE=cockroachdb
+      - SPOOLMAN_DB_HOST=db
+      - SPOOLMAN_DB_PORT=26257
+      - SPOOLMAN_DB_NAME=spoolman
+      - SPOOLMAN_DB_USERNAME=john
+      - SPOOLMAN_DB_PASSWORD=abc
+      - SPOOLMAN_LOGGING_LEVEL=DEBUG
+    depends_on:
+      db:
+        condition: service_healthy
+  tester:
+    image: donkie/spoolman-tester:latest
+    volumes:
+      - ./tests:/tester/tests
+    depends_on:
+      - spoolman
