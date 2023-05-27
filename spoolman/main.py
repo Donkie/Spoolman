@@ -1,6 +1,7 @@
 """Main entrypoint to the server."""
 
 import logging
+import subprocess
 from pathlib import Path
 
 import uvicorn
@@ -8,11 +9,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from platformdirs import user_data_dir
-from sqlalchemy import URL
 
 from spoolman import env
 from spoolman.api.v1.router import app as v1_app
-from spoolman.database.database import setup_db
+from spoolman.database.database import get_connection_url, setup_db
 
 # Get the data directory
 data_dir = Path(user_data_dir("spoolman"))
@@ -59,38 +59,20 @@ if env.is_debug_mode():
     )
 
 
-def get_connection_url() -> URL:
-    """Construct the connection URL for the database based on environment variables."""
-    db_type = env.get_database_type()
-    host = env.get_host()
-    port = env.get_port()
-    database = env.get_database()
-    query = env.get_query()
-    username = env.get_username()
-    password = env.get_password()
-
-    if db_type is None:
-        db_type = env.DatabaseType.SQLITE
-        database = str(data_dir.joinpath("spoolman.db"))
-        logger.info('No database type specified, using a default SQLite database located at "%s"', database)
-    else:
-        logger.info('Connecting to database of type "%s" at "%s:%s"', db_type, host, port)
-
-    return URL.create(
-        drivername=db_type.to_drivername(),
-        host=host,
-        port=port,
-        database=database,
-        query=query or {},
-        username=username,
-        password=password,
-    )
-
-
 @app.on_event("startup")
 async def startup() -> None:
     """Run the service's startup sequence."""
-    await setup_db(get_connection_url())
+    logger.info("Setting up database...")
+    setup_db(get_connection_url())
+
+    logger.info("Performing migrations...")
+    # Run alembic in a subprocess.
+    # There is some issue with the uvicorn worker that causes the process to hang when running alembic directly.
+    # See: https://github.com/sqlalchemy/alembic/discussions/1155
+    project_root = Path(__file__).parent.parent
+    subprocess.run(["alembic", "upgrade", "head"], check=True, cwd=project_root)  # noqa: S603, S607
+
+    logger.info("Startup complete.")
 
 
 if __name__ == "__main__":

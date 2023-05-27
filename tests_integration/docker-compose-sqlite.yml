@@ -3,7 +3,6 @@ services:
   spoolman:
     image: donkie/spoolman:test
     environment:
-      - SPOOLMAN_DB_TYPE=sqlite
       - SPOOLMAN_LOGGING_LEVEL=DEBUG
   tester:
     image: donkie/spoolman-tester:latest

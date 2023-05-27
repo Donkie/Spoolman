@@ -80,7 +80,7 @@ def get_port() -> Optional[int]:
     try:
         return int(port)
     except ValueError as exc:
-        raise ValueError(f"Failed to parse SPOOLMAN_DB_PORT variable: {str(exc)}") from exc
+        raise ValueError(f"Failed to parse SPOOLMAN_DB_PORT variable: {exc!s}") from exc
 
 
 def get_database() -> Optional[str]:
@@ -109,7 +109,7 @@ def get_query() -> Optional[dict[str, str]]:
         parsed_dict = parse.parse_qs(query, strict_parsing=True)
         return {key: value[0] for key, value in parsed_dict.items()}
     except ValueError as exc:
-        raise ValueError(f"Failed to parse SPOOLMAN_DB_QUERY variable: {str(exc)}") from exc
+        raise ValueError(f"Failed to parse SPOOLMAN_DB_QUERY variable: {exc!s}") from exc
 
 
 def get_username() -> Optional[str]:
@@ -149,7 +149,7 @@ def get_password() -> Optional[str]:
         except OSError as exc:
             raise ValueError(
                 "Failed to parse SPOOLMAN_DB_PASSWORD_FILE variable: "
-                f'Failed to read password from file "{file_path}": {str(exc)}.',
+                f'Failed to read password from file "{file_path}": {exc!s}.',
             ) from exc
 
     # Second attempt: grab directly from an environment variable.

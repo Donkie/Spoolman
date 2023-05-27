@@ -22,9 +22,11 @@ RUN python -m venv /home/app/.venv
 ENV PATH="/home/app/.venv/bin:${PATH}"
 
 # Copy and install app
+COPY --chown=app:app migrations /home/app/spoolman/migrations
 COPY --chown=app:app spoolman /home/app/spoolman/spoolman
 COPY --chown=app:app pyproject.toml /home/app/spoolman/
 COPY --chown=app:app requirements.txt /home/app/spoolman/
+COPY --chown=app:app alembic.ini /home/app/spoolman/
 COPY --chown=app:app README.md /home/app/spoolman/
 
 WORKDIR /home/app/spoolman

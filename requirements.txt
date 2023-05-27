@@ -3,6 +3,7 @@ fastapi==0.95.0
 SQLAlchemy[asyncio,aiomysql,postgresql_asyncpg,aiosqlite]==2.0.15
 pydantic==1.10.7
 platformdirs==3.2.0
+alembic==1.11.1
 
 # CockroachDB support
 sqlalchemy-cockroachdb==2.0.1

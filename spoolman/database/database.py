@@ -2,13 +2,48 @@
 
 import logging
 from collections.abc import AsyncGenerator
+from pathlib import Path
 from typing import Optional
 
+from platformdirs import user_data_dir
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
-from spoolman.database.models import Base
-from spoolman.env import get_logging_level
+from spoolman import env
+
+logger = logging.getLogger(__name__)
+
+
+def get_connection_url() -> URL:
+    """Construct the connection URL for the database based on environment variables."""
+    db_type = env.get_database_type()
+    host = env.get_host()
+    port = env.get_port()
+    database = env.get_database()
+    query = env.get_query()
+    username = env.get_username()
+    password = env.get_password()
+
+    if db_type is None:
+        db_type = env.DatabaseType.SQLITE
+
+        data_dir = Path(user_data_dir("spoolman"))
+        data_dir.mkdir(parents=True, exist_ok=True)
+
+        database = str(data_dir.joinpath("spoolman.db"))
+        logger.info('No database type specified, using a default SQLite database located at "%s"', database)
+    else:
+        logger.info('Connecting to database of type "%s" at "%s:%s"', db_type, host, port)
+
+    return URL.create(
+        drivername=db_type.to_drivername(),
+        host=host,
+        port=port,
+        database=database,
+        query=query or {},
+        username=username,
+        password=password,
+    )
 
 
 class Database:
@@ -22,7 +57,7 @@ class Database:
 
     def connect(self: "Database") -> None:
         """Connect to the database."""
-        if get_logging_level() == logging.DEBUG:
+        if env.get_logging_level() == logging.DEBUG:
             logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 
         connect_args = {}
@@ -39,18 +74,11 @@ class Database:
         )
         self.session_maker = async_sessionmaker(self.engine, autocommit=False, autoflush=True)
 
-    async def create_tables(self: "Database") -> None:
-        """Create tables for all defined models."""
-        if self.engine is None:
-            raise RuntimeError("DB is not connected.")
-        async with self.engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-
 
 __db: Optional[Database] = None
 
 
-async def setup_db(connection_url: URL) -> None:
+def setup_db(connection_url: URL) -> None:
     """Connect to the database.
 
     Args:
@@ -59,7 +87,6 @@ async def setup_db(connection_url: URL) -> None:
     global __db  # noqa: PLW0603
     __db = Database(connection_url)
     __db.connect()
-    await __db.create_tables()
 
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
