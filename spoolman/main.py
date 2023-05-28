@@ -1,6 +1,7 @@
 """Main entrypoint to the server."""
 
 import logging
+import os
 import subprocess
 from pathlib import Path
 
@@ -41,10 +42,29 @@ root_logger.addHandler(console)
 # Get logger instance
 logger = logging.getLogger(__name__)
 
+
 # Setup FastAPI
+class SinglePageApplication(StaticFiles):
+    """Serve a single page application."""
+
+    def __init__(self, directory: str) -> None:
+        """Construct."""
+        super().__init__(directory=directory, packages=None, html=True, check_dir=True)
+
+    def lookup_path(self, path: str) -> tuple[str, os.stat_result | None]:
+        """Return index.html if the requested file cannot be found."""
+        full_path, stat_result = super().lookup_path(path)
+
+        if stat_result is None:
+            return super().lookup_path("index.html")
+
+        return (full_path, stat_result)
+
+
 app = FastAPI(debug=env.is_debug_mode())
 app.mount("/api/v1", v1_app)
-app.mount("/", StaticFiles(directory="client/dist", html=True), name="client")
+app.mount("/", app=SinglePageApplication(directory="client/dist"), name="client")
+
 
 # Allow all origins if in debug mode
 if env.is_debug_mode():
