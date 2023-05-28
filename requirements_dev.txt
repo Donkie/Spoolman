@@ -1,2 +1,3 @@
-ruff
-black
+ruff==0.0.270
+black==23.3.0
+pre-commit==3.3.2
