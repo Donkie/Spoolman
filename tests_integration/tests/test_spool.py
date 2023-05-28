@@ -34,14 +34,18 @@ def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
 
     # Verify
     spool = result.json()
-    assert spool["first_used"] == first_used
-    assert spool["last_used"] == last_used
-    assert spool["filament"] == random_filament
-    assert spool["remaining_weight"] == pytest.approx(remaining_weight)
-    assert spool["used_weight"] == pytest.approx(random_filament["weight"] - remaining_weight)
-    assert spool["location"] == location
-    assert spool["lot_nr"] == lot_nr
-    assert spool["comment"] == comment
+    assert spool == {
+        "id": spool["id"],
+        "registered": spool["registered"],
+        "first_used": first_used,
+        "last_used": last_used,
+        "filament": random_filament,
+        "remaining_weight": pytest.approx(remaining_weight),
+        "used_weight": pytest.approx(random_filament["weight"] - remaining_weight),
+        "location": location,
+        "lot_nr": lot_nr,
+        "comment": comment,
+    }
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
@@ -72,14 +76,45 @@ def test_add_spool_used_weight(random_filament: dict[str, Any]):
 
     # Verify
     spool = result.json()
-    assert spool["first_used"] == first_used
-    assert spool["last_used"] == last_used
-    assert spool["filament"] == random_filament
-    assert spool["remaining_weight"] == pytest.approx(random_filament["weight"] - used_weight)
-    assert spool["used_weight"] == pytest.approx(used_weight)
-    assert spool["location"] == location
-    assert spool["lot_nr"] == lot_nr
-    assert spool["comment"] == comment
+    assert spool == {
+        "id": spool["id"],
+        "registered": spool["registered"],
+        "first_used": first_used,
+        "last_used": last_used,
+        "filament": random_filament,
+        "remaining_weight": pytest.approx(random_filament["weight"] - used_weight),
+        "used_weight": pytest.approx(used_weight),
+        "location": location,
+        "lot_nr": lot_nr,
+        "comment": comment,
+    }
+
+    # Clean up
+    httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
+
+
+def test_add_spool_required(random_filament: dict[str, Any]):
+    """Test adding a spool with only the required fields to the database."""
+    # Execute
+    used_weight = 250
+    result = httpx.post(
+        f"{URL}/api/v1/spool",
+        json={
+            "filament_id": random_filament["id"],
+            "used_weight": used_weight,
+        },
+    )
+    result.raise_for_status()
+
+    # Verify
+    spool = result.json()
+    assert spool == {
+        "id": spool["id"],
+        "registered": spool["registered"],
+        "filament": random_filament,
+        "used_weight": pytest.approx(used_weight),
+        "remaining_weight": pytest.approx(random_filament["weight"] - used_weight),
+    }
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()

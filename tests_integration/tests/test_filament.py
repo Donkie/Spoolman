@@ -38,16 +38,47 @@ def test_add_filament(random_vendor: dict[str, Any]):
 
     # Verify
     filament = result.json()
-    assert filament["name"] == name
-    assert filament["vendor"] == random_vendor
-    assert filament["material"] == material
-    assert filament["price"] == price
-    assert filament["density"] == density
-    assert filament["diameter"] == diameter
-    assert filament["weight"] == weight
-    assert filament["spool_weight"] == spool_weight
-    assert filament["article_number"] == article_number
-    assert filament["comment"] == comment
+    assert filament == {
+        "id": filament["id"],
+        "registered": filament["registered"],
+        "name": name,
+        "vendor": random_vendor,
+        "material": material,
+        "price": price,
+        "density": density,
+        "diameter": diameter,
+        "weight": weight,
+        "spool_weight": spool_weight,
+        "article_number": article_number,
+        "comment": comment,
+    }
+
+    # Clean up
+    httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()
+
+
+def test_add_filament_required():
+    """Test adding a filament with only the required fields to the database."""
+    # Execute
+    density = 1.25
+    diameter = 1.75
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={
+            "density": density,
+            "diameter": diameter,
+        },
+    )
+    result.raise_for_status()
+
+    # Verify
+    filament = result.json()
+    assert filament == {
+        "id": filament["id"],
+        "registered": filament["registered"],
+        "density": density,
+        "diameter": diameter,
+    }
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()

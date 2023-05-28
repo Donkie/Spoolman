@@ -18,10 +18,34 @@ def test_add_vendor():
 
     # Verify
     vendor = result.json()
-    assert vendor["name"] == name
-    assert vendor["comment"] == comment
-    assert vendor["id"] is not None
-    assert vendor["registered"] is not None
+    assert vendor == {
+        "id": vendor["id"],
+        "registered": vendor["registered"],
+        "name": name,
+        "comment": comment,
+    }
+
+    # Clean up
+    httpx.delete(f"{URL}/api/v1/vendor/{vendor['id']}").raise_for_status()
+
+
+def test_add_vendor_required():
+    """Test adding a vendor with only the required fields to the database."""
+    # Execute
+    name = "John"
+    result = httpx.post(
+        f"{URL}/api/v1/vendor",
+        json={"name": name},
+    )
+    result.raise_for_status()
+
+    # Verify
+    vendor = result.json()
+    assert vendor == {
+        "id": vendor["id"],
+        "registered": vendor["registered"],
+        "name": name,
+    }
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/vendor/{vendor['id']}").raise_for_status()

@@ -6,4 +6,4 @@ WORKDIR /tester
 
 RUN pip install -r requirements.txt
 
-ENTRYPOINT [ "pytest", "tests" ]
+ENTRYPOINT [ "pytest", "--exitfirst", "tests" ]
