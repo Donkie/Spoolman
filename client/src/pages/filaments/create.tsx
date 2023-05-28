@@ -110,6 +110,30 @@ export const FilamentCreate: React.FC<IResourceComponentsProps> = () => {
           <InputNumber min={0} addonAfter="g" />
         </Form.Item>
         <Form.Item
+          label="Override Extruder Temperature"
+          help="Override the extruder temperature for this filament type."
+          name={["settings_extruder_temp"]}
+          rules={[
+            {
+              required: false,
+            },
+          ]}
+        >
+          <InputNumber min={0} addonAfter="°C" />
+        </Form.Item>
+        <Form.Item
+          label="Override Bed Temperature"
+          help="Override the bed temperature for this filament type."
+          name={["settings_bed_temp"]}
+          rules={[
+            {
+              required: false,
+            },
+          ]}
+        >
+          <InputNumber min={0} addonAfter="°C" />
+        </Form.Item>
+        <Form.Item
           label="Article Number"
           name={["article_number"]}
           help="E.g. EAN, UPC, etc."

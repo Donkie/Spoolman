@@ -39,7 +39,8 @@ class Filament(Base):
     spool_weight: Mapped[Optional[float]] = mapped_column(comment="The weight of an empty spool.")
     article_number: Mapped[Optional[str]] = mapped_column(String(64))
     comment: Mapped[Optional[str]] = mapped_column(String(1024))
-    # TODO: Print settings
+    settings_extruder_temp: Mapped[Optional[int]] = mapped_column(comment="Overridden extruder temperature.")
+    settings_bed_temp: Mapped[Optional[int]] = mapped_column(comment="Overridden bed temperature.")
     # TODO: Color?
 
 

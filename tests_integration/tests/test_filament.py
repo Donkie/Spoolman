@@ -19,6 +19,8 @@ def test_add_filament(random_vendor: dict[str, Any]):
     spool_weight = 250
     article_number = "123456789"
     comment = "abcdefghåäö"
+    settings_extruder_temp = 200
+    settings_bed_temp = 60
     result = httpx.post(
         f"{URL}/api/v1/filament",
         json={
@@ -32,6 +34,8 @@ def test_add_filament(random_vendor: dict[str, Any]):
             "spool_weight": spool_weight,
             "article_number": article_number,
             "comment": comment,
+            "settings_extruder_temp": settings_extruder_temp,
+            "settings_bed_temp": settings_bed_temp,
         },
     )
     result.raise_for_status()
@@ -51,6 +55,8 @@ def test_add_filament(random_vendor: dict[str, Any]):
         "spool_weight": spool_weight,
         "article_number": article_number,
         "comment": comment,
+        "settings_extruder_temp": settings_extruder_temp,
+        "settings_bed_temp": settings_bed_temp,
     }
 
     # Clean up
@@ -96,6 +102,8 @@ def test_get_filament(random_vendor: dict[str, Any]):
     spool_weight = 250
     article_number = "123456789"
     comment = "abcdefghåäö"
+    settings_extruder_temp = 200
+    settings_bed_temp = 60
     result = httpx.post(
         f"{URL}/api/v1/filament",
         json={
@@ -109,6 +117,8 @@ def test_get_filament(random_vendor: dict[str, Any]):
             "spool_weight": spool_weight,
             "article_number": article_number,
             "comment": comment,
+            "settings_extruder_temp": settings_extruder_temp,
+            "settings_bed_temp": settings_bed_temp,
         },
     )
     result.raise_for_status()
@@ -122,18 +132,22 @@ def test_get_filament(random_vendor: dict[str, Any]):
 
     # Verify
     filament = result.json()
-    assert filament["name"] == name
-    assert filament["vendor"] == random_vendor
-    assert filament["material"] == material
-    assert filament["price"] == price
-    assert filament["density"] == density
-    assert filament["diameter"] == diameter
-    assert filament["weight"] == weight
-    assert filament["spool_weight"] == spool_weight
-    assert filament["article_number"] == article_number
-    assert filament["comment"] == comment
-    assert filament["id"] == added_filament["id"]
-    assert filament["registered"] == added_filament["registered"]
+    assert filament == {
+        "id": added_filament["id"],
+        "registered": added_filament["registered"],
+        "name": name,
+        "vendor": random_vendor,
+        "material": material,
+        "price": price,
+        "density": density,
+        "diameter": diameter,
+        "weight": weight,
+        "spool_weight": spool_weight,
+        "article_number": article_number,
+        "comment": comment,
+        "settings_extruder_temp": settings_extruder_temp,
+        "settings_bed_temp": settings_bed_temp,
+    }
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()
@@ -331,6 +345,8 @@ def test_update_filament(random_vendor: dict[str, Any]):
             "spool_weight": 250,
             "article_number": "123456789",
             "comment": "abcdefghåäö",
+            "settings_extruder_temp": 200,
+            "settings_bed_temp": 60,
         },
     )
     result.raise_for_status()
@@ -346,6 +362,8 @@ def test_update_filament(random_vendor: dict[str, Any]):
     new_spool_weight = 123
     new_article_number = "987654321"
     new_comment = "test"
+    new_settings_extruder_temp = 210
+    new_settings_bed_temp = 70
     result = httpx.patch(
         f"{URL}/api/v1/filament/{added_filament['id']}",
         json={
@@ -359,24 +377,30 @@ def test_update_filament(random_vendor: dict[str, Any]):
             "spool_weight": new_spool_weight,
             "article_number": new_article_number,
             "comment": new_comment,
+            "settings_extruder_temp": new_settings_extruder_temp,
+            "settings_bed_temp": new_settings_bed_temp,
         },
     )
     result.raise_for_status()
 
     # Verify
     filament = result.json()
-    assert filament["name"] == new_name
-    assert filament["vendor"] == random_vendor
-    assert filament["material"] == new_material
-    assert filament["price"] == new_price
-    assert filament["density"] == new_density
-    assert filament["diameter"] == new_diameter
-    assert filament["weight"] == new_weight
-    assert filament["spool_weight"] == new_spool_weight
-    assert filament["article_number"] == new_article_number
-    assert filament["comment"] == new_comment
-    assert filament["id"] == added_filament["id"]
-    assert filament["registered"] == added_filament["registered"]
+    assert filament == {
+        "id": added_filament["id"],
+        "registered": added_filament["registered"],
+        "name": new_name,
+        "vendor": random_vendor,
+        "material": new_material,
+        "price": new_price,
+        "density": new_density,
+        "diameter": new_diameter,
+        "weight": new_weight,
+        "spool_weight": new_spool_weight,
+        "article_number": new_article_number,
+        "comment": new_comment,
+        "settings_extruder_temp": new_settings_extruder_temp,
+        "settings_bed_temp": new_settings_bed_temp,
+    }
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()

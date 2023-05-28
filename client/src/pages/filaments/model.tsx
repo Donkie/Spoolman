@@ -13,4 +13,6 @@ export interface IFilament {
   spool_weight?: number;
   article_number?: string;
   comment?: string;
+  settings_extruder_temp?: number;
+  settings_bed_temp?: number;
 }

@@ -69,6 +69,16 @@ class Filament(BaseModel):
         description="Free text comment about this filament type.",
         example="",
     )
+    settings_extruder_temp: Optional[int] = Field(
+        ge=0,
+        description="Overridden extruder temperature, in °C.",
+        example=210,
+    )
+    settings_bed_temp: Optional[int] = Field(
+        ge=0,
+        description="Overridden bed temperature, in °C.",
+        example=60,
+    )
 
     @staticmethod
     def from_db(item: models.Filament) -> "Filament":
@@ -86,6 +96,8 @@ class Filament(BaseModel):
             spool_weight=item.spool_weight,
             article_number=item.article_number,
             comment=item.comment,
+            settings_extruder_temp=item.settings_extruder_temp,
+            settings_bed_temp=item.settings_bed_temp,
         )
 
 

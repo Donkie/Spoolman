@@ -24,6 +24,8 @@ async def create(
     spool_weight: Optional[float] = None,
     article_number: Optional[str] = None,
     comment: Optional[str] = None,
+    settings_extruder_temp: Optional[int] = None,
+    settings_bed_temp: Optional[int] = None,
 ) -> models.Filament:
     """Add a new filament to the database."""
     vendor_item: Optional[models.Vendor] = None
@@ -41,6 +43,8 @@ async def create(
         spool_weight=spool_weight,
         article_number=article_number,
         comment=comment,
+        settings_extruder_temp=settings_extruder_temp,
+        settings_bed_temp=settings_bed_temp,
     )
     db.add(db_item)
     await db.flush()
