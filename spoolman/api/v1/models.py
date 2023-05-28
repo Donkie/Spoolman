@@ -132,7 +132,7 @@ class Spool(BaseModel):
     def from_db(item: models.Spool) -> "Spool":
         """Create a new Pydantic spool object from a database spool object."""
         filament = Filament.from_db(item.filament)
-        remaining_weight: Optional[float] = None
+        remaining_weight: float | None = None
         if filament.weight is not None:
             remaining_weight = max(filament.weight - item.used_weight, 0)
 

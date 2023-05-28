@@ -28,7 +28,7 @@ async def create(
     settings_bed_temp: Optional[int] = None,
 ) -> models.Filament:
     """Add a new filament to the database."""
-    vendor_item: Optional[models.Vendor] = None
+    vendor_item: models.Vendor | None = None
     if vendor_id is not None:
         vendor_item = await vendor.get_by_id(db, vendor_id)
 

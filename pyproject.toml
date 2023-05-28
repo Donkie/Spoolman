@@ -16,7 +16,7 @@ exclude = ["client"]
 
 [tool.ruff]
 select = ["ALL"]
-ignore = ["A003", "D101", "D104", "D406", "D407", "S104", "TRY201", "TRY003", "EM101", "EM102", "DTZ003", "PLR0913"]
+ignore = ["ANN101", "A003", "D101", "D104", "D203", "D213", "D406", "D407", "S104", "TRY201", "TRY003", "EM101", "EM102", "DTZ003", "PLR0913"]
 line-length = 120
 target-version = "py39"
 

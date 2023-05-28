@@ -41,7 +41,6 @@ class Filament(Base):
     comment: Mapped[Optional[str]] = mapped_column(String(1024))
     settings_extruder_temp: Mapped[Optional[int]] = mapped_column(comment="Overridden extruder temperature.")
     settings_bed_temp: Mapped[Optional[int]] = mapped_column(comment="Overridden bed temperature.")
-    # TODO: Color?
 
 
 class Spool(Base):

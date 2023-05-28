@@ -139,7 +139,6 @@ async def use_weight_safe(db: AsyncSession, spool_id: int, weight: float) -> Non
     )
 
 
-# TODO: Make unit tests for race conditions on these
 async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.Spool:
     """Consume filament from a spool by weight.
 

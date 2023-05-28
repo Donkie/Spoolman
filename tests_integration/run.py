@@ -1,5 +1,7 @@
 """Build and run the integration tests."""
 
+# ruff: noqa: S605, S607
+
 import os
 
 os.system("docker build -t donkie/spoolman:test .")
