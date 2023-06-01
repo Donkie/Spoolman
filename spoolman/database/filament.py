@@ -26,6 +26,7 @@ async def create(
     comment: Optional[str] = None,
     settings_extruder_temp: Optional[int] = None,
     settings_bed_temp: Optional[int] = None,
+    color_hex: Optional[str] = None,
 ) -> models.Filament:
     """Add a new filament to the database."""
     vendor_item: models.Vendor | None = None
@@ -45,6 +46,7 @@ async def create(
         comment=comment,
         settings_extruder_temp=settings_extruder_temp,
         settings_bed_temp=settings_bed_temp,
+        color_hex=color_hex,
     )
     db.add(db_item)
     await db.flush()

@@ -79,6 +79,12 @@ class Filament(BaseModel):
         description="Overridden bed temperature, in °C.",
         example=60,
     )
+    color_hex: Optional[str] = Field(
+        min_length=6,
+        max_length=6,
+        description="Hexadecimal color code of the filament, e.g. FF0000 for red. (no leading #)",
+        example="FF0000",
+    )
 
     @staticmethod
     def from_db(item: models.Filament) -> "Filament":
@@ -98,6 +104,7 @@ class Filament(BaseModel):
             comment=item.comment,
             settings_extruder_temp=item.settings_extruder_temp,
             settings_bed_temp=item.settings_bed_temp,
+            color_hex=item.color_hex,
         )
 
 

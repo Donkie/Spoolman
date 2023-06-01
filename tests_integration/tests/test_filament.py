@@ -21,6 +21,7 @@ def test_add_filament(random_vendor: dict[str, Any]):
     comment = "abcdefghåäö"
     settings_extruder_temp = 200
     settings_bed_temp = 60
+    color_hex = "FF0000"
     result = httpx.post(
         f"{URL}/api/v1/filament",
         json={
@@ -36,6 +37,7 @@ def test_add_filament(random_vendor: dict[str, Any]):
             "comment": comment,
             "settings_extruder_temp": settings_extruder_temp,
             "settings_bed_temp": settings_bed_temp,
+            "color_hex": color_hex,
         },
     )
     result.raise_for_status()
@@ -57,6 +59,7 @@ def test_add_filament(random_vendor: dict[str, Any]):
         "comment": comment,
         "settings_extruder_temp": settings_extruder_temp,
         "settings_bed_temp": settings_bed_temp,
+        "color_hex": color_hex,
     }
 
     # Clean up
@@ -104,6 +107,7 @@ def test_get_filament(random_vendor: dict[str, Any]):
     comment = "abcdefghåäö"
     settings_extruder_temp = 200
     settings_bed_temp = 60
+    color_hex = "FF0000"
     result = httpx.post(
         f"{URL}/api/v1/filament",
         json={
@@ -119,6 +123,7 @@ def test_get_filament(random_vendor: dict[str, Any]):
             "comment": comment,
             "settings_extruder_temp": settings_extruder_temp,
             "settings_bed_temp": settings_bed_temp,
+            "color_hex": color_hex,
         },
     )
     result.raise_for_status()
@@ -147,6 +152,7 @@ def test_get_filament(random_vendor: dict[str, Any]):
         "comment": comment,
         "settings_extruder_temp": settings_extruder_temp,
         "settings_bed_temp": settings_bed_temp,
+        "color_hex": color_hex,
     }
 
     # Clean up
@@ -347,6 +353,7 @@ def test_update_filament(random_vendor: dict[str, Any]):
             "comment": "abcdefghåäö",
             "settings_extruder_temp": 200,
             "settings_bed_temp": 60,
+            "color_hex": "FF0000",
         },
     )
     result.raise_for_status()
@@ -364,6 +371,7 @@ def test_update_filament(random_vendor: dict[str, Any]):
     new_comment = "test"
     new_settings_extruder_temp = 210
     new_settings_bed_temp = 70
+    new_color_hex = "00FF00"
     result = httpx.patch(
         f"{URL}/api/v1/filament/{added_filament['id']}",
         json={
@@ -379,6 +387,7 @@ def test_update_filament(random_vendor: dict[str, Any]):
             "comment": new_comment,
             "settings_extruder_temp": new_settings_extruder_temp,
             "settings_bed_temp": new_settings_bed_temp,
+            "color_hex": new_color_hex,
         },
     )
     result.raise_for_status()
@@ -400,6 +409,7 @@ def test_update_filament(random_vendor: dict[str, Any]):
         "comment": new_comment,
         "settings_extruder_temp": new_settings_extruder_temp,
         "settings_bed_temp": new_settings_bed_temp,
+        "color_hex": new_color_hex,
     }
 
     # Clean up

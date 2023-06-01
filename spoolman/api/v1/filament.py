@@ -73,6 +73,12 @@ class FilamentParameters(BaseModel):
         description="Overridden bed temperature, in °C.",
         example=60,
     )
+    color_hex: Optional[str] = Field(
+        min_length=6,
+        max_length=6,
+        description="Hexadecimal color code of the filament, e.g. FF0000 for red. (no leading #)",
+        example="FF0000",
+    )
 
 
 class FilamentUpdateParameters(FilamentParameters):
@@ -164,6 +170,7 @@ async def create(
         comment=body.comment,
         settings_extruder_temp=body.settings_extruder_temp,
         settings_bed_temp=body.settings_bed_temp,
+        color_hex=body.color_hex,
     )
 
     return Filament.from_db(db_item)
