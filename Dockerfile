@@ -7,19 +7,12 @@ RUN npm install
 RUN echo "VITE_APIURL=/api/v1" > .env.production
 RUN npm run build
 
-FROM python:3.11-slim as python-builder
+FROM python:3.11-alpine as python-builder
 
-RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
-    --mount=target=/var/cache/apt,type=cache,sharing=locked \
-    rm -f /etc/apt/apt.conf.d/docker-clean \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
-    python3-dev \
-    libpq-dev \
-    g++
+RUN apk add --no-cache g++ python3-dev libpq-dev libstdc++
 
 # Add local user so we don't run as root
-RUN useradd -m app
+RUN adduser -D app
 USER app
 
 RUN python -m venv /home/app/.venv
@@ -35,17 +28,19 @@ COPY --chown=app:app alembic.ini /home/app/spoolman/
 COPY --chown=app:app README.md /home/app/spoolman/
 
 WORKDIR /home/app/spoolman
-RUN --mount=target=/home/app/.cache,type=cache,sharing=locked,uid=999,gid=1000 \
+RUN --mount=target=/home/app/.cache,type=cache,sharing=locked,uid=1000,gid=1000 \
     pip install -e .
 
-FROM python:3.11-slim as python-runner
+FROM python:3.11-alpine as python-runner
 
 LABEL org.opencontainers.image.source=https://github.com/Donkie/Spoolman
 LABEL org.opencontainers.image.description="Keep track of your inventory of 3D-printer filament spools."
 LABEL org.opencontainers.image.licenses=MIT
 
+RUN apk add --no-cache libstdc++
+
 # Add local user so we don't run as root
-RUN useradd -m app
+RUN adduser -D app
 USER app
 
 # Copy built client
