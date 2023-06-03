@@ -1,7 +1,14 @@
 import React from "react";
 import { IResourceComponentsProps } from "@refinedev/core";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, InputNumber } from "antd";
+import {
+  Form,
+  Input,
+  DatePicker,
+  Select,
+  InputNumber,
+  ColorPicker,
+} from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { IVendor } from "../vendors/model";
@@ -76,6 +83,20 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           }}
         >
           <Select {...selectProps} allowClear />
+        </Form.Item>
+        <Form.Item
+          label="Color"
+          name={["color_hex"]}
+          rules={[
+            {
+              required: false,
+            },
+          ]}
+          getValueFromEvent={(e) => {
+            return e?.toHex();
+          }}
+        >
+          <ColorPicker format="hex" />
         </Form.Item>
         <Form.Item
           label="Material"

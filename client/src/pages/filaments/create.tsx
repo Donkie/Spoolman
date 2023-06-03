@@ -1,7 +1,7 @@
 import React from "react";
 import { IResourceComponentsProps } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, Select, InputNumber } from "antd";
+import { Form, Input, Select, InputNumber, ColorPicker } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { IVendor } from "../vendors/model";
 
@@ -38,6 +38,20 @@ export const FilamentCreate: React.FC<IResourceComponentsProps> = () => {
           ]}
         >
           <Select {...selectProps} allowClear />
+        </Form.Item>
+        <Form.Item
+          label="Color"
+          name={["color_hex"]}
+          rules={[
+            {
+              required: false,
+            },
+          ]}
+          getValueFromEvent={(e) => {
+            return e?.toHex();
+          }}
+        >
+          <ColorPicker format="hex" />
         </Form.Item>
         <Form.Item
           label="Material"

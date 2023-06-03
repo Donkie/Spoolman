@@ -30,6 +30,8 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       <TextField value={record?.name} />
       <Title level={5}>Vendor</Title>
       {/* {vendorIsLoading ? <>Loading...</> : <>{vendorData?.data?.id}</>} */}
+      <Title level={5}>Color</Title>
+      <TextField value={record?.color_hex} />
       <Title level={5}>Material</Title>
       <TextField value={record?.material} />
       <Title level={5}>Price</Title>
@@ -67,27 +69,20 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
         }}
       />
       <Title level={5}>Overridden Extruder Temperature</Title>
-      {
-        !record?.settings_extruder_temp ? (
-          <TextField value="Not Set" />
-        ) : (
-          <NumberFieldUnit
-            value={record?.settings_extruder_temp ?? ""}
-            unit="°C"
-          />
-        )
-      }
+      {!record?.settings_extruder_temp ? (
+        <TextField value="Not Set" />
+      ) : (
+        <NumberFieldUnit
+          value={record?.settings_extruder_temp ?? ""}
+          unit="°C"
+        />
+      )}
       <Title level={5}>Overridden Bed Temperature</Title>
-      {
-        !record?.settings_bed_temp ? (
-          <TextField value="Not Set" />
-        ) : (
-          <NumberFieldUnit
-            value={record?.settings_bed_temp ?? ""}
-            unit="°C"
-          />
-        )
-      }
+      {!record?.settings_bed_temp ? (
+        <TextField value="Not Set" />
+      ) : (
+        <NumberFieldUnit value={record?.settings_bed_temp ?? ""} unit="°C" />
+      )}
       <Title level={5}>Article Number</Title>
       <TextField value={record?.article_number} />
       <Title level={5}>Comment</Title>
