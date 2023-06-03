@@ -49,12 +49,12 @@ USER app
 COPY --chown=app:app --from=client-builder /client/dist /home/app/spoolman/client/dist
 
 # Copy built app
-COPY --chown=app:app --from=python-builder /home/app/.local /home/app/.local
+COPY --chown=app:app --from=python-builder /home/app/.venv /home/app/.venv
 COPY --chown=app:app --from=python-builder /home/app/spoolman /home/app/spoolman
 
 WORKDIR /home/app/spoolman
 
-ENV PATH="/home/app/.local/bin:${PATH}"
+ENV PATH="/home/app/.venv/bin:${PATH}"
 ENV PYTHONPATH="/home/app/spoolman:${PYTHONPATH}"
 
 # Run command
