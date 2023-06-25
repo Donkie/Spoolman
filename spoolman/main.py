@@ -3,6 +3,7 @@
 import logging
 import os
 import subprocess
+from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 
 import uvicorn
@@ -15,31 +16,24 @@ from spoolman import env
 from spoolman.api.v1.router import app as v1_app
 from spoolman.database.database import get_connection_url, setup_db
 
-# Get the data directory
+# Define a file logger with log rotation
 data_dir = Path(user_data_dir("spoolman"))
 data_dir.mkdir(parents=True, exist_ok=True)
+log_file = data_dir.joinpath("spoolman.log")
+file_handler = TimedRotatingFileHandler(log_file, when="midnight", backupCount=5)
+file_handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(message)s", "%Y-%m-%d %H:%M:%S"))
 
-# Setup file logger
-logging.basicConfig(
-    filename=data_dir.joinpath("spoolman.log"),
-    filemode="w",
-    format="%(asctime)s:%(levelname)s:%(message)s",
-    datefmt="%Y-%m-%d %I:%M:%S%p",
-)
+# Define a console logger
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(logging.Formatter("%(name)-26s %(levelname)-8s %(message)s"))
 
-# Setup the base logger
-spoolman_logger = logging.getLogger("spoolman")
-spoolman_logger.setLevel(env.get_logging_level())
+# Setup the spoolman logger, which all spoolman modules will use
+root_logger = logging.getLogger()
+root_logger.setLevel(env.get_logging_level())
+root_logger.addHandler(file_handler)
+root_logger.addHandler(console_handler)
 
-# Log all messages to console
-formatter = logging.Formatter("%(name)-12s: %(levelname)-8s %(message)s")
-console = logging.StreamHandler()
-console.setLevel(env.get_logging_level())
-console.setFormatter(formatter)
-root_logger = logging.getLogger("")
-root_logger.addHandler(console)
-
-# Get logger instance
+# Get logger instance for this module
 logger = logging.getLogger(__name__)
 
 
