@@ -6,8 +6,24 @@ import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { IFilament } from "../filaments/model";
 
-export const SpoolCreate: React.FC<IResourceComponentsProps> = () => {
-  const { formProps, saveButtonProps } = useForm();
+interface CreateOrCloneProps {
+  mode: "create" | "clone";
+}
+
+export const SpoolCreate: React.FC<
+  IResourceComponentsProps & CreateOrCloneProps
+> = (props: IResourceComponentsProps & CreateOrCloneProps) => {
+  const { formProps, saveButtonProps, formLoading } = useForm();
+
+  if (props.mode === "clone" && formProps.initialValues) {
+    // Clear out the values that we don't want to clone
+    formProps.initialValues.first_used = null;
+    formProps.initialValues.last_used = null;
+    formProps.initialValues.used_weight = 0;
+
+    // Fix the filament_id
+    formProps.initialValues.filament_id = formProps.initialValues.filament.id;
+  }
 
   const { queryResult } = useSelect<IFilament>({
     resource: "filament",
@@ -28,7 +44,11 @@ export const SpoolCreate: React.FC<IResourceComponentsProps> = () => {
   });
 
   return (
-    <Create saveButtonProps={saveButtonProps}>
+    <Create
+      title={props.mode === "create" ? "Create Spool" : "Clone Spool"}
+      saveButtonProps={saveButtonProps}
+      isLoading={formLoading}
+    >
       <Form {...formProps} layout="vertical">
         <Form.Item
           label="First Used"

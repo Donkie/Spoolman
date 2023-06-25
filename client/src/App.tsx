@@ -19,13 +19,7 @@ import { useTranslation } from "react-i18next";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
-import {
-  SpoolClone,
-  SpoolCreate,
-  SpoolEdit,
-  SpoolList,
-  SpoolShow,
-} from "./pages/spools";
+import { SpoolCreate, SpoolEdit, SpoolList, SpoolShow } from "./pages/spools";
 import {
   FilamentCreate,
   FilamentEdit,
@@ -152,8 +146,14 @@ function App() {
                   />
                   <Route path="/spool">
                     <Route index element={<SpoolList />} />
-                    <Route path="create" element={<SpoolCreate />} />
-                    <Route path="clone/:id" element={<SpoolClone />} />
+                    <Route
+                      path="create"
+                      element={<SpoolCreate mode="create" />}
+                    />
+                    <Route
+                      path="clone/:id"
+                      element={<SpoolCreate mode="clone" />}
+                    />
                     <Route path="edit/:id" element={<SpoolEdit />} />
                     <Route path="show/:id" element={<SpoolShow />} />
                   </Route>
