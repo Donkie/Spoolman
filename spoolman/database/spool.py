@@ -1,6 +1,6 @@
 """Helper functions for interacting with spool database objects."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional
 
 import sqlalchemy
@@ -10,6 +10,11 @@ from sqlalchemy.orm import contains_eager, joinedload
 from spoolman.database import filament, models
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError
 from spoolman.math import weight_from_length
+
+
+def utc_timezone_naive(dt: datetime) -> datetime:
+    """Convert a datetime object to UTC and remove timezone info."""
+    return dt.astimezone(UTC).replace(tzinfo=None)
 
 
 async def create(
@@ -33,6 +38,12 @@ async def create(
             used_weight = max(filament_item.weight - remaining_weight, 0)
         else:
             used_weight = 0
+
+    # Convert datetime values to UTC and remove timezone info
+    if first_used is not None:
+        first_used = utc_timezone_naive(first_used)
+    if last_used is not None:
+        last_used = utc_timezone_naive(last_used)
 
     db_item = models.Spool(
         filament=filament_item,
@@ -112,6 +123,8 @@ async def update(
             if spool.filament.weight is None:
                 raise ItemCreateError("remaining_weight can only be used if the filament type has a weight set.")
             spool.used_weight = max(spool.filament.weight - v, 0)
+        elif isinstance(v, datetime):
+            setattr(spool, k, utc_timezone_naive(v))
         else:
             setattr(spool, k, v)
     await db.flush()

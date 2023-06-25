@@ -25,7 +25,7 @@ services:
       - SPOOLMAN_DB_PORT=26257
       - SPOOLMAN_DB_NAME=spoolman
       - SPOOLMAN_DB_USERNAME=john
-      - SPOOLMAN_LOGGING_LEVEL=DEBUG
+      - SPOOLMAN_LOGGING_LEVEL=INFO
     depends_on:
       db:
         condition: service_healthy

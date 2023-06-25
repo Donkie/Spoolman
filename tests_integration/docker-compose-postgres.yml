@@ -13,7 +13,7 @@ services:
       - SPOOLMAN_DB_NAME=postgres
       - SPOOLMAN_DB_USERNAME=postgres
       - SPOOLMAN_DB_PASSWORD=abc
-      - SPOOLMAN_LOGGING_LEVEL=DEBUG
+      - SPOOLMAN_LOGGING_LEVEL=INFO
     depends_on:
       - db
   tester:

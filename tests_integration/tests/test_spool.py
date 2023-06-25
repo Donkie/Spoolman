@@ -12,8 +12,6 @@ URL = "http://spoolman:8000"
 def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
     """Test adding a spool to the database."""
     # Execute
-    first_used = "2023-01-01T00:00:00"
-    last_used = "2023-01-02T00:00:00"
     remaining_weight = 750
     location = "The Pantry"
     lot_nr = "123456789"
@@ -21,8 +19,8 @@ def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
     result = httpx.post(
         f"{URL}/api/v1/spool",
         json={
-            "first_used": first_used,
-            "last_used": last_used,
+            "first_used": "2023-01-02T12:00:00+01:00",
+            "last_used": "2023-01-02T11:00:00Z",
             "filament_id": random_filament["id"],
             "remaining_weight": remaining_weight,
             "location": location,
@@ -37,8 +35,8 @@ def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
     assert spool == {
         "id": spool["id"],
         "registered": spool["registered"],
-        "first_used": first_used,
-        "last_used": last_used,
+        "first_used": "2023-01-02T11:00:00",
+        "last_used": "2023-01-02T11:00:00",
         "filament": random_filament,
         "remaining_weight": pytest.approx(remaining_weight),
         "used_weight": pytest.approx(random_filament["weight"] - remaining_weight),
@@ -362,8 +360,8 @@ def test_update_spool(random_filament: dict[str, Any]):
     spool = result.json()
 
     # Execute
-    first_used = "2023-01-01T00:00:00"
-    last_used = "2023-01-02T00:00:00"
+    first_used = "2023-01-01T12:00:00+02:00"
+    last_used = "2023-01-02T12:00:00+02:00"
     remaining_weight = 750
     location = "Living Room"
     lot_nr = "987654321"
@@ -383,8 +381,8 @@ def test_update_spool(random_filament: dict[str, Any]):
 
     # Verify
     spool = result.json()
-    assert spool["first_used"] == first_used
-    assert spool["last_used"] == last_used
+    assert spool["first_used"] == "2023-01-01T10:00:00"
+    assert spool["last_used"] == "2023-01-02T10:00:00"
     assert spool["remaining_weight"] == pytest.approx(remaining_weight)
     assert spool["used_weight"] == pytest.approx(random_filament["weight"] - remaining_weight)
     assert spool["location"] == location

@@ -29,7 +29,7 @@ services:
       - SPOOLMAN_DB_NAME=spoolman
       - SPOOLMAN_DB_USERNAME=john
       - SPOOLMAN_DB_PASSWORD=abc
-      - SPOOLMAN_LOGGING_LEVEL=DEBUG
+      - SPOOLMAN_LOGGING_LEVEL=INFO
     depends_on:
       db:
         condition: service_healthy

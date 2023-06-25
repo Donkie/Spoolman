@@ -3,7 +3,7 @@ services:
   spoolman:
     image: donkie/spoolman:test
     environment:
-      - SPOOLMAN_LOGGING_LEVEL=DEBUG
+      - SPOOLMAN_LOGGING_LEVEL=INFO
   tester:
     image: donkie/spoolman-tester:latest
     volumes:
