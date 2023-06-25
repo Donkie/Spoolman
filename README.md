@@ -36,6 +36,7 @@ services:
     ports:
       - "7912:8000"
 ```
+With this example, you should first create a folder called `data` in the same directory as the docker-compose.yml, then you should run `chown 1000:1000 data` on it in order to give it the correct permissions for the user inside the docker container.
 
 Once you have it up and running, you can access the web UI by browsing to `http://your.ip:7912`.
 
