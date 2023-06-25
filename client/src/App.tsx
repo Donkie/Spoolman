@@ -94,6 +94,7 @@ function App() {
                   name: "filament",
                   list: "/filament",
                   create: "/filament/create",
+                  clone: "/filament/clone/:id",
                   edit: "/filament/edit/:id",
                   show: "/filament/show/:id",
                   meta: {
@@ -159,7 +160,14 @@ function App() {
                   </Route>
                   <Route path="/filament">
                     <Route index element={<FilamentList />} />
-                    <Route path="create" element={<FilamentCreate />} />
+                    <Route
+                      path="create"
+                      element={<FilamentCreate mode="create" />}
+                    />
+                    <Route
+                      path="clone/:id"
+                      element={<FilamentCreate mode="clone" />}
+                    />
                     <Route path="edit/:id" element={<FilamentEdit />} />
                     <Route path="show/:id" element={<FilamentShow />} />
                   </Route>

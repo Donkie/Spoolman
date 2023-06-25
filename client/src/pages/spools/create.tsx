@@ -12,7 +12,7 @@ interface CreateOrCloneProps {
 
 export const SpoolCreate: React.FC<
   IResourceComponentsProps & CreateOrCloneProps
-> = (props: IResourceComponentsProps & CreateOrCloneProps) => {
+> = (props) => {
   const { formProps, saveButtonProps, formLoading } = useForm();
 
   if (props.mode === "clone" && formProps.initialValues) {

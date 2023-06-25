@@ -5,8 +5,19 @@ import { Form, Input, Select, InputNumber, ColorPicker } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { IVendor } from "../vendors/model";
 
-export const FilamentCreate: React.FC<IResourceComponentsProps> = () => {
-  const { formProps, saveButtonProps } = useForm();
+interface CreateOrCloneProps {
+  mode: "create" | "clone";
+}
+
+export const FilamentCreate: React.FC<
+  IResourceComponentsProps & CreateOrCloneProps
+> = (props) => {
+  const { formProps, saveButtonProps, formLoading } = useForm();
+
+  if (props.mode === "clone" && formProps.initialValues) {
+    // Fix the filament_id
+    formProps.initialValues.vendor_id = formProps.initialValues.vendor.id;
+  }
 
   const { selectProps } = useSelect<IVendor>({
     resource: "vendor",
@@ -14,7 +25,11 @@ export const FilamentCreate: React.FC<IResourceComponentsProps> = () => {
   });
 
   return (
-    <Create saveButtonProps={saveButtonProps}>
+    <Create
+      title={props.mode === "create" ? "Create Filament" : "Clone Filament"}
+      isLoading={formLoading}
+      saveButtonProps={saveButtonProps}
+    >
       <Form {...formProps} layout="vertical">
         <Form.Item
           label="Name"
