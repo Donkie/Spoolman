@@ -69,7 +69,8 @@
     "list": "List",
     "create": "Create",
     "edit": "Edit",
-    "show": "Show"
+    "show": "Show",
+    "clone": "Clone"
   },
   "buttons": {
     "create": "Create",

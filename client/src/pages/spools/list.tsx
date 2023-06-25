@@ -7,6 +7,7 @@ import {
   ShowButton,
   DateField,
   TextField,
+  CloneButton,
 } from "@refinedev/antd";
 import { Table, Space } from "antd";
 import { NumberFieldUnit } from "../../components/numberField";
@@ -100,6 +101,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             <Space>
               <EditButton hideText size="small" recordItemId={record.id} />
               <ShowButton hideText size="small" recordItemId={record.id} />
+              <CloneButton hideText size="small" recordItemId={record.id} />
             </Space>
           )}
         />
