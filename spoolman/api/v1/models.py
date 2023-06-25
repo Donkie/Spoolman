@@ -14,7 +14,7 @@ class Message(BaseModel):
 
 class Vendor(BaseModel):
     id: int = Field(description="Unique internal ID of this vendor.")
-    registered: datetime = Field(description="When the vendor was registered in the database.")
+    registered: datetime = Field(description="When the vendor was registered in the database. UTC Timezone.")
     name: str = Field(max_length=64, description="Vendor name.", example="Polymaker")
     comment: Optional[str] = Field(max_length=1024, description="Free text comment about this vendor.", example="")
 
@@ -31,7 +31,7 @@ class Vendor(BaseModel):
 
 class Filament(BaseModel):
     id: int = Field(description="Unique internal ID of this filament type.")
-    registered: datetime = Field(description="When the filament was registered in the database.")
+    registered: datetime = Field(description="When the filament was registered in the database. UTC Timezone.")
     name: Optional[str] = Field(
         max_length=64,
         description=(
@@ -110,9 +110,9 @@ class Filament(BaseModel):
 
 class Spool(BaseModel):
     id: int = Field(description="Unique internal ID of this spool of filament.")
-    registered: datetime = Field(description="When the spool was registered in the database.")
-    first_used: Optional[datetime] = Field(description="First logged occurence of spool usage.")
-    last_used: Optional[datetime] = Field(description="Last logged occurence of spool usage.")
+    registered: datetime = Field(description="When the spool was registered in the database. UTC Timezone.")
+    first_used: Optional[datetime] = Field(description="First logged occurence of spool usage. UTC Timezone.")
+    last_used: Optional[datetime] = Field(description="Last logged occurence of spool usage. UTC Timezone.")
     filament: Filament = Field(description="The filament type of this spool.")
     remaining_weight: Optional[float] = Field(
         default=None,
