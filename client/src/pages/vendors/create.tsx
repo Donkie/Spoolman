@@ -4,11 +4,21 @@ import { Create, useForm } from "@refinedev/antd";
 import { Form, Input } from "antd";
 import TextArea from "antd/es/input/TextArea";
 
-export const VendorCreate: React.FC<IResourceComponentsProps> = () => {
-  const { formProps, saveButtonProps } = useForm();
+interface CreateOrCloneProps {
+  mode: "create" | "clone";
+}
+
+export const VendorCreate: React.FC<
+  IResourceComponentsProps & CreateOrCloneProps
+> = (props) => {
+  const { formProps, saveButtonProps, formLoading } = useForm();
 
   return (
-    <Create saveButtonProps={saveButtonProps}>
+    <Create
+      title={props.mode === "create" ? "Create Vendor" : "Clone Vendor"}
+      isLoading={formLoading}
+      saveButtonProps={saveButtonProps}
+    >
       <Form {...formProps} layout="vertical">
         <Form.Item
           label="Name"

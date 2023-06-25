@@ -106,6 +106,7 @@ function App() {
                   name: "vendor",
                   list: "/vendor",
                   create: "/vendor/create",
+                  clone: "/vendor/clone/:id",
                   edit: "/vendor/edit/:id",
                   show: "/vendor/show/:id",
                   meta: {
@@ -173,7 +174,14 @@ function App() {
                   </Route>
                   <Route path="/vendor">
                     <Route index element={<VendorList />} />
-                    <Route path="create" element={<VendorCreate />} />
+                    <Route
+                      path="create"
+                      element={<VendorCreate mode="create" />}
+                    />
+                    <Route
+                      path="clone/:id"
+                      element={<VendorCreate mode="clone" />}
+                    />
                     <Route path="edit/:id" element={<VendorEdit />} />
                     <Route path="show/:id" element={<VendorShow />} />
                   </Route>

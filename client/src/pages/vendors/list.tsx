@@ -6,6 +6,7 @@ import {
   EditButton,
   ShowButton,
   DateField,
+  CloneButton,
 } from "@refinedev/antd";
 import { Table, Space } from "antd";
 import dayjs from "dayjs";
@@ -40,8 +41,24 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="actions"
           render={(_, record: BaseRecord) => (
             <Space>
-              <EditButton hideText size="small" recordItemId={record.id} />
-              <ShowButton hideText size="small" recordItemId={record.id} />
+              <EditButton
+                hideText
+                title="Edit"
+                size="small"
+                recordItemId={record.id}
+              />
+              <ShowButton
+                hideText
+                title="Show"
+                size="small"
+                recordItemId={record.id}
+              />
+              <CloneButton
+                hideText
+                title="Clone"
+                size="small"
+                recordItemId={record.id}
+              />
             </Space>
           )}
         />
