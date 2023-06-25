@@ -73,6 +73,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           title="First Used"
           render={(value) => (
             <DateField
+              hidden={!value}
               value={dayjs.utc(value).local()}
               title={dayjs.utc(value).local().format()}
               format="YYYY-MM-DD HH:mm:ss"
@@ -84,6 +85,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           title="Last Used"
           render={(value) => (
             <DateField
+              hidden={!value}
               value={dayjs.utc(value).local()}
               title={dayjs.utc(value).local().format()}
               format="YYYY-MM-DD HH:mm:ss"

@@ -28,12 +28,14 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       />
       <Title level={5}>First Used</Title>
       <DateField
+        hidden={!record?.first_used}
         value={dayjs.utc(record?.first_used).local()}
         title={dayjs.utc(record?.first_used).local().format()}
         format="YYYY-MM-DD HH:mm:ss"
       />
       <Title level={5}>Last Used</Title>
       <DateField
+        hidden={!record?.last_used}
         value={dayjs.utc(record?.last_used).local()}
         title={dayjs.utc(record?.last_used).local().format()}
         format="YYYY-MM-DD HH:mm:ss"
