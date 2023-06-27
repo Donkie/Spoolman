@@ -4,6 +4,7 @@ import { Create, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, Select, InputNumber, ColorPicker } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { IVendor } from "../vendors/model";
+import { numberFormatter, numberParser } from "../../utils/parsing";
 
 interface CreateOrCloneProps {
   mode: "create" | "clone";
@@ -90,7 +91,12 @@ export const FilamentCreate: React.FC<
             },
           ]}
         >
-          <InputNumber min={0} />
+          <InputNumber
+            min={0}
+            precision={2}
+            formatter={numberFormatter}
+            parser={numberParser}
+          />
         </Form.Item>
         <Form.Item
           label="Density"
@@ -101,7 +107,13 @@ export const FilamentCreate: React.FC<
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="g/cm³" />
+          <InputNumber
+            min={0}
+            addonAfter="g/cm³"
+            precision={3}
+            formatter={numberFormatter}
+            parser={numberParser}
+          />
         </Form.Item>
         <Form.Item
           label="Diameter"
@@ -112,7 +124,13 @@ export const FilamentCreate: React.FC<
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="mm" />
+          <InputNumber
+            min={0}
+            addonAfter="mm"
+            precision={2}
+            formatter={numberFormatter}
+            parser={numberParser}
+          />
         </Form.Item>
         <Form.Item
           label="Weight"
@@ -124,7 +142,7 @@ export const FilamentCreate: React.FC<
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="g" />
+          <InputNumber min={0} addonAfter="g" precision={0} />
         </Form.Item>
         <Form.Item
           label="Spool Weight"
@@ -136,7 +154,7 @@ export const FilamentCreate: React.FC<
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="g" />
+          <InputNumber min={0} addonAfter="g" precision={0} />
         </Form.Item>
         <Form.Item
           label="Override Extruder Temperature"
@@ -148,7 +166,7 @@ export const FilamentCreate: React.FC<
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="°C" />
+          <InputNumber min={0} addonAfter="°C" precision={0} />
         </Form.Item>
         <Form.Item
           label="Override Bed Temperature"
@@ -160,7 +178,7 @@ export const FilamentCreate: React.FC<
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="°C" />
+          <InputNumber min={0} addonAfter="°C" precision={0} />
         </Form.Item>
         <Form.Item
           label="Article Number"

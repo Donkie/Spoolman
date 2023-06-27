@@ -98,7 +98,7 @@ export const SpoolCreate: React.FC<
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="g" />
+          <InputNumber min={0} addonAfter="g" precision={0} />
         </Form.Item>
         <Form.Item
           label="Location"

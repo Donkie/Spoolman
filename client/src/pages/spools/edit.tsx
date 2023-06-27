@@ -1,7 +1,7 @@
 import React from "react";
 import { IResourceComponentsProps } from "@refinedev/core";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select } from "antd";
+import { Form, Input, DatePicker, Select, InputNumber } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { IFilament } from "../filaments/model";
@@ -108,7 +108,10 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
             },
           ]}
         >
-          <Input min={0} addonAfter="g" />
+          <InputNumber min={0} addonAfter="g" precision={0} />
+          {/* TODO: Allow higher precision here.
+          However, that requires that we can handle the , -> . replacement in the number parser
+          more elegantly for locales which use , as a thousands separator. */}
         </Form.Item>
         <Form.Item
           label="Location"
