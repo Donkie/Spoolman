@@ -20,11 +20,14 @@ It also ships with a simple web-based UI that lets you manipulate the stored dat
 ## Installation
 
 ### Using Docker
+The easiest way to run Spoolman is using Docker. Docker is a platform for developing, shipping, and running applications in containers. Containers are lightweight, portable, and self-contained environments that can run on any machine with Docker installed.
+
+To install Docker on your machine, follow the instructions for your operating system on the [Docker website](https://docs.docker.com/engine/install/). Once you have Docker installed, you can use the sample `docker-compose.yml` file below to run Spoolman in a container.
 
 The data can be stored in any of the following databases: SQLite, PostgreSQL, MySQL, MariaDB, CockroachDB.
 By default, SQLite is used which is a simple no-install database solution that saves to a single .db file located in the server's user directory.
 
-The easiest way to run Spoolman is using Docker. Here is a sample docker-compose.yml to get you started:
+Here is a sample docker-compose.yml to get you started:
 ```yaml
 version: '3.8'
 services:
