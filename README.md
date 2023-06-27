@@ -55,3 +55,7 @@ If you want to connect with an external database instead, specify the environmen
 | SPOOLMAN_DB_PASSWORD_FILE | Path of file which contains the database password. This is more secure than using SPOOLMAN_DB_PASSWORD.                      |
 | SPOOLMAN_DB_PASSWORD      | Database password                                                                                                            |
 | SPOOLMAN_DB_QUERY         | Query parameters for the database connection, e.g. set to `unix_socket=/path/to/mysql.sock` to connect using a MySQL socket. |
+
+## Configuration
+### Moonraker
+Moonraker has built-in support for Spoolman. See the [Moonraker Documentation](https://moonraker.readthedocs.io/en/latest/configuration/#spoolman) for more information.
