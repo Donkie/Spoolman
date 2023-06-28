@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from typing import Optional
 
 import sqlalchemy
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 
@@ -198,7 +199,10 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
         .join(models.Spool, models.Spool.filament_id == models.Filament.id)
         .where(models.Spool.id == spool_id),
     )
-    filament_info = result.one()
+    try:
+        filament_info = result.one()
+    except NoResultFound as exc:
+        raise ItemNotFoundError("Filament not found for spool.") from exc
 
     # Calculate and use weight
     weight = weight_from_length(
