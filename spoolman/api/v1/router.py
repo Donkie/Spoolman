@@ -28,7 +28,7 @@ async def itemnotfounderror_exception_handler(_request: Request, exc: ItemNotFou
     logger.debug(exc, exc_info=True)
     return JSONResponse(
         status_code=404,
-        content={"message": "Item not found."},
+        content={"message": exc.args[0]},
     )
 
 

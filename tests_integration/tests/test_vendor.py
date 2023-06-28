@@ -87,6 +87,10 @@ def test_get_vendor_not_found():
 
     # Verify
     assert result.status_code == 404
+    message = result.json()["message"].lower()
+    assert "vendor" in message
+    assert "id" in message
+    assert "123456789" in message
 
 
 def test_find_vendors():
@@ -182,6 +186,10 @@ def test_delete_vendor_not_found():
 
     # Verify
     assert result.status_code == 404
+    message = result.json()["message"].lower()
+    assert "vendor" in message
+    assert "id" in message
+    assert "123456789" in message
 
 
 def test_update_vendor():
@@ -223,3 +231,7 @@ def test_update_vendor_not_found():
 
     # Verify
     assert result.status_code == 404
+    message = result.json()["message"].lower()
+    assert "vendor" in message
+    assert "id" in message
+    assert "123456789" in message

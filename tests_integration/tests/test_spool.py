@@ -174,6 +174,10 @@ def test_get_spool_not_found():
 
     # Verify
     assert result.status_code == 404
+    message = result.json()["message"].lower()
+    assert "spool" in message
+    assert "id" in message
+    assert "123456789" in message
 
 
 def test_find_spools(random_filament: dict[str, Any]):  # noqa: PLR0915
@@ -342,6 +346,10 @@ def test_delete_spool_not_found():
 
     # Verify
     assert result.status_code == 404
+    message = result.json()["message"].lower()
+    assert "spool" in message
+    assert "id" in message
+    assert "123456789" in message
 
 
 def test_update_spool(random_filament: dict[str, Any]):
@@ -425,6 +433,10 @@ def test_update_spool_not_found(random_filament: dict[str, Any]):
         json={"filament_id": random_filament["id"]},
     )
     assert result.status_code == 404
+    message = result.json()["message"].lower()
+    assert "spool" in message
+    assert "id" in message
+    assert "123456789" in message
 
 
 def test_use_spool_weight(random_filament: dict[str, Any]):
@@ -526,3 +538,7 @@ def test_use_spool_not_found():
         json={"use_weight": 0.05},
     )
     assert result.status_code == 404
+    message = result.json()["message"].lower()
+    assert "spool" in message
+    assert "id" in message
+    assert "123456789" in message

@@ -168,6 +168,10 @@ def test_get_filament_not_found():
 
     # Verify
     assert result.status_code == 404
+    message = result.json()["message"].lower()
+    assert "filament" in message
+    assert "id" in message
+    assert "123456789" in message
 
 
 def test_find_filaments(random_vendor: dict[str, Any]):
@@ -333,6 +337,10 @@ def test_delete_filament_not_found():
 
     # Verify
     assert result.status_code == 404
+    message = result.json()["message"].lower()
+    assert "filament" in message
+    assert "id" in message
+    assert "123456789" in message
 
 
 def test_update_filament(random_vendor: dict[str, Any]):
@@ -426,3 +434,7 @@ def test_update_filament_not_found():
 
     # Verify
     assert result.status_code == 404
+    message = result.json()["message"].lower()
+    assert "filament" in message
+    assert "id" in message
+    assert "123456789" in message
