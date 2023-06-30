@@ -197,3 +197,6 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 .python-version
+
+### VisualStudioCode ###
+.vscode/
