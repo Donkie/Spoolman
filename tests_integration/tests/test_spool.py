@@ -1,5 +1,6 @@
 """Integration tests for the Spool API endpoint."""
 
+import asyncio
 import math
 from typing import Any
 
@@ -542,3 +543,45 @@ def test_use_spool_not_found():
     assert "spool" in message
     assert "id" in message
     assert "123456789" in message
+
+
+@pytest.mark.asyncio()
+async def test_use_spool_concurrent(random_filament: dict[str, Any]):
+    """Test using a spool with many concurrent requests."""
+    # Setup
+    start_weight = 1000
+    result = httpx.post(  # noqa: ASYNC100
+        f"{URL}/api/v1/spool",
+        json={
+            "filament_id": random_filament["id"],
+            "remaining_weight": start_weight,
+        },
+    )
+    result.raise_for_status()
+    spool = result.json()
+
+    # Execute
+    requests = 20
+    used_weight = 0.5
+    async with httpx.AsyncClient() as client:
+        tasks = []
+        for _ in range(requests):
+            tasks.append(
+                client.put(
+                    f"{URL}/api/v1/spool/{spool['id']}/use",
+                    json={
+                        "use_weight": used_weight,
+                    },
+                    timeout=60,
+                ),
+            )
+        await asyncio.gather(*tasks)
+
+    # Verify
+    result = httpx.get(f"{URL}/api/v1/spool/{spool['id']}")  # noqa: ASYNC100
+    result.raise_for_status()
+    spool = result.json()
+    assert spool["remaining_weight"] == pytest.approx(start_weight - (used_weight * requests))
+
+    # Clean up
+    httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()  # noqa: ASYNC100
