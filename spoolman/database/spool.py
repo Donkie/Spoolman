@@ -1,6 +1,6 @@
 """Helper functions for interacting with spool database objects."""
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 import sqlalchemy
@@ -15,7 +15,7 @@ from spoolman.math import weight_from_length
 
 def utc_timezone_naive(dt: datetime) -> datetime:
     """Convert a datetime object to UTC and remove timezone info."""
-    return dt.astimezone(UTC).replace(tzinfo=None)
+    return dt.astimezone(tz=timezone.utc).replace(tzinfo=None)
 
 
 async def create(

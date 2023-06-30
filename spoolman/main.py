@@ -5,6 +5,7 @@ import os
 import subprocess
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
+from typing import Union
 
 import uvicorn
 from fastapi import FastAPI
@@ -45,7 +46,7 @@ class SinglePageApplication(StaticFiles):
         """Construct."""
         super().__init__(directory=directory, packages=None, html=True, check_dir=True)
 
-    def lookup_path(self, path: str) -> tuple[str, os.stat_result | None]:
+    def lookup_path(self, path: str) -> tuple[str, Union[os.stat_result, None]]:
         """Return index.html if the requested file cannot be found."""
         full_path, stat_result = super().lookup_path(path)
 
