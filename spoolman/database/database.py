@@ -61,18 +61,15 @@ class Database:
             logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 
         connect_args = {}
-        if self.connection_url.drivername == "sqlite":
-            connect_args["check_same_thread"] = False
-        elif self.connection_url.drivername == "postgresql":
-            connect_args["options"] = "-c timezone=utc"
-            connect_args["max_inactive_connection_lifetime"] = 3
+        if self.connection_url.drivername == "sqlite+aiosqlite":
+            connect_args["timeout"] = 60
 
         self.engine = create_async_engine(
             self.connection_url,
             connect_args=connect_args,
             pool_pre_ping=True,
         )
-        self.session_maker = async_sessionmaker(self.engine, autocommit=False, autoflush=True)
+        self.session_maker = async_sessionmaker(self.engine, autocommit=False, autoflush=True, expire_on_commit=False)
 
 
 __db: Optional[Database] = None

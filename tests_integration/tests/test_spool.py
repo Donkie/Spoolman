@@ -561,7 +561,7 @@ async def test_use_spool_concurrent(random_filament: dict[str, Any]):
     spool = result.json()
 
     # Execute
-    requests = 20
+    requests = 100
     used_weight = 0.5
     async with httpx.AsyncClient() as client:
         tasks = []
