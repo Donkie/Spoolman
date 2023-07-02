@@ -32,6 +32,13 @@ async def itemnotfounderror_exception_handler(_request: Request, exc: ItemNotFou
     )
 
 
+# Add health check endpoint
+@app.get("/health")
+async def health() -> models.HealthCheck:
+    """Return a health check."""
+    return {"status": "healthy"}
+
+
 app.include_router(filament.router)
 app.include_router(spool.router)
 app.include_router(vendor.router)

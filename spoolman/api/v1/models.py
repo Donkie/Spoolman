@@ -155,3 +155,7 @@ class Spool(BaseModel):
             lot_nr=item.lot_nr,
             comment=item.comment,
         )
+
+
+class HealthCheck(BaseModel):
+    status: str = Field(example="healthy")
