@@ -2,10 +2,8 @@
 
 import logging
 from collections.abc import AsyncGenerator
-from pathlib import Path
 from typing import Optional
 
-from platformdirs import user_data_dir
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
@@ -27,11 +25,14 @@ def get_connection_url() -> URL:
     if db_type is None:
         db_type = env.DatabaseType.SQLITE
 
-        data_dir = Path(user_data_dir("spoolman"))
-        data_dir.mkdir(parents=True, exist_ok=True)
-
-        database = str(data_dir.joinpath("spoolman.db"))
+        database = str(env.get_data_dir().joinpath("spoolman.db"))
         logger.info('No database type specified, using a default SQLite database located at "%s"', database)
+    elif db_type is env.DatabaseType.SQLITE:
+        if database is not None:
+            raise ValueError("Cannot specify a database name when using SQLite.")
+
+        database = str(env.get_data_dir().joinpath("spoolman.db"))
+        logger.info('Using SQLite database located at "%s"', database)
     else:
         logger.info('Connecting to database of type "%s" at "%s:%s"', db_type, host, port)
 

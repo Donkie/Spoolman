@@ -11,16 +11,13 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from platformdirs import user_data_dir
 
 from spoolman import env
 from spoolman.api.v1.router import app as v1_app
 from spoolman.database.database import get_connection_url, setup_db
 
 # Define a file logger with log rotation
-data_dir = Path(user_data_dir("spoolman"))
-data_dir.mkdir(parents=True, exist_ok=True)
-log_file = data_dir.joinpath("spoolman.log")
+log_file = env.get_data_dir().joinpath("spoolman.log")
 file_handler = TimedRotatingFileHandler(log_file, when="midnight", backupCount=5)
 file_handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(message)s", "%Y-%m-%d %H:%M:%S"))
 

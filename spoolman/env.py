@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Optional
 from urllib import parse
 
+from platformdirs import user_data_dir
+
 
 class DatabaseType(Enum):
     """The database type."""
@@ -192,3 +194,14 @@ def is_debug_mode() -> bool:
     if debug_mode == "TRUE" or debug_mode == "1":
         return True
     raise ValueError(f"Failed to parse SPOOLMAN_DEBUG_MODE variable: Unknown debug mode '{debug_mode}'.")
+
+
+def get_data_dir() -> Path:
+    """Get the data directory.
+
+    Returns:
+        Path: The data directory.
+    """
+    data_dir = Path(user_data_dir("spoolman"))
+    data_dir.mkdir(parents=True, exist_ok=True)
+    return data_dir
