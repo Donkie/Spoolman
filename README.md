@@ -43,7 +43,7 @@ With this example, you should first create a folder called `data` in the same di
 
 Once you have it up and running, you can access the web UI by browsing to `http://your.ip:7912`.
 
-If you want to connect with an external database instead, specify the environment variables from the table below.
+If you want to connect with an external database instead, specify the `SPOOLMAN_DB_*` environment variables from the table below.
 
 | Variable                  | Description                                                                                                                  |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -55,6 +55,7 @@ If you want to connect with an external database instead, specify the environmen
 | SPOOLMAN_DB_PASSWORD_FILE | Path of file which contains the database password. This is more secure than using SPOOLMAN_DB_PASSWORD.                      |
 | SPOOLMAN_DB_PASSWORD      | Database password                                                                                                            |
 | SPOOLMAN_DB_QUERY         | Query parameters for the database connection, e.g. set to `unix_socket=/path/to/mysql.sock` to connect using a MySQL socket. |
+| SPOOLMAN_LOGGING_LEVEL    | Logging level, any of: `CRITICAL`, `ERROR`, `WARNING`, `INFO`, `DEBUG`, defaults to `INFO`.                                  |
 
 ## Configuration
 ### Moonraker
