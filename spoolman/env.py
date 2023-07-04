@@ -196,6 +196,24 @@ def is_debug_mode() -> bool:
     raise ValueError(f"Failed to parse SPOOLMAN_DEBUG_MODE variable: Unknown debug mode '{debug_mode}'.")
 
 
+def is_automatic_backup_enabled() -> bool:
+    """Get whether automatic backup is enabled from environment variables.
+
+    Returns True if no environment variable was set for automatic backup.
+
+    Returns:
+        bool: Whether automatic backup is enabled.
+    """
+    automatic_backup = os.getenv("SPOOLMAN_AUTOMATIC_BACKUP", "TRUE").upper()
+    if automatic_backup == "FALSE" or automatic_backup == "0":
+        return False
+    if automatic_backup == "TRUE" or automatic_backup == "1":
+        return True
+    raise ValueError(
+        f"Failed to parse SPOOLMAN_AUTOMATIC_BACKUP variable: Unknown automatic backup '{automatic_backup}'.",
+    )
+
+
 def get_data_dir() -> Path:
     """Get the data directory.
 
@@ -205,3 +223,15 @@ def get_data_dir() -> Path:
     data_dir = Path(user_data_dir("spoolman"))
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
+
+
+def get_backups_dir() -> Path:
+    """Get the backups directory.
+
+    Returns:
+        Path: The backups directory.
+    """
+    data_dir = get_data_dir()
+    backups_dir = data_dir.joinpath("backups")
+    backups_dir.mkdir(parents=True, exist_ok=True)
+    return backups_dir

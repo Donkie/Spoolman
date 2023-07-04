@@ -38,6 +38,8 @@ services:
       - ./data:/home/app/.local/share/spoolman
     ports:
       - "7912:8000"
+    environment:
+      - TZ=Europe/Stockholm # Optional, defaults to UTC
 ```
 With this example, you should first create a folder called `data` in the same directory as the docker-compose.yml, then you should run `chown 1000:1000 data` on it in order to give it the correct permissions for the user inside the docker container.
 
@@ -56,6 +58,7 @@ If you want to connect with an external database instead, specify the `SPOOLMAN_
 | SPOOLMAN_DB_PASSWORD      | Database password                                                                                                            |
 | SPOOLMAN_DB_QUERY         | Query parameters for the database connection, e.g. set to `unix_socket=/path/to/mysql.sock` to connect using a MySQL socket. |
 | SPOOLMAN_LOGGING_LEVEL    | Logging level, any of: `CRITICAL`, `ERROR`, `WARNING`, `INFO`, `DEBUG`, defaults to `INFO`.                                  |
+| SPOOLMAN_AUTOMATIC_BACKUP | Automatic nightly DB backups for SQLite databases. Enabled by default, set to `FALSE` to disable.                            |
 
 ## Configuration
 ### Moonraker

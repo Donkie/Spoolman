@@ -1,6 +1,8 @@
 """Test fixtures for integration tests."""
 
+import os
 import time
+from enum import Enum
 from typing import Any
 
 import httpx
@@ -9,6 +11,27 @@ import pytest
 TIMEOUT = 10
 
 URL = "http://spoolman:8000"
+
+
+class DbType(str, Enum):
+    """Enum for database types."""
+
+    SQLITE = "sqlite"
+    POSTGRES = "postgres"
+    MYSQL = "mysql"
+    COCKROACHDB = "cockroachdb"
+
+
+def get_db_type() -> DbType:
+    """Return the database type from environment variables."""
+    env_db_type = os.environ.get("DB_TYPE")
+    if env_db_type is None:
+        raise RuntimeError("DB_TYPE environment variable not set")
+    try:
+        db_type = DbType(env_db_type)
+    except ValueError as e:
+        raise RuntimeError(f"Unknown database type: {env_db_type}") from e
+    return db_type
 
 
 @pytest.fixture(scope="session", autouse=True)

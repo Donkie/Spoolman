@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from starlette.requests import Request
 from starlette.responses import Response
 
+from spoolman.database.database import backup_task
 from spoolman.exceptions import ItemNotFoundError
 
 from . import filament, models, spool, vendor
@@ -39,6 +40,17 @@ async def health() -> models.HealthCheck:
     return models.HealthCheck(status="healthy")
 
 
+# Add endpoint for triggering a db backup
+@app.post("/backup", summary="Trigger a database backup. Only applicable for SQLite databases.")
+async def backup() -> models.BackupResponse:
+    """Trigger a database backup."""
+    path = await backup_task()
+    if path is None:
+        return models.BackupResponse(success=False)
+    return models.BackupResponse(success=True, path=str(path))
+
+
+# Add routers
 app.include_router(filament.router)
 app.include_router(spool.router)
 app.include_router(vendor.router)

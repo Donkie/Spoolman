@@ -8,5 +8,7 @@ services:
     image: donkie/spoolman-tester:latest
     volumes:
       - ./tests:/tester/tests
+    environment:
+      - DB_TYPE=sqlite
     depends_on:
       - spoolman

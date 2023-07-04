@@ -33,5 +33,7 @@ services:
     image: donkie/spoolman-tester:latest
     volumes:
       - ./tests:/tester/tests
+    environment:
+      - DB_TYPE=cockroachdb
     depends_on:
       - spoolman

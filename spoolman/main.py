@@ -11,10 +11,11 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from scheduler.asyncio.scheduler import Scheduler
 
 from spoolman import env
 from spoolman.api.v1.router import app as v1_app
-from spoolman.database.database import get_connection_url, setup_db
+from spoolman.database import database
 
 # Define a file logger with log rotation
 log_file = env.get_data_dir().joinpath("spoolman.log")
@@ -75,7 +76,7 @@ if env.is_debug_mode():
 async def startup() -> None:
     """Run the service's startup sequence."""
     logger.info("Setting up database...")
-    setup_db(get_connection_url())
+    database.setup_db(database.get_connection_url())
 
     logger.info("Performing migrations...")
     # Run alembic in a subprocess.
@@ -83,6 +84,10 @@ async def startup() -> None:
     # See: https://github.com/sqlalchemy/alembic/discussions/1155
     project_root = Path(__file__).parent.parent
     subprocess.run(["alembic", "upgrade", "head"], check=True, cwd=project_root)  # noqa: S603, S607, ASYNC101
+
+    # Setup scheduler
+    schedule = Scheduler()
+    database.schedule_tasks(schedule)
 
     logger.info("Startup complete.")
 
