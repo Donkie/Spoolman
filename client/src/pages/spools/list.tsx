@@ -19,6 +19,10 @@ dayjs.extend(utc);
 export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const { tableProps } = useTable({
     syncWithLocation: true,
+    pagination: {
+      mode: "client",
+      pageSize: 20,
+    },
   });
 
   tableProps.dataSource?.forEach((element) => {

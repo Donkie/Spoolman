@@ -18,6 +18,10 @@ dayjs.extend(utc);
 export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   const { tableProps } = useTable({
     syncWithLocation: true,
+    pagination: {
+      mode: "client",
+      pageSize: 20,
+    },
   });
 
   return (
