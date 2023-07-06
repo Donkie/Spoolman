@@ -3,6 +3,7 @@ import { IResourceComponentsProps } from "@refinedev/core";
 import { Create, useForm } from "@refinedev/antd";
 import { Form, Input } from "antd";
 import TextArea from "antd/es/input/TextArea";
+import { IVendor } from "./model";
 
 interface CreateOrCloneProps {
   mode: "create" | "clone";
@@ -11,7 +12,7 @@ interface CreateOrCloneProps {
 export const VendorCreate: React.FC<
   IResourceComponentsProps & CreateOrCloneProps
 > = (props) => {
-  const { formProps, saveButtonProps, formLoading } = useForm();
+  const { formProps, saveButtonProps, formLoading } = useForm<IVendor>();
 
   return (
     <Create

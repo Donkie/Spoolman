@@ -4,6 +4,8 @@ import { Create, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, Select, InputNumber, ColorPicker } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { numberFormatter, numberParser } from "../../utils/parsing";
+import { IVendor } from "../vendors/model";
+import { IFilament } from "./model";
 
 interface CreateOrCloneProps {
   mode: "create" | "clone";
@@ -12,7 +14,7 @@ interface CreateOrCloneProps {
 export const FilamentCreate: React.FC<
   IResourceComponentsProps & CreateOrCloneProps
 > = (props) => {
-  const { formProps, saveButtonProps, formLoading } = useForm();
+  const { formProps, saveButtonProps, formLoading } = useForm<IFilament>();
 
   if (props.mode === "clone" && formProps.initialValues) {
     // Fix the vendor_id
@@ -21,7 +23,7 @@ export const FilamentCreate: React.FC<
     }
   }
 
-  const { selectProps } = useSelect({
+  const { selectProps } = useSelect<IVendor>({
     resource: "vendor",
     optionLabel: "name",
   });

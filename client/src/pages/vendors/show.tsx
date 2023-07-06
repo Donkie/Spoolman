@@ -4,13 +4,14 @@ import { Show, NumberField, DateField, TextField } from "@refinedev/antd";
 import { Typography } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { IVendor } from "./model";
 
 dayjs.extend(utc);
 
 const { Title } = Typography;
 
 export const VendorShow: React.FC<IResourceComponentsProps> = () => {
-  const { queryResult } = useShow();
+  const { queryResult } = useShow<IVendor>();
   const { data, isLoading } = queryResult;
 
   const record = data?.data;

@@ -5,13 +5,14 @@ import { Typography } from "antd";
 import { NumberFieldUnit } from "../../components/numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { ISpool } from "./model";
 
 dayjs.extend(utc);
 
 const { Title } = Typography;
 
 export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
-  const { queryResult } = useShow();
+  const { queryResult } = useShow<ISpool>();
   const { data, isLoading } = queryResult;
 
   const record = data?.data;

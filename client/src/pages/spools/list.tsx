@@ -14,12 +14,16 @@ import { NumberFieldUnit } from "../../components/numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import {
-  filterPopulator,
-  genericFilterer,
   genericSorter,
-  getFiltersForField,
   getSortOrderForField,
+  typeSorters,
 } from "../../utils/sorting";
+import {
+  genericFilterer,
+  getFiltersForField,
+  typeFilters,
+  useListFiltersForField,
+} from "../../utils/filtering";
 import { ISpool } from "./model";
 import {
   useInitialTableState,
@@ -28,6 +32,10 @@ import {
 import { FilterOutlined } from "@ant-design/icons";
 
 dayjs.extend(utc);
+
+interface ISpoolCollapsed extends ISpool {
+  filament_name: string;
+}
 
 export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   // Load initial state
@@ -50,26 +58,31 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
       },
     });
 
+  // Type the sorters and filters
+  const typedSorters = typeSorters<ISpoolCollapsed>(sorters);
+  const typedFilters = typeFilters<ISpoolCollapsed>(filters);
+
   // Store state in local storage
   useStoreInitialState("spoolList", { sorters, filters });
 
-  // Copy dataSource to avoid mutating the original
-  const dataSource = [...(tableProps.dataSource || [])];
-
-  // Add a filament_name field to the dataSource
-  dataSource.forEach((element) => {
-    if (element.filament.vendor && "name" in element.filament.vendor) {
-      element.filament_name = `${element.filament.vendor.name} - ${element.filament.name}`;
-    } else {
-      element.filament_name = element.filament.name;
+  // Collapse the dataSource to a mutable list and add a filament_name field
+  const dataSource: ISpoolCollapsed[] = (tableProps.dataSource ?? []).map(
+    (element) => {
+      let filament_name: string;
+      if (element.filament.vendor && "name" in element.filament.vendor) {
+        filament_name = `${element.filament.vendor.name} - ${element.filament.name}`;
+      } else {
+        filament_name = element.filament.name ?? element.filament.id.toString();
+      }
+      return { ...element, filament_name };
     }
-  });
+  );
 
   // Filter dataSource by the filters
-  const filteredDataSource = dataSource.filter(genericFilterer(filters));
+  const filteredDataSource = dataSource.filter(genericFilterer(typedFilters));
 
   // Sort dataSource by the sorters
-  filteredDataSource.sort(genericSorter(sorters));
+  filteredDataSource.sort(genericSorter(typedSorters));
 
   return (
     <List
@@ -99,21 +112,21 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="id"
           title="Id"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "id")}
+          sortOrder={getSortOrderForField(typedSorters, "id")}
         />
         <Table.Column
           dataIndex="filament_name"
           title="Filament"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "filament_name")}
-          filters={filterPopulator(dataSource, "filament_name")}
-          filteredValue={getFiltersForField(filters, "filament_name")}
+          sortOrder={getSortOrderForField(typedSorters, "filament_name")}
+          filters={useListFiltersForField(dataSource, "filament_name")}
+          filteredValue={getFiltersForField(typedFilters, "filament_name")}
         />
         <Table.Column
           dataIndex="used_weight"
           title="Used Weight"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "used_weight")}
+          sortOrder={getSortOrderForField(typedSorters, "used_weight")}
           render={(value) => {
             return (
               <NumberFieldUnit
@@ -130,7 +143,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="remaining_weight"
           title="Estimated Remaining Weight"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "remaining_weight")}
+          sortOrder={getSortOrderForField(typedSorters, "remaining_weight")}
           render={(value) => {
             if (value === null || value === undefined) {
               return <TextField value="Unknown" />;
@@ -150,23 +163,23 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="location"
           title="Location"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "location")}
-          filters={filterPopulator(dataSource, "location")}
-          filteredValue={getFiltersForField(filters, "location")}
+          sortOrder={getSortOrderForField(typedSorters, "location")}
+          filters={useListFiltersForField(dataSource, "location")}
+          filteredValue={getFiltersForField(typedFilters, "location")}
         />
         <Table.Column
           dataIndex="lot_nr"
           title="Lot Nr"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "lot_nr")}
-          filters={filterPopulator(dataSource, "lot_nr")}
-          filteredValue={getFiltersForField(filters, "lot_nr")}
+          sortOrder={getSortOrderForField(typedSorters, "lot_nr")}
+          filters={useListFiltersForField(dataSource, "lot_nr")}
+          filteredValue={getFiltersForField(typedFilters, "lot_nr")}
         />
         <Table.Column
           dataIndex={["first_used"]}
           title="First Used"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "first_used")}
+          sortOrder={getSortOrderForField(typedSorters, "first_used")}
           render={(value) => (
             <DateField
               hidden={!value}
@@ -180,7 +193,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex={["last_used"]}
           title="Last Used"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "last_used")}
+          sortOrder={getSortOrderForField(typedSorters, "last_used")}
           render={(value) => (
             <DateField
               hidden={!value}
@@ -194,7 +207,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex={["comment"]}
           title="Comment"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "comment")}
+          sortOrder={getSortOrderForField(typedSorters, "comment")}
         />
         <Table.Column
           title="Actions"

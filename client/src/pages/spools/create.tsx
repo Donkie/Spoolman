@@ -5,6 +5,7 @@ import { Form, Input, DatePicker, Select, InputNumber } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { IFilament } from "../filaments/model";
+import { ISpool } from "./model";
 
 interface CreateOrCloneProps {
   mode: "create" | "clone";
@@ -13,7 +14,7 @@ interface CreateOrCloneProps {
 export const SpoolCreate: React.FC<
   IResourceComponentsProps & CreateOrCloneProps
 > = (props) => {
-  const { formProps, saveButtonProps, formLoading } = useForm();
+  const { formProps, saveButtonProps, formLoading } = useForm<ISpool>();
 
   if (props.mode === "clone" && formProps.initialValues) {
     // Clear out the values that we don't want to clone

@@ -4,9 +4,10 @@ import { Edit, useForm } from "@refinedev/antd";
 import { Form, Input, DatePicker } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
+import { IVendor } from "./model";
 
 export const VendorEdit: React.FC<IResourceComponentsProps> = () => {
-  const { formProps, saveButtonProps } = useForm();
+  const { formProps, saveButtonProps } = useForm<IVendor>();
 
   return (
     <Edit saveButtonProps={saveButtonProps}>

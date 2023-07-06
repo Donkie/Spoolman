@@ -14,12 +14,16 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { IFilament } from "./model";
 import {
-  filterPopulator,
-  genericFilterer,
   genericSorter,
-  getFiltersForField,
   getSortOrderForField,
+  typeSorters,
 } from "../../utils/sorting";
+import {
+  genericFilterer,
+  getFiltersForField,
+  typeFilters,
+  useListFiltersForField,
+} from "../../utils/filtering";
 import { FilterOutlined } from "@ant-design/icons";
 import {
   useInitialTableState,
@@ -27,6 +31,10 @@ import {
 } from "../../utils/saveload";
 
 dayjs.extend(utc);
+
+interface IFilamentCollapsed extends IFilament {
+  vendor_name: string | null;
+}
 
 export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   // Load initial state
@@ -49,26 +57,31 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
       },
     });
 
+  // Type the sorters and filters
+  const typedSorters = typeSorters<IFilamentCollapsed>(sorters);
+  const typedFilters = typeFilters<IFilamentCollapsed>(filters);
+
   // Store state in local storage
   useStoreInitialState("filamentList", { sorters, filters });
 
-  // Copy dataSource to avoid mutating the original
-  const dataSource = [...(tableProps.dataSource || [])];
-
-  // Add a vendor_name field to the dataSource
-  dataSource.forEach((element) => {
-    if (element.vendor) {
-      element.vendor_name = element.vendor.name;
-    } else {
-      element.vendor_name = null;
+  // Collapse the dataSource to a mutable list and add a filament_name field
+  const dataSource: IFilamentCollapsed[] = (tableProps.dataSource ?? []).map(
+    (element) => {
+      let vendor_name: string | null;
+      if (element.vendor) {
+        vendor_name = element.vendor.name;
+      } else {
+        vendor_name = null;
+      }
+      return { ...element, vendor_name };
     }
-  });
+  );
 
   // Filter dataSource by the filters
-  const filteredDataSource = dataSource.filter(genericFilterer(filters));
+  const filteredDataSource = dataSource.filter(genericFilterer(typedFilters));
 
   // Sort dataSource by the sorters
-  filteredDataSource.sort(genericSorter(sorters));
+  filteredDataSource.sort(genericSorter(typedSorters));
 
   return (
     <List
@@ -98,43 +111,43 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="id"
           title="Id"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "id")}
+          sortOrder={getSortOrderForField(typedSorters, "id")}
         />
         <Table.Column
           dataIndex="vendor_name"
           title="Vendor"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "vendor_name")}
-          filters={filterPopulator(dataSource, "vendor_name")}
-          filteredValue={getFiltersForField(filters, "vendor_name")}
+          sortOrder={getSortOrderForField(typedSorters, "vendor_name")}
+          filters={useListFiltersForField(dataSource, "vendor_name")}
+          filteredValue={getFiltersForField(typedFilters, "vendor_name")}
         />
         <Table.Column
           dataIndex="name"
           title="Name"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "name")}
-          filters={filterPopulator(dataSource, "name")}
-          filteredValue={getFiltersForField(filters, "name")}
+          sortOrder={getSortOrderForField(typedSorters, "name")}
+          filters={useListFiltersForField(dataSource, "name")}
+          filteredValue={getFiltersForField(typedFilters, "name")}
         />
         <Table.Column
           dataIndex="material"
           title="Material"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "material")}
-          filters={filterPopulator(dataSource, "material")}
-          filteredValue={getFiltersForField(filters, "material")}
+          sortOrder={getSortOrderForField(typedSorters, "material")}
+          filters={useListFiltersForField(dataSource, "material")}
+          filteredValue={getFiltersForField(typedFilters, "material")}
         />
         <Table.Column
           dataIndex="price"
           title="Price"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "price")}
+          sortOrder={getSortOrderForField(typedSorters, "price")}
         />
         <Table.Column
           dataIndex="density"
           title="Density"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "density")}
+          sortOrder={getSortOrderForField(typedSorters, "density")}
           render={(value) => (
             <NumberFieldUnit
               value={value}
@@ -149,7 +162,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="diameter"
           title="Diameter"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "diameter")}
+          sortOrder={getSortOrderForField(typedSorters, "diameter")}
           render={(value) => (
             <NumberFieldUnit
               value={value}
@@ -164,7 +177,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="weight"
           title="Weight"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "weight")}
+          sortOrder={getSortOrderForField(typedSorters, "weight")}
           render={(value) => {
             if (value === null || value === undefined) {
               return <></>;
@@ -184,7 +197,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="spool_weight"
           title="Spool Weight"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "spool_weight")}
+          sortOrder={getSortOrderForField(typedSorters, "spool_weight")}
           render={(value) => {
             if (value === null || value === undefined) {
               return <></>;
@@ -204,15 +217,15 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="article_number"
           title="Article Number"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "article_number")}
-          filters={filterPopulator(dataSource, "article_number")}
-          filteredValue={getFiltersForField(filters, "article_number")}
+          sortOrder={getSortOrderForField(typedSorters, "article_number")}
+          filters={useListFiltersForField(dataSource, "article_number")}
+          filteredValue={getFiltersForField(typedFilters, "article_number")}
         />
         <Table.Column
           dataIndex={["registered"]}
           title="Registered"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "registered")}
+          sortOrder={getSortOrderForField(typedSorters, "registered")}
           render={(value) => (
             <DateField
               value={dayjs.utc(value).local()}
@@ -225,7 +238,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex={["comment"]}
           title="Comment"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "comment")}
+          sortOrder={getSortOrderForField(typedSorters, "comment")}
         />
         <Table.Column
           title="Actions"

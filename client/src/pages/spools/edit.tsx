@@ -5,9 +5,10 @@ import { Form, Input, DatePicker, Select, InputNumber } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { IFilament } from "../filaments/model";
+import { ISpool } from "./model";
 
 export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
-  const { formProps, saveButtonProps } = useForm();
+  const { formProps, saveButtonProps } = useForm<ISpool>();
 
   const { queryResult } = useSelect<IFilament>({
     resource: "filament",

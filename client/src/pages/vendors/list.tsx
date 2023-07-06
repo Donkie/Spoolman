@@ -12,10 +12,11 @@ import { Table, Space, Button } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import {
-  genericFilterer,
   genericSorter,
   getSortOrderForField,
+  typeSorters,
 } from "../../utils/sorting";
+import { genericFilterer, typeFilters } from "../../utils/filtering";
 import { IVendor } from "./model";
 import {
   useInitialTableState,
@@ -46,6 +47,10 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
       },
     });
 
+  // Type the sorters and filters
+  const typedSorters = typeSorters<IVendor>(sorters);
+  const typedFilters = typeFilters<IVendor>(filters);
+
   // Store state in local storage
   useStoreInitialState("vendorList", { sorters, filters });
 
@@ -53,10 +58,10 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
   const dataSource = [...(tableProps.dataSource || [])];
 
   // Filter dataSource by the filters
-  const filteredDataSource = dataSource.filter(genericFilterer(filters));
+  const filteredDataSource = dataSource.filter(genericFilterer(typedFilters));
 
   // Sort dataSource by the sorters
-  filteredDataSource.sort(genericSorter(sorters));
+  filteredDataSource.sort(genericSorter(typedSorters));
 
   return (
     <List
@@ -86,19 +91,19 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="id"
           title="Id"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "id")}
+          sortOrder={getSortOrderForField(typedSorters, "id")}
         />
         <Table.Column
           dataIndex="name"
           title="Name"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "name")}
+          sortOrder={getSortOrderForField(typedSorters, "name")}
         />
         <Table.Column
           dataIndex={["registered"]}
           title="Registered"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "registered")}
+          sortOrder={getSortOrderForField(typedSorters, "registered")}
           render={(value) => (
             <DateField
               value={dayjs.utc(value).local()}
@@ -111,7 +116,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
           dataIndex={["comment"]}
           title="Comment"
           sorter={true}
-          sortOrder={getSortOrderForField(sorters, "comment")}
+          sortOrder={getSortOrderForField(typedSorters, "comment")}
         />
         <Table.Column
           title="Actions"

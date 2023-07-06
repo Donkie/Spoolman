@@ -12,11 +12,13 @@ import {
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { numberFormatter, numberParser } from "../../utils/parsing";
+import { IVendor } from "../vendors/model";
+import { IFilament } from "./model";
 
 export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
-  const { formProps, saveButtonProps } = useForm();
+  const { formProps, saveButtonProps } = useForm<IFilament>();
 
-  const { selectProps } = useSelect({
+  const { selectProps } = useSelect<IVendor>({
     resource: "vendor",
     optionLabel: "name",
   });
