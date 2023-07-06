@@ -18,6 +18,8 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { IFilament } from "./model";
 import {
+  filterPopulator,
+  genericFilterer,
   genericSorter,
   getSortOrderForField,
 } from "../../utils/sorting";
@@ -40,7 +42,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   });
 
   // Fetch data from the API
-  const { tableProps, sorters } = useTable<IFilament>({
+  const { tableProps, sorters, filters } = useTable<IFilament>({
     syncWithLocation: false,
     pagination: {
       mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
@@ -48,6 +50,9 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
     sorters: {
       mode: "off", // Disable server-side sorting
       initial: sorters_initial,
+    },
+    filters: {
+      mode: "off", // Disable server-side filtering
     },
   });
 
@@ -68,15 +73,17 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
     }
   });
 
-  // Sort dataSource by the sorters
-  dataSource.sort(genericSorter(sorters));
+  // Filter dataSource by the filters
+  const filteredDataSource = dataSource.filter(genericFilterer(filters));
 
+  // Sort dataSource by the sorters
+  filteredDataSource.sort(genericSorter(sorters));
 
   return (
     <List>
       <Table
         {...tableProps}
-        dataSource={dataSource}
+        dataSource={filteredDataSource}
         pagination={{ showSizeChanger: true, pageSize: 20 }}
         rowKey="id"
       >
@@ -94,18 +101,21 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             sorters_initial,
             "vendor_name"
           )}
+          filters={filterPopulator(dataSource, "vendor_name")}
         />
         <Table.Column
           dataIndex="name"
           title="Name"
           sorter={true}
           defaultSortOrder={getSortOrderForField(sorters_initial, "name")}
+          filters={filterPopulator(dataSource, "name")}
         />
         <Table.Column
           dataIndex="material"
           title="Material"
           sorter={true}
           defaultSortOrder={getSortOrderForField(sorters_initial, "material")}
+          filters={filterPopulator(dataSource, "material")}
         />
         <Table.Column
           dataIndex="price"
@@ -194,6 +204,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             sorters_initial,
             "article_number"
           )}
+          filters={filterPopulator(dataSource, "article_number")}
         />
         <Table.Column
           dataIndex={["registered"]}
