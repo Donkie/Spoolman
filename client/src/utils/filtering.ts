@@ -1,5 +1,6 @@
 import { CrudFilter, CrudOperators } from "@refinedev/core";
 import { ColumnFilterItem } from "antd/es/table/interface";
+import React from "react";
 
 interface TypedCrudFilter<Obj> {
     field: keyof Obj;
@@ -67,32 +68,35 @@ export function genericFilterer<Obj>(filters: TypedCrudFilter<Obj>[]) {
 export function useListFiltersForField<Obj, Field extends keyof Obj>(
     dataSource: Obj[],
     field: Field): ColumnFilterItem[] {
-    const filters: ColumnFilterItem[] = [];
-    dataSource.forEach((element) => {
-        const value = element[field];
-        if (typeof value === "string" && value !== "") {
-            // Make sure it's not already in the filters
-            if (filters.find((f) => f.value === value)) {
-                return;
+    return React.useMemo(() => {
+        console.log("useListFiltersForField");
+        const filters: ColumnFilterItem[] = [];
+        dataSource.forEach((element) => {
+            const value = element[field];
+            if (typeof value === "string" && value !== "") {
+                // Make sure it's not already in the filters
+                if (filters.find((f) => f.value === value)) {
+                    return;
+                }
+                filters.push({
+                    text: value,
+                    value: value,
+                });
             }
-            filters.push({
-                text: value,
-                value: value,
-            });
-        }
-    });
-    // Sort the filters
-    filters.sort((a, b) => {
-        if (typeof a.text !== "string" || typeof b.text !== "string") {
-            return 0;
-        }
-        return a.text.localeCompare(b.text);
-    });
-    filters.push({
-        text: "<empty>",
-        value: "",
-    });
-    return filters;
+        });
+        // Sort the filters
+        filters.sort((a, b) => {
+            if (typeof a.text !== "string" || typeof b.text !== "string") {
+                return 0;
+            }
+            return a.text.localeCompare(b.text);
+        });
+        filters.push({
+            text: "<empty>",
+            value: "",
+        });
+        return filters;
+    }, [dataSource, field]);
 }
 
 /**

@@ -66,23 +66,27 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   useStoreInitialState("spoolList", { sorters, filters });
 
   // Collapse the dataSource to a mutable list and add a filament_name field
-  const dataSource: ISpoolCollapsed[] = (tableProps.dataSource ?? []).map(
-    (element) => {
-      let filament_name: string;
-      if (element.filament.vendor && "name" in element.filament.vendor) {
-        filament_name = `${element.filament.vendor.name} - ${element.filament.name}`;
-      } else {
-        filament_name = element.filament.name ?? element.filament.id.toString();
-      }
-      return { ...element, filament_name };
-    }
+  const dataSource: ISpoolCollapsed[] = React.useMemo(
+    () =>
+      (tableProps.dataSource ?? []).map((element) => {
+        let filament_name: string;
+        if (element.filament.vendor && "name" in element.filament.vendor) {
+          filament_name = `${element.filament.vendor.name} - ${element.filament.name}`;
+        } else {
+          filament_name =
+            element.filament.name ?? element.filament.id.toString();
+        }
+        return { ...element, filament_name };
+      }),
+    [tableProps.dataSource]
   );
 
-  // Filter dataSource by the filters
-  const filteredDataSource = dataSource.filter(genericFilterer(typedFilters));
-
-  // Sort dataSource by the sorters
-  filteredDataSource.sort(genericSorter(typedSorters));
+  // Filter and sort the dataSource
+  const filteredDataSource = React.useMemo(() => {
+    const filtered = dataSource.filter(genericFilterer(typedFilters));
+    filtered.sort(genericSorter(typedSorters));
+    return filtered;
+  }, [dataSource, typedFilters, typedSorters]);
 
   return (
     <List

@@ -54,14 +54,18 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
   // Store state in local storage
   useStoreInitialState("vendorList", { sorters, filters });
 
-  // Copy dataSource to avoid mutating the original
-  const dataSource = [...(tableProps.dataSource || [])];
+  // Collapse the dataSource to a mutable list
+  const dataSource: IVendor[] = React.useMemo(
+    () => (tableProps.dataSource || []).map((record) => ({ ...record })),
+    [tableProps.dataSource]
+  );
 
-  // Filter dataSource by the filters
-  const filteredDataSource = dataSource.filter(genericFilterer(typedFilters));
-
-  // Sort dataSource by the sorters
-  filteredDataSource.sort(genericSorter(typedSorters));
+  // Filter and sort the dataSource
+  const filteredDataSource = React.useMemo(() => {
+    const filtered = dataSource.filter(genericFilterer(typedFilters));
+    filtered.sort(genericSorter(typedSorters));
+    return filtered;
+  }, [dataSource, typedFilters, typedSorters]);
 
   return (
     <List

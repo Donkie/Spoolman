@@ -65,23 +65,26 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   useStoreInitialState("filamentList", { sorters, filters });
 
   // Collapse the dataSource to a mutable list and add a filament_name field
-  const dataSource: IFilamentCollapsed[] = (tableProps.dataSource ?? []).map(
-    (element) => {
-      let vendor_name: string | null;
-      if (element.vendor) {
-        vendor_name = element.vendor.name;
-      } else {
-        vendor_name = null;
-      }
-      return { ...element, vendor_name };
-    }
+  const dataSource: IFilamentCollapsed[] = React.useMemo(
+    () =>
+      (tableProps.dataSource ?? []).map((element) => {
+        let vendor_name: string | null;
+        if (element.vendor) {
+          vendor_name = element.vendor.name;
+        } else {
+          vendor_name = null;
+        }
+        return { ...element, vendor_name };
+      }),
+    [tableProps.dataSource]
   );
 
-  // Filter dataSource by the filters
-  const filteredDataSource = dataSource.filter(genericFilterer(typedFilters));
-
-  // Sort dataSource by the sorters
-  filteredDataSource.sort(genericSorter(typedSorters));
+  // Filter and sort the dataSource
+  const filteredDataSource = React.useMemo(() => {
+    const filtered = dataSource.filter(genericFilterer(typedFilters));
+    filtered.sort(genericSorter(typedSorters));
+    return filtered;
+  }, [dataSource, typedFilters, typedSorters]);
 
   return (
     <List
