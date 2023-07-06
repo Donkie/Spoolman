@@ -81,25 +81,19 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="id"
           title="Id"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "id")}
+          sortOrder={getSortOrderForField(sorters, "id")}
         />
         <Table.Column
           dataIndex="filament_name"
           title="Filament"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(
-            sorters_initial,
-            "filament_name"
-          )}
+          sortOrder={getSortOrderForField(sorters, "filament_name")}
         />
         <Table.Column
           dataIndex="used_weight"
           title="Used Weight"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(
-            sorters_initial,
-            "used_weight"
-          )}
+          sortOrder={getSortOrderForField(sorters, "used_weight")}
           render={(value) => {
             return (
               <NumberFieldUnit
@@ -116,10 +110,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="remaining_weight"
           title="Estimated Remaining Weight"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(
-            sorters_initial,
-            "remaining_weight"
-          )}
+          sortOrder={getSortOrderForField(sorters, "remaining_weight")}
           render={(value) => {
             if (value === null || value === undefined) {
               return <TextField value="Unknown" />;
@@ -139,19 +130,19 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="location"
           title="Location"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "location")}
+          sortOrder={getSortOrderForField(sorters, "location")}
         />
         <Table.Column
           dataIndex="lot_nr"
           title="Lot Nr"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "lot_nr")}
+          sortOrder={getSortOrderForField(sorters, "lot_nr")}
         />
         <Table.Column
           dataIndex={["first_used"]}
           title="First Used"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "first_used")}
+          sortOrder={getSortOrderForField(sorters, "first_used")}
           render={(value) => (
             <DateField
               hidden={!value}
@@ -165,7 +156,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex={["last_used"]}
           title="Last Used"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "last_used")}
+          sortOrder={getSortOrderForField(sorters, "last_used")}
           render={(value) => (
             <DateField
               hidden={!value}
@@ -179,7 +170,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex={["comment"]}
           title="Comment"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "comment")}
+          sortOrder={getSortOrderForField(sorters, "comment")}
         />
         <Table.Column
           title="Actions"

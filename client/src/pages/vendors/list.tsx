@@ -70,19 +70,19 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="id"
           title="Id"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "id")}
+          sortOrder={getSortOrderForField(sorters, "id")}
         />
         <Table.Column
           dataIndex="name"
           title="Name"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "name")}
+          sortOrder={getSortOrderForField(sorters, "name")}
         />
         <Table.Column
           dataIndex={["registered"]}
           title="Registered"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "registered")}
+          sortOrder={getSortOrderForField(sorters, "registered")}
           render={(value) => (
             <DateField
               value={dayjs.utc(value).local()}
@@ -95,7 +95,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
           dataIndex={["comment"]}
           title="Comment"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "comment")}
+          sortOrder={getSortOrderForField(sorters, "comment")}
         />
         <Table.Column
           title="Actions"

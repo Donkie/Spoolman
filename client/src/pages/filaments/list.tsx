@@ -108,49 +108,43 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="id"
           title="Id"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "id")}
+          sortOrder={getSortOrderForField(sorters, "id")}
         />
         <Table.Column
           dataIndex="vendor_name"
           title="Vendor"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(
-            sorters_initial,
-            "vendor_name"
-          )}
+          sortOrder={getSortOrderForField(sorters, "vendor_name")}
           filters={filterPopulator(dataSource, "vendor_name")}
-          defaultFilteredValue={getFiltersForField(
-            filters_initial,
-            "vendor_name"
-          )}
+          filteredValue={getFiltersForField(filters, "vendor_name")}
         />
         <Table.Column
           dataIndex="name"
           title="Name"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "name")}
+          sortOrder={getSortOrderForField(sorters, "name")}
           filters={filterPopulator(dataSource, "name")}
-          defaultFilteredValue={getFiltersForField(filters_initial, "name")}
+          filteredValue={getFiltersForField(filters, "name")}
         />
         <Table.Column
           dataIndex="material"
           title="Material"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "material")}
+          sortOrder={getSortOrderForField(sorters, "material")}
           filters={filterPopulator(dataSource, "material")}
-          defaultFilteredValue={getFiltersForField(filters_initial, "material")}
+          filteredValue={getFiltersForField(filters, "material")}
         />
         <Table.Column
           dataIndex="price"
           title="Price"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "price")}
+          sortOrder={getSortOrderForField(sorters, "price")}
         />
         <Table.Column
           dataIndex="density"
           title="Density"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "density")}
+          sortOrder={getSortOrderForField(sorters, "density")}
           render={(value) => (
             <NumberFieldUnit
               value={value}
@@ -165,7 +159,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="diameter"
           title="Diameter"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "diameter")}
+          sortOrder={getSortOrderForField(sorters, "diameter")}
           render={(value) => (
             <NumberFieldUnit
               value={value}
@@ -180,7 +174,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="weight"
           title="Weight"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "weight")}
+          sortOrder={getSortOrderForField(sorters, "weight")}
           render={(value) => {
             if (value === null || value === undefined) {
               return <></>;
@@ -200,10 +194,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="spool_weight"
           title="Spool Weight"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(
-            sorters_initial,
-            "spool_weight"
-          )}
+          sortOrder={getSortOrderForField(sorters, "spool_weight")}
           render={(value) => {
             if (value === null || value === undefined) {
               return <></>;
@@ -223,21 +214,15 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="article_number"
           title="Article Number"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(
-            sorters_initial,
-            "article_number"
-          )}
+          sortOrder={getSortOrderForField(sorters, "article_number")}
           filters={filterPopulator(dataSource, "article_number")}
-          defaultFilteredValue={getFiltersForField(
-            filters_initial,
-            "article_number"
-          )}
+          filteredValue={getFiltersForField(filters, "article_number")}
         />
         <Table.Column
           dataIndex={["registered"]}
           title="Registered"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "registered")}
+          sortOrder={getSortOrderForField(sorters, "registered")}
           render={(value) => (
             <DateField
               value={dayjs.utc(value).local()}
@@ -250,7 +235,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex={["comment"]}
           title="Comment"
           sorter={true}
-          defaultSortOrder={getSortOrderForField(sorters_initial, "comment")}
+          sortOrder={getSortOrderForField(sorters, "comment")}
         />
         <Table.Column
           title="Actions"
