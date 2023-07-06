@@ -30,12 +30,15 @@ export const SpoolCreate: React.FC<
   });
 
   const filamentOptions = queryResult.data?.data.map((item) => {
-    let label;
+    let vendorPrefix = "";
     if (item.vendor) {
-      label = `${item.vendor.name} - ${item.name}`;
-    } else {
-      label = item.name;
+      vendorPrefix = `${item.vendor.name} - `;
     }
+    let name = item.name;
+    if (!name) {
+      name = `ID: ${item.id}`;
+    }
+    const label = `${vendorPrefix}${name}`;
 
     return {
       label: label,
