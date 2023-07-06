@@ -13,7 +13,7 @@ import {
   DateField,
   CloneButton,
 } from "@refinedev/antd";
-import { Table, Space } from "antd";
+import { Table, Space, Button } from "antd";
 import { NumberFieldUnit } from "../../components/numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -25,6 +25,7 @@ import {
   getFiltersForField,
   getSortOrderForField,
 } from "../../utils/sorting";
+import { FilterOutlined } from "@ant-design/icons";
 
 dayjs.extend(utc);
 
@@ -53,20 +54,21 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   });
 
   // Fetch data from the API
-  const { tableProps, sorters, filters } = useTable<IFilament>({
-    syncWithLocation: false,
-    pagination: {
-      mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
-    },
-    sorters: {
-      mode: "off", // Disable server-side sorting
-      initial: sorters_initial,
-    },
-    filters: {
-      mode: "off", // Disable server-side filtering
-      initial: filters_initial,
-    },
-  });
+  const { tableProps, sorters, filters, setSorters, setFilters } =
+    useTable<IFilament>({
+      syncWithLocation: false,
+      pagination: {
+        mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
+      },
+      sorters: {
+        mode: "off", // Disable server-side sorting
+        initial: sorters_initial,
+      },
+      filters: {
+        mode: "off", // Disable server-side filtering
+        initial: filters_initial,
+      },
+    });
 
   // Store sorter state in local storage
   React.useEffect(() => {
@@ -97,7 +99,23 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   filteredDataSource.sort(genericSorter(sorters));
 
   return (
-    <List>
+    <List
+      headerButtons={({ defaultButtons }) => (
+        <>
+          <Button
+            type="primary"
+            icon={<FilterOutlined />}
+            onClick={() => {
+              setFilters([], "replace");
+              setSorters([{ field: "id", order: "asc" }]);
+            }}
+          >
+            Clear Filters
+          </Button>
+          {defaultButtons}
+        </>
+      )}
+    >
       <Table
         {...tableProps}
         dataSource={filteredDataSource}
