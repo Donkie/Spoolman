@@ -19,6 +19,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { genericSorter } from "../../utils/sorting";
 import { SortOrder } from "antd/es/table/interface";
+import { ISpool } from "./model";
 
 dayjs.extend(utc);
 
@@ -38,7 +39,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   });
 
   // Fetch data from the API
-  const { tableProps, sorters } = useTable({
+  const { tableProps, sorters } = useTable<ISpool>({
     syncWithLocation: false,
     pagination: {
       mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
@@ -62,7 +63,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
 
   // Add a filament_name field to the dataSource
   dataSource.forEach((element) => {
-    if ("vendor" in element.filament) {
+    if (element.filament.vendor && "name" in element.filament.vendor) {
       element.filament_name = `${element.filament.vendor.name} - ${element.filament.name}`;
     } else {
       element.filament_name = element.filament.name;

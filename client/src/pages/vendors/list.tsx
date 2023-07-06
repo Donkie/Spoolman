@@ -17,6 +17,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { genericSorter } from "../../utils/sorting";
 import { SortOrder } from "antd/es/table/interface";
+import { IVendor } from "./model";
 
 dayjs.extend(utc);
 
@@ -36,7 +37,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
   });
 
   // Fetch data from the API
-  const { tableProps, sorters } = useTable({
+  const { tableProps, sorters } = useTable<IVendor>({
     syncWithLocation: false,
     pagination: {
       mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.

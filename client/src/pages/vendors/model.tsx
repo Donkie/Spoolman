@@ -3,4 +3,5 @@ export interface IVendor {
   registered: string;
   name: string;
   comment?: string;
+  [key: string]: unknown;
 }
