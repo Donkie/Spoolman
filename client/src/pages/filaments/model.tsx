@@ -1,7 +1,7 @@
 import { IVendor } from "../vendors/model";
 
 export interface IFilament {
-  id: string;
+  id: number;
   registered: string;
   name?: string;
   vendor?: IVendor;
@@ -16,4 +16,5 @@ export interface IFilament {
   settings_extruder_temp?: number;
   settings_bed_temp?: number;
   color_hex?: string;
+  [key: string]: unknown;
 }
