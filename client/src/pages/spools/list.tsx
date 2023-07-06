@@ -1,5 +1,9 @@
 import React from "react";
-import { IResourceComponentsProps, BaseRecord } from "@refinedev/core";
+import {
+  IResourceComponentsProps,
+  BaseRecord,
+  CrudSort,
+} from "@refinedev/core";
 import {
   useTable,
   List,
@@ -14,10 +18,26 @@ import { NumberFieldUnit } from "../../components/numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { genericSorter } from "../../utils/sorting";
+import { SortOrder } from "antd/es/table/interface";
 
 dayjs.extend(utc);
 
 export const SpoolList: React.FC<IResourceComponentsProps> = () => {
+  // Load sorter state from local storage
+  const [sorters_initial] = React.useState<CrudSort[]>(() => {
+    const storedSorters = localStorage.getItem("spoolListSorters");
+    if (storedSorters) {
+      return JSON.parse(storedSorters);
+    }
+    return [
+      {
+        field: "id",
+        order: "asc",
+      },
+    ];
+  });
+
+  // Fetch data from the API
   const { tableProps, sorters } = useTable({
     syncWithLocation: false,
     pagination: {
@@ -25,14 +45,14 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     },
     sorters: {
       mode: "off", // Disable server-side sorting
-      initial: [
-        {
-          field: "id",
-          order: "asc",
-        },
-      ],
+      initial: sorters_initial,
     },
   });
+
+  // Store sorter state in local storage
+  React.useEffect(() => {
+    localStorage.setItem("spoolListSorters", JSON.stringify(sorters));
+  }, [sorters]);
 
   // Copy dataSource to avoid mutating the original
   const dataSource = [...(tableProps.dataSource || [])];
@@ -49,6 +69,15 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     }
   });
 
+  // Utility function to get the default sort order of a field based on the sorters_initial
+  const defaultSortOrder = (field: string): SortOrder | undefined => {
+    const sorter = sorters_initial.find((s) => s.field === field);
+    if (sorter) {
+      return sorter.order === "asc" ? "ascend" : "descend";
+    }
+    return undefined;
+  };
+
   return (
     <List>
       <Table
@@ -61,17 +90,19 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="id"
           title="Id"
           sorter={true}
-          defaultSortOrder="ascend"
+          defaultSortOrder={defaultSortOrder("id")}
         />
         <Table.Column
           dataIndex="filament_name"
           title="Filament"
           sorter={true}
+          defaultSortOrder={defaultSortOrder("filament_name")}
         />
         <Table.Column
           dataIndex="used_weight"
           title="Used Weight"
           sorter={true}
+          defaultSortOrder={defaultSortOrder("used_weight")}
           render={(value) => {
             return (
               <NumberFieldUnit
@@ -88,6 +119,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="remaining_weight"
           title="Estimated Remaining Weight"
           sorter={true}
+          defaultSortOrder={defaultSortOrder("remaining_weight")}
           render={(value) => {
             if (value === null || value === undefined) {
               return <TextField value="Unknown" />;
@@ -103,12 +135,23 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             );
           }}
         />
-        <Table.Column dataIndex="location" title="Location" sorter={true} />
-        <Table.Column dataIndex="lot_nr" title="Lot Nr" sorter={true} />
+        <Table.Column
+          dataIndex="location"
+          title="Location"
+          sorter={true}
+          defaultSortOrder={defaultSortOrder("location")}
+        />
+        <Table.Column
+          dataIndex="lot_nr"
+          title="Lot Nr"
+          sorter={true}
+          defaultSortOrder={defaultSortOrder("lot_nr")}
+        />
         <Table.Column
           dataIndex={["first_used"]}
           title="First Used"
           sorter={true}
+          defaultSortOrder={defaultSortOrder("first_used")}
           render={(value) => (
             <DateField
               hidden={!value}
@@ -122,6 +165,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex={["last_used"]}
           title="Last Used"
           sorter={true}
+          defaultSortOrder={defaultSortOrder("last_used")}
           render={(value) => (
             <DateField
               hidden={!value}
@@ -131,7 +175,12 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             />
           )}
         />
-        <Table.Column dataIndex={["comment"]} title="Comment" sorter={true} />
+        <Table.Column
+          dataIndex={["comment"]}
+          title="Comment"
+          sorter={true}
+          defaultSortOrder={defaultSortOrder("comment")}
+        />
         <Table.Column
           title="Actions"
           dataIndex="actions"
