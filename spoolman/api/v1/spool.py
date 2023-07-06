@@ -123,6 +123,7 @@ async def find(
     name="Get spool",
     description="Get a specific spool.",
     response_model_exclude_none=True,
+    responses={404: {"model": Message}},
 )
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -189,6 +190,7 @@ async def create(  # noqa: ANN201
     response_model=Spool,
     responses={
         400: {"model": Message},
+        404: {"model": Message},
     },
 )
 async def update(  # noqa: ANN201
@@ -229,6 +231,7 @@ async def update(  # noqa: ANN201
     "/{spool_id}",
     name="Delete spool",
     description="Delete a spool.",
+    responses={404: {"model": Message}},
 )
 async def delete(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -248,6 +251,7 @@ async def delete(
     response_model=Spool,
     responses={
         400: {"model": Message},
+        404: {"model": Message},
     },
 )
 async def use(  # noqa: ANN201

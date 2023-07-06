@@ -137,6 +137,7 @@ async def find(
     name="Get filament",
     description="Get a specific filament.",
     response_model_exclude_none=True,
+    responses={404: {"model": Message}},
 )
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -181,6 +182,7 @@ async def create(
     name="Update filament",
     description="Update any attribute of a filament. Only fields specified in the request will be affected.",
     response_model_exclude_none=True,
+    responses={404: {"model": Message}},
 )
 async def update(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -210,6 +212,7 @@ async def update(
     response_model=Message,
     responses={
         403: {"model": Message},
+        404: {"model": Message},
     },
 )
 async def delete(  # noqa: ANN201

@@ -64,6 +64,7 @@ async def find(
     name="Get vendor",
     description="Get a specific vendor.",
     response_model_exclude_none=True,
+    responses={404: {"model": Message}},
 )
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -97,6 +98,7 @@ async def create(
     name="Update vendor",
     description="Update any attribute of a vendor. Only fields specified in the request will be affected.",
     response_model_exclude_none=True,
+    responses={404: {"model": Message}},
 )
 async def update(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -123,6 +125,7 @@ async def update(
     description=(
         "Delete a vendor. The vendor attribute of any filaments who refer to the deleted vendor will be cleared."
     ),
+    responses={404: {"model": Message}},
 )
 async def delete(
     db: Annotated[AsyncSession, Depends(get_db_session)],
