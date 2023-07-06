@@ -17,8 +17,10 @@ import { NumberFieldUnit } from "../../components/numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { IFilament } from "./model";
-import { genericSorter } from "../../utils/sorting";
-import { SortOrder } from "antd/es/table/interface";
+import {
+  genericSorter,
+  getSortOrderForField,
+} from "../../utils/sorting";
 
 dayjs.extend(utc);
 
@@ -69,14 +71,6 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   // Sort dataSource by the sorters
   dataSource.sort(genericSorter(sorters));
 
-  // Utility function to get the default sort order of a field based on the sorters_initial
-  const defaultSortOrder = (field: string): SortOrder | undefined => {
-    const sorter = sorters_initial.find((s) => s.field === field);
-    if (sorter) {
-      return sorter.order === "asc" ? "ascend" : "descend";
-    }
-    return undefined;
-  };
 
   return (
     <List>
@@ -90,37 +84,40 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="id"
           title="Id"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("id")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "id")}
         />
         <Table.Column
           dataIndex="vendor_name"
           title="Vendor"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("vendor_name")}
+          defaultSortOrder={getSortOrderForField(
+            sorters_initial,
+            "vendor_name"
+          )}
         />
         <Table.Column
           dataIndex="name"
           title="Name"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("name")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "name")}
         />
         <Table.Column
           dataIndex="material"
           title="Material"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("material")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "material")}
         />
         <Table.Column
           dataIndex="price"
           title="Price"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("price")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "price")}
         />
         <Table.Column
           dataIndex="density"
           title="Density"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("density")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "density")}
           render={(value) => (
             <NumberFieldUnit
               value={value}
@@ -135,7 +132,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="diameter"
           title="Diameter"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("diameter")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "diameter")}
           render={(value) => (
             <NumberFieldUnit
               value={value}
@@ -150,7 +147,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="weight"
           title="Weight"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("weight")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "weight")}
           render={(value) => {
             if (value === null || value === undefined) {
               return <></>;
@@ -170,7 +167,10 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="spool_weight"
           title="Spool Weight"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("spool_weight")}
+          defaultSortOrder={getSortOrderForField(
+            sorters_initial,
+            "spool_weight"
+          )}
           render={(value) => {
             if (value === null || value === undefined) {
               return <></>;
@@ -190,13 +190,16 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="article_number"
           title="Article Number"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("article_number")}
+          defaultSortOrder={getSortOrderForField(
+            sorters_initial,
+            "article_number"
+          )}
         />
         <Table.Column
           dataIndex={["registered"]}
           title="Registered"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("registered")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "registered")}
           render={(value) => (
             <DateField
               value={dayjs.utc(value).local()}
@@ -209,7 +212,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataIndex={["comment"]}
           title="Comment"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("comment")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "comment")}
         />
         <Table.Column
           title="Actions"

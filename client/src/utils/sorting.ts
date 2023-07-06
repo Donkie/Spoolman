@@ -1,4 +1,5 @@
 import { CrudSort } from "@refinedev/core";
+import { SortOrder } from "antd/es/table/interface";
 
 interface IObj {
     [key: string]: unknown;
@@ -58,4 +59,18 @@ export function genericSorter(sorters: CrudSort[]) {
         }
         return 0;
     };
+}
+
+/**
+ * Returns the sort order for a given field based on the provided sorters.
+ * @param sorters An array of `CrudSort` objects that define the sorting criteria.
+ * @param field The field to get the sort order for.
+ * @returns The sort order for the given field, or undefined if the field is not being sorted.
+ */
+export function getSortOrderForField(sorters: CrudSort[], field: string): SortOrder | undefined {
+    const sorter = sorters.find((s) => s.field === field);
+    if (sorter) {
+        return sorter.order === "asc" ? "ascend" : "descend";
+    }
+    return undefined;
 }

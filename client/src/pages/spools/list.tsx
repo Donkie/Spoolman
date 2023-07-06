@@ -17,8 +17,7 @@ import { Table, Space } from "antd";
 import { NumberFieldUnit } from "../../components/numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { genericSorter } from "../../utils/sorting";
-import { SortOrder } from "antd/es/table/interface";
+import { genericSorter, getSortOrderForField } from "../../utils/sorting";
 import { ISpool } from "./model";
 
 dayjs.extend(utc);
@@ -70,15 +69,6 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     }
   });
 
-  // Utility function to get the default sort order of a field based on the sorters_initial
-  const defaultSortOrder = (field: string): SortOrder | undefined => {
-    const sorter = sorters_initial.find((s) => s.field === field);
-    if (sorter) {
-      return sorter.order === "asc" ? "ascend" : "descend";
-    }
-    return undefined;
-  };
-
   return (
     <List>
       <Table
@@ -91,19 +81,25 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="id"
           title="Id"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("id")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "id")}
         />
         <Table.Column
           dataIndex="filament_name"
           title="Filament"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("filament_name")}
+          defaultSortOrder={getSortOrderForField(
+            sorters_initial,
+            "filament_name"
+          )}
         />
         <Table.Column
           dataIndex="used_weight"
           title="Used Weight"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("used_weight")}
+          defaultSortOrder={getSortOrderForField(
+            sorters_initial,
+            "used_weight"
+          )}
           render={(value) => {
             return (
               <NumberFieldUnit
@@ -120,7 +116,10 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="remaining_weight"
           title="Estimated Remaining Weight"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("remaining_weight")}
+          defaultSortOrder={getSortOrderForField(
+            sorters_initial,
+            "remaining_weight"
+          )}
           render={(value) => {
             if (value === null || value === undefined) {
               return <TextField value="Unknown" />;
@@ -140,19 +139,19 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="location"
           title="Location"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("location")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "location")}
         />
         <Table.Column
           dataIndex="lot_nr"
           title="Lot Nr"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("lot_nr")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "lot_nr")}
         />
         <Table.Column
           dataIndex={["first_used"]}
           title="First Used"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("first_used")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "first_used")}
           render={(value) => (
             <DateField
               hidden={!value}
@@ -166,7 +165,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex={["last_used"]}
           title="Last Used"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("last_used")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "last_used")}
           render={(value) => (
             <DateField
               hidden={!value}
@@ -180,7 +179,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataIndex={["comment"]}
           title="Comment"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("comment")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "comment")}
         />
         <Table.Column
           title="Actions"

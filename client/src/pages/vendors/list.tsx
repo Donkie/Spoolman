@@ -15,8 +15,7 @@ import {
 import { Table, Space } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { genericSorter } from "../../utils/sorting";
-import { SortOrder } from "antd/es/table/interface";
+import { genericSorter, getSortOrderForField } from "../../utils/sorting";
 import { IVendor } from "./model";
 
 dayjs.extend(utc);
@@ -59,15 +58,6 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
   // Sort dataSource by the sorters
   dataSource.sort(genericSorter(sorters));
 
-  // Utility function to get the default sort order of a field based on the sorters_initial
-  const defaultSortOrder = (field: string): SortOrder | undefined => {
-    const sorter = sorters_initial.find((s) => s.field === field);
-    if (sorter) {
-      return sorter.order === "asc" ? "ascend" : "descend";
-    }
-    return undefined;
-  };
-
   return (
     <List>
       <Table
@@ -80,19 +70,19 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="id"
           title="Id"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("id")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "id")}
         />
         <Table.Column
           dataIndex="name"
           title="Name"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("name")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "name")}
         />
         <Table.Column
           dataIndex={["registered"]}
           title="Registered"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("registered")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "registered")}
           render={(value) => (
             <DateField
               value={dayjs.utc(value).local()}
@@ -105,7 +95,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
           dataIndex={["comment"]}
           title="Comment"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("comment")}
+          defaultSortOrder={getSortOrderForField(sorters_initial, "comment")}
         />
         <Table.Column
           title="Actions"
