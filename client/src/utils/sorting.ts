@@ -91,6 +91,9 @@ export function genericFilterer(filters: CrudFilter[]) {
                 console.error("Filter value must be an array of strings.");
                 return false;
             }
+            if (!filter.value.length) {
+                continue;
+            }
             let value = record[filter.field];
             if (value === undefined || value === null) {
                 value = "";
@@ -147,4 +150,20 @@ export function filterPopulator(dataSource: IObj[], field: string): ColumnFilter
         value: "",
     });
     return filters;
+}
+
+/**
+ * Returns an array of filter values for a given field based on the provided filters.
+ * @param filters An array of `CrudFilter` objects that define the filtering criteria.
+ * @param field The field to get the filter values for.
+ * @returns An array of filter values for the given field.
+ */
+export function getFiltersForField(filters: CrudFilter[], field: string): string[] {
+    const filterValues: string[] = [];
+    filters.forEach((filter) => {
+        if ("field" in filter && filter.field === field) {
+            filterValues.push(...filter.value as string[]);
+        }
+    });
+    return filterValues;
 }

@@ -3,6 +3,7 @@ import {
   IResourceComponentsProps,
   BaseRecord,
   CrudSort,
+  CrudFilter,
 } from "@refinedev/core";
 import {
   useTable,
@@ -21,6 +22,7 @@ import {
   filterPopulator,
   genericFilterer,
   genericSorter,
+  getFiltersForField,
   getSortOrderForField,
 } from "../../utils/sorting";
 
@@ -41,6 +43,15 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
     ];
   });
 
+  // Load filter state from local storage
+  const [filters_initial] = React.useState<CrudFilter[]>(() => {
+    const storedFilters = localStorage.getItem("filamentListFilters");
+    if (storedFilters) {
+      return JSON.parse(storedFilters);
+    }
+    return [];
+  });
+
   // Fetch data from the API
   const { tableProps, sorters, filters } = useTable<IFilament>({
     syncWithLocation: false,
@@ -53,6 +64,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
     },
     filters: {
       mode: "off", // Disable server-side filtering
+      initial: filters_initial,
     },
   });
 
@@ -60,6 +72,11 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   React.useEffect(() => {
     localStorage.setItem("filamentListSorters", JSON.stringify(sorters));
   }, [sorters]);
+
+  // Store filter state in local storage
+  React.useEffect(() => {
+    localStorage.setItem("filamentListFilters", JSON.stringify(filters));
+  }, [filters]);
 
   // Copy dataSource to avoid mutating the original
   const dataSource = [...(tableProps.dataSource || [])];
@@ -102,6 +119,10 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             "vendor_name"
           )}
           filters={filterPopulator(dataSource, "vendor_name")}
+          defaultFilteredValue={getFiltersForField(
+            filters_initial,
+            "vendor_name"
+          )}
         />
         <Table.Column
           dataIndex="name"
@@ -109,6 +130,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           sorter={true}
           defaultSortOrder={getSortOrderForField(sorters_initial, "name")}
           filters={filterPopulator(dataSource, "name")}
+          defaultFilteredValue={getFiltersForField(filters_initial, "name")}
         />
         <Table.Column
           dataIndex="material"
@@ -116,6 +138,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           sorter={true}
           defaultSortOrder={getSortOrderForField(sorters_initial, "material")}
           filters={filterPopulator(dataSource, "material")}
+          defaultFilteredValue={getFiltersForField(filters_initial, "material")}
         />
         <Table.Column
           dataIndex="price"
@@ -205,6 +228,10 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             "article_number"
           )}
           filters={filterPopulator(dataSource, "article_number")}
+          defaultFilteredValue={getFiltersForField(
+            filters_initial,
+            "article_number"
+          )}
         />
         <Table.Column
           dataIndex={["registered"]}
