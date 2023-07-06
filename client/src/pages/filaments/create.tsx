@@ -3,7 +3,6 @@ import { IResourceComponentsProps } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, Select, InputNumber, ColorPicker } from "antd";
 import TextArea from "antd/es/input/TextArea";
-import { IVendor } from "../vendors/model";
 import { numberFormatter, numberParser } from "../../utils/parsing";
 
 interface CreateOrCloneProps {
@@ -22,7 +21,7 @@ export const FilamentCreate: React.FC<
     }
   }
 
-  const { selectProps } = useSelect<IVendor>({
+  const { selectProps } = useSelect({
     resource: "vendor",
     optionLabel: "name",
   });
