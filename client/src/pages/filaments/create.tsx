@@ -16,8 +16,10 @@ export const FilamentCreate: React.FC<
   const { formProps, saveButtonProps, formLoading } = useForm();
 
   if (props.mode === "clone" && formProps.initialValues) {
-    // Fix the filament_id
-    formProps.initialValues.vendor_id = formProps.initialValues.vendor.id;
+    // Fix the vendor_id
+    if (formProps.initialValues.vendor) {
+      formProps.initialValues.vendor_id = formProps.initialValues.vendor.id;
+    }
   }
 
   const { selectProps } = useSelect<IVendor>({
