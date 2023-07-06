@@ -1,5 +1,6 @@
 import React from "react";
 import { CrudFilter, CrudSort } from "@refinedev/core";
+import { isLocalStorageAvailable } from "./support";
 
 interface TableState {
     sorters: CrudSort[];
@@ -8,8 +9,8 @@ interface TableState {
 
 export function useInitialTableState(tableId: string): TableState {
     const [initialState] = React.useState(() => {
-        const savedSorters = localStorage.getItem(`${tableId}-sorters`);
-        const savedFilters = localStorage.getItem(`${tableId}-filters`);
+        const savedSorters = isLocalStorageAvailable ? localStorage.getItem(`${tableId}-sorters`) : null;
+        const savedFilters = isLocalStorageAvailable ? localStorage.getItem(`${tableId}-filters`) : null;
         const sorters = savedSorters ? JSON.parse(savedSorters) : [{ field: "id", order: "asc" }];
         const filters = savedFilters ? JSON.parse(savedFilters) : [];
         return { sorters, filters };
@@ -19,10 +20,14 @@ export function useInitialTableState(tableId: string): TableState {
 
 export function useStoreInitialState(tableId: string, state: TableState) {
     React.useEffect(() => {
-        localStorage.setItem(`${tableId}-sorters`, JSON.stringify(state.sorters));
+        if (isLocalStorageAvailable) {
+            localStorage.setItem(`${tableId}-sorters`, JSON.stringify(state.sorters));
+        }
     }, [tableId, state.sorters]);
 
     React.useEffect(() => {
-        localStorage.setItem(`${tableId}-filters`, JSON.stringify(state.filters));
+        if (isLocalStorageAvailable) {
+            localStorage.setItem(`${tableId}-filters`, JSON.stringify(state.filters));
+        }
     }, [tableId, state.filters]);
 }
