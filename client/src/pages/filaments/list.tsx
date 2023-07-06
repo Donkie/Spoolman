@@ -19,10 +19,9 @@ dayjs.extend(utc);
 
 export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   const { tableProps, sorters } = useTable<IFilament>({
-    syncWithLocation: true,
+    syncWithLocation: false,
     pagination: {
-      mode: "client",
-      pageSize: 20,
+      mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
     },
     sorters: {
       mode: "off", // Disable server-side sorting
@@ -43,7 +42,12 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
 
   return (
     <List>
-      <Table {...tableProps} dataSource={dataSource} rowKey="id">
+      <Table
+        {...tableProps}
+        dataSource={dataSource}
+        pagination={{ showSizeChanger: true, pageSize: 20 }}
+        rowKey="id"
+      >
         <Table.Column
           dataIndex="id"
           title="Id"
