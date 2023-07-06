@@ -69,7 +69,6 @@ export function useListFiltersForField<Obj, Field extends keyof Obj>(
     dataSource: Obj[],
     field: Field): ColumnFilterItem[] {
     return React.useMemo(() => {
-        console.log("useListFiltersForField");
         const filters: ColumnFilterItem[] = [];
         dataSource.forEach((element) => {
             const value = element[field];

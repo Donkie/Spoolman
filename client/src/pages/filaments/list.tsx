@@ -41,28 +41,43 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   const initialState = useInitialTableState("filamentList");
 
   // Fetch data from the API
-  const { tableProps, sorters, filters, setSorters, setFilters } =
-    useTable<IFilament>({
-      syncWithLocation: false,
-      pagination: {
-        mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
-      },
-      sorters: {
-        mode: "off", // Disable server-side sorting
-        initial: initialState.sorters,
-      },
-      filters: {
-        mode: "off", // Disable server-side filtering
-        initial: initialState.filters,
-      },
-    });
+  const {
+    tableProps,
+    sorters,
+    setSorters,
+    filters,
+    setFilters,
+    current,
+    pageSize,
+    setCurrent,
+    setPageSize,
+  } = useTable<IFilament>({
+    syncWithLocation: false,
+    pagination: {
+      mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
+      current: initialState.pagination.current,
+      pageSize: initialState.pagination.pageSize,
+    },
+    sorters: {
+      mode: "off", // Disable server-side sorting
+      initial: initialState.sorters,
+    },
+    filters: {
+      mode: "off", // Disable server-side filtering
+      initial: initialState.filters,
+    },
+  });
 
   // Type the sorters and filters
   const typedSorters = typeSorters<IFilamentCollapsed>(sorters);
   const typedFilters = typeFilters<IFilamentCollapsed>(filters);
 
   // Store state in local storage
-  useStoreInitialState("filamentList", { sorters, filters });
+  useStoreInitialState("filamentList", {
+    sorters,
+    filters,
+    pagination: { current, pageSize },
+  });
 
   // Collapse the dataSource to a mutable list and add a filament_name field
   const dataSource: IFilamentCollapsed[] = React.useMemo(
@@ -96,6 +111,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             onClick={() => {
               setFilters([], "replace");
               setSorters([{ field: "id", order: "asc" }]);
+              setCurrent(1);
             }}
           >
             Clear Filters
@@ -107,7 +123,15 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
       <Table
         {...tableProps}
         dataSource={filteredDataSource}
-        pagination={{ showSizeChanger: true, pageSize: 20 }}
+        pagination={{
+          showSizeChanger: true,
+          current: current,
+          pageSize: pageSize,
+          onChange: (page, pageSize) => {
+            setCurrent(page);
+            setPageSize(pageSize);
+          },
+        }}
         rowKey="id"
       >
         <Table.Column
