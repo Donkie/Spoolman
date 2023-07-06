@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  IResourceComponentsProps,
-  BaseRecord,
-  CrudSort,
-  CrudFilter,
-} from "@refinedev/core";
+import { IResourceComponentsProps, BaseRecord } from "@refinedev/core";
 import {
   useTable,
   List,
@@ -26,32 +21,16 @@ import {
   getSortOrderForField,
 } from "../../utils/sorting";
 import { FilterOutlined } from "@ant-design/icons";
+import {
+  useInitialTableState,
+  useStoreInitialState,
+} from "../../utils/saveload";
 
 dayjs.extend(utc);
 
 export const FilamentList: React.FC<IResourceComponentsProps> = () => {
-  // Load sorter state from local storage
-  const [sorters_initial] = React.useState<CrudSort[]>(() => {
-    const storedSorters = localStorage.getItem("filamentListSorters");
-    if (storedSorters) {
-      return JSON.parse(storedSorters);
-    }
-    return [
-      {
-        field: "id",
-        order: "asc",
-      },
-    ];
-  });
-
-  // Load filter state from local storage
-  const [filters_initial] = React.useState<CrudFilter[]>(() => {
-    const storedFilters = localStorage.getItem("filamentListFilters");
-    if (storedFilters) {
-      return JSON.parse(storedFilters);
-    }
-    return [];
-  });
+  // Load initial state
+  const initialState = useInitialTableState("filamentList");
 
   // Fetch data from the API
   const { tableProps, sorters, filters, setSorters, setFilters } =
@@ -62,23 +41,16 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
       },
       sorters: {
         mode: "off", // Disable server-side sorting
-        initial: sorters_initial,
+        initial: initialState.sorters,
       },
       filters: {
         mode: "off", // Disable server-side filtering
-        initial: filters_initial,
+        initial: initialState.filters,
       },
     });
 
-  // Store sorter state in local storage
-  React.useEffect(() => {
-    localStorage.setItem("filamentListSorters", JSON.stringify(sorters));
-  }, [sorters]);
-
-  // Store filter state in local storage
-  React.useEffect(() => {
-    localStorage.setItem("filamentListFilters", JSON.stringify(filters));
-  }, [filters]);
+  // Store state in local storage
+  useStoreInitialState("filamentList", { sorters, filters });
 
   // Copy dataSource to avoid mutating the original
   const dataSource = [...(tableProps.dataSource || [])];

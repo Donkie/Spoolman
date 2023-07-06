@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  IResourceComponentsProps,
-  BaseRecord,
-  CrudSort,
-} from "@refinedev/core";
+import { IResourceComponentsProps, BaseRecord } from "@refinedev/core";
 import {
   useTable,
   List,
@@ -13,52 +9,52 @@ import {
   TextField,
   CloneButton,
 } from "@refinedev/antd";
-import { Table, Space } from "antd";
+import { Table, Space, Button } from "antd";
 import { NumberFieldUnit } from "../../components/numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { genericSorter, getSortOrderForField } from "../../utils/sorting";
+import {
+  filterPopulator,
+  genericFilterer,
+  genericSorter,
+  getFiltersForField,
+  getSortOrderForField,
+} from "../../utils/sorting";
 import { ISpool } from "./model";
+import {
+  useInitialTableState,
+  useStoreInitialState,
+} from "../../utils/saveload";
+import { FilterOutlined } from "@ant-design/icons";
 
 dayjs.extend(utc);
 
 export const SpoolList: React.FC<IResourceComponentsProps> = () => {
-  // Load sorter state from local storage
-  const [sorters_initial] = React.useState<CrudSort[]>(() => {
-    const storedSorters = localStorage.getItem("spoolListSorters");
-    if (storedSorters) {
-      return JSON.parse(storedSorters);
-    }
-    return [
-      {
-        field: "id",
-        order: "asc",
-      },
-    ];
-  });
+  // Load initial state
+  const initialState = useInitialTableState("spoolList");
 
   // Fetch data from the API
-  const { tableProps, sorters } = useTable<ISpool>({
-    syncWithLocation: false,
-    pagination: {
-      mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
-    },
-    sorters: {
-      mode: "off", // Disable server-side sorting
-      initial: sorters_initial,
-    },
-  });
+  const { tableProps, sorters, filters, setSorters, setFilters } =
+    useTable<ISpool>({
+      syncWithLocation: false,
+      pagination: {
+        mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
+      },
+      sorters: {
+        mode: "off", // Disable server-side sorting
+        initial: initialState.sorters,
+      },
+      filters: {
+        mode: "off", // Disable server-side filtering
+        initial: initialState.filters,
+      },
+    });
 
-  // Store sorter state in local storage
-  React.useEffect(() => {
-    localStorage.setItem("spoolListSorters", JSON.stringify(sorters));
-  }, [sorters]);
+  // Store state in local storage
+  useStoreInitialState("spoolList", { sorters, filters });
 
   // Copy dataSource to avoid mutating the original
   const dataSource = [...(tableProps.dataSource || [])];
-
-  // Sort dataSource by the sorters
-  dataSource.sort(genericSorter(sorters));
 
   // Add a filament_name field to the dataSource
   dataSource.forEach((element) => {
@@ -69,11 +65,33 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     }
   });
 
+  // Filter dataSource by the filters
+  const filteredDataSource = dataSource.filter(genericFilterer(filters));
+
+  // Sort dataSource by the sorters
+  filteredDataSource.sort(genericSorter(sorters));
+
   return (
-    <List>
+    <List
+      headerButtons={({ defaultButtons }) => (
+        <>
+          <Button
+            type="primary"
+            icon={<FilterOutlined />}
+            onClick={() => {
+              setFilters([], "replace");
+              setSorters([{ field: "id", order: "asc" }]);
+            }}
+          >
+            Clear Filters
+          </Button>
+          {defaultButtons}
+        </>
+      )}
+    >
       <Table
         {...tableProps}
-        dataSource={dataSource}
+        dataSource={filteredDataSource}
         pagination={{ showSizeChanger: true, pageSize: 20 }}
         rowKey="id"
       >
@@ -88,6 +106,8 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           title="Filament"
           sorter={true}
           sortOrder={getSortOrderForField(sorters, "filament_name")}
+          filters={filterPopulator(dataSource, "filament_name")}
+          filteredValue={getFiltersForField(filters, "filament_name")}
         />
         <Table.Column
           dataIndex="used_weight"
@@ -131,12 +151,16 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           title="Location"
           sorter={true}
           sortOrder={getSortOrderForField(sorters, "location")}
+          filters={filterPopulator(dataSource, "location")}
+          filteredValue={getFiltersForField(filters, "location")}
         />
         <Table.Column
           dataIndex="lot_nr"
           title="Lot Nr"
           sorter={true}
           sortOrder={getSortOrderForField(sorters, "lot_nr")}
+          filters={filterPopulator(dataSource, "lot_nr")}
+          filteredValue={getFiltersForField(filters, "lot_nr")}
         />
         <Table.Column
           dataIndex={["first_used"]}

@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  IResourceComponentsProps,
-  BaseRecord,
-  CrudSort,
-} from "@refinedev/core";
+import { IResourceComponentsProps, BaseRecord } from "@refinedev/core";
 import {
   useTable,
   List,
@@ -12,57 +8,77 @@ import {
   DateField,
   CloneButton,
 } from "@refinedev/antd";
-import { Table, Space } from "antd";
+import { Table, Space, Button } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { genericSorter, getSortOrderForField } from "../../utils/sorting";
+import {
+  genericFilterer,
+  genericSorter,
+  getSortOrderForField,
+} from "../../utils/sorting";
 import { IVendor } from "./model";
+import {
+  useInitialTableState,
+  useStoreInitialState,
+} from "../../utils/saveload";
+import { FilterOutlined } from "@ant-design/icons";
 
 dayjs.extend(utc);
 
 export const VendorList: React.FC<IResourceComponentsProps> = () => {
-  // Load sorter state from local storage
-  const [sorters_initial] = React.useState<CrudSort[]>(() => {
-    const storedSorters = localStorage.getItem("vendorListSorters");
-    if (storedSorters) {
-      return JSON.parse(storedSorters);
-    }
-    return [
-      {
-        field: "id",
-        order: "asc",
-      },
-    ];
-  });
+  // Load initial state
+  const initialState = useInitialTableState("vendorList");
 
   // Fetch data from the API
-  const { tableProps, sorters } = useTable<IVendor>({
-    syncWithLocation: false,
-    pagination: {
-      mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
-    },
-    sorters: {
-      mode: "off", // Disable server-side sorting
-      initial: sorters_initial,
-    },
-  });
+  const { tableProps, sorters, filters, setSorters, setFilters } =
+    useTable<IVendor>({
+      syncWithLocation: false,
+      pagination: {
+        mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
+      },
+      sorters: {
+        mode: "off", // Disable server-side sorting
+        initial: initialState.sorters,
+      },
+      filters: {
+        mode: "off", // Disable server-side filtering
+        initial: initialState.filters,
+      },
+    });
 
-  // Store sorter state in local storage
-  React.useEffect(() => {
-    localStorage.setItem("vendorListSorters", JSON.stringify(sorters));
-  }, [sorters]);
+  // Store state in local storage
+  useStoreInitialState("vendorList", { sorters, filters });
 
   // Copy dataSource to avoid mutating the original
   const dataSource = [...(tableProps.dataSource || [])];
 
+  // Filter dataSource by the filters
+  const filteredDataSource = dataSource.filter(genericFilterer(filters));
+
   // Sort dataSource by the sorters
-  dataSource.sort(genericSorter(sorters));
+  filteredDataSource.sort(genericSorter(sorters));
 
   return (
-    <List>
+    <List
+      headerButtons={({ defaultButtons }) => (
+        <>
+          <Button
+            type="primary"
+            icon={<FilterOutlined />}
+            onClick={() => {
+              setFilters([], "replace");
+              setSorters([{ field: "id", order: "asc" }]);
+            }}
+          >
+            Clear Filters
+          </Button>
+          {defaultButtons}
+        </>
+      )}
+    >
       <Table
         {...tableProps}
-        dataSource={dataSource}
+        dataSource={filteredDataSource}
         pagination={{ showSizeChanger: true, pageSize: 20 }}
         rowKey="id"
       >
