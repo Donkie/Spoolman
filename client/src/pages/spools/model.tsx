@@ -1,7 +1,7 @@
 import { IFilament } from "../filaments/model";
 
 export interface ISpool {
-  id: string;
+  id: number;
   registered: string;
   first_used?: string;
   last_used?: string;
