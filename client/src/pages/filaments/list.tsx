@@ -57,6 +57,15 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   // Copy dataSource to avoid mutating the original
   const dataSource = [...(tableProps.dataSource || [])];
 
+  // Add a vendor_name field to the dataSource
+  dataSource.forEach((element) => {
+    if (element.vendor) {
+      element.vendor_name = element.vendor.name;
+    } else {
+      element.vendor_name = null;
+    }
+  });
+
   // Sort dataSource by the sorters
   dataSource.sort(genericSorter(sorters));
 
@@ -84,10 +93,10 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           defaultSortOrder={defaultSortOrder("id")}
         />
         <Table.Column
-          dataIndex={["vendor", "name"]}
+          dataIndex="vendor_name"
           title="Vendor"
           sorter={true}
-          defaultSortOrder={defaultSortOrder("vendor.name")}
+          defaultSortOrder={defaultSortOrder("vendor_name")}
         />
         <Table.Column
           dataIndex="name"
