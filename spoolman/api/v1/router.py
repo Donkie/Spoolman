@@ -41,7 +41,7 @@ async def health() -> models.HealthCheck:
 
 
 # Add endpoint for triggering a db backup
-@app.post("/backup", summary="Trigger a database backup. Only applicable for SQLite databases.")
+@app.post("/backup", description="Trigger a database backup. Only applicable for SQLite databases.")
 async def backup() -> models.BackupResponse:
     """Trigger a database backup."""
     path = await backup_task()
