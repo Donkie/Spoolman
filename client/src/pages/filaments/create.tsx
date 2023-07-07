@@ -137,7 +137,7 @@ export const FilamentCreate: React.FC<
         </Form.Item>
         <Form.Item
           label="Weight"
-          help="The filament weight of a full spool (net weight)."
+          help="The filament weight of a full spool (net weight). This should not include the weight of the spool itself, only the filament. It is what is usually written on the packaging."
           name={["weight"]}
           rules={[
             {
@@ -149,7 +149,7 @@ export const FilamentCreate: React.FC<
         </Form.Item>
         <Form.Item
           label="Spool Weight"
-          help="The weight of an empty spool."
+          help="The weight of an empty spool. Currently not used for anything, but could be used by thirdparty apps to e.g. calculate the filament weight from a weight measurement."
           name={["spool_weight"]}
           rules={[
             {
