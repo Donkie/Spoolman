@@ -40,13 +40,21 @@ async def health() -> models.HealthCheck:
 
 
 # Add endpoint for triggering a db backup
-@app.post("/backup", description="Trigger a database backup. Only applicable for SQLite databases.")
-async def backup() -> models.BackupResponse:
+@app.post(
+    "/backup",
+    description="Trigger a database backup. Only applicable for SQLite databases.",
+    response_model=models.BackupResponse,
+    responses={500: {"model": models.Message}},
+)
+async def backup():  # noqa: ANN201
     """Trigger a database backup."""
     path = await backup_task()
     if path is None:
-        return models.BackupResponse(success=False)
-    return models.BackupResponse(success=True, path=str(path))
+        return JSONResponse(
+            status_code=500,
+            content={"message": "Backup failed. See server logs for more information."},
+        )
+    return models.BackupResponse(path=str(path))
 
 
 # Add routers

@@ -162,8 +162,7 @@ class HealthCheck(BaseModel):
 
 
 class BackupResponse(BaseModel):
-    success: bool = Field(description="Whether the backup was created successfully.", example=True)
-    path: Optional[str] = Field(
+    path: str = Field(
         default=None,
         description="Path to the created backup file.",
         example="/home/app/.local/share/spoolman/backups/spoolman.db",
