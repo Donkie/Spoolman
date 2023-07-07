@@ -164,12 +164,20 @@ def setup_db(connection_url: URL) -> None:
     __db.connect()
 
 
-async def backup_task() -> Optional[Path]:
+async def backup_global_db(num_backups: int = 5) -> Optional[Path]:
     """Backup the database and rotate existing backups.
 
     Returns:
         The path to the created backup or None if no backup was created.
     """
+    if __db is None:
+        raise RuntimeError("DB is not setup.")
+    return __db.backup_and_rotate(env.get_data_dir().joinpath("backups"), num_backups=num_backups)
+
+
+async def _backup_task() -> Optional[Path]:
+    """Perform scheduled backup of the database."""
+    logger.info("Performing scheduled database backup.")
     if __db is None:
         raise RuntimeError("DB is not setup.")
     return __db.backup_and_rotate(env.get_data_dir().joinpath("backups"), num_backups=5)
@@ -188,7 +196,7 @@ def schedule_tasks(scheduler: Scheduler) -> None:
     if "sqlite" in __db.connection_url.drivername:
         logger.info("Scheduling automatic database backup for midnight.")
         # Schedule for midnight
-        scheduler.daily(datetime.time(hour=0, minute=0, second=0), backup_task)  # type: ignore[arg-type]
+        scheduler.daily(datetime.time(hour=0, minute=0, second=0), _backup_task)  # type: ignore[arg-type]
 
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:

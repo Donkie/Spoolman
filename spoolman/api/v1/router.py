@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from starlette.requests import Request
 from starlette.responses import Response
 
-from spoolman.database.database import backup_task
+from spoolman.database.database import backup_global_db
 from spoolman.exceptions import ItemNotFoundError
 
 from . import filament, models, spool, vendor
@@ -48,7 +48,7 @@ async def health() -> models.HealthCheck:
 )
 async def backup():  # noqa: ANN201
     """Trigger a database backup."""
-    path = await backup_task()
+    path = await backup_global_db()
     if path is None:
         return JSONResponse(
             status_code=500,
