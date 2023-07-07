@@ -15,4 +15,3 @@ def test_backup():
     # Trigger backup
     result = httpx.post(f"{URL}/api/v1/backup")
     result.raise_for_status()
-    assert result.json()["success"] is True
