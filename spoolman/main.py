@@ -7,6 +7,7 @@ from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 from typing import Union
 
+import pkg_resources
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,6 +17,9 @@ from scheduler.asyncio.scheduler import Scheduler
 from spoolman import env
 from spoolman.api.v1.router import app as v1_app
 from spoolman.database import database
+
+# Get version from package metadata
+version = pkg_resources.get_distribution("spoolman").version
 
 # Define a file logger with log rotation
 log_file = env.get_data_dir().joinpath("spoolman.log")
@@ -75,6 +79,8 @@ if env.is_debug_mode():
 @app.on_event("startup")
 async def startup() -> None:
     """Run the service's startup sequence."""
+    logger.info("Starting Spoolman v%s...", version)
+
     logger.info("Setting up database...")
     database.setup_db(database.get_connection_url())
 
