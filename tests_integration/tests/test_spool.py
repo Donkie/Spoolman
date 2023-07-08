@@ -440,9 +440,11 @@ def test_update_spool_not_found(random_filament: dict[str, Any]):
     assert "123456789" in message
 
 
-def test_use_spool_weight(random_filament: dict[str, Any]):
+@pytest.mark.parametrize("use_weight", [0, 0.05, -0.05, 1500])  # 1500 is big enough to use all filament
+def test_use_spool_weight(random_filament: dict[str, Any], use_weight: float):
     """Test using a spool in the database."""
     # Setup
+    filament_net_weight = random_filament["weight"]
     start_weight = 1000
     result = httpx.post(
         f"{URL}/api/v1/spool",
@@ -455,26 +457,29 @@ def test_use_spool_weight(random_filament: dict[str, Any]):
     spool = result.json()
 
     # Execute
-    used_weight = 0.05
     result = httpx.put(
         f"{URL}/api/v1/spool/{spool['id']}/use",
         json={
-            "use_weight": used_weight,
+            "use_weight": use_weight,
         },
     )
     result.raise_for_status()
 
     # Verify
     spool = result.json()
-    assert spool["remaining_weight"] == pytest.approx(start_weight - used_weight)
+    # remaining_weight should be clamped so it's never negative, but used_weight should not be clamped to the net weight
+    assert spool["used_weight"] == pytest.approx(max(use_weight, 0))
+    assert spool["remaining_weight"] == pytest.approx(min(max(start_weight - use_weight, 0), filament_net_weight))
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
 
 
-def test_use_spool_length(random_filament: dict[str, Any]):
+@pytest.mark.parametrize("use_length", [0, 10, -10, 500e3])  # 500e3 is big enough to use all the filament
+def test_use_spool_length(random_filament: dict[str, Any], use_length: float):
     """Test using a spool in the database."""
     # Setup
+    filament_net_weight = random_filament["weight"]
     start_weight = 1000
     result = httpx.post(
         f"{URL}/api/v1/spool",
@@ -487,21 +492,22 @@ def test_use_spool_length(random_filament: dict[str, Any]):
     spool = result.json()
 
     # Execute
-    used_length = 10  # mm
     result = httpx.put(
         f"{URL}/api/v1/spool/{spool['id']}/use",
         json={
-            "use_length": used_length,
+            "use_length": use_length,
         },
     )
     result.raise_for_status()
 
     # Verify
     spool = result.json()
-    used_weight = (
-        random_filament["density"] * (used_length * 1e-1) * math.pi * ((random_filament["diameter"] * 1e-1 / 2) ** 2)
+    use_weight = (
+        random_filament["density"] * (use_length * 1e-1) * math.pi * ((random_filament["diameter"] * 1e-1 / 2) ** 2)
     )
-    assert spool["remaining_weight"] == pytest.approx(start_weight - used_weight)
+    # remaining_weight should be clamped so it's never negative, but used_weight should not be clamped to the net weight
+    assert spool["used_weight"] == pytest.approx(max(use_weight, 0))
+    assert spool["remaining_weight"] == pytest.approx(min(max(start_weight - use_weight, 0), filament_net_weight))
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
