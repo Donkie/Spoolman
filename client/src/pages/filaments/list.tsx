@@ -24,11 +24,12 @@ import {
   typeFilters,
   useListFiltersForField,
 } from "../../utils/filtering";
-import { FilterOutlined } from "@ant-design/icons";
+import Icon, { FilterOutlined } from "@ant-design/icons";
 import {
   useInitialTableState,
   useStoreInitialState,
 } from "../../utils/saveload";
+import { ReactComponent as SpoolIcon } from "../../icon_spool.svg";
 
 dayjs.extend(utc);
 
@@ -151,10 +152,32 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
         <Table.Column
           dataIndex="name"
           title="Name"
+          width={150}
           sorter={true}
           sortOrder={getSortOrderForField(typedSorters, "name")}
           filters={useListFiltersForField(dataSource, "name")}
           filteredValue={getFiltersForField(typedFilters, "name")}
+          render={(value, record: IFilament) => {
+            return (
+              <>
+                {record.color_hex && (
+                  <Icon
+                    component={SpoolIcon}
+                    style={{
+                      color: "#" + record.color_hex,
+                      fontSize: 40,
+                      verticalAlign: "middle",
+                      marginLeft: -10,
+                      marginRight: 0,
+                      marginTop: -20,
+                      marginBottom: -20,
+                    }}
+                  />
+                )}
+                {value}
+              </>
+            );
+          }}
         />
         <Table.Column
           dataIndex="material"
