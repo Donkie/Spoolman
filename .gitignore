@@ -200,3 +200,5 @@ $RECYCLE.BIN/
 
 ### VisualStudioCode ###
 .vscode/
+
+data/
