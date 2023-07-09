@@ -38,6 +38,9 @@ dev = [
 [tool.pdm.scripts.docs]
 call = "spoolman.docs:generate_docs"
 
+[tool.pdm.scripts.bump]
+call = "spoolman.bump:bump"
+
 [tool.ruff]
 select = [
     "ALL",
