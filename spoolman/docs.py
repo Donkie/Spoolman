@@ -1,7 +1,7 @@
 """Functions for generating documentation."""
 
 import json
-from contextlib import suppress
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -9,6 +9,10 @@ from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
 from spoolman.api.v1.router import app as v1_app
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler())  # Print all log messages to stdout
 
 
 def generate_openapi(app: FastAPI) -> dict[str, Any]:
@@ -36,12 +40,15 @@ def generate_openapi(app: FastAPI) -> dict[str, Any]:
 
 def generate_docs() -> None:
     """Generate documentation for this service in the docs/ directory."""
-    with suppress(FileExistsError):
-        Path("docs").mkdir()
+    target_dir = Path("docs")
+
+    logger.info('Generating documentation to "%s"...', target_dir.resolve())
+
+    target_dir.mkdir(parents=True, exist_ok=True)
 
     spec = json.dumps(generate_openapi(v1_app))
 
-    with Path("docs", "index.html").open("w") as f:
+    with target_dir.joinpath("index.html").open("w") as f:
         f.write(
             f"""
         <!DOCTYPE html>
@@ -64,3 +71,5 @@ def generate_docs() -> None:
         </body>
         </html>""",
         )
+
+    logger.info("Documentation generated successfully.")

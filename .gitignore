@@ -202,3 +202,4 @@ $RECYCLE.BIN/
 .vscode/
 
 data/
+.pdm-python

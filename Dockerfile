@@ -15,21 +15,23 @@ RUN apk add --no-cache g++ python3-dev libpq-dev libstdc++
 RUN adduser -D app
 USER app
 
-RUN python -m venv /home/app/.venv
+ENV PATH="/home/app/.local/bin:${PATH}"
 
-ENV PATH="/home/app/.venv/bin:${PATH}"
+# Install PDM
+RUN pip install pip setuptools wheel\
+    && pip install pdm
+
+# Copy and install dependencies
+COPY --chown=app:app pyproject.toml /home/app/spoolman/
+COPY --chown=app:app pdm.lock /home/app/spoolman/
+WORKDIR /home/app/spoolman
+RUN pdm sync --prod
 
 # Copy and install app
 COPY --chown=app:app migrations /home/app/spoolman/migrations
 COPY --chown=app:app spoolman /home/app/spoolman/spoolman
-COPY --chown=app:app pyproject.toml /home/app/spoolman/
-COPY --chown=app:app requirements.txt /home/app/spoolman/
 COPY --chown=app:app alembic.ini /home/app/spoolman/
 COPY --chown=app:app README.md /home/app/spoolman/
-
-WORKDIR /home/app/spoolman
-RUN --mount=target=/home/app/.cache,type=cache,sharing=locked,uid=1000,gid=1000 \
-    pip install -e .
 
 FROM python:3.11-alpine as python-runner
 
@@ -47,12 +49,11 @@ USER app
 COPY --chown=app:app --from=client-builder /client/dist /home/app/spoolman/client/dist
 
 # Copy built app
-COPY --chown=app:app --from=python-builder /home/app/.venv /home/app/.venv
 COPY --chown=app:app --from=python-builder /home/app/spoolman /home/app/spoolman
 
 WORKDIR /home/app/spoolman
 
-ENV PATH="/home/app/.venv/bin:${PATH}"
+ENV PATH="/home/app/spoolman/.venv/bin:${PATH}"
 ENV PYTHONPATH="/home/app/spoolman:${PYTHONPATH}"
 
 # Run command
