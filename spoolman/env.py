@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional
 from urllib import parse
 
+import pkg_resources
 from platformdirs import user_data_dir
 
 
@@ -235,3 +236,12 @@ def get_backups_dir() -> Path:
     backups_dir = data_dir.joinpath("backups")
     backups_dir.mkdir(parents=True, exist_ok=True)
     return backups_dir
+
+
+def get_version() -> str:
+    """Get the version of the package.
+
+    Returns:
+        str: The version.
+    """
+    return pkg_resources.get_distribution("spoolman").version
