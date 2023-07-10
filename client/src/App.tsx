@@ -39,6 +39,8 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { ConfigProvider } from "antd";
+import { Footer } from "antd/es/layout/layout";
+import { Version } from "./components/version";
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -136,6 +138,11 @@ function App() {
                             />
                           )}
                         />
+                      )}
+                      Footer={() => (
+                        <Footer style={{ textAlign: "center" }}>
+                          Spoolman - Version <Version />
+                        </Footer>
                       )}
                     >
                       <Outlet />
