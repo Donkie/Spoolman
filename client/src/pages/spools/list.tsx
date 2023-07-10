@@ -9,7 +9,7 @@ import {
   TextField,
   CloneButton,
 } from "@refinedev/antd";
-import { Table, Space, Button } from "antd";
+import { Table, Space, Button, Row, Col } from "antd";
 import { NumberFieldUnit } from "../../components/numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -151,25 +151,32 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           filters={useListFiltersForField(dataSource, "filament_name")}
           filteredValue={getFiltersForField(typedFilters, "filament_name")}
           render={(value, record: ISpool) => {
-            return (
-              <>
-                {record.filament.color_hex && (
-                  <Icon
-                    component={SpoolIcon}
-                    style={{
-                      color: "#" + record.filament.color_hex,
-                      fontSize: 40,
-                      verticalAlign: "middle",
-                      marginLeft: -10,
-                      marginRight: 0,
-                      marginTop: -20,
-                      marginBottom: -20,
-                    }}
-                  />
-                )}
-                {value}
-              </>
-            );
+            return {
+              props: {
+                style: {
+                  paddingLeft: 0,
+                  paddingTop: 0,
+                  paddingBottom: 0,
+                },
+              },
+              children: (
+                <Row wrap={false} justify="space-around" align="middle">
+                  {record.filament.color_hex && (
+                    <Col flex="none">
+                      <Icon
+                        component={SpoolIcon}
+                        style={{
+                          color: "#" + record.filament.color_hex,
+                          fontSize: 42,
+                          marginRight: 0,
+                        }}
+                      />
+                    </Col>
+                  )}
+                  <Col flex="auto">{value}</Col>
+                </Row>
+              ),
+            };
           }}
         />
         <Table.Column
