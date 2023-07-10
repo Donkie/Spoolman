@@ -25,7 +25,7 @@ RUN pip install pip setuptools wheel\
 COPY --chown=app:app pyproject.toml /home/app/spoolman/
 COPY --chown=app:app pdm.lock /home/app/spoolman/
 WORKDIR /home/app/spoolman
-RUN pdm sync --prod
+RUN pdm sync --prod --no-editable
 
 # Copy and install app
 COPY --chown=app:app migrations /home/app/spoolman/migrations
