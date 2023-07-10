@@ -3,7 +3,7 @@
 import math
 import os
 import time
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import httpx
@@ -14,7 +14,7 @@ TIMEOUT = 10
 URL = "http://spoolman:8000"
 
 
-class DbType(str, Enum):
+class DbType(StrEnum):
     """Enum for database types."""
 
     SQLITE = "sqlite"
@@ -43,7 +43,7 @@ def _wait_for_server():  # noqa: ANN202
         try:
             response = httpx.get("http://spoolman:8000", timeout=1)
             response.raise_for_status()
-        except httpx.HTTPError:
+        except httpx.HTTPError:  # noqa: PERF203
             if time.time() - start_time > TIMEOUT:
                 raise
         else:

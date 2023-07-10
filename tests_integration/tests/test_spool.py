@@ -225,7 +225,7 @@ def test_get_spool_not_found():
     assert "123456789" in message
 
 
-def test_find_spools(random_filament: dict[str, Any]):  # noqa: PLR0915
+def test_find_spools(random_filament: dict[str, Any]):
     """Test finding spools in the database."""
     # Setup
     result = httpx.post(
@@ -628,18 +628,18 @@ async def test_use_spool_concurrent(random_filament: dict[str, Any]):
     requests = 100
     used_weight = 0.5
     async with httpx.AsyncClient() as client:
-        tasks = []
-        for _ in range(requests):
-            tasks.append(
+        await asyncio.gather(
+            *(
                 client.put(
                     f"{URL}/api/v1/spool/{spool['id']}/use",
                     json={
                         "use_weight": used_weight,
                     },
                     timeout=60,
-                ),
-            )
-        await asyncio.gather(*tasks)
+                )
+                for _ in range(requests)
+            ),
+        )
 
     # Verify
     result = httpx.get(f"{URL}/api/v1/spool/{spool['id']}")  # noqa: ASYNC100
