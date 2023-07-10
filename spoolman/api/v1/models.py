@@ -188,6 +188,15 @@ class Spool(BaseModel):
         )
 
 
+class Info(BaseModel):
+    version: str = Field(example="0.7.0")
+    debug_mode: bool = Field(example=False)
+    automatic_backups: bool = Field(example=True)
+    data_dir: str = Field(example="/home/app/.local/share/spoolman")
+    backups_dir: str = Field(example="/home/app/.local/share/spoolman/backups")
+    db_type: str = Field(example="sqlite")
+
+
 class HealthCheck(BaseModel):
     status: str = Field(example="healthy")
 

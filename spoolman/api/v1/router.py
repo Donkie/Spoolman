@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from starlette.requests import Request
 from starlette.responses import Response
 
+from spoolman import env
 from spoolman.database.database import backup_global_db
 from spoolman.exceptions import ItemNotFoundError
 
@@ -29,6 +30,20 @@ async def itemnotfounderror_exception_handler(_request: Request, exc: ItemNotFou
     return JSONResponse(
         status_code=404,
         content={"message": exc.args[0]},
+    )
+
+
+# Add a general info endpoint
+@app.get("/info")
+async def info() -> models.Info:
+    """Return general info about the API."""
+    return models.Info(
+        version=env.get_version(),
+        debug_mode=env.is_debug_mode(),
+        automatic_backups=env.is_automatic_backup_enabled(),
+        data_dir=str(env.get_data_dir().resolve()),
+        backups_dir=str(env.get_backups_dir().resolve()),
+        db_type=str(env.get_database_type() or "sqlite"),
     )
 
 
