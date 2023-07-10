@@ -12,7 +12,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: donkie/spoolman
 
 jobs:
   #
@@ -57,7 +57,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          tags: donkie/spoolman:test
+          tags: ${{ env.IMAGE_NAME }}:test
           outputs: type=docker,dest=/tmp/spoolman.tar
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
@@ -90,7 +90,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./tests_integration
-          tags: donkie/spoolman-tester:latest
+          tags: ${{ env.IMAGE_NAME }}-tester:latest
           outputs: type=docker,dest=/tmp/spoolman-tester.tar
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
