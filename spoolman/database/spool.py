@@ -213,7 +213,7 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
     # Calculate and use weight
     weight = weight_from_length(
         length=length,
-        radius=filament_info[0] / 2,
+        diameter=filament_info[0],
         density=filament_info[1],
     )
     await use_weight_safe(db, spool_id, weight)
