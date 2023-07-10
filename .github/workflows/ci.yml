@@ -46,14 +46,21 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Log in to the Github Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build Spoolman
         uses: docker/build-push-action@v4
         with:
           context: .
           tags: donkie/spoolman:test
           outputs: type=docker,dest=/tmp/spoolman.tar
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -72,14 +79,21 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Log in to the Github Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build Spoolman Tester
         uses: docker/build-push-action@v4
         with:
           context: ./tests_integration
           tags: donkie/spoolman-tester:latest
           outputs: type=docker,dest=/tmp/spoolman-tester.tar
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -127,15 +141,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Download built image
-        uses: actions/download-artifact@v3
-        with:
-          path: /tmp
-
-      - name: Load built image
-        run: |
-          docker load --input /tmp/spoolman/spoolman.tar
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -143,7 +148,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Log in to the Github Container registry
-        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -151,7 +156,7 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        uses: docker/metadata-action@v4
         with:
           images: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
@@ -162,12 +167,12 @@ jobs:
             type=semver,pattern={{major}}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        uses: docker/build-push-action@v4
         with:
           context: .
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
