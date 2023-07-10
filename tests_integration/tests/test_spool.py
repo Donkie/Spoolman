@@ -7,6 +7,8 @@ from typing import Any
 import httpx
 import pytest
 
+from .conftest import length_from_weight
+
 URL = "http://spoolman:8000"
 
 
@@ -32,6 +34,18 @@ def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
     result.raise_for_status()
 
     # Verify
+    used_weight = random_filament["weight"] - remaining_weight
+    used_length = length_from_weight(
+        weight=used_weight,
+        density=random_filament["density"],
+        diameter=random_filament["diameter"],
+    )
+    remaining_length = length_from_weight(
+        weight=remaining_weight,
+        density=random_filament["density"],
+        diameter=random_filament["diameter"],
+    )
+
     spool = result.json()
     assert spool == {
         "id": spool["id"],
@@ -40,7 +54,9 @@ def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
         "last_used": "2023-01-02T11:00:00",
         "filament": random_filament,
         "remaining_weight": pytest.approx(remaining_weight),
-        "used_weight": pytest.approx(random_filament["weight"] - remaining_weight),
+        "used_weight": pytest.approx(used_weight),
+        "remaining_length": pytest.approx(remaining_length),
+        "used_length": pytest.approx(used_length),
         "location": location,
         "lot_nr": lot_nr,
         "comment": comment,
@@ -74,6 +90,18 @@ def test_add_spool_used_weight(random_filament: dict[str, Any]):
     result.raise_for_status()
 
     # Verify
+    remaining_weight = random_filament["weight"] - used_weight
+    used_length = length_from_weight(
+        weight=used_weight,
+        density=random_filament["density"],
+        diameter=random_filament["diameter"],
+    )
+    remaining_length = length_from_weight(
+        weight=remaining_weight,
+        density=random_filament["density"],
+        diameter=random_filament["diameter"],
+    )
+
     spool = result.json()
     assert spool == {
         "id": spool["id"],
@@ -81,8 +109,10 @@ def test_add_spool_used_weight(random_filament: dict[str, Any]):
         "first_used": first_used,
         "last_used": last_used,
         "filament": random_filament,
-        "remaining_weight": pytest.approx(random_filament["weight"] - used_weight),
+        "remaining_weight": pytest.approx(remaining_weight),
         "used_weight": pytest.approx(used_weight),
+        "remaining_length": pytest.approx(remaining_length),
+        "used_length": pytest.approx(used_length),
         "location": location,
         "lot_nr": lot_nr,
         "comment": comment,
@@ -106,13 +136,27 @@ def test_add_spool_required(random_filament: dict[str, Any]):
     result.raise_for_status()
 
     # Verify
+    remaining_weight = random_filament["weight"] - used_weight
+    used_length = length_from_weight(
+        weight=used_weight,
+        density=random_filament["density"],
+        diameter=random_filament["diameter"],
+    )
+    remaining_length = length_from_weight(
+        weight=remaining_weight,
+        density=random_filament["density"],
+        diameter=random_filament["diameter"],
+    )
+
     spool = result.json()
     assert spool == {
         "id": spool["id"],
         "registered": spool["registered"],
         "filament": random_filament,
         "used_weight": pytest.approx(used_weight),
-        "remaining_weight": pytest.approx(random_filament["weight"] - used_weight),
+        "remaining_weight": pytest.approx(remaining_weight),
+        "used_length": pytest.approx(used_length),
+        "remaining_length": pytest.approx(remaining_length),
     }
 
     # Clean up
@@ -389,11 +433,25 @@ def test_update_spool(random_filament: dict[str, Any]):
     result.raise_for_status()
 
     # Verify
+    used_weight = random_filament["weight"] - remaining_weight
+    used_length = length_from_weight(
+        weight=used_weight,
+        density=random_filament["density"],
+        diameter=random_filament["diameter"],
+    )
+    remaining_length = length_from_weight(
+        weight=remaining_weight,
+        density=random_filament["density"],
+        diameter=random_filament["diameter"],
+    )
+
     spool = result.json()
     assert spool["first_used"] == "2023-01-01T10:00:00"
     assert spool["last_used"] == "2023-01-02T10:00:00"
     assert spool["remaining_weight"] == pytest.approx(remaining_weight)
-    assert spool["used_weight"] == pytest.approx(random_filament["weight"] - remaining_weight)
+    assert spool["used_weight"] == pytest.approx(used_weight)
+    assert spool["remaining_length"] == pytest.approx(remaining_length)
+    assert spool["used_length"] == pytest.approx(used_length)
     assert spool["location"] == location
     assert spool["lot_nr"] == lot_nr
     assert spool["comment"] == comment

@@ -6,6 +6,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 from spoolman.database import models
+from spoolman.math import length_from_weight
 
 
 class Message(BaseModel):
@@ -118,11 +119,26 @@ class Spool(BaseModel):
         default=None,
         ge=0,
         description=(
-            "Estimated remaining weight of filament on the spool. Only set if the filament type has a weight set."
+            "Estimated remaining weight of filament on the spool in grams. "
+            "Only set if the filament type has a weight set."
         ),
-        example=500,
+        example=500.6,
     )
-    used_weight: float = Field(ge=0, description="Consumed weight of filament from the spool.", example=500)
+    used_weight: float = Field(ge=0, description="Consumed weight of filament from the spool in grams.", example=500.3)
+    remaining_length: Optional[float] = Field(
+        default=None,
+        ge=0,
+        description=(
+            "Estimated remaining length of filament on the spool in millimeters."
+            " Only set if the filament type has a weight set."
+        ),
+        example=5612.4,
+    )
+    used_length: float = Field(
+        ge=0,
+        description="Consumed length of filament from the spool in millimeters.",
+        example=50.7,
+    )
     location: Optional[str] = Field(max_length=64, description="Where this spool can be found.", example="Shelf A")
     lot_nr: Optional[str] = Field(
         max_length=64,
@@ -139,9 +155,22 @@ class Spool(BaseModel):
     def from_db(item: models.Spool) -> "Spool":
         """Create a new Pydantic spool object from a database spool object."""
         filament = Filament.from_db(item.filament)
+
         remaining_weight: Optional[float] = None  # noqa: FA100
+        remaining_length: Optional[float] = None  # noqa: FA100
         if filament.weight is not None:
             remaining_weight = max(filament.weight - item.used_weight, 0)
+            remaining_length = length_from_weight(
+                weight=remaining_weight,
+                density=filament.density,
+                diameter=filament.diameter,
+            )
+
+        used_length = length_from_weight(
+            weight=item.used_weight,
+            density=filament.density,
+            diameter=filament.diameter,
+        )
 
         return Spool(
             id=item.id,
@@ -150,7 +179,9 @@ class Spool(BaseModel):
             last_used=item.last_used,
             filament=filament,
             used_weight=item.used_weight,
+            used_length=used_length,
             remaining_weight=remaining_weight,
+            remaining_length=remaining_length,
             location=item.location,
             lot_nr=item.lot_nr,
             comment=item.comment,
