@@ -1,0 +1,173 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - master
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  #
+  # Linting
+  #
+  style:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install pre-commit
+        run: pip install pre-commit==3.3.2
+
+      - name: Run pre-commit
+        run: pre-commit run --all-files
+  #
+  # Build native image for integration tests
+  #
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Spoolman
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          tags: donkie/spoolman:test
+          outputs: type=docker,dest=/tmp/spoolman.tar
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: spoolman
+          path: /tmp/spoolman.tar
+  #
+  # Build tester image for integration tests
+  #
+  build-tester:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Spoolman Tester
+        uses: docker/build-push-action@v4
+        with:
+          context: ./tests_integration
+          tags: donkie/spoolman-tester:latest
+          outputs: type=docker,dest=/tmp/spoolman-tester.tar
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: spoolman-tester
+          path: /tmp/spoolman-tester.tar
+  #
+  # Perform integration tests
+  #
+  test:
+    needs: [build, build-tester]
+    strategy:
+      matrix:
+        dbtype: ["postgres", "sqlite", "mariadb", "cockroachdb"]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Download built images
+        uses: actions/download-artifact@v3
+        with:
+          path: /tmp
+
+      - name: Load built images
+        run: |
+          docker load --input /tmp/spoolman/spoolman.tar
+          docker load --input /tmp/spoolman-tester/spoolman-tester.tar
+
+      - name: Perform integration tests
+        uses: isbang/compose-action@v1.4.1
+        with:
+          compose-file: "./tests_integration/docker-compose-${{ matrix.dbtype }}.yml"
+          up-flags: "--abort-on-container-exit"
+          down-flags: "--volumes"
+  #
+  # Release image if tests pass
+  # Don't run this for pull requests
+  #
+  release:
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Download built image
+        uses: actions/download-artifact@v3
+        with:
+          path: /tmp
+
+      - name: Load built image
+        run: |
+          docker load --input /tmp/spoolman/spoolman.tar
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to the Github Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=edge
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
