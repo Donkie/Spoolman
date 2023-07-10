@@ -29,7 +29,7 @@ async def create(
     color_hex: Optional[str] = None,
 ) -> models.Filament:
     """Add a new filament to the database."""
-    vendor_item: models.Vendor | None = None
+    vendor_item: Optional[models.Vendor] = None  # noqa: FA100
     if vendor_id is not None:
         vendor_item = await vendor.get_by_id(db, vendor_id)
 
