@@ -210,3 +210,5 @@ export const FilamentCreate: React.FC<
     </Create>
   );
 };
+
+export default FilamentCreate;

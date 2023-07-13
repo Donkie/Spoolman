@@ -65,3 +65,5 @@ export const VendorEdit: React.FC<IResourceComponentsProps> = () => {
     </Edit>
   );
 };
+
+export default VendorEdit;

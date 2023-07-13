@@ -266,3 +266,5 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     </List>
   );
 };
+
+export default SpoolList;

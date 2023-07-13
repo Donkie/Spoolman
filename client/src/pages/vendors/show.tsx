@@ -39,3 +39,5 @@ export const VendorShow: React.FC<IResourceComponentsProps> = () => {
     </Show>
   );
 };
+
+export default VendorShow;

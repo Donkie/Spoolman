@@ -78,3 +78,5 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
     </Show>
   );
 };
+
+export default SpoolShow;

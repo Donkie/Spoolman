@@ -53,3 +53,5 @@ export const VendorCreate: React.FC<
     </Create>
   );
 };
+
+export default VendorCreate;

@@ -238,3 +238,5 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
     </Edit>
   );
 };
+
+export default FilamentEdit;

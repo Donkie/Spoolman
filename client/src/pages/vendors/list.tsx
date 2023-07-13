@@ -206,3 +206,5 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
     </List>
   );
 };
+
+export default VendorList;

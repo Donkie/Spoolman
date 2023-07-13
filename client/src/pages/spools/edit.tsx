@@ -159,3 +159,5 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
     </Edit>
   );
 };
+
+export default SpoolEdit;

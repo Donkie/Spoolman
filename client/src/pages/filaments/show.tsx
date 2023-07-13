@@ -97,3 +97,5 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
     </Show>
   );
 };
+
+export default FilamentShow;

@@ -290,3 +290,5 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
     </List>
   );
 };
+
+export default FilamentList;

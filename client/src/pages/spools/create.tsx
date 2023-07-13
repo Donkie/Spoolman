@@ -150,3 +150,5 @@ export const SpoolCreate: React.FC<
     </Create>
   );
 };
+
+export default SpoolCreate;
