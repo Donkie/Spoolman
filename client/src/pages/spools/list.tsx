@@ -1,5 +1,9 @@
 import React from "react";
-import { IResourceComponentsProps, BaseRecord } from "@refinedev/core";
+import {
+  IResourceComponentsProps,
+  BaseRecord,
+  useTranslate,
+} from "@refinedev/core";
 import {
   useTable,
   List,
@@ -26,7 +30,6 @@ import {
   SortedColumn,
   SpoolIconColumn,
 } from "../../components/column";
-import i18n from "../../i18n";
 
 dayjs.extend(utc);
 
@@ -35,6 +38,8 @@ interface ISpoolCollapsed extends ISpool {
 }
 
 export const SpoolList: React.FC<IResourceComponentsProps> = () => {
+  const t = useTranslate();
+
   // Load initial state
   const initialState = useInitialTableState("spoolList");
 
@@ -131,14 +136,14 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
               setCurrent(1);
             }}
           >
-            Clear Filters
+            {t("buttons.clearFilters")}
           </Button>
           <Dropdown
             trigger={["click"]}
             menu={{
               items: allColumns.map((column) => ({
                 key: column,
-                label: i18n.t(`spools.fields.${column}`),
+                label: t(`spool.fields.${column}`),
               })),
               selectedKeys: showColumns,
               selectable: true,
@@ -152,7 +157,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             }}
           >
             <Button type="primary" icon={<EditOutlined />}>
-              Hide Columns
+              {t("buttons.hideColumns")}
             </Button>
           </Dropdown>
           {defaultButtons}
@@ -175,20 +180,20 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
       >
         {SortedColumn({
           id: "id",
-          title: "Id",
+          i18ncat: "spool",
           dataSource,
           tableState,
         })}
         {SpoolIconColumn({
           id: "filament_name",
-          title: "Filament",
+          i18ncat: "spool",
           color: (record: ISpoolCollapsed) => record.filament.color_hex,
           dataSource,
           tableState,
         })}
         {NumberColumn({
           id: "used_weight",
-          title: "Used Weight",
+          i18ncat: "spool",
           unit: "g",
           decimals: 1,
           dataSource,
@@ -196,7 +201,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
         })}
         {NumberColumn({
           id: "remaining_weight",
-          title: "Estimated Remaining Weight",
+          i18ncat: "spool",
           unit: "g",
           decimals: 1,
           dataSource,
@@ -204,53 +209,53 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
         })}
         {FilteredColumn({
           id: "location",
-          title: "Location",
+          i18ncat: "spool",
           dataSource,
           tableState,
         })}
         {FilteredColumn({
           id: "lot_nr",
-          title: "Lot Nr",
+          i18ncat: "spool",
           dataSource,
           tableState,
         })}
         {DateColumn({
           id: "first_used",
-          title: "First Used",
+          i18ncat: "spool",
           dataSource,
           tableState,
         })}
         {DateColumn({
           id: "last_used",
-          title: "Last Used",
+          i18ncat: "spool",
           dataSource,
           tableState,
         })}
         {SortedColumn({
           id: "comment",
-          title: "Comment",
+          i18ncat: "spool",
           dataSource,
           tableState,
         })}
         <Table.Column
-          title="Actions"
+          title={t("table.actions")}
           render={(_, record: BaseRecord) => (
             <Space>
               <EditButton
                 hideText
-                title="Edit"
+                title={t("buttons.edit")}
                 size="small"
                 recordItemId={record.id}
               />
               <ShowButton
                 hideText
-                title="Show"
+                title={t("buttons.show")}
                 size="small"
                 recordItemId={record.id}
               />
               <CloneButton
                 hideText
-                title="Clone"
+                title={t("buttons.clone")}
                 size="small"
                 recordItemId={record.id}
               />

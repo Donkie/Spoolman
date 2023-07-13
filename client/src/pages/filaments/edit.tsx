@@ -1,5 +1,5 @@
 import React from "react";
-import { IResourceComponentsProps } from "@refinedev/core";
+import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
 import {
   Form,
@@ -16,6 +16,8 @@ import { IVendor } from "../vendors/model";
 import { IFilament } from "./model";
 
 export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
+  const t = useTranslate();
+
   const { formProps, saveButtonProps } = useForm<IFilament>();
 
   const { selectProps } = useSelect<IVendor>({
@@ -32,7 +34,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
     <Edit saveButtonProps={saveButtonProps}>
       <Form {...formProps} layout="vertical">
         <Form.Item
-          label="Id"
+          label={t("filament.fields.id")}
           name={["id"]}
           rules={[
             {
@@ -43,7 +45,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           <Input readOnly disabled />
         </Form.Item>
         <Form.Item
-          label="Registered"
+          label={t("filament.fields.registered")}
           name={["registered"]}
           rules={[
             {
@@ -57,8 +59,8 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           <DatePicker disabled showTime format="YYYY-MM-DD HH:mm:ss" />
         </Form.Item>
         <Form.Item
-          label="Name"
-          help="Filament name, to distinguish this filament type among others from the same vendor. Should contain the color for example."
+          label={t("filament.fields.name")}
+          help={t("filament.fields_help.name")}
           name={["name"]}
           rules={[
             {
@@ -69,7 +71,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           <Input maxLength={64} />
         </Form.Item>
         <Form.Item
-          label="Vendor"
+          label={t("filament.fields.vendor")}
           name={["vendor_id"]}
           rules={[
             {
@@ -87,7 +89,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           <Select {...selectProps} allowClear />
         </Form.Item>
         <Form.Item
-          label="Color"
+          label={t("filament.fields.color_hex")}
           name={["color_hex"]}
           rules={[
             {
@@ -101,8 +103,8 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           <ColorPicker format="hex" />
         </Form.Item>
         <Form.Item
-          label="Material"
-          help="E.g. PLA, ABS, PETG, etc."
+          label={t("filament.fields.material")}
+          help={t("filament.fields_help.material")}
           name={["material"]}
           rules={[
             {
@@ -113,8 +115,8 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           <Input maxLength={64} />
         </Form.Item>
         <Form.Item
-          label="Price"
-          help="Price of a full spool in the system configured currency."
+          label={t("filament.fields.price")}
+          help={t("filament.fields_help.price")}
           name={["price"]}
           rules={[
             {
@@ -130,7 +132,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           />
         </Form.Item>
         <Form.Item
-          label="Density"
+          label={t("filament.fields.density")}
           name={["density"]}
           rules={[
             {
@@ -147,7 +149,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           />
         </Form.Item>
         <Form.Item
-          label="Diameter"
+          label={t("filament.fields.diameter")}
           name={["diameter"]}
           rules={[
             {
@@ -164,8 +166,8 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           />
         </Form.Item>
         <Form.Item
-          label="Weight"
-          help="The filament weight of a full spool (net weight). This should not include the weight of the spool itself, only the filament. It is what is usually written on the packaging."
+          label={t("filament.fields.weight")}
+          help={t("filament.fields_help.weight")}
           name={["weight"]}
           rules={[
             {
@@ -176,8 +178,8 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           <InputNumber min={0} addonAfter="g" precision={0} />
         </Form.Item>
         <Form.Item
-          label="Spool Weight"
-          help="The weight of an empty spool. Currently not used for anything, but could be used by thirdparty apps to e.g. calculate the filament weight from a weight measurement."
+          label={t("filament.fields.spool_weight")}
+          help={t("filament.fields_help.spool_weight")}
           name={["spool_weight"]}
           rules={[
             {
@@ -188,8 +190,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           <InputNumber min={0} addonAfter="g" precision={0} />
         </Form.Item>
         <Form.Item
-          label="Override Extruder Temperature"
-          help="Override the extruder temperature for this filament type."
+          label={t("filament.fields.settings_extruder_temp")}
           name={["settings_extruder_temp"]}
           rules={[
             {
@@ -200,8 +201,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           <InputNumber min={0} addonAfter="°C" precision={0} />
         </Form.Item>
         <Form.Item
-          label="Override Bed Temperature"
-          help="Override the bed temperature for this filament type."
+          label={t("filament.fields.settings_bed_temp")}
           name={["settings_bed_temp"]}
           rules={[
             {
@@ -212,9 +212,9 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           <InputNumber min={0} addonAfter="°C" precision={0} />
         </Form.Item>
         <Form.Item
-          label="Article Number"
+          label={t("filament.fields.article_number")}
+          help={t("filament.fields_help.article_number")}
           name={["article_number"]}
-          help="E.g. EAN, UPC, etc."
           rules={[
             {
               required: false,
@@ -224,7 +224,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           <Input maxLength={64} />
         </Form.Item>
         <Form.Item
-          label="Comment"
+          label={t("filament.fields.comment")}
           name={["comment"]}
           rules={[
             {

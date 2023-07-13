@@ -1,5 +1,9 @@
 import React from "react";
-import { IResourceComponentsProps, BaseRecord } from "@refinedev/core";
+import {
+  IResourceComponentsProps,
+  BaseRecord,
+  useTranslate,
+} from "@refinedev/core";
 import {
   useTable,
   List,
@@ -26,7 +30,6 @@ import {
   SortedColumn,
   SpoolIconColumn,
 } from "../../components/column";
-import i18n from "../../i18n";
 
 dayjs.extend(utc);
 
@@ -35,6 +38,8 @@ interface IFilamentCollapsed extends Omit<IFilament, "vendor"> {
 }
 
 export const FilamentList: React.FC<IResourceComponentsProps> = () => {
+  const t = useTranslate();
+
   // Load initial state
   const initialState = useInitialTableState("filamentList");
 
@@ -133,14 +138,14 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
               setCurrent(1);
             }}
           >
-            Clear Filters
+            {t("buttons.clearFilters")}
           </Button>
           <Dropdown
             trigger={["click"]}
             menu={{
               items: allColumns.map((column_id) => ({
                 key: column_id,
-                label: i18n.t(`filaments.fields.${column_id}`),
+                label: t(`filament.fields.${column_id}`),
               })),
               selectedKeys: showColumns,
               selectable: true,
@@ -154,7 +159,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             }}
           >
             <Button type="primary" icon={<EditOutlined />}>
-              Hide Columns
+              {t("buttons.hideColumns")}
             </Button>
           </Dropdown>
           {defaultButtons}
@@ -177,38 +182,38 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
       >
         {SortedColumn({
           id: "id",
-          title: "Id",
+          i18ncat: "filament",
           dataSource,
           tableState,
         })}
         {FilteredColumn({
           id: "vendor_name",
-          title: "Vendor",
+          i18ncat: "filament",
           dataSource,
           tableState,
         })}
         {SpoolIconColumn({
           id: "name",
-          title: "Name",
+          i18ncat: "filament",
           color: (record: IFilamentCollapsed) => record.color_hex,
           dataSource,
           tableState,
         })}
         {FilteredColumn({
           id: "material",
-          title: "Material",
+          i18ncat: "filament",
           dataSource,
           tableState,
         })}
         {SortedColumn({
           id: "price",
-          title: "Price",
+          i18ncat: "filament",
           dataSource,
           tableState,
         })}
         {NumberColumn({
           id: "density",
-          title: "Density",
+          i18ncat: "filament",
           unit: "g/cm³",
           decimals: 2,
           dataSource,
@@ -216,7 +221,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
         })}
         {NumberColumn({
           id: "diameter",
-          title: "Diameter",
+          i18ncat: "filament",
           unit: "mm",
           decimals: 2,
           dataSource,
@@ -224,7 +229,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
         })}
         {NumberColumn({
           id: "weight",
-          title: "Weight",
+          i18ncat: "filament",
           unit: "g",
           decimals: 1,
           dataSource,
@@ -232,7 +237,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
         })}
         {NumberColumn({
           id: "spool_weight",
-          title: "Spool Weight",
+          i18ncat: "filament",
           unit: "g",
           decimals: 1,
           dataSource,
@@ -240,42 +245,41 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
         })}
         {FilteredColumn({
           id: "article_number",
-          title: "Article Number",
+          i18ncat: "filament",
           dataSource,
           tableState,
         })}
         {DateColumn({
           id: "registered",
-          title: "Registered",
+          i18ncat: "filament",
           dataSource,
           tableState,
         })}
         {SortedColumn({
           id: "comment",
-          title: "Comment",
+          i18ncat: "filament",
           dataSource,
           tableState,
         })}
         <Table.Column
-          title="Actions"
-          dataIndex="actions"
+          title={t("table.actions")}
           render={(_, record: BaseRecord) => (
             <Space>
               <EditButton
                 hideText
-                title="Edit"
+                title={t("buttons.edit")}
                 size="small"
                 recordItemId={record.id}
               />
               <ShowButton
                 hideText
-                title="Show"
+                title={t("buttons.show")}
                 size="small"
                 recordItemId={record.id}
               />
               <CloneButton
                 hideText
-                title="Clone"
+                title={t("buttons.clone")}
                 size="small"
                 recordItemId={record.id}
               />

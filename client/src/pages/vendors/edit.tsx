@@ -1,5 +1,5 @@
 import React from "react";
-import { IResourceComponentsProps } from "@refinedev/core";
+import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Edit, useForm } from "@refinedev/antd";
 import { Form, Input, DatePicker } from "antd";
 import dayjs from "dayjs";
@@ -7,13 +7,15 @@ import TextArea from "antd/es/input/TextArea";
 import { IVendor } from "./model";
 
 export const VendorEdit: React.FC<IResourceComponentsProps> = () => {
+  const t = useTranslate();
+
   const { formProps, saveButtonProps } = useForm<IVendor>();
 
   return (
     <Edit saveButtonProps={saveButtonProps}>
       <Form {...formProps} layout="vertical">
         <Form.Item
-          label="Id"
+          label={t("vendor.fields.id")}
           name={["id"]}
           rules={[
             {
@@ -24,7 +26,7 @@ export const VendorEdit: React.FC<IResourceComponentsProps> = () => {
           <Input readOnly disabled />
         </Form.Item>
         <Form.Item
-          label="Registered"
+          label={t("vendor.fields.registered")}
           name={["registered"]}
           rules={[
             {
@@ -38,7 +40,7 @@ export const VendorEdit: React.FC<IResourceComponentsProps> = () => {
           <DatePicker disabled showTime format="YYYY-MM-DD HH:mm:ss" />
         </Form.Item>
         <Form.Item
-          label="Name"
+          label={t("vendor.fields.name")}
           name={["name"]}
           rules={[
             {
@@ -49,7 +51,7 @@ export const VendorEdit: React.FC<IResourceComponentsProps> = () => {
           <Input maxLength={64} />
         </Form.Item>
         <Form.Item
-          label="Comment"
+          label={t("vendor.fields.comment")}
           name={["comment"]}
           rules={[
             {

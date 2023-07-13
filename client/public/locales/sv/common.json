@@ -1,0 +1,157 @@
+{
+  "actions": {
+    "list": "Lista",
+    "create": "Skapa",
+    "edit": "Ändra",
+    "show": "Visa",
+    "clone": "Klona"
+  },
+  "buttons": {
+    "create": "Skapa",
+    "save": "Spara",
+    "logout": "Logga ut",
+    "delete": "Ta bort",
+    "edit": "Ändra",
+    "cancel": "Avbryt",
+    "confirm": "Är du säker?",
+    "filter": "Filtrera",
+    "clear": "Rensa",
+    "refresh": "Uppdatera",
+    "show": "Visa",
+    "undo": "Ångra",
+    "import": "Importera",
+    "clone": "Klona",
+    "notAccessTitle": "Du har inte tillgång till denna sida",
+    "hideColumns": "Dölj kolumner",
+    "clearFilters": "Rensa filter"
+  },
+  "warnWhenUnsavedChanges": "Du har osparade ändringar. Är du säker på att du vill lämna sidan?",
+  "notifications": {
+    "success": "Lyckades!",
+    "error": "Fel (statuskod: {{statusCode}})",
+    "undoable": "Du har {{seconds}} sekunder på dig att ångra",
+    "createSuccess": "Lyckades skapa {{resource}}",
+    "createError": "Det gick inte att skapa {{resource}} (statuskod: {{statusCode}})",
+    "deleteSuccess": "Lyckades ta bort {{resource}}",
+    "deleteError": "Det gick inte att ta bort {{resource}} (statuskod: {{statusCode}})",
+    "editSuccess": "Lyckades ändra {{resource}}",
+    "editError": "Det gick inte att ändra {{resource}} (statuskod: {{statusCode}})",
+    "importProgress": "Importerar: {{processed}}/{{total}}"
+  },
+  "loading": "Laddar...",
+  "version": "Version",
+  "tags": {
+    "clone": "Klona"
+  },
+  "dashboard": {
+    "title": "Hem"
+  },
+  "spool": {
+    "spool": "Spolar",
+    "fields": {
+      "id": "Id",
+      "filament_name": "Filament",
+      "filament": "Filament",
+      "used_weight": "Använd vikt",
+      "remaining_weight": "Återstående vikt",
+      "location": "Plats",
+      "lot_nr": "Batchnummer",
+      "first_used": "Användes först",
+      "last_used": "Användes senast",
+      "registered": "Registrerad",
+      "comment": "Kommentar"
+    },
+    "fields_help": {
+      "used_weight": "Hur mycket filament som använts på spolen. En ny spole har värdet 0g.",
+      "location": "Vart spolen finns om du har flera platser att förvara spolar på.",
+      "lot_nr": "Tillverkarens batchnummer. Kan användas för att se till att en utskrift har jämn färg ifall flera spolar används."
+    },
+    "titles": {
+      "create": "Skapa spole",
+      "clone": "Klona spole",
+      "edit": "Ändra spole",
+      "list": "Spolar",
+      "show": "Visa spole"
+    }
+  },
+  "filament": {
+    "filament": "Filament",
+    "fields": {
+      "id": "Id",
+      "vendor_name": "Leverantör",
+      "vendor": "Leverantör",
+      "name": "Namn",
+      "material": "Material",
+      "price": "Pris",
+      "density": "Densitet",
+      "diameter": "Diameter",
+      "weight": "Vikt",
+      "spool_weight": "Spolvikt",
+      "article_number": "Artikelnummer",
+      "registered": "Registrerad",
+      "comment": "Kommentar",
+      "settings_extruder_temp": "Extrudertemp",
+      "settings_bed_temp": "Bäddtemp",
+      "color_hex": "Färg"
+    },
+    "fields_help": {
+      "name": "Filamentets namn, för att skilja detta filament från andra från samma leverantör. Bör innehålla färgen till exempel.",
+      "material": "T.ex. PLA, ABS, PETG, etc.",
+      "price": "Pris för en full spole i systemets valuta.",
+      "weight": "Vikten på en full spole (nettovikt). Detta ska inte inkludera vikten på spolen själv, bara filamentet. Det är vad som vanligtvis står på förpackningen.",
+      "spool_weight": "Vikten på en tom spole. Detta används inte till något i dagsläget, men skulle kunna användas av tredjepartsappar för att t.ex. beräkna filamentvikten från en viktmätning.",
+      "article_number": "T.ex. EAN, UPC, etc."
+    },
+    "titles": {
+      "create": "Skapa filament",
+      "clone": "Klona filament",
+      "edit": "Ändra filament",
+      "list": "Filament",
+      "show": "Visa filament"
+    }
+  },
+  "vendor": {
+    "vendor": "Leverantörer",
+    "fields": {
+      "id": "Id",
+      "name": "Namn",
+      "registered": "Registrerad",
+      "comment": "Kommentar"
+    },
+    "titles": {
+      "create": "Skapa leverantör",
+      "clone": "Klona leverantör",
+      "edit": "Ändra leverantör",
+      "list": "Leverantörer",
+      "show": "Visa leverantör"
+    }
+  },
+  "table": {
+    "actions": "Åtgärder"
+  },
+  "documentTitle": {
+    "default": "Spoolman",
+    "suffix": " | Spoolman",
+    "filament": {
+      "list": "Filament | Spoolman",
+      "show": "#{{id}} Visa filament | Spoolman",
+      "edit": "#{{id}} Redigera filament | Spoolman",
+      "create": "Skapa filament | Spoolman",
+      "clone": "#{{id}} Klona filament | Spoolman"
+    },
+    "spool": {
+      "list": "Spolar | Spoolman",
+      "show": "#{{id}} Visa spole | Spoolman",
+      "edit": "#{{id}} Redigera spole | Spoolman",
+      "create": "Skapa spole | Spoolman",
+      "clone": "#{{id}} Klona spole | Spoolman"
+    },
+    "vendor": {
+      "list": "Leverantörer | Spoolman",
+      "show": "#{{id}} Visa leverantör | Spoolman",
+      "edit": "#{{id}} Redigera leverantör | Spoolman",
+      "create": "Skapa leverantör | Spoolman",
+      "clone": "#{{id}} Klona leverantör | Spoolman"
+    }
+  }
+}

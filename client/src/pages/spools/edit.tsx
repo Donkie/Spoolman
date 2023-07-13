@@ -1,5 +1,5 @@
 import React from "react";
-import { IResourceComponentsProps } from "@refinedev/core";
+import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, DatePicker, Select, InputNumber } from "antd";
 import dayjs from "dayjs";
@@ -8,6 +8,8 @@ import { IFilament } from "../filaments/model";
 import { ISpool } from "./model";
 
 export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
+  const t = useTranslate();
+
   const { formProps, saveButtonProps } = useForm<ISpool>();
 
   const { queryResult } = useSelect<IFilament>({
@@ -40,7 +42,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
     <Edit saveButtonProps={saveButtonProps}>
       <Form {...formProps} layout="vertical">
         <Form.Item
-          label="Id"
+          label={t("spool.fields.id")}
           name={["id"]}
           rules={[
             {
@@ -51,7 +53,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
           <Input readOnly disabled />
         </Form.Item>
         <Form.Item
-          label="Registered"
+          label={t("spool.fields.registered")}
           name={["registered"]}
           rules={[
             {
@@ -65,7 +67,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
           <DatePicker disabled showTime format="YYYY-MM-DD HH:mm:ss" />
         </Form.Item>
         <Form.Item
-          label="First Used"
+          label={t("spool.fields.first_used")}
           name={["first_used"]}
           rules={[
             {
@@ -79,7 +81,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
           <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" />
         </Form.Item>
         <Form.Item
-          label="Last Used"
+          label={t("spool.fields.last_used")}
           name={["last_used"]}
           rules={[
             {
@@ -93,7 +95,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
           <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" />
         </Form.Item>
         <Form.Item
-          label="Filament"
+          label={t("spool.fields.filament")}
           name={["filament_id"]}
           rules={[
             {
@@ -104,7 +106,8 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
           <Select options={filamentOptions} />
         </Form.Item>
         <Form.Item
-          label="Used Weight"
+          label={t("spool.fields.used_weight")}
+          help={t("spool.fields_help.used_weight")}
           name={["used_weight"]}
           rules={[
             {
@@ -118,7 +121,8 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
           more elegantly for locales which use , as a thousands separator. */}
         </Form.Item>
         <Form.Item
-          label="Location"
+          label={t("spool.fields.location")}
+          help={t("spool.fields_help.location")}
           name={["location"]}
           rules={[
             {
@@ -129,7 +133,8 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
           <Input maxLength={64} />
         </Form.Item>
         <Form.Item
-          label="Lot Nr"
+          label={t("spool.fields.lot_nr")}
+          help={t("spool.fields_help.lot_nr")}
           name={["lot_nr"]}
           rules={[
             {
@@ -140,7 +145,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
           <Input maxLength={64} />
         </Form.Item>
         <Form.Item
-          label="Comment"
+          label={t("spool.fields.comment")}
           name={["comment"]}
           rules={[
             {

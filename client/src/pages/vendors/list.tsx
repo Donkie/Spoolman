@@ -1,5 +1,9 @@
 import React from "react";
-import { IResourceComponentsProps, BaseRecord } from "@refinedev/core";
+import {
+  IResourceComponentsProps,
+  BaseRecord,
+  useTranslate,
+} from "@refinedev/core";
 import {
   useTable,
   List,
@@ -19,12 +23,13 @@ import {
   useStoreInitialState,
 } from "../../utils/saveload";
 import { EditOutlined, FilterOutlined } from "@ant-design/icons";
-import i18n from "../../i18n";
 import { DateColumn, SortedColumn } from "../../components/column";
 
 dayjs.extend(utc);
 
 export const VendorList: React.FC<IResourceComponentsProps> = () => {
+  const t = useTranslate();
+
   // Load initial state
   const initialState = useInitialTableState("vendorList");
 
@@ -106,14 +111,14 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
               setCurrent(1);
             }}
           >
-            Clear Filters
+            {t("buttons.clearFilters")}
           </Button>
           <Dropdown
             trigger={["click"]}
             menu={{
               items: allColumns.map((column) => ({
                 key: column,
-                label: i18n.t(`vendors.fields.${column}`),
+                label: t(`vendor.fields.${column}`),
               })),
               selectedKeys: showColumns,
               selectable: true,
@@ -127,7 +132,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
             }}
           >
             <Button type="primary" icon={<EditOutlined />}>
-              Hide Columns
+              {t("buttons.hideColumns")}
             </Button>
           </Dropdown>
           {defaultButtons}
@@ -150,48 +155,47 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
       >
         {SortedColumn({
           id: "id",
-          title: "Id",
+          i18ncat: "vendor",
           dataSource,
           tableState,
         })}
         {SortedColumn({
           id: "name",
-          title: "Name",
+          i18ncat: "vendor",
           dataSource,
           tableState,
         })}
         {DateColumn({
           id: "registered",
-          title: "Registered",
+          i18ncat: "vendor",
           dataSource,
           tableState,
         })}
         {SortedColumn({
           id: "comment",
-          title: "Comment",
+          i18ncat: "vendor",
           dataSource,
           tableState,
         })}
         <Table.Column
-          title="Actions"
-          dataIndex="actions"
+          title={t("table.actions")}
           render={(_, record: BaseRecord) => (
             <Space>
               <EditButton
                 hideText
-                title="Edit"
+                title={t("buttons.edit")}
                 size="small"
                 recordItemId={record.id}
               />
               <ShowButton
                 hideText
-                title="Show"
+                title={t("buttons.show")}
                 size="small"
                 recordItemId={record.id}
               />
               <CloneButton
                 hideText
-                title="Clone"
+                title={t("buttons.clone")}
                 size="small"
                 recordItemId={record.id}
               />

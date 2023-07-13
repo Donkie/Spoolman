@@ -1,5 +1,5 @@
 import React from "react";
-import { IResourceComponentsProps } from "@refinedev/core";
+import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, DatePicker, Select, InputNumber } from "antd";
 import dayjs from "dayjs";
@@ -14,6 +14,8 @@ interface CreateOrCloneProps {
 export const SpoolCreate: React.FC<
   IResourceComponentsProps & CreateOrCloneProps
 > = (props) => {
+  const t = useTranslate();
+
   const { formProps, saveButtonProps, formLoading } = useForm<ISpool>();
 
   if (props.mode === "clone" && formProps.initialValues) {
@@ -49,13 +51,17 @@ export const SpoolCreate: React.FC<
 
   return (
     <Create
-      title={props.mode === "create" ? "Create Spool" : "Clone Spool"}
+      title={
+        props.mode === "create"
+          ? t("spool.titles.create")
+          : t("spool.titles.clone")
+      }
       saveButtonProps={saveButtonProps}
       isLoading={formLoading}
     >
       <Form {...formProps} layout="vertical">
         <Form.Item
-          label="First Used"
+          label={t("spool.fields.first_used")}
           name={["first_used"]}
           rules={[
             {
@@ -69,7 +75,7 @@ export const SpoolCreate: React.FC<
           <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" />
         </Form.Item>
         <Form.Item
-          label="Last Used"
+          label={t("spool.fields.last_used")}
           name={["last_used"]}
           rules={[
             {
@@ -83,7 +89,7 @@ export const SpoolCreate: React.FC<
           <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" />
         </Form.Item>
         <Form.Item
-          label="Filament"
+          label={t("spool.fields.filament")}
           name={["filament_id"]}
           rules={[
             {
@@ -94,7 +100,8 @@ export const SpoolCreate: React.FC<
           <Select options={filamentOptions} />
         </Form.Item>
         <Form.Item
-          label="Used Weight"
+          label={t("spool.fields.used_weight")}
+          help={t("spool.fields_help.used_weight")}
           name={["used_weight"]}
           rules={[
             {
@@ -105,7 +112,8 @@ export const SpoolCreate: React.FC<
           <InputNumber min={0} addonAfter="g" precision={0} />
         </Form.Item>
         <Form.Item
-          label="Location"
+          label={t("spool.fields.location")}
+          help={t("spool.fields_help.location")}
           name={["location"]}
           rules={[
             {
@@ -116,7 +124,8 @@ export const SpoolCreate: React.FC<
           <Input maxLength={64} />
         </Form.Item>
         <Form.Item
-          label="Lot Nr"
+          label={t("spool.fields.lot_nr")}
+          help={t("spool.fields_help.lot_nr")}
           name={["lot_nr"]}
           rules={[
             {
@@ -127,7 +136,7 @@ export const SpoolCreate: React.FC<
           <Input maxLength={64} />
         </Form.Item>
         <Form.Item
-          label="Comment"
+          label={t("spool.fields.comment")}
           name={["comment"]}
           rules={[
             {

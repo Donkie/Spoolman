@@ -1,8 +1,7 @@
 import { DownOutlined } from "@ant-design/icons";
 import type { RefineThemedLayoutV2HeaderProps } from "@refinedev/antd";
-import { useGetIdentity, useGetLocale, useSetLocale } from "@refinedev/core";
+import { useGetLocale, useSetLocale } from "@refinedev/core";
 import {
-  Avatar,
   Button,
   Dropdown,
   Layout as AntdLayout,
@@ -10,20 +9,15 @@ import {
   Space,
   Switch,
   theme,
-  Typography,
 } from "antd";
 import React, { useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { ColorModeContext } from "../../contexts/color-mode";
 
-const { Text } = Typography;
-const { useToken } = theme;
+import "/node_modules/flag-icons/css/flag-icons.min.css";
+import { languages } from "../../i18n";
 
-type IUser = {
-  id: number;
-  name: string;
-  avatar: string;
-};
+const { useToken } = theme;
 
 export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
   sticky,
@@ -32,7 +26,6 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
   const { i18n } = useTranslation();
   const locale = useGetLocale();
   const changeLanguage = useSetLocale();
-  const { data: user } = useGetIdentity<IUser>();
   const { mode, setMode } = useContext(ColorModeContext);
 
   const currentLocale = locale();
@@ -43,11 +36,12 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
       key: lang,
       onClick: () => changeLanguage(lang),
       icon: (
-        <span style={{ marginRight: 8 }}>
-          <Avatar size={16} src={`/images/flags/${lang}.svg`} />
-        </span>
+        <span
+          className={"fi fi-" + languages[lang].countryCode}
+          style={{ marginRight: 8 }}
+        />
       ),
-      label: lang === "en" ? "English" : "German",
+      label: languages[lang].name,
     }));
 
   const headerStyles: React.CSSProperties = {
@@ -76,8 +70,12 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
         >
           <Button type="text">
             <Space>
-              <Avatar size={16} src={`/images/flags/${currentLocale}.svg`} />
-              {currentLocale === "en" ? "English" : "German"}
+              <span
+                className={
+                  "fi fi-" + languages[currentLocale ?? "en"].countryCode
+                }
+              />
+              {languages[currentLocale ?? "en"].name}
               <DownOutlined />
             </Space>
           </Button>
@@ -88,10 +86,6 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
           onChange={() => setMode(mode === "light" ? "dark" : "light")}
           defaultChecked={mode === "dark"}
         />
-        <Space style={{ marginLeft: "8px" }} size="middle">
-          {user?.name && <Text strong>{user.name}</Text>}
-          {user?.avatar && <Avatar src={user?.avatar} alt={user?.name} />}
-        </Space>
       </Space>
     </AntdLayout.Header>
   );

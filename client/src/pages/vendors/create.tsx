@@ -1,5 +1,5 @@
 import React from "react";
-import { IResourceComponentsProps } from "@refinedev/core";
+import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Create, useForm } from "@refinedev/antd";
 import { Form, Input } from "antd";
 import TextArea from "antd/es/input/TextArea";
@@ -12,17 +12,23 @@ interface CreateOrCloneProps {
 export const VendorCreate: React.FC<
   IResourceComponentsProps & CreateOrCloneProps
 > = (props) => {
+  const t = useTranslate();
+
   const { formProps, saveButtonProps, formLoading } = useForm<IVendor>();
 
   return (
     <Create
-      title={props.mode === "create" ? "Create Vendor" : "Clone Vendor"}
+      title={
+        props.mode === "create"
+          ? t("vendor.titles.create")
+          : t("vendor.titles.clone")
+      }
       isLoading={formLoading}
       saveButtonProps={saveButtonProps}
     >
       <Form {...formProps} layout="vertical">
         <Form.Item
-          label="Name"
+          label={t("vendor.fields.name")}
           name={["name"]}
           rules={[
             {
@@ -33,7 +39,7 @@ export const VendorCreate: React.FC<
           <Input maxLength={64} />
         </Form.Item>
         <Form.Item
-          label="Comment"
+          label={t("vendor.fields.comment")}
           name={["comment"]}
           rules={[
             {

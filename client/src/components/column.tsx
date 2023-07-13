@@ -14,12 +14,13 @@ import utc from "dayjs/plugin/utc";
 import { DateField, TextField } from "@refinedev/antd";
 import Icon from "@ant-design/icons";
 import { ReactComponent as SpoolIcon } from "../icon_spool.svg";
+import { useTranslate } from "@refinedev/core";
 
 dayjs.extend(utc);
 
 interface BaseColumnProps<Obj> {
   id: keyof Obj & string;
-  title: string;
+  i18ncat: string;
   dataSource: Obj[];
   tableState: TableState;
 }
@@ -42,6 +43,7 @@ interface CustomColumnProps<Obj> {
 function Column<Obj>(
   props: BaseColumnProps<Obj> & FilteredColumnProps & CustomColumnProps<Obj>
 ) {
+  const t = useTranslate();
   if (
     props.tableState.showColumns &&
     !props.tableState.showColumns.includes(props.id)
@@ -51,7 +53,7 @@ function Column<Obj>(
   const typedSorters = typeSorters<Obj>(props.tableState.sorters);
   const columnProps: AntdColumnProps<Obj> = {
     dataIndex: props.id,
-    title: props.title,
+    title: t(`${props.i18ncat}.fields.${props.id}`),
     sorter: true,
     sortOrder: getSortOrderForField(typedSorters, props.id),
   };

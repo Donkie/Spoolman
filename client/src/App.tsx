@@ -11,6 +11,7 @@ import {
 import "@refinedev/antd/dist/reset.css";
 
 import routerBindings, {
+  DocumentTitleHandler,
   NavigateToResource,
   UnsavedChangesNotifier,
 } from "@refinedev/react-router-v6";
@@ -41,6 +42,9 @@ import {
 import { ConfigProvider } from "antd";
 import { Footer } from "antd/es/layout/layout";
 import { Version } from "./components/version";
+import React from "react";
+import { Locale } from "antd/es/locale";
+import { languages } from "./i18n";
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -50,6 +54,20 @@ function App() {
     changeLocale: (lang: string) => i18n.changeLanguage(lang),
     getLocale: () => i18n.language,
   };
+
+  // Fetch the antd locale using dynamic imports
+  const [antdLocale, setAntdLocale] = React.useState<Locale | undefined>();
+  React.useEffect(() => {
+    const fetchLocale = async () => {
+      const locale = await import(
+        `./../node_modules/antd/es/locale/${languages[
+          i18n.language
+        ].fullCode.replace("-", "_")}.js`
+      );
+      setAntdLocale(locale.default);
+    };
+    fetchLocale().catch(console.error);
+  }, [i18n.language]);
 
   if (!import.meta.env.VITE_APIURL) {
     return (
@@ -68,6 +86,7 @@ function App() {
       <RefineKbarProvider>
         <ColorModeContextProvider>
           <ConfigProvider
+            locale={antdLocale}
             theme={{
               token: {
                 colorPrimary: "#dc7734",
@@ -142,7 +161,7 @@ function App() {
                       )}
                       Footer={() => (
                         <Footer style={{ textAlign: "center" }}>
-                          Spoolman - Version <Version />
+                          Spoolman - {t("version")} <Version />
                         </Footer>
                       )}
                     >
@@ -199,6 +218,7 @@ function App() {
 
               <RefineKbar />
               <UnsavedChangesNotifier />
+              <DocumentTitleHandler />
             </Refine>
           </ConfigProvider>
         </ColorModeContextProvider>
