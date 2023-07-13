@@ -20,19 +20,6 @@ import { useTranslation } from "react-i18next";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
-import { SpoolCreate, SpoolEdit, SpoolList, SpoolShow } from "./pages/spools";
-import {
-  FilamentCreate,
-  FilamentEdit,
-  FilamentList,
-  FilamentShow,
-} from "./pages/filaments";
-import {
-  VendorCreate,
-  VendorEdit,
-  VendorList,
-  VendorShow,
-} from "./pages/vendors";
 import { ReactComponent as Logo } from "./icon.svg";
 import {
   FileOutlined,
@@ -45,6 +32,22 @@ import { Version } from "./components/version";
 import React from "react";
 import { Locale } from "antd/es/locale";
 import { languages } from "./i18n";
+import loadable from "@loadable/component";
+
+interface PageProps {
+  resource: "spools" | "filaments" | "vendors";
+  page: "list" | "create" | "edit" | "show";
+  mode?: "create" | "clone";
+}
+
+const LoadablePage = loadable(
+  (props: PageProps) => import(`./pages/${props.resource}/${props.page}.tsx`),
+  {
+    fallback: <div>Page is Loading...</div>,
+    cacheKey: (props: PageProps) =>
+      `${props.resource}-${props.page}-${props.mode ?? ""}`,
+  }
+);
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -174,43 +177,112 @@ function App() {
                     element={<NavigateToResource resource="spool" />}
                   />
                   <Route path="/spool">
-                    <Route index element={<SpoolList />} />
+                    <Route
+                      index
+                      element={<LoadablePage resource="spools" page="list" />}
+                    />
                     <Route
                       path="create"
-                      element={<SpoolCreate mode="create" />}
+                      element={
+                        <LoadablePage
+                          resource="spools"
+                          page="create"
+                          mode="create"
+                        />
+                      }
                     />
                     <Route
                       path="clone/:id"
-                      element={<SpoolCreate mode="clone" />}
+                      element={
+                        <LoadablePage
+                          resource="spools"
+                          page="create"
+                          mode="clone"
+                        />
+                      }
                     />
-                    <Route path="edit/:id" element={<SpoolEdit />} />
-                    <Route path="show/:id" element={<SpoolShow />} />
+                    <Route
+                      path="edit/:id"
+                      element={<LoadablePage resource="spools" page="edit" />}
+                    />
+                    <Route
+                      path="show/:id"
+                      element={<LoadablePage resource="spools" page="show" />}
+                    />
                   </Route>
                   <Route path="/filament">
-                    <Route index element={<FilamentList />} />
+                    <Route
+                      index
+                      element={
+                        <LoadablePage resource="filaments" page="list" />
+                      }
+                    />
                     <Route
                       path="create"
-                      element={<FilamentCreate mode="create" />}
+                      element={
+                        <LoadablePage
+                          resource="filaments"
+                          page="create"
+                          mode="create"
+                        />
+                      }
                     />
                     <Route
                       path="clone/:id"
-                      element={<FilamentCreate mode="clone" />}
+                      element={
+                        <LoadablePage
+                          resource="filaments"
+                          page="create"
+                          mode="clone"
+                        />
+                      }
                     />
-                    <Route path="edit/:id" element={<FilamentEdit />} />
-                    <Route path="show/:id" element={<FilamentShow />} />
+                    <Route
+                      path="edit/:id"
+                      element={
+                        <LoadablePage resource="filaments" page="edit" />
+                      }
+                    />
+                    <Route
+                      path="show/:id"
+                      element={
+                        <LoadablePage resource="filaments" page="show" />
+                      }
+                    />
                   </Route>
                   <Route path="/vendor">
-                    <Route index element={<VendorList />} />
+                    <Route
+                      index
+                      element={<LoadablePage resource="vendors" page="list" />}
+                    />
                     <Route
                       path="create"
-                      element={<VendorCreate mode="create" />}
+                      element={
+                        <LoadablePage
+                          resource="vendors"
+                          page="create"
+                          mode="create"
+                        />
+                      }
                     />
                     <Route
                       path="clone/:id"
-                      element={<VendorCreate mode="clone" />}
+                      element={
+                        <LoadablePage
+                          resource="vendors"
+                          page="create"
+                          mode="clone"
+                        />
+                      }
                     />
-                    <Route path="edit/:id" element={<VendorEdit />} />
-                    <Route path="show/:id" element={<VendorShow />} />
+                    <Route
+                      path="edit/:id"
+                      element={<LoadablePage resource="vendors" page="edit" />}
+                    />
+                    <Route
+                      path="show/:id"
+                      element={<LoadablePage resource="vendors" page="show" />}
+                    />
                   </Route>
                   <Route path="*" element={<ErrorComponent />} />
                 </Route>
