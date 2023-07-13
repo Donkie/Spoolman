@@ -10,6 +10,7 @@ from typing import Union
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 from scheduler.asyncio.scheduler import Scheduler
 
@@ -59,6 +60,7 @@ app = FastAPI(
     title="Spoolman",
     version=env.get_version(),
 )
+app.add_middleware(GZipMiddleware)
 app.mount("/api/v1", v1_app)
 app.mount("/", app=SinglePageApplication(directory="client/dist"), name="client")
 
