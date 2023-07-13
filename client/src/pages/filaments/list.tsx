@@ -5,35 +5,32 @@ import {
   List,
   EditButton,
   ShowButton,
-  DateField,
   CloneButton,
 } from "@refinedev/antd";
-import { Table, Space, Button, Row, Col } from "antd";
-import { NumberFieldUnit } from "../../components/numberField";
+import { Table, Space, Button, Dropdown } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { IFilament } from "./model";
+import { genericSorter, typeSorters } from "../../utils/sorting";
+import { genericFilterer, typeFilters } from "../../utils/filtering";
+import { EditOutlined, FilterOutlined } from "@ant-design/icons";
 import {
-  genericSorter,
-  getSortOrderForField,
-  typeSorters,
-} from "../../utils/sorting";
-import {
-  genericFilterer,
-  getFiltersForField,
-  typeFilters,
-  useListFiltersForField,
-} from "../../utils/filtering";
-import Icon, { FilterOutlined } from "@ant-design/icons";
-import {
+  TableState,
   useInitialTableState,
   useStoreInitialState,
 } from "../../utils/saveload";
-import { ReactComponent as SpoolIcon } from "../../icon_spool.svg";
+import {
+  DateColumn,
+  FilteredColumn,
+  NumberColumn,
+  SortedColumn,
+  SpoolIconColumn,
+} from "../../components/column";
+import i18n from "../../i18n";
 
 dayjs.extend(utc);
 
-interface IFilamentCollapsed extends IFilament {
+interface IFilamentCollapsed extends Omit<IFilament, "vendor"> {
   vendor_name: string | null;
 }
 
@@ -69,16 +66,37 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
     },
   });
 
+  // Create state for the columns to show
+  const allColumns: (keyof IFilamentCollapsed & string)[] = [
+    "id",
+    "vendor_name",
+    "name",
+    "material",
+    "price",
+    "density",
+    "diameter",
+    "weight",
+    "spool_weight",
+    "article_number",
+    "registered",
+    "comment",
+  ];
+  const [showColumns, setShowColumns] = React.useState<string[]>(
+    initialState.showColumns ?? allColumns
+  );
+
   // Type the sorters and filters
   const typedSorters = typeSorters<IFilamentCollapsed>(sorters);
   const typedFilters = typeFilters<IFilamentCollapsed>(filters);
 
   // Store state in local storage
-  useStoreInitialState("filamentList", {
+  const tableState: TableState = {
     sorters,
     filters,
     pagination: { current, pageSize },
-  });
+    showColumns,
+  };
+  useStoreInitialState("filamentList", tableState);
 
   // Collapse the dataSource to a mutable list and add a filament_name field
   const dataSource: IFilamentCollapsed[] = React.useMemo(
@@ -117,6 +135,28 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           >
             Clear Filters
           </Button>
+          <Dropdown
+            trigger={["click"]}
+            menu={{
+              items: allColumns.map((column_id) => ({
+                key: column_id,
+                label: i18n.t(`filaments.fields.${column_id}`),
+              })),
+              selectedKeys: showColumns,
+              selectable: true,
+              multiple: true,
+              onDeselect: (keys) => {
+                setShowColumns(keys.selectedKeys);
+              },
+              onSelect: (keys) => {
+                setShowColumns(keys.selectedKeys);
+              },
+            }}
+          >
+            <Button type="primary" icon={<EditOutlined />}>
+              Hide Columns
+            </Button>
+          </Dropdown>
           {defaultButtons}
         </>
       )}
@@ -135,168 +175,87 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
         }}
         rowKey="id"
       >
-        <Table.Column
-          dataIndex="id"
-          title="Id"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "id")}
-        />
-        <Table.Column
-          dataIndex="vendor_name"
-          title="Vendor"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "vendor_name")}
-          filters={useListFiltersForField(dataSource, "vendor_name")}
-          filteredValue={getFiltersForField(typedFilters, "vendor_name")}
-        />
-        <Table.Column
-          dataIndex="name"
-          title="Name"
-          width={150}
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "name")}
-          filters={useListFiltersForField(dataSource, "name")}
-          filteredValue={getFiltersForField(typedFilters, "name")}
-          render={(value, record: IFilament) => {
-            return {
-              props: {
-                style: {
-                  paddingLeft: 0,
-                  paddingTop: 0,
-                  paddingBottom: 0,
-                },
-              },
-              children: (
-                <Row wrap={false} justify="space-around" align="middle">
-                  {record.color_hex && (
-                    <Col flex="none">
-                      <Icon
-                        component={SpoolIcon}
-                        style={{
-                          color: "#" + record.color_hex,
-                          fontSize: 42,
-                          marginRight: 0,
-                        }}
-                      />
-                    </Col>
-                  )}
-                  <Col flex="auto">{value}</Col>
-                </Row>
-              ),
-            };
-          }}
-        />
-        <Table.Column
-          dataIndex="material"
-          title="Material"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "material")}
-          filters={useListFiltersForField(dataSource, "material")}
-          filteredValue={getFiltersForField(typedFilters, "material")}
-        />
-        <Table.Column
-          dataIndex="price"
-          title="Price"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "price")}
-        />
-        <Table.Column
-          dataIndex="density"
-          title="Density"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "density")}
-          render={(value) => (
-            <NumberFieldUnit
-              value={value}
-              unit="g/cm³"
-              options={{
-                maximumFractionDigits: 2,
-              }}
-            />
-          )}
-        />
-        <Table.Column
-          dataIndex="diameter"
-          title="Diameter"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "diameter")}
-          render={(value) => (
-            <NumberFieldUnit
-              value={value}
-              unit="mm"
-              options={{
-                maximumFractionDigits: 2,
-              }}
-            />
-          )}
-        />
-        <Table.Column
-          dataIndex="weight"
-          title="Weight"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "weight")}
-          render={(value) => {
-            if (value === null || value === undefined) {
-              return <></>;
-            }
-            return (
-              <NumberFieldUnit
-                value={value}
-                unit="g"
-                options={{
-                  maximumFractionDigits: 1,
-                }}
-              />
-            );
-          }}
-        />
-        <Table.Column
-          dataIndex="spool_weight"
-          title="Spool Weight"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "spool_weight")}
-          render={(value) => {
-            if (value === null || value === undefined) {
-              return <></>;
-            }
-            return (
-              <NumberFieldUnit
-                value={value}
-                unit="g"
-                options={{
-                  maximumFractionDigits: 1,
-                }}
-              />
-            );
-          }}
-        />
-        <Table.Column
-          dataIndex="article_number"
-          title="Article Number"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "article_number")}
-          filters={useListFiltersForField(dataSource, "article_number")}
-          filteredValue={getFiltersForField(typedFilters, "article_number")}
-        />
-        <Table.Column
-          dataIndex={["registered"]}
-          title="Registered"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "registered")}
-          render={(value) => (
-            <DateField
-              value={dayjs.utc(value).local()}
-              title={dayjs.utc(value).local().format()}
-              format="YYYY-MM-DD HH:mm:ss"
-            />
-          )}
-        />
-        <Table.Column
-          dataIndex={["comment"]}
-          title="Comment"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "comment")}
-        />
+        {SortedColumn({
+          id: "id",
+          title: "Id",
+          dataSource,
+          tableState,
+        })}
+        {FilteredColumn({
+          id: "vendor_name",
+          title: "Vendor",
+          dataSource,
+          tableState,
+        })}
+        {SpoolIconColumn({
+          id: "name",
+          title: "Name",
+          color: (record: IFilamentCollapsed) => record.color_hex,
+          dataSource,
+          tableState,
+        })}
+        {FilteredColumn({
+          id: "material",
+          title: "Material",
+          dataSource,
+          tableState,
+        })}
+        {SortedColumn({
+          id: "price",
+          title: "Price",
+          dataSource,
+          tableState,
+        })}
+        {NumberColumn({
+          id: "density",
+          title: "Density",
+          unit: "g/cm³",
+          decimals: 2,
+          dataSource,
+          tableState,
+        })}
+        {NumberColumn({
+          id: "diameter",
+          title: "Diameter",
+          unit: "mm",
+          decimals: 2,
+          dataSource,
+          tableState,
+        })}
+        {NumberColumn({
+          id: "weight",
+          title: "Weight",
+          unit: "g",
+          decimals: 1,
+          dataSource,
+          tableState,
+        })}
+        {NumberColumn({
+          id: "spool_weight",
+          title: "Spool Weight",
+          unit: "g",
+          decimals: 1,
+          dataSource,
+          tableState,
+        })}
+        {FilteredColumn({
+          id: "article_number",
+          title: "Article Number",
+          dataSource,
+          tableState,
+        })}
+        {DateColumn({
+          id: "registered",
+          title: "Registered",
+          dataSource,
+          tableState,
+        })}
+        {SortedColumn({
+          id: "comment",
+          title: "Comment",
+          dataSource,
+          tableState,
+        })}
         <Table.Column
           title="Actions"
           dataIndex="actions"

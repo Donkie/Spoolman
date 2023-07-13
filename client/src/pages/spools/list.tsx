@@ -5,32 +5,28 @@ import {
   List,
   EditButton,
   ShowButton,
-  DateField,
-  TextField,
   CloneButton,
 } from "@refinedev/antd";
-import { Table, Space, Button, Row, Col } from "antd";
-import { NumberFieldUnit } from "../../components/numberField";
+import { Table, Space, Button, Dropdown } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import {
-  genericSorter,
-  getSortOrderForField,
-  typeSorters,
-} from "../../utils/sorting";
-import {
-  genericFilterer,
-  getFiltersForField,
-  typeFilters,
-  useListFiltersForField,
-} from "../../utils/filtering";
+import { genericSorter, typeSorters } from "../../utils/sorting";
+import { genericFilterer, typeFilters } from "../../utils/filtering";
 import { ISpool } from "./model";
 import {
+  TableState,
   useInitialTableState,
   useStoreInitialState,
 } from "../../utils/saveload";
-import Icon, { FilterOutlined } from "@ant-design/icons";
-import { ReactComponent as SpoolIcon } from "../../icon_spool.svg";
+import { EditOutlined, FilterOutlined } from "@ant-design/icons";
+import {
+  DateColumn,
+  FilteredColumn,
+  NumberColumn,
+  SortedColumn,
+  SpoolIconColumn,
+} from "../../components/column";
+import i18n from "../../i18n";
 
 dayjs.extend(utc);
 
@@ -70,16 +66,34 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     },
   });
 
+  // Create state for the columns to show
+  const allColumns: (keyof ISpoolCollapsed & string)[] = [
+    "id",
+    "filament_name",
+    "used_weight",
+    "remaining_weight",
+    "location",
+    "lot_nr",
+    "first_used",
+    "last_used",
+    "comment",
+  ];
+  const [showColumns, setShowColumns] = React.useState<string[]>(
+    initialState.showColumns ?? allColumns
+  );
+
   // Type the sorters and filters
   const typedSorters = typeSorters<ISpoolCollapsed>(sorters);
   const typedFilters = typeFilters<ISpoolCollapsed>(filters);
 
   // Store state in local storage
-  useStoreInitialState("spoolList", {
+  const tableState: TableState = {
     sorters,
     filters,
     pagination: { current, pageSize },
-  });
+    showColumns,
+  };
+  useStoreInitialState("spoolList", tableState);
 
   // Collapse the dataSource to a mutable list and add a filament_name field
   const dataSource: ISpoolCollapsed[] = React.useMemo(
@@ -119,6 +133,28 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           >
             Clear Filters
           </Button>
+          <Dropdown
+            trigger={["click"]}
+            menu={{
+              items: allColumns.map((column) => ({
+                key: column,
+                label: i18n.t(`spools.fields.${column}`),
+              })),
+              selectedKeys: showColumns,
+              selectable: true,
+              multiple: true,
+              onDeselect: (keys) => {
+                setShowColumns(keys.selectedKeys);
+              },
+              onSelect: (keys) => {
+                setShowColumns(keys.selectedKeys);
+              },
+            }}
+          >
+            <Button type="primary" icon={<EditOutlined />}>
+              Hide Columns
+            </Button>
+          </Dropdown>
           {defaultButtons}
         </>
       )}
@@ -137,138 +173,67 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
         }}
         rowKey="id"
       >
-        <Table.Column
-          dataIndex="id"
-          title="Id"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "id")}
-        />
-        <Table.Column
-          dataIndex="filament_name"
-          title="Filament"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "filament_name")}
-          filters={useListFiltersForField(dataSource, "filament_name")}
-          filteredValue={getFiltersForField(typedFilters, "filament_name")}
-          render={(value, record: ISpool) => {
-            return {
-              props: {
-                style: {
-                  paddingLeft: 0,
-                  paddingTop: 0,
-                  paddingBottom: 0,
-                },
-              },
-              children: (
-                <Row wrap={false} justify="space-around" align="middle">
-                  {record.filament.color_hex && (
-                    <Col flex="none">
-                      <Icon
-                        component={SpoolIcon}
-                        style={{
-                          color: "#" + record.filament.color_hex,
-                          fontSize: 42,
-                          marginRight: 0,
-                        }}
-                      />
-                    </Col>
-                  )}
-                  <Col flex="auto">{value}</Col>
-                </Row>
-              ),
-            };
-          }}
-        />
-        <Table.Column
-          dataIndex="used_weight"
-          title="Used Weight"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "used_weight")}
-          render={(value) => {
-            return (
-              <NumberFieldUnit
-                value={value}
-                unit="g"
-                options={{
-                  maximumFractionDigits: 1,
-                }}
-              />
-            );
-          }}
-        />
-        <Table.Column
-          dataIndex="remaining_weight"
-          title="Estimated Remaining Weight"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "remaining_weight")}
-          render={(value) => {
-            if (value === null || value === undefined) {
-              return <TextField value="Unknown" />;
-            }
-            return (
-              <NumberFieldUnit
-                value={Math.max(value, 0)}
-                unit="g"
-                options={{
-                  maximumFractionDigits: 1,
-                }}
-              />
-            );
-          }}
-        />
-        <Table.Column
-          dataIndex="location"
-          title="Location"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "location")}
-          filters={useListFiltersForField(dataSource, "location")}
-          filteredValue={getFiltersForField(typedFilters, "location")}
-        />
-        <Table.Column
-          dataIndex="lot_nr"
-          title="Lot Nr"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "lot_nr")}
-          filters={useListFiltersForField(dataSource, "lot_nr")}
-          filteredValue={getFiltersForField(typedFilters, "lot_nr")}
-        />
-        <Table.Column
-          dataIndex={["first_used"]}
-          title="First Used"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "first_used")}
-          render={(value) => (
-            <DateField
-              hidden={!value}
-              value={dayjs.utc(value).local()}
-              title={dayjs.utc(value).local().format()}
-              format="YYYY-MM-DD HH:mm:ss"
-            />
-          )}
-        />
-        <Table.Column
-          dataIndex={["last_used"]}
-          title="Last Used"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "last_used")}
-          render={(value) => (
-            <DateField
-              hidden={!value}
-              value={dayjs.utc(value).local()}
-              title={dayjs.utc(value).local().format()}
-              format="YYYY-MM-DD HH:mm:ss"
-            />
-          )}
-        />
-        <Table.Column
-          dataIndex={["comment"]}
-          title="Comment"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "comment")}
-        />
+        {SortedColumn({
+          id: "id",
+          title: "Id",
+          dataSource,
+          tableState,
+        })}
+        {SpoolIconColumn({
+          id: "filament_name",
+          title: "Filament",
+          color: (record: ISpoolCollapsed) => record.filament.color_hex,
+          dataSource,
+          tableState,
+        })}
+        {NumberColumn({
+          id: "used_weight",
+          title: "Used Weight",
+          unit: "g",
+          decimals: 1,
+          dataSource,
+          tableState,
+        })}
+        {NumberColumn({
+          id: "remaining_weight",
+          title: "Estimated Remaining Weight",
+          unit: "g",
+          decimals: 1,
+          dataSource,
+          tableState,
+        })}
+        {FilteredColumn({
+          id: "location",
+          title: "Location",
+          dataSource,
+          tableState,
+        })}
+        {FilteredColumn({
+          id: "lot_nr",
+          title: "Lot Nr",
+          dataSource,
+          tableState,
+        })}
+        {DateColumn({
+          id: "first_used",
+          title: "First Used",
+          dataSource,
+          tableState,
+        })}
+        {DateColumn({
+          id: "last_used",
+          title: "Last Used",
+          dataSource,
+          tableState,
+        })}
+        {SortedColumn({
+          id: "comment",
+          title: "Comment",
+          dataSource,
+          tableState,
+        })}
         <Table.Column
           title="Actions"
-          dataIndex="actions"
           render={(_, record: BaseRecord) => (
             <Space>
               <EditButton

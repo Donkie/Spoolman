@@ -109,35 +109,68 @@
   "dashboard": {
     "title": "Dashboard"
   },
-  "blog_posts": {
-    "blog_posts": "Blog Posts",
+  "spools": {
+    "spools": "Spools",
     "fields": {
       "id": "Id",
-      "title": "Title",
-      "content": "Content",
-      "status": "Status",
-      "category": "Category",
-      "createdAt": "Created At"
+      "filament_name": "Filament Name",
+      "used_weight": "Used Weight",
+      "remaining_weight": "Remaining Weight",
+      "location": "Location",
+      "lot_nr": "Lot Nr",
+      "first_used": "First Used",
+      "last_used": "Last Used",
+      "comment": "Comment"
     },
     "titles": {
-      "create": "Create Blog Post",
-      "edit": "Edit Blog Post",
-      "list": "Blog Posts",
-      "show": "Show Blog Post"
+      "create": "Create Spool",
+      "clone": "Clone Spool",
+      "edit": "Edit Spool",
+      "list": "Spools",
+      "show": "Show Spool"
     }
   },
-  "categories": {
-    "categories": "Categories",
+  "filaments": {
+    "filaments": "Filaments",
     "fields": {
       "id": "Id",
-      "title": "Title",
-      "createdAt": "Created At"
+      "vendor_name": "Vendor Name",
+      "name": "Name",
+      "material": "Material",
+      "price": "Price",
+      "density": "Density",
+      "diameter": "Diameter",
+      "weight": "Weight",
+      "spool_weight": "Spool Weight",
+      "article_number": "Article Number",
+      "registered": "Registered",
+      "comment": "Comment",
+      "settings_extruder_temp": "Extruder Temp",
+      "settings_bed_temp": "Bed Temp",
+      "color_hex": "Color"
     },
     "titles": {
-      "create": "Create Category",
-      "edit": "Edit Category",
-      "list": "Categories",
-      "show": "Show Category"
+      "create": "Create Filament",
+      "clone": "Clone Filament",
+      "edit": "Edit Filament",
+      "list": "Filaments",
+      "show": "Show Filament"
+    }
+  },
+  "vendors": {
+    "vendors": "Vendors",
+    "fields": {
+      "id": "Id",
+      "name": "Name",
+      "registered": "Registered",
+      "comment": "Comment"
+    },
+    "titles": {
+      "create": "Create Vendor",
+      "clone": "Clone Vendor",
+      "edit": "Edit Vendor",
+      "list": "Vendors",
+      "show": "Show Vendor"
     }
   },
   "table": {

@@ -5,24 +5,22 @@ import {
   List,
   EditButton,
   ShowButton,
-  DateField,
   CloneButton,
 } from "@refinedev/antd";
-import { Table, Space, Button } from "antd";
+import { Table, Space, Button, Dropdown } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import {
-  genericSorter,
-  getSortOrderForField,
-  typeSorters,
-} from "../../utils/sorting";
+import { genericSorter, typeSorters } from "../../utils/sorting";
 import { genericFilterer, typeFilters } from "../../utils/filtering";
 import { IVendor } from "./model";
 import {
+  TableState,
   useInitialTableState,
   useStoreInitialState,
 } from "../../utils/saveload";
-import { FilterOutlined } from "@ant-design/icons";
+import { EditOutlined, FilterOutlined } from "@ant-design/icons";
+import i18n from "../../i18n";
+import { DateColumn, SortedColumn } from "../../components/column";
 
 dayjs.extend(utc);
 
@@ -58,16 +56,29 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
     },
   });
 
+  // Create state for the columns to show
+  const allColumns: (keyof IVendor & string)[] = [
+    "id",
+    "name",
+    "registered",
+    "comment",
+  ];
+  const [showColumns, setShowColumns] = React.useState<string[]>(
+    initialState.showColumns ?? allColumns
+  );
+
   // Type the sorters and filters
   const typedSorters = typeSorters<IVendor>(sorters);
   const typedFilters = typeFilters<IVendor>(filters);
 
   // Store state in local storage
-  useStoreInitialState("vendorList", {
+  const tableState: TableState = {
     sorters,
     filters,
     pagination: { current, pageSize },
-  });
+    showColumns,
+  };
+  useStoreInitialState("vendorList", tableState);
 
   // Collapse the dataSource to a mutable list
   const dataSource: IVendor[] = React.useMemo(
@@ -97,6 +108,28 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
           >
             Clear Filters
           </Button>
+          <Dropdown
+            trigger={["click"]}
+            menu={{
+              items: allColumns.map((column) => ({
+                key: column,
+                label: i18n.t(`vendors.fields.${column}`),
+              })),
+              selectedKeys: showColumns,
+              selectable: true,
+              multiple: true,
+              onDeselect: (keys) => {
+                setShowColumns(keys.selectedKeys);
+              },
+              onSelect: (keys) => {
+                setShowColumns(keys.selectedKeys);
+              },
+            }}
+          >
+            <Button type="primary" icon={<EditOutlined />}>
+              Hide Columns
+            </Button>
+          </Dropdown>
           {defaultButtons}
         </>
       )}
@@ -115,37 +148,30 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
         }}
         rowKey="id"
       >
-        <Table.Column
-          dataIndex="id"
-          title="Id"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "id")}
-        />
-        <Table.Column
-          dataIndex="name"
-          title="Name"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "name")}
-        />
-        <Table.Column
-          dataIndex={["registered"]}
-          title="Registered"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "registered")}
-          render={(value) => (
-            <DateField
-              value={dayjs.utc(value).local()}
-              title={dayjs.utc(value).local().format()}
-              format="YYYY-MM-DD HH:mm:ss"
-            />
-          )}
-        />
-        <Table.Column
-          dataIndex={["comment"]}
-          title="Comment"
-          sorter={true}
-          sortOrder={getSortOrderForField(typedSorters, "comment")}
-        />
+        {SortedColumn({
+          id: "id",
+          title: "Id",
+          dataSource,
+          tableState,
+        })}
+        {SortedColumn({
+          id: "name",
+          title: "Name",
+          dataSource,
+          tableState,
+        })}
+        {DateColumn({
+          id: "registered",
+          title: "Registered",
+          dataSource,
+          tableState,
+        })}
+        {SortedColumn({
+          id: "comment",
+          title: "Comment",
+          dataSource,
+          tableState,
+        })}
         <Table.Column
           title="Actions"
           dataIndex="actions"

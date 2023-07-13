@@ -7,10 +7,11 @@ interface Pagination {
     pageSize: number;
 }
 
-interface TableState {
+export interface TableState {
     sorters: CrudSort[];
     filters: CrudFilter[];
     pagination: Pagination;
+    showColumns?: string[];
 }
 
 export function useInitialTableState(tableId: string): TableState {
@@ -18,10 +19,13 @@ export function useInitialTableState(tableId: string): TableState {
         const savedSorters = isLocalStorageAvailable ? localStorage.getItem(`${tableId}-sorters`) : null;
         const savedFilters = isLocalStorageAvailable ? localStorage.getItem(`${tableId}-filters`) : null;
         const savedPagination = isLocalStorageAvailable ? localStorage.getItem(`${tableId}-pagination`) : null;
+        const savedShowColumns = isLocalStorageAvailable ? localStorage.getItem(`${tableId}-showColumns`) : null;
+
         const sorters = savedSorters ? JSON.parse(savedSorters) : [{ field: "id", order: "asc" }];
         const filters = savedFilters ? JSON.parse(savedFilters) : [];
         const pagination = savedPagination ? JSON.parse(savedPagination) : { page: 1, pageSize: 20 };
-        return { sorters, filters, pagination };
+        const showColumns = savedShowColumns ? JSON.parse(savedShowColumns) : undefined;
+        return { sorters, filters, pagination, showColumns };
     });
     return initialState;
 }
@@ -44,4 +48,14 @@ export function useStoreInitialState(tableId: string, state: TableState) {
             localStorage.setItem(`${tableId}-pagination`, JSON.stringify(state.pagination));
         }
     }, [tableId, state.pagination]);
+
+    React.useEffect(() => {
+        if (isLocalStorageAvailable) {
+            if (state.showColumns === undefined) {
+                localStorage.removeItem(`${tableId}-showColumns`);
+            } else {
+                localStorage.setItem(`${tableId}-showColumns`, JSON.stringify(state.showColumns));
+            }
+        }
+    }, [tableId, state.showColumns]);
 }
