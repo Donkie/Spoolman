@@ -59,3 +59,18 @@ export function useStoreInitialState(tableId: string, state: TableState) {
         }
     }, [tableId, state.showColumns]);
 }
+
+export function useShowArchive(tableId: string) {
+    const [showArchive, setShowArchive] = React.useState(() => {
+        const savedShowArchive = isLocalStorageAvailable ? localStorage.getItem(`${tableId}-showArchive`) : null;
+        return savedShowArchive ? JSON.parse(savedShowArchive) : false;
+    });
+
+    React.useEffect(() => {
+        if (isLocalStorageAvailable) {
+            localStorage.setItem(`${tableId}-showArchive`, JSON.stringify(showArchive));
+        }
+    }, [tableId, showArchive]);
+
+    return [showArchive, setShowArchive] as const;
+}

@@ -21,6 +21,10 @@
     "undo": "Ångra",
     "import": "Importera",
     "clone": "Klona",
+    "archive": "Arkivera",
+    "unArchive": "Avarkivera",
+    "hideArchived": "Dölj arkiverade",
+    "showArchived": "Visa arkiverade",
     "notAccessTitle": "Du har inte tillgång till denna sida",
     "hideColumns": "Dölj kolumner",
     "clearFilters": "Rensa filter"
@@ -41,6 +45,8 @@
   "loading": "Laddar...",
   "version": "Version",
   "unknown": "Okänd",
+  "yes": "Ja",
+  "no": "Nej",
   "tags": {
     "clone": "Klona"
   },
@@ -63,7 +69,8 @@
       "first_used": "Användes först",
       "last_used": "Användes senast",
       "registered": "Registrerad",
-      "comment": "Kommentar"
+      "comment": "Kommentar",
+      "archived": "Arkiverad"
     },
     "fields_help": {
       "used_weight": "Hur mycket filament som använts på spolen. En ny spole har värdet 0g.",
@@ -75,7 +82,11 @@
       "clone": "Klona spole",
       "edit": "Ändra spole",
       "list": "Spolar",
-      "show": "Visa spole"
+      "show": "Visa spole",
+      "archive": "Arkivera spole"
+    },
+    "messages": {
+      "archive": "Är du säker på att du vill arkivera denna spole?"
     }
   },
   "filament": {

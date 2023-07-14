@@ -21,6 +21,10 @@
     "undo": "Undo",
     "import": "Import",
     "clone": "Clone",
+    "archive": "Archive",
+    "unArchive": "Unarchive",
+    "hideArchived": "Hide Archived",
+    "showArchived": "Show Archived",
     "notAccessTitle": "You don't have permission to access",
     "hideColumns": "Hide Columns",
     "clearFilters": "Clear Filters"
@@ -41,6 +45,8 @@
   "loading": "Loading",
   "version": "Version",
   "unknown": "Unknown",
+  "yes": "Yes",
+  "no": "No",
   "tags": {
     "clone": "Clone"
   },
@@ -63,7 +69,8 @@
       "first_used": "First Used",
       "last_used": "Last Used",
       "registered": "Registered",
-      "comment": "Comment"
+      "comment": "Comment",
+      "archived": "Archived"
     },
     "fields_help": {
       "used_weight": "How much filament has been used from the spool. A new spool should have 0g used.",
@@ -75,7 +82,11 @@
       "clone": "Clone Spool",
       "edit": "Edit Spool",
       "list": "Spools",
-      "show": "Show Spool"
+      "show": "Show Spool",
+      "archive": "Archive Spool"
+    },
+    "messages": {
+      "archive": "Are you sure you want to archive this spool?"
     }
   },
   "filament": {

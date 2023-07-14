@@ -75,6 +75,8 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       <TextField value={record?.lot_nr} />
       <Title level={5}>{t("spool.fields.comment")}</Title>
       <TextField value={record?.comment} />
+      <Title level={5}>{t("spool.fields.archived")}</Title>
+      <TextField value={record?.archived ? t("yes") : t("no")} />
     </Show>
   );
 };

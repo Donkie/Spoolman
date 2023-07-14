@@ -13,4 +13,5 @@ export interface ISpool {
   location?: string;
   lot_nr?: string;
   comment?: string;
+  archived: boolean;
 }

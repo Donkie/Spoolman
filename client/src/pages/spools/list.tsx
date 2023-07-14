@@ -1,7 +1,7 @@
 import React from "react";
 import {
   IResourceComponentsProps,
-  BaseRecord,
+  useInvalidate,
   useTranslate,
 } from "@refinedev/core";
 import {
@@ -11,7 +11,7 @@ import {
   ShowButton,
   CloneButton,
 } from "@refinedev/antd";
-import { Table, Space, Button, Dropdown } from "antd";
+import { Table, Space, Button, Dropdown, Modal } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { genericSorter, typeSorters } from "../../utils/sorting";
@@ -20,9 +20,15 @@ import { ISpool } from "./model";
 import {
   TableState,
   useInitialTableState,
+  useShowArchive,
   useStoreInitialState,
 } from "../../utils/saveload";
-import { EditOutlined, FilterOutlined } from "@ant-design/icons";
+import {
+  EditOutlined,
+  FilterOutlined,
+  InboxOutlined,
+  ToTopOutlined,
+} from "@ant-design/icons";
 import {
   DateColumn,
   FilteredColumn,
@@ -30,8 +36,11 @@ import {
   SortedColumn,
   SpoolIconColumn,
 } from "../../components/column";
+import { setSpoolArchived } from "./functions";
 
 dayjs.extend(utc);
+
+const { confirm } = Modal;
 
 interface ISpoolCollapsed extends ISpool {
   filament_name: string;
@@ -40,9 +49,13 @@ interface ISpoolCollapsed extends ISpool {
 
 export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
+  const invalidate = useInvalidate();
 
   // Load initial state
   const initialState = useInitialTableState("spoolList");
+
+  // State for the switch to show archived spools
+  const [showArchived, setShowArchived] = useShowArchive("spoolList");
 
   // Fetch data from the API
   const {
@@ -56,6 +69,11 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     setCurrent,
     setPageSize,
   } = useTable<ISpool>({
+    meta: {
+      queryParams: {
+        ["allow_archived"]: showArchived,
+      },
+    },
     syncWithLocation: false,
     pagination: {
       mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
@@ -138,10 +156,49 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     return filtered;
   }, [dataSource, typedFilters, typedSorters]);
 
+  // Function for opening an ant design modal that asks for confirmation for archiving a spool
+  const archiveSpool = async (spool: ISpoolCollapsed, archive: boolean) => {
+    await setSpoolArchived(spool, archive);
+    invalidate({
+      resource: "spool",
+      id: spool.id,
+      invalidates: ["list", "detail"],
+    });
+  };
+
+  const archiveSpoolPopup = async (spool: ISpoolCollapsed) => {
+    // If the spool has no remaining weight, archive it immediately since it's likely not a mistake
+    if (spool.remaining_weight && spool.remaining_weight == 0) {
+      await archiveSpool(spool, true);
+    } else {
+      confirm({
+        title: t("spool.titles.archive"),
+        content: t("spool.messages.archive"),
+        okText: t("buttons.archive"),
+        okType: "primary",
+        cancelText: t("buttons.cancel"),
+        onOk() {
+          return archiveSpool(spool, true);
+        },
+      });
+    }
+  };
+
   return (
     <List
       headerButtons={({ defaultButtons }) => (
         <>
+          <Button
+            type="primary"
+            icon={<InboxOutlined />}
+            onClick={() => {
+              setShowArchived(!showArchived);
+            }}
+          >
+            {showArchived
+              ? t("buttons.hideArchived")
+              : t("buttons.showArchived")}
+          </Button>
           <Button
             type="primary"
             icon={<FilterOutlined />}
@@ -192,6 +249,19 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           },
         }}
         rowKey="id"
+        // Make archived rows greyed out
+        onRow={(record) => {
+          if (record.archived) {
+            return {
+              style: {
+                fontStyle: "italic",
+                color: "#999",
+              },
+            };
+          } else {
+            return {};
+          }
+        }}
       >
         {SortedColumn({
           id: "id",
@@ -284,7 +354,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
         })}
         <Table.Column
           title={t("table.actions")}
-          render={(_, record: BaseRecord) => (
+          render={(_, record: ISpoolCollapsed) => (
             <Space>
               <EditButton
                 hideText
@@ -304,6 +374,21 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
                 size="small"
                 recordItemId={record.id}
               />
+              {record.archived ? (
+                <Button
+                  icon={<ToTopOutlined />}
+                  title={t("buttons.unArchive")}
+                  size="small"
+                  onClick={() => archiveSpool(record, false)}
+                />
+              ) : (
+                <Button
+                  icon={<InboxOutlined />}
+                  title={t("buttons.archive")}
+                  size="small"
+                  onClick={() => archiveSpoolPopup(record)}
+                />
+              )}
             </Space>
           )}
         />
