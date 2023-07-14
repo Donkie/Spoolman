@@ -109,7 +109,13 @@ async def find(
     if lot_nr is not None:
         stmt = stmt.where(models.Spool.lot_nr.ilike(f"%{lot_nr}%"))
     if not allow_archived:
-        stmt = stmt.where(models.Spool.archived != True)  # noqa: E712
+        # Since the archived field is nullable, and default is false, we need to check for both false or null
+        stmt = stmt.where(
+            sqlalchemy.or_(
+                models.Spool.archived.is_(False),  # noqa: FBT003
+                models.Spool.archived.is_(None),
+            ),
+        )
 
     rows = await db.execute(stmt)
     return list(rows.scalars().all())
