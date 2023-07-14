@@ -40,6 +40,7 @@
   },
   "loading": "Loading",
   "version": "Version",
+  "unknown": "Unknown",
   "tags": {
     "clone": "Clone"
   },

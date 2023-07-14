@@ -204,6 +204,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           i18ncat: "spool",
           unit: "g",
           decimals: 1,
+          defaultText: t("unknown"),
           dataSource,
           tableState,
         })}

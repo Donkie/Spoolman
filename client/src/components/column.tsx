@@ -87,6 +87,7 @@ export function FilteredColumn<Obj>(props: BaseColumnProps<Obj>) {
 interface NumberColumnProps<Obj> extends BaseColumnProps<Obj> {
   unit: string;
   decimals?: number;
+  defaultText?: string;
 }
 
 export function NumberColumn<Obj>(props: NumberColumnProps<Obj>) {
@@ -94,7 +95,7 @@ export function NumberColumn<Obj>(props: NumberColumnProps<Obj>) {
     ...props,
     render: (value) => {
       if (value === null || value === undefined) {
-        return <TextField value="Unknown" />;
+        return <TextField value={props.defaultText ?? ""} />;
       }
       return (
         <NumberFieldUnit
