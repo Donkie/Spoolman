@@ -55,6 +55,8 @@
       "filament": "Filament",
       "used_weight": "Used Weight",
       "remaining_weight": "Remaining Weight",
+      "used_length": "Used Length",
+      "remaining_length": "Remaining Length",
       "location": "Location",
       "lot_nr": "Lot Nr",
       "first_used": "First Used",

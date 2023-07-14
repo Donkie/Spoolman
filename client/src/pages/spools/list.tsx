@@ -77,14 +77,23 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     "filament_name",
     "used_weight",
     "remaining_weight",
+    "used_length",
+    "remaining_length",
     "location",
     "lot_nr",
     "first_used",
     "last_used",
+    "registered",
     "comment",
   ];
+  const defaultColumns = allColumns.filter(
+    (column_id) =>
+      ["registered", "used_length", "remaining_length", "lot_nr"].indexOf(
+        column_id
+      ) === -1
+  );
   const [showColumns, setShowColumns] = React.useState<string[]>(
-    initialState.showColumns ?? allColumns
+    initialState.showColumns ?? defaultColumns
   );
 
   // Type the sorters and filters
@@ -208,6 +217,23 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
         })}
+        {NumberColumn({
+          id: "used_length",
+          i18ncat: "spool",
+          unit: "mm",
+          decimals: 0,
+          dataSource,
+          tableState,
+        })}
+        {NumberColumn({
+          id: "remaining_length",
+          i18ncat: "spool",
+          unit: "mm",
+          decimals: 0,
+          defaultText: t("unknown"),
+          dataSource,
+          tableState,
+        })}
         {FilteredColumn({
           id: "location",
           i18ncat: "spool",
@@ -228,6 +254,12 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
         })}
         {DateColumn({
           id: "last_used",
+          i18ncat: "spool",
+          dataSource,
+          tableState,
+        })}
+        {DateColumn({
+          id: "registered",
           i18ncat: "spool",
           dataSource,
           tableState,

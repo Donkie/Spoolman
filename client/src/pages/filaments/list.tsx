@@ -83,11 +83,20 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
     "weight",
     "spool_weight",
     "article_number",
+    "settings_extruder_temp",
+    "settings_bed_temp",
     "registered",
     "comment",
   ];
+  const defaultColumns = allColumns.filter(
+    (column_id) =>
+      ["registered", "density", "diameter", "spool_weight"].indexOf(
+        column_id
+      ) === -1
+  );
+
   const [showColumns, setShowColumns] = React.useState<string[]>(
-    initialState.showColumns ?? allColumns
+    initialState.showColumns ?? defaultColumns
   );
 
   // Type the sorters and filters
@@ -246,6 +255,22 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
         {FilteredColumn({
           id: "article_number",
           i18ncat: "filament",
+          dataSource,
+          tableState,
+        })}
+        {NumberColumn({
+          id: "settings_extruder_temp",
+          i18ncat: "filament",
+          unit: "°C",
+          decimals: 0,
+          dataSource,
+          tableState,
+        })}
+        {NumberColumn({
+          id: "settings_bed_temp",
+          i18ncat: "filament",
+          unit: "°C",
+          decimals: 0,
           dataSource,
           tableState,
         })}

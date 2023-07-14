@@ -55,6 +55,8 @@
       "filament": "Filament",
       "used_weight": "Använd vikt",
       "remaining_weight": "Återstående vikt",
+      "used_length": "Använd längd",
+      "remaining_length": "Återstående längd",
       "location": "Plats",
       "lot_nr": "Batchnummer",
       "first_used": "Användes först",
