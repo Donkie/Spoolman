@@ -35,6 +35,7 @@ dayjs.extend(utc);
 
 interface ISpoolCollapsed extends ISpool {
   filament_name: string;
+  material?: string;
 }
 
 export const SpoolList: React.FC<IResourceComponentsProps> = () => {
@@ -75,6 +76,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const allColumns: (keyof ISpoolCollapsed & string)[] = [
     "id",
     "filament_name",
+    "material",
     "used_weight",
     "remaining_weight",
     "used_length",
@@ -120,7 +122,11 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           filament_name =
             element.filament.name ?? element.filament.id.toString();
         }
-        return { ...element, filament_name };
+        return {
+          ...element,
+          filament_name,
+          material: element.filament.material,
+        };
       }),
     [tableProps.dataSource]
   );
@@ -197,6 +203,12 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           id: "filament_name",
           i18ncat: "spool",
           color: (record: ISpoolCollapsed) => record.filament.color_hex,
+          dataSource,
+          tableState,
+        })}
+        {FilteredColumn({
+          id: "material",
+          i18ncat: "spool",
           dataSource,
           tableState,
         })}

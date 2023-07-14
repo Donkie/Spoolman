@@ -53,6 +53,7 @@
       "id": "Id",
       "filament_name": "Filament",
       "filament": "Filament",
+      "material": "Material",
       "used_weight": "Använd vikt",
       "remaining_weight": "Återstående vikt",
       "used_length": "Använd längd",
