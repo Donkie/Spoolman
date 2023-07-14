@@ -30,6 +30,7 @@ async def create(
     location: Optional[str] = None,
     lot_nr: Optional[str] = None,
     comment: Optional[str] = None,
+    archived: bool = False,
 ) -> models.Spool:
     """Add a new spool to the database. Leave weight empty to assume full spool."""
     filament_item = await filament.get_by_id(db, filament_id)
@@ -55,6 +56,7 @@ async def create(
         location=location,
         lot_nr=lot_nr,
         comment=comment,
+        archived=archived,
     )
     db.add(db_item)
     await db.flush()
@@ -83,6 +85,7 @@ async def find(
     vendor_id: Optional[int] = None,
     location: Optional[str] = None,
     lot_nr: Optional[str] = None,
+    allow_archived: bool = False,
 ) -> list[models.Spool]:
     """Find a list of spool objects by search criteria."""
     stmt = (
@@ -105,6 +108,8 @@ async def find(
         stmt = stmt.where(models.Spool.location.ilike(f"%{location}%"))
     if lot_nr is not None:
         stmt = stmt.where(models.Spool.lot_nr.ilike(f"%{lot_nr}%"))
+    if not allow_archived:
+        stmt = stmt.where(models.Spool.archived != True)  # noqa: E712
 
     rows = await db.execute(stmt)
     return list(rows.scalars().all())

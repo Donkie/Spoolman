@@ -49,6 +49,7 @@ class SpoolParameters(BaseModel):
         description="Free text comment about this specific spool.",
         example="",
     )
+    archived: bool = Field(default=False, description="Whether this spool is archived and should not be used anymore.")
 
 
 class SpoolUpdateParameters(SpoolParameters):
@@ -104,6 +105,11 @@ async def find(
         title="Lot/Batch Number",
         description="Partial case-insensitive search term for the spool lot number.",
     ),
+    allow_archived: bool = Query(
+        default=False,
+        title="Allow Archived",
+        description="Whether to include archived spools in the search results.",
+    ),
 ) -> list[Spool]:
     db_items = await spool.find(
         db=db,
@@ -114,6 +120,7 @@ async def find(
         vendor_id=vendor_id,
         location=location,
         lot_nr=lot_nr,
+        allow_archived=allow_archived,
     )
     return [Spool.from_db(db_item) for db_item in db_items]
 
@@ -168,6 +175,7 @@ async def create(  # noqa: ANN201
             location=body.location,
             lot_nr=body.lot_nr,
             comment=body.comment,
+            archived=body.archived,
         )
         return Spool.from_db(db_item)
     except ItemCreateError:

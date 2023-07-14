@@ -2,5 +2,6 @@
 
 Creating a new version:
 ```bash
-alembic revision -m "some title" --autogenerate
+python -m spoolman.main
+pdm run alembic revision -m "some title" --autogenerate
 ```

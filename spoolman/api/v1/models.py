@@ -150,6 +150,7 @@ class Spool(BaseModel):
         description="Free text comment about this specific spool.",
         example="",
     )
+    archived: bool = Field(description="Whether this spool is archived and should not be used anymore.")
 
     @staticmethod
     def from_db(item: models.Spool) -> "Spool":
@@ -185,6 +186,7 @@ class Spool(BaseModel):
             location=item.location,
             lot_nr=item.lot_nr,
             comment=item.comment,
+            archived=item.archived if item.archived is not None else False,
         )
 
 
