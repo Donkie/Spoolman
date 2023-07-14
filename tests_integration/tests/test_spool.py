@@ -19,6 +19,7 @@ def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
     location = "The Pantry"
     lot_nr = "123456789"
     comment = "abcdefghåäö"
+    archived = True
     result = httpx.post(
         f"{URL}/api/v1/spool",
         json={
@@ -29,6 +30,7 @@ def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
             "location": location,
             "lot_nr": lot_nr,
             "comment": comment,
+            "archived": archived,
         },
     )
     result.raise_for_status()
@@ -60,6 +62,7 @@ def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
         "location": location,
         "lot_nr": lot_nr,
         "comment": comment,
+        "archived": archived,
     }
 
     # Clean up
@@ -75,6 +78,7 @@ def test_add_spool_used_weight(random_filament: dict[str, Any]):
     location = "The Pantry"
     lot_nr = "123456789"
     comment = "abcdefghåäö"
+    archived = True
     result = httpx.post(
         f"{URL}/api/v1/spool",
         json={
@@ -85,6 +89,7 @@ def test_add_spool_used_weight(random_filament: dict[str, Any]):
             "location": location,
             "lot_nr": lot_nr,
             "comment": comment,
+            "archived": archived,
         },
     )
     result.raise_for_status()
@@ -116,6 +121,7 @@ def test_add_spool_used_weight(random_filament: dict[str, Any]):
         "location": location,
         "lot_nr": lot_nr,
         "comment": comment,
+        "archived": archived,
     }
 
     # Clean up
@@ -157,6 +163,7 @@ def test_add_spool_required(random_filament: dict[str, Any]):
         "remaining_weight": pytest.approx(remaining_weight),
         "used_length": pytest.approx(used_length),
         "remaining_length": pytest.approx(remaining_length),
+        "archived": False,
     }
 
     # Clean up
@@ -186,6 +193,7 @@ def test_get_spool(random_filament: dict[str, Any]):
     location = "The Pantry"
     lot_nr = "123456789"
     comment = "abcdefghåäö"
+    archived = True
     result = httpx.post(
         f"{URL}/api/v1/spool",
         json={
@@ -196,6 +204,7 @@ def test_get_spool(random_filament: dict[str, Any]):
             "location": location,
             "lot_nr": lot_nr,
             "comment": comment,
+            "archived": archived,
         },
     )
     result.raise_for_status()
@@ -225,7 +234,7 @@ def test_get_spool_not_found():
     assert "123456789" in message
 
 
-def test_find_spools(random_filament: dict[str, Any]):
+def test_find_spools(random_filament: dict[str, Any]):  # noqa: PLR0915
     """Test finding spools in the database."""
     # Setup
     result = httpx.post(
@@ -252,9 +261,21 @@ def test_find_spools(random_filament: dict[str, Any]):
     result.raise_for_status()
     spool_2 = result.json()
 
+    result = httpx.post(
+        f"{URL}/api/v1/spool",
+        json={
+            "filament_id": random_filament["id"],
+            "remaining_weight": 1000,
+            "archived": True,
+        },
+    )
+    result.raise_for_status()
+    spool_3 = result.json()
+
     added_spools_by_id = {
         spool_1["id"]: spool_1,
         spool_2["id"]: spool_2,
+        spool_3["id"]: spool_3,
     }
 
     # Execute - find all spools
@@ -264,6 +285,17 @@ def test_find_spools(random_filament: dict[str, Any]):
     # Verify
     spools = result.json()
     assert len(spools) == 2
+    for spool in spools:
+        assert spool == added_spools_by_id[spool["id"]]
+        assert spool["archived"] is False
+
+    # Execute - find all spools, including archived
+    result = httpx.get(f"{URL}/api/v1/spool?allow_archived=true")
+    result.raise_for_status()
+
+    # Verify
+    spools = result.json()
+    assert len(spools) == 3
     for spool in spools:
         assert spool == added_spools_by_id[spool["id"]]
 
@@ -359,6 +391,7 @@ def test_find_spools(random_filament: dict[str, Any]):
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool_1['id']}").raise_for_status()
     httpx.delete(f"{URL}/api/v1/spool/{spool_2['id']}").raise_for_status()
+    httpx.delete(f"{URL}/api/v1/spool/{spool_3['id']}").raise_for_status()
 
 
 def test_delete_spool(random_filament: dict[str, Any]):
@@ -419,6 +452,7 @@ def test_update_spool(random_filament: dict[str, Any]):
     location = "Living Room"
     lot_nr = "987654321"
     comment = "abcdefghåäö"
+    archived = True
     result = httpx.patch(
         f"{URL}/api/v1/spool/{spool['id']}",
         json={
@@ -428,6 +462,7 @@ def test_update_spool(random_filament: dict[str, Any]):
             "location": location,
             "lot_nr": lot_nr,
             "comment": comment,
+            "archived": archived,
         },
     )
     result.raise_for_status()
@@ -455,6 +490,7 @@ def test_update_spool(random_filament: dict[str, Any]):
     assert spool["location"] == location
     assert spool["lot_nr"] == lot_nr
     assert spool["comment"] == comment
+    assert spool["archived"] == archived
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
