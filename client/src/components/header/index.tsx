@@ -11,7 +11,6 @@ import {
   theme,
 } from "antd";
 import React, { useContext } from "react";
-import { useTranslation } from "react-i18next";
 import { ColorModeContext } from "../../contexts/color-mode";
 
 import "/node_modules/flag-icons/css/flag-icons.min.css";
@@ -23,14 +22,13 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
   sticky,
 }) => {
   const { token } = useToken();
-  const { i18n } = useTranslation();
   const locale = useGetLocale();
   const changeLanguage = useSetLocale();
   const { mode, setMode } = useContext(ColorModeContext);
 
   const currentLocale = locale();
 
-  const menuItems: MenuProps["items"] = [...(i18n.languages || [])]
+  const menuItems: MenuProps["items"] = [...(Object.keys(languages) || [])]
     .sort()
     .map((lang: string) => ({
       key: lang,

@@ -37,7 +37,7 @@ i18n
       loadPath: "/locales/{{lng}}/{{ns}}.json",
     },
     defaultNS: "common",
-    fallbackLng: Object.keys(languages),
+    fallbackLng: "en",
   });
 
 export default i18n;
