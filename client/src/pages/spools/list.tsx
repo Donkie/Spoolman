@@ -20,7 +20,7 @@ import { ISpool } from "./model";
 import {
   TableState,
   useInitialTableState,
-  useShowArchive,
+  useSavedState,
   useStoreInitialState,
 } from "../../utils/saveload";
 import {
@@ -55,7 +55,10 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const initialState = useInitialTableState("spoolList");
 
   // State for the switch to show archived spools
-  const [showArchived, setShowArchived] = useShowArchive("spoolList");
+  const [showArchived, setShowArchived] = useSavedState(
+    "spoolList-showArchived",
+    false
+  );
 
   // Fetch data from the API
   const {
