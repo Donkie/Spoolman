@@ -12,7 +12,7 @@ import {
   Switch,
 } from "antd";
 import ReactToPrint from "react-to-print";
-import { useSavedState } from "../utils/saveload";
+import { useSavedState } from "../../utils/saveload";
 
 interface QRCodeData {
   id: number;
