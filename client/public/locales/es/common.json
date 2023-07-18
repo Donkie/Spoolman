@@ -31,7 +31,7 @@
   },
   "warnWhenUnsavedChanges": "Seguro que quieres salir?. Hay cambios sin guardar.",
   "notifications": {
-    "success": "Successful",
+    "success": "Exito",
     "error": "Error (status code: {{statusCode}})",
     "undoable": "Tienes {{seconds}} segundos para deshacer",
     "createSuccess": "Has creado {{resource}} con exito",
@@ -73,9 +73,9 @@
       "archived": "Archivado"
     },
     "fields_help": {
-      "used_weight": "How much filament has been used from the spool. A new spool should have 0g used.",
-      "location": "Where the spool is located if you have multiple locations where you store your spools.",
-      "lot_nr": "Manufacturer's lot number. Can be used to ensure a print has consistent color if multiple spools are used."
+      "used_weight": "Cuanto filamento ha sido usado en el carrete. Un carrete nuevo debería tener 0g usados.",
+      "location": "Donde esta el carrete si se guardan los carretes en lugares distintos.",
+      "lot_nr": "Numero de lote de manufactura. Puede ser usado si el modelo a imprimir necesita color homogeneo y varios carretes son necesarios."
     },
     "titles": {
       "create": "Crear Carrete",
@@ -105,17 +105,17 @@
       "article_number": "Numero de Articulo",
       "registered": "Registrado",
       "comment": "Comentarios",
-      "settings_extruder_temp": "Extruder Temp",
+      "settings_extruder_temp": "Temp. de Extrusor",
       "settings_bed_temp": "Temp. de Cama",
       "color_hex": "Color"
     },
     "fields_help": {
-      "name": "Nombre del filamento, para distinguirlo de otros de la misma marca. Por ejemplo, deberia contener el color.",
+      "name": "Nombre del filamento, para distinguirlo de otros de la misma marca. Por ejemplo, debería contener el nombre del color.",
       "material": "ej. PLA, ABS, PETG, etc.",
-      "price": "Precio del carrete completo en la moneda configurada en el sistema.",
-      "weight": "The filament weight of a full spool (net weight). This should not include the weight of the spool itself, only the filament. It is what is usually written on the packaging.",
-      "spool_weight": "The weight of an empty spool. Currently not used for anything, but could be used by thirdparty apps to e.g. calculate the filament weight from a weight measurement.",
-      "article_number": "E.g. EAN, UPC, etc."
+      "price": "Precio del carrete completo en la divisa configurada en el sistema.",
+      "weight": "El peso de un carrete entero (peso neto). Esta sifra no debe incluir el peso del carrete vacio, solo el filamento. Es, usualmente, el peso escrito en la etiqueta del carrete.",
+      "spool_weight": "El peso del carrete vacio. Actualmente este valor no es usado para nada pero podria ser usado en otras aplicaciones, como calcular el peso actual del filamento pesando el carrete con una pesa.",
+      "article_number": "ej. EAN, UPC, etc."
     },
     "titles": {
       "create": "Crear Filamento",
