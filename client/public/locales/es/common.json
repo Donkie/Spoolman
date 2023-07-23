@@ -34,11 +34,11 @@
     "success": "Exito",
     "error": "Error (status code: {{statusCode}})",
     "undoable": "Tienes {{seconds}} segundos para deshacer",
-    "createSuccess": "Has creado {{resource}} con exito",
+    "createSuccess": "Has creado {{resource}} con éxito",
     "createError": "Hubo un error al crear {{resource}} (status code: {{statusCode}})",
-    "deleteSuccess": "Has borrado {{resource}} con exito",
+    "deleteSuccess": "Has borrado {{resource}} con éxito",
     "deleteError": "Error al borrar {{resource}} (status code: {{statusCode}})",
-    "editSuccess": "Has editado {{resource}} con exito",
+    "editSuccess": "Has editado {{resource}} con éxito",
     "editError": "Error al editar {{resource}} (status code: {{statusCode}})",
     "importProgress": "Importando: {{processed}}/{{total}}"
   },
@@ -64,7 +64,7 @@
       "remaining_weight": "Peso Restante",
       "used_length": "Largo Usado",
       "remaining_length": "Largo Restante",
-      "location": "Locacion",
+      "location": "Locación",
       "lot_nr": "Lote No.",
       "first_used": "Fecha de Primer Uso",
       "last_used": "Ultimo Uso",
@@ -75,7 +75,7 @@
     "fields_help": {
       "used_weight": "Cuanto filamento ha sido usado en el carrete. Un carrete nuevo debería tener 0g usados.",
       "location": "Donde esta el carrete si se guardan los carretes en lugares distintos.",
-      "lot_nr": "Numero de lote de manufactura. Puede ser usado si el modelo a imprimir necesita color homogeneo y varios carretes son necesarios."
+      "lot_nr": "Numero de lote de manufactura. Puede ser usado si el modelo a imprimir necesita color homogéneo y varios carretes son necesarios."
     },
     "titles": {
       "create": "Crear Carrete",
@@ -99,7 +99,7 @@
       "material": "Material",
       "price": "Precio",
       "density": "Densidad",
-      "diameter": "Diametro",
+      "diameter": "Diámetro",
       "weight": "Peso",
       "spool_weight": "Peso del Carrete",
       "article_number": "Numero de Articulo",
@@ -113,8 +113,8 @@
       "name": "Nombre del filamento, para distinguirlo de otros de la misma marca. Por ejemplo, debería contener el nombre del color.",
       "material": "ej. PLA, ABS, PETG, etc.",
       "price": "Precio del carrete completo en la divisa configurada en el sistema.",
-      "weight": "El peso de un carrete entero (peso neto). Esta sifra no debe incluir el peso del carrete vacio, solo el filamento. Es, usualmente, el peso escrito en la etiqueta del carrete.",
-      "spool_weight": "El peso del carrete vacio. Actualmente este valor no es usado para nada pero podria ser usado en otras aplicaciones, como calcular el peso actual del filamento pesando el carrete con una pesa.",
+      "weight": "El peso de un carrete entero (peso neto). Esta cifra no debe incluir el peso del carrete vacío, solo el filamento. Es, usualmente, el peso escrito en la etiqueta del carrete.",
+      "spool_weight": "El peso del carrete vacío. Actualmente este valor no es usado para nada pero podría ser usado en otras aplicaciones, como calcular el peso actual del filamento pesando el carrete con una pesa.",
       "article_number": "ej. EAN, UPC, etc."
     },
     "titles": {
