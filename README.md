@@ -62,3 +62,23 @@ If you want to connect with an external database instead, specify the `SPOOLMAN_
 ## Configuration
 ### Moonraker
 Moonraker has built-in support for Spoolman. See the [Moonraker Documentation](https://moonraker.readthedocs.io/en/latest/configuration/#spoolman) for more information.
+
+## Development
+### Client
+To test out changes to the web client, the best way is to run it in development mode.
+
+Prerequisities:
+* NodeJS 16 or above installed, along with NPM. Running `node --version` should print a correct version.
+* A running Spoolman server, with the following two environment variables added in the `docker-compose.yml`:
+```yaml
+    environment:
+      - FORWARDED_ALLOW_IPS=*
+      - SPOOLMAN_DEBUG_MODE=TRUE
+```
+
+Instructions:
+1. Open a terminal and CD to the `client` subdirectory
+2. Run `npm install`. If it doesn't succeed, you probably have an incorrect node version. Spoolman is only tested on NodeJS 16.
+3. Run `echo "VITE_APIURL=http://192.168.0.123:7901/api/v1" > .env`, where the ip:port is the address of the running Spoolman server. This should create a `.env` file in the `client` directory. If you don't already have one running on your network, you can start one up using the `docker-compose.yml` showed above.
+4. Run `npm run dev`. The terminal will print a "Local: xxxx" URL, open that in your browser and the web client should show up. Your existing spools etc in your Spoolman database should be loaded in.
+5. Any edits in .ts/.tsx files will be automatically reloaded in your browser. If you make any change to .json files you will need to F5 in your browser.
