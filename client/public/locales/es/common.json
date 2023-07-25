@@ -31,7 +31,7 @@
   },
   "warnWhenUnsavedChanges": "Seguro que quieres salir?. Hay cambios sin guardar.",
   "notifications": {
-    "success": "Exito",
+    "success": "Éxito",
     "error": "Error (status code: {{statusCode}})",
     "undoable": "Tienes {{seconds}} segundos para deshacer",
     "createSuccess": "Has creado {{resource}} con éxito",
