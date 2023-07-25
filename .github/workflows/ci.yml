@@ -5,7 +5,7 @@ on:
     branches:
       - master
     tags:
-      - 'v*'
+      - "v*"
   pull_request:
     branches:
       - master
@@ -54,6 +54,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Spoolman
+        if: ${{ github.event_name != 'pull_request' }}
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -61,6 +62,16 @@ jobs:
           outputs: type=docker,dest=/tmp/spoolman.tar
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-amd64
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-amd64,mode=max
+
+      # Separate build for pull requests since PRs dont have access to store cache
+      - name: Build Spoolman (PR)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          tags: ${{ env.IMAGE_NAME }}:test
+          outputs: type=docker,dest=/tmp/spoolman.tar
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-amd64
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -87,6 +98,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Spoolman Tester
+        if: ${{ github.event_name != 'pull_request' }}
         uses: docker/build-push-action@v4
         with:
           context: ./tests_integration
@@ -94,6 +106,16 @@ jobs:
           outputs: type=docker,dest=/tmp/spoolman-tester.tar
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-tester
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-tester,mode=max
+
+      # Separate build for pull requests since PRs dont have access to store cache
+      - name: Build Spoolman Tester (PR)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: docker/build-push-action@v4
+        with:
+          context: ./tests_integration
+          tags: ${{ env.IMAGE_NAME }}-tester:latest
+          outputs: type=docker,dest=/tmp/spoolman-tester.tar
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-tester
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
