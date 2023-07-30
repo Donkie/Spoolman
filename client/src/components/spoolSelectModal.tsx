@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Modal, Table, Checkbox, Space, Row, Col } from "antd";
+import { Modal, Table, Checkbox, Space, Row, Col, message } from "antd";
 import { ISpool } from "../pages/spools/model";
 import { FilteredColumn, SortedColumn, SpoolIconColumn } from "./column";
 import { TableState } from "../utils/saveload";
 import { useTable } from "@refinedev/antd";
 import { genericSorter, typeSorters } from "../utils/sorting";
 import { genericFilterer, typeFilters } from "../utils/filtering";
+import { t } from "i18next";
 
 interface Props {
   visible: boolean;
@@ -27,6 +28,7 @@ const SpoolSelectModal: React.FC<Props> = ({
 }) => {
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [showArchived, setShowArchived] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const { tableProps, sorters, filters, current, pageSize } = useTable<ISpool>({
     meta: {
@@ -112,16 +114,24 @@ const SpoolSelectModal: React.FC<Props> = ({
 
   return (
     <Modal
-      title="Select Spools"
+      title={t("printing.spoolSelect.title")}
       open={visible}
       onCancel={onCancel}
       onOk={() => {
+        if (selectedItems.length === 0) {
+          messageApi.open({
+            type: "error",
+            content: t("printing.spoolSelect.noSpoolsSelected"),
+          });
+          return;
+        }
         onContinue(
           dataSource.filter((spool) => selectedItems.includes(spool.id))
         );
       }}
       width={600}
     >
+      {contextHolder}
       <Space direction="vertical" style={{ width: "100%" }}>
         {description && <div>{description}</div>}
         <Table
@@ -168,13 +178,14 @@ const SpoolSelectModal: React.FC<Props> = ({
                 selectUnselectFiltered(e.target.checked);
               }}
             >
-              Select/Unselect All
+              {t("printing.spoolSelect.selectAll")}
             </Checkbox>
           </Col>
           <Col span={12}>
             <div style={{ float: "right" }}>
-              {selectedItems.length} spool
-              {selectedItems.length === 1 ? "" : "s"} selected
+              {t("printing.spoolSelect.selectedTotal", {
+                count: selectedItems.length,
+              })}
             </div>
           </Col>
           <Col span={12}>
@@ -194,7 +205,7 @@ const SpoolSelectModal: React.FC<Props> = ({
                 }
               }}
             >
-              Show Archived
+              {t("printing.spoolSelect.showArchived")}
             </Checkbox>
           </Col>
         </Row>

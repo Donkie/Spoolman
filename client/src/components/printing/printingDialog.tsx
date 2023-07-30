@@ -12,6 +12,7 @@ import {
 } from "antd";
 import ReactToPrint from "react-to-print";
 import { useSavedState } from "../../utils/saveload";
+import { useTranslate } from "@refinedev/core";
 
 interface PrintingDialogProps {
   items: JSX.Element[];
@@ -62,6 +63,8 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
   onCancel,
   title,
 }) => {
+  const t = useTranslate();
+
   const [marginLeft, setMarginLeft] = useSavedState("print-marginLeft", 10);
   const [marginTop, setMarginTop] = useSavedState("print-marginTop", 10);
   const [marginRight, setMarginRight] = useSavedState("print-marginRight", 10);
@@ -140,12 +143,14 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
   return (
     <Modal
       open={visible}
-      title={title ?? "Printing Dialog"}
+      title={title ?? t("printing.generic.title")}
       onCancel={onCancel}
       footer={[
         <ReactToPrint
           key="print-button"
-          trigger={() => <Button type="primary">Print</Button>}
+          trigger={() => (
+            <Button type="primary">{t("printing.generic.print")}</Button>
+          )}
           content={() => printRef.current}
         />,
       ]}
@@ -203,7 +208,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
             labelCol={{ span: 14 }}
             wrapperCol={{ span: 10 }}
           >
-            <Form.Item label="Left Margin">
+            <Form.Item label={t("printing.generic.marginLeft")}>
               <Slider
                 min={0}
                 max={50}
@@ -214,7 +219,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
                 }}
               />
             </Form.Item>
-            <Form.Item label="Top Margin">
+            <Form.Item label={t("printing.generic.marginTop")}>
               <Slider
                 min={0}
                 max={50}
@@ -225,7 +230,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
                 }}
               />
             </Form.Item>
-            <Form.Item label="Right Margin">
+            <Form.Item label={t("printing.generic.marginRight")}>
               <Slider
                 min={0}
                 max={50}
@@ -236,7 +241,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
                 }}
               />
             </Form.Item>
-            <Form.Item label="Bottom Margin">
+            <Form.Item label={t("printing.generic.marginBottom")}>
               <Slider
                 min={0}
                 max={50}
@@ -247,7 +252,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
                 }}
               />
             </Form.Item>
-            <Form.Item label="Columns">
+            <Form.Item label={t("printing.generic.columns")}>
               <Slider
                 min={1}
                 max={5}
@@ -257,7 +262,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
                 }}
               />
             </Form.Item>
-            <Form.Item label="Paper Size">
+            <Form.Item label={t("printing.generic.paperSize")}>
               <Select
                 value={paperSize}
                 onChange={(value) => setPaperSize(value)}
@@ -269,7 +274,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
                 ))}
               </Select>
             </Form.Item>
-            <Form.Item label="Row Height">
+            <Form.Item label={t("printing.generic.rowHeight")}>
               <Slider
                 min={30}
                 max={200}
@@ -280,7 +285,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
                 }}
               />
             </Form.Item>
-            <Form.Item label="Show Border">
+            <Form.Item label={t("printing.generic.showBorder")}>
               <Switch
                 checked={showBorder}
                 onChange={(checked) => setShowBorder(checked)}
@@ -289,7 +294,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
             {extraSettings && <Divider />}
             {extraSettings}
             <Divider />
-            <Form.Item label="Preview Scale">
+            <Form.Item label={t("printing.generic.previewScale")}>
               <Slider
                 min={0.1}
                 max={1}

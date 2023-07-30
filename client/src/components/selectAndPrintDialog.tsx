@@ -6,8 +6,11 @@ import QRCodePrintingDialog from "./printing/qrCodePrintingDialog";
 import { Button } from "antd";
 import { ISpool } from "../pages/spools/model";
 import { PrinterOutlined } from "@ant-design/icons";
+import { useTranslate } from "@refinedev/core";
 
 const SelectAndPrint: React.FC = () => {
+  const t = useTranslate();
+
   const [step, setStep] = React.useState(0);
   const [selectedSpools, setSelectedSpools] = React.useState<ISpool[]>([]);
   return (
@@ -19,11 +22,11 @@ const SelectAndPrint: React.FC = () => {
           setStep(1);
         }}
       >
-        Print QR Codes
+        {t("printing.qrcode.button")}
       </Button>
       <SpoolSelectModal
         visible={step === 1}
-        description="Select spools to print QR codes for."
+        description={t("printing.spoolSelect.description")}
         onCancel={() => {
           setStep(0);
         }}

@@ -53,6 +53,37 @@
   "dashboard": {
     "title": "Hem"
   },
+  "printing": {
+    "generic": {
+      "title": "Utskrift",
+      "print": "Skriv ut",
+      "columns": "Kolumner",
+      "paperSize": "Papperstyp",
+      "rowHeight": "Radhöjd",
+      "showBorder": "Visa ram",
+      "previewScale": "Skala förhandsgranskning",
+      "marginLeft": "Marginal - vänster",
+      "marginRight": "Marginal - höger",
+      "marginTop": "Marginal - topp",
+      "marginBottom": "Marginal - botten"
+    },
+    "qrcode": {
+      "button": "Skriv ut QR-koder",
+      "title": "QR-kod utskrift",
+      "textSize": "Textstorlek",
+      "showSpoolmanIcon": "Visa Spoolman-ikon",
+      "showContent": "Visa QR-kodsinnehåll"
+    },
+    "spoolSelect": {
+      "title": "Välj spolar",
+      "description": "Välj spolar att skriva ut QR-koder för.",
+      "showArchived": "Tillåt arkiverade",
+      "noSpoolsSelected": "Du har inte valt några spolar.",
+      "selectAll": "Markera/avmarkera alla",
+      "selectedTotal_one": "{{count}} spole vald",
+      "selectedTotal_other": "{{count}} spolar valda"
+    }
+  },
   "spool": {
     "spool": "Spolar",
     "fields": {

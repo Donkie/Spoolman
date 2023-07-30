@@ -53,6 +53,37 @@
   "dashboard": {
     "title": "Dashboard"
   },
+  "printing": {
+    "generic": {
+      "title": "Printing",
+      "print": "Print",
+      "columns": "Columns",
+      "paperSize": "Paper Size",
+      "rowHeight": "Row Height",
+      "showBorder": "Show Border",
+      "previewScale": "Preview Scale",
+      "marginLeft": "Left Margin",
+      "marginRight": "Right Margin",
+      "marginTop": "Top Margin",
+      "marginBottom": "Bottom Margin"
+    },
+    "qrcode": {
+      "button": "Print QR Codes",
+      "title": "QR Code Printing",
+      "textSize": "Content Text Size",
+      "showSpoolmanIcon": "Show Spoolman Icon",
+      "showContent": "Show QR Code Content"
+    },
+    "spoolSelect": {
+      "title": "Select Spools",
+      "description": "Select spools to print QR codes for.",
+      "showArchived": "Show Archived",
+      "noSpoolsSelected": "You have not selected any spools.",
+      "selectAll": "Select/Unselect All",
+      "selectedTotal_one": "{{count}} spool selected",
+      "selectedTotal_other": "{{count}} spools selected"
+    }
+  },
   "spool": {
     "spool": "Spools",
     "fields": {

@@ -1,6 +1,7 @@
 import { Form, QRCode, Slider, Switch } from "antd";
 import { useSavedState } from "../../utils/saveload";
 import PrintingDialog from "./printingDialog";
+import { useTranslate } from "@refinedev/core";
 
 interface QRCodeData {
   value: string;
@@ -19,6 +20,8 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
   items,
   onCancel,
 }) => {
+  const t = useTranslate();
+
   const [showContent, setShowContent] = useSavedState(
     "print-showContent",
     true
@@ -55,17 +58,17 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
   return (
     <PrintingDialog
       visible={visible}
-      title="QR Code Printing"
+      title={t("printing.qrcode.title")}
       items={elements}
       extraSettings={
         <>
-          <Form.Item label="Show QR Code Content">
+          <Form.Item label={t("printing.qrcode.showContent")}>
             <Switch
               checked={showContent}
               onChange={(checked) => setShowContent(checked)}
             />
           </Form.Item>
-          <Form.Item label="Content Text Size">
+          <Form.Item label={t("printing.qrcode.textSize")}>
             <Slider
               disabled={!showContent}
               tooltip={{ formatter: (value) => `${value} mm` }}
@@ -78,7 +81,7 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
               }}
             />
           </Form.Item>
-          <Form.Item label="Show Spoolman Icon">
+          <Form.Item label={t("printing.qrcode.showSpoolmanIcon")}>
             <Switch
               checked={showSpoolmanIcon}
               onChange={(checked) => setShowSpoolmanIcon(checked)}
