@@ -203,47 +203,51 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
             labelCol={{ span: 14 }}
             wrapperCol={{ span: 10 }}
           >
-            <Form.Item label="Left Margin (mm)">
+            <Form.Item label="Left Margin">
               <Slider
                 min={0}
                 max={50}
+                tooltip={{ formatter: (value) => `${value} mm` }}
                 value={marginLeft}
                 onChange={(value) => {
                   setMarginLeft(value);
                 }}
               />
             </Form.Item>
-            <Form.Item label="Up Margin (mm)">
+            <Form.Item label="Top Margin">
               <Slider
                 min={0}
                 max={50}
+                tooltip={{ formatter: (value) => `${value} mm` }}
                 value={marginTop}
                 onChange={(value) => {
                   setMarginTop(value);
                 }}
               />
             </Form.Item>
-            <Form.Item label="Right Margin (mm)">
+            <Form.Item label="Right Margin">
               <Slider
                 min={0}
                 max={50}
+                tooltip={{ formatter: (value) => `${value} mm` }}
                 value={marginRight}
                 onChange={(value) => {
                   setMarginRight(value);
                 }}
               />
             </Form.Item>
-            <Form.Item label="Bottom Margin (mm)">
+            <Form.Item label="Bottom Margin">
               <Slider
                 min={0}
                 max={50}
+                tooltip={{ formatter: (value) => `${value} mm` }}
                 value={marginBottom}
                 onChange={(value) => {
                   setMarginBottom(value);
                 }}
               />
             </Form.Item>
-            <Form.Item label="Items per Row">
+            <Form.Item label="Columns">
               <Slider
                 min={1}
                 max={5}
@@ -265,10 +269,11 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
                 ))}
               </Select>
             </Form.Item>
-            <Form.Item label="Row Height (mm)">
+            <Form.Item label="Row Height">
               <Slider
                 min={30}
                 max={200}
+                tooltip={{ formatter: (value) => `${value} mm` }}
                 value={rowHeight}
                 onChange={(value) => {
                   setRowHeight(value);

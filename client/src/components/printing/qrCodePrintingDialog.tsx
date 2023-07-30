@@ -63,9 +63,10 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
               onChange={(checked) => setShowContent(checked)}
             />
           </Form.Item>
-          <Form.Item label="Content Text Size (mm)">
+          <Form.Item label="Content Text Size">
             <Slider
               disabled={!showContent}
+              tooltip={{ formatter: (value) => `${value} mm` }}
               min={3}
               max={15}
               value={textSize}
