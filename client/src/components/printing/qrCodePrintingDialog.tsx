@@ -11,11 +11,13 @@ interface QRCodeData {
 interface QRCodePrintingDialogProps {
   visible: boolean;
   items: QRCodeData[];
+  onCancel: () => void;
 }
 
 const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
   visible,
   items,
+  onCancel,
 }) => {
   const [showContent, setShowContent] = useSavedState(
     "print-showContent",
@@ -100,7 +102,7 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
                 width: auto;
             }
             `}
-      onCancel={() => true}
+      onCancel={onCancel}
     />
   );
 };
