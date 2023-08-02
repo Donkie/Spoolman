@@ -74,8 +74,24 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
     "print-marginBottom",
     10
   );
-  const [itemsPerRow, setItemsPerRow] = useSavedState("print-itemsPerRow", 3);
-  const [rowsPerPage, setRowsPerPage] = useSavedState("print-rowsPerPage", 8);
+  const [blockRowsTop, setBlockRowsTop] = useSavedState(
+    "print-blockRowsTop",
+    0
+  );
+  const [blockRowsBottom, setBlockRowsBottom] = useSavedState(
+    "print-blockRowsBottom",
+    0
+  );
+  const [blockColumnsLeft, setBlockColumnsLeft] = useSavedState(
+    "print-blockColumnsLeft",
+    0
+  );
+  const [blockColumnsRight, setBlockColumnsRight] = useSavedState(
+    "print-blockColumnsRight",
+    0
+  );
+  const [paperColumns, setPaperColumns] = useSavedState("print-itemsPerRow", 3);
+  const [paperRows, setPaperRows] = useSavedState("print-rowsPerPage", 8);
   const [paperSize, setPaperSize] = useSavedState("print-paperSize", "A4");
   const [previewScale, setPreviewScale] = useSavedState(
     "print-previewScale",
@@ -91,7 +107,10 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
   const printRef = useRef<HTMLDivElement>(null);
 
   const calculatedRowHeight =
-    (paperHeight - marginTop - marginBottom) / rowsPerPage;
+    (paperHeight - marginTop - marginBottom) / paperRows;
+
+  const itemsPerRow = paperColumns - blockColumnsLeft - blockColumnsRight;
+  const rowsPerPage = paperRows - blockRowsTop - blockRowsBottom;
 
   const rowsOfItems = [];
   for (let row_idx = 0; row_idx <= items.length / itemsPerRow; row_idx += 1) {
@@ -112,9 +131,30 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
   }
 
   const pages = pageBlocks.map(function (rows, idx) {
+    const itemRowsBlockTop = [...Array(blockRowsTop).keys()].map((row) => (
+      <tr key={row}>
+        <td>
+          <div style={{ height: `${calculatedRowHeight}mm` }}></div>
+        </td>
+      </tr>
+    ));
     const itemRows = rows.map((row, idx) => {
+      const itemColumnsBlockLeft = [...Array(blockColumnsLeft).keys()].map(
+        (col) => (
+          <td key={col}>
+            <div
+              style={{
+                width: `${
+                  (paperWidth - marginLeft - marginRight) / paperColumns
+                }mm`,
+              }}
+            ></div>
+          </td>
+        )
+      );
       return (
         <tr key={idx}>
+          {itemColumnsBlockLeft}
           {row.map((item, index) => (
             <td>
               <div
@@ -124,7 +164,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
                   justifyContent: "center",
                   alignItems: "center",
                   width: `${
-                    (paperWidth - marginLeft - marginRight) / itemsPerRow
+                    (paperWidth - marginLeft - marginRight) / paperColumns
                   }mm`,
                   height: `${calculatedRowHeight}mm`,
                   flexDirection: "column",
@@ -153,6 +193,9 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
         <div
           className="print-page-area"
           style={{
+            border: borderShowMode !== "none" ? "1px solid #000" : "none",
+            height: `${paperHeight - marginTop - marginBottom}mm`,
+            width: `${paperWidth - marginLeft - marginRight}mm`,
             marginTop: `calc(${marginTop}mm - ${
               borderShowMode !== "none" ? "1px" : "0px"
             })`,
@@ -169,12 +212,10 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
         >
           <table
             style={{
-              border: borderShowMode !== "none" ? "1px solid #000" : "none",
-              width: "100%",
-              height: "100%",
               alignContent: "flex-start",
             }}
           >
+            {itemRowsBlockTop}
             {itemRows}
           </table>
         </div>
@@ -252,6 +293,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
           <Form
             labelAlign="left"
             colon={false}
+            labelWrap={true}
             labelCol={{ span: 8 }}
             wrapperCol={{ span: 16 }}
           >
@@ -369,9 +411,11 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
                   <Slider
                     min={1}
                     max={5}
-                    value={itemsPerRow}
+                    value={paperColumns}
                     onChange={(value) => {
-                      setItemsPerRow(value);
+                      if (value - blockColumnsLeft - blockColumnsRight < 1)
+                        return;
+                      setPaperColumns(value);
                     }}
                   />
                 </Col>
@@ -379,9 +423,14 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
                   <InputNumber
                     min={1}
                     style={{ margin: "0 16px" }}
-                    value={itemsPerRow}
+                    value={paperColumns}
                     onChange={(value) => {
-                      setItemsPerRow(value ?? 1);
+                      if (
+                        (value ?? 1) - blockColumnsLeft - blockColumnsRight <
+                        1
+                      )
+                        return;
+                      setPaperColumns(value ?? 1);
                     }}
                   />
                 </Col>
@@ -393,9 +442,10 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
                   <Slider
                     min={1}
                     max={15}
-                    value={rowsPerPage}
+                    value={paperRows}
                     onChange={(value) => {
-                      setRowsPerPage(value);
+                      if (value - blockRowsTop - blockRowsBottom < 1) return;
+                      setPaperRows(value);
                     }}
                   />
                 </Col>
@@ -403,9 +453,11 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
                   <InputNumber
                     min={1}
                     style={{ margin: "0 16px" }}
-                    value={rowsPerPage}
+                    value={paperRows}
                     onChange={(value) => {
-                      setRowsPerPage(value ?? 1);
+                      if ((value ?? 1) - blockRowsTop - blockRowsBottom < 1)
+                        return;
+                      setPaperRows(value ?? 1);
                     }}
                   />
                 </Col>
@@ -440,6 +492,113 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
                 optionType="button"
                 buttonStyle="solid"
               />
+            </Form.Item>
+            <Form.Item label={t("printing.generic.blockRowsTop")}>
+              <Row>
+                <Col span={12}>
+                  <Slider
+                    min={0}
+                    max={3}
+                    value={blockRowsTop}
+                    onChange={(value) => {
+                      if (paperRows - value - blockRowsBottom < 1) return;
+                      setBlockRowsTop(value);
+                    }}
+                  />
+                </Col>
+                <Col span={12}>
+                  <InputNumber
+                    min={0}
+                    style={{ margin: "0 16px" }}
+                    value={blockRowsTop}
+                    onChange={(value) => {
+                      if (paperRows - (value ?? 0) - blockRowsBottom < 1)
+                        return;
+                      setBlockRowsTop(value ?? 0);
+                    }}
+                  />
+                </Col>
+              </Row>
+            </Form.Item>
+            <Form.Item label={t("printing.generic.blockRowsBottom")}>
+              <Row>
+                <Col span={12}>
+                  <Slider
+                    min={0}
+                    max={3}
+                    value={blockRowsBottom}
+                    onChange={(value) => {
+                      if (paperRows - value - blockRowsTop < 1) return;
+                      setBlockRowsBottom(value);
+                    }}
+                  />
+                </Col>
+                <Col span={12}>
+                  <InputNumber
+                    min={0}
+                    style={{ margin: "0 16px" }}
+                    value={blockRowsBottom}
+                    onChange={(value) => {
+                      if (paperRows - (value ?? 0) - blockRowsTop < 1) return;
+                      setBlockRowsBottom(value ?? 0);
+                    }}
+                  />
+                </Col>
+              </Row>
+            </Form.Item>
+            <Form.Item label={t("printing.generic.blockColumnsLeft")}>
+              <Row>
+                <Col span={12}>
+                  <Slider
+                    min={0}
+                    max={3}
+                    value={blockColumnsLeft}
+                    onChange={(value) => {
+                      if (paperColumns - value - blockColumnsRight < 1) return;
+                      setBlockColumnsLeft(value);
+                    }}
+                  />
+                </Col>
+                <Col span={12}>
+                  <InputNumber
+                    min={0}
+                    style={{ margin: "0 16px" }}
+                    value={blockColumnsLeft}
+                    onChange={(value) => {
+                      if (paperColumns - (value ?? 0) - blockColumnsRight < 1)
+                        return;
+                      setBlockColumnsLeft(value ?? 0);
+                    }}
+                  />
+                </Col>
+              </Row>
+            </Form.Item>
+            <Form.Item label={t("printing.generic.blockColumnsRight")}>
+              <Row>
+                <Col span={12}>
+                  <Slider
+                    min={0}
+                    max={3}
+                    value={blockColumnsRight}
+                    onChange={(value) => {
+                      if (paperColumns - value - blockColumnsLeft < 1) return;
+                      setBlockColumnsRight(value);
+                    }}
+                  />
+                </Col>
+                <Col span={12}>
+                  <InputNumber
+                    min={0}
+                    style={{ margin: "0 16px" }}
+                    value={blockColumnsRight}
+                    onChange={(value) => {
+                      if (paperColumns - (value ?? 0) - blockColumnsLeft < 1)
+                        return;
+                      setBlockColumnsRight(value ?? 0);
+                    }}
+                  />
+                </Col>
+              </Row>
             </Form.Item>
             {extraSettings && <Divider />}
             {extraSettings}

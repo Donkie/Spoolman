@@ -67,6 +67,10 @@
       "marginRight": "Marginal - höger",
       "marginTop": "Marginal - topp",
       "marginBottom": "Marginal - botten",
+      "blockRowsTop": "Blockera rader - topp",
+      "blockRowsBottom": "Blockera rader - botten",
+      "blockColumnsLeft": "Blockera kolumner - vänster",
+      "blockColumnsRight": "Blockera kolumner - höger",
       "borders": {
         "none": "Ingen",
         "border": "Ram",

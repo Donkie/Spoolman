@@ -67,6 +67,10 @@
       "marginRight": "Right Margin",
       "marginTop": "Top Margin",
       "marginBottom": "Bottom Margin",
+      "blockRowsTop": "Block Rows Top",
+      "blockRowsBottom": "Block Rows Bottom",
+      "blockColumnsLeft": "Block Columns Left",
+      "blockColumnsRight": "Block Columns Right",
       "borders": {
         "none": "None",
         "border": "Border",
