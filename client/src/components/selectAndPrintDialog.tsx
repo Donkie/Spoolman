@@ -41,9 +41,8 @@ const SelectAndPrint: React.FC = () => {
           setStep(1);
         }}
         items={selectedSpools.map((spool) => ({
-          value: `S:${spool.id}`,
-          //   value: `https://spoolman.lan/spool/show/${spool.id}`,
-          // label: `hello`,
+          value: `web+spoolman:s-${spool.id}`,
+          label: `s-${spool.id}`,
           errorLevel: "H",
         }))}
       />

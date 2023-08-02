@@ -56,16 +56,22 @@
   "printing": {
     "generic": {
       "title": "Utskrift",
+      "description": "Justera inställningarna nedan för att få önskat utskriftslayout. Kom ihåg att skrivare och ditt operativsystem kan tillämpa sina egna marginaler och skalning, så du kan behöva justera inställningarna därefter. Testa på ett vanligt papper innan du skriver ut på de faktiska etiketterna.",
       "print": "Skriv ut",
       "columns": "Kolumner",
+      "rows": "Rader",
       "paperSize": "Papperstyp",
-      "rowHeight": "Radhöjd",
       "showBorder": "Visa ram",
       "previewScale": "Skala förhandsgranskning",
       "marginLeft": "Marginal - vänster",
       "marginRight": "Marginal - höger",
       "marginTop": "Marginal - topp",
-      "marginBottom": "Marginal - botten"
+      "marginBottom": "Marginal - botten",
+      "borders": {
+        "none": "Ingen",
+        "border": "Ram",
+        "grid": "Rutnät"
+      }
     },
     "qrcode": {
       "button": "Skriv ut QR-koder",

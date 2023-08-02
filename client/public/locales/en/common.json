@@ -56,16 +56,22 @@
   "printing": {
     "generic": {
       "title": "Printing",
+      "description": "Tune in the settings below to get the desired print layout. Keep in mind that printers and your OS may apply it's own margins and scaling, so you may need to adjust the settings accordingly. Test it on a piece of regular paper before printing on the actual labels.",
       "print": "Print",
       "columns": "Columns",
+      "rows": "Rows",
       "paperSize": "Paper Size",
-      "rowHeight": "Row Height",
       "showBorder": "Show Border",
       "previewScale": "Preview Scale",
       "marginLeft": "Left Margin",
       "marginRight": "Right Margin",
       "marginTop": "Top Margin",
-      "marginBottom": "Bottom Margin"
+      "marginBottom": "Bottom Margin",
+      "borders": {
+        "none": "None",
+        "border": "Border",
+        "grid": "Grid"
+      }
     },
     "qrcode": {
       "button": "Print QR Codes",

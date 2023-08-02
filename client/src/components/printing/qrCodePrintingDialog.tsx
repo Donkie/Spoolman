@@ -1,4 +1,4 @@
-import { Form, QRCode, Slider, Switch } from "antd";
+import { Col, Form, InputNumber, QRCode, Row, Slider, Switch } from "antd";
 import { useSavedState } from "../../utils/saveload";
 import PrintingDialog from "./printingDialog";
 import { useTranslate } from "@refinedev/core";
@@ -69,17 +69,34 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
             />
           </Form.Item>
           <Form.Item label={t("printing.qrcode.textSize")}>
-            <Slider
-              disabled={!showContent}
-              tooltip={{ formatter: (value) => `${value} mm` }}
-              min={3}
-              max={15}
-              value={textSize}
-              step={0.1}
-              onChange={(value) => {
-                setTextSize(value);
-              }}
-            />
+            <Row>
+              <Col span={12}>
+                <Slider
+                  disabled={!showContent}
+                  tooltip={{ formatter: (value) => `${value} mm` }}
+                  min={3}
+                  max={15}
+                  value={textSize}
+                  step={0.1}
+                  onChange={(value) => {
+                    setTextSize(value);
+                  }}
+                />
+              </Col>
+              <Col span={12}>
+                <InputNumber
+                  disabled={!showContent}
+                  min={0.01}
+                  step={0.1}
+                  style={{ margin: "0 16px" }}
+                  value={textSize}
+                  addonAfter="mm"
+                  onChange={(value) => {
+                    setTextSize(value ?? 5);
+                  }}
+                />
+              </Col>
+            </Row>
           </Form.Item>
           <Form.Item label={t("printing.qrcode.showSpoolmanIcon")}>
             <Switch
