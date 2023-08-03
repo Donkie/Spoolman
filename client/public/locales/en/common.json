@@ -95,6 +95,8 @@
     }
   },
   "scanner": {
+    "title": "QR Code Scanner",
+    "description": "Scan a Spoolman QR code to view details about the spool.",
     "error": {
       "notAllowed": "You have not allowed access to the camera.",
       "insecureContext": "The page is not served over HTTPS.",

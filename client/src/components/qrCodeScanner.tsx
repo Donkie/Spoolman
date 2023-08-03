@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { FloatButton, Modal, Space } from "antd";
 import { QrScanner } from "@yudiel/react-qr-scanner";
 import { useNavigate } from "react-router-dom";
@@ -32,10 +32,10 @@ const QRCodeScannerModal: React.FC = () => {
         open={visible}
         onCancel={() => setVisible(false)}
         footer={null}
-        title="QR Code Scanner"
+        title={t("scanner.title")}
       >
         <Space direction="vertical" style={{ width: "100%" }}>
-          <p>Scan a Spoolman QR code to view details about the spool.</p>
+          <p>{t("scanner.description")}</p>
           <QrScanner
             viewFinder={
               lastError

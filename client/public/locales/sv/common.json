@@ -94,6 +94,17 @@
       "selectedTotal_other": "{{count}} spolar valda"
     }
   },
+  "scanner": {
+    "title": "Skanna QR-kod",
+    "description": "Skanna en QR-kod för att visa information om en spole.",
+    "error": {
+      "notAllowed": "Du har inte tillåtit åtkomst till kameran.",
+      "insecureContext": "Sidan måste använda sig av HTTPS.",
+      "streamApiNotSupported": "Webbläsaren stödjer inte MediaStream API.",
+      "notReadable": "Kameran är inte läsbar.",
+      "unknown": "Ett okänt fel inträffade. ({{error}})"
+    }
+  },
   "spool": {
     "spool": "Spolar",
     "fields": {
