@@ -94,6 +94,15 @@
       "selectedTotal_other": "{{count}} spools selected"
     }
   },
+  "scanner": {
+    "error": {
+      "notAllowed": "You have not allowed access to the camera.",
+      "insecureContext": "The page is not served over HTTPS.",
+      "streamApiNotSupported": "The browser does not support the MediaStream API.",
+      "notReadable": "The camera is not readable.",
+      "unknown": "An unknown error occurred. ({{error}})"
+    }
+  },
   "spool": {
     "spool": "Spools",
     "fields": {

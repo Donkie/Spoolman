@@ -1,69 +1,30 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Button, FloatButton, Modal, Space } from "antd";
-import QrScanner from "qr-scanner"; // Make sure to import from the correct path
+import React, { useEffect, useState } from "react";
+import { FloatButton, Modal, Space } from "antd";
+import { QrScanner } from "@yudiel/react-qr-scanner";
 import { useNavigate } from "react-router-dom";
 import { CameraOutlined } from "@ant-design/icons";
+import { useTranslate } from "@refinedev/core";
 
 const QRCodeScannerModal: React.FC = () => {
   const [visible, setVisible] = useState(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const scanner = useRef<QrScanner | null>(null);
+  const [lastError, setLastError] = useState<string | null>(null);
+  const t = useTranslate();
   const navigate = useNavigate();
-  const [hasCamera, setHasCamera] = useState(false);
+
+  const onScan = (result: string) => {
+    // Check for the spoolman ID format
+    const match = result.match(/^web\+spoolman:s-(?<id>[0-9]+)$/);
+    if (match && match.groups) {
+      setVisible(false);
+      navigate(`/spool/show/${match.groups.id}`);
+    }
+  };
 
   useEffect(() => {
-    const onScan = (result: string) => {
-      // Check for the spoolman ID format
-      const match = result.match(/^web+spoolman:s-(?<id>[0-9]+)$/);
-      if (match && match.groups) {
-        navigate(`/spool/show/${match.groups.id}`);
-      }
-    };
-
-    const startCamera = async () => {
-      console.log("Starting camera");
-      if (!(await QrScanner.hasCamera())) {
-        console.log("No camera found on this device");
-        setHasCamera(false);
-        return;
-      } else {
-        console.log("Camera found on this device");
-        setHasCamera(true);
-        if (videoRef.current) {
-          scanner.current = new QrScanner(
-            videoRef.current,
-            (result) => {
-              console.log("QR Code detected:", result);
-              onScan(result.data);
-            },
-            {
-              preferredCamera: "environment",
-            }
-          );
-          console.log("Starting scanner");
-          try {
-            await scanner.current.start();
-          } catch (e) {
-            setHasCamera(false);
-            console.log(e);
-          }
-        } else {
-          console.log("No video ref");
-        }
-      }
-    };
     if (visible) {
-      startCamera();
+      setLastError(null);
     }
-
-    return () => {
-      console.log("Destroying scanner");
-      scanner.current?.destroy();
-      scanner.current = null;
-    };
-  }, [visible, navigate]);
-
-  // Draw a centered div if no camera was found
+  }, [visible]);
 
   return (
     <>
@@ -81,30 +42,38 @@ const QRCodeScannerModal: React.FC = () => {
       >
         <Space direction="vertical" style={{ width: "100%" }}>
           <p>Scan a Spoolman QR code to view details about the spool.</p>
-          <video
-            style={{
-              width: "100%",
-              display: hasCamera ? "block" : "none",
+          <QrScanner
+            viewFinder={
+              lastError
+                ? () => (
+                    <div
+                      style={{
+                        position: "absolute",
+                        textAlign: "center",
+                        width: "100%",
+                        top: "50%",
+                      }}
+                    >
+                      <p>{lastError}</p>
+                    </div>
+                  )
+                : undefined
+            }
+            onDecode={onScan}
+            onError={(error: Error) => {
+              if (error.name === "NotAllowedError") {
+                setLastError(t("scanner.error.notAllowed"));
+              } else if (error.name === "InsecureContextError") {
+                setLastError(t("scanner.error.insecureContext"));
+              } else if (error.name === "StreamApiNotSupportedError") {
+                setLastError(t("scanner.error.streamApiNotSupported"));
+              } else if (error.name === "NotReadableError") {
+                setLastError(t("scanner.error.notReadable"));
+              } else {
+                setLastError(t("scanner.error.unknown", { error: error.name }));
+              }
             }}
-            ref={videoRef}
           />
-          {!hasCamera && (
-            <div
-              style={{
-                width: "100%",
-                position: "relative",
-                backgroundColor: "black",
-                display: hasCamera ? "none" : "block",
-                padding: "4rem 0rem",
-                textAlign: "center",
-              }}
-            >
-              No camera detected.
-              <br />
-              <br />
-              Ensure you have given the browser permission to use the camera.
-            </div>
-          )}
         </Space>
       </Modal>
     </>
