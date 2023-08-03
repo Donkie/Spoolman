@@ -20,12 +20,6 @@ const QRCodeScannerModal: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (visible) {
-      setLastError(null);
-    }
-  }, [visible]);
-
   return (
     <>
       <FloatButton
