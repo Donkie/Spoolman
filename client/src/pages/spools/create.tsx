@@ -41,7 +41,11 @@ export const SpoolCreate: React.FC<
     if (!name) {
       name = `ID: ${item.id}`;
     }
-    const label = `${vendorPrefix}${name}`;
+    let material = ""
+	  if (item.material) {
+      material = ` - ${item.material}`;
+    }
+    const label = `${vendorPrefix}${name}${material}`;
 
     return {
       label: label,
