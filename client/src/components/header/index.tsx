@@ -15,6 +15,7 @@ import { ColorModeContext } from "../../contexts/color-mode";
 
 import "/node_modules/flag-icons/css/flag-icons.min.css";
 import { languages } from "../../i18n";
+import QRCodeScannerModal from "../qrCodeScanner";
 
 const { useToken } = theme;
 
@@ -84,6 +85,7 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
           onChange={() => setMode(mode === "light" ? "dark" : "light")}
           defaultChecked={mode === "dark"}
         />
+        <QRCodeScannerModal />
       </Space>
     </AntdLayout.Header>
   );
