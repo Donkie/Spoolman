@@ -55,9 +55,14 @@ const QRCodeScannerModal: React.FC = () => {
             }
             onDecode={onScan}
             onError={(error: Error) => {
+              console.error(error);
               if (error.name === "NotAllowedError") {
                 setLastError(t("scanner.error.notAllowed"));
-              } else if (error.name === "InsecureContextError") {
+              } else if (
+                error.name === "InsecureContextError" ||
+                (location.protocol !== "https:" &&
+                  navigator.mediaDevices === undefined)
+              ) {
                 setLastError(t("scanner.error.insecureContext"));
               } else if (error.name === "StreamApiNotSupportedError") {
                 setLastError(t("scanner.error.streamApiNotSupported"));
