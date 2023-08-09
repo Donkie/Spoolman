@@ -5,7 +5,7 @@ import { useTranslate } from "@refinedev/core";
 
 interface QRCodeData {
   value: string;
-  label?: string;
+  label?: JSX.Element;
   errorLevel?: "L" | "M" | "Q" | "H";
 }
 
@@ -26,7 +26,7 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
     "print-showContent",
     true
   );
-  const [textSize, setTextSize] = useSavedState("print-textSize", 5);
+  const [textSize, setTextSize] = useSavedState("print-textSize", 3);
   const [showSpoolmanIcon, setShowSpoolmanIcon] = useSavedState(
     "print-showSpoolmanIcon",
     true
@@ -34,7 +34,15 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
 
   const elements = items.map((item) => {
     return (
-      <>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          width: "100%",
+          maxHeight: "100%",
+          flexDirection: "row",
+        }}
+      >
         <QRCode
           className="print-qrcode"
           icon={showSpoolmanIcon ? "/favicon.ico" : undefined}
@@ -46,12 +54,12 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
         {showContent && (
           <div
             className="print-qrcode-title"
-            style={{ textAlign: "center", color: "#000" }}
+            style={{ textAlign: "left", color: "#000", overflow: "hidden" }}
           >
             {item.label ?? item.value}
           </div>
         )}
-      </>
+      </div>
     );
   });
 
@@ -74,8 +82,8 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
                 <Slider
                   disabled={!showContent}
                   tooltip={{ formatter: (value) => `${value} mm` }}
-                  min={3}
-                  max={15}
+                  min={2}
+                  max={7}
                   value={textSize}
                   step={0.1}
                   onChange={(value) => {
@@ -113,6 +121,7 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
             }
 
             .print-page .print-qrcode-title {
+                width: 100%;
                 font-size: ${textSize}mm;
             }
 

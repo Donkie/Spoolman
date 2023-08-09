@@ -25,8 +25,8 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
     if (!name) {
       name = `ID: ${item.id}`;
     }
-    let material = ""
-	  if (item.material) {
+    let material = "";
+    if (item.material) {
       material = ` - ${item.material}`;
     }
     const label = `${vendorPrefix}${name}${material}`;

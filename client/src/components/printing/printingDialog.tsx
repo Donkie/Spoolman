@@ -160,14 +160,10 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
               <div
                 key={index}
                 style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
                   width: `${
                     (paperWidth - marginLeft - marginRight) / paperColumns
                   }mm`,
                   height: `${calculatedRowHeight}mm`,
-                  flexDirection: "column",
                   border: borderShowMode === "grid" ? "1px solid #000" : "none",
                 }}
               >

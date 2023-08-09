@@ -82,7 +82,7 @@
       "title": "QR Code Printing",
       "textSize": "Content Text Size",
       "showSpoolmanIcon": "Show Spoolman Icon",
-      "showContent": "Show QR Code Content"
+      "showContent": "Print Label"
     },
     "spoolSelect": {
       "title": "Select Spools",
