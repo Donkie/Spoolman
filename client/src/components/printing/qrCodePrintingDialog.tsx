@@ -15,50 +15,27 @@ interface QRCodePrintingDialogProps {
   onCancel: () => void;
 }
 
-const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
-  visible,
-  items,
-  onCancel,
-}) => {
+const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({ visible, items, onCancel }) => {
   const t = useTranslate();
 
-  const [showContent, setShowContent] = useSavedState(
-    "print-showContent",
-    true
-  );
+  const [showContent, setShowContent] = useSavedState("print-showContent", true);
   const [textSize, setTextSize] = useSavedState("print-textSize", 3);
-  const [showSpoolmanIcon, setShowSpoolmanIcon] = useSavedState(
-    "print-showSpoolmanIcon",
-    true
-  );
+  const [showSpoolmanIcon, setShowSpoolmanIcon] = useSavedState("print-showSpoolmanIcon", true);
 
   const elements = items.map((item) => {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          width: "100%",
-          maxHeight: "100%",
-          flexDirection: "row",
-        }}
-      >
-        <QRCode
-          className="print-qrcode"
-          icon={showSpoolmanIcon ? "/favicon.ico" : undefined}
-          value={item.value}
-          errorLevel={item.errorLevel}
-          type="svg"
-          color="#000"
-        />
-        {showContent && (
-          <div
-            className="print-qrcode-title"
-            style={{ textAlign: "left", color: "#000", overflow: "hidden" }}
-          >
-            {item.label ?? item.value}
-          </div>
-        )}
+      <div className="print-qrcode-item">
+        <div className="print-qrcode-container">
+          <QRCode
+            className="print-qrcode"
+            icon={showSpoolmanIcon ? "/favicon.ico" : undefined}
+            value={item.value}
+            errorLevel={item.errorLevel}
+            type="svg"
+            color="#000"
+          />
+        </div>
+        {showContent && <div className="print-qrcode-title">{item.label ?? item.value}</div>}
       </div>
     );
   });
@@ -71,10 +48,7 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
       extraSettings={
         <>
           <Form.Item label={t("printing.qrcode.showContent")}>
-            <Switch
-              checked={showContent}
-              onChange={(checked) => setShowContent(checked)}
-            />
+            <Switch checked={showContent} onChange={(checked) => setShowContent(checked)} />
           </Form.Item>
           <Form.Item label={t("printing.qrcode.textSize")}>
             <Row>
@@ -107,28 +81,41 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
             </Row>
           </Form.Item>
           <Form.Item label={t("printing.qrcode.showSpoolmanIcon")}>
-            <Switch
-              checked={showSpoolmanIcon}
-              onChange={(checked) => setShowSpoolmanIcon(checked)}
-            />
+            <Switch checked={showSpoolmanIcon} onChange={(checked) => setShowSpoolmanIcon(checked)} />
           </Form.Item>
         </>
       }
       style={`
+            .print-page .print-qrcode-item {
+              display: flex;
+              width: 100%;
+              max-height: 100%;
+            }
+
+            .print-page .print-qrcode-container {
+              max-width: 50%;
+              display: flex;
+            }
+
             .print-page .print-qrcode {
-                height: 100% !important;
-                width: 100% !important;
+              width: auto !important;
+              height: auto !important;
             }
 
             .print-page .print-qrcode-title {
-                width: 100%;
-                font-size: ${textSize}mm;
+              flex: 1 1 auto;
+              font-size: ${textSize}mm;
+              color: #000;
+              overflow: hidden;
             }
 
-            .print-page svg {
-                display: block;
-                height: 100%;
-                width: auto;
+            .print-page canvas, .print-page svg {
+              /* display: block; */
+              object-fit: contain;
+              height: 100% !important;
+              width: 100% !important;
+              max-height: 100%;
+              max-width: 100%;
             }
             `}
       onCancel={onCancel}
