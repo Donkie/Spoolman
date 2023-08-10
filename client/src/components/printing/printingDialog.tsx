@@ -58,6 +58,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
   const [printerMarginBottom, setPrinterMarginBottom] = useSavedState("print-printerMarginBottom", 5);
   const [paperColumns, setPaperColumns] = useSavedState("print-itemsPerRow", 3);
   const [paperRows, setPaperRows] = useSavedState("print-rowsPerPage", 8);
+  const [skipItems, setSkipItems] = useSavedState("print-skipItems", 0);
   const [paperSize, setPaperSize] = useSavedState("print-paperSize", "A4");
   const [previewScale, setPreviewScale] = useSavedState("print-previewScale", 0.6);
   const [borderShowMode, setBorderShowMode] = useSavedState<"none" | "border" | "grid">("print-borderShowMode", "grid");
@@ -72,9 +73,11 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
   const itemsPerRow = paperColumns;
   const rowsPerPage = paperRows;
 
+  const itemsIncludingSkipped = [...Array(skipItems).fill(<></>), ...items];
+
   const rowsOfItems = [];
-  for (let row_idx = 0; row_idx <= items.length / itemsPerRow; row_idx += 1) {
-    rowsOfItems.push(items.slice(row_idx * itemsPerRow, (row_idx + 1) * itemsPerRow));
+  for (let row_idx = 0; row_idx <= itemsIncludingSkipped.length / itemsPerRow; row_idx += 1) {
+    rowsOfItems.push(itemsIncludingSkipped.slice(row_idx * itemsPerRow, (row_idx + 1) * itemsPerRow));
   }
 
   const pageBlocks = [];
@@ -480,6 +483,30 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
                     value={paperRows}
                     onChange={(value) => {
                       setPaperRows(value ?? 1);
+                    }}
+                  />
+                </Col>
+              </Row>
+            </Form.Item>
+            <Form.Item label={t("printing.generic.skipItems")}>
+              <Row>
+                <Col span={12}>
+                  <Slider
+                    min={0}
+                    max={30}
+                    value={skipItems}
+                    onChange={(value) => {
+                      setSkipItems(value);
+                    }}
+                  />
+                </Col>
+                <Col span={12}>
+                  <InputNumber
+                    min={0}
+                    style={{ margin: "0 16px" }}
+                    value={skipItems}
+                    onChange={(value) => {
+                      setSkipItems(value ?? 1);
                     }}
                   />
                 </Col>
