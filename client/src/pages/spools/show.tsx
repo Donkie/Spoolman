@@ -49,6 +49,24 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
             ) : (
                 <>{filamentData?.data?.id}</>
             )} */}
+      <Title level={5}>{t("spool.fields.remaining_length")}</Title>
+      <NumberFieldUnit
+        value={record?.remaining_length ?? ""}
+        unit="mm"
+        options={{
+          maximumFractionDigits: 1,
+          minimumFractionDigits: 1,
+        }}
+      />
+      <Title level={5}>{t("spool.fields.used_length")}</Title>
+      <NumberFieldUnit
+        value={record?.used_length ?? ""}
+        unit="mm"
+        options={{
+          maximumFractionDigits: 1,
+          minimumFractionDigits: 1,
+        }}
+      />
       <Title level={5}>{t("spool.fields.remaining_weight")}</Title>
       <NumberFieldUnit
         value={record?.remaining_weight ?? ""}
