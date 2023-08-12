@@ -9,7 +9,7 @@ import { genericFilterer, typeFilters } from "../../utils/filtering";
 import { IVendor } from "./model";
 import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
 import { EditOutlined, FilterOutlined } from "@ant-design/icons";
-import { DateColumn, SortedColumn } from "../../components/column";
+import { DateColumn, RichColumn, SortedColumn } from "../../components/column";
 
 dayjs.extend(utc);
 
@@ -141,7 +141,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
         })}
-        {SortedColumn({
+        {RichColumn({
           id: "comment",
           i18ncat: "vendor",
           dataSource,

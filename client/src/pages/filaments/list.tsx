@@ -9,7 +9,14 @@ import { genericSorter, typeSorters } from "../../utils/sorting";
 import { genericFilterer, typeFilters } from "../../utils/filtering";
 import { EditOutlined, FilterOutlined } from "@ant-design/icons";
 import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
-import { DateColumn, FilteredColumn, NumberColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
+import {
+  DateColumn,
+  FilteredColumn,
+  NumberColumn,
+  RichColumn,
+  SortedColumn,
+  SpoolIconColumn,
+} from "../../components/column";
 
 dayjs.extend(utc);
 
@@ -246,7 +253,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
         })}
-        {SortedColumn({
+        {RichColumn({
           id: "comment",
           i18ncat: "filament",
           dataSource,

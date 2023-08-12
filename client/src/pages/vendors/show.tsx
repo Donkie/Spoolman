@@ -5,6 +5,7 @@ import { Typography } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { IVendor } from "./model";
+import { enrichText } from "../../utils/parsing";
 
 dayjs.extend(utc);
 
@@ -31,7 +32,7 @@ export const VendorShow: React.FC<IResourceComponentsProps> = () => {
       <Title level={5}>{t("vendor.fields.name")}</Title>
       <TextField value={record?.name} />
       <Title level={5}>{t("vendor.fields.comment")}</Title>
-      <TextField value={record?.comment} />
+      <TextField value={enrichText(record?.comment)} />
     </Show>
   );
 };

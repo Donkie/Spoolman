@@ -9,7 +9,14 @@ import { genericFilterer, typeFilters } from "../../utils/filtering";
 import { ISpool } from "./model";
 import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
 import { EditOutlined, FilterOutlined, InboxOutlined, ToTopOutlined } from "@ant-design/icons";
-import { DateColumn, FilteredColumn, NumberColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
+import {
+  DateColumn,
+  FilteredColumn,
+  NumberColumn,
+  RichColumn,
+  SortedColumn,
+  SpoolIconColumn,
+} from "../../components/column";
 import { setSpoolArchived } from "./functions";
 import SelectAndPrint from "../../components/selectAndPrintDialog";
 
@@ -305,7 +312,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
         })}
-        {SortedColumn({
+        {RichColumn({
           id: "comment",
           i18ncat: "spool",
           dataSource,

@@ -6,6 +6,7 @@ import { NumberFieldUnit } from "../../components/numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { ISpool } from "./model";
+import { enrichText } from "../../utils/parsing";
 
 dayjs.extend(utc);
 
@@ -90,7 +91,7 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       <Title level={5}>{t("spool.fields.lot_nr")}</Title>
       <TextField value={record?.lot_nr} />
       <Title level={5}>{t("spool.fields.comment")}</Title>
-      <TextField value={record?.comment} />
+      <TextField value={enrichText(record?.comment)} />
       <Title level={5}>{t("spool.fields.archived")}</Title>
       <TextField value={record?.archived ? t("yes") : t("no")} />
     </Show>

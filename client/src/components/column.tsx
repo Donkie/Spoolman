@@ -11,6 +11,7 @@ import { DateField, TextField } from "@refinedev/antd";
 import Icon from "@ant-design/icons";
 import { ReactComponent as SpoolIcon } from "../icon_spool.svg";
 import { useTranslate } from "@refinedev/core";
+import { enrichText } from "../utils/parsing";
 
 dayjs.extend(utc);
 
@@ -62,8 +63,16 @@ function Column<Obj>(props: BaseColumnProps<Obj> & FilteredColumnProps & CustomC
 }
 
 export function SortedColumn<Obj>(props: BaseColumnProps<Obj>) {
-  //   return <Table.Column dataIndex={["comment"]} title="Comment" />;
   return Column(props);
+}
+
+export function RichColumn<Obj>(props: BaseColumnProps<Obj>) {
+  return Column({
+    ...props,
+    render: (value: string | undefined) => {
+      return enrichText(value);
+    },
+  });
 }
 
 export function FilteredColumn<Obj>(props: BaseColumnProps<Obj>) {

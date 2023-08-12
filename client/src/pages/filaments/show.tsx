@@ -6,6 +6,7 @@ import { NumberFieldUnit } from "../../components/numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { IFilament } from "./model";
+import { enrichText } from "../../utils/parsing";
 
 dayjs.extend(utc);
 
@@ -90,7 +91,7 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       <Title level={5}>{t("filament.fields.article_number")}</Title>
       <TextField value={record?.article_number} />
       <Title level={5}>{t("filament.fields.comment")}</Title>
-      <TextField value={record?.comment} />
+      <TextField value={enrichText(record?.comment)} />
     </Show>
   );
 };
