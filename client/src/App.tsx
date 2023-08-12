@@ -1,7 +1,7 @@
 import { Refine } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
-import { ErrorComponent, notificationProvider, ThemedLayoutV2, ThemedSiderV2, ThemedTitleV2 } from "@refinedev/antd";
+import { ErrorComponent, ThemedLayoutV2, ThemedSiderV2, ThemedTitleV2 } from "@refinedev/antd";
 import "@refinedev/antd/dist/reset.css";
 
 import routerBindings, {
@@ -23,6 +23,7 @@ import React from "react";
 import { Locale } from "antd/es/locale";
 import { languages } from "./i18n";
 import loadable from "@loadable/component";
+import SpoolmanNotificationProvider from "./components/notificationProvider";
 
 interface PageProps {
   resource: "spools" | "filaments" | "vendors";
@@ -82,7 +83,7 @@ function App() {
           >
             <Refine
               dataProvider={dataProvider(import.meta.env.VITE_APIURL)}
-              notificationProvider={notificationProvider}
+              notificationProvider={SpoolmanNotificationProvider}
               i18nProvider={i18nProvider}
               routerProvider={routerBindings}
               resources={[
