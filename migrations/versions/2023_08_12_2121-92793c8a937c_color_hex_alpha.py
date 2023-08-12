@@ -16,9 +16,11 @@ depends_on = None
 
 def upgrade() -> None:
     """Perform the upgrade."""
-    op.alter_column("filament", "color_hex", type_=sa.String(length=8), existing_nullable=True)
+    with op.batch_alter_table("filament") as batch_op:
+        batch_op.alter_column("color_hex", type_=sa.String(length=8), existing_nullable=True)
 
 
 def downgrade() -> None:
     """Perform the downgrade."""
-    op.alter_column("filament", "color_hex", type_=sa.String(length=6), existing_nullable=True)
+    with op.batch_alter_table("filament") as batch_op:
+        batch_op.alter_column("color_hex", type_=sa.String(length=6), existing_nullable=True)
