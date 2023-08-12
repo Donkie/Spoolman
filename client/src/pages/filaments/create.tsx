@@ -56,7 +56,13 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
             },
           ]}
         >
-          <Select {...selectProps} allowClear />
+          <Select
+            {...selectProps}
+            allowClear
+            filterOption={(input, option) =>
+              typeof option?.label === "string" && option?.label.toLowerCase().includes(input.toLowerCase())
+            }
+          />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.color_hex")}

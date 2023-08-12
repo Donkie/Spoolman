@@ -96,7 +96,13 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             },
           ]}
         >
-          <Select options={filamentOptions} />
+          <Select
+            options={filamentOptions}
+            showSearch
+            filterOption={(input, option) =>
+              typeof option?.label === "string" && option?.label.toLowerCase().includes(input.toLowerCase())
+            }
+          />
         </Form.Item>
         <Form.Item
           label={t("spool.fields.used_weight")}
