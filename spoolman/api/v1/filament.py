@@ -6,7 +6,7 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from pydantic.error_wrappers import ErrorWrapper
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -74,11 +74,28 @@ class FilamentParameters(BaseModel):
         example=60,
     )
     color_hex: Optional[str] = Field(
-        min_length=6,
-        max_length=6,
-        description="Hexadecimal color code of the filament, e.g. FF0000 for red. (no leading #)",
+        description="Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end.",
         example="FF0000",
     )
+
+    @validator("color_hex")
+    @classmethod
+    def color_hex_validator(cls, v: Optional[str]) -> Optional[str]:  # noqa: ANN102
+        """Validate the color_hex field."""
+        if not v:
+            return None
+        if v.startswith("#"):
+            v = v[1:]
+        v = v.upper()
+
+        for c in v:
+            if c not in "0123456789ABCDEF":
+                raise ValueError("Invalid character in color code.")
+
+        if len(v) not in (6, 8):
+            raise ValueError("Color code must be 6 or 8 characters long.")
+
+        return v
 
 
 class FilamentUpdateParameters(FilamentParameters):

@@ -82,8 +82,8 @@ class Filament(BaseModel):
     )
     color_hex: Optional[str] = Field(
         min_length=6,
-        max_length=6,
-        description="Hexadecimal color code of the filament, e.g. FF0000 for red. (no leading #)",
+        max_length=8,
+        description="Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end.",
         example="FF0000",
     )
 

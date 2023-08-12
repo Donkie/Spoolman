@@ -438,3 +438,23 @@ def test_update_filament_not_found():
     assert "filament" in message
     assert "id" in message
     assert "123456789" in message
+
+
+def test_add_filament_color_hex_alpha():
+    """Test adding a filament with an alpha channel in the color hex."""
+    color_hex = "FF000088"
+
+    # Execute
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={
+            "density": 1.25,
+            "diameter": 1.75,
+            "color_hex": color_hex,
+        },
+    )
+    result.raise_for_status()
+
+    # Verify
+    filament = result.json()
+    assert filament["color_hex"] == color_hex
