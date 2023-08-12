@@ -1,41 +1,15 @@
 import React from "react";
-import {
-  IResourceComponentsProps,
-  useInvalidate,
-  useTranslate,
-} from "@refinedev/core";
-import {
-  useTable,
-  List,
-  EditButton,
-  ShowButton,
-  CloneButton,
-} from "@refinedev/antd";
+import { IResourceComponentsProps, useInvalidate, useTranslate } from "@refinedev/core";
+import { useTable, List, EditButton, ShowButton, CloneButton } from "@refinedev/antd";
 import { Table, Space, Button, Dropdown, Modal } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { genericSorter, typeSorters } from "../../utils/sorting";
 import { genericFilterer, typeFilters } from "../../utils/filtering";
 import { ISpool } from "./model";
-import {
-  TableState,
-  useInitialTableState,
-  useSavedState,
-  useStoreInitialState,
-} from "../../utils/saveload";
-import {
-  EditOutlined,
-  FilterOutlined,
-  InboxOutlined,
-  ToTopOutlined,
-} from "@ant-design/icons";
-import {
-  DateColumn,
-  FilteredColumn,
-  NumberColumn,
-  SortedColumn,
-  SpoolIconColumn,
-} from "../../components/column";
+import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
+import { EditOutlined, FilterOutlined, InboxOutlined, ToTopOutlined } from "@ant-design/icons";
+import { DateColumn, FilteredColumn, NumberColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
 import { setSpoolArchived } from "./functions";
 import SelectAndPrint from "../../components/selectAndPrintDialog";
 
@@ -56,43 +30,31 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const initialState = useInitialTableState("spoolList");
 
   // State for the switch to show archived spools
-  const [showArchived, setShowArchived] = useSavedState(
-    "spoolList-showArchived",
-    false
-  );
+  const [showArchived, setShowArchived] = useSavedState("spoolList-showArchived", false);
 
   // Fetch data from the API
-  const {
-    tableProps,
-    sorters,
-    setSorters,
-    filters,
-    setFilters,
-    current,
-    pageSize,
-    setCurrent,
-    setPageSize,
-  } = useTable<ISpool>({
-    meta: {
-      queryParams: {
-        ["allow_archived"]: showArchived,
+  const { tableProps, sorters, setSorters, filters, setFilters, current, pageSize, setCurrent, setPageSize } =
+    useTable<ISpool>({
+      meta: {
+        queryParams: {
+          ["allow_archived"]: showArchived,
+        },
       },
-    },
-    syncWithLocation: false,
-    pagination: {
-      mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
-      current: initialState.pagination.current,
-      pageSize: initialState.pagination.pageSize,
-    },
-    sorters: {
-      mode: "off", // Disable server-side sorting
-      initial: initialState.sorters,
-    },
-    filters: {
-      mode: "off", // Disable server-side filtering
-      initial: initialState.filters,
-    },
-  });
+      syncWithLocation: false,
+      pagination: {
+        mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
+        current: initialState.pagination.current,
+        pageSize: initialState.pagination.pageSize,
+      },
+      sorters: {
+        mode: "off", // Disable server-side sorting
+        initial: initialState.sorters,
+      },
+      filters: {
+        mode: "off", // Disable server-side filtering
+        initial: initialState.filters,
+      },
+    });
 
   // Create state for the columns to show
   const allColumns: (keyof ISpoolCollapsed & string)[] = [
@@ -111,14 +73,9 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     "comment",
   ];
   const defaultColumns = allColumns.filter(
-    (column_id) =>
-      ["registered", "used_length", "remaining_length", "lot_nr"].indexOf(
-        column_id
-      ) === -1
+    (column_id) => ["registered", "used_length", "remaining_length", "lot_nr"].indexOf(column_id) === -1
   );
-  const [showColumns, setShowColumns] = React.useState<string[]>(
-    initialState.showColumns ?? defaultColumns
-  );
+  const [showColumns, setShowColumns] = React.useState<string[]>(initialState.showColumns ?? defaultColumns);
 
   // Type the sorters and filters
   const typedSorters = typeSorters<ISpoolCollapsed>(sorters);
@@ -141,8 +98,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
         if (element.filament.vendor && "name" in element.filament.vendor) {
           filament_name = `${element.filament.vendor.name} - ${element.filament.name}`;
         } else {
-          filament_name =
-            element.filament.name ?? element.filament.id.toString();
+          filament_name = element.filament.name ?? element.filament.id.toString();
         }
         return {
           ...element,
@@ -200,9 +156,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
               setShowArchived(!showArchived);
             }}
           >
-            {showArchived
-              ? t("buttons.hideArchived")
-              : t("buttons.showArchived")}
+            {showArchived ? t("buttons.hideArchived") : t("buttons.showArchived")}
           </Button>
           <Button
             type="primary"
@@ -361,24 +315,9 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           title={t("table.actions")}
           render={(_, record: ISpoolCollapsed) => (
             <Space>
-              <EditButton
-                hideText
-                title={t("buttons.edit")}
-                size="small"
-                recordItemId={record.id}
-              />
-              <ShowButton
-                hideText
-                title={t("buttons.show")}
-                size="small"
-                recordItemId={record.id}
-              />
-              <CloneButton
-                hideText
-                title={t("buttons.clone")}
-                size="small"
-                recordItemId={record.id}
-              />
+              <EditButton hideText title={t("buttons.edit")} size="small" recordItemId={record.id} />
+              <ShowButton hideText title={t("buttons.show")} size="small" recordItemId={record.id} />
+              <CloneButton hideText title={t("buttons.clone")} size="small" recordItemId={record.id} />
               {record.archived ? (
                 <Button
                   icon={<ToTopOutlined />}

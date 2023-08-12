@@ -1,14 +1,7 @@
 import React from "react";
 import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import {
-  Form,
-  Input,
-  DatePicker,
-  Select,
-  InputNumber,
-  ColorPicker,
-} from "antd";
+import { Form, Input, DatePicker, Select, InputNumber, ColorPicker } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { numberFormatter, numberParser } from "../../utils/parsing";
@@ -26,8 +19,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
   });
 
   if (formProps.initialValues) {
-    formProps.initialValues["vendor_id"] =
-      formProps.initialValues["vendor"]?.id;
+    formProps.initialValues["vendor_id"] = formProps.initialValues["vendor"]?.id;
   }
 
   return (
@@ -124,12 +116,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
             },
           ]}
         >
-          <InputNumber
-            min={0}
-            precision={2}
-            formatter={numberFormatter}
-            parser={numberParser}
-          />
+          <InputNumber min={0} precision={2} formatter={numberFormatter} parser={numberParser} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.density")}
@@ -140,13 +127,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
             },
           ]}
         >
-          <InputNumber
-            min={0}
-            addonAfter="g/cm³"
-            precision={3}
-            formatter={numberFormatter}
-            parser={numberParser}
-          />
+          <InputNumber min={0} addonAfter="g/cm³" precision={3} formatter={numberFormatter} parser={numberParser} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.diameter")}
@@ -157,13 +138,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
             },
           ]}
         >
-          <InputNumber
-            min={0}
-            addonAfter="mm"
-            precision={2}
-            formatter={numberFormatter}
-            parser={numberParser}
-          />
+          <InputNumber min={0} addonAfter="mm" precision={2} formatter={numberFormatter} parser={numberParser} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.weight")}

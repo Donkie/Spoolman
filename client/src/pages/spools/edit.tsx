@@ -38,8 +38,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   });
 
   if (formProps.initialValues) {
-    formProps.initialValues["filament_id"] =
-      formProps.initialValues["filament"].id;
+    formProps.initialValues["filament_id"] = formProps.initialValues["filament"].id;
   }
 
   return (

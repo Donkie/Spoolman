@@ -9,20 +9,14 @@ interface CreateOrCloneProps {
   mode: "create" | "clone";
 }
 
-export const VendorCreate: React.FC<
-  IResourceComponentsProps & CreateOrCloneProps
-> = (props) => {
+export const VendorCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
 
   const { formProps, saveButtonProps, formLoading } = useForm<IVendor>();
 
   return (
     <Create
-      title={
-        props.mode === "create"
-          ? t("vendor.titles.create")
-          : t("vendor.titles.clone")
-      }
+      title={props.mode === "create" ? t("vendor.titles.create") : t("vendor.titles.clone")}
       isLoading={formLoading}
       saveButtonProps={saveButtonProps}
     >

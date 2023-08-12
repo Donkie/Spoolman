@@ -11,9 +11,7 @@ interface CreateOrCloneProps {
   mode: "create" | "clone";
 }
 
-export const FilamentCreate: React.FC<
-  IResourceComponentsProps & CreateOrCloneProps
-> = (props) => {
+export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
 
   const { formProps, saveButtonProps, formLoading } = useForm<IFilament>();
@@ -96,12 +94,7 @@ export const FilamentCreate: React.FC<
             },
           ]}
         >
-          <InputNumber
-            min={0}
-            precision={2}
-            formatter={numberFormatter}
-            parser={numberParser}
-          />
+          <InputNumber min={0} precision={2} formatter={numberFormatter} parser={numberParser} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.density")}
@@ -112,13 +105,7 @@ export const FilamentCreate: React.FC<
             },
           ]}
         >
-          <InputNumber
-            min={0}
-            addonAfter="g/cm³"
-            precision={3}
-            formatter={numberFormatter}
-            parser={numberParser}
-          />
+          <InputNumber min={0} addonAfter="g/cm³" precision={3} formatter={numberFormatter} parser={numberParser} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.diameter")}
@@ -129,13 +116,7 @@ export const FilamentCreate: React.FC<
             },
           ]}
         >
-          <InputNumber
-            min={0}
-            addonAfter="mm"
-            precision={2}
-            formatter={numberFormatter}
-            parser={numberParser}
-          />
+          <InputNumber min={0} addonAfter="mm" precision={2} formatter={numberFormatter} parser={numberParser} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.weight")}

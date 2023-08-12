@@ -22,18 +22,8 @@ const QRCodeScannerModal: React.FC = () => {
 
   return (
     <>
-      <FloatButton
-        type="primary"
-        onClick={() => setVisible(true)}
-        icon={<CameraOutlined />}
-        shape="circle"
-      />
-      <Modal
-        open={visible}
-        onCancel={() => setVisible(false)}
-        footer={null}
-        title={t("scanner.title")}
-      >
+      <FloatButton type="primary" onClick={() => setVisible(true)} icon={<CameraOutlined />} shape="circle" />
+      <Modal open={visible} onCancel={() => setVisible(false)} footer={null} title={t("scanner.title")}>
         <Space direction="vertical" style={{ width: "100%" }}>
           <p>{t("scanner.description")}</p>
           <QrScanner
@@ -60,8 +50,7 @@ const QRCodeScannerModal: React.FC = () => {
                 setLastError(t("scanner.error.notAllowed"));
               } else if (
                 error.name === "InsecureContextError" ||
-                (location.protocol !== "https:" &&
-                  navigator.mediaDevices === undefined)
+                (location.protocol !== "https:" && navigator.mediaDevices === undefined)
               ) {
                 setLastError(t("scanner.error.insecureContext"));
               } else if (error.name === "StreamApiNotSupportedError") {

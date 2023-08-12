@@ -1,16 +1,6 @@
 import React from "react";
-import {
-  IResourceComponentsProps,
-  BaseRecord,
-  useTranslate,
-} from "@refinedev/core";
-import {
-  useTable,
-  List,
-  EditButton,
-  ShowButton,
-  CloneButton,
-} from "@refinedev/antd";
+import { IResourceComponentsProps, BaseRecord, useTranslate } from "@refinedev/core";
+import { useTable, List, EditButton, ShowButton, CloneButton } from "@refinedev/antd";
 import { Table, Space, Button, Dropdown } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -18,18 +8,8 @@ import { IFilament } from "./model";
 import { genericSorter, typeSorters } from "../../utils/sorting";
 import { genericFilterer, typeFilters } from "../../utils/filtering";
 import { EditOutlined, FilterOutlined } from "@ant-design/icons";
-import {
-  TableState,
-  useInitialTableState,
-  useStoreInitialState,
-} from "../../utils/saveload";
-import {
-  DateColumn,
-  FilteredColumn,
-  NumberColumn,
-  SortedColumn,
-  SpoolIconColumn,
-} from "../../components/column";
+import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
+import { DateColumn, FilteredColumn, NumberColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
 
 dayjs.extend(utc);
 
@@ -44,32 +24,23 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   const initialState = useInitialTableState("filamentList");
 
   // Fetch data from the API
-  const {
-    tableProps,
-    sorters,
-    setSorters,
-    filters,
-    setFilters,
-    current,
-    pageSize,
-    setCurrent,
-    setPageSize,
-  } = useTable<IFilament>({
-    syncWithLocation: false,
-    pagination: {
-      mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
-      current: initialState.pagination.current,
-      pageSize: initialState.pagination.pageSize,
-    },
-    sorters: {
-      mode: "off", // Disable server-side sorting
-      initial: initialState.sorters,
-    },
-    filters: {
-      mode: "off", // Disable server-side filtering
-      initial: initialState.filters,
-    },
-  });
+  const { tableProps, sorters, setSorters, filters, setFilters, current, pageSize, setCurrent, setPageSize } =
+    useTable<IFilament>({
+      syncWithLocation: false,
+      pagination: {
+        mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
+        current: initialState.pagination.current,
+        pageSize: initialState.pagination.pageSize,
+      },
+      sorters: {
+        mode: "off", // Disable server-side sorting
+        initial: initialState.sorters,
+      },
+      filters: {
+        mode: "off", // Disable server-side filtering
+        initial: initialState.filters,
+      },
+    });
 
   // Create state for the columns to show
   const allColumns: (keyof IFilamentCollapsed & string)[] = [
@@ -89,15 +60,10 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
     "comment",
   ];
   const defaultColumns = allColumns.filter(
-    (column_id) =>
-      ["registered", "density", "diameter", "spool_weight"].indexOf(
-        column_id
-      ) === -1
+    (column_id) => ["registered", "density", "diameter", "spool_weight"].indexOf(column_id) === -1
   );
 
-  const [showColumns, setShowColumns] = React.useState<string[]>(
-    initialState.showColumns ?? defaultColumns
-  );
+  const [showColumns, setShowColumns] = React.useState<string[]>(initialState.showColumns ?? defaultColumns);
 
   // Type the sorters and filters
   const typedSorters = typeSorters<IFilamentCollapsed>(sorters);
@@ -290,24 +256,9 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           title={t("table.actions")}
           render={(_, record: BaseRecord) => (
             <Space>
-              <EditButton
-                hideText
-                title={t("buttons.edit")}
-                size="small"
-                recordItemId={record.id}
-              />
-              <ShowButton
-                hideText
-                title={t("buttons.show")}
-                size="small"
-                recordItemId={record.id}
-              />
-              <CloneButton
-                hideText
-                title={t("buttons.clone")}
-                size="small"
-                recordItemId={record.id}
-              />
+              <EditButton hideText title={t("buttons.edit")} size="small" recordItemId={record.id} />
+              <ShowButton hideText title={t("buttons.show")} size="small" recordItemId={record.id} />
+              <CloneButton hideText title={t("buttons.clone")} size="small" recordItemId={record.id} />
             </Space>
           )}
         />

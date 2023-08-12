@@ -11,9 +11,7 @@ interface CreateOrCloneProps {
   mode: "create" | "clone";
 }
 
-export const SpoolCreate: React.FC<
-  IResourceComponentsProps & CreateOrCloneProps
-> = (props) => {
+export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
 
   const { formProps, saveButtonProps, formLoading } = useForm<ISpool>();
@@ -55,11 +53,7 @@ export const SpoolCreate: React.FC<
 
   return (
     <Create
-      title={
-        props.mode === "create"
-          ? t("spool.titles.create")
-          : t("spool.titles.clone")
-      }
+      title={props.mode === "create" ? t("spool.titles.create") : t("spool.titles.clone")}
       saveButtonProps={saveButtonProps}
       isLoading={formLoading}
     >

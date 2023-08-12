@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  IResourceComponentsProps,
-  useShow,
-  useTranslate,
-} from "@refinedev/core";
+import { IResourceComponentsProps, useShow, useTranslate } from "@refinedev/core";
 import { Show, NumberField, DateField, TextField } from "@refinedev/antd";
 import { Typography } from "antd";
 import dayjs from "dayjs";

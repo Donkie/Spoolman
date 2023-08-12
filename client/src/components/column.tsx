@@ -1,11 +1,7 @@
 import { Col, Row, Table } from "antd";
 import { ColumnProps as AntdColumnProps } from "antd/es/table";
 import { ColumnFilterItem } from "antd/es/table/interface";
-import {
-  getFiltersForField,
-  typeFilters,
-  useListFiltersForField,
-} from "../utils/filtering";
+import { getFiltersForField, typeFilters, useListFiltersForField } from "../utils/filtering";
 import { TableState } from "../utils/saveload";
 import { getSortOrderForField, typeSorters } from "../utils/sorting";
 import { NumberFieldUnit } from "./numberField";
@@ -40,14 +36,9 @@ interface CustomColumnProps<Obj> {
   ) => React.HTMLAttributes<any> | React.TdHTMLAttributes<any>;
 }
 
-function Column<Obj>(
-  props: BaseColumnProps<Obj> & FilteredColumnProps & CustomColumnProps<Obj>
-) {
+function Column<Obj>(props: BaseColumnProps<Obj> & FilteredColumnProps & CustomColumnProps<Obj>) {
   const t = useTranslate();
-  if (
-    props.tableState.showColumns &&
-    !props.tableState.showColumns.includes(props.id)
-  ) {
+  if (props.tableState.showColumns && !props.tableState.showColumns.includes(props.id)) {
     return <></>;
   }
   const typedSorters = typeSorters<Obj>(props.tableState.sorters);

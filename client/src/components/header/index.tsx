@@ -1,15 +1,7 @@
 import { DownOutlined } from "@ant-design/icons";
 import type { RefineThemedLayoutV2HeaderProps } from "@refinedev/antd";
 import { useGetLocale, useSetLocale } from "@refinedev/core";
-import {
-  Button,
-  Dropdown,
-  Layout as AntdLayout,
-  MenuProps,
-  Space,
-  Switch,
-  theme,
-} from "antd";
+import { Button, Dropdown, Layout as AntdLayout, MenuProps, Space, Switch, theme } from "antd";
 import React, { useContext } from "react";
 import { ColorModeContext } from "../../contexts/color-mode";
 
@@ -19,9 +11,7 @@ import QRCodeScannerModal from "../qrCodeScanner";
 
 const { useToken } = theme;
 
-export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
-  sticky,
-}) => {
+export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({ sticky }) => {
   const { token } = useToken();
   const locale = useGetLocale();
   const changeLanguage = useSetLocale();
@@ -29,19 +19,12 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
 
   const currentLocale = locale();
 
-  const menuItems: MenuProps["items"] = [...(Object.keys(languages) || [])]
-    .sort()
-    .map((lang: string) => ({
-      key: lang,
-      onClick: () => changeLanguage(lang),
-      icon: (
-        <span
-          className={"fi fi-" + languages[lang].countryCode}
-          style={{ marginRight: 8 }}
-        />
-      ),
-      label: languages[lang].name,
-    }));
+  const menuItems: MenuProps["items"] = [...(Object.keys(languages) || [])].sort().map((lang: string) => ({
+    key: lang,
+    onClick: () => changeLanguage(lang),
+    icon: <span className={"fi fi-" + languages[lang].countryCode} style={{ marginRight: 8 }} />,
+    label: languages[lang].name,
+  }));
 
   const headerStyles: React.CSSProperties = {
     backgroundColor: token.colorBgElevated,
@@ -69,11 +52,7 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
         >
           <Button type="text">
             <Space>
-              <span
-                className={
-                  "fi fi-" + languages[currentLocale ?? "en"].countryCode
-                }
-              />
+              <span className={"fi fi-" + languages[currentLocale ?? "en"].countryCode} />
               {languages[currentLocale ?? "en"].name}
               <DownOutlined />
             </Space>

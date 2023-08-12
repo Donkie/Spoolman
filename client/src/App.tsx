@@ -1,13 +1,7 @@
 import { Refine } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
-import {
-  ErrorComponent,
-  notificationProvider,
-  ThemedLayoutV2,
-  ThemedSiderV2,
-  ThemedTitleV2,
-} from "@refinedev/antd";
+import { ErrorComponent, notificationProvider, ThemedLayoutV2, ThemedSiderV2, ThemedTitleV2 } from "@refinedev/antd";
 import "@refinedev/antd/dist/reset.css";
 
 import routerBindings, {
@@ -21,11 +15,7 @@ import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import { ReactComponent as Logo } from "./icon.svg";
-import {
-  FileOutlined,
-  HighlightOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
+import { FileOutlined, HighlightOutlined, UserOutlined } from "@ant-design/icons";
 import { ConfigProvider } from "antd";
 import { Footer } from "antd/es/layout/layout";
 import { Version } from "./components/version";
@@ -40,14 +30,10 @@ interface PageProps {
   mode?: "create" | "clone";
 }
 
-const LoadablePage = loadable(
-  (props: PageProps) => import(`./pages/${props.resource}/${props.page}.tsx`),
-  {
-    fallback: <div>Page is Loading...</div>,
-    cacheKey: (props: PageProps) =>
-      `${props.resource}-${props.page}-${props.mode ?? ""}`,
-  }
-);
+const LoadablePage = loadable((props: PageProps) => import(`./pages/${props.resource}/${props.page}.tsx`), {
+  fallback: <div>Page is Loading...</div>,
+  cacheKey: (props: PageProps) => `${props.resource}-${props.page}-${props.mode ?? ""}`,
+});
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -63,9 +49,7 @@ function App() {
   React.useEffect(() => {
     const fetchLocale = async () => {
       const locale = await import(
-        `./../node_modules/antd/es/locale/${languages[
-          i18n.language
-        ].fullCode.replace("-", "_")}.js`
+        `./../node_modules/antd/es/locale/${languages[i18n.language].fullCode.replace("-", "_")}.js`
       );
       setAntdLocale(locale.default);
     };
@@ -77,8 +61,8 @@ function App() {
       <>
         <h1>Missing API URL</h1>
         <p>
-          App was built without an API URL. Please set the VITE_APIURL
-          environment variable to the URL of your Spoolman API.
+          App was built without an API URL. Please set the VITE_APIURL environment variable to the URL of your Spoolman
+          API.
         </p>
       </>
     );
@@ -154,11 +138,7 @@ function App() {
                         <ThemedSiderV2
                           fixed
                           Title={({ collapsed }) => (
-                            <ThemedTitleV2
-                              collapsed={collapsed}
-                              text="Spoolman"
-                              icon={<Logo />}
-                            />
+                            <ThemedTitleV2 collapsed={collapsed} text="Spoolman" icon={<Logo />} />
                           )}
                         />
                       )}
@@ -172,117 +152,30 @@ function App() {
                     </ThemedLayoutV2>
                   }
                 >
-                  <Route
-                    index
-                    element={<NavigateToResource resource="spool" />}
-                  />
+                  <Route index element={<NavigateToResource resource="spool" />} />
                   <Route path="/spool">
-                    <Route
-                      index
-                      element={<LoadablePage resource="spools" page="list" />}
-                    />
-                    <Route
-                      path="create"
-                      element={
-                        <LoadablePage
-                          resource="spools"
-                          page="create"
-                          mode="create"
-                        />
-                      }
-                    />
-                    <Route
-                      path="clone/:id"
-                      element={
-                        <LoadablePage
-                          resource="spools"
-                          page="create"
-                          mode="clone"
-                        />
-                      }
-                    />
-                    <Route
-                      path="edit/:id"
-                      element={<LoadablePage resource="spools" page="edit" />}
-                    />
-                    <Route
-                      path="show/:id"
-                      element={<LoadablePage resource="spools" page="show" />}
-                    />
+                    <Route index element={<LoadablePage resource="spools" page="list" />} />
+                    <Route path="create" element={<LoadablePage resource="spools" page="create" mode="create" />} />
+                    <Route path="clone/:id" element={<LoadablePage resource="spools" page="create" mode="clone" />} />
+                    <Route path="edit/:id" element={<LoadablePage resource="spools" page="edit" />} />
+                    <Route path="show/:id" element={<LoadablePage resource="spools" page="show" />} />
                   </Route>
                   <Route path="/filament">
-                    <Route
-                      index
-                      element={
-                        <LoadablePage resource="filaments" page="list" />
-                      }
-                    />
-                    <Route
-                      path="create"
-                      element={
-                        <LoadablePage
-                          resource="filaments"
-                          page="create"
-                          mode="create"
-                        />
-                      }
-                    />
+                    <Route index element={<LoadablePage resource="filaments" page="list" />} />
+                    <Route path="create" element={<LoadablePage resource="filaments" page="create" mode="create" />} />
                     <Route
                       path="clone/:id"
-                      element={
-                        <LoadablePage
-                          resource="filaments"
-                          page="create"
-                          mode="clone"
-                        />
-                      }
+                      element={<LoadablePage resource="filaments" page="create" mode="clone" />}
                     />
-                    <Route
-                      path="edit/:id"
-                      element={
-                        <LoadablePage resource="filaments" page="edit" />
-                      }
-                    />
-                    <Route
-                      path="show/:id"
-                      element={
-                        <LoadablePage resource="filaments" page="show" />
-                      }
-                    />
+                    <Route path="edit/:id" element={<LoadablePage resource="filaments" page="edit" />} />
+                    <Route path="show/:id" element={<LoadablePage resource="filaments" page="show" />} />
                   </Route>
                   <Route path="/vendor">
-                    <Route
-                      index
-                      element={<LoadablePage resource="vendors" page="list" />}
-                    />
-                    <Route
-                      path="create"
-                      element={
-                        <LoadablePage
-                          resource="vendors"
-                          page="create"
-                          mode="create"
-                        />
-                      }
-                    />
-                    <Route
-                      path="clone/:id"
-                      element={
-                        <LoadablePage
-                          resource="vendors"
-                          page="create"
-                          mode="clone"
-                        />
-                      }
-                    />
-                    <Route
-                      path="edit/:id"
-                      element={<LoadablePage resource="vendors" page="edit" />}
-                    />
-                    <Route
-                      path="show/:id"
-                      element={<LoadablePage resource="vendors" page="show" />}
-                    />
+                    <Route index element={<LoadablePage resource="vendors" page="list" />} />
+                    <Route path="create" element={<LoadablePage resource="vendors" page="create" mode="create" />} />
+                    <Route path="clone/:id" element={<LoadablePage resource="vendors" page="create" mode="clone" />} />
+                    <Route path="edit/:id" element={<LoadablePage resource="vendors" page="edit" />} />
+                    <Route path="show/:id" element={<LoadablePage resource="vendors" page="show" />} />
                   </Route>
                   <Route path="*" element={<ErrorComponent />} />
                 </Route>

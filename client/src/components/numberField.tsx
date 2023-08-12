@@ -5,11 +5,7 @@ import { NumberFieldProps } from "@refinedev/antd/dist/components/fields/types";
 const { Text } = Typography;
 
 function toLocaleStringSupportsOptions() {
-  return !!(
-    typeof Intl == "object" &&
-    Intl &&
-    typeof Intl.NumberFormat == "function"
-  );
+  return !!(typeof Intl == "object" && Intl && typeof Intl.NumberFormat == "function");
 }
 
 type Props = NumberFieldProps & {
@@ -21,20 +17,12 @@ type Props = NumberFieldProps & {
  *
  * @see {@link https://refine.dev/docs/ui-frameworks/antd/components/fields/number} for more details.
  */
-export const NumberFieldUnit: React.FC<Props> = ({
-  value,
-  locale,
-  options,
-  ...rest
-}) => {
+export const NumberFieldUnit: React.FC<Props> = ({ value, locale, options, ...rest }) => {
   const number = Number(value);
 
   return (
     <Text {...rest}>
-      {toLocaleStringSupportsOptions()
-        ? number.toLocaleString(locale, options)
-        : number}{" "}
-      {rest.unit}
+      {toLocaleStringSupportsOptions() ? number.toLocaleString(locale, options) : number} {rest.unit}
     </Text>
   );
 };

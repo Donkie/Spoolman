@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  IResourceComponentsProps,
-  useShow,
-  useTranslate,
-} from "@refinedev/core";
+import { IResourceComponentsProps, useShow, useTranslate } from "@refinedev/core";
 import { Show, NumberField, DateField, TextField } from "@refinedev/antd";
 import { Typography } from "antd";
 import { NumberFieldUnit } from "../../components/numberField";
@@ -79,10 +75,7 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       {!record?.settings_extruder_temp ? (
         <TextField value="Not Set" />
       ) : (
-        <NumberFieldUnit
-          value={record?.settings_extruder_temp ?? ""}
-          unit="°C"
-        />
+        <NumberFieldUnit value={record?.settings_extruder_temp ?? ""} unit="°C" />
       )}
       <Title level={5}>{t("filament.fields.settings_bed_temp")}</Title>
       {!record?.settings_bed_temp ? (

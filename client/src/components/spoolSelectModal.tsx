@@ -20,12 +20,7 @@ interface ISpoolCollapsed extends ISpool {
   material?: string;
 }
 
-const SpoolSelectModal: React.FC<Props> = ({
-  visible,
-  description,
-  onCancel,
-  onContinue,
-}) => {
+const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onContinue }) => {
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
@@ -65,8 +60,7 @@ const SpoolSelectModal: React.FC<Props> = ({
         if (element.filament.vendor && "name" in element.filament.vendor) {
           filament_name = `${element.filament.vendor.name} - ${element.filament.name}`;
         } else {
-          filament_name =
-            element.filament.name ?? element.filament.id.toString();
+          filament_name = element.filament.name ?? element.filament.id.toString();
         }
         return {
           ...element,
@@ -91,9 +85,7 @@ const SpoolSelectModal: React.FC<Props> = ({
   // Function to add/remove all filtered items from selected items
   const selectUnselectFiltered = (select: boolean) => {
     setSelectedItems((prevSelected) => {
-      const filtered = filteredDataSource
-        .map((spool) => spool.id)
-        .filter((spool) => !prevSelected.includes(spool));
+      const filtered = filteredDataSource.map((spool) => spool.id).filter((spool) => !prevSelected.includes(spool));
       return select ? [...prevSelected, ...filtered] : filtered;
     });
   };
@@ -101,16 +93,12 @@ const SpoolSelectModal: React.FC<Props> = ({
   // Handler for selecting/unselecting individual items
   const handleSelectItem = (item: number) => {
     setSelectedItems((prevSelected) =>
-      prevSelected.includes(item)
-        ? prevSelected.filter((selected) => selected !== item)
-        : [...prevSelected, item]
+      prevSelected.includes(item) ? prevSelected.filter((selected) => selected !== item) : [...prevSelected, item]
     );
   };
 
   // State for the select/unselect all checkbox
-  const isAllFilteredSelected = filteredDataSource.every((spool) =>
-    selectedItems.includes(spool.id)
-  );
+  const isAllFilteredSelected = filteredDataSource.every((spool) => selectedItems.includes(spool.id));
 
   return (
     <Modal
@@ -125,9 +113,7 @@ const SpoolSelectModal: React.FC<Props> = ({
           });
           return;
         }
-        onContinue(
-          dataSource.filter((spool) => selectedItems.includes(spool.id))
-        );
+        onContinue(dataSource.filter((spool) => selectedItems.includes(spool.id)));
       }}
       width={600}
     >
@@ -144,10 +130,7 @@ const SpoolSelectModal: React.FC<Props> = ({
           <Table.Column
             width={50}
             render={(_, item: ISpool) => (
-              <Checkbox
-                checked={selectedItems.includes(item.id)}
-                onChange={() => handleSelectItem(item.id)}
-              />
+              <Checkbox checked={selectedItems.includes(item.id)} onChange={() => handleSelectItem(item.id)} />
             )}
           />
           {SortedColumn({
@@ -197,9 +180,7 @@ const SpoolSelectModal: React.FC<Props> = ({
                   // Remove archived spools from selected items
                   setSelectedItems((prevSelected) =>
                     prevSelected.filter(
-                      (selected) =>
-                        dataSource.find((spool) => spool.id === selected)
-                          ?.archived !== true
+                      (selected) => dataSource.find((spool) => spool.id === selected)?.archived !== true
                     )
                   );
                 }
