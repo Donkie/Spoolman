@@ -94,6 +94,7 @@ export function NumberColumn<Obj>(props: NumberColumnProps<Obj>) {
           unit={props.unit}
           options={{
             maximumFractionDigits: props.decimals ?? 0,
+            minimumFractionDigits: props.decimals ?? 0,
           }}
         />
       );
