@@ -65,6 +65,7 @@
       "paperSize": "Papperstyp",
       "showBorder": "Visa ram",
       "previewScale": "Skala förhandsgranskning",
+      "skipItems": "Hoppa över objekt",
       "contentSettings": "Innehållsinställningar",
       "layoutSettings": "Layoutinställningar",
       "marginLeft": "Marginal - vänster",
@@ -84,9 +85,20 @@
     "qrcode": {
       "button": "Skriv ut QR-koder",
       "title": "QR-kod utskrift",
+      "spoolWeight": "Spolvikt: {{weight}}",
+      "lotNr": "Batch: {{lot}}",
+      "bedTemp": "BT: {{temp}}",
+      "extruderTemp": "ET: {{temp}}",
       "textSize": "Textstorlek",
       "showSpoolmanIcon": "Visa Spoolman-ikon",
-      "showContent": "Visa QR-kodsinnehåll"
+      "showContent": "Etikett",
+      "showVendor": "Leverantör",
+      "showLotNr": "Batchnummer",
+      "showSpoolWeight": "Spolvikt",
+      "showTemperatures": "Temperaturer",
+      "showSpoolComment": "Spolkommentar",
+      "showFilamentComment": "Filamentkommentar",
+      "showVendorComment": "Leverantörskommentar"
     },
     "spoolSelect": {
       "title": "Välj spolar",

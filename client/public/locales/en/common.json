@@ -85,9 +85,20 @@
     "qrcode": {
       "button": "Print QR Codes",
       "title": "QR Code Printing",
+      "spoolWeight": "Spool Weight: {{weight}}",
+      "lotNr": "Lot Nr: {{lot}}",
+      "bedTemp": "BT: {{temp}}",
+      "extruderTemp": "ET: {{temp}}",
       "textSize": "Content Text Size",
       "showSpoolmanIcon": "Show Spoolman Icon",
-      "showContent": "Print Label"
+      "showVendor": "Vendor",
+      "showContent": "Print Label",
+      "showLotNr": "Lot Nr",
+      "showSpoolWeight": "Spool Weight",
+      "showTemperatures": "Temperatures",
+      "showSpoolComment": "Spool Comment",
+      "showFilamentComment": "Filament Comment",
+      "showVendorComment": "Vendor Comment"
     },
     "spoolSelect": {
       "title": "Select Spools",

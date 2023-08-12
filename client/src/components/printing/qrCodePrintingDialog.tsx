@@ -13,9 +13,10 @@ interface QRCodePrintingDialogProps {
   visible: boolean;
   items: QRCodeData[];
   onCancel: () => void;
+  extraSettings?: JSX.Element;
 }
 
-const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({ visible, items, onCancel }) => {
+const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({ visible, items, onCancel, extraSettings }) => {
   const t = useTranslate();
 
   const [showContent, setShowContent] = useSavedState("print-showContent", true);
@@ -28,7 +29,7 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({ visible, it
         <div className="print-qrcode-container">
           <QRCode
             className="print-qrcode"
-            icon={showSpoolmanIcon ? "/favicon.ico" : undefined}
+            icon={showSpoolmanIcon ? "/favicon.svg" : undefined}
             value={item.value}
             errorLevel={item.errorLevel}
             type="svg"
@@ -83,6 +84,7 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({ visible, it
           <Form.Item label={t("printing.qrcode.showSpoolmanIcon")}>
             <Switch checked={showSpoolmanIcon} onChange={(checked) => setShowSpoolmanIcon(checked)} />
           </Form.Item>
+          {extraSettings}
         </>
       }
       style={`
@@ -90,10 +92,11 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({ visible, it
               display: flex;
               width: 100%;
               max-height: 100%;
+              justify-content: center;
             }
 
             .print-page .print-qrcode-container {
-              max-width: 50%;
+              max-width: ${showContent ? "50%" : "100%"};
               display: flex;
             }
 
