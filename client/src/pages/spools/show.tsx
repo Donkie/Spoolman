@@ -55,6 +55,7 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
         unit="g"
         options={{
           maximumFractionDigits: 1,
+          minimumFractionDigits: 1,
         }}
       />
       <Title level={5}>{t("spool.fields.used_weight")}</Title>
@@ -63,6 +64,7 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
         unit="g"
         options={{
           maximumFractionDigits: 1,
+          minimumFractionDigits: 1,
         }}
       />
       <Title level={5}>{t("spool.fields.location")}</Title>

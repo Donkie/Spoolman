@@ -45,6 +45,7 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
         unit="g/cm³"
         options={{
           maximumFractionDigits: 2,
+          minimumFractionDigits: 2,
         }}
       />
       <Title level={5}>{t("filament.fields.diameter")}</Title>
@@ -53,6 +54,7 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
         unit="mm"
         options={{
           maximumFractionDigits: 2,
+          minimumFractionDigits: 2,
         }}
       />
       <Title level={5}>{t("filament.fields.weight")}</Title>
@@ -61,6 +63,7 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
         unit="g"
         options={{
           maximumFractionDigits: 1,
+          minimumFractionDigits: 1,
         }}
       />
       <Title level={5}>{t("filament.fields.spool_weight")}</Title>
@@ -69,6 +72,7 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
         unit="g"
         options={{
           maximumFractionDigits: 1,
+          minimumFractionDigits: 1,
         }}
       />
       <Title level={5}>{t("filament.fields.settings_extruder_temp")}</Title>

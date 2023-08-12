@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { IFilament } from "../filaments/model";
 import { ISpool } from "./model";
+import { numberFormatter, numberParser } from "../../utils/parsing";
 
 interface CreateOrCloneProps {
   mode: "create" | "clone";
@@ -107,7 +108,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="g" precision={0} />
+          <InputNumber min={0} addonAfter="g" precision={1} formatter={numberFormatter} parser={numberParser} />
         </Form.Item>
         <Form.Item
           label={t("spool.fields.location")}

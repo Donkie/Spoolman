@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { IFilament } from "../filaments/model";
 import { ISpool } from "./model";
+import { numberFormatter, numberParser } from "../../utils/parsing";
 
 export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
@@ -118,10 +119,14 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="g" precision={0} />
-          {/* TODO: Allow higher precision here.
-          However, that requires that we can handle the , -> . replacement in the number parser
-          more elegantly for locales which use , as a thousands separator. */}
+          <InputNumber
+            min={0}
+            addonAfter="g"
+            precision={1}
+            max={1e6}
+            formatter={numberFormatter}
+            parser={numberParser}
+          />
         </Form.Item>
         <Form.Item
           label={t("spool.fields.location")}

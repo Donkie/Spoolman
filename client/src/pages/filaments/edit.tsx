@@ -127,7 +127,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="g/cm³" precision={3} formatter={numberFormatter} parser={numberParser} />
+          <InputNumber min={0} addonAfter="g/cm³" precision={2} formatter={numberFormatter} parser={numberParser} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.diameter")}
@@ -150,7 +150,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="g" precision={0} />
+          <InputNumber min={0} addonAfter="g" precision={1} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.spool_weight")}
@@ -162,7 +162,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="g" precision={0} />
+          <InputNumber min={0} addonAfter="g" precision={1} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.settings_extruder_temp")}

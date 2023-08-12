@@ -262,7 +262,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           id: "used_length",
           i18ncat: "spool",
           unit: "mm",
-          decimals: 0,
+          decimals: 1,
           dataSource,
           tableState,
         })}
@@ -270,7 +270,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           id: "remaining_length",
           i18ncat: "spool",
           unit: "mm",
-          decimals: 0,
+          decimals: 1,
           defaultText: t("unknown"),
           dataSource,
           tableState,
