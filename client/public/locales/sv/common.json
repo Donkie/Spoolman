@@ -68,6 +68,8 @@
       "skipItems": "Hoppa över objekt",
       "contentSettings": "Innehållsinställningar",
       "layoutSettings": "Layoutinställningar",
+      "horizontalSpacing": "Horisontellt avstånd",
+      "verticalSpacing": "Vertikalt avstånd",
       "marginLeft": "Marginal - vänster",
       "marginRight": "Marginal - höger",
       "marginTop": "Marginal - topp",

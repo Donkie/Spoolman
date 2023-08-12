@@ -66,6 +66,8 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
   const [marginTop, setMarginTop] = useSavedState("print-marginTop", 10);
   const [marginRight, setMarginRight] = useSavedState("print-marginRight", 10);
   const [marginBottom, setMarginBottom] = useSavedState("print-marginBottom", 10);
+  const [horizontalSpacing, setHorizontalSpacing] = useSavedState("print-horizontalSpacing", 0);
+  const [verticalSpacing, setVerticalSpacing] = useSavedState("print-verticalSpacing", 0);
   const [printerMarginLeft, setPrinterMarginLeft] = useSavedState("print-printerMarginLeft", 5);
   const [printerMarginTop, setPrinterMarginTop] = useSavedState("print-printerMarginTop", 5);
   const [printerMarginRight, setPrinterMarginRight] = useSavedState("print-printerMarginRight", 5);
@@ -82,7 +84,8 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
 
   const printRef = useRef<HTMLDivElement>(null);
 
-  const calculatedRowHeight = (paperHeight - marginTop - marginBottom) / paperRows;
+  const itemWidth = (paperWidth - marginLeft - marginRight - horizontalSpacing) / paperColumns - horizontalSpacing;
+  const itemHeight = (paperHeight - marginTop - marginBottom - verticalSpacing) / paperRows - verticalSpacing;
 
   const itemsPerRow = paperColumns;
   const rowsPerPage = paperRows;
@@ -109,8 +112,8 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
                 <div
                   key={colIdx}
                   style={{
-                    width: `${(paperWidth - marginLeft - marginRight) / paperColumns}mm`,
-                    height: `${calculatedRowHeight}mm`,
+                    width: `${itemWidth}mm`,
+                    height: `${itemHeight}mm`,
                     border: borderShowMode === "grid" ? "1px solid #000" : "none",
                     paddingLeft: colIdx === 0 ? `${Math.max(printerMarginLeft - marginLeft, 0)}mm` : 0,
                     paddingRight:
@@ -224,6 +227,11 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
                     .print-page {
                         margin-top: 10mm;
                     }
+                }
+
+                .print-page table {
+                    border-spacing: ${horizontalSpacing}mm ${verticalSpacing}mm;
+                    border-collapse: separate;
                 }
 
                 .print-page td {
@@ -594,6 +602,61 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
                         addonAfter="mm"
                         onChange={(value) => {
                           setPrinterMarginBottom(value ?? 0);
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                </Form.Item>
+                <Divider />
+                <Form.Item label={t("printing.generic.horizontalSpacing")}>
+                  <Row>
+                    <Col span={12}>
+                      <Slider
+                        min={0}
+                        max={20}
+                        step={0.1}
+                        tooltip={{ formatter: (value) => `${value} mm` }}
+                        value={horizontalSpacing}
+                        onChange={(value) => {
+                          setHorizontalSpacing(value);
+                        }}
+                      />
+                    </Col>
+                    <Col span={12}>
+                      <InputNumber
+                        step={0.1}
+                        style={{ margin: "0 16px" }}
+                        value={horizontalSpacing}
+                        addonAfter="mm"
+                        onChange={(value) => {
+                          setHorizontalSpacing(value ?? 0);
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                </Form.Item>
+                <Form.Item label={t("printing.generic.verticalSpacing")}>
+                  <Row>
+                    <Col span={12}>
+                      <Slider
+                        min={0}
+                        max={20}
+                        step={0.1}
+                        tooltip={{ formatter: (value) => `${value} mm` }}
+                        value={verticalSpacing}
+                        onChange={(value) => {
+                          setVerticalSpacing(value);
+                        }}
+                      />
+                    </Col>
+                    <Col span={12}>
+                      <InputNumber
+                        step={0.1}
+                        style={{ margin: "0 16px" }}
+                        value={verticalSpacing}
+                        addonAfter="mm"
+                        onChange={(value) => {
+                          setVerticalSpacing(value ?? 0);
                         }}
                       />
                     </Col>

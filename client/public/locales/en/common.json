@@ -68,6 +68,8 @@
       "skipItems": "Skip Items",
       "contentSettings": "Content Settings",
       "layoutSettings": "Layout Settings",
+      "horizontalSpacing": "Horizontal Spacing",
+      "verticalSpacing": "Vertical Spacing",
       "marginLeft": "Left Margin",
       "marginRight": "Right Margin",
       "marginTop": "Top Margin",
