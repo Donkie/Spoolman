@@ -56,7 +56,9 @@
   "printing": {
     "generic": {
       "title": "Printing",
-      "description": "Tune in the settings below to get the desired print layout. Keep in mind that printers and your OS may apply it's own margins and scaling, so you may need to perform some trial-and-error before it's all correct. Test it on a piece of regular paper before printing on the actual labels.\nThe \"Margin\" fields should be configured to match your label paper and printer, changing these will affect the size of the entire grid.\nThe \"Safe-Zone\" fields should be set to how close to the paper edge your printer can print, changing these will not affect the entire grid.",
+      "description": "Tune in the settings below to get the desired print layout. Keep in mind that printers and your OS may apply it's own margins and scaling, so you may need to perform some trial-and-error before it's all correct. Test it on a piece of regular paper before printing on the actual labels.",
+      "helpMargin": "Margins should be configured to match your label paper and printer, changing these will affect the size of the entire grid.",
+      "helpPrinterMargin": "Safe-Zone should be set to how close to the paper edge your printer can print, changing these will not affect the entire grid.",
       "print": "Print",
       "columns": "Columns",
       "rows": "Rows",
@@ -64,6 +66,8 @@
       "showBorder": "Show Border",
       "previewScale": "Preview Scale",
       "skipItems": "Skip Items",
+      "contentSettings": "Content Settings",
+      "layoutSettings": "Layout Settings",
       "marginLeft": "Left Margin",
       "marginRight": "Right Margin",
       "marginTop": "Top Margin",
@@ -72,10 +76,6 @@
       "printerMarginRight": "Safe-Zone Right",
       "printerMarginTop": "Safe-Zone Top",
       "printerMarginBottom": "Safe-Zone Bottom",
-      "blockRowsTop": "Block Rows Top",
-      "blockRowsBottom": "Block Rows Bottom",
-      "blockColumnsLeft": "Block Columns Left",
-      "blockColumnsRight": "Block Columns Right",
       "borders": {
         "none": "None",
         "border": "Border",

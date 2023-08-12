@@ -1,5 +1,18 @@
 import React, { useRef } from "react";
-import { Modal, Slider, Button, Select, Row, Col, Form, Divider, RadioChangeEvent, Radio, InputNumber } from "antd";
+import {
+  Modal,
+  Slider,
+  Button,
+  Select,
+  Row,
+  Col,
+  Form,
+  Divider,
+  RadioChangeEvent,
+  Radio,
+  InputNumber,
+  Collapse,
+} from "antd";
 import ReactToPrint from "react-to-print";
 import { useSavedState } from "../../utils/saveload";
 import { useTranslate } from "@refinedev/core";
@@ -48,6 +61,7 @@ const paperDimensions: { [key: string]: PaperDimensions } = {
 const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSettings, visible, onCancel, title }) => {
   const t = useTranslate();
 
+  const [collapseState, setCollapseState] = useSavedState<string[]>("print-collapseState", []);
   const [marginLeft, setMarginLeft] = useSavedState("print-marginLeft", 10);
   const [marginTop, setMarginTop] = useSavedState("print-marginTop", 10);
   const [marginRight, setMarginRight] = useSavedState("print-marginRight", 10);
@@ -224,270 +238,6 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
         </Col>
         <Col span={10}>
           <Form labelAlign="left" colon={false} labelWrap={true} labelCol={{ span: 8 }} wrapperCol={{ span: 16 }}>
-            <Form.Item label={t("printing.generic.marginLeft")}>
-              <Row>
-                <Col span={12}>
-                  <Slider
-                    min={-20}
-                    max={50}
-                    step={0.1}
-                    tooltip={{ formatter: (value) => `${value} mm` }}
-                    value={marginLeft}
-                    onChange={(value) => {
-                      setMarginLeft(value);
-                    }}
-                  />
-                </Col>
-                <Col span={12}>
-                  <InputNumber
-                    step={0.1}
-                    style={{ margin: "0 16px" }}
-                    value={marginLeft}
-                    addonAfter="mm"
-                    onChange={(value) => {
-                      setMarginLeft(value ?? 0);
-                    }}
-                  />
-                </Col>
-              </Row>
-            </Form.Item>
-            <Form.Item label={t("printing.generic.marginTop")}>
-              <Row>
-                <Col span={12}>
-                  <Slider
-                    min={-20}
-                    max={50}
-                    step={0.1}
-                    tooltip={{ formatter: (value) => `${value} mm` }}
-                    value={marginTop}
-                    onChange={(value) => {
-                      setMarginTop(value);
-                    }}
-                  />
-                </Col>
-                <Col span={12}>
-                  <InputNumber
-                    step={0.1}
-                    style={{ margin: "0 16px" }}
-                    value={marginTop}
-                    addonAfter="mm"
-                    onChange={(value) => {
-                      setMarginTop(value ?? 0);
-                    }}
-                  />
-                </Col>
-              </Row>
-            </Form.Item>
-            <Form.Item label={t("printing.generic.marginRight")}>
-              <Row>
-                <Col span={12}>
-                  <Slider
-                    min={-20}
-                    max={50}
-                    step={0.1}
-                    tooltip={{ formatter: (value) => `${value} mm` }}
-                    value={marginRight}
-                    onChange={(value) => {
-                      setMarginRight(value);
-                    }}
-                  />
-                </Col>
-                <Col span={12}>
-                  <InputNumber
-                    step={0.1}
-                    style={{ margin: "0 16px" }}
-                    value={marginRight}
-                    addonAfter="mm"
-                    onChange={(value) => {
-                      setMarginRight(value ?? 0);
-                    }}
-                  />
-                </Col>
-              </Row>
-            </Form.Item>
-            <Form.Item label={t("printing.generic.marginBottom")}>
-              <Row>
-                <Col span={12}>
-                  <Slider
-                    min={-20}
-                    max={50}
-                    step={0.1}
-                    tooltip={{ formatter: (value) => `${value} mm` }}
-                    value={marginBottom}
-                    onChange={(value) => {
-                      setMarginBottom(value);
-                    }}
-                  />
-                </Col>
-                <Col span={12}>
-                  <InputNumber
-                    step={0.1}
-                    style={{ margin: "0 16px" }}
-                    value={marginBottom}
-                    addonAfter="mm"
-                    onChange={(value) => {
-                      setMarginBottom(value ?? 0);
-                    }}
-                  />
-                </Col>
-              </Row>
-            </Form.Item>
-            <Form.Item label={t("printing.generic.printerMarginLeft")}>
-              <Row>
-                <Col span={12}>
-                  <Slider
-                    min={0}
-                    max={50}
-                    step={0.1}
-                    tooltip={{ formatter: (value) => `${value} mm` }}
-                    value={printerMarginLeft}
-                    onChange={(value) => {
-                      setPrinterMarginLeft(value);
-                    }}
-                  />
-                </Col>
-                <Col span={12}>
-                  <InputNumber
-                    step={0.1}
-                    style={{ margin: "0 16px" }}
-                    value={printerMarginLeft}
-                    addonAfter="mm"
-                    onChange={(value) => {
-                      setPrinterMarginLeft(value ?? 0);
-                    }}
-                  />
-                </Col>
-              </Row>
-            </Form.Item>
-            <Form.Item label={t("printing.generic.printerMarginTop")}>
-              <Row>
-                <Col span={12}>
-                  <Slider
-                    min={0}
-                    max={50}
-                    step={0.1}
-                    tooltip={{ formatter: (value) => `${value} mm` }}
-                    value={printerMarginTop}
-                    onChange={(value) => {
-                      setPrinterMarginTop(value);
-                    }}
-                  />
-                </Col>
-                <Col span={12}>
-                  <InputNumber
-                    step={0.1}
-                    style={{ margin: "0 16px" }}
-                    value={printerMarginTop}
-                    addonAfter="mm"
-                    onChange={(value) => {
-                      setPrinterMarginTop(value ?? 0);
-                    }}
-                  />
-                </Col>
-              </Row>
-            </Form.Item>
-            <Form.Item label={t("printing.generic.printerMarginRight")}>
-              <Row>
-                <Col span={12}>
-                  <Slider
-                    min={0}
-                    max={50}
-                    step={0.1}
-                    tooltip={{ formatter: (value) => `${value} mm` }}
-                    value={printerMarginRight}
-                    onChange={(value) => {
-                      setPrinterMarginRight(value);
-                    }}
-                  />
-                </Col>
-                <Col span={12}>
-                  <InputNumber
-                    step={0.1}
-                    style={{ margin: "0 16px" }}
-                    value={printerMarginRight}
-                    addonAfter="mm"
-                    onChange={(value) => {
-                      setPrinterMarginRight(value ?? 0);
-                    }}
-                  />
-                </Col>
-              </Row>
-            </Form.Item>
-            <Form.Item label={t("printing.generic.printerMarginBottom")}>
-              <Row>
-                <Col span={12}>
-                  <Slider
-                    min={0}
-                    max={50}
-                    step={0.1}
-                    tooltip={{ formatter: (value) => `${value} mm` }}
-                    value={printerMarginBottom}
-                    onChange={(value) => {
-                      setPrinterMarginBottom(value);
-                    }}
-                  />
-                </Col>
-                <Col span={12}>
-                  <InputNumber
-                    step={0.1}
-                    style={{ margin: "0 16px" }}
-                    value={printerMarginBottom}
-                    addonAfter="mm"
-                    onChange={(value) => {
-                      setPrinterMarginBottom(value ?? 0);
-                    }}
-                  />
-                </Col>
-              </Row>
-            </Form.Item>
-            <Form.Item label={t("printing.generic.columns")}>
-              <Row>
-                <Col span={12}>
-                  <Slider
-                    min={1}
-                    max={5}
-                    value={paperColumns}
-                    onChange={(value) => {
-                      setPaperColumns(value);
-                    }}
-                  />
-                </Col>
-                <Col span={12}>
-                  <InputNumber
-                    min={1}
-                    style={{ margin: "0 16px" }}
-                    value={paperColumns}
-                    onChange={(value) => {
-                      setPaperColumns(value ?? 1);
-                    }}
-                  />
-                </Col>
-              </Row>
-            </Form.Item>
-            <Form.Item label={t("printing.generic.rows")}>
-              <Row>
-                <Col span={12}>
-                  <Slider
-                    min={1}
-                    max={15}
-                    value={paperRows}
-                    onChange={(value) => {
-                      setPaperRows(value);
-                    }}
-                  />
-                </Col>
-                <Col span={12}>
-                  <InputNumber
-                    min={1}
-                    style={{ margin: "0 16px" }}
-                    value={paperRows}
-                    onChange={(value) => {
-                      setPaperRows(value ?? 1);
-                    }}
-                  />
-                </Col>
-              </Row>
-            </Form.Item>
             <Form.Item label={t("printing.generic.skipItems")}>
               <Row>
                 <Col span={12}>
@@ -512,15 +262,6 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
                 </Col>
               </Row>
             </Form.Item>
-            <Form.Item label={t("printing.generic.paperSize")}>
-              <Select value={paperSize} onChange={(value) => setPaperSize(value)}>
-                {Object.keys(paperDimensions).map((key) => (
-                  <Select.Option key={key} value={key}>
-                    {key}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
             <Form.Item label={t("printing.generic.showBorder")}>
               <Radio.Group
                 options={[
@@ -539,9 +280,6 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
                 buttonStyle="solid"
               />
             </Form.Item>
-            {extraSettings && <Divider />}
-            {extraSettings}
-            <Divider />
             <Form.Item label={t("printing.generic.previewScale")}>
               <Row>
                 <Col span={12}>
@@ -569,6 +307,300 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
                 </Col>
               </Row>
             </Form.Item>
+            <Divider />
+            <Collapse
+              defaultActiveKey={collapseState}
+              bordered={false}
+              ghost
+              onChange={(key) => {
+                if (Array.isArray(key)) {
+                  setCollapseState(key);
+                }
+              }}
+            >
+              <Collapse.Panel header={t("printing.generic.contentSettings")} key="1">
+                {extraSettings}
+              </Collapse.Panel>
+              <Collapse.Panel header={t("printing.generic.layoutSettings")} key="2">
+                <Form.Item label={t("printing.generic.paperSize")}>
+                  <Select value={paperSize} onChange={(value) => setPaperSize(value)}>
+                    {Object.keys(paperDimensions).map((key) => (
+                      <Select.Option key={key} value={key}>
+                        {key}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+                <Form.Item label={t("printing.generic.columns")}>
+                  <Row>
+                    <Col span={12}>
+                      <Slider
+                        min={1}
+                        max={5}
+                        value={paperColumns}
+                        onChange={(value) => {
+                          setPaperColumns(value);
+                        }}
+                      />
+                    </Col>
+                    <Col span={12}>
+                      <InputNumber
+                        min={1}
+                        style={{ margin: "0 16px" }}
+                        value={paperColumns}
+                        onChange={(value) => {
+                          setPaperColumns(value ?? 1);
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                </Form.Item>
+                <Form.Item label={t("printing.generic.rows")}>
+                  <Row>
+                    <Col span={12}>
+                      <Slider
+                        min={1}
+                        max={15}
+                        value={paperRows}
+                        onChange={(value) => {
+                          setPaperRows(value);
+                        }}
+                      />
+                    </Col>
+                    <Col span={12}>
+                      <InputNumber
+                        min={1}
+                        style={{ margin: "0 16px" }}
+                        value={paperRows}
+                        onChange={(value) => {
+                          setPaperRows(value ?? 1);
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                </Form.Item>
+                <Divider />
+                <p>{t("printing.generic.helpMargin")}</p>
+                <Form.Item label={t("printing.generic.marginLeft")}>
+                  <Row>
+                    <Col span={12}>
+                      <Slider
+                        min={-20}
+                        max={50}
+                        step={0.1}
+                        tooltip={{ formatter: (value) => `${value} mm` }}
+                        value={marginLeft}
+                        onChange={(value) => {
+                          setMarginLeft(value);
+                        }}
+                      />
+                    </Col>
+                    <Col span={12}>
+                      <InputNumber
+                        step={0.1}
+                        style={{ margin: "0 16px" }}
+                        value={marginLeft}
+                        addonAfter="mm"
+                        onChange={(value) => {
+                          setMarginLeft(value ?? 0);
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                </Form.Item>
+                <Form.Item label={t("printing.generic.marginTop")}>
+                  <Row>
+                    <Col span={12}>
+                      <Slider
+                        min={-20}
+                        max={50}
+                        step={0.1}
+                        tooltip={{ formatter: (value) => `${value} mm` }}
+                        value={marginTop}
+                        onChange={(value) => {
+                          setMarginTop(value);
+                        }}
+                      />
+                    </Col>
+                    <Col span={12}>
+                      <InputNumber
+                        step={0.1}
+                        style={{ margin: "0 16px" }}
+                        value={marginTop}
+                        addonAfter="mm"
+                        onChange={(value) => {
+                          setMarginTop(value ?? 0);
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                </Form.Item>
+                <Form.Item label={t("printing.generic.marginRight")}>
+                  <Row>
+                    <Col span={12}>
+                      <Slider
+                        min={-20}
+                        max={50}
+                        step={0.1}
+                        tooltip={{ formatter: (value) => `${value} mm` }}
+                        value={marginRight}
+                        onChange={(value) => {
+                          setMarginRight(value);
+                        }}
+                      />
+                    </Col>
+                    <Col span={12}>
+                      <InputNumber
+                        step={0.1}
+                        style={{ margin: "0 16px" }}
+                        value={marginRight}
+                        addonAfter="mm"
+                        onChange={(value) => {
+                          setMarginRight(value ?? 0);
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                </Form.Item>
+                <Form.Item label={t("printing.generic.marginBottom")}>
+                  <Row>
+                    <Col span={12}>
+                      <Slider
+                        min={-20}
+                        max={50}
+                        step={0.1}
+                        tooltip={{ formatter: (value) => `${value} mm` }}
+                        value={marginBottom}
+                        onChange={(value) => {
+                          setMarginBottom(value);
+                        }}
+                      />
+                    </Col>
+                    <Col span={12}>
+                      <InputNumber
+                        step={0.1}
+                        style={{ margin: "0 16px" }}
+                        value={marginBottom}
+                        addonAfter="mm"
+                        onChange={(value) => {
+                          setMarginBottom(value ?? 0);
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                </Form.Item>
+                <Divider />
+                <p>{t("printing.generic.helpPrinterMargin")}</p>
+                <Form.Item label={t("printing.generic.printerMarginLeft")}>
+                  <Row>
+                    <Col span={12}>
+                      <Slider
+                        min={0}
+                        max={50}
+                        step={0.1}
+                        tooltip={{ formatter: (value) => `${value} mm` }}
+                        value={printerMarginLeft}
+                        onChange={(value) => {
+                          setPrinterMarginLeft(value);
+                        }}
+                      />
+                    </Col>
+                    <Col span={12}>
+                      <InputNumber
+                        step={0.1}
+                        style={{ margin: "0 16px" }}
+                        value={printerMarginLeft}
+                        addonAfter="mm"
+                        onChange={(value) => {
+                          setPrinterMarginLeft(value ?? 0);
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                </Form.Item>
+                <Form.Item label={t("printing.generic.printerMarginTop")}>
+                  <Row>
+                    <Col span={12}>
+                      <Slider
+                        min={0}
+                        max={50}
+                        step={0.1}
+                        tooltip={{ formatter: (value) => `${value} mm` }}
+                        value={printerMarginTop}
+                        onChange={(value) => {
+                          setPrinterMarginTop(value);
+                        }}
+                      />
+                    </Col>
+                    <Col span={12}>
+                      <InputNumber
+                        step={0.1}
+                        style={{ margin: "0 16px" }}
+                        value={printerMarginTop}
+                        addonAfter="mm"
+                        onChange={(value) => {
+                          setPrinterMarginTop(value ?? 0);
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                </Form.Item>
+                <Form.Item label={t("printing.generic.printerMarginRight")}>
+                  <Row>
+                    <Col span={12}>
+                      <Slider
+                        min={0}
+                        max={50}
+                        step={0.1}
+                        tooltip={{ formatter: (value) => `${value} mm` }}
+                        value={printerMarginRight}
+                        onChange={(value) => {
+                          setPrinterMarginRight(value);
+                        }}
+                      />
+                    </Col>
+                    <Col span={12}>
+                      <InputNumber
+                        step={0.1}
+                        style={{ margin: "0 16px" }}
+                        value={printerMarginRight}
+                        addonAfter="mm"
+                        onChange={(value) => {
+                          setPrinterMarginRight(value ?? 0);
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                </Form.Item>
+                <Form.Item label={t("printing.generic.printerMarginBottom")}>
+                  <Row>
+                    <Col span={12}>
+                      <Slider
+                        min={0}
+                        max={50}
+                        step={0.1}
+                        tooltip={{ formatter: (value) => `${value} mm` }}
+                        value={printerMarginBottom}
+                        onChange={(value) => {
+                          setPrinterMarginBottom(value);
+                        }}
+                      />
+                    </Col>
+                    <Col span={12}>
+                      <InputNumber
+                        step={0.1}
+                        style={{ margin: "0 16px" }}
+                        value={printerMarginBottom}
+                        addonAfter="mm"
+                        onChange={(value) => {
+                          setPrinterMarginBottom(value ?? 0);
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                </Form.Item>
+              </Collapse.Panel>
+            </Collapse>
           </Form>
         </Col>
       </Row>
