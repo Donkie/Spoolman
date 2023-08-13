@@ -122,6 +122,7 @@
       "insecureContext": "The page is not served over HTTPS.",
       "streamApiNotSupported": "The browser does not support the MediaStream API.",
       "notReadable": "The camera is not readable.",
+      "notFound": "No camera was found.",
       "unknown": "An unknown error occurred. ({{error}})"
     }
   },

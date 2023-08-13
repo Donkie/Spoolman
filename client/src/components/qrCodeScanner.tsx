@@ -57,6 +57,8 @@ const QRCodeScannerModal: React.FC = () => {
                 setLastError(t("scanner.error.streamApiNotSupported"));
               } else if (error.name === "NotReadableError") {
                 setLastError(t("scanner.error.notReadable"));
+              } else if (error.name === "NotFoundError") {
+                setLastError(t("scanner.error.notFound"));
               } else {
                 setLastError(t("scanner.error.unknown", { error: error.name }));
               }

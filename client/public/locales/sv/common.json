@@ -122,6 +122,7 @@
       "insecureContext": "Sidan måste använda sig av HTTPS.",
       "streamApiNotSupported": "Webbläsaren stödjer inte MediaStream API.",
       "notReadable": "Kameran är inte läsbar.",
+      "notFound": "Ingen kamera hittades.",
       "unknown": "Ett okänt fel inträffade. ({{error}})"
     }
   },
