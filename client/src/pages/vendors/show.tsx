@@ -19,8 +19,12 @@ export const VendorShow: React.FC<IResourceComponentsProps> = () => {
 
   const record = data?.data;
 
+  const formatTitle = (item: IVendor) => {
+    return `[Vendor #${item.id}] ${item.name}`;
+  };
+
   return (
-    <Show isLoading={isLoading}>
+    <Show isLoading={isLoading} title={record ? formatTitle(record) : ""}>
       <Title level={5}>{t("vendor.fields.id")}</Title>
       <NumberField value={record?.id ?? ""} />
       <Title level={5}>{t("vendor.fields.registered")}</Title>

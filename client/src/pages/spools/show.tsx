@@ -34,17 +34,24 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
     if (item.material) {
       material = ` - ${item.material}`;
     }
-    const label = `${vendorPrefix}${name}${material}`;
+    return `${vendorPrefix}${name}${material}`;
+  };
+
+  const filamentURL = (item: IFilament) => {
     const URL = `/filament/show/${item.id}`;
-    return <a href={URL}>{label}</a>;
+    return <a href={URL}>{formatFilament(item)}</a>;
+  };
+
+  const formatTitle = (item: ISpool) => {
+    return `[Spool #${item.id}] ${formatFilament(item.filament)}`;
   };
 
   return (
-    <Show isLoading={isLoading}>
+    <Show isLoading={isLoading} title={record ? formatTitle(record) : ""}>
       <Title level={5}>{t("spool.fields.id")}</Title>
       <NumberField value={record?.id ?? ""} />
       <Title level={5}>{t("spool.fields.filament")}</Title>
-      <TextField value={record ? formatFilament(record?.filament) : ""} />
+      <TextField value={record ? filamentURL(record?.filament) : ""} />
       <Title level={5}>{t("spool.fields.registered")}</Title>
       <DateField
         value={dayjs.utc(record?.registered).local()}

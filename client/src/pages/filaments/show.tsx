@@ -21,13 +21,21 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
 
   const record = data?.data;
 
+  const formatTitle = (item: IFilament) => {
+    let vendorPrefix = "";
+    if (item.vendor) {
+      vendorPrefix = `${item.vendor.name} - `;
+    }
+    return `[Filament #${item.id}] ${vendorPrefix}${item.name}`;
+  };
+
   const formatVendor = (item: IVendor) => {
     const URL = `/vendor/show/${item.id}`;
     return <a href={URL}>{item.name}</a>;
   };
 
   return (
-    <Show isLoading={isLoading}>
+    <Show isLoading={isLoading} title={record ? formatTitle(record) : ""}>
       <Title level={5}>{t("filament.fields.id")}</Title>
       <NumberField value={record?.id ?? ""} />
       <Title level={5}>{t("filament.fields.vendor")}</Title>
