@@ -23,7 +23,7 @@ const QRCodeScannerModal: React.FC = () => {
   return (
     <>
       <FloatButton type="primary" onClick={() => setVisible(true)} icon={<CameraOutlined />} shape="circle" />
-      <Modal open={visible} onCancel={() => setVisible(false)} footer={null} title={t("scanner.title")}>
+      <Modal open={visible} destroyOnClose onCancel={() => setVisible(false)} footer={null} title={t("scanner.title")}>
         <Space direction="vertical" style={{ width: "100%" }}>
           <p>{t("scanner.description")}</p>
           <QrScanner
