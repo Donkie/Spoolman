@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { ISpool } from "./model";
 import { enrichText } from "../../utils/parsing";
+import { IFilament } from "../filaments/model";
 
 dayjs.extend(utc);
 
@@ -20,10 +21,30 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
 
   const record = data?.data;
 
+  const formatFilament = (item: IFilament) => {
+    let vendorPrefix = "";
+    if (item.vendor) {
+      vendorPrefix = `${item.vendor.name} - `;
+    }
+    let name = item.name;
+    if (!name) {
+      name = `ID: ${item.id}`;
+    }
+    let material = "";
+    if (item.material) {
+      material = ` - ${item.material}`;
+    }
+    const label = `${vendorPrefix}${name}${material}`;
+    const URL = `/filament/show/${item.id}`;
+    return <a href={URL}>{label}</a>;
+  };
+
   return (
     <Show isLoading={isLoading}>
       <Title level={5}>{t("spool.fields.id")}</Title>
       <NumberField value={record?.id ?? ""} />
+      <Title level={5}>{t("spool.fields.filament")}</Title>
+      <TextField value={record ? formatFilament(record?.filament) : ""} />
       <Title level={5}>{t("spool.fields.registered")}</Title>
       <DateField
         value={dayjs.utc(record?.registered).local()}
@@ -44,12 +65,6 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
         title={dayjs.utc(record?.last_used).local().format()}
         format="YYYY-MM-DD HH:mm:ss"
       />
-      {/* <Title level={5}>{t("spool.fields.filament_id")}</Title>
-      {filamentIsLoading ? (
-                <>Loading...</>
-            ) : (
-                <>{filamentData?.data?.id}</>
-            )} */}
       <Title level={5}>{t("spool.fields.remaining_length")}</Title>
       <NumberFieldUnit
         value={record?.remaining_length ?? ""}

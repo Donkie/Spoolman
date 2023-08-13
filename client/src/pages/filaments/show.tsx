@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { IFilament } from "./model";
 import { enrichText } from "../../utils/parsing";
+import { IVendor } from "../vendors/model";
 
 dayjs.extend(utc);
 
@@ -20,10 +21,17 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
 
   const record = data?.data;
 
+  const formatVendor = (item: IVendor) => {
+    const URL = `/vendor/show/${item.id}`;
+    return <a href={URL}>{item.name}</a>;
+  };
+
   return (
     <Show isLoading={isLoading}>
       <Title level={5}>{t("filament.fields.id")}</Title>
       <NumberField value={record?.id ?? ""} />
+      <Title level={5}>{t("filament.fields.vendor")}</Title>
+      <TextField value={record?.vendor ? formatVendor(record?.vendor) : ""} />
       <Title level={5}>{t("filament.fields.registered")}</Title>
       <DateField
         value={dayjs.utc(record?.registered).local()}
