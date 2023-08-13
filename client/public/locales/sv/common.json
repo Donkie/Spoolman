@@ -63,6 +63,8 @@
       "columns": "Kolumner",
       "rows": "Rader",
       "paperSize": "Papperstyp",
+      "customSize": "Anpassad",
+      "dimensions": "Dimensioner",
       "showBorder": "Visa ram",
       "previewScale": "Skala förhandsgranskning",
       "skipItems": "Hoppa över objekt",

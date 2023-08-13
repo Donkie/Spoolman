@@ -63,6 +63,8 @@
       "columns": "Columns",
       "rows": "Rows",
       "paperSize": "Paper Size",
+      "customSize": "Custom",
+      "dimensions": "Dimensions",
       "showBorder": "Show Border",
       "previewScale": "Preview Scale",
       "skipItems": "Skip Items",

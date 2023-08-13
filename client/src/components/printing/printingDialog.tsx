@@ -76,11 +76,13 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
   const [paperRows, setPaperRows] = useSavedState("print-rowsPerPage", 8);
   const [skipItems, setSkipItems] = useSavedState("print-skipItems", 0);
   const [paperSize, setPaperSize] = useSavedState("print-paperSize", "A4");
+  const [customPaperWidth, setCustomPaperWidth] = useSavedState("print-customPaperWidth", 210);
+  const [customPaperHeight, setCustomPaperHeight] = useSavedState("print-customPaperHeight", 297);
   const [previewScale, setPreviewScale] = useSavedState("print-previewScale", 0.6);
   const [borderShowMode, setBorderShowMode] = useSavedState<"none" | "border" | "grid">("print-borderShowMode", "grid");
 
-  const paperWidth = paperDimensions[paperSize].width;
-  const paperHeight = paperDimensions[paperSize].height;
+  const paperWidth = paperSize === "custom" ? customPaperWidth : paperDimensions[paperSize].width;
+  const paperHeight = paperSize === "custom" ? customPaperHeight : paperDimensions[paperSize].height;
 
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -337,7 +339,31 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
                         {key}
                       </Select.Option>
                     ))}
+                    <Select.Option value="custom">{t("printing.generic.customSize")}</Select.Option>
                   </Select>
+                </Form.Item>
+                <Form.Item label={t("printing.generic.dimensions")} hidden={paperSize !== "custom"}>
+                  <Row align="middle">
+                    <Col span={11}>
+                      <InputNumber
+                        value={customPaperWidth}
+                        min={0.1}
+                        addonAfter="mm"
+                        onChange={(value) => setCustomPaperWidth(value ?? 0)}
+                      />
+                    </Col>
+                    <Col span={2} style={{ textAlign: "center" }}>
+                      x
+                    </Col>
+                    <Col span={11}>
+                      <InputNumber
+                        value={customPaperHeight}
+                        min={0.1}
+                        addonAfter="mm"
+                        onChange={(value) => setCustomPaperHeight(value ?? 0)}
+                      />
+                    </Col>
+                  </Row>
                 </Form.Item>
                 <Form.Item label={t("printing.generic.columns")}>
                   <Row>
