@@ -51,6 +51,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
       value: item.id,
     };
   });
+  filamentOptions?.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
 
   return (
     <Create

@@ -81,6 +81,11 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           <Select
             {...selectProps}
             allowClear
+            filterSort={(a, b) => {
+              return a?.label && b?.label
+                ? (a.label as string).localeCompare(b.label as string, undefined, { sensitivity: "base" })
+                : 0;
+            }}
             filterOption={(input, option) =>
               typeof option?.label === "string" && option?.label.toLowerCase().includes(input.toLowerCase())
             }

@@ -37,6 +37,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
       value: item.id,
     };
   });
+  filamentOptions?.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
 
   if (formProps.initialValues) {
     formProps.initialValues["filament_id"] = formProps.initialValues["filament"].id;
