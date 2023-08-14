@@ -95,12 +95,12 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
   const itemsIncludingSkipped = [...Array(skipItems).fill(<></>), ...items];
 
   const rowsOfItems = [];
-  for (let row_idx = 0; row_idx <= itemsIncludingSkipped.length / itemsPerRow; row_idx += 1) {
+  for (let row_idx = 0; row_idx < itemsIncludingSkipped.length / itemsPerRow; row_idx += 1) {
     rowsOfItems.push(itemsIncludingSkipped.slice(row_idx * itemsPerRow, (row_idx + 1) * itemsPerRow));
   }
 
   const pageBlocks = [];
-  for (let page_idx = 0; page_idx <= rowsOfItems.length / rowsPerPage; page_idx += 1) {
+  for (let page_idx = 0; page_idx < rowsOfItems.length / rowsPerPage; page_idx += 1) {
     pageBlocks.push(rowsOfItems.slice(page_idx * rowsPerPage, (page_idx + 1) * rowsPerPage));
   }
 
