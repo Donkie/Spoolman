@@ -30,6 +30,11 @@ export const languages: { [key: string]: Language } = {
     countryCode: "es",
     fullCode: "es-ES",
   },
+  ["zh"]: {
+    name: "简体中文",
+    countryCode: "cn",
+    fullCode: "zh-CN",
+  },
 }
 
 i18n
