@@ -158,11 +158,11 @@ async def create(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
     body: SpoolParameters,
 ):
-    if body.remaining_weight is not None and body.used_weight is not None:
-        return JSONResponse(
-            status_code=400,
-            content={"message": "Only specify either remaining_weight or used_weight."},
-        )
+    #if body.remaining_weight is not None and body.used_weight is not None:
+    #    return JSONResponse(
+    #        status_code=400,
+    #        content={"message": "Only specify either remaining_weight or used_weight."},
+    #    )
 
     try:
         db_item = await spool.create(
