@@ -10,15 +10,26 @@ _Keep track of your inventory of 3D-printer filament spools._
 
 Spoolman is a web service that helps you keep track of your filament spools and how they are being used.
 
-It is designed to be easily integrated into printer software such as Octoprint and Moonraker where
-these services can e.g. list available spools, report filament consumption, etc.
+It acts as a database, where other printer software such as Octoprint and Moonraker can interact with to have a centralized place for spool information.
+For example, if used together with Moonraker, your spool weight will automatically be reduced as your print is progressing.
 
-It exposes a REST API which backends can interact with. See the [OpenAPI description](https://donkie.github.io/Spoolman/) for more information.
+It exposes a HTTP API which services can interact with. See the [OpenAPI description](https://donkie.github.io/Spoolman/) for more information.
 
-It also ships with a simple web-based UI that lets you manipulate the stored data, add filaments, etc.
+## Client
+Spoolman includes a web-client that lets you directly manipulate all the data. It also has a few additional nice features such as label printing.
+
+![image](https://github.com/Donkie/Spoolman/assets/2332094/33928d5e-440f-4445-aca9-456c4370ad0d)
+
+## Integration status
+Spoolman is still relatively new, so support isn't widespread yet, but it's being actively integrated to multiple different projects.
+
+* ✔️ Moonraker - See the [Moonraker Documentation](https://moonraker.readthedocs.io/en/latest/configuration/#spoolman)
+  * ✔️ Fluidd
+  * ✖️ Mainsail
+* ✖️ Octoprint - A plugin is in progress: [OctoPrint-Spoolman](https://github.com/mkevenaar/OctoPrint-Spoolman)
 
 ## Installation
-The data can be stored in any of the following databases: SQLite, PostgreSQL, MySQL, MariaDB, CockroachDB.
+Spoolman can interact with any of the following databases: SQLite, PostgreSQL, MySQL, MariaDB, CockroachDB.
 By default, SQLite is used which is a simple no-install database solution that saves to a single .db file located in the server's user directory.
 
 ### Using Docker
@@ -53,15 +64,11 @@ If you want to connect with an external database instead, specify the `SPOOLMAN_
 | SPOOLMAN_DB_PORT          | Database port                                                                                                                |
 | SPOOLMAN_DB_NAME          | Database name                                                                                                                |
 | SPOOLMAN_DB_USERNAME      | Database username                                                                                                            |
-| SPOOLMAN_DB_PASSWORD_FILE | Path of file which contains the database password. This is more secure than using SPOOLMAN_DB_PASSWORD.                      |
+| SPOOLMAN_DB_PASSWORD_FILE | Path of file which contains the database password. Can be used instead of SPOOLMAN_DB_PASSWORD if desired.                   |
 | SPOOLMAN_DB_PASSWORD      | Database password                                                                                                            |
 | SPOOLMAN_DB_QUERY         | Query parameters for the database connection, e.g. set to `unix_socket=/path/to/mysql.sock` to connect using a MySQL socket. |
 | SPOOLMAN_LOGGING_LEVEL    | Logging level, any of: `CRITICAL`, `ERROR`, `WARNING`, `INFO`, `DEBUG`, defaults to `INFO`.                                  |
 | SPOOLMAN_AUTOMATIC_BACKUP | Automatic nightly DB backups for SQLite databases. Enabled by default, set to `FALSE` to disable.                            |
-
-## Configuration
-### Moonraker
-Moonraker has built-in support for Spoolman. See the [Moonraker Documentation](https://moonraker.readthedocs.io/en/latest/configuration/#spoolman) for more information.
 
 ## Development
 ### Client
