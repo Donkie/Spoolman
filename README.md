@@ -25,6 +25,7 @@ Spoolman is still relatively new, so support isn't widespread yet, but it's bein
 
 * ✔️ Moonraker - See the [Moonraker Documentation](https://moonraker.readthedocs.io/en/latest/configuration/#spoolman)
   * ✔️ Fluidd
+  * ✔️ KlipperScreen
   * ✖️ Mainsail
 * ✖️ Octoprint - A plugin is in progress: [OctoPrint-Spoolman](https://github.com/mkevenaar/OctoPrint-Spoolman)
 
