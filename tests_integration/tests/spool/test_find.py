@@ -1,15 +1,25 @@
 """Integration tests for the Spool API endpoint."""
 
+from collections.abc import Iterator
+from dataclasses import dataclass
 from typing import Any
 
 import httpx
+import pytest
 
 URL = "http://spoolman:8000"
 
 
-def test_find_spools(random_filament: dict[str, Any]):  # noqa: PLR0915
-    """Test finding spools in the database."""
-    # Setup
+@dataclass
+class Fixture:
+    spools: list[dict[str, Any]]
+    spools_by_id: dict[str, dict[str, Any]]
+    filament: dict[str, Any]
+
+
+@pytest.fixture()
+def spools(random_filament: dict[str, Any]) -> Iterator[Fixture]:
+    """Add some spools to the database."""
     result = httpx.post(
         f"{URL}/api/v1/spool",
         json={
@@ -51,93 +61,127 @@ def test_find_spools(random_filament: dict[str, Any]):  # noqa: PLR0915
         spool_3["id"]: spool_3,
     }
 
-    # Execute - find all spools
+    yield Fixture(
+        spools=[spool_1, spool_2, spool_3],
+        spools_by_id=added_spools_by_id,
+        filament=random_filament,
+    )
+
+    httpx.delete(f"{URL}/api/v1/spool/{spool_1['id']}").raise_for_status()
+    httpx.delete(f"{URL}/api/v1/spool/{spool_2['id']}").raise_for_status()
+    httpx.delete(f"{URL}/api/v1/spool/{spool_3['id']}").raise_for_status()
+
+
+def test_find_all_spools(spools: Fixture):
+    """Test finding all non-archived spools in the database."""
+    # Execute
     result = httpx.get(f"{URL}/api/v1/spool")
     result.raise_for_status()
 
     # Verify
-    spools = result.json()
-    assert len(spools) == 2
-    for spool in spools:
-        assert spool == added_spools_by_id[spool["id"]]
+    spools_result = result.json()
+    assert len(spools_result) == 2
+    for spool in spools_result:
+        assert spool == spools.spools_by_id[spool["id"]]
         assert spool["archived"] is False
 
-    # Execute - find all spools, including archived
+
+def test_find_all_spools_including_archived(spools: Fixture):
+    """Test finding all spools in the database, including archived ones."""
+    # Execute
     result = httpx.get(f"{URL}/api/v1/spool?allow_archived=true")
     result.raise_for_status()
 
     # Verify
-    spools = result.json()
-    assert len(spools) == 3
-    for spool in spools:
-        assert spool == added_spools_by_id[spool["id"]]
+    spools_result = result.json()
+    assert len(spools_result) == 3
+    for spool in spools_result:
+        assert spool == spools.spools_by_id[spool["id"]]
 
-    # Execute - find spools by filament name
+
+def test_find_spools_by_filament_name(spools: Fixture):
+    """Test finding spools by filament name."""
+    # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
-        params={"filament_name": random_filament["name"]},
+        params={"filament_name": spools.filament["name"]},
     )
     result.raise_for_status()
 
     # Verify
-    spools = result.json()
-    assert len(spools) == 2
-    for spool in spools:
-        assert spool == added_spools_by_id[spool["id"]]
+    spools_result = result.json()
+    assert len(spools_result) == 2
+    for spool in spools_result:
+        assert spool == spools.spools_by_id[spool["id"]]
 
-    # Execute - find spools by filament id
+
+def test_find_spools_by_filament_id(spools: Fixture):
+    """Test finding spools by filament id."""
+    # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
-        params={"filament_id": random_filament["id"]},
+        params={"filament_id": spools.filament["id"]},
     )
     result.raise_for_status()
 
     # Verify
-    spools = result.json()
-    assert len(spools) == 2
-    for spool in spools:
-        assert spool == added_spools_by_id[spool["id"]]
+    spools_result = result.json()
+    assert len(spools_result) == 2
+    for spool in spools_result:
+        assert spool == spools.spools_by_id[spool["id"]]
 
-    # Execute - find spools by filament material
+
+def test_find_spools_by_filament_material(spools: Fixture):
+    """Test finding spools by filament material."""
+    # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
-        params={"filament_material": random_filament["material"]},
+        params={"filament_material": spools.filament["material"]},
     )
     result.raise_for_status()
 
     # Verify
-    spools = result.json()
-    assert len(spools) == 2
-    for spool in spools:
-        assert spool == added_spools_by_id[spool["id"]]
+    spools_result = result.json()
+    assert len(spools_result) == 2
+    for spool in spools_result:
+        assert spool == spools.spools_by_id[spool["id"]]
 
-    # Execute - find spools by filament vendor name
+
+def test_find_spools_by_filament_vendor_name(spools: Fixture):
+    """Test finding spools by filament vendor name."""
+    # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
-        params={"vendor_name": random_filament["vendor"]["name"]},
+        params={"vendor_name": spools.filament["vendor"]["name"]},
     )
     result.raise_for_status()
 
     # Verify
-    spools = result.json()
-    assert len(spools) == 2
-    for spool in spools:
-        assert spool == added_spools_by_id[spool["id"]]
+    spools_result = result.json()
+    assert len(spools_result) == 2
+    for spool in spools_result:
+        assert spool == spools.spools_by_id[spool["id"]]
 
-    # Execute - find spools by filament vendor id
+
+def test_find_spools_by_filament_vendor_id(spools: Fixture):
+    """Test finding spools by filament vendor id."""
+    # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
-        params={"vendor_id": random_filament["vendor"]["id"]},
+        params={"vendor_id": spools.filament["vendor"]["id"]},
     )
     result.raise_for_status()
 
     # Verify
-    spools = result.json()
-    assert len(spools) == 2
-    for spool in spools:
-        assert spool == added_spools_by_id[spool["id"]]
+    spools_result = result.json()
+    assert len(spools_result) == 2
+    for spool in spools_result:
+        assert spool == spools.spools_by_id[spool["id"]]
 
-    # Execute - find spools by location
+
+def test_find_spools_by_location(spools: Fixture):
+    """Test finding spools by location."""
+    # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
         params={"location": "The Pantry"},
@@ -145,11 +189,14 @@ def test_find_spools(random_filament: dict[str, Any]):  # noqa: PLR0915
     result.raise_for_status()
 
     # Verify
-    spools = result.json()
-    assert len(spools) == 1
-    assert spools[0] == added_spools_by_id[spool_1["id"]]
+    spools_result = result.json()
+    assert len(spools_result) == 1
+    assert spools_result[0] == spools.spools[0]
 
-    # Execute - find spools by lot nr
+
+def test_find_spools_by_lot_nr(spools: Fixture):
+    """Test finding spools by lot nr."""
+    # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
         params={"lot_nr": "123456789"},
@@ -157,11 +204,6 @@ def test_find_spools(random_filament: dict[str, Any]):  # noqa: PLR0915
     result.raise_for_status()
 
     # Verify
-    spools = result.json()
-    assert len(spools) == 1
-    assert spools[0] == added_spools_by_id[spool_1["id"]]
-
-    # Clean up
-    httpx.delete(f"{URL}/api/v1/spool/{spool_1['id']}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/spool/{spool_2['id']}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/spool/{spool_3['id']}").raise_for_status()
+    spools_result = result.json()
+    assert len(spools_result) == 1
+    assert spools_result[0] == spools.spools[0]
