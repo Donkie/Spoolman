@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 
 from spoolman.database import models, vendor
+from spoolman.database.utils import SortOrder, parse_nested_field
 from spoolman.exceptions import ItemDeleteError, ItemNotFoundError
 
 
@@ -65,7 +66,7 @@ async def get_by_id(db: AsyncSession, filament_id: int) -> models.Filament:
     return filament
 
 
-async def find(
+async def find(  # noqa: C901
     *,
     db: AsyncSession,
     vendor_name: Optional[str] = None,
@@ -73,8 +74,15 @@ async def find(
     name: Optional[str] = None,
     material: Optional[str] = None,
     article_number: Optional[str] = None,
+    sort_by: Optional[dict[str, SortOrder]] = None,
+    limit: Optional[int] = None,
+    offset: int = 0,
 ) -> list[models.Filament]:
-    """Find a list of filament objects by search criteria."""
+    """Find a list of filament objects by search criteria.
+
+    Sort by a field by passing a dict with the field name as key and the sort order as value.
+    The field name can contain nested fields, e.g. vendor.name.
+    """
     stmt = (
         select(models.Filament)
         .options(contains_eager(models.Filament.vendor))
@@ -90,6 +98,17 @@ async def find(
         stmt = stmt.where(models.Filament.material.ilike(f"%{material}%"))
     if article_number is not None:
         stmt = stmt.where(models.Filament.article_number.ilike(f"%{article_number}%"))
+
+    if sort_by is not None:
+        for fieldstr, order in sort_by.items():
+            field = parse_nested_field(models.Filament, fieldstr)
+            if order == SortOrder.ASC:
+                stmt = stmt.order_by(field.asc())
+            elif order == SortOrder.DESC:
+                stmt = stmt.order_by(field.desc())
+
+    if limit is not None:
+        stmt = stmt.offset(offset).limit(limit)
 
     rows = await db.execute(stmt)
     return list(rows.scalars().all())

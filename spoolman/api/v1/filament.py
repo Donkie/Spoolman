@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from spoolman.api.v1.models import Filament, Message
 from spoolman.database import filament
 from spoolman.database.database import get_db_session
+from spoolman.database.utils import SortOrder
 from spoolman.exceptions import ItemDeleteError
 
 logger = logging.getLogger(__name__)
@@ -137,7 +138,31 @@ async def find(
         title="Filament Article Number",
         description="Partial case-insensitive search term for the filament article number.",
     ),
+    sort: Optional[str] = Query(
+        default=None,
+        title="Sort",
+        description=(
+            'Sort the results by the given field. Should be a comma-separate string with "field:direction" items.'
+        ),
+        example="vendor.name:asc,spool_weight:desc",
+    ),
+    limit: Optional[int] = Query(
+        default=None,
+        title="Limit",
+        description="Maximum number of items in the response.",
+    ),
+    offset: int = Query(
+        default=0,
+        title="Offset",
+        description="Offset in the full result set if a limit is set.",
+    ),
 ) -> list[Filament]:
+    sort_by: dict[str, SortOrder] = {}
+    if sort is not None:
+        for sort_item in sort.split(","):
+            field, direction = sort_item.split(":")
+            sort_by[field] = SortOrder[direction.upper()]
+
     db_items = await filament.find(
         db=db,
         vendor_name=vendor_name,
@@ -145,6 +170,9 @@ async def find(
         name=name,
         material=material,
         article_number=article_number,
+        sort_by=sort_by,
+        limit=limit,
+        offset=offset,
     )
     return [Filament.from_db(db_item) for db_item in db_items]
 

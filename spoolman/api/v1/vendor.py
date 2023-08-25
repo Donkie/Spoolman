@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from spoolman.api.v1.models import Message, Vendor
 from spoolman.database import vendor
 from spoolman.database.database import get_db_session
+from spoolman.database.utils import SortOrder
 
 router = APIRouter(
     prefix="/vendor",
@@ -51,10 +52,37 @@ async def find(
         title="Vendor Name",
         description="Partial case-insensitive search term for the vendor name.",
     ),
+    sort: Optional[str] = Query(
+        default=None,
+        title="Sort",
+        description=(
+            'Sort the results by the given field. Should be a comma-separate string with "field:direction" items.'
+        ),
+        example="name:asc,id:desc",
+    ),
+    limit: Optional[int] = Query(
+        default=None,
+        title="Limit",
+        description="Maximum number of items in the response.",
+    ),
+    offset: int = Query(
+        default=0,
+        title="Offset",
+        description="Offset in the full result set if a limit is set.",
+    ),
 ) -> list[Vendor]:
+    sort_by: dict[str, SortOrder] = {}
+    if sort is not None:
+        for sort_item in sort.split(","):
+            field, direction = sort_item.split(":")
+            sort_by[field] = SortOrder[direction.upper()]
+
     db_items = await vendor.find(
         db=db,
         name=name,
+        sort_by=sort_by,
+        limit=limit,
+        offset=offset,
     )
     return [Vendor.from_db(db_item) for db_item in db_items]
 

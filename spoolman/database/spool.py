@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 
 from spoolman.database import filament, models
-from spoolman.database.utils import SortOrder
+from spoolman.database.utils import SortOrder, parse_nested_field
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError
 from spoolman.math import weight_from_length
 
@@ -74,28 +74,6 @@ async def get_by_id(db: AsyncSession, spool_id: int) -> models.Spool:
     if spool is None:
         raise ItemNotFoundError(f"No spool with ID {spool_id} found.")
     return spool
-
-
-def parse_nested_field(base_obj: type[models.Base], field: str) -> sqlalchemy.Column:
-    """Parse a nested field string into a sqlalchemy field object."""
-    fields = field.split(".")
-    if not hasattr(base_obj, fields[0]):
-        raise ValueError(f"Invalid field name '{field}'")
-
-    if fields[0] == "filament" and len(fields) == 1:
-        raise ValueError("No field specified for filament")
-    if fields[0] == "filament":
-        return parse_nested_field(models.Filament, ".".join(fields[1:]))
-
-    if fields[0] == "vendor" and len(fields) == 1:
-        raise ValueError("No field specified for vendor")
-    if fields[0] == "vendor":
-        return parse_nested_field(models.Vendor, ".".join(fields[1:]))
-
-    if len(fields) > 1:
-        raise ValueError(f"Field '{fields[0]}' does not have any nested fields")
-
-    return getattr(base_obj, fields[0])
 
 
 async def find(  # noqa: C901, PLR0912

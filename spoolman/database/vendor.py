@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.database import models
+from spoolman.database.utils import SortOrder
 from spoolman.exceptions import ItemNotFoundError
 
 
@@ -37,11 +38,25 @@ async def find(
     *,
     db: AsyncSession,
     name: Optional[str] = None,
+    sort_by: Optional[dict[str, SortOrder]] = None,
+    limit: Optional[int] = None,
+    offset: int = 0,
 ) -> list[models.Vendor]:
     """Find a list of vendor objects by search criteria."""
     stmt = select(models.Vendor)
     if name is not None:
         stmt = stmt.where(models.Vendor.name.ilike(f"%{name}%"))
+
+    if sort_by is not None:
+        for fieldstr, order in sort_by.items():
+            field = getattr(models.Vendor, fieldstr)
+            if order == SortOrder.ASC:
+                stmt = stmt.order_by(field.asc())
+            elif order == SortOrder.DESC:
+                stmt = stmt.order_by(field.desc())
+
+    if limit is not None:
+        stmt = stmt.offset(offset).limit(limit)
 
     rows = await db.execute(stmt)
     return list(rows.scalars().all())
