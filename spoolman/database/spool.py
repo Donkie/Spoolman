@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 
 from spoolman.database import filament, models
+from spoolman.database.utils import SortOrder
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError
 from spoolman.math import weight_from_length
 
@@ -75,7 +76,29 @@ async def get_by_id(db: AsyncSession, spool_id: int) -> models.Spool:
     return spool
 
 
-async def find(
+def parse_nested_field(base_obj: type[models.Base], field: str) -> sqlalchemy.Column:
+    """Parse a nested field string into a sqlalchemy field object."""
+    fields = field.split(".")
+    if not hasattr(base_obj, fields[0]):
+        raise ValueError(f"Invalid field name '{field}'")
+
+    if fields[0] == "filament" and len(fields) == 1:
+        raise ValueError("No field specified for filament")
+    if fields[0] == "filament":
+        return parse_nested_field(models.Filament, ".".join(fields[1:]))
+
+    if fields[0] == "vendor" and len(fields) == 1:
+        raise ValueError("No field specified for vendor")
+    if fields[0] == "vendor":
+        return parse_nested_field(models.Vendor, ".".join(fields[1:]))
+
+    if len(fields) > 1:
+        raise ValueError(f"Field '{fields[0]}' does not have any nested fields")
+
+    return getattr(base_obj, fields[0])
+
+
+async def find(  # noqa: C901
     *,
     db: AsyncSession,
     filament_name: Optional[str] = None,
@@ -86,8 +109,13 @@ async def find(
     location: Optional[str] = None,
     lot_nr: Optional[str] = None,
     allow_archived: bool = False,
+    sort_by: Optional[dict[str, SortOrder]] = None,
 ) -> list[models.Spool]:
-    """Find a list of spool objects by search criteria."""
+    """Find a list of spool objects by search criteria.
+
+    Sort by a field by passing a dict with the field name as key and the sort order as value.
+    The field name can contain nested fields, e.g. filament.name.
+    """
     stmt = (
         sqlalchemy.select(models.Spool)
         .join(models.Spool.filament, isouter=True)
@@ -116,6 +144,14 @@ async def find(
                 models.Spool.archived.is_(None),
             ),
         )
+
+    if sort_by is not None:
+        for fieldstr, order in sort_by.items():
+            field = parse_nested_field(models.Spool, fieldstr)
+            if order == SortOrder.ASC:
+                stmt = stmt.order_by(field.asc())
+            elif order == SortOrder.DESC:
+                stmt = stmt.order_by(field.desc())
 
     rows = await db.execute(stmt)
     return list(rows.scalars().all())

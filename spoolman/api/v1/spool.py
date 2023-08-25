@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from spoolman.api.v1.models import Message, Spool
 from spoolman.database import spool
 from spoolman.database.database import get_db_session
+from spoolman.database.utils import SortOrder
 from spoolman.exceptions import ItemCreateError
 
 logger = logging.getLogger(__name__)
@@ -110,7 +111,21 @@ async def find(
         title="Allow Archived",
         description="Whether to include archived spools in the search results.",
     ),
+    sort: Optional[str] = Query(
+        default=None,
+        title="Sort",
+        description=(
+            'Sort the results by the given field. Should be a comma-separate string with "field:direction" items.'
+        ),
+        example="filament.name:asc,location:desc",
+    ),
 ) -> list[Spool]:
+    sort_by: dict[str, SortOrder] = {}
+    if sort is not None:
+        for sort_item in sort.split(","):
+            field, direction = sort_item.split(":")
+            sort_by[field] = SortOrder[direction.upper()]
+
     db_items = await spool.find(
         db=db,
         filament_name=filament_name,
@@ -121,6 +136,7 @@ async def find(
         location=location,
         lot_nr=lot_nr,
         allow_archived=allow_archived,
+        sort_by=sort_by,
     )
     return [Spool.from_db(db_item) for db_item in db_items]
 
