@@ -1,13 +1,12 @@
-import React from "react";
-import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
-import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, InputNumber } from "antd";
+import React, {useState} from "react";
+import {IResourceComponentsProps, useTranslate} from "@refinedev/core";
+import {Create, useForm, useSelect} from "@refinedev/antd";
+import {Form, Input, DatePicker, Select, InputNumber} from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
-import { IFilament } from "../filaments/model";
-import { ISpool } from "./model";
-import { numberFormatter, numberParser } from "../../utils/parsing";
-import { useSavedState } from "../../utils/saveload";
+import {IFilament} from "../filaments/model";
+import {ISpool} from "./model";
+import {numberFormatter, numberParser} from "../../utils/parsing";
 
 interface CreateOrCloneProps {
   mode: "create" | "clone";
@@ -16,7 +15,7 @@ interface CreateOrCloneProps {
 export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
 
-  const { form, formProps, saveButtonProps, formLoading } = useForm<ISpool>();
+  const {form, formProps, saveButtonProps, formLoading} = useForm<ISpool>();
 
   if (props.mode === "clone" && formProps.initialValues) {
     // Clear out the values that we don't want to clone
@@ -28,7 +27,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     formProps.initialValues.filament_id = formProps.initialValues.filament.id;
   }
 
-  const { queryResult } = useSelect<IFilament>({
+  const {queryResult} = useSelect<IFilament>({
     resource: "filament",
   });
 
@@ -50,16 +49,28 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     return {
       label: label,
       value: item.id,
-	    weight: item.weight,
-	    spool_weight: item.spool_weight
+      weight: item.weight,
+      spool_weight: item.spool_weight
     };
   });
-  filamentOptions?.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+  filamentOptions?.sort((a, b) => a.label.localeCompare(b.label, undefined, {sensitivity: "base"}));
 
-  const [used_weight, set_used_weight] = useSavedState("create-used_weight", 0);
+  const [usedWeight, setUsedWeight] = useState(0);
 
-  const selected_filament_id = Form.useWatch('filament_id', form);
-  const selected_filament = filamentOptions?.find(obj => {return obj.value === selected_filament_id});
+  const selectedFilamentID = Form.useWatch('filament_id', form);
+  const selectedFilament = filamentOptions?.find(obj => {
+    return obj.value === selectedFilamentID;
+  });
+  const filamentWeight = selectedFilament?.weight || 0;
+  const spoolWeight = selectedFilament?.spool_weight || 0;
+
+  const weightChange = (weight: number) => {
+    setUsedWeight(weight);
+    form.setFieldsValue(
+      {
+        used_weight: weight
+      });
+  }
 
   return (
     <Create
@@ -80,7 +91,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             value: value ? dayjs(value) : undefined,
           })}
         >
-          <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" />
+          <DatePicker showTime format="YYYY-MM-DD HH:mm:ss"/>
         </Form.Item>
         <Form.Item
           label={t("spool.fields.last_used")}
@@ -94,7 +105,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             value: value ? dayjs(value) : undefined,
           })}
         >
-          <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" />
+          <DatePicker showTime format="YYYY-MM-DD HH:mm:ss"/>
         </Form.Item>
         <Form.Item
           label={t("spool.fields.filament")}
@@ -119,7 +130,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
           initialValue={0}
         >
           <InputNumber
-            value={used_weight}
+            value={usedWeight}
           />
         </Form.Item>
 
@@ -135,17 +146,13 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             precision={1}
             formatter={numberFormatter}
             parser={numberParser}
-            value={used_weight}
+            value={usedWeight}
             onChange={(value) => {
-              set_used_weight(value ?? 0);
-              form.setFieldsValue(
-              {
-                used_weight: value ?? 0
-              });
+              weightChange(value ?? 0);
             }}
           />
         </Form.Item>
-		<Form.Item
+        <Form.Item
           label={t("spool.fields.remaining_weight")}
           help={t("spool.fields_help.remaining_weight")}
           // name={["remaining_weight"]}
@@ -157,18 +164,14 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             precision={1}
             formatter={numberFormatter}
             parser={numberParser}
-            disabled={!(selected_filament?.weight || 0)}
-            value={(selected_filament?.weight || 0) ? (selected_filament?.weight || 0) - used_weight : 0}
+            disabled={!filamentWeight}
+            value={filamentWeight ? filamentWeight - usedWeight : 0}
             onChange={(value) => {
-              set_used_weight((selected_filament?.weight || 0) - (value ?? 0));
-              form.setFieldsValue(
-                {
-                  used_weight: (selected_filament?.weight || 0) - (value ?? 0)
-                });
+              weightChange(filamentWeight - (value ?? 0));
             }}
           />
         </Form.Item>
-		<Form.Item
+        <Form.Item
           label={t("spool.fields.measured_weight")}
           help={t("spool.fields_help.measured_weight")}
           // name={["measured_weight"]}
@@ -180,14 +183,10 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             precision={1}
             formatter={numberFormatter}
             parser={numberParser}
-            disabled={!((selected_filament?.weight || 0) && (selected_filament?.spool_weight || 0))}
-            value={((selected_filament?.weight || 0) && (selected_filament?.spool_weight || 0)) ? (selected_filament?.weight || 0) - used_weight + (selected_filament?.spool_weight || 0) : 0}
+            disabled={!(filamentWeight && spoolWeight)}
+            value={(filamentWeight && spoolWeight) ? filamentWeight - usedWeight + spoolWeight : 0}
             onChange={(value) => {
-              set_used_weight((selected_filament?.weight || 0) - ((value ?? 0) - (selected_filament?.spool_weight || 0)));
-              form.setFieldsValue(
-                {
-                  used_weight: (selected_filament?.weight || 0) - ((value ?? 0) - (selected_filament?.spool_weight || 0))
-                });
+              weightChange(filamentWeight - ((value ?? 0) - spoolWeight));
             }}
           />
         </Form.Item>
@@ -201,7 +200,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             },
           ]}
         >
-          <Input maxLength={64} />
+          <Input maxLength={64}/>
         </Form.Item>
         <Form.Item
           label={t("spool.fields.lot_nr")}
@@ -213,7 +212,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             },
           ]}
         >
-          <Input maxLength={64} />
+          <Input maxLength={64}/>
         </Form.Item>
         <Form.Item
           label={t("spool.fields.comment")}
@@ -224,7 +223,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             },
           ]}
         >
-          <TextArea maxLength={1024} />
+          <TextArea maxLength={1024}/>
         </Form.Item>
       </Form>
     </Create>
