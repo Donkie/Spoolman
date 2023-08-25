@@ -98,7 +98,7 @@ def parse_nested_field(base_obj: type[models.Base], field: str) -> sqlalchemy.Co
     return getattr(base_obj, fields[0])
 
 
-async def find(  # noqa: C901
+async def find(  # noqa: C901, PLR0912
     *,
     db: AsyncSession,
     filament_name: Optional[str] = None,
@@ -110,6 +110,8 @@ async def find(  # noqa: C901
     lot_nr: Optional[str] = None,
     allow_archived: bool = False,
     sort_by: Optional[dict[str, SortOrder]] = None,
+    limit: Optional[int] = None,
+    offset: int = 0,
 ) -> list[models.Spool]:
     """Find a list of spool objects by search criteria.
 
@@ -152,6 +154,9 @@ async def find(  # noqa: C901
                 stmt = stmt.order_by(field.asc())
             elif order == SortOrder.DESC:
                 stmt = stmt.order_by(field.desc())
+
+    if limit is not None:
+        stmt = stmt.offset(offset).limit(limit)
 
     rows = await db.execute(stmt)
     return list(rows.scalars().all())

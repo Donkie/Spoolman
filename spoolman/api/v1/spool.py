@@ -119,6 +119,16 @@ async def find(
         ),
         example="filament.name:asc,location:desc",
     ),
+    limit: Optional[int] = Query(
+        default=None,
+        title="Limit",
+        description="Maximum number of items in the response.",
+    ),
+    offset: int = Query(
+        default=0,
+        title="Offset",
+        description="Offset in the full result set if a limit is set.",
+    ),
 ) -> list[Spool]:
     sort_by: dict[str, SortOrder] = {}
     if sort is not None:
@@ -137,6 +147,8 @@ async def find(
         lot_nr=lot_nr,
         allow_archived=allow_archived,
         sort_by=sort_by,
+        limit=limit,
+        offset=offset,
     )
     return [Spool.from_db(db_item) for db_item in db_items]
 
