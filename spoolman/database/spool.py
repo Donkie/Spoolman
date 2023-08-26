@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 import sqlalchemy
-from sqlalchemy import case
+from sqlalchemy import case, func
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
@@ -90,11 +90,13 @@ async def find(  # noqa: C901, PLR0912
     sort_by: Optional[dict[str, SortOrder]] = None,
     limit: Optional[int] = None,
     offset: int = 0,
-) -> list[models.Spool]:
+) -> tuple[list[models.Spool], int]:
     """Find a list of spool objects by search criteria.
 
     Sort by a field by passing a dict with the field name as key and the sort order as value.
     The field name can contain nested fields, e.g. filament.name.
+
+    Returns a tuple containing the list of items and the total count of matching items.
     """
     stmt = (
         sqlalchemy.select(models.Spool)
@@ -125,6 +127,14 @@ async def find(  # noqa: C901, PLR0912
             ),
         )
 
+    total_count = None
+
+    if limit is not None:
+        total_count_stmt = stmt.with_only_columns(func.count())
+        total_count = (await db.execute(total_count_stmt)).scalar()
+
+        stmt = stmt.offset(offset).limit(limit)
+
     if sort_by is not None:
         for fieldstr, order in sort_by.items():
             field = parse_nested_field(models.Spool, fieldstr)
@@ -133,11 +143,12 @@ async def find(  # noqa: C901, PLR0912
             elif order == SortOrder.DESC:
                 stmt = stmt.order_by(field.desc())
 
-    if limit is not None:
-        stmt = stmt.offset(offset).limit(limit)
-
     rows = await db.execute(stmt)
-    return list(rows.scalars().all())
+    result = list(rows.scalars().all())
+    if total_count is None:
+        total_count = len(result)
+
+    return result, total_count
 
 
 async def update(

@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -67,6 +68,7 @@ class SpoolUseParameters(BaseModel):
     name="Find spool",
     description="Get a list of spools that matches the search query.",
     response_model_exclude_none=True,
+    response_model=list[Spool],
 )
 async def find(
     *,
@@ -129,14 +131,14 @@ async def find(
         title="Offset",
         description="Offset in the full result set if a limit is set.",
     ),
-) -> list[Spool]:
+) -> JSONResponse:
     sort_by: dict[str, SortOrder] = {}
     if sort is not None:
         for sort_item in sort.split(","):
             field, direction = sort_item.split(":")
             sort_by[field] = SortOrder[direction.upper()]
 
-    db_items = await spool.find(
+    db_items, total_count = await spool.find(
         db=db,
         filament_name=filament_name,
         filament_id=filament_id,
@@ -150,7 +152,15 @@ async def find(
         limit=limit,
         offset=offset,
     )
-    return [Spool.from_db(db_item) for db_item in db_items]
+
+    # Set x-total-count header for pagination
+    return JSONResponse(
+        content=jsonable_encoder(
+            (Spool.from_db(db_item) for db_item in db_items),
+            exclude_none=True,
+        ),
+        headers={"x-total-count": str(total_count)},
+    )
 
 
 @router.get(

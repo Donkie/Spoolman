@@ -3,7 +3,7 @@
 import logging
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
@@ -78,11 +78,13 @@ async def find(  # noqa: C901
     sort_by: Optional[dict[str, SortOrder]] = None,
     limit: Optional[int] = None,
     offset: int = 0,
-) -> list[models.Filament]:
+) -> tuple[list[models.Filament], int]:
     """Find a list of filament objects by search criteria.
 
     Sort by a field by passing a dict with the field name as key and the sort order as value.
     The field name can contain nested fields, e.g. vendor.name.
+
+    Returns a tuple containing the list of items and the total count of matching items.
     """
     stmt = (
         select(models.Filament)
@@ -100,6 +102,14 @@ async def find(  # noqa: C901
     if article_number is not None:
         stmt = stmt.where(models.Filament.article_number.ilike(f"%{article_number}%"))
 
+    total_count = None
+
+    if limit is not None:
+        total_count_stmt = stmt.with_only_columns(func.count())
+        total_count = (await db.execute(total_count_stmt)).scalar()
+
+        stmt = stmt.offset(offset).limit(limit)
+
     if sort_by is not None:
         for fieldstr, order in sort_by.items():
             field = parse_nested_field(models.Filament, fieldstr)
@@ -108,11 +118,12 @@ async def find(  # noqa: C901
             elif order == SortOrder.DESC:
                 stmt = stmt.order_by(field.desc())
 
-    if limit is not None:
-        stmt = stmt.offset(offset).limit(limit)
-
     rows = await db.execute(stmt)
-    return list(rows.scalars().all())
+    result = list(rows.scalars().all())
+    if total_count is None:
+        total_count = len(result)
+
+    return result, total_count
 
 
 async def update(

@@ -3,7 +3,9 @@
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from pydantic.error_wrappers import ErrorWrapper
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,6 +46,7 @@ class VendorUpdateParameters(VendorParameters):
     name="Find vendor",
     description="Get a list of vendors that matches the search query.",
     response_model_exclude_none=True,
+    response_model=list[Vendor],
 )
 async def find(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -70,21 +73,28 @@ async def find(
         title="Offset",
         description="Offset in the full result set if a limit is set.",
     ),
-) -> list[Vendor]:
+) -> JSONResponse:
     sort_by: dict[str, SortOrder] = {}
     if sort is not None:
         for sort_item in sort.split(","):
             field, direction = sort_item.split(":")
             sort_by[field] = SortOrder[direction.upper()]
 
-    db_items = await vendor.find(
+    db_items, total_count = await vendor.find(
         db=db,
         name=name,
         sort_by=sort_by,
         limit=limit,
         offset=offset,
     )
-    return [Vendor.from_db(db_item) for db_item in db_items]
+    # Set x-total-count header for pagination
+    return JSONResponse(
+        content=jsonable_encoder(
+            (Vendor.from_db(db_item) for db_item in db_items),
+            exclude_none=True,
+        ),
+        headers={"x-total-count": str(total_count)},
+    )
 
 
 @router.get(

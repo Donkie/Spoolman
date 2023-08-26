@@ -1,6 +1,7 @@
 """Utility functions for the database module."""
 
 from enum import Enum
+from typing import Any
 
 import sqlalchemy
 
@@ -12,7 +13,7 @@ class SortOrder(Enum):
     DESC = 2
 
 
-def parse_nested_field(base_obj: type[models.Base], field: str) -> sqlalchemy.Column:
+def parse_nested_field(base_obj: type[models.Base], field: str) -> sqlalchemy.Column[Any]:
     """Parse a nested field string into a sqlalchemy field object."""
     fields = field.split(".")
     if not hasattr(base_obj, fields[0]):
