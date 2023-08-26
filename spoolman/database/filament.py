@@ -1,5 +1,6 @@
 """Helper functions for interacting with filament database objects."""
 
+import logging
 from typing import Optional
 
 from sqlalchemy import select
@@ -143,3 +144,26 @@ async def delete(db: AsyncSession, filament_id: int) -> None:
     except IntegrityError as exc:
         await db.rollback()
         raise ItemDeleteError("Failed to delete filament.") from exc
+
+
+logger = logging.getLogger(__name__)
+
+
+async def find_materials(
+    *,
+    db: AsyncSession,
+) -> list[str]:
+    """Find a list of filament materials by searching for distinct values in the filament table."""
+    stmt = select(models.Filament.material).distinct()
+    rows = await db.execute(stmt)
+    return [row[0] for row in rows.all() if row[0] is not None]
+
+
+async def find_article_numbers(
+    *,
+    db: AsyncSession,
+) -> list[str]:
+    """Find a list of filament article numbers by searching for distinct values in the filament table."""
+    stmt = select(models.Filament.article_number).distinct()
+    rows = await db.execute(stmt)
+    return [row[0] for row in rows.all() if row[0] is not None]

@@ -257,3 +257,23 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
 
     await db.commit()
     return spool
+
+
+async def find_locations(
+    *,
+    db: AsyncSession,
+) -> list[str]:
+    """Find a list of spool locations by searching for distinct values in the spool table."""
+    stmt = sqlalchemy.select(models.Spool.location).distinct()
+    rows = await db.execute(stmt)
+    return [row[0] for row in rows.all() if row[0] is not None]
+
+
+async def find_lot_numbers(
+    *,
+    db: AsyncSession,
+) -> list[str]:
+    """Find a list of spool lot numbers by searching for distinct values in the spool table."""
+    stmt = sqlalchemy.select(models.Spool.lot_nr).distinct()
+    rows = await db.execute(stmt)
+    return [row[0] for row in rows.all() if row[0] is not None]
