@@ -112,7 +112,7 @@ async def find(
         # Since the archived field is nullable, and default is false, we need to check for both false or null
         stmt = stmt.where(
             sqlalchemy.or_(
-                models.Spool.archived.is_(False),  # noqa: FBT003
+                models.Spool.archived.is_(False),
                 models.Spool.archived.is_(None),
             ),
         )

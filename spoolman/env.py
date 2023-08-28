@@ -190,9 +190,9 @@ def is_debug_mode() -> bool:
         bool: Whether debug mode is enabled.
     """
     debug_mode = os.getenv("SPOOLMAN_DEBUG_MODE", "FALSE").upper()
-    if debug_mode == "FALSE" or debug_mode == "0":
+    if debug_mode in {"FALSE", "0"}:
         return False
-    if debug_mode == "TRUE" or debug_mode == "1":
+    if debug_mode in {"TRUE", "1"}:
         return True
     raise ValueError(f"Failed to parse SPOOLMAN_DEBUG_MODE variable: Unknown debug mode '{debug_mode}'.")
 
@@ -206,9 +206,9 @@ def is_automatic_backup_enabled() -> bool:
         bool: Whether automatic backup is enabled.
     """
     automatic_backup = os.getenv("SPOOLMAN_AUTOMATIC_BACKUP", "TRUE").upper()
-    if automatic_backup == "FALSE" or automatic_backup == "0":
+    if automatic_backup in {"FALSE", "0"}:
         return False
-    if automatic_backup == "TRUE" or automatic_backup == "1":
+    if automatic_backup in {"TRUE", "1"}:
         return True
     raise ValueError(
         f"Failed to parse SPOOLMAN_AUTOMATIC_BACKUP variable: Unknown automatic backup '{automatic_backup}'.",

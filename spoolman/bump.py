@@ -16,15 +16,15 @@ def bump() -> None:
         print("Please specify a bump type, e.g. major, minor, micro.")
         sys.exit(1)
 
-    if subprocess.run(["git", "diff", "--quiet", "pyproject.toml"], cwd=project_root).returncode != 0:
+    if subprocess.run(["git", "diff", "--quiet", "pyproject.toml"], cwd=project_root, check=False).returncode != 0:
         print("The pyproject.toml file is dirty, please commit your changes before bumping the version number.")
         sys.exit(1)
 
-    if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=project_root).returncode != 0:
+    if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=project_root, check=False).returncode != 0:
         print("There are staged changes, please commit them before bumping the version number.")
         sys.exit(1)
 
-    if subprocess.run(["pip", "show", "pdm-bump"], cwd=project_root, capture_output=True).returncode != 0:
+    if subprocess.run(["pip", "show", "pdm-bump"], cwd=project_root, capture_output=True, check=False).returncode != 0:
         print("Please install pdm-bump using pip.")
         sys.exit(1)
 

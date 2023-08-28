@@ -16,7 +16,7 @@ repos:
       - id: black
         args: ["--check"]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.0.277
+    rev: v0.0.286
     hooks:
       - id: ruff
         args: ["--target-version", "py39"]
