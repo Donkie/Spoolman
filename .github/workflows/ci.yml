@@ -30,7 +30,7 @@ jobs:
           python-version: "3.9"
 
       - name: Install pre-commit
-        run: pip install pre-commit==3.3.2
+        run: pip install pre-commit==3.3.3
 
       - name: Run pre-commit
         run: pre-commit run --all-files
