@@ -49,7 +49,7 @@ async def create(
         color_hex=color_hex,
     )
     db.add(db_item)
-    await db.flush()
+    await db.commit()
     return db_item
 
 
@@ -111,7 +111,7 @@ async def update(
                 filament.vendor = await vendor.get_by_id(db, v)
         else:
             setattr(filament, k, v)
-    await db.flush()
+    await db.commit()
     return filament
 
 
@@ -120,7 +120,7 @@ async def delete(db: AsyncSession, filament_id: int) -> None:
     filament = await get_by_id(db, filament_id)
     await db.delete(filament)
     try:
-        await db.flush()  # Flush immediately so any errors are propagated in this request.
+        await db.commit()  # Flush immediately so any errors are propagated in this request.
     except IntegrityError as exc:
         await db.rollback()
         raise ItemDeleteError("Failed to delete filament.") from exc

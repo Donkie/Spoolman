@@ -21,7 +21,7 @@ async def create(
         comment=comment,
     )
     db.add(db_item)
-    await db.flush()
+    await db.commit()
     return db_item
 
 
@@ -57,7 +57,7 @@ async def update(
     vendor = await get_by_id(db, vendor_id)
     for k, v in data.items():
         setattr(vendor, k, v)
-    await db.flush()
+    await db.commit()
     return vendor
 
 

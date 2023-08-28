@@ -59,7 +59,7 @@ async def create(
         archived=archived,
     )
     db.add(db_item)
-    await db.flush()
+    await db.commit()
     return db_item
 
 
@@ -140,7 +140,7 @@ async def update(
             setattr(spool, k, utc_timezone_naive(v))
         else:
             setattr(spool, k, v)
-    await db.flush()
+    await db.commit()
     return spool
 
 
@@ -192,7 +192,7 @@ async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.S
         spool.first_used = datetime.utcnow()
     spool.last_used = datetime.utcnow()
 
-    await db.flush()
+    await db.commit()
     return spool
 
 
@@ -236,5 +236,5 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
         spool.first_used = datetime.utcnow()
     spool.last_used = datetime.utcnow()
 
-    await db.flush()
+    await db.commit()
     return spool
