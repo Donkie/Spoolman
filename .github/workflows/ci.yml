@@ -221,7 +221,7 @@ jobs:
   #
   release:
     if: ${{ github.event_name != 'pull_request' }}
-    needs: [test, build-amd64, build-arm64, build-armv7]
+    needs: [test, build-amd64, build-arm64, build-armv7, style]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
