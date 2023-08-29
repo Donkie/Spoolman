@@ -13,11 +13,35 @@ const dataProvider = (
     Required<DataProvider>,
     "createMany" | "updateMany" | "deleteMany"
 > => ({
-    getList: async ({ resource, meta }) => {
+    getList: async ({ resource, meta, pagination, sorters, filters }) => {
         const url = `${apiUrl}/${resource}`;
 
         const { headers: headersFromMeta, method, queryParams } = meta ?? {};
         const requestMethod = (method as MethodTypes) ?? "get";
+
+        if (pagination && pagination.mode == "server") {
+            const pageSize = pagination.pageSize ?? 10;
+            const offset = ((pagination.current ?? 1) - 1) * pageSize;
+            queryParams["limit"] = pageSize;
+            queryParams["offset"] = offset;
+        }
+
+        if (sorters && sorters.length > 0) {
+            queryParams["sort"] = sorters.map((sort) => {
+                const field = sort.field.replace("_", ".")
+                return `${field}:${sort.order}`;
+            }).join(",")
+        }
+
+        if (filters && filters.length > 0) {
+            filters.forEach(filter => {
+                if (!("field" in filter)) {
+                    throw Error("Filter must be a LogicalFilter.")
+                }
+                const field = filter.field.replace(".", "_")
+                queryParams[field] = filter.value
+            });
+        }
 
         const { data } = await httpClient[requestMethod](
             `${url}`,
@@ -29,7 +53,8 @@ const dataProvider = (
 
         return {
             data,
-            total: data.length,
+            total: 100,
+            //TODO: total: data.length,
         };
     },
 

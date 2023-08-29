@@ -26,7 +26,7 @@ const { confirm } = Modal;
 
 interface ISpoolCollapsed extends ISpool {
   filament_name: string;
-  material?: string;
+  filament_material?: string;
 }
 
 export const SpoolList: React.FC<IResourceComponentsProps> = () => {
@@ -49,16 +49,16 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
       },
       syncWithLocation: false,
       pagination: {
-        mode: "off", // Perform pagination in antd's Table instead. Otherwise client-side sorting/filtering doesn't work.
+        mode: "server",
         current: initialState.pagination.current,
         pageSize: initialState.pagination.pageSize,
       },
       sorters: {
-        mode: "off", // Disable server-side sorting
+        mode: "server",
         initial: initialState.sorters,
       },
       filters: {
-        mode: "off", // Disable server-side filtering
+        mode: "server",
         initial: initialState.filters,
       },
     });
@@ -67,7 +67,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const allColumns: (keyof ISpoolCollapsed & string)[] = [
     "id",
     "filament_name",
-    "material",
+    "filament_material",
     "used_weight",
     "remaining_weight",
     "used_length",
@@ -83,10 +83,6 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     (column_id) => ["registered", "used_length", "remaining_length", "lot_nr"].indexOf(column_id) === -1
   );
   const [showColumns, setShowColumns] = React.useState<string[]>(initialState.showColumns ?? defaultColumns);
-
-  // Type the sorters and filters
-  const typedSorters = typeSorters<ISpoolCollapsed>(sorters);
-  const typedFilters = typeFilters<ISpoolCollapsed>(filters);
 
   // Store state in local storage
   const tableState: TableState = {
@@ -110,18 +106,14 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
         return {
           ...element,
           filament_name,
-          material: element.filament.material,
+          filament_material: element.filament.material,
         };
       }),
     [tableProps.dataSource]
   );
 
   // Filter and sort the dataSource
-  const filteredDataSource = React.useMemo(() => {
-    const filtered = dataSource.filter(genericFilterer(typedFilters));
-    filtered.sort(genericSorter(typedSorters));
-    return filtered;
-  }, [dataSource, typedFilters, typedSorters]);
+  const filteredDataSource = dataSource;
 
   // Function for opening an ant design modal that asks for confirmation for archiving a spool
   const archiveSpool = async (spool: ISpoolCollapsed, archive: boolean) => {
@@ -205,15 +197,6 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
       <Table
         {...tableProps}
         dataSource={filteredDataSource}
-        pagination={{
-          showSizeChanger: true,
-          current: current,
-          pageSize: pageSize,
-          onChange: (page, pageSize) => {
-            setCurrent(page);
-            setPageSize(pageSize);
-          },
-        }}
         rowKey="id"
         // Make archived rows greyed out
         onRow={(record) => {
@@ -243,7 +226,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           tableState,
         })}
         {FilteredColumn({
-          id: "material",
+          id: "filament_material",
           i18ncat: "spool",
           dataSource,
           tableState,
