@@ -99,7 +99,7 @@ async def find_lot_numbers(
 
 
 @router.get(
-    "/locations",
+    "/location",
     name="Find locations",
     description="Get a list of all spool locations.",
     response_model_exclude_none=True,
