@@ -72,11 +72,15 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     const newFilamentWeight = newSelectedFilament?.weight || 0;
     const newSpoolWeight = newSelectedFilament?.spool_weight || 0;
 
-    if (!(newFilamentWeight && newSpoolWeight)) {
-      setWeightToEnter(2);
+    if (weightToEnter >= 3) {
+      if (!(newFilamentWeight && newSpoolWeight)) {
+        setWeightToEnter(2);
+      }
     }
-    if (!newFilamentWeight) {
-      setWeightToEnter(1);
+    if (weightToEnter >= 2) {
+      if (!newFilamentWeight) {
+        setWeightToEnter(1);
+      }
     }
   };
 
