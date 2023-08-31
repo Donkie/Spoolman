@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {IResourceComponentsProps, useTranslate} from "@refinedev/core";
 import {Create, useForm, useSelect} from "@refinedev/antd";
-import {Form, Input, DatePicker, Select, InputNumber} from "antd";
+import {Form, Input, DatePicker, Select, InputNumber, Radio} from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import {IFilament} from "../filaments/model";
@@ -55,6 +55,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   });
   filamentOptions?.sort((a, b) => a.label.localeCompare(b.label, undefined, {sensitivity: "base"}));
 
+  const [weightToEnter, setWeightToEnter] = useState(1);
   const [usedWeight, setUsedWeight] = useState(0);
 
   const selectedFilamentID = Form.useWatch('filament_id', form);
@@ -63,6 +64,21 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   });
   const filamentWeight = selectedFilament?.weight || 0;
   const spoolWeight = selectedFilament?.spool_weight || 0;
+
+  const filamentChange = (newID: number) => {
+    const newSelectedFilament = filamentOptions?.find((obj) => {
+      return obj.value === newID;
+    });
+    const newFilamentWeight = newSelectedFilament?.weight || 0;
+    const newSpoolWeight = newSelectedFilament?.spool_weight || 0;
+
+    if (!(newFilamentWeight && newSpoolWeight)) {
+      setWeightToEnter(2);
+    }
+    if (!newFilamentWeight) {
+      setWeightToEnter(1);
+    }
+  };
 
   const weightChange = (weight: number) => {
     setUsedWeight(weight);
@@ -122,8 +138,12 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             filterOption={(input, option) =>
               typeof option?.label === "string" && option?.label.toLowerCase().includes(input.toLowerCase())
             }
+            onChange={(value) => {
+              filamentChange(value);
+            }}
           />
         </Form.Item>
+
         <Form.Item
           hidden={true}
           name={["used_weight"]}
@@ -132,6 +152,20 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
           <InputNumber
             value={usedWeight}
           />
+        </Form.Item>
+
+        <Form.Item label={t("spool.fields.weight_to_use")} help={t("spool.fields_help.weight_to_use")}>
+          <Radio.Group
+            onChange={(value) => {
+              setWeightToEnter(value.target.value);
+            }}
+            defaultValue={1}
+            value={weightToEnter}
+          >
+            <Radio.Button value={1}>{t("spool.fields.used_weight")}</Radio.Button>
+            <Radio.Button value={2} disabled={!filamentWeight}>{t("spool.fields.remaining_weight")}</Radio.Button>
+            <Radio.Button value={3} disabled={!(filamentWeight && spoolWeight)}>{t("spool.fields.measured_weight")}</Radio.Button>
+          </Radio.Group>
         </Form.Item>
 
         <Form.Item
@@ -146,6 +180,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             precision={1}
             formatter={numberFormatter}
             parser={numberParser}
+            disabled={weightToEnter != 1}
             value={usedWeight}
             onChange={(value) => {
               weightChange(value ?? 0);
@@ -164,7 +199,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             precision={1}
             formatter={numberFormatter}
             parser={numberParser}
-            disabled={!filamentWeight}
+            disabled={weightToEnter != 2}
             value={filamentWeight ? filamentWeight - usedWeight : 0}
             onChange={(value) => {
               weightChange(filamentWeight - (value ?? 0));
@@ -183,7 +218,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             precision={1}
             formatter={numberFormatter}
             parser={numberParser}
-            disabled={!(filamentWeight && spoolWeight)}
+            disabled={weightToEnter != 3}
             value={(filamentWeight && spoolWeight) ? filamentWeight - usedWeight + spoolWeight : 0}
             onChange={(value) => {
               weightChange(filamentWeight - ((value ?? 0) - spoolWeight));
