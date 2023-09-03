@@ -42,7 +42,10 @@ LABEL org.opencontainers.image.licenses=MIT
 RUN apk add --no-cache libstdc++
 
 # Add local user so we don't run as root
-RUN adduser -D app
+RUN adduser -D app \
+ && mkdir -p /home/app/.local/share/spoolman \
+ && chown -R app:app /home/app/.local/share/spoolman
+
 USER app
 
 # Copy built client
@@ -58,5 +61,6 @@ ENV PYTHONPATH="/home/app/spoolman:${PYTHONPATH}"
 
 # Run command
 EXPOSE 8000
+VOLUME ["/home/app/.local/share/spoolman"]
 ENTRYPOINT ["uvicorn", "spoolman.main:app"]
 CMD ["--host", "0.0.0.0", "--port", "8000"]
