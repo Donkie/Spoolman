@@ -11,16 +11,16 @@ repos:
       - id: check-case-conflict
       - id: check-merge-conflict
   - repo: https://github.com/psf/black
-    rev: 23.3.0
+    rev: 23.7.0
     hooks:
       - id: black
         args: ["--check"]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.0.286
+    rev: v0.0.287
     hooks:
       - id: ruff
         args: ["--target-version", "py39"]
   - repo: https://github.com/pdm-project/pdm
-    rev: 2.7.4
+    rev: 2.9.1
     hooks:
       - id: pdm-lock-check
