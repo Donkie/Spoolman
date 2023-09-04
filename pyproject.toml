@@ -39,6 +39,9 @@ call = "spoolman.docs:generate_docs"
 [tool.pdm.scripts.bump]
 call = "spoolman.bump:bump"
 
+[tool.pdm.scripts.app]
+cmd = "uvicorn spoolman.main:app"
+
 [tool.ruff]
 select = ["ALL"]
 ignore = [
