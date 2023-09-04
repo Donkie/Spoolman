@@ -1,6 +1,6 @@
 """Integration tests for the Spool API endpoint."""
 
-from collections.abc import Iterator
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
 
@@ -18,7 +18,7 @@ class Fixture:
 
 
 @pytest.fixture()
-def spools(random_filament: dict[str, Any]) -> Iterator[Fixture]:
+def spools(random_filament: dict[str, Any]) -> Iterable[Fixture]:
     """Add some spools to the database."""
     result = httpx.post(
         f"{URL}/api/v1/spool",
@@ -99,12 +99,13 @@ def test_find_all_spools_including_archived(spools: Fixture):
         assert spool == spools.spools_by_id[spool["id"]]
 
 
-def test_find_spools_by_filament_name(spools: Fixture):
+@pytest.mark.parametrize("field_name", ["filament_name", "filament.name"])
+def test_find_spools_by_filament_name(spools: Fixture, field_name: str):
     """Test finding spools by filament name."""
     # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
-        params={"filament_name": spools.filament["name"]},
+        params={field_name: spools.filament["name"]},
     )
     result.raise_for_status()
 
@@ -115,12 +116,13 @@ def test_find_spools_by_filament_name(spools: Fixture):
         assert spool == spools.spools_by_id[spool["id"]]
 
 
-def test_find_spools_by_filament_id(spools: Fixture):
+@pytest.mark.parametrize("field_name", ["filament_id", "filament.id"])
+def test_find_spools_by_filament_id(spools: Fixture, field_name: str):
     """Test finding spools by filament id."""
     # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
-        params={"filament_id": spools.filament["id"]},
+        params={field_name: spools.filament["id"]},
     )
     result.raise_for_status()
 
@@ -131,12 +133,13 @@ def test_find_spools_by_filament_id(spools: Fixture):
         assert spool == spools.spools_by_id[spool["id"]]
 
 
-def test_find_spools_by_filament_material(spools: Fixture):
+@pytest.mark.parametrize("field_name", ["filament_material", "filament.material"])
+def test_find_spools_by_filament_material(spools: Fixture, field_name: str):
     """Test finding spools by filament material."""
     # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
-        params={"filament_material": spools.filament["material"]},
+        params={field_name: spools.filament["material"]},
     )
     result.raise_for_status()
 
@@ -147,12 +150,13 @@ def test_find_spools_by_filament_material(spools: Fixture):
         assert spool == spools.spools_by_id[spool["id"]]
 
 
-def test_find_spools_by_filament_vendor_name(spools: Fixture):
+@pytest.mark.parametrize("field_name", ["vendor_name", "vendor.name"])
+def test_find_spools_by_filament_vendor_name(spools: Fixture, field_name: str):
     """Test finding spools by filament vendor name."""
     # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
-        params={"vendor_name": spools.filament["vendor"]["name"]},
+        params={field_name: spools.filament["vendor"]["name"]},
     )
     result.raise_for_status()
 
@@ -163,12 +167,13 @@ def test_find_spools_by_filament_vendor_name(spools: Fixture):
         assert spool == spools.spools_by_id[spool["id"]]
 
 
-def test_find_spools_by_filament_vendor_id(spools: Fixture):
+@pytest.mark.parametrize("field_name", ["vendor_id", "vendor.id"])
+def test_find_spools_by_filament_vendor_id(spools: Fixture, field_name: str):
     """Test finding spools by filament vendor id."""
     # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
-        params={"vendor_id": spools.filament["vendor"]["id"]},
+        params={field_name: spools.filament["vendor"]["id"]},
     )
     result.raise_for_status()
 

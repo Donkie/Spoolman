@@ -73,27 +73,67 @@ class SpoolUseParameters(BaseModel):
 async def find(
     *,
     db: Annotated[AsyncSession, Depends(get_db_session)],
+    filament_name_old: Optional[str] = Query(
+        alias="filament_name",
+        default=None,
+        title="Filament Name",
+        description="Partial case-insensitive search term for the filament name.",
+        deprecated=True,
+    ),
+    filament_id_old: Optional[int] = Query(
+        alias="filament_id",
+        default=None,
+        title="Filament ID",
+        description="Match an exact filament ID.",
+        deprecated=True,
+    ),
+    filament_material_old: Optional[str] = Query(
+        alias="filament_material",
+        default=None,
+        title="Filament Material",
+        description="Partial case-insensitive search term for the filament material.",
+        deprecated=True,
+    ),
+    vendor_name_old: Optional[str] = Query(
+        alias="vendor_name",
+        default=None,
+        title="Vendor Name",
+        description="Partial case-insensitive search term for the filament vendor name.",
+        deprecated=True,
+    ),
+    vendor_id_old: Optional[int] = Query(
+        alias="vendor_id",
+        default=None,
+        title="Vendor ID",
+        description="Match an exact vendor ID.",
+        deprecated=True,
+    ),
     filament_name: Optional[str] = Query(
+        alias="filament.name",
         default=None,
         title="Filament Name",
         description="Partial case-insensitive search term for the filament name.",
     ),
     filament_id: Optional[int] = Query(
+        alias="filament.id",
         default=None,
         title="Filament ID",
         description="Match an exact filament ID.",
     ),
     filament_material: Optional[str] = Query(
+        alias="filament.material",
         default=None,
         title="Filament Material",
         description="Partial case-insensitive search term for the filament material.",
     ),
     vendor_name: Optional[str] = Query(
+        alias="vendor.name",
         default=None,
         title="Vendor Name",
         description="Partial case-insensitive search term for the filament vendor name.",
     ),
     vendor_id: Optional[int] = Query(
+        alias="vendor.id",
         default=None,
         title="Vendor ID",
         description="Match an exact vendor ID.",
@@ -119,7 +159,7 @@ async def find(
         description=(
             'Sort the results by the given field. Should be a comma-separate string with "field:direction" items.'
         ),
-        example="filament.name:asc,location:desc",
+        example="filament.name:asc,vendor.id:asc,location:desc",
     ),
     limit: Optional[int] = Query(
         default=None,
@@ -140,11 +180,11 @@ async def find(
 
     db_items, total_count = await spool.find(
         db=db,
-        filament_name=filament_name,
-        filament_id=filament_id,
-        filament_material=filament_material,
-        vendor_name=vendor_name,
-        vendor_id=vendor_id,
+        filament_name=filament_name if filament_name is not None else filament_name_old,
+        filament_id=filament_id if filament_id is not None else filament_id_old,
+        filament_material=filament_material if filament_material is not None else filament_material_old,
+        vendor_name=vendor_name if vendor_name is not None else vendor_name_old,
+        vendor_id=vendor_id if vendor_id is not None else vendor_id_old,
         location=location,
         lot_nr=lot_nr,
         allow_archived=allow_archived,

@@ -115,12 +115,28 @@ class FilamentUpdateParameters(FilamentParameters):
 async def find(
     *,
     db: Annotated[AsyncSession, Depends(get_db_session)],
+    vendor_name_old: Optional[str] = Query(
+        alias="vendor_name",
+        default=None,
+        title="Vendor Name",
+        description="Partial case-insensitive search term for the filament vendor name.",
+        deprecated=True,
+    ),
+    vendor_id_old: Optional[int] = Query(
+        alias="vendor_id",
+        default=None,
+        title="Vendor ID",
+        description="Match an exact vendor ID.",
+        deprecated=True,
+    ),
     vendor_name: Optional[str] = Query(
+        alias="vendor.name",
         default=None,
         title="Vendor Name",
         description="Partial case-insensitive search term for the filament vendor name.",
     ),
     vendor_id: Optional[int] = Query(
+        alias="vendor.id",
         default=None,
         title="Vendor ID",
         description="Match an exact vendor ID.",
@@ -167,8 +183,8 @@ async def find(
 
     db_items, total_count = await filament.find(
         db=db,
-        vendor_name=vendor_name,
-        vendor_id=vendor_id,
+        vendor_name=vendor_name if vendor_name is not None else vendor_name_old,
+        vendor_id=vendor_id if vendor_id is not None else vendor_id_old,
         name=name,
         material=material,
         article_number=article_number,
