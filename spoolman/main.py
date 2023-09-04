@@ -1,21 +1,19 @@
 """Main entrypoint to the server."""
 
 import logging
-import os
 import subprocess
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
-from typing import Union
 
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.staticfiles import StaticFiles
 from scheduler.asyncio.scheduler import Scheduler
 
 from spoolman import env
 from spoolman.api.v1.router import app as v1_app
+from spoolman.client import SinglePageApplication
 from spoolman.database import database
 
 # Define a file logger with log rotation
@@ -38,23 +36,6 @@ logger = logging.getLogger(__name__)
 
 
 # Setup FastAPI
-class SinglePageApplication(StaticFiles):
-    """Serve a single page application."""
-
-    def __init__(self, directory: str) -> None:
-        """Construct."""
-        super().__init__(directory=directory, packages=None, html=True, check_dir=True)
-
-    def lookup_path(self, path: str) -> tuple[str, Union[os.stat_result, None]]:
-        """Return index.html if the requested file cannot be found."""
-        full_path, stat_result = super().lookup_path(path)
-
-        if stat_result is None:
-            return super().lookup_path("index.html")
-
-        return (full_path, stat_result)
-
-
 app = FastAPI(
     debug=env.is_debug_mode(),
     title="Spoolman",
