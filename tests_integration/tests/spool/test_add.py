@@ -5,7 +5,7 @@ from typing import Any
 import httpx
 import pytest
 
-from tests.conftest import length_from_weight
+from ..conftest import length_from_weight  # noqa: TID252
 
 URL = "http://spoolman:8000"
 
