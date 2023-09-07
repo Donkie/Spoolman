@@ -56,6 +56,7 @@ if env.is_debug_mode():
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["X-Total-Count"],
     )
 
 
