@@ -4,14 +4,12 @@ import { useTable, List, EditButton, ShowButton, CloneButton } from "@refinedev/
 import { Table, Space, Button, Dropdown, Modal } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { genericSorter, typeSorters } from "../../utils/sorting";
-import { genericFilterer, typeFilters } from "../../utils/filtering";
 import { ISpool } from "./model";
 import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
 import { EditOutlined, FilterOutlined, InboxOutlined, ToTopOutlined } from "@ant-design/icons";
 import {
   DateColumn,
-  FilteredColumn,
+  FilteredQueryColumn,
   NumberColumn,
   RichColumn,
   SortedColumn,
@@ -19,55 +17,62 @@ import {
 } from "../../components/column";
 import { setSpoolArchived } from "./functions";
 import SelectAndPrint from "../../components/selectAndPrintDialog";
+import {
+  useSpoolmanFilamentFullNames,
+  useSpoolmanLocations,
+  useSpoolmanLotNumbers,
+  useSpoolmanMaterials,
+} from "../../components/otherModels";
 
 dayjs.extend(utc);
 
 const { confirm } = Modal;
 
 interface ISpoolCollapsed extends ISpool {
-  filament_name: string;
-  filament_material?: string;
+  "filament.name": string;
+  "filament.material"?: string;
 }
+
+const namespace = "spoolList-v2";
 
 export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
   const invalidate = useInvalidate();
 
   // Load initial state
-  const initialState = useInitialTableState("spoolList");
+  const initialState = useInitialTableState(namespace);
 
   // State for the switch to show archived spools
   const [showArchived, setShowArchived] = useSavedState("spoolList-showArchived", false);
 
   // Fetch data from the API
-  const { tableProps, sorters, setSorters, filters, setFilters, current, pageSize, setCurrent, setPageSize } =
-    useTable<ISpool>({
-      meta: {
-        queryParams: {
-          ["allow_archived"]: showArchived,
-        },
+  const { tableProps, sorters, setSorters, filters, setFilters, current, pageSize, setCurrent } = useTable<ISpool>({
+    meta: {
+      queryParams: {
+        ["allow_archived"]: showArchived,
       },
-      syncWithLocation: false,
-      pagination: {
-        mode: "server",
-        current: initialState.pagination.current,
-        pageSize: initialState.pagination.pageSize,
-      },
-      sorters: {
-        mode: "server",
-        initial: initialState.sorters,
-      },
-      filters: {
-        mode: "server",
-        initial: initialState.filters,
-      },
-    });
+    },
+    syncWithLocation: false,
+    pagination: {
+      mode: "server",
+      current: initialState.pagination.current,
+      pageSize: initialState.pagination.pageSize,
+    },
+    sorters: {
+      mode: "server",
+      initial: initialState.sorters,
+    },
+    filters: {
+      mode: "server",
+      initial: initialState.filters,
+    },
+  });
 
   // Create state for the columns to show
   const allColumns: (keyof ISpoolCollapsed & string)[] = [
     "id",
-    "filament_name",
-    "filament_material",
+    "filament.name",
+    "filament.material",
     "used_weight",
     "remaining_weight",
     "used_length",
@@ -91,7 +96,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     pagination: { current, pageSize },
     showColumns,
   };
-  useStoreInitialState("spoolList", tableState);
+  useStoreInitialState(namespace, tableState);
 
   // Collapse the dataSource to a mutable list and add a filament_name field
   const dataSource: ISpoolCollapsed[] = React.useMemo(
@@ -105,8 +110,8 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
         }
         return {
           ...element,
-          filament_name,
-          filament_material: element.filament.material,
+          "filament.name": filament_name,
+          "filament.material": element.filament.material,
         };
       }),
     [tableProps.dataSource]
@@ -142,6 +147,10 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
       });
     }
   };
+
+  if (tableProps.pagination) {
+    tableProps.pagination.showSizeChanger = true;
+  }
 
   return (
     <List
@@ -219,17 +228,21 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           tableState,
         })}
         {SpoolIconColumn({
-          id: "filament_name",
-          i18ncat: "spool",
+          id: "filament.name",
+          i18nkey: "spool.fields.filament_name",
           color: (record: ISpoolCollapsed) => record.filament.color_hex,
           dataSource,
           tableState,
+          filterValueQuery: useSpoolmanFilamentFullNames(),
+          allowMultipleFilters: false,
         })}
-        {FilteredColumn({
-          id: "filament_material",
-          i18ncat: "spool",
+        {FilteredQueryColumn({
+          id: "filament.material",
+          i18nkey: "spool.fields.material",
           dataSource,
           tableState,
+          filterValueQuery: useSpoolmanMaterials(),
+          allowMultipleFilters: false,
         })}
         {NumberColumn({
           id: "used_weight",
@@ -265,17 +278,21 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
         })}
-        {FilteredColumn({
+        {FilteredQueryColumn({
           id: "location",
           i18ncat: "spool",
           dataSource,
           tableState,
+          filterValueQuery: useSpoolmanLocations(),
+          allowMultipleFilters: false,
         })}
-        {FilteredColumn({
+        {FilteredQueryColumn({
           id: "lot_nr",
           i18ncat: "spool",
           dataSource,
           tableState,
+          filterValueQuery: useSpoolmanLotNumbers(),
+          allowMultipleFilters: false,
         })}
         {DateColumn({
           id: "first_used",

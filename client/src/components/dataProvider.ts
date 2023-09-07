@@ -16,7 +16,8 @@ const dataProvider = (
     getList: async ({ resource, meta, pagination, sorters, filters }) => {
         const url = `${apiUrl}/${resource}`;
 
-        const { headers: headersFromMeta, method, queryParams } = meta ?? {};
+        const { headers: headersFromMeta, method } = meta ?? {};
+        const queryParams: Record<string, string | number> = meta?.queryParams ?? {};
         const requestMethod = (method as MethodTypes) ?? "get";
 
         if (pagination && pagination.mode == "server") {
@@ -28,22 +29,60 @@ const dataProvider = (
 
         if (sorters && sorters.length > 0) {
             queryParams["sort"] = sorters.map((sort) => {
-                const field = sort.field.replace("_", ".")
+                const field = sort.field
                 return `${field}:${sort.order}`;
             }).join(",")
         }
 
         if (filters && filters.length > 0) {
+            // Pre-process the filters and handle the special case where we want to split the filament name into vendor and filament name
+            if (resource === "spool") {
+                filters = structuredClone(filters)
+
+                for (let i = 0; i < filters.length; i++) {
+                    const filter = filters[i]
+                    if (("field" in filter) && filter.field === "filament.name") {
+                        const filamentNames: string[] = []
+                        const vendorNames: string[] = []
+                        if (Array.isArray(filter.value)) {
+                            filter.value.forEach((value: string) => {
+                                const split = value.split(" - ")
+                                if (split.length === 1) {
+                                    filamentNames.push(split[0])
+                                } else {
+                                    vendorNames.push(split[0])
+                                    filamentNames.push(split[1])
+                                }
+                            })
+                        } else {
+                            filamentNames.push(filter.value.split(" - ")[1])
+                            vendorNames.push(filter.value.split(" - ")[0])
+                        }
+                        filter.value = filamentNames
+
+                        filters.push({
+                            field: "vendor.name",
+                            operator: "in",
+                            value: vendorNames,
+                        })
+                        break
+                    }
+                }
+            }
+
             filters.forEach(filter => {
                 if (!("field" in filter)) {
                     throw Error("Filter must be a LogicalFilter.")
                 }
-                const field = filter.field.replace(".", "_")
-                queryParams[field] = filter.value
+                const field = filter.field
+                const fieldValue = Array.isArray(filter.value) ? filter.value.join(",") : filter.value
+                if (fieldValue.length > 0) {
+                    queryParams[field] = fieldValue
+                }
             });
         }
 
-        const { data } = await httpClient[requestMethod](
+        const { data, headers } = await httpClient[requestMethod](
             `${url}`,
             {
                 headers: headersFromMeta,
@@ -51,10 +90,11 @@ const dataProvider = (
             },
         );
 
+        // console.log(url, requestMethod, queryParams, data, headers)
+
         return {
             data,
-            total: 100,
-            //TODO: total: data.length,
+            total: parseInt(headers["x-total-count"]) ?? 100,
         };
     },
 

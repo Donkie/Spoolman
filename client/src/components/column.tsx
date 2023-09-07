@@ -1,7 +1,7 @@
 import { Col, Row, Table } from "antd";
 import { ColumnProps as AntdColumnProps } from "antd/es/table";
 import { ColumnFilterItem } from "antd/es/table/interface";
-import { getFiltersForField, typeFilters, useListFiltersForField } from "../utils/filtering";
+import { getFiltersForField, typeFilters } from "../utils/filtering";
 import { TableState } from "../utils/saveload";
 import { getSortOrderForField, typeSorters } from "../utils/sorting";
 import { NumberFieldUnit } from "./numberField";
@@ -12,12 +12,14 @@ import Icon from "@ant-design/icons";
 import { ReactComponent as SpoolIcon } from "../icon_spool.svg";
 import { useTranslate } from "@refinedev/core";
 import { enrichText } from "../utils/parsing";
+import { UseQueryResult } from "@tanstack/react-query";
 
 dayjs.extend(utc);
 
 interface BaseColumnProps<Obj> {
   id: keyof Obj & string;
-  i18ncat: string;
+  i18ncat?: string;
+  i18nkey?: string;
   dataSource: Obj[];
   tableState: TableState;
 }
@@ -25,6 +27,7 @@ interface BaseColumnProps<Obj> {
 interface FilteredColumnProps {
   filters?: ColumnFilterItem[];
   filteredValue?: string[];
+  allowMultipleFilters?: boolean;
 }
 
 interface CustomColumnProps<Obj> {
@@ -45,9 +48,10 @@ function Column<Obj>(props: BaseColumnProps<Obj> & FilteredColumnProps & CustomC
   const typedSorters = typeSorters<Obj>(props.tableState.sorters);
   const columnProps: AntdColumnProps<Obj> = {
     dataIndex: props.id,
-    title: t(`${props.i18ncat}.fields.${props.id}`),
+    title: t(props.i18nkey ?? `${props.i18ncat}.fields.${props.id}`),
     sorter: true,
     sortOrder: getSortOrderForField(typedSorters, props.id),
+    filterMultiple: props.allowMultipleFilters ?? true,
   };
   if (props.filters && props.filteredValue) {
     columnProps.filters = props.filters;
@@ -75,10 +79,29 @@ export function RichColumn<Obj>(props: BaseColumnProps<Obj>) {
   });
 }
 
-export function FilteredColumn<Obj>(props: BaseColumnProps<Obj>) {
-  const typedFilters = typeFilters<Obj>(props.tableState.filters);
+interface FilteredQueryColumnProps<Obj> extends BaseColumnProps<Obj> {
+  filterValueQuery: UseQueryResult<string[]>;
+  allowMultipleFilters?: boolean;
+}
 
-  const filters = useListFiltersForField(props.dataSource, props.id);
+export function FilteredQueryColumn<Obj>(props: FilteredQueryColumnProps<Obj>) {
+  const query = props.filterValueQuery;
+
+  let filters: ColumnFilterItem[] = [];
+  if (query.data) {
+    filters = query.data.map((item) => {
+      return {
+        text: item,
+        value: item,
+      };
+    });
+  }
+  filters.push({
+    text: "<empty>",
+    value: "",
+  });
+
+  const typedFilters = typeFilters<Obj>(props.tableState.filters);
   const filteredValue = getFiltersForField(typedFilters, props.id);
 
   return Column({ ...props, filters, filteredValue });
@@ -127,14 +150,28 @@ export function DateColumn<Obj>(props: BaseColumnProps<Obj>) {
   });
 }
 
-interface SpoolIconColumnProps<Obj> extends BaseColumnProps<Obj> {
+interface SpoolIconColumnProps<Obj> extends FilteredQueryColumnProps<Obj> {
   color: (record: Obj) => string | undefined;
 }
 
 export function SpoolIconColumn<Obj>(props: SpoolIconColumnProps<Obj>) {
-  const typedFilters = typeFilters<Obj>(props.tableState.filters);
+  const query = props.filterValueQuery;
 
-  const filters = useListFiltersForField(props.dataSource, props.id);
+  let filters: ColumnFilterItem[] = [];
+  if (query.data) {
+    filters = query.data.map((item) => {
+      return {
+        text: item,
+        value: item,
+      };
+    });
+  }
+  filters.push({
+    text: "<empty>",
+    value: "",
+  });
+
+  const typedFilters = typeFilters<Obj>(props.tableState.filters);
   const filteredValue = getFiltersForField(typedFilters, props.id);
 
   return Column({
