@@ -9,7 +9,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 
 from spoolman.database import models, vendor
-from spoolman.database.utils import SortOrder, parse_nested_field
+from spoolman.database.utils import (
+    SortOrder,
+    add_where_clause,
+    add_where_clause_str,
+    add_where_clause_str_opt,
+    parse_nested_field,
+)
 from spoolman.exceptions import ItemDeleteError, ItemNotFoundError
 
 
@@ -67,7 +73,7 @@ async def get_by_id(db: AsyncSession, filament_id: int) -> models.Filament:
     return filament
 
 
-async def find(  # noqa: C901
+async def find(
     *,
     db: AsyncSession,
     vendor_name: Optional[str] = None,
@@ -91,16 +97,12 @@ async def find(  # noqa: C901
         .options(contains_eager(models.Filament.vendor))
         .join(models.Filament.vendor, isouter=True)
     )
-    if vendor_name is not None:
-        stmt = stmt.where(models.Vendor.name.ilike(f"%{vendor_name}%"))
-    if vendor_id is not None:
-        stmt = stmt.where(models.Filament.vendor_id == vendor_id)
-    if name is not None:
-        stmt = stmt.where(models.Filament.name.ilike(f"%{name}%"))
-    if material is not None:
-        stmt = stmt.where(models.Filament.material.ilike(f"%{material}%"))
-    if article_number is not None:
-        stmt = stmt.where(models.Filament.article_number.ilike(f"%{article_number}%"))
+
+    stmt = add_where_clause(stmt, models.Filament.vendor_id, vendor_id)
+    stmt = add_where_clause_str(stmt, models.Vendor.name, vendor_name)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.name, name)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.material, material)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.article_number, article_number)
 
     total_count = None
 

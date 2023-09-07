@@ -6,7 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.database import models
-from spoolman.database.utils import SortOrder
+from spoolman.database.utils import SortOrder, add_where_clause_str
 from spoolman.exceptions import ItemNotFoundError
 
 
@@ -47,8 +47,8 @@ async def find(
     Returns a tuple containing the list of items and the total count of matching items.
     """
     stmt = select(models.Vendor)
-    if name is not None:
-        stmt = stmt.where(models.Vendor.name.ilike(f"%{name}%"))
+
+    stmt = add_where_clause_str(stmt, models.Vendor.name, name)
 
     total_count = None
 

@@ -10,7 +10,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 
 from spoolman.database import filament, models
-from spoolman.database.utils import SortOrder, parse_nested_field
+from spoolman.database.utils import (
+    SortOrder,
+    add_where_clause,
+    add_where_clause_str,
+    add_where_clause_str_opt,
+    parse_nested_field,
+)
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError
 from spoolman.math import weight_from_length
 
@@ -76,7 +82,7 @@ async def get_by_id(db: AsyncSession, spool_id: int) -> models.Spool:
     return spool
 
 
-async def find(  # noqa: C901, PLR0912
+async def find(
     *,
     db: AsyncSession,
     filament_name: Optional[str] = None,
@@ -104,20 +110,15 @@ async def find(  # noqa: C901, PLR0912
         .join(models.Filament.vendor, isouter=True)
         .options(contains_eager(models.Spool.filament).contains_eager(models.Filament.vendor))
     )
-    if filament_name is not None:
-        stmt = stmt.where(models.Filament.name.ilike(f"%{filament_name}%"))
-    if filament_id is not None:
-        stmt = stmt.where(models.Spool.filament_id == filament_id)
-    if filament_material is not None:
-        stmt = stmt.where(models.Filament.material.ilike(f"%{filament_material}%"))
-    if vendor_name is not None:
-        stmt = stmt.where(models.Vendor.name.ilike(f"%{vendor_name}%"))
-    if vendor_id is not None:
-        stmt = stmt.where(models.Filament.vendor_id == vendor_id)
-    if location is not None:
-        stmt = stmt.where(models.Spool.location.ilike(f"%{location}%"))
-    if lot_nr is not None:
-        stmt = stmt.where(models.Spool.lot_nr.ilike(f"%{lot_nr}%"))
+
+    stmt = add_where_clause(stmt, models.Spool.filament_id, filament_id)
+    stmt = add_where_clause(stmt, models.Filament.vendor_id, vendor_id)
+    stmt = add_where_clause_str(stmt, models.Vendor.name, vendor_name)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.name, filament_name)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.material, filament_material)
+    stmt = add_where_clause_str_opt(stmt, models.Spool.location, location)
+    stmt = add_where_clause_str_opt(stmt, models.Spool.lot_nr, lot_nr)
+
     if not allow_archived:
         # Since the archived field is nullable, and default is false, we need to check for both false or null
         stmt = stmt.where(
