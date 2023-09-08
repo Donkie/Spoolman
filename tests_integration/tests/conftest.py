@@ -68,6 +68,23 @@ def random_vendor():
 
 
 @pytest.fixture()
+def random_empty_vendor():
+    """Return a random vendor with only required fields specified."""
+    # Add vendor
+    result = httpx.post(
+        f"{URL}/api/v1/vendor",
+        json={"name": ""},
+    )
+    result.raise_for_status()
+
+    vendor = result.json()
+    yield vendor
+
+    # Delete vendor
+    httpx.delete(f"{URL}/api/v1/vendor/{vendor['id']}").raise_for_status()
+
+
+@pytest.fixture()
 def random_filament(random_vendor: dict[str, Any]):
     """Return a random filament."""
     # Add filament
@@ -84,6 +101,47 @@ def random_filament(random_vendor: dict[str, Any]):
             "spool_weight": 250,
             "article_number": "123456789",
             "comment": "abcdefghåäö",
+        },
+    )
+    result.raise_for_status()
+
+    filament = result.json()
+    yield filament
+
+    # Delete filament
+    httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()
+
+
+@pytest.fixture()
+def random_empty_filament():
+    """Return a random filament with only required fields specified."""
+    # Add filament
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={
+            "density": 1.25,
+            "diameter": 1.75,
+        },
+    )
+    result.raise_for_status()
+
+    filament = result.json()
+    yield filament
+
+    # Delete filament
+    httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()
+
+
+@pytest.fixture()
+def random_empty_filament_empty_vendor(random_empty_vendor: dict[str, Any]):
+    """Return a random filament with only required fields specified and a vendor with only required fields specified."""
+    # Add filament
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={
+            "vendor_id": random_empty_vendor["id"],
+            "density": 1.25,
+            "diameter": 1.75,
         },
     )
     result.raise_for_status()
