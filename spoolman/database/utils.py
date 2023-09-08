@@ -1,7 +1,7 @@
 """Utility functions for the database module."""
 
 from enum import Enum
-from typing import Any, Optional, TypeVar
+from typing import Any, Optional
 
 import sqlalchemy
 from sqlalchemy import Select
@@ -65,15 +65,26 @@ def add_where_clause_str(
     return stmt
 
 
-T = TypeVar("T")
-
-
-def add_where_clause(
+def add_where_clause_int(
     stmt: Select,
-    field: attributes.InstrumentedAttribute[T],
-    value: Optional[T],
+    field: attributes.InstrumentedAttribute[int],
+    value: Optional[int],
 ) -> Select:
     """Add a where clause to a select statement for a field."""
     if value is not None:
         stmt = stmt.where(field == value)
+    return stmt
+
+
+def add_where_clause_int_opt(
+    stmt: Select,
+    field: attributes.InstrumentedAttribute[Optional[int]],
+    value: Optional[int],
+) -> Select:
+    """Add a where clause to a select statement for a field."""
+    if value is not None:
+        if value == -1:
+            stmt = stmt.where(field.is_(None))
+        else:
+            stmt = stmt.where(field == value)
     return stmt
