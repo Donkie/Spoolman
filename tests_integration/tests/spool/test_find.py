@@ -134,24 +134,24 @@ def test_find_all_spools_including_archived(spools: Fixture):
 
 def test_find_all_spools_sort_asc(spools: Fixture):
     # Execute
-    result = httpx.get(f"{URL}/api/v1/spool?sort=location:asc")
-    result.raise_for_status()
-
-    # Verify
-    spools_result = result.json()
-    assert len(spools_result) == 4
-    assert spools_result[3] == spools.spools[0]
-
-
-def test_find_all_spools_sort_desc(spools: Fixture):
-    # Execute
-    result = httpx.get(f"{URL}/api/v1/spool?sort=location:desc")
+    result = httpx.get(f"{URL}/api/v1/spool?sort=id:asc")
     result.raise_for_status()
 
     # Verify
     spools_result = result.json()
     assert len(spools_result) == 4
     assert spools_result[0] == spools.spools[0]
+
+
+def test_find_all_spools_sort_desc(spools: Fixture):
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/spool?sort=id:desc")
+    result.raise_for_status()
+
+    # Verify
+    spools_result = result.json()
+    assert len(spools_result) == 4
+    assert spools_result[-1] == spools.spools[0]
 
 
 def test_find_all_spools_limit_asc(spools: Fixture):
