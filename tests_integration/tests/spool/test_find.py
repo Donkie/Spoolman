@@ -18,7 +18,6 @@ def spool_lists_equal(a: Iterable[dict[str, Any]], b: Iterable[dict[str, Any]]) 
 @dataclass
 class Fixture:
     spools: list[dict[str, Any]]
-    spools_by_id: dict[str, dict[str, Any]]
     filament: dict[str, Any]
 
 
@@ -83,17 +82,8 @@ def spools(
     result.raise_for_status()
     spool_5 = result.json()
 
-    added_spools_by_id = {
-        spool_1["id"]: spool_1,
-        spool_2["id"]: spool_2,
-        spool_3["id"]: spool_3,
-        spool_4["id"]: spool_4,
-        spool_5["id"]: spool_5,
-    }
-
     yield Fixture(
         spools=[spool_1, spool_2, spool_3, spool_4, spool_5],
-        spools_by_id=added_spools_by_id,
         filament=random_filament_mod,
     )
 

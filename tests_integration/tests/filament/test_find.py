@@ -18,7 +18,6 @@ def filament_lists_equal(a: Iterable[dict[str, Any]], b: Iterable[dict[str, Any]
 @dataclass
 class Fixture:
     filaments: list[dict[str, Any]]
-    filaments_by_id: dict[str, dict[str, Any]]
 
 
 @pytest.fixture(scope="module")
@@ -98,17 +97,8 @@ def filaments(random_vendor_mod: dict[str, Any], random_empty_vendor_mod: dict[s
     result.raise_for_status()
     filament_5 = result.json()
 
-    added_filaments_by_id = {
-        filament_1["id"]: filament_1,
-        filament_2["id"]: filament_2,
-        filament_3["id"]: filament_3,
-        filament_4["id"]: filament_4,
-        filament_5["id"]: filament_5,
-    }
-
     yield Fixture(
         filaments=[filament_1, filament_2, filament_3, filament_4, filament_5],
-        filaments_by_id=added_filaments_by_id,
     )
 
     httpx.delete(f"{URL}/api/v1/filament/{filament_1['id']}").raise_for_status()

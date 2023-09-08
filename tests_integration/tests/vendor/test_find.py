@@ -1,67 +1,70 @@
 """Integration tests for the Vendor API endpoint."""
 
+from collections.abc import Iterable
+from dataclasses import dataclass
+from typing import Any
+
 import httpx
+import pytest
 
 URL = "http://spoolman:8000"
 
 
-def test_find_vendors():
-    """Test finding vendors from the database."""
-    # Setup
-    name_1 = "John"
-    comment_1 = "abcdefghåäö"
+def vendor_lists_equal(a: Iterable[dict[str, Any]], b: Iterable[dict[str, Any]]) -> bool:
+    """Compare two lists of vendors where the order of the vendors is not guaranteed."""
+    return sorted(a, key=lambda x: x["id"]) == sorted(b, key=lambda x: x["id"])
+
+
+@dataclass
+class Fixture:
+    vendors: list[dict[str, Any]]
+
+
+@pytest.fixture(scope="module")
+def vendors() -> Iterable[Fixture]:
+    """Add some vendors to the database."""
     result = httpx.post(
         f"{URL}/api/v1/vendor",
-        json={"name": name_1, "comment": comment_1},
+        json={"name": "John", "comment": "abcdefghåäö"},
     )
     result.raise_for_status()
     vendor_1 = result.json()
 
-    name_2 = "Stan"
-    comment_2 = "gfdadfg"
     result = httpx.post(
         f"{URL}/api/v1/vendor",
-        json={"name": name_2, "comment": comment_2},
+        json={"name": "Stan", "comment": "gfdadfg"},
     )
     result.raise_for_status()
     vendor_2 = result.json()
 
-    added_vendors_by_id = {
-        vendor_1["id"]: vendor_1,
-        vendor_2["id"]: vendor_2,
-    }
-
-    # Execute - Find all vendors
-    result = httpx.get(
-        f"{URL}/api/v1/vendor",
+    yield Fixture(
+        vendors=[vendor_1, vendor_2],
     )
-    result.raise_for_status()
 
-    # Verify
-    vendors = result.json()
-    assert len(vendors) == 2
-
-    for vendor in vendors:
-        assert vendor == added_vendors_by_id[vendor["id"]]
-
-    # Execute - Find a specific vendor
-    result = httpx.get(
-        f"{URL}/api/v1/vendor",
-        params={"name": name_1},
-    )
-    result.raise_for_status()
-
-    # Verify
-    vendors = result.json()
-    assert len(vendors) == 1
-
-    vendor = vendors[0]
-
-    assert vendor["name"] == name_1
-    assert vendor["comment"] == comment_1
-    assert vendor["id"] == vendor_1["id"]
-    assert vendor["registered"] == vendor_1["registered"]
-
-    # Clean up
     httpx.delete(f"{URL}/api/v1/vendor/{vendor_1['id']}").raise_for_status()
     httpx.delete(f"{URL}/api/v1/vendor/{vendor_2['id']}").raise_for_status()
+
+
+def test_find_all_vendors(vendors: Fixture):
+    # Execute
+    result = httpx.get(
+        f"{URL}/api/v1/vendor",
+    )
+    result.raise_for_status()
+
+    # Verify
+    vendors_result = result.json()
+    assert vendor_lists_equal(vendors_result, vendors.vendors)
+
+
+def test_find_vendors_by_name(vendors: Fixture):
+    # Execute
+    result = httpx.get(
+        f"{URL}/api/v1/vendor",
+        params={"name": vendors.vendors[0]["name"]},
+    )
+    result.raise_for_status()
+
+    # Verify
+    vendors_result = result.json()
+    assert vendors_result == [vendors.vendors[0]]
