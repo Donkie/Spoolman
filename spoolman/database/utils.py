@@ -19,7 +19,7 @@ def parse_nested_field(base_obj: type[models.Base], field: str) -> attributes.In
     """Parse a nested field string into a sqlalchemy field object."""
     fields = field.split(".")
     if not hasattr(base_obj, fields[0]):
-        raise ValueError(f"Invalid field name '{field}'")
+        raise ValueError(f"Invalid field name '{field}', '{fields[0]}' is not a valid field on '{base_obj.__name__}'.")
 
     if fields[0] == "filament" and len(fields) == 1:
         raise ValueError("No field specified for filament")

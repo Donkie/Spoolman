@@ -104,7 +104,6 @@ def spools(
 
 
 def test_find_all_spools(spools: Fixture):
-    """Test finding all non-archived spools in the database."""
     # Execute
     result = httpx.get(f"{URL}/api/v1/spool")
     result.raise_for_status()
@@ -115,7 +114,6 @@ def test_find_all_spools(spools: Fixture):
 
 
 def test_find_all_spools_including_archived(spools: Fixture):
-    """Test finding all spools in the database, including archived ones."""
     # Execute
     result = httpx.get(f"{URL}/api/v1/spool?allow_archived=true")
     result.raise_for_status()
@@ -134,9 +132,75 @@ def test_find_all_spools_including_archived(spools: Fixture):
     )
 
 
+def test_find_all_spools_sort_asc(spools: Fixture):
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/spool?sort=location:asc")
+    result.raise_for_status()
+
+    # Verify
+    spools_result = result.json()
+    assert len(spools_result) == 4
+    assert spools_result[3] == spools.spools[0]
+
+
+def test_find_all_spools_sort_desc(spools: Fixture):
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/spool?sort=location:desc")
+    result.raise_for_status()
+
+    # Verify
+    spools_result = result.json()
+    assert len(spools_result) == 4
+    assert spools_result[0] == spools.spools[0]
+
+
+@pytest.mark.parametrize(
+    "field_name",
+    [
+        "id",
+        "registered",
+        "first_used",
+        "last_used",
+        "filament_id",
+        "used_weight",
+        "location",
+        "lot_nr",
+        "comment",
+        "archived",
+        "filament.id",
+        "filament.registered",
+        "filament.name",
+        "filament.vendor_id",
+        "filament.material",
+        "filament.price",
+        "filament.density",
+        "filament.diameter",
+        "filament.weight",
+        "filament.spool_weight",
+        "filament.article_number",
+        "filament.comment",
+        "filament.settings_extruder_temp",
+        "filament.settings_bed_temp",
+        "filament.color_hex",
+        "filament.vendor.id",
+        "filament.vendor.registered",
+        "filament.vendor.name",
+        "filament.vendor.comment",
+    ],
+)
+def test_find_all_spools_sort_fields(spools: Fixture, field_name: str):  # noqa: ARG001
+    """Test sorting by all fields."""
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/spool?sort={field_name}:asc")
+    result.raise_for_status()
+
+    # Verify
+    spools_result = result.json()
+    assert len(spools_result) == 4
+
+
 @pytest.mark.parametrize("field_name", ["filament_name", "filament.name"])
 def test_find_spools_by_filament_name(spools: Fixture, field_name: str):
-    """Test finding spools by filament name."""
     # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
@@ -164,7 +228,6 @@ def test_find_spools_by_empty_filament_name(spools: Fixture):
 
 @pytest.mark.parametrize("field_name", ["filament_id", "filament.id"])
 def test_find_spools_by_filament_id(spools: Fixture, field_name: str):
-    """Test finding spools by filament id."""
     # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
@@ -179,7 +242,6 @@ def test_find_spools_by_filament_id(spools: Fixture, field_name: str):
 
 @pytest.mark.parametrize("field_name", ["filament_material", "filament.material"])
 def test_find_spools_by_filament_material(spools: Fixture, field_name: str):
-    """Test finding spools by filament material."""
     # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
@@ -207,7 +269,6 @@ def test_find_spools_by_empty_filament_material(spools: Fixture):
 
 @pytest.mark.parametrize("field_name", ["vendor_name", "vendor.name"])
 def test_find_spools_by_filament_vendor_name(spools: Fixture, field_name: str):
-    """Test finding spools by filament vendor name."""
     # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
@@ -235,7 +296,6 @@ def test_find_spools_by_empty_filament_vendor_name(spools: Fixture):
 
 @pytest.mark.parametrize("field_name", ["vendor_id", "vendor.id"])
 def test_find_spools_by_filament_vendor_id(spools: Fixture, field_name: str):
-    """Test finding spools by filament vendor id."""
     # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
@@ -262,7 +322,6 @@ def test_find_spools_by_empty_filament_vendor_id(spools: Fixture):
 
 
 def test_find_spools_by_location(spools: Fixture):
-    """Test finding spools by location."""
     # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
@@ -289,7 +348,6 @@ def test_find_spools_by_empty_location(spools: Fixture):
 
 
 def test_find_spools_by_lot_nr(spools: Fixture):
-    """Test finding spools by lot nr."""
     # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",

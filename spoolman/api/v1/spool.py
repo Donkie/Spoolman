@@ -159,7 +159,7 @@ async def find(
         description=(
             'Sort the results by the given field. Should be a comma-separate string with "field:direction" items.'
         ),
-        example="filament.name:asc,vendor.id:asc,location:desc",
+        example="filament.name:asc,filament.vendor.id:asc,location:desc",
     ),
     limit: Optional[int] = Query(
         default=None,
