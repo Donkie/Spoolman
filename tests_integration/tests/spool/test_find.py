@@ -22,17 +22,17 @@ class Fixture:
     filament: dict[str, Any]
 
 
-@pytest.fixture()
+@pytest.fixture(scope="module")
 def spools(
-    random_filament: dict[str, Any],
-    random_empty_filament: dict[str, Any],
-    random_empty_filament_empty_vendor: dict[str, Any],
+    random_filament_mod: dict[str, Any],
+    random_empty_filament_mod: dict[str, Any],
+    random_empty_filament_empty_vendor_mod: dict[str, Any],
 ) -> Iterable[Fixture]:
     """Add some spools to the database."""
     result = httpx.post(
         f"{URL}/api/v1/spool",
         json={
-            "filament_id": random_filament["id"],
+            "filament_id": random_filament_mod["id"],
             "remaining_weight": 1000,
             "location": "The Pantry",
             "lot_nr": "123456789",
@@ -44,7 +44,7 @@ def spools(
     result = httpx.post(
         f"{URL}/api/v1/spool",
         json={
-            "filament_id": random_filament["id"],
+            "filament_id": random_filament_mod["id"],
             "remaining_weight": 1000,
             "location": "Living Room",
             "lot_nr": "987654321",
@@ -56,7 +56,7 @@ def spools(
     result = httpx.post(
         f"{URL}/api/v1/spool",
         json={
-            "filament_id": random_filament["id"],
+            "filament_id": random_filament_mod["id"],
             "remaining_weight": 1000,
             "archived": True,
         },
@@ -67,7 +67,7 @@ def spools(
     result = httpx.post(
         f"{URL}/api/v1/spool",
         json={
-            "filament_id": random_empty_filament["id"],
+            "filament_id": random_empty_filament_mod["id"],
         },
     )
     result.raise_for_status()
@@ -76,7 +76,7 @@ def spools(
     result = httpx.post(
         f"{URL}/api/v1/spool",
         json={
-            "filament_id": random_empty_filament_empty_vendor["id"],
+            "filament_id": random_empty_filament_empty_vendor_mod["id"],
         },
     )
     result.raise_for_status()
@@ -93,7 +93,7 @@ def spools(
     yield Fixture(
         spools=[spool_1, spool_2, spool_3, spool_4, spool_5],
         spools_by_id=added_spools_by_id,
-        filament=random_filament,
+        filament=random_filament_mod,
     )
 
     httpx.delete(f"{URL}/api/v1/spool/{spool_1['id']}").raise_for_status()

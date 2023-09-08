@@ -16,14 +16,14 @@ class Fixture:
     filaments_by_id: dict[str, dict[str, Any]]
 
 
-@pytest.fixture()
-def filaments(random_vendor: dict[str, Any]) -> Iterable[Fixture]:
+@pytest.fixture(scope="module")
+def filaments(random_vendor_mod: dict[str, Any]) -> Iterable[Fixture]:
     """Add some filaments to the database."""
     result = httpx.post(
         f"{URL}/api/v1/filament",
         json={
             "name": "Filament X",
-            "vendor_id": random_vendor["id"],
+            "vendor_id": random_vendor_mod["id"],
             "material": "PLA",
             "price": 100,
             "density": 1.25,
@@ -41,7 +41,7 @@ def filaments(random_vendor: dict[str, Any]) -> Iterable[Fixture]:
         f"{URL}/api/v1/filament",
         json={
             "name": "Filament Y",
-            "vendor_id": random_vendor["id"],
+            "vendor_id": random_vendor_mod["id"],
             "material": "ABS",
             "price": 200,
             "density": 1.25,
