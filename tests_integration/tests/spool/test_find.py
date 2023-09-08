@@ -68,6 +68,7 @@ def spools(
         f"{URL}/api/v1/spool",
         json={
             "filament_id": random_empty_filament_mod["id"],
+            "used_weight": 1000,
         },
     )
     result.raise_for_status()
@@ -134,24 +135,35 @@ def test_find_all_spools_including_archived(spools: Fixture):
 
 def test_find_all_spools_sort_asc(spools: Fixture):
     # Execute
-    result = httpx.get(f"{URL}/api/v1/spool?sort=id:asc")
+    result = httpx.get(f"{URL}/api/v1/spool?sort=id:asc&allow_archived=true")
     result.raise_for_status()
 
     # Verify
     spools_result = result.json()
-    assert len(spools_result) == 4
+    assert len(spools_result) == len(spools.spools)
     assert spools_result[0] == spools.spools[0]
 
 
 def test_find_all_spools_sort_desc(spools: Fixture):
     # Execute
-    result = httpx.get(f"{URL}/api/v1/spool?sort=id:desc")
+    result = httpx.get(f"{URL}/api/v1/spool?sort=id:desc&allow_archived=true")
     result.raise_for_status()
 
     # Verify
     spools_result = result.json()
-    assert len(spools_result) == 4
+    assert len(spools_result) == len(spools.spools)
     assert spools_result[-1] == spools.spools[0]
+
+
+def test_find_all_spools_sort_multiple(spools: Fixture):
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/spool?sort=used_weight:desc,id:asc&allow_archived=true")
+    result.raise_for_status()
+
+    # Verify
+    spools_result = result.json()
+    assert len(spools_result) == len(spools.spools)
+    assert spools_result == [spools.spools[3], spools.spools[0], spools.spools[1], spools.spools[2], spools.spools[4]]
 
 
 def test_find_all_spools_limit_asc(spools: Fixture):
@@ -242,15 +254,15 @@ def test_find_all_spools_limit_asc_offset_outside_range(spools: Fixture):  # noq
         "filament.vendor.comment",
     ],
 )
-def test_find_all_spools_sort_fields(spools: Fixture, field_name: str):  # noqa: ARG001
+def test_find_all_spools_sort_fields(spools: Fixture, field_name: str):
     """Test sorting by all fields."""
     # Execute
-    result = httpx.get(f"{URL}/api/v1/spool?sort={field_name}:asc")
+    result = httpx.get(f"{URL}/api/v1/spool?sort={field_name}:asc&allow_archived=true")
     result.raise_for_status()
 
     # Verify
     spools_result = result.json()
-    assert len(spools_result) == 4
+    assert len(spools_result) == len(spools.spools)
 
 
 @pytest.mark.parametrize("field_name", ["filament_name", "filament.name"])
