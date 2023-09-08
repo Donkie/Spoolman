@@ -37,12 +37,20 @@ def vendors() -> Iterable[Fixture]:
     result.raise_for_status()
     vendor_2 = result.json()
 
+    result = httpx.post(
+        f"{URL}/api/v1/vendor",
+        json={"name": ""},
+    )
+    result.raise_for_status()
+    vendor_3 = result.json()
+
     yield Fixture(
-        vendors=[vendor_1, vendor_2],
+        vendors=[vendor_1, vendor_2, vendor_3],
     )
 
     httpx.delete(f"{URL}/api/v1/vendor/{vendor_1['id']}").raise_for_status()
     httpx.delete(f"{URL}/api/v1/vendor/{vendor_2['id']}").raise_for_status()
+    httpx.delete(f"{URL}/api/v1/vendor/{vendor_3['id']}").raise_for_status()
 
 
 def test_find_all_vendors(vendors: Fixture):
@@ -57,6 +65,102 @@ def test_find_all_vendors(vendors: Fixture):
     assert vendor_lists_equal(vendors_result, vendors.vendors)
 
 
+def test_find_all_vendors_sort_asc(vendors: Fixture):
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/vendor?sort=id:asc")
+    result.raise_for_status()
+
+    # Verify
+    vendors_result = result.json()
+    assert len(vendors_result) == len(vendors.vendors)
+    assert vendors_result[0] == vendors.vendors[0]
+
+
+def test_find_all_vendors_sort_desc(vendors: Fixture):
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/vendor?sort=id:desc")
+    result.raise_for_status()
+
+    # Verify
+    vendors_result = result.json()
+    assert len(vendors_result) == len(vendors.vendors)
+    assert vendors_result[-1] == vendors.vendors[0]
+
+
+def test_find_all_vendors_limit_asc(vendors: Fixture):
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/vendor?sort=id:asc&limit=2")
+    result.raise_for_status()
+
+    # Verify
+    vendors_result = result.json()
+    assert len(vendors_result) == 2
+    assert vendors_result == [vendors.vendors[0], vendors.vendors[1]]
+
+
+def test_find_all_vendors_limit_desc(vendors: Fixture):
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/vendor?sort=id:desc&limit=2")
+    result.raise_for_status()
+
+    # Verify
+    vendors_result = result.json()
+    assert len(vendors_result) == 2
+    assert vendors_result == [vendors.vendors[-1], vendors.vendors[-2]]
+
+
+def test_find_all_vendors_limit_asc_offset(vendors: Fixture):
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/vendor?sort=id:asc&limit=2&offset=1")
+    result.raise_for_status()
+
+    # Verify
+    vendors_result = result.json()
+    assert len(vendors_result) == 2
+    assert vendors_result == [vendors.vendors[1], vendors.vendors[2]]
+
+
+def test_find_all_vendors_limit_desc_offset(vendors: Fixture):
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/vendor?sort=id:desc&limit=2&offset=1")
+    result.raise_for_status()
+
+    # Verify
+    vendors_result = result.json()
+    assert len(vendors_result) == 2
+    assert vendors_result == [vendors.vendors[-2], vendors.vendors[-3]]
+
+
+def test_find_all_vendors_limit_asc_offset_outside_range(vendors: Fixture):  # noqa: ARG001
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/vendor?sort=id:asc&limit=2&offset=100")
+    result.raise_for_status()
+
+    # Verify
+    vendors_result = result.json()
+    assert len(vendors_result) == 0
+
+
+@pytest.mark.parametrize(
+    "field_name",
+    [
+        "id",
+        "registered",
+        "name",
+        "comment",
+    ],
+)
+def test_find_all_vendors_sort_fields(vendors: Fixture, field_name: str):
+    """Test sorting by all fields."""
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/vendor?sort={field_name}:asc")
+    result.raise_for_status()
+
+    # Verify
+    vendors_result = result.json()
+    assert len(vendors_result) == len(vendors.vendors)
+
+
 def test_find_vendors_by_name(vendors: Fixture):
     # Execute
     result = httpx.get(
@@ -68,3 +172,16 @@ def test_find_vendors_by_name(vendors: Fixture):
     # Verify
     vendors_result = result.json()
     assert vendors_result == [vendors.vendors[0]]
+
+
+def test_find_vendors_by_empty_name(vendors: Fixture):
+    # Execute
+    result = httpx.get(
+        f"{URL}/api/v1/vendor",
+        params={"name": ""},
+    )
+    result.raise_for_status()
+
+    # Verify
+    vendors_result = result.json()
+    assert vendors_result == [vendors.vendors[2]]
