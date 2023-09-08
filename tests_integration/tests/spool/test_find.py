@@ -154,6 +154,60 @@ def test_find_all_spools_sort_desc(spools: Fixture):
     assert spools_result[0] == spools.spools[0]
 
 
+def test_find_all_spools_limit_asc(spools: Fixture):
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/spool?sort=id:asc&limit=2")
+    result.raise_for_status()
+
+    # Verify
+    spools_result = result.json()
+    assert len(spools_result) == 2
+    assert spools_result == [spools.spools[0], spools.spools[1]]
+
+
+def test_find_all_spools_limit_desc(spools: Fixture):
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/spool?sort=id:desc&limit=2")
+    result.raise_for_status()
+
+    # Verify
+    spools_result = result.json()
+    assert len(spools_result) == 2
+    assert spools_result == [spools.spools[-1], spools.spools[-2]]
+
+
+def test_find_all_spools_limit_asc_offset(spools: Fixture):
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/spool?sort=id:asc&limit=2&offset=1&allow_archived=true")
+    result.raise_for_status()
+
+    # Verify
+    spools_result = result.json()
+    assert len(spools_result) == 2
+    assert spools_result == [spools.spools[1], spools.spools[2]]
+
+
+def test_find_all_spools_limit_desc_offset(spools: Fixture):
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/spool?sort=id:desc&limit=2&offset=1&allow_archived=true")
+    result.raise_for_status()
+
+    # Verify
+    spools_result = result.json()
+    assert len(spools_result) == 2
+    assert spools_result == [spools.spools[-2], spools.spools[-3]]
+
+
+def test_find_all_spools_limit_asc_offset_outside_range(spools: Fixture):  # noqa: ARG001
+    # Execute
+    result = httpx.get(f"{URL}/api/v1/spool?sort=id:asc&limit=2&offset=100")
+    result.raise_for_status()
+
+    # Verify
+    spools_result = result.json()
+    assert len(spools_result) == 0
+
+
 @pytest.mark.parametrize(
     "field_name",
     [
