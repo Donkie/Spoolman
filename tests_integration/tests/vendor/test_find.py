@@ -93,6 +93,7 @@ def test_find_all_vendors_limit_asc(vendors: Fixture):
     result.raise_for_status()
 
     # Verify
+    assert result.headers["X-Total-Count"] == "3"
     vendors_result = result.json()
     assert len(vendors_result) == 2
     assert vendors_result == [vendors.vendors[0], vendors.vendors[1]]
@@ -104,6 +105,7 @@ def test_find_all_vendors_limit_desc(vendors: Fixture):
     result.raise_for_status()
 
     # Verify
+    assert result.headers["X-Total-Count"] == "3"
     vendors_result = result.json()
     assert len(vendors_result) == 2
     assert vendors_result == [vendors.vendors[-1], vendors.vendors[-2]]
@@ -115,6 +117,7 @@ def test_find_all_vendors_limit_asc_offset(vendors: Fixture):
     result.raise_for_status()
 
     # Verify
+    assert result.headers["X-Total-Count"] == "3"
     vendors_result = result.json()
     assert len(vendors_result) == 2
     assert vendors_result == [vendors.vendors[1], vendors.vendors[2]]
@@ -126,6 +129,7 @@ def test_find_all_vendors_limit_desc_offset(vendors: Fixture):
     result.raise_for_status()
 
     # Verify
+    assert result.headers["X-Total-Count"] == "3"
     vendors_result = result.json()
     assert len(vendors_result) == 2
     assert vendors_result == [vendors.vendors[-2], vendors.vendors[-3]]
@@ -137,6 +141,7 @@ def test_find_all_vendors_limit_asc_offset_outside_range(vendors: Fixture):  # n
     result.raise_for_status()
 
     # Verify
+    assert result.headers["X-Total-Count"] == "3"
     vendors_result = result.json()
     assert len(vendors_result) == 0
 

@@ -53,7 +53,7 @@ async def find(
     total_count = None
 
     if limit is not None:
-        total_count_stmt = stmt.with_only_columns(func.count())
+        total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True)
         total_count = (await db.execute(total_count_stmt)).scalar()
 
         stmt = stmt.offset(offset).limit(limit)

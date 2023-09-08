@@ -165,6 +165,7 @@ def test_find_all_filaments_limit_asc(filaments: Fixture):
     result.raise_for_status()
 
     # Verify
+    assert result.headers["X-Total-Count"] == "5"
     filaments_result = result.json()
     assert len(filaments_result) == 2
     assert filaments_result == [filaments.filaments[0], filaments.filaments[1]]
@@ -176,6 +177,7 @@ def test_find_all_filaments_limit_desc(filaments: Fixture):
     result.raise_for_status()
 
     # Verify
+    assert result.headers["X-Total-Count"] == "5"
     filaments_result = result.json()
     assert len(filaments_result) == 2
     assert filaments_result == [filaments.filaments[-1], filaments.filaments[-2]]
@@ -187,6 +189,7 @@ def test_find_all_filaments_limit_asc_offset(filaments: Fixture):
     result.raise_for_status()
 
     # Verify
+    assert result.headers["X-Total-Count"] == "5"
     filaments_result = result.json()
     assert len(filaments_result) == 2
     assert filaments_result == [filaments.filaments[1], filaments.filaments[2]]
@@ -198,6 +201,7 @@ def test_find_all_filaments_limit_desc_offset(filaments: Fixture):
     result.raise_for_status()
 
     # Verify
+    assert result.headers["X-Total-Count"] == "5"
     filaments_result = result.json()
     assert len(filaments_result) == 2
     assert filaments_result == [filaments.filaments[-2], filaments.filaments[-3]]
@@ -209,6 +213,7 @@ def test_find_all_filaments_limit_asc_offset_outside_range(filaments: Fixture): 
     result.raise_for_status()
 
     # Verify
+    assert result.headers["X-Total-Count"] == "5"
     filaments_result = result.json()
     assert len(filaments_result) == 0
 
