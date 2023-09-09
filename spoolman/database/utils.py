@@ -47,7 +47,7 @@ def add_where_clause_str_opt(
         if len(value) == 0:
             stmt = stmt.where(sqlalchemy.or_(field.is_(None), field == ""))
         else:
-            stmt = stmt.where(field.ilike(f"%{value}%"))
+            stmt = stmt.where(sqlalchemy.or_(*(field.ilike(f"%{value}%") for value in value.split(","))))
     return stmt
 
 
@@ -61,7 +61,7 @@ def add_where_clause_str(
         if len(value) == 0:
             stmt = stmt.where(field == "")
         else:
-            stmt = stmt.where(field.ilike(f"%{value}%"))
+            stmt = stmt.where(sqlalchemy.or_(*(field.ilike(f"%{value}%") for value in value.split(","))))
     return stmt
 
 

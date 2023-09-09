@@ -289,7 +289,20 @@ def test_find_filaments_by_material(filaments: Fixture):
 
     # Verify
     filaments_result = result.json()
-    assert filaments_result[0] == filaments.filaments[1]
+    assert filaments_result == [filaments.filaments[1]]
+
+
+def test_find_filaments_by_multiple_materials(filaments: Fixture):
+    # Execute
+    result = httpx.get(
+        f"{URL}/api/v1/filament",
+        params={"material": "abs,pla"},
+    )
+    result.raise_for_status()
+
+    # Verify
+    filaments_result = result.json()
+    assert filament_lists_equal(filaments_result, filaments.filaments[:2])
 
 
 def test_find_filaments_by_empty_material(filaments: Fixture):
