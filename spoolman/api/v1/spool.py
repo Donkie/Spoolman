@@ -135,16 +135,16 @@ async def find(
             "Partial case-insensitive search term for the filament material. Separate multiple terms with a comma."
         ),
     ),
-    vendor_name: Optional[str] = Query(
-        alias="vendor.name",
+    filament_vendor_name: Optional[str] = Query(
+        alias="filament.vendor.name",
         default=None,
         title="Vendor Name",
         description=(
             "Partial case-insensitive search term for the filament vendor name. Separate multiple terms with a comma."
         ),
     ),
-    vendor_id: Optional[str] = Query(
-        alias="vendor.id",
+    filament_vendor_id: Optional[str] = Query(
+        alias="filament.vendor.id",
         default=None,
         title="Vendor ID",
         description="Match an exact vendor ID. Separate multiple IDs with a comma.",
@@ -205,22 +205,22 @@ async def find(
     else:
         filament_ids = None
 
-    vendor_id = vendor_id if vendor_id is not None else vendor_id_old
-    if vendor_id is not None:
+    filament_vendor_id = filament_vendor_id if filament_vendor_id is not None else vendor_id_old
+    if filament_vendor_id is not None:
         try:
-            vendor_ids = [int(vendor_id_item) for vendor_id_item in vendor_id.split(",")]
+            filament_vendor_ids = [int(vendor_id_item) for vendor_id_item in filament_vendor_id.split(",")]
         except ValueError as e:
             raise RequestValidationError([ErrorWrapper(ValueError("Invalid vendor_id"), ("query", "vendor_id"))]) from e
     else:
-        vendor_ids = None
+        filament_vendor_ids = None
 
     db_items, total_count = await spool.find(
         db=db,
         filament_name=filament_name if filament_name is not None else filament_name_old,
         filament_id=filament_ids,
         filament_material=filament_material if filament_material is not None else filament_material_old,
-        vendor_name=vendor_name if vendor_name is not None else vendor_name_old,
-        vendor_id=vendor_ids,
+        vendor_name=filament_vendor_name if filament_vendor_name is not None else vendor_name_old,
+        vendor_id=filament_vendor_ids,
         location=location,
         lot_nr=lot_nr,
         allow_archived=allow_archived,

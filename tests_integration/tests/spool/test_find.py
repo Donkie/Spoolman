@@ -345,7 +345,7 @@ def test_find_spools_by_empty_filament_material(spools: Fixture):
     assert spool_lists_equal(spools_result, (spools.spools[3], spools.spools[4]))
 
 
-@pytest.mark.parametrize("field_name", ["vendor_name", "vendor.name"])
+@pytest.mark.parametrize("field_name", ["vendor_name", "filament.vendor.name"])
 def test_find_spools_by_filament_vendor_name(spools: Fixture, field_name: str):
     # Execute
     result = httpx.get(
@@ -363,7 +363,7 @@ def test_find_spools_by_empty_filament_vendor_name(spools: Fixture):
     # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
-        params={"vendor.name": ""},
+        params={"filament.vendor.name": ""},
     )
     result.raise_for_status()
 
@@ -372,7 +372,7 @@ def test_find_spools_by_empty_filament_vendor_name(spools: Fixture):
     assert spools_result == [spools.spools[4]]
 
 
-@pytest.mark.parametrize("field_name", ["vendor_id", "vendor.id"])
+@pytest.mark.parametrize("field_name", ["vendor_id", "filament.vendor.id"])
 def test_find_spools_by_filament_vendor_id(spools: Fixture, field_name: str):
     # Execute
     result = httpx.get(
@@ -394,7 +394,7 @@ def test_find_spools_by_multiple_vendor_ids(spools: Fixture):
     result = httpx.get(
         f"{URL}/api/v1/spool",
         params={
-            "vendor.id": f"{vendor_1},{vendor_2}",
+            "filament.vendor.id": f"{vendor_1},{vendor_2}",
             "allow_archived": True,
         },
     )
@@ -410,7 +410,7 @@ def test_find_spools_by_empty_filament_vendor_id(spools: Fixture):
     # Execute
     result = httpx.get(
         f"{URL}/api/v1/spool",
-        params={"vendor.id": -1},
+        params={"filament.vendor.id": -1},
     )
     result.raise_for_status()
 
