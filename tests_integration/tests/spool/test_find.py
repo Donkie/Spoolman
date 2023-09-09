@@ -224,6 +224,7 @@ def test_find_all_spools_limit_asc_offset_outside_range(spools: Fixture):  # noq
         "last_used",
         "filament_id",
         "used_weight",
+        "remaining_weight",
         "location",
         "lot_nr",
         "comment",

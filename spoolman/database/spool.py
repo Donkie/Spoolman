@@ -139,7 +139,12 @@ async def find(
 
     if sort_by is not None:
         for fieldstr, order in sort_by.items():
-            field = parse_nested_field(models.Spool, fieldstr)
+            if fieldstr == "remaining_weight":
+                stmt = stmt.add_columns((models.Filament.weight - models.Spool.used_weight).label("remaining_weight"))
+                field = sqlalchemy.column("remaining_weight")
+            else:
+                field = parse_nested_field(models.Spool, fieldstr)
+
             if order == SortOrder.ASC:
                 stmt = stmt.order_by(field.asc())
             elif order == SortOrder.DESC:
