@@ -1,7 +1,8 @@
 """Utility functions for the database module."""
 
+from collections.abc import Sequence
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import sqlalchemy
 from sqlalchemy import Select
@@ -68,23 +69,30 @@ def add_where_clause_str(
 def add_where_clause_int(
     stmt: Select,
     field: attributes.InstrumentedAttribute[int],
-    value: Optional[int],
+    value: Optional[Union[int, Sequence[int]]],
 ) -> Select:
     """Add a where clause to a select statement for a field."""
     if value is not None:
-        stmt = stmt.where(field == value)
+        if isinstance(value, int):
+            value = [value]
+        stmt = stmt.where(field.in_(value))
     return stmt
 
 
 def add_where_clause_int_opt(
     stmt: Select,
     field: attributes.InstrumentedAttribute[Optional[int]],
-    value: Optional[int],
+    value: Optional[Union[int, Sequence[int]]],
 ) -> Select:
     """Add a where clause to a select statement for a field."""
     if value is not None:
-        if value == -1:
-            stmt = stmt.where(field.is_(None))
-        else:
-            stmt = stmt.where(field == value)
+        if isinstance(value, int):
+            value = [value]
+        statements = []
+        for value_part in value:
+            if value_part == -1:
+                statements.append(field.is_(None))
+            else:
+                statements.append(field == value_part)
+        stmt = stmt.where(sqlalchemy.or_(*statements))
     return stmt

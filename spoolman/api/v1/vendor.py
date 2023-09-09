@@ -53,7 +53,7 @@ async def find(
     name: Optional[str] = Query(
         default=None,
         title="Vendor Name",
-        description="Partial case-insensitive search term for the vendor name.",
+        description="Partial case-insensitive search term for the vendor name. Separate multiple terms with a comma.",
     ),
     sort: Optional[str] = Query(
         default=None,

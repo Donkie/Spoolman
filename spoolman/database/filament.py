@@ -1,7 +1,8 @@
 """Helper functions for interacting with filament database objects."""
 
 import logging
-from typing import Optional
+from collections.abc import Sequence
+from typing import Optional, Union
 
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -77,7 +78,7 @@ async def find(
     *,
     db: AsyncSession,
     vendor_name: Optional[str] = None,
-    vendor_id: Optional[int] = None,
+    vendor_id: Optional[Union[int, Sequence[int]]] = None,
     name: Optional[str] = None,
     material: Optional[str] = None,
     article_number: Optional[str] = None,

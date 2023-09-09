@@ -332,6 +332,28 @@ def test_find_filaments_by_vendor_id(filaments: Fixture, field_name: str):
     assert filament_lists_equal(filaments_result, filaments.filaments[:2])
 
 
+def test_find_filaments_by_multiple_vendor_ids(filaments: Fixture):
+    # Execute
+    vendor_1 = filaments.filaments[0]["vendor"]["id"]
+    vendor_2 = filaments.filaments[4]["vendor"]["id"]
+    result = httpx.get(
+        f"{URL}/api/v1/filament",
+        params={"vendor.id": f"{vendor_1},{vendor_2}"},
+    )
+    result.raise_for_status()
+
+    # Verify
+    filaments_result = result.json()
+    assert filament_lists_equal(
+        filaments_result,
+        [
+            filaments.filaments[0],
+            filaments.filaments[1],
+            filaments.filaments[4],
+        ],
+    )
+
+
 def test_find_filaments_by_empty_vendor_id(filaments: Fixture):
     # Execute
     result = httpx.get(

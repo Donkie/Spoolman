@@ -1,7 +1,8 @@
 """Helper functions for interacting with spool database objects."""
 
+from collections.abc import Sequence
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, Union
 
 import sqlalchemy
 from sqlalchemy import case, func
@@ -87,10 +88,10 @@ async def find(
     *,
     db: AsyncSession,
     filament_name: Optional[str] = None,
-    filament_id: Optional[int] = None,
+    filament_id: Optional[Union[int, Sequence[int]]] = None,
     filament_material: Optional[str] = None,
     vendor_name: Optional[str] = None,
-    vendor_id: Optional[int] = None,
+    vendor_id: Optional[Union[int, Sequence[int]]] = None,
     location: Optional[str] = None,
     lot_nr: Optional[str] = None,
     allow_archived: bool = False,

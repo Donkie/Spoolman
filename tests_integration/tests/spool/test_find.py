@@ -302,6 +302,22 @@ def test_find_spools_by_filament_id(spools: Fixture, field_name: str):
     assert spool_lists_equal(spools_result, (spools.spools[0], spools.spools[1]))
 
 
+def test_find_spools_by_multiple_filament_ids(spools: Fixture):
+    # Execute
+    filament_1 = spools.spools[0]["filament"]["id"]
+    filament_2 = spools.spools[3]["filament"]["id"]
+
+    result = httpx.get(
+        f"{URL}/api/v1/spool",
+        params={"filament.id": f"{filament_1},{filament_2}"},
+    )
+    result.raise_for_status()
+
+    # Verify
+    spools_result = result.json()
+    assert spool_lists_equal(spools_result, (spools.spools[0], spools.spools[1], spools.spools[3]))
+
+
 @pytest.mark.parametrize("field_name", ["filament_material", "filament.material"])
 def test_find_spools_by_filament_material(spools: Fixture, field_name: str):
     # Execute
@@ -368,6 +384,26 @@ def test_find_spools_by_filament_vendor_id(spools: Fixture, field_name: str):
     # Verify
     spools_result = result.json()
     assert spool_lists_equal(spools_result, (spools.spools[0], spools.spools[1]))
+
+
+def test_find_spools_by_multiple_vendor_ids(spools: Fixture):
+    # Execute
+    vendor_1 = spools.spools[0]["filament"]["vendor"]["id"]
+    vendor_2 = spools.spools[4]["filament"]["vendor"]["id"]
+
+    result = httpx.get(
+        f"{URL}/api/v1/spool",
+        params={
+            "vendor.id": f"{vendor_1},{vendor_2}",
+            "allow_archived": True,
+        },
+    )
+    result.raise_for_status()
+
+    # Verify
+    spools_result = result.json()
+    assert len(spools_result) == 4
+    assert spool_lists_equal(spools_result, (spools.spools[0], spools.spools[1], spools.spools[2], spools.spools[4]))
 
 
 def test_find_spools_by_empty_filament_vendor_id(spools: Fixture):
