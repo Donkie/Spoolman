@@ -148,7 +148,7 @@
       "archived": "Archived"
     },
     "fields_help": {
-      "weight_to_use": "Select what weight value to enter. Measured weight is only avalable if the spool weight is set for the selected filament",
+      "weight_to_use": "Select what weight value to enter. Measured weight is only available if the spool weight is set for the selected filament",
       "used_weight": "How much filament has been used from the spool. A new spool should have 0g used.",
       "remaining_weight": "How much filament is left on the spool. For a new spool this should match the spool weight.",
       "measured_weight": "How much the filament and spool weigh.",
