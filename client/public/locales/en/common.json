@@ -133,8 +133,10 @@
       "filament_name": "Filament",
       "filament": "Filament",
       "material": "Material",
+      "weight_to_use": "Weight",
       "used_weight": "Used Weight",
       "remaining_weight": "Remaining Weight",
+      "measured_weight": "Measured Weight",
       "used_length": "Used Length",
       "remaining_length": "Remaining Length",
       "location": "Location",
@@ -146,7 +148,10 @@
       "archived": "Archived"
     },
     "fields_help": {
+      "weight_to_use": "Select what weight value to enter. Measured weight is only available if the spool weight is set for the selected filament",
       "used_weight": "How much filament has been used from the spool. A new spool should have 0g used.",
+      "remaining_weight": "How much filament is left on the spool. For a new spool this should match the spool weight.",
+      "measured_weight": "How much the filament and spool weigh.",
       "location": "Where the spool is located if you have multiple locations where you store your spools.",
       "lot_nr": "Manufacturer's lot number. Can be used to ensure a print has consistent color if multiple spools are used."
     },
