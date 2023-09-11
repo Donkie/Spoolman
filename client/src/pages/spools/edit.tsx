@@ -87,8 +87,6 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
     }
   }, []);
 
-  console.log(usedWeight)
-
   return (
     <Edit saveButtonProps={saveButtonProps}>
       <Form {...formProps} layout="vertical">
