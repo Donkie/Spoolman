@@ -54,12 +54,17 @@
             "comment": "Komentarz",
             "archived": "Zarchiwizowano",
             "used_weight": "Użyta waga",
-            "registered": "Zarejestrowano"
+            "registered": "Zarejestrowano",
+            "measured_weight": "Zmierzona waga",
+            "weight_to_use": "Waga"
         },
         "fields_help": {
             "location": "Wpisz gdzie znajduje się szpula, jeśli masz wiele lokalizacji, w których przechowujesz szpule.",
             "lot_nr": "Numer partii producenta. Może być stosowany w celu zapewnienia jednolitego koloru wydruku w przypadku użycia wielu szpul.",
-            "used_weight": "Podaj ile filamentu użyto ze szpuli. Jeśli jest nowa, podaj 0g użycia."
+            "used_weight": "Podaj ile filamentu użyto ze szpuli. Jeśli jest nowa, podaj 0g użycia.",
+            "remaining_weight": "Ile filamentu pozostało na szpuli. W przypadku nowej szpuli powinno to odpowiadać wadze szpuli.",
+            "measured_weight": "Waga filamentu i szpuli.",
+            "weight_to_use": "Wybierz jaką wagę wprowadzić. Zmierzona waga jest dostępna tylko wtedy, gdy waga szpuli jest ustawiona dla wybranego filamentu"
         },
         "messages": {
             "archive": "Czy na pewno chcesz zarchiwizować tę szpulę?"
