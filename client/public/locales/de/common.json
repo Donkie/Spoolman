@@ -13,7 +13,7 @@
     "delete": "Löschen",
     "edit": "Bearbeiten",
     "cancel": "Abbrechen",
-    "confirm": "Sind sie sicher?",
+    "confirm": "Sicher?",
     "filter": "Filter",
     "clear": "Löschen",
     "refresh": "Aktualisieren",
@@ -21,7 +21,7 @@
     "undo": "Rückgängig",
     "import": "Importieren",
     "clone": "Duplizieren",
-    "notAccessTitle": "Keine Berechtigung um hierauf zuzugreifen",
+    "notAccessTitle": "Keine Berechtigung, um hierauf zuzugreifen",
     "hideColumns": "Spalten anpassen",
     "clearFilters": "Filter leeren"
   },
@@ -52,7 +52,7 @@
   "printing": {
     "generic": {
       "title": "Drucken",
-      "description": "Einstellungen unten anpassen, um das gewünschte Drucklayout zu erstellen. Der Drucker oder das Betriebssystem fügen möglichweise eigene Abstände und Skalierungen hinzu. Sie müssen eventuell ein wenig probieren, bevor alles korrekt funktioniert. Testen sie vorab auf normalem Papier, bevor sie auf Labelpapier drucken.",
+      "description": "Einstellungen unten anpassen, um das gewünschte Drucklayout zu erstellen. Der Drucker oder das Betriebssystem fügen möglichweise eigene Abstände und Skalierungen hinzu. Eventuell muss ein wenig experimentiert werden, bevor alles korrekt funktioniert. Auf normalem Papier testen, bevor auf Label-Papier gedruckt wird.",
       "helpMargin": "Abstände sollten so konfiguriert werden, dass sie zum Papier und Drucker passen. Änderungen beeinflussen die Größe des gesamten Gitters.",
       "helpPrinterMargin": "Der Sicherheitsabstand sollte so eingestellt werden, wie dicht der Drucker am Rand des Papiers drucken kann. Änderungen beeinflussen nicht die Größe des Gitters.",
       "print": "Drucken",
