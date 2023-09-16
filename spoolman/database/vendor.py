@@ -2,10 +2,11 @@
 
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.database import models
+from spoolman.database.utils import SortOrder, add_where_clause_str
 from spoolman.exceptions import ItemNotFoundError
 
 
@@ -37,14 +38,40 @@ async def find(
     *,
     db: AsyncSession,
     name: Optional[str] = None,
-) -> list[models.Vendor]:
-    """Find a list of vendor objects by search criteria."""
+    sort_by: Optional[dict[str, SortOrder]] = None,
+    limit: Optional[int] = None,
+    offset: int = 0,
+) -> tuple[list[models.Vendor], int]:
+    """Find a list of vendor objects by search criteria.
+
+    Returns a tuple containing the list of items and the total count of matching items.
+    """
     stmt = select(models.Vendor)
-    if name is not None:
-        stmt = stmt.where(models.Vendor.name.ilike(f"%{name}%"))
+
+    stmt = add_where_clause_str(stmt, models.Vendor.name, name)
+
+    total_count = None
+
+    if limit is not None:
+        total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True)
+        total_count = (await db.execute(total_count_stmt)).scalar()
+
+        stmt = stmt.offset(offset).limit(limit)
+
+    if sort_by is not None:
+        for fieldstr, order in sort_by.items():
+            field = getattr(models.Vendor, fieldstr)
+            if order == SortOrder.ASC:
+                stmt = stmt.order_by(field.asc())
+            elif order == SortOrder.DESC:
+                stmt = stmt.order_by(field.desc())
 
     rows = await db.execute(stmt)
-    return list(rows.scalars().all())
+    result = list(rows.scalars().all())
+    if total_count is None:
+        total_count = len(result)
+
+    return result, total_count
 
 
 async def update(

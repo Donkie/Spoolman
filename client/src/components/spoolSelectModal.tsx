@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { Modal, Table, Checkbox, Space, Row, Col, message } from "antd";
 import { ISpool } from "../pages/spools/model";
-import { FilteredColumn, SortedColumn, SpoolIconColumn } from "./column";
+import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "./column";
 import { TableState } from "../utils/saveload";
 import { useTable } from "@refinedev/antd";
-import { genericSorter, typeSorters } from "../utils/sorting";
-import { genericFilterer, typeFilters } from "../utils/filtering";
 import { t } from "i18next";
+import { useSpoolmanFilamentFilter, useSpoolmanMaterials } from "./otherModels";
 
 interface Props {
   visible: boolean;
@@ -16,8 +15,9 @@ interface Props {
 }
 
 interface ISpoolCollapsed extends ISpool {
-  filament_name: string;
-  material?: string;
+  combined_name: string;
+  "filament.id": number;
+  "filament.material"?: string;
 }
 
 const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onContinue }) => {
@@ -38,10 +38,10 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
       pageSize: 10,
     },
     sorters: {
-      mode: "off",
+      mode: "server",
     },
     filters: {
-      mode: "off",
+      mode: "server",
     },
   });
 
@@ -64,28 +64,18 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
         }
         return {
           ...element,
-          filament_name,
-          material: element.filament.material,
+          combined_name: filament_name,
+          "filament.id": element.filament.id,
+          "filament.material": element.filament.material,
         };
       }),
     [tableProps.dataSource]
   );
 
-  // Type the sorters and filters
-  const typedSorters = typeSorters<ISpoolCollapsed>(sorters);
-  const typedFilters = typeFilters<ISpoolCollapsed>(filters);
-
-  // Filter and sort the dataSource
-  const filteredDataSource = React.useMemo(() => {
-    const filtered = dataSource.filter(genericFilterer(typedFilters));
-    filtered.sort(genericSorter(typedSorters));
-    return filtered;
-  }, [dataSource, typedFilters, typedSorters]);
-
   // Function to add/remove all filtered items from selected items
   const selectUnselectFiltered = (select: boolean) => {
     setSelectedItems((prevSelected) => {
-      const filtered = filteredDataSource.map((spool) => spool.id).filter((spool) => !prevSelected.includes(spool));
+      const filtered = dataSource.map((spool) => spool.id).filter((spool) => !prevSelected.includes(spool));
       return select ? [...prevSelected, ...filtered] : filtered;
     });
   };
@@ -98,7 +88,9 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
   };
 
   // State for the select/unselect all checkbox
-  const isAllFilteredSelected = filteredDataSource.every((spool) => selectedItems.includes(spool.id));
+  const isAllFilteredSelected = dataSource.every((spool) => selectedItems.includes(spool.id));
+  const isSomeButNotAllFilteredSelected =
+    dataSource.some((spool) => selectedItems.includes(spool.id)) && !isAllFilteredSelected;
 
   return (
     <Modal
@@ -120,13 +112,7 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
       {contextHolder}
       <Space direction="vertical" style={{ width: "100%" }}>
         {description && <div>{description}</div>}
-        <Table
-          {...tableProps}
-          rowKey="id"
-          dataSource={filteredDataSource}
-          pagination={false}
-          scroll={{ x: "max-content", y: 200 }}
-        >
+        <Table {...tableProps} rowKey="id" dataSource={dataSource} pagination={false} scroll={{ y: 200 }}>
           <Table.Column
             width={50}
             render={(_, item: ISpool) => (
@@ -138,25 +124,30 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
             i18ncat: "spool",
             dataSource,
             tableState,
+            width: 80,
           })}
           {SpoolIconColumn({
-            id: "filament_name",
-            i18ncat: "spool",
+            id: "combined_name",
+            dataId: "filament.id",
+            i18nkey: "spool.fields.filament_name",
             color: (record: ISpoolCollapsed) => record.filament.color_hex,
             dataSource,
             tableState,
+            filterValueQuery: useSpoolmanFilamentFilter(),
           })}
-          {FilteredColumn({
-            id: "material",
-            i18ncat: "spool",
+          {FilteredQueryColumn({
+            id: "filament.material",
+            i18nkey: "spool.fields.material",
             dataSource,
             tableState,
+            filterValueQuery: useSpoolmanMaterials(),
           })}
         </Table>
         <Row>
           <Col span={12}>
             <Checkbox
               checked={isAllFilteredSelected}
+              indeterminate={isSomeButNotAllFilteredSelected}
               onChange={(e) => {
                 selectUnselectFiltered(e.target.checked);
               }}

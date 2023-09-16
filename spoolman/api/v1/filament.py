@@ -4,6 +4,7 @@ import logging
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, validator
@@ -13,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from spoolman.api.v1.models import Filament, Message
 from spoolman.database import filament
 from spoolman.database.database import get_db_session
+from spoolman.database.utils import SortOrder
 from spoolman.exceptions import ItemDeleteError
 
 logger = logging.getLogger(__name__)
@@ -108,45 +110,119 @@ class FilamentUpdateParameters(FilamentParameters):
     name="Find filaments",
     description="Get a list of filaments that matches the search query.",
     response_model_exclude_none=True,
+    response_model=list[Filament],
 )
 async def find(
     *,
     db: Annotated[AsyncSession, Depends(get_db_session)],
-    vendor_name: Optional[str] = Query(
+    vendor_name_old: Optional[str] = Query(
+        alias="vendor_name",
         default=None,
         title="Vendor Name",
-        description="Partial case-insensitive search term for the filament vendor name.",
+        description=(
+            "Partial case-insensitive search term for the filament vendor name. "
+            "Separate multiple terms with a comma."
+        ),
+        deprecated=True,
     ),
-    vendor_id: Optional[int] = Query(
+    vendor_id_old: Optional[str] = Query(
+        alias="vendor_id",
         default=None,
         title="Vendor ID",
-        description="Match an exact vendor ID.",
+        description="Match an exact vendor ID. Separate multiple IDs with a comma.",
+        deprecated=True,
+        examples=["1", "1,2"],
+    ),
+    vendor_name: Optional[str] = Query(
+        alias="vendor.name",
+        default=None,
+        title="Vendor Name",
+        description=(
+            "Partial case-insensitive search term for the filament vendor name. "
+            "Separate multiple terms with a comma."
+        ),
+    ),
+    vendor_id: Optional[str] = Query(
+        alias="vendor.id",
+        default=None,
+        title="Vendor ID",
+        description="Match an exact vendor ID. Separate multiple IDs with a comma.",
+        examples=["1", "1,2"],
     ),
     name: Optional[str] = Query(
         default=None,
         title="Filament Name",
-        description="Partial case-insensitive search term for the filament name.",
+        description="Partial case-insensitive search term for the filament name. Separate multiple terms with a comma.",
     ),
     material: Optional[str] = Query(
         default=None,
         title="Filament Material",
-        description="Partial case-insensitive search term for the filament material.",
+        description=(
+            "Partial case-insensitive search term for the filament material. Separate multiple terms with a comma."
+        ),
     ),
     article_number: Optional[str] = Query(
         default=None,
         title="Filament Article Number",
-        description="Partial case-insensitive search term for the filament article number.",
+        description=(
+            "Partial case-insensitive search term for the filament article number. "
+            "Separate multiple terms with a comma."
+        ),
     ),
-) -> list[Filament]:
-    db_items = await filament.find(
+    sort: Optional[str] = Query(
+        default=None,
+        title="Sort",
+        description=(
+            'Sort the results by the given field. Should be a comma-separate string with "field:direction" items.'
+        ),
+        example="vendor.name:asc,spool_weight:desc",
+    ),
+    limit: Optional[int] = Query(
+        default=None,
+        title="Limit",
+        description="Maximum number of items in the response.",
+    ),
+    offset: int = Query(
+        default=0,
+        title="Offset",
+        description="Offset in the full result set if a limit is set.",
+    ),
+) -> JSONResponse:
+    sort_by: dict[str, SortOrder] = {}
+    if sort is not None:
+        for sort_item in sort.split(","):
+            field, direction = sort_item.split(":")
+            sort_by[field] = SortOrder[direction.upper()]
+
+    vendor_id = vendor_id if vendor_id is not None else vendor_id_old
+    if vendor_id is not None:
+        try:
+            vendor_ids = [int(vendor_id_item) for vendor_id_item in vendor_id.split(",")]
+        except ValueError as e:
+            raise RequestValidationError([ErrorWrapper(ValueError("Invalid vendor_id"), ("query", "vendor_id"))]) from e
+    else:
+        vendor_ids = None
+
+    db_items, total_count = await filament.find(
         db=db,
-        vendor_name=vendor_name,
-        vendor_id=vendor_id,
+        vendor_name=vendor_name if vendor_name is not None else vendor_name_old,
+        vendor_id=vendor_ids,
         name=name,
         material=material,
         article_number=article_number,
+        sort_by=sort_by,
+        limit=limit,
+        offset=offset,
     )
-    return [Filament.from_db(db_item) for db_item in db_items]
+
+    # Set x-total-count header for pagination
+    return JSONResponse(
+        content=jsonable_encoder(
+            (Filament.from_db(db_item) for db_item in db_items),
+            exclude_none=True,
+        ),
+        headers={"x-total-count": str(total_count)},
+    )
 
 
 @router.get(

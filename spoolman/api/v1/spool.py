@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -14,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from spoolman.api.v1.models import Message, Spool
 from spoolman.database import spool
 from spoolman.database.database import get_db_session
+from spoolman.database.utils import SortOrder
 from spoolman.exceptions import ItemCreateError
 
 logger = logging.getLogger(__name__)
@@ -66,63 +68,175 @@ class SpoolUseParameters(BaseModel):
     name="Find spool",
     description="Get a list of spools that matches the search query.",
     response_model_exclude_none=True,
+    response_model=list[Spool],
 )
 async def find(
     *,
     db: Annotated[AsyncSession, Depends(get_db_session)],
-    filament_name: Optional[str] = Query(
+    filament_name_old: Optional[str] = Query(
+        alias="filament_name",
         default=None,
         title="Filament Name",
-        description="Partial case-insensitive search term for the filament name.",
+        description="Partial case-insensitive search term for the filament name. Separate multiple terms with a comma.",
+        deprecated=True,
     ),
-    filament_id: Optional[int] = Query(
+    filament_id_old: Optional[str] = Query(
+        alias="filament_id",
         default=None,
         title="Filament ID",
-        description="Match an exact filament ID.",
+        description="Match an exact filament ID. Separate multiple IDs with a comma.",
+        deprecated=True,
+        examples=["1", "1,2"],
     ),
-    filament_material: Optional[str] = Query(
+    filament_material_old: Optional[str] = Query(
+        alias="filament_material",
         default=None,
         title="Filament Material",
-        description="Partial case-insensitive search term for the filament material.",
+        description=(
+            "Partial case-insensitive search term for the filament material. Separate multiple terms with a comma."
+        ),
+        deprecated=True,
     ),
-    vendor_name: Optional[str] = Query(
+    vendor_name_old: Optional[str] = Query(
+        alias="vendor_name",
         default=None,
         title="Vendor Name",
-        description="Partial case-insensitive search term for the filament vendor name.",
+        description=(
+            "Partial case-insensitive search term for the filament vendor name. Separate multiple terms with a comma."
+        ),
+        deprecated=True,
     ),
-    vendor_id: Optional[int] = Query(
+    vendor_id_old: Optional[str] = Query(
+        alias="vendor_id",
         default=None,
         title="Vendor ID",
-        description="Match an exact vendor ID.",
+        description="Match an exact vendor ID. Separate multiple IDs with a comma.",
+        deprecated=True,
+        examples=["1", "1,2"],
+    ),
+    filament_name: Optional[str] = Query(
+        alias="filament.name",
+        default=None,
+        title="Filament Name",
+        description="Partial case-insensitive search term for the filament name. Separate multiple terms with a comma.",
+    ),
+    filament_id: Optional[str] = Query(
+        alias="filament.id",
+        default=None,
+        title="Filament ID",
+        description="Match an exact filament ID. Separate multiple IDs with a comma.",
+        examples=["1", "1,2"],
+    ),
+    filament_material: Optional[str] = Query(
+        alias="filament.material",
+        default=None,
+        title="Filament Material",
+        description=(
+            "Partial case-insensitive search term for the filament material. Separate multiple terms with a comma."
+        ),
+    ),
+    filament_vendor_name: Optional[str] = Query(
+        alias="filament.vendor.name",
+        default=None,
+        title="Vendor Name",
+        description=(
+            "Partial case-insensitive search term for the filament vendor name. Separate multiple terms with a comma."
+        ),
+    ),
+    filament_vendor_id: Optional[str] = Query(
+        alias="filament.vendor.id",
+        default=None,
+        title="Vendor ID",
+        description="Match an exact vendor ID. Separate multiple IDs with a comma.",
+        examples=["1", "1,2"],
     ),
     location: Optional[str] = Query(
         default=None,
         title="Location",
-        description="Partial case-insensitive search term for the spool location.",
+        description=(
+            "Partial case-insensitive search term for the spool location. Separate multiple terms with a comma."
+        ),
     ),
     lot_nr: Optional[str] = Query(
         default=None,
         title="Lot/Batch Number",
-        description="Partial case-insensitive search term for the spool lot number.",
+        description=(
+            "Partial case-insensitive search term for the spool lot number. Separate multiple terms with a comma."
+        ),
     ),
     allow_archived: bool = Query(
         default=False,
         title="Allow Archived",
         description="Whether to include archived spools in the search results.",
     ),
-) -> list[Spool]:
-    db_items = await spool.find(
+    sort: Optional[str] = Query(
+        default=None,
+        title="Sort",
+        description=(
+            'Sort the results by the given field. Should be a comma-separate string with "field:direction" items.'
+        ),
+        example="filament.name:asc,filament.vendor.id:asc,location:desc",
+    ),
+    limit: Optional[int] = Query(
+        default=None,
+        title="Limit",
+        description="Maximum number of items in the response.",
+    ),
+    offset: int = Query(
+        default=0,
+        title="Offset",
+        description="Offset in the full result set if a limit is set.",
+    ),
+) -> JSONResponse:
+    sort_by: dict[str, SortOrder] = {}
+    if sort is not None:
+        for sort_item in sort.split(","):
+            field, direction = sort_item.split(":")
+            sort_by[field] = SortOrder[direction.upper()]
+
+    filament_id = filament_id if filament_id is not None else filament_id_old
+    if filament_id is not None:
+        try:
+            filament_ids = [int(filament_id_item) for filament_id_item in filament_id.split(",")]
+        except ValueError as e:
+            raise RequestValidationError(
+                [ErrorWrapper(ValueError("Invalid filament_id"), ("query", "filament_id"))],
+            ) from e
+    else:
+        filament_ids = None
+
+    filament_vendor_id = filament_vendor_id if filament_vendor_id is not None else vendor_id_old
+    if filament_vendor_id is not None:
+        try:
+            filament_vendor_ids = [int(vendor_id_item) for vendor_id_item in filament_vendor_id.split(",")]
+        except ValueError as e:
+            raise RequestValidationError([ErrorWrapper(ValueError("Invalid vendor_id"), ("query", "vendor_id"))]) from e
+    else:
+        filament_vendor_ids = None
+
+    db_items, total_count = await spool.find(
         db=db,
-        filament_name=filament_name,
-        filament_id=filament_id,
-        filament_material=filament_material,
-        vendor_name=vendor_name,
-        vendor_id=vendor_id,
+        filament_name=filament_name if filament_name is not None else filament_name_old,
+        filament_id=filament_ids,
+        filament_material=filament_material if filament_material is not None else filament_material_old,
+        vendor_name=filament_vendor_name if filament_vendor_name is not None else vendor_name_old,
+        vendor_id=filament_vendor_ids,
         location=location,
         lot_nr=lot_nr,
         allow_archived=allow_archived,
+        sort_by=sort_by,
+        limit=limit,
+        offset=offset,
     )
-    return [Spool.from_db(db_item) for db_item in db_items]
+
+    # Set x-total-count header for pagination
+    return JSONResponse(
+        content=jsonable_encoder(
+            (Spool.from_db(db_item) for db_item in db_items),
+            exclude_none=True,
+        ),
+        headers={"x-total-count": str(total_count)},
+    )
 
 
 @router.get(

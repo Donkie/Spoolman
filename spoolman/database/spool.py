@@ -1,15 +1,24 @@
 """Helper functions for interacting with spool database objects."""
 
+from collections.abc import Sequence
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, Union
 
 import sqlalchemy
-from sqlalchemy import case
+from sqlalchemy import case, func
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 
 from spoolman.database import filament, models
+from spoolman.database.utils import (
+    SortOrder,
+    add_where_clause_int,
+    add_where_clause_int_opt,
+    add_where_clause_str,
+    add_where_clause_str_opt,
+    parse_nested_field,
+)
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError
 from spoolman.math import weight_from_length
 
@@ -79,35 +88,39 @@ async def find(
     *,
     db: AsyncSession,
     filament_name: Optional[str] = None,
-    filament_id: Optional[int] = None,
+    filament_id: Optional[Union[int, Sequence[int]]] = None,
     filament_material: Optional[str] = None,
     vendor_name: Optional[str] = None,
-    vendor_id: Optional[int] = None,
+    vendor_id: Optional[Union[int, Sequence[int]]] = None,
     location: Optional[str] = None,
     lot_nr: Optional[str] = None,
     allow_archived: bool = False,
-) -> list[models.Spool]:
-    """Find a list of spool objects by search criteria."""
+    sort_by: Optional[dict[str, SortOrder]] = None,
+    limit: Optional[int] = None,
+    offset: int = 0,
+) -> tuple[list[models.Spool], int]:
+    """Find a list of spool objects by search criteria.
+
+    Sort by a field by passing a dict with the field name as key and the sort order as value.
+    The field name can contain nested fields, e.g. filament.name.
+
+    Returns a tuple containing the list of items and the total count of matching items.
+    """
     stmt = (
         sqlalchemy.select(models.Spool)
         .join(models.Spool.filament, isouter=True)
         .join(models.Filament.vendor, isouter=True)
         .options(contains_eager(models.Spool.filament).contains_eager(models.Filament.vendor))
     )
-    if filament_name is not None:
-        stmt = stmt.where(models.Filament.name.ilike(f"%{filament_name}%"))
-    if filament_id is not None:
-        stmt = stmt.where(models.Spool.filament_id == filament_id)
-    if filament_material is not None:
-        stmt = stmt.where(models.Filament.material.ilike(f"%{filament_material}%"))
-    if vendor_name is not None:
-        stmt = stmt.where(models.Vendor.name.ilike(f"%{vendor_name}%"))
-    if vendor_id is not None:
-        stmt = stmt.where(models.Filament.vendor_id == vendor_id)
-    if location is not None:
-        stmt = stmt.where(models.Spool.location.ilike(f"%{location}%"))
-    if lot_nr is not None:
-        stmt = stmt.where(models.Spool.lot_nr.ilike(f"%{lot_nr}%"))
+
+    stmt = add_where_clause_int(stmt, models.Spool.filament_id, filament_id)
+    stmt = add_where_clause_int_opt(stmt, models.Filament.vendor_id, vendor_id)
+    stmt = add_where_clause_str(stmt, models.Vendor.name, vendor_name)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.name, filament_name)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.material, filament_material)
+    stmt = add_where_clause_str_opt(stmt, models.Spool.location, location)
+    stmt = add_where_clause_str_opt(stmt, models.Spool.lot_nr, lot_nr)
+
     if not allow_archived:
         # Since the archived field is nullable, and default is false, we need to check for both false or null
         stmt = stmt.where(
@@ -117,8 +130,33 @@ async def find(
             ),
         )
 
+    total_count = None
+
+    if limit is not None:
+        total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True)
+        total_count = (await db.execute(total_count_stmt)).scalar()
+
+        stmt = stmt.offset(offset).limit(limit)
+
+    if sort_by is not None:
+        for fieldstr, order in sort_by.items():
+            if fieldstr == "remaining_weight":
+                stmt = stmt.add_columns((models.Filament.weight - models.Spool.used_weight).label("remaining_weight"))
+                field = sqlalchemy.column("remaining_weight")
+            else:
+                field = parse_nested_field(models.Spool, fieldstr)
+
+            if order == SortOrder.ASC:
+                stmt = stmt.order_by(field.asc())
+            elif order == SortOrder.DESC:
+                stmt = stmt.order_by(field.desc())
+
     rows = await db.execute(stmt)
-    return list(rows.scalars().all())
+    result = list(rows.scalars().all())
+    if total_count is None:
+        total_count = len(result)
+
+    return result, total_count
 
 
 async def update(
@@ -238,3 +276,23 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
 
     await db.commit()
     return spool
+
+
+async def find_locations(
+    *,
+    db: AsyncSession,
+) -> list[str]:
+    """Find a list of spool locations by searching for distinct values in the spool table."""
+    stmt = sqlalchemy.select(models.Spool.location).distinct()
+    rows = await db.execute(stmt)
+    return [row[0] for row in rows.all() if row[0] is not None]
+
+
+async def find_lot_numbers(
+    *,
+    db: AsyncSession,
+) -> list[str]:
+    """Find a list of spool lot numbers by searching for distinct values in the spool table."""
+    stmt = sqlalchemy.select(models.Spool.lot_nr).distinct()
+    rows = await db.execute(stmt)
+    return [row[0] for row in rows.all() if row[0] is not None]

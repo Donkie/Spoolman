@@ -13,14 +13,13 @@ from spoolman import env
 from spoolman.database.database import backup_global_db
 from spoolman.exceptions import ItemNotFoundError
 
-from . import filament, models, spool, vendor
+from . import filament, models, other, spool, vendor
 
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Spoolman REST API v1",
     version="1.0.0",
-    root_path_in_servers=False,
 )
 
 
@@ -76,3 +75,4 @@ async def backup():  # noqa: ANN201
 app.include_router(filament.router)
 app.include_router(spool.router)
 app.include_router(vendor.router)
+app.include_router(other.router)

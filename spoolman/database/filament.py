@@ -1,13 +1,22 @@
 """Helper functions for interacting with filament database objects."""
 
-from typing import Optional
+import logging
+from collections.abc import Sequence
+from typing import Optional, Union
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 
 from spoolman.database import models, vendor
+from spoolman.database.utils import (
+    SortOrder,
+    add_where_clause_int_opt,
+    add_where_clause_str,
+    add_where_clause_str_opt,
+    parse_nested_field,
+)
 from spoolman.exceptions import ItemDeleteError, ItemNotFoundError
 
 
@@ -69,30 +78,55 @@ async def find(
     *,
     db: AsyncSession,
     vendor_name: Optional[str] = None,
-    vendor_id: Optional[int] = None,
+    vendor_id: Optional[Union[int, Sequence[int]]] = None,
     name: Optional[str] = None,
     material: Optional[str] = None,
     article_number: Optional[str] = None,
-) -> list[models.Filament]:
-    """Find a list of filament objects by search criteria."""
+    sort_by: Optional[dict[str, SortOrder]] = None,
+    limit: Optional[int] = None,
+    offset: int = 0,
+) -> tuple[list[models.Filament], int]:
+    """Find a list of filament objects by search criteria.
+
+    Sort by a field by passing a dict with the field name as key and the sort order as value.
+    The field name can contain nested fields, e.g. vendor.name.
+
+    Returns a tuple containing the list of items and the total count of matching items.
+    """
     stmt = (
         select(models.Filament)
         .options(contains_eager(models.Filament.vendor))
         .join(models.Filament.vendor, isouter=True)
     )
-    if vendor_name is not None:
-        stmt = stmt.where(models.Vendor.name.ilike(f"%{vendor_name}%"))
-    if vendor_id is not None:
-        stmt = stmt.where(models.Filament.vendor_id == vendor_id)
-    if name is not None:
-        stmt = stmt.where(models.Filament.name.ilike(f"%{name}%"))
-    if material is not None:
-        stmt = stmt.where(models.Filament.material.ilike(f"%{material}%"))
-    if article_number is not None:
-        stmt = stmt.where(models.Filament.article_number.ilike(f"%{article_number}%"))
+
+    stmt = add_where_clause_int_opt(stmt, models.Filament.vendor_id, vendor_id)
+    stmt = add_where_clause_str(stmt, models.Vendor.name, vendor_name)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.name, name)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.material, material)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.article_number, article_number)
+
+    total_count = None
+
+    if limit is not None:
+        total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True)
+        total_count = (await db.execute(total_count_stmt)).scalar()
+
+        stmt = stmt.offset(offset).limit(limit)
+
+    if sort_by is not None:
+        for fieldstr, order in sort_by.items():
+            field = parse_nested_field(models.Filament, fieldstr)
+            if order == SortOrder.ASC:
+                stmt = stmt.order_by(field.asc())
+            elif order == SortOrder.DESC:
+                stmt = stmt.order_by(field.desc())
 
     rows = await db.execute(stmt)
-    return list(rows.scalars().all())
+    result = list(rows.scalars().all())
+    if total_count is None:
+        total_count = len(result)
+
+    return result, total_count
 
 
 async def update(
@@ -124,3 +158,26 @@ async def delete(db: AsyncSession, filament_id: int) -> None:
     except IntegrityError as exc:
         await db.rollback()
         raise ItemDeleteError("Failed to delete filament.") from exc
+
+
+logger = logging.getLogger(__name__)
+
+
+async def find_materials(
+    *,
+    db: AsyncSession,
+) -> list[str]:
+    """Find a list of filament materials by searching for distinct values in the filament table."""
+    stmt = select(models.Filament.material).distinct()
+    rows = await db.execute(stmt)
+    return [row[0] for row in rows.all() if row[0] is not None]
+
+
+async def find_article_numbers(
+    *,
+    db: AsyncSession,
+) -> list[str]:
+    """Find a list of filament article numbers by searching for distinct values in the filament table."""
+    stmt = select(models.Filament.article_number).distinct()
+    rows = await db.execute(stmt)
+    return [row[0] for row in rows.all() if row[0] is not None]

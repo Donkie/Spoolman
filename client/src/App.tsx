@@ -1,5 +1,6 @@
 import { Refine } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 import { ErrorComponent, ThemedLayoutV2, ThemedSiderV2, ThemedTitleV2 } from "@refinedev/antd";
 import "@refinedev/antd/dist/reset.css";
@@ -185,6 +186,7 @@ function App() {
               <RefineKbar />
               <UnsavedChangesNotifier />
               <DocumentTitleHandler />
+              <ReactQueryDevtools />
             </Refine>
           </ConfigProvider>
         </ColorModeContextProvider>
