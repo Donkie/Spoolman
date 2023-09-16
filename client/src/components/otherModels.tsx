@@ -6,6 +6,7 @@ import { ColumnFilterItem } from "antd/es/table/interface";
 export function useSpoolmanFilamentFilter() {
   const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<IFilament[], unknown, ColumnFilterItem[]>({
+    enabled: false,
     queryKey: ["filaments"],
     queryFn: async () => {
       const response = await fetch(apiEndpoint + "/filament");
@@ -46,6 +47,7 @@ export function useSpoolmanFilamentFilter() {
 export function useSpoolmanFilamentNames() {
   const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<IFilament[], unknown, string[]>({
+    enabled: false,
     queryKey: ["filaments"],
     queryFn: async () => {
       const response = await fetch(apiEndpoint + "/filament");
@@ -74,6 +76,7 @@ export function useSpoolmanFilamentNames() {
 export function useSpoolmanVendors() {
   const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<IVendor[], unknown, string[]>({
+    enabled: false,
     queryKey: ["vendors"],
     queryFn: async () => {
       const response = await fetch(apiEndpoint + "/vendor");
@@ -95,6 +98,7 @@ export function useSpoolmanVendors() {
 export function useSpoolmanMaterials() {
   const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<string[]>({
+    enabled: false,
     queryKey: ["materials"],
     queryFn: async () => {
       const response = await fetch(apiEndpoint + "/material");
@@ -112,6 +116,7 @@ export function useSpoolmanMaterials() {
 export function useSpoolmanArticleNumbers() {
   const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<string[]>({
+    enabled: false,
     queryKey: ["articleNumbers"],
     queryFn: async () => {
       const response = await fetch(apiEndpoint + "/article-number");
@@ -129,6 +134,7 @@ export function useSpoolmanArticleNumbers() {
 export function useSpoolmanLotNumbers() {
   const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<string[]>({
+    enabled: false,
     queryKey: ["lotNumbers"],
     queryFn: async () => {
       const response = await fetch(apiEndpoint + "/lot-number");
@@ -146,6 +152,7 @@ export function useSpoolmanLotNumbers() {
 export function useSpoolmanLocations() {
   const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<string[]>({
+    enabled: false,
     queryKey: ["locations"],
     queryFn: async () => {
       const response = await fetch(apiEndpoint + "/location");

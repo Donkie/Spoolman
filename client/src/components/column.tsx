@@ -1,4 +1,4 @@
-import { Col, Row, Table } from "antd";
+import { Col, Row, Spin, Table } from "antd";
 import { ColumnProps as AntdColumnProps } from "antd/es/table";
 import { ColumnFilterItem } from "antd/es/table/interface";
 import { getFiltersForField, typeFilters } from "../utils/filtering";
@@ -16,6 +16,17 @@ import { UseQueryResult } from "@tanstack/react-query";
 
 dayjs.extend(utc);
 
+const FilterDropdownLoading = () => {
+  return (
+    <Row justify="center">
+      <Col>
+        Loading...
+        <Spin style={{ margin: 10 }} />
+      </Col>
+    </Row>
+  );
+};
+
 interface BaseColumnProps<Obj> {
   id: keyof Obj & string;
   dataId?: keyof Obj & string;
@@ -30,6 +41,8 @@ interface FilteredColumnProps {
   filters?: ColumnFilterItem[];
   filteredValue?: string[];
   allowMultipleFilters?: boolean;
+  onFilterDropdownOpen?: () => void;
+  loadingFilters?: boolean;
 }
 
 interface CustomColumnProps<Obj> {
@@ -61,6 +74,14 @@ function Column<Obj>(props: BaseColumnProps<Obj> & FilteredColumnProps & CustomC
   if (props.filters && props.filteredValue) {
     columnProps.filters = props.filters;
     columnProps.filteredValue = props.filteredValue;
+    if (props.loadingFilters) {
+      columnProps.filterDropdown = <FilterDropdownLoading />;
+    }
+    columnProps.onFilterDropdownOpenChange = (open) => {
+      if (open && props.onFilterDropdownOpen) {
+        props.onFilterDropdownOpen();
+      }
+    };
     if (props.dataId) {
       columnProps.key = props.dataId;
     }
@@ -115,7 +136,11 @@ export function FilteredQueryColumn<Obj>(props: FilteredQueryColumnProps<Obj>) {
   const typedFilters = typeFilters<Obj>(props.tableState.filters);
   const filteredValue = getFiltersForField(typedFilters, props.dataId ?? props.id);
 
-  return Column({ ...props, filters, filteredValue });
+  const onFilterDropdownOpen = () => {
+    query.refetch();
+  };
+
+  return Column({ ...props, filters, filteredValue, onFilterDropdownOpen, loadingFilters: query.isLoading });
 }
 
 interface NumberColumnProps<Obj> extends BaseColumnProps<Obj> {
@@ -188,10 +213,16 @@ export function SpoolIconColumn<Obj>(props: SpoolIconColumnProps<Obj>) {
   const typedFilters = typeFilters<Obj>(props.tableState.filters);
   const filteredValue = getFiltersForField(typedFilters, props.dataId ?? props.id);
 
+  const onFilterDropdownOpen = () => {
+    query.refetch();
+  };
+
   return Column({
     ...props,
     filters,
     filteredValue,
+    onFilterDropdownOpen,
+    loadingFilters: query.isLoading,
     onCell: () => {
       return {
         style: {
