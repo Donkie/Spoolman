@@ -18,7 +18,7 @@ import {
 import { setSpoolArchived } from "./functions";
 import SelectAndPrint from "../../components/selectAndPrintDialog";
 import {
-  useSpoolmanFilamentFullNames,
+  useSpoolmanFilamentFilter,
   useSpoolmanLocations,
   useSpoolmanLotNumbers,
   useSpoolmanMaterials,
@@ -29,7 +29,8 @@ dayjs.extend(utc);
 const { confirm } = Modal;
 
 interface ISpoolCollapsed extends ISpool {
-  "filament.name": string;
+  combined_name: string; // Eg. "Prusa - PLA Red"
+  "filament.id": number;
   "filament.material"?: string;
 }
 
@@ -71,7 +72,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   // Create state for the columns to show
   const allColumns: (keyof ISpoolCollapsed & string)[] = [
     "id",
-    "filament.name",
+    "combined_name",
     "filament.material",
     "used_weight",
     "remaining_weight",
@@ -110,15 +111,13 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
         }
         return {
           ...element,
-          "filament.name": filament_name,
+          combined_name: filament_name,
+          "filament.id": element.filament.id,
           "filament.material": element.filament.material,
         };
       }),
     [tableProps.dataSource]
   );
-
-  // Filter and sort the dataSource
-  const filteredDataSource = dataSource;
 
   // Function for opening an ant design modal that asks for confirmation for archiving a spool
   const archiveSpool = async (spool: ISpoolCollapsed, archive: boolean) => {
@@ -182,7 +181,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             menu={{
               items: allColumns.map((column) => ({
                 key: column,
-                label: t(`spool.fields.${column}`),
+                label: t(`spool.fields.${column.replace(".", "_")}`),
               })),
               selectedKeys: showColumns,
               selectable: true,
@@ -205,7 +204,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     >
       <Table
         {...tableProps}
-        dataSource={filteredDataSource}
+        dataSource={dataSource}
         rowKey="id"
         // Make archived rows greyed out
         onRow={(record) => {
@@ -228,13 +227,13 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           tableState,
         })}
         {SpoolIconColumn({
-          id: "filament.name",
+          id: "combined_name",
           i18nkey: "spool.fields.filament_name",
           color: (record: ISpoolCollapsed) => record.filament.color_hex,
           dataSource,
           tableState,
-          filterValueQuery: useSpoolmanFilamentFullNames(),
-          allowMultipleFilters: false,
+          dataId: "filament.id",
+          filterValueQuery: useSpoolmanFilamentFilter(),
         })}
         {FilteredQueryColumn({
           id: "filament.material",
@@ -242,7 +241,6 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
           filterValueQuery: useSpoolmanMaterials(),
-          allowMultipleFilters: false,
         })}
         {NumberColumn({
           id: "used_weight",
@@ -284,7 +282,6 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
           filterValueQuery: useSpoolmanLocations(),
-          allowMultipleFilters: false,
         })}
         {FilteredQueryColumn({
           id: "lot_nr",
@@ -292,7 +289,6 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
           filterValueQuery: useSpoolmanLotNumbers(),
-          allowMultipleFilters: false,
         })}
         {DateColumn({
           id: "first_used",

@@ -125,7 +125,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             menu={{
               items: allColumns.map((column_id) => ({
                 key: column_id,
-                label: t(`filament.fields.${column_id}`),
+                label: t(`filament.fields.${column_id.replace(".", "_")}`),
               })),
               selectedKeys: showColumns,
               selectable: true,
@@ -159,7 +159,6 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
           filterValueQuery: useSpoolmanVendors(),
-          allowMultipleFilters: false,
         })}
         {SpoolIconColumn({
           id: "name",
@@ -168,7 +167,6 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
           filterValueQuery: useSpoolmanFilamentNames(),
-          allowMultipleFilters: false,
         })}
         {FilteredQueryColumn({
           id: "material",
@@ -176,7 +174,6 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
           filterValueQuery: useSpoolmanMaterials(),
-          allowMultipleFilters: false,
         })}
         {SortedColumn({
           id: "price",
@@ -222,7 +219,6 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
           filterValueQuery: useSpoolmanArticleNumbers(),
-          allowMultipleFilters: false,
         })}
         {NumberColumn({
           id: "settings_extruder_temp",

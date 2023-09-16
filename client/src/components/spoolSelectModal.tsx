@@ -5,7 +5,7 @@ import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "./column";
 import { TableState } from "../utils/saveload";
 import { useTable } from "@refinedev/antd";
 import { t } from "i18next";
-import { useSpoolmanFilamentFullNames, useSpoolmanMaterials } from "./otherModels";
+import { useSpoolmanFilamentFilter, useSpoolmanMaterials } from "./otherModels";
 
 interface Props {
   visible: boolean;
@@ -15,7 +15,8 @@ interface Props {
 }
 
 interface ISpoolCollapsed extends ISpool {
-  "filament.name": string;
+  combined_name: string;
+  "filament.id": number;
   "filament.material"?: string;
 }
 
@@ -37,10 +38,10 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
       pageSize: 10,
     },
     sorters: {
-      mode: "off",
+      mode: "server",
     },
     filters: {
-      mode: "off",
+      mode: "server",
     },
   });
 
@@ -63,7 +64,8 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
         }
         return {
           ...element,
-          "filament.name": filament_name,
+          combined_name: filament_name,
+          "filament.id": element.filament.id,
           "filament.material": element.filament.material,
         };
       }),
@@ -128,12 +130,13 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
             tableState,
           })}
           {SpoolIconColumn({
-            id: "filament.name",
-            i18ncat: "spool",
+            id: "combined_name",
+            dataId: "filament.id",
+            i18nkey: "spool.fields.filament_name",
             color: (record: ISpoolCollapsed) => record.filament.color_hex,
             dataSource,
             tableState,
-            filterValueQuery: useSpoolmanFilamentFullNames(),
+            filterValueQuery: useSpoolmanFilamentFilter(),
           })}
           {FilteredQueryColumn({
             id: "filament.material",

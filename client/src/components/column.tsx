@@ -18,6 +18,7 @@ dayjs.extend(utc);
 
 interface BaseColumnProps<Obj> {
   id: keyof Obj & string;
+  dataId?: keyof Obj & string;
   i18ncat?: string;
   i18nkey?: string;
   dataSource: Obj[];
@@ -50,12 +51,15 @@ function Column<Obj>(props: BaseColumnProps<Obj> & FilteredColumnProps & CustomC
     dataIndex: props.id,
     title: t(props.i18nkey ?? `${props.i18ncat}.fields.${props.id}`),
     sorter: true,
-    sortOrder: getSortOrderForField(typedSorters, props.id),
+    sortOrder: getSortOrderForField(typedSorters, props.dataId ?? props.id),
     filterMultiple: props.allowMultipleFilters ?? true,
   };
   if (props.filters && props.filteredValue) {
     columnProps.filters = props.filters;
     columnProps.filteredValue = props.filteredValue;
+    if (props.dataId) {
+      columnProps.key = props.dataId;
+    }
   }
   if (props.render) {
     columnProps.render = props.render;
@@ -80,7 +84,7 @@ export function RichColumn<Obj>(props: BaseColumnProps<Obj>) {
 }
 
 interface FilteredQueryColumnProps<Obj> extends BaseColumnProps<Obj> {
-  filterValueQuery: UseQueryResult<string[]>;
+  filterValueQuery: UseQueryResult<string[] | ColumnFilterItem[]>;
   allowMultipleFilters?: boolean;
 }
 
@@ -90,10 +94,13 @@ export function FilteredQueryColumn<Obj>(props: FilteredQueryColumnProps<Obj>) {
   let filters: ColumnFilterItem[] = [];
   if (query.data) {
     filters = query.data.map((item) => {
-      return {
-        text: item,
-        value: item,
-      };
+      if (typeof item === "string") {
+        return {
+          text: item,
+          value: item,
+        };
+      }
+      return item;
     });
   }
   filters.push({
@@ -102,7 +109,7 @@ export function FilteredQueryColumn<Obj>(props: FilteredQueryColumnProps<Obj>) {
   });
 
   const typedFilters = typeFilters<Obj>(props.tableState.filters);
-  const filteredValue = getFiltersForField(typedFilters, props.id);
+  const filteredValue = getFiltersForField(typedFilters, props.dataId ?? props.id);
 
   return Column({ ...props, filters, filteredValue });
 }
@@ -160,10 +167,13 @@ export function SpoolIconColumn<Obj>(props: SpoolIconColumnProps<Obj>) {
   let filters: ColumnFilterItem[] = [];
   if (query.data) {
     filters = query.data.map((item) => {
-      return {
-        text: item,
-        value: item,
-      };
+      if (typeof item === "string") {
+        return {
+          text: item,
+          value: item,
+        };
+      }
+      return item;
     });
   }
   filters.push({
@@ -172,7 +182,7 @@ export function SpoolIconColumn<Obj>(props: SpoolIconColumnProps<Obj>) {
   });
 
   const typedFilters = typeFilters<Obj>(props.tableState.filters);
-  const filteredValue = getFiltersForField(typedFilters, props.id);
+  const filteredValue = getFiltersForField(typedFilters, props.dataId ?? props.id);
 
   return Column({
     ...props,

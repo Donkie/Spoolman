@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { IFilament } from "../pages/filaments/model";
 import { IVendor } from "../pages/vendors/model";
+import { ColumnFilterItem } from "antd/es/table/interface";
 
-export function useSpoolmanFilamentFullNames() {
+export function useSpoolmanFilamentFilter() {
   const apiEndpoint = import.meta.env.VITE_APIURL;
-  return useQuery<IFilament[], unknown, string[]>({
+  return useQuery<IFilament[], unknown, ColumnFilterItem[]>({
     queryKey: ["filaments"],
     queryFn: async () => {
       const response = await fetch(apiEndpoint + "/filament");
@@ -15,20 +16,28 @@ export function useSpoolmanFilamentFullNames() {
     },
     select: (data) => {
       // Concatenate vendor name and filament name
-      let names = data
+      const names = data
+        // Remove empty names
         .filter((filament) => {
           return filament.name !== null && filament.name !== undefined && filament.name !== "";
         })
+        // Transform to ColumnFilterItem
         .map((filament) => {
+          let name = "";
           if (filament.vendor?.name) {
-            return `${filament.vendor.name} - ${filament.name ?? "<unknown>"}`;
+            name = `${filament.vendor.name} - ${filament.name ?? "<unknown>"}`;
           } else {
-            return `${filament.name ?? "<unknown>"}`;
+            name = `${filament.name ?? "<unknown>"}`;
           }
+          return {
+            text: name,
+            value: filament.id,
+          };
         })
-        .sort();
-      // Remove duplicates
-      names = [...new Set(names)];
+        // Remove duplicates
+        .filter((item, index, self) => self.findIndex((t) => t.value === item.value) === index)
+        // Sort by name
+        .sort((a, b) => a.text.localeCompare(b.text));
       return names;
     },
   });
