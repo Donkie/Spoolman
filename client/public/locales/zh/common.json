@@ -133,8 +133,10 @@
       "filament_name": "耗材",
       "filament": "耗材",
       "material": "材料",
+      "weight_to_use": "重量",
       "used_weight": "已用重量",
       "remaining_weight": "剩余重量",
+      "measured_weight": "净重",
       "used_length": "已用长度",
       "remaining_length": "剩余长度",
       "location": "位置",
@@ -146,7 +148,10 @@
       "archived": "存档"
     },
     "fields_help": {
+      "weight_to_use": "请选择要输入的重量值。净重只在所选的耗材设置了料盘重量时可用。",
       "used_weight": "料盘已使用的耗材重量。一个新的料盘应该是0克。",
+      "remaining_weight": "料盘上剩余多少耗材。对于新的料盘，这个值应该与料盘重量相匹配。",
+      "measured_weight": "耗材和料盘的重量分别是多少。",
       "location": "如果您有多个存放料盘的地方，请填写料盘所在的位置。",
       "lot_nr": "制造商的批号。如果使用多个料盘可以使用批号进行控制，以确保打印颜色一致。"
     },
