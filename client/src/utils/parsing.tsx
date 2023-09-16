@@ -1,17 +1,53 @@
 import React from "react";
 
-// Number formatter that nicely formats numbers with correct decimal separator
-export function numberFormatter(value: number | undefined) {
-  return value ? Number(value).toLocaleString() : "";
+/**
+ * Insert blankspace thousands separator into a number
+ * Supports both period or comma as decimal separator
+ * @param input
+ * @returns
+ */
+export function formatNumberWithSpaceSeparator(input: string): string {
+  const isPeriodDecimalSeparator = input.indexOf(".") > -1;
+
+  const parts = input.split(isPeriodDecimalSeparator ? "." : ",");
+
+  const integerPart = parts[0];
+  const decimalPart = parts[1] || "";
+
+  // Add the thousands separator (blank space) to the integer part
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+  // Combine the formatted integer and decimal parts
+  const suffix = decimalPart ? (isPeriodDecimalSeparator ? "." : ",") + decimalPart : "";
+  const formattedNumber = formattedIntegerPart + suffix;
+
+  return formattedNumber;
 }
 
-// Number parser that supports both comma and dot as decimal separator
+/**
+ * Number formatter that nicely formats numbers with correct decimal separator based on locale
+ * Always uses blank space as thousands separator to prevent confusion with the decimal separator
+ * @param value
+ * @returns
+ */
+export function numberFormatter(value: number | undefined): string {
+  const formattedValue = value
+    ? Number(value).toLocaleString(undefined, {
+        useGrouping: false, // Disable thousands separator and do it manually instead so it's always spaces
+      })
+    : "";
+
+  return formatNumberWithSpaceSeparator(formattedValue);
+}
+
+/**
+ * Number parser that supports both comma and dot as decimal separator
+ * @param value
+ * @returns
+ */
 export function numberParser(value: string | undefined) {
   // Convert comma to dot
-  const decimalSeparator = (1.1).toLocaleString().charAt(1);
-  if (decimalSeparator === ",") {
-    value = value?.replace(",", ".");
-  }
+  value = value?.replace(",", ".");
 
   // Remove all non-digit characters
   value = value?.replace(/[^\d.-]/g, "");
@@ -20,6 +56,11 @@ export function numberParser(value: string | undefined) {
   return parseFloat(value || "0");
 }
 
+/**
+ * Enrich text with links
+ * @param text
+ * @returns
+ */
 export function enrichText(text: string | undefined) {
   // Regular expression to match URLs
   const urlRegex =
