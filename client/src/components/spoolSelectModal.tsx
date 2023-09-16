@@ -89,6 +89,8 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
 
   // State for the select/unselect all checkbox
   const isAllFilteredSelected = dataSource.every((spool) => selectedItems.includes(spool.id));
+  const isSomeButNotAllFilteredSelected =
+    dataSource.some((spool) => selectedItems.includes(spool.id)) && !isAllFilteredSelected;
 
   return (
     <Modal
@@ -150,6 +152,7 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
           <Col span={12}>
             <Checkbox
               checked={isAllFilteredSelected}
+              indeterminate={isSomeButNotAllFilteredSelected}
               onChange={(e) => {
                 selectUnselectFiltered(e.target.checked);
               }}
