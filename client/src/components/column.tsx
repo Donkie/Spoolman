@@ -23,6 +23,7 @@ interface BaseColumnProps<Obj> {
   i18nkey?: string;
   dataSource: Obj[];
   tableState: TableState;
+  width?: number;
 }
 
 interface FilteredColumnProps {
@@ -54,6 +55,9 @@ function Column<Obj>(props: BaseColumnProps<Obj> & FilteredColumnProps & CustomC
     sortOrder: getSortOrderForField(typedSorters, props.dataId ?? props.id),
     filterMultiple: props.allowMultipleFilters ?? true,
   };
+  if (props.width) {
+    columnProps.width = props.width;
+  }
   if (props.filters && props.filteredValue) {
     columnProps.filters = props.filters;
     columnProps.filteredValue = props.filteredValue;

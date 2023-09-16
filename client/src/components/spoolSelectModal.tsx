@@ -112,13 +112,7 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
       {contextHolder}
       <Space direction="vertical" style={{ width: "100%" }}>
         {description && <div>{description}</div>}
-        <Table
-          {...tableProps}
-          rowKey="id"
-          dataSource={dataSource}
-          pagination={false}
-          scroll={{ x: "max-content", y: 200 }}
-        >
+        <Table {...tableProps} rowKey="id" dataSource={dataSource} pagination={false} scroll={{ y: 200 }}>
           <Table.Column
             width={50}
             render={(_, item: ISpool) => (
@@ -130,6 +124,7 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
             i18ncat: "spool",
             dataSource,
             tableState,
+            width: 80,
           })}
           {SpoolIconColumn({
             id: "combined_name",
