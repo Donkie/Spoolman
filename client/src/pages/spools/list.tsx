@@ -34,6 +34,13 @@ interface ISpoolCollapsed extends ISpool {
   "filament.material"?: string;
 }
 
+function translateColumnI18nKey(columnName: string): string {
+  columnName = columnName.replace(".", "_");
+  if (columnName === "combined_name") columnName = "filament_name";
+  else if (columnName === "filament_material") columnName = "material";
+  return `spool.fields.${columnName}`;
+}
+
 const namespace = "spoolList-v2";
 
 export const SpoolList: React.FC<IResourceComponentsProps> = () => {
@@ -179,9 +186,9 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           <Dropdown
             trigger={["click"]}
             menu={{
-              items: allColumns.map((column) => ({
-                key: column,
-                label: t(`spool.fields.${column.replace(".", "_")}`),
+              items: allColumns.map((column_id) => ({
+                key: column_id,
+                label: t(translateColumnI18nKey(column_id)),
               })),
               selectedKeys: showColumns,
               selectable: true,

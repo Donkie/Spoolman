@@ -28,6 +28,11 @@ interface IFilamentCollapsed extends Omit<IFilament, "vendor"> {
   "vendor.name": string | null;
 }
 
+function translateColumnI18nKey(columnName: string): string {
+  columnName = columnName.replace(".", "_");
+  return `filament.fields.${columnName}`;
+}
+
 const namespace = "filamentList-v2";
 
 export const FilamentList: React.FC<IResourceComponentsProps> = () => {
@@ -125,7 +130,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             menu={{
               items: allColumns.map((column_id) => ({
                 key: column_id,
-                label: t(`filament.fields.${column_id.replace(".", "_")}`),
+                label: t(translateColumnI18nKey(column_id)),
               })),
               selectedKeys: showColumns,
               selectable: true,
