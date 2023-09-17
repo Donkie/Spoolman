@@ -10,6 +10,7 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 
+from spoolman.api.v1.models import Spool
 from spoolman.database import filament, models
 from spoolman.database.utils import (
     SortOrder,
@@ -21,6 +22,7 @@ from spoolman.database.utils import (
 )
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError
 from spoolman.math import weight_from_length
+from spoolman.ws import websocket_manager
 
 
 def utc_timezone_naive(dt: datetime) -> datetime:
@@ -179,6 +181,7 @@ async def update(
         else:
             setattr(spool, k, v)
     await db.commit()
+    await spool_changed(spool)
     return spool
 
 
@@ -231,6 +234,7 @@ async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.S
     spool.last_used = datetime.utcnow()
 
     await db.commit()
+    await spool_changed(spool)
     return spool
 
 
@@ -275,6 +279,7 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
     spool.last_used = datetime.utcnow()
 
     await db.commit()
+    await spool_changed(spool)
     return spool
 
 
@@ -296,3 +301,8 @@ async def find_lot_numbers(
     stmt = sqlalchemy.select(models.Spool.lot_nr).distinct()
     rows = await db.execute(stmt)
     return [row[0] for row in rows.all() if row[0] is not None]
+
+
+async def spool_changed(spool: models.Spool) -> None:
+    """Notify websocket clients that a spool has changed."""
+    await websocket_manager.send(("spool", str(spool.id)), Spool.from_db(spool).json())
