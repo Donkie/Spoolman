@@ -43,15 +43,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Add git hash to version
-        if: github.ref == 'refs/heads/master'
-        run: |
-          current_version=$(grep -m 1 -oP 'version = "\K[^"]+' pyproject.toml)
-          latest_commit_hash=$(git rev-parse --short HEAD)
-          new_version="${current_version}+${latest_commit_hash}"
-          sed -i 's/version = \"${current_version}\"/version = \"${new_version}\"/' pyproject.toml
-          echo "Set project to version ${new_version}"
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -172,15 +163,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Add git hash to version
-        if: github.ref == 'refs/heads/master'
-        run: |
-          current_version=$(grep -m 1 -oP 'version = "\K[^"]+' pyproject.toml)
-          latest_commit_hash=$(git rev-parse --short HEAD)
-          new_version="${current_version}+${latest_commit_hash}"
-          sed -i 's/version = \"${current_version}\"/version = \"${new_version}\"/' pyproject.toml
-          echo "Set project to version ${new_version}"
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -213,15 +195,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Add git hash to version
-        if: github.ref == 'refs/heads/master'
-        run: |
-          current_version=$(grep -m 1 -oP 'version = "\K[^"]+' pyproject.toml)
-          latest_commit_hash=$(git rev-parse --short HEAD)
-          new_version="${current_version}+${latest_commit_hash}"
-          sed -i 's/version = \"${current_version}\"/version = \"${new_version}\"/' pyproject.toml
-          echo "Set project to version ${new_version}"
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -253,15 +226,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Add git hash to version
-        if: github.ref == 'refs/heads/master'
-        run: |
-          current_version=$(grep -m 1 -oP 'version = "\K[^"]+' pyproject.toml)
-          latest_commit_hash=$(git rev-parse --short HEAD)
-          new_version="${current_version}+${latest_commit_hash}"
-          sed -i 's/version = \"${current_version}\"/version = \"${new_version}\"/' pyproject.toml
-          echo "Set project to version ${new_version}"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
