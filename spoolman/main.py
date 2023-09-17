@@ -63,7 +63,12 @@ if env.is_debug_mode():
 @app.on_event("startup")
 async def startup() -> None:
     """Run the service's startup sequence."""
-    logger.info("Starting Spoolman v%s...", app.version)
+    logger.info(
+        "Starting Spoolman v%s (commit: %s) (built: %s)",
+        app.version,
+        env.get_commit_hash(),
+        env.get_build_date(),
+    )
 
     logger.info("Setting up database...")
     database.setup_db(database.get_connection_url())

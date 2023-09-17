@@ -59,6 +59,11 @@ WORKDIR /home/app/spoolman
 ENV PATH="/home/app/spoolman/.venv/bin:${PATH}"
 ENV PYTHONPATH="/home/app/spoolman:${PYTHONPATH}"
 
+ARG GIT_COMMIT=unknown
+ARG BUILD_DATE=unknown
+ENV GIT_COMMIT=${GIT_COMMIT}
+ENV BUILD_DATE=${BUILD_DATE}
+
 # Run command
 EXPOSE 8000
 VOLUME ["/home/app/.local/share/spoolman"]

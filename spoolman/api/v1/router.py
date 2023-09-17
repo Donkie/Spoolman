@@ -43,6 +43,8 @@ async def info() -> models.Info:
         data_dir=str(env.get_data_dir().resolve()),
         backups_dir=str(env.get_backups_dir().resolve()),
         db_type=str(env.get_database_type() or "sqlite"),
+        git_commit=env.get_commit_hash(),
+        build_date=env.get_build_date(),
     )
 
 

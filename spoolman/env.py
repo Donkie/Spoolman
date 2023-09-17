@@ -2,6 +2,7 @@
 
 import logging
 import os
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Optional
@@ -245,3 +246,29 @@ def get_version() -> str:
         str: The version.
     """
     return pkg_resources.get_distribution("spoolman").version
+
+
+def get_commit_hash() -> Optional[str]:
+    """Get the latest commit hash of the package.
+
+    Can end with "-dirty" if there are uncommitted changes.
+
+    Returns:
+        Optional[str]: The commit hash.
+    """
+    commit_hash = os.getenv("GIT_COMMIT", "unknown")
+    if commit_hash == "unknown":
+        return None
+    return commit_hash
+
+
+def get_build_date() -> Optional[datetime]:
+    """Get the build date of the package.
+
+    Returns:
+        Optional[datetime.datetime]: The build date.
+    """
+    build_date = os.getenv("BUILD_DATE", "unknown")
+    if build_date == "unknown":
+        return None
+    return datetime.fromisoformat(build_date)

@@ -197,6 +197,8 @@ class Info(BaseModel):
     data_dir: str = Field(example="/home/app/.local/share/spoolman")
     backups_dir: str = Field(example="/home/app/.local/share/spoolman/backups")
     db_type: str = Field(example="sqlite")
+    git_commit: Optional[str] = Field(example="a1b2c3d")
+    build_date: Optional[datetime] = Field(example="2021-01-01T00:00:00Z")
 
 
 class HealthCheck(BaseModel):
