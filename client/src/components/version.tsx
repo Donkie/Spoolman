@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { Spin } from "antd";
+import { Spin, Typography } from "antd";
+
+const { Text } = Typography;
 
 interface IInfo {
   version: string;
@@ -8,6 +10,8 @@ interface IInfo {
   data_dir: string;
   backups_dir: string;
   db_type: string;
+  git_commit?: string;
+  build_date?: string;
 }
 
 export const Version: React.FC = () => {
@@ -33,5 +37,11 @@ export const Version: React.FC = () => {
   }
 
   const info = infoResult.data;
-  return <span>{info.version}</span>;
+  const commit_suffix = info.git_commit ? <Text type="secondary">{` (${info.git_commit})`}</Text> : <></>;
+  return (
+    <span title={info.build_date}>
+      {info.version}
+      {commit_suffix}
+    </span>
+  );
 };
