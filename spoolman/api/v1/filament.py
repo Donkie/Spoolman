@@ -119,19 +119,15 @@ async def find(
         alias="vendor_name",
         default=None,
         title="Vendor Name",
-        description=(
-            "Partial case-insensitive search term for the filament vendor name. "
-            "Separate multiple terms with a comma."
-        ),
+        description="See vendor.name.",
         deprecated=True,
     ),
     vendor_id_old: Optional[str] = Query(
         alias="vendor_id",
         default=None,
         title="Vendor ID",
-        description="Match an exact vendor ID. Separate multiple IDs with a comma.",
+        description="See vendor.id.",
         deprecated=True,
-        examples=["1", "1,2"],
     ),
     vendor_name: Optional[str] = Query(
         alias="vendor.name",
@@ -139,26 +135,33 @@ async def find(
         title="Vendor Name",
         description=(
             "Partial case-insensitive search term for the filament vendor name. "
-            "Separate multiple terms with a comma."
+            "Separate multiple terms with a comma. Specify an empty string to match filaments with no vendor name."
         ),
     ),
     vendor_id: Optional[str] = Query(
         alias="vendor.id",
         default=None,
         title="Vendor ID",
-        description="Match an exact vendor ID. Separate multiple IDs with a comma.",
+        description=(
+            "Match an exact vendor ID. Separate multiple IDs with a comma. "
+            "Specify -1 to match filaments with no vendor."
+        ),
         examples=["1", "1,2"],
     ),
     name: Optional[str] = Query(
         default=None,
         title="Filament Name",
-        description="Partial case-insensitive search term for the filament name. Separate multiple terms with a comma.",
+        description=(
+            "Partial case-insensitive search term for the filament name. Separate multiple terms with a comma. "
+            "Specify an empty string to match filaments with no name."
+        ),
     ),
     material: Optional[str] = Query(
         default=None,
         title="Filament Material",
         description=(
-            "Partial case-insensitive search term for the filament material. Separate multiple terms with a comma."
+            "Partial case-insensitive search term for the filament material. Separate multiple terms with a comma. "
+            "Specify an empty string to match filaments with no material."
         ),
     ),
     article_number: Optional[str] = Query(
@@ -166,7 +169,8 @@ async def find(
         title="Filament Article Number",
         description=(
             "Partial case-insensitive search term for the filament article number. "
-            "Separate multiple terms with a comma."
+            "Separate multiple terms with a comma. "
+            "Specify an empty string to match filaments with no article number."
         ),
     ),
     sort: Optional[str] = Query(

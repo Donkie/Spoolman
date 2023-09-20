@@ -79,48 +79,45 @@ async def find(
         alias="filament_name",
         default=None,
         title="Filament Name",
-        description="Partial case-insensitive search term for the filament name. Separate multiple terms with a comma.",
+        description="See filament.name.",
         deprecated=True,
     ),
     filament_id_old: Optional[str] = Query(
         alias="filament_id",
         default=None,
         title="Filament ID",
-        description="Match an exact filament ID. Separate multiple IDs with a comma.",
+        description="See filament.id.",
         deprecated=True,
-        examples=["1", "1,2"],
     ),
     filament_material_old: Optional[str] = Query(
         alias="filament_material",
         default=None,
         title="Filament Material",
-        description=(
-            "Partial case-insensitive search term for the filament material. Separate multiple terms with a comma."
-        ),
+        description="See filament.material.",
         deprecated=True,
     ),
     vendor_name_old: Optional[str] = Query(
         alias="vendor_name",
         default=None,
         title="Vendor Name",
-        description=(
-            "Partial case-insensitive search term for the filament vendor name. Separate multiple terms with a comma."
-        ),
+        description="See filament.vendor.name.",
         deprecated=True,
     ),
     vendor_id_old: Optional[str] = Query(
         alias="vendor_id",
         default=None,
         title="Vendor ID",
-        description="Match an exact vendor ID. Separate multiple IDs with a comma.",
+        description="See filament.vendor.id.",
         deprecated=True,
-        examples=["1", "1,2"],
     ),
     filament_name: Optional[str] = Query(
         alias="filament.name",
         default=None,
         title="Filament Name",
-        description="Partial case-insensitive search term for the filament name. Separate multiple terms with a comma.",
+        description=(
+            "Partial case-insensitive search term for the filament name. Separate multiple terms with a comma."
+            " Specify an empty string to match spools with no filament name."
+        ),
     ),
     filament_id: Optional[str] = Query(
         alias="filament.id",
@@ -134,7 +131,8 @@ async def find(
         default=None,
         title="Filament Material",
         description=(
-            "Partial case-insensitive search term for the filament material. Separate multiple terms with a comma."
+            "Partial case-insensitive search term for the filament material. Separate multiple terms with a comma. "
+            "Specify an empty string to match spools with no filament material."
         ),
     ),
     filament_vendor_name: Optional[str] = Query(
@@ -142,28 +140,34 @@ async def find(
         default=None,
         title="Vendor Name",
         description=(
-            "Partial case-insensitive search term for the filament vendor name. Separate multiple terms with a comma."
+            "Partial case-insensitive search term for the filament vendor name. Separate multiple terms with a comma. "
+            "Specify an empty string to match spools with no vendor name."
         ),
     ),
     filament_vendor_id: Optional[str] = Query(
         alias="filament.vendor.id",
         default=None,
         title="Vendor ID",
-        description="Match an exact vendor ID. Separate multiple IDs with a comma.",
+        description=(
+            "Match an exact vendor ID. Separate multiple IDs with a comma. "
+            "Set it to -1 to match spools with filaments with no vendor."
+        ),
         examples=["1", "1,2"],
     ),
     location: Optional[str] = Query(
         default=None,
         title="Location",
         description=(
-            "Partial case-insensitive search term for the spool location. Separate multiple terms with a comma."
+            "Partial case-insensitive search term for the spool location. Separate multiple terms with a comma. "
+            "Specify an empty string to match spools with no location."
         ),
     ),
     lot_nr: Optional[str] = Query(
         default=None,
         title="Lot/Batch Number",
         description=(
-            "Partial case-insensitive search term for the spool lot number. Separate multiple terms with a comma."
+            "Partial case-insensitive search term for the spool lot number. Separate multiple terms with a comma. "
+            "Specify an empty string to match spools with no lot nr."
         ),
     ),
     allow_archived: bool = Query(
