@@ -130,7 +130,7 @@ export function FilteredQueryColumn<Obj>(props: FilteredQueryColumnProps<Obj>) {
   }
   filters.push({
     text: "<empty>",
-    value: "",
+    value: "<empty>",
   });
 
   const typedFilters = typeFilters<Obj>(props.tableState.filters);
