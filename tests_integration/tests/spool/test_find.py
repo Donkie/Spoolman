@@ -445,6 +445,19 @@ def test_find_spools_by_empty_location(spools: Fixture):
     assert spool_lists_equal(spools_result, (spools.spools[3], spools.spools[4]))
 
 
+def test_find_spools_by_empty_and_filled_location(spools: Fixture):
+    # Execute
+    result = httpx.get(
+        f"{URL}/api/v1/spool",
+        params={"location": "The Pantry,"},
+    )
+    result.raise_for_status()
+
+    # Verify
+    spools_result = result.json()
+    assert spool_lists_equal(spools_result, (spools.spools[0], spools.spools[3], spools.spools[4]))
+
+
 def test_find_spools_by_lot_nr(spools: Fixture):
     # Execute
     result = httpx.get(

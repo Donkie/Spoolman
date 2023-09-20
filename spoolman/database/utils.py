@@ -45,10 +45,15 @@ def add_where_clause_str_opt(
 ) -> Select:
     """Add a where clause to a select statement for an optional string field."""
     if value is not None:
-        if len(value) == 0:
-            stmt = stmt.where(sqlalchemy.or_(field.is_(None), field == ""))
-        else:
-            stmt = stmt.where(sqlalchemy.or_(*(field.ilike(f"%{value}%") for value in value.split(","))))
+        conditions = []
+        for value_part in value.split(","):
+            if len(value_part) == 0:
+                conditions.append(field.is_(None))
+                conditions.append(field == "")
+            else:
+                conditions.append(field.ilike(f"%{value_part}%"))
+
+        stmt = stmt.where(sqlalchemy.or_(*conditions))
     return stmt
 
 
@@ -59,10 +64,14 @@ def add_where_clause_str(
 ) -> Select:
     """Add a where clause to a select statement for a string field."""
     if value is not None:
-        if len(value) == 0:
-            stmt = stmt.where(field == "")
-        else:
-            stmt = stmt.where(sqlalchemy.or_(*(field.ilike(f"%{value}%") for value in value.split(","))))
+        conditions = []
+        for value_part in value.split(","):
+            if len(value_part) == 0:
+                conditions.append(field == "")
+            else:
+                conditions.append(field.ilike(f"%{value_part}%"))
+
+        stmt = stmt.where(sqlalchemy.or_(*conditions))
     return stmt
 
 
