@@ -1,12 +1,29 @@
 """Pydantic data models for typing the FastAPI request/responses."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel as PydanticBaseModel
+from pydantic import Field
 
 from spoolman.database import models
 from spoolman.math import length_from_weight
+
+
+def datetime_to_str(dt: datetime) -> str:
+    """Convert a datetime object to a string."""
+    if dt.tzinfo is None:
+        dt = dt.astimezone(tz=timezone.utc)
+    return dt.isoformat().replace("+00:00", "Z")
+
+
+class BaseModel(PydanticBaseModel):
+    class Config:
+        """Pydantic configuration."""
+
+        json_encoders = {  # noqa: RUF012
+            datetime: datetime_to_str,
+        }
 
 
 class Message(BaseModel):

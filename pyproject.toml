@@ -43,6 +43,9 @@ call = "spoolman.bump:bump"
 [tool.pdm.scripts.app]
 cmd = "uvicorn spoolman.main:app"
 
+[tool.pdm.scripts.itest]
+cmd = "python tests_integration/run.py"
+
 [tool.ruff]
 select = ["ALL"]
 ignore = [

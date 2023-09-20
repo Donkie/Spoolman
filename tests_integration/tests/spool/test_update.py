@@ -61,8 +61,8 @@ def test_update_spool(random_filament: dict[str, Any]):
     )
 
     spool = result.json()
-    assert spool["first_used"] == "2023-01-01T10:00:00"
-    assert spool["last_used"] == "2023-01-02T10:00:00"
+    assert spool["first_used"] == "2023-01-01T10:00:00Z"
+    assert spool["last_used"] == "2023-01-02T10:00:00Z"
     assert spool["remaining_weight"] == pytest.approx(remaining_weight)
     assert spool["used_weight"] == pytest.approx(used_weight)
     assert spool["remaining_length"] == pytest.approx(remaining_length)

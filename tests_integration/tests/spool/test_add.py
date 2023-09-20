@@ -50,8 +50,8 @@ def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
     assert spool == {
         "id": spool["id"],
         "registered": spool["registered"],
-        "first_used": "2023-01-02T11:00:00",
-        "last_used": "2023-01-02T11:00:00",
+        "first_used": "2023-01-02T11:00:00Z",
+        "last_used": "2023-01-02T11:00:00Z",
         "filament": random_filament,
         "remaining_weight": pytest.approx(remaining_weight),
         "used_weight": pytest.approx(used_weight),
@@ -70,8 +70,8 @@ def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
 def test_add_spool_used_weight(random_filament: dict[str, Any]):
     """Test adding a spool to the database."""
     # Execute
-    first_used = "2023-01-01T00:00:00"
-    last_used = "2023-01-02T00:00:00"
+    first_used = "2023-01-01T00:00:00Z"
+    last_used = "2023-01-02T00:00:00Z"
     used_weight = 250
     location = "The Pantry"
     lot_nr = "123456789"
