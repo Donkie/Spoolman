@@ -45,6 +45,11 @@ export const languages: { [key: string]: Language } = {
     countryCode: "ru",
     fullCode: "ru-RU",
   },
+  ["cs"]: {
+    name: "Česky",
+    countryCode: "cs",
+    fullCode: "cs-CS",
+  },
 }
 
 i18n
