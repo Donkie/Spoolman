@@ -20,6 +20,14 @@ Spoolman includes a web-client that lets you directly manipulate all the data. I
 
 ![image](https://github.com/Donkie/Spoolman/assets/2332094/33928d5e-440f-4445-aca9-456c4370ad0d)
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://hosted.weblate.org/widget/spoolman/287x66-black.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://hosted.weblate.org/widget/spoolman/287x66-white.png">
+  <img alt="Icon of a filament spool" src="https://hosted.weblate.org/widget/spoolman/287x66-white.png">
+</picture>
+
+_The web client is translated by the community using [Weblate](https://hosted.weblate.org/projects/spoolman/)._
+
 ## Integration status
 Spoolman is still relatively new, so support isn't widespread yet, but it's being actively integrated to multiple different projects.
 
