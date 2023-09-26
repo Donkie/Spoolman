@@ -47,8 +47,8 @@ export const languages: { [key: string]: Language } = {
   },
   ["cs"]: {
     name: "Česky",
-    countryCode: "cs",
-    fullCode: "cs-CS",
+    countryCode: "cz",
+    fullCode: "cs-CZ",
   },
   ["nb-NO"]: {
     name: "Norsk bokmål",
