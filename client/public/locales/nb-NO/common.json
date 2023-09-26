@@ -1,0 +1,76 @@
+{
+    "buttons": {
+        "create": "Opprett",
+        "save": "Lagre",
+        "show": "Vis",
+        "cancel": "Avbryt",
+        "edit": "Rediger",
+        "showArchived": "Vis arkiverte",
+        "archive": "Arkiver",
+        "hideColumns": "Skjul kolonner",
+        "confirm": "Er du sikker?",
+        "delete": "Slett",
+        "undo": "Angre",
+        "import": "Importer",
+        "logout": "Logg ut",
+        "hideArchived": "Skjul arkiverte",
+        "clearFilters": "Tøm filtre",
+        "unArchive": "Opphev arkivering",
+        "clone": "Klon",
+        "clear": "Tøm"
+    },
+    "filament": {
+        "fields": {
+            "material": "Materiale",
+            "comment": "Kommentar",
+            "diameter": "Diameter",
+            "weight": "Vekt",
+            "registered": "Registrert",
+            "price": "Pris",
+            "color_hex": "Farge"
+        }
+    },
+    "printing": {
+        "generic": {
+            "rows": "Rader",
+            "borders": {
+                "none": "Ingen",
+                "grid": "Rutenett"
+            },
+            "customSize": "Egendefinert",
+            "contentSettings": "Innholdsinnstillinger",
+            "skipItems": "Hopp over elementer",
+            "paperSize": "Papirstørrelse",
+            "columns": "Kolonner",
+            "dimensions": "Dimensjoner",
+            "print": "Skriv ut"
+        },
+        "qrcode": {
+            "showTemperatures": "Temperaturer",
+            "button": "Skriv ut QR-koder"
+        }
+    },
+    "no": "Nei",
+    "unknown": "Ukjent",
+    "spool": {
+        "fields": {
+            "comment": "Kommentar",
+            "archived": "Arkivert"
+        }
+    },
+    "yes": "Ja",
+    "version": "Versjon",
+    "vendor": {
+        "fields": {
+            "registered": "Registrert",
+            "name": "Navn",
+            "id": "ID"
+        }
+    },
+    "actions": {
+        "clone": "Klon"
+    },
+    "tags": {
+        "clone": "Klon"
+    }
+}

@@ -9,7 +9,7 @@
     "buttons": {
         "create": "Create",
         "save": "Save",
-        "logout": "Logout",
+        "logout": "Log out",
         "delete": "Delete",
         "edit": "Edit",
         "cancel": "Cancel",
