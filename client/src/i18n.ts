@@ -50,6 +50,21 @@ export const languages: { [key: string]: Language } = {
     countryCode: "cs",
     fullCode: "cs-CS",
   },
+  ["nb-NO"]: {
+    name: "Norsk bokmål",
+    countryCode: "no",
+    fullCode: "nb-NO",
+  },
+  ["nl"]: {
+    name: "Nederlands",
+    countryCode: "nl",
+    fullCode: "nl-NL",
+  },
+  ["fr"]: {
+    name: "Français",
+    countryCode: "fr",
+    fullCode: "fr-FR",
+  },
 }
 
 i18n
