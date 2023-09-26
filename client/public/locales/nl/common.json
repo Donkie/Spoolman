@@ -1,0 +1,250 @@
+{
+    "buttons": {
+        "create": "Aanmaken",
+        "save": "Opslaan",
+        "show": "Tonen",
+        "filter": "Filter",
+        "cancel": "Annuleren",
+        "edit": "Bewerken",
+        "showArchived": "Gearchiveerd tonen",
+        "archive": "Archiveren",
+        "hideColumns": "Kolommen verbergen",
+        "confirm": "Weet je het zeker?",
+        "delete": "Verwijderen",
+        "undo": "Ongedaan maken",
+        "import": "Importeren",
+        "logout": "Uitloggen",
+        "refresh": "Vernieuwen",
+        "notAccessTitle": "Je hebt geen toegang tot",
+        "hideArchived": "Gearchiveerd verbergen",
+        "clearFilters": "Filters leegmaken",
+        "unArchive": "Dearchiveren",
+        "clone": "Klonen",
+        "clear": "Wissen"
+    },
+    "actions": {
+        "create": "Aanmaken",
+        "clone": "Klonen",
+        "list": "Lijst",
+        "show": "Tonen",
+        "edit": "Bewerken"
+    },
+    "printing": {
+        "generic": {
+            "rows": "Rijen",
+            "customSize": "Aangepast",
+            "title": "Afdrukkend",
+            "contentSettings": "Inhoudsinstellingen",
+            "helpPrinterMargin": "Safe-Zone moet worden ingesteld op hoe dicht bij de papierrand uw printer kan afdrukken. Als u deze wijzigt, heeft dit geen invloed op het hele raster.",
+            "previewScale": "Voorbeeldschaal",
+            "helpMargin": "Marges moeten worden geconfigureerd zodat ze overeenkomen met je labelpapier en printer. Als u deze wijzigt, heeft dit invloed op de grootte van het hele raster.",
+            "skipItems": "Items overlaan",
+            "paperSize": "Papierformaat",
+            "columns": "Kolommen",
+            "description": "Stem de onderstaande instellingen af om de gewenste printlay-out te krijgen. Houd er rekening mee dat printers en je besturingssysteem hun eigen marges en schaling kunnen toepassen, dus het kan zijn dat je met wat instellingen moet spelen voordat alles correct is. Test het op een stuk gewoon papier voordat u op de daadwerkelijke etiketten afdrukt.",
+            "showBorder": "Rand tonen",
+            "dimensions": "Afmetingen",
+            "print": "Printen",
+            "printerMarginBottom": "Onderste Safe-Zone",
+            "verticalSpacing": "Verticale afstand",
+            "borders": {
+                "none": "Geen",
+                "grid": "Raster",
+                "border": "Rand"
+            },
+            "printerMarginTop": "Bovenste Safe-Zone",
+            "marginRight": "Rechter marge",
+            "printerMarginRight": "Rechter Safe-Zone",
+            "marginTop": "Bovenste marge",
+            "layoutSettings": "Opmaak instellingen",
+            "marginBottom": "Onderste marge",
+            "horizontalSpacing": "Horizontale afstand",
+            "marginLeft": "Linker marge",
+            "printerMarginLeft": "Linker Safe-Zone"
+        },
+        "qrcode": {
+            "extruderTemp": "ET: {{temp}}",
+            "showSpoolWeight": "Gewicht spoel",
+            "showContent": "Label printen",
+            "showVendorComment": "Opmerking fabrikant",
+            "spoolWeight": "Gewicht spoel: {{weight}}",
+            "showTemperatures": "Temperaturen",
+            "showVendor": "Fabrikant",
+            "showSpoolComment": "Opmerking spoel",
+            "textSize": "Inhoud tekstgrootte",
+            "title": "QR-Code afdrukken",
+            "showSpoolmanIcon": "Spoolman icoon tonen",
+            "showLotNr": "Lotnr",
+            "bedTemp": "BT: {{temp}}",
+            "lotNr": "Lotnr: {{lot}}",
+            "showFilamentComment": "Opmerking filament",
+            "button": "QR-Codes afdrukken"
+        },
+        "spoolSelect": {
+            "selectedTotal_one": "{{count}} spoel geselecteerd",
+            "selectedTotal_other": "{{count}} spoelen geselecteerd",
+            "description": "Selecteer spoelen waarvoor je QR-codes wilt afdrukken.",
+            "showArchived": "Gearchiveerde tonen",
+            "title": "Spoelen selecteren",
+            "selectAll": "Alles selecteren/deselecteren",
+            "noSpoolsSelected": "Je hebt geen spoelen geselecteerd."
+        }
+    },
+    "notifications": {
+        "deleteSuccess": "{{resource}} succesvol verwijderd",
+        "error": "Fout (fout code {{statusCode}})",
+        "editError": "Fout opgetreden bij het bewerken van {{resource}} (status code {{statusCode}})",
+        "undoable": "Je hebt {{seconds}} seconden om ongedaan te maken.",
+        "importProgress": "Importeren: {{processed}}/{{total}}",
+        "createError": "Er is een fout opgetreden bij het aanmaken van {{resource}} (status code {{statusCode}})",
+        "success": "Succesvol",
+        "editSuccess": "{{resource}} succesvol bewerkt",
+        "deleteError": "Fout opgetreden bij het verwijderen van {{resource}} (status code {{statusCode}})",
+        "createSuccess": "{{resource}} succesvol aangemaakt"
+    },
+    "no": "Nee",
+    "unknown": "Onbekend",
+    "yes": "Ja",
+    "version": "Versie",
+    "warnWhenUnsavedChanges": "Weet je zeker dat je wil vertrekken? Er zijn niet-opgeslagen wijzigingen.",
+    "loading": "Laden",
+    "dashboard": {
+        "title": "Dashboard"
+    },
+    "tags": {
+        "clone": "Klonen"
+    },
+    "documentTitle": {
+        "vendor": {
+            "create": "Fabrikant maken | Spoolman",
+            "clone": "#{{id}} Leverancier klonen | Spoolman",
+            "edit": "#{{id}} Fabrikant bewerken | Spoolman",
+            "list": "Fabrikanten | Spoolman",
+            "show": "#{{id}} Fabrikant tonen | Spoolman"
+        },
+        "default": "Spoolman",
+        "spool": {
+            "edit": "#{{id}} Spoel bewerken | Spoolman",
+            "list": "Spoelen | Spoolman",
+            "create": "Spoel maken | Spoolman",
+            "show": "#{{id}} Spoel tonen | Spoolman",
+            "clone": "#{{id}} Spoel klonen | Spoolman"
+        },
+        "filament": {
+            "list": "Filamenten | Spoolman",
+            "show": "#{{id}} Filament tonen | Spoolman",
+            "clone": "#{{id}} Filament klonen | Spoolman",
+            "create": "Filament maken | Spoolman",
+            "edit": "#{{id}} Filament bewerken | Spoolman"
+        },
+        "suffix": " | Spoolman"
+    },
+    "spool": {
+        "fields": {
+            "measured_weight": "Gemeten gewicht",
+            "last_used": "Laatst gebruikt",
+            "material": "Materiaal",
+            "weight_to_use": "Gewicht",
+            "lot_nr": "Lotnr",
+            "filament_name": "Filament",
+            "comment": "Opmerking",
+            "filament": "Filament",
+            "location": "Locatie",
+            "used_length": "Gebruikte lengte",
+            "archived": "Gearchiveerd",
+            "remaining_length": "Overgebleven lengte",
+            "registered": "Geregistreerd",
+            "first_used": "Eerst gebruikt",
+            "used_weight": "Gebruikt gewicht",
+            "id": "Id",
+            "remaining_weight": "Overgebleven gewicht"
+        },
+        "titles": {
+            "archive": "Spoel archiveren",
+            "show": "Spoel tonen",
+            "edit": "Spoel bewerken",
+            "create": "Spoel maken",
+            "clone": "Spoel klonen",
+            "list": "Spoelen"
+        },
+        "fields_help": {
+            "used_weight": "Hoeveel filament er van de spoel is gebruikt. Op een nieuwe spoel zal 0g gebruikt zijn.",
+            "weight_to_use": "Selecteer welke gewichtswaarde je wilt invoeren. Het gemeten gewicht is alleen beschikbaar als het spoelgewicht is ingesteld voor het geselecteerde filament.",
+            "measured_weight": "Hoeveel het filament en de spoel wegen.",
+            "lot_nr": "Lotnummer van de fabrikant. Kan worden gebruikt om ervoor te zorgen dat een afdruk een consistente kleur heeft als er meerdere spoelen worden gebruikt.",
+            "remaining_weight": "Hoeveel filament zit er nog op de spoel. Bij een nieuwe spoel zal dit overeenkomen met het spoelgewicht.",
+            "location": "Waar de spoel zich bevindt als je meerdere locaties hebt waar je jouw spoelen opslaat."
+        },
+        "spool": "Spoelen",
+        "messages": {
+            "archive": "Weet je zeker dat je deze spoel wil archiveren?"
+        }
+    },
+    "filament": {
+        "fields_help": {
+            "name": "Filamentnaam, om dit filamenttype onder andere van dezelfde fabrikant te onderscheiden. Kan bijvoorbeeld de kleur bevatten.",
+            "article_number": "Bv. EAN. UPC, enz.",
+            "spool_weight": "Het gewicht van een lege spoel. Momenteel nergens voor gebruikt, maar zou door apps van derden kunnen worden gebruikt om b.v. bereken het filamentgewicht op basis van een gewichtsmeting.",
+            "price": "Prijs van een volledige spoel in de door het systeem geconfigureerde valuta.",
+            "weight": "Het filamentgewicht van een volle spoel (nettogewicht). Dit mag niet het gewicht van de spoel zelf omvatten, alleen het filament. Dit staat meestal op de verpakking.",
+            "material": "Bv. PLA, ABS, PETG, enz."
+        },
+        "fields": {
+            "material": "Materiaal",
+            "vendor_name": "Fabrikant",
+            "settings_extruder_temp": "Extruder Temperatuur",
+            "comment": "Opmerking",
+            "diameter": "Diameter",
+            "weight": "Gewicht",
+            "spool_weight": "Gewicht spoel",
+            "registered": "Geregistreerd",
+            "name": "Naam",
+            "price": "Prijs",
+            "settings_bed_temp": "Bed temperatuur",
+            "vendor": "Fabrikant",
+            "density": "Dichtheid",
+            "id": "Id",
+            "color_hex": "Kleur",
+            "article_number": "Artiekelnummer"
+        },
+        "titles": {
+            "clone": "Flimanent klonen",
+            "show": "Filament tonen",
+            "create": "Flimament maken",
+            "edit": "Filament bewerken",
+            "list": "Filamenten"
+        },
+        "filament": "Filamenten"
+    },
+    "scanner": {
+        "title": "QR-Code scanner",
+        "error": {
+            "insecureContext": "De pagina wordt niet weergegeven via HTTPS.",
+            "notReadable": "De camera is niet leesbaar.",
+            "notAllowed": "Je hebt geen toegang tot de camera verleend.",
+            "unknown": "Er is een onbekende fout opgetreden. ({{error}})",
+            "notFound": "Geen camera gevonden.",
+            "streamApiNotSupported": "De browser ondersteunt de MediaStream API niet."
+        },
+        "description": "Scan een Spoolman QR-Code om details van de spoel te tonen."
+    },
+    "vendor": {
+        "titles": {
+            "show": "Fabrikant tonen",
+            "edit": "Fabrikant bewerken",
+            "clone": "Fabrikant klonen",
+            "create": "Fabrikant maken",
+            "list": "Fabrikanten"
+        },
+        "fields": {
+            "registered": "Geregistreerd",
+            "comment": "Opmerking",
+            "name": "Naam",
+            "id": "Id"
+        },
+        "vendor": "Fabrikanten"
+    },
+    "table": {
+        "actions": "Akties"
+    }
+}

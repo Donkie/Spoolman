@@ -1,0 +1,251 @@
+{
+    "printing": {
+        "qrcode": {
+            "extruderTemp": "ET: {{temp}}",
+            "showSpoolWeight": "Poids de la bobine",
+            "showContent": "Imprimer l'étiquette",
+            "showVendorComment": "Commentaire du vendeur",
+            "spoolWeight": "Poids de la bobine: {{weight}}",
+            "showTemperatures": "Températures",
+            "showVendor": "Vendeur",
+            "showSpoolComment": "Commentaire sur la bobine",
+            "textSize": "Contenu Taille du texte",
+            "title": "Impression de codes QR",
+            "showSpoolmanIcon": "Montrer l'icône Spoolman",
+            "showLotNr": "N° de Lot",
+            "bedTemp": "BT: {{temp}}",
+            "lotNr": "N° de Lot: {{lot}}",
+            "showFilamentComment": "Commentaire sur le filament",
+            "button": "Imprimer des codes QR"
+        },
+        "generic": {
+            "printerMarginBottom": "Zone de sécurité en bas",
+            "verticalSpacing": "Espacement vertical",
+            "rows": "Rangs",
+            "borders": {
+                "none": "Aucun",
+                "grid": "Grille",
+                "border": "Bordure"
+            },
+            "printerMarginTop": "Zone de sécurité en haut",
+            "customSize": "Personnaliser",
+            "title": "Impression",
+            "contentSettings": "Paramètres du contenu",
+            "marginRight": "Marge droite",
+            "printerMarginRight": "Zone de sécurité à droite",
+            "helpPrinterMargin": "La zone de sécurité doit être définie en fonction de la proximité du bord du papier que votre imprimante peut imprimer, la modification de ces paramètres n'affectera pas l'ensemble de la grille.",
+            "previewScale": "Échelle de prévisualisation",
+            "helpMargin": "Les marges doivent être configurées en fonction de votre papier à étiquettes et de votre imprimante, car leur modification aura une incidence sur la taille de l'ensemble de la grille.",
+            "marginTop": "Marge supérieure",
+            "skipItems": "Passer les articles",
+            "layoutSettings": "Paramètres de mise en page",
+            "paperSize": "Format du papier",
+            "columns": "Colonnes",
+            "description": "Ajustez les paramètres ci-dessous pour obtenir la mise en page d'impression souhaitée. Gardez à l'esprit que les imprimantes et votre système d'exploitation peuvent appliquer leurs propres marges et mises à l'échelle, il se peut donc que vous deviez faire quelques essais et erreurs avant que tout soit correct. Testez-le sur une feuille de papier ordinaire avant d'imprimer les étiquettes proprement dites.",
+            "marginBottom": "Marge inférieure",
+            "horizontalSpacing": "Espacement horizontal",
+            "marginLeft": "Marge gauche",
+            "showBorder": "Afficher les bords",
+            "printerMarginLeft": "Zone de sécurité à gauche",
+            "dimensions": "Dimensions",
+            "print": "Imprimer"
+        },
+        "spoolSelect": {
+            "selectedTotal_one": "{{count}} bobine sélectionnée",
+            "selectedTotal_many": "{{count}} bobines sélectionnées",
+            "selectedTotal_other": "",
+            "description": "Sélectionnez les bobines pour lesquelles vous souhaitez imprimer des codes QR.",
+            "showArchived": "Afficher les archives",
+            "title": "Sélectionner les bobines",
+            "selectAll": "Sélectionner/Désélectionner tout",
+            "noSpoolsSelected": "Vous n'avez sélectionné aucune bobine."
+        }
+    },
+    "documentTitle": {
+        "vendor": {
+            "create": "Créer le Vendeur | Spoolman",
+            "clone": "#{{id}} Cloner le Vendeur | Spoolman",
+            "edit": "#{{id}} Editer le Vendeur | Spoolman",
+            "list": "Vendeurs | Spoolman",
+            "show": "#{{id}} Afficher le vendeur | Spoolman"
+        },
+        "default": "Spoolman",
+        "spool": {
+            "edit": "#{{id}} Editer la Bobine | Spoolman",
+            "list": "Bobines | Spoolman",
+            "create": "Créer la Bobine | Spoolman",
+            "show": "#{{id}} Afficher la Bobine | Spoolman",
+            "clone": "#{{id}} Cloner la Bobine | Spoolman"
+        },
+        "filament": {
+            "list": "Filaments | Spoolman",
+            "show": "#{{id}} Afficher le filament | Spoolman",
+            "clone": "#{{id}} Cloner le Filament | Spoolman",
+            "create": "Créer le filament | Spoolman",
+            "edit": "#{{id}} Editer le Filament | Spoolman"
+        },
+        "suffix": " | Spoolman"
+    },
+    "spool": {
+        "fields": {
+            "measured_weight": "Poids mesuré",
+            "last_used": "Dernière utilisation",
+            "material": "Matériau",
+            "weight_to_use": "Poids",
+            "lot_nr": "N° de Lot",
+            "filament_name": "Filament",
+            "comment": "Commentaire",
+            "filament": "Filament",
+            "location": "Localisation",
+            "used_length": "Longueur utilisée",
+            "archived": "Archivé",
+            "remaining_length": "Longueur restante",
+            "registered": "Enregistré",
+            "first_used": "Première utilisation",
+            "used_weight": "Poids utilisé",
+            "id": "Id",
+            "remaining_weight": "Poids restant"
+        },
+        "titles": {
+            "archive": "Archiver la bobine",
+            "show": "Afficher la bobine",
+            "edit": "Editer la bobine",
+            "create": "Créer une bobine",
+            "clone": "Cloner une bobine",
+            "list": "Bobines"
+        },
+        "fields_help": {
+            "used_weight": "Combien de filament a été utilisé à partir de la bobine. Une bobine neuve devrait avoir 0g utilisé.",
+            "weight_to_use": "Sélectionnez la valeur de poids à saisir. Le poids mesuré n'est disponible que si le poids de la bobine est défini pour le filament sélectionné.",
+            "measured_weight": "Le poids du filament et de la bobine.",
+            "lot_nr": "Numéro de lot du fabricant. Peut être utilisé pour s'assurer que la couleur d'une impression est homogène si plusieurs bobines sont utilisées.",
+            "remaining_weight": "La quantité de filament restant sur la bobine. Pour une nouvelle bobine, cela devrait correspondre au poids de la bobine.",
+            "location": "L'emplacement de la bobine si vous stockez vos bobines à plusieurs endroits."
+        },
+        "spool": "Bobines",
+        "messages": {
+            "archive": "Êtes-vous sûr de vouloir archiver cette bobine ?"
+        }
+    },
+    "buttons": {
+        "create": "Créer",
+        "save": "Enregistrer",
+        "show": "Voir",
+        "filter": "Filtre",
+        "cancel": "Abandonner",
+        "edit": "Editer",
+        "showArchived": "Voir les archives",
+        "archive": "Archiver",
+        "hideColumns": "Masquer les colonnes",
+        "confirm": "êtes-vous sur ?",
+        "delete": "Supprimer",
+        "undo": "Annuler",
+        "import": "Importer",
+        "logout": "Déconnexion",
+        "refresh": "Rafraichir",
+        "notAccessTitle": "Vous n'avez pas l'autorisation d'accéder",
+        "hideArchived": "Cacher les archives",
+        "clearFilters": "Effacer les filtres",
+        "unArchive": "Désarchiver",
+        "clone": "Cloner",
+        "clear": "Effacer"
+    },
+    "filament": {
+        "fields_help": {
+            "name": "Nom du filament, pour distinguer ce type de filament parmi d'autres du même fournisseur. Il doit contenir la couleur, par exemple.",
+            "article_number": "Exemple EAN, UPC, etc.",
+            "spool_weight": "Le poids d'une bobine vide. Il n'est actuellement utilisé pour rien, mais pourrait être utilisé par des applications tierces pour, par exemple, calculer le poids du filament à partir d'une mesure de poids.",
+            "price": "Prix d'une bobine complète dans la devise configurée par le système.",
+            "weight": "Le poids du filament d'une bobine complète (poids net). Ce poids ne doit pas inclure le poids de la bobine elle-même, mais uniquement celui du filament. C'est ce qui est généralement indiqué sur l'emballage.",
+            "material": "Exemple PLA, ABS, PETG, etc."
+        },
+        "fields": {
+            "material": "Matériau",
+            "vendor_name": "Vendeur",
+            "settings_extruder_temp": "Température de l'extrudeuse",
+            "comment": "Commentaire",
+            "diameter": "Diamètre",
+            "weight": "Poids",
+            "spool_weight": "Poids de la bobine",
+            "registered": "Enregistré",
+            "name": "Nom",
+            "price": "Prix",
+            "settings_bed_temp": "Température du lit",
+            "vendor": "Vendeur",
+            "density": "Densité",
+            "id": "Id",
+            "color_hex": "Couleur",
+            "article_number": "Numéro d'article"
+        },
+        "titles": {
+            "clone": "Cloner un filament",
+            "show": "Afficher le filament",
+            "create": "Créer un filament",
+            "edit": "Editer le filament",
+            "list": "Filaments"
+        },
+        "filament": "Filaments"
+    },
+    "actions": {
+        "create": "Créer",
+        "clone": "Cloner",
+        "list": "Liste",
+        "show": "Voir",
+        "edit": "Editer"
+    },
+    "scanner": {
+        "title": "Scanner de code QR",
+        "error": {
+            "insecureContext": "La page n'est pas servie par HTTPS.",
+            "notReadable": "L'appareil photo n'est pas lisible.",
+            "notAllowed": "Vous n'avez pas autorisé l'accès à l'appareil photo.",
+            "unknown": "Une erreur inconnue s'est produite. ({{error}})",
+            "notFound": "Aucun appareil photo n'a été trouvé.",
+            "streamApiNotSupported": "Le navigateur ne prend pas en charge l'API MediaStream."
+        },
+        "description": "Scannez un code QR de Spoolman pour afficher les détails de la bobine."
+    },
+    "notifications": {
+        "deleteSuccess": "Suppression réussie {{resource}}",
+        "error": "Erreur (status code : {{statusCode}})",
+        "editError": "Erreur lors de l'édition {{resource}} (status code : {{statusCode}})",
+        "undoable": "Vous avez {{seconds}} secondes pour annuler.",
+        "importProgress": "Importation: {{processed}}/{{total}}",
+        "createError": "Une erreur s'est produite lors de la création de {{resource}}(status code : {{statusCode}})",
+        "success": "Réussite",
+        "editSuccess": "Édité avec succès {{resource}}",
+        "deleteError": "Erreur lors de la suppression de {{resource}} (status code : {{statusCode}})",
+        "createSuccess": "Création réussie de {{resource}}"
+    },
+    "no": "Non",
+    "unknown": "Inconnu",
+    "vendor": {
+        "titles": {
+            "show": "Afficher le vendeur",
+            "edit": "Editer un Vendeur",
+            "clone": "Cloner un Vendeur",
+            "create": "Créer un Vendeur",
+            "list": "Vendeurs"
+        },
+        "fields": {
+            "registered": "Enregistré",
+            "comment": "Commentaire",
+            "name": "Nom",
+            "id": "Id"
+        },
+        "vendor": "Vendeurs"
+    },
+    "yes": "Oui",
+    "version": "Version",
+    "table": {
+        "actions": "Actions"
+    },
+    "warnWhenUnsavedChanges": "Êtes-vous sûr de vouloir quitter ? Vous avez des changements non sauvés.",
+    "loading": "Chargement",
+    "dashboard": {
+        "title": "Tableau de bord"
+    },
+    "tags": {
+        "clone": "Cloner"
+    }
+}
