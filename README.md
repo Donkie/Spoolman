@@ -20,6 +20,14 @@ Spoolman includes a web-client that lets you directly manipulate all the data. I
 
 ![image](https://github.com/Donkie/Spoolman/assets/2332094/33928d5e-440f-4445-aca9-456c4370ad0d)
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://hosted.weblate.org/widget/spoolman/287x66-black.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://hosted.weblate.org/widget/spoolman/287x66-white.png">
+  <img alt="Icon of a filament spool" src="https://hosted.weblate.org/widget/spoolman/287x66-white.png">
+</picture>
+
+_The web client is translated by the community using [Weblate](https://hosted.weblate.org/projects/spoolman/)._
+
 ## Integration status
 Spoolman is still relatively new, so support isn't widespread yet, but it's being actively integrated to multiple different projects.
 
@@ -46,13 +54,17 @@ services:
     image: ghcr.io/donkie/spoolman:latest
     restart: unless-stopped
     volumes:
-      - ./data:/home/app/.local/share/spoolman
+      # Mount the host machine's ./data directory into the container's /home/app/.local/share/spoolman directory
+      - type: bind
+        source: ./data # This is where the data will be stored locally. Could also be set to for example `source: /home/pi/printer_data/spoolman`.
+        target: /home/app/.local/share/spoolman # Do NOT change this line
     ports:
+      # Map the host machine's port 7912 to the container's port 8000
       - "7912:8000"
     environment:
       - TZ=Europe/Stockholm # Optional, defaults to UTC
 ```
-Once you have it up and running, you can access the web UI by browsing to `http://your.ip:7912`.
+Once you have it up and running, you can access the web UI by browsing to `http://your.ip:7912`. Make sure that the data folder you created now contains a `spoolman.db` file. If you cannot find this file in your machine, then **your data will be lost** every time you update Spoolman.
 
 If a new version of Spoolman has been released, you can update to it by first browsing to the directory where you have the `docker-compose.yml` file and then running `docker-compose pull && docker-compose up -d`.
 
