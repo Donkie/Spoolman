@@ -1,5 +1,6 @@
 """Integration tests for the Spool API endpoint."""
 
+from datetime import datetime, timezone
 from typing import Any
 
 import httpx
@@ -62,6 +63,10 @@ def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
         "comment": comment,
         "archived": archived,
     }
+
+    # Verify that registered happened almost now (within 1 minute)
+    diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["registered"])).total_seconds())
+    assert diff < 60
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()

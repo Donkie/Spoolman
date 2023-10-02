@@ -1,5 +1,7 @@
 """Integration tests for the Vendor API endpoint."""
 
+from datetime import datetime, timezone
+
 import httpx
 
 URL = "http://spoolman:8000"
@@ -24,6 +26,10 @@ def test_add_vendor():
         "name": name,
         "comment": comment,
     }
+
+    # Verify that registered happened almost now (within 1 minute)
+    diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(vendor["registered"])).total_seconds())
+    assert diff < 60
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/vendor/{vendor['id']}").raise_for_status()

@@ -2,6 +2,7 @@
 
 import logging
 from collections.abc import Sequence
+from datetime import datetime
 from typing import Optional, Union
 
 from sqlalchemy import func, select
@@ -44,6 +45,7 @@ async def create(
 
     db_item = models.Filament(
         name=name,
+        registered=datetime.utcnow().replace(microsecond=0),
         vendor=vendor_item,
         material=material,
         price=price,

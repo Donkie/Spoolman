@@ -1,5 +1,6 @@
 """Helper functions for interacting with vendor database objects."""
 
+from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import func, select
@@ -19,6 +20,7 @@ async def create(
     """Add a new vendor to the database."""
     db_item = models.Vendor(
         name=name,
+        registered=datetime.utcnow().replace(microsecond=0),
         comment=comment,
     )
     db.add(db_item)

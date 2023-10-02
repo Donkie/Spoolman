@@ -61,6 +61,7 @@ async def create(
 
     db_item = models.Spool(
         filament=filament_item,
+        registered=datetime.utcnow().replace(microsecond=0),
         used_weight=used_weight,
         first_used=first_used,
         last_used=last_used,

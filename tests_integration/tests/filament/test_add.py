@@ -1,5 +1,6 @@
 """Integration tests for the Filament API endpoint."""
 
+from datetime import datetime, timezone
 from typing import Any
 
 import httpx
@@ -61,6 +62,10 @@ def test_add_filament(random_vendor: dict[str, Any]):
         "settings_bed_temp": settings_bed_temp,
         "color_hex": color_hex,
     }
+
+    # Verify that registered happened almost now (within 1 minute)
+    diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(filament["registered"])).total_seconds())
+    assert diff < 60
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()
