@@ -4,6 +4,7 @@ services:
     image: donkie/spoolman:test
     environment:
       - SPOOLMAN_LOGGING_LEVEL=INFO
+      - TZ=Europe/Stockholm
   tester:
     image: donkie/spoolman-tester:latest
     volumes:

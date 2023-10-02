@@ -8,6 +8,7 @@ services:
       - MARIADB_PASSWORD=abc
       - MARIADB_DATABASE=spoolman
       - MARIADB_MYSQL_LOCALHOST_USER=true
+      - TZ=Asia/Seoul
     healthcheck:
       test:
         [
@@ -30,6 +31,7 @@ services:
       - SPOOLMAN_DB_USERNAME=john
       - SPOOLMAN_DB_PASSWORD=abc
       - SPOOLMAN_LOGGING_LEVEL=INFO
+      - TZ=Europe/Stockholm
     depends_on:
       db:
         condition: service_healthy

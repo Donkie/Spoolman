@@ -2,6 +2,7 @@
 
 import asyncio
 import math
+from datetime import datetime, timezone
 from typing import Any
 
 import httpx
@@ -41,6 +42,14 @@ def test_use_spool_weight(random_filament: dict[str, Any], use_weight: float):
     assert spool["used_weight"] == pytest.approx(max(use_weight, 0))
     assert spool["remaining_weight"] == pytest.approx(min(max(start_weight - use_weight, 0), filament_net_weight))
 
+    # Verify that first_used has been updated
+    diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["first_used"])).total_seconds())
+    assert diff < 60
+
+    # Verify that last_used has been updated
+    diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["last_used"])).total_seconds())
+    assert diff < 60
+
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
 
@@ -56,6 +65,7 @@ def test_use_spool_length(random_filament: dict[str, Any], use_length: float):
         json={
             "filament_id": random_filament["id"],
             "remaining_weight": start_weight,
+            "first_used": "2023-01-01T00:00:00Z",
         },
     )
     result.raise_for_status()
@@ -78,6 +88,13 @@ def test_use_spool_length(random_filament: dict[str, Any], use_length: float):
     # remaining_weight should be clamped so it's never negative, but used_weight should not be clamped to the net weight
     assert spool["used_weight"] == pytest.approx(max(use_weight, 0))
     assert spool["remaining_weight"] == pytest.approx(min(max(start_weight - use_weight, 0), filament_net_weight))
+
+    # Verify that first_used hasn't been updated since it was already set
+    assert spool["first_used"] == "2023-01-01T00:00:00Z"
+
+    # Verify that last_used has been updated
+    diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["last_used"])).total_seconds())
+    assert diff < 60
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()

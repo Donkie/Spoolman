@@ -230,8 +230,8 @@ async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.S
     spool = await get_by_id(db, spool_id)
 
     if spool.first_used is None:
-        spool.first_used = datetime.utcnow()
-    spool.last_used = datetime.utcnow()
+        spool.first_used = datetime.utcnow().replace(microsecond=0)
+    spool.last_used = datetime.utcnow().replace(microsecond=0)
 
     await db.commit()
     await spool_changed(spool)
@@ -275,8 +275,8 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
     spool = await get_by_id(db, spool_id)
 
     if spool.first_used is None:
-        spool.first_used = datetime.utcnow()
-    spool.last_used = datetime.utcnow()
+        spool.first_used = datetime.utcnow().replace(microsecond=0)
+    spool.last_used = datetime.utcnow().replace(microsecond=0)
 
     await db.commit()
     await spool_changed(spool)

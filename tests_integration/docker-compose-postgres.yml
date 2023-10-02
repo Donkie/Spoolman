@@ -4,6 +4,8 @@ services:
     image: postgres:11-alpine
     environment:
       - POSTGRES_PASSWORD=abc
+      - TZ='GMT+4'
+      - PGTZ='GMT+4'
   spoolman:
     image: donkie/spoolman:test
     environment:
@@ -14,6 +16,7 @@ services:
       - SPOOLMAN_DB_USERNAME=postgres
       - SPOOLMAN_DB_PASSWORD=abc
       - SPOOLMAN_LOGGING_LEVEL=INFO
+      - TZ=Europe/Stockholm
     depends_on:
       - db
   tester:
