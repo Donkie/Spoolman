@@ -6,7 +6,7 @@ USER_HOME=$(eval echo "~$SUDO_USER")
 # Check if Docker is installed
 if ! command -v docker &>/dev/null; then
     echo "Docker is not installed. Installing Docker..."
-    
+
     # Add Docker's official GPG key
     sudo apt-get update
     sudo apt-get install -y ca-certificates curl gnupg
