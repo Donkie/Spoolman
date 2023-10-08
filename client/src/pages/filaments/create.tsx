@@ -30,7 +30,7 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
 
   return (
     <Create
-      title={props.mode === "create" ? "Create Filament" : "Clone Filament"}
+      title={props.mode === "create" ? t("filament.titles.create") : t("filament.titles.clone")}
       isLoading={formLoading}
       saveButtonProps={saveButtonProps}
     >
