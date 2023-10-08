@@ -26,7 +26,7 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
     if (item.vendor) {
       vendorPrefix = `${item.vendor.name} - `;
     }
-    return `[Filament #${item.id}] ${vendorPrefix}${item.name}`;
+    return t("filament.titles.show_title", { id: item.id, name: vendorPrefix + item.name });
   };
 
   const formatVendor = (item: IVendor) => {

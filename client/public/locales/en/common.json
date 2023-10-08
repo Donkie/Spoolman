@@ -161,6 +161,7 @@
             "edit": "Edit Spool",
             "list": "Spools",
             "show": "Show Spool",
+            "show_title": "[Spool #{{id}}] {{name}}",
             "archive": "Archive Spool"
         },
         "messages": {
@@ -200,7 +201,8 @@
             "clone": "Clone Filament",
             "edit": "Edit Filament",
             "list": "Filaments",
-            "show": "Show Filament"
+            "show": "Show Filament",
+            "show_title": "[Filament #{{id}}] {{name}}"
         }
     },
     "vendor": {
@@ -216,7 +218,8 @@
             "clone": "Clone Vendor",
             "edit": "Edit Vendor",
             "list": "Vendors",
-            "show": "Show Vendor"
+            "show": "Show Vendor",
+            "show_title": "[Vendor #{{id}}] {{name}}"
         }
     },
     "table": {
