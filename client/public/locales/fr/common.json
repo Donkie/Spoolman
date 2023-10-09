@@ -103,7 +103,7 @@
             "registered": "Enregistré",
             "first_used": "Première utilisation",
             "used_weight": "Poids utilisé",
-            "id": "Id",
+            "id": "ID",
             "remaining_weight": "Poids restant"
         },
         "titles": {
@@ -174,7 +174,7 @@
             "settings_bed_temp": "Température du lit",
             "vendor": "Vendeur",
             "density": "Densité",
-            "id": "Id",
+            "id": "ID",
             "color_hex": "Couleur",
             "article_number": "Numéro d'article"
         },

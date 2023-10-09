@@ -130,7 +130,7 @@
     "spool": {
         "spool": "Cívky",
         "fields": {
-            "id": "Id",
+            "id": "ID",
             "filament_name": "Filament",
             "filament": "Filament",
             "material": "Materiál",

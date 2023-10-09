@@ -27,7 +27,10 @@
             "weight": "Vekt",
             "registered": "Registrert",
             "price": "Pris",
-            "color_hex": "Farge"
+            "color_hex": "Farge",
+            "name": "Navn",
+            "id": "ID",
+            "article_number": "Artikkelnr."
         }
     },
     "printing": {
@@ -55,7 +58,18 @@
     "spool": {
         "fields": {
             "comment": "Kommentar",
-            "archived": "Arkivert"
+            "archived": "Arkivert",
+            "measured_weight": "Målt vekt",
+            "last_used": "Sist brukt",
+            "material": "Materiale",
+            "weight_to_use": "Vekt",
+            "used_length": "Brukt lengde",
+            "remaining_length": "Gjenstående lengde",
+            "registered": "Registrert",
+            "first_used": "Først brukt",
+            "used_weight": "Brukt vekt",
+            "id": "ID",
+            "remaining_weight": "Gjenstående vekt"
         }
     },
     "yes": "Ja",
@@ -64,13 +78,30 @@
         "fields": {
             "registered": "Registrert",
             "name": "Navn",
-            "id": "ID"
+            "id": "ID",
+            "comment": "Kommentar"
         }
     },
     "actions": {
-        "clone": "Klon"
+        "clone": "Klon",
+        "create": "Opprett",
+        "show": "Vis",
+        "edit": "Rediger"
     },
     "tags": {
         "clone": "Klon"
-    }
+    },
+    "scanner": {
+        "title": "QR-kodeskanner",
+        "error": {
+            "notReadable": "Kameraet kan ikke leses.",
+            "unknown": "Ukjent feil. {{error}}",
+            "notFound": "Fant ingen kameraer."
+        }
+    },
+    "notifications": {
+        "error": "Feil (statuskode: {{statusCode}})",
+        "success": "Vellykket"
+    },
+    "loading": "Laster inn …"
 }
