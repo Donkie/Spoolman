@@ -162,7 +162,8 @@
             "edit": "Upravit cívku",
             "list": "Cívky",
             "show": "Zobrazit cívku",
-            "archive": "Archivní cívka"
+            "archive": "Archivní cívka",
+            "show_title": "[Cívka #{{id}}] {{name}}"
         },
         "messages": {
             "archive": "Opravdu chcete tuto cívku archivovat?"
@@ -201,7 +202,8 @@
             "clone": "Duplikovat filament",
             "edit": "Upravit filament",
             "list": "Filamenty",
-            "show": "Zobrazit filament"
+            "show": "Zobrazit filament",
+            "show_title": "[Filament #{{id}}] {{name}}"
         }
     },
     "vendor": {
@@ -217,7 +219,8 @@
             "clone": "Duplikovat výrobce",
             "edit": "Upravit výrobce",
             "list": "Výrobci",
-            "show": "Zobrazit výrobce"
+            "show": "Zobrazit výrobce",
+            "show_title": "[Výrobce #{{id}}] {{name}}"
         }
     },
     "table": {
