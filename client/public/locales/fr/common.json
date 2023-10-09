@@ -4,7 +4,7 @@
             "extruderTemp": "ET: {{temp}}",
             "showSpoolWeight": "Poids de la bobine",
             "showContent": "Imprimer l'étiquette",
-            "showVendorComment": "Commentaire du vendeur",
+            "showVendorComment": "Commentaire sur le vendeur",
             "spoolWeight": "Poids de la bobine: {{weight}}",
             "showTemperatures": "Températures",
             "showVendor": "Vendeur",
@@ -53,7 +53,7 @@
         "spoolSelect": {
             "selectedTotal_one": "{{count}} bobine sélectionnée",
             "selectedTotal_many": "{{count}} bobines sélectionnées",
-            "selectedTotal_other": "",
+            "selectedTotal_other": "{{count}} bobines sélectionnées",
             "description": "Sélectionnez les bobines pour lesquelles vous souhaitez imprimer des codes QR.",
             "showArchived": "Afficher les archives",
             "title": "Sélectionner les bobines",
@@ -112,7 +112,8 @@
             "edit": "Editer la bobine",
             "create": "Créer une bobine",
             "clone": "Cloner une bobine",
-            "list": "Bobines"
+            "list": "Bobines",
+            "show_title": "[Bobine #{{id}}] {{name}}"
         },
         "fields_help": {
             "used_weight": "Combien de filament a été utilisé à partir de la bobine. Une bobine neuve devrait avoir 0g utilisé.",
@@ -182,7 +183,8 @@
             "show": "Afficher le filament",
             "create": "Créer un filament",
             "edit": "Editer le filament",
-            "list": "Filaments"
+            "list": "Filaments",
+            "show_title": "[Filament #{{id}}] {{name}}"
         },
         "filament": "Filaments"
     },
@@ -225,7 +227,8 @@
             "edit": "Editer un Vendeur",
             "clone": "Cloner un Vendeur",
             "create": "Créer un Vendeur",
-            "list": "Vendeurs"
+            "list": "Vendeurs",
+            "show_title": "[Vendeur #{{id}}] {{name}}"
         },
         "fields": {
             "registered": "Enregistré",
