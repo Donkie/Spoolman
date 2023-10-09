@@ -36,7 +36,8 @@
             "edit": "Edytowanie szpuli",
             "create": "Tworzenie szpuli",
             "clone": "Klonowanie szpuli",
-            "archive": "Zarchiwizuj szpulę"
+            "archive": "Zarchiwizuj szpulę",
+            "show_title": "[Szpula #{{id}}] {{name}}"
         },
         "spool": "Szpule",
         "fields": {
@@ -200,7 +201,8 @@
             "clone": "Klonowanie filamentu",
             "edit": "Edytowanie filamentu",
             "list": "Filamenty",
-            "show": "Pokaż filament"
+            "show": "Pokaż filament",
+            "show_title": "[Filament #{{id}}] {{name}}"
         }
     },
     "vendor": {
@@ -216,7 +218,8 @@
             "clone": "Klonowanie producenta",
             "edit": "Edycja producenta",
             "list": "Producenci",
-            "show": "Pokaż producenta"
+            "show": "Pokaż producenta",
+            "show_title": "[Producent #{{id}}] {{name}}"
         }
     },
     "table": {
