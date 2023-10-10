@@ -250,7 +250,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
                 {menu}
                 <Divider style={{ margin: "8px 0" }} />
                 <Input
-                  placeholder="Enter new location"
+                  placeholder={t("spool.form.new_location_prompt")}
                   value={newLocation}
                   onChange={(event) => setNewLocation(event.target.value)}
                 />

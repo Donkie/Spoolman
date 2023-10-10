@@ -178,12 +178,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
           </Radio.Group>
         </Form.Item>
 
-        <Form.Item
-          label={t("spool.fields.used_weight")}
-          help={t("spool.fields_help.used_weight")}
-          // name={["used_weight"]}
-          initialValue={0}
-        >
+        <Form.Item label={t("spool.fields.used_weight")} help={t("spool.fields_help.used_weight")} initialValue={0}>
           <InputNumber
             min={0}
             addonAfter="g"
@@ -200,7 +195,6 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
         <Form.Item
           label={t("spool.fields.remaining_weight")}
           help={t("spool.fields_help.remaining_weight")}
-          // name={["remaining_weight"]}
           initialValue={0}
         >
           <InputNumber
@@ -219,7 +213,6 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
         <Form.Item
           label={t("spool.fields.measured_weight")}
           help={t("spool.fields_help.measured_weight")}
-          // name={["measured_weight"]}
           initialValue={0}
         >
           <InputNumber
@@ -251,7 +244,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
                 {menu}
                 <Divider style={{ margin: "8px 0" }} />
                 <Input
-                  placeholder="Enter new location"
+                  placeholder={t("spool.form.new_location_prompt")}
                   value={newLocation}
                   onChange={(event) => setNewLocation(event.target.value)}
                 />

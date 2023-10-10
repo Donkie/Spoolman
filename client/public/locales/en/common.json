@@ -164,6 +164,9 @@
             "show_title": "[Spool #{{id}}] {{name}}",
             "archive": "Archive Spool"
         },
+        "form": {
+            "new_location_prompt": "Enter a new location"
+        },
         "messages": {
             "archive": "Are you sure you want to archive this spool?"
         }
