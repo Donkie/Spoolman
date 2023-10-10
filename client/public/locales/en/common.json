@@ -196,7 +196,7 @@
             "material": "E.g. PLA, ABS, PETG, etc.",
             "price": "Price of a full spool in the system configured currency.",
             "weight": "The filament weight of a full spool (net weight). This should not include the weight of the spool itself, only the filament. It is what is usually written on the packaging.",
-            "spool_weight": "The weight of an empty spool. Currently not used for anything, but could be used by thirdparty apps to e.g. calculate the filament weight from a weight measurement.",
+            "spool_weight": "The weight of an empty spool. Used to determine measured weight of a spool.",
             "article_number": "E.g. EAN, UPC, etc."
         },
         "titles": {
