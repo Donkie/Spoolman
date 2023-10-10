@@ -73,9 +73,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
 
   const weightChange = (weight: number) => {
     setUsedWeight(weight);
-    form.setFieldsValue({
-      used_weight: weight,
-    });
+    form.setFieldValue("used_weight", weight);
   };
 
   const locations = useSpoolmanLocations(true);
@@ -91,10 +89,10 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   }
 
   useEffect(() => {
-    if (formProps.initialValues && usedWeight != formProps.initialValues["used_weight"]) {
+    if (formProps.initialValues) {
       setUsedWeight(formProps.initialValues["used_weight"]);
     }
-  }, [formProps.initialValues, usedWeight]);
+  }, [formProps.initialValues]);
 
   return (
     <Edit saveButtonProps={saveButtonProps}>
