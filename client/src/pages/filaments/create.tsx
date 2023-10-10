@@ -117,6 +117,7 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
               required: true,
               type: "number",
               min: 0,
+              max: 100,
             },
           ]}
         >
@@ -130,6 +131,7 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
               required: true,
               type: "number",
               min: 0,
+              max: 10,
             },
           ]}
         >

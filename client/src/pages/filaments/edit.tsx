@@ -139,6 +139,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
               required: true,
               type: "number",
               min: 0,
+              max: 100,
             },
           ]}
         >
@@ -152,6 +153,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
               required: true,
               type: "number",
               min: 0,
+              max: 10,
             },
           ]}
         >
