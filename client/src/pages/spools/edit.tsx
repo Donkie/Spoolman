@@ -172,7 +172,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
             }}
           />
         </Form.Item>
-        <Form.Item hidden={false} name={["used_weight"]} initialValue={0}>
+        <Form.Item hidden={true} name={["used_weight"]} initialValue={0}>
           <InputNumber value={usedWeight} />
         </Form.Item>
         <Form.Item label={t("spool.fields.weight_to_use")} help={t("spool.fields_help.weight_to_use")}>
