@@ -129,7 +129,7 @@
     "spool": {
         "spool": "Spools",
         "fields": {
-            "id": "Id",
+            "id": "ID",
             "filament_name": "Filament",
             "filament": "Filament",
             "material": "Material",
@@ -171,7 +171,7 @@
     "filament": {
         "filament": "Filaments",
         "fields": {
-            "id": "Id",
+            "id": "ID",
             "vendor_name": "Vendor",
             "vendor": "Vendor",
             "name": "Name",

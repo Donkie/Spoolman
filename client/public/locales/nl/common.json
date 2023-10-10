@@ -156,7 +156,7 @@
             "registered": "Geregistreerd",
             "first_used": "Eerst gebruikt",
             "used_weight": "Gebruikt gewicht",
-            "id": "Id",
+            "id": "ID",
             "remaining_weight": "Overgebleven gewicht"
         },
         "titles": {
@@ -203,7 +203,7 @@
             "settings_bed_temp": "Bed temperatuur",
             "vendor": "Fabrikant",
             "density": "Dichtheid",
-            "id": "Id",
+            "id": "ID",
             "color_hex": "Kleur",
             "article_number": "Artiekelnummer"
         },
