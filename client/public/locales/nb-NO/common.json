@@ -17,7 +17,10 @@
         "clearFilters": "Tøm filtre",
         "unArchive": "Opphev arkivering",
         "clone": "Klon",
-        "clear": "Tøm"
+        "clear": "Tøm",
+        "filter": "Filtrer",
+        "refresh": "Gjenoppfrisk",
+        "notAccessTitle": "Du mangler brukstilgang"
     },
     "filament": {
         "fields": {
@@ -30,7 +33,11 @@
             "color_hex": "Farge",
             "name": "Navn",
             "id": "ID",
-            "article_number": "Artikkelnr."
+            "article_number": "Artikkelnr.",
+            "vendor_name": "Leverandør",
+            "settings_extruder_temp": "Dysetemperatur",
+            "spool_weight": "Spolevekt",
+            "vendor": "Leverandør"
         }
     },
     "printing": {
@@ -46,11 +53,29 @@
             "paperSize": "Papirstørrelse",
             "columns": "Kolonner",
             "dimensions": "Dimensjoner",
-            "print": "Skriv ut"
+            "print": "Skriv ut",
+            "printerMarginBottom": "Trygghetsavstand, bunn",
+            "printerMarginTop": "Trygghetsavstand, topp",
+            "title": "Utskrift",
+            "marginRight": "Høyremarg",
+            "printerMarginRight": "Trygghetsavstand, høyre",
+            "marginTop": "Toppmarg",
+            "marginBottom": "Bunnmarg",
+            "printerMarginLeft": "Trygghetsavstand, venstre"
         },
         "qrcode": {
             "showTemperatures": "Temperaturer",
-            "button": "Skriv ut QR-koder"
+            "button": "Skriv ut QR-koder",
+            "showVendorComment": "Leverandørkommentar",
+            "spoolWeight": "Spolevekt: {{weight}}",
+            "showVendor": "Leverandør",
+            "showSpoolComment": "Spolekommentar",
+            "title": "QR-kodeutskrift"
+        },
+        "spoolSelect": {
+            "showArchived": "Vis arkiverte",
+            "title": "Velg spoler",
+            "noSpoolsSelected": "Du har ikke valgt noen spoler."
         }
     },
     "no": "Nei",
@@ -70,6 +95,19 @@
             "used_weight": "Brukt vekt",
             "id": "ID",
             "remaining_weight": "Gjenstående vekt"
+        },
+        "titles": {
+            "archive": "Arkiver spole",
+            "show": "Vis spole",
+            "edit": "Rediger spole",
+            "create": "Opprett spole",
+            "clone": "Klon spole",
+            "show_title": "[Spole #{{id}}] {{name}}",
+            "list": "Spoler"
+        },
+        "spool": "Spoler",
+        "messages": {
+            "archive": "Arkiver denne spolen?"
         }
     },
     "yes": "Ja",
@@ -80,13 +118,22 @@
             "name": "Navn",
             "id": "ID",
             "comment": "Kommentar"
-        }
+        },
+        "titles": {
+            "show_title": "[Leverandør #{{id}}] {{name}}",
+            "show": "Vis leverandør",
+            "edit": "Rediger leverandør",
+            "create": "Opprett leverandør",
+            "list": "Leverandører"
+        },
+        "vendor": "Leverandører"
     },
     "actions": {
         "clone": "Klon",
         "create": "Opprett",
         "show": "Vis",
-        "edit": "Rediger"
+        "edit": "Rediger",
+        "list": "Liste"
     },
     "tags": {
         "clone": "Klon"
@@ -101,7 +148,40 @@
     },
     "notifications": {
         "error": "Feil (statuskode: {{statusCode}})",
-        "success": "Vellykket"
+        "success": "Vellykket",
+        "deleteSuccess": "Slettet {{resource}}",
+        "editError": "Kunne ikke redigere {{resource}} (statuskode: {{statusCode}})",
+        "undoable": "Du har {{seconds}} sekunder på å angre.",
+        "importProgress": "Importerer: {{processed}}/{{total}}",
+        "createError": "Kunne ikke opprette {{resource}} (statuskode: {{statusCode}})",
+        "editSuccess": "{{resource}} redigert",
+        "deleteError": "Kunne ikke slette {{resource}} (statuskode: {{statusCode}})",
+        "createSuccess": "Opprettet {{resource}}"
     },
-    "loading": "Laster inn …"
+    "loading": "Laster inn …",
+    "documentTitle": {
+        "vendor": {
+            "create": "Opprett leverandør | Spoolman",
+            "clone": "#{{id}} Klon leverandør | Spoolman",
+            "edit": "#{{id}} Rediger leverandør | Spoolman",
+            "list": "Leverandører | Spoolman",
+            "show": "#{{id}} Vis leverandør | Spoolman"
+        },
+        "default": "Spoolman",
+        "spool": {
+            "edit": "#{{id}} Rediger spole | Spoolman",
+            "list": "Spoler | Spoolman",
+            "create": "Opprett spole | Spoolman",
+            "show": "#{{id}} Vis spole | Spoolman",
+            "clone": "#{{id}} Klon spole| Spoolman"
+        },
+        "suffix": " | Spoolman"
+    },
+    "table": {
+        "actions": "Handliger"
+    },
+    "warnWhenUnsavedChanges": "Forlat og forkast ulagrede endringer?",
+    "dashboard": {
+        "title": "Oversikt"
+    }
 }
