@@ -69,6 +69,9 @@
         },
         "messages": {
             "archive": "Czy na pewno chcesz zarchiwizować tę szpulę?"
+        },
+        "form": {
+            "new_location_prompt": "Wprowadź nową lokalizację"
         }
     },
     "dashboard": {
@@ -191,7 +194,7 @@
         "fields_help": {
             "material": "Np. PLA, ABS, PETG itp.",
             "price": "Cena pełnej szpuli w walucie skonfigurowanej przez system.",
-            "spool_weight": "Waga pustej szpuli. Obecnie nie jest używana do niczego, ale może być używana przez aplikacje innych firm, np. do obliczania wagi filamentu na podstawie pomiaru wagi.",
+            "spool_weight": "Waga pustej szpuli. Używana do określenia ciężaru szpuli.",
             "article_number": "Np. EAN, UPC itp.",
             "name": "Nazwa filamentu, aby odróżnić ten typ filamentu od innych pochodzących od tego samego producenta. Powinna zawierać np. kolor.",
             "weight": "Waga filamentu na pełnej szpuli (waga netto). Nie powinno to obejmować wagi samej szpuli, a jedynie filamentu. Jest to zwykle napisane na opakowaniu."
