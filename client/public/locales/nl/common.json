@@ -165,7 +165,8 @@
             "edit": "Spoel bewerken",
             "create": "Spoel maken",
             "clone": "Spoel klonen",
-            "list": "Spoelen"
+            "list": "Spoelen",
+            "show_title": "[Spoel #{{id}}] {{name}}"
         },
         "fields_help": {
             "used_weight": "Hoeveel filament er van de spoel is gebruikt. Op een nieuwe spoel zal 0g gebruikt zijn.",
@@ -178,13 +179,16 @@
         "spool": "Spoelen",
         "messages": {
             "archive": "Weet je zeker dat je deze spoel wil archiveren?"
+        },
+        "form": {
+            "new_location_prompt": "Voer een nieuwe locatie in"
         }
     },
     "filament": {
         "fields_help": {
             "name": "Filamentnaam, om dit filamenttype onder andere van dezelfde fabrikant te onderscheiden. Kan bijvoorbeeld de kleur bevatten.",
             "article_number": "Bv. EAN. UPC, enz.",
-            "spool_weight": "Het gewicht van een lege spoel. Momenteel nergens voor gebruikt, maar zou door apps van derden kunnen worden gebruikt om b.v. bereken het filamentgewicht op basis van een gewichtsmeting.",
+            "spool_weight": "Het gewicht van een lege spoel. Wordt gebruikt om het gemeten gewicht van een spoel te bepalen.",
             "price": "Prijs van een volledige spoel in de door het systeem geconfigureerde valuta.",
             "weight": "Het filamentgewicht van een volle spoel (nettogewicht). Dit mag niet het gewicht van de spoel zelf omvatten, alleen het filament. Dit staat meestal op de verpakking.",
             "material": "Bv. PLA, ABS, PETG, enz."
@@ -212,7 +216,8 @@
             "show": "Filament tonen",
             "create": "Flimament maken",
             "edit": "Filament bewerken",
-            "list": "Filamenten"
+            "list": "Filamenten",
+            "show_title": "[Filament #{{id}}] {{name}}"
         },
         "filament": "Filamenten"
     },
@@ -234,7 +239,8 @@
             "edit": "Fabrikant bewerken",
             "clone": "Fabrikant klonen",
             "create": "Fabrikant maken",
-            "list": "Fabrikanten"
+            "list": "Fabrikanten",
+            "show_title": "[Fabrikant #{{id}}] {{name}}"
         },
         "fields": {
             "registered": "Geregistreerd",
