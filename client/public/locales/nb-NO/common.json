@@ -20,7 +20,7 @@
         "clear": "Tøm",
         "filter": "Filtrer",
         "refresh": "Gjenoppfrisk",
-        "notAccessTitle": "Du mangler brukstilgang"
+        "notAccessTitle": "Du har ikke rettighet til å få tilgang"
     },
     "filament": {
         "fields": {
@@ -33,19 +33,39 @@
             "color_hex": "Farge",
             "name": "Navn",
             "id": "ID",
-            "article_number": "Artikkelnr.",
+            "article_number": "Artikkelnummer",
             "vendor_name": "Leverandør",
             "settings_extruder_temp": "Dysetemperatur",
             "spool_weight": "Spolevekt",
-            "vendor": "Leverandør"
-        }
+            "vendor": "Leverandør",
+            "settings_bed_temp": "Printplate temp",
+            "density": "Tetthet"
+        },
+        "fields_help": {
+            "name": "Filamentnavn, for å skille denne filamenttypen blant andre fra samme leverandør. Bør inneholde fargen f.eks.",
+            "article_number": "f.eks. EAN, UPC osv.",
+            "spool_weight": "Vekten av en tom spole. Brukes til å bestemme målt vekt på en spole.",
+            "price": "Pris på en full spole i den system- valutaen.",
+            "weight": "Filamentvekten til en full spole (nettovekt). Bør ikke inkludere vekten av selve spolen, kun filamentet. Det er det som vanligvis står på emballasjen.",
+            "material": "F.eks PLA,ABS,PETG, osv."
+        },
+        "titles": {
+            "clone": "Kopier Filament",
+            "show_title": "[Filament #{{id}}] {{name}}",
+            "show": "Vis filament",
+            "create": "Opprett Filament",
+            "edit": "Endre Filament",
+            "list": "Filamenter"
+        },
+        "filament": "Filamenter"
     },
     "printing": {
         "generic": {
             "rows": "Rader",
             "borders": {
                 "none": "Ingen",
-                "grid": "Rutenett"
+                "grid": "Rutenett",
+                "border": "Grense"
             },
             "customSize": "Egendefinert",
             "contentSettings": "Innholdsinnstillinger",
@@ -61,7 +81,16 @@
             "printerMarginRight": "Trygghetsavstand, høyre",
             "marginTop": "Toppmarg",
             "marginBottom": "Bunnmarg",
-            "printerMarginLeft": "Trygghetsavstand, venstre"
+            "printerMarginLeft": "Trygghetsavstand, venstre",
+            "verticalSpacing": "Vertikal avstand",
+            "helpPrinterMargin": "Safe-Zone bør settes til hvor nær papirkanten skriveren kan skrive ut, endring av disse vil ikke påvirke hele rutenettet.",
+            "previewScale": "Forhåndsvisningsskala",
+            "helpMargin": "Margene bør konfigureres til å matche etikettpapiret og skriveren, endring av disse vil påvirke størrelsen på hele rutenettet.",
+            "layoutSettings": "Layoutinnstillinger",
+            "description": "Still inn innstillingene nedenfor for å få ønsket utskriftsoppsett. Husk at skrivere og operativsystemet ditt kan bruke sine egne marger og skalering, så det kan hende du må prøve og feile før alt er riktig. Test det på et stykke vanlig papir før du skriver ut på selve etikettene.",
+            "horizontalSpacing": "Horisontal avstand",
+            "marginLeft": "Venstre marg",
+            "showBorder": "Vis side"
         },
         "qrcode": {
             "showTemperatures": "Temperaturer",
@@ -70,12 +99,25 @@
             "spoolWeight": "Spolevekt: {{weight}}",
             "showVendor": "Leverandør",
             "showSpoolComment": "Spolekommentar",
-            "title": "QR-kodeutskrift"
+            "title": "QR-kodeutskrift",
+            "extruderTemp": "ET: {{temp}}",
+            "showSpoolWeight": "Spolevekt",
+            "showContent": "Skriv ut etikett",
+            "textSize": "Tekststørrelse på innhold",
+            "showSpoolmanIcon": "Vis Spoolman ikon",
+            "showLotNr": "Batch Nr",
+            "bedTemp": "BT: {{temp}}",
+            "lotNr": "Batch Nr: {{lot}}",
+            "showFilamentComment": "Filament kommentar"
         },
         "spoolSelect": {
             "showArchived": "Vis arkiverte",
             "title": "Velg spoler",
-            "noSpoolsSelected": "Du har ikke valgt noen spoler."
+            "noSpoolsSelected": "Du har ikke valgt noen spoler.",
+            "selectedTotal_one": "{{count}} spole valgt",
+            "selectedTotal_other": "{{count}} spoler valgt",
+            "description": "Velg spoler å printe ut QR-koder for.",
+            "selectAll": "Velg/fjern merking av alle"
         }
     },
     "no": "Nei",
@@ -94,7 +136,11 @@
             "first_used": "Først brukt",
             "used_weight": "Brukt vekt",
             "id": "ID",
-            "remaining_weight": "Gjenstående vekt"
+            "remaining_weight": "Gjenstående vekt",
+            "lot_nr": "Batch Nr",
+            "filament_name": "Filament",
+            "filament": "Filament",
+            "location": "Lokasjon"
         },
         "titles": {
             "archive": "Arkiver spole",
@@ -107,7 +153,18 @@
         },
         "spool": "Spoler",
         "messages": {
-            "archive": "Arkiver denne spolen?"
+            "archive": "Arkivere denne spolen?"
+        },
+        "fields_help": {
+            "used_weight": "Hvor mye filament har blitt benyttet fra spolen? En ny spole burde ha 0g benyttet.",
+            "weight_to_use": "Velg vekt å skrive inn. Målt vekt er kun tilgjengelig hvis spolevekt er satt for det valgte filament.",
+            "measured_weight": "Hvor mye veier filament og spole.",
+            "lot_nr": "Produsentens batch nummer. Kan bli benyttet or å verifiserer at print har en konsistent farge dersom flere spoler benyttes.",
+            "remaining_weight": "Hvor mye filament gjenstår på spolen. Ved en ny spole burde dette stemme med spolevekt.",
+            "location": "Hvor spolen er plassert hvis du har flere lokasjoner hvor du oppbevarer spoler."
+        },
+        "form": {
+            "new_location_prompt": "Skriv inn en ny lokasjon"
         }
     },
     "yes": "Ja",
@@ -124,7 +181,8 @@
             "show": "Vis leverandør",
             "edit": "Rediger leverandør",
             "create": "Opprett leverandør",
-            "list": "Leverandører"
+            "list": "Leverandører",
+            "clone": "Kopier leverandør"
         },
         "vendor": "Leverandører"
     },
@@ -143,8 +201,12 @@
         "error": {
             "notReadable": "Kameraet kan ikke leses.",
             "unknown": "Ukjent feil. {{error}}",
-            "notFound": "Fant ingen kameraer."
-        }
+            "notFound": "Fant ingen kameraer.",
+            "insecureContext": "Siden serveres ikke over HTTPS.",
+            "notAllowed": "Du har ikke gitt tilgang til kameraet.",
+            "streamApiNotSupported": "Nettleseren støtter ikke MediaStream API."
+        },
+        "description": "Skann en Spoolman QR-kode for å se detaljer om spolen."
     },
     "notifications": {
         "error": "Feil (statuskode: {{statusCode}})",
@@ -158,7 +220,7 @@
         "deleteError": "Kunne ikke slette {{resource}} (statuskode: {{statusCode}})",
         "createSuccess": "Opprettet {{resource}}"
     },
-    "loading": "Laster inn …",
+    "loading": "Laster",
     "documentTitle": {
         "vendor": {
             "create": "Opprett leverandør | Spoolman",
@@ -175,12 +237,19 @@
             "show": "#{{id}} Vis spole | Spoolman",
             "clone": "#{{id}} Klon spole| Spoolman"
         },
-        "suffix": " | Spoolman"
+        "suffix": " | Spoolman",
+        "filament": {
+            "list": "Filamenter | Spoolman",
+            "show": "#{{id}} Vis Filament | Spoolman",
+            "clone": "#{{id}} Kopier Filament | Spoolman",
+            "create": "Opprett Filament | Spoolman",
+            "edit": "#{{id}} Endre Filament | Spoolman"
+        }
     },
     "table": {
         "actions": "Handliger"
     },
-    "warnWhenUnsavedChanges": "Forlat og forkast ulagrede endringer?",
+    "warnWhenUnsavedChanges": "Er du sikker på at du vil forlate? Du har ulagrede endringer.",
     "dashboard": {
         "title": "Oversikt"
     }
