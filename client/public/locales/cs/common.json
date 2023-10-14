@@ -167,6 +167,9 @@
         },
         "messages": {
             "archive": "Opravdu chcete tuto cívku archivovat?"
+        },
+        "form": {
+            "new_location_prompt": "Zadejte nové umístění"
         }
     },
     "filament": {
@@ -194,7 +197,7 @@
             "material": "Např. PLA, ABS, ASA, PETG, atd.",
             "price": "Cena celé cívky v měně nastavené v systému.",
             "weight": "Hmotnost plného cívky filamentu (čistá hmotnost). Tato hmotnost by neměla zahrnovat hmotnost samotné cívky, ale pouze filamentu. Obvykle se uvádí na obalu.",
-            "spool_weight": "Hmotnost prázdné cívky. V současné době se k ničemu nepoužívá, ale mohly by ji používat aplikace třetích stran, např. k výpočtu hmotnosti vlákna z naměřené hmotnosti.",
+            "spool_weight": "Hmotnost prázdné cívky. Slouží k určení naměřené hmotnosti cívky.",
             "article_number": "Např. EAN, UPC, atd."
         },
         "titles": {
