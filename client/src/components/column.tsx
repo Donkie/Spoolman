@@ -9,7 +9,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { DateField, TextField } from "@refinedev/antd";
 import Icon from "@ant-design/icons";
-import { ReactComponent as SpoolIcon } from "../icon_spool.svg";
+import SpoolIcon from "../icon_spool.svg?react";
 import { useTranslate } from "@refinedev/core";
 import { enrichText } from "../utils/parsing";
 import { UseQueryResult } from "@tanstack/react-query";

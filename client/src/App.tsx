@@ -2,7 +2,7 @@ import { Refine } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
-import { ErrorComponent, ThemedLayoutV2, ThemedSiderV2, ThemedTitleV2 } from "@refinedev/antd";
+import { ErrorComponent } from "@refinedev/antd";
 import "@refinedev/antd/dist/reset.css";
 
 import routerBindings, {
@@ -13,18 +13,15 @@ import routerBindings, {
 import dataProvider from "./components/dataProvider";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
-import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
-import { ReactComponent as Logo } from "./icon.svg";
 import { FileOutlined, HighlightOutlined, UserOutlined } from "@ant-design/icons";
 import { ConfigProvider } from "antd";
-import { Footer } from "antd/es/layout/layout";
-import { Version } from "./components/version";
 import React from "react";
 import { Locale } from "antd/es/locale";
 import { languages } from "./i18n";
 import loadable from "@loadable/component";
 import SpoolmanNotificationProvider from "./components/notificationProvider";
+import { SpoolmanLayout } from "./components/layout";
 
 interface PageProps {
   resource: "spools" | "filaments" | "vendors";
@@ -41,7 +38,7 @@ function App() {
   const { t, i18n } = useTranslation();
 
   const i18nProvider = {
-    translate: (key: string, params: object) => t(key, params),
+    translate: (key: string, params?: never) => t(key, params),
     changeLocale: (lang: string) => i18n.changeLanguage(lang),
     getLocale: () => i18n.language,
   };
@@ -134,24 +131,9 @@ function App() {
               <Routes>
                 <Route
                   element={
-                    <ThemedLayoutV2
-                      Header={() => <Header sticky />}
-                      Sider={() => (
-                        <ThemedSiderV2
-                          fixed
-                          Title={({ collapsed }) => (
-                            <ThemedTitleV2 collapsed={collapsed} text="Spoolman" icon={<Logo />} />
-                          )}
-                        />
-                      )}
-                      Footer={() => (
-                        <Footer style={{ textAlign: "center" }}>
-                          Spoolman - {t("version")} <Version />
-                        </Footer>
-                      )}
-                    >
+                    <SpoolmanLayout>
                       <Outlet />
-                    </ThemedLayoutV2>
+                    </SpoolmanLayout>
                   }
                 >
                   <Route index element={<NavigateToResource resource="spool" />} />

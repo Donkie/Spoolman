@@ -124,10 +124,12 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           rules={[
             {
               required: false,
+              type: "number",
+              min: 0,
             },
           ]}
         >
-          <InputNumber min={0} precision={2} formatter={numberFormatter} parser={numberParser} />
+          <InputNumber precision={2} formatter={numberFormatter} parser={numberParser} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.density")}
@@ -135,10 +137,13 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           rules={[
             {
               required: true,
+              type: "number",
+              min: 0,
+              max: 100,
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="g/cm³" precision={2} formatter={numberFormatter} parser={numberParser} />
+          <InputNumber addonAfter="g/cm³" precision={2} formatter={numberFormatter} parser={numberParser} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.diameter")}
@@ -146,10 +151,13 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           rules={[
             {
               required: true,
+              type: "number",
+              min: 0,
+              max: 10,
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="mm" precision={2} formatter={numberFormatter} parser={numberParser} />
+          <InputNumber addonAfter="mm" precision={2} formatter={numberFormatter} parser={numberParser} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.weight")}
@@ -158,10 +166,12 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           rules={[
             {
               required: false,
+              type: "number",
+              min: 0,
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="g" precision={1} />
+          <InputNumber addonAfter="g" precision={1} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.spool_weight")}
@@ -170,10 +180,12 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           rules={[
             {
               required: false,
+              type: "number",
+              min: 0,
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="g" precision={1} />
+          <InputNumber addonAfter="g" precision={1} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.settings_extruder_temp")}
@@ -181,10 +193,12 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           rules={[
             {
               required: false,
+              type: "number",
+              min: 0,
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="°C" precision={0} />
+          <InputNumber addonAfter="°C" precision={0} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.settings_bed_temp")}
@@ -192,10 +206,12 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           rules={[
             {
               required: false,
+              type: "number",
+              min: 0,
             },
           ]}
         >
-          <InputNumber min={0} addonAfter="°C" precision={0} />
+          <InputNumber addonAfter="°C" precision={0} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.article_number")}

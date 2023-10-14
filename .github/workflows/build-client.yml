@@ -1,0 +1,44 @@
+name: Build Client
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  #
+  # Build the Spoolman client for people to download
+  #
+  build-client:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: |
+          cd client
+          npm ci
+
+      - name: Build
+        run: |
+          cd client
+          rm -f .env && echo "VITE_APIURL=/api/v1" > .env.production
+          npm run build
+          npm run build.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: spoolman-client.zip
+          path: client/dist/spoolman-client.zip

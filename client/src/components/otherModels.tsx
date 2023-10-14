@@ -3,10 +3,10 @@ import { IFilament } from "../pages/filaments/model";
 import { IVendor } from "../pages/vendors/model";
 import { ColumnFilterItem } from "antd/es/table/interface";
 
-export function useSpoolmanFilamentFilter() {
+export function useSpoolmanFilamentFilter(enabled: boolean = false) {
   const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<IFilament[], unknown, ColumnFilterItem[]>({
-    enabled: false,
+    enabled: enabled,
     queryKey: ["filaments"],
     queryFn: async () => {
       const response = await fetch(apiEndpoint + "/filament");
@@ -44,10 +44,10 @@ export function useSpoolmanFilamentFilter() {
   });
 }
 
-export function useSpoolmanFilamentNames() {
+export function useSpoolmanFilamentNames(enabled: boolean = false) {
   const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<IFilament[], unknown, string[]>({
-    enabled: false,
+    enabled: enabled,
     queryKey: ["filaments"],
     queryFn: async () => {
       const response = await fetch(apiEndpoint + "/filament");
@@ -73,10 +73,10 @@ export function useSpoolmanFilamentNames() {
   });
 }
 
-export function useSpoolmanVendors() {
+export function useSpoolmanVendors(enabled: boolean = false) {
   const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<IVendor[], unknown, string[]>({
-    enabled: false,
+    enabled: enabled,
     queryKey: ["vendors"],
     queryFn: async () => {
       const response = await fetch(apiEndpoint + "/vendor");
@@ -95,10 +95,10 @@ export function useSpoolmanVendors() {
   });
 }
 
-export function useSpoolmanMaterials() {
+export function useSpoolmanMaterials(enabled: boolean = false) {
   const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<string[]>({
-    enabled: false,
+    enabled: enabled,
     queryKey: ["materials"],
     queryFn: async () => {
       const response = await fetch(apiEndpoint + "/material");
@@ -113,10 +113,10 @@ export function useSpoolmanMaterials() {
   });
 }
 
-export function useSpoolmanArticleNumbers() {
+export function useSpoolmanArticleNumbers(enabled: boolean = false) {
   const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<string[]>({
-    enabled: false,
+    enabled: enabled,
     queryKey: ["articleNumbers"],
     queryFn: async () => {
       const response = await fetch(apiEndpoint + "/article-number");
@@ -131,10 +131,10 @@ export function useSpoolmanArticleNumbers() {
   });
 }
 
-export function useSpoolmanLotNumbers() {
+export function useSpoolmanLotNumbers(enabled: boolean = false) {
   const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<string[]>({
-    enabled: false,
+    enabled: enabled,
     queryKey: ["lotNumbers"],
     queryFn: async () => {
       const response = await fetch(apiEndpoint + "/lot-number");
@@ -149,10 +149,10 @@ export function useSpoolmanLotNumbers() {
   });
 }
 
-export function useSpoolmanLocations() {
+export function useSpoolmanLocations(enabled: boolean = false) {
   const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<string[]>({
-    enabled: false,
+    enabled: enabled,
     queryKey: ["locations"],
     queryFn: async () => {
       const response = await fetch(apiEndpoint + "/location");
