@@ -48,6 +48,7 @@
   "scripts": {
     "dev": "refine dev",
     "build": "tsc && refine build",
+    "build.zip": "cd ./dist && zip -r spoolman-client.zip ./ ./ && cd ..",
     "preview": "refine start",
     "refine": "refine"
   },

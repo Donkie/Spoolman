@@ -2,7 +2,7 @@
   "printWidth": 120,
   "overrides": [
     {
-      "files": ["*.json"],
+      "files": ["public/locales/**/*.json"],
       "options": {
         "tabWidth": 4
       }
