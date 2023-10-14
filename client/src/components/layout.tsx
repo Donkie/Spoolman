@@ -3,7 +3,6 @@ import { Header } from "./header";
 import { Footer } from "antd/es/layout/layout";
 import { Version } from "./version";
 import { Button } from "antd";
-// @ts-expect-error: svg file
 import Logo from "../icon.svg?react";
 import { useTranslate } from "@refinedev/core";
 
