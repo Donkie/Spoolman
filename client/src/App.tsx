@@ -15,7 +15,8 @@ import { useTranslation } from "react-i18next";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
-import { ReactComponent as Logo } from "./icon.svg";
+// @ts-expect-error: svg file
+import Logo from "./icon.svg?react";
 import { FileOutlined, HighlightOutlined, UserOutlined } from "@ant-design/icons";
 import { ConfigProvider } from "antd";
 import { Footer } from "antd/es/layout/layout";
@@ -41,7 +42,7 @@ function App() {
   const { t, i18n } = useTranslation();
 
   const i18nProvider = {
-    translate: (key: string, params: object) => t(key, params),
+    translate: (key: string, params?: never) => t(key, params),
     changeLocale: (lang: string) => i18n.changeLanguage(lang),
     getLocale: () => i18n.language,
   };
