@@ -16,7 +16,9 @@ const { Title } = Typography;
 export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
 
-  const { queryResult } = useShow<ISpool>();
+  const { queryResult } = useShow<ISpool>({
+    liveMode: "auto",
+  });
   const { data, isLoading } = queryResult;
 
   const record = data?.data;

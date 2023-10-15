@@ -165,7 +165,8 @@
             "archive": "Archive Spool"
         },
         "form": {
-            "new_location_prompt": "Enter a new location"
+            "new_location_prompt": "Enter a new location",
+            "spool_updated": "This spool has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
         },
         "messages": {
             "archive": "Are you sure you want to archive this spool?"

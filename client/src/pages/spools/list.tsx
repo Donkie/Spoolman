@@ -1,5 +1,5 @@
 import React from "react";
-import { IResourceComponentsProps, useInvalidate, useTranslate } from "@refinedev/core";
+import { IResourceComponentsProps, LiveEvent, useInvalidate, useTranslate } from "@refinedev/core";
 import { useTable, List, EditButton, ShowButton, CloneButton } from "@refinedev/antd";
 import { Table, Space, Button, Dropdown, Modal } from "antd";
 import dayjs from "dayjs";
@@ -23,6 +23,7 @@ import {
   useSpoolmanLotNumbers,
   useSpoolmanMaterials,
 } from "../../components/otherModels";
+import liveProvider from "../../components/liveProvider";
 
 dayjs.extend(utc);
 
@@ -34,6 +35,21 @@ interface ISpoolCollapsed extends ISpool {
   "filament.material"?: string;
 }
 
+function collapseSpool(element: ISpool): ISpoolCollapsed {
+  let filament_name: string;
+  if (element.filament.vendor && "name" in element.filament.vendor) {
+    filament_name = `${element.filament.vendor.name} - ${element.filament.name}`;
+  } else {
+    filament_name = element.filament.name ?? element.filament.id.toString();
+  }
+  return {
+    ...element,
+    combined_name: filament_name,
+    "filament.id": element.filament.id,
+    "filament.material": element.filament.material,
+  };
+}
+
 function translateColumnI18nKey(columnName: string): string {
   columnName = columnName.replace(".", "_");
   if (columnName === "combined_name") columnName = "filament_name";
@@ -42,6 +58,61 @@ function translateColumnI18nKey(columnName: string): string {
 }
 
 const namespace = "spoolList-v2";
+
+const liveProviderInstance = liveProvider(import.meta.env.VITE_APIURL);
+
+/**
+ * Hook that subscribes to live updates for the spools in the dataSource
+ * @param dataSource Original dataSource
+ * @returns dataSource that is updated with live data
+ */
+function useLiveify(dataSource: ISpoolCollapsed[]) {
+  // TODO: The hooks in this function is quite janky, and should be refactored to be more efficient
+  // New state that holds the dataSource with updated values from the live provider
+  const [updatedDataSource, setUpdatedDataSource] = React.useState<ISpoolCollapsed[]>(dataSource);
+
+  // If the original dataSource changes, update the updatedDataSource
+  React.useEffect(() => {
+    setUpdatedDataSource(dataSource);
+  }, [dataSource]);
+
+  // Create a constant reference to itemIds. This is to prevent the useEffect below from triggering extra times.
+  const itemIds = dataSource.map((item) => item.id);
+  const [prevItemIds, setPrevItemIds] = React.useState<number[]>(itemIds);
+  if (JSON.stringify(itemIds) !== JSON.stringify(prevItemIds)) {
+    setPrevItemIds(itemIds);
+  }
+
+  // Subscribe to changes for all items in the dataSource
+  React.useEffect(() => {
+    const subscription = liveProviderInstance?.subscribe({
+      channel: "spool-list",
+      params: {
+        resource: "spool",
+        ids: prevItemIds,
+        subscriptionType: "useList",
+      },
+      types: ["update"],
+      callback: (event: LiveEvent) => {
+        const data = event.payload.data as ISpool;
+        setUpdatedDataSource((prev) =>
+          prev.map((item) => {
+            return item.id === data.id ? collapseSpool(data) : item;
+          })
+        );
+      },
+    });
+
+    // Unsubscribe when the component unmounts
+    return () => {
+      if (subscription) {
+        liveProviderInstance?.unsubscribe(subscription);
+      }
+    };
+  }, [prevItemIds]);
+
+  return updatedDataSource;
+}
 
 export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
@@ -54,6 +125,9 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const [showArchived, setShowArchived] = useSavedState("spoolList-showArchived", false);
 
   // Fetch data from the API
+  // To provide the live updates, we use a custom solution (useLiveify) instead of the built-in refine "liveMode" feature.
+  // This is because the built-in feature does not call the liveProvider subscriber with a list of IDs, but instead
+  // calls it with a list of filters, sorters, etc. This means the server-side has to support this, which is quite hard.
   const { tableProps, sorters, setSorters, filters, setFilters, current, pageSize, setCurrent } = useTable<ISpool>({
     meta: {
       queryParams: {
@@ -107,23 +181,8 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   useStoreInitialState(namespace, tableState);
 
   // Collapse the dataSource to a mutable list and add a filament_name field
-  const dataSource: ISpoolCollapsed[] = React.useMemo(
-    () =>
-      (tableProps.dataSource ?? []).map((element) => {
-        let filament_name: string;
-        if (element.filament.vendor && "name" in element.filament.vendor) {
-          filament_name = `${element.filament.vendor.name} - ${element.filament.name}`;
-        } else {
-          filament_name = element.filament.name ?? element.filament.id.toString();
-        }
-        return {
-          ...element,
-          combined_name: filament_name,
-          "filament.id": element.filament.id,
-          "filament.material": element.filament.material,
-        };
-      }),
-    [tableProps.dataSource]
+  const dataSource: ISpoolCollapsed[] = useLiveify(
+    React.useMemo(() => (tableProps.dataSource ?? []).map(collapseSpool), [tableProps.dataSource])
   );
 
   // Function for opening an ant design modal that asks for confirmation for archiving a spool

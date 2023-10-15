@@ -22,6 +22,7 @@ import { languages } from "./i18n";
 import loadable from "@loadable/component";
 import SpoolmanNotificationProvider from "./components/notificationProvider";
 import { SpoolmanLayout } from "./components/layout";
+import liveProvider from "./components/liveProvider";
 
 interface PageProps {
   resource: "spools" | "filaments" | "vendors";
@@ -84,6 +85,7 @@ function App() {
               notificationProvider={SpoolmanNotificationProvider}
               i18nProvider={i18nProvider}
               routerProvider={routerBindings}
+              liveProvider={liveProvider(import.meta.env.VITE_APIURL)}
               resources={[
                 {
                   name: "spool",
