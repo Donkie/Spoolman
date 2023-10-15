@@ -207,6 +207,9 @@
             "list": "Filaments",
             "show": "Show Filament",
             "show_title": "[Filament #{{id}}] {{name}}"
+        },
+        "form": {
+            "filament_updated": "This filament has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
         }
     },
     "vendor": {

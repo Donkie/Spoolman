@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, InputNumber, ColorPicker } from "antd";
+import { Form, Input, DatePicker, Select, InputNumber, ColorPicker, message, Alert } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { numberFormatter, numberParser } from "../../utils/parsing";
@@ -10,8 +10,17 @@ import { IFilament } from "./model";
 
 export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
+  const [messageApi, contextHolder] = message.useMessage();
+  const [hasChanged, setHasChanged] = useState(false);
 
-  const { formProps, saveButtonProps } = useForm<IFilament>();
+  const { formProps, saveButtonProps } = useForm<IFilament>({
+    liveMode: "manual",
+    onLiveEvent() {
+      // Warn the user if the filament has been updated since the form was opened
+      messageApi.warning(t("filament.form.filament_updated"));
+      setHasChanged(true);
+    },
+  });
 
   const { selectProps } = useSelect<IVendor>({
     resource: "vendor",
@@ -24,6 +33,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
 
   return (
     <Edit saveButtonProps={saveButtonProps}>
+      {contextHolder}
       <Form {...formProps} layout="vertical">
         <Form.Item
           label={t("filament.fields.id")}
@@ -237,6 +247,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           <TextArea maxLength={1024} />
         </Form.Item>
       </Form>
+      {hasChanged && <Alert description={t("filament.form.filament_updated")} type="warning" showIcon />}
     </Edit>
   );
 };

@@ -16,7 +16,9 @@ const { Title } = Typography;
 export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
 
-  const { queryResult } = useShow<IFilament>();
+  const { queryResult } = useShow<IFilament>({
+    liveMode: "auto",
+  });
   const { data, isLoading } = queryResult;
 
   const record = data?.data;
