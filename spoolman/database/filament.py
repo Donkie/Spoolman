@@ -196,6 +196,7 @@ async def filament_changed(filament: models.Filament, typ: EventType) -> None:
         ("filament", str(filament.id)),
         FilamentEvent(
             type=typ,
+            resource="filament",
             date=datetime.utcnow(),
             payload=Filament.from_db(filament),
         ),

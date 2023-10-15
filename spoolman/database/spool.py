@@ -312,6 +312,7 @@ async def spool_changed(spool: models.Spool, typ: EventType) -> None:
         ("spool", str(spool.id)),
         SpoolEvent(
             type=typ,
+            resource="spool",
             date=datetime.utcnow(),
             payload=Spool.from_db(spool),
         ),

@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel as PydanticBaseModel
 from pydantic import Field
@@ -243,6 +243,7 @@ class Event(BaseModel):
     """Event."""
 
     type: EventType = Field(description="Event type.")
+    resource: str = Field(description="Resource type.")
     date: datetime = Field(description="When the event occured. UTC Timezone.")
     payload: BaseModel
 
@@ -251,15 +252,18 @@ class SpoolEvent(Event):
     """Event."""
 
     payload: Spool = Field(description="Updated spool.")
+    resource: Literal["spool"] = Field(description="Resource type.")
 
 
 class FilamentEvent(Event):
     """Event."""
 
     payload: Filament = Field(description="Updated filament.")
+    resource: Literal["filament"] = Field(description="Resource type.")
 
 
 class VendorEvent(Event):
     """Event."""
 
     payload: Vendor = Field(description="Updated vendor.")
+    resource: Literal["vendor"] = Field(description="Resource type.")

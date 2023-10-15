@@ -107,6 +107,7 @@ async def vendor_changed(vendor: models.Vendor, typ: EventType) -> None:
         ("vendor", str(vendor.id)),
         VendorEvent(
             type=typ,
+            resource="vendor",
             date=datetime.utcnow(),
             payload=Vendor.from_db(vendor),
         ),
