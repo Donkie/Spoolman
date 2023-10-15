@@ -68,9 +68,17 @@ class SpoolUseParameters(BaseModel):
 @router.get(
     "",
     name="Find spool",
-    description="Get a list of spools that matches the search query.",
+    description=(
+        "Get a list of spools that matches the search query. "
+        "A websocket is served on the same path to listen for updates to any spool, or added or deleted spools. "
+        "See the HTTP Response code 299 for the content of the websocket messages."
+    ),
     response_model_exclude_none=True,
-    response_model=list[Spool],
+    responses={
+        200: {"model": list[Spool]},
+        404: {"model": Message},
+        299: {"model": SpoolEvent, "description": "Websocket message"},
+    },
 )
 async def find(
     *,
@@ -243,6 +251,24 @@ async def find(
         ),
         headers={"x-total-count": str(total_count)},
     )
+
+
+@router.websocket(
+    "",
+    name="Listen to spool changes",
+)
+async def notify_any(
+    websocket: WebSocket,
+) -> None:
+    await websocket.accept()
+    websocket_manager.connect(("spool",), websocket)
+    try:
+        while True:
+            await asyncio.sleep(0.5)
+            if await websocket.receive_text():
+                await websocket.send_json({"status": "healthy"})
+    except WebSocketDisconnect:
+        websocket_manager.disconnect(("spool",), websocket)
 
 
 @router.get(

@@ -46,9 +46,17 @@ class VendorUpdateParameters(VendorParameters):
 @router.get(
     "",
     name="Find vendor",
-    description="Get a list of vendors that matches the search query.",
+    description=(
+        "Get a list of vendors that matches the search query. "
+        "A websocket is served on the same path to listen for updates to any vendor, or added or deleted vendors. "
+        "See the HTTP Response code 299 for the content of the websocket messages."
+    ),
     response_model_exclude_none=True,
-    response_model=list[Vendor],
+    responses={
+        200: {"model": list[Vendor]},
+        404: {"model": Message},
+        299: {"model": VendorEvent, "description": "Websocket message"},
+    },
 )
 async def find(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -97,6 +105,24 @@ async def find(
         ),
         headers={"x-total-count": str(total_count)},
     )
+
+
+@router.websocket(
+    "",
+    name="Listen to vendor changes",
+)
+async def notify_any(
+    websocket: WebSocket,
+) -> None:
+    await websocket.accept()
+    websocket_manager.connect(("vendor",), websocket)
+    try:
+        while True:
+            await asyncio.sleep(0.5)
+            if await websocket.receive_text():
+                await websocket.send_json({"status": "healthy"})
+    except WebSocketDisconnect:
+        websocket_manager.disconnect(("vendor",), websocket)
 
 
 @router.get(
