@@ -1,6 +1,19 @@
 import { BaseKey, LiveEvent, LiveProvider } from "@refinedev/core";
 
 /**
+ * A spoolman websocket event.
+ */
+interface Event {
+    type: "updated" | "deleted" | "added";
+    resource: "filament" | "spool" | "vendor";
+    date: string;
+    payload: {
+        id: number;
+        [key: string]: unknown;
+    };
+}
+
+/**
  * Converts an API URL to a WebSocket URL.
  * E.g. "https://example.com/api/v1/..." -> "ws://example.com/api/v1/..."
  * or "/api/v1/..." -> "ws://example.com/api/v1/..."
@@ -49,14 +62,18 @@ function subscribeSingle(apiUrl: string, channel: string, resource: string, id: 
 
     const ws = new WebSocket(websocketURL);
     ws.onmessage = (message) => {
+        const data: Event = JSON.parse(message.data);
+        const type = data.type === "added" ? "created" : data.type;
+        const date = new Date(data.date);
+
         const liveEvent: LiveEvent = {
             channel: channel,
-            type: "updated",
+            type: type,
             payload: {
-                data: JSON.parse(message.data),
                 ids: [id],
+                data: data.payload,
             },
-            date: new Date(),
+            date: date,
         }
 
         callback(liveEvent);
