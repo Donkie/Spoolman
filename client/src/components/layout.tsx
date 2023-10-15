@@ -27,14 +27,13 @@ const SpoolmanFooter: React.FC = () => {
           <Button
             icon={
               <img
-                src="./kofi_s_logo_nolabel.png"
+                src="/kofi_s_logo_nolabel.png"
                 style={{
                   height: "1.6em",
                 }}
               />
             }
             type="text"
-            ghost
             href="https://ko-fi.com/donkie"
             target="_blank"
           >
