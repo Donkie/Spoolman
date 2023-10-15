@@ -4,6 +4,8 @@ import logging
 
 from fastapi import WebSocket
 
+from spoolman.api.v1.models import Event
+
 logger = logging.getLogger(__name__)
 
 
@@ -37,12 +39,12 @@ class WebsocketManager:
             pool_str,
         )
 
-    async def send(self, pool: tuple[str, ...], message: str) -> None:
+    async def send(self, pool: tuple[str, ...], evt: Event) -> None:
         """Send a message to all websockets in a pool."""
         pool_str = ",".join(pool)
         if pool_str in self.connections:
             for websocket in self.connections[pool_str]:
-                await websocket.send_text(message)
+                await websocket.send_text(evt.json())
 
 
 websocket_manager = WebsocketManager()

@@ -1,6 +1,7 @@
 """Pydantic data models for typing the FastAPI request/responses."""
 
 from datetime import datetime, timezone
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel as PydanticBaseModel
@@ -228,3 +229,37 @@ class BackupResponse(BaseModel):
         description="Path to the created backup file.",
         example="/home/app/.local/share/spoolman/backups/spoolman.db",
     )
+
+
+class EventType(str, Enum):
+    """Event types."""
+
+    ADDED = "added"
+    UPDATED = "updated"
+    DELETED = "deleted"
+
+
+class Event(BaseModel):
+    """Event."""
+
+    type: EventType = Field(description="Event type.")
+    date: datetime = Field(description="When the event occured. UTC Timezone.")
+    payload: BaseModel
+
+
+class SpoolEvent(Event):
+    """Event."""
+
+    payload: Spool = Field(description="Updated spool.")
+
+
+class FilamentEvent(Event):
+    """Event."""
+
+    payload: Filament = Field(description="Updated filament.")
+
+
+class VendorEvent(Event):
+    """Event."""
+
+    payload: Vendor = Field(description="Updated vendor.")

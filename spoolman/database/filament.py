@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 
-from spoolman.api.v1.models import Filament
+from spoolman.api.v1.models import EventType, Filament, FilamentEvent
 from spoolman.database import models, vendor
 from spoolman.database.utils import (
     SortOrder,
@@ -45,7 +45,7 @@ async def create(
     if vendor_id is not None:
         vendor_item = await vendor.get_by_id(db, vendor_id)
 
-    db_item = models.Filament(
+    filament = models.Filament(
         name=name,
         registered=datetime.utcnow().replace(microsecond=0),
         vendor=vendor_item,
@@ -61,9 +61,10 @@ async def create(
         settings_bed_temp=settings_bed_temp,
         color_hex=color_hex,
     )
-    db.add(db_item)
+    db.add(filament)
     await db.commit()
-    return db_item
+    await filament_changed(filament, EventType.ADDED)
+    return filament
 
 
 async def get_by_id(db: AsyncSession, filament_id: int) -> models.Filament:
@@ -150,7 +151,7 @@ async def update(
         else:
             setattr(filament, k, v)
     await db.commit()
-    await filament_changed(filament)
+    await filament_changed(filament, EventType.UPDATED)
     return filament
 
 
@@ -160,6 +161,7 @@ async def delete(db: AsyncSession, filament_id: int) -> None:
     await db.delete(filament)
     try:
         await db.commit()  # Flush immediately so any errors are propagated in this request.
+        await filament_changed(filament, EventType.DELETED)
     except IntegrityError as exc:
         await db.rollback()
         raise ItemDeleteError("Failed to delete filament.") from exc
@@ -188,6 +190,13 @@ async def find_article_numbers(
     return [row[0] for row in rows.all() if row[0] is not None]
 
 
-async def filament_changed(filament: models.Filament) -> None:
+async def filament_changed(filament: models.Filament, typ: EventType) -> None:
     """Notify websocket clients that a filament has changed."""
-    await websocket_manager.send(("filament", str(filament.id)), Filament.from_db(filament).json())
+    await websocket_manager.send(
+        ("filament", str(filament.id)),
+        FilamentEvent(
+            type=typ,
+            date=datetime.utcnow(),
+            payload=Filament.from_db(filament),
+        ),
+    )

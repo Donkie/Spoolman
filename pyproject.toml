@@ -58,6 +58,7 @@ ignore = [
     "D406",
     "D407",
     "FA100",
+    "FIX002",
     "S104",
     "TRY201",
     "TRY003",
@@ -66,6 +67,8 @@ ignore = [
     "DTZ003",
     "PLR0913",
     "SIM108",
+    "TD002",
+    "TD003",
 ]
 line-length = 120
 target-version = "py39"
