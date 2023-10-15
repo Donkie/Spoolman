@@ -6,9 +6,11 @@ from typing import Optional
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from spoolman.api.v1.models import Vendor
 from spoolman.database import models
 from spoolman.database.utils import SortOrder, add_where_clause_str
 from spoolman.exceptions import ItemNotFoundError
+from spoolman.ws import websocket_manager
 
 
 async def create(
@@ -87,6 +89,7 @@ async def update(
     for k, v in data.items():
         setattr(vendor, k, v)
     await db.commit()
+    await vendor_changed(vendor)
     return vendor
 
 
@@ -94,3 +97,8 @@ async def delete(db: AsyncSession, vendor_id: int) -> None:
     """Delete a vendor object."""
     vendor = await get_by_id(db, vendor_id)
     await db.delete(vendor)
+
+
+async def vendor_changed(vendor: models.Vendor) -> None:
+    """Notify websocket clients that a vendor has changed."""
+    await websocket_manager.send(("vendor", str(vendor.id)), Vendor.from_db(vendor).json())

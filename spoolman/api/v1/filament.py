@@ -1,9 +1,10 @@
 """Filament related endpoints."""
 
+import asyncio
 import logging
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -16,6 +17,7 @@ from spoolman.database import filament
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
 from spoolman.exceptions import ItemDeleteError
+from spoolman.ws import websocket_manager
 
 logger = logging.getLogger(__name__)
 
@@ -232,7 +234,10 @@ async def find(
 @router.get(
     "/{filament_id}",
     name="Get filament",
-    description="Get a specific filament.",
+    description=(
+        "Get a specific filament. A websocket is served on the same path to listen for changes to the filament. "
+        "The response model is the same for the websocket messages as for this endpoint."
+    ),
     response_model_exclude_none=True,
     responses={404: {"model": Message}},
 )
@@ -242,6 +247,25 @@ async def get(
 ) -> Filament:
     db_item = await filament.get_by_id(db, filament_id)
     return Filament.from_db(db_item)
+
+
+@router.websocket(
+    "/{filament_id}",
+    name="Listen to filament changes",
+)
+async def notify(
+    websocket: WebSocket,
+    filament_id: int,
+) -> None:
+    await websocket.accept()
+    websocket_manager.connect(("filament", str(filament_id)), websocket)
+    try:
+        while True:
+            await asyncio.sleep(0.5)
+            if await websocket.receive_text():
+                await websocket.send_json({"status": "healthy"})
+    except WebSocketDisconnect:
+        websocket_manager.disconnect(("filament", str(filament_id)), websocket)
 
 
 @router.post(

@@ -1,8 +1,9 @@
 """Vendor related endpoints."""
 
+import asyncio
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -14,6 +15,7 @@ from spoolman.api.v1.models import Message, Vendor
 from spoolman.database import vendor
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
+from spoolman.ws import websocket_manager
 
 router = APIRouter(
     prefix="/vendor",
@@ -100,7 +102,10 @@ async def find(
 @router.get(
     "/{vendor_id}",
     name="Get vendor",
-    description="Get a specific vendor.",
+    description=(
+        "Get a specific vendor. A websocket is served on the same path to listen for changes to the vendor. "
+        "The response model is the same for the websocket messages as for this endpoint."
+    ),
     response_model_exclude_none=True,
     responses={404: {"model": Message}},
 )
@@ -110,6 +115,25 @@ async def get(
 ) -> Vendor:
     db_item = await vendor.get_by_id(db, vendor_id)
     return Vendor.from_db(db_item)
+
+
+@router.websocket(
+    "/{vendor_id}",
+    name="Listen to vendor changes",
+)
+async def notify(
+    websocket: WebSocket,
+    vendor_id: int,
+) -> None:
+    await websocket.accept()
+    websocket_manager.connect(("vendor", str(vendor_id)), websocket)
+    try:
+        while True:
+            await asyncio.sleep(0.5)
+            if await websocket.receive_text():
+                await websocket.send_json({"status": "healthy"})
+    except WebSocketDisconnect:
+        websocket_manager.disconnect(("vendor", str(vendor_id)), websocket)
 
 
 @router.post(

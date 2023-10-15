@@ -10,6 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 
+from spoolman.api.v1.models import Filament
 from spoolman.database import models, vendor
 from spoolman.database.utils import (
     SortOrder,
@@ -19,6 +20,7 @@ from spoolman.database.utils import (
     parse_nested_field,
 )
 from spoolman.exceptions import ItemDeleteError, ItemNotFoundError
+from spoolman.ws import websocket_manager
 
 
 async def create(
@@ -148,6 +150,7 @@ async def update(
         else:
             setattr(filament, k, v)
     await db.commit()
+    await filament_changed(filament)
     return filament
 
 
@@ -183,3 +186,8 @@ async def find_article_numbers(
     stmt = select(models.Filament.article_number).distinct()
     rows = await db.execute(stmt)
     return [row[0] for row in rows.all() if row[0] is not None]
+
+
+async def filament_changed(filament: models.Filament) -> None:
+    """Notify websocket clients that a filament has changed."""
+    await websocket_manager.send(("filament", str(filament.id)), Filament.from_db(filament).json())
