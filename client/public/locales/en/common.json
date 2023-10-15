@@ -227,6 +227,9 @@
             "list": "Vendors",
             "show": "Show Vendor",
             "show_title": "[Vendor #{{id}}] {{name}}"
+        },
+        "form": {
+            "vendor_updated": "This vendor has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
         }
     },
     "table": {

@@ -14,7 +14,9 @@ const { Title } = Typography;
 export const VendorShow: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
 
-  const { queryResult } = useShow<IVendor>();
+  const { queryResult } = useShow<IVendor>({
+    liveMode: "auto",
+  });
   const { data, isLoading } = queryResult;
 
   const record = data?.data;
