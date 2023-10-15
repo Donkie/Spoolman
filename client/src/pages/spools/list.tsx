@@ -148,6 +148,16 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
       mode: "server",
       initial: initialState.filters,
     },
+    liveMode: "manual",
+    onLiveEvent(event) {
+      if (event.type === "created" || event.type === "deleted") {
+        // updated is handled by the liveify
+        invalidate({
+          resource: "spool",
+          invalidates: ["list"],
+        });
+      }
+    },
   });
 
   // Create state for the columns to show

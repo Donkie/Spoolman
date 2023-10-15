@@ -47,18 +47,18 @@ function toWebsocketURL(apiUrl: string) {
  * @param apiUrl The API URL
  * @param channel The channel name, not really used
  * @param resource The resource name
- * @param id The ID of the resource
  * @param callback The callback to call when the resource is updated
+ * @param id Specific ID to subscribe to, if any. If not specified, subscribes to all IDs.
  * @returns A function to unsubscribe from the resource
  */
-function subscribeSingle(apiUrl: string, channel: string, resource: string, id: BaseKey, callback: (event: LiveEvent) => void) {
+function subscribeSingle(apiUrl: string, channel: string, resource: string, callback: (event: LiveEvent) => void, id?: BaseKey) {
     // Verify that WebSockets are supported
     if (!('WebSocket' in window)) {
         console.warn("WebSockets are not supported in this browser. Live updates will not be available.");
         return () => { };
     }
 
-    const websocketURL = toWebsocketURL(`${apiUrl}/${resource}/${id}`);
+    const websocketURL = id ? toWebsocketURL(`${apiUrl}/${resource}/${id}`) : toWebsocketURL(`${apiUrl}/${resource}`);
 
     const ws = new WebSocket(websocketURL);
     ws.onmessage = (message) => {
@@ -70,8 +70,8 @@ function subscribeSingle(apiUrl: string, channel: string, resource: string, id: 
             channel: channel,
             type: type,
             payload: {
-                ids: [id],
                 data: data.payload,
+                ids: [data.payload.id],
             },
             date: date,
         }
@@ -110,12 +110,13 @@ const liveProvider = (
         let idList: BaseKey[];
         if (ids) idList = ids;
         else if (id) idList = [id];
-        else throw new Error(
-            "[useSubscription]: `id` or `ids` is required in `params`",
-        );
+        else {
+            // No ID specified, subscribe to all IDs
+            return [subscribeSingle(apiUrl, channel, resource, callback)]
+        }
 
         return idList.map((id) => {
-            return subscribeSingle(apiUrl, channel, resource, id, callback);
+            return subscribeSingle(apiUrl, channel, resource, callback, id);
         });
     },
     unsubscribe: (closers: (() => void)[]) => {
