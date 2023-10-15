@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, validator
 from pydantic.error_wrappers import ErrorWrapper
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman.api.v1.models import Filament, Message
+from spoolman.api.v1.models import Filament, FilamentEvent, Message
 from spoolman.database import filament
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
@@ -236,10 +236,10 @@ async def find(
     name="Get filament",
     description=(
         "Get a specific filament. A websocket is served on the same path to listen for changes to the filament. "
-        "The response model is the same for the websocket messages as for this endpoint."
+        "See the HTTP Response code 299 for the content of the websocket messages."
     ),
     response_model_exclude_none=True,
-    responses={404: {"model": Message}},
+    responses={404: {"model": Message}, 299: {"model": FilamentEvent, "description": "Websocket message"}},
 )
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],

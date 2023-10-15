@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 from pydantic.error_wrappers import ErrorWrapper
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman.api.v1.models import Message, Vendor
+from spoolman.api.v1.models import Message, Vendor, VendorEvent
 from spoolman.database import vendor
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
@@ -104,10 +104,10 @@ async def find(
     name="Get vendor",
     description=(
         "Get a specific vendor. A websocket is served on the same path to listen for changes to the vendor. "
-        "The response model is the same for the websocket messages as for this endpoint."
+        "See the HTTP Response code 299 for the content of the websocket messages."
     ),
     response_model_exclude_none=True,
-    responses={404: {"model": Message}},
+    responses={404: {"model": Message}, 299: {"model": VendorEvent, "description": "Websocket message"}},
 )
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],
