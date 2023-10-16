@@ -71,7 +71,8 @@
             "archive": "Czy na pewno chcesz zarchiwizować tę szpulę?"
         },
         "form": {
-            "new_location_prompt": "Wprowadź nową lokalizację"
+            "new_location_prompt": "Wprowadź nową lokalizację",
+            "spool_updated": "Szpula została zaktualizowana od czasu otwarcia tej strony. Zapisanie nadpisze te zmiany!"
         }
     },
     "dashboard": {
@@ -206,6 +207,9 @@
             "list": "Filamenty",
             "show": "Pokaż filament",
             "show_title": "[Filament #{{id}}] {{name}}"
+        },
+        "form": {
+            "filament_updated": "Ten filament został zaktualizowany przez kogoś/coś innego od czasu otwarcia tej strony. Zapisanie nadpisze te zmiany!"
         }
     },
     "vendor": {
@@ -223,6 +227,9 @@
             "list": "Producenci",
             "show": "Pokaż producenta",
             "show_title": "[Producent #{{id}}] {{name}}"
+        },
+        "form": {
+            "vendor_updated": "Ten producent został zaktualizowany przez kogoś/coś innego od czasu otwarcia tej strony. Zapisanie spowoduje nadpisanie tych zmian!"
         }
     },
     "table": {
