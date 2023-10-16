@@ -166,6 +166,10 @@
         },
         "messages": {
             "archive": "Är du säker på att du vill arkivera denna spole?"
+        },
+        "form": {
+            "new_location_prompt": "Fyll i en ny plats",
+            "spool_updated": "Den här spolen har uppdaterats av något eller någon sedan du öppnade den här sidan. Om du sparar så skriver du över ändringarna!"
         }
     },
     "filament": {
@@ -193,7 +197,7 @@
             "material": "T.ex. PLA, ABS, PETG, etc.",
             "price": "Pris för en full spole i systemets valuta.",
             "weight": "Vikten på en full spole (nettovikt). Detta ska inte inkludera vikten på spolen själv, bara filamentet. Det är vad som vanligtvis står på förpackningen.",
-            "spool_weight": "Vikten på en tom spole. Detta används inte till något i dagsläget, men skulle kunna användas av tredjepartsappar för att t.ex. beräkna filamentvikten från en viktmätning.",
+            "spool_weight": "Vikten på en tom spole. Används för att beräkna filamentvikten från en vägning.",
             "article_number": "T.ex. EAN, UPC, etc."
         },
         "titles": {
@@ -203,6 +207,9 @@
             "list": "Filament",
             "show": "Visa filament",
             "show_title": "[Filament #{{id}}] {{name}}"
+        },
+        "form": {
+            "filament_updated": "Det här filamentet har uppdaterats av något eller någon sedan du öppnade den här sidan. Om du sparar så skriver du över ändringarna!"
         }
     },
     "vendor": {
@@ -220,6 +227,9 @@
             "list": "Leverantörer",
             "show": "Visa leverantör",
             "show_title": "[Leverantör #{{id}}] {{name}}"
+        },
+        "form": {
+            "vendor_updated": "Den här leverantören har uppdaterats av något eller någon sedan du öppnade den här sidan. Om du sparar så skriver du över ändringarna!"
         }
     },
     "table": {
