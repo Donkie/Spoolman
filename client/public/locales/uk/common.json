@@ -1,0 +1,71 @@
+{
+    "buttons": {
+        "create": "Створити",
+        "save": "Зберегти",
+        "cancel": "Скасувати",
+        "edit": "Редагувати",
+        "showArchived": "Показати архівовані",
+        "archive": "Архівувати",
+        "hideColumns": "Приховати стовпці",
+        "confirm": "Ви впевнені?",
+        "delete": "Видалити",
+        "import": "Імпортувати",
+        "refresh": "Оновити",
+        "hideArchived": "Приховати архівовані",
+        "clearFilters": "Очистити фільтри",
+        "clear": "Очистити"
+    },
+    "spool": {
+        "fields": {
+            "material": "Матеріал",
+            "weight_to_use": "Вага",
+            "filament_name": "Філамент",
+            "filament": "Філамент",
+            "used_length": "Використана довжина",
+            "used_weight": "Використана вага",
+            "id": "ID"
+        },
+        "spool": "Котушки"
+    },
+    "actions": {
+        "create": "Створити",
+        "show": "Показати",
+        "edit": "Редагувати"
+    },
+    "printing": {
+        "generic": {
+            "rows": "Рядки",
+            "marginRight": "Правий відступ",
+            "marginTop": "Верхній відступ",
+            "marginBottom": "Нижній відступ",
+            "marginLeft": "Лівий відступ",
+            "dimensions": "Розміри"
+        },
+        "spoolSelect": {
+            "selectedTotal_one": "{{count}} обрана котушка",
+            "selectedTotal_few": "{{count}} обрані котушки",
+            "selectedTotal_many": "{{count}} обраних котушок"
+        },
+        "qrcode": {
+            "spoolWeight": "Вага котушки: {{weight}}",
+            "showTemperatures": "Температури",
+            "showVendor": "Виробник"
+        }
+    },
+    "notifications": {
+        "deleteSuccess": "Успішно видалено {{resource}}",
+        "error": "Помилка (код: {{statusCode}})",
+        "success": "Успішно",
+        "createSuccess": "Успішно створено {{resource}}"
+    },
+    "no": "Ні",
+    "yes": "Так",
+    "version": "Версія",
+    "scanner": {
+        "error": {
+            "unknown": "Сталась невідома помилка. ({{error}})",
+            "notFound": "Не знайдено жодної камери."
+        }
+    },
+    "loading": "Завантаження"
+}
