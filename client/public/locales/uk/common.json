@@ -4,21 +4,21 @@
         "save": "Зберегти",
         "cancel": "Скасувати",
         "edit": "Редагувати",
-        "showArchived": "Показати архівовані",
+        "showArchived": "Показати Архівовані",
         "archive": "Архівувати",
-        "hideColumns": "Приховати стовпці",
+        "hideColumns": "Приховати Стовпці",
         "confirm": "Ви впевнені?",
         "delete": "Видалити",
         "import": "Імпортувати",
         "refresh": "Оновити",
-        "hideArchived": "Приховати архівовані",
-        "clearFilters": "Очистити фільтри",
+        "hideArchived": "Приховати Архівовані",
+        "clearFilters": "Очистити Фільтри",
         "clear": "Очистити",
         "show": "Показати",
         "filter": "Фільтр",
         "undo": "Скасувати",
         "logout": "Вийти",
-        "notAccessTitle": "У вас бракує прав для доступу",
+        "notAccessTitle": "У Вас бракує прав для доступу",
         "clone": "Клонувати",
         "unArchive": "Розархівувати"
     },
@@ -28,14 +28,16 @@
             "weight_to_use": "Вага",
             "filament_name": "Філамент",
             "filament": "Філамент",
-            "used_length": "Використана довжина",
-            "used_weight": "Використана вага",
+            "used_length": "Використана Довжина",
+            "used_weight": "Використана Вага",
             "id": "ID",
             "comment": "Коментар"
         },
         "spool": "Котушки",
         "titles": {
-            "edit": "Редагувати Котушку"
+            "edit": "Редагувати Котушку",
+            "show_title": "[Котушка #{{id}}] {{name}}",
+            "list": "Котушки"
         }
     },
     "actions": {
@@ -48,10 +50,10 @@
     "printing": {
         "generic": {
             "rows": "Рядки",
-            "marginRight": "Правий відступ",
-            "marginTop": "Верхній відступ",
-            "marginBottom": "Нижній відступ",
-            "marginLeft": "Лівий відступ",
+            "marginRight": "Правий Відступ",
+            "marginTop": "Верхній Відступ",
+            "marginBottom": "Нижній Відступ",
+            "marginLeft": "Лівий Відступ",
             "dimensions": "Розміри",
             "verticalSpacing": "Вертикальний відступ",
             "customSize": "Нестандартний",
@@ -66,17 +68,23 @@
             "description": "Використовуйте наведені нижче параметри, щоб отримати бажаний макет друку. Майте на увазі, що принтери та ваша операційна система можуть використовувати власні настроювані поля та масштабування, тому вам може знадобитися декілька спроб щоб отримати правильний результат. Спробуйте це на аркуші звичайного паперу, перш ніж друкувати на справжніх етикетках.",
             "horizontalSpacing": "Горизонтальний відступ",
             "showBorder": "Відобразити поля",
-            "print": "Друк"
+            "print": "Друк",
+            "borders": {
+                "grid": "Сітка"
+            },
+            "paperSize": "Розмір Паперу"
         },
         "spoolSelect": {
             "selectedTotal_one": "{{count}} обрана котушка",
             "selectedTotal_few": "{{count}} обрані котушки",
-            "selectedTotal_many": "{{count}} обраних котушок"
+            "selectedTotal_many": "{{count}} обраних котушок",
+            "showArchived": "Показати Архівні"
         },
         "qrcode": {
-            "spoolWeight": "Вага котушки: {{weight}}",
+            "spoolWeight": "Вага Котушки: {{weight}}",
             "showTemperatures": "Температури",
-            "showVendor": "Виробник"
+            "showVendor": "Виробник",
+            "showSpoolWeight": "Вага Котушки"
         }
     },
     "notifications": {
@@ -115,12 +123,20 @@
             "vendor": "Виробник",
             "density": "Щільність",
             "id": "ІД",
-            "color_hex": "Колір"
+            "color_hex": "Колір",
+            "article_number": "Артикул"
         },
         "titles": {
             "show_title": "[Філамент #{{id}}] {{name}}",
-            "show": "Показати Філамент"
-        }
+            "show": "Показати Філамент",
+            "edit": "Редагувати Філамент",
+            "list": "Філаменти"
+        },
+        "fields_help": {
+            "price": "Ціна повної котушки в системній валюті.",
+            "material": "Наприклад PLA, ABS, PETG, тощо."
+        },
+        "filament": "Філаменти"
     },
     "unknown": "Невідомий",
     "warnWhenUnsavedChanges": "Ви впевнені що хочете вийти? У Вас є незбережені зміни.",
@@ -129,5 +145,32 @@
     },
     "tags": {
         "clone": "Клонувати"
+    },
+    "vendor": {
+        "titles": {
+            "show_title": "[Виробник #{{id}}] {{name}}",
+            "list": "Виробники"
+        },
+        "fields": {
+            "comment": "Коментар",
+            "name": "Назва"
+        },
+        "vendor": "Виробники"
+    },
+    "documentTitle": {
+        "default": "Spoolman",
+        "spool": {
+            "list": "Котушки | Spoolman"
+        },
+        "filament": {
+            "list": "Філаменти | Spoolman"
+        },
+        "suffix": " | Spoolman",
+        "vendor": {
+            "list": "Виробники | Spoolman"
+        }
+    },
+    "table": {
+        "actions": "Дії"
     }
 }
