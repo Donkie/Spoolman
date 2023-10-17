@@ -181,7 +181,8 @@
             "archive": "Weet je zeker dat je deze spoel wil archiveren?"
         },
         "form": {
-            "new_location_prompt": "Voer een nieuwe locatie in"
+            "new_location_prompt": "Voer een nieuwe locatie in",
+            "spool_updated": "Deze spoel is bijgewerkt door iemand/iets anders sinds je deze pagina hebt geopend. Opslaan zal die wijzigingen overschrijven!"
         }
     },
     "filament": {

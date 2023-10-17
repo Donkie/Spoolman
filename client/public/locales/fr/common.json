@@ -1,11 +1,11 @@
 {
     "printing": {
         "qrcode": {
-            "extruderTemp": "ET: {{temp}}",
+            "extruderTemp": "ET : {{temp}}",
             "showSpoolWeight": "Poids de la bobine",
             "showContent": "Imprimer l'étiquette",
             "showVendorComment": "Commentaire sur le vendeur",
-            "spoolWeight": "Poids de la bobine: {{weight}}",
+            "spoolWeight": "Poids de la bobine : {{weight}}",
             "showTemperatures": "Températures",
             "showVendor": "Vendeur",
             "showSpoolComment": "Commentaire sur la bobine",
@@ -13,8 +13,8 @@
             "title": "Impression de codes QR",
             "showSpoolmanIcon": "Montrer l'icône Spoolman",
             "showLotNr": "N° de Lot",
-            "bedTemp": "BT: {{temp}}",
-            "lotNr": "N° de Lot: {{lot}}",
+            "bedTemp": "BT : {{temp}}",
+            "lotNr": "N° de Lot : {{lot}}",
             "showFilamentComment": "Commentaire sur le filament",
             "button": "Imprimer des codes QR"
         },
@@ -126,6 +126,10 @@
         "spool": "Bobines",
         "messages": {
             "archive": "Êtes-vous sûr de vouloir archiver cette bobine ?"
+        },
+        "form": {
+            "spool_updated": "Cette bobine a été mise à jour par quelqu'un/quelque chose depuis la dernière ouverture de la page. Enregistrer écrasera ces changements !",
+            "new_location_prompt": "Entrer une nouvelle localisation"
         }
     },
     "buttons": {
@@ -155,7 +159,7 @@
         "fields_help": {
             "name": "Nom du filament, pour distinguer ce type de filament parmi d'autres du même fournisseur. Il doit contenir la couleur, par exemple.",
             "article_number": "Exemple EAN, UPC, etc.",
-            "spool_weight": "Le poids d'une bobine vide. Il n'est actuellement utilisé pour rien, mais pourrait être utilisé par des applications tierces pour, par exemple, calculer le poids du filament à partir d'une mesure de poids.",
+            "spool_weight": "Le poids d'une bobine vide. Utilisé pour déterminer le poids d'une bobine.",
             "price": "Prix d'une bobine complète dans la devise configurée par le système.",
             "weight": "Le poids du filament d'une bobine complète (poids net). Ce poids ne doit pas inclure le poids de la bobine elle-même, mais uniquement celui du filament. C'est ce qui est généralement indiqué sur l'emballage.",
             "material": "Exemple PLA, ABS, PETG, etc."
@@ -212,7 +216,7 @@
         "error": "Erreur (status code : {{statusCode}})",
         "editError": "Erreur lors de l'édition {{resource}} (status code : {{statusCode}})",
         "undoable": "Vous avez {{seconds}} secondes pour annuler.",
-        "importProgress": "Importation: {{processed}}/{{total}}",
+        "importProgress": "Importation : {{processed}}/{{total}}",
         "createError": "Une erreur s'est produite lors de la création de {{resource}}(status code : {{statusCode}})",
         "success": "Réussite",
         "editSuccess": "Édité avec succès {{resource}}",
