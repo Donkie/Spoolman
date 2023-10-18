@@ -15,7 +15,7 @@ interface Event {
 
 /**
  * Converts an API URL to a WebSocket URL.
- * E.g. "https://example.com/api/v1/..." -> "ws://example.com/api/v1/..."
+ * E.g. "https://example.com/api/v1/..." -> "wss://example.com/api/v1/..."
  * or "/api/v1/..." -> "ws://example.com/api/v1/..."
  * @param apiUrl The API URL to convert
  * @returns The WebSocket URL
@@ -29,10 +29,14 @@ function toWebsocketURL(apiUrl: string) {
 
     // Split the URL to separate the protocol, host, and path
     const urlParts = currentURL.split("/");
+    const protocol = urlParts[0];
     const host = urlParts[2];
 
-    // Create the WebSocket URL by adding "ws://" as the protocol and the relative URL as the path
-    return `ws://${host}${apiUrl}`;
+    if (protocol === "https:") {
+      return `wss://${host}${apiUrl}`;
+    } else {
+      return `ws://${host}${apiUrl}`;
+    }
   } else {
     // Absolute URL, e.g. "https://example.com/api/v1/..."
 
