@@ -41,8 +41,26 @@ Spoolman is still relatively new, so support isn't widespread yet, but it's bein
 Spoolman can interact with any of the following databases: SQLite, PostgreSQL, MySQL, MariaDB, CockroachDB.
 By default, SQLite is used which is a simple no-install database solution that saves to a single .db file located in the server's user directory.
 
+Spoolman can be installed in two ways, either directly on your machine or using Docker. If you already have Docker installed, it's recommended to use that.
+
+### Standalone
+This installation guide assumes you are using a Debian-based Linux distribution such as Ubuntu or Raspberry Pi OS. If you are using another distribution, please look inside the bash scripts to see what commands are being run and adapt them to your distribution.
+
+1. Download this repository to your machine. It is recommended that you download the latest release from the [Releases page](https://github.com/Donkie/Spoolman/releases). It's the `Source code (zip)` file that you want. You can also git clone the repository if you want to be on the bleeding edge.
+2. Unzip the downloaded file using `unzip Spoolman-*.zip`. This will create a directory called `Spoolman-<version>`.
+3. CD into the `Spoolman-<version>` directory and run `bash ./scripts/install_debian.sh`. This will install all the dependencies and setup Spoolman. Follow the instructions on the screen.
+
+#### Updating
+Updating Spoolman is quite simple. If you use the default database type, SQLite, it is stored outside of the installation folder (in `~/.local/share/spoolman`), so you will not lose any data by moving to a new installation folder. Follow these steps to update:
+
+1. If you're running Spoolman as a systemd service, stop and disable it using `systemctl --user stop Spoolman && systemctl --user disable Spoolman`.
+2. Download the latest release as above and unzip it.
+3. Copy the `.env` file from your old installation to the new one.
+4. CD into the new installation folder and run `bash ./scripts/install_debian.sh`. This will install all the dependencies and setup Spoolman. Follow the instructions on the screen.
+5. Delete the old installation folder to prevent it from being used by accident.
+
 ### Using Docker
-The easiest way to run Spoolman is using Docker. Docker is a platform for developing, shipping, and running applications in containers. Containers are lightweight, portable, and self-contained environments that can run on any machine with Docker installed.
+You can also run Spoolman using Docker. Docker is a platform for developing, shipping, and running applications in containers. Containers are lightweight, portable, and self-contained environments that can run on any machine with Docker installed.
 
 To install Docker on your machine, follow the instructions for your operating system on the [Docker website](https://docs.docker.com/engine/install/). Docker also includes the docker-compose tool which lets you configure the container deployment in a simple yaml file, without having to remember all the command line options. Note: older versions of docker-compose require you to have a dash (`-`) in the following commands, like `docker-compose` instead of `docker compose`.
 
@@ -66,7 +84,11 @@ services:
 ```
 Once you have it up and running, you can access the web UI by browsing to `http://your.ip:7912`. Make sure that the data folder you created now contains a `spoolman.db` file. If you cannot find this file in your machine, then **your data will be lost** every time you update Spoolman.
 
+#### Updating
 If a new version of Spoolman has been released, you can update to it by first browsing to the directory where you have the `docker-compose.yml` file and then running `docker compose pull && docker compose up -d`.
+
+### Environment variables
+These are either set in the .env file if you use the standalone installation, or in the docker-compose.yml if you use Docker.
 
 If you want to connect with an external database instead, specify the `SPOOLMAN_DB_*` environment variables from the table below.
 
