@@ -4,11 +4,14 @@
 
 import asyncio
 import logging
+from base64 import b64decode
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import JSONResponse
 from starlette.requests import Request
 from starlette.responses import Response
+from fastapi.security.utils import get_authorization_scheme_param
+from fastapi.security import HTTPAuthorizationCredentials
 
 from spoolman import env
 from spoolman.database.database import backup_global_db
@@ -32,6 +35,51 @@ app = FastAPI(
     endpoint that listens for changes to any data in the database.
     """,
 )
+
+
+@app.middleware("http")
+async def check_auth_token(request: Request, call_next):
+    auth_header = request.headers.get('Authorization')
+    auth_needed = env.basic_auth_activated()
+
+    # auth expected but non given?
+    if auth_needed and auth_header is None:
+        raise HTTPException(
+            status_code=401,
+            detail="no auth given",
+        )
+
+    scheme, token = get_authorization_scheme_param(auth_header)
+
+    # basic? decode and check username/password
+    if scheme.lower() == "basic":
+        decoded_data: str | None = None
+        try:
+            decoded_data = b64decode(token).decode("ascii")
+
+        except Exception:
+            raise HTTPException(
+                status_code=401,
+                detail="invalid token",
+            )
+
+        username, _, password = decoded_data.partition(":")
+
+        if username != env.get_basic_auth_username() or password != env.get_basic_auth_password():
+            raise HTTPException(
+                status_code=401,
+                detail="invalid username/password",
+            )
+
+        else:
+            return await call_next(request)
+
+    # TBD.. if scheme.lower() == "bearer":
+
+    raise HTTPException(
+        status_code=401,
+        detail="invalid authentication method",
+    )
 
 
 @app.exception_handler(ItemNotFoundError)

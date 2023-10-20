@@ -272,3 +272,30 @@ def get_build_date() -> Optional[datetime]:
     if build_date == "unknown":
         return None
     return datetime.fromisoformat(build_date)
+
+
+def get_basic_auth_username() -> Optional[str]:
+    """Get the basic-auth username.
+
+    Returns:
+        Optional[str]: username.
+    """
+    return os.getenv("BASIC_AUTH_USERNAME")
+
+
+def get_basic_auth_password() -> Optional[str]:
+    """Get the basic-auth password.
+
+    Returns:
+        Optional[str]: password.
+    """
+    return os.getenv("BASIC_AUTH_PASSWORD")
+
+
+def basic_auth_activated() -> bool:
+    """Checks if basic auth is activated.
+
+    Returns:
+        bool: activated.
+    """
+    return bool(get_basic_auth_username()) and bool(get_basic_auth_password())

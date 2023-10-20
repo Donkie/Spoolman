@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  spoolman:
+    build: .
+    restart: unless-stopped
+    volumes:
+      - spoolman-data:/home/app/.local/share/spoolman
+
+    ports:
+      - "7912:8000"
+
+    environment:
+      - BASIC_AUTH_USERNAME=spool
+      - BASIC_AUTH_PASSWORD=man
+      - TZ=Europe/Berlin
+
+volumes:
+  spoolman-data:
