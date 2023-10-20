@@ -13,7 +13,6 @@ services:
     environment:
       - BASIC_AUTH_USERNAME=spool
       - BASIC_AUTH_PASSWORD=man
-      - TZ=Europe/Berlin
 
 volumes:
   spoolman-data:
