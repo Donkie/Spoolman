@@ -46,7 +46,7 @@ class SinglePageApplication(StaticFiles):
 
         self.basic_auth_username = env.get_basic_auth_username()
         self.basic_auth_password = env.get_basic_auth_password()
-        self.basic_auth_activated = bool(self.basic_auth_username) and bool(self.basic_auth_password)
+        self.basic_auth_activated = env.basic_auth_activated()
 
         logger.info("basic-auth activated: %s", self.basic_auth_activated)
 
