@@ -39,8 +39,11 @@ app = FastAPI(
 
 @app.middleware("http")
 async def check_auth_token(request: Request, call_next):
-    auth_header = request.headers.get('Authorization') or request.headers.get('authorization')
     auth_needed = env.basic_auth_activated()
+    if not auth_needed:
+        return await call_next(request)
+
+    auth_header = request.headers.get('Authorization') or request.headers.get('authorization')
 
     # auth expected but non given?
     if auth_needed and auth_header is None:
