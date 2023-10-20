@@ -38,7 +38,7 @@ app = FastAPI(
 
 
 @app.middleware("http")
-async def check_auth_token(request: Request, call_next):
+async def check_auth(request: Request, call_next):
     auth_needed = env.basic_auth_activated()
     if not auth_needed:
         return await call_next(request)
