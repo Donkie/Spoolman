@@ -165,21 +165,22 @@ read choice
 if [ "$choice" == "y" ] || [ "$choice" == "Y" ]; then
 
     # Get the parent directory of the installer script
-    spoolman_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+    spoolman_dir=$(dirname "$script_dir")
 
     # Define the systemd service unit file
     service_unit="[Unit]
-    Description=Spoolman
+Description=Spoolman
 
-    [Service]
-    Type=simple
-    ExecStart=$spoolman_dir/scripts/start.sh
-    WorkingDirectory=$spoolman_dir
-    Restart=always
+[Service]
+Type=simple
+ExecStart=$spoolman_dir/scripts/start.sh
+WorkingDirectory=$spoolman_dir
+Restart=always
 
-    [Install]
-    WantedBy=default.target
-    "
+[Install]
+WantedBy=default.target
+"
 
     # Specify the service name
     service_name="Spoolman"
