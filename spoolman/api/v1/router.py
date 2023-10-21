@@ -4,6 +4,7 @@
 
 import asyncio
 import logging
+import secrets
 from base64 import b64decode
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
@@ -67,8 +68,10 @@ async def check_auth(request: Request, call_next):
             )
 
         username, _, password = decoded_data.partition(":")
+        username_is_valid = secrets.compare_digest(username, env.get_basic_auth_username())
+        password_is_valid = secrets.compare_digest(password, env.get_basic_auth_password())
 
-        if username != env.get_basic_auth_username() or password != env.get_basic_auth_password():
+        if not username_is_valid or not password_is_valid:
             raise HTTPException(
                 status_code=401,
                 detail="invalid username/password",
