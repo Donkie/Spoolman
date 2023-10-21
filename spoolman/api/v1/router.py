@@ -37,17 +37,20 @@ app = FastAPI(
     """,
 )
 
+basic_auth_activated = env.basic_auth_activated()
+basic_auth_username = env.get_basic_auth_username()
+basic_auth_password = env.get_basic_auth_password()
+
 
 @app.middleware("http")
 async def check_auth(request: Request, call_next):
-    auth_needed = env.basic_auth_activated()
-    if not auth_needed:
+    if not basic_auth_activated:
         return await call_next(request)
 
     auth_header = request.headers.get('Authorization') or request.headers.get('authorization')
 
     # auth expected but non given?
-    if auth_needed and auth_header is None:
+    if basic_auth_activated and auth_header is None:
         raise HTTPException(
             status_code=401,
             detail="no auth given",
@@ -68,8 +71,8 @@ async def check_auth(request: Request, call_next):
             )
 
         username, _, password = decoded_data.partition(":")
-        username_is_valid = secrets.compare_digest(username, env.get_basic_auth_username())
-        password_is_valid = secrets.compare_digest(password, env.get_basic_auth_password())
+        username_is_valid = secrets.compare_digest(username, basic_auth_username)
+        password_is_valid = secrets.compare_digest(password, basic_auth_password)
 
         if not username_is_valid or not password_is_valid:
             raise HTTPException(
