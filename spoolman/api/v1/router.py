@@ -56,13 +56,13 @@ async def check_auth(request: Request, call_next):
             detail="no auth given",
         )
 
-    scheme, token = get_authorization_scheme_param(auth_header)
+    auth_scheme, auth_token = get_authorization_scheme_param(auth_header)
 
     # basic? decode and check username/password
-    if scheme.lower() == "basic":
-        decoded_data: str | None = None
+    if auth_scheme.lower() == "basic":
+        decoded_credentials: str | None = None
         try:
-            decoded_data = b64decode(token).decode("ascii")
+            decoded_credentials = b64decode(auth_token).decode("ascii")
 
         except Exception:
             raise HTTPException(
@@ -70,7 +70,7 @@ async def check_auth(request: Request, call_next):
                 detail="invalid token",
             )
 
-        username, _, password = decoded_data.partition(":")
+        username, _, password = decoded_credentials.partition(":")
         username_is_valid = secrets.compare_digest(username, basic_auth_username)
         password_is_valid = secrets.compare_digest(password, basic_auth_password)
 
@@ -83,7 +83,7 @@ async def check_auth(request: Request, call_next):
         else:
             return await call_next(request)
 
-    # TBD.. if scheme.lower() == "bearer":
+    # TBD.. if auth_scheme.lower() == "bearer":
 
     raise HTTPException(
         status_code=401,
