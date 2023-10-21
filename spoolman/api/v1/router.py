@@ -41,6 +41,30 @@ basic_auth_activated = env.basic_auth_activated()
 basic_auth_username = env.get_basic_auth_username()
 basic_auth_password = env.get_basic_auth_password()
 
+def decode_and_check_basic_auth_or_raise(encoded_credentials: str):
+    decoded_credentials: str | None = None
+    try:
+        decoded_credentials = b64decode(encoded_credentials).decode("ascii")
+
+    except Exception:
+        raise HTTPException(
+            status_code=401,
+            detail="invalid token",
+        )
+
+    username, _, password = decoded_credentials.partition(":")
+    username_is_valid = secrets.compare_digest(username, basic_auth_username)
+    password_is_valid = secrets.compare_digest(password, basic_auth_password)
+
+    if not username_is_valid or not password_is_valid:
+        raise HTTPException(
+            status_code=401,
+            detail="invalid username/password",
+        )
+
+    # everything is fine, just return
+    return
+
 
 @app.middleware("http")
 async def check_auth(request: Request, call_next):
@@ -60,28 +84,8 @@ async def check_auth(request: Request, call_next):
 
     # basic? decode and check username/password
     if auth_scheme.lower() == "basic":
-        decoded_credentials: str | None = None
-        try:
-            decoded_credentials = b64decode(auth_token).decode("ascii")
-
-        except Exception:
-            raise HTTPException(
-                status_code=401,
-                detail="invalid token",
-            )
-
-        username, _, password = decoded_credentials.partition(":")
-        username_is_valid = secrets.compare_digest(username, basic_auth_username)
-        password_is_valid = secrets.compare_digest(password, basic_auth_password)
-
-        if not username_is_valid or not password_is_valid:
-            raise HTTPException(
-                status_code=401,
-                detail="invalid username/password",
-            )
-
-        else:
-            return await call_next(request)
+        decode_and_check_basic_auth_or_raise(auth_token)
+        return await call_next(request)
 
     # TBD.. if auth_scheme.lower() == "bearer":
 
