@@ -83,6 +83,13 @@ If you want to connect with an external database instead, specify the `SPOOLMAN_
 | SPOOLMAN_LOGGING_LEVEL    | Logging level, any of: `CRITICAL`, `ERROR`, `WARNING`, `INFO`, `DEBUG`, defaults to `INFO`.                                  |
 | SPOOLMAN_AUTOMATIC_BACKUP | Automatic nightly DB backups for SQLite databases. Enabled by default, set to `FALSE` to disable.                            |
 
+If you want to enable basic-auth mechanism, specify the `BASIC_AUTH_*` environment variables from the table below. Both needs to be set with non-empty strings.
+
+| Variable                  | Description                                                                                    |
+| ------------------------- | ---------------------------------------------------------------------------------------------- |
+| BASIC_AUTH_USERNAME       | Username used to authenticate                                                                  |
+| BASIC_AUTH_PASSWORD       | Password used to authenticate                                                                  |
+
 ## Development
 ### Client
 To test out changes to the web client, the best way is to run it in development mode.
