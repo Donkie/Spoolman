@@ -167,7 +167,8 @@
             "archive": "您确定要存档此料盘吗？"
         },
         "form": {
-            "new_location_prompt": "输入一个新位置"
+            "new_location_prompt": "输入一个新位置",
+            "spool_updated": "自您打开此页面以来，此料盘已被其他人/事物更新。保存将覆盖这些更改！"
         }
     },
     "filament": {
@@ -205,6 +206,9 @@
             "list": "耗材列表",
             "show": "查看耗材",
             "show_title": "[耗材 #{{id}}] {{name}}"
+        },
+        "form": {
+            "filament_updated": "自您打开此页面以来，此耗材已被其他人/事物更新。保存将覆盖这些更改！"
         }
     },
     "vendor": {
@@ -222,6 +226,9 @@
             "list": "供应商列表",
             "show": "查看供应商",
             "show_title": "[供应商 #{{id}}] {{name}}"
+        },
+        "form": {
+            "vendor_updated": "自您打开此页面以来，此供应商已被其他人/事物更新。保存将覆盖这些更改！"
         }
     },
     "table": {
