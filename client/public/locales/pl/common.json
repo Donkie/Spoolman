@@ -1,264 +1,265 @@
 {
-    "actions": {
-        "list": "Lista",
-        "create": "Utwórz",
-        "edit": "Edytuj",
-        "show": "Pokaż",
-        "clone": "Sklonuj"
+  "actions": {
+    "list": "Lista",
+    "create": "Utwórz",
+    "edit": "Edytuj",
+    "show": "Pokaż",
+    "clone": "Sklonuj"
+  },
+  "buttons": {
+    "edit": "Edytuj",
+    "unArchive": "Odarchiwizuj",
+    "cancel": "Anuluj",
+    "create": "Utwórz",
+    "save": "Zapisz",
+    "logout": "Wyloguj",
+    "delete": "Usuń",
+    "confirm": "Czy na pewno?",
+    "filter": "Filtruj",
+    "clear": "Wyczyść",
+    "refresh": "Odśwież",
+    "show": "Pokaż",
+    "undo": "Cofnij",
+    "import": "Importuj",
+    "clone": "Sklonuj",
+    "archive": "Archiwizuj",
+    "hideArchived": "Ukryj zarchiwizowane",
+    "showArchived": "Pokaż zarchiwizowane",
+    "notAccessTitle": "Nie masz zezwolenia na dostęp",
+    "hideColumns": "Edytuj kolumny",
+    "clearFilters": "Wyczyść filtry",
+    "share": "udział"
+  },
+  "spool": {
+    "titles": {
+      "list": "Szpule",
+      "show": "Pokaż szpulę",
+      "edit": "Edytowanie szpuli",
+      "create": "Tworzenie szpuli",
+      "clone": "Klonowanie szpuli",
+      "archive": "Zarchiwizuj szpulę",
+      "show_title": "[Szpula #{{id}}] {{name}}"
     },
-    "buttons": {
-        "edit": "Edytuj",
-        "unArchive": "Odarchiwizuj",
-        "cancel": "Anuluj",
-        "create": "Utwórz",
-        "save": "Zapisz",
-        "logout": "Wyloguj",
-        "delete": "Usuń",
-        "confirm": "Czy na pewno?",
-        "filter": "Filtruj",
-        "clear": "Wyczyść",
-        "refresh": "Odśwież",
-        "show": "Pokaż",
-        "undo": "Cofnij",
-        "import": "Importuj",
-        "clone": "Sklonuj",
-        "archive": "Archiwizuj",
-        "hideArchived": "Ukryj zarchiwizowane",
-        "showArchived": "Pokaż zarchiwizowane",
-        "notAccessTitle": "Nie masz zezwolenia na dostęp",
-        "hideColumns": "Edytuj kolumny",
-        "clearFilters": "Wyczyść filtry"
+    "spool": "Szpule",
+    "fields": {
+      "id": "ID",
+      "filament_name": "Filament",
+      "filament": "Filament",
+      "material": "Materiał",
+      "remaining_weight": "Pozostała waga",
+      "used_length": "Użyta długość",
+      "remaining_length": "Pozostała długość",
+      "location": "Lokalizacja",
+      "lot_nr": "Numer partii (LOT)",
+      "first_used": "Pierwsze użycie",
+      "last_used": "Ostatnie użycie",
+      "comment": "Komentarz",
+      "archived": "Zarchiwizowano",
+      "used_weight": "Użyta waga",
+      "registered": "Zarejestrowano",
+      "measured_weight": "Zmierzona waga",
+      "weight_to_use": "Waga"
+    },
+    "fields_help": {
+      "location": "Wpisz gdzie znajduje się szpula, jeśli masz wiele lokalizacji, w których przechowujesz szpule.",
+      "lot_nr": "Numer partii producenta. Może być stosowany w celu zapewnienia jednolitego koloru wydruku w przypadku użycia wielu szpul.",
+      "used_weight": "Podaj ile filamentu użyto ze szpuli. Jeśli jest nowa, podaj 0g użycia.",
+      "remaining_weight": "Ile filamentu pozostało na szpuli. W przypadku nowej szpuli powinno to odpowiadać wadze szpuli.",
+      "measured_weight": "Waga filamentu i szpuli.",
+      "weight_to_use": "Wybierz jaką wagę wprowadzić. Zmierzona waga jest dostępna tylko wtedy, gdy waga szpuli jest ustawiona dla wybranego filamentu."
+    },
+    "messages": {
+      "archive": "Czy na pewno chcesz zarchiwizować tę szpulę?"
+    },
+    "form": {
+      "new_location_prompt": "Wprowadź nową lokalizację",
+      "spool_updated": "Szpula została zaktualizowana od czasu otwarcia tej strony. Zapisanie nadpisze te zmiany!"
+    }
+  },
+  "dashboard": {
+    "title": "Pulpit"
+  },
+  "notifications": {
+    "success": "Powodzenie",
+    "undoable": "Na cofnięcie masz {{seconds}} sek.",
+    "createSuccess": "Pomyślnie utworzono {{resource}}",
+    "deleteSuccess": "Pomyślnie usunięto {{resource}}",
+    "deleteError": "Błąd podczas usuwania {{resource}} (kod statusu: {{statusCode}})",
+    "editSuccess": "Pomyślnie edytowano {{resource}}",
+    "editError": "Błąd podczas edycji {{resource}} (kod statusu: {{statusCode}})",
+    "importProgress": "Importowanie: {{processed}}/{{total}}",
+    "error": "Błąd (kod statusu: {{statusCode}})",
+    "createError": "Wystąpił błąd podczas tworzenia {{resource}} (kod statusu: {{statusCode}})"
+  },
+  "loading": "Wczytywanie",
+  "version": "Wersja",
+  "unknown": "Nieznane",
+  "yes": "Tak",
+  "no": "Nie",
+  "tags": {
+    "clone": "Klonuj"
+  },
+  "printing": {
+    "generic": {
+      "title": "Drukowanie",
+      "helpMargin": "Marginesy powinny być skonfigurowane tak, aby pasowały do papieru etykietowego i drukarki, ich zmiana wpłynie na rozmiar całej siatki.",
+      "helpPrinterMargin": "Bezpieczna strefa powinna być ustawiona tak, aby znajdowała się jak najbliżej krawędzi papieru, na którym drukarka może drukować, zmiana tych ustawień nie wpłynie na całą siatkę.",
+      "print": "Drukuj",
+      "columns": "Kolumny",
+      "rows": "Wiersze",
+      "paperSize": "Rozmiar papieru",
+      "customSize": "Niestandardowy",
+      "dimensions": "Wymiary",
+      "showBorder": "Pokaż obramowanie",
+      "previewScale": "Skala podglądu",
+      "skipItems": "Pomiń elementy",
+      "contentSettings": "Ustawienia zawartości",
+      "layoutSettings": "Ustawienia układu",
+      "verticalSpacing": "Pionowy odstęp",
+      "marginLeft": "Lewy margines",
+      "marginRight": "Prawy margines",
+      "marginTop": "Górny margines",
+      "marginBottom": "Dolny margines",
+      "printerMarginLeft": "Bezpieczna strefa po lewej",
+      "printerMarginRight": "Bezpieczna strefa po prawej",
+      "printerMarginTop": "Bezpieczna strefa u góry",
+      "borders": {
+        "none": "Brak",
+        "border": "Obwódka",
+        "grid": "Siatka"
+      },
+      "description": "Dostosuj poniższe ustawienia, aby uzyskać pożądany układ wydruku. Należy pamiętać, że drukarki i system operacyjny mogą stosować własne marginesy i skalowanie, więc może być konieczne wykonanie kilku prób i błędów, zanim wszystko będzie prawidłowe. Przed wydrukowaniem etykiet przetestuj je na zwykłym papierze.",
+      "horizontalSpacing": "Poziomy odstęp",
+      "printerMarginBottom": "Bezpieczna strefa u dołu"
+    },
+    "qrcode": {
+      "button": "Drukuj kody QR",
+      "title": "Drukowanie kodów QR",
+      "bedTemp": "TS: {{temp}}",
+      "extruderTemp": "TE: {{temp}}",
+      "textSize": "Rozmiar tekstu",
+      "showSpoolmanIcon": "Pokaż ikonę Spoolman",
+      "showVendor": "Producent",
+      "showContent": "Etykieta",
+      "showLotNr": "Nr. partii (LOT)",
+      "showSpoolWeight": "Waga szpuli",
+      "showTemperatures": "Temperatury",
+      "showFilamentComment": "Komentarz filamentu",
+      "showVendorComment": "Komentarz producenta",
+      "spoolWeight": "Waga szpuli: {{weight}}",
+      "lotNr": "LOT: {{lot}}",
+      "showSpoolComment": "Komentarz szpuli"
+    },
+    "spoolSelect": {
+      "title": "Wybierz szpule",
+      "description": "Wybierz szpule dla których mają być drukowane kody QR.",
+      "showArchived": "Pokaż zarchiwizowane",
+      "selectAll": "Wybierz/Odznacz wszystko",
+      "selectedTotal_one": "Wybrano {{count}} szpulę",
+      "selectedTotal_few": "Wybrano {{count}} szpule",
+      "selectedTotal_many": "Wybrano {{count}} szpul",
+      "noSpoolsSelected": "Nie wybrano żadnych szpul."
+    }
+  },
+  "scanner": {
+    "title": "Skaner kodów QR",
+    "error": {
+      "notAllowed": "Nie zezwolono na dostęp do kamery.",
+      "insecureContext": "Strona nie jest dostarczana przez HTTPS.",
+      "streamApiNotSupported": "Przeglądarka nie obsługuje API MediaStream.",
+      "notReadable": "Kamera jest niedostępna do odczytu.",
+      "notFound": "Nie znaleziono kamery.",
+      "unknown": "Wystąpił nieznany błąd. ({{error}})"
+    },
+    "description": "Zeskanuj kod QR Spoolman, aby wyświetlić szczegółowe informacje o szpuli."
+  },
+  "filament": {
+    "filament": "Filamenty",
+    "fields": {
+      "id": "ID",
+      "vendor_name": "Producent",
+      "vendor": "Producent",
+      "name": "Nazwa",
+      "material": "Materiał",
+      "price": "Cena",
+      "density": "Gęstość",
+      "diameter": "Średnica",
+      "weight": "Waga",
+      "spool_weight": "Waga szpuli",
+      "registered": "Zarejestrowano",
+      "comment": "Komentarz",
+      "settings_extruder_temp": "Temperatura ekstrudera",
+      "settings_bed_temp": "Temperatura stołu",
+      "color_hex": "Kolor",
+      "article_number": "Numer artykułu"
+    },
+    "fields_help": {
+      "material": "Np. PLA, ABS, PETG itp.",
+      "price": "Cena pełnej szpuli w walucie skonfigurowanej przez system.",
+      "spool_weight": "Waga pustej szpuli. Używana do określenia ciężaru szpuli.",
+      "article_number": "Np. EAN, UPC itp.",
+      "name": "Nazwa filamentu, aby odróżnić ten typ filamentu od innych pochodzących od tego samego producenta. Powinna zawierać np. kolor.",
+      "weight": "Waga filamentu na pełnej szpuli (waga netto). Nie powinno to obejmować wagi samej szpuli, a jedynie filamentu. Jest to zwykle napisane na opakowaniu."
+    },
+    "titles": {
+      "create": "Tworzenie filamentu",
+      "clone": "Klonowanie filamentu",
+      "edit": "Edytowanie filamentu",
+      "list": "Filamenty",
+      "show": "Pokaż filament",
+      "show_title": "[Filament #{{id}}] {{name}}"
+    },
+    "form": {
+      "filament_updated": "Ten filament został zaktualizowany przez kogoś/coś innego od czasu otwarcia tej strony. Zapisanie nadpisze te zmiany!"
+    }
+  },
+  "vendor": {
+    "vendor": "Producenci",
+    "fields": {
+      "id": "ID",
+      "name": "Nazwa",
+      "registered": "Zarejestrowano",
+      "comment": "Komentarz"
+    },
+    "titles": {
+      "create": "Tworzenie producenta",
+      "clone": "Klonowanie producenta",
+      "edit": "Edycja producenta",
+      "list": "Producenci",
+      "show": "Pokaż producenta",
+      "show_title": "[Producent #{{id}}] {{name}}"
+    },
+    "form": {
+      "vendor_updated": "Ten producent został zaktualizowany przez kogoś/coś innego od czasu otwarcia tej strony. Zapisanie spowoduje nadpisanie tych zmian!"
+    }
+  },
+  "table": {
+    "actions": "Akcje"
+  },
+  "documentTitle": {
+    "default": "Spoolman",
+    "suffix": " | Spoolman",
+    "filament": {
+      "list": "Filamenty | Spoolman",
+      "edit": "#{{id}} Edycja filamentu | Spoolman",
+      "create": "Tworzenie filamentu | Spoolman",
+      "clone": "#{{id}} Klonowanie filamentu | Spoolman",
+      "show": "#{{id}} Filament | Spoolman"
     },
     "spool": {
-        "titles": {
-            "list": "Szpule",
-            "show": "Pokaż szpulę",
-            "edit": "Edytowanie szpuli",
-            "create": "Tworzenie szpuli",
-            "clone": "Klonowanie szpuli",
-            "archive": "Zarchiwizuj szpulę",
-            "show_title": "[Szpula #{{id}}] {{name}}"
-        },
-        "spool": "Szpule",
-        "fields": {
-            "id": "ID",
-            "filament_name": "Filament",
-            "filament": "Filament",
-            "material": "Materiał",
-            "remaining_weight": "Pozostała waga",
-            "used_length": "Użyta długość",
-            "remaining_length": "Pozostała długość",
-            "location": "Lokalizacja",
-            "lot_nr": "Numer partii (LOT)",
-            "first_used": "Pierwsze użycie",
-            "last_used": "Ostatnie użycie",
-            "comment": "Komentarz",
-            "archived": "Zarchiwizowano",
-            "used_weight": "Użyta waga",
-            "registered": "Zarejestrowano",
-            "measured_weight": "Zmierzona waga",
-            "weight_to_use": "Waga"
-        },
-        "fields_help": {
-            "location": "Wpisz gdzie znajduje się szpula, jeśli masz wiele lokalizacji, w których przechowujesz szpule.",
-            "lot_nr": "Numer partii producenta. Może być stosowany w celu zapewnienia jednolitego koloru wydruku w przypadku użycia wielu szpul.",
-            "used_weight": "Podaj ile filamentu użyto ze szpuli. Jeśli jest nowa, podaj 0g użycia.",
-            "remaining_weight": "Ile filamentu pozostało na szpuli. W przypadku nowej szpuli powinno to odpowiadać wadze szpuli.",
-            "measured_weight": "Waga filamentu i szpuli.",
-            "weight_to_use": "Wybierz jaką wagę wprowadzić. Zmierzona waga jest dostępna tylko wtedy, gdy waga szpuli jest ustawiona dla wybranego filamentu."
-        },
-        "messages": {
-            "archive": "Czy na pewno chcesz zarchiwizować tę szpulę?"
-        },
-        "form": {
-            "new_location_prompt": "Wprowadź nową lokalizację",
-            "spool_updated": "Szpula została zaktualizowana od czasu otwarcia tej strony. Zapisanie nadpisze te zmiany!"
-        }
-    },
-    "dashboard": {
-        "title": "Pulpit"
-    },
-    "notifications": {
-        "success": "Powodzenie",
-        "undoable": "Na cofnięcie masz {{seconds}} sek.",
-        "createSuccess": "Pomyślnie utworzono {{resource}}",
-        "deleteSuccess": "Pomyślnie usunięto {{resource}}",
-        "deleteError": "Błąd podczas usuwania {{resource}} (kod statusu: {{statusCode}})",
-        "editSuccess": "Pomyślnie edytowano {{resource}}",
-        "editError": "Błąd podczas edycji {{resource}} (kod statusu: {{statusCode}})",
-        "importProgress": "Importowanie: {{processed}}/{{total}}",
-        "error": "Błąd (kod statusu: {{statusCode}})",
-        "createError": "Wystąpił błąd podczas tworzenia {{resource}} (kod statusu: {{statusCode}})"
-    },
-    "loading": "Wczytywanie",
-    "version": "Wersja",
-    "unknown": "Nieznane",
-    "yes": "Tak",
-    "no": "Nie",
-    "tags": {
-        "clone": "Klonuj"
-    },
-    "printing": {
-        "generic": {
-            "title": "Drukowanie",
-            "helpMargin": "Marginesy powinny być skonfigurowane tak, aby pasowały do papieru etykietowego i drukarki, ich zmiana wpłynie na rozmiar całej siatki.",
-            "helpPrinterMargin": "Bezpieczna strefa powinna być ustawiona tak, aby znajdowała się jak najbliżej krawędzi papieru, na którym drukarka może drukować, zmiana tych ustawień nie wpłynie na całą siatkę.",
-            "print": "Drukuj",
-            "columns": "Kolumny",
-            "rows": "Wiersze",
-            "paperSize": "Rozmiar papieru",
-            "customSize": "Niestandardowy",
-            "dimensions": "Wymiary",
-            "showBorder": "Pokaż obramowanie",
-            "previewScale": "Skala podglądu",
-            "skipItems": "Pomiń elementy",
-            "contentSettings": "Ustawienia zawartości",
-            "layoutSettings": "Ustawienia układu",
-            "verticalSpacing": "Pionowy odstęp",
-            "marginLeft": "Lewy margines",
-            "marginRight": "Prawy margines",
-            "marginTop": "Górny margines",
-            "marginBottom": "Dolny margines",
-            "printerMarginLeft": "Bezpieczna strefa po lewej",
-            "printerMarginRight": "Bezpieczna strefa po prawej",
-            "printerMarginTop": "Bezpieczna strefa u góry",
-            "borders": {
-                "none": "Brak",
-                "border": "Obwódka",
-                "grid": "Siatka"
-            },
-            "description": "Dostosuj poniższe ustawienia, aby uzyskać pożądany układ wydruku. Należy pamiętać, że drukarki i system operacyjny mogą stosować własne marginesy i skalowanie, więc może być konieczne wykonanie kilku prób i błędów, zanim wszystko będzie prawidłowe. Przed wydrukowaniem etykiet przetestuj je na zwykłym papierze.",
-            "horizontalSpacing": "Poziomy odstęp",
-            "printerMarginBottom": "Bezpieczna strefa u dołu"
-        },
-        "qrcode": {
-            "button": "Drukuj kody QR",
-            "title": "Drukowanie kodów QR",
-            "bedTemp": "TS: {{temp}}",
-            "extruderTemp": "TE: {{temp}}",
-            "textSize": "Rozmiar tekstu",
-            "showSpoolmanIcon": "Pokaż ikonę Spoolman",
-            "showVendor": "Producent",
-            "showContent": "Etykieta",
-            "showLotNr": "Nr. partii (LOT)",
-            "showSpoolWeight": "Waga szpuli",
-            "showTemperatures": "Temperatury",
-            "showFilamentComment": "Komentarz filamentu",
-            "showVendorComment": "Komentarz producenta",
-            "spoolWeight": "Waga szpuli: {{weight}}",
-            "lotNr": "LOT: {{lot}}",
-            "showSpoolComment": "Komentarz szpuli"
-        },
-        "spoolSelect": {
-            "title": "Wybierz szpule",
-            "description": "Wybierz szpule dla których mają być drukowane kody QR.",
-            "showArchived": "Pokaż zarchiwizowane",
-            "selectAll": "Wybierz/Odznacz wszystko",
-            "selectedTotal_one": "Wybrano {{count}} szpulę",
-            "selectedTotal_few": "Wybrano {{count}} szpule",
-            "selectedTotal_many": "Wybrano {{count}} szpul",
-            "noSpoolsSelected": "Nie wybrano żadnych szpul."
-        }
-    },
-    "scanner": {
-        "title": "Skaner kodów QR",
-        "error": {
-            "notAllowed": "Nie zezwolono na dostęp do kamery.",
-            "insecureContext": "Strona nie jest dostarczana przez HTTPS.",
-            "streamApiNotSupported": "Przeglądarka nie obsługuje API MediaStream.",
-            "notReadable": "Kamera jest niedostępna do odczytu.",
-            "notFound": "Nie znaleziono kamery.",
-            "unknown": "Wystąpił nieznany błąd. ({{error}})"
-        },
-        "description": "Zeskanuj kod QR Spoolman, aby wyświetlić szczegółowe informacje o szpuli."
-    },
-    "filament": {
-        "filament": "Filamenty",
-        "fields": {
-            "id": "ID",
-            "vendor_name": "Producent",
-            "vendor": "Producent",
-            "name": "Nazwa",
-            "material": "Materiał",
-            "price": "Cena",
-            "density": "Gęstość",
-            "diameter": "Średnica",
-            "weight": "Waga",
-            "spool_weight": "Waga szpuli",
-            "registered": "Zarejestrowano",
-            "comment": "Komentarz",
-            "settings_extruder_temp": "Temperatura ekstrudera",
-            "settings_bed_temp": "Temperatura stołu",
-            "color_hex": "Kolor",
-            "article_number": "Numer artykułu"
-        },
-        "fields_help": {
-            "material": "Np. PLA, ABS, PETG itp.",
-            "price": "Cena pełnej szpuli w walucie skonfigurowanej przez system.",
-            "spool_weight": "Waga pustej szpuli. Używana do określenia ciężaru szpuli.",
-            "article_number": "Np. EAN, UPC itp.",
-            "name": "Nazwa filamentu, aby odróżnić ten typ filamentu od innych pochodzących od tego samego producenta. Powinna zawierać np. kolor.",
-            "weight": "Waga filamentu na pełnej szpuli (waga netto). Nie powinno to obejmować wagi samej szpuli, a jedynie filamentu. Jest to zwykle napisane na opakowaniu."
-        },
-        "titles": {
-            "create": "Tworzenie filamentu",
-            "clone": "Klonowanie filamentu",
-            "edit": "Edytowanie filamentu",
-            "list": "Filamenty",
-            "show": "Pokaż filament",
-            "show_title": "[Filament #{{id}}] {{name}}"
-        },
-        "form": {
-            "filament_updated": "Ten filament został zaktualizowany przez kogoś/coś innego od czasu otwarcia tej strony. Zapisanie nadpisze te zmiany!"
-        }
+      "list": "Szpule | Spoolman",
+      "show": "#{{id}} Szpula | Spoolman",
+      "edit": "#{{id}} Edycja szpuli | Spoolman",
+      "create": "Tworzenie szpuli | Spoolman",
+      "clone": "#{{id}} Klonowanie szpuli | Spoolman"
     },
     "vendor": {
-        "vendor": "Producenci",
-        "fields": {
-            "id": "ID",
-            "name": "Nazwa",
-            "registered": "Zarejestrowano",
-            "comment": "Komentarz"
-        },
-        "titles": {
-            "create": "Tworzenie producenta",
-            "clone": "Klonowanie producenta",
-            "edit": "Edycja producenta",
-            "list": "Producenci",
-            "show": "Pokaż producenta",
-            "show_title": "[Producent #{{id}}] {{name}}"
-        },
-        "form": {
-            "vendor_updated": "Ten producent został zaktualizowany przez kogoś/coś innego od czasu otwarcia tej strony. Zapisanie spowoduje nadpisanie tych zmian!"
-        }
-    },
-    "table": {
-        "actions": "Akcje"
-    },
-    "documentTitle": {
-        "default": "Spoolman",
-        "suffix": " | Spoolman",
-        "filament": {
-            "list": "Filamenty | Spoolman",
-            "edit": "#{{id}} Edycja filamentu | Spoolman",
-            "create": "Tworzenie filamentu | Spoolman",
-            "clone": "#{{id}} Klonowanie filamentu | Spoolman",
-            "show": "#{{id}} Filament | Spoolman"
-        },
-        "spool": {
-            "list": "Szpule | Spoolman",
-            "show": "#{{id}} Szpula | Spoolman",
-            "edit": "#{{id}} Edycja szpuli | Spoolman",
-            "create": "Tworzenie szpuli | Spoolman",
-            "clone": "#{{id}} Klonowanie szpuli | Spoolman"
-        },
-        "vendor": {
-            "show": "#{{id}} Producent | Spoolman",
-            "list": "Producenci | Spoolman",
-            "edit": "#{{id}} Edycja producenta | Spoolman",
-            "create": "Tworzenie producenta | Spoolman",
-            "clone": "#{{id}} Klonowanie producenta | Spoolman"
-        }
-    },
-    "warnWhenUnsavedChanges": "Czy na pewno chcesz wyjść? Masz niezapisane zmiany."
+      "show": "#{{id}} Producent | Spoolman",
+      "list": "Producenci | Spoolman",
+      "edit": "#{{id}} Edycja producenta | Spoolman",
+      "create": "Tworzenie producenta | Spoolman",
+      "clone": "#{{id}} Klonowanie producenta | Spoolman"
+    }
+  },
+  "warnWhenUnsavedChanges": "Czy na pewno chcesz wyjść? Masz niezapisane zmiany."
 }

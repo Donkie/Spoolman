@@ -1,264 +1,265 @@
 {
-    "actions": {
-        "list": "Seznam",
-        "create": "Vytvořit",
-        "edit": "Upravit",
-        "show": "Zobrazit",
-        "clone": "Duplikovat"
+  "actions": {
+    "list": "Seznam",
+    "create": "Vytvořit",
+    "edit": "Upravit",
+    "show": "Zobrazit",
+    "clone": "Duplikovat"
+  },
+  "buttons": {
+    "create": "Vytvořit",
+    "save": "Uložit",
+    "logout": "Odhlášení",
+    "delete": "Smazat",
+    "edit": "Upravit",
+    "cancel": "Storno",
+    "confirm": "Jste si jistý?",
+    "filter": "Filtr",
+    "clear": "Přehled",
+    "refresh": "Obnovit",
+    "show": "Zobrazit",
+    "undo": "Zpět",
+    "import": "Import",
+    "clone": "Duplikovat",
+    "archive": "Archivovat",
+    "unArchive": "Zrušit archivaci",
+    "hideArchived": "Skrýt archivované",
+    "showArchived": "Zobrazit archivované",
+    "notAccessTitle": "Nemáte oprávnění k přístupu",
+    "hideColumns": "Skrýt sloupce",
+    "clearFilters": "Zrušit filtry",
+    "share": "sdílet"
+  },
+  "warnWhenUnsavedChanges": "Jste si jisti, že chcete odejít? Máte neuložené změny.",
+  "notifications": {
+    "success": "Úspěšné",
+    "error": "Chyba (status code: {{statusCode}})",
+    "undoable": "Máte {{seconds}} sekund na zrušení.",
+    "createSuccess": "Úspěšně vytvořeno {{resource}}",
+    "createError": "Při vytváření došlo k chybě {{resource}} (status code: {{statusCode}})",
+    "deleteSuccess": "Úspěšně vymazáno {{resource}}",
+    "deleteError": "Chyba při odstranění {{resource}} (status code: {{statusCode}})",
+    "editSuccess": "Úspěšně upraveno {{resource}}",
+    "editError": "Chyba při úpravě {{resource}} (status code: {{statusCode}})",
+    "importProgress": "Importování: {{processed}}/{{total}}"
+  },
+  "loading": "Načítání",
+  "version": "Verze",
+  "unknown": "Neznámý",
+  "yes": "Ano",
+  "no": "Ne",
+  "tags": {
+    "clone": "Duplikovat"
+  },
+  "dashboard": {
+    "title": "Panel"
+  },
+  "printing": {
+    "generic": {
+      "title": "Tisk",
+      "description": "Níže uvedeným nastavením dosáhnete požadovaného rozložení tisku. Mějte na paměti, že tiskárny a váš operační systém mohou použít vlastní okraje a měřítka, takže možná budete muset provést několik pokusů a omylů, než bude vše správně. Před tiskem na skutečné štítky si to vyzkoušejte na kousku běžného papíru.",
+      "helpMargin": "Okraje by měly být nastaveny tak, aby odpovídaly papíru na štítky a tiskárně, jejich změna ovlivní velikost celé mřížky.",
+      "helpPrinterMargin": "Bezpečná zóna by měla být nastavena tak, jak blízko okraje papíru může tiskárna tisknout, jejich změna neovlivní celou mřížku.",
+      "print": "Tisk",
+      "columns": "Sloupce",
+      "rows": "Řádky",
+      "paperSize": "Velikost papíru",
+      "customSize": "Vlastní",
+      "dimensions": "Rozměry",
+      "showBorder": "Zobrazit ohraničení",
+      "previewScale": "Náhled měřítka",
+      "skipItems": "Vynechat položky",
+      "contentSettings": "Nastavení obsahu",
+      "layoutSettings": "Nastavení rozvržení",
+      "horizontalSpacing": "Vodorovná rozteč",
+      "verticalSpacing": "Svislá rozteč",
+      "marginLeft": "Levý okraj",
+      "marginRight": "Pravý okraj",
+      "marginTop": "Horní okraj",
+      "marginBottom": "Dolní okraj",
+      "printerMarginLeft": "Okraj tiskárny vlevo",
+      "printerMarginRight": "Okraj tiskárny vpravo",
+      "printerMarginTop": "Okraj tiskárny horní",
+      "printerMarginBottom": "Okraj tiskárny dolní",
+      "borders": {
+        "none": "Žádný",
+        "border": "Ohraničení",
+        "grid": "Mřížka"
+      }
     },
-    "buttons": {
-        "create": "Vytvořit",
-        "save": "Uložit",
-        "logout": "Odhlášení",
-        "delete": "Smazat",
-        "edit": "Upravit",
-        "cancel": "Storno",
-        "confirm": "Jste si jistý?",
-        "filter": "Filtr",
-        "clear": "Přehled",
-        "refresh": "Obnovit",
-        "show": "Zobrazit",
-        "undo": "Zpět",
-        "import": "Import",
-        "clone": "Duplikovat",
-        "archive": "Archivovat",
-        "unArchive": "Zrušit archivaci",
-        "hideArchived": "Skrýt archivované",
-        "showArchived": "Zobrazit archivované",
-        "notAccessTitle": "Nemáte oprávnění k přístupu",
-        "hideColumns": "Skrýt sloupce",
-        "clearFilters": "Zrušit filtry"
+    "qrcode": {
+      "button": "Tisk QR kódů",
+      "title": "Tisk QR kódů",
+      "spoolWeight": "Hmotnost cívky: {{weight}}",
+      "lotNr": "Číslo šarže: {{lot}}",
+      "bedTemp": "BT: {{temp}}",
+      "extruderTemp": "ET: {{temp}}",
+      "textSize": "Velikost textu obsahu",
+      "showSpoolmanIcon": "Zobrazit ikonu Spoolman",
+      "showVendor": "Výrobce",
+      "showContent": "Tisk štítku",
+      "showLotNr": "Číslo šarže",
+      "showSpoolWeight": "Hmotnost cívky",
+      "showTemperatures": "Teploty",
+      "showSpoolComment": "Poznámka k cívce",
+      "showFilamentComment": "Poznámka k filamentu",
+      "showVendorComment": "Poznámka k výrobci"
     },
-    "warnWhenUnsavedChanges": "Jste si jisti, že chcete odejít? Máte neuložené změny.",
-    "notifications": {
-        "success": "Úspěšné",
-        "error": "Chyba (status code: {{statusCode}})",
-        "undoable": "Máte {{seconds}} sekund na zrušení.",
-        "createSuccess": "Úspěšně vytvořeno {{resource}}",
-        "createError": "Při vytváření došlo k chybě {{resource}} (status code: {{statusCode}})",
-        "deleteSuccess": "Úspěšně vymazáno {{resource}}",
-        "deleteError": "Chyba při odstranění {{resource}} (status code: {{statusCode}})",
-        "editSuccess": "Úspěšně upraveno {{resource}}",
-        "editError": "Chyba při úpravě {{resource}} (status code: {{statusCode}})",
-        "importProgress": "Importování: {{processed}}/{{total}}"
+    "spoolSelect": {
+      "title": "Vybrat cívky",
+      "description": "Vyberte cívky pro tisk QR kódů.",
+      "showArchived": "Zobrazit archivované",
+      "noSpoolsSelected": "Nevybrali jste žádné cívky.",
+      "selectAll": "Vybrat/odebrat vše",
+      "selectedTotal_one": "{{count}} vybraná cívka",
+      "selectedTotal_few": "{{count}} vybraných cívek",
+      "selectedTotal_other": "{{count}} vybrané cívky"
+    }
+  },
+  "scanner": {
+    "title": "Skener QR kódu",
+    "description": "Naskenováním QR kódu Spoolman zobrazíte podrobnosti o cívce.",
+    "error": {
+      "notAllowed": "Nemáte povolen přístup ke kameře.",
+      "insecureContext": "Stránka se nezobrazuje přes protokol HTTPS.",
+      "streamApiNotSupported": "Prohlížeč nepodporuje MediaStream API.",
+      "notReadable": "Kamera není čitelná.",
+      "notFound": "Nebyla nalezena žádná kamera.",
+      "unknown": "Došlo k neznámé chybě. ({{error}})"
+    }
+  },
+  "spool": {
+    "spool": "Cívky",
+    "fields": {
+      "id": "ID",
+      "filament_name": "Filament",
+      "filament": "Filament",
+      "material": "Materiál",
+      "weight_to_use": "Hmotnost",
+      "used_weight": "Použitá hmotnost",
+      "remaining_weight": "Zbývající hmotnost",
+      "measured_weight": "Naměřená hmotnost",
+      "used_length": "Použitá délka",
+      "remaining_length": "Zbývající délka",
+      "location": "Umístění",
+      "lot_nr": "Číslo umístění",
+      "first_used": "První použití",
+      "last_used": "Naposledy použitá",
+      "registered": "Registrováno",
+      "comment": "Komentář",
+      "archived": "Archivováno"
     },
-    "loading": "Načítání",
-    "version": "Verze",
-    "unknown": "Neznámý",
-    "yes": "Ano",
-    "no": "Ne",
-    "tags": {
-        "clone": "Duplikovat"
+    "fields_help": {
+      "weight_to_use": "Vyberte, jakou hodnotu hmotnosti chcete zadat. Naměřená hmotnost je k dispozici pouze v případě, že je pro vybraný filament nastavena hmotnost cívky.",
+      "used_weight": "Kolik filamntu bylo z cívky spotřebováno. Na nové cívce by mělo být použito 0 g.",
+      "remaining_weight": "Kolik filamentu zbývá na cívce. U nové cívky by to mělo odpovídat hmotnosti filamentu na cívce.",
+      "measured_weight": "Jaká je hmotnost filamentu a cívky.",
+      "location": "Kde se cívka nachází, pokud máte více míst, kde cívky skladujete.",
+      "lot_nr": "Číslo šarže výrobce. Lze použít k zajištění jednotné barvy tisku v případě použití více cívek."
     },
-    "dashboard": {
-        "title": "Panel"
+    "titles": {
+      "create": "Vytvořit cívku",
+      "clone": "Duplovat cívku",
+      "edit": "Upravit cívku",
+      "list": "Cívky",
+      "show": "Zobrazit cívku",
+      "archive": "Archivní cívka",
+      "show_title": "[Cívka #{{id}}] {{name}}"
     },
-    "printing": {
-        "generic": {
-            "title": "Tisk",
-            "description": "Níže uvedeným nastavením dosáhnete požadovaného rozložení tisku. Mějte na paměti, že tiskárny a váš operační systém mohou použít vlastní okraje a měřítka, takže možná budete muset provést několik pokusů a omylů, než bude vše správně. Před tiskem na skutečné štítky si to vyzkoušejte na kousku běžného papíru.",
-            "helpMargin": "Okraje by měly být nastaveny tak, aby odpovídaly papíru na štítky a tiskárně, jejich změna ovlivní velikost celé mřížky.",
-            "helpPrinterMargin": "Bezpečná zóna by měla být nastavena tak, jak blízko okraje papíru může tiskárna tisknout, jejich změna neovlivní celou mřížku.",
-            "print": "Tisk",
-            "columns": "Sloupce",
-            "rows": "Řádky",
-            "paperSize": "Velikost papíru",
-            "customSize": "Vlastní",
-            "dimensions": "Rozměry",
-            "showBorder": "Zobrazit ohraničení",
-            "previewScale": "Náhled měřítka",
-            "skipItems": "Vynechat položky",
-            "contentSettings": "Nastavení obsahu",
-            "layoutSettings": "Nastavení rozvržení",
-            "horizontalSpacing": "Vodorovná rozteč",
-            "verticalSpacing": "Svislá rozteč",
-            "marginLeft": "Levý okraj",
-            "marginRight": "Pravý okraj",
-            "marginTop": "Horní okraj",
-            "marginBottom": "Dolní okraj",
-            "printerMarginLeft": "Okraj tiskárny vlevo",
-            "printerMarginRight": "Okraj tiskárny vpravo",
-            "printerMarginTop": "Okraj tiskárny horní",
-            "printerMarginBottom": "Okraj tiskárny dolní",
-            "borders": {
-                "none": "Žádný",
-                "border": "Ohraničení",
-                "grid": "Mřížka"
-            }
-        },
-        "qrcode": {
-            "button": "Tisk QR kódů",
-            "title": "Tisk QR kódů",
-            "spoolWeight": "Hmotnost cívky: {{weight}}",
-            "lotNr": "Číslo šarže: {{lot}}",
-            "bedTemp": "BT: {{temp}}",
-            "extruderTemp": "ET: {{temp}}",
-            "textSize": "Velikost textu obsahu",
-            "showSpoolmanIcon": "Zobrazit ikonu Spoolman",
-            "showVendor": "Výrobce",
-            "showContent": "Tisk štítku",
-            "showLotNr": "Číslo šarže",
-            "showSpoolWeight": "Hmotnost cívky",
-            "showTemperatures": "Teploty",
-            "showSpoolComment": "Poznámka k cívce",
-            "showFilamentComment": "Poznámka k filamentu",
-            "showVendorComment": "Poznámka k výrobci"
-        },
-        "spoolSelect": {
-            "title": "Vybrat cívky",
-            "description": "Vyberte cívky pro tisk QR kódů.",
-            "showArchived": "Zobrazit archivované",
-            "noSpoolsSelected": "Nevybrali jste žádné cívky.",
-            "selectAll": "Vybrat/odebrat vše",
-            "selectedTotal_one": "{{count}} vybraná cívka",
-            "selectedTotal_few": "{{count}} vybraných cívek",
-            "selectedTotal_other": "{{count}} vybrané cívky"
-        }
+    "messages": {
+      "archive": "Opravdu chcete tuto cívku archivovat?"
     },
-    "scanner": {
-        "title": "Skener QR kódu",
-        "description": "Naskenováním QR kódu Spoolman zobrazíte podrobnosti o cívce.",
-        "error": {
-            "notAllowed": "Nemáte povolen přístup ke kameře.",
-            "insecureContext": "Stránka se nezobrazuje přes protokol HTTPS.",
-            "streamApiNotSupported": "Prohlížeč nepodporuje MediaStream API.",
-            "notReadable": "Kamera není čitelná.",
-            "notFound": "Nebyla nalezena žádná kamera.",
-            "unknown": "Došlo k neznámé chybě. ({{error}})"
-        }
+    "form": {
+      "new_location_prompt": "Zadejte nové umístění",
+      "spool_updated": "Od otevření této stránky byla tato cívka někým/něčím aktualizována. Uložením se tyto změny přepíší!"
+    }
+  },
+  "filament": {
+    "filament": "Filamenty",
+    "fields": {
+      "id": "Id",
+      "vendor_name": "Výrobce",
+      "vendor": "Výrobce",
+      "name": "Název",
+      "material": "Materiál",
+      "price": "Cena",
+      "density": "Hustota",
+      "diameter": "Průměr",
+      "weight": "Váha",
+      "spool_weight": "Hmotnost cívky",
+      "article_number": "Číslo výrobku",
+      "registered": "Registrováno",
+      "comment": "Komentář",
+      "settings_extruder_temp": "Teplota extruderu",
+      "settings_bed_temp": "Teplota podložky",
+      "color_hex": "Barva"
+    },
+    "fields_help": {
+      "name": "Název filamentu, aby se tento typ filamentu odlišil od ostatních filamentů od stejného dodavatele. Měl by obsahovat například barvu.",
+      "material": "Např. PLA, ABS, ASA, PETG, atd.",
+      "price": "Cena celé cívky v měně nastavené v systému.",
+      "weight": "Hmotnost plného cívky filamentu (čistá hmotnost). Tato hmotnost by neměla zahrnovat hmotnost samotné cívky, ale pouze filamentu. Obvykle se uvádí na obalu.",
+      "spool_weight": "Hmotnost prázdné cívky. Slouží k určení naměřené hmotnosti cívky.",
+      "article_number": "Např. EAN, UPC, atd."
+    },
+    "titles": {
+      "create": "Vytvořit filament",
+      "clone": "Duplikovat filament",
+      "edit": "Upravit filament",
+      "list": "Filamenty",
+      "show": "Zobrazit filament",
+      "show_title": "[Filament #{{id}}] {{name}}"
+    },
+    "form": {
+      "filament_updated": "Toto vlákno bylo od doby, kdy jste otevřeli tuto stránku, někým/něčím aktualizováno. Uložením se tyto změny přepíší!"
+    }
+  },
+  "vendor": {
+    "vendor": "Výrobci",
+    "fields": {
+      "id": "Id",
+      "name": "Název",
+      "registered": "Registrováno",
+      "comment": "Komentář"
+    },
+    "titles": {
+      "create": "Vytvořit výrobce",
+      "clone": "Duplikovat výrobce",
+      "edit": "Upravit výrobce",
+      "list": "Výrobci",
+      "show": "Zobrazit výrobce",
+      "show_title": "[Výrobce #{{id}}] {{name}}"
+    },
+    "form": {
+      "vendor_updated": "Od otevření této stránky byl tento prodejce někým/něčím aktualizován. Uložením se tyto změny přepíší!"
+    }
+  },
+  "table": {
+    "actions": "Akce"
+  },
+  "documentTitle": {
+    "default": "Spoolman",
+    "suffix": " | Spoolman",
+    "filament": {
+      "list": "Filamenty | Spoolman",
+      "show": "#{{id}} Zobrazit Filament | Spoolman",
+      "edit": "#{{id}} Upravit Filament | Spoolman",
+      "create": "Vytvořit Filament | Spoolman",
+      "clone": "#{{id}} Duplikovat Filament | Spoolman"
     },
     "spool": {
-        "spool": "Cívky",
-        "fields": {
-            "id": "ID",
-            "filament_name": "Filament",
-            "filament": "Filament",
-            "material": "Materiál",
-            "weight_to_use": "Hmotnost",
-            "used_weight": "Použitá hmotnost",
-            "remaining_weight": "Zbývající hmotnost",
-            "measured_weight": "Naměřená hmotnost",
-            "used_length": "Použitá délka",
-            "remaining_length": "Zbývající délka",
-            "location": "Umístění",
-            "lot_nr": "Číslo umístění",
-            "first_used": "První použití",
-            "last_used": "Naposledy použitá",
-            "registered": "Registrováno",
-            "comment": "Komentář",
-            "archived": "Archivováno"
-        },
-        "fields_help": {
-            "weight_to_use": "Vyberte, jakou hodnotu hmotnosti chcete zadat. Naměřená hmotnost je k dispozici pouze v případě, že je pro vybraný filament nastavena hmotnost cívky.",
-            "used_weight": "Kolik filamntu bylo z cívky spotřebováno. Na nové cívce by mělo být použito 0 g.",
-            "remaining_weight": "Kolik filamentu zbývá na cívce. U nové cívky by to mělo odpovídat hmotnosti filamentu na cívce.",
-            "measured_weight": "Jaká je hmotnost filamentu a cívky.",
-            "location": "Kde se cívka nachází, pokud máte více míst, kde cívky skladujete.",
-            "lot_nr": "Číslo šarže výrobce. Lze použít k zajištění jednotné barvy tisku v případě použití více cívek."
-        },
-        "titles": {
-            "create": "Vytvořit cívku",
-            "clone": "Duplovat cívku",
-            "edit": "Upravit cívku",
-            "list": "Cívky",
-            "show": "Zobrazit cívku",
-            "archive": "Archivní cívka",
-            "show_title": "[Cívka #{{id}}] {{name}}"
-        },
-        "messages": {
-            "archive": "Opravdu chcete tuto cívku archivovat?"
-        },
-        "form": {
-            "new_location_prompt": "Zadejte nové umístění",
-            "spool_updated": "Od otevření této stránky byla tato cívka někým/něčím aktualizována. Uložením se tyto změny přepíší!"
-        }
-    },
-    "filament": {
-        "filament": "Filamenty",
-        "fields": {
-            "id": "Id",
-            "vendor_name": "Výrobce",
-            "vendor": "Výrobce",
-            "name": "Název",
-            "material": "Materiál",
-            "price": "Cena",
-            "density": "Hustota",
-            "diameter": "Průměr",
-            "weight": "Váha",
-            "spool_weight": "Hmotnost cívky",
-            "article_number": "Číslo výrobku",
-            "registered": "Registrováno",
-            "comment": "Komentář",
-            "settings_extruder_temp": "Teplota extruderu",
-            "settings_bed_temp": "Teplota podložky",
-            "color_hex": "Barva"
-        },
-        "fields_help": {
-            "name": "Název filamentu, aby se tento typ filamentu odlišil od ostatních filamentů od stejného dodavatele. Měl by obsahovat například barvu.",
-            "material": "Např. PLA, ABS, ASA, PETG, atd.",
-            "price": "Cena celé cívky v měně nastavené v systému.",
-            "weight": "Hmotnost plného cívky filamentu (čistá hmotnost). Tato hmotnost by neměla zahrnovat hmotnost samotné cívky, ale pouze filamentu. Obvykle se uvádí na obalu.",
-            "spool_weight": "Hmotnost prázdné cívky. Slouží k určení naměřené hmotnosti cívky.",
-            "article_number": "Např. EAN, UPC, atd."
-        },
-        "titles": {
-            "create": "Vytvořit filament",
-            "clone": "Duplikovat filament",
-            "edit": "Upravit filament",
-            "list": "Filamenty",
-            "show": "Zobrazit filament",
-            "show_title": "[Filament #{{id}}] {{name}}"
-        },
-        "form": {
-            "filament_updated": "Toto vlákno bylo od doby, kdy jste otevřeli tuto stránku, někým/něčím aktualizováno. Uložením se tyto změny přepíší!"
-        }
+      "list": "Cívky | Spoolman",
+      "show": "#{{id}} Zobrazit cívku | Spoolman",
+      "edit": "#{{id}} Upravit cívku | Spoolman",
+      "create": "Vytvořit cívku | Spoolman",
+      "clone": "#{{id}} Duplikovat cívku | Spoolman"
     },
     "vendor": {
-        "vendor": "Výrobci",
-        "fields": {
-            "id": "Id",
-            "name": "Název",
-            "registered": "Registrováno",
-            "comment": "Komentář"
-        },
-        "titles": {
-            "create": "Vytvořit výrobce",
-            "clone": "Duplikovat výrobce",
-            "edit": "Upravit výrobce",
-            "list": "Výrobci",
-            "show": "Zobrazit výrobce",
-            "show_title": "[Výrobce #{{id}}] {{name}}"
-        },
-        "form": {
-            "vendor_updated": "Od otevření této stránky byl tento prodejce někým/něčím aktualizován. Uložením se tyto změny přepíší!"
-        }
-    },
-    "table": {
-        "actions": "Akce"
-    },
-    "documentTitle": {
-        "default": "Spoolman",
-        "suffix": " | Spoolman",
-        "filament": {
-            "list": "Filamenty | Spoolman",
-            "show": "#{{id}} Zobrazit Filament | Spoolman",
-            "edit": "#{{id}} Upravit Filament | Spoolman",
-            "create": "Vytvořit Filament | Spoolman",
-            "clone": "#{{id}} Duplikovat Filament | Spoolman"
-        },
-        "spool": {
-            "list": "Cívky | Spoolman",
-            "show": "#{{id}} Zobrazit cívku | Spoolman",
-            "edit": "#{{id}} Upravit cívku | Spoolman",
-            "create": "Vytvořit cívku | Spoolman",
-            "clone": "#{{id}} Duplikovat cívku | Spoolman"
-        },
-        "vendor": {
-            "list": "Výrobci | Spoolman",
-            "show": "#{{id}} Zobrazit výrobce | Spoolman",
-            "edit": "#{{id}} Upravit výrobce | Spoolman",
-            "create": "Vytvořit výrobce | Spoolman",
-            "clone": "#{{id}} Duplikovat výrobce | Spoolman"
-        }
+      "list": "Výrobci | Spoolman",
+      "show": "#{{id}} Zobrazit výrobce | Spoolman",
+      "edit": "#{{id}} Upravit výrobce | Spoolman",
+      "create": "Vytvořit výrobce | Spoolman",
+      "clone": "#{{id}} Duplikovat výrobce | Spoolman"
     }
+  }
 }

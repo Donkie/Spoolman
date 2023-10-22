@@ -5,8 +5,8 @@ import { Table, Space, Button, Dropdown, Modal } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { ISpool } from "./model";
-import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
-import { EditOutlined, FilterOutlined, InboxOutlined, ToTopOutlined } from "@ant-design/icons";
+import { TableState, shareSavedState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
+import { EditOutlined, FilterOutlined, InboxOutlined, ShareAltOutlined, ToTopOutlined } from "@ant-design/icons";
 import {
   DateColumn,
   FilteredQueryColumn,
@@ -221,6 +221,20 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
               {t("buttons.hideColumns")}
             </Button>
           </Dropdown>
+          <Button type="primary" icon={<ShareAltOutlined />} onClick={() => {
+            let url = shareSavedState("spoolList-v2");
+            try {
+              if (navigator.canShare()) {
+                navigator.share({ url: url });
+              } else {
+                window.location.hash = url.split("#")[1]
+              }
+            } catch (err) {
+              console.error(err);
+            }
+          }}>
+            {t("buttons.share")}
+          </Button>
           {defaultButtons}
         </>
       )}

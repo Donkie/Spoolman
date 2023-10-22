@@ -5,8 +5,8 @@ import { Table, Space, Button, Dropdown } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { IFilament } from "./model";
-import { EditOutlined, FilterOutlined } from "@ant-design/icons";
-import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
+import { EditOutlined, FilterOutlined, ShareAltOutlined } from "@ant-design/icons";
+import { TableState, shareSavedState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
 import {
   DateColumn,
   FilteredQueryColumn,
@@ -164,6 +164,20 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
               {t("buttons.hideColumns")}
             </Button>
           </Dropdown>
+          <Button type="primary" icon={<ShareAltOutlined />} onClick={() => {
+            let url = shareSavedState("filamentList-v2");
+            try {
+              if (navigator.canShare()) {
+                navigator.share({ url: url });
+              } else {
+                window.location.hash = url.split("#")[1]
+              }
+            } catch (err) {
+              console.error(err);
+            }
+          }}>
+            {t("buttons.share")}
+          </Button>
           {defaultButtons}
         </>
       )}

@@ -1,263 +1,264 @@
 {
-    "printing": {
-        "qrcode": {
-            "extruderTemp": "ET: {{temp}}",
-            "showSpoolWeight": "Tekercs súlya",
-            "showContent": "Címke nyomtatása",
-            "showVendorComment": "Gyártó megjegyzés",
-            "spoolWeight": "Orsó súlya: {{weight}}",
-            "showTemperatures": "Hőmérséklet",
-            "showVendor": "Gyártó",
-            "showSpoolComment": "Orsó Megjegyzés",
-            "textSize": "Tartalom szöveg mérete",
-            "title": "QR kód nyomtatása",
-            "showSpoolmanIcon": "Spoolman ikon megjelenítése",
-            "showLotNr": "Tételszám",
-            "bedTemp": "BT: {{temp}}",
-            "lotNr": "Tételszám: {{lot}}",
-            "showFilamentComment": "Filament Komment",
-            "button": "QR kódok nyomtatása"
-        },
-        "generic": {
-            "printerMarginBottom": "Biztonságos zóna alja",
-            "verticalSpacing": "Függőleges térköz",
-            "rows": "Sorok",
-            "borders": {
-                "none": "Semmi",
-                "grid": "Keret",
-                "border": "Szél"
-            },
-            "printerMarginTop": "Biztonságos zóna felül",
-            "customSize": "Egyéni",
-            "title": "Nyomtatás",
-            "contentSettings": "Tartalmi beállítások",
-            "marginRight": "Jobb margó",
-            "printerMarginRight": "Biztonságos zóna jobbra",
-            "helpPrinterMargin": "A biztonsági zónát úgy kell beállítani, hogy mekkora távolságban legyen a tárgyasztal szélétől, ahol a nyomtató tud nyomtatni. Ezeknek a beállításoknak a megváltoztatása nem befolyásolja az egész rácsot.",
-            "previewScale": "Előnézeti skála",
-            "helpMargin": "A margókat úgy kell beállítani, hogy illeszkedjenek a címképapírhoz és a nyomtatóhoz, azok megváltoztatása befolyásolja az egész rács méretét.",
-            "marginTop": "Felső margó",
-            "skipItems": "Elem átugrása",
-            "layoutSettings": "Elrendezés beállításai",
-            "paperSize": "Papír méret",
-            "columns": "Oszlopok",
-            "description": "A kívánt nyomtatási elrendezés eléréséhez állítsd be az alábbi beállításokat. Tartsd észben, hogy a nyomtatók és az operációs rendszer saját margókat és méretezéseket alkalmazhatnak, ezért szükséged lehet néhány próbára és hibára, mielőtt minden tökéletes lesz. Teszteld egy darab normál papíron, mielőtt az aktuális címkéken nyomtatnád.",
-            "marginBottom": "Alsó margó",
-            "horizontalSpacing": "Vízszintes távolság",
-            "marginLeft": "Bal margó",
-            "showBorder": "Szélek megjelenítése",
-            "printerMarginLeft": "Biztonságos zóna balra",
-            "dimensions": "Dimenziók",
-            "print": "Nyomtat"
-        },
-        "spoolSelect": {
-            "selectedTotal_one": "{{count}} tekercs kiválasztva",
-            "selectedTotal_other": "{{count}} db tekercs kiválasztva",
-            "description": "Válassza ki a QR-kódok nyomtatásához szükséges tekercseket.",
-            "showArchived": "Archivált megjelenítése",
-            "title": "Tekercs kiválasztása",
-            "selectAll": "Összes kijelölése/kijelölésének törlése",
-            "noSpoolsSelected": "Nem választotál ki egyetlen tekercset sem."
-        }
+  "printing": {
+    "qrcode": {
+      "extruderTemp": "ET: {{temp}}",
+      "showSpoolWeight": "Tekercs súlya",
+      "showContent": "Címke nyomtatása",
+      "showVendorComment": "Gyártó megjegyzés",
+      "spoolWeight": "Orsó súlya: {{weight}}",
+      "showTemperatures": "Hőmérséklet",
+      "showVendor": "Gyártó",
+      "showSpoolComment": "Orsó Megjegyzés",
+      "textSize": "Tartalom szöveg mérete",
+      "title": "QR kód nyomtatása",
+      "showSpoolmanIcon": "Spoolman ikon megjelenítése",
+      "showLotNr": "Tételszám",
+      "bedTemp": "BT: {{temp}}",
+      "lotNr": "Tételszám: {{lot}}",
+      "showFilamentComment": "Filament Komment",
+      "button": "QR kódok nyomtatása"
     },
-    "documentTitle": {
-        "vendor": {
-            "create": "Gyártó létrehozása | Spoolman",
-            "clone": "#{{id}} Gyártó másolása | Spoolman",
-            "edit": "#{{id}} Gyártó szerkesztése | Spoolman",
-            "list": "Gyártók | Spoolman",
-            "show": "#{{id}} Gyártó megjelenítése | Spoolman"
-        },
-        "default": "Spoolman",
-        "spool": {
-            "edit": "#{{id}} Tekercs szerkesztése | Spoolman",
-            "list": "Tekercs | Spoolman",
-            "create": "Tekercs létrehozása | Spoolman",
-            "show": "#{{id}} Tekercs megjelítése | Spoolman",
-            "clone": "#{{id}} Tekercs másolása | Spoolman"
-        },
-        "filament": {
-            "list": "Filamentek | Spoolman",
-            "show": "#{{id}} Filamentek mejelenítése | Spoolman",
-            "clone": "#{{id}} Filament másolása | Spoolman",
-            "create": "Filament létrehozása | Spoolman",
-            "edit": "#{{id}} Filament szerkesztése | Spoolman"
-        },
-        "suffix": " | Spoolman"
+    "generic": {
+      "printerMarginBottom": "Biztonságos zóna alja",
+      "verticalSpacing": "Függőleges térköz",
+      "rows": "Sorok",
+      "borders": {
+        "none": "Semmi",
+        "grid": "Keret",
+        "border": "Szél"
+      },
+      "printerMarginTop": "Biztonságos zóna felül",
+      "customSize": "Egyéni",
+      "title": "Nyomtatás",
+      "contentSettings": "Tartalmi beállítások",
+      "marginRight": "Jobb margó",
+      "printerMarginRight": "Biztonságos zóna jobbra",
+      "helpPrinterMargin": "A biztonsági zónát úgy kell beállítani, hogy mekkora távolságban legyen a tárgyasztal szélétől, ahol a nyomtató tud nyomtatni. Ezeknek a beállításoknak a megváltoztatása nem befolyásolja az egész rácsot.",
+      "previewScale": "Előnézeti skála",
+      "helpMargin": "A margókat úgy kell beállítani, hogy illeszkedjenek a címképapírhoz és a nyomtatóhoz, azok megváltoztatása befolyásolja az egész rács méretét.",
+      "marginTop": "Felső margó",
+      "skipItems": "Elem átugrása",
+      "layoutSettings": "Elrendezés beállításai",
+      "paperSize": "Papír méret",
+      "columns": "Oszlopok",
+      "description": "A kívánt nyomtatási elrendezés eléréséhez állítsd be az alábbi beállításokat. Tartsd észben, hogy a nyomtatók és az operációs rendszer saját margókat és méretezéseket alkalmazhatnak, ezért szükséged lehet néhány próbára és hibára, mielőtt minden tökéletes lesz. Teszteld egy darab normál papíron, mielőtt az aktuális címkéken nyomtatnád.",
+      "marginBottom": "Alsó margó",
+      "horizontalSpacing": "Vízszintes távolság",
+      "marginLeft": "Bal margó",
+      "showBorder": "Szélek megjelenítése",
+      "printerMarginLeft": "Biztonságos zóna balra",
+      "dimensions": "Dimenziók",
+      "print": "Nyomtat"
     },
+    "spoolSelect": {
+      "selectedTotal_one": "{{count}} tekercs kiválasztva",
+      "selectedTotal_other": "{{count}} db tekercs kiválasztva",
+      "description": "Válassza ki a QR-kódok nyomtatásához szükséges tekercseket.",
+      "showArchived": "Archivált megjelenítése",
+      "title": "Tekercs kiválasztása",
+      "selectAll": "Összes kijelölése/kijelölésének törlése",
+      "noSpoolsSelected": "Nem választotál ki egyetlen tekercset sem."
+    }
+  },
+  "documentTitle": {
+    "vendor": {
+      "create": "Gyártó létrehozása | Spoolman",
+      "clone": "#{{id}} Gyártó másolása | Spoolman",
+      "edit": "#{{id}} Gyártó szerkesztése | Spoolman",
+      "list": "Gyártók | Spoolman",
+      "show": "#{{id}} Gyártó megjelenítése | Spoolman"
+    },
+    "default": "Spoolman",
     "spool": {
-        "fields": {
-            "measured_weight": "Mért súly",
-            "last_used": "Utolsó használat",
-            "material": "Anyag",
-            "weight_to_use": "Súly",
-            "lot_nr": "Tételszám",
-            "filament_name": "Szál",
-            "comment": "Megjegyzés",
-            "filament": "Szál",
-            "location": "Hely",
-            "used_length": "Felhasznált hossz",
-            "archived": "Arhivált",
-            "remaining_length": "Fennmaradó hossz",
-            "registered": "Nyilvántartott",
-            "first_used": "Első használat",
-            "used_weight": "Felhasznált súly",
-            "id": "ID",
-            "remaining_weight": "Hátralévő súly"
-        },
-        "titles": {
-            "archive": "Arhivált tekercs",
-            "show": "Tekercs megjelenítése",
-            "edit": "Tekercs szerkesztése",
-            "create": "Tekercs létrehozása",
-            "clone": "Tekercs másolása",
-            "show_title": "[Tekercs #{{id}}] {{name}}",
-            "list": "Tekercs"
-        },
-        "fields_help": {
-            "used_weight": "Mennyi filament használódott el a tekercsről. Egy új tekercsnek 0 gramm használt mennyiséggel kell rendelkeznie.",
-            "weight_to_use": "Válassza ki, hogy milyen súlyértéket kell beírni. A mérési súly csak akkor elérhető, ha a kiválasztott filamenthez be van állítva a tekercs súlya.",
-            "measured_weight": "Mennyit nyom a filament és a tekercs együtt.",
-            "lot_nr": "Gyártói tételszám. A szín egységesség ellenőrzésére használható, ha több tekercset használsz egy nyomtatáshoz.",
-            "remaining_weight": "Mennyi filament van még a tekercsen. Egy új tekercsnél ez a tekercs súlyával kell megegyeznie.",
-            "location": "Hol található a tekercs, ha több helyen tárolod a tekercseidet."
-        },
-        "form": {
-            "new_location_prompt": "Add meg az új helyet",
-            "spool_updated": "Ez a tekercs azóta frissült valaki/valami más által, mióta megnyitottad ezt az oldalt. A mentés felül fogja írni ezeket a változásokat!"
-        },
-        "spool": "Tekercs",
-        "messages": {
-            "archive": "Biztosan archiválni szeretné ezt a tekercset?"
-        }
-    },
-    "buttons": {
-        "create": "Létrehoz",
-        "save": "Mentés",
-        "show": "Megjelenít",
-        "filter": "Szűrő",
-        "cancel": "Mégse",
-        "edit": "Szerkeszt",
-        "showArchived": "Arhiváltak megjelítése",
-        "archive": "Arhiválás",
-        "hideColumns": "Oszlopok elrejtése",
-        "confirm": "Biztos vagy benne?",
-        "delete": "Töröl",
-        "undo": "Visszavonás",
-        "import": "Importálás",
-        "logout": "Kijelentkezés",
-        "refresh": "Frissítés",
-        "notAccessTitle": "Nincs hozzáférésed",
-        "hideArchived": "Arhiváltak elrejtése",
-        "clearFilters": "Szűrők törlése",
-        "unArchive": "Arhiválás visszavonása",
-        "clone": "Másolás",
-        "clear": "Törlés"
+      "edit": "#{{id}} Tekercs szerkesztése | Spoolman",
+      "list": "Tekercs | Spoolman",
+      "create": "Tekercs létrehozása | Spoolman",
+      "show": "#{{id}} Tekercs megjelítése | Spoolman",
+      "clone": "#{{id}} Tekercs másolása | Spoolman"
     },
     "filament": {
-        "fields_help": {
-            "name": "Filament neve, hogy megkülönböztesd ezt a filament típust másoktól ugyanattól a gyártótól. Tartalmazhatja például a színét.",
-            "article_number": "Például. EAN, UPC stb.",
-            "spool_weight": "Az üres tekercs súlya. Ezt használják a tekercs mért súlyának meghatározásához.",
-            "price": "A teljes tekercs ára a konfigurált pénznemben a rendszerben.",
-            "weight": "A teljes tekercs súlya (nettó súly), amely nem tartalmazza a tekercs saját súlyát, csak a filament súlyát. Általában ez szerepel a csomagoláson.",
-            "material": "Például. PLA, ABS, PETG stb."
-        },
-        "fields": {
-            "material": "Anyag",
-            "vendor_name": "Gyártó",
-            "settings_extruder_temp": "Extruder hőmérséklet",
-            "comment": "Megjegyzés",
-            "diameter": "Átmérő",
-            "weight": "Súly",
-            "spool_weight": "Tekercs súlya",
-            "registered": "Nyilvántartott",
-            "name": "Név",
-            "price": "Ár",
-            "settings_bed_temp": "Tárgyasztal hőmérséklet",
-            "vendor": "Gyártó",
-            "density": "Sűrűség",
-            "id": "ID",
-            "color_hex": "Szín",
-            "article_number": "Cikkszám"
-        },
-        "titles": {
-            "clone": "Filament másolása",
-            "show_title": "[Filament #{{id}}] {{name}}",
-            "show": "Filament megjelítése",
-            "create": "Filament létrehozása",
-            "edit": "Filament szerkesztése",
-            "list": "Filamentek"
-        },
-        "filament": "Filamentek",
-        "form": {
-            "filament_updated": "Ez a szál anyag azóta frissült valaki/valami más által, mióta megnyitottad ezt az oldalt. A mentés felül fogja írni ezeket a változásokat!"
-        }
+      "list": "Filamentek | Spoolman",
+      "show": "#{{id}} Filamentek mejelenítése | Spoolman",
+      "clone": "#{{id}} Filament másolása | Spoolman",
+      "create": "Filament létrehozása | Spoolman",
+      "edit": "#{{id}} Filament szerkesztése | Spoolman"
     },
-    "actions": {
-        "create": "Létrehoz",
-        "clone": "Másol",
-        "list": "Lista",
-        "show": "Megjelenít",
-        "edit": "Szerkeszt"
+    "suffix": " | Spoolman"
+  },
+  "spool": {
+    "fields": {
+      "measured_weight": "Mért súly",
+      "last_used": "Utolsó használat",
+      "material": "Anyag",
+      "weight_to_use": "Súly",
+      "lot_nr": "Tételszám",
+      "filament_name": "Szál",
+      "comment": "Megjegyzés",
+      "filament": "Szál",
+      "location": "Hely",
+      "used_length": "Felhasznált hossz",
+      "archived": "Arhivált",
+      "remaining_length": "Fennmaradó hossz",
+      "registered": "Nyilvántartott",
+      "first_used": "Első használat",
+      "used_weight": "Felhasznált súly",
+      "id": "ID",
+      "remaining_weight": "Hátralévő súly"
     },
-    "vendor": {
-        "titles": {
-            "show_title": "[Gyártó #{{id}}] {{name}}",
-            "show": "Gyártó megjelenítése",
-            "edit": "Gyártó szerkesztése",
-            "clone": "Gyártó másolása",
-            "create": "Gyártó létrehozása",
-            "list": "Gyártók"
-        },
-        "fields": {
-            "registered": "Nyilvántartott",
-            "comment": "Megjegyzés",
-            "name": "Név",
-            "id": "Id"
-        },
-        "vendor": "Gyártók",
-        "form": {
-            "vendor_updated": "Ez a szállító azóta frissült valaki/valami más által, mióta megnyitottad ezt az oldalt. A mentés felül fogja írni ezeket a változásokat!"
-        }
+    "titles": {
+      "archive": "Arhivált tekercs",
+      "show": "Tekercs megjelenítése",
+      "edit": "Tekercs szerkesztése",
+      "create": "Tekercs létrehozása",
+      "clone": "Tekercs másolása",
+      "show_title": "[Tekercs #{{id}}] {{name}}",
+      "list": "Tekercs"
     },
-    "scanner": {
-        "title": "QR kód beolvasása",
-        "error": {
-            "insecureContext": "Az oldal kiszolgálása nem HTTPS-en keresztül történik.",
-            "notReadable": "A kamera nem használható.",
-            "notAllowed": "Nincs jováhagyva a számodra a kamera használata.",
-            "unknown": "Ismeretlen hiba történt. ({{error}})",
-            "notFound": "Nem található kamera.",
-            "streamApiNotSupported": "A böngésző nem támogatja a MediaStream API-t."
-        },
-        "description": "Olvass be egy Spoolman QR kódot a tekercsről szóló részletek megtekintéséhez."
+    "fields_help": {
+      "used_weight": "Mennyi filament használódott el a tekercsről. Egy új tekercsnek 0 gramm használt mennyiséggel kell rendelkeznie.",
+      "weight_to_use": "Válassza ki, hogy milyen súlyértéket kell beírni. A mérési súly csak akkor elérhető, ha a kiválasztott filamenthez be van állítva a tekercs súlya.",
+      "measured_weight": "Mennyit nyom a filament és a tekercs együtt.",
+      "lot_nr": "Gyártói tételszám. A szín egységesség ellenőrzésére használható, ha több tekercset használsz egy nyomtatáshoz.",
+      "remaining_weight": "Mennyi filament van még a tekercsen. Egy új tekercsnél ez a tekercs súlyával kell megegyeznie.",
+      "location": "Hol található a tekercs, ha több helyen tárolod a tekercseidet."
     },
-    "notifications": {
-        "deleteSuccess": "Sikeresen törölve {{resource}}",
-        "error": "Hiba (Hibakód: {{statusCode}})",
-        "editError": "Hiba a {{resource}} szerkesztésekor (hibakód: {{statusCode}})",
-        "undoable": "{{seconds}} másodperced van visszavonásra.",
-        "importProgress": "Importálás: {{processed}}/{{total}}",
-        "createError": "Hiba történt a(z) {{resource}} létrehozásakor (hibakód: {{statusCode}})",
-        "success": "Sikeres",
-        "editSuccess": "Sikeresen módosítva {{resource}}",
-        "deleteError": "Hiba a(z) {{resource}} törlésekor (hibakód: {{statusCode}})",
-        "createSuccess": "Sikeresen létrehozva {{resource}}"
+    "form": {
+      "new_location_prompt": "Add meg az új helyet",
+      "spool_updated": "Ez a tekercs azóta frissült valaki/valami más által, mióta megnyitottad ezt az oldalt. A mentés felül fogja írni ezeket a változásokat!"
     },
-    "no": "Nem",
-    "unknown": "Ismeretlen",
-    "yes": "Igen",
-    "version": "Verzió",
-    "table": {
-        "actions": "Műveletek"
-    },
-    "warnWhenUnsavedChanges": "Biztos vagy benne, hogy kilépsz? Nem mentet változások vannak.",
-    "loading": "Betöltés",
-    "dashboard": {
-        "title": "Irányítópult"
-    },
-    "tags": {
-        "clone": "Másolás"
+    "spool": "Tekercs",
+    "messages": {
+      "archive": "Biztosan archiválni szeretné ezt a tekercset?"
     }
+  },
+  "buttons": {
+    "create": "Létrehoz",
+    "save": "Mentés",
+    "show": "Megjelenít",
+    "filter": "Szűrő",
+    "cancel": "Mégse",
+    "edit": "Szerkeszt",
+    "showArchived": "Arhiváltak megjelítése",
+    "archive": "Arhiválás",
+    "hideColumns": "Oszlopok elrejtése",
+    "confirm": "Biztos vagy benne?",
+    "delete": "Töröl",
+    "undo": "Visszavonás",
+    "import": "Importálás",
+    "logout": "Kijelentkezés",
+    "refresh": "Frissítés",
+    "notAccessTitle": "Nincs hozzáférésed",
+    "hideArchived": "Arhiváltak elrejtése",
+    "clearFilters": "Szűrők törlése",
+    "unArchive": "Arhiválás visszavonása",
+    "clone": "Másolás",
+    "clear": "Törlés",
+    "share": "Ossza meg"
+  },
+  "filament": {
+    "fields_help": {
+      "name": "Filament neve, hogy megkülönböztesd ezt a filament típust másoktól ugyanattól a gyártótól. Tartalmazhatja például a színét.",
+      "article_number": "Például. EAN, UPC stb.",
+      "spool_weight": "Az üres tekercs súlya. Ezt használják a tekercs mért súlyának meghatározásához.",
+      "price": "A teljes tekercs ára a konfigurált pénznemben a rendszerben.",
+      "weight": "A teljes tekercs súlya (nettó súly), amely nem tartalmazza a tekercs saját súlyát, csak a filament súlyát. Általában ez szerepel a csomagoláson.",
+      "material": "Például. PLA, ABS, PETG stb."
+    },
+    "fields": {
+      "material": "Anyag",
+      "vendor_name": "Gyártó",
+      "settings_extruder_temp": "Extruder hőmérséklet",
+      "comment": "Megjegyzés",
+      "diameter": "Átmérő",
+      "weight": "Súly",
+      "spool_weight": "Tekercs súlya",
+      "registered": "Nyilvántartott",
+      "name": "Név",
+      "price": "Ár",
+      "settings_bed_temp": "Tárgyasztal hőmérséklet",
+      "vendor": "Gyártó",
+      "density": "Sűrűség",
+      "id": "ID",
+      "color_hex": "Szín",
+      "article_number": "Cikkszám"
+    },
+    "titles": {
+      "clone": "Filament másolása",
+      "show_title": "[Filament #{{id}}] {{name}}",
+      "show": "Filament megjelítése",
+      "create": "Filament létrehozása",
+      "edit": "Filament szerkesztése",
+      "list": "Filamentek"
+    },
+    "filament": "Filamentek",
+    "form": {
+      "filament_updated": "Ez a szál anyag azóta frissült valaki/valami más által, mióta megnyitottad ezt az oldalt. A mentés felül fogja írni ezeket a változásokat!"
+    }
+  },
+  "actions": {
+    "create": "Létrehoz",
+    "clone": "Másol",
+    "list": "Lista",
+    "show": "Megjelenít",
+    "edit": "Szerkeszt"
+  },
+  "vendor": {
+    "titles": {
+      "show_title": "[Gyártó #{{id}}] {{name}}",
+      "show": "Gyártó megjelenítése",
+      "edit": "Gyártó szerkesztése",
+      "clone": "Gyártó másolása",
+      "create": "Gyártó létrehozása",
+      "list": "Gyártók"
+    },
+    "fields": {
+      "registered": "Nyilvántartott",
+      "comment": "Megjegyzés",
+      "name": "Név",
+      "id": "Id"
+    },
+    "vendor": "Gyártók",
+    "form": {
+      "vendor_updated": "Ez a szállító azóta frissült valaki/valami más által, mióta megnyitottad ezt az oldalt. A mentés felül fogja írni ezeket a változásokat!"
+    }
+  },
+  "scanner": {
+    "title": "QR kód beolvasása",
+    "error": {
+      "insecureContext": "Az oldal kiszolgálása nem HTTPS-en keresztül történik.",
+      "notReadable": "A kamera nem használható.",
+      "notAllowed": "Nincs jováhagyva a számodra a kamera használata.",
+      "unknown": "Ismeretlen hiba történt. ({{error}})",
+      "notFound": "Nem található kamera.",
+      "streamApiNotSupported": "A böngésző nem támogatja a MediaStream API-t."
+    },
+    "description": "Olvass be egy Spoolman QR kódot a tekercsről szóló részletek megtekintéséhez."
+  },
+  "notifications": {
+    "deleteSuccess": "Sikeresen törölve {{resource}}",
+    "error": "Hiba (Hibakód: {{statusCode}})",
+    "editError": "Hiba a {{resource}} szerkesztésekor (hibakód: {{statusCode}})",
+    "undoable": "{{seconds}} másodperced van visszavonásra.",
+    "importProgress": "Importálás: {{processed}}/{{total}}",
+    "createError": "Hiba történt a(z) {{resource}} létrehozásakor (hibakód: {{statusCode}})",
+    "success": "Sikeres",
+    "editSuccess": "Sikeresen módosítva {{resource}}",
+    "deleteError": "Hiba a(z) {{resource}} törlésekor (hibakód: {{statusCode}})",
+    "createSuccess": "Sikeresen létrehozva {{resource}}"
+  },
+  "no": "Nem",
+  "unknown": "Ismeretlen",
+  "yes": "Igen",
+  "version": "Verzió",
+  "table": {
+    "actions": "Műveletek"
+  },
+  "warnWhenUnsavedChanges": "Biztos vagy benne, hogy kilépsz? Nem mentet változások vannak.",
+  "loading": "Betöltés",
+  "dashboard": {
+    "title": "Irányítópult"
+  },
+  "tags": {
+    "clone": "Másolás"
+  }
 }

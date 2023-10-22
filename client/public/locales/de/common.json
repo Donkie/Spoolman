@@ -1,246 +1,247 @@
 {
-    "actions": {
-        "list": "Auflisten",
-        "create": "Erstellen",
-        "edit": "Bearbeiten",
-        "show": "Anzeigen",
-        "clone": "Duplizieren"
+  "actions": {
+    "list": "Auflisten",
+    "create": "Erstellen",
+    "edit": "Bearbeiten",
+    "show": "Anzeigen",
+    "clone": "Duplizieren"
+  },
+  "buttons": {
+    "create": "Erstellen",
+    "save": "Speichern",
+    "logout": "Abmelden",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "cancel": "Abbrechen",
+    "confirm": "Sicher?",
+    "filter": "Filter",
+    "clear": "Löschen",
+    "refresh": "Aktualisieren",
+    "show": "Anzeigen",
+    "undo": "Rückgängig",
+    "import": "Importieren",
+    "clone": "Duplizieren",
+    "notAccessTitle": "Keine Berechtigung, um hierauf zuzugreifen",
+    "hideColumns": "Spalten anpassen",
+    "clearFilters": "Filter leeren",
+    "share": "Teilen"
+  },
+  "warnWhenUnsavedChanges": "Sicher? Nicht gespeicherte Änderungen gehen verloren!",
+  "notifications": {
+    "success": "Erfolg",
+    "error": "Fehler (status code: {{statusCode}})",
+    "undoable": "Noch {{seconds}} Sekunden um die Aktion rückgängig zu machen",
+    "createSuccess": "{{resource}} erfolgreich erstellt.",
+    "createError": "Fehler beim Erstellen {{resource}} (status code: {{statusCode}})",
+    "deleteSuccess": "{{resource}} erfolgreich gelöscht.",
+    "deleteError": "Fehler beim Löschen {{resource}} (status code: {{statusCode}})",
+    "editSuccess": "{{resource}} erfolgreich bearbeitet.",
+    "editError": "Fehler beim Bearbeiten {{resource}} (status code: {{statusCode}})",
+    "importProgress": "{{processed}}/{{total}} importiert"
+  },
+  "loading": "Laden",
+  "version": "Version",
+  "unknown": "Unbekannt",
+  "yes": "Ja",
+  "no": "Nein",
+  "tags": {
+    "clone": "Duplizieren"
+  },
+  "dashboard": {
+    "title": "Dashboard"
+  },
+  "printing": {
+    "generic": {
+      "title": "Drucken",
+      "description": "Einstellungen unten anpassen, um das gewünschte Drucklayout zu erstellen. Der Drucker oder das Betriebssystem fügen möglichweise eigene Abstände und Skalierungen hinzu. Eventuell muss ein wenig experimentiert werden, bevor alles korrekt funktioniert. Auf normalem Papier testen, bevor auf Label-Papier gedruckt wird.",
+      "helpMargin": "Abstände sollten so konfiguriert werden, dass sie zum Papier und Drucker passen. Änderungen beeinflussen die Größe des gesamten Gitters.",
+      "helpPrinterMargin": "Der Sicherheitsabstand sollte so eingestellt werden, wie dicht der Drucker am Rand des Papiers drucken kann. Änderungen beeinflussen nicht die Größe des Gitters.",
+      "print": "Drucken",
+      "columns": "Spalten",
+      "rows": "Reihen",
+      "paperSize": "Papiergröße",
+      "customSize": "Benutzerdefiniert",
+      "dimensions": "Dimensionen",
+      "showBorder": "Rahmen anzeigen",
+      "previewScale": "Vorschau-Skalierung",
+      "skipItems": "Elemente überspringen",
+      "contentSettings": "Einstellungen: Inhalt",
+      "layoutSettings": "Einstellungen: Layout",
+      "horizontalSpacing": "Horizontaler Abstand",
+      "verticalSpacing": "Vertikaler Abstand",
+      "marginLeft": "Abstand Links",
+      "marginRight": "Abstand Rechts",
+      "marginTop": "Abstand Oben",
+      "marginBottom": "Abstand Unten",
+      "printerMarginLeft": "Sicherheitsabstand Links",
+      "printerMarginRight": "Sicherheitsabstand Rechts",
+      "printerMarginTop": "Sicherheitsabstand Oben",
+      "printerMarginBottom": "Sicherheitsabstand Unten",
+      "borders": {
+        "none": "Keine",
+        "border": "Rahmen",
+        "grid": "Gitter"
+      }
     },
-    "buttons": {
-        "create": "Erstellen",
-        "save": "Speichern",
-        "logout": "Abmelden",
-        "delete": "Löschen",
-        "edit": "Bearbeiten",
-        "cancel": "Abbrechen",
-        "confirm": "Sicher?",
-        "filter": "Filter",
-        "clear": "Löschen",
-        "refresh": "Aktualisieren",
-        "show": "Anzeigen",
-        "undo": "Rückgängig",
-        "import": "Importieren",
-        "clone": "Duplizieren",
-        "notAccessTitle": "Keine Berechtigung, um hierauf zuzugreifen",
-        "hideColumns": "Spalten anpassen",
-        "clearFilters": "Filter leeren"
+    "qrcode": {
+      "button": "QR-Codes drucken",
+      "title": "QR Codes Drucken",
+      "spoolWeight": "Gewicht Spule: {{weight}}",
+      "lotNr": "Ch. Nr: {{lot}}",
+      "bedTemp": "BT: {{temp}}",
+      "extruderTemp": "DT: {{temp}}",
+      "textSize": "Textgröße Label",
+      "showSpoolmanIcon": "Spoolman Icon anzeigen",
+      "showVendor": "Hersteller",
+      "showContent": "Label drucken",
+      "showLotNr": "Chargennummer",
+      "showSpoolWeight": "Gewicht Spule",
+      "showTemperatures": "Temperaturen",
+      "showSpoolComment": "Kommentar: Spule",
+      "showFilamentComment": "Kommentar: Filament",
+      "showVendorComment": "Kommentar: Hersteller"
     },
-    "warnWhenUnsavedChanges": "Sicher? Nicht gespeicherte Änderungen gehen verloren!",
-    "notifications": {
-        "success": "Erfolg",
-        "error": "Fehler (status code: {{statusCode}})",
-        "undoable": "Noch {{seconds}} Sekunden um die Aktion rückgängig zu machen",
-        "createSuccess": "{{resource}} erfolgreich erstellt.",
-        "createError": "Fehler beim Erstellen {{resource}} (status code: {{statusCode}})",
-        "deleteSuccess": "{{resource}} erfolgreich gelöscht.",
-        "deleteError": "Fehler beim Löschen {{resource}} (status code: {{statusCode}})",
-        "editSuccess": "{{resource}} erfolgreich bearbeitet.",
-        "editError": "Fehler beim Bearbeiten {{resource}} (status code: {{statusCode}})",
-        "importProgress": "{{processed}}/{{total}} importiert"
+    "spoolSelect": {
+      "title": "Spulenauswahl",
+      "description": "Spulen auswählen, für die ein QR-Code gedruckt werden soll.",
+      "showArchived": "Archivierte anzeigen",
+      "noSpoolsSelected": "Keine Spulen ausgewählt.",
+      "selectAll": "Alle aus-/abwählen",
+      "selectedTotal_one": "{{count}} Spulen ausgewählt",
+      "selectedTotal_other": "{{count}} Spulen ausgewählt"
+    }
+  },
+  "scanner": {
+    "title": "QR-Code Scanner",
+    "description": "Spoolman QR-Code scannen, um Details zur Spule anzuzeigen.",
+    "error": {
+      "notAllowed": "Zugriff auf Kamera wurde nicht erlaubt.",
+      "insecureContext": "Die Seite wird nicht über HTTPS bereitgestellt.",
+      "streamApiNotSupported": "Der Browser unterstützt die MediaStream API nicht.",
+      "notReadable": "Zugriff auf Kamera nicht möglich.",
+      "notFound": "Keine Kamera gefunden.",
+      "unknown": "Ein unbekannter Fehler ist aufgetreten. ({{error}})"
+    }
+  },
+  "spool": {
+    "spool": "Spulen",
+    "fields": {
+      "id": "ID",
+      "filament_name": "Filament",
+      "filament": "Filament",
+      "material": "Material",
+      "weight_to_use": "Gewicht",
+      "used_weight": "Verbrauchtes Gewicht",
+      "remaining_weight": "Verbleibendes Gewicht",
+      "measured_weight": "Gemessenes Gewicht",
+      "used_length": "Verbrauchte Länge",
+      "remaining_length": "Verbleibende Länge",
+      "location": "Ort",
+      "lot_nr": "Chargennummer",
+      "first_used": "Erste Verwendung",
+      "last_used": "Letzte Verwendung",
+      "registered": "Registriert",
+      "comment": "Kommentar",
+      "archived": "Archiviert"
     },
-    "loading": "Laden",
-    "version": "Version",
-    "unknown": "Unbekannt",
-    "yes": "Ja",
-    "no": "Nein",
-    "tags": {
-        "clone": "Duplizieren"
+    "fields_help": {
+      "weight_to_use": "Auswählen welches Gewicht verwendet werden soll. \"Gemessenes Gewicht\" ist nur verfügbar, wenn das Gewicht der Spule für das Filament hinterlegt ist",
+      "used_weight": "Wie viel Gewicht bereits verbraucht wurdez z.B. 0g für eine neue Spule.",
+      "remaining_weight": "Wie viel Filament noch auf der Spule ist. Entspricht dem auf der Spule angegeben Nettogewicht, wenn die Spule neu ist.",
+      "measured_weight": "Gesamtgewicht von Spule und Filament.",
+      "location": "Ort, an dem die Spule gelagert wird.",
+      "lot_nr": "Chargennummer des Herstellers. Kann verwendet werden um gleichmäßige Farben zu garantieren, wenn mehrere Spulen verwendet werden."
     },
-    "dashboard": {
-        "title": "Dashboard"
+    "titles": {
+      "create": "Spule erstellen",
+      "clone": "Spule duplizieren",
+      "edit": "Spule bearbeiten",
+      "list": "Spulen",
+      "show": "Spule anzeigen",
+      "archive": "Spule archivieren"
     },
-    "printing": {
-        "generic": {
-            "title": "Drucken",
-            "description": "Einstellungen unten anpassen, um das gewünschte Drucklayout zu erstellen. Der Drucker oder das Betriebssystem fügen möglichweise eigene Abstände und Skalierungen hinzu. Eventuell muss ein wenig experimentiert werden, bevor alles korrekt funktioniert. Auf normalem Papier testen, bevor auf Label-Papier gedruckt wird.",
-            "helpMargin": "Abstände sollten so konfiguriert werden, dass sie zum Papier und Drucker passen. Änderungen beeinflussen die Größe des gesamten Gitters.",
-            "helpPrinterMargin": "Der Sicherheitsabstand sollte so eingestellt werden, wie dicht der Drucker am Rand des Papiers drucken kann. Änderungen beeinflussen nicht die Größe des Gitters.",
-            "print": "Drucken",
-            "columns": "Spalten",
-            "rows": "Reihen",
-            "paperSize": "Papiergröße",
-            "customSize": "Benutzerdefiniert",
-            "dimensions": "Dimensionen",
-            "showBorder": "Rahmen anzeigen",
-            "previewScale": "Vorschau-Skalierung",
-            "skipItems": "Elemente überspringen",
-            "contentSettings": "Einstellungen: Inhalt",
-            "layoutSettings": "Einstellungen: Layout",
-            "horizontalSpacing": "Horizontaler Abstand",
-            "verticalSpacing": "Vertikaler Abstand",
-            "marginLeft": "Abstand Links",
-            "marginRight": "Abstand Rechts",
-            "marginTop": "Abstand Oben",
-            "marginBottom": "Abstand Unten",
-            "printerMarginLeft": "Sicherheitsabstand Links",
-            "printerMarginRight": "Sicherheitsabstand Rechts",
-            "printerMarginTop": "Sicherheitsabstand Oben",
-            "printerMarginBottom": "Sicherheitsabstand Unten",
-            "borders": {
-                "none": "Keine",
-                "border": "Rahmen",
-                "grid": "Gitter"
-            }
-        },
-        "qrcode": {
-            "button": "QR-Codes drucken",
-            "title": "QR Codes Drucken",
-            "spoolWeight": "Gewicht Spule: {{weight}}",
-            "lotNr": "Ch. Nr: {{lot}}",
-            "bedTemp": "BT: {{temp}}",
-            "extruderTemp": "DT: {{temp}}",
-            "textSize": "Textgröße Label",
-            "showSpoolmanIcon": "Spoolman Icon anzeigen",
-            "showVendor": "Hersteller",
-            "showContent": "Label drucken",
-            "showLotNr": "Chargennummer",
-            "showSpoolWeight": "Gewicht Spule",
-            "showTemperatures": "Temperaturen",
-            "showSpoolComment": "Kommentar: Spule",
-            "showFilamentComment": "Kommentar: Filament",
-            "showVendorComment": "Kommentar: Hersteller"
-        },
-        "spoolSelect": {
-            "title": "Spulenauswahl",
-            "description": "Spulen auswählen, für die ein QR-Code gedruckt werden soll.",
-            "showArchived": "Archivierte anzeigen",
-            "noSpoolsSelected": "Keine Spulen ausgewählt.",
-            "selectAll": "Alle aus-/abwählen",
-            "selectedTotal_one": "{{count}} Spulen ausgewählt",
-            "selectedTotal_other": "{{count}} Spulen ausgewählt"
-        }
+    "messages": {
+      "archive": "Sicher das die Spule archiviert werden soll?"
+    }
+  },
+  "filament": {
+    "filament": "Filamente",
+    "fields": {
+      "id": "ID",
+      "vendor_name": "Hersteller",
+      "vendor": "Hersteller",
+      "name": "Name",
+      "material": "Material",
+      "price": "Preis",
+      "density": "Dichte",
+      "diameter": "Durchmesser",
+      "weight": "Gewicht",
+      "spool_weight": "Gewicht Spule",
+      "article_number": "Artikelnummer",
+      "registered": "Registriert",
+      "comment": "Kommentar",
+      "settings_extruder_temp": "Düsentemperatur",
+      "settings_bed_temp": "Betttemperatur",
+      "color_hex": "Farbe"
     },
-    "scanner": {
-        "title": "QR-Code Scanner",
-        "description": "Spoolman QR-Code scannen, um Details zur Spule anzuzeigen.",
-        "error": {
-            "notAllowed": "Zugriff auf Kamera wurde nicht erlaubt.",
-            "insecureContext": "Die Seite wird nicht über HTTPS bereitgestellt.",
-            "streamApiNotSupported": "Der Browser unterstützt die MediaStream API nicht.",
-            "notReadable": "Zugriff auf Kamera nicht möglich.",
-            "notFound": "Keine Kamera gefunden.",
-            "unknown": "Ein unbekannter Fehler ist aufgetreten. ({{error}})"
-        }
+    "fields_help": {
+      "name": "Name des Filaments um es von anderen Typen des gleichen Herstellers zu unterscheiden. Sollte z.B. die Farbe enthalten.",
+      "material": "z.B. PLA, ABS, PETG, etc.",
+      "price": "Preis einer vollen Spule in der im System konfigurierten Währung",
+      "weight": "Das Gewicht einer vollen Spule (Nettogewicht). Sollte nicht das Gewicht der Spule, sondern nur dass des Filaments auf der Spule enthalten. Entspricht normalerweise dem Gewicht, das auf der Spule aufgedruckt ist.",
+      "spool_weight": "Das Gewicht der leeren Spule. Wird aktuell noch nicht verwendet, könnte aber von Drittanbieter-Apps genutzt werden, um z.B. das verbleibende Gewicht von einem gemessen Gewicht zu berechnen.",
+      "article_number": "z.B. EAN, UPC o.Ä."
+    },
+    "titles": {
+      "create": "Filament erstellen",
+      "clone": "Filament duplizieren",
+      "edit": "Filament bearbeiten",
+      "list": "Filamente",
+      "show": "Filament anzeigen"
+    }
+  },
+  "vendor": {
+    "vendor": "Hersteller",
+    "fields": {
+      "id": "Id",
+      "name": "Name",
+      "registered": "Registriert",
+      "comment": "Kommentar"
+    },
+    "titles": {
+      "create": "Hersteller erstellen",
+      "clone": "Hersteller duplizieren",
+      "edit": "Hersteller bearbeiten",
+      "list": "Hersteller",
+      "show": "Hersteller anzeigen"
+    }
+  },
+  "table": {
+    "actions": "Aktionen"
+  },
+  "documentTitle": {
+    "default": "Spoolman",
+    "suffix": " | Spoolman",
+    "filament": {
+      "list": "Filamente | Spoolman",
+      "show": "#{{id}} Filament anzeigen | Spoolman",
+      "edit": "#{{id}} Filament bearbeiten | Spoolman",
+      "create": "Filament erstellen | Spoolman",
+      "clone": "#{{id}} Filament duplizieren | Spoolman"
     },
     "spool": {
-        "spool": "Spulen",
-        "fields": {
-            "id": "ID",
-            "filament_name": "Filament",
-            "filament": "Filament",
-            "material": "Material",
-            "weight_to_use": "Gewicht",
-            "used_weight": "Verbrauchtes Gewicht",
-            "remaining_weight": "Verbleibendes Gewicht",
-            "measured_weight": "Gemessenes Gewicht",
-            "used_length": "Verbrauchte Länge",
-            "remaining_length": "Verbleibende Länge",
-            "location": "Ort",
-            "lot_nr": "Chargennummer",
-            "first_used": "Erste Verwendung",
-            "last_used": "Letzte Verwendung",
-            "registered": "Registriert",
-            "comment": "Kommentar",
-            "archived": "Archiviert"
-        },
-        "fields_help": {
-            "weight_to_use": "Auswählen welches Gewicht verwendet werden soll. \"Gemessenes Gewicht\" ist nur verfügbar, wenn das Gewicht der Spule für das Filament hinterlegt ist",
-            "used_weight": "Wie viel Gewicht bereits verbraucht wurdez z.B. 0g für eine neue Spule.",
-            "remaining_weight": "Wie viel Filament noch auf der Spule ist. Entspricht dem auf der Spule angegeben Nettogewicht, wenn die Spule neu ist.",
-            "measured_weight": "Gesamtgewicht von Spule und Filament.",
-            "location": "Ort, an dem die Spule gelagert wird.",
-            "lot_nr": "Chargennummer des Herstellers. Kann verwendet werden um gleichmäßige Farben zu garantieren, wenn mehrere Spulen verwendet werden."
-        },
-        "titles": {
-            "create": "Spule erstellen",
-            "clone": "Spule duplizieren",
-            "edit": "Spule bearbeiten",
-            "list": "Spulen",
-            "show": "Spule anzeigen",
-            "archive": "Spule archivieren"
-        },
-        "messages": {
-            "archive": "Sicher das die Spule archiviert werden soll?"
-        }
-    },
-    "filament": {
-        "filament": "Filamente",
-        "fields": {
-            "id": "ID",
-            "vendor_name": "Hersteller",
-            "vendor": "Hersteller",
-            "name": "Name",
-            "material": "Material",
-            "price": "Preis",
-            "density": "Dichte",
-            "diameter": "Durchmesser",
-            "weight": "Gewicht",
-            "spool_weight": "Gewicht Spule",
-            "article_number": "Artikelnummer",
-            "registered": "Registriert",
-            "comment": "Kommentar",
-            "settings_extruder_temp": "Düsentemperatur",
-            "settings_bed_temp": "Betttemperatur",
-            "color_hex": "Farbe"
-        },
-        "fields_help": {
-            "name": "Name des Filaments um es von anderen Typen des gleichen Herstellers zu unterscheiden. Sollte z.B. die Farbe enthalten.",
-            "material": "z.B. PLA, ABS, PETG, etc.",
-            "price": "Preis einer vollen Spule in der im System konfigurierten Währung",
-            "weight": "Das Gewicht einer vollen Spule (Nettogewicht). Sollte nicht das Gewicht der Spule, sondern nur dass des Filaments auf der Spule enthalten. Entspricht normalerweise dem Gewicht, das auf der Spule aufgedruckt ist.",
-            "spool_weight": "Das Gewicht der leeren Spule. Wird aktuell noch nicht verwendet, könnte aber von Drittanbieter-Apps genutzt werden, um z.B. das verbleibende Gewicht von einem gemessen Gewicht zu berechnen.",
-            "article_number": "z.B. EAN, UPC o.Ä."
-        },
-        "titles": {
-            "create": "Filament erstellen",
-            "clone": "Filament duplizieren",
-            "edit": "Filament bearbeiten",
-            "list": "Filamente",
-            "show": "Filament anzeigen"
-        }
+      "list": "Spulen | Spoolman",
+      "show": "#{{id}} Spule anzeigen | Spoolman",
+      "edit": "#{{id}} Spule bearbeiten | Spoolman",
+      "create": "Spule erstellen | Spoolman",
+      "clone": "#{{id}} Spule duplizieren | Spoolman"
     },
     "vendor": {
-        "vendor": "Hersteller",
-        "fields": {
-            "id": "Id",
-            "name": "Name",
-            "registered": "Registriert",
-            "comment": "Kommentar"
-        },
-        "titles": {
-            "create": "Hersteller erstellen",
-            "clone": "Hersteller duplizieren",
-            "edit": "Hersteller bearbeiten",
-            "list": "Hersteller",
-            "show": "Hersteller anzeigen"
-        }
-    },
-    "table": {
-        "actions": "Aktionen"
-    },
-    "documentTitle": {
-        "default": "Spoolman",
-        "suffix": " | Spoolman",
-        "filament": {
-            "list": "Filamente | Spoolman",
-            "show": "#{{id}} Filament anzeigen | Spoolman",
-            "edit": "#{{id}} Filament bearbeiten | Spoolman",
-            "create": "Filament erstellen | Spoolman",
-            "clone": "#{{id}} Filament duplizieren | Spoolman"
-        },
-        "spool": {
-            "list": "Spulen | Spoolman",
-            "show": "#{{id}} Spule anzeigen | Spoolman",
-            "edit": "#{{id}} Spule bearbeiten | Spoolman",
-            "create": "Spule erstellen | Spoolman",
-            "clone": "#{{id}} Spule duplizieren | Spoolman"
-        },
-        "vendor": {
-            "list": "Hersteler | Spoolman",
-            "show": "#{{id}} Hersteller anzeigen | Spoolman",
-            "edit": "#{{id}} Hersteller bearbeiten | Spoolman",
-            "create": "Herstellen erstellen | Spoolman",
-            "clone": "#{{id}} Hersteller duplizieren | Spoolman"
-        }
+      "list": "Hersteler | Spoolman",
+      "show": "#{{id}} Hersteller anzeigen | Spoolman",
+      "edit": "#{{id}} Hersteller bearbeiten | Spoolman",
+      "create": "Herstellen erstellen | Spoolman",
+      "clone": "#{{id}} Hersteller duplizieren | Spoolman"
     }
+  }
 }

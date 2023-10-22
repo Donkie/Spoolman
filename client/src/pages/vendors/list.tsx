@@ -5,8 +5,8 @@ import { Table, Space, Button, Dropdown } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { IVendor } from "./model";
-import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
-import { EditOutlined, FilterOutlined } from "@ant-design/icons";
+import { TableState, shareSavedState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
+import { EditOutlined, FilterOutlined, ShareAltOutlined } from "@ant-design/icons";
 import { DateColumn, RichColumn, SortedColumn } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
 
@@ -110,6 +110,20 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
               {t("buttons.hideColumns")}
             </Button>
           </Dropdown>
+          <Button type="primary" icon={<ShareAltOutlined />} onClick={() => {
+            let url = shareSavedState("vendorList-v2");
+            try {
+              if (navigator.canShare()) {
+                navigator.share({ url: url });
+              } else {
+                window.location.hash = url.split("#")[1]
+              }
+            } catch (err) {
+              console.error(err);
+            }
+          }}>
+            {t("buttons.share")}
+          </Button>
           {defaultButtons}
         </>
       )}

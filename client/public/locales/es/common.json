@@ -1,264 +1,265 @@
 {
-    "actions": {
-        "list": "Listar",
-        "create": "Crear",
-        "edit": "Editar",
-        "show": "Mostrar",
-        "clone": "Duplicar"
+  "actions": {
+    "list": "Listar",
+    "create": "Crear",
+    "edit": "Editar",
+    "show": "Mostrar",
+    "clone": "Duplicar"
+  },
+  "buttons": {
+    "create": "Crear",
+    "save": "Guardar",
+    "logout": "Cerrar Sesión",
+    "delete": "Borrar",
+    "edit": "Editar",
+    "cancel": "Cancelar",
+    "confirm": "Seguro?",
+    "filter": "Filtrar",
+    "clear": "Limpiar",
+    "refresh": "Renovar",
+    "show": "Mostrar",
+    "undo": "Deshacer",
+    "import": "Importar",
+    "clone": "Duplicar",
+    "archive": "Archivar",
+    "unArchive": "Desarchivar",
+    "hideArchived": "Ocultar Archivados",
+    "showArchived": "Mostrar Archivados",
+    "notAccessTitle": "No tienes permiso de acceso",
+    "hideColumns": "Ocultar Columnas",
+    "clearFilters": "Borrar filtros",
+    "share": "compartir"
+  },
+  "warnWhenUnsavedChanges": "Seguro que quieres salir?. Hay cambios sin guardar.",
+  "notifications": {
+    "success": "Éxito",
+    "error": "Error (status code: {{statusCode}})",
+    "undoable": "Tienes {{seconds}} segundos para deshacer.",
+    "createSuccess": "Has creado {{resource}} con éxito",
+    "createError": "Hubo un error al crear {{resource}} (status code: {{statusCode}})",
+    "deleteSuccess": "Has borrado {{resource}} con éxito",
+    "deleteError": "Error al borrar {{resource}} (status code: {{statusCode}})",
+    "editSuccess": "Has editado {{resource}} con éxito",
+    "editError": "Error al editar {{resource}} (status code: {{statusCode}})",
+    "importProgress": "Importando: {{processed}}/{{total}}"
+  },
+  "loading": "Cargando",
+  "version": "Versión",
+  "unknown": "Desconocido",
+  "yes": "Si",
+  "no": "No",
+  "tags": {
+    "clone": "Duplicar"
+  },
+  "dashboard": {
+    "title": "Panel"
+  },
+  "spool": {
+    "spool": "Carretes",
+    "fields": {
+      "id": "ID",
+      "filament_name": "Filamento",
+      "filament": "Filamento",
+      "material": "Material",
+      "used_weight": "Peso Usado",
+      "remaining_weight": "Peso Restante",
+      "used_length": "Largo Usado",
+      "remaining_length": "Largo Restante",
+      "location": "Locación",
+      "lot_nr": "No. Lote",
+      "first_used": "Fecha de Primer Uso",
+      "last_used": "Ultimo Uso",
+      "registered": "Registrado",
+      "comment": "Comentarios",
+      "archived": "Archivado",
+      "measured_weight": "Peso Medido",
+      "weight_to_use": "Peso"
     },
-    "buttons": {
-        "create": "Crear",
-        "save": "Guardar",
-        "logout": "Cerrar Sesión",
-        "delete": "Borrar",
-        "edit": "Editar",
-        "cancel": "Cancelar",
-        "confirm": "Seguro?",
-        "filter": "Filtrar",
-        "clear": "Limpiar",
-        "refresh": "Renovar",
-        "show": "Mostrar",
-        "undo": "Deshacer",
-        "import": "Importar",
-        "clone": "Duplicar",
-        "archive": "Archivar",
-        "unArchive": "Desarchivar",
-        "hideArchived": "Ocultar Archivados",
-        "showArchived": "Mostrar Archivados",
-        "notAccessTitle": "No tienes permiso de acceso",
-        "hideColumns": "Ocultar Columnas",
-        "clearFilters": "Borrar filtros"
+    "fields_help": {
+      "used_weight": "Cuanto filamento ha sido usado en el carrete. Un carrete nuevo debería tener 0g usados.",
+      "location": "Donde esta el carrete si se guardan los carretes en lugares distintos.",
+      "lot_nr": "Numero de lote de manufactura. Puede ser usado si el modelo a imprimir necesita color homogéneo y varios carretes son necesarios.",
+      "weight_to_use": "Elegir el peso a usar. El peso medido solo esta disponible si existe el valor de peso del carrete seleccionado.",
+      "measured_weight": "Cuanto pesa el filamento y el carrete.",
+      "remaining_weight": "Cuanto filamento resta en el carrete. Para un carrete nuevo el peso debe ser igual al peso indicado de fabrica."
     },
-    "warnWhenUnsavedChanges": "Seguro que quieres salir?. Hay cambios sin guardar.",
-    "notifications": {
-        "success": "Éxito",
-        "error": "Error (status code: {{statusCode}})",
-        "undoable": "Tienes {{seconds}} segundos para deshacer.",
-        "createSuccess": "Has creado {{resource}} con éxito",
-        "createError": "Hubo un error al crear {{resource}} (status code: {{statusCode}})",
-        "deleteSuccess": "Has borrado {{resource}} con éxito",
-        "deleteError": "Error al borrar {{resource}} (status code: {{statusCode}})",
-        "editSuccess": "Has editado {{resource}} con éxito",
-        "editError": "Error al editar {{resource}} (status code: {{statusCode}})",
-        "importProgress": "Importando: {{processed}}/{{total}}"
+    "titles": {
+      "create": "Crear Carrete",
+      "clone": "Duplicar Carrete",
+      "edit": "Editar Carrete",
+      "list": "Carretes",
+      "show": "Mostrar Carrete",
+      "archive": "Archivar Carrete",
+      "show_title": "[Carrete #{{id}}] {{name}}"
     },
-    "loading": "Cargando",
-    "version": "Versión",
-    "unknown": "Desconocido",
-    "yes": "Si",
-    "no": "No",
-    "tags": {
-        "clone": "Duplicar"
+    "messages": {
+      "archive": "Esta seguro que quiere archivar este carrete?"
     },
-    "dashboard": {
-        "title": "Panel"
+    "form": {
+      "new_location_prompt": "Introduce una nueva ubicación",
+      "spool_updated": "Este spool ha sido actualizado por alguien/algo más desde que abriste esta página. ¡Al guardar, se sobrescribirán los cambios!"
+    }
+  },
+  "filament": {
+    "filament": "Filamentos",
+    "fields": {
+      "id": "ID",
+      "vendor_name": "Marca",
+      "vendor": "Marca",
+      "name": "Nombre",
+      "material": "Material",
+      "price": "Precio",
+      "density": "Densidad",
+      "diameter": "Diámetro",
+      "weight": "Peso",
+      "spool_weight": "Peso del Carrete",
+      "article_number": "Numero de Articulo",
+      "registered": "Registrado",
+      "comment": "Comentarios",
+      "settings_extruder_temp": "Temp. de Extrusor",
+      "settings_bed_temp": "Temp. de Cama",
+      "color_hex": "Color"
+    },
+    "fields_help": {
+      "name": "Nombre del filamento, para distinguirlo de otros de la misma marca. Por ejemplo, debería contener el nombre del color.",
+      "material": "ej. PLA, ABS, PETG, etc.",
+      "price": "Precio del carrete completo en la divisa configurada en el sistema.",
+      "weight": "El peso de un carrete entero (peso neto). Esta cifra no debe incluir el peso del carrete vacío, solo el filamento. Es, usualmente, el peso escrito en la etiqueta del carrete.",
+      "spool_weight": "El peso de un carrete vacío. Se utiliza para determinar el peso medido de un carrete.",
+      "article_number": "ej. EAN, UPC, etc."
+    },
+    "titles": {
+      "create": "Crear Filamento",
+      "clone": "Duplicar Filamento",
+      "edit": "Editar Filamento",
+      "list": "Filamentos",
+      "show": "Mostrar Filamentos",
+      "show_title": "[Filamento #{{id}}] {{name}}"
+    },
+    "form": {
+      "filament_updated": "Este filamento ha sido actualizado por alguien/algo más desde que abrió esta página. ¡Al guardar, se sobrescribirán los cambios!"
+    }
+  },
+  "vendor": {
+    "vendor": "Marcas",
+    "fields": {
+      "id": "Id",
+      "name": "Nombre",
+      "registered": "Registrado",
+      "comment": "Comentarios"
+    },
+    "titles": {
+      "create": "Crear Marca",
+      "clone": "Duplicar Marca",
+      "edit": "Editar Marca",
+      "list": "Marcas",
+      "show": "Mostrar Marcas",
+      "show_title": "[Proveedor #{{id}}] {{name}}"
+    },
+    "form": {
+      "vendor_updated": "Este vendedor ha sido actualizado por alguien/algo más desde que abrió esta página. ¡Al guardar, se sobrescribirán los cambios!"
+    }
+  },
+  "table": {
+    "actions": "Acciones"
+  },
+  "documentTitle": {
+    "default": "Spoolman",
+    "suffix": " | Spoolman",
+    "filament": {
+      "list": "Filamentos | Spoolman",
+      "show": "#{{id}} Mostrar Filamentos | Spoolman",
+      "edit": "#{{id}} Editar Filamentos | Spoolman",
+      "create": "Crear Filamento | Spoolman",
+      "clone": "#{{id}} Duplicar Filamento | Spoolman"
     },
     "spool": {
-        "spool": "Carretes",
-        "fields": {
-            "id": "ID",
-            "filament_name": "Filamento",
-            "filament": "Filamento",
-            "material": "Material",
-            "used_weight": "Peso Usado",
-            "remaining_weight": "Peso Restante",
-            "used_length": "Largo Usado",
-            "remaining_length": "Largo Restante",
-            "location": "Locación",
-            "lot_nr": "No. Lote",
-            "first_used": "Fecha de Primer Uso",
-            "last_used": "Ultimo Uso",
-            "registered": "Registrado",
-            "comment": "Comentarios",
-            "archived": "Archivado",
-            "measured_weight": "Peso Medido",
-            "weight_to_use": "Peso"
-        },
-        "fields_help": {
-            "used_weight": "Cuanto filamento ha sido usado en el carrete. Un carrete nuevo debería tener 0g usados.",
-            "location": "Donde esta el carrete si se guardan los carretes en lugares distintos.",
-            "lot_nr": "Numero de lote de manufactura. Puede ser usado si el modelo a imprimir necesita color homogéneo y varios carretes son necesarios.",
-            "weight_to_use": "Elegir el peso a usar. El peso medido solo esta disponible si existe el valor de peso del carrete seleccionado.",
-            "measured_weight": "Cuanto pesa el filamento y el carrete.",
-            "remaining_weight": "Cuanto filamento resta en el carrete. Para un carrete nuevo el peso debe ser igual al peso indicado de fabrica."
-        },
-        "titles": {
-            "create": "Crear Carrete",
-            "clone": "Duplicar Carrete",
-            "edit": "Editar Carrete",
-            "list": "Carretes",
-            "show": "Mostrar Carrete",
-            "archive": "Archivar Carrete",
-            "show_title": "[Carrete #{{id}}] {{name}}"
-        },
-        "messages": {
-            "archive": "Esta seguro que quiere archivar este carrete?"
-        },
-        "form": {
-            "new_location_prompt": "Introduce una nueva ubicación",
-            "spool_updated": "Este spool ha sido actualizado por alguien/algo más desde que abriste esta página. ¡Al guardar, se sobrescribirán los cambios!"
-        }
-    },
-    "filament": {
-        "filament": "Filamentos",
-        "fields": {
-            "id": "ID",
-            "vendor_name": "Marca",
-            "vendor": "Marca",
-            "name": "Nombre",
-            "material": "Material",
-            "price": "Precio",
-            "density": "Densidad",
-            "diameter": "Diámetro",
-            "weight": "Peso",
-            "spool_weight": "Peso del Carrete",
-            "article_number": "Numero de Articulo",
-            "registered": "Registrado",
-            "comment": "Comentarios",
-            "settings_extruder_temp": "Temp. de Extrusor",
-            "settings_bed_temp": "Temp. de Cama",
-            "color_hex": "Color"
-        },
-        "fields_help": {
-            "name": "Nombre del filamento, para distinguirlo de otros de la misma marca. Por ejemplo, debería contener el nombre del color.",
-            "material": "ej. PLA, ABS, PETG, etc.",
-            "price": "Precio del carrete completo en la divisa configurada en el sistema.",
-            "weight": "El peso de un carrete entero (peso neto). Esta cifra no debe incluir el peso del carrete vacío, solo el filamento. Es, usualmente, el peso escrito en la etiqueta del carrete.",
-            "spool_weight": "El peso de un carrete vacío. Se utiliza para determinar el peso medido de un carrete.",
-            "article_number": "ej. EAN, UPC, etc."
-        },
-        "titles": {
-            "create": "Crear Filamento",
-            "clone": "Duplicar Filamento",
-            "edit": "Editar Filamento",
-            "list": "Filamentos",
-            "show": "Mostrar Filamentos",
-            "show_title": "[Filamento #{{id}}] {{name}}"
-        },
-        "form": {
-            "filament_updated": "Este filamento ha sido actualizado por alguien/algo más desde que abrió esta página. ¡Al guardar, se sobrescribirán los cambios!"
-        }
+      "list": "Carretes | Spoolman",
+      "show": "#{{id}} Mostrar Carrete | Spoolman",
+      "edit": "#{{id}} Editar Carrete | Spoolman",
+      "create": "Crear Carrete | Spoolman",
+      "clone": "#{{id}} Duplicar Carrete | Spoolman"
     },
     "vendor": {
-        "vendor": "Marcas",
-        "fields": {
-            "id": "Id",
-            "name": "Nombre",
-            "registered": "Registrado",
-            "comment": "Comentarios"
-        },
-        "titles": {
-            "create": "Crear Marca",
-            "clone": "Duplicar Marca",
-            "edit": "Editar Marca",
-            "list": "Marcas",
-            "show": "Mostrar Marcas",
-            "show_title": "[Proveedor #{{id}}] {{name}}"
-        },
-        "form": {
-            "vendor_updated": "Este vendedor ha sido actualizado por alguien/algo más desde que abrió esta página. ¡Al guardar, se sobrescribirán los cambios!"
-        }
-    },
-    "table": {
-        "actions": "Acciones"
-    },
-    "documentTitle": {
-        "default": "Spoolman",
-        "suffix": " | Spoolman",
-        "filament": {
-            "list": "Filamentos | Spoolman",
-            "show": "#{{id}} Mostrar Filamentos | Spoolman",
-            "edit": "#{{id}} Editar Filamentos | Spoolman",
-            "create": "Crear Filamento | Spoolman",
-            "clone": "#{{id}} Duplicar Filamento | Spoolman"
-        },
-        "spool": {
-            "list": "Carretes | Spoolman",
-            "show": "#{{id}} Mostrar Carrete | Spoolman",
-            "edit": "#{{id}} Editar Carrete | Spoolman",
-            "create": "Crear Carrete | Spoolman",
-            "clone": "#{{id}} Duplicar Carrete | Spoolman"
-        },
-        "vendor": {
-            "list": "Marcas | Spoolman",
-            "show": "#{{id}} Mostrar Marca | Spoolman",
-            "edit": "#{{id}} Editar Marca | Spoolman",
-            "create": "Crear Marca | Spoolman",
-            "clone": "#{{id}} Duplicar Marca | Spoolman"
-        }
-    },
-    "printing": {
-        "qrcode": {
-            "extruderTemp": "TE:{{temp}}",
-            "showSpoolWeight": "Peso Carrete",
-            "showContent": "Imprimir Etiqueta",
-            "showVendorComment": "Comentarios de Marca",
-            "spoolWeight": "Peso de Carrete: {{weight}}",
-            "showTemperatures": "Temperaturas",
-            "showVendor": "Marca",
-            "showSpoolComment": "Comentario de Carrete",
-            "textSize": "Tamaño Letras de Contenido",
-            "title": "Impresión de Códigos QR",
-            "showSpoolmanIcon": "Mostrar Icono de Spoolman",
-            "showLotNr": "No. Lote",
-            "bedTemp": "TC:{{temp}}",
-            "lotNr": "No. Lote:{{lot}}",
-            "showFilamentComment": "Comentario de Filamento",
-            "button": "Imprimir Códigos QR"
-        },
-        "generic": {
-            "printerMarginBottom": "Zona Segura Inferior",
-            "verticalSpacing": "Espacio Vertical",
-            "rows": "Filas",
-            "borders": {
-                "none": "Ninguno",
-                "grid": "Cuadricula",
-                "border": "Borde"
-            },
-            "printerMarginTop": "Zona Segura Superior",
-            "customSize": "Tamaño Personal",
-            "title": "Imprimiendo",
-            "contentSettings": "Ajustes de Contenido",
-            "marginRight": "Margen Derecho",
-            "printerMarginRight": "Zona Segura Derecha",
-            "helpPrinterMargin": "La Zona de Seguridad debe ajustarse lo mas cercano posible al borde que tu impresora es capaz de imprimir. Cambiar estos valores no afectaran todas las etiquetas.",
-            "previewScale": "Previsualizar Escala",
-            "helpMargin": "Márgenes deben ser configurados a ser los mismos que tu papel e impresora. Cambiar los mismos afectaran todas las etiquetas.",
-            "marginTop": "Margen Superior",
-            "skipItems": "Saltar Elementos",
-            "layoutSettings": "Ajustes de Diseño",
-            "paperSize": "Tamaño de Papel",
-            "columns": "Columnas",
-            "description": "Ajustar los parámetros debajo para adquirir el diseño deseado. Recuerda que impresoras y el sistema operativo aplican sus propios márgenes y escala. Es probable que tengas que probar con valores varias veces hasta que el diseño te parezca correcto. Prueba en papel normal antes de usar etiquetas.",
-            "marginBottom": "Margen Inferior",
-            "horizontalSpacing": "Espacio Horizontal",
-            "marginLeft": "Margen Izquierdo",
-            "showBorder": "Mostrar Borde",
-            "printerMarginLeft": "Zona Segura Izquierda",
-            "dimensions": "Dimensiones",
-            "print": "Imprimir"
-        },
-        "spoolSelect": {
-            "selectedTotal_one": "{{count}} carrete seleccionado",
-            "selectedTotal_many": "{{count}} carretes seleccionados",
-            "selectedTotal_other": "{{count}} carretes seleccionados",
-            "description": "Seleccionar Carretes para imprimir códigos de QR.",
-            "showArchived": "Mostrar Archivados",
-            "title": "Selección de Carretes",
-            "selectAll": "Seleccionar/Deseleccionar Todos",
-            "noSpoolsSelected": "No has seleccionado ningún carrete."
-        }
-    },
-    "scanner": {
-        "title": "Escaner de Código QR",
-        "error": {
-            "insecureContext": "La página no se sirve a través de HTTPS.",
-            "notReadable": "La camara no ha sido leída.",
-            "notAllowed": "No has dado permiso de acceso a la cámara.",
-            "unknown": "Un error desconocido ocurrió. ({{error}})",
-            "notFound": "La cámara no ha sido detectada.",
-            "streamApiNotSupported": "El navegador no es compatible con la API MediaStream."
-        },
-        "description": "Escanear códigos QR a Spoolman para ver detalles del carrete."
+      "list": "Marcas | Spoolman",
+      "show": "#{{id}} Mostrar Marca | Spoolman",
+      "edit": "#{{id}} Editar Marca | Spoolman",
+      "create": "Crear Marca | Spoolman",
+      "clone": "#{{id}} Duplicar Marca | Spoolman"
     }
+  },
+  "printing": {
+    "qrcode": {
+      "extruderTemp": "TE:{{temp}}",
+      "showSpoolWeight": "Peso Carrete",
+      "showContent": "Imprimir Etiqueta",
+      "showVendorComment": "Comentarios de Marca",
+      "spoolWeight": "Peso de Carrete: {{weight}}",
+      "showTemperatures": "Temperaturas",
+      "showVendor": "Marca",
+      "showSpoolComment": "Comentario de Carrete",
+      "textSize": "Tamaño Letras de Contenido",
+      "title": "Impresión de Códigos QR",
+      "showSpoolmanIcon": "Mostrar Icono de Spoolman",
+      "showLotNr": "No. Lote",
+      "bedTemp": "TC:{{temp}}",
+      "lotNr": "No. Lote:{{lot}}",
+      "showFilamentComment": "Comentario de Filamento",
+      "button": "Imprimir Códigos QR"
+    },
+    "generic": {
+      "printerMarginBottom": "Zona Segura Inferior",
+      "verticalSpacing": "Espacio Vertical",
+      "rows": "Filas",
+      "borders": {
+        "none": "Ninguno",
+        "grid": "Cuadricula",
+        "border": "Borde"
+      },
+      "printerMarginTop": "Zona Segura Superior",
+      "customSize": "Tamaño Personal",
+      "title": "Imprimiendo",
+      "contentSettings": "Ajustes de Contenido",
+      "marginRight": "Margen Derecho",
+      "printerMarginRight": "Zona Segura Derecha",
+      "helpPrinterMargin": "La Zona de Seguridad debe ajustarse lo mas cercano posible al borde que tu impresora es capaz de imprimir. Cambiar estos valores no afectaran todas las etiquetas.",
+      "previewScale": "Previsualizar Escala",
+      "helpMargin": "Márgenes deben ser configurados a ser los mismos que tu papel e impresora. Cambiar los mismos afectaran todas las etiquetas.",
+      "marginTop": "Margen Superior",
+      "skipItems": "Saltar Elementos",
+      "layoutSettings": "Ajustes de Diseño",
+      "paperSize": "Tamaño de Papel",
+      "columns": "Columnas",
+      "description": "Ajustar los parámetros debajo para adquirir el diseño deseado. Recuerda que impresoras y el sistema operativo aplican sus propios márgenes y escala. Es probable que tengas que probar con valores varias veces hasta que el diseño te parezca correcto. Prueba en papel normal antes de usar etiquetas.",
+      "marginBottom": "Margen Inferior",
+      "horizontalSpacing": "Espacio Horizontal",
+      "marginLeft": "Margen Izquierdo",
+      "showBorder": "Mostrar Borde",
+      "printerMarginLeft": "Zona Segura Izquierda",
+      "dimensions": "Dimensiones",
+      "print": "Imprimir"
+    },
+    "spoolSelect": {
+      "selectedTotal_one": "{{count}} carrete seleccionado",
+      "selectedTotal_many": "{{count}} carretes seleccionados",
+      "selectedTotal_other": "{{count}} carretes seleccionados",
+      "description": "Seleccionar Carretes para imprimir códigos de QR.",
+      "showArchived": "Mostrar Archivados",
+      "title": "Selección de Carretes",
+      "selectAll": "Seleccionar/Deseleccionar Todos",
+      "noSpoolsSelected": "No has seleccionado ningún carrete."
+    }
+  },
+  "scanner": {
+    "title": "Escaner de Código QR",
+    "error": {
+      "insecureContext": "La página no se sirve a través de HTTPS.",
+      "notReadable": "La camara no ha sido leída.",
+      "notAllowed": "No has dado permiso de acceso a la cámara.",
+      "unknown": "Un error desconocido ocurrió. ({{error}})",
+      "notFound": "La cámara no ha sido detectada.",
+      "streamApiNotSupported": "El navegador no es compatible con la API MediaStream."
+    },
+    "description": "Escanear códigos QR a Spoolman para ver detalles del carrete."
+  }
 }

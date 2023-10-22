@@ -16,15 +16,16 @@ export interface TableState {
 
 export function useInitialTableState(tableId: string): TableState {
   const [initialState] = React.useState(() => {
-    const savedSorters = isLocalStorageAvailable ? localStorage.getItem(`${tableId}-sorters`) : null;
-    const savedFilters = isLocalStorageAvailable ? localStorage.getItem(`${tableId}-filters`) : null;
-    const savedPagination = isLocalStorageAvailable ? localStorage.getItem(`${tableId}-pagination`) : null;
-    const savedShowColumns = isLocalStorageAvailable ? localStorage.getItem(`${tableId}-showColumns`) : null;
+    const savedSorters = hasHashProperty(`${tableId}-sorters`) ? getHashProperty(`${tableId}-sorters`) : isLocalStorageAvailable ? localStorage.getItem(`${tableId}-sorters`) : null;
+    const savedFilters = hasHashProperty(`${tableId}-filters`) ? getHashProperty(`${tableId}-filters`) : isLocalStorageAvailable ? localStorage.getItem(`${tableId}-filters`) : null;
+    const savedPagination = hasHashProperty(`${tableId}-pagination`) ? getHashProperty(`${tableId}-pagination`) : isLocalStorageAvailable ? localStorage.getItem(`${tableId}-pagination`) : null;
+    const savedShowColumns = hasHashProperty(`${tableId}-showColumns`) ? getHashProperty(`${tableId}-showColumns`) : isLocalStorageAvailable ? localStorage.getItem(`${tableId}-showColumns`) : null;
 
     const sorters = savedSorters ? JSON.parse(savedSorters) : [{ field: "id", order: "asc" }];
     const filters = savedFilters ? JSON.parse(savedFilters) : [];
     const pagination = savedPagination ? JSON.parse(savedPagination) : { page: 1, pageSize: 20 };
     const showColumns = savedShowColumns ? JSON.parse(savedShowColumns) : undefined;
+    window.location.hash = "";
     return { sorters, filters, pagination, showColumns };
   });
   return initialState;
@@ -73,4 +74,26 @@ export function useSavedState<T>(id: string, defaultValue: T) {
   }, [id, state]);
 
   return [state, setState] as const;
+}
+
+export function shareSavedState(tableId: string): string {
+  const tableStates = ['sorters', 'filters', 'pagination', 'showColumns'];
+  const params = new URLSearchParams();
+  tableStates.forEach(s => {
+    let l = localStorage.getItem(`${tableId}-${s}`);
+    if (l) {
+      params.append(`${tableId}-${s}`, l);
+    }
+  })
+  return `${window.location.origin}${window.location.pathname}#${params.toString()}`
+}
+
+function getHashProperty(Id: string) {
+  const hash = new URLSearchParams(window.location.hash.substring(1));
+  return hash.get(Id);
+}
+
+function hasHashProperty(property: string): boolean {
+  const hash = new URLSearchParams(window.location.hash.substring(1));
+  return hash.has(property);
 }
