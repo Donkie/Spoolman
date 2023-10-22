@@ -168,6 +168,19 @@ if [ "$choice" == "y" ] || [ "$choice" == "Y" ]; then
     script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
     spoolman_dir=$(dirname "$script_dir")
 
+    # Verify that we found the right spoolman dir by checking for the existence of pyproject.toml
+    if [ ! -f "$spoolman_dir/pyproject.toml" ]; then
+        echo -e "${ORANGE}Could not automatically find the Spoolman directory. Please specify the path to the Spoolman directory (the directory containing pyproject.toml):${NC}"
+        read spoolman_dir
+        # Expand the path
+        spoolman_dir=$(eval echo "$spoolman_dir")
+        # Verify again
+        if [ ! -f "$spoolman_dir/pyproject.toml" ]; then
+            echo -e "${ORANGE}Could not find pyproject.toml in $spoolman_dir. Aborting installation.${NC}"
+            exit 1
+        fi
+    fi
+
     # Define the systemd service unit file
     service_unit="[Unit]
 Description=Spoolman
