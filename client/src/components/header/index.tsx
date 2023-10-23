@@ -3,11 +3,11 @@ import type { RefineThemedLayoutV2HeaderProps } from "@refinedev/antd";
 import { useGetLocale, useSetLocale } from "@refinedev/core";
 import { Button, Dropdown, Layout as AntdLayout, MenuProps, theme } from "antd";
 import React, { useContext } from "react";
-import { ColorModeContext } from "../../contexts/color-mode";
 
 import "/node_modules/flag-icons/css/flag-icons.min.css";
 import { languages } from "../../i18n";
 import QRCodeScannerModal from "../qrCodeScanner";
+import { SettingsContext } from "../../contexts/settings";
 
 const { useToken } = theme;
 
@@ -15,7 +15,7 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({ sticky }) =>
   const { token } = useToken();
   const locale = useGetLocale();
   const changeLanguage = useSetLocale();
-  const { mode, setMode } = useContext(ColorModeContext);
+  const { settings, setSetting } = useContext(SettingsContext);
 
   const currentLocale = locale();
 
@@ -48,9 +48,9 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({ sticky }) =>
           items: [
             {
               key: "colorMode",
-              onClick: () => setMode(mode === "dark" ? "dark" : "light"),
-              icon: mode === "dark" ? <BulbFilled /> : <BulbFilled />,
-              label: mode === "dark" ? "Light Theme" : "Dark Theme",
+              onClick: () => setSetting("colorMode", settings.colorMode === "light" ? "dark" : "light"),
+              icon: settings.colorMode === "dark" ? <BulbFilled /> : <BulbFilled />,
+              label: settings.colorMode === "dark" ? "Light Theme" : "Dark Theme",
             },
             {
               key: "language",

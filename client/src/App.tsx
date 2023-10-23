@@ -13,7 +13,6 @@ import routerBindings, {
 import dataProvider from "./components/dataProvider";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
-import { ColorModeContextProvider } from "./contexts/color-mode";
 import { FileOutlined, HighlightOutlined, UserOutlined } from "@ant-design/icons";
 import { ConfigProvider } from "antd";
 import React from "react";
@@ -23,6 +22,7 @@ import loadable from "@loadable/component";
 import SpoolmanNotificationProvider from "./components/notificationProvider";
 import { SpoolmanLayout } from "./components/layout";
 import liveProvider from "./components/liveProvider";
+import { SettingsContextProvider } from "./contexts/settings";
 
 interface PageProps {
   resource: "spools" | "filaments" | "vendors";
@@ -71,7 +71,7 @@ function App() {
   return (
     <BrowserRouter>
       <RefineKbarProvider>
-        <ColorModeContextProvider>
+        <SettingsContextProvider>
           <ConfigProvider
             locale={antdLocale}
             theme={{
@@ -173,7 +173,7 @@ function App() {
               <ReactQueryDevtools />
             </Refine>
           </ConfigProvider>
-        </ColorModeContextProvider>
+        </SettingsContextProvider>
       </RefineKbarProvider>
     </BrowserRouter>
   );
