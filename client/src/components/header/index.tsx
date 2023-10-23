@@ -1,7 +1,7 @@
-import { DownOutlined } from "@ant-design/icons";
+import { BulbFilled, SettingFilled } from "@ant-design/icons";
 import type { RefineThemedLayoutV2HeaderProps } from "@refinedev/antd";
 import { useGetLocale, useSetLocale } from "@refinedev/core";
-import { Button, Dropdown, Layout as AntdLayout, MenuProps, Space, Switch, theme } from "antd";
+import { Button, Dropdown, Layout as AntdLayout, MenuProps, theme } from "antd";
 import React, { useContext } from "react";
 import { ColorModeContext } from "../../contexts/color-mode";
 
@@ -43,29 +43,27 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({ sticky }) =>
 
   return (
     <AntdLayout.Header style={headerStyles}>
-      <Space>
-        <Dropdown
-          menu={{
-            items: menuItems,
-            selectedKeys: currentLocale ? [currentLocale] : [],
-          }}
-        >
-          <Button type="text">
-            <Space>
-              <span className={"fi fi-" + languages[currentLocale ?? "en"].countryCode} />
-              {languages[currentLocale ?? "en"].name}
-              <DownOutlined />
-            </Space>
-          </Button>
-        </Dropdown>
-        <Switch
-          checkedChildren="🌛"
-          unCheckedChildren="🔆"
-          onChange={() => setMode(mode === "light" ? "dark" : "light")}
-          defaultChecked={mode === "dark"}
-        />
-        <QRCodeScannerModal />
-      </Space>
+      <Dropdown
+        menu={{
+          items: [
+            {
+              key: "colorMode",
+              onClick: () => setMode(mode === "dark" ? "dark" : "light"),
+              icon: mode === "dark" ? <BulbFilled /> : <BulbFilled />,
+              label: mode === "dark" ? "Light Theme" : "Dark Theme",
+            },
+            {
+              key: "language",
+              label: languages[currentLocale ?? "en"].name,
+              icon: <span className={"fi fi-" + languages[currentLocale ?? "en"].countryCode} />,
+              children: menuItems,
+            },
+          ],
+        }}
+      >
+        <Button size="large" type="text" icon={<SettingFilled />} />
+      </Dropdown>
+      <QRCodeScannerModal />
     </AntdLayout.Header>
   );
 };
