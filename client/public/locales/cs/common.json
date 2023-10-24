@@ -130,7 +130,7 @@
     "spool": {
         "spool": "Cívky",
         "fields": {
-            "id": "Id",
+            "id": "ID",
             "filament_name": "Filament",
             "filament": "Filament",
             "material": "Materiál",
@@ -162,10 +162,14 @@
             "edit": "Upravit cívku",
             "list": "Cívky",
             "show": "Zobrazit cívku",
-            "archive": "Archivní cívka"
+            "archive": "Archivní cívka",
+            "show_title": "[Cívka #{{id}}] {{name}}"
         },
         "messages": {
             "archive": "Opravdu chcete tuto cívku archivovat?"
+        },
+        "form": {
+            "new_location_prompt": "Zadejte nové umístění"
         }
     },
     "filament": {
@@ -193,7 +197,7 @@
             "material": "Např. PLA, ABS, ASA, PETG, atd.",
             "price": "Cena celé cívky v měně nastavené v systému.",
             "weight": "Hmotnost plného cívky filamentu (čistá hmotnost). Tato hmotnost by neměla zahrnovat hmotnost samotné cívky, ale pouze filamentu. Obvykle se uvádí na obalu.",
-            "spool_weight": "Hmotnost prázdné cívky. V současné době se k ničemu nepoužívá, ale mohly by ji používat aplikace třetích stran, např. k výpočtu hmotnosti vlákna z naměřené hmotnosti.",
+            "spool_weight": "Hmotnost prázdné cívky. Slouží k určení naměřené hmotnosti cívky.",
             "article_number": "Např. EAN, UPC, atd."
         },
         "titles": {
@@ -201,7 +205,8 @@
             "clone": "Duplikovat filament",
             "edit": "Upravit filament",
             "list": "Filamenty",
-            "show": "Zobrazit filament"
+            "show": "Zobrazit filament",
+            "show_title": "[Filament #{{id}}] {{name}}"
         }
     },
     "vendor": {
@@ -217,7 +222,8 @@
             "clone": "Duplikovat výrobce",
             "edit": "Upravit výrobce",
             "list": "Výrobci",
-            "show": "Zobrazit výrobce"
+            "show": "Zobrazit výrobce",
+            "show_title": "[Výrobce #{{id}}] {{name}}"
         }
     },
     "table": {

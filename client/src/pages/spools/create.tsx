@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, InputNumber, Radio } from "antd";
+import { Form, Input, DatePicker, Select, InputNumber, Radio, Divider } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { IFilament } from "../filaments/model";
 import { ISpool } from "./model";
 import { numberFormatter, numberParser } from "../../utils/parsing";
+import { useSpoolmanLocations } from "../../components/otherModels";
 
 interface CreateOrCloneProps {
   mode: "create" | "clone";
@@ -91,6 +92,14 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     });
   };
 
+  const locations = useSpoolmanLocations(true);
+  const [newLocation, setNewLocation] = useState("");
+
+  const allLocations = [...(locations.data || [])];
+  if (newLocation.trim() && !allLocations.includes(newLocation)) {
+    allLocations.push(newLocation.trim());
+  }
+
   return (
     <Create
       title={props.mode === "create" ? t("spool.titles.create") : t("spool.titles.clone")}
@@ -159,32 +168,17 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             defaultValue={1}
             value={weightToEnter}
           >
-            <Radio.Button
-              value={1}
-            >
-              {t("spool.fields.used_weight")}
-            </Radio.Button>
-            <Radio.Button
-              value={2}
-              disabled={!filamentWeight}
-            >
+            <Radio.Button value={1}>{t("spool.fields.used_weight")}</Radio.Button>
+            <Radio.Button value={2} disabled={!filamentWeight}>
               {t("spool.fields.remaining_weight")}
             </Radio.Button>
-            <Radio.Button
-              value={3}
-              disabled={!(filamentWeight && spoolWeight)}
-            >
+            <Radio.Button value={3} disabled={!(filamentWeight && spoolWeight)}>
               {t("spool.fields.measured_weight")}
             </Radio.Button>
           </Radio.Group>
         </Form.Item>
 
-        <Form.Item
-          label={t("spool.fields.used_weight")}
-          help={t("spool.fields_help.used_weight")}
-          // name={["used_weight"]}
-          initialValue={0}
-        >
+        <Form.Item label={t("spool.fields.used_weight")} help={t("spool.fields_help.used_weight")} initialValue={0}>
           <InputNumber
             min={0}
             addonAfter="g"
@@ -201,7 +195,6 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
         <Form.Item
           label={t("spool.fields.remaining_weight")}
           help={t("spool.fields_help.remaining_weight")}
-          // name={["remaining_weight"]}
           initialValue={0}
         >
           <InputNumber
@@ -220,7 +213,6 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
         <Form.Item
           label={t("spool.fields.measured_weight")}
           help={t("spool.fields_help.measured_weight")}
-          // name={["measured_weight"]}
           initialValue={0}
         >
           <InputNumber
@@ -246,7 +238,21 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             },
           ]}
         >
-          <Input maxLength={64} />
+          <Select
+            dropdownRender={(menu) => (
+              <>
+                {menu}
+                <Divider style={{ margin: "8px 0" }} />
+                <Input
+                  placeholder={t("spool.form.new_location_prompt")}
+                  value={newLocation}
+                  onChange={(event) => setNewLocation(event.target.value)}
+                />
+              </>
+            )}
+            loading={locations.isLoading}
+            options={allLocations.map((item) => ({ label: item, value: item }))}
+          />
         </Form.Item>
         <Form.Item
           label={t("spool.fields.lot_nr")}

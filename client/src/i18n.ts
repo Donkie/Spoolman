@@ -65,6 +65,16 @@ export const languages: { [key: string]: Language } = {
     countryCode: "fr",
     fullCode: "fr-FR",
   },
+  ["hu"]: {
+    name: "Magyar",
+    countryCode: "hu",
+    fullCode: "hu-HU",
+  },
+  ["it"]: {
+    name: "Italiano",
+    countryCode: "it",
+    fullCode: "it-IT",
+  },
 }
 
 i18n

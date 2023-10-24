@@ -129,7 +129,7 @@
     "spool": {
         "spool": "Spolar",
         "fields": {
-            "id": "Id",
+            "id": "ID",
             "filament_name": "Filament",
             "filament": "Filament",
             "material": "Material",
@@ -161,7 +161,8 @@
             "edit": "Ändra spole",
             "list": "Spolar",
             "show": "Visa spole",
-            "archive": "Arkivera spole"
+            "archive": "Arkivera spole",
+            "show_title": "[Spole #{{id}}] {{name}}"
         },
         "messages": {
             "archive": "Är du säker på att du vill arkivera denna spole?"
@@ -170,7 +171,7 @@
     "filament": {
         "filament": "Filament",
         "fields": {
-            "id": "Id",
+            "id": "ID",
             "vendor_name": "Leverantör",
             "vendor": "Leverantör",
             "name": "Namn",
@@ -200,7 +201,8 @@
             "clone": "Klona filament",
             "edit": "Ändra filament",
             "list": "Filament",
-            "show": "Visa filament"
+            "show": "Visa filament",
+            "show_title": "[Filament #{{id}}] {{name}}"
         }
     },
     "vendor": {
@@ -216,7 +218,8 @@
             "clone": "Klona leverantör",
             "edit": "Ändra leverantör",
             "list": "Leverantörer",
-            "show": "Visa leverantör"
+            "show": "Visa leverantör",
+            "show_title": "[Leverantör #{{id}}] {{name}}"
         }
     },
     "table": {

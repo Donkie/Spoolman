@@ -56,7 +56,7 @@
     "spool": {
         "spool": "Carretes",
         "fields": {
-            "id": "Id",
+            "id": "ID",
             "filament_name": "Filamento",
             "filament": "Filamento",
             "material": "Material",
@@ -88,16 +88,20 @@
             "edit": "Editar Carrete",
             "list": "Carretes",
             "show": "Mostrar Carrete",
-            "archive": "Archivar Carrete"
+            "archive": "Archivar Carrete",
+            "show_title": "[Carrete #{{id}}] {{name}}"
         },
         "messages": {
             "archive": "Esta seguro que quiere archivar este carrete?"
+        },
+        "form": {
+            "new_location_prompt": "Introduce una nueva ubicación"
         }
     },
     "filament": {
         "filament": "Filamentos",
         "fields": {
-            "id": "Id",
+            "id": "ID",
             "vendor_name": "Marca",
             "vendor": "Marca",
             "name": "Nombre",
@@ -119,7 +123,7 @@
             "material": "ej. PLA, ABS, PETG, etc.",
             "price": "Precio del carrete completo en la divisa configurada en el sistema.",
             "weight": "El peso de un carrete entero (peso neto). Esta cifra no debe incluir el peso del carrete vacío, solo el filamento. Es, usualmente, el peso escrito en la etiqueta del carrete.",
-            "spool_weight": "El peso del carrete vacío. Actualmente este valor no es usado para nada pero podría ser usado en otras aplicaciones, como calcular el peso actual del filamento pesando el carrete con una pesa.",
+            "spool_weight": "El peso de un carrete vacío. Se utiliza para determinar el peso medido de un carrete.",
             "article_number": "ej. EAN, UPC, etc."
         },
         "titles": {
@@ -127,7 +131,8 @@
             "clone": "Duplicar Filamento",
             "edit": "Editar Filamento",
             "list": "Filamentos",
-            "show": "Mostrar Filamentos"
+            "show": "Mostrar Filamentos",
+            "show_title": "[Filamento #{{id}}] {{name}}"
         }
     },
     "vendor": {
@@ -143,7 +148,8 @@
             "clone": "Duplicar Marca",
             "edit": "Editar Marca",
             "list": "Marcas",
-            "show": "Mostrar Marcas"
+            "show": "Mostrar Marcas",
+            "show_title": "[Proveedor #{{id}}] {{name}}"
         }
     },
     "table": {
