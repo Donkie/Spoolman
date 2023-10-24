@@ -15,9 +15,21 @@ export interface TableState {
 
 export function useInitialTableState(tableId: string): TableState {
   const [initialState] = React.useState(() => {
-    const savedSorters = hasHashProperty('sorters') ? getHashProperty('sorters') : isLocalStorageAvailable ? localStorage.getItem(`${tableId}-sorters`) : null;
-    const savedFilters = hasHashProperty('filters') ? getHashProperty('filters') : isLocalStorageAvailable ? localStorage.getItem(`${tableId}-filters`) : null;
-    const savedPagination = hasHashProperty('pagination') ? getHashProperty('pagination') : isLocalStorageAvailable ? localStorage.getItem(`${tableId}-pagination`) : null;
+    const savedSorters = hasHashProperty("sorters")
+      ? getHashProperty("sorters")
+      : isLocalStorageAvailable
+      ? localStorage.getItem(`${tableId}-sorters`)
+      : null;
+    const savedFilters = hasHashProperty("filters")
+      ? getHashProperty("filters")
+      : isLocalStorageAvailable
+      ? localStorage.getItem(`${tableId}-filters`)
+      : null;
+    const savedPagination = hasHashProperty("pagination")
+      ? getHashProperty("pagination")
+      : isLocalStorageAvailable
+      ? localStorage.getItem(`${tableId}-pagination`)
+      : null;
     const savedShowColumns = isLocalStorageAvailable ? localStorage.getItem(`${tableId}-showColumns`) : null;
 
     const sorters = savedSorters ? JSON.parse(savedSorters) : [{ field: "id", order: "asc" }];
@@ -37,20 +49,20 @@ export function useStoreInitialState(tableId: string, state: TableState) {
       }
       setURLHash(`sorters`, JSON.stringify(state.sorters));
     } else {
-      localStorage.removeItem(`${tableId}-sorters`)
-      removeURLHash('sorters');
+      localStorage.removeItem(`${tableId}-sorters`);
+      removeURLHash("sorters");
     }
   }, [tableId, state.sorters]);
 
   React.useEffect(() => {
-    let filters = state.filters.filter(f => f.value.length != 0);
+    const filters = state.filters.filter((f) => f.value.length != 0);
     if (filters.length > 0) {
       if (isLocalStorageAvailable) {
         localStorage.setItem(`${tableId}-filters`, JSON.stringify(filters));
-        setURLHash('filters', JSON.stringify(state.filters));
+        setURLHash("filters", JSON.stringify(state.filters));
       }
     } else {
-      localStorage.removeItem(`${tableId}-filters`)
+      localStorage.removeItem(`${tableId}-filters`);
       removeURLHash(`filters`);
     }
   }, [tableId, state.filters]);
@@ -62,10 +74,9 @@ export function useStoreInitialState(tableId: string, state: TableState) {
       }
       setURLHash(`pagination`, JSON.stringify(state.pagination));
     } else {
-      localStorage.removeItem(`${tableId}-pagination`)
+      localStorage.removeItem(`${tableId}-pagination`);
       removeURLHash(`pagination`);
     }
-
   }, [tableId, state.pagination]);
 
   React.useEffect(() => {
@@ -76,7 +87,6 @@ export function useStoreInitialState(tableId: string, state: TableState) {
         localStorage.setItem(`${tableId}-showColumns`, JSON.stringify(state.showColumns));
       }
     }
-
   }, [tableId, state.showColumns]);
 }
 
@@ -98,7 +108,7 @@ export function useSavedState<T>(id: string, defaultValue: T) {
 function setURLHash(Id: string, value: string) {
   const params = new URLSearchParams(window.location.hash.substring(1));
   if (!params.has(Id)) {
-    params.append(Id, value)
+    params.append(Id, value);
   }
   params.set(Id, value);
   window.location.hash = params.toString();
@@ -106,7 +116,7 @@ function setURLHash(Id: string, value: string) {
 function removeURLHash(Id: string) {
   const params = new URLSearchParams(window.location.hash.substring(1));
   if (params.has(Id)) {
-    params.delete(Id)
+    params.delete(Id);
   }
   window.location.hash = params.toString();
 }
