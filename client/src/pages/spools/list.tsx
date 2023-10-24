@@ -23,6 +23,7 @@ import {
   useSpoolmanLotNumbers,
   useSpoolmanMaterials,
 } from "../../components/otherModels";
+import { useLiveify } from "../../components/liveify";
 
 dayjs.extend(utc);
 
@@ -32,6 +33,21 @@ interface ISpoolCollapsed extends ISpool {
   combined_name: string; // Eg. "Prusa - PLA Red"
   "filament.id": number;
   "filament.material"?: string;
+}
+
+function collapseSpool(element: ISpool): ISpoolCollapsed {
+  let filament_name: string;
+  if (element.filament.vendor && "name" in element.filament.vendor) {
+    filament_name = `${element.filament.vendor.name} - ${element.filament.name}`;
+  } else {
+    filament_name = element.filament.name ?? element.filament.id.toString();
+  }
+  return {
+    ...element,
+    combined_name: filament_name,
+    "filament.id": element.filament.id,
+    "filament.material": element.filament.material,
+  };
 }
 
 function translateColumnI18nKey(columnName: string): string {
@@ -54,6 +70,9 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const [showArchived, setShowArchived] = useSavedState("spoolList-showArchived", false);
 
   // Fetch data from the API
+  // To provide the live updates, we use a custom solution (useLiveify) instead of the built-in refine "liveMode" feature.
+  // This is because the built-in feature does not call the liveProvider subscriber with a list of IDs, but instead
+  // calls it with a list of filters, sorters, etc. This means the server-side has to support this, which is quite hard.
   const { tableProps, sorters, setSorters, filters, setFilters, current, pageSize, setCurrent } = useTable<ISpool>({
     meta: {
       queryParams: {
@@ -73,6 +92,16 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     filters: {
       mode: "server",
       initial: initialState.filters,
+    },
+    liveMode: "manual",
+    onLiveEvent(event) {
+      if (event.type === "created" || event.type === "deleted") {
+        // updated is handled by the liveify
+        invalidate({
+          resource: "spool",
+          invalidates: ["list"],
+        });
+      }
     },
   });
 
@@ -107,24 +136,11 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   useStoreInitialState(namespace, tableState);
 
   // Collapse the dataSource to a mutable list and add a filament_name field
-  const dataSource: ISpoolCollapsed[] = React.useMemo(
-    () =>
-      (tableProps.dataSource ?? []).map((element) => {
-        let filament_name: string;
-        if (element.filament.vendor && "name" in element.filament.vendor) {
-          filament_name = `${element.filament.vendor.name} - ${element.filament.name}`;
-        } else {
-          filament_name = element.filament.name ?? element.filament.id.toString();
-        }
-        return {
-          ...element,
-          combined_name: filament_name,
-          "filament.id": element.filament.id,
-          "filament.material": element.filament.material,
-        };
-      }),
+  const queryDataSource = React.useMemo(
+    () => (tableProps.dataSource ?? []).map(collapseSpool),
     [tableProps.dataSource]
   );
+  const dataSource = useLiveify("spool", queryDataSource, collapseSpool);
 
   // Function for opening an ant design modal that asks for confirmation for archiving a spool
   const archiveSpool = async (spool: ISpoolCollapsed, archive: boolean) => {

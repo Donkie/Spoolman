@@ -123,7 +123,8 @@
             "location": "Hol található a tekercs, ha több helyen tárolod a tekercseidet."
         },
         "form": {
-            "new_location_prompt": "Add meg az új helyet"
+            "new_location_prompt": "Add meg az új helyet",
+            "spool_updated": "Ez a tekercs azóta frissült valaki/valami más által, mióta megnyitottad ezt az oldalt. A mentés felül fogja írni ezeket a változásokat!"
         },
         "spool": "Tekercs",
         "messages": {
@@ -188,7 +189,10 @@
             "edit": "Filament szerkesztése",
             "list": "Filamentek"
         },
-        "filament": "Filamentek"
+        "filament": "Filamentek",
+        "form": {
+            "filament_updated": "Ez a szál anyag azóta frissült valaki/valami más által, mióta megnyitottad ezt az oldalt. A mentés felül fogja írni ezeket a változásokat!"
+        }
     },
     "actions": {
         "create": "Létrehoz",
@@ -212,7 +216,10 @@
             "name": "Név",
             "id": "Id"
         },
-        "vendor": "Gyártók"
+        "vendor": "Gyártók",
+        "form": {
+            "vendor_updated": "Ez a szállító azóta frissült valaki/valami más által, mióta megnyitottad ezt az oldalt. A mentés felül fogja írni ezeket a változásokat!"
+        }
     },
     "scanner": {
         "title": "QR kód beolvasása",

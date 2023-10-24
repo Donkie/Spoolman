@@ -95,7 +95,8 @@
             "archive": "Esta seguro que quiere archivar este carrete?"
         },
         "form": {
-            "new_location_prompt": "Introduce una nueva ubicación"
+            "new_location_prompt": "Introduce una nueva ubicación",
+            "spool_updated": "Este spool ha sido actualizado por alguien/algo más desde que abriste esta página. ¡Al guardar, se sobrescribirán los cambios!"
         }
     },
     "filament": {
@@ -133,6 +134,9 @@
             "list": "Filamentos",
             "show": "Mostrar Filamentos",
             "show_title": "[Filamento #{{id}}] {{name}}"
+        },
+        "form": {
+            "filament_updated": "Este filamento ha sido actualizado por alguien/algo más desde que abrió esta página. ¡Al guardar, se sobrescribirán los cambios!"
         }
     },
     "vendor": {
@@ -150,6 +154,9 @@
             "list": "Marcas",
             "show": "Mostrar Marcas",
             "show_title": "[Proveedor #{{id}}] {{name}}"
+        },
+        "form": {
+            "vendor_updated": "Este vendedor ha sido actualizado por alguien/algo más desde que abrió esta página. ¡Al guardar, se sobrescribirán los cambios!"
         }
     },
     "table": {

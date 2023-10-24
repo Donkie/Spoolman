@@ -75,7 +75,12 @@ export const languages: { [key: string]: Language } = {
     countryCode: "it",
     fullCode: "it-IT",
   },
-}
+  ["uk"]: {
+    name: "Українська",
+    countryCode: "ua",
+    fullCode: "uk-UA",
+  },
+};
 
 i18n
   .use(Backend)

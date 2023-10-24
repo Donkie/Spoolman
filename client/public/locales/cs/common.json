@@ -169,7 +169,8 @@
             "archive": "Opravdu chcete tuto cívku archivovat?"
         },
         "form": {
-            "new_location_prompt": "Zadejte nové umístění"
+            "new_location_prompt": "Zadejte nové umístění",
+            "spool_updated": "Od otevření této stránky byla tato cívka někým/něčím aktualizována. Uložením se tyto změny přepíší!"
         }
     },
     "filament": {
@@ -207,6 +208,9 @@
             "list": "Filamenty",
             "show": "Zobrazit filament",
             "show_title": "[Filament #{{id}}] {{name}}"
+        },
+        "form": {
+            "filament_updated": "Toto vlákno bylo od doby, kdy jste otevřeli tuto stránku, někým/něčím aktualizováno. Uložením se tyto změny přepíší!"
         }
     },
     "vendor": {
@@ -224,6 +228,9 @@
             "list": "Výrobci",
             "show": "Zobrazit výrobce",
             "show_title": "[Výrobce #{{id}}] {{name}}"
+        },
+        "form": {
+            "vendor_updated": "Od otevření této stránky byl tento prodejce někým/něčím aktualizován. Uložením se tyto změny přepíší!"
         }
     },
     "table": {

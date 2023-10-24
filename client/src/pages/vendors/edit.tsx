@@ -1,18 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Edit, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker } from "antd";
+import { Form, Input, DatePicker, message, Alert } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { IVendor } from "./model";
 
 export const VendorEdit: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
+  const [messageApi, contextHolder] = message.useMessage();
+  const [hasChanged, setHasChanged] = useState(false);
 
-  const { formProps, saveButtonProps } = useForm<IVendor>();
+  const { formProps, saveButtonProps } = useForm<IVendor>({
+    liveMode: "manual",
+    onLiveEvent() {
+      // Warn the user if the vendor has been updated since the form was opened
+      messageApi.warning(t("vendor.form.vendor_updated"));
+      setHasChanged(true);
+    },
+  });
 
   return (
     <Edit saveButtonProps={saveButtonProps}>
+      {contextHolder}
       <Form {...formProps} layout="vertical">
         <Form.Item
           label={t("vendor.fields.id")}
@@ -62,6 +72,7 @@ export const VendorEdit: React.FC<IResourceComponentsProps> = () => {
           <TextArea maxLength={1024} />
         </Form.Item>
       </Form>
+      {hasChanged && <Alert description={t("vendor.form.vendor_updated")} type="warning" showIcon />}
     </Edit>
   );
 };
