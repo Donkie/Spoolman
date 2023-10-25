@@ -31,10 +31,6 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
     return t("filament.titles.show_title", { id: item.id, name: vendorPrefix + item.name });
   };
 
-  const formatVendor = (item: IVendor) => {
-    const URL = `/vendor/show/${item.id}`;
-    return <a href={URL}>{item.name}</a>;
-  };
   const gotoVendor = (): undefined => {
     const URL = `/vendor/show/${record?.vendor?.id}`;
     navigate(URL);
