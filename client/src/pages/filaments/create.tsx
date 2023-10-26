@@ -1,7 +1,7 @@
 import React from "react";
 import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, Select, InputNumber, ColorPicker } from "antd";
+import { Form, Input, Select, InputNumber, ColorPicker, Button } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { numberFormatter, numberParser } from "../../utils/parsing";
 import { IVendor } from "../vendors/model";
@@ -14,13 +14,19 @@ interface CreateOrCloneProps {
 export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
 
-  const { formProps, saveButtonProps, formLoading } = useForm<IFilament>();
+  const { form, formProps, saveButtonProps, formLoading, onFinish, redirect } = useForm<IFilament>();
 
   if (props.mode === "clone" && formProps.initialValues) {
     // Fix the vendor_id
     if (formProps.initialValues.vendor) {
       formProps.initialValues.vendor_id = formProps.initialValues.vendor.id;
     }
+  }
+
+  const handleSubmit = async (redirectTo: "list" | "edit" | "create") => {
+    let values = await form.validateFields();
+    await onFinish(values);
+    redirect(redirectTo, (values as IFilament).id);
   }
 
   const { selectProps } = useSelect<IVendor>({
@@ -32,7 +38,12 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
     <Create
       title={props.mode === "create" ? t("filament.titles.create") : t("filament.titles.clone")}
       isLoading={formLoading}
-      saveButtonProps={saveButtonProps}
+      footerButtons={() => (
+        <>
+          <Button type="primary" onClick={() => handleSubmit("list")}>{t("buttons.save")}</Button>
+          <Button type="primary" onClick={() => handleSubmit("create")}>{t("buttons.saveAndAdd")}</Button>
+        </>
+      )}
     >
       <Form {...formProps} layout="vertical">
         <Form.Item
