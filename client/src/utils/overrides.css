@@ -1,7 +1,3 @@
-.ant-input-number-group-addon {
-    padding: 0 !important;
-}
-
-.ant-input-number-input {
+#qty-input {
     text-align: center !important;
 }

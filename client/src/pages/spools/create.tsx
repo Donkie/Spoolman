@@ -131,28 +131,27 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
       isLoading={formLoading}
       footerButtons={() => (
         <>
-          <InputNumber
-            name="Quantity"
-            min={1}
-            style={{ width: '50%', float: 'right', textAlign: 'center' }}
-            controls={false}
-            value={quantity}
-            addonBefore={
-              <Button type="text" style={{ padding: 0, width: 32, height: 32 }} onClick={decrementQty}>
-                <MinusOutlined />
-              </Button>
-            }
-            addonAfter={
-              <Button type="text" style={{ padding: 0, width: 32, height: 32 }} onClick={incrementQty}>
-                <PlusOutlined />
-              </Button>
-            }
-          >
-          </InputNumber>
+          <div style={{ display: 'flex', backgroundColor: '#141414', border: '1px solid #424242', borderRadius: '6px' }}>
+            <Button type="text" style={{ padding: 0, width: 32, height: 32 }} onClick={decrementQty}>
+              <MinusOutlined />
+            </Button>
+            <InputNumber
+              name="Quantity"
+              min={1}
+              id="qty-input"
+              controls={false}
+              value={quantity}
+            >
+            </InputNumber>
+            <Button type="text" style={{ padding: 0, width: 32, height: 32 }} onClick={incrementQty}>
+              <PlusOutlined />
+            </Button>
+          </div>
           <Button type="primary" onClick={() => handleSubmit("list")}>{t("buttons.save")}</Button>
           <Button type="primary" onClick={() => handleSubmit("create")}>{t("buttons.saveAndAdd")}</Button>
         </>
-      )}
+      )
+      }
     >
       <Form {...formProps} layout="vertical">
         <Form.Item
@@ -326,7 +325,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
           <TextArea maxLength={1024} />
         </Form.Item>
       </Form>
-    </Create>
+    </Create >
   );
 };
 
