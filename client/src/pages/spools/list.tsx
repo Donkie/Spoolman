@@ -227,6 +227,8 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     >
       <Table
         {...tableProps}
+        sticky
+        scroll={{ x: "max-content" }}
         dataSource={dataSource}
         rowKey="id"
         // Make archived rows greyed out
@@ -248,6 +250,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           i18ncat: "spool",
           dataSource,
           tableState,
+          width: 70,
         })}
         {SpoolIconColumn({
           id: "combined_name",
@@ -264,6 +267,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
           filterValueQuery: useSpoolmanMaterials(),
+          width: 120,
         })}
         {NumberColumn({
           id: "used_weight",
@@ -272,6 +276,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           decimals: 1,
           dataSource,
           tableState,
+          width: 110,
         })}
         {NumberColumn({
           id: "remaining_weight",
@@ -281,6 +286,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           defaultText: t("unknown"),
           dataSource,
           tableState,
+          width: 110,
         })}
         {NumberColumn({
           id: "used_length",
@@ -289,6 +295,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           decimals: 1,
           dataSource,
           tableState,
+          width: 120,
         })}
         {NumberColumn({
           id: "remaining_length",
@@ -298,6 +305,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           defaultText: t("unknown"),
           dataSource,
           tableState,
+          width: 120,
         })}
         {FilteredQueryColumn({
           id: "location",
@@ -305,6 +313,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
           filterValueQuery: useSpoolmanLocations(),
+          width: 120,
         })}
         {FilteredQueryColumn({
           id: "lot_nr",
@@ -312,6 +321,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
           filterValueQuery: useSpoolmanLotNumbers(),
+          width: 120,
         })}
         {DateColumn({
           id: "first_used",
@@ -336,6 +346,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           i18ncat: "spool",
           dataSource,
           tableState,
+          width: 150,
         })}
         <Table.Column
           title={t("table.actions")}

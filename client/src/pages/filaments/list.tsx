@@ -168,12 +168,13 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
         </>
       )}
     >
-      <Table {...tableProps} dataSource={dataSource} rowKey="id">
+      <Table {...tableProps} sticky scroll={{ x: "max-content" }} dataSource={dataSource} rowKey="id">
         {SortedColumn({
           id: "id",
           i18ncat: "filament",
           dataSource,
           tableState,
+          width: 70,
         })}
         {FilteredQueryColumn({
           id: "vendor.name",
@@ -196,12 +197,14 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
           filterValueQuery: useSpoolmanMaterials(),
+          width: 110,
         })}
         {SortedColumn({
           id: "price",
           i18ncat: "filament",
           dataSource,
           tableState,
+          width: 80,
         })}
         {NumberColumn({
           id: "density",
@@ -210,6 +213,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           decimals: 2,
           dataSource,
           tableState,
+          width: 100,
         })}
         {NumberColumn({
           id: "diameter",
@@ -218,6 +222,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           decimals: 2,
           dataSource,
           tableState,
+          width: 100,
         })}
         {NumberColumn({
           id: "weight",
@@ -226,6 +231,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           decimals: 1,
           dataSource,
           tableState,
+          width: 100,
         })}
         {NumberColumn({
           id: "spool_weight",
@@ -234,6 +240,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           decimals: 1,
           dataSource,
           tableState,
+          width: 100,
         })}
         {FilteredQueryColumn({
           id: "article_number",
@@ -241,6 +248,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           dataSource,
           tableState,
           filterValueQuery: useSpoolmanArticleNumbers(),
+          width: 130,
         })}
         {NumberColumn({
           id: "settings_extruder_temp",
@@ -249,6 +257,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           decimals: 0,
           dataSource,
           tableState,
+          width: 100,
         })}
         {NumberColumn({
           id: "settings_bed_temp",
@@ -257,6 +266,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           decimals: 0,
           dataSource,
           tableState,
+          width: 100,
         })}
         {DateColumn({
           id: "registered",
@@ -269,6 +279,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           i18ncat: "filament",
           dataSource,
           tableState,
+          width: 150,
         })}
         <Table.Column
           title={t("table.actions")}

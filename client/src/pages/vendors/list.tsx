@@ -114,12 +114,13 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
         </>
       )}
     >
-      <Table {...tableProps} dataSource={dataSource} rowKey="id">
+      <Table {...tableProps} sticky scroll={{ x: "max-content" }} dataSource={dataSource} rowKey="id">
         {SortedColumn({
           id: "id",
           i18ncat: "vendor",
           dataSource,
           tableState,
+          width: 70,
         })}
         {SortedColumn({
           id: "name",
