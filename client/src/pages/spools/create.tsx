@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, DatePicker, Select, InputNumber, Radio, Divider, Button } from "antd";
@@ -19,8 +19,10 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   const t = useTranslate();
 
   const { form, formProps, formLoading, onFinish, redirect } = useForm<ISpool>({
-    redirect: false
+    redirect: false,
+    warnWhenUnsavedChanges: false
   });
+
   if (props.mode === "clone" && formProps.initialValues) {
     // Clear out the values that we don't want to clone
     formProps.initialValues.first_used = null;
@@ -37,11 +39,10 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
       let submit = Array(quantity).fill(values);
       // queue multiple creates this way for now Refine doesn't seem to map Arrays to createMany or multiple creates like it says it does
       submit.forEach(async r => await onFinish(r));
-      redirect(redirectTo, (values as ISpool).id);
     } else {
       await onFinish(values);
-      redirect(redirectTo, (values as ISpool).id);
     }
+    redirect(redirectTo, (values as ISpool).id);
   }
 
   const { queryResult } = useSelect<IFilament>({
