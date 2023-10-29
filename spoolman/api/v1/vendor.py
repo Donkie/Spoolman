@@ -1,8 +1,9 @@
 """Vendor related endpoints."""
 
+import asyncio
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -10,10 +11,11 @@ from pydantic import BaseModel, Field
 from pydantic.error_wrappers import ErrorWrapper
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman.api.v1.models import Message, Vendor
+from spoolman.api.v1.models import Message, Vendor, VendorEvent
 from spoolman.database import vendor
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
+from spoolman.ws import websocket_manager
 
 router = APIRouter(
     prefix="/vendor",
@@ -44,9 +46,17 @@ class VendorUpdateParameters(VendorParameters):
 @router.get(
     "",
     name="Find vendor",
-    description="Get a list of vendors that matches the search query.",
+    description=(
+        "Get a list of vendors that matches the search query. "
+        "A websocket is served on the same path to listen for updates to any vendor, or added or deleted vendors. "
+        "See the HTTP Response code 299 for the content of the websocket messages."
+    ),
     response_model_exclude_none=True,
-    response_model=list[Vendor],
+    responses={
+        200: {"model": list[Vendor]},
+        404: {"model": Message},
+        299: {"model": VendorEvent, "description": "Websocket message"},
+    },
 )
 async def find(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -97,12 +107,33 @@ async def find(
     )
 
 
+@router.websocket(
+    "",
+    name="Listen to vendor changes",
+)
+async def notify_any(
+    websocket: WebSocket,
+) -> None:
+    await websocket.accept()
+    websocket_manager.connect(("vendor",), websocket)
+    try:
+        while True:
+            await asyncio.sleep(0.5)
+            if await websocket.receive_text():
+                await websocket.send_json({"status": "healthy"})
+    except WebSocketDisconnect:
+        websocket_manager.disconnect(("vendor",), websocket)
+
+
 @router.get(
     "/{vendor_id}",
     name="Get vendor",
-    description="Get a specific vendor.",
+    description=(
+        "Get a specific vendor. A websocket is served on the same path to listen for changes to the vendor. "
+        "See the HTTP Response code 299 for the content of the websocket messages."
+    ),
     response_model_exclude_none=True,
-    responses={404: {"model": Message}},
+    responses={404: {"model": Message}, 299: {"model": VendorEvent, "description": "Websocket message"}},
 )
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -110,6 +141,25 @@ async def get(
 ) -> Vendor:
     db_item = await vendor.get_by_id(db, vendor_id)
     return Vendor.from_db(db_item)
+
+
+@router.websocket(
+    "/{vendor_id}",
+    name="Listen to vendor changes",
+)
+async def notify(
+    websocket: WebSocket,
+    vendor_id: int,
+) -> None:
+    await websocket.accept()
+    websocket_manager.connect(("vendor", str(vendor_id)), websocket)
+    try:
+        while True:
+            await asyncio.sleep(0.5)
+            if await websocket.receive_text():
+                await websocket.send_json({"status": "healthy"})
+    except WebSocketDisconnect:
+        websocket_manager.disconnect(("vendor", str(vendor_id)), websocket)
 
 
 @router.post(

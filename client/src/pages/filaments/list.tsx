@@ -1,5 +1,5 @@
 import React from "react";
-import { IResourceComponentsProps, BaseRecord, useTranslate } from "@refinedev/core";
+import { IResourceComponentsProps, BaseRecord, useTranslate, useInvalidate } from "@refinedev/core";
 import { useTable, List, EditButton, ShowButton, CloneButton } from "@refinedev/antd";
 import { Table, Space, Button, Dropdown } from "antd";
 import dayjs from "dayjs";
@@ -21,11 +21,22 @@ import {
   useSpoolmanMaterials,
   useSpoolmanVendors,
 } from "../../components/otherModels";
+import { useLiveify } from "../../components/liveify";
 
 dayjs.extend(utc);
 
 interface IFilamentCollapsed extends Omit<IFilament, "vendor"> {
   "vendor.name": string | null;
+}
+
+function collapseFilament(element: IFilament): IFilamentCollapsed {
+  let vendor_name: string | null;
+  if (element.vendor) {
+    vendor_name = element.vendor.name;
+  } else {
+    vendor_name = null;
+  }
+  return { ...element, "vendor.name": vendor_name };
 }
 
 function translateColumnI18nKey(columnName: string): string {
@@ -37,11 +48,15 @@ const namespace = "filamentList-v2";
 
 export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
+  const invalidate = useInvalidate();
 
   // Load initial state
   const initialState = useInitialTableState(namespace);
 
   // Fetch data from the API
+  // To provide the live updates, we use a custom solution (useLiveify) instead of the built-in refine "liveMode" feature.
+  // This is because the built-in feature does not call the liveProvider subscriber with a list of IDs, but instead
+  // calls it with a list of filters, sorters, etc. This means the server-side has to support this, which is quite hard.
   const { tableProps, sorters, setSorters, filters, setFilters, current, pageSize, setCurrent } = useTable<IFilament>({
     syncWithLocation: false,
     pagination: {
@@ -56,6 +71,16 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
     filters: {
       mode: "server",
       initial: initialState.filters,
+    },
+    liveMode: "manual",
+    onLiveEvent(event) {
+      if (event.type === "created" || event.type === "deleted") {
+        // updated is handled by the liveify
+        invalidate({
+          resource: "filament",
+          invalidates: ["list"],
+        });
+      }
     },
   });
 
@@ -92,19 +117,11 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   useStoreInitialState(namespace, tableState);
 
   // Collapse the dataSource to a mutable list and add a filament_name field
-  const dataSource: IFilamentCollapsed[] = React.useMemo(
-    () =>
-      (tableProps.dataSource ?? []).map((element) => {
-        let vendor_name: string | null;
-        if (element.vendor) {
-          vendor_name = element.vendor.name;
-        } else {
-          vendor_name = null;
-        }
-        return { ...element, "vendor.name": vendor_name };
-      }),
+  const queryDataSource: IFilamentCollapsed[] = React.useMemo(
+    () => (tableProps.dataSource ?? []).map(collapseFilament),
     [tableProps.dataSource]
   );
+  const dataSource = useLiveify("filament", queryDataSource, collapseFilament);
 
   if (tableProps.pagination) {
     tableProps.pagination.showSizeChanger = true;

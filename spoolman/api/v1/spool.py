@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 from pydantic.error_wrappers import ErrorWrapper
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman.api.v1.models import Message, Spool
+from spoolman.api.v1.models import Message, Spool, SpoolEvent
 from spoolman.database import spool
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
@@ -68,9 +68,17 @@ class SpoolUseParameters(BaseModel):
 @router.get(
     "",
     name="Find spool",
-    description="Get a list of spools that matches the search query.",
+    description=(
+        "Get a list of spools that matches the search query. "
+        "A websocket is served on the same path to listen for updates to any spool, or added or deleted spools. "
+        "See the HTTP Response code 299 for the content of the websocket messages."
+    ),
     response_model_exclude_none=True,
-    response_model=list[Spool],
+    responses={
+        200: {"model": list[Spool]},
+        404: {"model": Message},
+        299: {"model": SpoolEvent, "description": "Websocket message"},
+    },
 )
 async def find(
     *,
@@ -245,15 +253,33 @@ async def find(
     )
 
 
+@router.websocket(
+    "",
+    name="Listen to spool changes",
+)
+async def notify_any(
+    websocket: WebSocket,
+) -> None:
+    await websocket.accept()
+    websocket_manager.connect(("spool",), websocket)
+    try:
+        while True:
+            await asyncio.sleep(0.5)
+            if await websocket.receive_text():
+                await websocket.send_json({"status": "healthy"})
+    except WebSocketDisconnect:
+        websocket_manager.disconnect(("spool",), websocket)
+
+
 @router.get(
     "/{spool_id}",
     name="Get spool",
     description=(
         "Get a specific spool. A websocket is served on the same path to listen for changes to the spool. "
-        "The response model is the same for the websocket messages as for this endpoint."
+        "See the HTTP Response code 299 for the content of the websocket messages."
     ),
     response_model_exclude_none=True,
-    responses={404: {"model": Message}},
+    responses={404: {"model": Message}, 299: {"model": SpoolEvent, "description": "Websocket message"}},
 )
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],

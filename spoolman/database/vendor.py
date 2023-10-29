@@ -6,9 +6,11 @@ from typing import Optional
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from spoolman.api.v1.models import EventType, Vendor, VendorEvent
 from spoolman.database import models
 from spoolman.database.utils import SortOrder, add_where_clause_str
 from spoolman.exceptions import ItemNotFoundError
+from spoolman.ws import websocket_manager
 
 
 async def create(
@@ -18,14 +20,15 @@ async def create(
     comment: Optional[str] = None,
 ) -> models.Vendor:
     """Add a new vendor to the database."""
-    db_item = models.Vendor(
+    vendor = models.Vendor(
         name=name,
         registered=datetime.utcnow().replace(microsecond=0),
         comment=comment,
     )
-    db.add(db_item)
+    db.add(vendor)
     await db.commit()
-    return db_item
+    await vendor_changed(vendor, EventType.ADDED)
+    return vendor
 
 
 async def get_by_id(db: AsyncSession, vendor_id: int) -> models.Vendor:
@@ -87,6 +90,7 @@ async def update(
     for k, v in data.items():
         setattr(vendor, k, v)
     await db.commit()
+    await vendor_changed(vendor, EventType.UPDATED)
     return vendor
 
 
@@ -94,3 +98,17 @@ async def delete(db: AsyncSession, vendor_id: int) -> None:
     """Delete a vendor object."""
     vendor = await get_by_id(db, vendor_id)
     await db.delete(vendor)
+    await vendor_changed(vendor, EventType.DELETED)
+
+
+async def vendor_changed(vendor: models.Vendor, typ: EventType) -> None:
+    """Notify websocket clients that a vendor has changed."""
+    await websocket_manager.send(
+        ("vendor", str(vendor.id)),
+        VendorEvent(
+            type=typ,
+            resource="vendor",
+            date=datetime.utcnow(),
+            payload=Vendor.from_db(vendor),
+        ),
+    )

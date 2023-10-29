@@ -165,7 +165,8 @@
             "archive": "Archive Spool"
         },
         "form": {
-            "new_location_prompt": "Enter a new location"
+            "new_location_prompt": "Enter a new location",
+            "spool_updated": "This spool has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
         },
         "messages": {
             "archive": "Are you sure you want to archive this spool?"
@@ -206,12 +207,15 @@
             "list": "Filaments",
             "show": "Show Filament",
             "show_title": "[Filament #{{id}}] {{name}}"
+        },
+        "form": {
+            "filament_updated": "This filament has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
         }
     },
     "vendor": {
         "vendor": "Vendors",
         "fields": {
-            "id": "Id",
+            "id": "ID",
             "name": "Name",
             "registered": "Registered",
             "comment": "Comment"
@@ -223,6 +227,9 @@
             "list": "Vendors",
             "show": "Show Vendor",
             "show_title": "[Vendor #{{id}}] {{name}}"
+        },
+        "form": {
+            "vendor_updated": "This vendor has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
         }
     },
     "table": {

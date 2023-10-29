@@ -1,5 +1,5 @@
 import React from "react";
-import { IResourceComponentsProps, BaseRecord, useTranslate } from "@refinedev/core";
+import { IResourceComponentsProps, BaseRecord, useTranslate, useInvalidate } from "@refinedev/core";
 import { useTable, List, EditButton, ShowButton, CloneButton } from "@refinedev/antd";
 import { Table, Space, Button, Dropdown } from "antd";
 import dayjs from "dayjs";
@@ -8,6 +8,7 @@ import { IVendor } from "./model";
 import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
 import { EditOutlined, FilterOutlined } from "@ant-design/icons";
 import { DateColumn, RichColumn, SortedColumn } from "../../components/column";
+import { useLiveify } from "../../components/liveify";
 
 dayjs.extend(utc);
 
@@ -15,6 +16,7 @@ const namespace = "vendorList-v2";
 
 export const VendorList: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
+  const invalidate = useInvalidate();
 
   // Load initial state
   const initialState = useInitialTableState(namespace);
@@ -35,6 +37,16 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
       mode: "server",
       initial: initialState.filters,
     },
+    liveMode: "manual",
+    onLiveEvent(event) {
+      if (event.type === "created" || event.type === "deleted") {
+        // updated is handled by the liveify
+        invalidate({
+          resource: "vendor",
+          invalidates: ["list"],
+        });
+      }
+    },
   });
 
   // Create state for the columns to show
@@ -51,10 +63,11 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
   useStoreInitialState(namespace, tableState);
 
   // Collapse the dataSource to a mutable list
-  const dataSource: IVendor[] = React.useMemo(
+  const queryDataSource: IVendor[] = React.useMemo(
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource]
   );
+  const dataSource = useLiveify("vendor", queryDataSource, (record: IVendor) => record);
 
   if (tableProps.pagination) {
     tableProps.pagination.showSizeChanger = true;

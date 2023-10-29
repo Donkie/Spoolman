@@ -10,7 +10,7 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 
-from spoolman.api.v1.models import Spool
+from spoolman.api.v1.models import EventType, Spool, SpoolEvent
 from spoolman.database import filament, models
 from spoolman.database.utils import (
     SortOrder,
@@ -59,7 +59,7 @@ async def create(
     if last_used is not None:
         last_used = utc_timezone_naive(last_used)
 
-    db_item = models.Spool(
+    spool = models.Spool(
         filament=filament_item,
         registered=datetime.utcnow().replace(microsecond=0),
         used_weight=used_weight,
@@ -70,9 +70,10 @@ async def create(
         comment=comment,
         archived=archived,
     )
-    db.add(db_item)
+    db.add(spool)
     await db.commit()
-    return db_item
+    await spool_changed(spool, EventType.ADDED)
+    return spool
 
 
 async def get_by_id(db: AsyncSession, spool_id: int) -> models.Spool:
@@ -182,7 +183,7 @@ async def update(
         else:
             setattr(spool, k, v)
     await db.commit()
-    await spool_changed(spool)
+    await spool_changed(spool, EventType.UPDATED)
     return spool
 
 
@@ -190,6 +191,7 @@ async def delete(db: AsyncSession, spool_id: int) -> None:
     """Delete a spool object."""
     spool = await get_by_id(db, spool_id)
     await db.delete(spool)
+    await spool_changed(spool, EventType.DELETED)
 
 
 async def use_weight_safe(db: AsyncSession, spool_id: int, weight: float) -> None:
@@ -235,7 +237,7 @@ async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.S
     spool.last_used = datetime.utcnow().replace(microsecond=0)
 
     await db.commit()
-    await spool_changed(spool)
+    await spool_changed(spool, EventType.UPDATED)
     return spool
 
 
@@ -280,7 +282,7 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
     spool.last_used = datetime.utcnow().replace(microsecond=0)
 
     await db.commit()
-    await spool_changed(spool)
+    await spool_changed(spool, EventType.UPDATED)
     return spool
 
 
@@ -304,6 +306,14 @@ async def find_lot_numbers(
     return [row[0] for row in rows.all() if row[0] is not None]
 
 
-async def spool_changed(spool: models.Spool) -> None:
+async def spool_changed(spool: models.Spool, typ: EventType) -> None:
     """Notify websocket clients that a spool has changed."""
-    await websocket_manager.send(("spool", str(spool.id)), Spool.from_db(spool).json())
+    await websocket_manager.send(
+        ("spool", str(spool.id)),
+        SpoolEvent(
+            type=typ,
+            resource="spool",
+            date=datetime.utcnow(),
+            payload=Spool.from_db(spool),
+        ),
+    )

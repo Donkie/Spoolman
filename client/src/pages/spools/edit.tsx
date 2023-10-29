@@ -1,18 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, InputNumber, Radio, Divider } from "antd";
+import { Form, Input, DatePicker, Select, InputNumber, Radio, Divider, Alert } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { IFilament } from "../filaments/model";
 import { ISpool } from "./model";
 import { numberFormatter, numberParser } from "../../utils/parsing";
 import { useSpoolmanLocations } from "../../components/otherModels";
+import { message } from "antd/lib";
 
 export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
+  const [messageApi, contextHolder] = message.useMessage();
+  const [hasChanged, setHasChanged] = useState(false);
 
-  const { form, formProps, saveButtonProps } = useForm<ISpool>();
+  const { form, formProps, saveButtonProps } = useForm<ISpool>({
+    liveMode: "manual",
+    onLiveEvent() {
+      // Warn the user if the spool has been updated since the form was opened
+      messageApi.warning(t("spool.form.spool_updated"));
+      setHasChanged(true);
+    },
+  });
 
   const { queryResult } = useSelect<IFilament>({
     resource: "filament",
@@ -96,6 +106,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
 
   return (
     <Edit saveButtonProps={saveButtonProps}>
+      {contextHolder}
       <Form {...formProps} layout="vertical">
         <Form.Item
           label={t("spool.fields.id")}
@@ -282,6 +293,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
           <TextArea maxLength={1024} />
         </Form.Item>
       </Form>
+      {hasChanged && <Alert description={t("spool.form.spool_updated")} type="warning" showIcon />}
     </Edit>
   );
 };
