@@ -81,11 +81,6 @@ services:
       - TZ=$(cat /etc/timezone) # Set timezone based on system timezone
 EOF
 
-# Change timezone to match the system timezone
-echo "Changing timezone to match the system timezone..."
-echo $(cat /etc/timezone) | sudo tee /etc/timezone
-sudo dpkg-reconfigure -f noninteractive tzdata
-
 # Start the Docker container
 cd "$INSTALL_PATH"
 if docker compose up -d; then
