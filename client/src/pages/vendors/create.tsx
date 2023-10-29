@@ -1,7 +1,7 @@
 import React from "react";
 import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Create, useForm } from "@refinedev/antd";
-import { Form, Input } from "antd";
+import { Button, Form, Input } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { IVendor } from "./model";
 
@@ -12,13 +12,24 @@ interface CreateOrCloneProps {
 export const VendorCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
 
-  const { formProps, saveButtonProps, formLoading } = useForm<IVendor>();
+  const { form, formProps, saveButtonProps, formLoading, onFinish, redirect } = useForm<IVendor>();
+
+  const handleSubmit = async (redirectTo: "list" | "edit" | "create") => {
+    let values = await form.validateFields();
+    await onFinish(values);
+    redirect(redirectTo, (values as IVendor).id);
+  }
 
   return (
     <Create
       title={props.mode === "create" ? t("vendor.titles.create") : t("vendor.titles.clone")}
       isLoading={formLoading}
-      saveButtonProps={saveButtonProps}
+      footerButtons={() => (
+        <>
+          <Button type="primary" onClick={() => handleSubmit("list")}>{t("buttons.save")}</Button>
+          <Button type="primary" onClick={() => handleSubmit("create")}>{t("buttons.saveAndAdd")}</Button>
+        </>
+      )}
     >
       <Form {...formProps} layout="vertical">
         <Form.Item

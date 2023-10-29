@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, InputNumber, Radio, Divider } from "antd";
+import { Form, Input, DatePicker, Select, InputNumber, Radio, Divider, Button } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { IFilament } from "../filaments/model";
 import { ISpool } from "./model";
 import { numberFormatter, numberParser } from "../../utils/parsing";
 import { useSpoolmanLocations } from "../../components/otherModels";
+import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
+import '../../utils/overrides.css'
 
 interface CreateOrCloneProps {
   mode: "create" | "clone";
@@ -16,7 +18,10 @@ interface CreateOrCloneProps {
 export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
 
-  const { form, formProps, saveButtonProps, formLoading } = useForm<ISpool>();
+  const { form, formProps, formLoading, onFinish, redirect } = useForm<ISpool>({
+    redirect: false,
+    warnWhenUnsavedChanges: false
+  });
 
   if (props.mode === "clone" && formProps.initialValues) {
     // Clear out the values that we don't want to clone
@@ -26,6 +31,18 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
 
     // Fix the filament_id
     formProps.initialValues.filament_id = formProps.initialValues.filament.id;
+  }
+
+  const handleSubmit = async (redirectTo: "list" | "edit" | "create") => {
+    let values = await form.validateFields();
+    if (quantity > 1) {
+      let submit = Array(quantity).fill(values);
+      // queue multiple creates this way for now Refine doesn't seem to map Arrays to createMany or multiple creates like it says it does
+      submit.forEach(async r => await onFinish(r));
+    } else {
+      await onFinish(values);
+    }
+    redirect(redirectTo, (values as ISpool).id);
   }
 
   const { queryResult } = useSelect<IFilament>({
@@ -100,11 +117,42 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     allLocations.push(newLocation.trim());
   }
 
+  const [quantity, setQuantity] = useState(1);
+  const incrementQty = () => {
+    setQuantity(quantity + 1);
+  }
+
+  const decrementQty = () => {
+    setQuantity(quantity - 1);
+  }
+
   return (
     <Create
       title={props.mode === "create" ? t("spool.titles.create") : t("spool.titles.clone")}
-      saveButtonProps={saveButtonProps}
       isLoading={formLoading}
+      footerButtons={() => (
+        <>
+          <div style={{ display: 'flex', backgroundColor: '#141414', border: '1px solid #424242', borderRadius: '6px' }}>
+            <Button type="text" style={{ padding: 0, width: 32, height: 32 }} onClick={decrementQty}>
+              <MinusOutlined />
+            </Button>
+            <InputNumber
+              name="Quantity"
+              min={1}
+              id="qty-input"
+              controls={false}
+              value={quantity}
+            >
+            </InputNumber>
+            <Button type="text" style={{ padding: 0, width: 32, height: 32 }} onClick={incrementQty}>
+              <PlusOutlined />
+            </Button>
+          </div>
+          <Button type="primary" onClick={() => handleSubmit("list")}>{t("buttons.save")}</Button>
+          <Button type="primary" onClick={() => handleSubmit("create")}>{t("buttons.saveAndAdd")}</Button>
+        </>
+      )
+      }
     >
       <Form {...formProps} layout="vertical">
         <Form.Item
@@ -278,7 +326,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
           <TextArea maxLength={1024} />
         </Form.Item>
       </Form>
-    </Create>
+    </Create >
   );
 };
 

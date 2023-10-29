@@ -9,6 +9,7 @@
     "buttons": {
         "create": "Create",
         "save": "Save",
+	"saveAndAdd": "Save and Add",
         "logout": "Log out",
         "delete": "Delete",
         "edit": "Edit",
@@ -190,7 +191,8 @@
             "comment": "Comment",
             "settings_extruder_temp": "Extruder Temp",
             "settings_bed_temp": "Bed Temp",
-            "color_hex": "Color"
+            "color_hex": "Color",
+	    "spools": "Show Spools"
         },
         "fields_help": {
             "name": "Filament name, to distinguish this filament type among others from the same vendor. Should contain the color for example.",
