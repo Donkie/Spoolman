@@ -28,3 +28,10 @@ export function getFiltersForField<Obj, Field extends keyof Obj>(
   });
   return filterValues;
 }
+
+/**
+ * Function that returns an array with all undefined values removed.
+ */
+export function removeUndefined<T>(array: (T | undefined)[]): T[] {
+  return array.filter((value) => value !== undefined) as T[];
+}
