@@ -140,8 +140,8 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
 
   const { editUrl, showUrl, cloneUrl } = useNavigation();
   const actions = (record: IFilamentCollapsed) => [
-    { name: t("buttons.edit"), icon: <EditOutlined />, link: editUrl("filament", record.id) },
     { name: t("buttons.show"), icon: <EyeOutlined />, link: showUrl("filament", record.id) },
+    { name: t("buttons.edit"), icon: <EditOutlined />, link: editUrl("filament", record.id) },
     { name: t("buttons.clone"), icon: <PlusSquareOutlined />, link: cloneUrl("filament", record.id) },
   ];
 

@@ -197,8 +197,8 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const { editUrl, showUrl, cloneUrl } = useNavigation();
   const actions = (record: ISpoolCollapsed) => {
     const actions: Action[] = [
-      { name: t("buttons.edit"), icon: <EditOutlined />, link: editUrl("spool", record.id) },
       { name: t("buttons.show"), icon: <EyeOutlined />, link: showUrl("spool", record.id) },
+      { name: t("buttons.edit"), icon: <EditOutlined />, link: editUrl("spool", record.id) },
       { name: t("buttons.clone"), icon: <PlusSquareOutlined />, link: cloneUrl("spool", record.id) },
     ];
     if (record.archived) {

@@ -77,8 +77,8 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
 
   const { editUrl, showUrl, cloneUrl } = useNavigation();
   const actions = (record: IVendor) => [
-    { name: t("buttons.edit"), icon: <EditOutlined />, link: editUrl("vendor", record.id) },
     { name: t("buttons.show"), icon: <EyeOutlined />, link: showUrl("vendor", record.id) },
+    { name: t("buttons.edit"), icon: <EditOutlined />, link: editUrl("vendor", record.id) },
     { name: t("buttons.clone"), icon: <PlusSquareOutlined />, link: cloneUrl("vendor", record.id) },
   ];
 
