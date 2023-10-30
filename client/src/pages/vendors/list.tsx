@@ -126,6 +126,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
       <Table
         {...tableProps}
         sticky
+        tableLayout="auto"
         scroll={{ x: "max-content" }}
         dataSource={dataSource}
         rowKey="id"

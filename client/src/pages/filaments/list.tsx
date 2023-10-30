@@ -189,6 +189,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
       <Table<IFilamentCollapsed>
         {...tableProps}
         sticky
+        tableLayout="auto"
         scroll={{ x: "max-content" }}
         dataSource={dataSource}
         rowKey="id"

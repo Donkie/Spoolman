@@ -125,6 +125,7 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
         <Table
           {...tableProps}
           rowKey="id"
+          tableLayout="auto"
           dataSource={dataSource}
           pagination={false}
           scroll={{ y: 200 }}
