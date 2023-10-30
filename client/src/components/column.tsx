@@ -133,7 +133,7 @@ function Column<Obj extends Entity>(
             }
           },
         }}
-        trigger={["contextMenu"]}
+        trigger={["click"]}
       >
         <div>{render(value, record, index)}</div>
       </Dropdown>
