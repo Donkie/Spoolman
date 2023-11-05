@@ -124,7 +124,8 @@
             "location": "Dove si trova la bobina se disponi di più posizioni in cui conservare le bobine."
         },
         "form": {
-            "new_location_prompt": "Inserisci nuova posizione"
+            "new_location_prompt": "Inserisci nuova posizione",
+            "spool_updated": "Ci sono stati degli aggiornamenti per questa bobina da quando è stata aperta questa pagina. Il salvataggio sovrascriverà le modifiche!"
         },
         "spool": "Bobine",
         "messages": {
@@ -189,7 +190,10 @@
             "edit": "Modifica Filamento",
             "list": "Filamenti"
         },
-        "filament": "Filamenti"
+        "filament": "Filamenti",
+        "form": {
+            "filament_updated": "Ci sono stati degli aggiornamenti per questo filamento da quando è stata aperta questa pagina. Il salvataggio sovrascriverà le modifiche!"
+        }
     },
     "actions": {
         "create": "Crea",
@@ -211,9 +215,12 @@
             "registered": "Registrato",
             "comment": "Note",
             "name": "Nome",
-            "id": "Id"
+            "id": "ID"
         },
-        "vendor": "Produttori"
+        "vendor": "Produttori",
+        "form": {
+            "vendor_updated": "Ci sono stati degli aggiornamenti per questo produttore da quando è stata aperta questa pagina. Il salvataggio sovrascriverà le modifiche!"
+        }
     },
     "scanner": {
         "title": "QR-Code Scanner",
