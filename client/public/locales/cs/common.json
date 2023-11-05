@@ -27,7 +27,8 @@
         "showArchived": "Zobrazit archivované",
         "notAccessTitle": "Nemáte oprávnění k přístupu",
         "hideColumns": "Skrýt sloupce",
-        "clearFilters": "Zrušit filtry"
+        "clearFilters": "Zrušit filtry",
+        "saveAndAdd": "Uložit a přidat"
     },
     "warnWhenUnsavedChanges": "Jste si jisti, že chcete odejít? Máte neuložené změny.",
     "notifications": {
@@ -191,7 +192,8 @@
             "comment": "Komentář",
             "settings_extruder_temp": "Teplota extruderu",
             "settings_bed_temp": "Teplota podložky",
-            "color_hex": "Barva"
+            "color_hex": "Barva",
+            "spools": "Zobrazit cívky"
         },
         "fields_help": {
             "name": "Název filamentu, aby se tento typ filamentu odlišil od ostatních filamentů od stejného dodavatele. Měl by obsahovat například barvu.",
