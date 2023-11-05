@@ -7,6 +7,6 @@ To install run the following:
 ```
   cd ~
   git clone https://github.com/mlee12382/Spoolman.git
-  cd Spoolman
-  ./install_spoolman.sh
+  cd Spoolman/scripts
+  ./install_docker.sh
 ```
