@@ -27,7 +27,8 @@
         "showArchived": "Visa arkiverade",
         "notAccessTitle": "Du har inte tillgång till denna sida",
         "hideColumns": "Dölj kolumner",
-        "clearFilters": "Rensa filter"
+        "clearFilters": "Rensa filter",
+        "saveAndAdd": "Spara och Lägg till"
     },
     "warnWhenUnsavedChanges": "Är du säker på att du vill lämna sidan? Du har osparade ändringar.",
     "notifications": {
@@ -190,7 +191,8 @@
             "comment": "Kommentar",
             "settings_extruder_temp": "Extrudertemp",
             "settings_bed_temp": "Bäddtemp",
-            "color_hex": "Färg"
+            "color_hex": "Färg",
+            "spools": "Visa spolar"
         },
         "fields_help": {
             "name": "Filamentets namn, för att skilja detta filament från andra från samma leverantör. Bör innehålla färgen till exempel.",
@@ -215,7 +217,7 @@
     "vendor": {
         "vendor": "Leverantörer",
         "fields": {
-            "id": "Id",
+            "id": "ID",
             "name": "Namn",
             "registered": "Registrerad",
             "comment": "Kommentar"
