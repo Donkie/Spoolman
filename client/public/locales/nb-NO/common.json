@@ -20,7 +20,8 @@
         "clear": "Tøm",
         "filter": "Filtrer",
         "refresh": "Gjenoppfrisk",
-        "notAccessTitle": "Du har ikke rettighet til å få tilgang"
+        "notAccessTitle": "Du har ikke rettighet til å få tilgang",
+        "saveAndAdd": "Lagre og legg til"
     },
     "filament": {
         "fields": {
@@ -39,7 +40,8 @@
             "spool_weight": "Spolevekt",
             "vendor": "Leverandør",
             "settings_bed_temp": "Printplate temp",
-            "density": "Tetthet"
+            "density": "Tetthet",
+            "spools": "Vis ruller"
         },
         "fields_help": {
             "name": "Filamentnavn, for å skille denne filamenttypen blant andre fra samme leverandør. Bør inneholde fargen f.eks.",
@@ -57,7 +59,10 @@
             "edit": "Endre Filament",
             "list": "Filamenter"
         },
-        "filament": "Filamenter"
+        "filament": "Filamenter",
+        "form": {
+            "filament_updated": "Dette filamentet har blitt oppdatert av noen/noe siden du åpnet denne siden. Lagring nå vil overskrive disse endringene!"
+        }
     },
     "printing": {
         "generic": {
@@ -164,7 +169,8 @@
             "location": "Hvor spolen er plassert hvis du har flere lokasjoner hvor du oppbevarer spoler."
         },
         "form": {
-            "new_location_prompt": "Skriv inn en ny lokasjon"
+            "new_location_prompt": "Skriv inn en ny lokasjon",
+            "spool_updated": "Denne rullen har blitt oppdatert av noen/noe siden du åpnet denne siden. Lagre nå vil overskrive disse endringene!"
         }
     },
     "yes": "Ja",
@@ -184,7 +190,10 @@
             "list": "Leverandører",
             "clone": "Kopier leverandør"
         },
-        "vendor": "Leverandører"
+        "vendor": "Leverandører",
+        "form": {
+            "vendor_updated": "Denne leverandøren har blitt oppdatert av noen/noe siden du åpnet denne siden. Lagring nå vil overskrive disse endringene!"
+        }
     },
     "actions": {
         "clone": "Klon",
