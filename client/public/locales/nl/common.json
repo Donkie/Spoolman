@@ -220,7 +220,10 @@
             "list": "Filamenten",
             "show_title": "[Filament #{{id}}] {{name}}"
         },
-        "filament": "Filamenten"
+        "filament": "Filamenten",
+        "form": {
+            "filament_updated": "Dit filament is bijgewerkt door iemand/iets anders sinds je deze pagina geopend hebt. Deze veranderingen worden overschreven als je op slaat!"
+        }
     },
     "scanner": {
         "title": "QR-Code scanner",
@@ -249,7 +252,10 @@
             "name": "Naam",
             "id": "Id"
         },
-        "vendor": "Fabrikanten"
+        "vendor": "Fabrikanten",
+        "form": {
+            "vendor_updated": "Deze leverancier is bijgewerkt dor iemand/iets anders sinds je deze pagina geopend hebt. De veranderingen worden overschreven als je opslaat!"
+        }
     },
     "table": {
         "actions": "Akties"
