@@ -1,12 +1,19 @@
 import React from "react";
-import { IResourceComponentsProps, useInvalidate, useTranslate } from "@refinedev/core";
-import { useTable, List, EditButton, ShowButton, CloneButton } from "@refinedev/antd";
-import { Table, Space, Button, Dropdown, Modal } from "antd";
+import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
+import { useTable, List } from "@refinedev/antd";
+import { Table, Button, Dropdown, Modal } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { ISpool } from "./model";
 import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
-import { EditOutlined, FilterOutlined, InboxOutlined, ToTopOutlined } from "@ant-design/icons";
+import {
+  EditOutlined,
+  EyeOutlined,
+  FilterOutlined,
+  InboxOutlined,
+  PlusSquareOutlined,
+  ToTopOutlined,
+} from "@ant-design/icons";
 import {
   DateColumn,
   FilteredQueryColumn,
@@ -14,6 +21,8 @@ import {
   RichColumn,
   SortedColumn,
   SpoolIconColumn,
+  Action,
+  ActionsColumn,
 } from "../../components/column";
 import { setSpoolArchived } from "./functions";
 import SelectAndPrint from "../../components/selectAndPrintDialog";
@@ -24,6 +33,7 @@ import {
   useSpoolmanMaterials,
 } from "../../components/otherModels";
 import { useLiveify } from "../../components/liveify";
+import { removeUndefined } from "../../utils/filtering";
 
 dayjs.extend(utc);
 
@@ -59,6 +69,25 @@ function translateColumnI18nKey(columnName: string): string {
 
 const namespace = "spoolList-v2";
 
+const allColumns: (keyof ISpoolCollapsed & string)[] = [
+  "id",
+  "combined_name",
+  "filament.material",
+  "used_weight",
+  "remaining_weight",
+  "used_length",
+  "remaining_length",
+  "location",
+  "lot_nr",
+  "first_used",
+  "last_used",
+  "registered",
+  "comment",
+];
+const defaultColumns = allColumns.filter(
+  (column_id) => ["registered", "used_length", "remaining_length", "lot_nr"].indexOf(column_id) === -1
+);
+
 export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
   const invalidate = useInvalidate();
@@ -73,57 +102,48 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   // To provide the live updates, we use a custom solution (useLiveify) instead of the built-in refine "liveMode" feature.
   // This is because the built-in feature does not call the liveProvider subscriber with a list of IDs, but instead
   // calls it with a list of filters, sorters, etc. This means the server-side has to support this, which is quite hard.
-  const { tableProps, sorters, setSorters, filters, setFilters, current, pageSize, setCurrent } = useTable<ISpool>({
-    meta: {
-      queryParams: {
-        ["allow_archived"]: showArchived,
+  const { tableProps, sorters, setSorters, filters, setFilters, current, pageSize, setCurrent } =
+    useTable<ISpoolCollapsed>({
+      meta: {
+        queryParams: {
+          ["allow_archived"]: showArchived,
+        },
       },
-    },
-    syncWithLocation: false,
-    pagination: {
-      mode: "server",
-      current: initialState.pagination.current,
-      pageSize: initialState.pagination.pageSize,
-    },
-    sorters: {
-      mode: "server",
-      initial: initialState.sorters,
-    },
-    filters: {
-      mode: "server",
-      initial: initialState.filters,
-    },
-    liveMode: "manual",
-    onLiveEvent(event) {
-      if (event.type === "created" || event.type === "deleted") {
-        // updated is handled by the liveify
-        invalidate({
-          resource: "spool",
-          invalidates: ["list"],
-        });
-      }
-    },
-  });
+      syncWithLocation: false,
+      pagination: {
+        mode: "server",
+        current: initialState.pagination.current,
+        pageSize: initialState.pagination.pageSize,
+      },
+      sorters: {
+        mode: "server",
+        initial: initialState.sorters,
+      },
+      filters: {
+        mode: "server",
+        initial: initialState.filters,
+      },
+      liveMode: "manual",
+      onLiveEvent(event) {
+        if (event.type === "created" || event.type === "deleted") {
+          // updated is handled by the liveify
+          invalidate({
+            resource: "spool",
+            invalidates: ["list"],
+          });
+        }
+      },
+      queryOptions: {
+        select(data) {
+          return {
+            total: data.total,
+            data: data.data.map(collapseSpool),
+          };
+        },
+      },
+    });
 
   // Create state for the columns to show
-  const allColumns: (keyof ISpoolCollapsed & string)[] = [
-    "id",
-    "combined_name",
-    "filament.material",
-    "used_weight",
-    "remaining_weight",
-    "used_length",
-    "remaining_length",
-    "location",
-    "lot_nr",
-    "first_used",
-    "last_used",
-    "registered",
-    "comment",
-  ];
-  const defaultColumns = allColumns.filter(
-    (column_id) => ["registered", "used_length", "remaining_length", "lot_nr"].indexOf(column_id) === -1
-  );
   const [showColumns, setShowColumns] = React.useState<string[]>(initialState.showColumns ?? defaultColumns);
 
   // Store state in local storage
@@ -135,9 +155,9 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   };
   useStoreInitialState(namespace, tableState);
 
-  // Collapse the dataSource to a mutable list and add a filament_name field
-  const queryDataSource = React.useMemo(
-    () => (tableProps.dataSource ?? []).map(collapseSpool),
+  // Collapse the dataSource to a mutable list
+  const queryDataSource: ISpoolCollapsed[] = React.useMemo(
+    () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource]
   );
   const dataSource = useLiveify("spool", queryDataSource, collapseSpool);
@@ -173,6 +193,25 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   if (tableProps.pagination) {
     tableProps.pagination.showSizeChanger = true;
   }
+
+  const { editUrl, showUrl, cloneUrl } = useNavigation();
+  const actions = (record: ISpoolCollapsed) => {
+    const actions: Action[] = [
+      { name: t("buttons.show"), icon: <EyeOutlined />, link: showUrl("spool", record.id) },
+      { name: t("buttons.edit"), icon: <EditOutlined />, link: editUrl("spool", record.id) },
+      { name: t("buttons.clone"), icon: <PlusSquareOutlined />, link: cloneUrl("spool", record.id) },
+    ];
+    if (record.archived) {
+      actions.push({
+        name: t("buttons.unArchive"),
+        icon: <ToTopOutlined />,
+        onClick: () => archiveSpool(record, false),
+      });
+    } else {
+      actions.push({ name: t("buttons.archive"), icon: <InboxOutlined />, onClick: () => archiveSpoolPopup(record) });
+    }
+    return actions;
+  };
 
   return (
     <List
@@ -227,6 +266,9 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     >
       <Table
         {...tableProps}
+        sticky
+        tableLayout="auto"
+        scroll={{ x: "max-content" }}
         dataSource={dataSource}
         rowKey="id"
         // Make archived rows greyed out
@@ -242,127 +284,126 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             return {};
           }
         }}
-      >
-        {SortedColumn({
-          id: "id",
-          i18ncat: "spool",
-          dataSource,
-          tableState,
-        })}
-        {SpoolIconColumn({
-          id: "combined_name",
-          i18nkey: "spool.fields.filament_name",
-          color: (record: ISpoolCollapsed) => record.filament.color_hex,
-          dataSource,
-          tableState,
-          dataId: "filament.id",
-          filterValueQuery: useSpoolmanFilamentFilter(),
-        })}
-        {FilteredQueryColumn({
-          id: "filament.material",
-          i18nkey: "spool.fields.material",
-          dataSource,
-          tableState,
-          filterValueQuery: useSpoolmanMaterials(),
-        })}
-        {NumberColumn({
-          id: "used_weight",
-          i18ncat: "spool",
-          unit: "g",
-          decimals: 1,
-          dataSource,
-          tableState,
-        })}
-        {NumberColumn({
-          id: "remaining_weight",
-          i18ncat: "spool",
-          unit: "g",
-          decimals: 1,
-          defaultText: t("unknown"),
-          dataSource,
-          tableState,
-        })}
-        {NumberColumn({
-          id: "used_length",
-          i18ncat: "spool",
-          unit: "mm",
-          decimals: 1,
-          dataSource,
-          tableState,
-        })}
-        {NumberColumn({
-          id: "remaining_length",
-          i18ncat: "spool",
-          unit: "mm",
-          decimals: 1,
-          defaultText: t("unknown"),
-          dataSource,
-          tableState,
-        })}
-        {FilteredQueryColumn({
-          id: "location",
-          i18ncat: "spool",
-          dataSource,
-          tableState,
-          filterValueQuery: useSpoolmanLocations(),
-        })}
-        {FilteredQueryColumn({
-          id: "lot_nr",
-          i18ncat: "spool",
-          dataSource,
-          tableState,
-          filterValueQuery: useSpoolmanLotNumbers(),
-        })}
-        {DateColumn({
-          id: "first_used",
-          i18ncat: "spool",
-          dataSource,
-          tableState,
-        })}
-        {DateColumn({
-          id: "last_used",
-          i18ncat: "spool",
-          dataSource,
-          tableState,
-        })}
-        {DateColumn({
-          id: "registered",
-          i18ncat: "spool",
-          dataSource,
-          tableState,
-        })}
-        {RichColumn({
-          id: "comment",
-          i18ncat: "spool",
-          dataSource,
-          tableState,
-        })}
-        <Table.Column
-          title={t("table.actions")}
-          render={(_, record: ISpoolCollapsed) => (
-            <Space>
-              <EditButton hideText title={t("buttons.edit")} size="small" recordItemId={record.id} />
-              <ShowButton hideText title={t("buttons.show")} size="small" recordItemId={record.id} />
-              <CloneButton hideText title={t("buttons.clone")} size="small" recordItemId={record.id} />
-              {record.archived ? (
-                <Button
-                  icon={<ToTopOutlined />}
-                  title={t("buttons.unArchive")}
-                  size="small"
-                  onClick={() => archiveSpool(record, false)}
-                />
-              ) : (
-                <Button
-                  icon={<InboxOutlined />}
-                  title={t("buttons.archive")}
-                  size="small"
-                  onClick={() => archiveSpoolPopup(record)}
-                />
-              )}
-            </Space>
-          )}
-        />
-      </Table>
+        columns={removeUndefined([
+          SortedColumn({
+            id: "id",
+            i18ncat: "spool",
+            actions,
+            dataSource,
+            tableState,
+            width: 70,
+          }),
+          SpoolIconColumn({
+            id: "combined_name",
+            i18nkey: "spool.fields.filament_name",
+            color: (record: ISpoolCollapsed) => record.filament.color_hex,
+            actions,
+            dataSource,
+            tableState,
+            dataId: "filament.id",
+            filterValueQuery: useSpoolmanFilamentFilter(),
+          }),
+          FilteredQueryColumn({
+            id: "filament.material",
+            i18nkey: "spool.fields.material",
+            actions,
+            dataSource,
+            tableState,
+            filterValueQuery: useSpoolmanMaterials(),
+            width: 120,
+          }),
+          NumberColumn({
+            id: "used_weight",
+            i18ncat: "spool",
+            unit: "g",
+            decimals: 1,
+            actions,
+            dataSource,
+            tableState,
+            width: 110,
+          }),
+          NumberColumn({
+            id: "remaining_weight",
+            i18ncat: "spool",
+            unit: "g",
+            decimals: 1,
+            defaultText: t("unknown"),
+            actions,
+            dataSource,
+            tableState,
+            width: 110,
+          }),
+          NumberColumn({
+            id: "used_length",
+            i18ncat: "spool",
+            unit: "mm",
+            decimals: 1,
+            actions,
+            dataSource,
+            tableState,
+            width: 120,
+          }),
+          NumberColumn({
+            id: "remaining_length",
+            i18ncat: "spool",
+            unit: "mm",
+            decimals: 1,
+            defaultText: t("unknown"),
+            actions,
+            dataSource,
+            tableState,
+            width: 120,
+          }),
+          FilteredQueryColumn({
+            id: "location",
+            i18ncat: "spool",
+            actions,
+            dataSource,
+            tableState,
+            filterValueQuery: useSpoolmanLocations(),
+            width: 120,
+          }),
+          FilteredQueryColumn({
+            id: "lot_nr",
+            i18ncat: "spool",
+            actions,
+            dataSource,
+            tableState,
+            filterValueQuery: useSpoolmanLotNumbers(),
+            width: 120,
+          }),
+          DateColumn({
+            id: "first_used",
+            i18ncat: "spool",
+            actions,
+            dataSource,
+            tableState,
+          }),
+          DateColumn({
+            id: "last_used",
+            i18ncat: "spool",
+            actions,
+            dataSource,
+            tableState,
+          }),
+          DateColumn({
+            id: "registered",
+            i18ncat: "spool",
+            actions,
+            dataSource,
+            tableState,
+          }),
+          RichColumn({
+            id: "comment",
+            i18ncat: "spool",
+            actions,
+            dataSource,
+            tableState,
+            width: 150,
+          }),
+          ActionsColumn(actions),
+        ])}
+      />
     </List>
   );
 };

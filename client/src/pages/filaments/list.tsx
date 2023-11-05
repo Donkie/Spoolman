@@ -1,11 +1,11 @@
 import React from "react";
-import { IResourceComponentsProps, BaseRecord, useTranslate, useInvalidate } from "@refinedev/core";
-import { useTable, List, EditButton, ShowButton, CloneButton } from "@refinedev/antd";
-import { Table, Space, Button, Dropdown } from "antd";
+import { IResourceComponentsProps, useTranslate, useInvalidate, useNavigation } from "@refinedev/core";
+import { useTable, List } from "@refinedev/antd";
+import { Table, Button, Dropdown } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { IFilament } from "./model";
-import { EditOutlined, FilterOutlined } from "@ant-design/icons";
+import { EditOutlined, EyeOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
 import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
 import {
   DateColumn,
@@ -14,6 +14,7 @@ import {
   RichColumn,
   SortedColumn,
   SpoolIconColumn,
+  ActionsColumn,
 } from "../../components/column";
 import {
   useSpoolmanArticleNumbers,
@@ -22,6 +23,7 @@ import {
   useSpoolmanVendors,
 } from "../../components/otherModels";
 import { useLiveify } from "../../components/liveify";
+import { removeUndefined } from "../../utils/filtering";
 
 dayjs.extend(utc);
 
@@ -46,6 +48,26 @@ function translateColumnI18nKey(columnName: string): string {
 
 const namespace = "filamentList-v2";
 
+const allColumns: (keyof IFilamentCollapsed & string)[] = [
+  "id",
+  "vendor.name",
+  "name",
+  "material",
+  "price",
+  "density",
+  "diameter",
+  "weight",
+  "spool_weight",
+  "article_number",
+  "settings_extruder_temp",
+  "settings_bed_temp",
+  "registered",
+  "comment",
+];
+const defaultColumns = allColumns.filter(
+  (column_id) => ["registered", "density", "diameter", "spool_weight"].indexOf(column_id) === -1
+);
+
 export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
   const invalidate = useInvalidate();
@@ -57,54 +79,43 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   // To provide the live updates, we use a custom solution (useLiveify) instead of the built-in refine "liveMode" feature.
   // This is because the built-in feature does not call the liveProvider subscriber with a list of IDs, but instead
   // calls it with a list of filters, sorters, etc. This means the server-side has to support this, which is quite hard.
-  const { tableProps, sorters, setSorters, filters, setFilters, current, pageSize, setCurrent } = useTable<IFilament>({
-    syncWithLocation: false,
-    pagination: {
-      mode: "server",
-      current: initialState.pagination.current,
-      pageSize: initialState.pagination.pageSize,
-    },
-    sorters: {
-      mode: "server",
-      initial: initialState.sorters,
-    },
-    filters: {
-      mode: "server",
-      initial: initialState.filters,
-    },
-    liveMode: "manual",
-    onLiveEvent(event) {
-      if (event.type === "created" || event.type === "deleted") {
-        // updated is handled by the liveify
-        invalidate({
-          resource: "filament",
-          invalidates: ["list"],
-        });
-      }
-    },
-  });
+  const { tableProps, sorters, setSorters, filters, setFilters, current, pageSize, setCurrent } =
+    useTable<IFilamentCollapsed>({
+      syncWithLocation: false,
+      pagination: {
+        mode: "server",
+        current: initialState.pagination.current,
+        pageSize: initialState.pagination.pageSize,
+      },
+      sorters: {
+        mode: "server",
+        initial: initialState.sorters,
+      },
+      filters: {
+        mode: "server",
+        initial: initialState.filters,
+      },
+      liveMode: "manual",
+      onLiveEvent(event) {
+        if (event.type === "created" || event.type === "deleted") {
+          // updated is handled by the liveify
+          invalidate({
+            resource: "filament",
+            invalidates: ["list"],
+          });
+        }
+      },
+      queryOptions: {
+        select(data) {
+          return {
+            total: data.total,
+            data: data.data.map(collapseFilament),
+          };
+        },
+      },
+    });
 
   // Create state for the columns to show
-  const allColumns: (keyof IFilamentCollapsed & string)[] = [
-    "id",
-    "vendor.name",
-    "name",
-    "material",
-    "price",
-    "density",
-    "diameter",
-    "weight",
-    "spool_weight",
-    "article_number",
-    "settings_extruder_temp",
-    "settings_bed_temp",
-    "registered",
-    "comment",
-  ];
-  const defaultColumns = allColumns.filter(
-    (column_id) => ["registered", "density", "diameter", "spool_weight"].indexOf(column_id) === -1
-  );
-
   const [showColumns, setShowColumns] = React.useState<string[]>(initialState.showColumns ?? defaultColumns);
 
   // Store state in local storage
@@ -116,9 +127,9 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   };
   useStoreInitialState(namespace, tableState);
 
-  // Collapse the dataSource to a mutable list and add a filament_name field
+  // Collapse the dataSource to a mutable list
   const queryDataSource: IFilamentCollapsed[] = React.useMemo(
-    () => (tableProps.dataSource ?? []).map(collapseFilament),
+    () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource]
   );
   const dataSource = useLiveify("filament", queryDataSource, collapseFilament);
@@ -126,6 +137,13 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   if (tableProps.pagination) {
     tableProps.pagination.showSizeChanger = true;
   }
+
+  const { editUrl, showUrl, cloneUrl } = useNavigation();
+  const actions = (record: IFilamentCollapsed) => [
+    { name: t("buttons.show"), icon: <EyeOutlined />, link: showUrl("filament", record.id) },
+    { name: t("buttons.edit"), icon: <EditOutlined />, link: editUrl("filament", record.id) },
+    { name: t("buttons.clone"), icon: <PlusSquareOutlined />, link: cloneUrl("filament", record.id) },
+  ];
 
   return (
     <List
@@ -168,119 +186,143 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
         </>
       )}
     >
-      <Table {...tableProps} dataSource={dataSource} rowKey="id">
-        {SortedColumn({
-          id: "id",
-          i18ncat: "filament",
-          dataSource,
-          tableState,
-        })}
-        {FilteredQueryColumn({
-          id: "vendor.name",
-          i18nkey: "filament.fields.vendor_name",
-          dataSource,
-          tableState,
-          filterValueQuery: useSpoolmanVendors(),
-        })}
-        {SpoolIconColumn({
-          id: "name",
-          i18ncat: "filament",
-          color: (record: IFilamentCollapsed) => record.color_hex,
-          dataSource,
-          tableState,
-          filterValueQuery: useSpoolmanFilamentNames(),
-        })}
-        {FilteredQueryColumn({
-          id: "material",
-          i18ncat: "filament",
-          dataSource,
-          tableState,
-          filterValueQuery: useSpoolmanMaterials(),
-        })}
-        {SortedColumn({
-          id: "price",
-          i18ncat: "filament",
-          dataSource,
-          tableState,
-        })}
-        {NumberColumn({
-          id: "density",
-          i18ncat: "filament",
-          unit: "g/cm³",
-          decimals: 2,
-          dataSource,
-          tableState,
-        })}
-        {NumberColumn({
-          id: "diameter",
-          i18ncat: "filament",
-          unit: "mm",
-          decimals: 2,
-          dataSource,
-          tableState,
-        })}
-        {NumberColumn({
-          id: "weight",
-          i18ncat: "filament",
-          unit: "g",
-          decimals: 1,
-          dataSource,
-          tableState,
-        })}
-        {NumberColumn({
-          id: "spool_weight",
-          i18ncat: "filament",
-          unit: "g",
-          decimals: 1,
-          dataSource,
-          tableState,
-        })}
-        {FilteredQueryColumn({
-          id: "article_number",
-          i18ncat: "filament",
-          dataSource,
-          tableState,
-          filterValueQuery: useSpoolmanArticleNumbers(),
-        })}
-        {NumberColumn({
-          id: "settings_extruder_temp",
-          i18ncat: "filament",
-          unit: "°C",
-          decimals: 0,
-          dataSource,
-          tableState,
-        })}
-        {NumberColumn({
-          id: "settings_bed_temp",
-          i18ncat: "filament",
-          unit: "°C",
-          decimals: 0,
-          dataSource,
-          tableState,
-        })}
-        {DateColumn({
-          id: "registered",
-          i18ncat: "filament",
-          dataSource,
-          tableState,
-        })}
-        {RichColumn({
-          id: "comment",
-          i18ncat: "filament",
-          dataSource,
-          tableState,
-        })}
-        <Table.Column
-          title={t("table.actions")}
-          render={(_, record: BaseRecord) => (
-            <Space>
-              <EditButton hideText title={t("buttons.edit")} size="small" recordItemId={record.id} />
-              <ShowButton hideText title={t("buttons.show")} size="small" recordItemId={record.id} />
-              <CloneButton hideText title={t("buttons.clone")} size="small" recordItemId={record.id} />
-            </Space>
-          )}
-        />
-      </Table>
+      <Table<IFilamentCollapsed>
+        {...tableProps}
+        sticky
+        tableLayout="auto"
+        scroll={{ x: "max-content" }}
+        dataSource={dataSource}
+        rowKey="id"
+        columns={removeUndefined([
+          SortedColumn({
+            id: "id",
+            i18ncat: "filament",
+            actions,
+            dataSource,
+            tableState,
+            width: 70,
+          }),
+          FilteredQueryColumn({
+            id: "vendor.name",
+            i18nkey: "filament.fields.vendor_name",
+            actions,
+            dataSource,
+            tableState,
+            filterValueQuery: useSpoolmanVendors(),
+          }),
+          SpoolIconColumn({
+            id: "name",
+            i18ncat: "filament",
+            color: (record: IFilamentCollapsed) => record.color_hex,
+            actions,
+            dataSource,
+            tableState,
+            filterValueQuery: useSpoolmanFilamentNames(),
+          }),
+          FilteredQueryColumn({
+            id: "material",
+            i18ncat: "filament",
+            actions,
+            dataSource,
+            tableState,
+            filterValueQuery: useSpoolmanMaterials(),
+            width: 110,
+          }),
+          SortedColumn({
+            id: "price",
+            i18ncat: "filament",
+            actions,
+            dataSource,
+            tableState,
+            width: 80,
+          }),
+          NumberColumn({
+            id: "density",
+            i18ncat: "filament",
+            unit: "g/cm³",
+            decimals: 2,
+            actions,
+            dataSource,
+            tableState,
+            width: 100,
+          }),
+          NumberColumn({
+            id: "diameter",
+            i18ncat: "filament",
+            unit: "mm",
+            decimals: 2,
+            actions,
+            dataSource,
+            tableState,
+            width: 100,
+          }),
+          NumberColumn({
+            id: "weight",
+            i18ncat: "filament",
+            unit: "g",
+            decimals: 1,
+            actions,
+            dataSource,
+            tableState,
+            width: 100,
+          }),
+          NumberColumn({
+            id: "spool_weight",
+            i18ncat: "filament",
+            unit: "g",
+            decimals: 1,
+            actions,
+            dataSource,
+            tableState,
+            width: 100,
+          }),
+          FilteredQueryColumn({
+            id: "article_number",
+            i18ncat: "filament",
+            actions,
+            dataSource,
+            tableState,
+            filterValueQuery: useSpoolmanArticleNumbers(),
+            width: 130,
+          }),
+          NumberColumn({
+            id: "settings_extruder_temp",
+            i18ncat: "filament",
+            unit: "°C",
+            decimals: 0,
+            actions,
+            dataSource,
+            tableState,
+            width: 100,
+          }),
+          NumberColumn({
+            id: "settings_bed_temp",
+            i18ncat: "filament",
+            unit: "°C",
+            decimals: 0,
+            actions,
+            dataSource,
+            tableState,
+            width: 100,
+          }),
+          DateColumn({
+            id: "registered",
+            i18ncat: "filament",
+            actions,
+            dataSource,
+            tableState,
+          }),
+          RichColumn({
+            id: "comment",
+            i18ncat: "filament",
+            actions,
+            dataSource,
+            tableState,
+            width: 150,
+          }),
+          ActionsColumn(actions),
+        ])}
+      />
     </List>
   );
 };

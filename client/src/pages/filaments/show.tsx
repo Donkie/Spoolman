@@ -8,14 +8,14 @@ import utc from "dayjs/plugin/utc";
 import { IFilament } from "./model";
 import { enrichText } from "../../utils/parsing";
 import { IVendor } from "../vendors/model";
-
+import { useNavigate } from "react-router-dom";
 dayjs.extend(utc);
 
 const { Title } = Typography;
 
 export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
-
+  const navigate = useNavigate();
   const { queryResult } = useShow<IFilament>({
     liveMode: "auto",
   });
@@ -31,17 +31,24 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
     return t("filament.titles.show_title", { id: item.id, name: vendorPrefix + item.name });
   };
 
-  const formatVendor = (item: IVendor) => {
-    const URL = `/vendor/show/${item.id}`;
-    return <a href={URL}>{item.name}</a>;
-  };
+  const gotoVendor = (): undefined => {
+    const URL = `/vendor/show/${record?.vendor?.id}`;
+    navigate(URL);
+  }
+
+  const gotoSpools = (): undefined => {
+    const URL = `/spool#filters=[{"field":"filament.id","operator":"in","value":[${record?.id}]}]`
+    navigate(URL);
+  }
 
   return (
     <Show isLoading={isLoading} title={record ? formatTitle(record) : ""}>
       <Title level={5}>{t("filament.fields.id")}</Title>
       <NumberField value={record?.id ?? ""} />
       <Title level={5}>{t("filament.fields.vendor")}</Title>
-      <TextField value={record?.vendor ? formatVendor(record?.vendor) : ""} />
+      <button onClick={gotoVendor} style={{ background: 'none', border: 'none', color: 'blue', cursor: 'pointer', paddingLeft: 0 }}>
+        {record ? record.vendor?.name : ""}
+      </button>
       <Title level={5}>{t("filament.fields.registered")}</Title>
       <DateField
         value={dayjs.utc(record?.registered).local()}
@@ -110,7 +117,11 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       <TextField value={record?.article_number} />
       <Title level={5}>{t("filament.fields.comment")}</Title>
       <TextField value={enrichText(record?.comment)} />
-    </Show>
+      <Title level={5}>{t("filament.fields.spools")}</Title>
+      <button onClick={gotoSpools} style={{ background: 'none', border: 'none', color: 'blue', cursor: 'pointer', paddingLeft: 0 }}>
+        {record ? formatTitle(record) : ""}
+      </button>
+    </Show >
   );
 };
 

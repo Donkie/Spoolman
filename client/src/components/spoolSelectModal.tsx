@@ -6,6 +6,7 @@ import { TableState } from "../utils/saveload";
 import { useTable } from "@refinedev/antd";
 import { t } from "i18next";
 import { useSpoolmanFilamentFilter, useSpoolmanMaterials } from "./otherModels";
+import { removeUndefined } from "../utils/filtering";
 
 interface Props {
   visible: boolean;
@@ -20,12 +21,27 @@ interface ISpoolCollapsed extends ISpool {
   "filament.material"?: string;
 }
 
+function collapseSpool(element: ISpool): ISpoolCollapsed {
+  let filament_name: string;
+  if (element.filament.vendor && "name" in element.filament.vendor) {
+    filament_name = `${element.filament.vendor.name} - ${element.filament.name}`;
+  } else {
+    filament_name = element.filament.name ?? element.filament.id.toString();
+  }
+  return {
+    ...element,
+    combined_name: filament_name,
+    "filament.id": element.filament.id,
+    "filament.material": element.filament.material,
+  };
+}
+
 const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onContinue }) => {
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
 
-  const { tableProps, sorters, filters, current, pageSize } = useTable<ISpool>({
+  const { tableProps, sorters, filters, current, pageSize } = useTable<ISpoolCollapsed>({
     meta: {
       queryParams: {
         ["allow_archived"]: showArchived,
@@ -43,6 +59,14 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
     filters: {
       mode: "server",
     },
+    queryOptions: {
+      select(data) {
+        return {
+          total: data.total,
+          data: data.data.map(collapseSpool),
+        };
+      },
+    },
   });
 
   // Store state in local storage
@@ -54,21 +78,7 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
 
   // Collapse the dataSource to a mutable list and add a filament_name field
   const dataSource: ISpoolCollapsed[] = React.useMemo(
-    () =>
-      (tableProps.dataSource ?? []).map((element) => {
-        let filament_name: string;
-        if (element.filament.vendor && "name" in element.filament.vendor) {
-          filament_name = `${element.filament.vendor.name} - ${element.filament.name}`;
-        } else {
-          filament_name = element.filament.name ?? element.filament.id.toString();
-        }
-        return {
-          ...element,
-          combined_name: filament_name,
-          "filament.id": element.filament.id,
-          "filament.material": element.filament.material,
-        };
-      }),
+    () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource]
   );
 
@@ -112,37 +122,45 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
       {contextHolder}
       <Space direction="vertical" style={{ width: "100%" }}>
         {description && <div>{description}</div>}
-        <Table {...tableProps} rowKey="id" dataSource={dataSource} pagination={false} scroll={{ y: 200 }}>
-          <Table.Column
-            width={50}
-            render={(_, item: ISpool) => (
-              <Checkbox checked={selectedItems.includes(item.id)} onChange={() => handleSelectItem(item.id)} />
-            )}
-          />
-          {SortedColumn({
-            id: "id",
-            i18ncat: "spool",
-            dataSource,
-            tableState,
-            width: 80,
-          })}
-          {SpoolIconColumn({
-            id: "combined_name",
-            dataId: "filament.id",
-            i18nkey: "spool.fields.filament_name",
-            color: (record: ISpoolCollapsed) => record.filament.color_hex,
-            dataSource,
-            tableState,
-            filterValueQuery: useSpoolmanFilamentFilter(),
-          })}
-          {FilteredQueryColumn({
-            id: "filament.material",
-            i18nkey: "spool.fields.material",
-            dataSource,
-            tableState,
-            filterValueQuery: useSpoolmanMaterials(),
-          })}
-        </Table>
+        <Table
+          {...tableProps}
+          rowKey="id"
+          tableLayout="auto"
+          dataSource={dataSource}
+          pagination={false}
+          scroll={{ y: 200 }}
+          columns={removeUndefined([
+            {
+              width: 50,
+              render: (_, item: ISpool) => (
+                <Checkbox checked={selectedItems.includes(item.id)} onChange={() => handleSelectItem(item.id)} />
+              ),
+            },
+            SortedColumn({
+              id: "id",
+              i18ncat: "spool",
+              dataSource,
+              tableState,
+              width: 80,
+            }),
+            SpoolIconColumn({
+              id: "combined_name",
+              dataId: "filament.id",
+              i18nkey: "spool.fields.filament_name",
+              color: (record: ISpoolCollapsed) => record.filament.color_hex,
+              dataSource,
+              tableState,
+              filterValueQuery: useSpoolmanFilamentFilter(),
+            }),
+            FilteredQueryColumn({
+              id: "filament.material",
+              i18nkey: "spool.fields.material",
+              dataSource,
+              tableState,
+              filterValueQuery: useSpoolmanMaterials(),
+            }),
+          ])}
+        />
         <Row>
           <Col span={12}>
             <Checkbox

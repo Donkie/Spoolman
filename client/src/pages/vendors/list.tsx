@@ -1,18 +1,21 @@
 import React from "react";
-import { IResourceComponentsProps, BaseRecord, useTranslate, useInvalidate } from "@refinedev/core";
-import { useTable, List, EditButton, ShowButton, CloneButton } from "@refinedev/antd";
-import { Table, Space, Button, Dropdown } from "antd";
+import { IResourceComponentsProps, useTranslate, useInvalidate, useNavigation } from "@refinedev/core";
+import { useTable, List } from "@refinedev/antd";
+import { Table, Button, Dropdown } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { IVendor } from "./model";
 import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
-import { EditOutlined, FilterOutlined } from "@ant-design/icons";
-import { DateColumn, RichColumn, SortedColumn } from "../../components/column";
+import { EditOutlined, EyeOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
+import { DateColumn, RichColumn, SortedColumn, ActionsColumn } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
+import { removeUndefined } from "../../utils/filtering";
 
 dayjs.extend(utc);
 
 const namespace = "vendorList-v2";
+
+const allColumns: (keyof IVendor & string)[] = ["id", "name", "registered", "comment"];
 
 export const VendorList: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
@@ -50,7 +53,6 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
   });
 
   // Create state for the columns to show
-  const allColumns: (keyof IVendor & string)[] = ["id", "name", "registered", "comment"];
   const [showColumns, setShowColumns] = React.useState<string[]>(initialState.showColumns ?? allColumns);
 
   // Store state in local storage
@@ -72,6 +74,13 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
   if (tableProps.pagination) {
     tableProps.pagination.showSizeChanger = true;
   }
+
+  const { editUrl, showUrl, cloneUrl } = useNavigation();
+  const actions = (record: IVendor) => [
+    { name: t("buttons.show"), icon: <EyeOutlined />, link: showUrl("vendor", record.id) },
+    { name: t("buttons.edit"), icon: <EditOutlined />, link: editUrl("vendor", record.id) },
+    { name: t("buttons.clone"), icon: <PlusSquareOutlined />, link: cloneUrl("vendor", record.id) },
+  ];
 
   return (
     <List
@@ -114,42 +123,46 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
         </>
       )}
     >
-      <Table {...tableProps} dataSource={dataSource} rowKey="id">
-        {SortedColumn({
-          id: "id",
-          i18ncat: "vendor",
-          dataSource,
-          tableState,
-        })}
-        {SortedColumn({
-          id: "name",
-          i18ncat: "vendor",
-          dataSource,
-          tableState,
-        })}
-        {DateColumn({
-          id: "registered",
-          i18ncat: "vendor",
-          dataSource,
-          tableState,
-        })}
-        {RichColumn({
-          id: "comment",
-          i18ncat: "vendor",
-          dataSource,
-          tableState,
-        })}
-        <Table.Column
-          title={t("table.actions")}
-          render={(_, record: BaseRecord) => (
-            <Space>
-              <EditButton hideText title={t("buttons.edit")} size="small" recordItemId={record.id} />
-              <ShowButton hideText title={t("buttons.show")} size="small" recordItemId={record.id} />
-              <CloneButton hideText title={t("buttons.clone")} size="small" recordItemId={record.id} />
-            </Space>
-          )}
-        />
-      </Table>
+      <Table
+        {...tableProps}
+        sticky
+        tableLayout="auto"
+        scroll={{ x: "max-content" }}
+        dataSource={dataSource}
+        rowKey="id"
+        columns={removeUndefined([
+          SortedColumn({
+            id: "id",
+            i18ncat: "vendor",
+            actions,
+            dataSource,
+            tableState,
+            width: 70,
+          }),
+          SortedColumn({
+            id: "name",
+            i18ncat: "vendor",
+            actions,
+            dataSource,
+            tableState,
+          }),
+          DateColumn({
+            id: "registered",
+            i18ncat: "vendor",
+            actions,
+            dataSource,
+            tableState,
+          }),
+          RichColumn({
+            id: "comment",
+            i18ncat: "vendor",
+            actions,
+            dataSource,
+            tableState,
+          }),
+          ActionsColumn<IVendor>(actions),
+        ])}
+      />
     </List>
   );
 };
