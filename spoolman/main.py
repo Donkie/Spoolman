@@ -16,11 +16,6 @@ from spoolman.api.v1.router import app as v1_app
 from spoolman.client import SinglePageApplication
 from spoolman.database import database
 
-# Define a file logger with log rotation
-log_file = env.get_data_dir().joinpath("spoolman.log")
-file_handler = TimedRotatingFileHandler(log_file, when="midnight", backupCount=5)
-file_handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(message)s", "%Y-%m-%d %H:%M:%S"))
-
 # Define a console logger
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(logging.Formatter("%(name)-26s %(levelname)-8s %(message)s"))
@@ -28,7 +23,6 @@ console_handler.setFormatter(logging.Formatter("%(name)-26s %(levelname)-8s %(me
 # Setup the spoolman logger, which all spoolman modules will use
 root_logger = logging.getLogger()
 root_logger.setLevel(env.get_logging_level())
-root_logger.addHandler(file_handler)
 root_logger.addHandler(console_handler)
 
 # Get logger instance for this module
@@ -60,9 +54,24 @@ if env.is_debug_mode():
     )
 
 
+def add_file_logging() -> None:
+    """Add file logging to the root logger."""
+    # Define a file logger with log rotation
+    log_file = env.get_data_dir().joinpath("spoolman.log")
+    file_handler = TimedRotatingFileHandler(log_file, when="midnight", backupCount=5)
+    file_handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(message)s", "%Y-%m-%d %H:%M:%S"))
+    root_logger.addHandler(file_handler)
+
+
 @app.on_event("startup")
 async def startup() -> None:
     """Run the service's startup sequence."""
+    # Check that the data directory is writable
+    env.check_write_permissions()
+
+    # Don't add file logging until we have verified that the data directory is writable
+    add_file_logging()
+
     logger.info(
         "Starting Spoolman v%s (commit: %s) (built: %s)",
         app.version,
