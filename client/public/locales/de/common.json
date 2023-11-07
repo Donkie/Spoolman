@@ -23,18 +23,23 @@
         "clone": "Duplizieren",
         "notAccessTitle": "Keine Berechtigung, um hierauf zuzugreifen",
         "hideColumns": "Spalten anpassen",
-        "clearFilters": "Filter leeren"
+        "clearFilters": "Filter leeren",
+        "showArchived": "Archivierte anzeigen",
+        "archive": "Archivieren",
+        "hideArchived": "Archivierte verstecken",
+        "unArchive": "Archivieren rückgängig",
+        "saveAndAdd": "Speichern und hinzufügen"
     },
     "warnWhenUnsavedChanges": "Sicher? Nicht gespeicherte Änderungen gehen verloren!",
     "notifications": {
         "success": "Erfolg",
         "error": "Fehler (status code: {{statusCode}})",
-        "undoable": "Noch {{seconds}} Sekunden um die Aktion rückgängig zu machen",
-        "createSuccess": "{{resource}} erfolgreich erstellt.",
+        "undoable": "Noch {{seconds}} Sekunden um die Aktion rückgängig zu machen.",
+        "createSuccess": "{{resource}} erfolgreich erstellt",
         "createError": "Fehler beim Erstellen {{resource}} (status code: {{statusCode}})",
-        "deleteSuccess": "{{resource}} erfolgreich gelöscht.",
+        "deleteSuccess": "{{resource}} erfolgreich gelöscht",
         "deleteError": "Fehler beim Löschen {{resource}} (status code: {{statusCode}})",
-        "editSuccess": "{{resource}} erfolgreich bearbeitet.",
+        "editSuccess": "{{resource}} erfolgreich bearbeitet",
         "editError": "Fehler beim Bearbeiten {{resource}} (status code: {{statusCode}})",
         "importProgress": "{{processed}}/{{total}} importiert"
     },
@@ -106,7 +111,7 @@
             "showArchived": "Archivierte anzeigen",
             "noSpoolsSelected": "Keine Spulen ausgewählt.",
             "selectAll": "Alle aus-/abwählen",
-            "selectedTotal_one": "{{count}} Spulen ausgewählt",
+            "selectedTotal_one": "{{count}} Spule ausgewählt",
             "selectedTotal_other": "{{count}} Spulen ausgewählt"
         }
     },
@@ -157,10 +162,15 @@
             "edit": "Spule bearbeiten",
             "list": "Spulen",
             "show": "Spule anzeigen",
-            "archive": "Spule archivieren"
+            "archive": "Spule archivieren",
+            "show_title": "[Spule #{{id}}] {{name}}"
         },
         "messages": {
             "archive": "Sicher das die Spule archiviert werden soll?"
+        },
+        "form": {
+            "spool_updated": "Diese Spule wurde, seit dem die Seite geöffnet wurde, von jemand anderem/etwas anderem bearbeitet. Speichern wird diese Änderungen überschreiben!",
+            "new_location_prompt": "Neue Position eingeben"
         }
     },
     "filament": {
@@ -181,14 +191,15 @@
             "comment": "Kommentar",
             "settings_extruder_temp": "Düsentemperatur",
             "settings_bed_temp": "Betttemperatur",
-            "color_hex": "Farbe"
+            "color_hex": "Farbe",
+            "spools": "Zeige Spulen"
         },
         "fields_help": {
             "name": "Name des Filaments um es von anderen Typen des gleichen Herstellers zu unterscheiden. Sollte z.B. die Farbe enthalten.",
             "material": "z.B. PLA, ABS, PETG, etc.",
-            "price": "Preis einer vollen Spule in der im System konfigurierten Währung",
+            "price": "Preis einer vollen Spule in der im System konfigurierten Währung.",
             "weight": "Das Gewicht einer vollen Spule (Nettogewicht). Sollte nicht das Gewicht der Spule, sondern nur dass des Filaments auf der Spule enthalten. Entspricht normalerweise dem Gewicht, das auf der Spule aufgedruckt ist.",
-            "spool_weight": "Das Gewicht der leeren Spule. Wird aktuell noch nicht verwendet, könnte aber von Drittanbieter-Apps genutzt werden, um z.B. das verbleibende Gewicht von einem gemessen Gewicht zu berechnen.",
+            "spool_weight": "Das Gewicht der leeren Spule. Wird verwendet, um das gemessene Gewicht der Spule zu berechnen.",
             "article_number": "z.B. EAN, UPC o.Ä."
         },
         "titles": {
@@ -196,13 +207,17 @@
             "clone": "Filament duplizieren",
             "edit": "Filament bearbeiten",
             "list": "Filamente",
-            "show": "Filament anzeigen"
+            "show": "Filament anzeigen",
+            "show_title": "[Filament #{{id}}] {{name}}"
+        },
+        "form": {
+            "filament_updated": "Dieses Filament wurde, seit dem die Seite geöffnet wurde, von jemand anderem/etwas anderem bearbeitet. Speichern wird diese Änderungen überschreiben!"
         }
     },
     "vendor": {
         "vendor": "Hersteller",
         "fields": {
-            "id": "Id",
+            "id": "ID",
             "name": "Name",
             "registered": "Registriert",
             "comment": "Kommentar"
@@ -212,7 +227,11 @@
             "clone": "Hersteller duplizieren",
             "edit": "Hersteller bearbeiten",
             "list": "Hersteller",
-            "show": "Hersteller anzeigen"
+            "show": "Hersteller anzeigen",
+            "show_title": "[Marke #{{id}}] {{name}}"
+        },
+        "form": {
+            "vendor_updated": "Diese Marke wurde, seit dem die Seite geöffnet wurde, von jemand anderem/etwas anderem bearbeitet. Speichern wird diese Änderungen überschreiben!"
         }
     },
     "table": {

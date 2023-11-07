@@ -1,0 +1,263 @@
+{
+    "printing": {
+        "qrcode": {
+            "extruderTemp": "ET: {{temp}}",
+            "showSpoolWeight": "Spole vægt",
+            "showContent": "Print label",
+            "showVendorComment": "Sælger kommentarer",
+            "spoolWeight": "Spole vægt: {{weight}}",
+            "showTemperatures": "Temperaturer",
+            "showVendor": "Sælger",
+            "showSpoolComment": "Spole kommentarer",
+            "textSize": "Indholdstekst størrelse",
+            "title": "QR kode printer",
+            "showSpoolmanIcon": "Vis Spoolman logo",
+            "showLotNr": "Gruppe nr",
+            "bedTemp": "BT: {{temp}}",
+            "lotNr": "Gruppe nr: {{lot}}",
+            "showFilamentComment": "Filament kommentarer",
+            "button": "Print QR koder"
+        },
+        "generic": {
+            "printerMarginBottom": "Safe-Zone bund",
+            "verticalSpacing": "Vertikal afstand",
+            "rows": "Rækker",
+            "borders": {
+                "none": "Ingen",
+                "grid": "Gitter",
+                "border": "Ramme"
+            },
+            "printerMarginTop": "Safe-Zone top",
+            "customSize": "Brugerdefineret",
+            "title": "Udskriver",
+            "contentSettings": "Indholdsindstillinger",
+            "marginRight": "Højre margen",
+            "printerMarginRight": "Safe-Zone højre",
+            "helpPrinterMargin": "\"Safe-Zone\" bør indstilles til hvor tæt på kanten af papiret din printer kan printe. Ændringer her vil IKKE have indflydelse på hele layoutet.",
+            "previewScale": "Visnings størrelse",
+            "helpMargin": "Margener bør indstilles til at matche din printer og dit papir. Ændringer her vil have indflydelse på hele layoutet.",
+            "marginTop": "Top margen",
+            "skipItems": "Spring over",
+            "layoutSettings": "Layout indstillinger",
+            "paperSize": "Papir størrelse",
+            "columns": "Kolonner",
+            "description": "Redigér nedenstående indstillinger for at opnå det ønskede layout. Husk på at printere og OS kan tilføje dets egne margener og skalering, så det kan kræve et par forsøg før alt er korrekt. Test på et stykke almindeligt papir før du udskriver på labels.",
+            "marginBottom": "Bund margen",
+            "horizontalSpacing": "Horisontal afstand",
+            "marginLeft": "Venstre margen",
+            "showBorder": "Vis ramme",
+            "printerMarginLeft": "Safe-Zone venstre",
+            "dimensions": "Dimensioner",
+            "print": "Udskriv"
+        },
+        "spoolSelect": {
+            "selectedTotal_one": "{{count}} spole valgt",
+            "selectedTotal_other": "{{count}} spoler valgt",
+            "description": "Vælg spoler der skal printes QR koder til.",
+            "showArchived": "Vis arkiverede",
+            "title": "Vælg spoler",
+            "selectAll": "Vælg alle/ingen",
+            "noSpoolsSelected": "Du har ikke valgt nogle spoler."
+        }
+    },
+    "documentTitle": {
+        "vendor": {
+            "create": "Opret sælger | Spoolman",
+            "clone": "#{{id}} Klon sælger | Spoolman",
+            "edit": "#{{id}} Redigér sælger | Spoolman",
+            "list": "Sælgere | Spoolman",
+            "show": "#{{id}} Vis sælger | Spoolman"
+        },
+        "default": "Spoolman",
+        "spool": {
+            "edit": "#{{id}} Redigér spole | Spoolman",
+            "list": "Spoler | Spoolman",
+            "create": "Opret spole | Spoolman",
+            "show": "#{{id}} Vis spole | Spoolman",
+            "clone": "#{{id}} Klon spole | Spoolman"
+        },
+        "filament": {
+            "list": "Filamenter | Spoolman",
+            "show": "#{{id}} Vis filament | Spoolman",
+            "clone": "#{{id}} Klon filament | Spoolman",
+            "create": "Opret filament | Spoolman",
+            "edit": "#{{id}} Redigér filament | Spoolman"
+        },
+        "suffix": " · | Spoolman"
+    },
+    "spool": {
+        "fields": {
+            "measured_weight": "Målt vægt",
+            "last_used": "Sidst brugt",
+            "material": "Materiale",
+            "weight_to_use": "Vægt",
+            "lot_nr": "Gruppe nr",
+            "filament_name": "Filament",
+            "comment": "Kommentar",
+            "filament": "Filament",
+            "location": "Placering",
+            "used_length": "Brugt længde",
+            "archived": "Arkiveret",
+            "remaining_length": "Resterende længde",
+            "registered": "Registreret",
+            "first_used": "Først brugt",
+            "used_weight": "Brugt vægt",
+            "id": "ID",
+            "remaining_weight": "Resterende vægt"
+        },
+        "titles": {
+            "archive": "Arkivér spole",
+            "show": "Vis spole",
+            "edit": "Redigér spole",
+            "create": "Opret spole",
+            "clone": "Klon spole",
+            "show_title": "[Spole #{{id}}] {{name}}",
+            "list": "Spoler"
+        },
+        "form": {
+            "spool_updated": "Denne spole er blevet redigeret af nogen/noget andet siden du åbnede denne side. Hvis du gemmer overskrives disse ændringer!",
+            "new_location_prompt": "Indtast ny placering"
+        },
+        "fields_help": {
+            "used_weight": "Hvor meget filament er der brugt fra spolen. En ny spole bør have 0g brugt.",
+            "weight_to_use": "Vælg hvilken vægt der skal angives. Målt vægt er kun tilgængelig hvis der er indstillet en spole vægt for det valgte filament.",
+            "measured_weight": "Hvor meget filament OG spole vejer.",
+            "lot_nr": "Producentens \"batchnummer\". Kan bruges til at sikre ensartede farver ved brug af flere ruller.",
+            "remaining_weight": "Hvor meget filament er der tilbage på spolen. For en ny spole bør dette matches spolens vægt.",
+            "location": "Placering af spolen. Hvis du har flere lokationer."
+        },
+        "spool": "Spoler",
+        "messages": {
+            "archive": "Er du sikker på du vil arkivere denne spole?"
+        }
+    },
+    "buttons": {
+        "create": "Opret",
+        "save": "Gem",
+        "show": "Vis",
+        "filter": "Filter",
+        "cancel": "Annuller",
+        "edit": "Redigér",
+        "showArchived": "Vis arkiverede",
+        "archive": "Arkivér",
+        "hideColumns": "Skjul kolonner",
+        "confirm": "Er du sikker?",
+        "delete": "Slet",
+        "undo": "Fortryd",
+        "import": "Importér",
+        "logout": "Log ud",
+        "refresh": "Opdatér",
+        "notAccessTitle": "Du har ikke tilladelse til at tilgå",
+        "hideArchived": "Skjul arkiverede",
+        "clearFilters": "Ryd filtre",
+        "unArchive": "Fjern fra arkiv",
+        "clone": "Klon",
+        "clear": "Ryd"
+    },
+    "filament": {
+        "fields_help": {
+            "name": "Filament navn, for at adskille dette filament fra andre fra samme producent. Kan for eksempel indeholde farven.",
+            "article_number": "f.eks. EAN, UPC osv.",
+            "spool_weight": "Vægten af en tom spole. Bruges til at angive den målte vægt af en spole.",
+            "price": "Pris for en ny spole i systemets valutaenhed.",
+            "weight": "Filamentets vægt på en ny spole (Netto vægt). Dette bør ikke inkludere vægten af selve spolen, kun filamentet. Det er som regel den angivne vægt på pakken.",
+            "material": "f.eks. PLA, ABS, PETG osv."
+        },
+        "fields": {
+            "material": "Materiale",
+            "vendor_name": "Sælger",
+            "settings_extruder_temp": "Extruder temperatur",
+            "comment": "Kommentar",
+            "diameter": "Diameter",
+            "weight": "Vægt",
+            "spool_weight": "Spole vægt",
+            "registered": "Registreret",
+            "name": "Navn",
+            "price": "Pris",
+            "settings_bed_temp": "Bed temperatur",
+            "vendor": "Sælger",
+            "density": "Massefylde",
+            "id": "ID",
+            "color_hex": "Farve",
+            "article_number": "Produkt nummer"
+        },
+        "titles": {
+            "clone": "Klon filament",
+            "show_title": "[Filament # {{id}}] {{name}}",
+            "show": "Vis filament",
+            "create": "Opret filament",
+            "edit": "Redigér filament",
+            "list": "Filamenter"
+        },
+        "form": {
+            "filament_updated": "Dette filament er blevet redigeret af nogen/noget andet siden du åbnede denne side. Hvis du gemmer overskrives disse ændringer!"
+        },
+        "filament": "Filamenter"
+    },
+    "actions": {
+        "create": "Opret",
+        "clone": "Klon",
+        "list": "Liste",
+        "show": "Vis",
+        "edit": "Redigér"
+    },
+    "vendor": {
+        "titles": {
+            "show_title": "[Sælger #{{id}}] {{name}}",
+            "show": "Vis sælger",
+            "edit": "Redigér sælger",
+            "clone": "Klon sælger",
+            "create": "Opret sælger",
+            "list": "Sælgere"
+        },
+        "form": {
+            "vendor_updated": "Denne sælger er blevet redigeret af nogen/noget andet siden du åbnede denne side. Hvis du gemmer overskrives disse ændringer!"
+        },
+        "fields": {
+            "registered": "Registreret",
+            "comment": "Kommentar",
+            "name": "Navn",
+            "id": "ID"
+        },
+        "vendor": "Sælgere"
+    },
+    "scanner": {
+        "title": "QR kode skanner",
+        "error": {
+            "insecureContext": "Denne side er ikke sikret med HTTPS.",
+            "notReadable": "Kameraet kan ikke indlæses.",
+            "notAllowed": "Du har ikke tilladt adgang til kameraet.",
+            "unknown": "En ukendt fejl opstod. {{error}}",
+            "notFound": "Intet kamera fundet.",
+            "streamApiNotSupported": "Denne browser understøtter ikke MediaStream API'et."
+        },
+        "description": "Skan en Spoolman QR kode for at se detaljer om spolen."
+    },
+    "notifications": {
+        "deleteSuccess": "Sletning af {{resource}} lykkedes",
+        "error": "Fejl (status kode: {{statusCode}})",
+        "editError": "Fejl ved redigering af {{resource}} (status kode:{{statusCode}}",
+        "undoable": "Du har {{seconds}} sekunder til at fortryde.",
+        "importProgress": "Importerer: {{processed}}/{{total}}",
+        "createError": "Der var en fejl under oprettelse af {{resource}} (status kode: {{statusCode}})",
+        "success": "Succes",
+        "editSuccess": "Redigering af {{resource}} lykkedes",
+        "deleteError": "Fejl ved sletning af {{resource}} (status kode: {{statusCode}})",
+        "createSuccess": "Oprettelse af {{resource}} lykkedes"
+    },
+    "no": "Nej",
+    "unknown": "Ukendt",
+    "yes": "Ja",
+    "version": "Version",
+    "table": {
+        "actions": "Handlinger"
+    },
+    "warnWhenUnsavedChanges": "Er du sikker på du ønsker at forlade? Du har ændringer der ikke er gemt.",
+    "loading": "Indlæser",
+    "dashboard": {
+        "title": "Kontrolpanel"
+    },
+    "tags": {
+        "clone": "Klon"
+    }
+}

@@ -153,7 +153,8 @@
         "clearFilters": "Effacer les filtres",
         "unArchive": "Désarchiver",
         "clone": "Cloner",
-        "clear": "Effacer"
+        "clear": "Effacer",
+        "saveAndAdd": "Sauvegarder et ajouter"
     },
     "filament": {
         "fields_help": {
@@ -180,7 +181,8 @@
             "density": "Densité",
             "id": "ID",
             "color_hex": "Couleur",
-            "article_number": "Numéro d'article"
+            "article_number": "Numéro d'article",
+            "spools": "Afficher les bobines"
         },
         "titles": {
             "clone": "Cloner un filament",
@@ -190,7 +192,10 @@
             "list": "Filaments",
             "show_title": "[Filament #{{id}}] {{name}}"
         },
-        "filament": "Filaments"
+        "filament": "Filaments",
+        "form": {
+            "filament_updated": "Ce filament a été mis à jour par quelqu'un/quelque chose depuis que vous avez ouvert cette page. Enregistrer écrasera ces changements !"
+        }
     },
     "actions": {
         "create": "Créer",
@@ -238,9 +243,12 @@
             "registered": "Enregistré",
             "comment": "Commentaire",
             "name": "Nom",
-            "id": "Id"
+            "id": "ID"
         },
-        "vendor": "Vendeurs"
+        "vendor": "Vendeurs",
+        "form": {
+            "vendor_updated": "Ce vendeur a été mis à jours par quelqu'un/quelque chose depuis que vous avez ouvert cette page. Enregistrer écrasera ces changements !"
+        }
     },
     "yes": "Oui",
     "version": "Version",

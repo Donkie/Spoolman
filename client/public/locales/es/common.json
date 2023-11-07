@@ -27,7 +27,8 @@
         "showArchived": "Mostrar Archivados",
         "notAccessTitle": "No tienes permiso de acceso",
         "hideColumns": "Ocultar Columnas",
-        "clearFilters": "Borrar filtros"
+        "clearFilters": "Borrar filtros",
+        "saveAndAdd": "Guardar y añadir"
     },
     "warnWhenUnsavedChanges": "Seguro que quieres salir?. Hay cambios sin guardar.",
     "notifications": {
@@ -117,7 +118,8 @@
             "comment": "Comentarios",
             "settings_extruder_temp": "Temp. de Extrusor",
             "settings_bed_temp": "Temp. de Cama",
-            "color_hex": "Color"
+            "color_hex": "Color",
+            "spools": "Mostrar los carretes"
         },
         "fields_help": {
             "name": "Nombre del filamento, para distinguirlo de otros de la misma marca. Por ejemplo, debería contener el nombre del color.",
@@ -142,7 +144,7 @@
     "vendor": {
         "vendor": "Marcas",
         "fields": {
-            "id": "Id",
+            "id": "ID",
             "name": "Nombre",
             "registered": "Registrado",
             "comment": "Comentarios"
