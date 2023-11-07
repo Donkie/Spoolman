@@ -326,3 +326,16 @@ def check_write_permissions() -> None:
                 gid,
             )
             sys.exit(1)
+
+
+def is_docker() -> bool:
+    """Check if we are running in a docker container."""
+    return Path("/.dockerenv").exists()
+
+
+def is_data_dir_mounted() -> bool:
+    """Check if the data directory is mounted as a shfs."""
+    # "mount" will give us a list of all mounted filesystems
+    mounts = subprocess.run("mount", check=True, stdout=subprocess.PIPE, text=True)  # noqa: S603, S607
+    data_dir = str(get_data_dir().resolve())
+    return any(data_dir in line for line in mounts.stdout.splitlines())

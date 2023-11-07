@@ -66,6 +66,5 @@ ENV BUILD_DATE=${BUILD_DATE}
 
 # Run command
 EXPOSE 8000
-VOLUME ["/home/app/.local/share/spoolman"]
 ENTRYPOINT ["uvicorn", "spoolman.main:app"]
 CMD ["--host", "0.0.0.0", "--port", "8000"]

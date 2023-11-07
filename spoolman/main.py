@@ -95,6 +95,22 @@ async def startup() -> None:
 
     logger.info("Startup complete.")
 
+    if env.is_docker() and not env.is_data_dir_mounted():
+        logger.warning("!!!! WARNING !!!!")
+        logger.warning("!!!! WARNING !!!!")
+        logger.warning("The data directory is not mounted.")
+        logger.warning(
+            'Spoolman stores its database in the container directory "%s". '
+            "If this directory isn't mounted to the host OS, the database will be lost when the container is stopped.",
+            env.get_data_dir(),
+        )
+        logger.warning(
+            "Please carefully read the docker part of the README.md file, "
+            "and ensure your docker-compose file matches the example.",
+        )
+        logger.warning("!!!! WARNING !!!!")
+        logger.warning("!!!! WARNING !!!!")
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
