@@ -80,6 +80,11 @@ export const languages: { [key: string]: Language } = {
     countryCode: "ua",
     fullCode: "uk-UA",
   },
+  ["el"]: {
+    name: "Ελληνικά",
+    countryCode: "gr",
+    fullCode: "el-GR",
+  },
 };
 
 i18n
