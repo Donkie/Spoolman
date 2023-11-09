@@ -35,9 +35,13 @@ fi
 if user_in_group "$CURRENT_USER" "docker"; then
     echo "Users are in the docker group. Continuing with Docker container setup."
 else
-	echo "Adding "$CURRENT_USER" to the docker group..."
-    sudo usermod -aG docker "$CURRENT_USER"
-
+    echo "Adding '$CURRENT_USER' to the docker group..."
+    if sudo usermod -aG docker "$CURRENT_USER"; then
+        echo "User '$CURRENT_USER' added to the docker group."
+    else
+        echo "Failed to add user '$CURRENT_USER' to the docker group." >&2
+        exit 1
+    fi
 fi
 
 # Create the folder and docker-compose.yml file
