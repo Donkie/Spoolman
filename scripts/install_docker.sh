@@ -25,15 +25,8 @@ RESET='\e[0m' # Reset formatting
 
 # Check if Docker is installed
 if ! command -v docker &>/dev/null; then
-    echo "Docker is not installed. Installing Docker..."
-
-    # Install Docker
-    curl -fsSL https://get.docker.com | sudo sh
-
-    echo "Docker has been installed."
-
-else
-    echo "Docker is already installed."
+    echo "Docker is not installed. Please install Docker and run the script again."
+    exit 1
 fi
 
 # Check if users were added to the group and prompt for a reboot
@@ -45,24 +38,10 @@ else
 
 	echo "Adding $USER to the docker group..."
     sudo usermod -aG docker "$USER"
-
-    # Prompt the user for reboot with a warning to save active tasks
-    echo -e "${RED}${BOLD}WARNING: System needs to restart for permissions to take effect. Please make sure to save progress on active tasks before rebooting!${RESET}\n"
-    read -p "Do you want to reboot now? (y/n): " choice
-    if [ "$choice" == "y" ]; then
-        echo "Rebooting the system..."
-        sudo reboot
-        exit
-    elif [ "$choice" == "n" ]; then
-        echo "Reboot the system and then re-run this script to finish the installation."
-        exit
-    else
-        echo "Invalid choice. Please enter 'y' to reboot or 'n' to exit."
-    fi
 fi
 
 # Create the folder and docker-compose.yml file
-INSTALL_PATH="$USER_HOME/printer_data/config/Spoolman"
+INSTALL_PATH="$USER_HOME/.local/share/spoolman"
 mkdir -p "$INSTALL_PATH"
 mkdir -p "$INSTALL_PATH/data"
 cat <<EOF > "$INSTALL_PATH/docker-compose.yml"
@@ -86,6 +65,11 @@ cd "$INSTALL_PATH"
 if docker compose up -d; then
     echo "Spoolman Docker container is up and running at $INSTALL_PATH."
 	echo -e "Please make sure all of your Klipper components are up to date and see Moonraker Documentation at: ${BLUE}${UNDERLINE}https://moonraker.readthedocs.io/en/latest/configuration/#spoolman${RESET} to add Spoolman to your Klipper Interfaces."
+
+elif docker-compose up -d; then
+    echo "Spoolman Docker container is up and running at $INSTALL_PATH."
+        echo -e "Please make sure all of your Klipper components are up to date and see Moonraker Documentation at: ${BLUE}${UNDERLINE}https://moonraker.readthedocs.io/en/latest/configuration/#spoolman${RESET} to add Spoolman to your Klipper Interfaces."
+
 else
-    echo -e "${RED}${BOLD}Error: Failed to start the Docker container. If you received a permissions error, please reboot the server and re-run the script.${RESET}" >&2
+    echo -e "${RED}${BOLD}Error: Failed to start the Docker container.${RESET}" >&2
 fi
