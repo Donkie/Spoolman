@@ -7,7 +7,9 @@ if [ "$EUID" -eq 0 ]; then
 fi
 
 # Get the current user's home directory
-USER_HOME=$(eval echo "~$SUDO_USER")
+CURRENT_USER=$(whoami)
+USER_HOME=$(eval echo "~$CURRENT_USER")
+
 
 # Function to check if a user is in a group
 user_in_group() {
@@ -62,14 +64,9 @@ EOF
 
 # Start the Docker container
 cd "$INSTALL_PATH"
-if docker compose up -d; then
+if docker compose up -d || docker-compose up -d; then
     echo "Spoolman Docker container is up and running at $INSTALL_PATH."
 	echo -e "Please make sure all of your Klipper components are up to date and see Moonraker Documentation at: ${BLUE}${UNDERLINE}https://moonraker.readthedocs.io/en/latest/configuration/#spoolman${RESET} to add Spoolman to your Klipper Interfaces."
-
-elif docker-compose up -d; then
-    echo "Spoolman Docker container is up and running at $INSTALL_PATH."
-        echo -e "Please make sure all of your Klipper components are up to date and see Moonraker Documentation at: ${BLUE}${UNDERLINE}https://moonraker.readthedocs.io/en/latest/configuration/#spoolman${RESET} to add Spoolman to your Klipper Interfaces."
-
 else
     echo -e "${RED}${BOLD}Error: Failed to start the Docker container.${RESET}" >&2
 fi
