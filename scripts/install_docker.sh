@@ -32,14 +32,12 @@ if ! command -v docker &>/dev/null; then
 fi
 
 # Check if users were added to the group and prompt for a reboot
-if user_in_group "$USER" "docker"; then
+if user_in_group "$CURRENT_USER" "docker"; then
     echo "Users are in the docker group. Continuing with Docker container setup."
 else
-	echo "Adding $SUDO_USER to the docker group..."
-    sudo usermod -aG docker "$SUDO_USER"
+	echo "Adding "$CURRENT_USER" to the docker group..."
+    sudo usermod -aG docker "$CURRENT_USER"
 
-	echo "Adding $USER to the docker group..."
-    sudo usermod -aG docker "$USER"
 fi
 
 # Create the folder and docker-compose.yml file
