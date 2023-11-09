@@ -115,6 +115,9 @@ fi
 
 # Install PDM dependencies
 echo -e "${GREEN}Installing Spoolman backend and its dependencies using PDM...${NC}"
+
+# Force PDM to use venv. The default is virtualenv which has had some compatibility issues
+pdm config venv.backend venv || exit 1
 pdm sync --prod --no-editable || exit 1
 
 # Get version number from pyproject.toml

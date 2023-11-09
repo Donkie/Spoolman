@@ -27,7 +27,8 @@
         "showArchived": "Pokaż zarchiwizowane",
         "notAccessTitle": "Nie masz zezwolenia na dostęp",
         "hideColumns": "Edytuj kolumny",
-        "clearFilters": "Wyczyść filtry"
+        "clearFilters": "Wyczyść filtry",
+        "saveAndAdd": "Zapisz i dodaj"
     },
     "spool": {
         "titles": {
@@ -190,7 +191,8 @@
             "settings_extruder_temp": "Temperatura ekstrudera",
             "settings_bed_temp": "Temperatura stołu",
             "color_hex": "Kolor",
-            "article_number": "Numer artykułu"
+            "article_number": "Numer artykułu",
+            "spools": "Zobacz szpule"
         },
         "fields_help": {
             "material": "Np. PLA, ABS, PETG itp.",

@@ -20,7 +20,8 @@
         "clearFilters": "Filters leegmaken",
         "unArchive": "Dearchiveren",
         "clone": "Klonen",
-        "clear": "Wissen"
+        "clear": "Wissen",
+        "saveAndAdd": "Opslaan en Toevoegen"
     },
     "actions": {
         "create": "Aanmaken",
@@ -210,7 +211,8 @@
             "density": "Dichtheid",
             "id": "ID",
             "color_hex": "Kleur",
-            "article_number": "Artiekelnummer"
+            "article_number": "Artiekelnummer",
+            "spools": "Spoelen tonen"
         },
         "titles": {
             "clone": "Flimanent klonen",
@@ -220,7 +222,10 @@
             "list": "Filamenten",
             "show_title": "[Filament #{{id}}] {{name}}"
         },
-        "filament": "Filamenten"
+        "filament": "Filamenten",
+        "form": {
+            "filament_updated": "Dit filament is bijgewerkt door iemand/iets anders sinds je deze pagina geopend hebt. Deze veranderingen worden overschreven als je op slaat!"
+        }
     },
     "scanner": {
         "title": "QR-Code scanner",
@@ -247,9 +252,12 @@
             "registered": "Geregistreerd",
             "comment": "Opmerking",
             "name": "Naam",
-            "id": "Id"
+            "id": "ID"
         },
-        "vendor": "Fabrikanten"
+        "vendor": "Fabrikanten",
+        "form": {
+            "vendor_updated": "Deze leverancier is bijgewerkt dor iemand/iets anders sinds je deze pagina geopend hebt. De veranderingen worden overschreven als je opslaat!"
+        }
     },
     "table": {
         "actions": "Akties"

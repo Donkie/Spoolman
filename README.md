@@ -36,6 +36,7 @@ Spoolman is still relatively new, so support isn't widespread yet, but it's bein
   * ✔️ KlipperScreen
   * ✔️ Mainsail
 * ✖️ Octoprint - A plugin is in progress: [OctoPrint-Spoolman](https://github.com/mkevenaar/OctoPrint-Spoolman)
+* ✔️ Home Assistant integration (https://github.com/Disane87/spoolman-homeassistant)
 
 ## Installation
 Spoolman can interact with any of the following databases: SQLite, PostgreSQL, MySQL, MariaDB, CockroachDB.
