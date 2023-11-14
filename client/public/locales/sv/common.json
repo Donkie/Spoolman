@@ -234,12 +234,18 @@
             "vendor_updated": "Den här leverantören har uppdaterats av något eller någon sedan du öppnade den här sidan. Om du sparar så skriver du över ändringarna!"
         }
     },
+    "home": {
+        "home": "Hem"
+    },
     "table": {
         "actions": "Åtgärder"
     },
     "documentTitle": {
         "default": "Spoolman",
         "suffix": " | Spoolman",
+        "home": {
+            "list": "Hem | Spoolman"
+        },
         "filament": {
             "list": "Filament | Spoolman",
             "show": "#{{id}} Visa filament | Spoolman",

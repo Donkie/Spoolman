@@ -5,16 +5,12 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ErrorComponent } from "@refinedev/antd";
 import "@refinedev/antd/dist/reset.css";
 
-import routerBindings, {
-  DocumentTitleHandler,
-  NavigateToResource,
-  UnsavedChangesNotifier,
-} from "@refinedev/react-router-v6";
+import routerBindings, { DocumentTitleHandler, UnsavedChangesNotifier } from "@refinedev/react-router-v6";
 import dataProvider from "./components/dataProvider";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import { ColorModeContextProvider } from "./contexts/color-mode";
-import { FileOutlined, HighlightOutlined, UserOutlined } from "@ant-design/icons";
+import { FileOutlined, HighlightOutlined, HomeOutlined, UserOutlined } from "@ant-design/icons";
 import { ConfigProvider } from "antd";
 import React from "react";
 import { Locale } from "antd/es/locale";
@@ -24,15 +20,27 @@ import SpoolmanNotificationProvider from "./components/notificationProvider";
 import { SpoolmanLayout } from "./components/layout";
 import liveProvider from "./components/liveProvider";
 
-interface PageProps {
+interface ResourcePageProps {
   resource: "spools" | "filaments" | "vendors";
   page: "list" | "create" | "edit" | "show";
   mode?: "create" | "clone";
 }
 
-const LoadablePage = loadable((props: PageProps) => import(`./pages/${props.resource}/${props.page}.tsx`), {
+const LoadableResourcePage = loadable(
+  (props: ResourcePageProps) => import(`./pages/${props.resource}/${props.page}.tsx`),
+  {
+    fallback: <div>Page is Loading...</div>,
+    cacheKey: (props: ResourcePageProps) => `${props.resource}-${props.page}-${props.mode ?? ""}`,
+  }
+);
+
+interface LoadablePageProps {
+  name: string;
+}
+
+const LoadablePage = loadable((props: LoadablePageProps) => import(`./pages/${props.name}/index.tsx`), {
   fallback: <div>Page is Loading...</div>,
-  cacheKey: (props: PageProps) => `${props.resource}-${props.page}-${props.mode ?? ""}`,
+  cacheKey: (props: LoadablePageProps) => `page-${props.name}`,
 });
 
 function App() {
@@ -88,6 +96,14 @@ function App() {
               liveProvider={liveProvider(import.meta.env.VITE_APIURL)}
               resources={[
                 {
+                  name: "home",
+                  list: "/",
+                  meta: {
+                    canDelete: false,
+                    icon: <HomeOutlined />,
+                  },
+                },
+                {
                   name: "spool",
                   list: "/spool",
                   create: "/spool/create",
@@ -138,30 +154,45 @@ function App() {
                     </SpoolmanLayout>
                   }
                 >
-                  <Route index element={<NavigateToResource resource="spool" />} />
+                  <Route index element={<LoadablePage name="home" />} />
                   <Route path="/spool">
-                    <Route index element={<LoadablePage resource="spools" page="list" />} />
-                    <Route path="create" element={<LoadablePage resource="spools" page="create" mode="create" />} />
-                    <Route path="clone/:id" element={<LoadablePage resource="spools" page="create" mode="clone" />} />
-                    <Route path="edit/:id" element={<LoadablePage resource="spools" page="edit" />} />
-                    <Route path="show/:id" element={<LoadablePage resource="spools" page="show" />} />
-                  </Route>
-                  <Route path="/filament">
-                    <Route index element={<LoadablePage resource="filaments" page="list" />} />
-                    <Route path="create" element={<LoadablePage resource="filaments" page="create" mode="create" />} />
+                    <Route index element={<LoadableResourcePage resource="spools" page="list" />} />
+                    <Route
+                      path="create"
+                      element={<LoadableResourcePage resource="spools" page="create" mode="create" />}
+                    />
                     <Route
                       path="clone/:id"
-                      element={<LoadablePage resource="filaments" page="create" mode="clone" />}
+                      element={<LoadableResourcePage resource="spools" page="create" mode="clone" />}
                     />
-                    <Route path="edit/:id" element={<LoadablePage resource="filaments" page="edit" />} />
-                    <Route path="show/:id" element={<LoadablePage resource="filaments" page="show" />} />
+                    <Route path="edit/:id" element={<LoadableResourcePage resource="spools" page="edit" />} />
+                    <Route path="show/:id" element={<LoadableResourcePage resource="spools" page="show" />} />
+                  </Route>
+                  <Route path="/filament">
+                    <Route index element={<LoadableResourcePage resource="filaments" page="list" />} />
+                    <Route
+                      path="create"
+                      element={<LoadableResourcePage resource="filaments" page="create" mode="create" />}
+                    />
+                    <Route
+                      path="clone/:id"
+                      element={<LoadableResourcePage resource="filaments" page="create" mode="clone" />}
+                    />
+                    <Route path="edit/:id" element={<LoadableResourcePage resource="filaments" page="edit" />} />
+                    <Route path="show/:id" element={<LoadableResourcePage resource="filaments" page="show" />} />
                   </Route>
                   <Route path="/vendor">
-                    <Route index element={<LoadablePage resource="vendors" page="list" />} />
-                    <Route path="create" element={<LoadablePage resource="vendors" page="create" mode="create" />} />
-                    <Route path="clone/:id" element={<LoadablePage resource="vendors" page="create" mode="clone" />} />
-                    <Route path="edit/:id" element={<LoadablePage resource="vendors" page="edit" />} />
-                    <Route path="show/:id" element={<LoadablePage resource="vendors" page="show" />} />
+                    <Route index element={<LoadableResourcePage resource="vendors" page="list" />} />
+                    <Route
+                      path="create"
+                      element={<LoadableResourcePage resource="vendors" page="create" mode="create" />}
+                    />
+                    <Route
+                      path="clone/:id"
+                      element={<LoadableResourcePage resource="vendors" page="create" mode="clone" />}
+                    />
+                    <Route path="edit/:id" element={<LoadableResourcePage resource="vendors" page="edit" />} />
+                    <Route path="show/:id" element={<LoadableResourcePage resource="vendors" page="show" />} />
                   </Route>
                   <Route path="*" element={<ErrorComponent />} />
                 </Route>
