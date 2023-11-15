@@ -108,7 +108,9 @@ If you want to connect with an external database instead, specify the `SPOOLMAN_
 
 ## Frequently Asked Questions (FAQs)
 ### QR Code Does not work on HTTP / The page is not served over HTTPS
-This is a limitation of the browsers. Browsers require a secure connection to the server to enable HTTPS. This is not a limitation of Spoolman. For more information read this [blog](https://blog.mozilla.org/webrtc/camera-microphone-require-https-in-firefox-68/) from Mozilla
+This is a limitation of the browsers. Browsers require a secure connection to the server to enable HTTPS. This is not a limitation of Spoolman. For more information read this [blog](https://blog.mozilla.org/webrtc/camera-microphone-require-https-in-firefox-68/) from Mozilla.
+
+You can put Spoolman behind a reverse proxy like Caddy or Nginx to enable HTTPS. See for example [this guide](https://caddyserver.com/docs/quick-starts/reverse-proxy) for Caddy.
 
 ### Can Spoolman be translated into my language?
 Yes, head over to [Weblate](https://hosted.weblate.org/projects/spoolman/) to start the Translation
