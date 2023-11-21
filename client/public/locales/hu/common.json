@@ -152,7 +152,8 @@
         "clearFilters": "Szűrők törlése",
         "unArchive": "Arhiválás visszavonása",
         "clone": "Másolás",
-        "clear": "Törlés"
+        "clear": "Törlés",
+        "saveAndAdd": "Mentés és hozzáadás"
     },
     "filament": {
         "fields_help": {
@@ -179,7 +180,8 @@
             "density": "Sűrűség",
             "id": "ID",
             "color_hex": "Szín",
-            "article_number": "Cikkszám"
+            "article_number": "Cikkszám",
+            "spools": "Tekercsek megjelenítése"
         },
         "titles": {
             "clone": "Filament másolása",
@@ -214,7 +216,7 @@
             "registered": "Nyilvántartott",
             "comment": "Megjegyzés",
             "name": "Név",
-            "id": "Id"
+            "id": "ID"
         },
         "vendor": "Gyártók",
         "form": {
