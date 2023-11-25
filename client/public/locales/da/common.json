@@ -152,7 +152,8 @@
         "clearFilters": "Ryd filtre",
         "unArchive": "Fjern fra arkiv",
         "clone": "Klon",
-        "clear": "Ryd"
+        "clear": "Ryd",
+        "saveAndAdd": "Gem og Tilføj"
     },
     "filament": {
         "fields_help": {
@@ -179,7 +180,8 @@
             "density": "Massefylde",
             "id": "ID",
             "color_hex": "Farve",
-            "article_number": "Produkt nummer"
+            "article_number": "Produkt nummer",
+            "spools": "Vis spoler"
         },
         "titles": {
             "clone": "Klon filament",
