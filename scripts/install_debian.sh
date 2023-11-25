@@ -89,18 +89,42 @@ fi
 # Update pip
 #
 echo -e "${GREEN}Updating pip...${NC}"
-python3 -m pip install --user --upgrade pip &>/dev/null || exit 1
+
+# Run pip upgrade command and capture stdout
+upgrade_output=$(python3 -m pip install --user --upgrade pip 2>&1)
+exit_code=$?
+
+# Check if the upgrade command failed and contains the specified error message
+is_externally_managed_env=$(echo "$upgrade_output" | grep "error: externally-managed-environment")
+if [[ $exit_code -ne 0 ]]; then
+    if [[ $is_externally_managed_env ]]; then
+        echo -e "${GREEN}Warning:${NC} Failed to upgrade pip since it's version is managed by the OS. Continuing anyway..."
+    else
+        echo -e "${GREEN}Error:${NC} Pip upgrade failed with exit code $exit_code and the following output:"
+        echo "$upgrade_output"
+        exit 1
+    fi
+else
+    echo -e "${GREEN}Pip updated successfully.${NC}"
+fi
 
 #
 # Install various pip packages if needed
 #
-packages=("setuptools" "wheel" "pdm")
-for package in "${packages[@]}"; do
-    if ! pip3 show "$package" &>/dev/null; then
-        echo -e "${GREEN}Installing $package...${NC}"
-        pip3 install --user "$package" &>/dev/null || exit 1
-    fi
-done
+echo -e "${GREEN}Installing system-wide pip packages needed for Spoolman...${NC}"
+if [[ $is_externally_managed_env ]]; then
+    echo -e "${GREEN}Installing the packages using apt-get instead of pip since pip is externally managed...${NC}"
+    apt_packages=("python3-setuptools" "python3-wheel" "python3-pdm")
+    sudo apt-get install -y "${apt_packages[@]}" || exit 1
+else
+    packages=("setuptools" "wheel" "pdm")
+    for package in "${packages[@]}"; do
+        if ! pip3 show "$package" &>/dev/null; then
+            echo -e "${GREEN}Installing $package...${NC}"
+            pip3 install --user "$package" || exit 1
+        fi
+    done
+fi
 
 #
 # Add python bin dir to PATH if needed
