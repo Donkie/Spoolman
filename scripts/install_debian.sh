@@ -194,6 +194,17 @@ echo -e "${CYAN}Do you want to install Spoolman as a systemd service? This will 
 read choice
 
 if [ "$choice" == "y" ] || [ "$choice" == "Y" ]; then
+    systemd_user_dir="$HOME/.config/systemd/user"
+    service_name="Spoolman"
+
+    # Check if user-level systemd service exists and remove it
+    if [ -f "$systemd_user_dir/$service_name.service" ]; then
+        echo -e "${ORANGE}User-level systemd service already installed. Removing the existing service.${NC}"
+        systemctl --user stop Spoolman  # Stop the service if it's running
+        systemctl --user disable Spoolman  # Disable the service
+        rm "$systemd_user_dir/$service_name.service"  # Remove the user-level service unit file
+        systemctl --user daemon-reload  # Reload the systemd user service manager
+    fi
 
     # Get the parent directory of the installer script
     script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
@@ -220,47 +231,37 @@ Description=Spoolman
 Type=simple
 ExecStart=$spoolman_dir/scripts/start.sh
 WorkingDirectory=$spoolman_dir
+User=$USER
 Restart=always
 
 [Install]
 WantedBy=default.target
 "
 
-    # Specify the service name
-    service_name="Spoolman"
-
-    # Create a temporary directory for the service unit file
-    temp_dir="$(mktemp -d)"
-
     # Create the systemd service unit file
-    service_file="$temp_dir/$service_name.service"
-    echo "$service_unit" > "$service_file"
-
-    # Move the service unit file to the user's systemd user directory
-    systemd_user_dir="$HOME/.config/systemd/user"
-    mkdir -p "$systemd_user_dir"
-    mv "$service_file" "$systemd_user_dir/"
+    service_file="/etc/systemd/system/$service_name.service"
+    echo "$service_unit" | sudo tee "$service_file" > /dev/null
 
     # Reload the systemd user service manager
-    systemctl --user daemon-reload
+    sudo systemctl daemon-reload
 
     # Enable and start the service
-    systemctl --user enable "$service_name"
-    systemctl --user start "$service_name"
+    sudo systemctl enable "$service_name"
+    sudo systemctl start "$service_name"
 
     # Load .env file now
     set -o allexport
     source .env
     set +o allexport
 
-    echo -e "${GREEN}Spoolman systemd service has been installed and Spoolman is now starting.${NC}"
-    echo -e "${GREEN}Spoolman will soon be reachable at ${ORANGE}http://<server-ip>:$SPOOLMAN_PORT${NC}"
-    echo -e "${GREEN}You can start/restart/stop the service by running e.g. '${CYAN}systemctl --user stop Spoolman${GREEN}'${NC}"
-    echo -e "${GREEN}You can disable the service from starting automatically by running '${CYAN}systemctl --user disable Spoolman${GREEN}'${NC}"
-    echo -e "${GREEN}You can view the Spoolman logs by running '${CYAN}journalctl --user -u Spoolman${GREEN}'${NC}"
+    local_ip=$(hostname -I | awk '{print $1}')
 
-    # Clean up temporary directory
-    rm -r "$temp_dir"
+    echo -e "${GREEN}Spoolman systemd service has been installed and Spoolman is now starting.${NC}"
+    echo -e "${GREEN}Spoolman will soon be reachable at ${ORANGE}http://$local_ip:$SPOOLMAN_PORT${NC}"
+    echo -e "${GREEN}Please note that the displayed IP address may be incorrect for your setup. If needed, replace it manually with the correct IP.${NC}"
+    echo -e "${GREEN}You can start/restart/stop the service by running e.g. '${CYAN}sudo systemctl stop Spoolman${GREEN}'${NC}"
+    echo -e "${GREEN}You can disable the service from starting automatically by running '${CYAN}sudo systemctl disable Spoolman${GREEN}'${NC}"
+    echo -e "${GREEN}You can view the Spoolman logs by running '${CYAN}sudo journalctl -u Spoolman${GREEN}'${NC}"
 else
     echo -e "${ORANGE}Skipping systemd service installation.${NC}"
     echo -e "${ORANGE}You can start Spoolman manually by running 'bash scripts/start.sh'${NC}"
