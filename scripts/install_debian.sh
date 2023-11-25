@@ -55,6 +55,10 @@ fi
 #
 # Install needed system packages
 #
+# Run apt-get update
+echo -e "${GREEN}Updating apt-get cache...${NC}"
+sudo apt-get update || exit 1
+
 install_packages=0
 if ! python3 -c 'import venv, ensurepip' &>/dev/null; then
     echo -e "${ORANGE}Python venv module is not accessible. Installing venv...${NC}"
@@ -85,18 +89,42 @@ fi
 # Update pip
 #
 echo -e "${GREEN}Updating pip...${NC}"
-python3 -m pip install --user --upgrade pip &>/dev/null || exit 1
+
+# Run pip upgrade command and capture stdout
+upgrade_output=$(python3 -m pip install --user --upgrade pip 2>&1)
+exit_code=$?
+
+# Check if the upgrade command failed and contains the specified error message
+is_externally_managed_env=$(echo "$upgrade_output" | grep "error: externally-managed-environment")
+if [[ $exit_code -ne 0 ]]; then
+    if [[ $is_externally_managed_env ]]; then
+        echo -e "${GREEN}Warning:${NC} Failed to upgrade pip since it's version is managed by the OS. Continuing anyway..."
+    else
+        echo -e "${GREEN}Error:${NC} Pip upgrade failed with exit code $exit_code and the following output:"
+        echo "$upgrade_output"
+        exit 1
+    fi
+else
+    echo -e "${GREEN}Pip updated successfully.${NC}"
+fi
 
 #
 # Install various pip packages if needed
 #
-packages=("setuptools" "wheel" "pdm")
-for package in "${packages[@]}"; do
-    if ! pip3 show "$package" &>/dev/null; then
-        echo -e "${GREEN}Installing $package...${NC}"
-        pip3 install --user "$package" &>/dev/null || exit 1
-    fi
-done
+echo -e "${GREEN}Installing system-wide pip packages needed for Spoolman...${NC}"
+if [[ $is_externally_managed_env ]]; then
+    echo -e "${GREEN}Installing the packages using apt-get instead of pip since pip is externally managed...${NC}"
+    apt_packages=("python3-setuptools" "python3-wheel" "python3-pdm")
+    sudo apt-get install -y "${apt_packages[@]}" || exit 1
+else
+    packages=("setuptools" "wheel" "pdm")
+    for package in "${packages[@]}"; do
+        if ! pip3 show "$package" &>/dev/null; then
+            echo -e "${GREEN}Installing $package...${NC}"
+            pip3 install --user "$package" || exit 1
+        fi
+    done
+fi
 
 #
 # Add python bin dir to PATH if needed
@@ -166,6 +194,17 @@ echo -e "${CYAN}Do you want to install Spoolman as a systemd service? This will 
 read choice
 
 if [ "$choice" == "y" ] || [ "$choice" == "Y" ]; then
+    systemd_user_dir="$HOME/.config/systemd/user"
+    service_name="Spoolman"
+
+    # Check if user-level systemd service exists and remove it
+    if [ -f "$systemd_user_dir/$service_name.service" ]; then
+        echo -e "${ORANGE}User-level systemd service already installed. Removing the existing service.${NC}"
+        systemctl --user stop Spoolman  # Stop the service if it's running
+        systemctl --user disable Spoolman  # Disable the service
+        rm "$systemd_user_dir/$service_name.service"  # Remove the user-level service unit file
+        systemctl --user daemon-reload  # Reload the systemd user service manager
+    fi
 
     # Get the parent directory of the installer script
     script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
@@ -192,47 +231,37 @@ Description=Spoolman
 Type=simple
 ExecStart=$spoolman_dir/scripts/start.sh
 WorkingDirectory=$spoolman_dir
+User=$USER
 Restart=always
 
 [Install]
 WantedBy=default.target
 "
 
-    # Specify the service name
-    service_name="Spoolman"
-
-    # Create a temporary directory for the service unit file
-    temp_dir="$(mktemp -d)"
-
     # Create the systemd service unit file
-    service_file="$temp_dir/$service_name.service"
-    echo "$service_unit" > "$service_file"
-
-    # Move the service unit file to the user's systemd user directory
-    systemd_user_dir="$HOME/.config/systemd/user"
-    mkdir -p "$systemd_user_dir"
-    mv "$service_file" "$systemd_user_dir/"
+    service_file="/etc/systemd/system/$service_name.service"
+    echo "$service_unit" | sudo tee "$service_file" > /dev/null
 
     # Reload the systemd user service manager
-    systemctl --user daemon-reload
+    sudo systemctl daemon-reload
 
     # Enable and start the service
-    systemctl --user enable "$service_name"
-    systemctl --user start "$service_name"
+    sudo systemctl enable "$service_name"
+    sudo systemctl start "$service_name"
 
     # Load .env file now
     set -o allexport
     source .env
     set +o allexport
 
-    echo -e "${GREEN}Spoolman systemd service has been installed and Spoolman is now starting.${NC}"
-    echo -e "${GREEN}Spoolman will soon be reachable at ${ORANGE}http://<server-ip>:$SPOOLMAN_PORT${NC}"
-    echo -e "${GREEN}You can start/restart/stop the service by running e.g. '${CYAN}systemctl --user stop Spoolman${GREEN}'${NC}"
-    echo -e "${GREEN}You can disable the service from starting automatically by running '${CYAN}systemctl --user disable Spoolman${GREEN}'${NC}"
-    echo -e "${GREEN}You can view the Spoolman logs by running '${CYAN}journalctl --user -u Spoolman${GREEN}'${NC}"
+    local_ip=$(hostname -I | awk '{print $1}')
 
-    # Clean up temporary directory
-    rm -r "$temp_dir"
+    echo -e "${GREEN}Spoolman systemd service has been installed and Spoolman is now starting.${NC}"
+    echo -e "${GREEN}Spoolman will soon be reachable at ${ORANGE}http://$local_ip:$SPOOLMAN_PORT${NC}"
+    echo -e "${GREEN}Please note that the displayed IP address may be incorrect for your setup. If needed, replace it manually with the correct IP.${NC}"
+    echo -e "${GREEN}You can start/restart/stop the service by running e.g. '${CYAN}sudo systemctl stop Spoolman${GREEN}'${NC}"
+    echo -e "${GREEN}You can disable the service from starting automatically by running '${CYAN}sudo systemctl disable Spoolman${GREEN}'${NC}"
+    echo -e "${GREEN}You can view the Spoolman logs by running '${CYAN}sudo journalctl -u Spoolman${GREEN}'${NC}"
 else
     echo -e "${ORANGE}Skipping systemd service installation.${NC}"
     echo -e "${ORANGE}You can start Spoolman manually by running 'bash scripts/start.sh'${NC}"
