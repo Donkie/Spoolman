@@ -20,7 +20,8 @@
         "logout": "Вийти",
         "notAccessTitle": "У Вас бракує прав для доступу",
         "clone": "Клонувати",
-        "unArchive": "Розархівувати"
+        "unArchive": "Розархівувати",
+        "saveAndAdd": "Зберегти та додати"
     },
     "spool": {
         "fields": {
@@ -182,7 +183,8 @@
             "color_hex": "Колір",
             "article_number": "Артикул",
             "comment": "Коментар",
-            "registered": "Додано"
+            "registered": "Додано",
+            "spools": "Показати котушки"
         },
         "titles": {
             "show_title": "[Філамент #{{id}}] {{name}}",

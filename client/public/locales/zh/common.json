@@ -27,7 +27,8 @@
         "showArchived": "显示存档",
         "notAccessTitle": "您没有访问权限",
         "hideColumns": "隐藏列",
-        "clearFilters": "清除筛选器"
+        "clearFilters": "清除筛选器",
+        "saveAndAdd": "保存并添加"
     },
     "warnWhenUnsavedChanges": "您确定要离开吗？您有未保存的更改。",
     "notifications": {
@@ -189,7 +190,8 @@
             "comment": "备注",
             "settings_extruder_temp": "挤出头温度",
             "settings_bed_temp": "热床温度",
-            "color_hex": "颜色"
+            "color_hex": "颜色",
+            "spools": "显示料盘"
         },
         "fields_help": {
             "name": "耗材名称，用于区分来自同一供应商的不同耗材类型。例如包含颜色信息。",
