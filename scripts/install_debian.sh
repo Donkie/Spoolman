@@ -55,6 +55,10 @@ fi
 #
 # Install needed system packages
 #
+# Run apt-get update
+echo -e "${GREEN}Updating apt-get cache...${NC}"
+sudo apt-get update || exit 1
+
 install_packages=0
 if ! python3 -c 'import venv, ensurepip' &>/dev/null; then
     echo -e "${ORANGE}Python venv module is not accessible. Installing venv...${NC}"
