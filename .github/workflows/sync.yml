@@ -3,13 +3,21 @@ name: Sync with Upstream
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */1 * * *'  # Run every hour
+    - cron: '0 */1 * * *'  # Run every 1 hour
 
 jobs:
   sync:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./  # Set the working directory to the root of the repository
 
     steps:
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+
       - name: Checkout Code
         uses: actions/checkout@v2
 
