@@ -172,7 +172,7 @@ async def backup_global_db(num_backups: int = 5) -> Optional[Path]:
     """
     if __db is None:
         raise RuntimeError("DB is not setup.")
-    return __db.backup_and_rotate(env.get_data_dir().joinpath("backups"), num_backups=num_backups)
+    return __db.backup_and_rotate(env.get_backups_dir(), num_backups=num_backups)
 
 
 async def _backup_task() -> Optional[Path]:
@@ -180,7 +180,7 @@ async def _backup_task() -> Optional[Path]:
     logger.info("Performing scheduled database backup.")
     if __db is None:
         raise RuntimeError("DB is not setup.")
-    return __db.backup_and_rotate(env.get_data_dir().joinpath("backups"), num_backups=5)
+    return __db.backup_and_rotate(env.get_backups_dir(), num_backups=5)
 
 
 def schedule_tasks(scheduler: Scheduler) -> None:
