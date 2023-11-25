@@ -231,6 +231,15 @@ def get_data_dir() -> Path:
     return data_dir
 
 
+def get_logs_dir() -> Path:
+    """Get the logs directory.
+
+    Returns:
+        Path: The logs directory.
+    """
+    return get_data_dir()
+
+
 def get_backups_dir() -> Path:
     """Get the backups directory.
 

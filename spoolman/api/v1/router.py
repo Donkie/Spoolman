@@ -52,6 +52,7 @@ async def info() -> models.Info:
         debug_mode=env.is_debug_mode(),
         automatic_backups=env.is_automatic_backup_enabled(),
         data_dir=str(env.get_data_dir().resolve()),
+        logs_dir=str(env.get_logs_dir().resolve()),
         backups_dir=str(env.get_backups_dir().resolve()),
         db_type=str(env.get_database_type() or "sqlite"),
         git_commit=env.get_commit_hash(),

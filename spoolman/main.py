@@ -57,7 +57,7 @@ if env.is_debug_mode():
 def add_file_logging() -> None:
     """Add file logging to the root logger."""
     # Define a file logger with log rotation
-    log_file = env.get_data_dir().joinpath("spoolman.log")
+    log_file = env.get_logs_dir().joinpath("spoolman.log")
     file_handler = TimedRotatingFileHandler(log_file, when="midnight", backupCount=5)
     file_handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(message)s", "%Y-%m-%d %H:%M:%S"))
     root_logger.addHandler(file_handler)

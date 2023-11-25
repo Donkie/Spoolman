@@ -213,6 +213,7 @@ class Info(BaseModel):
     debug_mode: bool = Field(example=False)
     automatic_backups: bool = Field(example=True)
     data_dir: str = Field(example="/home/app/.local/share/spoolman")
+    logs_dir: str = Field(example="/home/app/.local/share/spoolman")
     backups_dir: str = Field(example="/home/app/.local/share/spoolman/backups")
     db_type: str = Field(example="sqlite")
     git_commit: Optional[str] = Field(example="a1b2c3d")
