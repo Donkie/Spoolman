@@ -226,7 +226,11 @@ def get_data_dir() -> Path:
     Returns:
         Path: The data directory.
     """
-    data_dir = Path(user_data_dir("spoolman"))
+    env_data_dir = os.getenv("SPOOLMAN_DIR_DATA")
+    if env_data_dir is not None:
+        data_dir = Path(env_data_dir)
+    else:
+        data_dir = Path(user_data_dir("spoolman"))
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
 
@@ -237,7 +241,13 @@ def get_logs_dir() -> Path:
     Returns:
         Path: The logs directory.
     """
-    return get_data_dir()
+    env_logs_dir = os.getenv("SPOOLMAN_DIR_LOGS")
+    if env_logs_dir is not None:
+        logs_dir = Path(env_logs_dir)
+    else:
+        logs_dir = get_data_dir()
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    return logs_dir
 
 
 def get_backups_dir() -> Path:
@@ -246,8 +256,11 @@ def get_backups_dir() -> Path:
     Returns:
         Path: The backups directory.
     """
-    data_dir = get_data_dir()
-    backups_dir = data_dir.joinpath("backups")
+    env_backups_dir = os.getenv("SPOOLMAN_DIR_BACKUPS")
+    if env_backups_dir is not None:
+        backups_dir = Path(env_backups_dir)
+    else:
+        backups_dir = get_data_dir().joinpath("backups")
     backups_dir.mkdir(parents=True, exist_ok=True)
     return backups_dir
 

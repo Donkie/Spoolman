@@ -79,6 +79,10 @@ async def startup() -> None:
         env.get_build_date(),
     )
 
+    logger.info("Using data directory: %s", env.get_data_dir().resolve())
+    logger.info("Using logs directory: %s", env.get_logs_dir().resolve())
+    logger.info("Using backups directory: %s", env.get_backups_dir().resolve())
+
     logger.info("Setting up database...")
     database.setup_db(database.get_connection_url())
 
