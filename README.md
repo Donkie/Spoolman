@@ -45,11 +45,16 @@ By default, SQLite is used which is a simple no-install database solution that s
 Spoolman can be installed in two ways, either directly on your machine or using Docker. If you already have Docker installed, it's recommended to use that.
 
 ### Standalone
-This installation guide assumes you are using a Debian-based Linux distribution such as Ubuntu or Raspberry Pi OS. If you are using another distribution, please look inside the bash scripts to see what commands are being run and adapt them to your distribution.
+This installation guide assumes you are using a Debian-based Linux distribution such as Ubuntu, Armbian or Raspberry Pi OS. If you are using another distribution, please look inside the bash scripts to see what commands are being run and adapt them to your distribution.
 
-1. Download this repository to your machine. It is recommended that you download the latest release from the [Releases page](https://github.com/Donkie/Spoolman/releases). It's the `Source code (zip)` file that you want. You can also git clone the repository if you want to be on the bleeding edge.
-2. Unzip the downloaded file using `unzip Spoolman-*.zip`. This will create a directory called `Spoolman-<version>`.
-3. CD into the `Spoolman-<version>` directory and run `bash ./scripts/install_debian.sh`. This will install all the dependencies and setup Spoolman. Follow the instructions on the screen.
+1. Download this repository to your machine. It is recommended that you download the latest release from the [Releases page](https://github.com/Donkie/Spoolman/releases). It's the `Source code (zip)` file that you want. 
+You can also git clone the repository if you want to be on the bleeding edge.
+```
+git clone https://github.com/Donkie/Spoolman.git
+bash ~/Spoolman/scripts/install_debian.sh
+```
+3. Unzip the downloaded file using `unzip Spoolman-*.zip`. This will create a directory called `Spoolman-<version>`.
+4. CD into the `Spoolman-<version>` directory and run `bash ./scripts/install_debian.sh`. This will install all the dependencies and setup Spoolman. Follow the instructions on the screen.
 
 #### Updating
 Updating Spoolman is quite simple. If you use the default database type, SQLite, it is stored outside of the installation folder (in `~/.local/share/spoolman`), so you will not lose any data by moving to a new installation folder. Follow these steps to update:
@@ -83,6 +88,21 @@ services:
     environment:
       - TZ=Europe/Stockholm # Optional, defaults to UTC
 ```
+### Prerequisites
+For Moonraker add in moonraker.cong the [spoolman] section following this documentation: https://moonraker.readthedocs.io/en/latest/configuration/#spoolman
+If the "server" use the same NIC of Monnraker, use
+```
+# moonraker.conf
+
+[spoolman]
+server: http://127.0.0.1:7912
+#   URL to the Spoolman instance. This parameter must be provided.
+sync_rate: 5
+#   The interval, in seconds, between sync requests with the
+#   Spoolman server.  The default is 5.
+```
+
+### Starting
 Once you have it up and running, you can access the web UI by browsing to `http://your.ip:7912`. Make sure that the data folder you created now contains a `spoolman.db` file. If you cannot find this file in your machine, then **your data will be lost** every time you update Spoolman.
 
 #### Updating
