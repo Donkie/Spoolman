@@ -42,23 +42,43 @@ Spoolman is still relatively new, so support isn't widespread yet, but it's bein
 Spoolman can interact with any of the following databases: SQLite, PostgreSQL, MySQL, MariaDB, CockroachDB.
 By default, SQLite is used which is a simple no-install database solution that saves to a single .db file located in the server's user directory.
 
-Spoolman can be installed in two ways, either directly on your machine or using Docker. If you already have Docker installed, it's recommended to use that.
+Spoolman can be installed in two ways, either standalone on your machine or using Docker. If you already have Docker installed, it's recommended to use that.
 
 ### Standalone
 This installation guide assumes you are using a Debian-based Linux distribution such as Ubuntu or Raspberry Pi OS. If you are using another distribution, please look inside the bash scripts to see what commands are being run and adapt them to your distribution.
 
-1. Download this repository to your machine. It is recommended that you download the latest release from the [Releases page](https://github.com/Donkie/Spoolman/releases). It's the `Source code (zip)` file that you want. You can also git clone the repository if you want to be on the bleeding edge.
-2. Unzip the downloaded file using `unzip Spoolman-*.zip`. This will create a directory called `Spoolman-<version>`.
-3. CD into the `Spoolman-<version>` directory and run `bash ./scripts/install_debian.sh`. This will install all the dependencies and setup Spoolman. Follow the instructions on the screen.
+Copy-paste the entire below command and run it on your machine to install Spoolman.
+```bash
+sudo apt-get update && \
+sudo apt-get install -y curl jq && \
+mkdir -p ./Spoolman && \
+source_url=$(curl -s https://api.github.com/repos/Donkie/Spoolman/releases/latest | jq -r ".tarball_url") && \
+curl -sSL $source_url | tar -xz --strip-components=1 -C ./Spoolman && \
+cd ./Spoolman && \
+bash ./scripts/install_debian.sh
+```
 
 #### Updating
-Updating Spoolman is quite simple. If you use the default database type, SQLite, it is stored outside of the installation folder (in `~/.local/share/spoolman`), so you will not lose any data by moving to a new installation folder. Follow these steps to update:
+Updating Spoolman is quite simple. If you use the default database type, SQLite, it is stored outside of the installation folder (in `~/.local/share/spoolman`), so you will not lose any data by moving to a new installation folder.
 
-1. If you're running Spoolman as a systemd service, stop and disable it using `systemctl --user stop Spoolman && systemctl --user disable Spoolman`.
-2. Download the latest release as above and unzip it.
-3. Copy the `.env` file from your old installation to the new one.
-4. CD into the new installation folder and run `bash ./scripts/install_debian.sh`. This will install all the dependencies and setup Spoolman. Follow the instructions on the screen.
-5. Delete the old installation folder to prevent it from being used by accident.
+Copy-paste the entire below commands and run it on your machine to update Spoolman to the latest version. The command assumes your existing Spoolman folder is named `Spoolman` and is located in your current directory.
+```bash
+# Stop and disable the old Spoolman service
+sudo systemctl stop Spoolman
+sudo systemctl disable Spoolman
+systemctl --user stop Spoolman
+systemctl --user disable Spoolman
+
+# Download and install the new version
+mv Spoolman Spoolman_old && \
+mkdir -p ./Spoolman && \
+source_url=$(curl -s https://api.github.com/repos/Donkie/Spoolman/releases/latest | jq -r ".tarball_url") && \
+curl -sSL $source_url | tar -xz --strip-components=1 -C ./Spoolman && \
+cp Spoolman_old/.env Spoolman/.env && \
+cd ./Spoolman && \
+bash ./scripts/install_debian.sh && \
+rm -rf ../Spoolman_old
+```
 
 ### Using Docker
 You can also run Spoolman using Docker. Docker is a platform for developing, shipping, and running applications in containers. Containers are lightweight, portable, and self-contained environments that can run on any machine with Docker installed.
