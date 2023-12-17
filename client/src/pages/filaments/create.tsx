@@ -14,7 +14,7 @@ interface CreateOrCloneProps {
 export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
 
-  const { form, formProps, saveButtonProps, formLoading, onFinish, redirect } = useForm<IFilament>();
+  const { form, formProps, formLoading, onFinish, redirect } = useForm<IFilament>();
 
   if (props.mode === "clone" && formProps.initialValues) {
     // Fix the vendor_id
@@ -24,10 +24,10 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
   }
 
   const handleSubmit = async (redirectTo: "list" | "edit" | "create") => {
-    let values = await form.validateFields();
+    const values = await form.validateFields();
     await onFinish(values);
     redirect(redirectTo, (values as IFilament).id);
-  }
+  };
 
   const { selectProps } = useSelect<IVendor>({
     resource: "vendor",
@@ -40,8 +40,12 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
       isLoading={formLoading}
       footerButtons={() => (
         <>
-          <Button type="primary" onClick={() => handleSubmit("list")}>{t("buttons.save")}</Button>
-          <Button type="primary" onClick={() => handleSubmit("create")}>{t("buttons.saveAndAdd")}</Button>
+          <Button type="primary" onClick={() => handleSubmit("list")}>
+            {t("buttons.save")}
+          </Button>
+          <Button type="primary" onClick={() => handleSubmit("create")}>
+            {t("buttons.saveAndAdd")}
+          </Button>
         </>
       )}
     >

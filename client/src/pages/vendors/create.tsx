@@ -12,13 +12,13 @@ interface CreateOrCloneProps {
 export const VendorCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
 
-  const { form, formProps, saveButtonProps, formLoading, onFinish, redirect } = useForm<IVendor>();
+  const { form, formProps, formLoading, onFinish, redirect } = useForm<IVendor>();
 
   const handleSubmit = async (redirectTo: "list" | "edit" | "create") => {
-    let values = await form.validateFields();
+    const values = await form.validateFields();
     await onFinish(values);
     redirect(redirectTo, (values as IVendor).id);
-  }
+  };
 
   return (
     <Create
@@ -26,8 +26,12 @@ export const VendorCreate: React.FC<IResourceComponentsProps & CreateOrCloneProp
       isLoading={formLoading}
       footerButtons={() => (
         <>
-          <Button type="primary" onClick={() => handleSubmit("list")}>{t("buttons.save")}</Button>
-          <Button type="primary" onClick={() => handleSubmit("create")}>{t("buttons.saveAndAdd")}</Button>
+          <Button type="primary" onClick={() => handleSubmit("list")}>
+            {t("buttons.save")}
+          </Button>
+          <Button type="primary" onClick={() => handleSubmit("create")}>
+            {t("buttons.saveAndAdd")}
+          </Button>
         </>
       )}
     >

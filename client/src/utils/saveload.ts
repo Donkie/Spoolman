@@ -18,18 +18,18 @@ export function useInitialTableState(tableId: string): TableState {
     const savedSorters = hasHashProperty("sorters")
       ? getHashProperty("sorters")
       : isLocalStorageAvailable
-        ? localStorage.getItem(`${tableId}-sorters`)
-        : null;
+      ? localStorage.getItem(`${tableId}-sorters`)
+      : null;
     const savedFilters = hasHashProperty("filters")
       ? getHashProperty("filters")
       : isLocalStorageAvailable
-        ? localStorage.getItem(`${tableId}-filters`)
-        : null;
+      ? localStorage.getItem(`${tableId}-filters`)
+      : null;
     const savedPagination = hasHashProperty("pagination")
       ? getHashProperty("pagination")
       : isLocalStorageAvailable
-        ? localStorage.getItem(`${tableId}-pagination`)
-        : null;
+      ? localStorage.getItem(`${tableId}-pagination`)
+      : null;
     const savedShowColumns = isLocalStorageAvailable ? localStorage.getItem(`${tableId}-showColumns`) : null;
 
     const sorters = savedSorters ? JSON.parse(savedSorters) : [{ field: "id", order: "asc" }];
