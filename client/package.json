@@ -42,7 +42,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
     "typescript": "^5.2.2",
-    "vite": "^4.4.11",
+    "vite": "^4.4.12",
     "vite-plugin-mkcert": "^1.16.0"
   },
   "scripts": {
