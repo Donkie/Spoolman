@@ -144,8 +144,8 @@ const dataProvider = (
     }
 
     if (headers) {
-      httpClient.defaults.headers = {
-        ...httpClient.defaults.headers,
+      httpClient.defaults.headers.common = {
+        ...httpClient.defaults.headers.common,
         ...headers,
       };
     }
