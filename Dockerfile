@@ -1,4 +1,4 @@
-FROM node:16-alpine as client-builder
+FROM node:20-alpine as client-builder
 
 COPY ./client /client
 WORKDIR /client
