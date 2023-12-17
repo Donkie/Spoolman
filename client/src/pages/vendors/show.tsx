@@ -22,7 +22,7 @@ export const VendorShow: React.FC<IResourceComponentsProps> = () => {
   const record = data?.data;
 
   const formatTitle = (item: IVendor) => {
-    return t("vendor.titles.show_title", { id: item.id, name: item.name });
+    return t("vendor.titles.show_title", { id: item.id, name: item.name, interpolation: { escapeValue: false } });
   };
 
   return (

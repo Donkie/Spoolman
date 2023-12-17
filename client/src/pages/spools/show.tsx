@@ -45,7 +45,11 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
   };
 
   const formatTitle = (item: ISpool) => {
-    return t("spool.titles.show_title", { id: item.id, name: formatFilament(item.filament) });
+    return t("spool.titles.show_title", {
+      id: item.id,
+      name: formatFilament(item.filament),
+      interpolation: { escapeValue: false },
+    });
   };
 
   return (
