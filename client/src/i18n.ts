@@ -9,6 +9,13 @@ interface Language {
   fullCode: string;
 }
 
+/**
+ * List of languages to load
+ * The key of each object is the folder name in the locales dir.
+ * name: Name of the language in the list
+ * countryCode: Country code of the country's flag to display for this language
+ * fullCode: Full language code, used for Ant Design's locale
+ */
 export const languages: { [key: string]: Language } = {
   ["en"]: {
     name: "English",
@@ -84,6 +91,11 @@ export const languages: { [key: string]: Language } = {
     name: "Ελληνικά",
     countryCode: "gr",
     fullCode: "el-GR",
+  },
+  ["da"]: {
+    name: "Dansk",
+    countryCode: "dk",
+    fullCode: "da-DK",
   },
 };
 
