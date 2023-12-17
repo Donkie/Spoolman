@@ -35,13 +35,52 @@ jobs:
       - name: Run pre-commit
         run: pre-commit run --all-files
   #
-  # Build native image for integration tests
+  # Build the Spoolman client for baking into the docker images
+  # This is done on native hardware to speed things up, vite is very slow on emulated hardware
   #
-  build-amd64:
+  build-client:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd client
+          npm ci
+
+      - name: Build
+        run: |
+          cd client
+          rm -f .env && echo "VITE_APIURL=/api/v1" > .env.production
+          npm run build
+          npm run build.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: client
+          path: client/dist
+  #
+  # Build native image for integration tests
+  #
+  build-amd64:
+    needs: [build-client]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Download client
+        uses: actions/download-artifact@v3
+        with:
+          name: client
+          path: client/dist
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -158,10 +197,17 @@ jobs:
   #
   build-arm64:
     if: ${{ github.event_name != 'pull_request' }}
+    needs: [build-client]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Download client
+        uses: actions/download-artifact@v3
+        with:
+          name: client
+          path: client/dist
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -190,10 +236,17 @@ jobs:
   #
   build-armv7:
     if: ${{ github.event_name != 'pull_request' }}
+    needs: [build-client]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Download client
+        uses: actions/download-artifact@v3
+        with:
+          name: client
+          path: client/dist
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -221,11 +274,17 @@ jobs:
   #
   release:
     if: ${{ github.event_name != 'pull_request' }}
-    needs: [test, build-amd64, build-arm64, build-armv7, style]
+    needs: [test, build-amd64, build-arm64, build-armv7, style, build-client]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Download client
+        uses: actions/download-artifact@v3
+        with:
+          name: client
+          path: client/dist
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2

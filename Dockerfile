@@ -1,12 +1,3 @@
-FROM node:20-alpine as client-builder
-
-COPY ./client /client
-WORKDIR /client
-RUN npm ci
-
-RUN rm -f .env && echo "VITE_APIURL=/api/v1" > .env.production
-RUN npm run build
-
 FROM python:3.11-alpine as python-builder
 
 RUN apk add --no-cache g++ python3-dev libpq-dev libstdc++
@@ -49,7 +40,7 @@ RUN adduser -D app \
 USER app
 
 # Copy built client
-COPY --chown=app:app --from=client-builder /client/dist /home/app/spoolman/client/dist
+COPY --chown=app:app ./client/dist /home/app/spoolman/client/dist
 
 # Copy built app
 COPY --chown=app:app --from=python-builder /home/app/spoolman /home/app/spoolman
