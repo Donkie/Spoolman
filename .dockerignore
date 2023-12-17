@@ -1,4 +1,3 @@
-client/dist
 client/node_modules
 
 *.egg-info
