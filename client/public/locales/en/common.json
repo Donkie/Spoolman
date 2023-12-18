@@ -237,6 +237,9 @@
     "home": {
         "home": "Home"
     },
+    "help": {
+        "help": "Help"
+    },
     "table": {
         "actions": "Actions"
     },
@@ -245,6 +248,9 @@
         "suffix": " | Spoolman",
         "home": {
             "list": "Home | Spoolman"
+        },
+        "help": {
+            "list": "Help | Spoolman"
         },
         "filament": {
             "list": "Filaments | Spoolman",
