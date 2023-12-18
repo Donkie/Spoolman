@@ -245,20 +245,7 @@
             "spool": "Individual physical spools of a specific filament.",
             "vendor": "The companies that make the filament."
         },
-        "description": [
-            "<title>Help</title>",
-            "<p>Here are some tips to get you started.</p>",
-            "<p>Spoolman holds 3 different types of data:</p><itemsHelp/>",
-            "<p>To enter a new spool into the database, you first need to create a <filamentCreateLink>Filament</filamentCreateLink>",
-            "object for it. Once that is done, you can then create a <spoolCreateLink>Spool</spoolCreateLink> object for that",
-            "individual spool. If you then purchase additional spools of the same filament, you can just create additional",
-            "Spool objects, and re-use the same Filament object.</p>",
-            "<p>You can optionally also create a <vendorCreateLink>Vendor</vendorCreateLink> object for the company that makes the",
-            "filament, if you want to track that information.</p>",
-            "<p>You can connect other 3D printer services to Spoolman, such as Moonraker, which can then automatically track",
-            "filament usage and update the Spool objects for you. See the <readmeLink>Spoolman README</readmeLink>",
-            "for how to do that.</p>"
-        ]
+        "description": "<title>Help</title><p>Here are some tips to get you started.</p><p>Spoolman holds 3 different types of data:</p><itemsHelp/><p>To enter a new spool into the database, you first need to create a <filamentCreateLink>Filament</filamentCreateLink>object for it. Once that is done, you can then create a <spoolCreateLink>Spool</spoolCreateLink> object for thatindividual spool. If you then purchase additional spools of the same filament, you can just create additionalSpool objects, and re-use the same Filament object.</p><p>You can optionally also create a <vendorCreateLink>Vendor</vendorCreateLink> object for the company that makes thefilament, if you want to track that information.</p><p>You can connect other 3D printer services to Spoolman, such as Moonraker, which can then automatically trackfilament usage and update the Spool objects for you. See the <readmeLink>Spoolman README</readmeLink>for how to do that.</p>"
     },
     "table": {
         "actions": "Actions"

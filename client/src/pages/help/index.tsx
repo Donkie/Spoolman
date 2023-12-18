@@ -34,7 +34,6 @@ export const Help: React.FC<IResourceComponentsProps> = () => {
     >
       <Trans
         i18nKey={"help.description"}
-        tOptions={{ joinArrays: "\n" }}
         components={{
           p: <p />,
           title: <Title />,
