@@ -37,7 +37,7 @@ const SpoolmanFooter: React.FC = () => {
             href="https://ko-fi.com/donkie"
             target="_blank"
           >
-            Tip me on Ko-fi
+            {t("kofi")}
           </Button>
         </div>
       </div>

@@ -43,6 +43,7 @@
         "editError": "Error when editing {{resource}} (status code: {{statusCode}})",
         "importProgress": "Importing: {{processed}}/{{total}}"
     },
+    "kofi": "Tip me on Ko-fi",
     "loading": "Loading",
     "version": "Version",
     "unknown": "Unknown",
