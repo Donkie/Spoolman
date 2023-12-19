@@ -2,7 +2,7 @@
 
 from collections.abc import Sequence
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any, Optional, TypeVar, Union
 
 import sqlalchemy
 from sqlalchemy import Select
@@ -104,4 +104,18 @@ def add_where_clause_int_opt(
             else:
                 statements.append(field == value_part)
         stmt = stmt.where(sqlalchemy.or_(*statements))
+    return stmt
+
+
+T = TypeVar("T")
+
+
+def add_where_clause_int_in(
+    stmt: Select,
+    field: attributes.InstrumentedAttribute[T],
+    value: Optional[Sequence[T]],
+) -> Select:
+    """Add a where clause to a select statement for a field."""
+    if value is not None and len(value) > 0:
+        stmt = stmt.where(field.in_(value))
     return stmt

@@ -14,12 +14,14 @@ from spoolman.api.v1.models import EventType, Filament, FilamentEvent
 from spoolman.database import models, vendor
 from spoolman.database.utils import (
     SortOrder,
+    add_where_clause_int_in,
     add_where_clause_int_opt,
     add_where_clause_str,
     add_where_clause_str_opt,
     parse_nested_field,
 )
 from spoolman.exceptions import ItemDeleteError, ItemNotFoundError
+from spoolman.math import delta_e, hex_to_rgb, rgb_to_lab
 from spoolman.ws import websocket_manager
 
 
@@ -82,6 +84,7 @@ async def get_by_id(db: AsyncSession, filament_id: int) -> models.Filament:
 async def find(
     *,
     db: AsyncSession,
+    ids: Optional[list[int]] = None,
     vendor_name: Optional[str] = None,
     vendor_id: Optional[Union[int, Sequence[int]]] = None,
     name: Optional[str] = None,
@@ -104,6 +107,7 @@ async def find(
         .join(models.Filament.vendor, isouter=True)
     )
 
+    stmt = add_where_clause_int_in(stmt, models.Filament.id, ids)
     stmt = add_where_clause_int_opt(stmt, models.Filament.vendor_id, vendor_id)
     stmt = add_where_clause_str(stmt, models.Vendor.name, vendor_name)
     stmt = add_where_clause_str_opt(stmt, models.Filament.name, name)
@@ -188,6 +192,33 @@ async def find_article_numbers(
     stmt = select(models.Filament.article_number).distinct()
     rows = await db.execute(stmt)
     return [row[0] for row in rows.all() if row[0] is not None]
+
+
+async def find_by_color(
+    *,
+    db: AsyncSession,
+    color_query_hex: str,
+    similarity_threshold: float = 25,
+) -> list[models.Filament]:
+    """Find a list of filament objects by similarity to a color.
+
+    This performs a server-side search, where all filaments are loaded into memory, making it not so efficient.
+    The similarity threshold is a value between 0 and 100, where 0 means the colors must be identical and 100 means
+    pretty much all colors are considered similar.
+    """
+    filaments, _ = await find(db=db)
+
+    color_query_lab = rgb_to_lab(hex_to_rgb(color_query_hex))
+
+    found_filaments: list[models.Filament] = []
+    for filament in filaments:
+        if filament.color_hex is None:
+            continue
+        color_lab = rgb_to_lab(hex_to_rgb(filament.color_hex))
+        if delta_e(color_query_lab, color_lab) <= similarity_threshold:
+            found_filaments.append(filament)
+
+    return found_filaments
 
 
 async def filament_changed(filament: models.Filament, typ: EventType) -> None:

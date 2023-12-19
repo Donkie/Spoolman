@@ -35,6 +35,7 @@ def filaments(random_vendor_mod: dict[str, Any], random_empty_vendor_mod: dict[s
             "weight": 1000,
             "spool_weight": 250,
             "article_number": "123456789",
+            "color_hex": "FF0000",
             "comment": "abcdefghåäö",
         },
     )
@@ -53,6 +54,7 @@ def filaments(random_vendor_mod: dict[str, Any], random_empty_vendor_mod: dict[s
             "weight": 1000,
             "spool_weight": 250,
             "article_number": "987654321",
+            "color_hex": "EE0000",
             "comment": "abcdefghåäö",
         },
     )
@@ -70,6 +72,7 @@ def filaments(random_vendor_mod: dict[str, Any], random_empty_vendor_mod: dict[s
             "weight": 1000,
             "spool_weight": 250,
             "article_number": "abc",
+            "color_hex": "000000",
             "comment": "abcdefghåäö",
         },
     )
@@ -418,3 +421,38 @@ def test_find_filaments_by_empty_article_number(filaments: Fixture):
     # Verify
     filaments_result = result.json()
     assert filament_lists_equal(filaments_result, filaments.filaments[3:])
+
+
+def test_find_filaments_by_similar_color(filaments: Fixture):
+    # Execute
+    result = httpx.get(
+        f"{URL}/api/v1/filament",
+        params={
+            "color_hex": "FE0000",
+            "color_similarity_threshold": 20.0,
+        },
+    )
+    result.raise_for_status()
+
+    # Verify
+    filaments_result = result.json()
+    assert filament_lists_equal(filaments_result, [filaments.filaments[0], filaments.filaments[1]])
+
+
+def test_find_filaments_by_similar_color_100(filaments: Fixture):
+    # Execute
+    result = httpx.get(
+        f"{URL}/api/v1/filament",
+        params={
+            "color_hex": "FE0000",
+            "color_similarity_threshold": 100.0,
+        },
+    )
+    result.raise_for_status()
+
+    # Verify
+    filaments_result = result.json()
+    assert filament_lists_equal(
+        filaments_result,
+        [filaments.filaments[0], filaments.filaments[1], filaments.filaments[2]],
+    )

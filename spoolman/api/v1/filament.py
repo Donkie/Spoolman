@@ -183,6 +183,19 @@ async def find(
             "Specify an empty string to match filaments with no article number."
         ),
     ),
+    color_hex: Optional[str] = Query(
+        default=None,
+        title="Filament Color",
+        description="Match filament by similar color. Slow operation!",
+    ),
+    color_similarity_threshold: float = Query(
+        default=20.0,
+        description=(
+            "The similarity threshold for color matching. "
+            "A value between 0.0-100.0, where 0 means match only exactly the same color."
+        ),
+        example=20.0,
+    ),
     sort: Optional[str] = Query(
         default=None,
         title="Sort",
@@ -217,8 +230,19 @@ async def find(
     else:
         vendor_ids = None
 
+    if color_hex is not None:
+        matched_filaments = await filament.find_by_color(
+            db=db,
+            color_query_hex=color_hex,
+            similarity_threshold=color_similarity_threshold,
+        )
+        filter_by_ids = [db_filament.id for db_filament in matched_filaments]
+    else:
+        filter_by_ids = None
+
     db_items, total_count = await filament.find(
         db=db,
+        ids=filter_by_ids,
         vendor_name=vendor_name if vendor_name is not None else vendor_name_old,
         vendor_id=vendor_ids,
         name=name,
