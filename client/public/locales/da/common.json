@@ -83,7 +83,13 @@
             "create": "Opret filament | Spoolman",
             "edit": "#{{id}} Redigér filament | Spoolman"
         },
-        "suffix": " · | Spoolman"
+        "suffix": " | Spoolman",
+        "home": {
+            "list": "Hjem | Spoolman"
+        },
+        "help": {
+            "list": "Hjælp | Spoolman"
+        }
     },
     "spool": {
         "fields": {
@@ -261,5 +267,18 @@
     },
     "tags": {
         "clone": "Klon"
+    },
+    "help": {
+        "resources": {
+            "vendor": "Firmaerne der laver filamentet.",
+            "filament": "Filament mærker. De har værdier såsom Navn, Materiale, Farve, Diameter m.fl.",
+            "spool": "Individuelle fysiske spoler af et specifikt filament."
+        },
+        "description": "<title>Hjælp</title><p>Her er nogle tips til at komme i gang.</p><p>Spoolman indeholder 3 forskellige typer data:</p><itemsHelp/><p>For at tilføje en ny spole til databasen, skal du starte med at oprette et <filamentCreateLink>Filament</filamentCreateLink> objekt. Når dette er gjort, fortsættes der ved at oprette et <spoolCreateLink>Spole</spoolCreateLink> objekt for den specifikke spole. Hvis du har flere spoler af samme filament, opretter du blot et nyt spole objekt og genbruger samme filament. </p><p> Du har også mulighed for at oprette et <vendorCreateLink>Forhandler</vendorCreateLink> objekt for firmaet der producerer filamentet, hvis du ønsker.</p><p>Du har mulighed for at linke andre 3D printer services til Spoolman, Som f.eks. Moonraker. Dette giver mulighed for automatisk at opdatere og overvåge forbruget af filament for hvert print. Læs <readmeLink>Spoolman README</readmeLink> for information om opsætning af dette.</p>",
+        "help": "Hjælp"
+    },
+    "kofi": "Donér på Ko-fi",
+    "home": {
+        "home": "Hjem"
     }
 }
