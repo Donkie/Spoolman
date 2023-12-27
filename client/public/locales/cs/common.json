@@ -261,6 +261,25 @@
             "edit": "#{{id}} Upravit výrobce | Spoolman",
             "create": "Vytvořit výrobce | Spoolman",
             "clone": "#{{id}} Duplikovat výrobce | Spoolman"
+        },
+        "home": {
+            "list": "Domů | Spoolman"
+        },
+        "help": {
+            "list": "Nápověda | Spoolman"
         }
+    },
+    "help": {
+        "resources": {
+            "vendor": "Společnosti, které vyrábějí filament.",
+            "filament": "Značky vláken. Mají vlastnosti, jako je název, materiál, barva, průměr a další.",
+            "spool": "Jednotlivé fyzické cívky určitého vlákna."
+        },
+        "description": "<title>Nápověda</title><p>Zde je několik tipů, které vám pomohou začít.</p><p>Spoolman uchovává 3 různé typy dat:</p><itemsHelp/><p>Chcete-li do databáze přidat novou cívku, začněte vytvořením položky <filamentCreateLink>Filament</filamentCreateLink> objekt. Jakmile to uděláte, vytvořte položku<spoolCreateLink>Cívka</spoolCreateLink> objekt pro danou cívku. Pokud později získáte další cívky stejného filamenzu, jednoduše vygenerujte další objekty Cívky a znovu použijte stejný objekt Filament.</p><p>Volitelně můžete také vygenerovat <vendorCreateLink>Výrobce</vendorCreateLink> objekt společnosti vyrábějící vlákno, pokud si přejete tyto informace sledovat.</p><p>Máte možnost propojit se Spoolmanem další služby 3D tiskárny, například Moonraker, který může automaticky sledovat využití filamentu a aktualizovat objekty Cívek za vás. Pokyny k nastavení najdete v <readmeLink>Spoolman README</readmeLink>.</p>",
+        "help": "Nápověda"
+    },
+    "kofi": "Příspěvek na Ko-fi",
+    "home": {
+        "home": "Domů"
     }
 }
