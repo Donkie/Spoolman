@@ -266,6 +266,19 @@
             "edit": "#{{id}} Redigera leverantör | Spoolman",
             "create": "Skapa leverantör | Spoolman",
             "clone": "#{{id}} Klona leverantör | Spoolman"
+        },
+        "help": {
+            "list": "Hjälp | Spoolman"
         }
-    }
+    },
+    "help": {
+        "resources": {
+            "vendor": "Företagen som tillverkar filamentet.",
+            "filament": "Märken av filament. De har egenskaper som namn, material, färg, diameter och mer.",
+            "spool": "Individuella fysiska spolar av ett specifikt filament."
+        },
+        "description": "<title>Hjälp</title><p>Här är några tips för att komma igång.</p><p>Spoolman innehåller 3 olika typer av data:</p><itemsHelp/><p>För att lägga till en ny spole i databasen måste du först skapa ett <filamentCreateLink>Filament</filamentCreateLink>-objekt för den. När det är klart kan du sedan skapa ett <spoolCreateLink>Spol</spoolCreateLink>-objekt för den individuella spolen. Om du sedan köper ytterligare spolar av samma filament kan du bara skapa ytterligare Spol-objekt och återanvända samma Filament-objekt.</p><p>Du kan valfritt också skapa ett <vendorCreateLink>Leverantörs</vendorCreateLink>-objekt för företaget som tillverkar filamentet om du vill spåra den informationen.</p><p>Du kan koppla andra 3D-skrivartjänster till Spoolman, som Moonraker, som sedan automatiskt kan spåra filamentanvändning och uppdatera Spol-objekten åt dig. Se <readmeLink>Spoolman README</readmeLink> för hur du gör det.</p>",
+        "help": "Hjälp"
+    },
+    "kofi": "Dricksa mig på Ko-fi"
 }
