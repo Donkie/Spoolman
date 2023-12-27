@@ -260,7 +260,25 @@
             "edit": "#{{id}} Edycja producenta | Spoolman",
             "create": "Tworzenie producenta | Spoolman",
             "clone": "#{{id}} Klonowanie producenta | Spoolman"
+        },
+        "home": {
+            "list": "Strona główna | Spoolman"
+        },
+        "help": {
+            "list": "Pomoc | Spoolman"
         }
     },
-    "warnWhenUnsavedChanges": "Czy na pewno chcesz wyjść? Masz niezapisane zmiany."
+    "warnWhenUnsavedChanges": "Czy na pewno chcesz wyjść? Masz niezapisane zmiany.",
+    "help": {
+        "resources": {
+            "vendor": "Firmy produkujące filamenty.",
+            "filament": "Producenci filamentów. Mają takie właściwości, jak nazwa, materiał, kolor, średnica i inne.",
+            "spool": "Indywidualne fizyczne szpule określonego filamentu."
+        },
+        "help": "Pomoc"
+    },
+    "kofi": "Daj napiwek na Ko-fi",
+    "home": {
+        "home": "Strona główna"
+    }
 }
