@@ -128,7 +128,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: spoolman
+          name: spoolman-image
           path: /tmp/spoolman.tar
   #
   # Build tester image for integration tests
@@ -172,7 +172,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: spoolman-tester
+          name: spoolman-tester-image
           path: /tmp/spoolman-tester.tar
   #
   # Perform integration tests
@@ -194,8 +194,8 @@ jobs:
 
       - name: Load built images
         run: |
-          docker load --input /tmp/spoolman/spoolman.tar
-          docker load --input /tmp/spoolman-tester/spoolman-tester.tar
+          docker load --input /tmp/spoolman-image/spoolman.tar
+          docker load --input /tmp/spoolman-tester-image/spoolman-tester.tar
 
       - name: Perform integration tests
         uses: isbang/compose-action@v1.4.1
