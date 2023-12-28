@@ -1,0 +1,43 @@
+name: Release Trigger
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        type: choice
+        description: Version to bump
+        required: true
+        default: minor
+        options: 
+          - micro
+          - minor
+          - major
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+  
+      - name: Setup PDM
+        run: |
+          pip install pdm pdm-bump
+      
+      - name: Bump version
+        run: |
+          pdm run bump ${{ github.event.inputs.bump }}
+      
+      - name: Push
+        run: |
+          git push --follow-tags

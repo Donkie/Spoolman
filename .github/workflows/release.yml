@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd client
+          npm ci
+
+      - name: Build
+        run: |
+          cd client
+          rm -f .env && echo "VITE_APIURL=/api/v1" > .env.production
+          npm run build
+      
+      - name: Generate release info
+        run: |
+          echo '{
+            "project_name": "Spoolman",
+            "project_owner": "Donkie",
+            "version": "${{ github.ref_name }}"
+          }' > release_info.json
+
+      # Remove client source and keep only the built dist
+      - name: Clean
+        run: |
+          mv client/dist dist
+          rm -rf client
+          mkdir client
+          mv dist client/dist
+        
+      - name: Zip
+        run: |
+          zip -r spoolman.zip *
+
+      - name: Create release and upload build
+        uses: softprops/action-gh-release@v1
+        id: create-release
+        with:
+          draft: true
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          files: ./spoolman.zip
+          body: "⚠️ TODO ⚠️"
