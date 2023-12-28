@@ -1,0 +1,24 @@
+{
+    "buttons": {
+        "create": "creeaza",
+        "save": "salveaza",
+        "show": "arata",
+        "filter": "filtreaza",
+        "cancel": "anuleaza",
+        "edit": "editeaza",
+        "confirm": "esti sigur?",
+        "delete": "sterge",
+        "undo": "inapoi",
+        "import": "importa",
+        "logout": "logout",
+        "saveAndAdd": "salveazaSiAdauga",
+        "clear": "sterge"
+    },
+    "actions": {
+        "create": "creeaza",
+        "clone": "cloneaza",
+        "list": "listeaza",
+        "show": "arata",
+        "edit": "editeaza"
+    }
+}

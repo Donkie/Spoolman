@@ -187,6 +187,12 @@
             "edit": "#{{id}} Editar Marca | Spoolman",
             "create": "Crear Marca | Spoolman",
             "clone": "#{{id}} Duplicar Marca | Spoolman"
+        },
+        "home": {
+            "list": "Inicio | Spoolman"
+        },
+        "help": {
+            "list": "Ayuda | Spoolman"
         }
     },
     "printing": {
@@ -262,5 +268,18 @@
             "streamApiNotSupported": "El navegador no es compatible con la API MediaStream."
         },
         "description": "Escanear códigos QR a Spoolman para ver detalles del carrete."
+    },
+    "help": {
+        "resources": {
+            "vendor": "Las empresas que fabrican el filamento.",
+            "filament": "Marcas de filamentos. Tienen propiedades como nombre, material, color, diámetro y más.",
+            "spool": "Bobinas físicas individuales de un filamento específico."
+        },
+        "description": "<title>Ayuda</title><p>Aquí tiene algunos consejos para empezar.</p><p>Spoolman contiene 3 tipos diferentes de datos:</p><itemsHelp/><p>Para añadir un nuevo spool a la base de datos, empiece creando un objeto <filamentCreateLink>Filament</filamentCreateLink>. Una vez hecho esto, proceda a crear un objeto <spoolCreateLink>Spool</spoolCreateLink> para ese spool específico. Si más adelante adquiere carretes adicionales del mismo filamento, simplemente genere objetos Spool adicionales y reutilice el mismo objeto Filament.</p><p>Opcionalmente, también puede generar un objeto <vendorCreateLink>Vendor</vendorCreateLink> para la empresa que fabrica el filamento si desea realizar un seguimiento de esa información.</p><p>Tiene la opción de vincular otros servicios de impresoras 3D a Spoolman, como Moonraker, que puede supervisar automáticamente el uso del filamento y actualizar los objetos Spool por usted. Consulte el <readmeLink>LÉEME de Spoolman</readmeLink> para obtener orientación sobre cómo configurarlo.</p> <p>Spoolman es un servicio de impresión 3D",
+        "help": "Ayuda"
+    },
+    "kofi": "Donar en Ko-fi",
+    "home": {
+        "home": "Inicio"
     }
 }

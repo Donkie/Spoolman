@@ -260,6 +260,25 @@
             "edit": "#{{id}} Hersteller bearbeiten | Spoolman",
             "create": "Herstellen erstellen | Spoolman",
             "clone": "#{{id}} Hersteller duplizieren | Spoolman"
+        },
+        "home": {
+            "list": "Home | Spoolman"
+        },
+        "help": {
+            "list": "Hilfe | Spoolman"
         }
+    },
+    "help": {
+        "resources": {
+            "vendor": "Die Firmen, welche das Filament herstellen.",
+            "filament": "Filamentmarken. Diese haben Eigenschaften wie Name, Material, Farbe, Durchmesser und mehr.",
+            "spool": "Einzelne, physische Spulen eines bestimmten Filaments."
+        },
+        "description": "<title>Hilfe</title><p>Hier sind einige Tips für den Start.</p><p>Spoolman hält 3 verschiedene Datentypen:</p><itemsHelp/><p>um eine neue Spule zur Datenbank hinzuzufügen, beginne mit der Erstellung eines <filamentCreateLink>Filamentobjekts</filamentCreateLink>. Anschließend erstelle ein <spoolCreateLink>Spulenobjekt</spoolCreateLink> für genau diese Spule. Wenn später weitere Spulen desselben Filaments dazukommen, erstelle einfach ein weiteres Spulenobjekt and verwende das gleiche Filamentobjekt.</p><p>Optional kann auch ein <vendorCreateLink>Herstellerobjekt</vendorCreateLink>für die Firma erstellt werden, die dies Filament hergestellt hat, falls auch diese Informationen nachgehalten werden sollen.</p><p>Es besteht die Möglichkeit verschiedene 3D-Druckdienste, wie Moonraker, an Spoolman anzubinden, welche anschließend automatisch den Filamentverbrauch nachverfolgen und das Spulenobjekt aktualisieren können. Weitere Hilfe wie dies eingerichtet wird findet sich in der <readmeLink>Spoolman README</readmeLink> .</p>",
+        "help": "Hilfe"
+    },
+    "kofi": "Schick mir ein Trinkgeld über Ko-fi",
+    "home": {
+        "home": "Home"
     }
 }
