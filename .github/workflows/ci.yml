@@ -60,11 +60,25 @@ jobs:
           rm -f .env && echo "VITE_APIURL=/api/v1" > .env.production
           npm run build
 
-      - name: Upload artifact
+      # Remove client source and keep only the built dist
+      - name: Clean
+        run: |
+          mv client/dist dist
+          rm -rf client
+          mkdir client
+          mv dist client/dist
+
+      - name: Upload client Spoolman artifact
         uses: actions/upload-artifact@v3
         with:
           name: client
           path: client/dist
+
+      - name: Upload full Spoolman artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: spoolman
+          path: .
   #
   # Build native image for integration tests
   #
