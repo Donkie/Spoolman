@@ -371,7 +371,7 @@ jobs:
       - name: Zip
         run: |
           cd /tmp/spoolman
-          zip -r spoolman.zip *
+          zip -r spoolman.zip .
 
       - name: Create release and upload build
         uses: softprops/action-gh-release@v1
