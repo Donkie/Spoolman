@@ -67,6 +67,7 @@ jobs:
           rm -rf client
           mkdir client
           mv dist client/dist
+          rm -rf .git
 
       - name: Upload client Spoolman artifact
         uses: actions/upload-artifact@v3
@@ -356,16 +357,12 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: spoolman
-          path: /tmp
+          path: /spoolman
       
-      - name: Extract spoolman
-        run: |
-          unzip /tmp/spoolman.zip -d /tmp/spoolman
-          rm /tmp/spoolman.zip
-
       - name: Generate release info
         run: |
-          cd /tmp/spoolman
+          cd /spoolman
+          ls -R
           echo '{
             "project_name": "Spoolman",
             "project_owner": "Donkie",
@@ -374,7 +371,7 @@ jobs:
 
       - name: Zip
         run: |
-          cd /tmp/spoolman
+          cd /spoolman
           zip -r spoolman.zip *
 
       - name: Create release and upload build
@@ -384,6 +381,7 @@ jobs:
           draft: true
           name: ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
-          files: /tmp/spoolman/spoolman.zip
+          files: /spoolman/spoolman.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
           body: "⚠️ TODO ⚠️"
           
