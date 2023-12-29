@@ -167,7 +167,13 @@ class Spool(BaseModel):
         max_length=1024,
         description="Free text comment about this specific spool.",
         example="",
-    )
+    ),
+    td_value: Optional[float] = Field(
+        # default=None,
+        # ge=0,
+        # description="Td value of spool",
+        # example=5
+    ),
     archived: bool = Field(description="Whether this spool is archived and should not be used anymore.")
 
     @staticmethod
@@ -204,6 +210,7 @@ class Spool(BaseModel):
             location=item.location,
             lot_nr=item.lot_nr,
             comment=item.comment,
+            td_value=item.td_value,
             archived=item.archived if item.archived is not None else False,
         )
 

@@ -42,6 +42,7 @@ async def create(
     lot_nr: Optional[str] = None,
     comment: Optional[str] = None,
     archived: bool = False,
+    td_value: Optional[float] = None,
 ) -> models.Spool:
     """Add a new spool to the database. Leave weight empty to assume full spool."""
     filament_item = await filament.get_by_id(db, filament_id)
@@ -69,6 +70,7 @@ async def create(
         lot_nr=lot_nr,
         comment=comment,
         archived=archived,
+        td_value=td_value
     )
     db.add(spool)
     await db.commit()

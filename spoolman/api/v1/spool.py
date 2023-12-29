@@ -53,6 +53,11 @@ class SpoolParameters(BaseModel):
         description="Free text comment about this specific spool.",
         example="",
     )
+    td_value: Optional[float] = Field(
+        # ge=0,
+        # description="Td value of spool",
+        # example=5
+    )
     archived: bool = Field(default=False, description="Whether this spool is archived and should not be used anymore.")
 
 
@@ -242,7 +247,6 @@ async def find(
         limit=limit,
         offset=offset,
     )
-
     # Set x-total-count header for pagination
     return JSONResponse(
         content=jsonable_encoder(
@@ -342,6 +346,7 @@ async def create(  # noqa: ANN201
             last_used=body.last_used,
             location=body.location,
             lot_nr=body.lot_nr,
+            td_value=body.td_value,
             comment=body.comment,
             archived=body.archived,
         )
