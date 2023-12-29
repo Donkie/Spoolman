@@ -406,7 +406,7 @@ async def update(  # noqa: ANN201
             content={"message": "Failed to update spool, see server logs for more information."},
         )
 
-    return Spool.from_db(db_item)
+    return Spool.from_db(db_item).dict() # TODO same here
 
 
 @router.delete(
