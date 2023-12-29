@@ -148,37 +148,6 @@ echo -e "${GREEN}Installing Spoolman backend and its dependencies using PDM...${
 pdm config venv.backend venv || exit 1
 pdm sync --prod --no-editable || exit 1
 
-# Get version number from pyproject.toml
-spoolman_version=$(grep "^version = " pyproject.toml | awk '{print $3}' | sed 's/"//g')
-
-# Check if a client has already been downloaded for this version
-download_client=1
-if [ -f "client/dist/version.txt" ]; then
-    client_version=$(cat client/dist/version.txt)
-    if [ "$client_version" != "$spoolman_version" ]; then
-        # Client version is different, delete the client folder
-        echo -e "${ORANGE}Spoolman web client version (v$client_version) is different from server version (v$spoolman_version). Deleting old client...${NC}"
-        rm -rf client/dist
-    else
-        # Client version is the same, no need to download it again
-        echo -e "${GREEN}Spoolman web client is up to date (v$client_version)${NC}"
-        download_client=0
-    fi
-fi
-
-# Download appropriate client for this version
-if [ "$download_client" -eq 1 ]; then
-    url="https://github.com/Donkie/Spoolman/releases/download/v$spoolman_version/spoolman-client.zip"
-    echo -e "${GREEN}Downloading Spoolman web client v$spoolman_version...${NC}"
-    # Download and unzip silently
-    curl -sL "$url" -o spoolman-client.zip || exit 1
-    unzip -q -o spoolman-client.zip -d client/dist/ || exit 1
-    rm spoolman-client.zip
-
-    # Write a file to the client/dist/ folder to indicate which version of the client this is
-    echo "$spoolman_version" > client/dist/version.txt
-fi
-
 #
 # Initialize the .env file if it doesn't exist
 #
