@@ -357,12 +357,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: spoolman
-          path: /spoolman
+          path: /tmp/spoolman
       
       - name: Generate release info
         run: |
-          cd /spoolman
-          ls -R
+          cd /tmp/spoolman
           echo '{
             "project_name": "Spoolman",
             "project_owner": "Donkie",
@@ -371,7 +370,7 @@ jobs:
 
       - name: Zip
         run: |
-          cd /spoolman
+          cd /tmp/spoolman
           zip -r spoolman.zip *
 
       - name: Create release and upload build
@@ -381,7 +380,7 @@ jobs:
           draft: true
           name: ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
-          files: /spoolman/spoolman.zip
+          files: /tmp/spoolman/spoolman.zip
           token: ${{ secrets.GITHUB_TOKEN }}
           body: "⚠️ TODO ⚠️"
           
