@@ -285,7 +285,7 @@ jobs:
   # Release image if tests pass
   # Don't run this for pull requests
   #
-  release:
+  publish-images:
     if: ${{ github.event_name != 'pull_request' }}
     needs: [test, build-amd64, build-arm64, build-armv7, style, build-client]
     runs-on: ubuntu-latest
@@ -344,3 +344,54 @@ jobs:
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-amd64
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-arm64
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-armv7
+  #
+  # Create Github Release if CI was triggered by a tag
+  #
+  publish-release:
+    if: ${{ github.event_name != 'pull_request' }} && startsWith(github.event.ref, 'refs/tags/v')
+    needs: [publish-images]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assert ref_name
+        run: |
+          echo "ref_name: ${{ github.ref_name }}"
+          if [ "${{ github.ref_name }}" != "v*" ]; then
+            echo "This job should only run on tags"
+            exit 1
+          fi
+
+      - name: Download built spoolman
+        uses: actions/download-artifact@v3
+        with:
+          name: spoolman
+          path: /tmp
+      
+      - name: Extract spoolman
+        run: |
+          unzip /tmp/spoolman.zip -d /tmp/spoolman
+          rm /tmp/spoolman.zip
+
+      - name: Generate release info
+        run: |
+          cd /tmp/spoolman
+          echo '{
+            "project_name": "Spoolman",
+            "project_owner": "Donkie",
+            "version": "${{ github.ref_name }}"
+          }' > release_info.json
+
+      - name: Zip
+        run: |
+          cd /tmp/spoolman
+          zip -r spoolman.zip *
+
+      - name: Create release and upload build
+        uses: softprops/action-gh-release@v1
+        id: create-release
+        with:
+          draft: true
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          files: /tmp/spoolman/spoolman.zip
+          body: "⚠️ TODO ⚠️"
+          
