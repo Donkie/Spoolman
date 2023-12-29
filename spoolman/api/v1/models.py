@@ -169,7 +169,7 @@ class Spool(BaseModel):
         example="",
     ),
     td_value: Optional[float] = Field(
-        # default=None,
+        default=None,
         # ge=0,
         # description="Td value of spool",
         # example=5

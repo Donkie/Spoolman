@@ -290,6 +290,7 @@ async def get(
     spool_id: int,
 ) -> Spool:
     db_item = await spool.get_by_id(db, spool_id)
+    return Spool.from_db(db_item).dict() # TODO Find out why this works and the following doesn't
     return Spool.from_db(db_item)
 
 
