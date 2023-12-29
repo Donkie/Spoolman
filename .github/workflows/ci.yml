@@ -352,14 +352,6 @@ jobs:
     needs: [publish-images]
     runs-on: ubuntu-latest
     steps:
-      - name: Assert ref_name
-        run: |
-          echo "ref_name: ${{ github.ref_name }}"
-          if [ "${{ github.ref_name }}" != "v*" ]; then
-            echo "This job should only run on tags"
-            exit 1
-          fi
-
       - name: Download built spoolman
         uses: actions/download-artifact@v3
         with:
