@@ -3,6 +3,7 @@
 # ruff: noqa: PLR2004, T201, S603, S607
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -48,7 +49,11 @@ def bump() -> None:
         json.dump(node_package, f, indent=2)
 
     # Run npm install to update the lock file with new version
-    subprocess.run(["npm", "install"], cwd=project_root.joinpath("client"), check=True, shell=True)  # noqa: S602
+    # On windows, shell=True is required for npm to be found
+    if os.name == "nt":
+        subprocess.run(["npm", "install"], cwd=project_root.joinpath("client"), check=True, shell=True)  # noqa: S602
+    else:
+        subprocess.run(["npm", "install"], cwd=project_root.joinpath("client"), check=True)
 
     # Stage the changed files
     subprocess.run(
