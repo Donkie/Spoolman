@@ -282,6 +282,23 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
           <Input maxLength={64} />
         </Form.Item>
         <Form.Item
+                    label={t("spool.fields.td_value")}
+                    help={t("spool.fields_help.td_value")}
+                    name={["td_value"]}
+                    rules={[
+                        {
+                            required: false,
+                        },
+                    ]}
+                >
+                    <InputNumber
+                        formatter={numberFormatter}
+                        parser={numberParser}
+                        min={0}
+                        precision={2}
+                    />
+                </Form.Item>
+        <Form.Item
           label={t("spool.fields.comment")}
           name={["comment"]}
           rules={[

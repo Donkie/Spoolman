@@ -118,6 +118,12 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       <TextField value={record?.location} />
       <Title level={5}>{t("spool.fields.lot_nr")}</Title>
       <TextField value={record?.lot_nr} />
+      <Title level={5}>{t("spool.fields.td_value")}</Title>
+      <NumberFieldUnit value={record?.td_value ?? ""}
+                       options={{
+          maximumFractionDigits: 2,
+          minimumFractionDigits: 2,
+        }} />
       <Title level={5}>{t("spool.fields.comment")}</Title>
       <TextField value={enrichText(record?.comment)} />
       <Title level={5}>{t("spool.fields.archived")}</Title>
