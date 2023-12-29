@@ -1,10 +1,11 @@
 FROM python:3.11-alpine as python-builder
 
-RUN apk add --no-cache g++ python3-dev libpq-dev libstdc++
+RUN apk add --no-cache g++ python3-dev libpq-dev libstdc++ shadow
 
 # Add local user so we don't run as root
-RUN adduser -D app
-USER app
+RUN groupmod -g 1000 users \
+    && useradd -u 911 -U app \
+    && usermod -G users app
 
 ENV PATH="/home/app/.local/bin:${PATH}"
 
@@ -30,20 +31,23 @@ LABEL org.opencontainers.image.source=https://github.com/Donkie/Spoolman
 LABEL org.opencontainers.image.description="Keep track of your inventory of 3D-printer filament spools."
 LABEL org.opencontainers.image.licenses=MIT
 
-RUN apk add --no-cache libstdc++
+RUN apk add --no-cache libstdc++ su-exec shadow
 
 # Add local user so we don't run as root
-RUN adduser -D app \
+RUN groupmod -g 1000 users \
+    && useradd -u 1000 -U app \
+    && usermod -G users app \
     && mkdir -p /home/app/.local/share/spoolman \
     && chown -R app:app /home/app/.local/share/spoolman
-
-USER app
 
 # Copy built client
 COPY --chown=app:app ./client/dist /home/app/spoolman/client/dist
 
 # Copy built app
 COPY --chown=app:app --from=python-builder /home/app/spoolman /home/app/spoolman
+
+COPY entrypoint.sh /home/app/spoolman/entrypoint.sh
+RUN chmod +x /home/app/spoolman/entrypoint.sh
 
 WORKDIR /home/app/spoolman
 
@@ -57,5 +61,5 @@ ENV BUILD_DATE=${BUILD_DATE}
 
 # Run command
 EXPOSE 8000
-ENTRYPOINT ["uvicorn", "spoolman.main:app"]
+ENTRYPOINT ["/home/app/spoolman/entrypoint.sh"]
 CMD ["--host", "0.0.0.0", "--port", "8000"]
