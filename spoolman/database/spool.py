@@ -64,6 +64,7 @@ async def create(
         filament=filament_item,
         registered=datetime.utcnow().replace(microsecond=0),
         used_weight=used_weight,
+        price=price,
         first_used=first_used,
         last_used=last_used,
         location=location,
