@@ -34,7 +34,7 @@ class SpoolParameters(BaseModel):
     first_used: Optional[datetime] = Field(description="First logged occurence of spool usage.")
     last_used: Optional[datetime] = Field(description="Last logged occurence of spool usage.")
     filament_id: int = Field(description="The ID of the filament type of this spool.")
-        price: Optional[float] = Field(
+    price: Optional[float] = Field(
         ge=0,
         description="The price of this filament in the system configured currency.",
         example=20.0,
