@@ -38,6 +38,7 @@ async def create(
     used_weight: Optional[float] = None,
     first_used: Optional[datetime] = None,
     last_used: Optional[datetime] = None,
+    price: Optional[float] = None,
     location: Optional[str] = None,
     lot_nr: Optional[str] = None,
     comment: Optional[str] = None,

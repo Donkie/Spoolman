@@ -73,6 +73,7 @@ const allColumns: (keyof ISpoolCollapsed & string)[] = [
   "id",
   "combined_name",
   "filament.material",
+  "price",
   "used_weight",
   "remaining_weight",
   "used_length",
@@ -311,6 +312,14 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             tableState,
             filterValueQuery: useSpoolmanMaterials(),
             width: 120,
+          }),
+          SortedColumn({
+            id: "price",
+            i18ncat: "spool",
+            actions,
+            dataSource,
+            tableState,
+            width: 80,
           }),
           NumberColumn({
             id: "used_weight",

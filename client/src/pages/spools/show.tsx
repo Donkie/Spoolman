@@ -58,6 +58,8 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       <NumberField value={record?.id ?? ""} />
       <Title level={5}>{t("spool.fields.filament")}</Title>
       <TextField value={record ? filamentURL(record?.filament) : ""} />
+      <Title level={5}>{t("spool.fields.price")}</Title>
+      <NumberField value={record?.price ?? ""} />
       <Title level={5}>{t("spool.fields.registered")}</Title>
       <DateField
         value={dayjs.utc(record?.registered).local()}
