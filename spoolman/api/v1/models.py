@@ -202,7 +202,7 @@ class Spool(BaseModel):
             first_used=item.first_used,
             last_used=item.last_used,
             filament=filament,
-            price=item.price
+            price=item.price,
             used_weight=item.used_weight,
             used_length=used_length,
             remaining_weight=remaining_weight,
