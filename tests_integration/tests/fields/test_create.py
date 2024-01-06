@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import httpx
 import pytest
 
-from ..conftest import assert_httpx_success
+from ..conftest import assert_httpx_success, assert_lists_compatible
 
 URL = "http://spoolman:8000"
 
@@ -68,6 +68,7 @@ def test_add_integer_field():
         f"{URL}/api/v1/field/spool/myintegerfield",
         json={
             "name": "My integer field",
+            "unit": "mm",
             "field_type": "integer",
             "default_value": json.dumps(42),
         },
@@ -260,3 +261,169 @@ def test_add_choice_field_no_choices():
     )
     assert result.status_code == 400
     assert result.json()["message"] == "Choices must be set for field type choice."
+
+
+def test_update_existing_field():
+    """Test updating an existing field."""
+    result = httpx.post(
+        f"{URL}/api/v1/field/spool/mytextfield",
+        json={
+            "name": "My text field",
+            "field_type": "text",
+            "default_value": json.dumps("Hello World"),
+        },
+    )
+    assert_httpx_success(result)
+
+    result = httpx.post(
+        f"{URL}/api/v1/field/spool/mytextfield",
+        json={
+            "name": "My text field",
+            "field_type": "text",
+            "default_value": json.dumps("Goodbye World"),
+        },
+    )
+    assert_httpx_success(result)
+
+    # Verify that the default value was updated, and that it is still the only field
+    result = httpx.get(f"{URL}/api/v1/field/spool")
+    assert_httpx_success(result)
+    assert_lists_compatible(
+        result.json(),
+        [
+            {
+                "name": "My text field",
+                "key": "mytextfield",
+                "field_type": "text",
+                "default_value": json.dumps("Goodbye World"),
+            },
+        ],
+        sort_key="key",
+    )
+
+    # Clean up
+    result = httpx.delete(f"{URL}/api/v1/field/spool/mytextfield")
+    assert_httpx_success(result)
+
+
+def test_update_field_change_field_type():
+    """Test updating an existing field and changing the field type, should not be allowed."""
+    result = httpx.post(
+        f"{URL}/api/v1/field/spool/mytextfield",
+        json={
+            "name": "My text field",
+            "field_type": "text",
+            "default_value": json.dumps("Hello World"),
+        },
+    )
+    assert_httpx_success(result)
+
+    result = httpx.post(
+        f"{URL}/api/v1/field/spool/mytextfield",
+        json={
+            "name": "My text field",
+            "field_type": "integer",
+            "default_value": json.dumps(42),
+        },
+    )
+    assert result.status_code == 400
+    assert result.json()["message"] == "Field type cannot be changed."
+
+    # Clean up
+    result = httpx.delete(f"{URL}/api/v1/field/spool/mytextfield")
+    assert_httpx_success(result)
+
+
+def test_update_field_add_choice():
+    """Test updating an existing field and adding a choice, should be allowed."""
+    result = httpx.post(
+        f"{URL}/api/v1/field/spool/mychoicefield",
+        json={
+            "name": "My choice field",
+            "field_type": "choice",
+            "choices": ["foo", "bar", "baz"],
+            "default_value": json.dumps(["foo"]),
+            "multi_choice": True,
+        },
+    )
+    assert_httpx_success(result)
+
+    result = httpx.post(
+        f"{URL}/api/v1/field/spool/mychoicefield",
+        json={
+            "name": "My choice field",
+            "field_type": "choice",
+            "choices": ["foo", "bar", "baz", "qux"],
+            "default_value": json.dumps(["foo"]),
+            "multi_choice": True,
+        },
+    )
+    assert_httpx_success(result)
+
+    # Clean up
+    result = httpx.delete(f"{URL}/api/v1/field/spool/mychoicefield")
+    assert_httpx_success(result)
+
+
+def test_update_field_remove_choice():
+    """Test updating an existing field and removing a choice, should not be allowed."""
+    result = httpx.post(
+        f"{URL}/api/v1/field/spool/mychoicefield",
+        json={
+            "name": "My choice field",
+            "field_type": "choice",
+            "choices": ["foo", "bar", "baz"],
+            "default_value": json.dumps(["foo"]),
+            "multi_choice": True,
+        },
+    )
+    assert_httpx_success(result)
+
+    result = httpx.post(
+        f"{URL}/api/v1/field/spool/mychoicefield",
+        json={
+            "name": "My choice field",
+            "field_type": "choice",
+            "choices": ["foo", "baz"],
+            "default_value": json.dumps(["foo"]),
+            "multi_choice": True,
+        },
+    )
+    assert result.status_code == 400
+    assert result.json()["message"] == "Cannot remove existing choices."
+
+    # Clean up
+    result = httpx.delete(f"{URL}/api/v1/field/spool/mychoicefield")
+    assert_httpx_success(result)
+
+
+def test_update_field_change_multi_choice():
+    """Test updating an existing field and changing the multi_choice setting, should not be allowed."""
+    result = httpx.post(
+        f"{URL}/api/v1/field/spool/mychoicefield",
+        json={
+            "name": "My choice field",
+            "field_type": "choice",
+            "choices": ["foo", "bar", "baz"],
+            "default_value": json.dumps(["foo"]),
+            "multi_choice": True,
+        },
+    )
+    assert_httpx_success(result)
+
+    result = httpx.post(
+        f"{URL}/api/v1/field/spool/mychoicefield",
+        json={
+            "name": "My choice field",
+            "field_type": "choice",
+            "choices": ["foo", "bar", "baz"],
+            "default_value": json.dumps("foo"),
+            "multi_choice": False,
+        },
+    )
+    assert result.status_code == 400
+    assert result.json()["message"] == "Multi choice cannot be changed."
+
+    # Clean up
+    result = httpx.delete(f"{URL}/api/v1/field/spool/mychoicefield")
+    assert_httpx_success(result)

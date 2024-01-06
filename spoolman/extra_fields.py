@@ -164,6 +164,25 @@ async def add_or_update_extra_field(db: AsyncSession, entity_type: EntityType, e
     validate_extra_field(extra_field)
 
     extra_fields = await get_extra_fields(db, entity_type)
+
+    # If the field already exists, verify that we don't do anything that would break existing data
+    existing_field = next((field for field in extra_fields if field.key == extra_field.key), None)
+    if existing_field is not None:
+        if existing_field.field_type != extra_field.field_type:
+            raise ValueError("Field type cannot be changed.")
+        if extra_field.field_type == ExtraFieldType.choice:
+            # Can't change multi choice since that would break existing data
+            if existing_field.multi_choice != extra_field.multi_choice:
+                raise ValueError("Multi choice cannot be changed.")
+
+            # Verify that we have only added new choices, not removed any
+            if (
+                existing_field.choices is not None
+                and extra_field.choices is not None
+                and not all(choice in extra_field.choices for choice in existing_field.choices)
+            ):
+                raise ValueError("Cannot remove existing choices.")
+
     extra_fields = [field for field in extra_fields if field.key != extra_field.key]
     extra_fields.append(extra_field)
 
