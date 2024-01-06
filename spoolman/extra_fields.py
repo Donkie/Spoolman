@@ -9,7 +9,10 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from spoolman.database import filament as db_filament
 from spoolman.database import setting as db_setting
+from spoolman.database import spool as db_spool
+from spoolman.database import vendor as db_vendor
 from spoolman.exceptions import ItemNotFoundError
 from spoolman.settings import parse_setting
 
@@ -182,6 +185,16 @@ async def delete_extra_field(db: AsyncSession, entity_type: EntityType, key: str
 
     setting_def = parse_setting(f"extra_fields_{entity_type.name}")
     await db_setting.update(db=db, definition=setting_def, value=json.dumps(jsonable_encoder(extra_fields)))
+
+    # Delete the extra field for all entities
+    if entity_type == EntityType.vendor:
+        await db_vendor.clear_extra_field(db, key)
+    elif entity_type == EntityType.filament:
+        await db_filament.clear_extra_field(db, key)
+    elif entity_type == EntityType.spool:
+        await db_spool.clear_extra_field(db, key)
+    else:
+        raise ValueError(f"Unknown entity type {entity_type.name}.")
 
     logger.info("Deleted extra field %s for entity type %s.", key, entity_type.name)
 

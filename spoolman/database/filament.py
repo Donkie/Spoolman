@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import Optional, Union
 
+import sqlalchemy
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -173,6 +174,13 @@ async def delete(db: AsyncSession, filament_id: int) -> None:
     except IntegrityError as exc:
         await db.rollback()
         raise ItemDeleteError("Failed to delete filament.") from exc
+
+
+async def clear_extra_field(db: AsyncSession, key: str) -> None:
+    """Delete all extra fields with a specific key."""
+    await db.execute(
+        sqlalchemy.delete(models.FilamentField).where(models.FilamentField.key == key),
+    )
 
 
 logger = logging.getLogger(__name__)

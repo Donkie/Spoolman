@@ -3,6 +3,7 @@
 from datetime import datetime
 from typing import Optional
 
+import sqlalchemy
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -104,6 +105,13 @@ async def delete(db: AsyncSession, vendor_id: int) -> None:
     vendor = await get_by_id(db, vendor_id)
     await db.delete(vendor)
     await vendor_changed(vendor, EventType.DELETED)
+
+
+async def clear_extra_field(db: AsyncSession, key: str) -> None:
+    """Delete all extra fields with a specific key."""
+    await db.execute(
+        sqlalchemy.delete(models.VendorField).where(models.VendorField.key == key),
+    )
 
 
 async def vendor_changed(vendor: models.Vendor, typ: EventType) -> None:

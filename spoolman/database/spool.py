@@ -200,6 +200,13 @@ async def delete(db: AsyncSession, spool_id: int) -> None:
     await spool_changed(spool, EventType.DELETED)
 
 
+async def clear_extra_field(db: AsyncSession, key: str) -> None:
+    """Delete all extra fields with a specific key."""
+    await db.execute(
+        sqlalchemy.delete(models.SpoolField).where(models.SpoolField.key == key),
+    )
+
+
 async def use_weight_safe(db: AsyncSession, spool_id: int, weight: float) -> None:
     """Consume filament from a spool by weight in a way that is safe against race conditions.
 
