@@ -38,7 +38,11 @@ class ExtraFieldParameters(BaseModel):
     unit: Optional[str] = Field(None, description="Unit of the value", min_length=1, max_length=16)
     field_type: ExtraFieldType = Field(description="Type of the field")
     default_value: Optional[str] = Field(None, description="Default value of the field")
-    choices: Optional[list[str]] = Field(None, description="Choices for the field, only for field type choice")
+    choices: Optional[list[str]] = Field(
+        None,
+        description="Choices for the field, only for field type choice",
+        min_items=1,
+    )
     multi_choice: Optional[bool] = Field(None, description="Whether multiple choices can be selected")
 
 
@@ -100,18 +104,12 @@ def validate_extra_field_value(field: ExtraFieldParameters, value: str) -> None:
         raise ValueError(f"Unknown field type {field.field_type}.")
 
 
-def validate_extra_field(field: ExtraFieldParameters) -> None:  # noqa: C901
+def validate_extra_field(field: ExtraFieldParameters) -> None:
     """Validate an extra field."""
     # Validate choices exist if field type is choice
     if field.field_type == ExtraFieldType.choice:
         if field.choices is None:
             raise ValueError("Choices must be set for field type choice.")
-        if not isinstance(field.choices, list):
-            raise ValueError("Choices must be a list.")
-        if not all(isinstance(choice, str) for choice in field.choices):
-            raise ValueError("Choices must be a list of strings.")
-        if len(field.choices) == 0:
-            raise ValueError("Choices must not be empty.")
         if field.multi_choice is None:
             raise ValueError("Multi choice must be set for field type choice.")
     else:
