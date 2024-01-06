@@ -142,8 +142,14 @@ def validate_extra_field_dict(all_fields: list[ExtraField], fields_input: dict[s
             raise ValueError(f"Invalid extra field for key {key}: {e!s}") from None
 
 
+extra_field_cache = {}
+
+
 async def get_extra_fields(db: AsyncSession, entity_type: EntityType) -> list[ExtraField]:
     """Get all extra fields for a specific entity type."""
+    if entity_type in extra_field_cache:
+        return extra_field_cache[entity_type]
+
     setting_def = parse_setting(f"extra_fields_{entity_type.name}")
     try:
         setting = await db_setting.get(db, setting_def)
@@ -156,7 +162,9 @@ async def get_extra_fields(db: AsyncSession, entity_type: EntityType) -> list[Ex
         logger.warning("Setting %s is not a list, using default.", setting_def.key)
         setting_array = []
 
-    return [ExtraField.parse_obj(obj) for obj in setting_array]
+    fields = [ExtraField.parse_obj(obj) for obj in setting_array]
+    extra_field_cache[entity_type] = fields
+    return fields
 
 
 async def add_or_update_extra_field(db: AsyncSession, entity_type: EntityType, extra_field: ExtraField) -> None:
@@ -189,6 +197,9 @@ async def add_or_update_extra_field(db: AsyncSession, entity_type: EntityType, e
     setting_def = parse_setting(f"extra_fields_{entity_type.name}")
     await db_setting.update(db=db, definition=setting_def, value=json.dumps(jsonable_encoder(extra_fields)))
 
+    # Update cache
+    extra_field_cache[entity_type] = extra_fields
+
     logger.info("Added/updated extra field %s for entity type %s.", extra_field.key, entity_type.name)
 
 
@@ -204,6 +215,9 @@ async def delete_extra_field(db: AsyncSession, entity_type: EntityType, key: str
 
     setting_def = parse_setting(f"extra_fields_{entity_type.name}")
     await db_setting.update(db=db, definition=setting_def, value=json.dumps(jsonable_encoder(extra_fields)))
+
+    # Update cache
+    extra_field_cache[entity_type] = extra_fields
 
     # Delete the extra field for all entities
     if entity_type == EntityType.vendor:
