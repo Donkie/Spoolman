@@ -16,6 +16,7 @@ def test_get_spool(random_filament: dict[str, Any]):
     location = "The Pantry"
     lot_nr = "123456789"
     comment = "abcdefghåäö"
+    price = 25
     archived = True
     result = httpx.post(
         f"{URL}/api/v1/spool",
@@ -27,6 +28,7 @@ def test_get_spool(random_filament: dict[str, Any]):
             "location": location,
             "lot_nr": lot_nr,
             "comment": comment,
+            "price": price,
             "archived": archived,
         },
     )

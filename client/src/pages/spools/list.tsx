@@ -52,6 +52,9 @@ function collapseSpool(element: ISpool): ISpoolCollapsed {
   } else {
     filament_name = element.filament.name ?? element.filament.id.toString();
   }
+  if (!element.price){
+    element.price = element.filament.price;
+  }
   return {
     ...element,
     combined_name: filament_name,
