@@ -36,7 +36,6 @@ class ExtraFieldType(Enum):
 class ExtraFieldParameters(BaseModel):
     name: str = Field(description="Nice name", min_length=1, max_length=128)
     unit: Optional[str] = Field(None, description="Unit of the value", min_length=1, max_length=16)
-    entity_type: EntityType = Field(description="Entity type this field is for")
     field_type: ExtraFieldType = Field(description="Type of the field")
     default_value: Optional[str] = Field(None, description="Default value of the field")
     choices: Optional[list[str]] = Field(None, description="Choices for the field, only for field type choice")
@@ -45,6 +44,7 @@ class ExtraFieldParameters(BaseModel):
 
 class ExtraField(ExtraFieldParameters):
     key: str = Field(description="Unique key", regex="^[a-z0-9_]+$", min_length=1, max_length=64)
+    entity_type: EntityType = Field(description="Entity type this field is for")
 
 
 def validate_extra_field_value(field: ExtraFieldParameters, value: str) -> None:  # noqa: C901, PLR0912
