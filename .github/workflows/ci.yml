@@ -9,7 +9,7 @@ on:
   pull_request:
     branches:
       - master
-  workflow_dispatch:
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: donkie/spoolman
