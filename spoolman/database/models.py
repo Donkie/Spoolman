@@ -4,10 +4,11 @@ from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
-class Base(DeclarativeBase):
+class Base(AsyncAttrs, DeclarativeBase):
     pass
 
 
@@ -19,6 +20,11 @@ class Vendor(Base):
     name: Mapped[str] = mapped_column(String(64))
     comment: Mapped[Optional[str]] = mapped_column(String(1024))
     filaments: Mapped[list["Filament"]] = relationship(back_populates="vendor")
+    extra: Mapped[list["VendorField"]] = relationship(
+        back_populates="vendor",
+        cascade="save-update, merge, delete, delete-orphan",
+        lazy="joined",
+    )
 
 
 class Filament(Base):
@@ -41,6 +47,11 @@ class Filament(Base):
     settings_extruder_temp: Mapped[Optional[int]] = mapped_column(comment="Overridden extruder temperature.")
     settings_bed_temp: Mapped[Optional[int]] = mapped_column(comment="Overridden bed temperature.")
     color_hex: Mapped[Optional[str]] = mapped_column(String(8))
+    extra: Mapped[list["FilamentField"]] = relationship(
+        back_populates="filament",
+        cascade="save-update, merge, delete, delete-orphan",
+        lazy="joined",
+    )
 
 
 class Spool(Base):
@@ -58,6 +69,11 @@ class Spool(Base):
     lot_nr: Mapped[Optional[str]] = mapped_column(String(64))
     comment: Mapped[Optional[str]] = mapped_column(String(1024))
     archived: Mapped[Optional[bool]] = mapped_column()
+    extra: Mapped[list["SpoolField"]] = relationship(
+        back_populates="spool",
+        cascade="save-update, merge, delete, delete-orphan",
+        lazy="joined",
+    )
 
 
 class Setting(Base):
@@ -66,3 +82,30 @@ class Setting(Base):
     key: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
     value: Mapped[str] = mapped_column(Text())
     last_updated: Mapped[datetime] = mapped_column()
+
+
+class VendorField(Base):
+    __tablename__ = "vendor_field"
+
+    vendor_id: Mapped[int] = mapped_column(ForeignKey("vendor.id"), primary_key=True, index=True)
+    vendor: Mapped["Vendor"] = relationship(back_populates="extra")
+    key: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
+    value: Mapped[str] = mapped_column(Text())
+
+
+class FilamentField(Base):
+    __tablename__ = "filament_field"
+
+    filament_id: Mapped[int] = mapped_column(ForeignKey("filament.id"), primary_key=True, index=True)
+    filament: Mapped["Filament"] = relationship(back_populates="extra")
+    key: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
+    value: Mapped[str] = mapped_column(Text())
+
+
+class SpoolField(Base):
+    __tablename__ = "spool_field"
+
+    spool_id: Mapped[int] = mapped_column(ForeignKey("spool.id"), primary_key=True, index=True)
+    spool: Mapped["Spool"] = relationship(back_populates="extra")
+    key: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
+    value: Mapped[str] = mapped_column(Text())

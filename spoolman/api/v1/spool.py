@@ -18,6 +18,7 @@ from spoolman.database import spool
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
 from spoolman.exceptions import ItemCreateError
+from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
 from spoolman.ws import websocket_manager
 
 logger = logging.getLogger(__name__)
@@ -59,6 +60,10 @@ class SpoolParameters(BaseModel):
         example="",
     )
     archived: bool = Field(default=False, description="Whether this spool is archived and should not be used anymore.")
+    extra: Optional[dict[str, str]] = Field(
+        None,
+        description="Extra fields for this spool.",
+    )
 
 
 class SpoolUpdateParameters(SpoolParameters):
@@ -337,6 +342,13 @@ async def create(  # noqa: ANN201
             content={"message": "Only specify either remaining_weight or used_weight."},
         )
 
+    if body.extra:
+        all_fields = await get_extra_fields(db, EntityType.spool)
+        try:
+            validate_extra_field_dict(all_fields, body.extra)
+        except ValueError as e:
+            return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
+
     try:
         db_item = await spool.create(
             db=db,
@@ -350,6 +362,7 @@ async def create(  # noqa: ANN201
             lot_nr=body.lot_nr,
             comment=body.comment,
             archived=body.archived,
+            extra=body.extra,
         )
         return Spool.from_db(db_item)
     except ItemCreateError:
@@ -366,7 +379,8 @@ async def create(  # noqa: ANN201
     description=(
         "Update any attribute of a spool. "
         "Only fields specified in the request will be affected. "
-        "remaining_weight and used_weight can't be set at the same time."
+        "remaining_weight and used_weight can't be set at the same time. "
+        "If extra is set, all existing extra fields will be removed and replaced with the new ones."
     ),
     response_model_exclude_none=True,
     response_model=Spool,
@@ -387,6 +401,13 @@ async def update(  # noqa: ANN201
             status_code=400,
             content={"message": "Only specify either remaining_weight or used_weight."},
         )
+
+    if body.extra:
+        all_fields = await get_extra_fields(db, EntityType.spool)
+        try:
+            validate_extra_field_dict(all_fields, body.extra)
+        except ValueError as e:
+            return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     if "filament_id" in patch_data and body.filament_id is None:
         raise RequestValidationError(

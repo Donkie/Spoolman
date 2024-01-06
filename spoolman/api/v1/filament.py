@@ -17,6 +17,7 @@ from spoolman.database import filament
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
 from spoolman.exceptions import ItemDeleteError
+from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
 from spoolman.ws import websocket_manager
 
 logger = logging.getLogger(__name__)
@@ -80,6 +81,10 @@ class FilamentParameters(BaseModel):
     color_hex: Optional[str] = Field(
         description="Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end.",
         example="FF0000",
+    )
+    extra: Optional[dict[str, str]] = Field(
+        None,
+        description="Extra fields for this filament.",
     )
 
     @validator("color_hex")
@@ -323,11 +328,20 @@ async def notify(
     name="Add filament",
     description="Add a new filament to the database.",
     response_model_exclude_none=True,
+    response_model=Filament,
+    responses={400: {"model": Message}},
 )
-async def create(
+async def create(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
     body: FilamentParameters,
-) -> Filament:
+):
+    if body.extra:
+        all_fields = await get_extra_fields(db, EntityType.filament)
+        try:
+            validate_extra_field_dict(all_fields, body.extra)
+        except ValueError as e:
+            return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
+
     db_item = await filament.create(
         db=db,
         density=body.density,
@@ -343,6 +357,7 @@ async def create(
         settings_extruder_temp=body.settings_extruder_temp,
         settings_bed_temp=body.settings_bed_temp,
         color_hex=body.color_hex,
+        extra=body.extra,
     )
 
     return Filament.from_db(db_item)
@@ -351,21 +366,35 @@ async def create(
 @router.patch(
     "/{filament_id}",
     name="Update filament",
-    description="Update any attribute of a filament. Only fields specified in the request will be affected.",
+    description=(
+        "Update any attribute of a filament. Only fields specified in the request will be affected. "
+        "If extra is set, all existing extra fields will be removed and replaced with the new ones."
+    ),
     response_model_exclude_none=True,
-    responses={404: {"model": Message}},
+    response_model=Filament,
+    responses={
+        400: {"model": Message},
+        404: {"model": Message},
+    },
 )
-async def update(
+async def update(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
     filament_id: int,
     body: FilamentUpdateParameters,
-) -> Filament:
+):
     patch_data = body.dict(exclude_unset=True)
 
     if "density" in patch_data and body.density is None:
         raise RequestValidationError([ErrorWrapper(ValueError("density cannot be unset"), ("query", "density"))])
     if "diameter" in patch_data and body.diameter is None:
         raise RequestValidationError([ErrorWrapper(ValueError("diameter cannot be unset"), ("query", "diameter"))])
+
+    if body.extra:
+        all_fields = await get_extra_fields(db, EntityType.filament)
+        try:
+            validate_extra_field_dict(all_fields, body.extra)
+        except ValueError as e:
+            return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     db_item = await filament.update(
         db=db,
