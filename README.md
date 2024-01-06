@@ -142,7 +142,7 @@ Yes, head over to [Weblate](https://hosted.weblate.org/projects/spoolman/) to st
 ### Client
 To test out changes to the web client, the best way is to run it in development mode.
 
-Prerequisities:
+Prerequisites:
 * NodeJS 16 or above installed, along with NPM. Running `node --version` should print a correct version.
 * A running Spoolman server, with the following two environment variables added in the `docker-compose.yml`:
 ```yaml
