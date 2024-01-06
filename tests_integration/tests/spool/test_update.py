@@ -104,19 +104,28 @@ def test_update_spool_price(random_filament: dict[str, Any]):
     # Setup
     result = httpx.post(
         f"{URL}/api/v1/spool",
-        json={"filament_id": random_filament["id"]},
+        json={
+            "filament_id": random_filament["id"],
+            "price": 50,
+        },
     )
     result.raise_for_status()
     spool = result.json()
 
     # Execute
+    price = 25
+    last_used = "2023-01-02T12:00:00+02:00"
     result = httpx.patch(
         f"{URL}/api/v1/spool/{spool['id']}",
         json={
-            "price": 750,
+            "price": price,
         },
     )
-    assert result.status_code == 400  # Cannot update both used and remaining weight
+    result.raise_for_status()
+
+    # Verify
+    spool = result.json()
+    assert spool["price"] == 25
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
