@@ -33,6 +33,7 @@ def test_update_spool(random_filament: dict[str, Any]):
     lot_nr = "987654321"
     comment = "abcdefghåäö"
     archived = True
+    price = 25
     result = httpx.patch(
         f"{URL}/api/v1/spool/{spool['id']}",
         json={
@@ -43,6 +44,7 @@ def test_update_spool(random_filament: dict[str, Any]):
             "lot_nr": lot_nr,
             "comment": comment,
             "archived": archived,
+            "price": price,
         },
     )
     result.raise_for_status()
@@ -71,6 +73,7 @@ def test_update_spool(random_filament: dict[str, Any]):
     assert spool["lot_nr"] == lot_nr
     assert spool["comment"] == comment
     assert spool["archived"] == archived
+    assert spool["price"] == price
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
@@ -95,37 +98,6 @@ def test_update_spool_both_used_and_remaining_weight(random_filament: dict[str, 
         },
     )
     assert result.status_code == 400  # Cannot update both used and remaining weight
-
-    # Clean up
-    httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
-
-
-def test_update_spool_price(random_filament: dict[str, Any]):
-    """Test updating a spool in the database."""
-    # Setup
-    result = httpx.post(
-        f"{URL}/api/v1/spool",
-        json={
-            "filament_id": random_filament["id"],
-            "price": 50,
-        },
-    )
-    result.raise_for_status()
-    spool = result.json()
-
-    # Execute
-    price = 25
-    result = httpx.patch(
-        f"{URL}/api/v1/spool/{spool['id']}",
-        json={
-            "price": price,
-        },
-    )
-    result.raise_for_status()
-
-    # Verify
-    spool = result.json()
-    assert spool["price"] == 25
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
