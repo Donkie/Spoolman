@@ -10,7 +10,14 @@ import dataProvider from "./components/dataProvider";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import { ColorModeContextProvider } from "./contexts/color-mode";
-import { FileOutlined, HighlightOutlined, HomeOutlined, QuestionOutlined, UserOutlined } from "@ant-design/icons";
+import {
+  FileOutlined,
+  HighlightOutlined,
+  HomeOutlined,
+  QuestionOutlined,
+  ToolOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 import { ConfigProvider } from "antd";
 import React from "react";
 import { Locale } from "antd/es/locale";
@@ -140,6 +147,14 @@ function App() {
                   },
                 },
                 {
+                  name: "settings",
+                  list: "/settings",
+                  meta: {
+                    canDelete: false,
+                    icon: <ToolOutlined />,
+                  },
+                },
+                {
                   name: "help",
                   list: "/help",
                   meta: {
@@ -202,6 +217,7 @@ function App() {
                     <Route path="edit/:id" element={<LoadableResourcePage resource="vendors" page="edit" />} />
                     <Route path="show/:id" element={<LoadableResourcePage resource="vendors" page="show" />} />
                   </Route>
+                  <Route path="/settings" element={<LoadablePage name="settings" />} />
                   <Route path="/help" element={<LoadablePage name="help" />} />
                   <Route path="*" element={<ErrorComponent />} />
                 </Route>

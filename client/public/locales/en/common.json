@@ -41,7 +41,8 @@
         "deleteError": "Error when deleting {{resource}} (status code: {{statusCode}})",
         "editSuccess": "Successfully edited {{resource}}",
         "editError": "Error when editing {{resource}} (status code: {{statusCode}})",
-        "importProgress": "Importing: {{processed}}/{{total}}"
+        "importProgress": "Importing: {{processed}}/{{total}}",
+        "saveSuccessful": "Save successful!"
     },
     "kofi": "Tip me on Ko-fi",
     "loading": "Loading",
@@ -251,6 +252,18 @@
     },
     "table": {
         "actions": "Actions"
+    },
+    "settings": {
+        "header": "Settings",
+        "generic": {
+            "tab": "Generic",
+            "currency": {
+                "label": "Currency"
+            }
+        },
+        "extra_fields": {
+            "tab": "Extra Fields"
+        }
     },
     "documentTitle": {
         "default": "Spoolman",
