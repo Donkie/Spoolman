@@ -139,11 +139,39 @@ You can put Spoolman behind a reverse proxy like Caddy or Nginx to enable HTTPS.
 Yes, head over to [Weblate](https://hosted.weblate.org/projects/spoolman/) to start the Translation
 
 ## Development
-### Client
+### Server/Backend (Python)
+The Python backend runs on Python 3.9. It's built on FastAPI for the REST API, and SQLAlchemy to handle the databases.
+
+To setup yourself for Python development, do the following:
+1. Clone this repo
+2. CD into the repo
+3. Install PDM: `pip install --user pdm`
+4. Install Spoolman dependencies: `pdm sync`
+
+And you should be all setup. Read the Style and Integration Testing sections below as well.
+
+#### Style
+[Black](https://black.readthedocs.io/en/stable/) and [Ruff](https://docs.astral.sh/ruff/) is used to ensure a consistent style and good code quality. You can install extensions in your editor to make them run automatically.
+
+[Pre-commit](https://pre-commit.com/) is used to ensure the style is maintained for each commit. You can setup pre-commit by simply running the following in the Spoolman root directory:
+```
+pip install pre-commit
+pre-commit install
+```
+
+#### Integration Testing
+The entire REST API is integration tested using an isolated docker container, with all 4 database types that we support (Postgres, MySQL, SQLite and CockroachDB). These integration tests live in `tests_integration/`. They are designed to "use" the REST API in the same way that a client would, and ensures that everything remains consistent between updates. The databases are created as part of the integration testing, so no external database is needed to run them.
+
+If you have docker installed, you can run the integration tests using `pdm run itest` for all databases, or e.g. `pdm run itest postgres` for a single database.
+
+
+### Client (Node/React/Typescript)
+The client is a React-based web client, built using the [refine.dev](https://refine.dev) framework, with Ant Design as the components.
+
 To test out changes to the web client, the best way is to run it in development mode.
 
 Prerequisites:
-* NodeJS 16 or above installed, along with NPM. Running `node --version` should print a correct version.
+* NodeJS 20 or above installed, along with NPM. Running `node --version` should print a correct version.
 * A running Spoolman server, with the following two environment variables added in the `docker-compose.yml`:
 ```yaml
     environment:
@@ -153,7 +181,7 @@ Prerequisites:
 
 Instructions:
 1. Open a terminal and CD to the `client` subdirectory
-2. Run `npm install`. If it doesn't succeed, you probably have an incorrect node version. Spoolman is only tested on NodeJS 16.
+2. Run `npm install`. If it doesn't succeed, you probably have an incorrect node version. Spoolman is only tested on NodeJS 20.
 3. Run `echo "VITE_APIURL=http://192.168.0.123:7901/api/v1" > .env`, where the ip:port is the address of the running Spoolman server. This should create a `.env` file in the `client` directory. If you don't already have one running on your network, you can start one up using the `docker-compose.yml` showed above.
 4. Run `npm run dev`. The terminal will print a "Local: xxxx" URL, open that in your browser and the web client should show up. Your existing spools etc in your Spoolman database should be loaded in.
 5. Any edits in .ts/.tsx files will be automatically reloaded in your browser. If you make any change to .json files you will need to F5 in your browser.
