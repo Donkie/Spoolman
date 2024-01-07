@@ -186,6 +186,7 @@ def test_add_spool_both_used_and_remaining_weight(random_filament: dict[str, Any
     )
     assert result.status_code == 400  # Cannot set both used and remaining weight
 
+
 def test_add_spool_price(random_filament: dict[str, Any]):
     """Test adding a spool to the database."""
     # Execute

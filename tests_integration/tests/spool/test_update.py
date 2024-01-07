@@ -99,6 +99,7 @@ def test_update_spool_both_used_and_remaining_weight(random_filament: dict[str, 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
 
+
 def test_update_spool_price(random_filament: dict[str, Any]):
     """Test updating a spool in the database."""
     # Setup
@@ -114,7 +115,6 @@ def test_update_spool_price(random_filament: dict[str, Any]):
 
     # Execute
     price = 25
-    last_used = "2023-01-02T12:00:00+02:00"
     result = httpx.patch(
         f"{URL}/api/v1/spool/{spool['id']}",
         json={
@@ -129,6 +129,7 @@ def test_update_spool_price(random_filament: dict[str, Any]):
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
+
 
 def test_update_spool_not_found(random_filament: dict[str, Any]):
     """Test updating a spool that does not exist."""
