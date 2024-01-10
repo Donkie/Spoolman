@@ -23,6 +23,15 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
 
   const record = data?.data;
 
+  const spoolPrice = (item: ISpool) => {
+    let spoolPrice = "";
+    if (!item.price){
+      spoolPrice = `${item.filament.price}`;
+      return spoolPrice;
+    }
+    return item.price;
+  }
+
   const formatFilament = (item: IFilament) => {
     let vendorPrefix = "";
     if (item.vendor) {
@@ -59,7 +68,7 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       <Title level={5}>{t("spool.fields.filament")}</Title>
       <TextField value={record ? filamentURL(record?.filament) : ""} />
       <Title level={5}>{t("spool.fields.price")}</Title>
-      <NumberField value={record?.price ?? ""} />
+      <NumberField value={record ? spoolPrice(record) : ""} />
       <Title level={5}>{t("spool.fields.registered")}</Title>
       <DateField
         value={dayjs.utc(record?.registered).local()}

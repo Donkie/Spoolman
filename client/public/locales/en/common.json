@@ -151,7 +151,7 @@
             "archived": "Archived"
         },
         "fields_help": {
-            "price": "Price of a full spool in the system configured currency.",
+            "price": "Price of a full spool in the system configured currency. If not set, the price of the filament will be assumed instead.",
             "weight_to_use": "Select what weight value to enter. Measured weight is only available if the spool weight is set for the selected filament.",
             "used_weight": "How much filament has been used from the spool. A new spool should have 0g used.",
             "remaining_weight": "How much filament is left on the spool. For a new spool this should match the spool weight.",
