@@ -1,9 +1,9 @@
 import React from "react";
 import { useTranslate } from "@refinedev/core";
 import { Button, Form, Input, message } from "antd";
-import { useGetSettings, useSetSetting } from "./query";
+import { useGetSettings, useSetSetting } from "./querySettings";
 
-export function GenericSettings() {
+export function GeneralSettings() {
   const settings = useGetSettings();
   const setSetting = useSetSetting();
   const [form] = Form.useForm();
@@ -53,7 +53,7 @@ export function GenericSettings() {
         }}
       >
         <Form.Item
-          label={t("settings.generic.currency.label")}
+          label={t("settings.general.currency.label")}
           name="currency"
           rules={[
             {

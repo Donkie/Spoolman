@@ -4,10 +4,10 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { Content } from "antd/es/layout/layout";
 import { Menu, theme } from "antd";
-import { SolutionOutlined, ToolOutlined } from "@ant-design/icons";
-import { useSavedState } from "../../utils/saveload";
-import { GenericSettings } from "./GenericSettings";
+import { FileOutlined, HighlightOutlined, SolutionOutlined, ToolOutlined, UserOutlined } from "@ant-design/icons";
+import { GeneralSettings } from "./GeneralSettings";
 import { ExtraFieldsSettings } from "./ExtraFieldsSettings";
+import { Route, Routes, useNavigate } from "react-router-dom";
 
 dayjs.extend(utc);
 
@@ -16,7 +16,13 @@ const { useToken } = theme;
 export const Settings: React.FC<IResourceComponentsProps> = () => {
   const { token } = useToken();
   const t = useTranslate();
-  const [current, setCurrent] = useSavedState("settings-tab", "generic");
+  const navigate = useNavigate();
+
+  const getCurrentKey = () => {
+    const path = window.location.pathname.replace("/settings", "");
+    // Remove starting slash and ending slash if exists and return
+    return path.replace(/^\/|\/$/g, "");
+  };
 
   return (
     <>
@@ -42,19 +48,48 @@ export const Settings: React.FC<IResourceComponentsProps> = () => {
       >
         <Menu
           mode="horizontal"
-          selectedKeys={[current]}
-          onClick={({ key }) => setCurrent(key)}
+          selectedKeys={[getCurrentKey()]}
+          onClick={(e) => {
+            if (e.key === "") {
+              return navigate("/settings");
+            } else {
+              return navigate(`/settings/${e.key}`);
+            }
+          }}
           items={[
-            { key: "generic", label: t("settings.generic.tab"), icon: <ToolOutlined /> },
-            { key: "extra", label: t("settings.extra_fields.tab"), icon: <SolutionOutlined /> },
+            { key: "", label: t("settings.general.tab"), icon: <ToolOutlined /> },
+            {
+              key: "extra",
+              label: t("settings.extra_fields.tab"),
+              icon: <SolutionOutlined />,
+              children: [
+                {
+                  label: t("spool.spool"),
+                  key: "extra/spool",
+                  icon: <FileOutlined />,
+                },
+                {
+                  label: t("filament.filament"),
+                  key: "extra/filament",
+                  icon: <HighlightOutlined />,
+                },
+                {
+                  label: t("vendor.vendor"),
+                  key: "extra/vendor",
+                  icon: <UserOutlined />,
+                },
+              ],
+            },
           ]}
           style={{
-            marginBottom: "3em",
+            marginBottom: "1em",
           }}
         />
         <main>
-          {current === "generic" && <GenericSettings />}
-          {current === "extra" && <ExtraFieldsSettings />}
+          <Routes>
+            <Route index element={<GeneralSettings />} />
+            <Route path="/extra/:entityType" element={<ExtraFieldsSettings />} />
+          </Routes>
         </main>
       </Content>
     </>

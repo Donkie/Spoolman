@@ -42,7 +42,8 @@
         "editSuccess": "Successfully edited {{resource}}",
         "editError": "Error when editing {{resource}} (status code: {{statusCode}})",
         "importProgress": "Importing: {{processed}}/{{total}}",
-        "saveSuccessful": "Save successful!"
+        "saveSuccessful": "Save successful!",
+        "validationError": "Validation error: {{error}}"
     },
     "kofi": "Tip me on Ko-fi",
     "loading": "Loading",
@@ -255,14 +256,39 @@
     },
     "settings": {
         "header": "Settings",
-        "generic": {
-            "tab": "Generic",
+        "general": {
+            "tab": "General",
             "currency": {
                 "label": "Currency"
             }
         },
         "extra_fields": {
-            "tab": "Extra Fields"
+            "tab": "Extra Fields",
+            "description": "<p>Here you can add extra custom fields to your entities.</p><p>Once a field is added, you can not change its key or type, and for choice type fields you can not remove choices or change the multi select state. If you remove a field, the associated data for all entities will be deleted.</p><p>Extra fields can not be sorted or filtered in the table views.</p>",
+            "params": {
+                "key": "Key",
+                "name": "Name",
+                "field_type": "Type",
+                "unit": "Unit",
+                "default_value": "Default Value",
+                "choices": "Choices",
+                "multi_choice": "Multi Choice"
+            },
+            "field_type": {
+                "text": "Text",
+                "integer": "Integer",
+                "integer_range": "Integer Range",
+                "float": "Float",
+                "float_range": "Float Range",
+                "datetime": "Datetime",
+                "boolean": "Boolean",
+                "choice": "Choice"
+            },
+            "boolean_true": "Yes",
+            "boolean_false": "No",
+            "choices_missing_error": "You cannot remove choices. The following choices are missing: {{choices}}",
+            "non_unique_key_error": "The key must be unique.",
+            "key_not_changed": "Please change the key to something else."
         }
     },
     "documentTitle": {

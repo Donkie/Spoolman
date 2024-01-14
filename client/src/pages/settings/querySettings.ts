@@ -45,6 +45,12 @@ export function useSetSetting() {
         },
         body: JSON.stringify(value),
       });
+
+      // Throw error if response is not ok
+      if (!response.ok) {
+        throw new Error((await response.json()).message);
+      }
+
       return response.json();
     },
     onSuccess: (_data, { key }) => {
