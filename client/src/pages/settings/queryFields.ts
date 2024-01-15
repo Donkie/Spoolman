@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import dayjs from "dayjs";
 
 export enum FieldType {
   text = "text",
@@ -19,9 +20,10 @@ export enum EntityType {
 
 export interface FieldParameters {
   name: string;
+  order: number;
   unit?: string;
   field_type: FieldType;
-  default_value?: string;
+  default_value?: string | boolean | dayjs.Dayjs;
   choices?: string[];
   multi_choice?: boolean;
 }

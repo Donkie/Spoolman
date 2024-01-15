@@ -38,6 +38,7 @@ class ExtraFieldType(Enum):
 
 class ExtraFieldParameters(BaseModel):
     name: str = Field(description="Nice name", min_length=1, max_length=128)
+    order: int = Field(0, description="Order of the field")
     unit: Optional[str] = Field(None, description="Unit of the value", min_length=1, max_length=16)
     field_type: ExtraFieldType = Field(description="Type of the field")
     default_value: Optional[str] = Field(None, description="Default value of the field")

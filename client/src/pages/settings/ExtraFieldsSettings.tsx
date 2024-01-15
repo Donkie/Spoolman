@@ -7,12 +7,13 @@ import {
   FormInstance,
   Input,
   InputNumber,
+  Popconfirm,
   Select,
+  Space,
   Table,
-  Typography,
   message,
 } from "antd";
-import { EntityType, Field, FieldType, useGetFields, useSetField } from "./queryFields";
+import { EntityType, Field, FieldType, useDeleteField, useGetFields, useSetField } from "./queryFields";
 import { useTranslate } from "@refinedev/core";
 import { useState } from "react";
 import { ColumnType } from "antd/es/table";
@@ -20,6 +21,17 @@ import { Trans } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { FormItemProps, Rule } from "antd/es/form";
 import { PlusOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import advancedFormat from "dayjs/plugin/advancedFormat";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(advancedFormat);
+
+// Localized date time format with timezone
+const dateTimeFormat = "YYYY-MM-DD HH:mm:ss z";
 
 interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   record: FieldHolder;
@@ -29,22 +41,33 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
 }
 
-interface ColumnProps extends ColumnType<FieldHolder> {
-  editable: boolean;
-  required: boolean;
-}
-
 interface FieldHolder {
   key: string;
   field: Field;
   is_new: boolean;
 }
 
+const canEditField = (dataIndex: string, isNew: boolean) => {
+  if (isNew) {
+    return true;
+  }
+  return dataIndex !== "key" && dataIndex !== "field_type" && dataIndex !== "multi_choice";
+};
+
 const EditableCell: React.FC<EditableCellProps> = ({ record, editing, dataIndex, children, form, ...restProps }) => {
   const t = useTranslate();
 
-  if (!editing) {
-    return <td {...restProps}>{children}</td>;
+  if (!editing || !canEditField(dataIndex, record.is_new)) {
+    return (
+      <td
+        {...restProps}
+        style={{
+          wordBreak: "break-word",
+        }}
+      >
+        {children}
+      </td>
+    );
   }
 
   const fieldType = form.getFieldValue("field_type") as FieldType;
@@ -60,6 +83,7 @@ const EditableCell: React.FC<EditableCellProps> = ({ record, editing, dataIndex,
     rules.push({
       required: true,
       min: 1,
+      max: 64,
       pattern: /^[a-z0-9_]+$/,
     });
     rules.push({
@@ -123,6 +147,14 @@ const EditableCell: React.FC<EditableCellProps> = ({ record, editing, dataIndex,
     rules.push({
       required: true,
       min: 1,
+      max: 128,
+    });
+  } else if (dataIndex === "order") {
+    inputNode = <InputNumber style={{ width: "60px" }} />;
+    rules.push({
+      required: true,
+      min: 0,
+      type: "integer",
     });
   } else if (dataIndex === "unit") {
     if (
@@ -131,12 +163,13 @@ const EditableCell: React.FC<EditableCellProps> = ({ record, editing, dataIndex,
       fieldType === FieldType.float ||
       fieldType === FieldType.float_range
     ) {
-      inputNode = <Input />;
+      inputNode = <Input style={{ width: "60px" }} />;
     } else {
       inputNode = null;
     }
     rules.push({
       required: false,
+      max: 16,
     });
   } else if (dataIndex === "default_value") {
     if (fieldType === FieldType.boolean) {
@@ -158,7 +191,7 @@ const EditableCell: React.FC<EditableCellProps> = ({ record, editing, dataIndex,
     } else if (fieldType === FieldType.float) {
       inputNode = <InputNumber />;
       rules.push({
-        type: "float",
+        type: "number",
       });
     } else if (fieldType === FieldType.integer_range) {
       inputNode = <Input placeholder="Example: 180 - 210" />;
@@ -173,7 +206,7 @@ const EditableCell: React.FC<EditableCellProps> = ({ record, editing, dataIndex,
         pattern: /^-?\d+([.,]\d+)?\s*-\s*-?\d+([.,]\d+)?$/,
       });
     } else if (fieldType === FieldType.datetime) {
-      inputNode = <DatePicker format="YYYY-MM-DD hh:mm:ss" showTime={{ use12Hours: false }} />;
+      inputNode = <DatePicker format={dateTimeFormat} showTime={{ use12Hours: false }} />;
     } else if (fieldType === FieldType.choice) {
       inputNode = (
         <Select
@@ -255,6 +288,7 @@ export function ExtraFieldsSettings() {
   const [form] = Form.useForm();
   const fields = useGetFields(entityType as EntityType);
   const setField = useSetField(entityType as EntityType);
+  const deleteField = useDeleteField(entityType as EntityType);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newField, setNewField] = useState<FieldHolder | null>(null);
 
@@ -267,10 +301,26 @@ export function ExtraFieldsSettings() {
   const edit = (record: Partial<Field> & { key: React.Key }) => {
     const values = { ...record };
     console.log(values);
-    if (values.default_value) {
-      values.default_value = JSON.parse(values.default_value);
+    if (values.default_value && typeof values.default_value === "string") {
+      const def = JSON.parse(values.default_value);
+      if (Array.isArray(def)) {
+        if (values.field_type === FieldType.choice) {
+          values.default_value = def.join(", ");
+        } else if (values.field_type === FieldType.integer_range || values.field_type === FieldType.float_range) {
+          values.default_value = `${def[0]} - ${def[1]}`;
+        } else {
+          values.default_value = undefined;
+        }
+      } else if (values.field_type === FieldType.datetime) {
+        // Parse as dayjs
+        values.default_value = dayjs(def);
+      } else if (values.field_type === FieldType.boolean) {
+        values.default_value = def ? true : false;
+      } else if (values.field_type === FieldType.text) {
+        values.default_value = def;
+      }
     } else {
-      values.default_value = "";
+      values.default_value = undefined;
     }
     form.setFieldsValue(values);
     setEditingKey(record.key);
@@ -278,9 +328,45 @@ export function ExtraFieldsSettings() {
 
   const cancel = () => {
     setEditingKey("");
+    setNewField(null);
   };
 
-  const save = async (_key: React.Key) => {
+  const del = async (field: Field) => {
+    try {
+      await deleteField.mutateAsync(field.key);
+    } catch (errInfo) {
+      if (errInfo instanceof Error) {
+        messageApi.error(errInfo.message);
+      }
+    }
+  };
+
+  const addNewField = () => {
+    // Calculate new order by getting the highest order and adding 1
+    const newOrder = Math.max(...(fields.data?.map((field) => field.order) || []), 0) + 1;
+
+    const newFieldData: Field = {
+      key: "new_field",
+      name: "",
+      entity_type: entityType as EntityType,
+      field_type: FieldType.text,
+      unit: "",
+      order: newOrder,
+      default_value: "",
+      choices: [],
+      multi_choice: false,
+    };
+
+    setNewField({
+      key: "new_field",
+      field: newFieldData,
+      is_new: true,
+    });
+    form.setFieldsValue(newFieldData);
+    setEditingKey("new_field");
+  };
+
+  const save = async (record: FieldHolder) => {
     let row;
     try {
       row = (await form.validateFields()) as Field;
@@ -289,38 +375,52 @@ export function ExtraFieldsSettings() {
       return;
     }
 
+    const updatedField = {
+      ...record.field,
+      ...row,
+    };
+
     // Do some value conversions
     try {
       // Convert float and integer range to array using the validation regex
-      if (row.field_type === FieldType.float_range && typeof row.default_value === "string") {
+      if (updatedField.field_type === FieldType.float_range && typeof updatedField.default_value === "string") {
         const pattern = /^(-?\d+(?:[.,]\d+)?)\s*-\s*(-?\d+(?:[.,]\d+)?)$/;
-        const matches = row.default_value.match(pattern);
+        const matches = updatedField.default_value.match(pattern);
         if (matches) {
           const val1 = parseFloat(matches[1].replace(",", "."));
           const val2 = parseFloat(matches[2].replace(",", "."));
-          row.default_value = JSON.stringify([Math.min(val1, val2), Math.max(val1, val2)]);
+          updatedField.default_value = JSON.stringify([Math.min(val1, val2), Math.max(val1, val2)]);
         }
-      } else if (row.field_type === FieldType.integer_range && typeof row.default_value === "string") {
+      } else if (
+        updatedField.field_type === FieldType.integer_range &&
+        typeof updatedField.default_value === "string"
+      ) {
         const pattern = /^(-?\d+)\s*-\s*(-?\d+)$/;
-        const matches = row.default_value.match(pattern);
+        const matches = updatedField.default_value.match(pattern);
         if (matches) {
           const val1 = parseInt(matches[1]);
           const val2 = parseInt(matches[2]);
-          row.default_value = JSON.stringify([Math.min(val1, val2), Math.max(val1, val2)]);
+          updatedField.default_value = JSON.stringify([Math.min(val1, val2), Math.max(val1, val2)]);
         }
       } else {
         // Just stringify all other values
-        row.default_value = JSON.stringify(row.default_value);
+        updatedField.default_value = JSON.stringify(updatedField.default_value);
       }
 
       // Set multi_choice if it's not set and field_type is choice
-      if (row.field_type === FieldType.choice && row.multi_choice === undefined) {
-        row.multi_choice = false;
+      if (updatedField.field_type === FieldType.choice && updatedField.multi_choice === undefined) {
+        updatedField.multi_choice = false;
+      }
+
+      // If it's not choice, remove choices and multi_choice
+      if (updatedField.field_type !== FieldType.choice) {
+        updatedField.choices = undefined;
+        updatedField.multi_choice = undefined;
       }
 
       // If unit is an empty string, set it to null instead
-      if (row.unit === "") {
-        row.unit = undefined;
+      if (updatedField.unit === "") {
+        updatedField.unit = undefined;
       }
     } catch (errInfo) {
       if (errInfo instanceof Error) {
@@ -330,24 +430,26 @@ export function ExtraFieldsSettings() {
       return;
     }
 
-    // Validate that row.key is unique and not among the other keys
-    const keys = new Set(fields.data?.map((field) => field.key) || []);
-    if (keys.has(row.key)) {
-      messageApi.error(t("settings.extra_fields.non_unique_key_error"));
-      return;
+    // Validate that updatedField.key is unique and not among the other keys
+    if (record.is_new) {
+      const keys = new Set(fields.data?.map((field) => field.key) || []);
+      if (keys.has(updatedField.key)) {
+        messageApi.error(t("settings.extra_fields.non_unique_key_error"));
+        return;
+      }
     }
 
     // Submit it!
     try {
-      console.log(row);
+      console.log(updatedField);
 
       setIsSubmitting(true);
 
       setField.reset();
 
       await setField.mutateAsync({
-        key: row.key,
-        params: row,
+        key: updatedField.key,
+        params: updatedField,
       });
 
       setEditingKey("");
@@ -362,44 +464,45 @@ export function ExtraFieldsSettings() {
 
   const niceName = t(`${entityType}.${entityType}`);
 
-  const columns: ColumnProps[] = [
+  const columns: ColumnType<FieldHolder>[] = [
     {
       title: t("settings.extra_fields.params.key"),
       dataIndex: ["field", "key"],
       key: "key",
-      editable: false,
-      required: true,
+      width: "10%",
+    },
+    {
+      title: t("settings.extra_fields.params.order"),
+      dataIndex: ["field", "order"],
+      key: "order",
+      width: "3%",
     },
     {
       title: t("settings.extra_fields.params.name"),
       dataIndex: ["field", "name"],
-      editable: true,
-      required: true,
     },
     {
       title: t("settings.extra_fields.params.field_type"),
       dataIndex: ["field", "field_type"],
-      editable: false,
-      required: true,
       render(value) {
         return t(`settings.extra_fields.field_type.${value}`);
       },
+      width: "15%",
     },
     {
       title: t("settings.extra_fields.params.unit"),
       dataIndex: ["field", "unit"],
-      editable: true,
-      required: false,
+      width: "6%",
     },
     {
       title: t("settings.extra_fields.params.default_value"),
       dataIndex: ["field", "default_value"],
-      editable: true,
-      required: false,
       render(value, record) {
         const val = JSON.parse(value || "null");
         if (typeof val === "boolean") {
           return val ? t("settings.extra_fields.boolean_true") : t("settings.extra_fields.boolean_false");
+        } else if (typeof val === "string" && record.field.field_type === FieldType.datetime) {
+          return dayjs(val).format(dateTimeFormat);
         } else if (typeof val === "number" || typeof val === "string") {
           return val;
         } else if (Array.isArray(val) && record.field.field_type === FieldType.choice) {
@@ -413,12 +516,11 @@ export function ExtraFieldsSettings() {
           return null;
         }
       },
+      width: "15%",
     },
     {
       title: t("settings.extra_fields.params.choices"),
       dataIndex: ["field", "choices"],
-      editable: true,
-      required: false,
       render(value, record) {
         if (record.field.field_type === FieldType.choice && Array.isArray(value)) {
           return value.join(", ");
@@ -426,12 +528,11 @@ export function ExtraFieldsSettings() {
           return null;
         }
       },
+      width: "15%",
     },
     {
       title: t("settings.extra_fields.params.multi_choice"),
       dataIndex: ["field", "multi_choice"],
-      editable: false,
-      required: false,
       render(value, record) {
         if (record.field.field_type === FieldType.choice) {
           return value ? t("settings.extra_fields.boolean_true") : t("settings.extra_fields.boolean_false");
@@ -439,27 +540,45 @@ export function ExtraFieldsSettings() {
           return null;
         }
       },
+      width: "10%",
     },
     {
       title: "",
       dataIndex: "operation",
-      editable: false,
-      required: false,
       render: (_: unknown, record: FieldHolder) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <span>
-            <Typography.Link onClick={() => save(record.field.key)} style={{ marginRight: 8 }}>
-              Save
-            </Typography.Link>
-            <Typography.Link onClick={() => cancel()}>Cancel</Typography.Link>
-          </span>
+        const editing = isEditing(record);
+        return editing ? (
+          <Space>
+            <Button onClick={() => save(record)} size="small" type="primary">
+              {t("buttons.save")}
+            </Button>
+            <Button onClick={() => cancel()} size="small">
+              {t("buttons.cancel")}
+            </Button>
+          </Space>
         ) : (
-          <Typography.Link disabled={editingKey !== ""} onClick={() => edit(record.field)}>
-            Edit
-          </Typography.Link>
+          <>
+            <Space>
+              <Button disabled={editingKey !== ""} onClick={() => edit(record.field)} size="small">
+                {t("buttons.edit")}
+              </Button>
+              <Popconfirm
+                title={t("settings.extra_fields.delete_confirm", { name: record.field.name })}
+                description={t("settings.extra_fields.delete_confirm_description", { name: record.field.name })}
+                onConfirm={() => del(record.field)}
+                disabled={editingKey !== ""}
+                okText={t("buttons.delete")}
+                cancelText={t("buttons.cancel")}
+              >
+                <Button disabled={editingKey !== ""} danger size="small">
+                  {t("buttons.delete")}
+                </Button>
+              </Popconfirm>
+            </Space>
+          </>
         );
       },
+      width: "10%",
     },
   ];
 
@@ -482,11 +601,13 @@ export function ExtraFieldsSettings() {
   });
 
   const tableFields: FieldHolder[] = [
-    ...(fields.data || []).map((field) => ({
-      key: field.key,
-      field,
-      is_new: false,
-    })),
+    ...(fields.data || [])
+      .sort((a, b) => a.order - b.order)
+      .map((field) => ({
+        key: field.key,
+        field,
+        is_new: false,
+      })),
     ...(newField ? [newField] : []),
   ];
 
@@ -525,26 +646,7 @@ export function ExtraFieldsSettings() {
             style={{
               margin: "1em",
             }}
-            onClick={() => {
-              const newFieldData: Field = {
-                key: "new_field",
-                name: "",
-                entity_type: entityType as EntityType,
-                field_type: FieldType.text,
-                unit: "",
-                default_value: "",
-                choices: [],
-                multi_choice: false,
-              };
-
-              setNewField({
-                key: "new_field",
-                field: newFieldData,
-                is_new: true,
-              });
-              form.setFieldsValue(newFieldData);
-              setEditingKey("new_field");
-            }}
+            onClick={() => addNewField()}
           />
         </Flex>
       )}
