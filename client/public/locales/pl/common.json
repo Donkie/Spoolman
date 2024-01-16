@@ -277,7 +277,8 @@
             "filament": "Producenci filamentów. Mają takie właściwości, jak nazwa, materiał, kolor, średnica i inne.",
             "spool": "Indywidualne fizyczne szpule określonego filamentu."
         },
-        "help": "Pomoc"
+        "help": "Pomoc",
+        "description": ""
     },
     "kofi": "Daj napiwek na Ko-fi",
     "home": {

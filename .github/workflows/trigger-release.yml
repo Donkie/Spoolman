@@ -46,4 +46,5 @@ jobs:
         run: |
           latest_tag=$(git describe --tags --abbrev=0)
           echo "Pushing branch master and tag $latest_tag"
-          git push --atomic origin master $latest_tag
+          git push
+          git push origin $latest_tag

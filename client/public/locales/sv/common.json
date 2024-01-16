@@ -146,7 +146,8 @@
             "comment": "Kommentar",
             "archived": "Arkiverad",
             "measured_weight": "Uppmätt vikt",
-            "weight_to_use": "Vikt"
+            "weight_to_use": "Vikt",
+            "price": "Pris"
         },
         "fields_help": {
             "used_weight": "Hur mycket filament som använts på spolen. En ny spole har värdet 0g.",
@@ -154,7 +155,8 @@
             "lot_nr": "Tillverkarens batchnummer. Kan användas för att se till att en utskrift har jämn färg ifall flera spolar används.",
             "weight_to_use": "Välj vilken typ av vikt du vill fylla i. Uppmätt vikt är endast tillgänglig om det valda filamentet har en spolvikt satt.",
             "measured_weight": "Hur mycket filamentet och spolen väger tillsammans.",
-            "remaining_weight": "Hur mycket filament som finns kvar på spolen. För en ny spole så är detta det värdet som står på etiketten."
+            "remaining_weight": "Hur mycket filament som finns kvar på spolen. För en ny spole så är detta det värdet som står på etiketten.",
+            "price": "Pris för en hel rulle i det konfigurerade valutasystemet. Om det inte är inställt kommer priset för filamentet istället att antas."
         },
         "titles": {
             "create": "Skapa spole",
