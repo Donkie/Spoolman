@@ -73,7 +73,8 @@
             "comment": "Comentarios",
             "archived": "Archivado",
             "measured_weight": "Peso Medido",
-            "weight_to_use": "Peso"
+            "weight_to_use": "Peso",
+            "price": ""
         },
         "fields_help": {
             "used_weight": "Cuanto filamento ha sido usado en el carrete. Un carrete nuevo debería tener 0g usados.",
@@ -81,7 +82,8 @@
             "lot_nr": "Numero de lote de manufactura. Puede ser usado si el modelo a imprimir necesita color homogéneo y varios carretes son necesarios.",
             "weight_to_use": "Elegir el peso a usar. El peso medido solo esta disponible si existe el valor de peso del carrete seleccionado.",
             "measured_weight": "Cuanto pesa el filamento y el carrete.",
-            "remaining_weight": "Cuanto filamento resta en el carrete. Para un carrete nuevo el peso debe ser igual al peso indicado de fabrica."
+            "remaining_weight": "Cuanto filamento resta en el carrete. Para un carrete nuevo el peso debe ser igual al peso indicado de fabrica.",
+            "price": ""
         },
         "titles": {
             "create": "Crear Carrete",

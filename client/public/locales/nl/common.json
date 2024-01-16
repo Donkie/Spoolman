@@ -164,7 +164,8 @@
             "first_used": "Eerst gebruikt",
             "used_weight": "Gebruikt gewicht",
             "id": "ID",
-            "remaining_weight": "Overgebleven gewicht"
+            "remaining_weight": "Overgebleven gewicht",
+            "price": ""
         },
         "titles": {
             "archive": "Spoel archiveren",
@@ -181,7 +182,8 @@
             "measured_weight": "Hoeveel het filament en de spoel wegen.",
             "lot_nr": "Lotnummer van de fabrikant. Kan worden gebruikt om ervoor te zorgen dat een afdruk een consistente kleur heeft als er meerdere spoelen worden gebruikt.",
             "remaining_weight": "Hoeveel filament zit er nog op de spoel. Bij een nieuwe spoel zal dit overeenkomen met het spoelgewicht.",
-            "location": "Waar de spoel zich bevindt als je meerdere locaties hebt waar je jouw spoelen opslaat."
+            "location": "Waar de spoel zich bevindt als je meerdere locaties hebt waar je jouw spoelen opslaat.",
+            "price": ""
         },
         "spool": "Spoelen",
         "messages": {
@@ -274,7 +276,7 @@
             "filament": "Merken filament. Ze hebben eigenschappen zoals naam, materiaal, kleur, diameter en meer.",
             "spool": "Individuele fysieke spoelen van een specifiek filament."
         },
-        "description": "<title>Help</title><p>Hier zijn enkele tips om u op weg te helpen.</p><p>Spoolman bewaart 3 verschillende soorten gegevens:</p><itemsHelp/><p>Om een nieuwe toe te voegen spoolen naar de database, begin dan met het maken van een <filamentCreateLink>Filament</filamentCreateLink> object. Zodra dat is gebeurd, gaat u verder met het maken van een <spoolCreateLink>Spool</spoolCreateLink>-object voor die specifieke spool. Als u later extra spoelen van hetzelfde filament aanschaft, genereert u eenvoudigweg extra Spool-objecten en hergebruikt u hetzelfde Filament-object.</p><p>Optioneel kunt u ook een <vendorCreateLink>Vendor</vendorCreateLink>-object voor het bedrijf genereren als u die informatie wilt bijhouden.</p><p>U heeft de mogelijkheid om andere 3D-printerservices aan Spoolman te koppelen, zoals Moonraker, die automatisch het filamentgebruik kan monitoren en de Spool-objecten voor u kan bijwerken. Raadpleeg de <readmeLink>Spoolman README</readmeLink> voor richtlijnen over hoe u dat kunt instellen.</p>",
+        "description": "<title>Help</title><p>Hier zijn enkele tips om u op weg te helpen.</p><p>Spoolman bewaart 3 verschillende soorten gegevens:</p><itemsHelp/><p>Om een nieuwe toe spoel toe te voegen in de database, begin dan met het maken van een <filamentCreateLink>Filament</filamentCreateLink> object. Zodra dat is gebeurd, gaat u verder met het maken van een <spoolCreateLink>Spoel</spoolCreateLink>-object voor die specifieke spoel. Als u later extra spoelen van hetzelfde filament aanschaft, genereert u eenvoudigweg extra Spoel-objecten en hergebruikt u hetzelfde Filament-object.</p><p>Optioneel kunt u ook een <vendorCreateLink>Vendor</vendorCreateLink>-object voor het bedrijf genereren als u die informatie wilt bijhouden.</p><p>U heeft de mogelijkheid om andere 3D-printerservices aan Spoolman te koppelen, zoals Moonraker, die automatisch het filament gebruik kan monitoren en de Spoel-objecten voor u kan bijwerken. Raadpleeg de <readmeLink>Spoolman README</readmeLink> voor richtlijnen over hoe u dat kunt instellen.</p>",
         "help": "Help"
     },
     "kofi": "Tip mij op Ko-fi",

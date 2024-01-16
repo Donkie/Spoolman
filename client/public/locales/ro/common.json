@@ -12,7 +12,16 @@
         "import": "importa",
         "logout": "logout",
         "saveAndAdd": "salveazaSiAdauga",
-        "clear": "sterge"
+        "clear": "sterge",
+        "refresh": "actualizeaza",
+        "clone": "cloneaza",
+        "archive": "arhiveaza",
+        "unArchive": "dezarhiveaza",
+        "hideArchived": "ascunde arhivate",
+        "showArchived": "arata arhivate",
+        "notAccessTitle": "nu ai permisiune de acces",
+        "hideColumns": "ascunde coloane",
+        "clearFilters": "reseteaza filtre"
     },
     "actions": {
         "create": "creeaza",
@@ -20,5 +29,259 @@
         "list": "listeaza",
         "show": "arata",
         "edit": "editeaza"
+    },
+    "warnWhenUnsavedChanges": "Esti sigur? Modificarile ne-salvate vor fi pierdurte",
+    "notifications": {
+        "success": "succes",
+        "error": "eroare",
+        "undoable": "Ai inca {{seconds}} secunde sa corectezi",
+        "createSuccess": "{{resource}} creata cu succes",
+        "createError": "Eroare la crearea  {{resource}} (status code: {{statusCode}})",
+        "deleteSuccess": "{{resource}} stearsa cu succes",
+        "deleteError": "Eroare la stergerea  {{resource}} (status code: {{statusCode}})",
+        "editSuccess": "{{resource}} editata cu succes",
+        "editError": "eroare la editarea  {{resource}} (status code: {{statusCode}})",
+        "importProgress": "Importare: {{processed}}/{{total}}"
+    },
+    "kofi": "Doneaza pe Ko-fi",
+    "loading": "Incarca",
+    "version": "Versiunea",
+    "unknown": "Necunoscut",
+    "yes": "Da",
+    "no": "Nu",
+    "tags": {
+        "clone": "Cloneaza"
+    },
+    "printing": {
+        "generic": {
+            "verticalSpacing": "",
+            "borders": {
+                "grid": "",
+                "none": "",
+                "border": ""
+            },
+            "previewScale": "",
+            "contentSettings": "",
+            "helpMargin": "",
+            "description": "",
+            "marginRight": "",
+            "rows": "",
+            "marginBottom": "",
+            "marginTop": "",
+            "print": "",
+            "printerMarginRight": "",
+            "columns": "",
+            "helpPrinterMargin": "",
+            "layoutSettings": "",
+            "dimensions": "",
+            "skipItems": "",
+            "paperSize": "",
+            "printerMarginTop": "",
+            "horizontalSpacing": "",
+            "customSize": "",
+            "marginLeft": "",
+            "printerMarginLeft": "",
+            "showBorder": "",
+            "printerMarginBottom": "",
+            "title": ""
+        },
+        "spoolSelect": {
+            "showArchived": "",
+            "title": "",
+            "description": "",
+            "selectedTotal_one": "",
+            "selectedTotal_few": "",
+            "selectedTotal_other": "",
+            "selectAll": "",
+            "noSpoolsSelected": ""
+        },
+        "qrcode": {
+            "bedTemp": "",
+            "title": "",
+            "button": "",
+            "showTemperatures": "",
+            "spoolWeight": "",
+            "showFilamentComment": "",
+            "showLotNr": "",
+            "showContent": "",
+            "showSpoolWeight": "",
+            "textSize": "",
+            "showVendorComment": "",
+            "showSpoolmanIcon": "",
+            "showSpoolComment": "",
+            "extruderTemp": "",
+            "showVendor": "",
+            "lotNr": ""
+        }
+    },
+    "documentTitle": {
+        "vendor": {
+            "show": "",
+            "list": "",
+            "edit": "",
+            "create": "",
+            "clone": ""
+        },
+        "spool": {
+            "create": "",
+            "clone": "",
+            "list": "",
+            "edit": "",
+            "show": ""
+        },
+        "filament": {
+            "show": "",
+            "list": "",
+            "clone": "",
+            "edit": "",
+            "create": ""
+        },
+        "home": {
+            "list": ""
+        },
+        "suffix": "",
+        "default": "",
+        "help": {
+            "list": ""
+        }
+    },
+    "help": {
+        "description": "",
+        "resources": {
+            "spool": "",
+            "filament": "",
+            "vendor": ""
+        },
+        "help": ""
+    },
+    "spool": {
+        "fields": {
+            "weight_to_use": "",
+            "registered": "",
+            "used_weight": "",
+            "first_used": "",
+            "location": "",
+            "material": "",
+            "last_used": "",
+            "archived": "",
+            "price": "",
+            "used_length": "",
+            "measured_weight": "",
+            "lot_nr": "",
+            "comment": "",
+            "id": "",
+            "filament": "",
+            "filament_name": "",
+            "remaining_length": "",
+            "remaining_weight": ""
+        },
+        "fields_help": {
+            "location": "",
+            "weight_to_use": "",
+            "used_weight": "",
+            "price": "",
+            "lot_nr": "",
+            "remaining_weight": "",
+            "measured_weight": ""
+        },
+        "titles": {
+            "list": "",
+            "archive": "",
+            "show_title": "",
+            "create": "",
+            "show": "",
+            "edit": "",
+            "clone": ""
+        },
+        "messages": {
+            "archive": ""
+        },
+        "form": {
+            "spool_updated": "",
+            "new_location_prompt": ""
+        },
+        "spool": ""
+    },
+    "filament": {
+        "fields": {
+            "registered": "",
+            "article_number": "",
+            "id": "",
+            "vendor": "",
+            "settings_bed_temp": "",
+            "material": "",
+            "price": "",
+            "name": "",
+            "color_hex": "",
+            "settings_extruder_temp": "",
+            "vendor_name": "",
+            "diameter": "",
+            "density": "",
+            "weight": "",
+            "spools": "",
+            "comment": "",
+            "spool_weight": ""
+        },
+        "fields_help": {
+            "price": "",
+            "material": "",
+            "name": "",
+            "spool_weight": "",
+            "article_number": "",
+            "weight": ""
+        },
+        "titles": {
+            "edit": "",
+            "show_title": "",
+            "create": "",
+            "show": "",
+            "list": "",
+            "clone": ""
+        },
+        "form": {
+            "filament_updated": ""
+        },
+        "filament": ""
+    },
+    "vendor": {
+        "vendor": "",
+        "fields": {
+            "registered": "",
+            "comment": "",
+            "name": "",
+            "id": ""
+        },
+        "titles": {
+            "clone": "",
+            "show": "",
+            "list": "",
+            "create": "",
+            "show_title": "",
+            "edit": ""
+        },
+        "form": {
+            "vendor_updated": ""
+        }
+    },
+    "dashboard": {
+        "title": ""
+    },
+    "home": {
+        "home": ""
+    },
+    "scanner": {
+        "error": {
+            "notFound": "",
+            "unknown": "",
+            "notAllowed": "",
+            "streamApiNotSupported": "",
+            "insecureContext": "",
+            "notReadable": ""
+        },
+        "title": "",
+        "description": ""
+    },
+    "table": {
+        "actions": ""
     }
 }

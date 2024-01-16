@@ -147,7 +147,8 @@
             "last_used": "Naposledy použitá",
             "registered": "Registrováno",
             "comment": "Komentář",
-            "archived": "Archivováno"
+            "archived": "Archivováno",
+            "price": ""
         },
         "fields_help": {
             "weight_to_use": "Vyberte, jakou hodnotu hmotnosti chcete zadat. Naměřená hmotnost je k dispozici pouze v případě, že je pro vybraný filament nastavena hmotnost cívky.",
@@ -155,7 +156,8 @@
             "remaining_weight": "Kolik filamentu zbývá na cívce. U nové cívky by to mělo odpovídat hmotnosti filamentu na cívce.",
             "measured_weight": "Jaká je hmotnost filamentu a cívky.",
             "location": "Kde se cívka nachází, pokud máte více míst, kde cívky skladujete.",
-            "lot_nr": "Číslo šarže výrobce. Lze použít k zajištění jednotné barvy tisku v případě použití více cívek."
+            "lot_nr": "Číslo šarže výrobce. Lze použít k zajištění jednotné barvy tisku v případě použití více cívek.",
+            "price": ""
         },
         "titles": {
             "create": "Vytvořit cívku",

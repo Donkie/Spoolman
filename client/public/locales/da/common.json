@@ -109,7 +109,8 @@
             "first_used": "Først brugt",
             "used_weight": "Brugt vægt",
             "id": "ID",
-            "remaining_weight": "Resterende vægt"
+            "remaining_weight": "Resterende vægt",
+            "price": ""
         },
         "titles": {
             "archive": "Arkivér spole",
@@ -130,7 +131,8 @@
             "measured_weight": "Hvor meget filament OG spole vejer.",
             "lot_nr": "Producentens \"batchnummer\". Kan bruges til at sikre ensartede farver ved brug af flere ruller.",
             "remaining_weight": "Hvor meget filament er der tilbage på spolen. For en ny spole bør dette matches spolens vægt.",
-            "location": "Placering af spolen. Hvis du har flere lokationer."
+            "location": "Placering af spolen. Hvis du har flere lokationer.",
+            "price": ""
         },
         "spool": "Spoler",
         "messages": {

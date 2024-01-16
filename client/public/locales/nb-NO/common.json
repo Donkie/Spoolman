@@ -145,7 +145,8 @@
             "lot_nr": "Batch Nr",
             "filament_name": "Filament",
             "filament": "Filament",
-            "location": "Lokasjon"
+            "location": "Lokasjon",
+            "price": ""
         },
         "titles": {
             "archive": "Arkiver spole",
@@ -166,7 +167,8 @@
             "measured_weight": "Hvor mye veier filament og spole.",
             "lot_nr": "Produsentens batch nummer. Kan bli benyttet or å verifiserer at print har en konsistent farge dersom flere spoler benyttes.",
             "remaining_weight": "Hvor mye filament gjenstår på spolen. Ved en ny spole burde dette stemme med spolevekt.",
-            "location": "Hvor spolen er plassert hvis du har flere lokasjoner hvor du oppbevarer spoler."
+            "location": "Hvor spolen er plassert hvis du har flere lokasjoner hvor du oppbevarer spoler.",
+            "price": ""
         },
         "form": {
             "new_location_prompt": "Skriv inn en ny lokasjon",
@@ -253,6 +255,12 @@
             "clone": "#{{id}} Kopier Filament | Spoolman",
             "create": "Opprett Filament | Spoolman",
             "edit": "#{{id}} Endre Filament | Spoolman"
+        },
+        "home": {
+            "list": ""
+        },
+        "help": {
+            "list": ""
         }
     },
     "table": {
@@ -261,5 +269,18 @@
     "warnWhenUnsavedChanges": "Er du sikker på at du vil forlate? Du har ulagrede endringer.",
     "dashboard": {
         "title": "Oversikt"
+    },
+    "kofi": "",
+    "home": {
+        "home": ""
+    },
+    "help": {
+        "help": "",
+        "resources": {
+            "filament": "",
+            "spool": "",
+            "vendor": ""
+        },
+        "description": ""
     }
 }
