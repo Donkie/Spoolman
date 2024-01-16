@@ -1,0 +1,285 @@
+{
+    "actions": {
+        "create": "Criar",
+        "show": "Mostrar",
+        "clone": "Clonar",
+        "list": "Listar",
+        "edit": "Editar"
+    },
+    "buttons": {
+        "save": "Salvar",
+        "logout": "Sair",
+        "delete": "Excluir",
+        "edit": "Editar",
+        "cancel": "Cancelar",
+        "confirm": "Tem certeza?",
+        "filter": "Filtrar",
+        "clear": "Limpar",
+        "refresh": "Atualizar",
+        "show": "Mostrar",
+        "undo": "Desfazer",
+        "import": "Importar",
+        "clone": "Clonar",
+        "archive": "Arquivar",
+        "unArchive": "Desarquivar",
+        "hideArchived": "Ocultar arquivados",
+        "showArchived": "Mostrar arquivado",
+        "notAccessTitle": "Você não tem permissão para acessar",
+        "hideColumns": "Ocultar colunas",
+        "clearFilters": "Limpar filtros",
+        "create": "Criar",
+        "saveAndAdd": "Salvar e adicionar"
+    },
+    "warnWhenUnsavedChanges": "Você tem certeza de que quer sair? Você tem alterações não salvas.",
+    "notifications": {
+        "success": "Sucesso",
+        "error": "Erro (código de status: {{statusCode}})",
+        "undoable": "Você tem {{seconds}} segundos para desfazer.",
+        "createSuccess": "{{resource}} criado com sucesso",
+        "createError": "Ocorreu um erro ao criar {{resource}} (código de status: {{statusCode}})",
+        "deleteSuccess": "{{resource}} excluído com sucesso",
+        "deleteError": "Erro ao excluir {{resource}} (código de status: {{statusCode}})",
+        "editSuccess": "{{resource}} editado com sucesso",
+        "editError": "Erro ao editar {{resource}} (código de status: {{statusCode}})",
+        "importProgress": "Importando: {{processed}}/{{total}}"
+    },
+    "kofi": "Doe no Ko-fi",
+    "loading": "Carregando",
+    "version": "Versão",
+    "unknown": "Desconhecido",
+    "yes": "Sim",
+    "tags": {
+        "clone": "Clonar"
+    },
+    "dashboard": {
+        "title": "Dashboard"
+    },
+    "printing": {
+        "generic": {
+            "title": "Imprimindo",
+            "helpMargin": "As margens devem ser configuradas para corresponder ao papel de etiqueta e à impressora. Alterá-las afetará o tamanho de toda a grade.",
+            "helpPrinterMargin": "A zona segura deve ser definida para o quão próximo da borda do papel sua impressora pode imprimir, alterá-la não afetará toda a grade.",
+            "previewScale": "Visualizar escala",
+            "skipItems": "Pular itens",
+            "horizontalSpacing": "Espaçamento horizontal",
+            "marginRight": "Margem direita",
+            "marginTop": "Margem superior",
+            "description": "Ajuste as configurações abaixo para o layout de impressão desejado. Tenha em mente que as impressoras e o seu SO podem aplicar suas próprias margens e dimensionamento, portanto, pode ser necessário realizar algumas tentativas e erros antes que tudo esteja correto. Teste em um pedaço de papel comum antes de imprimir nas etiquetas reais.",
+            "print": "Imprimir",
+            "columns": "Colunas",
+            "dimensions": "Dimensões",
+            "contentSettings": "Configurações de conteúdo",
+            "layoutSettings": "Configurações de layout",
+            "rows": "Linhas",
+            "paperSize": "Tamanho do papel",
+            "customSize": "Personalizado",
+            "showBorder": "Mostrar borda",
+            "verticalSpacing": "Espaçamento vertical",
+            "marginLeft": "Margem esquerda",
+            "marginBottom": "Margem inferior",
+            "printerMarginBottom": "Zona segura inferior",
+            "printerMarginLeft": "Zona segura esquerda",
+            "printerMarginRight": "Zona segura direita",
+            "borders": {
+                "none": "Nenhuma",
+                "border": "Borda",
+                "grid": "Grade"
+            },
+            "printerMarginTop": "Zona segura superior"
+        },
+        "spoolSelect": {
+            "selectedTotal_one": "{{count}} carretel selecionado",
+            "selectedTotal_many": "{{count}} carretéis selecionados",
+            "selectedTotal_other": "{{count}} carretéis selecionados",
+            "noSpoolsSelected": "Você não selecionou nenhum carretel.",
+            "title": "Selecionar carretéis",
+            "description": "Selecione carretéis para imprimir códigos QR.",
+            "showArchived": "Mostrar arquivado",
+            "selectAll": "Selecionar/desmarcar tudo"
+        },
+        "qrcode": {
+            "title": "Imprimindo códigos QR",
+            "button": "Imprimir códigos QR",
+            "spoolWeight": "Peso do carretel: {{weight}}",
+            "lotNr": "Número do lote: {{lot}}",
+            "bedTemp": "Temperatura da mesa: {{temp}}",
+            "extruderTemp": "Temperatura do bico: {{temp}}",
+            "textSize": "Tamanho do texto do conteúdo",
+            "showSpoolmanIcon": "Mostrar ícone do Spoolman",
+            "showVendor": "Fornecedor",
+            "showContent": "Etiqueta de impressão",
+            "showLotNr": "Número do lote",
+            "showSpoolWeight": "Peso do carretel",
+            "showTemperatures": "Temperaturas",
+            "showSpoolComment": "Comentário do carretel",
+            "showFilamentComment": "Comentário de filamento",
+            "showVendorComment": "Comentário do fornecedor"
+        }
+    },
+    "spool": {
+        "fields": {
+            "material": "Material",
+            "weight_to_use": "Peso",
+            "used_weight": "Peso usado",
+            "remaining_weight": "Peso restante",
+            "measured_weight": "Peso medido",
+            "used_length": "Comprimento usado",
+            "remaining_length": "Comprimento restante",
+            "location": "Localização",
+            "lot_nr": "Número do lote",
+            "first_used": "Usado pela primeira vez",
+            "last_used": "Usado por último",
+            "registered": "Registrado",
+            "comment": "Comentário",
+            "archived": "Arquivado",
+            "id": "ID",
+            "filament_name": "Filamento",
+            "filament": "Filamento"
+        },
+        "fields_help": {
+            "weight_to_use": "Selecione qual valor de peso inserir. O peso medido só estará disponível se o peso do carretel estiver definido para o filamento selecionado.",
+            "lot_nr": "Número de lote do fabricante. Pode ser usado para garantir que uma impressão tenha cores consistentes se vários carretéis forem usados.",
+            "used_weight": "Quanto filamento foi usado no carretel. Um novo carretel deve ter 0g usado.",
+            "remaining_weight": "Quanto filamento resta no carretel. Para um carretel novo, isso deve corresponder ao peso do carretel.",
+            "measured_weight": "Quanto pesa o filamento e o carretel.",
+            "location": "Onde o carretel está localizado se você tiver vários locais onde armazena seus carretéis."
+        },
+        "titles": {
+            "create": "Criar carretel",
+            "clone": "Clonar carretel",
+            "edit": "Editar carretel",
+            "list": "Carretéis",
+            "show": "Mostrar carretel",
+            "show_title": "[Carretel #{{id}}] {{name}}",
+            "archive": "Arquivar carretel"
+        },
+        "form": {
+            "new_location_prompt": "Insira um novo local",
+            "spool_updated": "Este spool foi atualizado por alguém/alguma coisa desde que você abriu esta página. Salvar substituirá essas alterações!"
+        },
+        "messages": {
+            "archive": "Tem certeza de que deseja arquivar este carretel?"
+        },
+        "spool": "Carretéis"
+    },
+    "filament": {
+        "filament": "Filamentos",
+        "fields": {
+            "id": "ID",
+            "vendor_name": "Fornecedor",
+            "name": "Nome",
+            "price": "Preço",
+            "diameter": "Diâmetro",
+            "weight": "Peso",
+            "spool_weight": "Peso do carretel",
+            "article_number": "Número do artigo",
+            "registered": "Registrado",
+            "vendor": "Fornecedor",
+            "material": "Material",
+            "density": "Densidade",
+            "comment": "Comentário",
+            "settings_extruder_temp": "Temperatura do bico",
+            "settings_bed_temp": "Temperatura da mesa",
+            "color_hex": "Cor",
+            "spools": "Mostrar carretéis"
+        },
+        "fields_help": {
+            "article_number": "Por exemplo EAN, UPC, etc.",
+            "price": "Preço de um spool completo na moeda configurada pelo sistema.",
+            "name": "Nome do filamento, para distinguir este tipo de filamento entre outros do mesmo fornecedor. Deve conter a cor, por exemplo.",
+            "material": "Por exemplo PLA, ABS, PETG, etc.",
+            "weight": "O peso do filamento de uma carretel cheio (peso líquido). Isso não deve incluir o peso do carretel em si, apenas o filamento. É o que normalmente está escrito na embalagem.",
+            "spool_weight": "O peso de um carretel vazio. Usado para determinar o peso medido de um carretel."
+        },
+        "titles": {
+            "create": "Criar filamento",
+            "clone": "Clonar filamento",
+            "edit": "Editar filamento",
+            "list": "Filamentos",
+            "show": "Mostrar filamento",
+            "show_title": "[Filamento #{{id}}] {{name}}"
+        },
+        "form": {
+            "filament_updated": "Este filamento foi atualizado por alguém/alguma coisa desde que você abriu esta página. Salvar substituirá essas alterações!"
+        }
+    },
+    "vendor": {
+        "vendor": "Fornecedores",
+        "fields": {
+            "id": "ID",
+            "name": "Nome",
+            "registered": "Registrado",
+            "comment": "Comentário"
+        },
+        "titles": {
+            "create": "Criar fornecedor",
+            "clone": "Clonar fornecedor",
+            "edit": "Editar fornecedor",
+            "list": "Fornecedores",
+            "show": "Mostrar fornecedor",
+            "show_title": "[Fornecedor nº{{id}}] {{name}}"
+        },
+        "form": {
+            "vendor_updated": "Este fornecedor foi atualizado por alguém/alguma coisa desde que você abriu esta página. Salvar substituirá essas alterações!"
+        }
+    },
+    "home": {
+        "home": "Home"
+    },
+    "help": {
+        "help": "Ajuda",
+        "resources": {
+            "filament": "Marcas de filamento. Eles têm propriedades como nome, material, cor, diâmetro e muito mais.",
+            "spool": "Carretéis físicos individuais de um filamento específico.",
+            "vendor": "As empresas que fabricam o filamento."
+        },
+        "description": "<title>Ajuda</title><p>Aqui estão algumas dicas para você começar.</p><p>O Spoolman contém três tipos diferentes de dados:</p><itemsHelp/><p>Para adicionar um novo carretel para o banco de dados, comece criando um objeto <filamentCreateLink>Filamento</filamentCreateLink>. Feito isso, prossiga para criar um objeto <spoolCreateLink>Carretel </spoolCreateLink> para esse carretel específico. Se você adquirir carretéis adicionais do mesmo filamento posteriormente, simplesmente gere objetos Spool adicionais e reutilize o mesmo objeto filamento.</p><p>Opcionalmente, você também pode gerar um objeto <vendorCreateLink>Fornecedor</vendorCreateLink> para a empresa fabricar o filamento se desejar rastrear essas informações.</p><p>Você tem a opção de vincular outros serviços de impressora 3D ao Spoolman, como o Moonraker, que pode monitorar automaticamente o uso do filamento e atualizar os objetos carretel para você. Consulte o <readmeLink>README do Spoolman</readmeLink> para obter orientação sobre como configurar isso.</p>"
+    },
+    "documentTitle": {
+        "suffix": " | Spoolman",
+        "home": {
+            "list": "Home | Spoolman"
+        },
+        "help": {
+            "list": "Ajuda | Spoolman"
+        },
+        "filament": {
+            "list": "Filamentos | Spoolman",
+            "show": "#{{id}} Mostrar filamento | Spoolman",
+            "edit": "#{{id}} Editar filamento | Spoolman",
+            "create": "Criar filamento | Spoolman",
+            "clone": "#{{id}} Clonar filamento | Spoolman"
+        },
+        "spool": {
+            "list": "Carretéis | Spoolman",
+            "show": "#{{id}} Mostrar carretel | Spoolman",
+            "edit": "#{{id}} Editar carretel | Spoolman",
+            "create": "Criar carretel | Spoolman",
+            "clone": "#{{id}} Clonar carretel | Spoolman"
+        },
+        "vendor": {
+            "show": "#{{id}} Mostrar fornecedor | Spoolman",
+            "list": "Fornecedores | Spoolman",
+            "create": "Criar fornecedor | Spoolman",
+            "edit": "#{{id}} Editar fornecedor | Spoolman",
+            "clone": "#{{id}} Clonar fornecedor | Spoolman"
+        },
+        "default": "Spoolman"
+    },
+    "no": "Não",
+    "scanner": {
+        "title": "Leitor de código QR",
+        "description": "Digitalize um código QR do Spoolman para ver detalhes sobre o carretel.",
+        "error": {
+            "notAllowed": "Você não permitiu acesso à câmera.",
+            "insecureContext": "A página não é veiculada por HTTPS.",
+            "streamApiNotSupported": "O navegador não oferece suporte à API MediaStream.",
+            "unknown": "Ocorreu um erro desconhecido. ({{error}})",
+            "notReadable": "A câmera não é legível.",
+            "notFound": "Nenhuma câmera foi encontrada."
+        }
+    },
+    "table": {
+        "actions": "Ações"
+    }
+}
