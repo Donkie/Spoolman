@@ -150,7 +150,7 @@
         },
         "fields_help": {
             "weight_to_use": "Auswählen welches Gewicht verwendet werden soll. \"Gemessenes Gewicht\" ist nur verfügbar, wenn das Gewicht der Spule für das Filament hinterlegt ist.",
-            "used_weight": "Wie viel Gewicht bereits verbraucht wurdez z.B. 0g für eine neue Spule.",
+            "used_weight": "Wie viel Gewicht bereits verbraucht wurde z.B. 0g für eine neue Spule.",
             "remaining_weight": "Wie viel Filament noch auf der Spule ist. Entspricht dem auf der Spule angegeben Nettogewicht, wenn die Spule neu ist.",
             "measured_weight": "Gesamtgewicht von Spule und Filament.",
             "location": "Ort, an dem die Spule gelagert wird.",
@@ -274,7 +274,7 @@
             "filament": "Filamentmarken. Diese haben Eigenschaften wie Name, Material, Farbe, Durchmesser und mehr.",
             "spool": "Einzelne, physische Spulen eines bestimmten Filaments."
         },
-        "description": "<title>Hilfe</title><p>Hier sind einige Tips für den Start.</p><p>Spoolman hält 3 verschiedene Datentypen:</p><itemsHelp/><p>um eine neue Spule zur Datenbank hinzuzufügen, beginne mit der Erstellung eines <filamentCreateLink>Filamentobjekts</filamentCreateLink>. Anschließend erstelle ein <spoolCreateLink>Spulenobjekt</spoolCreateLink> für genau diese Spule. Wenn später weitere Spulen desselben Filaments dazukommen, erstelle einfach ein weiteres Spulenobjekt and verwende das gleiche Filamentobjekt.</p><p>Optional kann auch ein <vendorCreateLink>Herstellerobjekt</vendorCreateLink>für die Firma erstellt werden, die dies Filament hergestellt hat, falls auch diese Informationen nachgehalten werden sollen.</p><p>Es besteht die Möglichkeit verschiedene 3D-Druckdienste, wie Moonraker, an Spoolman anzubinden, welche anschließend automatisch den Filamentverbrauch nachverfolgen und das Spulenobjekt aktualisieren können. Weitere Hilfe wie dies eingerichtet wird findet sich in der <readmeLink>Spoolman README</readmeLink> .</p>",
+        "description": "<title>Hilfe</title><p>Hier sind einige Tipps für den Start.</p><p>Spoolman hält 3 verschiedene Datentypen: </p><itemsHelp/><p>Um eine neue Spule zur Datenbank hinzuzufügen, beginne mit der Erstellung eines <filamentCreateLink>Filamentobjekts</filamentCreateLink>. Anschließend erstelle ein <spoolCreateLink>Spulenobjekt</spoolCreateLink> für genau diese Spule. Wenn später weitere Spulen desselben Filaments dazukommen, erstelle einfach ein weiteres Spulenobjekt und verwende das gleiche Filamentobjekt.</p><p>Optional kann auch ein <vendorCreateLink>Herstellerobjekt</vendorCreateLink> für die Firma erstellt werden, die dieses Filament hergestellt hat, falls auch diese Informationen gespeichert werden sollen.</p><p>Es besteht die Möglichkeit verschiedene 3D-Druckdienste, wie Moonraker, an Spoolman anzubinden, welche anschließend automatisch den Filamentverbrauch nachverfolgen und das Spulenobjekt aktualisieren können. Weitere Hilfe, wie dies eingerichtet wird, findet sich in der <readmeLink>Spoolman README</readmeLink>.</p>",
         "help": "Hilfe"
     },
     "kofi": "Schick mir ein Trinkgeld über Ko-fi",
