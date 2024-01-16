@@ -164,7 +164,8 @@
             "first_used": "Eerst gebruikt",
             "used_weight": "Gebruikt gewicht",
             "id": "ID",
-            "remaining_weight": "Overgebleven gewicht"
+            "remaining_weight": "Overgebleven gewicht",
+            "price": ""
         },
         "titles": {
             "archive": "Spoel archiveren",
@@ -181,7 +182,8 @@
             "measured_weight": "Hoeveel het filament en de spoel wegen.",
             "lot_nr": "Lotnummer van de fabrikant. Kan worden gebruikt om ervoor te zorgen dat een afdruk een consistente kleur heeft als er meerdere spoelen worden gebruikt.",
             "remaining_weight": "Hoeveel filament zit er nog op de spoel. Bij een nieuwe spoel zal dit overeenkomen met het spoelgewicht.",
-            "location": "Waar de spoel zich bevindt als je meerdere locaties hebt waar je jouw spoelen opslaat."
+            "location": "Waar de spoel zich bevindt als je meerdere locaties hebt waar je jouw spoelen opslaat.",
+            "price": ""
         },
         "spool": "Spoelen",
         "messages": {

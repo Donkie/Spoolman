@@ -146,7 +146,8 @@
             "last_used": "Letzte Verwendung",
             "registered": "Registriert",
             "comment": "Kommentar",
-            "archived": "Archiviert"
+            "archived": "Archiviert",
+            "price": ""
         },
         "fields_help": {
             "weight_to_use": "Auswählen welches Gewicht verwendet werden soll. \"Gemessenes Gewicht\" ist nur verfügbar, wenn das Gewicht der Spule für das Filament hinterlegt ist.",
@@ -154,7 +155,8 @@
             "remaining_weight": "Wie viel Filament noch auf der Spule ist. Entspricht dem auf der Spule angegeben Nettogewicht, wenn die Spule neu ist.",
             "measured_weight": "Gesamtgewicht von Spule und Filament.",
             "location": "Ort, an dem die Spule gelagert wird.",
-            "lot_nr": "Chargennummer des Herstellers. Kann verwendet werden um gleichmäßige Farben zu garantieren, wenn mehrere Spulen verwendet werden."
+            "lot_nr": "Chargennummer des Herstellers. Kann verwendet werden um gleichmäßige Farben zu garantieren, wenn mehrere Spulen verwendet werden.",
+            "price": ""
         },
         "titles": {
             "create": "Spule erstellen",

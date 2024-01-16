@@ -83,7 +83,13 @@
             "create": "Filament létrehozása | Spoolman",
             "edit": "#{{id}} Filament szerkesztése | Spoolman"
         },
-        "suffix": " | Spoolman"
+        "suffix": " | Spoolman",
+        "home": {
+            "list": ""
+        },
+        "help": {
+            "list": ""
+        }
     },
     "spool": {
         "fields": {
@@ -103,7 +109,8 @@
             "first_used": "Első használat",
             "used_weight": "Felhasznált súly",
             "id": "ID",
-            "remaining_weight": "Hátralévő súly"
+            "remaining_weight": "Hátralévő súly",
+            "price": ""
         },
         "titles": {
             "archive": "Arhivált tekercs",
@@ -120,7 +127,8 @@
             "measured_weight": "Mennyit nyom a filament és a tekercs együtt.",
             "lot_nr": "Gyártói tételszám. A szín egységesség ellenőrzésére használható, ha több tekercset használsz egy nyomtatáshoz.",
             "remaining_weight": "Mennyi filament van még a tekercsen. Egy új tekercsnél ez a tekercs súlyával kell megegyeznie.",
-            "location": "Hol található a tekercs, ha több helyen tárolod a tekercseidet."
+            "location": "Hol található a tekercs, ha több helyen tárolod a tekercseidet.",
+            "price": ""
         },
         "form": {
             "new_location_prompt": "Add meg az új helyet",
@@ -261,5 +269,17 @@
     },
     "tags": {
         "clone": "Másolás"
+    },
+    "kofi": "",
+    "home": {
+        "home": ""
+    },
+    "help": {
+        "resources": {
+            "spool": "",
+            "vendor": "",
+            "filament": ""
+        },
+        "help": ""
     }
 }

@@ -145,7 +145,8 @@
             "last_used": "最后使用",
             "registered": "登记时间",
             "comment": "备注",
-            "archived": "存档"
+            "archived": "存档",
+            "price": ""
         },
         "fields_help": {
             "weight_to_use": "请选择要输入的重量值。净重只在所选的耗材设置了料盘重量时可用。",
@@ -153,7 +154,8 @@
             "remaining_weight": "料盘上剩余多少耗材。对于新的料盘，这个值应该与料盘重量相匹配。",
             "measured_weight": "耗材和料盘的重量分别是多少。",
             "location": "如果您有多个存放料盘的地方，请填写料盘所在的位置。",
-            "lot_nr": "制造商的批号。如果使用多个料盘可以使用批号进行控制，以确保打印颜色一致。"
+            "lot_nr": "制造商的批号。如果使用多个料盘可以使用批号进行控制，以确保打印颜色一致。",
+            "price": ""
         },
         "titles": {
             "create": "创建料盘",
@@ -259,6 +261,24 @@
             "edit": "#{{id}} 编辑供应商 | Spoolman",
             "create": "创建供应商 | Spoolman",
             "clone": "#{{id}} 克隆供应商 | Spoolman"
+        },
+        "home": {
+            "list": ""
+        },
+        "help": {
+            "list": ""
+        }
+    },
+    "kofi": "",
+    "home": {
+        "home": ""
+    },
+    "help": {
+        "help": "",
+        "resources": {
+            "filament": "",
+            "vendor": "",
+            "spool": ""
         }
     }
 }

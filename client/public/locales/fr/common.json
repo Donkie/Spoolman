@@ -110,7 +110,8 @@
             "first_used": "Première utilisation",
             "used_weight": "Poids utilisé",
             "id": "ID",
-            "remaining_weight": "Poids restant"
+            "remaining_weight": "Poids restant",
+            "price": ""
         },
         "titles": {
             "archive": "Archiver la bobine",
@@ -127,7 +128,8 @@
             "measured_weight": "Le poids du filament et de la bobine.",
             "lot_nr": "Numéro de lot du fabricant. Peut être utilisé pour s'assurer que la couleur d'une impression est homogène si plusieurs bobines sont utilisées.",
             "remaining_weight": "La quantité de filament restant sur la bobine. Pour une nouvelle bobine, cela devrait correspondre au poids de la bobine.",
-            "location": "L'emplacement de la bobine si vous stockez vos bobines à plusieurs endroits."
+            "location": "L'emplacement de la bobine si vous stockez vos bobines à plusieurs endroits.",
+            "price": ""
         },
         "spool": "Bobines",
         "messages": {
