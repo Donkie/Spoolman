@@ -3,6 +3,7 @@
 import math
 import os
 import time
+from collections.abc import Iterable
 from contextlib import contextmanager
 from enum import StrEnum
 from typing import Any
