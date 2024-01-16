@@ -12,7 +12,16 @@
         "import": "importa",
         "logout": "logout",
         "saveAndAdd": "salveazaSiAdauga",
-        "clear": "sterge"
+        "clear": "sterge",
+        "refresh": "actualizeaza",
+        "clone": "cloneaza",
+        "archive": "arhiveaza",
+        "unArchive": "dezarhiveaza",
+        "hideArchived": "ascunde arhivate",
+        "showArchived": "arata arhivate",
+        "notAccessTitle": "nu ai permisiune de acces",
+        "hideColumns": "ascunde coloane",
+        "clearFilters": "reseteaza filtre"
     },
     "actions": {
         "create": "creeaza",
@@ -20,5 +29,27 @@
         "list": "listeaza",
         "show": "arata",
         "edit": "editeaza"
+    },
+    "warnWhenUnsavedChanges": "Esti sigur? Modificarile ne-salvate vor fi pierdurte",
+    "notifications": {
+        "success": "succes",
+        "error": "eroare",
+        "undoable": "Ai inca {{seconds}} secunde sa corectezi",
+        "createSuccess": "{{resource}} creata cu succes",
+        "createError": "Eroare la crearea  {{resource}} (status code: {{statusCode}})",
+        "deleteSuccess": "{{resource}} stearsa cu succes",
+        "deleteError": "Eroare la stergerea  {{resource}} (status code: {{statusCode}})",
+        "editSuccess": "{{resource}} editata cu succes",
+        "editError": "eroare la editarea  {{resource}} (status code: {{statusCode}})",
+        "importProgress": "Importare: {{processed}}/{{total}}"
+    },
+    "kofi": "Doneaza pe Ko-fi",
+    "loading": "Incarca",
+    "version": "Versiunea",
+    "unknown": "Necunoscut",
+    "yes": "Da",
+    "no": "Nu",
+    "tags": {
+        "clone": "Cloneaza"
     }
 }
