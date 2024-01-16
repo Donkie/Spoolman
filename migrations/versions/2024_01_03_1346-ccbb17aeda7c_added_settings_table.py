@@ -1,7 +1,7 @@
 """Added Settings table.
 
 Revision ID: ccbb17aeda7c
-Revises: 92793c8a937c
+Revises: b82cd9e2aa6f
 Create Date: 2024-01-03 13:46:41.362341
 """
 import sqlalchemy as sa
@@ -9,7 +9,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "ccbb17aeda7c"
-down_revision = "92793c8a937c"
+down_revision = "b82cd9e2aa6f"
 branch_labels = None
 depends_on = None
 
