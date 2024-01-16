@@ -83,6 +83,7 @@ target-version = "py39"
     "S101",
     "PLR2004",
     "D103",
+    "TID252",
 ]
 "migrations/versions/*" = [
     "N999",
