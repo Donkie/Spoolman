@@ -134,7 +134,8 @@
             "archived": "Arquivado",
             "id": "ID",
             "filament_name": "Filamento",
-            "filament": "Filamento"
+            "filament": "Filamento",
+            "price": ""
         },
         "fields_help": {
             "weight_to_use": "Selecione qual valor de peso inserir. O peso medido só estará disponível se o peso do carretel estiver definido para o filamento selecionado.",
@@ -142,7 +143,8 @@
             "used_weight": "Quanto filamento foi usado no carretel. Um novo carretel deve ter 0g usado.",
             "remaining_weight": "Quanto filamento resta no carretel. Para um carretel novo, isso deve corresponder ao peso do carretel.",
             "measured_weight": "Quanto pesa o filamento e o carretel.",
-            "location": "Onde o carretel está localizado se você tiver vários locais onde armazena seus carretéis."
+            "location": "Onde o carretel está localizado se você tiver vários locais onde armazena seus carretéis.",
+            "price": ""
         },
         "titles": {
             "create": "Criar carretel",

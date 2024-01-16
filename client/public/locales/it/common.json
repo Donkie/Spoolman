@@ -84,7 +84,13 @@
             "create": "Crea Filamento | Spoolman",
             "edit": "#{{id}} Modifica Filamento | Spoolman"
         },
-        "suffix": " | Spoolman"
+        "suffix": " | Spoolman",
+        "home": {
+            "list": ""
+        },
+        "help": {
+            "list": ""
+        }
     },
     "spool": {
         "fields": {
@@ -104,7 +110,8 @@
             "first_used": "Primo Utilizzo",
             "used_weight": "Peso Utilizzato",
             "id": "ID",
-            "remaining_weight": "Peso Rimanente"
+            "remaining_weight": "Peso Rimanente",
+            "price": ""
         },
         "titles": {
             "archive": "Archivia Bobina",
@@ -121,7 +128,8 @@
             "measured_weight": "Quanto pesano il filamento e la bobina.",
             "lot_nr": "Numero di lotto del produttore. Può essere utilizzato per garantire che la stampa abbia colori uniformi se vengono utilizzate più bobine.",
             "remaining_weight": "Quanto filamento è rimasto sulla bobina. Per una nuova bobina questo dovrebbe corrispondere al peso della bobina.",
-            "location": "Dove si trova la bobina se disponi di più posizioni in cui conservare le bobine."
+            "location": "Dove si trova la bobina se disponi di più posizioni in cui conservare le bobine.",
+            "price": ""
         },
         "form": {
             "new_location_prompt": "Inserisci nuova posizione",
@@ -264,6 +272,16 @@
         "clone": "Clona"
     },
     "help": {
-        "description": ""
+        "description": "",
+        "resources": {
+            "spool": "",
+            "filament": "",
+            "vendor": ""
+        },
+        "help": ""
+    },
+    "kofi": "",
+    "home": {
+        "home": ""
     }
 }
