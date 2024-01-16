@@ -9,6 +9,7 @@ from pydantic import Field
 
 from spoolman.database import models
 from spoolman.math import length_from_weight
+from spoolman.settings import SettingDefinition, SettingType
 
 
 def datetime_to_str(dt: datetime) -> str:
@@ -29,6 +30,29 @@ class BaseModel(PydanticBaseModel):
 
 class Message(BaseModel):
     message: str = Field()
+
+
+class SettingResponse(BaseModel):
+    value: str = Field(description="Setting value.")
+    is_set: bool = Field(description="Whether the setting has been set. If false, 'value' contains the default value.")
+    type: SettingType = Field(description="Setting type. This corresponds with JSON types.")
+
+
+class SettingKV(BaseModel):
+    key: str = Field(description="Setting key.")
+    setting: SettingResponse = Field(description="Setting value.")
+
+    @staticmethod
+    def from_db(definition: SettingDefinition, set_value: Optional[str]) -> "SettingKV":
+        """Create a new Pydantic vendor object from a database vendor object."""
+        return SettingKV(
+            key=definition.key,
+            setting=SettingResponse(
+                value=set_value if set_value is not None else definition.default,
+                is_set=set_value is not None,
+                type=definition.type,
+            ),
+        )
 
 
 class Vendor(BaseModel):
@@ -274,3 +298,10 @@ class VendorEvent(Event):
 
     payload: Vendor = Field(description="Updated vendor.")
     resource: Literal["vendor"] = Field(description="Resource type.")
+
+
+class SettingEvent(Event):
+    """Event."""
+
+    payload: SettingKV = Field(description="Updated setting.")
+    resource: Literal["setting"] = Field(description="Resource type.")
