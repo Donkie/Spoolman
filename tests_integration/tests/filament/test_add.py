@@ -5,6 +5,8 @@ from typing import Any
 
 import httpx
 
+from ..conftest import assert_dicts_compatible
+
 URL = "http://spoolman:8000"
 
 
@@ -45,23 +47,26 @@ def test_add_filament(random_vendor: dict[str, Any]):
 
     # Verify
     filament = result.json()
-    assert filament == {
-        "id": filament["id"],
-        "registered": filament["registered"],
-        "name": name,
-        "vendor": random_vendor,
-        "material": material,
-        "price": price,
-        "density": density,
-        "diameter": diameter,
-        "weight": weight,
-        "spool_weight": spool_weight,
-        "article_number": article_number,
-        "comment": comment,
-        "settings_extruder_temp": settings_extruder_temp,
-        "settings_bed_temp": settings_bed_temp,
-        "color_hex": color_hex,
-    }
+    assert_dicts_compatible(
+        filament,
+        {
+            "id": filament["id"],
+            "registered": filament["registered"],
+            "name": name,
+            "vendor": random_vendor,
+            "material": material,
+            "price": price,
+            "density": density,
+            "diameter": diameter,
+            "weight": weight,
+            "spool_weight": spool_weight,
+            "article_number": article_number,
+            "comment": comment,
+            "settings_extruder_temp": settings_extruder_temp,
+            "settings_bed_temp": settings_bed_temp,
+            "color_hex": color_hex,
+        },
+    )
 
     # Verify that registered happened almost now (within 1 minute)
     diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(filament["registered"])).total_seconds())
@@ -87,12 +92,15 @@ def test_add_filament_required():
 
     # Verify
     filament = result.json()
-    assert filament == {
-        "id": filament["id"],
-        "registered": filament["registered"],
-        "density": density,
-        "diameter": diameter,
-    }
+    assert_dicts_compatible(
+        filament,
+        {
+            "id": filament["id"],
+            "registered": filament["registered"],
+            "density": density,
+            "diameter": diameter,
+        },
+    )
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()

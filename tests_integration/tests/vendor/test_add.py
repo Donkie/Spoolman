@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 
 import httpx
 
+from ..conftest import assert_dicts_compatible
+
 URL = "http://spoolman:8000"
 
 
@@ -20,12 +22,15 @@ def test_add_vendor():
 
     # Verify
     vendor = result.json()
-    assert vendor == {
-        "id": vendor["id"],
-        "registered": vendor["registered"],
-        "name": name,
-        "comment": comment,
-    }
+    assert_dicts_compatible(
+        vendor,
+        {
+            "id": vendor["id"],
+            "registered": vendor["registered"],
+            "name": name,
+            "comment": comment,
+        },
+    )
 
     # Verify that registered happened almost now (within 1 minute)
     diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(vendor["registered"])).total_seconds())
@@ -47,11 +52,14 @@ def test_add_vendor_required():
 
     # Verify
     vendor = result.json()
-    assert vendor == {
-        "id": vendor["id"],
-        "registered": vendor["registered"],
-        "name": name,
-    }
+    assert_dicts_compatible(
+        vendor,
+        {
+            "id": vendor["id"],
+            "registered": vendor["registered"],
+            "name": name,
+        },
+    )
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/vendor/{vendor['id']}").raise_for_status()

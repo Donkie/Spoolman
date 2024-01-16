@@ -4,6 +4,8 @@ from typing import Any
 
 import httpx
 
+from ..conftest import assert_dicts_compatible
+
 URL = "http://spoolman:8000"
 
 
@@ -51,23 +53,26 @@ def test_get_filament(random_vendor: dict[str, Any]):
 
     # Verify
     filament = result.json()
-    assert filament == {
-        "id": added_filament["id"],
-        "registered": added_filament["registered"],
-        "name": name,
-        "vendor": random_vendor,
-        "material": material,
-        "price": price,
-        "density": density,
-        "diameter": diameter,
-        "weight": weight,
-        "spool_weight": spool_weight,
-        "article_number": article_number,
-        "comment": comment,
-        "settings_extruder_temp": settings_extruder_temp,
-        "settings_bed_temp": settings_bed_temp,
-        "color_hex": color_hex,
-    }
+    assert_dicts_compatible(
+        filament,
+        {
+            "id": added_filament["id"],
+            "registered": added_filament["registered"],
+            "name": name,
+            "vendor": random_vendor,
+            "material": material,
+            "price": price,
+            "density": density,
+            "diameter": diameter,
+            "weight": weight,
+            "spool_weight": spool_weight,
+            "article_number": article_number,
+            "comment": comment,
+            "settings_extruder_temp": settings_extruder_temp,
+            "settings_bed_temp": settings_bed_temp,
+            "color_hex": color_hex,
+        },
+    )
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()

@@ -7,12 +7,9 @@ from typing import Any
 import httpx
 import pytest
 
+from ..conftest import assert_lists_compatible
+
 URL = "http://spoolman:8000"
-
-
-def vendor_lists_equal(a: Iterable[dict[str, Any]], b: Iterable[dict[str, Any]]) -> bool:
-    """Compare two lists of vendors where the order of the vendors is not guaranteed."""
-    return sorted(a, key=lambda x: x["id"]) == sorted(b, key=lambda x: x["id"])
 
 
 @dataclass
@@ -62,7 +59,7 @@ def test_find_all_vendors(vendors: Fixture):
 
     # Verify
     vendors_result = result.json()
-    assert vendor_lists_equal(vendors_result, vendors.vendors)
+    assert_lists_compatible(vendors_result, vendors.vendors)
 
 
 def test_find_all_vendors_sort_asc(vendors: Fixture):
