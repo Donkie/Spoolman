@@ -19,6 +19,7 @@ def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
     lot_nr = "123456789"
     comment = "abcdefghåäö"
     archived = True
+    price = 25
     result = httpx.post(
         f"{URL}/api/v1/spool",
         json={
@@ -30,6 +31,7 @@ def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
             "lot_nr": lot_nr,
             "comment": comment,
             "archived": archived,
+            "price": price,
         },
     )
     result.raise_for_status()
@@ -62,6 +64,7 @@ def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
         "lot_nr": lot_nr,
         "comment": comment,
         "archived": archived,
+        "price": price,
     }
 
     # Verify that registered happened almost now (within 1 minute)

@@ -201,7 +201,20 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             }}
           />
         </Form.Item>
-
+        <Form.Item
+          label={t("filament.fields.price")}
+          help={t("filament.fields_help.price")}
+          name={["price"]}
+          rules={[
+            {
+              required: false,
+              type: "number",
+              min: 0,
+            },
+          ]}
+        >
+                    <InputNumber precision={2} formatter={numberFormatter} parser={numberParser} />
+        </Form.Item>
         <Form.Item hidden={true} name={["used_weight"]} initialValue={0}>
           <InputNumber value={usedWeight} />
         </Form.Item>

@@ -52,6 +52,9 @@ function collapseSpool(element: ISpool): ISpoolCollapsed {
   } else {
     filament_name = element.filament.name ?? element.filament.id.toString();
   }
+  if (!element.price){
+    element.price = element.filament.price;
+  }
   return {
     ...element,
     combined_name: filament_name,
@@ -73,6 +76,7 @@ const allColumns: (keyof ISpoolCollapsed & string)[] = [
   "id",
   "combined_name",
   "filament.material",
+  "price",
   "used_weight",
   "remaining_weight",
   "used_length",
@@ -311,6 +315,14 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             tableState,
             filterValueQuery: useSpoolmanMaterials(),
             width: 120,
+          }),
+          SortedColumn({
+            id: "price",
+            i18ncat: "spool",
+            actions,
+            dataSource,
+            tableState,
+            width: 80,
           }),
           NumberColumn({
             id: "used_weight",

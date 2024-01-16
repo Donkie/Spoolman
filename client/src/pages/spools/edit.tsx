@@ -181,6 +181,20 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
             }}
           />
         </Form.Item>
+        <Form.Item
+          label={t("spool.fields.price")}
+          help={t("spool.fields_help.price")}
+          name={["price"]}
+          rules={[
+            {
+              required: false,
+              type: "number",
+              min: 0,
+            },
+          ]}
+        >
+          <InputNumber precision={2} formatter={numberFormatter} parser={numberParser} />
+        </Form.Item>
         <Form.Item hidden={true} name={["used_weight"]} initialValue={0}>
           <InputNumber value={usedWeight} />
         </Form.Item>

@@ -133,6 +133,11 @@ class Spool(BaseModel):
     first_used: Optional[datetime] = Field(description="First logged occurence of spool usage. UTC Timezone.")
     last_used: Optional[datetime] = Field(description="Last logged occurence of spool usage. UTC Timezone.")
     filament: Filament = Field(description="The filament type of this spool.")
+    price: Optional[float] = Field(
+        ge=0,
+        description="The price of this spool in the system configured currency.",
+        example=20.0,
+    )
     remaining_weight: Optional[float] = Field(
         default=None,
         ge=0,
@@ -197,6 +202,7 @@ class Spool(BaseModel):
             first_used=item.first_used,
             last_used=item.last_used,
             filament=filament,
+            price=item.price,
             used_weight=item.used_weight,
             used_length=used_length,
             remaining_weight=remaining_weight,

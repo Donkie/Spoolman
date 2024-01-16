@@ -6,6 +6,7 @@ export interface ISpool {
   first_used?: string;
   last_used?: string;
   filament: IFilament;
+  price?: number;
   remaining_weight?: number;
   used_weight: number;
   remaining_length?: number;

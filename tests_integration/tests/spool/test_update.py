@@ -33,6 +33,7 @@ def test_update_spool(random_filament: dict[str, Any]):
     lot_nr = "987654321"
     comment = "abcdefghåäö"
     archived = True
+    price = 25
     result = httpx.patch(
         f"{URL}/api/v1/spool/{spool['id']}",
         json={
@@ -43,6 +44,7 @@ def test_update_spool(random_filament: dict[str, Any]):
             "lot_nr": lot_nr,
             "comment": comment,
             "archived": archived,
+            "price": price,
         },
     )
     result.raise_for_status()
@@ -71,6 +73,7 @@ def test_update_spool(random_filament: dict[str, Any]):
     assert spool["lot_nr"] == lot_nr
     assert spool["comment"] == comment
     assert spool["archived"] == archived
+    assert spool["price"] == price
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
