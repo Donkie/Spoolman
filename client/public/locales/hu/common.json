@@ -280,6 +280,7 @@
             "vendor": "",
             "filament": ""
         },
-        "help": ""
+        "help": "",
+        "description": ""
     }
 }
