@@ -1,7 +1,7 @@
 import React from "react";
 import { IResourceComponentsProps, useShow, useTranslate } from "@refinedev/core";
 import { Show, NumberField, DateField, TextField } from "@refinedev/antd";
-import { Typography } from "antd";
+import { Button, Typography } from "antd";
 import { NumberFieldUnit } from "../../components/numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -45,7 +45,18 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
   };
 
   return (
-    <Show isLoading={isLoading} title={record ? formatTitle(record) : ""}>
+    <Show
+      isLoading={isLoading}
+      title={record ? formatTitle(record) : ""}
+      headerButtons={({ defaultButtons }) => (
+        <>
+          <Button type="primary" onClick={gotoSpools}>
+            {t("filament.fields.spools")}
+          </Button>
+          {defaultButtons}
+        </>
+      )}
+    >
       <Title level={5}>{t("filament.fields.id")}</Title>
       <NumberField value={record?.id ?? ""} />
       <Title level={5}>{t("filament.fields.vendor")}</Title>
@@ -123,13 +134,6 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       <TextField value={record?.article_number} />
       <Title level={5}>{t("filament.fields.comment")}</Title>
       <TextField value={enrichText(record?.comment)} />
-      <Title level={5}>{t("filament.fields.spools")}</Title>
-      <button
-        onClick={gotoSpools}
-        style={{ background: "none", border: "none", color: "blue", cursor: "pointer", paddingLeft: 0 }}
-      >
-        {record ? formatTitle(record) : ""}
-      </button>
     </Show>
   );
 };
