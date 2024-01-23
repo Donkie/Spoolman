@@ -7,12 +7,9 @@ from typing import Any
 import httpx
 import pytest
 
+from ..conftest import assert_lists_compatible
+
 URL = "http://spoolman:8000"
-
-
-def filament_lists_equal(a: Iterable[dict[str, Any]], b: Iterable[dict[str, Any]]) -> bool:
-    """Compare two lists of filaments where the order of the filaments is not guaranteed."""
-    return sorted(a, key=lambda x: x["id"]) == sorted(b, key=lambda x: x["id"])
 
 
 @dataclass
@@ -120,7 +117,7 @@ def test_find_all_filaments(filaments: Fixture):
 
     # Verify
     filaments_result = result.json()
-    assert filament_lists_equal(filaments_result, filaments.filaments)
+    assert_lists_compatible(filaments_result, filaments.filaments)
 
 
 def test_find_all_filaments_sort_asc(filaments: Fixture):
@@ -279,7 +276,7 @@ def test_find_filaments_by_empty_name(filaments: Fixture):
 
     # Verify
     filaments_result = result.json()
-    assert filament_lists_equal(filaments_result, filaments.filaments[3:])
+    assert_lists_compatible(filaments_result, filaments.filaments[3:])
 
 
 def test_find_filaments_by_material(filaments: Fixture):
@@ -305,7 +302,7 @@ def test_find_filaments_by_multiple_materials(filaments: Fixture):
 
     # Verify
     filaments_result = result.json()
-    assert filament_lists_equal(filaments_result, filaments.filaments[:2])
+    assert_lists_compatible(filaments_result, filaments.filaments[:2])
 
 
 def test_find_filaments_by_empty_material(filaments: Fixture):
@@ -318,7 +315,7 @@ def test_find_filaments_by_empty_material(filaments: Fixture):
 
     # Verify
     filaments_result = result.json()
-    assert filament_lists_equal(filaments_result, filaments.filaments[3:])
+    assert_lists_compatible(filaments_result, filaments.filaments[3:])
 
 
 @pytest.mark.parametrize("field_name", ["vendor_id", "vendor.id"])
@@ -332,7 +329,7 @@ def test_find_filaments_by_vendor_id(filaments: Fixture, field_name: str):
 
     # Verify
     filaments_result = result.json()
-    assert filament_lists_equal(filaments_result, filaments.filaments[:2])
+    assert_lists_compatible(filaments_result, filaments.filaments[:2])
 
 
 def test_find_filaments_by_multiple_vendor_ids(filaments: Fixture):
@@ -347,7 +344,7 @@ def test_find_filaments_by_multiple_vendor_ids(filaments: Fixture):
 
     # Verify
     filaments_result = result.json()
-    assert filament_lists_equal(
+    assert_lists_compatible(
         filaments_result,
         [
             filaments.filaments[0],
@@ -367,7 +364,7 @@ def test_find_filaments_by_empty_vendor_id(filaments: Fixture):
 
     # Verify
     filaments_result = result.json()
-    assert filament_lists_equal(filaments_result, filaments.filaments[2:4])
+    assert_lists_compatible(filaments_result, filaments.filaments[2:4])
 
 
 @pytest.mark.parametrize("field_name", ["vendor_name", "vendor.name"])
@@ -381,7 +378,7 @@ def test_find_filaments_by_vendor_name(filaments: Fixture, field_name: str):
 
     # Verify
     filaments_result = result.json()
-    assert filament_lists_equal(filaments_result, filaments.filaments[:2])
+    assert_lists_compatible(filaments_result, filaments.filaments[:2])
 
 
 def test_find_filaments_by_empty_vendor_name(filaments: Fixture):
@@ -420,7 +417,7 @@ def test_find_filaments_by_empty_article_number(filaments: Fixture):
 
     # Verify
     filaments_result = result.json()
-    assert filament_lists_equal(filaments_result, filaments.filaments[3:])
+    assert_lists_compatible(filaments_result, filaments.filaments[3:])
 
 
 def test_find_filaments_by_similar_color(filaments: Fixture):
@@ -436,7 +433,7 @@ def test_find_filaments_by_similar_color(filaments: Fixture):
 
     # Verify
     filaments_result = result.json()
-    assert filament_lists_equal(filaments_result, [filaments.filaments[0], filaments.filaments[1]])
+    assert_lists_compatible(filaments_result, [filaments.filaments[0], filaments.filaments[1]])
 
 
 def test_find_filaments_by_similar_color_100(filaments: Fixture):
@@ -452,7 +449,7 @@ def test_find_filaments_by_similar_color_100(filaments: Fixture):
 
     # Verify
     filaments_result = result.json()
-    assert filament_lists_equal(
+    assert_lists_compatible(
         filaments_result,
         [filaments.filaments[0], filaments.filaments[1], filaments.filaments[2]],
     )

@@ -15,6 +15,7 @@ from spoolman.api.v1.models import Message, Vendor, VendorEvent
 from spoolman.database import vendor
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
+from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
 from spoolman.ws import websocket_manager
 
 router = APIRouter(
@@ -31,6 +32,10 @@ class VendorParameters(BaseModel):
         max_length=1024,
         description="Free text comment about this vendor.",
         example="",
+    )
+    extra: Optional[dict[str, str]] = Field(
+        None,
+        description="Extra fields for this vendor.",
     )
 
 
@@ -167,15 +172,25 @@ async def notify(
     name="Add vendor",
     description="Add a new vendor to the database.",
     response_model_exclude_none=True,
+    response_model=Vendor,
+    responses={400: {"model": Message}},
 )
-async def create(
+async def create(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
     body: VendorParameters,
-) -> Vendor:
+):
+    if body.extra:
+        all_fields = await get_extra_fields(db, EntityType.vendor)
+        try:
+            validate_extra_field_dict(all_fields, body.extra)
+        except ValueError as e:
+            return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
+
     db_item = await vendor.create(
         db=db,
         name=body.name,
         comment=body.comment,
+        extra=body.extra,
     )
 
     return Vendor.from_db(db_item)
@@ -184,19 +199,33 @@ async def create(
 @router.patch(
     "/{vendor_id}",
     name="Update vendor",
-    description="Update any attribute of a vendor. Only fields specified in the request will be affected.",
+    description=(
+        "Update any attribute of a vendor. Only fields specified in the request will be affected. "
+        "If extra is set, all existing extra fields will be removed and replaced with the new ones."
+    ),
     response_model_exclude_none=True,
-    responses={404: {"model": Message}},
+    response_model=Vendor,
+    responses={
+        400: {"model": Message},
+        404: {"model": Message},
+    },
 )
-async def update(
+async def update(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
     vendor_id: int,
     body: VendorUpdateParameters,
-) -> Vendor:
+):
     patch_data = body.dict(exclude_unset=True)
 
     if "name" in patch_data and body.name is None:
         raise RequestValidationError([ErrorWrapper(ValueError("name cannot be unset"), ("query", "name"))])
+
+    if body.extra:
+        all_fields = await get_extra_fields(db, EntityType.vendor)
+        try:
+            validate_extra_field_dict(all_fields, body.extra)
+        except ValueError as e:
+            return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     db_item = await vendor.update(
         db=db,

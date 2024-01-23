@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import Optional, Union
 
+import sqlalchemy
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -41,6 +42,7 @@ async def create(
     settings_extruder_temp: Optional[int] = None,
     settings_bed_temp: Optional[int] = None,
     color_hex: Optional[str] = None,
+    extra: Optional[dict[str, str]] = None,
 ) -> models.Filament:
     """Add a new filament to the database."""
     vendor_item: Optional[models.Vendor] = None
@@ -62,6 +64,7 @@ async def create(
         settings_extruder_temp=settings_extruder_temp,
         settings_bed_temp=settings_bed_temp,
         color_hex=color_hex,
+        extra=[models.FilamentField(key=k, value=v) for k, v in (extra or {}).items()],
     )
     db.add(filament)
     await db.commit()
@@ -131,7 +134,7 @@ async def find(
                 stmt = stmt.order_by(field.desc())
 
     rows = await db.execute(stmt)
-    result = list(rows.scalars().all())
+    result = list(rows.unique().scalars().all())
     if total_count is None:
         total_count = len(result)
 
@@ -152,6 +155,8 @@ async def update(
                 filament.vendor = None
             else:
                 filament.vendor = await vendor.get_by_id(db, v)
+        elif k == "extra":
+            filament.extra = [models.FilamentField(key=k, value=v) for k, v in v.items()]
         else:
             setattr(filament, k, v)
     await db.commit()
@@ -169,6 +174,13 @@ async def delete(db: AsyncSession, filament_id: int) -> None:
     except IntegrityError as exc:
         await db.rollback()
         raise ItemDeleteError("Failed to delete filament.") from exc
+
+
+async def clear_extra_field(db: AsyncSession, key: str) -> None:
+    """Delete all extra fields with a specific key."""
+    await db.execute(
+        sqlalchemy.delete(models.FilamentField).where(models.FilamentField.key == key),
+    )
 
 
 logger = logging.getLogger(__name__)

@@ -41,7 +41,8 @@
         "deleteError": "Det gick inte att ta bort {{resource}} (statuskod: {{statusCode}})",
         "editSuccess": "Lyckades ändra {{resource}}",
         "editError": "Det gick inte att ändra {{resource}} (statuskod: {{statusCode}})",
-        "importProgress": "Importerar: {{processed}}/{{total}}"
+        "importProgress": "Importerar: {{processed}}/{{total}}",
+        "saveSuccessful": "Sparning lyckades!"
     },
     "loading": "Laddar",
     "version": "Version",
@@ -239,6 +240,18 @@
     },
     "table": {
         "actions": "Åtgärder"
+    },
+    "settings": {
+        "header": "Inställningar",
+        "generic": {
+            "tab": "Allmänt",
+            "currency": {
+                "label": "Valuta"
+            }
+        },
+        "extra_fields": {
+            "tab": "Extra Fält"
+        }
     },
     "documentTitle": {
         "default": "Spoolman",

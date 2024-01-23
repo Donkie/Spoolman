@@ -4,6 +4,8 @@ from typing import Any
 
 import httpx
 
+from ..conftest import assert_dicts_compatible
+
 URL = "http://spoolman:8000"
 
 
@@ -66,23 +68,26 @@ def test_update_filament(random_vendor: dict[str, Any]):
 
     # Verify
     filament = result.json()
-    assert filament == {
-        "id": added_filament["id"],
-        "registered": added_filament["registered"],
-        "name": new_name,
-        "vendor": random_vendor,
-        "material": new_material,
-        "price": new_price,
-        "density": new_density,
-        "diameter": new_diameter,
-        "weight": new_weight,
-        "spool_weight": new_spool_weight,
-        "article_number": new_article_number,
-        "comment": new_comment,
-        "settings_extruder_temp": new_settings_extruder_temp,
-        "settings_bed_temp": new_settings_bed_temp,
-        "color_hex": new_color_hex,
-    }
+    assert_dicts_compatible(
+        filament,
+        {
+            "id": added_filament["id"],
+            "registered": added_filament["registered"],
+            "name": new_name,
+            "vendor": random_vendor,
+            "material": new_material,
+            "price": new_price,
+            "density": new_density,
+            "diameter": new_diameter,
+            "weight": new_weight,
+            "spool_weight": new_spool_weight,
+            "article_number": new_article_number,
+            "comment": new_comment,
+            "settings_extruder_temp": new_settings_extruder_temp,
+            "settings_bed_temp": new_settings_bed_temp,
+            "color_hex": new_color_hex,
+        },
+    )
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()

@@ -3,6 +3,7 @@
 import math
 import os
 import time
+from collections.abc import Iterable
 from contextlib import contextmanager
 from enum import StrEnum
 from typing import Any
@@ -240,3 +241,54 @@ def length_from_weight(*, weight: float, diameter: float, density: float) -> flo
     volume_cm3 = weight / density
     volume_mm3 = volume_cm3 * 1000
     return volume_mm3 / (math.pi * (diameter / 2) ** 2)
+
+
+def assert_dicts_compatible(actual: Any, expected: Any, path: str = "") -> None:  # noqa: ANN401
+    """Assert that two dictionaries are compatible for unit testing a REST API.
+
+    Args:
+        actual (dict): The actual dictionary.
+        expected (dict): The expected dictionary.
+        path (str): The path to the current level in the dictionary (used for error messages).
+
+    Raises:
+        AssertionError: If dictionaries are not compatible.
+    """
+    # Check if both inputs are dictionaries
+    if not (isinstance(actual, dict) and isinstance(expected, dict)):
+        raise TypeError(f"At {path}: Actual and expected values must be dictionaries.")
+
+    # Check if actual dictionary contains all keys of the expected dictionary
+    missing_keys = [key for key in expected if key not in actual]
+    if missing_keys:
+        raise AssertionError(f"At {path}: Missing keys in actual dictionary: {missing_keys}")
+
+    # Recursively check values if the corresponding keys exist
+    for key, expected_value in expected.items():
+        actual_value = actual[key]
+        subpath = f"{path}.{key}" if path else key  # Update the path for the current level
+
+        # If the value is another dictionary, recurse into it
+        if isinstance(expected_value, dict):
+            assert_dicts_compatible(actual_value, expected_value, path=subpath)
+        elif actual_value != expected_value:  # Check if values are equal
+            raise AssertionError(
+                f"At {subpath}: Values do not match. Expected: {expected_value}, Actual: {actual_value}",
+            )
+
+
+def assert_lists_compatible(a: Iterable[dict[str, Any]], b: Iterable[dict[str, Any]], sort_key: str = "id") -> None:
+    """Compare two lists of items where the order of the items is not guaranteed."""
+    a_sorted = sorted(a, key=lambda x: x[sort_key])
+    b_sorted = sorted(b, key=lambda x: x[sort_key])
+    if len(a_sorted) != len(b_sorted):
+        pytest.fail(f"Lists have different lengths: {len(a_sorted)} != {len(b_sorted)}")
+
+    for a_filament, b_filament in zip(a_sorted, b_sorted):
+        assert_dicts_compatible(a_filament, b_filament)
+
+
+def assert_httpx_success(response: httpx.Response) -> None:
+    """Assert that a response is successful."""
+    if not response.is_success:
+        pytest.fail(f"Request failed: {response.status_code} {response.text}")

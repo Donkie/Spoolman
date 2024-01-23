@@ -35,10 +35,9 @@ def test_get_all():
 
     # Verify
     settings = result.json()
-    assert settings == {
-        "currency": {
-            "value": '"EUR"',
-            "is_set": False,
-            "type": "string",
-        },
+    assert "currency" in settings
+    assert settings["currency"] == {
+        "value": '"EUR"',
+        "is_set": False,
+        "type": "string",
     }

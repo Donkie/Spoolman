@@ -1,11 +1,17 @@
 import React from "react";
-import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
+import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, Select, InputNumber, ColorPicker, Button } from "antd";
+import { Form, Input, Select, InputNumber, ColorPicker, Button, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { numberFormatter, numberParser } from "../../utils/parsing";
 import { IVendor } from "../vendors/model";
-import { IFilament } from "./model";
+import { IFilament, IFilamentParsedExtras } from "./model";
+import { EntityType, useGetFields } from "../../utils/queryFields";
+import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 interface CreateOrCloneProps {
   mode: "create" | "clone";
@@ -13,10 +19,20 @@ interface CreateOrCloneProps {
 
 export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
+  const extraFields = useGetFields(EntityType.filament);
 
-  const { form, formProps, formLoading, onFinish, redirect } = useForm<IFilament>();
+  const { form, formProps, formLoading, onFinish, redirect } = useForm<
+    IFilament,
+    HttpError,
+    IFilamentParsedExtras,
+    IFilamentParsedExtras
+  >();
 
-  if (props.mode === "clone" && formProps.initialValues) {
+  if (!formProps.initialValues) {
+    formProps.initialValues = {};
+  }
+
+  if (props.mode === "clone") {
     // Fix the vendor_id
     if (formProps.initialValues.vendor) {
       formProps.initialValues.vendor_id = formProps.initialValues.vendor.id;
@@ -24,7 +40,7 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
   }
 
   const handleSubmit = async (redirectTo: "list" | "edit" | "create") => {
-    const values = await form.validateFields();
+    const values = StringifiedExtras(await form.validateFields());
     await onFinish(values);
     redirect(redirectTo, (values as IFilament).id);
   };
@@ -33,6 +49,17 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
     resource: "vendor",
     optionLabel: "name",
   });
+
+  // Use useEffect to update the form's initialValues when the extra fields are loaded
+  // This is necessary because the form is rendered before the extra fields are loaded
+  React.useEffect(() => {
+    extraFields.data?.forEach((field) => {
+      if (formProps.initialValues && field.default_value) {
+        const parsedValue = JSON.parse(field.default_value as string);
+        form.setFieldsValue({ extra: { [field.key]: parsedValue } });
+      }
+    });
+  }, [form, extraFields.data, formProps.initialValues]);
 
   return (
     <Create
@@ -229,6 +256,10 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
         >
           <TextArea maxLength={1024} />
         </Form.Item>
+        <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
+        {extraFields.data?.map((field, index) => (
+          <ExtraFieldFormItem key={index} field={field} />
+        ))}
       </Form>
     </Create>
   );

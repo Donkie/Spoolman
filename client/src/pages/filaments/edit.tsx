@@ -1,35 +1,64 @@
 import React, { useState } from "react";
-import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
+import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, InputNumber, ColorPicker, message, Alert } from "antd";
+import { Form, Input, DatePicker, Select, InputNumber, ColorPicker, message, Alert, Typography } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { numberFormatter, numberParser } from "../../utils/parsing";
 import { IVendor } from "../vendors/model";
-import { IFilament } from "./model";
+import { IFilament, IFilamentParsedExtras } from "./model";
+import { EntityType, useGetFields } from "../../utils/queryFields";
+import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
+import { ParsedExtras } from "../../components/extraFields";
+
+/*
+The API returns the extra fields as JSON values, but we need to parse them into their real types
+in order for Ant design's form to work properly. ParsedExtras does this for us.
+We also need to stringify them again before sending them back to the API, which is done by overriding
+the form's onFinish method. Form.Item's normalize should do this, but it doesn't seem to work.
+*/
 
 export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
   const [messageApi, contextHolder] = message.useMessage();
   const [hasChanged, setHasChanged] = useState(false);
+  const extraFields = useGetFields(EntityType.filament);
 
-  const { formProps, saveButtonProps } = useForm<IFilament>({
+  const { formProps, saveButtonProps } = useForm<IFilament, HttpError, IFilamentParsedExtras, IFilamentParsedExtras>({
     liveMode: "manual",
     onLiveEvent() {
       // Warn the user if the filament has been updated since the form was opened
       messageApi.warning(t("filament.form.filament_updated"));
       setHasChanged(true);
     },
+    queryOptions: {
+      select(data) {
+        return {
+          data: ParsedExtras(data.data),
+        };
+      },
+    },
   });
 
+  // Get vendor selection options
   const { selectProps } = useSelect<IVendor>({
     resource: "vendor",
     optionLabel: "name",
   });
 
+  // Add the vendor_id field to the form
   if (formProps.initialValues) {
     formProps.initialValues["vendor_id"] = formProps.initialValues["vendor"]?.id;
   }
+
+  // Override the form's onFinish method to stringify the extra fields
+  const originalOnFinish = formProps.onFinish;
+  formProps.onFinish = (allValues: IFilamentParsedExtras) => {
+    if (allValues !== undefined && allValues !== null) {
+      allValues = StringifiedExtras(allValues);
+    }
+    originalOnFinish?.(allValues);
+  };
 
   return (
     <Edit saveButtonProps={saveButtonProps}>
@@ -246,6 +275,10 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
         >
           <TextArea maxLength={1024} />
         </Form.Item>
+        <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
+        {extraFields.data?.map((field, index) => (
+          <ExtraFieldFormItem key={index} field={field} />
+        ))}
       </Form>
       {hasChanged && <Alert description={t("filament.form.filament_updated")} type="warning" showIcon />}
     </Edit>

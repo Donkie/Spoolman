@@ -1,9 +1,15 @@
 import React from "react";
-import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
+import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Create, useForm } from "@refinedev/antd";
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
-import { IVendor } from "./model";
+import { IVendor, IVendorParsedExtras } from "./model";
+import { EntityType, useGetFields } from "../../utils/queryFields";
+import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 interface CreateOrCloneProps {
   mode: "create" | "clone";
@@ -11,14 +17,35 @@ interface CreateOrCloneProps {
 
 export const VendorCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
+  const extraFields = useGetFields(EntityType.vendor);
 
-  const { form, formProps, formLoading, onFinish, redirect } = useForm<IVendor>();
+  const { form, formProps, formLoading, onFinish, redirect } = useForm<
+    IVendor,
+    HttpError,
+    IVendorParsedExtras,
+    IVendorParsedExtras
+  >();
+
+  if (!formProps.initialValues) {
+    formProps.initialValues = {};
+  }
 
   const handleSubmit = async (redirectTo: "list" | "edit" | "create") => {
-    const values = await form.validateFields();
+    const values = StringifiedExtras(await form.validateFields());
     await onFinish(values);
     redirect(redirectTo, (values as IVendor).id);
   };
+
+  // Use useEffect to update the form's initialValues when the extra fields are loaded
+  // This is necessary because the form is rendered before the extra fields are loaded
+  React.useEffect(() => {
+    extraFields.data?.forEach((field) => {
+      if (formProps.initialValues && field.default_value) {
+        const parsedValue = JSON.parse(field.default_value as string);
+        form.setFieldsValue({ extra: { [field.key]: parsedValue } });
+      }
+    });
+  }, [form, extraFields.data, formProps.initialValues]);
 
   return (
     <Create
@@ -58,6 +85,10 @@ export const VendorCreate: React.FC<IResourceComponentsProps & CreateOrCloneProp
         >
           <TextArea maxLength={1024} />
         </Form.Item>
+        <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
+        {extraFields.data?.map((field, index) => (
+          <ExtraFieldFormItem key={index} field={field} />
+        ))}
       </Form>
     </Create>
   );

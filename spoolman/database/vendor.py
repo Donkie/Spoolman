@@ -3,6 +3,7 @@
 from datetime import datetime
 from typing import Optional
 
+import sqlalchemy
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,12 +19,14 @@ async def create(
     db: AsyncSession,
     name: Optional[str] = None,
     comment: Optional[str] = None,
+    extra: Optional[dict[str, str]] = None,
 ) -> models.Vendor:
     """Add a new vendor to the database."""
     vendor = models.Vendor(
         name=name,
         registered=datetime.utcnow().replace(microsecond=0),
         comment=comment,
+        extra=[models.VendorField(key=k, value=v) for k, v in (extra or {}).items()],
     )
     db.add(vendor)
     await db.commit()
@@ -72,7 +75,7 @@ async def find(
                 stmt = stmt.order_by(field.desc())
 
     rows = await db.execute(stmt)
-    result = list(rows.scalars().all())
+    result = list(rows.unique().scalars().all())
     if total_count is None:
         total_count = len(result)
 
@@ -88,7 +91,10 @@ async def update(
     """Update the fields of a vendor object."""
     vendor = await get_by_id(db, vendor_id)
     for k, v in data.items():
-        setattr(vendor, k, v)
+        if k == "extra":
+            vendor.extra = [models.VendorField(key=k, value=v) for k, v in v.items()]
+        else:
+            setattr(vendor, k, v)
     await db.commit()
     await vendor_changed(vendor, EventType.UPDATED)
     return vendor
@@ -99,6 +105,13 @@ async def delete(db: AsyncSession, vendor_id: int) -> None:
     vendor = await get_by_id(db, vendor_id)
     await db.delete(vendor)
     await vendor_changed(vendor, EventType.DELETED)
+
+
+async def clear_extra_field(db: AsyncSession, key: str) -> None:
+    """Delete all extra fields with a specific key."""
+    await db.execute(
+        sqlalchemy.delete(models.VendorField).where(models.VendorField.key == key),
+    )
 
 
 async def vendor_changed(vendor: models.Vendor, typ: EventType) -> None:

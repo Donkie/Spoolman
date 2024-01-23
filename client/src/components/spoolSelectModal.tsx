@@ -7,6 +7,7 @@ import { useTable } from "@refinedev/antd";
 import { t } from "i18next";
 import { useSpoolmanFilamentFilter, useSpoolmanMaterials } from "./otherModels";
 import { removeUndefined } from "../utils/filtering";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   visible: boolean;
@@ -40,6 +41,7 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+  const navigate = useNavigate();
 
   const { tableProps, sorters, filters, current, pageSize } = useTable<ISpoolCollapsed>({
     meta: {
@@ -102,6 +104,17 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
   const isSomeButNotAllFilteredSelected =
     dataSource.some((spool) => selectedItems.includes(spool.id)) && !isAllFilteredSelected;
 
+  const commonProps = {
+    t,
+    navigate,
+    actions: () => {
+      return [];
+    },
+    dataSource,
+    tableState,
+    sorter: true,
+  };
+
   return (
     <Modal
       title={t("printing.spoolSelect.title")}
@@ -137,26 +150,23 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
               ),
             },
             SortedColumn({
+              ...commonProps,
               id: "id",
               i18ncat: "spool",
-              dataSource,
-              tableState,
               width: 80,
             }),
             SpoolIconColumn({
+              ...commonProps,
               id: "combined_name",
               dataId: "filament.id",
               i18nkey: "spool.fields.filament_name",
               color: (record: ISpoolCollapsed) => record.filament.color_hex,
-              dataSource,
-              tableState,
               filterValueQuery: useSpoolmanFilamentFilter(),
             }),
             FilteredQueryColumn({
+              ...commonProps,
               id: "filament.material",
               i18nkey: "spool.fields.material",
-              dataSource,
-              tableState,
               filterValueQuery: useSpoolmanMaterials(),
             }),
           ])}

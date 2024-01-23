@@ -6,7 +6,7 @@ from typing import Any
 import httpx
 import pytest
 
-from ..conftest import length_from_weight  # noqa: TID252
+from ..conftest import assert_dicts_compatible, length_from_weight
 
 URL = "http://spoolman:8000"
 
@@ -50,22 +50,25 @@ def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
     )
 
     spool = result.json()
-    assert spool == {
-        "id": spool["id"],
-        "registered": spool["registered"],
-        "first_used": "2023-01-02T11:00:00Z",
-        "last_used": "2023-01-02T11:00:00Z",
-        "filament": random_filament,
-        "remaining_weight": pytest.approx(remaining_weight),
-        "used_weight": pytest.approx(used_weight),
-        "remaining_length": pytest.approx(remaining_length),
-        "used_length": pytest.approx(used_length),
-        "location": location,
-        "lot_nr": lot_nr,
-        "comment": comment,
-        "archived": archived,
-        "price": price,
-    }
+    assert_dicts_compatible(
+        spool,
+        {
+            "id": spool["id"],
+            "registered": spool["registered"],
+            "first_used": "2023-01-02T11:00:00Z",
+            "last_used": "2023-01-02T11:00:00Z",
+            "filament": random_filament,
+            "remaining_weight": pytest.approx(remaining_weight),
+            "used_weight": pytest.approx(used_weight),
+            "remaining_length": pytest.approx(remaining_length),
+            "used_length": pytest.approx(used_length),
+            "location": location,
+            "lot_nr": lot_nr,
+            "comment": comment,
+            "archived": archived,
+            "price": price,
+        },
+    )
 
     # Verify that registered happened almost now (within 1 minute)
     diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["registered"])).total_seconds())
@@ -114,21 +117,24 @@ def test_add_spool_used_weight(random_filament: dict[str, Any]):
     )
 
     spool = result.json()
-    assert spool == {
-        "id": spool["id"],
-        "registered": spool["registered"],
-        "first_used": first_used,
-        "last_used": last_used,
-        "filament": random_filament,
-        "remaining_weight": pytest.approx(remaining_weight),
-        "used_weight": pytest.approx(used_weight),
-        "remaining_length": pytest.approx(remaining_length),
-        "used_length": pytest.approx(used_length),
-        "location": location,
-        "lot_nr": lot_nr,
-        "comment": comment,
-        "archived": archived,
-    }
+    assert_dicts_compatible(
+        spool,
+        {
+            "id": spool["id"],
+            "registered": spool["registered"],
+            "first_used": first_used,
+            "last_used": last_used,
+            "filament": random_filament,
+            "remaining_weight": pytest.approx(remaining_weight),
+            "used_weight": pytest.approx(used_weight),
+            "remaining_length": pytest.approx(remaining_length),
+            "used_length": pytest.approx(used_length),
+            "location": location,
+            "lot_nr": lot_nr,
+            "comment": comment,
+            "archived": archived,
+        },
+    )
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
@@ -161,16 +167,19 @@ def test_add_spool_required(random_filament: dict[str, Any]):
     )
 
     spool = result.json()
-    assert spool == {
-        "id": spool["id"],
-        "registered": spool["registered"],
-        "filament": random_filament,
-        "used_weight": pytest.approx(used_weight),
-        "remaining_weight": pytest.approx(remaining_weight),
-        "used_length": pytest.approx(used_length),
-        "remaining_length": pytest.approx(remaining_length),
-        "archived": False,
-    }
+    assert_dicts_compatible(
+        spool,
+        {
+            "id": spool["id"],
+            "registered": spool["registered"],
+            "filament": random_filament,
+            "used_weight": pytest.approx(used_weight),
+            "remaining_weight": pytest.approx(remaining_weight),
+            "used_length": pytest.approx(used_length),
+            "remaining_length": pytest.approx(remaining_length),
+            "archived": False,
+        },
+    )
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()

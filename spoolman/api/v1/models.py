@@ -60,6 +60,12 @@ class Vendor(BaseModel):
     registered: datetime = Field(description="When the vendor was registered in the database. UTC Timezone.")
     name: str = Field(max_length=64, description="Vendor name.", example="Polymaker")
     comment: Optional[str] = Field(max_length=1024, description="Free text comment about this vendor.", example="")
+    extra: dict[str, str] = Field(
+        description=(
+            "Extra fields for this vendor. All values are JSON-encoded data. "
+            "Query the /fields endpoint for more details about the fields."
+        ),
+    )
 
     @staticmethod
     def from_db(item: models.Vendor) -> "Vendor":
@@ -69,6 +75,7 @@ class Vendor(BaseModel):
             registered=item.registered,
             name=item.name,
             comment=item.comment,
+            extra={field.key: field.value for field in item.extra},
         )
 
 
@@ -128,6 +135,12 @@ class Filament(BaseModel):
         description="Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end.",
         example="FF0000",
     )
+    extra: dict[str, str] = Field(
+        description=(
+            "Extra fields for this filament. All values are JSON-encoded data. "
+            "Query the /fields endpoint for more details about the fields."
+        ),
+    )
 
     @staticmethod
     def from_db(item: models.Filament) -> "Filament":
@@ -148,6 +161,7 @@ class Filament(BaseModel):
             settings_extruder_temp=item.settings_extruder_temp,
             settings_bed_temp=item.settings_bed_temp,
             color_hex=item.color_hex,
+            extra={field.key: field.value for field in item.extra},
         )
 
 
@@ -198,6 +212,12 @@ class Spool(BaseModel):
         example="",
     )
     archived: bool = Field(description="Whether this spool is archived and should not be used anymore.")
+    extra: dict[str, str] = Field(
+        description=(
+            "Extra fields for this spool. All values are JSON-encoded data. "
+            "Query the /fields endpoint for more details about the fields."
+        ),
+    )
 
     @staticmethod
     def from_db(item: models.Spool) -> "Spool":
@@ -235,6 +255,7 @@ class Spool(BaseModel):
             lot_nr=item.lot_nr,
             comment=item.comment,
             archived=item.archived if item.archived is not None else False,
+            extra={field.key: field.value for field in item.extra},
         )
 
 

@@ -7,9 +7,11 @@ import utc from "dayjs/plugin/utc";
 import { IVendor } from "./model";
 import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
 import { EditOutlined, EyeOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
-import { DateColumn, RichColumn, SortedColumn, ActionsColumn } from "../../components/column";
+import { DateColumn, RichColumn, SortedColumn, ActionsColumn, CustomFieldColumn } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
 import { removeUndefined } from "../../utils/filtering";
+import { EntityType, useGetFields } from "../../utils/queryFields";
+import { useNavigate } from "react-router-dom";
 
 dayjs.extend(utc);
 
@@ -20,6 +22,10 @@ const allColumns: (keyof IVendor & string)[] = ["id", "name", "registered", "com
 export const VendorList: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
   const invalidate = useInvalidate();
+  const navigate = useNavigate();
+  const extraFields = useGetFields(EntityType.vendor);
+
+  const allColumnsWithExtraFields = [...allColumns, ...(extraFields.data?.map((field) => "extra." + field.key) ?? [])];
 
   // Load initial state
   const initialState = useInitialTableState(namespace);
@@ -82,6 +88,15 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
     { name: t("buttons.clone"), icon: <PlusSquareOutlined />, link: cloneUrl("vendor", record.id) },
   ];
 
+  const commonProps = {
+    t,
+    navigate,
+    actions,
+    dataSource,
+    tableState,
+    sorter: true,
+  };
+
   return (
     <List
       headerButtons={({ defaultButtons }) => (
@@ -100,10 +115,20 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
           <Dropdown
             trigger={["click"]}
             menu={{
-              items: allColumns.map((column) => ({
-                key: column,
-                label: t(`vendor.fields.${column}`),
-              })),
+              items: allColumnsWithExtraFields.map((column_id) => {
+                if (column_id.indexOf("extra.") === 0) {
+                  const extraField = extraFields.data?.find((field) => "extra." + field.key === column_id);
+                  return {
+                    key: column_id,
+                    label: extraField?.name ?? column_id,
+                  };
+                }
+
+                return {
+                  key: column_id,
+                  label: t(`vendor.fields.${column_id}`),
+                };
+              }),
               selectedKeys: showColumns,
               selectable: true,
               multiple: true,
@@ -132,33 +157,31 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
         rowKey="id"
         columns={removeUndefined([
           SortedColumn({
+            ...commonProps,
             id: "id",
             i18ncat: "vendor",
-            actions,
-            dataSource,
-            tableState,
             width: 70,
           }),
           SortedColumn({
+            ...commonProps,
             id: "name",
             i18ncat: "vendor",
-            actions,
-            dataSource,
-            tableState,
           }),
           DateColumn({
+            ...commonProps,
             id: "registered",
             i18ncat: "vendor",
-            actions,
-            dataSource,
-            tableState,
           }),
+          ...(extraFields.data?.map((field) => {
+            return CustomFieldColumn({
+              ...commonProps,
+              field,
+            });
+          }) ?? []),
           RichColumn({
+            ...commonProps,
             id: "comment",
             i18ncat: "vendor",
-            actions,
-            dataSource,
-            tableState,
           }),
           ActionsColumn<IVendor>(actions),
         ])}

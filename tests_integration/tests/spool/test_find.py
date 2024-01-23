@@ -7,12 +7,9 @@ from typing import Any
 import httpx
 import pytest
 
+from ..conftest import assert_lists_compatible
+
 URL = "http://spoolman:8000"
-
-
-def spool_lists_equal(a: Iterable[dict[str, Any]], b: Iterable[dict[str, Any]]) -> bool:
-    """Compare two lists of spools where the order of the spools is not guaranteed."""
-    return sorted(a, key=lambda x: x["id"]) == sorted(b, key=lambda x: x["id"])
 
 
 @dataclass
@@ -101,7 +98,10 @@ def test_find_all_spools(spools: Fixture):
 
     # Verify
     spools_result = result.json()
-    assert spool_lists_equal(spools_result, (spools.spools[0], spools.spools[1], spools.spools[3], spools.spools[4]))
+    assert_lists_compatible(
+        spools_result,
+        (spools.spools[0], spools.spools[1], spools.spools[3], spools.spools[4]),
+    )
 
 
 def test_find_all_spools_including_archived(spools: Fixture):
@@ -111,7 +111,7 @@ def test_find_all_spools_including_archived(spools: Fixture):
 
     # Verify
     spools_result = result.json()
-    assert spool_lists_equal(
+    assert_lists_compatible(
         spools_result,
         (
             spools.spools[0],
@@ -272,7 +272,7 @@ def test_find_spools_by_filament_name(spools: Fixture, field_name: str):
 
     # Verify
     spools_result = result.json()
-    assert spool_lists_equal(spools_result, (spools.spools[0], spools.spools[1]))
+    assert_lists_compatible(spools_result, (spools.spools[0], spools.spools[1]))
 
 
 def test_find_spools_by_empty_filament_name(spools: Fixture):
@@ -285,7 +285,7 @@ def test_find_spools_by_empty_filament_name(spools: Fixture):
 
     # Verify
     spools_result = result.json()
-    assert spool_lists_equal(spools_result, (spools.spools[3], spools.spools[4]))
+    assert_lists_compatible(spools_result, (spools.spools[3], spools.spools[4]))
 
 
 @pytest.mark.parametrize("field_name", ["filament_id", "filament.id"])
@@ -299,7 +299,7 @@ def test_find_spools_by_filament_id(spools: Fixture, field_name: str):
 
     # Verify
     spools_result = result.json()
-    assert spool_lists_equal(spools_result, (spools.spools[0], spools.spools[1]))
+    assert_lists_compatible(spools_result, (spools.spools[0], spools.spools[1]))
 
 
 def test_find_spools_by_multiple_filament_ids(spools: Fixture):
@@ -315,7 +315,7 @@ def test_find_spools_by_multiple_filament_ids(spools: Fixture):
 
     # Verify
     spools_result = result.json()
-    assert spool_lists_equal(spools_result, (spools.spools[0], spools.spools[1], spools.spools[3]))
+    assert_lists_compatible(spools_result, (spools.spools[0], spools.spools[1], spools.spools[3]))
 
 
 @pytest.mark.parametrize("field_name", ["filament_material", "filament.material"])
@@ -329,7 +329,7 @@ def test_find_spools_by_filament_material(spools: Fixture, field_name: str):
 
     # Verify
     spools_result = result.json()
-    assert spool_lists_equal(spools_result, (spools.spools[0], spools.spools[1]))
+    assert_lists_compatible(spools_result, (spools.spools[0], spools.spools[1]))
 
 
 def test_find_spools_by_empty_filament_material(spools: Fixture):
@@ -342,7 +342,7 @@ def test_find_spools_by_empty_filament_material(spools: Fixture):
 
     # Verify
     spools_result = result.json()
-    assert spool_lists_equal(spools_result, (spools.spools[3], spools.spools[4]))
+    assert_lists_compatible(spools_result, (spools.spools[3], spools.spools[4]))
 
 
 @pytest.mark.parametrize("field_name", ["vendor_name", "filament.vendor.name"])
@@ -356,7 +356,7 @@ def test_find_spools_by_filament_vendor_name(spools: Fixture, field_name: str):
 
     # Verify
     spools_result = result.json()
-    assert spool_lists_equal(spools_result, (spools.spools[0], spools.spools[1]))
+    assert_lists_compatible(spools_result, (spools.spools[0], spools.spools[1]))
 
 
 def test_find_spools_by_empty_filament_vendor_name(spools: Fixture):
@@ -383,7 +383,7 @@ def test_find_spools_by_filament_vendor_id(spools: Fixture, field_name: str):
 
     # Verify
     spools_result = result.json()
-    assert spool_lists_equal(spools_result, (spools.spools[0], spools.spools[1]))
+    assert_lists_compatible(spools_result, (spools.spools[0], spools.spools[1]))
 
 
 def test_find_spools_by_multiple_vendor_ids(spools: Fixture):
@@ -403,7 +403,10 @@ def test_find_spools_by_multiple_vendor_ids(spools: Fixture):
     # Verify
     spools_result = result.json()
     assert len(spools_result) == 4
-    assert spool_lists_equal(spools_result, (spools.spools[0], spools.spools[1], spools.spools[2], spools.spools[4]))
+    assert_lists_compatible(
+        spools_result,
+        (spools.spools[0], spools.spools[1], spools.spools[2], spools.spools[4]),
+    )
 
 
 def test_find_spools_by_empty_filament_vendor_id(spools: Fixture):
@@ -442,7 +445,7 @@ def test_find_spools_by_empty_location(spools: Fixture):
 
     # Verify
     spools_result = result.json()
-    assert spool_lists_equal(spools_result, (spools.spools[3], spools.spools[4]))
+    assert_lists_compatible(spools_result, (spools.spools[3], spools.spools[4]))
 
 
 def test_find_spools_by_empty_and_filled_location(spools: Fixture):
@@ -455,7 +458,7 @@ def test_find_spools_by_empty_and_filled_location(spools: Fixture):
 
     # Verify
     spools_result = result.json()
-    assert spool_lists_equal(spools_result, (spools.spools[0], spools.spools[3], spools.spools[4]))
+    assert_lists_compatible(spools_result, (spools.spools[0], spools.spools[3], spools.spools[4]))
 
 
 def test_find_spools_by_lot_nr(spools: Fixture):
@@ -481,4 +484,4 @@ def test_find_spools_by_empty_lot_nr(spools: Fixture):
 
     # Verify
     spools_result = result.json()
-    assert spool_lists_equal(spools_result, (spools.spools[3], spools.spools[4]))
+    assert_lists_compatible(spools_result, (spools.spools[3], spools.spools[4]))

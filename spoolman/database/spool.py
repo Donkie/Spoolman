@@ -43,6 +43,7 @@ async def create(
     lot_nr: Optional[str] = None,
     comment: Optional[str] = None,
     archived: bool = False,
+    extra: Optional[dict[str, str]] = None,
 ) -> models.Spool:
     """Add a new spool to the database. Leave weight empty to assume full spool."""
     filament_item = await filament.get_by_id(db, filament_id)
@@ -71,6 +72,7 @@ async def create(
         lot_nr=lot_nr,
         comment=comment,
         archived=archived,
+        extra=[models.SpoolField(key=k, value=v) for k, v in (extra or {}).items()],
     )
     db.add(spool)
     await db.commit()
@@ -158,7 +160,7 @@ async def find(
                 stmt = stmt.order_by(field.desc())
 
     rows = await db.execute(stmt)
-    result = list(rows.scalars().all())
+    result = list(rows.unique().scalars().all())
     if total_count is None:
         total_count = len(result)
 
@@ -182,6 +184,8 @@ async def update(
             spool.used_weight = max(spool.filament.weight - v, 0)
         elif isinstance(v, datetime):
             setattr(spool, k, utc_timezone_naive(v))
+        elif k == "extra":
+            spool.extra = [models.SpoolField(key=k, value=v) for k, v in v.items()]
         else:
             setattr(spool, k, v)
     await db.commit()
@@ -194,6 +198,13 @@ async def delete(db: AsyncSession, spool_id: int) -> None:
     spool = await get_by_id(db, spool_id)
     await db.delete(spool)
     await spool_changed(spool, EventType.DELETED)
+
+
+async def clear_extra_field(db: AsyncSession, key: str) -> None:
+    """Delete all extra fields with a specific key."""
+    await db.execute(
+        sqlalchemy.delete(models.SpoolField).where(models.SpoolField.key == key),
+    )
 
 
 async def use_weight_safe(db: AsyncSession, spool_id: int, weight: float) -> None:

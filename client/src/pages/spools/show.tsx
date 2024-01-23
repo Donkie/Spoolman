@@ -8,6 +8,8 @@ import utc from "dayjs/plugin/utc";
 import { ISpool } from "./model";
 import { enrichText } from "../../utils/parsing";
 import { IFilament } from "../filaments/model";
+import { EntityType, useGetFields } from "../../utils/queryFields";
+import { ExtraFieldDisplay } from "../../components/extraFields";
 
 dayjs.extend(utc);
 
@@ -15,6 +17,7 @@ const { Title } = Typography;
 
 export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
+  const extraFields = useGetFields(EntityType.spool);
 
   const { queryResult } = useShow<ISpool>({
     liveMode: "auto",
@@ -25,12 +28,12 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
 
   const spoolPrice = (item: ISpool) => {
     let spoolPrice = "";
-    if (!item.price){
+    if (!item.price) {
       spoolPrice = `${item.filament.price}`;
       return spoolPrice;
     }
     return item.price;
-  }
+  };
 
   const formatFilament = (item: IFilament) => {
     let vendorPrefix = "";
@@ -133,6 +136,10 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       <TextField value={enrichText(record?.comment)} />
       <Title level={5}>{t("spool.fields.archived")}</Title>
       <TextField value={record?.archived ? t("yes") : t("no")} />
+      <Title level={4}>{t("settings.extra_fields.tab")}</Title>
+      {extraFields?.data?.map((field, index) => (
+        <ExtraFieldDisplay key={index} field={field} value={record?.extra[field.key]} />
+      ))}
     </Show>
   );
 };

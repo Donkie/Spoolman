@@ -15,4 +15,8 @@ export interface ISpool {
   lot_nr?: string;
   comment?: string;
   archived: boolean;
+  extra: { [key: string]: string };
 }
+
+// ISpoolParsedExtras is the same as ISpool, but with the extra field parsed into its real types
+export type ISpoolParsedExtras = Omit<ISpool, "extra"> & { extra?: { [key: string]: unknown } };

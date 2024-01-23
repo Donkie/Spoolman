@@ -23,6 +23,7 @@ import {
   SpoolIconColumn,
   Action,
   ActionsColumn,
+  CustomFieldColumn,
 } from "../../components/column";
 import { setSpoolArchived } from "./functions";
 import SelectAndPrint from "../../components/selectAndPrintDialog";
@@ -34,6 +35,8 @@ import {
 } from "../../components/otherModels";
 import { useLiveify } from "../../components/liveify";
 import { removeUndefined } from "../../utils/filtering";
+import { EntityType, useGetFields } from "../../utils/queryFields";
+import { useNavigate } from "react-router-dom";
 
 dayjs.extend(utc);
 
@@ -52,7 +55,7 @@ function collapseSpool(element: ISpool): ISpoolCollapsed {
   } else {
     filament_name = element.filament.name ?? element.filament.id.toString();
   }
-  if (!element.price){
+  if (!element.price) {
     element.price = element.filament.price;
   }
   return {
@@ -95,6 +98,10 @@ const defaultColumns = allColumns.filter(
 export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
   const invalidate = useInvalidate();
+  const navigate = useNavigate();
+  const extraFields = useGetFields(EntityType.spool);
+
+  const allColumnsWithExtraFields = [...allColumns, ...(extraFields.data?.map((field) => "extra." + field.key) ?? [])];
 
   // Load initial state
   const initialState = useInitialTableState(namespace);
@@ -217,6 +224,15 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     return actions;
   };
 
+  const commonProps = {
+    t,
+    navigate,
+    actions,
+    dataSource,
+    tableState,
+    sorter: true,
+  };
+
   return (
     <List
       headerButtons={({ defaultButtons }) => (
@@ -245,10 +261,20 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           <Dropdown
             trigger={["click"]}
             menu={{
-              items: allColumns.map((column_id) => ({
-                key: column_id,
-                label: t(translateColumnI18nKey(column_id)),
-              })),
+              items: allColumnsWithExtraFields.map((column_id) => {
+                if (column_id.indexOf("extra.") === 0) {
+                  const extraField = extraFields.data?.find((field) => "extra." + field.key === column_id);
+                  return {
+                    key: column_id,
+                    label: extraField?.name ?? column_id,
+                  };
+                }
+
+                return {
+                  key: column_id,
+                  label: t(translateColumnI18nKey(column_id)),
+                };
+              }),
               selectedKeys: showColumns,
               selectable: true,
               multiple: true,
@@ -290,127 +316,105 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
         }}
         columns={removeUndefined([
           SortedColumn({
+            ...commonProps,
             id: "id",
             i18ncat: "spool",
-            actions,
-            dataSource,
-            tableState,
             width: 70,
           }),
           SpoolIconColumn({
+            ...commonProps,
             id: "combined_name",
             i18nkey: "spool.fields.filament_name",
             color: (record: ISpoolCollapsed) => record.filament.color_hex,
-            actions,
-            dataSource,
-            tableState,
             dataId: "filament.id",
             filterValueQuery: useSpoolmanFilamentFilter(),
           }),
           FilteredQueryColumn({
+            ...commonProps,
             id: "filament.material",
             i18nkey: "spool.fields.material",
-            actions,
-            dataSource,
-            tableState,
             filterValueQuery: useSpoolmanMaterials(),
             width: 120,
           }),
           SortedColumn({
+            ...commonProps,
             id: "price",
             i18ncat: "spool",
-            actions,
-            dataSource,
-            tableState,
             width: 80,
           }),
           NumberColumn({
+            ...commonProps,
             id: "used_weight",
             i18ncat: "spool",
             unit: "g",
-            decimals: 1,
-            actions,
-            dataSource,
-            tableState,
+            maxDecimals: 1,
             width: 110,
           }),
           NumberColumn({
+            ...commonProps,
             id: "remaining_weight",
             i18ncat: "spool",
             unit: "g",
-            decimals: 1,
+            maxDecimals: 1,
             defaultText: t("unknown"),
-            actions,
-            dataSource,
-            tableState,
             width: 110,
           }),
           NumberColumn({
+            ...commonProps,
             id: "used_length",
             i18ncat: "spool",
             unit: "mm",
-            decimals: 1,
-            actions,
-            dataSource,
-            tableState,
+            maxDecimals: 1,
             width: 120,
           }),
           NumberColumn({
+            ...commonProps,
             id: "remaining_length",
             i18ncat: "spool",
             unit: "mm",
-            decimals: 1,
+            maxDecimals: 1,
             defaultText: t("unknown"),
-            actions,
-            dataSource,
-            tableState,
             width: 120,
           }),
           FilteredQueryColumn({
+            ...commonProps,
             id: "location",
             i18ncat: "spool",
-            actions,
-            dataSource,
-            tableState,
             filterValueQuery: useSpoolmanLocations(),
             width: 120,
           }),
           FilteredQueryColumn({
+            ...commonProps,
             id: "lot_nr",
             i18ncat: "spool",
-            actions,
-            dataSource,
-            tableState,
             filterValueQuery: useSpoolmanLotNumbers(),
             width: 120,
           }),
           DateColumn({
+            ...commonProps,
             id: "first_used",
             i18ncat: "spool",
-            actions,
-            dataSource,
-            tableState,
           }),
           DateColumn({
+            ...commonProps,
             id: "last_used",
             i18ncat: "spool",
-            actions,
-            dataSource,
-            tableState,
           }),
           DateColumn({
+            ...commonProps,
             id: "registered",
             i18ncat: "spool",
-            actions,
-            dataSource,
-            tableState,
           }),
+          ...(extraFields.data?.map((field) => {
+            return CustomFieldColumn({
+              ...commonProps,
+              field,
+            });
+          }) ?? []),
           RichColumn({
+            ...commonProps,
             id: "comment",
             i18ncat: "spool",
-            actions,
-            dataSource,
-            tableState,
             width: 150,
           }),
           ActionsColumn(actions),
