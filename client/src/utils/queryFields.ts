@@ -23,7 +23,7 @@ export interface FieldParameters {
   order: number;
   unit?: string;
   field_type: FieldType;
-  default_value?: string | boolean | dayjs.Dayjs;
+  default_value?: string | (number | null)[] | boolean | dayjs.Dayjs;
   choices?: string[];
   multi_choice?: boolean;
 }

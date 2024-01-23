@@ -26,3 +26,36 @@ export const NumberFieldUnit: React.FC<Props> = ({ value, locale, options, ...re
     </Text>
   );
 };
+
+/**
+ * Like a {@link NumberFieldUnit} but for a range of numbers.
+ * @param props
+ * @returns
+ */
+export function NumberFieldUnitRange(props: {
+  value: (number | null)[] | undefined;
+  unit?: string;
+  options?: Intl.NumberFormatOptions;
+}) {
+  const { value, unit, options } = props;
+
+  if (value === undefined) {
+    console.warn("NumberFieldUnitRange received undefined value");
+    return <></>;
+  }
+
+  if (!Array.isArray(value) || value.length !== 2) {
+    console.warn("NumberFieldUnitRange received invalid value", value);
+    return <></>;
+  }
+
+  const [min, max] = value;
+
+  return (
+    <>
+      {min === null ? <></> : <NumberFieldUnit value={min} unit={unit ?? ""} options={options} />}
+      {" \u2013 "}
+      {max === null ? <></> : <NumberFieldUnit value={max} unit={unit ?? ""} options={options} />}
+    </>
+  );
+}

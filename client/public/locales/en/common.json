@@ -264,7 +264,7 @@
         },
         "extra_fields": {
             "tab": "Extra Fields",
-            "description": "<p>Here you can add extra custom fields to your entities.</p><p>Once a field is added, you can not change its key or type, and for choice type fields you can not remove choices or change the multi choice state. If you remove a field, the associated data for all entities will be deleted.</p><p>Default value is only applied to new items.</p><p>Extra fields can not be sorted or filtered in the table views.</p>",
+            "description": "<p>Here you can add extra custom fields to your entities.</p><p>Once a field is added, you can not change its key or type, and for choice type fields you can not remove choices or change the multi choice state. If you remove a field, the associated data for all entities will be deleted.</p><p>The key is what other programs read/write the data as, so if your custom field is supposed to integrate with a third-party program, make sure to set it correctly. Default value is only applied to new items.</p><p>Extra fields can not be sorted or filtered in the table views.</p>",
             "params": {
                 "key": "Key",
                 "name": "Name",

@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslate } from "@refinedev/core";
 import { Button, Form, Input, message } from "antd";
-import { useGetSettings, useSetSetting } from "./querySettings";
+import { useGetSettings, useSetSetting } from "../../utils/querySettings";
 
 export function GeneralSettings() {
   const settings = useGetSettings();

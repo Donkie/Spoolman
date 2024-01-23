@@ -73,8 +73,8 @@ def validate_extra_field_value(field: ExtraFieldParameters, value: str) -> None:
             raise ValueError("Value is not a list.")
         if len(data) != 2:  # noqa: PLR2004
             raise ValueError("Value list must have exactly two values.")
-        if not all(isinstance(value, int) for value in data):
-            raise ValueError("Value list must contain only integers.")
+        if not all(isinstance(value, int) or value is None for value in data):
+            raise ValueError("Value list must contain only integers or null.")
     elif field.field_type == ExtraFieldType.float:
         if not isinstance(data, (float, int)) or isinstance(data, bool):
             raise ValueError("Value is not a float.")
@@ -83,8 +83,10 @@ def validate_extra_field_value(field: ExtraFieldParameters, value: str) -> None:
             raise ValueError("Value is not a list.")
         if len(data) != 2:  # noqa: PLR2004
             raise ValueError("Value list must have exactly two values.")
-        if not all(isinstance(value, (float, int)) and not isinstance(value, bool) for value in data):
-            raise ValueError("Value list must contain only floats.")
+        if not all(
+            (isinstance(value, (float, int)) or value is None) and not isinstance(value, bool) for value in data
+        ):
+            raise ValueError("Value list must contain only floats or null.")
     elif field.field_type == ExtraFieldType.datetime:
         if not isinstance(data, str):
             raise ValueError("Value is not a string.")

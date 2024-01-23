@@ -15,6 +15,7 @@ import {
   SortedColumn,
   SpoolIconColumn,
   ActionsColumn,
+  CustomFieldColumn,
 } from "../../components/column";
 import {
   useSpoolmanArticleNumbers,
@@ -24,8 +25,12 @@ import {
 } from "../../components/otherModels";
 import { useLiveify } from "../../components/liveify";
 import { removeUndefined } from "../../utils/filtering";
+import { EntityType, useGetFields } from "../../utils/queryFields";
+import { useNavigate } from "react-router-dom";
 
 dayjs.extend(utc);
+
+// Extra is a key-value dict
 
 interface IFilamentCollapsed extends Omit<IFilament, "vendor"> {
   "vendor.name": string | null;
@@ -71,6 +76,10 @@ const defaultColumns = allColumns.filter(
 export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
   const invalidate = useInvalidate();
+  const navigate = useNavigate();
+  const extraFields = useGetFields(EntityType.filament);
+
+  const allColumnsWithExtraFields = [...allColumns, ...(extraFields.data?.map((field) => "extra." + field.key) ?? [])];
 
   // Load initial state
   const initialState = useInitialTableState(namespace);
@@ -145,6 +154,15 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
     { name: t("buttons.clone"), icon: <PlusSquareOutlined />, link: cloneUrl("filament", record.id) },
   ];
 
+  const commonProps = {
+    t,
+    navigate,
+    actions,
+    dataSource,
+    tableState,
+    sorter: true,
+  };
+
   return (
     <List
       headerButtons={({ defaultButtons }) => (
@@ -163,10 +181,20 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
           <Dropdown
             trigger={["click"]}
             menu={{
-              items: allColumns.map((column_id) => ({
-                key: column_id,
-                label: t(translateColumnI18nKey(column_id)),
-              })),
+              items: allColumnsWithExtraFields.map((column_id) => {
+                if (column_id.indexOf("extra.") === 0) {
+                  const extraField = extraFields.data?.find((field) => "extra." + field.key === column_id);
+                  return {
+                    key: column_id,
+                    label: extraField?.name ?? column_id,
+                  };
+                }
+
+                return {
+                  key: column_id,
+                  label: t(translateColumnI18nKey(column_id)),
+                };
+              }),
               selectedKeys: showColumns,
               selectable: true,
               multiple: true,
@@ -195,129 +223,107 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
         rowKey="id"
         columns={removeUndefined([
           SortedColumn({
+            ...commonProps,
             id: "id",
             i18ncat: "filament",
-            actions,
-            dataSource,
-            tableState,
             width: 70,
           }),
           FilteredQueryColumn({
+            ...commonProps,
             id: "vendor.name",
             i18nkey: "filament.fields.vendor_name",
-            actions,
-            dataSource,
-            tableState,
             filterValueQuery: useSpoolmanVendors(),
           }),
           SpoolIconColumn({
+            ...commonProps,
             id: "name",
             i18ncat: "filament",
             color: (record: IFilamentCollapsed) => record.color_hex,
-            actions,
-            dataSource,
-            tableState,
             filterValueQuery: useSpoolmanFilamentNames(),
           }),
           FilteredQueryColumn({
+            ...commonProps,
             id: "material",
             i18ncat: "filament",
-            actions,
-            dataSource,
-            tableState,
             filterValueQuery: useSpoolmanMaterials(),
             width: 110,
           }),
           SortedColumn({
+            ...commonProps,
             id: "price",
             i18ncat: "filament",
-            actions,
-            dataSource,
-            tableState,
             width: 80,
           }),
           NumberColumn({
+            ...commonProps,
             id: "density",
             i18ncat: "filament",
             unit: "g/cm³",
-            decimals: 2,
-            actions,
-            dataSource,
-            tableState,
+            maxDecimals: 2,
             width: 100,
           }),
           NumberColumn({
+            ...commonProps,
             id: "diameter",
             i18ncat: "filament",
             unit: "mm",
-            decimals: 2,
-            actions,
-            dataSource,
-            tableState,
+            maxDecimals: 2,
             width: 100,
           }),
           NumberColumn({
+            ...commonProps,
             id: "weight",
             i18ncat: "filament",
             unit: "g",
-            decimals: 1,
-            actions,
-            dataSource,
-            tableState,
+            maxDecimals: 1,
             width: 100,
           }),
           NumberColumn({
+            ...commonProps,
             id: "spool_weight",
             i18ncat: "filament",
             unit: "g",
-            decimals: 1,
-            actions,
-            dataSource,
-            tableState,
+            maxDecimals: 1,
             width: 100,
           }),
           FilteredQueryColumn({
+            ...commonProps,
             id: "article_number",
             i18ncat: "filament",
-            actions,
-            dataSource,
-            tableState,
             filterValueQuery: useSpoolmanArticleNumbers(),
             width: 130,
           }),
           NumberColumn({
+            ...commonProps,
             id: "settings_extruder_temp",
             i18ncat: "filament",
             unit: "°C",
-            decimals: 0,
-            actions,
-            dataSource,
-            tableState,
+            maxDecimals: 0,
             width: 100,
           }),
           NumberColumn({
+            ...commonProps,
             id: "settings_bed_temp",
             i18ncat: "filament",
             unit: "°C",
-            decimals: 0,
-            actions,
-            dataSource,
-            tableState,
+            maxDecimals: 0,
             width: 100,
           }),
           DateColumn({
+            ...commonProps,
             id: "registered",
             i18ncat: "filament",
-            actions,
-            dataSource,
-            tableState,
           }),
+          ...(extraFields.data?.map((field) => {
+            return CustomFieldColumn({
+              ...commonProps,
+              field,
+            });
+          }) ?? []),
           RichColumn({
+            ...commonProps,
             id: "comment",
             i18ncat: "filament",
-            actions,
-            dataSource,
-            tableState,
             width: 150,
           }),
           ActionsColumn(actions),

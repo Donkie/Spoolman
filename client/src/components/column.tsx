@@ -3,7 +3,7 @@ import { ColumnFilterItem, ColumnType } from "antd/es/table/interface";
 import { getFiltersForField, typeFilters } from "../utils/filtering";
 import { TableState } from "../utils/saveload";
 import { getSortOrderForField, typeSorters } from "../utils/sorting";
-import { NumberFieldUnit } from "./numberField";
+import { NumberFieldUnit, NumberFieldUnitRange } from "./numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { DateField, TextField } from "@refinedev/antd";
@@ -12,7 +12,8 @@ import SpoolIcon from "../icon_spool.svg?react";
 import { useTranslate } from "@refinedev/core";
 import { enrichText } from "../utils/parsing";
 import { UseQueryResult } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { Field, FieldType } from "../utils/queryFields";
 
 dayjs.extend(utc);
 
@@ -39,14 +40,19 @@ export interface Action {
 }
 
 interface BaseColumnProps<Obj extends Entity> {
-  id: keyof Obj & string;
+  id: string | string[];
   dataId?: keyof Obj & string;
   i18ncat?: string;
   i18nkey?: string;
+  title?: string;
+  sorter?: boolean;
+  t: (key: string) => string;
+  navigate: (link: string) => void;
   dataSource: Obj[];
   tableState: TableState;
   width?: number;
   actions?: (record: Obj) => Action[];
+  transform?: (value: unknown) => unknown;
 }
 
 interface FilteredColumnProps {
@@ -70,23 +76,31 @@ interface CustomColumnProps<Obj> {
 function Column<Obj extends Entity>(
   props: BaseColumnProps<Obj> & FilteredColumnProps & CustomColumnProps<Obj>
 ): ColumnType<Obj> | undefined {
-  const t = useTranslate();
-  const navigate = useNavigate();
+  const t = props.t;
+  const navigate = props.navigate;
 
   // Hide if not in showColumns
-  if (props.tableState.showColumns && !props.tableState.showColumns.includes(props.id)) {
+  const id = Array.isArray(props.id) ? props.id.join(".") : props.id;
+  if (props.tableState.showColumns && !props.tableState.showColumns.includes(id)) {
     return undefined;
   }
 
   const columnProps: ColumnType<Obj> = {
     dataIndex: props.id,
-    title: t(props.i18nkey ?? `${props.i18ncat}.fields.${props.id}`),
-    sorter: true,
-    sortOrder: getSortOrderForField(typeSorters<Obj>(props.tableState.sorters), props.dataId ?? props.id),
+    title: props.title ?? t(props.i18nkey ?? `${props.i18ncat}.fields.${props.id}`),
     filterMultiple: props.allowMultipleFilters ?? true,
     width: props.width ?? undefined,
     onCell: props.onCell ?? undefined,
   };
+
+  // Sorting
+  if (props.sorter) {
+    columnProps.sorter = true;
+    columnProps.sortOrder = getSortOrderForField(
+      typeSorters<Obj>(props.tableState.sorters),
+      props.dataId ?? (props.id as keyof Obj)
+    );
+  }
 
   // Filter
   if (props.filters && props.filteredValue) {
@@ -106,7 +120,12 @@ function Column<Obj extends Entity>(
   }
 
   // Render
-  const render = props.render ?? ((value) => <>{value}</>);
+  const render =
+    props.render ??
+    ((rawValue) => {
+      const value = props.transform ? props.transform(rawValue) : rawValue;
+      return <>{value}</>;
+    });
   columnProps.render = (value, record, index) => {
     if (!props.actions) {
       return render(value, record, index);
@@ -144,13 +163,19 @@ function Column<Obj extends Entity>(
 }
 
 export function SortedColumn<Obj extends Entity>(props: BaseColumnProps<Obj>) {
-  return Column(props);
-}
-
-export function RichColumn<Obj extends Entity>(props: BaseColumnProps<Obj>) {
   return Column({
     ...props,
-    render: (value: string | undefined) => {
+    sorter: true,
+  });
+}
+
+export function RichColumn<Obj extends Entity>(
+  props: Omit<BaseColumnProps<Obj>, "transform"> & { transform?: (value: unknown) => string }
+) {
+  return Column({
+    ...props,
+    render: (rawValue: string | undefined) => {
+      const value = props.transform ? props.transform(rawValue) : rawValue;
       return enrichText(value);
     },
   });
@@ -182,7 +207,7 @@ export function FilteredQueryColumn<Obj extends Entity>(props: FilteredQueryColu
   });
 
   const typedFilters = typeFilters<Obj>(props.tableState.filters);
-  const filteredValue = getFiltersForField(typedFilters, props.dataId ?? props.id);
+  const filteredValue = getFiltersForField(typedFilters, props.dataId ?? (props.id as keyof Obj));
 
   const onFilterDropdownOpen = () => {
     query.refetch();
@@ -193,14 +218,16 @@ export function FilteredQueryColumn<Obj extends Entity>(props: FilteredQueryColu
 
 interface NumberColumnProps<Obj extends Entity> extends BaseColumnProps<Obj> {
   unit: string;
-  decimals?: number;
+  maxDecimals?: number;
+  minDecimals?: number;
   defaultText?: string;
 }
 
 export function NumberColumn<Obj extends Entity>(props: NumberColumnProps<Obj>) {
   return Column({
     ...props,
-    render: (value) => {
+    render: (rawValue) => {
+      const value = props.transform ? props.transform(rawValue) : rawValue;
       if (value === null || value === undefined) {
         return <TextField value={props.defaultText ?? ""} />;
       }
@@ -209,8 +236,8 @@ export function NumberColumn<Obj extends Entity>(props: NumberColumnProps<Obj>) 
           value={value}
           unit={props.unit}
           options={{
-            maximumFractionDigits: props.decimals ?? 0,
-            minimumFractionDigits: props.decimals ?? 0,
+            maximumFractionDigits: props.maxDecimals ?? 0,
+            minimumFractionDigits: props.minDecimals ?? props.maxDecimals ?? 0,
           }}
         />
       );
@@ -221,7 +248,8 @@ export function NumberColumn<Obj extends Entity>(props: NumberColumnProps<Obj>) 
 export function DateColumn<Obj extends Entity>(props: BaseColumnProps<Obj>) {
   return Column({
     ...props,
-    render: (value) => {
+    render: (rawValue) => {
+      const value = props.transform ? props.transform(rawValue) : rawValue;
       return (
         <DateField
           hidden={!value}
@@ -291,7 +319,7 @@ export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<
   });
 
   const typedFilters = typeFilters<Obj>(props.tableState.filters);
-  const filteredValue = getFiltersForField(typedFilters, props.dataId ?? props.id);
+  const filteredValue = getFiltersForField(typedFilters, props.dataId ?? (props.id as keyof Obj));
 
   const onFilterDropdownOpen = () => {
     query.refetch();
@@ -312,7 +340,8 @@ export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<
         },
       };
     },
-    render: (value, record: Obj) => {
+    render: (rawValue, record: Obj) => {
+      const value = props.transform ? props.transform(rawValue) : rawValue;
       const colorStr = props.color(record);
       return (
         <Row wrap={false} justify="space-around" align="middle">
@@ -333,4 +362,122 @@ export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<
       );
     },
   });
+}
+
+export function NumberRangeColumn<Obj extends Entity>(props: NumberColumnProps<Obj>) {
+  return Column({
+    ...props,
+    render: (rawValue) => {
+      const value = props.transform ? props.transform(rawValue) : rawValue;
+      if (value === null || value === undefined) {
+        return <TextField value={props.defaultText ?? ""} />;
+      }
+      if (!Array.isArray(value) || value.length !== 2) {
+        return <TextField value={props.defaultText ?? ""} />;
+      }
+
+      return (
+        <NumberFieldUnitRange
+          value={value}
+          unit={props.unit}
+          options={{
+            maximumFractionDigits: props.maxDecimals ?? 0,
+            minimumFractionDigits: props.minDecimals ?? props.maxDecimals ?? 0,
+          }}
+        />
+      );
+    },
+  });
+}
+
+export function CustomFieldColumn<Obj extends Entity>(props: Omit<BaseColumnProps<Obj>, "id"> & { field: Field }) {
+  const field = props.field;
+  const commonProps = {
+    ...props,
+    id: ["extra", field.key],
+    title: field.name,
+    sorter: false,
+    transform: (value: unknown) => {
+      if (value === null || value === undefined) {
+        return undefined;
+      }
+      return JSON.parse(value as string);
+    },
+  };
+
+  if (field.field_type === FieldType.integer) {
+    return NumberColumn({
+      ...commonProps,
+      unit: field.unit ?? "",
+      maxDecimals: 0,
+    });
+  } else if (field.field_type === FieldType.float) {
+    return NumberColumn({
+      ...commonProps,
+      unit: field.unit ?? "",
+      minDecimals: 0,
+      maxDecimals: 3,
+    });
+  } else if (field.field_type === FieldType.integer_range) {
+    return NumberRangeColumn({
+      ...commonProps,
+      unit: field.unit ?? "",
+      maxDecimals: 0,
+    });
+  } else if (field.field_type === FieldType.float_range) {
+    return NumberRangeColumn({
+      ...commonProps,
+      unit: field.unit ?? "",
+      minDecimals: 0,
+      maxDecimals: 3,
+    });
+  } else if (field.field_type === FieldType.text) {
+    return RichColumn({
+      ...commonProps,
+    });
+  } else if (field.field_type === FieldType.datetime) {
+    return DateColumn({
+      ...commonProps,
+    });
+  } else if (field.field_type === FieldType.boolean) {
+    return Column({
+      ...commonProps,
+      render: (rawValue) => {
+        const value = commonProps.transform ? commonProps.transform(rawValue) : rawValue;
+        let text;
+        if (value === undefined || value === null) {
+          text = "";
+        } else if (value) {
+          text = props.t("yes");
+        } else {
+          text = props.t("no");
+        }
+        return <TextField value={text} />;
+      },
+    });
+  } else if (field.field_type === FieldType.choice && !field.multi_choice) {
+    return Column({
+      ...commonProps,
+      render: (rawValue) => {
+        const value = commonProps.transform ? commonProps.transform(rawValue) : rawValue;
+        return <TextField value={value} />;
+      },
+    });
+  } else if (field.field_type === FieldType.choice && field.multi_choice) {
+    return Column({
+      ...commonProps,
+      render: (rawValue) => {
+        const value = commonProps.transform ? commonProps.transform(rawValue) : rawValue;
+        return <TextField value={(value as string[] | undefined)?.join(", ")} />;
+      },
+    });
+  } else {
+    return Column({
+      ...commonProps,
+      render: (rawValue) => {
+        const value = commonProps.transform ? commonProps.transform(rawValue) : rawValue;
+        return <TextField value={value} />;
+      },
+    });
+  }
 }

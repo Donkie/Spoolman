@@ -8,6 +8,8 @@ import utc from "dayjs/plugin/utc";
 import { IFilament } from "./model";
 import { enrichText } from "../../utils/parsing";
 import { useNavigate } from "react-router-dom";
+import { EntityType, useGetFields } from "../../utils/queryFields";
+import { ExtraFieldDisplay } from "../../components/extraFields";
 dayjs.extend(utc);
 
 const { Title } = Typography;
@@ -15,6 +17,7 @@ const { Title } = Typography;
 export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
   const navigate = useNavigate();
+  const extraFields = useGetFields(EntityType.filament);
   const { queryResult } = useShow<IFilament>({
     liveMode: "auto",
   });
@@ -74,8 +77,6 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       />
       <Title level={5}>{t("filament.fields.name")}</Title>
       <TextField value={record?.name} />
-      {/* <Title level={5}>{t("filament.fields.id")}</Title>
-      {vendorIsLoading ? <>Loading...</> : <>{vendorData?.data?.id}</>} */}
       <Title level={5}>{t("filament.fields.color_hex")}</Title>
       <TextField value={record?.color_hex} />
       <Title level={5}>{t("filament.fields.material")}</Title>
@@ -134,6 +135,9 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       <TextField value={record?.article_number} />
       <Title level={5}>{t("filament.fields.comment")}</Title>
       <TextField value={enrichText(record?.comment)} />
+      {extraFields?.data?.map((field, index) => (
+        <ExtraFieldDisplay key={index} field={field} value={record?.extra[field.key]} />
+      ))}
     </Show>
   );
 };

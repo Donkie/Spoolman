@@ -52,7 +52,7 @@ function collapseSpool(element: ISpool): ISpoolCollapsed {
   } else {
     filament_name = element.filament.name ?? element.filament.id.toString();
   }
-  if (!element.price){
+  if (!element.price) {
     element.price = element.filament.price;
   }
   return {
@@ -306,6 +306,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             tableState,
             dataId: "filament.id",
             filterValueQuery: useSpoolmanFilamentFilter(),
+            sorter: true,
           }),
           FilteredQueryColumn({
             id: "filament.material",
@@ -315,6 +316,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             tableState,
             filterValueQuery: useSpoolmanMaterials(),
             width: 120,
+            sorter: true,
           }),
           SortedColumn({
             id: "price",
@@ -328,43 +330,47 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             id: "used_weight",
             i18ncat: "spool",
             unit: "g",
-            decimals: 1,
+            maxDecimals: 1,
             actions,
             dataSource,
             tableState,
             width: 110,
+            sorter: true,
           }),
           NumberColumn({
             id: "remaining_weight",
             i18ncat: "spool",
             unit: "g",
-            decimals: 1,
+            maxDecimals: 1,
             defaultText: t("unknown"),
             actions,
             dataSource,
             tableState,
             width: 110,
+            sorter: true,
           }),
           NumberColumn({
             id: "used_length",
             i18ncat: "spool",
             unit: "mm",
-            decimals: 1,
+            maxDecimals: 1,
             actions,
             dataSource,
             tableState,
             width: 120,
+            sorter: true,
           }),
           NumberColumn({
             id: "remaining_length",
             i18ncat: "spool",
             unit: "mm",
-            decimals: 1,
+            maxDecimals: 1,
             defaultText: t("unknown"),
             actions,
             dataSource,
             tableState,
             width: 120,
+            sorter: true,
           }),
           FilteredQueryColumn({
             id: "location",
@@ -374,6 +380,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             tableState,
             filterValueQuery: useSpoolmanLocations(),
             width: 120,
+            sorter: true,
           }),
           FilteredQueryColumn({
             id: "lot_nr",
@@ -383,6 +390,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             tableState,
             filterValueQuery: useSpoolmanLotNumbers(),
             width: 120,
+            sorter: true,
           }),
           DateColumn({
             id: "first_used",
@@ -390,6 +398,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             actions,
             dataSource,
             tableState,
+            sorter: true,
           }),
           DateColumn({
             id: "last_used",
@@ -397,6 +406,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             actions,
             dataSource,
             tableState,
+            sorter: true,
           }),
           DateColumn({
             id: "registered",
@@ -404,6 +414,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             actions,
             dataSource,
             tableState,
+            sorter: true,
           }),
           RichColumn({
             id: "comment",
@@ -412,6 +423,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             dataSource,
             tableState,
             width: 150,
+            sorter: true,
           }),
           ActionsColumn(actions),
         ])}

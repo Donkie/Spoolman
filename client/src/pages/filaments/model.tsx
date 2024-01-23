@@ -16,4 +16,5 @@ export interface IFilament {
   settings_extruder_temp?: number;
   settings_bed_temp?: number;
   color_hex?: string;
+  extra: { [key: string]: string };
 }

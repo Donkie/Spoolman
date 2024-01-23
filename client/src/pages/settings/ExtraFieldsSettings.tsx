@@ -1,7 +1,6 @@
 import {
   Button,
   Checkbox,
-  DatePicker,
   Flex,
   Form,
   FormInstance,
@@ -13,7 +12,7 @@ import {
   Table,
   message,
 } from "antd";
-import { EntityType, Field, FieldType, useDeleteField, useGetFields, useSetField } from "./queryFields";
+import { EntityType, Field, FieldType, useDeleteField, useGetFields, useSetField } from "../../utils/queryFields";
 import { useTranslate } from "@refinedev/core";
 import { useState } from "react";
 import { ColumnType } from "antd/es/table";
@@ -25,13 +24,15 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import advancedFormat from "dayjs/plugin/advancedFormat";
+import { DateTimePicker } from "../../components/dateTimePicker";
+import { InputNumberRange } from "../../components/inputNumberRange";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(advancedFormat);
 
 // Localized date time format with timezone
-const dateTimeFormat = "YYYY-MM-DD HH:mm:ss z";
+const dateTimeFormat = "YYYY-MM-DD HH:mm:ss";
 
 interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   record: FieldHolder;
@@ -194,19 +195,19 @@ const EditableCell: React.FC<EditableCellProps> = ({ record, editing, dataIndex,
         type: "number",
       });
     } else if (fieldType === FieldType.integer_range) {
-      inputNode = <Input placeholder="Example: 180 - 210" />;
+      inputNode = <InputNumberRange precision={0} />;
       rules.push({
-        type: "string",
-        pattern: /^-?\d+\s*-\s*-?\d+$/,
+        type: "array",
+        len: 2,
       });
     } else if (fieldType === FieldType.float_range) {
-      inputNode = <Input placeholder="Example: 1.34 - 2.90" />;
+      inputNode = <InputNumberRange precision={3} />;
       rules.push({
-        type: "string",
-        pattern: /^-?\d+([.,]\d+)?\s*-\s*-?\d+([.,]\d+)?$/,
+        type: "array",
+        len: 2,
       });
     } else if (fieldType === FieldType.datetime) {
-      inputNode = <DatePicker format={dateTimeFormat} showTime={{ use12Hours: false }} />;
+      inputNode = <DateTimePicker />;
     } else if (fieldType === FieldType.choice) {
       inputNode = (
         <Select
@@ -300,23 +301,12 @@ export function ExtraFieldsSettings() {
 
   const edit = (record: Partial<Field> & { key: React.Key }) => {
     const values = { ...record };
-    console.log(values);
+
     if (values.default_value && typeof values.default_value === "string") {
       const def = JSON.parse(values.default_value);
-      if (Array.isArray(def)) {
-        if (values.field_type === FieldType.choice) {
-          values.default_value = def.join(", ");
-        } else if (values.field_type === FieldType.integer_range || values.field_type === FieldType.float_range) {
-          values.default_value = `${def[0]} - ${def[1]}`;
-        } else {
-          values.default_value = undefined;
-        }
-      } else if (values.field_type === FieldType.datetime) {
-        // Parse as dayjs
-        values.default_value = dayjs(def);
-      } else if (values.field_type === FieldType.boolean) {
+      if (values.field_type === FieldType.boolean) {
         values.default_value = def ? true : false;
-      } else if (values.field_type === FieldType.text) {
+      } else {
         values.default_value = def;
       }
     } else {
@@ -383,24 +373,16 @@ export function ExtraFieldsSettings() {
     // Do some value conversions
     try {
       // Convert float and integer range to array using the validation regex
-      if (updatedField.field_type === FieldType.float_range && typeof updatedField.default_value === "string") {
-        const pattern = /^(-?\d+(?:[.,]\d+)?)\s*-\s*(-?\d+(?:[.,]\d+)?)$/;
-        const matches = updatedField.default_value.match(pattern);
-        if (matches) {
-          const val1 = parseFloat(matches[1].replace(",", "."));
-          const val2 = parseFloat(matches[2].replace(",", "."));
-          updatedField.default_value = JSON.stringify([Math.min(val1, val2), Math.max(val1, val2)]);
-        }
-      } else if (
-        updatedField.field_type === FieldType.integer_range &&
-        typeof updatedField.default_value === "string"
+      if (
+        (updatedField.field_type === FieldType.float_range || updatedField.field_type === FieldType.integer_range) &&
+        updatedField.default_value !== undefined
       ) {
-        const pattern = /^(-?\d+)\s*-\s*(-?\d+)$/;
-        const matches = updatedField.default_value.match(pattern);
-        if (matches) {
-          const val1 = parseInt(matches[1]);
-          const val2 = parseInt(matches[2]);
-          updatedField.default_value = JSON.stringify([Math.min(val1, val2), Math.max(val1, val2)]);
+        if (Array.isArray(updatedField.default_value)) {
+          const val1 = updatedField.default_value[0];
+          const val2 = updatedField.default_value[1];
+          updatedField.default_value = JSON.stringify([val1, val2]);
+        } else {
+          console.warn("Invalid default_value for range", updatedField.default_value);
         }
       } else {
         // Just stringify all other values
@@ -441,8 +423,6 @@ export function ExtraFieldsSettings() {
 
     // Submit it!
     try {
-      console.log(updatedField);
-
       setIsSubmitting(true);
 
       setField.reset();
@@ -511,7 +491,7 @@ export function ExtraFieldsSettings() {
           (Array.isArray(val) && record.field.field_type === FieldType.integer_range) ||
           record.field.field_type === FieldType.float_range
         ) {
-          return `${val[0]} - ${val[1]}`;
+          return `${val[0]} \u2013 ${val[1]}`;
         } else {
           return null;
         }

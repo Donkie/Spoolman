@@ -152,6 +152,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
             actions,
             dataSource,
             tableState,
+            sorter: true,
           }),
           RichColumn({
             id: "comment",
@@ -159,6 +160,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
             actions,
             dataSource,
             tableState,
+            sorter: true,
           }),
           ActionsColumn<IVendor>(actions),
         ])}
