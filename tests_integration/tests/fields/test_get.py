@@ -4,9 +4,7 @@ import json
 
 import httpx
 
-from ..conftest import assert_httpx_success, assert_lists_compatible
-
-URL = "http://spoolman:8000"
+from ..conftest import URL, assert_httpx_success, assert_lists_compatible
 
 
 def test_get_field():

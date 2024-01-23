@@ -62,4 +62,3 @@ ENV BUILD_DATE=${BUILD_DATE}
 # Run command
 EXPOSE 8000
 ENTRYPOINT ["/home/app/spoolman/entrypoint.sh"]
-CMD ["--host", "0.0.0.0", "--port", "8000"]

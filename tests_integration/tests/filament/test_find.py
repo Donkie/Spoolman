@@ -7,9 +7,7 @@ from typing import Any
 import httpx
 import pytest
 
-from ..conftest import assert_lists_compatible
-
-URL = "http://spoolman:8000"
+from ..conftest import URL, assert_lists_compatible
 
 
 @dataclass

@@ -6,9 +6,7 @@ from typing import Any
 import httpx
 import pytest
 
-from ..conftest import assert_dicts_compatible, length_from_weight
-
-URL = "http://spoolman:8000"
+from ..conftest import URL, assert_dicts_compatible, length_from_weight
 
 
 def test_add_spool_remaining_weight(random_filament: dict[str, Any]):

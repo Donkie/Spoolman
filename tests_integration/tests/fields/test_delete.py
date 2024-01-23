@@ -4,9 +4,7 @@ import json
 
 import httpx
 
-from ..conftest import assert_httpx_success
-
-URL = "http://spoolman:8000"
+from ..conftest import URL, assert_httpx_success
 
 
 def test_delete_field():

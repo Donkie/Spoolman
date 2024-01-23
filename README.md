@@ -128,6 +128,8 @@ If you want to connect with an external database instead, specify the `SPOOLMAN_
 | SPOOLMAN_AUTOMATIC_BACKUP | Automatic nightly DB backups for SQLite databases. Enabled by default, set to `FALSE` to disable.                            |
 | PUID                      | (*docker only*) Set the UID of the user in the docker container. Default is 1000.                                            |
 | PGID                      | (*docker only*) Set the GID of the user in the docker container. Default is 1000.                                            |
+| SPOOLMAN_PORT             | The port Spoolman should run on (default: 8000)                                                                              |
+| SPOOLMAN_HOST             | The hostname/ip Spoolman should bind to (default: 0.0.0.0)                                                                   |
 
 ## Frequently Asked Questions (FAQs)
 ### QR Code Does not work on HTTP / The page is not served over HTTPS

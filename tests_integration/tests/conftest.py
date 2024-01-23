@@ -13,7 +13,7 @@ import pytest
 
 TIMEOUT = 10
 
-URL = "http://spoolman:8000"
+URL = "http://spoolman:" + os.environ.get("PORT", "8000")
 
 
 class DbType(StrEnum):
@@ -43,7 +43,7 @@ def _wait_for_server():  # noqa: ANN202
     start_time = time.time()
     while True:
         try:
-            response = httpx.get("http://spoolman:8000", timeout=1)
+            response = httpx.get(URL, timeout=1)
             response.raise_for_status()
         except httpx.HTTPError:  # noqa: PERF203
             if time.time() - start_time > TIMEOUT:

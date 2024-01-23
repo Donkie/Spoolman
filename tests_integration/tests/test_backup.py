@@ -2,9 +2,7 @@
 
 import httpx
 
-from .conftest import DbType, get_db_type
-
-URL = "http://spoolman:8000"
+from .conftest import URL, DbType, get_db_type
 
 
 def test_backup():

@@ -8,7 +8,7 @@ from typing import Any
 import httpx
 import pytest
 
-URL = "http://spoolman:8000"
+from ..conftest import URL
 
 
 @pytest.mark.parametrize("use_weight", [0, 0.05, -0.05, 1500])  # 1500 is big enough to use all filament
