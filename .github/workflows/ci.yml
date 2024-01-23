@@ -49,7 +49,17 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+    
+      - name: Export requirements
+        run: |
+          pip install pdm
+          pdm export -o requirements.txt --without-hashes > requirements.txt
+    
+      - name: Install client dependencies
         run: |
           cd client
           npm ci
