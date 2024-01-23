@@ -30,8 +30,6 @@ import { useNavigate } from "react-router-dom";
 
 dayjs.extend(utc);
 
-// Extra is a key-value dict
-
 interface IFilamentCollapsed extends Omit<IFilament, "vendor"> {
   "vendor.name": string | null;
 }

@@ -1,15 +1,20 @@
 import React, { useState } from "react";
-import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
+import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, InputNumber, Radio, Divider, Button } from "antd";
+import { Form, Input, DatePicker, Select, InputNumber, Radio, Divider, Button, Typography } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { IFilament } from "../filaments/model";
-import { ISpool } from "./model";
+import { ISpool, ISpoolParsedExtras } from "./model";
 import { numberFormatter, numberParser } from "../../utils/parsing";
 import { useSpoolmanLocations } from "../../components/otherModels";
 import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
 import "../../utils/overrides.css";
+import { EntityType, useGetFields } from "../../utils/queryFields";
+import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 interface CreateOrCloneProps {
   mode: "create" | "clone";
@@ -17,13 +22,22 @@ interface CreateOrCloneProps {
 
 export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
+  const extraFields = useGetFields(EntityType.spool);
 
-  const { form, formProps, formLoading, onFinish, redirect } = useForm<ISpool>({
+  const { form, formProps, formLoading, onFinish, redirect } = useForm<
+    ISpool,
+    HttpError,
+    ISpoolParsedExtras,
+    ISpoolParsedExtras
+  >({
     redirect: false,
     warnWhenUnsavedChanges: false,
   });
+  if (!formProps.initialValues) {
+    formProps.initialValues = {};
+  }
 
-  if (props.mode === "clone" && formProps.initialValues) {
+  if (props.mode === "clone") {
     // Clear out the values that we don't want to clone
     formProps.initialValues.first_used = null;
     formProps.initialValues.last_used = null;
@@ -34,7 +48,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   }
 
   const handleSubmit = async (redirectTo: "list" | "edit" | "create") => {
-    const values = await form.validateFields();
+    const values = StringifiedExtras(await form.validateFields());
     if (quantity > 1) {
       const submit = Array(quantity).fill(values);
       // queue multiple creates this way for now Refine doesn't seem to map Arrays to createMany or multiple creates like it says it does
@@ -48,6 +62,17 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   const { queryResult } = useSelect<IFilament>({
     resource: "filament",
   });
+
+  // Use useEffect to update the form's initialValues when the extra fields are loaded
+  // This is necessary because the form is rendered before the extra fields are loaded
+  React.useEffect(() => {
+    extraFields.data?.forEach((field) => {
+      if (formProps.initialValues && field.default_value) {
+        const parsedValue = JSON.parse(field.default_value as string);
+        form.setFieldsValue({ extra: { [field.key]: parsedValue } });
+      }
+    });
+  }, [form, extraFields.data, formProps.initialValues]);
 
   const filamentOptions = queryResult.data?.data.map((item) => {
     let vendorPrefix = "";
@@ -213,7 +238,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             },
           ]}
         >
-                    <InputNumber precision={2} formatter={numberFormatter} parser={numberParser} />
+          <InputNumber precision={2} formatter={numberFormatter} parser={numberParser} />
         </Form.Item>
         <Form.Item hidden={true} name={["used_weight"]} initialValue={0}>
           <InputNumber value={usedWeight} />
@@ -336,6 +361,10 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
         >
           <TextArea maxLength={1024} />
         </Form.Item>
+        <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
+        {extraFields.data?.map((field, index) => (
+          <ExtraFieldFormItem key={index} field={field} />
+        ))}
       </Form>
     </Create>
   );

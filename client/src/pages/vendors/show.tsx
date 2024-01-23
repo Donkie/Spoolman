@@ -6,6 +6,8 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { IVendor } from "./model";
 import { enrichText } from "../../utils/parsing";
+import { EntityType, useGetFields } from "../../utils/queryFields";
+import { ExtraFieldDisplay } from "../../components/extraFields";
 
 dayjs.extend(utc);
 
@@ -13,6 +15,7 @@ const { Title } = Typography;
 
 export const VendorShow: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
+  const extraFields = useGetFields(EntityType.vendor);
 
   const { queryResult } = useShow<IVendor>({
     liveMode: "auto",
@@ -39,6 +42,10 @@ export const VendorShow: React.FC<IResourceComponentsProps> = () => {
       <TextField value={record?.name} />
       <Title level={5}>{t("vendor.fields.comment")}</Title>
       <TextField value={enrichText(record?.comment)} />
+      <Title level={4}>{t("settings.extra_fields.tab")}</Title>
+      {extraFields?.data?.map((field, index) => (
+        <ExtraFieldDisplay key={index} field={field} value={record?.extra[field.key]} />
+      ))}
     </Show>
   );
 };

@@ -1,20 +1,17 @@
 import React from "react";
 import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, Select, InputNumber, ColorPicker, Button } from "antd";
+import { Form, Input, Select, InputNumber, ColorPicker, Button, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { numberFormatter, numberParser } from "../../utils/parsing";
 import { IVendor } from "../vendors/model";
-import { IFilament } from "./model";
-import { EntityType, FieldType, useGetFields } from "../../utils/queryFields";
+import { IFilament, IFilamentParsedExtras } from "./model";
+import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
 dayjs.extend(utc);
-
-// IFilamentParsedExtras is the same as IFilament, but with the extra field parsed into its real types
-type IFilamentParsedExtras = Omit<IFilament, "extra"> & { extra?: { [key: string]: unknown } };
 
 interface CreateOrCloneProps {
   mode: "create" | "clone";
@@ -58,11 +55,7 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
   React.useEffect(() => {
     extraFields.data?.forEach((field) => {
       if (formProps.initialValues && field.default_value) {
-        let parsedValue = JSON.parse(field.default_value as string);
-        if (field.field_type === FieldType.datetime) {
-          parsedValue = dayjs(parsedValue);
-        }
-
+        const parsedValue = JSON.parse(field.default_value as string);
         form.setFieldsValue({ extra: { [field.key]: parsedValue } });
       }
     });
@@ -263,6 +256,7 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
         >
           <TextArea maxLength={1024} />
         </Form.Item>
+        <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
         {extraFields.data?.map((field, index) => (
           <ExtraFieldFormItem key={index} field={field} />
         ))}

@@ -18,3 +18,6 @@ export interface IFilament {
   color_hex?: string;
   extra: { [key: string]: string };
 }
+
+// IFilamentParsedExtras is the same as IFilament, but with the extra field parsed into its real types
+export type IFilamentParsedExtras = Omit<IFilament, "extra"> & { extra?: { [key: string]: unknown } };

@@ -5,8 +5,8 @@ import utc from "dayjs/plugin/utc";
 import { Content } from "antd/es/layout/layout";
 import { Menu, theme } from "antd";
 import { FileOutlined, HighlightOutlined, SolutionOutlined, ToolOutlined, UserOutlined } from "@ant-design/icons";
-import { GeneralSettings } from "./GeneralSettings";
-import { ExtraFieldsSettings } from "./ExtraFieldsSettings";
+import { GeneralSettings } from "./generalSettings";
+import { ExtraFieldsSettings } from "./extraFieldsSettings";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
 dayjs.extend(utc);

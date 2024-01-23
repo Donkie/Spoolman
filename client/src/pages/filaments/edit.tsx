@@ -1,18 +1,15 @@
 import React, { useState } from "react";
 import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, InputNumber, ColorPicker, message, Alert } from "antd";
+import { Form, Input, DatePicker, Select, InputNumber, ColorPicker, message, Alert, Typography } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { numberFormatter, numberParser } from "../../utils/parsing";
 import { IVendor } from "../vendors/model";
-import { IFilament } from "./model";
+import { IFilament, IFilamentParsedExtras } from "./model";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
 import { ParsedExtras } from "../../components/extraFields";
-
-// IFilamentParsedExtras is the same as IFilament, but with the extra field parsed into its real types
-type IFilamentParsedExtras = Omit<IFilament, "extra"> & { extra?: { [key: string]: unknown } };
 
 /*
 The API returns the extra fields as JSON values, but we need to parse them into their real types
@@ -278,6 +275,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
         >
           <TextArea maxLength={1024} />
         </Form.Item>
+        <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
         {extraFields.data?.map((field, index) => (
           <ExtraFieldFormItem key={index} field={field} />
         ))}
