@@ -312,7 +312,10 @@ def get_build_date() -> Optional[datetime]:
     with build_file.open(encoding="utf-8") as f:
         for line in f:
             if line.startswith("BUILD_DATE="):
-                return datetime.fromisoformat(line.split("=")[1].strip())
+                try:
+                    return datetime.fromisoformat(line.split("=")[1].strip())
+                except ValueError:
+                    return None
     return None
 
 
