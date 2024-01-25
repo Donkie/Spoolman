@@ -47,4 +47,4 @@ set +o allexport
 # Start Spoolman using pdm run
 #
 echo -e "${GREEN}Starting Spoolman...${NC}"
-python -m uvicorn spoolman.main:app --host $SPOOLMAN_HOST --port $SPOOLMAN_PORT
+uvicorn spoolman.main:app --host $SPOOLMAN_HOST --port $SPOOLMAN_PORT
