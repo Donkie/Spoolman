@@ -359,7 +359,7 @@ jobs:
   # Create Github Release if CI was triggered by a tag
   #
   publish-release:
-    if: ${{ github.event_name != 'pull_request' }} && startsWith(github.event.ref, 'refs/tags/v')
+    if: ${{ (github.event_name != 'pull_request') && startsWith(github.event.ref, 'refs/tags/v') }}
     needs: [publish-images]
     runs-on: ubuntu-latest
     steps:
