@@ -142,12 +142,12 @@ fi
 echo -e "${GREEN}Installing Spoolman backend and its dependencies...${NC}"
 
 # Create venv if it doesn't exist
-if [ ! -d "venv" ]; then
+if [ ! -d ".venv" ]; then
     python3 -m venv .venv || exit 1
 fi
 
 # Activate venv
-source .venv/bin/activate
+source .venv/bin/activate || exit 1
 
 # Install dependencies using pip
 pip3 install -r requirements.txt || exit 1
@@ -159,6 +159,12 @@ if [ ! -f ".env" ]; then
     echo -e "${ORANGE}.env file not found. Creating it...${NC}"
     cp .env.example .env
 fi
+
+#
+# Add execute permissions of all files in scripts dir
+#
+echo -e "${GREEN}Adding execute permissions to all files in scripts dir...${NC}"
+chmod +x scripts/*.sh
 
 #
 # Install systemd service

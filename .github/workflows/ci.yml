@@ -79,6 +79,10 @@ jobs:
           mv dist client/dist
           rm -rf .git
 
+      - name: Fix permissions
+        run: |
+          chmod +x scripts/*.sh
+
       - name: Upload client Spoolman artifact
         uses: actions/upload-artifact@v3
         with:
