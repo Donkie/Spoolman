@@ -59,6 +59,10 @@ ARG BUILD_DATE=unknown
 ENV GIT_COMMIT=${GIT_COMMIT}
 ENV BUILD_DATE=${BUILD_DATE}
 
+# Write GIT_COMMIT and BUILD_DATE to a build.txt file
+RUN echo "GIT_COMMIT=${GIT_COMMIT}" > build.txt \
+    && echo "BUILD_DATE=${BUILD_DATE}" >> build.txt
+
 # Run command
 EXPOSE 8000
 ENTRYPOINT ["/home/app/spoolman/entrypoint.sh"]

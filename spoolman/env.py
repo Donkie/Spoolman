@@ -286,10 +286,16 @@ def get_commit_hash() -> Optional[str]:
     Returns:
         Optional[str]: The commit hash.
     """
-    commit_hash = os.getenv("GIT_COMMIT", "unknown")
-    if commit_hash == "unknown":
+    # Read commit has from build.txt
+    # commit is written as GIT_COMMIT=<hash> in build.txt
+    build_file = Path("build.txt")
+    if not build_file.exists():
         return None
-    return commit_hash
+    with build_file.open(encoding="utf-8") as f:
+        for line in f:
+            if line.startswith("GIT_COMMIT="):
+                return line.split("=")[1].strip()
+    return None
 
 
 def get_build_date() -> Optional[datetime]:
@@ -298,10 +304,16 @@ def get_build_date() -> Optional[datetime]:
     Returns:
         Optional[datetime.datetime]: The build date.
     """
-    build_date = os.getenv("BUILD_DATE", "unknown")
-    if build_date == "unknown":
+    # Read build date has from build.txt
+    # build date is written as BUILD_DATE=<hash> in build.txt
+    build_file = Path("build.txt")
+    if not build_file.exists():
         return None
-    return datetime.fromisoformat(build_date)
+    with build_file.open(encoding="utf-8") as f:
+        for line in f:
+            if line.startswith("BUILD_DATE="):
+                return datetime.fromisoformat(line.split("=")[1].strip())
+    return None
 
 
 def can_write_to_data_dir() -> bool:

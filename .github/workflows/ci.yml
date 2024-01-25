@@ -82,6 +82,11 @@ jobs:
       - name: Fix permissions
         run: |
           chmod +x scripts/*.sh
+      
+      - name: Write build info
+        run: |
+          echo "GIT_COMMIT=$(git rev-parse --short HEAD)" > build.txt
+          echo "BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> build.txt
 
       - name: Upload client Spoolman artifact
         uses: actions/upload-artifact@v3
