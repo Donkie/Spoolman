@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Optional
 from urllib import parse
 
-import pkg_resources
 from platformdirs import user_data_dir
 
 logger = logging.getLogger(__name__)
@@ -271,7 +270,12 @@ def get_version() -> str:
     Returns:
         str: The version.
     """
-    return pkg_resources.get_distribution("spoolman").version
+    # Read version from pyproject.toml, don't use pkg_resources because it requires the package to be installed
+    with Path("pyproject.toml").open(encoding="utf-8") as f:
+        for line in f:
+            if line.startswith("version ="):
+                return line.split('"')[1]
+    return "unknown"
 
 
 def get_commit_hash() -> Optional[str]:
