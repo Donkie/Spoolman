@@ -70,6 +70,11 @@ jobs:
           rm -f .env && echo "VITE_APIURL=/api/v1" > .env.production
           npm run build
 
+      - name: Write build info
+        run: |
+          echo "GIT_COMMIT=$(git rev-parse --short HEAD)" > build.txt
+          echo "BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> build.txt
+  
       # Remove client source and keep only the built dist
       - name: Clean
         run: |
@@ -83,11 +88,6 @@ jobs:
         run: |
           chmod +x scripts/*.sh
       
-      - name: Write build info
-        run: |
-          echo "GIT_COMMIT=$(git rev-parse --short "$GITHUB_SHA")" > build.txt
-          echo "BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> build.txt
-
       - name: Upload client Spoolman artifact
         uses: actions/upload-artifact@v3
         with:
@@ -346,7 +346,7 @@ jobs:
 
       - name: Store git commit and build date
         run: |
-          echo "GIT_COMMIT=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
+          echo "GIT_COMMIT=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
           echo "BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "$GITHUB_ENV"
 
       - name: Build and push Docker images
