@@ -31,6 +31,12 @@ if [[ ! "$PATH" =~ "$user_python_bin_dir" ]]; then
 fi
 
 #
+# Activate .venv
+#
+echo -e "${GREEN}Activating .venv...${NC}"
+source .venv/bin/activate
+
+#
 # Load envvars from .env file
 #
 set -o allexport
@@ -41,4 +47,4 @@ set +o allexport
 # Start Spoolman using pdm run
 #
 echo -e "${GREEN}Starting Spoolman...${NC}"
-pdm run app --host $SPOOLMAN_HOST --port $SPOOLMAN_PORT
+python -m uvicorn spoolman.main:app --host $SPOOLMAN_HOST --port $SPOOLMAN_PORT

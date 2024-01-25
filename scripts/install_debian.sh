@@ -114,10 +114,10 @@ fi
 echo -e "${GREEN}Installing system-wide pip packages needed for Spoolman...${NC}"
 if [[ $is_externally_managed_env ]]; then
     echo -e "${GREEN}Installing the packages using apt-get instead of pip since pip is externally managed...${NC}"
-    apt_packages=("python3-setuptools" "python3-wheel" "python3-pdm")
+    apt_packages=("python3-setuptools" "python3-wheel")
     sudo apt-get install -y "${apt_packages[@]}" || exit 1
 else
-    packages=("setuptools" "wheel" "pdm")
+    packages=("setuptools" "wheel")
     for package in "${packages[@]}"; do
         if ! pip3 show "$package" &>/dev/null; then
             echo -e "${GREEN}Installing $package...${NC}"
@@ -131,9 +131,6 @@ fi
 #
 user_python_bin_dir=$(python3 -m site --user-base)/bin
 if [[ ! "$PATH" =~ "$user_python_bin_dir" ]]; then
-    echo -e "${ORANGE}WARNING: $user_python_bin_dir is not in PATH, this will make it difficult to run PDM commands. Temporarily adding $user_python_bin_dir to PATH...${NC}"
-    echo -e "${ORANGE}To make this permanent, add the following line to your .bashrc or .zshrc file:${NC}"
-    echo -e "${ORANGE}export PATH=$user_python_bin_dir:\$PATH${NC}"
     export PATH=$user_python_bin_dir:$PATH
 fi
 
@@ -142,11 +139,18 @@ fi
 #
 
 # Install PDM dependencies
-echo -e "${GREEN}Installing Spoolman backend and its dependencies using PDM...${NC}"
+echo -e "${GREEN}Installing Spoolman backend and its dependencies...${NC}"
 
-# Force PDM to use venv. The default is virtualenv which has had some compatibility issues
-pdm config venv.backend venv || exit 1
-pdm sync --prod --no-editable || exit 1
+# Create venv if it doesn't exist
+if [ ! -d "venv" ]; then
+    python3 -m venv .venv || exit 1
+fi
+
+# Activate venv
+source .venv/bin/activate
+
+# Install dependencies using pip
+pip3 install -r requirements.txt || exit 1
 
 #
 # Initialize the .env file if it doesn't exist
