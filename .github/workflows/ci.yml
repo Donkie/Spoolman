@@ -85,7 +85,7 @@ jobs:
       
       - name: Write build info
         run: |
-          echo "GIT_COMMIT=$(git rev-parse --short HEAD)" > build.txt
+          echo "GIT_COMMIT=$(git rev-parse --short "$GITHUB_SHA")" > build.txt
           echo "BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> build.txt
 
       - name: Upload client Spoolman artifact
@@ -346,7 +346,7 @@ jobs:
 
       - name: Store git commit and build date
         run: |
-          echo "GIT_COMMIT=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
+          echo "GIT_COMMIT=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
           echo "BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "$GITHUB_ENV"
 
       - name: Build and push Docker images
