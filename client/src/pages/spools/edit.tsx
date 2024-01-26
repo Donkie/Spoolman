@@ -126,11 +126,12 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
     formProps.initialValues["filament_id"] = formProps.initialValues["filament"].id;
   }
 
+  const initialUsedWeight = formProps.initialValues?.used_weight || 0;
   useEffect(() => {
-    if (formProps.initialValues) {
-      setUsedWeight(formProps.initialValues["used_weight"]);
+    if (initialUsedWeight) {
+      setUsedWeight(initialUsedWeight);
     }
-  }, [formProps.initialValues]);
+  }, [initialUsedWeight]);
 
   return (
     <Edit saveButtonProps={saveButtonProps}>
