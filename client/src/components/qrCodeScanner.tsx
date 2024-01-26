@@ -27,6 +27,9 @@ const QRCodeScannerModal: React.FC = () => {
         <Space direction="vertical" style={{ width: "100%" }}>
           <p>{t("scanner.description")}</p>
           <QrScanner
+            constraints={{
+              facingMode: "environment",
+            }}
             viewFinder={
               lastError
                 ? () => (
