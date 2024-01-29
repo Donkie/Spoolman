@@ -147,7 +147,8 @@
             "comment": "Kommentar",
             "archived": "Arkiverad",
             "measured_weight": "Uppmätt vikt",
-            "weight_to_use": "Vikt"
+            "weight_to_use": "Vikt",
+            "price": "Pris"
         },
         "fields_help": {
             "used_weight": "Hur mycket filament som använts på spolen. En ny spole har värdet 0g.",
