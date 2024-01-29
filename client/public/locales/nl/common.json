@@ -101,7 +101,9 @@
         "success": "Succesvol",
         "editSuccess": "{{resource}} succesvol bewerkt",
         "deleteError": "Fout opgetreden bij het verwijderen van {{resource}} (status code {{statusCode}})",
-        "createSuccess": "{{resource}} succesvol aangemaakt"
+        "createSuccess": "{{resource}} succesvol aangemaakt",
+        "saveSuccessful": "Succesvol opgeslagen!",
+        "validationError": "Validatie error: {{error}}"
     },
     "no": "Nee",
     "unknown": "Onbekend",
@@ -165,7 +167,7 @@
             "used_weight": "Gebruikt gewicht",
             "id": "ID",
             "remaining_weight": "Overgebleven gewicht",
-            "price": ""
+            "price": "Prijs"
         },
         "titles": {
             "archive": "Spoel archiveren",
@@ -183,7 +185,7 @@
             "lot_nr": "Lotnummer van de fabrikant. Kan worden gebruikt om ervoor te zorgen dat een afdruk een consistente kleur heeft als er meerdere spoelen worden gebruikt.",
             "remaining_weight": "Hoeveel filament zit er nog op de spoel. Bij een nieuwe spoel zal dit overeenkomen met het spoelgewicht.",
             "location": "Waar de spoel zich bevindt als je meerdere locaties hebt waar je jouw spoelen opslaat.",
-            "price": ""
+            "price": "Prijs van een volledige spoel in de door het systeem geconfigureerde valuta. Als dit niet wordt ingevuld, wordt in plaats daarvan uitgegaan van de prijs van het filament."
         },
         "spool": "Spoelen",
         "messages": {
@@ -282,5 +284,45 @@
     "kofi": "Tip mij op Ko-fi",
     "home": {
         "home": "Thuis"
+    },
+    "settings": {
+        "header": "Instellingen",
+        "general": {
+            "tab": "Algemeen",
+            "currency": {
+                "label": "Valuta"
+            }
+        },
+        "extra_fields": {
+            "tab": "Extra velden",
+            "params": {
+                "name": "Naam",
+                "key": "Key",
+                "field_type": "Type",
+                "unit": "Eenheid",
+                "order": "Volgorde",
+                "default_value": "Standaardwaarde",
+                "choices": "Keuzes",
+                "multi_choice": "Meerkeuze"
+            },
+            "field_type": {
+                "text": "Tekst",
+                "integer": "Gehele getallen",
+                "integer_range": "Bereik van gehele getallen",
+                "float": "Kommagetal",
+                "float_range": "Bereik van kommagetallen",
+                "datetime": "Datum/tijd",
+                "boolean": "Booleaanse waarde",
+                "choice": "Keuze"
+            },
+            "boolean_true": "Ja",
+            "boolean_false": "Nee",
+            "choices_missing_error": "U kunt geen keuzes verwijderen. De volgende keuzes ontbreken: {{choices}}",
+            "non_unique_key_error": "De key moet uniek zijn.",
+            "key_not_changed": "Verander de key in iets anders.",
+            "delete_confirm": "Veld {{name}} verwijderen?",
+            "delete_confirm_description": "Hierdoor worden het veld en alle bijbehorende gegevens voor alle entiteiten verwijderd.",
+            "description": "<p>Hier kunt u extra aangepaste velden toevoegen aan uw entiteiten.</p><p>Zodra een veld is toegevoegd, kunt u de key of het type ervan niet wijzigen, en voor velden met keuzetypes kunt u geen keuzes verwijderen of de meervoudige velden wijzigen. Als u een veld verwijdert, worden de bijbehorende gegevens voor alle entiteiten verwijderd.</p><p>De key is hoe andere programma's de gegevens lezen/schrijven, dus of uw aangepaste veld moet worden geïntegreerd met een derde partij programma, zorg ervoor dat u het correct instelt. De standaardwaarde wordt alleen toegepast op nieuwe items.</p><p>Extra velden kunnen niet worden gesorteerd of gefilterd in de tabelweergaven.</p>"
+        }
     }
 }
