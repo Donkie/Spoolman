@@ -41,7 +41,9 @@
         "deleteError": "Error al borrar {{resource}} (status code: {{statusCode}})",
         "editSuccess": "Has editado {{resource}} con éxito",
         "editError": "Error al editar {{resource}} (status code: {{statusCode}})",
-        "importProgress": "Importando: {{processed}}/{{total}}"
+        "importProgress": "Importando: {{processed}}/{{total}}",
+        "saveSuccessful": "¡Se guardo correctamente!",
+        "validationError": "Error de validación: {{error}}"
     },
     "loading": "Cargando",
     "version": "Versión",
@@ -74,7 +76,7 @@
             "archived": "Archivado",
             "measured_weight": "Peso Medido",
             "weight_to_use": "Peso",
-            "price": ""
+            "price": "Precio"
         },
         "fields_help": {
             "used_weight": "Cuanto filamento ha sido usado en el carrete. Un carrete nuevo debería tener 0g usados.",
@@ -83,7 +85,7 @@
             "weight_to_use": "Elegir el peso a usar. El peso medido solo esta disponible si existe el valor de peso del carrete seleccionado.",
             "measured_weight": "Cuanto pesa el filamento y el carrete.",
             "remaining_weight": "Cuanto filamento resta en el carrete. Para un carrete nuevo el peso debe ser igual al peso indicado de fabrica.",
-            "price": ""
+            "price": "Precio de una bobina completa en la moneda configurada en el sistema. Si no se establece, se asumirá en su lugar el precio del filamento."
         },
         "titles": {
             "create": "Crear Carrete",
@@ -277,11 +279,51 @@
             "filament": "Marcas de filamentos. Tienen propiedades como nombre, material, color, diámetro y más.",
             "spool": "Bobinas físicas individuales de un filamento específico."
         },
-        "description": "<title>Ayuda</title><p>Aquí tiene algunos consejos para empezar.</p><p>Spoolman contiene 3 tipos diferentes de datos:</p><itemsHelp/><p>Para añadir un nuevo spool a la base de datos, empiece creando un objeto <filamentCreateLink>Filament</filamentCreateLink>. Una vez hecho esto, proceda a crear un objeto <spoolCreateLink>Spool</spoolCreateLink> para ese spool específico. Si más adelante adquiere carretes adicionales del mismo filamento, simplemente genere objetos Spool adicionales y reutilice el mismo objeto Filament.</p><p>Opcionalmente, también puede generar un objeto <vendorCreateLink>Vendor</vendorCreateLink> para la empresa que fabrica el filamento si desea realizar un seguimiento de esa información.</p><p>Tiene la opción de vincular otros servicios de impresoras 3D a Spoolman, como Moonraker, que puede supervisar automáticamente el uso del filamento y actualizar los objetos Spool por usted. Consulte el <readmeLink>LÉEME de Spoolman</readmeLink> para obtener orientación sobre cómo configurarlo.</p> <p>Spoolman es un servicio de impresión 3D",
+        "description": "<title> Ayuda </title> <p> A continuación se ofrecen algunos consejos para empezar. </p> <p> Spoolman contiene 3 tipos diferentes de datos: </p> <itemsHelp/> <p> Para agregar un nuevo carrete a la base de datos, comience creando un objeto <filamentCreateLink> Filament </filamentCreateLink> . Una vez hecho esto, proceda a crear un objeto <spoolCreateLink> Spool </spoolCreateLink> para ese spool específico. Si adquiere carretes adicionales del mismo filamento más adelante, simplemente genere objetos Carrete adicionales y reutilice el mismo objeto Filamento. </p> <p> Opcionalmente, también puede generar un objeto <vendorCreateLink> Vendor </vendorCreateLink> para la empresa que fabrica el filamento si desea realizar un seguimiento de esa información. </p> <p> Tiene la opción de vincular otros servicios de impresora 3D a Spoolman, como Moonraker, que puede monitorear automáticamente el uso del filamento y actualizar los objetos de Spool por usted. Consulte el <readmeLink> Spoolman README </readmeLink> para obtener orientación sobre cómo configurarlo. </p>",
         "help": "Ayuda"
     },
     "kofi": "Donar en Ko-fi",
     "home": {
         "home": "Inicio"
+    },
+    "settings": {
+        "header": "Ajustes",
+        "general": {
+            "tab": "General",
+            "currency": {
+                "label": "Divisa"
+            }
+        },
+        "extra_fields": {
+            "tab": "Campos adicionales",
+            "params": {
+                "key": "Llave",
+                "name": "Nombre",
+                "field_type": "Tipo",
+                "unit": "Unidad",
+                "order": "Orden",
+                "default_value": "Valor predeterminado",
+                "choices": "Elecciones",
+                "multi_choice": "Múltiples opciones"
+            },
+            "field_type": {
+                "text": "Texto",
+                "integer": "Entero",
+                "integer_range": "Rango de enteros",
+                "float": "Flotante",
+                "float_range": "Rango flotante",
+                "datetime": "Fecha y hora",
+                "boolean": "Booleano",
+                "choice": "Elección"
+            },
+            "boolean_true": "Sí",
+            "boolean_false": "No",
+            "choices_missing_error": "No se pueden eliminar opciones. Faltan las siguientes opciones: {{choices}}",
+            "non_unique_key_error": "La clave debe ser única.",
+            "key_not_changed": "Por favor, cambie la clave por otra.",
+            "delete_confirm": "¿Borrar campo {{name}}?",
+            "delete_confirm_description": "Esto eliminará el campo y todos los datos asociados para todas las entidades.",
+            "description": "<p> Aquí puede agregar más campos personalizados a los asuntos.</p><p> Una vez que se agrega un campo, no puede cambiar su clave o tipo, y no puede eliminar opciones ni cambiar el estado de múltiples opciones para campos seleccionados. Si elimina un campo, se eliminarán los datos asociados a todos los sujetos.</p><p> La forma en que otros programas leen/escriben los datos es clave, por lo que si su campo personalizado se va a integrar con un programa de terceros, asegúrese de que esté configurado correctamente. El valor predeterminado solo se utilizará para elementos nuevos.</p><p> Los campos de salida no se pueden ordenar ni filtrar en las vistas de tabla.</p>"
+        }
     }
 }
