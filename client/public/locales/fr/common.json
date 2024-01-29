@@ -111,7 +111,7 @@
             "used_weight": "Poids utilisé",
             "id": "ID",
             "remaining_weight": "Poids restant",
-            "price": ""
+            "price": "Prix"
         },
         "titles": {
             "archive": "Archiver la bobine",
@@ -129,7 +129,7 @@
             "lot_nr": "Numéro de lot du fabricant. Peut être utilisé pour s'assurer que la couleur d'une impression est homogène si plusieurs bobines sont utilisées.",
             "remaining_weight": "La quantité de filament restant sur la bobine. Pour une nouvelle bobine, cela devrait correspondre au poids de la bobine.",
             "location": "L'emplacement de la bobine si vous stockez vos bobines à plusieurs endroits.",
-            "price": ""
+            "price": "Prix d'une bobine complète dans la devise configurée par le système. S'il n'est pas défini, le prix du filament sera pris en compte."
         },
         "spool": "Bobines",
         "messages": {
@@ -273,11 +273,11 @@
     },
     "help": {
         "resources": {
-            "vendor": "Les compagnies qui fabriquent le filament.",
+            "vendor": "Les sociétés qui fabriquent le filament.",
             "filament": "Marques de filament. Contient les propriétés comme le nom, le matériau, la couleur, le diamètre, etc.",
-            "spool": "Les bobines physique pour un filament spécifique."
+            "spool": "Les bobines physiques pour un filament spécifique."
         },
-        "description": "<title>Aide</title><p>Voici quelques informations pour commencer.</p><p>Spoolman garde 3 types d'informations différentes :</p><itemsHelp/><p>Pour ajouter une nouvelle bobine dans la base de donnée, commencer par créer un objet <filamentCreateLink>Filament</filamentCreateLink>. Une fois cela fait, créez un objet <spoolCreateLink>bobine</spoolCreateLink> pour cette bobine spécifique. Si vous achetez plus tard des bobines supplémentaire du même filament, créez simplement un objet bobine supplémentaire et réutilisez le même objet Filament.</p><p>En option, vous pouvez créer un <vendorCreateLink>Vendeur</vendorCreateLink> pour la compagnie qui fabrique le filament si vous voulez garder une trace de cette information.</p><p>Vous avez l'option de connecter d'autres service d'impression 3D à Spoolman, comme Moonraker, pour qu'ils puissent suivre automatiquement votre utilisation de filament et mettre automatiquement à jour l'objet Bobine pour vous. Voir le <readmeLink>README Spoolman</readmeLink> pour avoir la marche à suivre pour le mettre en place.</p>",
+        "description": "<title>Aide</title><p>Voici quelques informations pour commencer.</p><p>Spoolman garde 3 types d'informations différentes :</p><itemsHelp/><p>Pour ajouter une nouvelle bobine dans la base de données, commencez par créer un objet <filamentCreateLink>Filament</filamentCreateLink>. Une fois cela fait, créez un objet <spoolCreateLink>bobine</spoolCreateLink> pour cette bobine spécifique. Si vous achetez plus tard des bobines supplémentaires du même filament, créez simplement un objet bobine supplémentaire et réutilisez le même objet Filament.</p><p>En option, vous pouvez créer un <vendorCreateLink>Vendeur</vendorCreateLink> pour la société qui fabrique le filament si vous voulez garder une trace de cette information.</p><p>Vous avez l'option de connecter d'autres service d'impression 3D à Spoolman, comme Moonraker, pour qu'ils puissent suivre automatiquement votre utilisation de filament et mettre automatiquement à jour l'objet Bobine pour vous. Voir le <readmeLink>README Spoolman</readmeLink> pour avoir la marche à suivre pour le mettre en place.</p>",
         "help": "Aide"
     },
     "kofi": "Me donner un pourboire sur Ko-fi",
