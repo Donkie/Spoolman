@@ -146,7 +146,7 @@
             "registered": "登记时间",
             "comment": "备注",
             "archived": "存档",
-            "price": ""
+            "price": "价格"
         },
         "fields_help": {
             "weight_to_use": "请选择要输入的重量值。净重只在所选的耗材设置了料盘重量时可用。",
@@ -155,7 +155,7 @@
             "measured_weight": "耗材和料盘的重量分别是多少。",
             "location": "如果您有多个存放料盘的地方，请填写料盘所在的位置。",
             "lot_nr": "制造商的批号。如果使用多个料盘可以使用批号进行控制，以确保打印颜色一致。",
-            "price": ""
+            "price": "以系统配置的货币计价的整卷料盘的价格。如果未设置，则默认使用该耗材的价格。"
         },
         "titles": {
             "create": "创建料盘",
@@ -263,23 +263,23 @@
             "clone": "#{{id}} 克隆供应商 | Spoolman"
         },
         "home": {
-            "list": ""
+            "list": "主页 | Spoolman"
         },
         "help": {
-            "list": ""
+            "list": "帮助 | Spoolman"
         }
     },
-    "kofi": "",
+    "kofi": "在Ko-fi上给我打赏一点小费",
     "home": {
-        "home": ""
+        "home": "主页"
     },
     "help": {
-        "help": "",
+        "help": "帮助",
         "resources": {
-            "filament": "",
-            "vendor": "",
-            "spool": ""
+            "filament": "耗材品种。它们具有名称、材料、颜色、直径等属性。",
+            "vendor": "制造耗材的公司。",
+            "spool": "特定耗材的单个物理卷轴。"
         },
-        "description": ""
+        "description": "<title>帮助</title><p>以下是一些入门提示。</p><p>Spoolman保存了3种不同类型的数据：</p><itemsHelp/><p>要向数据库添加新的料盘，请先创建一个 <filamentCreateLink>耗材</filamentCreateLink> 对象。完成后，继续为该特定耗材创建一个 <spoolCreateLink>料盘</spoolCreateLink> 对象。如果以后获取相同耗材的其他料盘，只需生成其他的料盘对象并重复使用同一个耗材对象。</p><p>同时，如果您希望跟踪该信息，还可以为制造耗材的公司生成一个 <vendorCreateLink>供应商</vendorCreateLink> 对象。</p><p>您可以选择将其他3D打印机服务链接到 Spoolman，例如 Moonraker，它可以自动监视耗材使用情况并为您更新料盘对象。请参阅 <readmeLink>Spoolman README</readmeLink> 获取有关如何设置的指导。</p>"
     }
 }

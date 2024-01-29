@@ -110,7 +110,7 @@
             "used_weight": "Brugt vægt",
             "id": "ID",
             "remaining_weight": "Resterende vægt",
-            "price": ""
+            "price": "Pris"
         },
         "titles": {
             "archive": "Arkivér spole",
@@ -132,7 +132,7 @@
             "lot_nr": "Producentens \"batchnummer\". Kan bruges til at sikre ensartede farver ved brug af flere ruller.",
             "remaining_weight": "Hvor meget filament er der tilbage på spolen. For en ny spole bør dette matches spolens vægt.",
             "location": "Placering af spolen. Hvis du har flere lokationer.",
-            "price": ""
+            "price": "Pris for en fuld spole, i den i systemet konfigurerede valuta. Hvis ikke indstillet, vil prisen bliver estimeret."
         },
         "spool": "Spoler",
         "messages": {
