@@ -41,7 +41,9 @@
         "deleteError": "Chyba při odstranění {{resource}} (status code: {{statusCode}})",
         "editSuccess": "Úspěšně upraveno {{resource}}",
         "editError": "Chyba při úpravě {{resource}} (status code: {{statusCode}})",
-        "importProgress": "Importování: {{processed}}/{{total}}"
+        "importProgress": "Importování: {{processed}}/{{total}}",
+        "saveSuccessful": "Úspěšně uloženo!",
+        "validationError": "Chyba ověření: {{error}}"
     },
     "loading": "Načítání",
     "version": "Verze",
@@ -148,7 +150,7 @@
             "registered": "Registrováno",
             "comment": "Komentář",
             "archived": "Archivováno",
-            "price": ""
+            "price": "Cena"
         },
         "fields_help": {
             "weight_to_use": "Vyberte, jakou hodnotu hmotnosti chcete zadat. Naměřená hmotnost je k dispozici pouze v případě, že je pro vybraný filament nastavena hmotnost cívky.",
@@ -157,7 +159,7 @@
             "measured_weight": "Jaká je hmotnost filamentu a cívky.",
             "location": "Kde se cívka nachází, pokud máte více míst, kde cívky skladujete.",
             "lot_nr": "Číslo šarže výrobce. Lze použít k zajištění jednotné barvy tisku v případě použití více cívek.",
-            "price": ""
+            "price": "Cena celé cívky v měně nastavené v systému. Pokud není nastavena, předpokládá se cena filamentu."
         },
         "titles": {
             "create": "Vytvořit cívku",
@@ -277,11 +279,51 @@
             "filament": "Značky vláken. Mají vlastnosti, jako je název, materiál, barva, průměr a další.",
             "spool": "Jednotlivé fyzické cívky určitého vlákna."
         },
-        "description": "<title>Nápověda</title><p>Zde je několik tipů, které vám pomohou začít.</p><p>Spoolman uchovává 3 různé typy dat:</p><itemsHelp/><p>Chcete-li do databáze přidat novou cívku, začněte vytvořením položky <filamentCreateLink>Filament</filamentCreateLink> objekt. Jakmile to uděláte, vytvořte položku<spoolCreateLink>Cívka</spoolCreateLink> objekt pro danou cívku. Pokud později získáte další cívky stejného filamenzu, jednoduše vygenerujte další objekty Cívky a znovu použijte stejný objekt Filament.</p><p>Volitelně můžete také vygenerovat <vendorCreateLink>Výrobce</vendorCreateLink> objekt společnosti vyrábějící vlákno, pokud si přejete tyto informace sledovat.</p><p>Máte možnost propojit se Spoolmanem další služby 3D tiskárny, například Moonraker, který může automaticky sledovat využití filamentu a aktualizovat objekty Cívek za vás. Pokyny k nastavení najdete v <readmeLink>Spoolman README</readmeLink>.</p>",
+        "description": "<title>Nápověda</title><p>Zde je několik tipů, které vám pomohou začít.</p><p>Spoolman uchovává 3 různé typy dat:</p><itemsHelp/><p>Chcete-li do databáze přidat novou cívku, začněte vytvořením položky <filamentCreateLink>Filament</filamentCreateLink> objekt. Jakmile to uděláte, vytvořte položku <spoolCreateLink>Cívka</spoolCreateLink> popis pro danou cívku. Pokud později získáte další cívky stejného filamentu, jednoduše vygenerujte další objekty Cívky a znovu použijte stejný objekt Filament.</p><p>Volitelně můžete také vygenerovat <vendorCreateLink>Výrobce</vendorCreateLink> název společnosti vyrábějící vlákno, pokud si přejete tyto informace sledovat.</p><p>Máte možnost propojit se Spoolmanem další služby 3D tiskárny, například Moonraker, který může automaticky sledovat využití filamentu a aktualizovat objekty Cívek za vás. Pokyny k nastavení najdete v <readmeLink>Spoolman README</readmeLink>.</p>",
         "help": "Nápověda"
     },
     "kofi": "Příspěvek na Ko-fi",
     "home": {
         "home": "Domů"
+    },
+    "settings": {
+        "extra_fields": {
+            "tab": "Dalíí pole",
+            "params": {
+                "key": "Klíč",
+                "name": "Název",
+                "field_type": "Typ",
+                "order": "Objednávka",
+                "default_value": "Výchozí hodnota",
+                "multi_choice": "Výběr z více možností",
+                "unit": "Jednotka",
+                "choices": "Volby"
+            },
+            "field_type": {
+                "text": "Text",
+                "integer": "Celé číslo",
+                "integer_range": "Rozsah celých čísel",
+                "float": "Plovoucí",
+                "datetime": "Datumčas",
+                "choice": "Volba",
+                "float_range": "Plovoucí rozsah",
+                "boolean": "Logická hodnota"
+            },
+            "boolean_true": "Ano",
+            "boolean_false": "Ne",
+            "choices_missing_error": "Volby nelze odstranit. Chybí následující volby: {{choices}}",
+            "non_unique_key_error": "Tento klíč musí být jedinečný.",
+            "key_not_changed": "Změňte prosím klíč na jiný.",
+            "delete_confirm": "Smazat pole {{name}}?",
+            "description": "<p>Zde můžete přidat další vlastní pole k subjektům.</p><p>Jakmile je pole přidáno, nemůžete změnit jeho klíč ani typ a u polí typu výběr nemůžete odebrat volby ani změnit stav více voleb. Pokud pole odstraníte, budou odstraněna přidružená data pro všechny subjekty.</p><p>Klíčové je, jako co ostatní programy čtou/zapisují data, takže pokud má být vaše vlastní pole integrováno s programem třetí strany, ujistěte se, že je správně nastaveno. Výchozí hodnota se použije pouze pro nové položky.</p><p>Výstupní pole nelze v zobrazeních tabulky řadit ani filtrovat.</p>",
+            "delete_confirm_description": "Tím se odstraní pole a všechna související data pro všechny subjekty."
+        },
+        "header": "Nastavení",
+        "general": {
+            "tab": "Obecné",
+            "currency": {
+                "label": "Měna"
+            }
+        }
     }
 }

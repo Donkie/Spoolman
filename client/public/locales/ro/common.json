@@ -12,7 +12,7 @@
         "import": "importa",
         "logout": "logout",
         "saveAndAdd": "salveazaSiAdauga",
-        "clear": "sterge",
+        "clear": "Clar",
         "refresh": "actualizeaza",
         "clone": "cloneaza",
         "archive": "arhiveaza",
@@ -54,40 +54,40 @@
     },
     "printing": {
         "generic": {
-            "verticalSpacing": "",
+            "verticalSpacing": "Spațiere verticală",
             "borders": {
-                "grid": "",
-                "none": "",
-                "border": ""
+                "grid": "Rețea",
+                "none": "Nici unul",
+                "border": "Frontieră"
             },
-            "previewScale": "",
-            "contentSettings": "",
+            "previewScale": "Scala de previzualizare",
+            "contentSettings": "Setări de conținut",
             "helpMargin": "",
             "description": "",
-            "marginRight": "",
-            "rows": "",
-            "marginBottom": "",
-            "marginTop": "",
-            "print": "",
+            "marginRight": "Marja dreaptă",
+            "rows": "Rânduri",
+            "marginBottom": "Marja de jos",
+            "marginTop": "Marja superioară",
+            "print": "Imprimare",
             "printerMarginRight": "",
-            "columns": "",
+            "columns": "Coloane",
             "helpPrinterMargin": "",
-            "layoutSettings": "",
-            "dimensions": "",
-            "skipItems": "",
-            "paperSize": "",
+            "layoutSettings": "Setări Layout",
+            "dimensions": "Dimensiuni",
+            "skipItems": "Treci peste articole",
+            "paperSize": "Dimensiunea hârtiei",
             "printerMarginTop": "",
-            "horizontalSpacing": "",
-            "customSize": "",
-            "marginLeft": "",
+            "horizontalSpacing": "Spațiere orizontală",
+            "customSize": "Personalizat",
+            "marginLeft": "Margine stângă",
             "printerMarginLeft": "",
-            "showBorder": "",
+            "showBorder": "Arată marginea",
             "printerMarginBottom": "",
-            "title": ""
+            "title": "Imprimare"
         },
         "spoolSelect": {
             "showArchived": "",
-            "title": "",
+            "title": "Selectați bobine",
             "description": "",
             "selectedTotal_one": "",
             "selectedTotal_few": "",
@@ -99,18 +99,18 @@
             "bedTemp": "",
             "title": "",
             "button": "",
-            "showTemperatures": "",
+            "showTemperatures": "Temperaturi",
             "spoolWeight": "",
-            "showFilamentComment": "",
+            "showFilamentComment": "Filament Comentariu",
             "showLotNr": "",
-            "showContent": "",
-            "showSpoolWeight": "",
+            "showContent": "Imprimă eticheta",
+            "showSpoolWeight": "Greutate bobină",
             "textSize": "",
-            "showVendorComment": "",
+            "showVendorComment": "Comentariul furnizorului",
             "showSpoolmanIcon": "",
-            "showSpoolComment": "",
+            "showSpoolComment": "Bobină Comentariu",
             "extruderTemp": "",
-            "showVendor": "",
+            "showVendor": "Furnizor",
             "lotNr": ""
         }
     },
@@ -140,7 +140,7 @@
             "list": ""
         },
         "suffix": "",
-        "default": "",
+        "default": "Spoolman",
         "help": {
             "list": ""
         }
@@ -152,26 +152,26 @@
             "filament": "",
             "vendor": ""
         },
-        "help": ""
+        "help": "Ajutor"
     },
     "spool": {
         "fields": {
-            "weight_to_use": "",
-            "registered": "",
+            "weight_to_use": "Greutate",
+            "registered": "Înregistrat",
             "used_weight": "",
             "first_used": "",
-            "location": "",
-            "material": "",
+            "location": "Locație",
+            "material": "Material",
             "last_used": "",
-            "archived": "",
-            "price": "",
+            "archived": "Arhivat",
+            "price": "Preț",
             "used_length": "",
             "measured_weight": "",
             "lot_nr": "",
-            "comment": "",
-            "id": "",
-            "filament": "",
-            "filament_name": "",
+            "comment": "Comentariu",
+            "id": "ID",
+            "filament": "Filament",
+            "filament_name": "Filament",
             "remaining_length": "",
             "remaining_weight": ""
         },
@@ -185,10 +185,10 @@
             "measured_weight": ""
         },
         "titles": {
-            "list": "",
+            "list": "Bobine",
             "archive": "",
             "show_title": "",
-            "create": "",
+            "create": "Creați bobină",
             "show": "",
             "edit": "",
             "clone": ""
@@ -200,26 +200,26 @@
             "spool_updated": "",
             "new_location_prompt": ""
         },
-        "spool": ""
+        "spool": "Bobine"
     },
     "filament": {
         "fields": {
-            "registered": "",
+            "registered": "Înregistrat",
             "article_number": "",
-            "id": "",
-            "vendor": "",
-            "settings_bed_temp": "",
-            "material": "",
-            "price": "",
-            "name": "",
-            "color_hex": "",
+            "id": "ID",
+            "vendor": "Furnizor",
+            "settings_bed_temp": "Temperatura patului",
+            "material": "Material",
+            "price": "Preț",
+            "name": "Nume",
+            "color_hex": "Culoare",
             "settings_extruder_temp": "",
-            "vendor_name": "",
-            "diameter": "",
-            "density": "",
-            "weight": "",
+            "vendor_name": "Furnizor",
+            "diameter": "Diametru",
+            "density": "Densitate",
+            "weight": "Greutate",
             "spools": "",
-            "comment": "",
+            "comment": "Comentariu",
             "spool_weight": ""
         },
         "fields_help": {
@@ -231,30 +231,30 @@
             "weight": ""
         },
         "titles": {
-            "edit": "",
-            "show_title": "",
-            "create": "",
-            "show": "",
-            "list": "",
-            "clone": ""
+            "edit": "Modifica del filamento",
+            "show_title": "[Filament #{{id}}] {{name}}",
+            "create": "Creați filament",
+            "show": "Arată filamentul",
+            "list": "Filamente",
+            "clone": "Clonarea filamentului"
         },
         "form": {
             "filament_updated": ""
         },
-        "filament": ""
+        "filament": "Filamente"
     },
     "vendor": {
-        "vendor": "",
+        "vendor": "Furnizori",
         "fields": {
-            "registered": "",
-            "comment": "",
-            "name": "",
-            "id": ""
+            "registered": "Înregistrat",
+            "comment": "Comentariu",
+            "name": "Nume",
+            "id": "ID"
         },
         "titles": {
             "clone": "",
             "show": "",
-            "list": "",
+            "list": "Furnizori",
             "create": "",
             "show_title": "",
             "edit": ""
@@ -264,10 +264,10 @@
         }
     },
     "dashboard": {
-        "title": ""
+        "title": "Tablou de bord"
     },
     "home": {
-        "home": ""
+        "home": "Acasă"
     },
     "scanner": {
         "error": {
@@ -282,6 +282,6 @@
         "description": ""
     },
     "table": {
-        "actions": ""
+        "actions": "Acțiuni"
     }
 }
