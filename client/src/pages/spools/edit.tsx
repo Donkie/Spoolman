@@ -32,19 +32,12 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   const [hasChanged, setHasChanged] = useState(false);
   const extraFields = useGetFields(EntityType.spool);
 
-  const { form, formProps, saveButtonProps } = useForm<ISpool, HttpError, ISpoolParsedExtras, ISpoolParsedExtras>({
+  const { form, formProps, saveButtonProps } = useForm<ISpool, HttpError, ISpool, ISpool>({
     liveMode: "manual",
     onLiveEvent() {
       // Warn the user if the spool has been updated since the form was opened
       messageApi.warning(t("spool.form.spool_updated"));
       setHasChanged(true);
-    },
-    queryOptions: {
-      select(data) {
-        return {
-          data: ParsedExtras(data.data),
-        };
-      },
     },
   });
 
@@ -53,13 +46,25 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
     resource: "filament",
   });
 
+  // Add the filament_id field to the form
+  if (formProps.initialValues) {
+    formProps.initialValues["filament_id"] = formProps.initialValues["filament"].id;
+
+    // Parse the extra fields from string values into real types
+    formProps.initialValues = ParsedExtras(formProps.initialValues);
+  }
+
   // Override the form's onFinish method to stringify the extra fields
   const originalOnFinish = formProps.onFinish;
   formProps.onFinish = (allValues: ISpoolParsedExtras) => {
     if (allValues !== undefined && allValues !== null) {
-      allValues = StringifiedExtras(allValues);
+      // Lot of stupidity here to make types work
+      const stringifiedAllValues = StringifiedExtras<ISpoolParsedExtras>(allValues);
+      originalOnFinish?.({
+        extra: {},
+        ...stringifiedAllValues,
+      });
     }
-    originalOnFinish?.(allValues);
   };
 
   const filamentOptions = queryResult.data?.data.map((item) => {
@@ -126,10 +131,6 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   const allLocations = [...(locations.data || [])];
   if (newLocation.trim() && !allLocations.includes(newLocation)) {
     allLocations.push(newLocation.trim());
-  }
-
-  if (formProps.initialValues) {
-    formProps.initialValues["filament_id"] = formProps.initialValues["filament"].id;
   }
 
   const initialUsedWeight = formProps.initialValues?.used_weight || 0;

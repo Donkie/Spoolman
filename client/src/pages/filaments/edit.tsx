@@ -24,19 +24,12 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
   const [hasChanged, setHasChanged] = useState(false);
   const extraFields = useGetFields(EntityType.filament);
 
-  const { formProps, saveButtonProps } = useForm<IFilament, HttpError, IFilamentParsedExtras, IFilamentParsedExtras>({
+  const { formProps, saveButtonProps } = useForm<IFilament, HttpError, IFilament, IFilament>({
     liveMode: "manual",
     onLiveEvent() {
       // Warn the user if the filament has been updated since the form was opened
       messageApi.warning(t("filament.form.filament_updated"));
       setHasChanged(true);
-    },
-    queryOptions: {
-      select(data) {
-        return {
-          data: ParsedExtras(data.data),
-        };
-      },
     },
   });
 
@@ -49,15 +42,22 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
   // Add the vendor_id field to the form
   if (formProps.initialValues) {
     formProps.initialValues["vendor_id"] = formProps.initialValues["vendor"]?.id;
+
+    // Parse the extra fields from string values into real types
+    formProps.initialValues = ParsedExtras(formProps.initialValues);
   }
 
   // Override the form's onFinish method to stringify the extra fields
   const originalOnFinish = formProps.onFinish;
   formProps.onFinish = (allValues: IFilamentParsedExtras) => {
     if (allValues !== undefined && allValues !== null) {
-      allValues = StringifiedExtras(allValues);
+      // Lot of stupidity here to make types work
+      const stringifiedAllValues = StringifiedExtras<IFilamentParsedExtras>(allValues);
+      originalOnFinish?.({
+        extra: {},
+        ...stringifiedAllValues,
+      });
     }
-    originalOnFinish?.(allValues);
   };
 
   return (

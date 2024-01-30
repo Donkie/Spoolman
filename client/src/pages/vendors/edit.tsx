@@ -22,29 +22,31 @@ export const VendorEdit: React.FC<IResourceComponentsProps> = () => {
   const [hasChanged, setHasChanged] = useState(false);
   const extraFields = useGetFields(EntityType.vendor);
 
-  const { formProps, saveButtonProps } = useForm<IVendor, HttpError, IVendorParsedExtras, IVendorParsedExtras>({
+  const { formProps, saveButtonProps } = useForm<IVendor, HttpError, IVendor, IVendor>({
     liveMode: "manual",
     onLiveEvent() {
       // Warn the user if the vendor has been updated since the form was opened
       messageApi.warning(t("vendor.form.vendor_updated"));
       setHasChanged(true);
     },
-    queryOptions: {
-      select(data) {
-        return {
-          data: ParsedExtras(data.data),
-        };
-      },
-    },
   });
+
+  // Parse the extra fields from string values into real types
+  if (formProps.initialValues) {
+    formProps.initialValues = ParsedExtras(formProps.initialValues);
+  }
 
   // Override the form's onFinish method to stringify the extra fields
   const originalOnFinish = formProps.onFinish;
   formProps.onFinish = (allValues: IVendorParsedExtras) => {
     if (allValues !== undefined && allValues !== null) {
-      allValues = StringifiedExtras(allValues);
+      // Lot of stupidity here to make types work
+      const stringifiedAllValues = StringifiedExtras<IVendorParsedExtras>(allValues);
+      originalOnFinish?.({
+        extra: {},
+        ...stringifiedAllValues,
+      });
     }
-    originalOnFinish?.(allValues);
   };
 
   return (
