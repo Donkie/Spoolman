@@ -47,6 +47,13 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     formProps.initialValues.filament_id = formProps.initialValues.filament.id;
   }
 
+  // If the query variable filament_id is set, set the filament_id field to that value
+  const query = new URLSearchParams(window.location.search);
+  const filament_id = query.get("filament_id");
+  if (filament_id) {
+    formProps.initialValues.filament_id = parseInt(filament_id);
+  }
+
   const handleSubmit = async (redirectTo: "list" | "edit" | "create") => {
     const values = StringifiedExtras(await form.validateFields());
     if (quantity > 1) {

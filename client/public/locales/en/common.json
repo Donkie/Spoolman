@@ -217,6 +217,9 @@
         },
         "form": {
             "filament_updated": "This filament has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
+        },
+        "buttons": {
+            "add_spool": "Add Spool"
         }
     },
     "vendor": {

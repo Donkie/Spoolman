@@ -5,7 +5,7 @@ import { Table, Button, Dropdown } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { IFilament } from "./model";
-import { EditOutlined, EyeOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
+import { EditOutlined, EyeOutlined, FileOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
 import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
 import {
   DateColumn,
@@ -146,10 +146,12 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   }
 
   const { editUrl, showUrl, cloneUrl } = useNavigation();
+  const filamentAddSpoolUrl = (id: number): string => `/spool/create?filament_id=${id}`;
   const actions = (record: IFilamentCollapsed) => [
     { name: t("buttons.show"), icon: <EyeOutlined />, link: showUrl("filament", record.id) },
     { name: t("buttons.edit"), icon: <EditOutlined />, link: editUrl("filament", record.id) },
     { name: t("buttons.clone"), icon: <PlusSquareOutlined />, link: cloneUrl("filament", record.id) },
+    { name: t("filament.buttons.add_spool"), icon: <FileOutlined />, link: filamentAddSpoolUrl(record.id) },
   ];
 
   const commonProps = {
