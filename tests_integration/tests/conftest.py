@@ -13,7 +13,7 @@ import pytest
 
 TIMEOUT = 10
 
-URL = "http://spoolman:" + os.environ.get("PORT", "8000")
+URL = "http://spoolman:" + os.environ.get("SPOOLMAN_PORT", "8000")
 
 
 class DbType(StrEnum):
