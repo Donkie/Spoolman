@@ -17,7 +17,7 @@ interface Props {
 }
 
 interface ISpoolCollapsed extends ISpool {
-  combined_name: string;
+  "filament.combined_name": string;
   "filament.id": number;
   "filament.material"?: string;
 }
@@ -31,7 +31,7 @@ function collapseSpool(element: ISpool): ISpoolCollapsed {
   }
   return {
     ...element,
-    combined_name: filament_name,
+    "filament.combined_name": filament_name,
     "filament.id": element.filament.id,
     "filament.material": element.filament.material,
   };
@@ -157,8 +157,8 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
             }),
             SpoolIconColumn({
               ...commonProps,
-              id: "combined_name",
-              dataId: "filament.id",
+              id: "filament.combined_name",
+              dataId: "filament.combined_name",
               i18nkey: "spool.fields.filament_name",
               color: (record: ISpoolCollapsed) => record.filament.color_hex,
               filterValueQuery: useSpoolmanFilamentFilter(),

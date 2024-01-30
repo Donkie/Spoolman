@@ -43,7 +43,7 @@ dayjs.extend(utc);
 const { confirm } = Modal;
 
 interface ISpoolCollapsed extends ISpool {
-  combined_name: string; // Eg. "Prusa - PLA Red"
+  "filament.combined_name": string; // Eg. "Prusa - PLA Red"
   "filament.id": number;
   "filament.material"?: string;
 }
@@ -60,7 +60,7 @@ function collapseSpool(element: ISpool): ISpoolCollapsed {
   }
   return {
     ...element,
-    combined_name: filament_name,
+    "filament.combined_name": filament_name,
     "filament.id": element.filament.id,
     "filament.material": element.filament.material,
   };
@@ -68,7 +68,7 @@ function collapseSpool(element: ISpool): ISpoolCollapsed {
 
 function translateColumnI18nKey(columnName: string): string {
   columnName = columnName.replace(".", "_");
-  if (columnName === "combined_name") columnName = "filament_name";
+  if (columnName === "filament_combined_name") columnName = "filament_name";
   else if (columnName === "filament_material") columnName = "material";
   return `spool.fields.${columnName}`;
 }
@@ -77,7 +77,7 @@ const namespace = "spoolList-v2";
 
 const allColumns: (keyof ISpoolCollapsed & string)[] = [
   "id",
-  "combined_name",
+  "filament.combined_name",
   "filament.material",
   "price",
   "used_weight",
@@ -224,6 +224,21 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     return actions;
   };
 
+  const originalOnChange = tableProps.onChange;
+  tableProps.onChange = (pagination, filters, sorter, extra) => {
+    // Rename any key called "filament.combined_name" in filters to "filament.id"
+    // This is because we want to use combined_name for sorting, but id for filtering,
+    // and Ant Design and Refine only supports specifying a single field for both.
+    Object.keys(filters).forEach((key) => {
+      if (key === "filament.combined_name") {
+        filters["filament.id"] = filters[key];
+        delete filters[key];
+      }
+    });
+
+    originalOnChange?.(pagination, filters, sorter, extra);
+  };
+
   const commonProps = {
     t,
     navigate,
@@ -323,10 +338,10 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           }),
           SpoolIconColumn({
             ...commonProps,
-            id: "combined_name",
+            id: "filament.combined_name",
             i18nkey: "spool.fields.filament_name",
             color: (record: ISpoolCollapsed) => record.filament.color_hex,
-            dataId: "filament.id",
+            dataId: "filament.combined_name",
             filterValueQuery: useSpoolmanFilamentFilter(),
           }),
           FilteredQueryColumn({
