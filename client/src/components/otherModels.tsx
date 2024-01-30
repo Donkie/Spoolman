@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { IFilament } from "../pages/filaments/model";
 import { IVendor } from "../pages/vendors/model";
 import { ColumnFilterItem } from "antd/es/table/interface";
+import { Tooltip } from "antd";
 
 export function useSpoolmanFilamentFilter(enabled: boolean = false) {
   const apiEndpoint = import.meta.env.VITE_APIURL;
@@ -30,15 +31,55 @@ export function useSpoolmanFilamentFilter(enabled: boolean = false) {
           } else {
             name = `${filament.name ?? "<unknown>"}`;
           }
+
+          const tooltipParts: React.ReactNode[] = [];
+          if (filament.color_hex) {
+            tooltipParts.push(
+              <div
+                key="color"
+                style={{
+                  borderRadius: ".4em",
+                  width: "1.4em",
+                  height: "1.4em",
+                  backgroundColor: "#" + filament.color_hex,
+                }}
+              ></div>
+            );
+          }
+          if (filament.material) {
+            tooltipParts.push(<div key="material">{filament.material}</div>);
+          }
+          if (filament.weight) {
+            tooltipParts.push(<div key="weight">{filament.weight}g</div>);
+          }
+
           return {
-            text: name,
+            text: (
+              <Tooltip
+                title={
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "row",
+                      gap: ".5em",
+                      alignContent: "center",
+                    }}
+                  >
+                    {tooltipParts}
+                  </div>
+                }
+              >
+                {name}
+              </Tooltip>
+            ),
             value: filament.id,
+            sortId: name,
           };
         })
         // Remove duplicates
         .filter((item, index, self) => self.findIndex((t) => t.value === item.value) === index)
         // Sort by name
-        .sort((a, b) => a.text.localeCompare(b.text));
+        .sort((a, b) => a.sortId.localeCompare(b.sortId));
       return names;
     },
   });
