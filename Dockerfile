@@ -66,4 +66,3 @@ RUN echo "GIT_COMMIT=${GIT_COMMIT}" > build.txt \
 # Run command
 EXPOSE 8000
 ENTRYPOINT ["/home/app/spoolman/entrypoint.sh"]
-CMD ["--host", "0.0.0.0", "--port", "8000"]

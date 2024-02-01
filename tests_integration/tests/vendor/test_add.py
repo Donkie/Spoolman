@@ -4,9 +4,7 @@ from datetime import datetime, timezone
 
 import httpx
 
-from ..conftest import assert_dicts_compatible
-
-URL = "http://spoolman:8000"
+from ..conftest import URL, assert_dicts_compatible
 
 
 def test_add_vendor():

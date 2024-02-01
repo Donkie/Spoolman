@@ -4,7 +4,7 @@ import json
 
 import httpx
 
-URL = "http://spoolman:8000"
+from ..conftest import URL
 
 
 def test_set_currency():

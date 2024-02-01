@@ -4,9 +4,7 @@ from typing import Any
 
 import httpx
 
-from ..conftest import assert_dicts_compatible
-
-URL = "http://spoolman:8000"
+from ..conftest import URL, assert_dicts_compatible
 
 
 def test_get_filament(random_vendor: dict[str, Any]):

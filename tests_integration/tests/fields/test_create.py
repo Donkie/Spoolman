@@ -6,9 +6,7 @@ from datetime import datetime, timezone
 import httpx
 import pytest
 
-from ..conftest import assert_httpx_success, assert_lists_compatible
-
-URL = "http://spoolman:8000"
+from ..conftest import URL, assert_httpx_success, assert_lists_compatible
 
 
 def test_add_text_field():

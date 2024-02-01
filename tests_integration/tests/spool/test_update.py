@@ -5,9 +5,7 @@ from typing import Any
 import httpx
 import pytest
 
-from ..conftest import length_from_weight
-
-URL = "http://spoolman:8000"
+from ..conftest import URL, length_from_weight
 
 
 def test_update_spool(random_filament: dict[str, Any]):

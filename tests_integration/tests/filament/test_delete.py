@@ -4,7 +4,7 @@ from typing import Any
 
 import httpx
 
-URL = "http://spoolman:8000"
+from ..conftest import URL
 
 
 def test_delete_filament(random_vendor: dict[str, Any]):
