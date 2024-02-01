@@ -235,6 +235,9 @@
         "filament": "Filamenten",
         "form": {
             "filament_updated": "Dit filament is bijgewerkt door iemand/iets anders sinds je deze pagina geopend hebt. Deze veranderingen worden overschreven als je op slaat!"
+        },
+        "buttons": {
+            "add_spool": "Spoel toevoegen"
         }
     },
     "scanner": {

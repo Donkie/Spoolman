@@ -217,6 +217,9 @@
         },
         "form": {
             "filament_updated": "Toto vlákno bylo od doby, kdy jste otevřeli tuto stránku, někým/něčím aktualizováno. Uložením se tyto změny přepíší!"
+        },
+        "buttons": {
+            "add_spool": "Přidat cívku"
         }
     },
     "vendor": {
