@@ -37,6 +37,7 @@ import { useLiveify } from "../../components/liveify";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useNavigate } from "react-router-dom";
+import { useCurrency } from "../../utils/settings";
 
 dayjs.extend(utc);
 
@@ -100,6 +101,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const invalidate = useInvalidate();
   const navigate = useNavigate();
   const extraFields = useGetFields(EntityType.spool);
+  const currency = useCurrency();
 
   const allColumnsWithExtraFields = [...allColumns, ...(extraFields.data?.map((field) => "extra." + field.key) ?? [])];
 
@@ -356,6 +358,14 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             id: "price",
             i18ncat: "spool",
             width: 80,
+            render: (_, obj: ISpoolCollapsed) => {
+              return obj.price?.toLocaleString(undefined, {
+                style: "currency",
+                currencyDisplay: "narrowSymbol",
+                currency: currency,
+                notation: "compact",
+              });
+            },
           }),
           NumberColumn({
             ...commonProps,

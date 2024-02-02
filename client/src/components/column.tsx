@@ -53,6 +53,7 @@ interface BaseColumnProps<Obj extends Entity> {
   width?: number;
   actions?: (record: Obj) => Action[];
   transform?: (value: unknown) => unknown;
+  render?: (rawValue: string | undefined, record: Obj) => React.ReactNode;
 }
 
 interface FilteredColumnProps {

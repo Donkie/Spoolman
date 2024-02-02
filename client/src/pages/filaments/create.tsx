@@ -10,6 +10,7 @@ import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 
 dayjs.extend(utc);
 
@@ -20,6 +21,7 @@ interface CreateOrCloneProps {
 export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.filament);
+  const currency = useCurrency();
 
   const { form, formProps, formLoading, onFinish, redirect } = useForm<
     IFilament,
@@ -149,7 +151,12 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
             },
           ]}
         >
-          <InputNumber precision={2} formatter={numberFormatter} parser={numberParser} />
+          <InputNumber
+            addonAfter={getCurrencySymbol(undefined, currency)}
+            precision={2}
+            formatter={numberFormatter}
+            parser={numberParser}
+          />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.density")}

@@ -10,6 +10,7 @@ import { enrichText } from "../../utils/parsing";
 import { useNavigate } from "react-router-dom";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldDisplay } from "../../components/extraFields";
+import { useCurrency } from "../../utils/settings";
 dayjs.extend(utc);
 
 const { Title } = Typography;
@@ -18,6 +19,7 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
   const navigate = useNavigate();
   const extraFields = useGetFields(EntityType.filament);
+  const currency = useCurrency();
   const { queryResult } = useShow<IFilament>({
     liveMode: "auto",
   });
@@ -82,7 +84,15 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       <Title level={5}>{t("filament.fields.material")}</Title>
       <TextField value={record?.material} />
       <Title level={5}>{t("filament.fields.price")}</Title>
-      <NumberField value={record?.price ?? ""} />
+      <NumberField
+        value={record?.price ?? ""}
+        options={{
+          style: "currency",
+          currency: currency,
+          currencyDisplay: "narrowSymbol",
+          notation: "compact",
+        }}
+      />
       <Title level={5}>{t("filament.fields.density")}</Title>
       <NumberFieldUnit
         value={record?.density ?? ""}

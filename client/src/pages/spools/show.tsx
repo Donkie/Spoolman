@@ -10,6 +10,7 @@ import { enrichText } from "../../utils/parsing";
 import { IFilament } from "../filaments/model";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldDisplay } from "../../components/extraFields";
+import { useCurrency } from "../../utils/settings";
 
 dayjs.extend(utc);
 
@@ -18,6 +19,7 @@ const { Title } = Typography;
 export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.spool);
+  const currency = useCurrency();
 
   const { queryResult } = useShow<ISpool>({
     liveMode: "auto",
@@ -71,7 +73,15 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       <Title level={5}>{t("spool.fields.filament")}</Title>
       <TextField value={record ? filamentURL(record?.filament) : ""} />
       <Title level={5}>{t("spool.fields.price")}</Title>
-      <NumberField value={record ? spoolPrice(record) : ""} />
+      <NumberField
+        value={record ? spoolPrice(record) : ""}
+        options={{
+          style: "currency",
+          currency: currency,
+          currencyDisplay: "narrowSymbol",
+          notation: "compact",
+        }}
+      />
       <Title level={5}>{t("spool.fields.registered")}</Title>
       <DateField
         value={dayjs.utc(record?.registered).local()}

@@ -10,6 +10,7 @@ import { IFilament, IFilamentParsedExtras } from "./model";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
 import { ParsedExtras } from "../../components/extraFields";
+import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 
 /*
 The API returns the extra fields as JSON values, but we need to parse them into their real types
@@ -23,6 +24,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [hasChanged, setHasChanged] = useState(false);
   const extraFields = useGetFields(EntityType.filament);
+  const currency = useCurrency();
 
   const { formProps, saveButtonProps } = useForm<IFilament, HttpError, IFilament, IFilament>({
     liveMode: "manual",
@@ -168,7 +170,12 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
             },
           ]}
         >
-          <InputNumber precision={2} formatter={numberFormatter} parser={numberParser} />
+          <InputNumber
+            addonAfter={getCurrencySymbol(undefined, currency)}
+            precision={2}
+            formatter={numberFormatter}
+            parser={numberParser}
+          />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.density")}

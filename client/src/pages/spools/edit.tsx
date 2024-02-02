@@ -12,6 +12,7 @@ import { message } from "antd/lib";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
 import { ParsedExtras } from "../../components/extraFields";
+import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 
 /*
 The API returns the extra fields as JSON values, but we need to parse them into their real types
@@ -31,6 +32,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [hasChanged, setHasChanged] = useState(false);
   const extraFields = useGetFields(EntityType.spool);
+  const currency = useCurrency();
 
   const { form, formProps, saveButtonProps } = useForm<ISpool, HttpError, ISpool, ISpool>({
     liveMode: "manual",
@@ -229,7 +231,12 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
             },
           ]}
         >
-          <InputNumber precision={2} formatter={numberFormatter} parser={numberParser} />
+          <InputNumber
+            addonAfter={getCurrencySymbol(undefined, currency)}
+            precision={2}
+            formatter={numberFormatter}
+            parser={numberParser}
+          />
         </Form.Item>
         <Form.Item hidden={true} name={["used_weight"]} initialValue={0}>
           <InputNumber value={usedWeight} />

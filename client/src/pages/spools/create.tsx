@@ -13,6 +13,7 @@ import "../../utils/overrides.css";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
 import utc from "dayjs/plugin/utc";
+import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 
 dayjs.extend(utc);
 
@@ -23,6 +24,7 @@ interface CreateOrCloneProps {
 export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.spool);
+  const currency = useCurrency();
 
   const { form, formProps, formLoading, onFinish, redirect } = useForm<
     ISpool,
@@ -245,7 +247,12 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             },
           ]}
         >
-          <InputNumber precision={2} formatter={numberFormatter} parser={numberParser} />
+          <InputNumber
+            addonAfter={getCurrencySymbol(undefined, currency)}
+            precision={2}
+            formatter={numberFormatter}
+            parser={numberParser}
+          />
         </Form.Item>
         <Form.Item hidden={true} name={["used_weight"]} initialValue={0}>
           <InputNumber value={usedWeight} />
