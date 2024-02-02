@@ -13,7 +13,7 @@
         "delete": "Smazat",
         "edit": "Upravit",
         "cancel": "Storno",
-        "confirm": "Jste si jistý?",
+        "confirm": "Jste si jisti?",
         "filter": "Filtr",
         "clear": "Přehled",
         "refresh": "Obnovit",
@@ -59,7 +59,7 @@
     "printing": {
         "generic": {
             "title": "Tisk",
-            "description": "Níže uvedeným nastavením dosáhnete požadovaného rozložení tisku. Mějte na paměti, že tiskárny a váš operační systém mohou použít vlastní okraje a měřítka, takže možná budete muset provést několik pokusů a omylů, než bude vše správně. Před tiskem na skutečné štítky si to vyzkoušejte na kousku běžného papíru.",
+            "description": "Níže uvedeným nastavením dosáhnete požadovaného rozložení tisku. Mějte na paměti, že tiskárny a váš operační systém mohou použít vlastní okraje a měřítka, takže možná budete muset provést několik pokusů a omylů, než bude vše správně nastaveno. Před tiskem na skutečné štítky si to vyzkoušejte na kousku běžného papíru.",
             "helpMargin": "Okraje by měly být nastaveny tak, aby odpovídaly papíru na štítky a tiskárně, jejich změna ovlivní velikost celé mřížky.",
             "helpPrinterMargin": "Bezpečná zóna by měla být nastavena tak, jak blízko okraje papíru může tiskárna tisknout, jejich změna neovlivní celou mřížku.",
             "print": "Tisk",
@@ -285,13 +285,13 @@
         "description": "<title>Nápověda</title><p>Zde je několik tipů, které vám pomohou začít.</p><p>Spoolman uchovává 3 různé typy dat:</p><itemsHelp/><p>Chcete-li do databáze přidat novou cívku, začněte vytvořením položky <filamentCreateLink>Filament</filamentCreateLink> objekt. Jakmile to uděláte, vytvořte položku <spoolCreateLink>Cívka</spoolCreateLink> popis pro danou cívku. Pokud později získáte další cívky stejného filamentu, jednoduše vygenerujte další objekty Cívky a znovu použijte stejný objekt Filament.</p><p>Volitelně můžete také vygenerovat <vendorCreateLink>Výrobce</vendorCreateLink> název společnosti vyrábějící vlákno, pokud si přejete tyto informace sledovat.</p><p>Máte možnost propojit se Spoolmanem další služby 3D tiskárny, například Moonraker, který může automaticky sledovat využití filamentu a aktualizovat objekty Cívek za vás. Pokyny k nastavení najdete v <readmeLink>Spoolman README</readmeLink>.</p>",
         "help": "Nápověda"
     },
-    "kofi": "Příspěvek na Ko-fi",
+    "kofi": "Příspěvek autorovi na Ko-fi",
     "home": {
         "home": "Domů"
     },
     "settings": {
         "extra_fields": {
-            "tab": "Dalíí pole",
+            "tab": "Další pole",
             "params": {
                 "key": "Klíč",
                 "name": "Název",
