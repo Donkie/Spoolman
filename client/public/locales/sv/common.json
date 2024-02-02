@@ -42,7 +42,8 @@
         "editSuccess": "Lyckades ändra {{resource}}",
         "editError": "Det gick inte att ändra {{resource}} (statuskod: {{statusCode}})",
         "importProgress": "Importerar: {{processed}}/{{total}}",
-        "saveSuccessful": "Sparning lyckades!"
+        "saveSuccessful": "Sparning lyckades!",
+        "validationError": "Valideringsfel: {{error}}"
     },
     "loading": "Laddar",
     "version": "Version",
@@ -215,6 +216,9 @@
         },
         "form": {
             "filament_updated": "Det här filamentet har uppdaterats av något eller någon sedan du öppnade den här sidan. Om du sparar så skriver du över ändringarna!"
+        },
+        "buttons": {
+            "add_spool": "Skapa Spole"
         }
     },
     "vendor": {
@@ -253,7 +257,35 @@
             }
         },
         "extra_fields": {
-            "tab": "Extra Fält"
+            "tab": "Extra Fält",
+            "description": "<p>Här kan du lägga till extra anpassade fält för dina objekt.</p><p>När ett fält har lagts till kan du inte ändra dess nyckel eller typ, och för fält av typen \"val\" kan du inte ta bort val eller ändra flervalsläget. Om du tar bort ett fält kommer den associerade datan för alla enheter att raderas.</p><p>Nyckeln är vad andra program läser/skriver datan som, så om ditt anpassade fält ska integreras med ett tredjepartsprogram, se till att ställa in det korrekt. Standardvärdet tillämpas endast på nya objekt.</p><p>Extra fält kan inte sorteras eller filtreras i tabellvyn.</p>",
+            "params": {
+                "unit": "Enhet",
+                "default_value": "Standardvärde",
+                "key": "Nyckel",
+                "field_type": "Typ",
+                "name": "Namn",
+                "choices": "Val",
+                "order": "Ordning",
+                "multi_choice": "Flerval"
+            },
+            "field_type": {
+                "integer_range": "Heltalsintervall",
+                "float": "Decimaltal",
+                "float_range": "Decimaltalsintervall",
+                "datetime": "Datum och tid",
+                "boolean": "Booleansk",
+                "choice": "Val",
+                "text": "Text",
+                "integer": "Heltal"
+            },
+            "boolean_true": "Ja",
+            "boolean_false": "Nej",
+            "choices_missing_error": "Du kan inte ta bort val. Följande val saknas: {{choices}}",
+            "delete_confirm_description": "Detta kommer att radera fältet och all tillhörande data för alla objekt.",
+            "delete_confirm": "Ta bort fältet {{name}}?",
+            "non_unique_key_error": "Nyckeln måste vara unik.",
+            "key_not_changed": "Vänligen ändra nyckeln till något annat."
         }
     },
     "documentTitle": {
