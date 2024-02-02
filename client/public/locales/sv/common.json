@@ -244,8 +244,9 @@
         "actions": "Åtgärder"
     },
     "settings": {
+        "settings": "Inställningar",
         "header": "Inställningar",
-        "generic": {
+        "general": {
             "tab": "Allmänt",
             "currency": {
                 "label": "Valuta"

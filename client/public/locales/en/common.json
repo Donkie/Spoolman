@@ -258,6 +258,7 @@
         "actions": "Actions"
     },
     "settings": {
+        "settings": "Settings",
         "header": "Settings",
         "general": {
             "tab": "General",
