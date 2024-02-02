@@ -208,7 +208,7 @@ Description=Spoolman
 
 [Service]
 Type=simple
-ExecStart=$spoolman_dir/scripts/start.sh
+ExecStart=bash $spoolman_dir/scripts/start.sh
 WorkingDirectory=$spoolman_dir
 User=$USER
 Restart=always
