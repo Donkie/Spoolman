@@ -149,9 +149,8 @@ async def find(
     if sort_by is not None:
         for fieldstr, order in sort_by.items():
             sorts = []
-            if fieldstr == "remaining_weight":
-                stmt = stmt.add_columns((models.Filament.weight - models.Spool.used_weight).label("remaining_weight"))
-                sorts.append(sqlalchemy.column("remaining_weight"))
+            if fieldstr in {"remaining_weight", "remaining_length"}:
+                sorts.append(models.Filament.weight - models.Spool.used_weight)
             elif fieldstr == "filament.combined_name":
                 sorts.append(models.Vendor.name)
                 sorts.append(models.Filament.name)
