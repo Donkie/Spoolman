@@ -272,13 +272,13 @@
         "clone": "Clona"
     },
     "help": {
-        "description": "",
+        "description": "<title>Aiuto</title><p>Ecco alcuni suggerimenti per iniziare.</p><p>Spoolman può contenere 3 diversi tipi di dati:</p><itemsHelp/><p>Per aggiungere una nuova bobina al database, inizia creando una sezione<filamentCreateLink>Filamento</filamentCreateLink>. Fatto ciò, procedi con la creazione di una sezione <spoolCreateLink>Bobina</spoolCreateLink> per la questa specifica bobina. Se in seguito si acquisiscono altre bobine dello stesso filamento, sarà sufficiente generare altre sezioni bobina e riutilizzare la stessa sezione filamento.</p><p>Opzionalmente, si può anche creare una sezione <vendorCreateLink>Produttore</vendorCreateLink> per l'azienda produttrice del filamento, se si desidera tenere traccia di tali informazioni.</p><p>È possibile collegare a Spoolman altri servizi per stampanti 3D, come Moonraker, che può monitorare l'utilizzo del filamento e aggiornare le sezioni Spool automaticamente. Fare riferimento al <readmeLink>README di Spoolman</readmeLink> per maggiori informazioni sulla configurazione.</p>",
         "resources": {
-            "spool": "",
-            "filament": "",
-            "vendor": ""
+            "spool": "Bobine fisiche individuali di uno specifico filamento.",
+            "filament": "Marche di filamento. Hanno proprietà come nome, materiale, colore, diametro e altro.",
+            "vendor": "Le aziende che producono il filamento."
         },
-        "help": ""
+        "help": "Aiuto"
     },
     "kofi": "",
     "home": {
