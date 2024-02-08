@@ -161,7 +161,8 @@
         "unArchive": "Arhiválás visszavonása",
         "clone": "Másolás",
         "clear": "Törlés",
-        "saveAndAdd": "Mentés és hozzáadás"
+        "saveAndAdd": "Mentés és hozzáadás",
+        "export": "Exportálás"
     },
     "filament": {
         "fields_help": {

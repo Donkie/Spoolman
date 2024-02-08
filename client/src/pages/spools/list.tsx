@@ -1,6 +1,6 @@
 import React from "react";
-import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
-import { useTable, List } from "@refinedev/antd";
+import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate, useExport } from "@refinedev/core";
+import { useTable, List, ExportButton } from "@refinedev/antd";
 import { Table, Button, Dropdown, Modal } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -38,6 +38,7 @@ import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useNavigate } from "react-router-dom";
 import { useCurrency } from "../../utils/settings";
+import { flatten } from "../../utils/objects";
 
 dayjs.extend(utc);
 
@@ -110,6 +111,12 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
 
   // State for the switch to show archived spools
   const [showArchived, setShowArchived] = useSavedState("spoolList-showArchived", false);
+
+  const { triggerExport, isLoading } = useExport<ISpool>(
+      {
+        mapData: item => flatten(item)
+      }
+  );
 
   // Fetch data from the API
   // To provide the live updates, we use a custom solution (useLiveify) instead of the built-in refine "liveMode" feature.
@@ -308,6 +315,9 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             </Button>
           </Dropdown>
           {defaultButtons}
+          <ExportButton type="dashed" onClick={triggerExport} loading={isLoading} >
+            {t("buttons.export")}
+          </ExportButton>
         </>
       )}
     >

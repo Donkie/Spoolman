@@ -28,7 +28,8 @@
         "notAccessTitle": "У вас нет разрешения на доступ",
         "hideColumns": "Скрыть столбцы",
         "clearFilters": "Очистить фильтр",
-        "saveAndAdd": "Сохранить и добавить"
+        "saveAndAdd": "Сохранить и добавить",
+        "export": "Экспорт"
     },
     "warnWhenUnsavedChanges": "Вы уверены, что хотите выйти? У вас есть несохраненные изменения.",
     "notifications": {
