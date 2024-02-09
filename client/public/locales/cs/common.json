@@ -105,7 +105,8 @@
             "showTemperatures": "Teploty",
             "showSpoolComment": "Poznámka k cívce",
             "showFilamentComment": "Poznámka k filamentu",
-            "showVendorComment": "Poznámka k výrobci"
+            "showVendorComment": "Poznámka k výrobci",
+            "useHTTPUrl": "Použít HTTP(S) odkaz v QR kódu"
         },
         "spoolSelect": {
             "title": "Vybrat cívky",

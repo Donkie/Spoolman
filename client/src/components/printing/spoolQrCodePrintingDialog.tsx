@@ -21,6 +21,7 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ visibl
   const [showSpoolComment, setShowSpoolComment] = useSavedState("print-showSpoolComment", false);
   const [showFilamentComment, setShowFilamentComment] = useSavedState("print-showFilamentComment", false);
   const [showVendorComment, setShowVendorComment] = useSavedState("print-showVendorComment", false);
+  const [useHTTPUrl, setUseHTTPUrl] = useSavedState("print-useHTTPUrl", false);
 
   const formatFilament = (filament: IFilament) => {
     let vendorPrefix = "";
@@ -49,7 +50,7 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ visibl
         const tempLine = temps.join(" - ");
 
         return {
-          value: `web+spoolman:s-${spool.id}`,
+          value: useHTTPUrl ? `${window.location.origin}/spool/show/${spool.id}` : `web+spoolman:s-${spool.id}`,
           label: (
             <p
               style={{
@@ -125,6 +126,9 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ visibl
           </Form.Item>
           <Form.Item label={t("printing.qrcode.showVendorComment")}>
             <Switch checked={showVendorComment} onChange={(checked) => setShowVendorComment(checked)} />
+          </Form.Item>
+          <Form.Item label={t("printing.qrcode.useHTTPUrl")}>
+            <Switch checked={useHTTPUrl} onChange={(checked) => setUseHTTPUrl(checked)} />
           </Form.Item>
         </>
       }

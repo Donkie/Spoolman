@@ -18,6 +18,11 @@ const QRCodeScannerModal: React.FC = () => {
       setVisible(false);
       navigate(`/spool/show/${match.groups.id}`);
     }
+    const fullURLmatch = result.match(/^https?:\/\/[^/]+\/spool\/show\/(?<id>[0-9]+)$/);
+    if (fullURLmatch && fullURLmatch.groups) {
+      setVisible(false);
+      navigate(`/spool/show/${fullURLmatch.groups.id}`);
+    }
   };
 
   return (

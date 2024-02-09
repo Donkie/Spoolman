@@ -106,7 +106,8 @@
             "showTemperatures": "Temperatures",
             "showSpoolComment": "Spool Comment",
             "showFilamentComment": "Filament Comment",
-            "showVendorComment": "Vendor Comment"
+            "showVendorComment": "Vendor Comment",
+            "useHTTPUrl": "Use HTTP(S) link in QR code"
         },
         "spoolSelect": {
             "title": "Select Spools",
