@@ -328,5 +328,30 @@
         "description": "<title>Hjälp</title><p>Här är några tips för att komma igång.</p><p>Spoolman innehåller 3 olika typer av data:</p><itemsHelp/><p>För att lägga till en ny spole i databasen måste du först skapa ett <filamentCreateLink>Filament</filamentCreateLink>-objekt för den. När det är klart kan du sedan skapa ett <spoolCreateLink>Spol</spoolCreateLink>-objekt för den individuella spolen. Om du sedan köper ytterligare spolar av samma filament kan du bara skapa ytterligare Spol-objekt och återanvända samma Filament-objekt.</p><p>Du kan valfritt också skapa ett <vendorCreateLink>Leverantörs</vendorCreateLink>-objekt för företaget som tillverkar filamentet om du vill spåra den informationen.</p><p>Du kan koppla andra 3D-skrivartjänster till Spoolman, som Moonraker, som sedan automatiskt kan spåra filamentanvändning och uppdatera Spol-objekten åt dig. Se <readmeLink>Spoolman README</readmeLink> för hur du gör det.</p>",
         "help": "Hjälp"
     },
-    "kofi": "Dricksa mig på Ko-fi"
+    "kofi": "Dricksa mig på Ko-fi",
+    "exporting": {
+        "generic": {
+            "title": "Export",
+            "export": "Export",
+            "description": "Justera inställningarna nedan för att skapa önskad exportlayout.",
+            "exportType": "Typ av export",
+            "csvOptions": {
+                "title": "CSV-alternativ",
+                "delimiter": "Separator",
+                "includeHeaders": "Infoga rubrik",
+                "spoolFields": "Inställningar för spole",
+                "filamentFields": "Inställningar för filament",
+                "vendorFields": "Tillverkarens inställningar"
+            },
+            "qrOptions": {
+                "title": "Alternativ för QR-kod",
+                "size": "Storlek",
+                "sizeHelp": "Storlek på de enskilda blocken i pixlar.",
+                "padding": "Avstånd",
+                "paddingHelp": "Avstånd mellan kanten, mätt i block.",
+                "useFullUrl": "Använd fullständig URL",
+                "useFullUrlHelp": "Om den är aktiverad läggs den fullständiga webbadressen till istället för den interna hyperlänken."
+            }
+        }
+    }
 }

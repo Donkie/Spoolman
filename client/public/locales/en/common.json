@@ -328,5 +328,30 @@
             "create": "Create Vendor | Spoolman",
             "clone": "#{{id}} Clone Vendor | Spoolman"
         }
+    },
+    "exporting": {
+        "generic": {
+            "title": "Export",
+            "export": "Export",
+            "description": "Adjust the settings below to create the desired export layout.",
+            "exportType": "Type of export",
+            "csvOptions": {
+                "title": "CSV options",
+                "delimiter": "Separator",
+                "includeHeaders": "Insert header",
+                "spoolFields": "Coil settings",
+                "filamentFields": "Filament settings",
+                "vendorFields": "Manufacturer settings"
+            },
+            "qrOptions": {
+                "title": "QR code options",
+                "size": "Size",
+                "sizeHelp": "Size of the individual blocks in pixels.",
+                "padding": "Distance",
+                "paddingHelp": "Distance between the edge, measured in blocks.",
+                "useFullUrl": "Use full URL",
+                "useFullUrlHelp": "If activated, the full URL is added instead of the internal hyperlink."
+            }
+        }
     }
 }

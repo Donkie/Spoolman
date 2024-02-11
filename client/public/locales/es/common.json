@@ -325,5 +325,30 @@
             "delete_confirm_description": "Esto eliminará el campo y todos los datos asociados para todas las entidades.",
             "description": "<p> Aquí puede agregar más campos personalizados a los asuntos.</p><p> Una vez que se agrega un campo, no puede cambiar su clave o tipo, y no puede eliminar opciones ni cambiar el estado de múltiples opciones para campos seleccionados. Si elimina un campo, se eliminarán los datos asociados a todos los sujetos.</p><p> La forma en que otros programas leen/escriben los datos es clave, por lo que si su campo personalizado se va a integrar con un programa de terceros, asegúrese de que esté configurado correctamente. El valor predeterminado solo se utilizará para elementos nuevos.</p><p> Los campos de salida no se pueden ordenar ni filtrar en las vistas de tabla.</p>"
         }
+    },
+    "exporting": {
+        "generic": {
+            "title": "Exportar",
+            "export": "Exportar",
+            "description": "Ajuste los parámetros siguientes para crear el diseño de exportación deseado.",
+            "exportType": "Tipo de exportación",
+            "csvOptions": {
+                "title": "Opciones CSV",
+                "delimiter": "Separador",
+                "includeHeaders": "Insertar cabecera",
+                "spoolFields": "Ajustes de la bobina",
+                "filamentFields": "Ajustes del filamento",
+                "vendorFields": "Ajustes del fabricante"
+            },
+            "qrOptions": {
+                "title": "Opciones de código QR",
+                "size": "Talla",
+                "sizeHelp": "Tamaño de los bloques individuales en píxeles.",
+                "padding": "Distancia",
+                "paddingHelp": "Distancia entre el borde, medida en bloques.",
+                "useFullUrl": "Utilice la URL completa",
+                "useFullUrlHelp": "Si se activa, se añade la URL completa en lugar del hipervínculo interno."
+            }
+        }
     }
 }

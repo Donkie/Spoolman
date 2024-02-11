@@ -328,5 +328,30 @@
                 "label": "Měna"
             }
         }
+    },
+    "exporting": {
+        "generic": {
+            "title": "Export",
+            "export": "Export",
+            "description": "Upravte níže uvedená nastavení tak, abyste vytvořili požadované rozložení exportu.",
+            "exportType": "Typ vývozu",
+            "csvOptions": {
+                "title": "Možnosti CSV",
+                "delimiter": "Oddělovač",
+                "includeHeaders": "Vložit záhlaví",
+                "spoolFields": "Nastavení cívky",
+                "filamentFields": "Nastavení vlákna",
+                "vendorFields": "Nastavení výrobce"
+            },
+            "qrOptions": {
+                "title": "Možnosti kódu QR",
+                "size": "Velikost",
+                "sizeHelp": "Velikost jednotlivých bloků v pixelech.",
+                "padding": "Vzdálenost",
+                "paddingHelp": "Vzdálenost mezi okraji měřená v blocích.",
+                "useFullUrl": "Použijte úplnou adresu URL",
+                "useFullUrlHelp": "Pokud je aktivována, přidá se místo interního hypertextového odkazu celá adresa URL."
+            }
+        }
     }
 }

@@ -281,5 +281,30 @@
             "spool": "特定耗材的单个物理卷轴。"
         },
         "description": "<title>帮助</title><p>以下是一些入门提示。</p><p>Spoolman保存了3种不同类型的数据：</p><itemsHelp/><p>要向数据库添加新的料盘，请先创建一个 <filamentCreateLink>耗材</filamentCreateLink> 对象。完成后，继续为该特定耗材创建一个 <spoolCreateLink>料盘</spoolCreateLink> 对象。如果以后获取相同耗材的其他料盘，只需生成其他的料盘对象并重复使用同一个耗材对象。</p><p>同时，如果您希望跟踪该信息，还可以为制造耗材的公司生成一个 <vendorCreateLink>供应商</vendorCreateLink> 对象。</p><p>您可以选择将其他3D打印机服务链接到 Spoolman，例如 Moonraker，它可以自动监视耗材使用情况并为您更新料盘对象。请参阅 <readmeLink>Spoolman README</readmeLink> 获取有关如何设置的指导。</p>"
+    },
+    "exporting": {
+        "generic": {
+            "title": "出口",
+            "export": "出口",
+            "description": "调整以下设置，创建所需的导出布局。",
+            "exportType": "出口类型",
+            "csvOptions": {
+                "title": "CSV 选项",
+                "delimiter": "分离器",
+                "includeHeaders": "插入页眉",
+                "spoolFields": "线圈设置",
+                "filamentFields": "灯丝设置",
+                "vendorFields": "制造商设置"
+            },
+            "qrOptions": {
+                "title": "QR 码选项",
+                "size": "尺寸",
+                "sizeHelp": "各个区块的大小（像素）。",
+                "padding": "距离",
+                "paddingHelp": "边缘之间的距离，以块为单位。",
+                "useFullUrl": "使用完整的 URL",
+                "useFullUrlHelp": "如果激活，则会添加完整的 URL，而不是内部超链接。"
+            }
+        }
     }
 }

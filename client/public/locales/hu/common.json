@@ -282,5 +282,30 @@
         },
         "help": "",
         "description": ""
+    },
+    "exporting": {
+        "generic": {
+            "title": "Exportálás",
+            "export": "Exportálás",
+            "description": "Az alábbi beállításokat a kívánt exportálási elrendezés létrehozásához igazítsa.",
+            "exportType": "A kivitel típusa",
+            "csvOptions": {
+                "title": "CSV beállítások",
+                "delimiter": "Elválasztó",
+                "includeHeaders": "Fejléc beillesztése",
+                "spoolFields": "Tekercs beállítások",
+                "filamentFields": "Szál beállítások",
+                "vendorFields": "Gyártó beállításai"
+            },
+            "qrOptions": {
+                "title": "QR-kód opciók",
+                "size": "Méret",
+                "sizeHelp": "Az egyes blokkok mérete pixelben.",
+                "padding": "Távolság",
+                "paddingHelp": "Az él közötti távolság, blokkokban mérve.",
+                "useFullUrl": "Teljes URL használata",
+                "useFullUrlHelp": "Ha aktiválva van, a belső hiperhivatkozás helyett a teljes URL kerül hozzáadásra."
+            }
+        }
     }
 }

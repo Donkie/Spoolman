@@ -327,5 +327,30 @@
             "delete_confirm_description": "Hierdoor worden het veld en alle bijbehorende gegevens voor alle entiteiten verwijderd.",
             "description": "<p>Hier kunt u extra aangepaste velden toevoegen aan uw entiteiten.</p><p>Zodra een veld is toegevoegd, kunt u de key of het type ervan niet wijzigen, en voor velden met keuzetypes kunt u geen keuzes verwijderen of de meervoudige velden wijzigen. Als u een veld verwijdert, worden de bijbehorende gegevens voor alle entiteiten verwijderd.</p><p>De key is hoe andere programma's de gegevens lezen/schrijven, dus of uw aangepaste veld moet worden geïntegreerd met een derde partij programma, zorg ervoor dat u het correct instelt. De standaardwaarde wordt alleen toegepast op nieuwe items.</p><p>Extra velden kunnen niet worden gesorteerd of gefilterd in de tabelweergaven.</p>"
         }
+    },
+    "exporting": {
+        "generic": {
+            "title": "Exporteer",
+            "export": "Exporteer",
+            "description": "Pas de onderstaande instellingen aan om de gewenste exportlay-out te maken.",
+            "exportType": "Type export",
+            "csvOptions": {
+                "title": "CSV-opties",
+                "delimiter": "Scheider",
+                "includeHeaders": "Koptekst invoegen",
+                "spoolFields": "Spoelinstellingen",
+                "filamentFields": "Draadinstellingen",
+                "vendorFields": "Instellingen fabrikant"
+            },
+            "qrOptions": {
+                "title": "QR-code opties",
+                "size": "Maat",
+                "sizeHelp": "Grootte van de individuele blokken in pixels.",
+                "padding": "Afstand",
+                "paddingHelp": "Afstand tussen de rand, gemeten in blokken.",
+                "useFullUrl": "Gebruik volledige URL",
+                "useFullUrlHelp": "Indien geactiveerd, wordt de volledige URL toegevoegd in plaats van de interne hyperlink."
+            }
+        }
     }
 }

@@ -283,5 +283,30 @@
     "kofi": "",
     "home": {
         "home": ""
+    },
+    "exporting": {
+        "generic": {
+            "title": "Esportazione",
+            "export": "Esportazione",
+            "description": "Regolare le impostazioni sottostanti per creare il layout di esportazione desiderato.",
+            "exportType": "Tipo di esportazione",
+            "csvOptions": {
+                "title": "Opzioni CSV",
+                "delimiter": "Separatore",
+                "includeHeaders": "Inserire l'intestazione",
+                "spoolFields": "Impostazioni della bobina",
+                "filamentFields": "Impostazioni del filamento",
+                "vendorFields": "Impostazioni del produttore"
+            },
+            "qrOptions": {
+                "title": "Opzioni del codice QR",
+                "size": "Dimensione",
+                "sizeHelp": "Dimensione dei singoli blocchi in pixel.",
+                "padding": "Distanza",
+                "paddingHelp": "Distanza tra i bordi, misurata in blocchi.",
+                "useFullUrl": "Utilizzare l'URL completo",
+                "useFullUrlHelp": "Se attivato, viene aggiunto l'URL completo invece del collegamento ipertestuale interno."
+            }
+        }
     }
 }

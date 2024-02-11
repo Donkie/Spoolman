@@ -282,5 +282,30 @@
             "vendor": ""
         },
         "description": ""
+    },
+    "exporting": {
+        "generic": {
+            "title": "Eksport",
+            "export": "Eksport",
+            "description": "Juster innstillingene nedenfor for å opprette ønsket eksportoppsett.",
+            "exportType": "Type eksport",
+            "csvOptions": {
+                "title": "CSV-alternativer",
+                "delimiter": "Separator",
+                "includeHeaders": "Sett inn overskrift",
+                "spoolFields": "Spoleinnstillinger",
+                "filamentFields": "Filamentinnstillinger",
+                "vendorFields": "Produsentens innstillinger"
+            },
+            "qrOptions": {
+                "title": "Alternativer for QR-kode",
+                "size": "Størrelse",
+                "sizeHelp": "Størrelse på de enkelte blokkene i piksler.",
+                "padding": "Avstand",
+                "paddingHelp": "Avstand mellom kantene, målt i blokker.",
+                "useFullUrl": "Bruk fullstendig URL",
+                "useFullUrlHelp": "Hvis den er aktivert, legges hele URL-adressen til i stedet for den interne hyperkoblingen."
+            }
+        }
     }
 }

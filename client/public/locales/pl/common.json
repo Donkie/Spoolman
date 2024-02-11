@@ -282,5 +282,30 @@
     "kofi": "Daj napiwek na Ko-fi",
     "home": {
         "home": "Strona główna"
+    },
+    "exporting": {
+        "generic": {
+            "title": "Eksport",
+            "export": "Eksport",
+            "description": "Dostosuj poniższe ustawienia, aby utworzyć żądany układ eksportu.",
+            "exportType": "Rodzaj eksportu",
+            "csvOptions": {
+                "title": "Opcje CSV",
+                "delimiter": "Separator",
+                "includeHeaders": "Wstaw nagłówek",
+                "spoolFields": "Ustawienia cewki",
+                "filamentFields": "Ustawienia żarnika",
+                "vendorFields": "Ustawienia producenta"
+            },
+            "qrOptions": {
+                "title": "Opcje kodów QR",
+                "size": "Rozmiar",
+                "sizeHelp": "Rozmiar poszczególnych bloków w pikselach.",
+                "padding": "Odległość",
+                "paddingHelp": "Odległość między krawędziami, mierzona w blokach.",
+                "useFullUrl": "Użyj pełnego adresu URL",
+                "useFullUrlHelp": "W przypadku aktywacji, zamiast wewnętrznego hiperłącza dodawany jest pełny adres URL."
+            }
+        }
     }
 }

@@ -283,5 +283,30 @@
     },
     "table": {
         "actions": "Ações"
+    },
+    "exporting": {
+        "generic": {
+            "title": "Exportação",
+            "export": "Exportação",
+            "description": "Ajuste as definições abaixo para criar o esquema de exportação pretendido.",
+            "exportType": "Tipo de exportação",
+            "csvOptions": {
+                "title": "Opções CSV",
+                "delimiter": "Separador",
+                "includeHeaders": "Inserir cabeçalho",
+                "spoolFields": "Definições da bobina",
+                "filamentFields": "Definições do filamento",
+                "vendorFields": "Definições do fabricante"
+            },
+            "qrOptions": {
+                "title": "Opções de código QR",
+                "size": "Tamanho",
+                "sizeHelp": "Tamanho dos blocos individuais em pixéis.",
+                "padding": "Distância",
+                "paddingHelp": "Distância entre os bordos, medida em blocos.",
+                "useFullUrl": "Utilizar o URL completo",
+                "useFullUrlHelp": "Se estiver ativado, é adicionado o URL completo em vez da hiperligação interna."
+            }
+        }
     }
 }

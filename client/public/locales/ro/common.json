@@ -283,5 +283,30 @@
     },
     "table": {
         "actions": "Acțiuni"
+    },
+    "exporting": {
+        "generic": {
+            "title": "Export",
+            "export": "Export",
+            "description": "Reglați setările de mai jos pentru a crea aspectul de export dorit.",
+            "exportType": "Tipul de export",
+            "csvOptions": {
+                "title": "Opțiuni CSV",
+                "delimiter": "Separator",
+                "includeHeaders": "Introduceți antetul",
+                "spoolFields": "Setări ale bobinei",
+                "filamentFields": "Setări pentru filament",
+                "vendorFields": "Setări ale producătorului"
+            },
+            "qrOptions": {
+                "title": "Opțiuni de cod QR",
+                "size": "Dimensiune",
+                "sizeHelp": "Dimensiunea blocurilor individuale în pixeli.",
+                "padding": "Distanța",
+                "paddingHelp": "Distanța dintre margini, măsurată în blocuri.",
+                "useFullUrl": "Utilizați URL-ul complet",
+                "useFullUrlHelp": "Dacă este activată, se adaugă URL-ul complet în locul hyperlink-ului intern."
+            }
+        }
     }
 }
