@@ -30,6 +30,31 @@
         "unArchive": "Archivieren rückgängig",
         "saveAndAdd": "Speichern und hinzufügen"
     },
+    "exporting": {
+        "generic": {
+            "title": "Exportieren",
+            "export": "Exportieren",
+            "description": "Einstellungen unten anpassen, um das gewünschte Exportlayout zu erstellen.",
+            "exportType": "Export art",
+            "csvOptions": {
+                "title": "CSV Optionen",
+                "delimiter": "Trennzeichen",
+                "includeHeaders": "Kopfzeile einfügen",
+                "spoolFields": "Spulen einstellungen",
+                "filamentFields": "Filament einstellungen",
+                "vendorFields": "Hersteller einstellungen"
+            },
+            "qrOptions": {
+                "title": "QR-Code Optionen",
+                "size": "Größe",
+                "sizeHelp": "Größe der einzelnen Blöcke in Pixeln.",
+                "padding": "Abstand",
+                "paddingHelp": "Abstand zwischen dem Rand, gemessen in Blöcken.",
+                "useFullUrl": "Vollständige URL verwenden",
+                "useFullUrlHelp": "Wenn aktiviert, wird die Vollständige URL hinerlegt, anstelle von dem Interenen Hyperlink."
+            }
+        }
+    },
     "warnWhenUnsavedChanges": "Sicher? Nicht gespeicherte Änderungen gehen verloren.",
     "notifications": {
         "success": "Erfolg",
