@@ -123,6 +123,20 @@
             "selectedTotal_other": "{{count}} spoler valgt",
             "description": "Velg spoler å printe ut QR-koder for.",
             "selectAll": "Velg/fjern merking av alle"
+        },
+        "filamentSelect": {
+            "title": "Velg filamenter",
+            "noFilamentsSelected": "Du har ikke valgt noen filamenter.",
+            "selectAll": "Velg/Avvelg alle",
+            "selectedTotal_one": "{{count}} filament valgt",
+            "selectedTotal_other": "{{count}} filamenter valgt"
+        },
+        "vendorSelect": {
+            "title": "Velg leverandører",
+            "noVendorsSelected": "Du har ikke valgt noen leverandører.",
+            "selectAll": "Velg/Avvelg alle",
+            "selectedTotal_one": "{{count}} leverandør valgt",
+            "selectedTotal_other": "{{count}} leverandører valgt"
         }
     },
     "no": "Nei",
@@ -306,6 +320,15 @@
                 "useFullUrl": "Bruk fullstendig URL",
                 "useFullUrlHelp": "Hvis den er aktivert, legges hele URL-adressen til i stedet for den interne hyperkoblingen."
             }
+        },
+        "spoolSelect": {
+            "description": "Velg spoler som skal eksporteres."
+        },
+        "filamentSelect": {
+            "description": "Velg filamenter som skal eksporteres."
+        },
+        "vendorSelect": {
+            "description": "Velg leverandører som skal eksporteres."
         }
     }
 }

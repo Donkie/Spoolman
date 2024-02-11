@@ -114,6 +114,20 @@
             "selectAll": "Alle aus-/abwählen",
             "selectedTotal_one": "{{count}} Spule ausgewählt",
             "selectedTotal_other": "{{count}} Spulen ausgewählt"
+        },
+        "filamentSelect": {
+            "title": "Filamente auswählen",
+            "noFilamentsSelected": "Sie haben keine Filamente ausgewählt.",
+            "selectAll": "Alle auswählen/abwählen",
+            "selectedTotal_one": "{{count}} Filament ausgewählt",
+            "selectedTotal_other": "{{count}} Filamente ausgewählt"
+        },
+        "vendorSelect": {
+            "title": "Hersteller auswählen",
+            "noVendorsSelected": "Sie haben keine Hersteller ausgewählt.",
+            "selectAll": "Alle auswählen/abwählen",
+            "selectedTotal_one": "{{count}} Hersteller ausgewählt",
+            "selectedTotal_other": "{{count}} Hersteller ausgewählt"
         }
     },
     "scanner": {
@@ -332,6 +346,15 @@
                 "useFullUrl": "Vollständige URL verwenden",
                 "useFullUrlHelp": "Wenn aktiviert, wird die Vollständige URL hinerlegt, anstelle von dem Interenen Hyperlink."
             }
+        },
+        "spoolSelect": {
+            "description": "Wählen Sie die zu exportierenden Spulen aus."
+        },
+        "filamentSelect": {
+            "description": "Wählen Sie die zu exportierenden Filamente aus."
+        },
+        "vendorSelect": {
+            "description": "Wählen Sie die zu exportierenden Hersteller aus."
         }
     }
 }

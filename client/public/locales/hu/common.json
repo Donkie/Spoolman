@@ -58,6 +58,20 @@
             "title": "Tekercs kiválasztása",
             "selectAll": "Összes kijelölése/kijelölésének törlése",
             "noSpoolsSelected": "Nem választotál ki egyetlen tekercset sem."
+        },
+        "filamentSelect": {
+            "title": "Szálak kiválasztása",
+            "noFilamentsSelected": "Nem választott ki egyetlen szál sem.",
+            "selectAll": "Összes kijelölése/elhagyása",
+            "selectedTotal_one": "{{count}} kiválasztott szál",
+            "selectedTotal_other": "{{count}} kiválasztott szálak"
+        },
+        "vendorSelect": {
+            "title": "Válassza ki a forgalmazókat",
+            "noVendorsSelected": "Ön nem választott ki egyetlen szállítót sem.",
+            "selectAll": "Összes kijelölése/elhagyása",
+            "selectedTotal_one": "{{count}} kiválasztott eladó",
+            "selectedTotal_other": "{{count}} kiválasztott szállítók"
         }
     },
     "documentTitle": {
@@ -306,6 +320,15 @@
                 "useFullUrl": "Teljes URL használata",
                 "useFullUrlHelp": "Ha aktiválva van, a belső hiperhivatkozás helyett a teljes URL kerül hozzáadásra."
             }
+        },
+        "spoolSelect": {
+            "description": "Válassza ki az exportálandó orsókat."
+        },
+        "filamentSelect": {
+            "description": "Válassza ki az exportálandó szálakat."
+        },
+        "vendorSelect": {
+            "description": "Válassza ki az exportálandó szállítók listáját."
         }
     }
 }

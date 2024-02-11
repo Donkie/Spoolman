@@ -112,6 +112,20 @@
             "noSpoolsSelected": "您尚未选择任何料盘。",
             "selectAll": "选择/取消选择全部",
             "selectedTotal_other": "已选择{{count}}个料盘"
+        },
+        "filamentSelect": {
+            "title": "选择长丝",
+            "noFilamentsSelected": "您没有选择任何长丝。",
+            "selectAll": "全部选择/取消选择",
+            "selectedTotal_one": "选择了{{count}}灯丝",
+            "selectedTotal_other": "{{count}}选择的长丝"
+        },
+        "vendorSelect": {
+            "title": "选择供应商",
+            "noVendorsSelected": "您尚未选择任何供应商。",
+            "selectAll": "全部选择/取消选择",
+            "selectedTotal_one": "已选定{{count}}供应商",
+            "selectedTotal_other": "已选择{{count}}供应商"
         }
     },
     "scanner": {
@@ -305,6 +319,15 @@
                 "useFullUrl": "使用完整的 URL",
                 "useFullUrlHelp": "如果激活，则会添加完整的 URL，而不是内部超链接。"
             }
+        },
+        "spoolSelect": {
+            "description": "选择要导出的线轴。"
+        },
+        "filamentSelect": {
+            "description": "选择要导出的长丝。"
+        },
+        "vendorSelect": {
+            "description": "选择要导出的供应商。"
         }
     }
 }

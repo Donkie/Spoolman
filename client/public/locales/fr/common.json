@@ -59,6 +59,20 @@
             "title": "Sélectionner les bobines",
             "selectAll": "Sélectionner/Désélectionner tout",
             "noSpoolsSelected": "Vous n'avez sélectionné aucune bobine."
+        },
+        "filamentSelect": {
+            "title": "Sélectionner les filaments",
+            "noFilamentsSelected": "Vous n'avez sélectionné aucun filament.",
+            "selectAll": "Sélectionner/Désélectionner tout",
+            "selectedTotal_one": "{{count}} filament sélectionné",
+            "selectedTotal_other": "{{count}} filaments sélectionnés"
+        },
+        "vendorSelect": {
+            "title": "Sélectionner les fournisseurs",
+            "noVendorsSelected": "Vous n'avez sélectionné aucun fournisseur.",
+            "selectAll": "Sélectionner/Désélectionner tout",
+            "selectedTotal_one": "{{count}} vendeur sélectionné",
+            "selectedTotal_other": "{{count}} vendeurs sélectionnés"
         }
     },
     "documentTitle": {
@@ -307,6 +321,15 @@
                 "useFullUrl": "Utiliser l'URL complète",
                 "useFullUrlHelp": "Si elle est activée, l'URL complète est imposée au lieu de l'hyperlien interne."
             }
+        },
+        "spoolSelect": {
+            "description": "Sélectionner les spools à exporter."
+        },
+        "filamentSelect": {
+            "description": "Sélectionner les filaments à exporter."
+        },
+        "vendorSelect": {
+            "description": "Sélectionnez les fournisseurs à exporter."
         }
     }
 }

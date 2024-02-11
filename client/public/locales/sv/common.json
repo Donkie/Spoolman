@@ -115,6 +115,20 @@
             "selectAll": "Markera/avmarkera alla",
             "selectedTotal_one": "{{count}} spole vald",
             "selectedTotal_other": "{{count}} spolar valda"
+        },
+        "filamentSelect": {
+            "title": "Välj filament",
+            "noFilamentsSelected": "Du har inte valt några filament.",
+            "selectAll": "Markera/avmarkera alla",
+            "selectedTotal_one": "{{count}} filament valt",
+            "selectedTotal_other": "{{count}} filament valda"
+        },
+        "vendorSelect": {
+            "title": "Välj leverantörer",
+            "noVendorsSelected": "Du har inte valt några leverantörer.",
+            "selectAll": "Markera/avmarkera alla",
+            "selectedTotal_one": "{{count}} leverantör vald",
+            "selectedTotal_other": "{{count}} leverantörer valda"
         }
     },
     "scanner": {
@@ -352,6 +366,15 @@
                 "useFullUrl": "Använd fullständig URL",
                 "useFullUrlHelp": "Om den är aktiverad läggs den fullständiga webbadressen till istället för den interna hyperlänken."
             }
+        },
+        "spoolSelect": {
+            "description": "Välj spooler som ska exporteras."
+        },
+        "filamentSelect": {
+            "description": "Välj filament för export."
+        },
+        "vendorSelect": {
+            "description": "Välj vilka leverantörer som ska exporteras."
         }
     }
 }

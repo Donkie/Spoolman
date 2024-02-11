@@ -259,6 +259,20 @@
             "title": "Selección de Carretes",
             "selectAll": "Seleccionar/Deseleccionar Todos",
             "noSpoolsSelected": "No has seleccionado ningún carrete."
+        },
+        "filamentSelect": {
+            "title": "Seleccionar filamentos",
+            "noFilamentsSelected": "No ha seleccionado ningún filamento.",
+            "selectAll": "Seleccionar/deseleccionar todo",
+            "selectedTotal_one": "{{count}} filamento seleccionado",
+            "selectedTotal_other": "{{count}} filamentos seleccionados"
+        },
+        "vendorSelect": {
+            "title": "Seleccionar proveedores",
+            "noVendorsSelected": "No ha seleccionado ningún proveedor.",
+            "selectAll": "Seleccionar/deseleccionar todo",
+            "selectedTotal_one": "{{count}} vendedor seleccionado",
+            "selectedTotal_other": "{{count}} vendedores seleccionados"
         }
     },
     "scanner": {
@@ -349,6 +363,15 @@
                 "useFullUrl": "Utilice la URL completa",
                 "useFullUrlHelp": "Si se activa, se añade la URL completa en lugar del hipervínculo interno."
             }
+        },
+        "spoolSelect": {
+            "description": "Seleccione las bobinas que desea exportar."
+        },
+        "filamentSelect": {
+            "description": "Seleccione los filamentos que desea exportar."
+        },
+        "vendorSelect": {
+            "description": "Seleccione los proveedores que desea exportar."
         }
     }
 }

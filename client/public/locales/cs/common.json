@@ -116,6 +116,20 @@
             "selectedTotal_one": "{{count}} vybraná cívka",
             "selectedTotal_few": "{{count}} vybraných cívek",
             "selectedTotal_other": "{{count}} vybrané cívky"
+        },
+        "filamentSelect": {
+            "title": "Vybrat vlákna",
+            "noFilamentsSelected": "Nevybrali jste žádná vlákna.",
+            "selectAll": "Vybrat/odebrat vše",
+            "selectedTotal_one": "{{count}} vybrané vlákno",
+            "selectedTotal_other": "{{count}} vybraná vlákna"
+        },
+        "vendorSelect": {
+            "title": "Vybraní prodejci",
+            "noVendorsSelected": "Nevybrali jste žádné prodejce.",
+            "selectAll": "Vybrat/odebrat vše",
+            "selectedTotal_one": "{{count}} vybraný prodejce",
+            "selectedTotal_other": "{{count}} vybraní prodejci"
         }
     },
     "scanner": {
@@ -352,6 +366,15 @@
                 "useFullUrl": "Použijte úplnou adresu URL",
                 "useFullUrlHelp": "Pokud je aktivována, přidá se místo interního hypertextového odkazu celá adresa URL."
             }
+        },
+        "spoolSelect": {
+            "description": "Vyberte cívky, které chcete exportovat."
+        },
+        "filamentSelect": {
+            "description": "Vyberte vlákna, která chcete exportovat."
+        },
+        "vendorSelect": {
+            "description": "Vyberte prodejce, které chcete exportovat."
         }
     }
 }

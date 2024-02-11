@@ -116,6 +116,22 @@
             "selectedTotal_one": "{{count}} катушка выбрана",
             "selectedTotal_few": "{{count}} катушки выбрано",
             "selectedTotal_many": "{{count}} катушек выбрано"
+        },
+        "filamentSelect": {
+            "title": "Выберите филаменты",
+            "noFilamentsSelected": "Вы не выбрали ни одной нити.",
+            "selectAll": "Выбрать/Снять выбор со всех",
+            "selectedTotal_one": "{{count}} выбранные нити",
+            "selectedTotal_few": "{{count}} выбранные нити",
+            "selectedTotal_many": "{{count}} выбранные нити"
+        },
+        "vendorSelect": {
+            "title": "Выберите поставщиков",
+            "noVendorsSelected": "Вы не выбрали ни одного продавца.",
+            "selectAll": "Выбрать/Снять выбор со всех",
+            "selectedTotal_one": "{{count}} выбранные поставщики",
+            "selectedTotal_few": "{{count}} выбранные поставщики",
+            "selectedTotal_many": "{{count}} выбранные поставщики"
         }
     },
     "scanner": {
@@ -352,6 +368,15 @@
                 "useFullUrl": "Используйте полный URL-адрес",
                 "useFullUrlHelp": "Если эта функция активирована, вместо внутренней гиперссылки добавляется полный URL-адрес."
             }
+        },
+        "spoolSelect": {
+            "description": "Выберите катушки для экспорта."
+        },
+        "filamentSelect": {
+            "description": "Выберите нити для экспорта."
+        },
+        "vendorSelect": {
+            "description": "Выберите продавцов для экспорта."
         }
     }
 }

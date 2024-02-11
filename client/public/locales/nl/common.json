@@ -89,6 +89,20 @@
             "title": "Spoelen selecteren",
             "selectAll": "Alles selecteren/deselecteren",
             "noSpoolsSelected": "Je hebt geen spoelen geselecteerd."
+        },
+        "filamentSelect": {
+            "title": "Selecteer filamenten",
+            "noFilamentsSelected": "U hebt geen filamenten geselecteerd.",
+            "selectAll": "Alles selecteren/deselecteren",
+            "selectedTotal_one": "{{count}} geselecteerde gloeidraad",
+            "selectedTotal_other": "{{count}} geselecteerde filamenten"
+        },
+        "vendorSelect": {
+            "title": "Selecteer leveranciers",
+            "noVendorsSelected": "Je hebt geen leveranciers geselecteerd.",
+            "selectAll": "Alles selecteren/deselecteren",
+            "selectedTotal_one": "{{count}} leverancier geselecteerd",
+            "selectedTotal_other": "{{count}} geselecteerde verkopers"
         }
     },
     "notifications": {
@@ -351,6 +365,15 @@
                 "useFullUrl": "Gebruik volledige URL",
                 "useFullUrlHelp": "Indien geactiveerd, wordt de volledige URL toegevoegd in plaats van de interne hyperlink."
             }
+        },
+        "spoolSelect": {
+            "description": "Selecteer spoelen om te exporteren."
+        },
+        "filamentSelect": {
+            "description": "Selecteer filamenten om te exporteren."
+        },
+        "vendorSelect": {
+            "description": "Selecteer leveranciers om te exporteren."
         }
     }
 }

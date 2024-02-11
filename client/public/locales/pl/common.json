@@ -161,6 +161,20 @@
             "selectedTotal_few": "Wybrano {{count}} szpule",
             "selectedTotal_many": "Wybrano {{count}} szpul",
             "noSpoolsSelected": "Nie wybrano żadnych szpul."
+        },
+        "filamentSelect": {
+            "title": "Wybór żarników",
+            "noFilamentsSelected": "Nie wybrano żadnych żarników.",
+            "selectAll": "Wybierz/Odznacz wszystko",
+            "selectedTotal_one": "{{count}} wybrany żarnik",
+            "selectedTotal_other": "{{count}} wybranych włókien"
+        },
+        "vendorSelect": {
+            "title": "Wybór dostawców",
+            "noVendorsSelected": "Nie wybrano żadnych dostawców.",
+            "selectAll": "Wybierz/Odznacz wszystko",
+            "selectedTotal_one": "{{count}} wybrany sprzedawca",
+            "selectedTotal_other": "{{count}} wybranych sprzedawców"
         }
     },
     "scanner": {
@@ -306,6 +320,15 @@
                 "useFullUrl": "Użyj pełnego adresu URL",
                 "useFullUrlHelp": "W przypadku aktywacji, zamiast wewnętrznego hiperłącza dodawany jest pełny adres URL."
             }
+        },
+        "spoolSelect": {
+            "description": "Wybierz szpule do wyeksportowania."
+        },
+        "filamentSelect": {
+            "description": "Wybierz filamenty do wyeksportowania."
+        },
+        "vendorSelect": {
+            "description": "Wybierz sprzedawców do wyeksportowania."
         }
     }
 }

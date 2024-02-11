@@ -58,6 +58,20 @@
             "title": "Επιλέξτε Καρούλια",
             "selectAll": "Επιλογή/Αποεπιλογή όλων",
             "noSpoolsSelected": "Δεν έχετε επιλέξει κάποιο καρούλι."
+        },
+        "filamentSelect": {
+            "title": "Επιλέξτε νήματα",
+            "noFilamentsSelected": "Δεν έχετε επιλέξει νήματα.",
+            "selectAll": "Επιλογή/αποεπιλογή όλων",
+            "selectedTotal_one": "{{count}} νήμα επιλεγμένο",
+            "selectedTotal_other": "{{count}} επιλεγμένα νήματα"
+        },
+        "vendorSelect": {
+            "title": "Επιλέξτε προμηθευτές",
+            "noVendorsSelected": "Δεν έχετε επιλέξει κανέναν προμηθευτή.",
+            "selectAll": "Επιλογή/αποεπιλογή όλων",
+            "selectedTotal_one": "{{count}} επιλεγμένος πωλητής",
+            "selectedTotal_other": "{{count}} επιλεγμένοι προμηθευτές"
         }
     },
     "documentTitle": {
@@ -306,6 +320,15 @@
                 "useFullUrl": "Χρήση πλήρους URL",
                 "useFullUrlHelp": "Εάν ενεργοποιηθεί, η πλήρης διεύθυνση URL προστίθεται αντί του εσωτερικού υπερσυνδέσμου."
             }
+        },
+        "spoolSelect": {
+            "description": "Επιλέξτε τα καρούλια για εξαγωγή."
+        },
+        "filamentSelect": {
+            "description": "Επιλέξτε νήματα για εξαγωγή."
+        },
+        "vendorSelect": {
+            "description": "Επιλέξτε προμηθευτές για εξαγωγή."
         }
     }
 }

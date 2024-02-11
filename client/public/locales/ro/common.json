@@ -112,6 +112,20 @@
             "extruderTemp": "",
             "showVendor": "Furnizor",
             "lotNr": ""
+        },
+        "filamentSelect": {
+            "title": "Selectați filamente",
+            "noFilamentsSelected": "Nu ați selectat niciun filament.",
+            "selectAll": "Selectați/ne-selectați toate",
+            "selectedTotal_one": "{{count}} filament selectat",
+            "selectedTotal_other": "{{count}} filamente selectate"
+        },
+        "vendorSelect": {
+            "title": "Selectați furnizorii",
+            "noVendorsSelected": "Nu ați selectat niciun furnizor.",
+            "selectAll": "Selectați/ne-selectați toate",
+            "selectedTotal_one": "{{count}}} furnizor selectat",
+            "selectedTotal_other": "{{count}} furnizori selectați"
         }
     },
     "documentTitle": {
@@ -307,6 +321,15 @@
                 "useFullUrl": "Utilizați URL-ul complet",
                 "useFullUrlHelp": "Dacă este activată, se adaugă URL-ul complet în locul hyperlink-ului intern."
             }
+        },
+        "spoolSelect": {
+            "description": "Selectați bobinele care urmează să fie exportate."
+        },
+        "filamentSelect": {
+            "description": "Selectați filamentele care urmează să fie exportate."
+        },
+        "vendorSelect": {
+            "description": "Selectați vânzătorii care urmează să fie exportați."
         }
     }
 }

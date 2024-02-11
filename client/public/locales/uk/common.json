@@ -138,6 +138,22 @@
             "lotNr": "Партія номер: {{lot}}",
             "showFilamentComment": "Примітка про філамент",
             "button": "Друкувати QR-коди"
+        },
+        "filamentSelect": {
+            "title": "Виберіть нитки",
+            "noFilamentsSelected": "Ви не вибрали жодної нитки.",
+            "selectAll": "Вибрати/відмінити всі",
+            "selectedTotal_one": "{{count}} вибрана нитка",
+            "selectedTotal_few": "{{count}} вибрана нитка",
+            "selectedTotal_many": "{{count}} вибрана нитка"
+        },
+        "vendorSelect": {
+            "title": "Вибір постачальників",
+            "noVendorsSelected": "Ви не вибрали жодного постачальника.",
+            "selectAll": "Вибрати/відмінити всі",
+            "selectedTotal_one": "{{count}} обраний постачальник",
+            "selectedTotal_few": "{{count}} обраний постачальник",
+            "selectedTotal_many": "{{count}} обраний постачальник"
         }
     },
     "notifications": {
@@ -349,6 +365,15 @@
                 "useFullUrl": "Використовуйте повну URL-адресу",
                 "useFullUrlHelp": "Якщо цей параметр активовано, замість внутрішнього гіперпосилання буде додано повну URL-адресу."
             }
+        },
+        "spoolSelect": {
+            "description": "Виберіть котушки для експорту."
+        },
+        "filamentSelect": {
+            "description": "Виберіть нитки для експорту."
+        },
+        "vendorSelect": {
+            "description": "Виберіть постачальників для експорту."
         }
     }
 }

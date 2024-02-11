@@ -114,6 +114,20 @@
             "showSpoolComment": "Comentário do carretel",
             "showFilamentComment": "Comentário de filamento",
             "showVendorComment": "Comentário do fornecedor"
+        },
+        "filamentSelect": {
+            "title": "Selecionar filamentos",
+            "noFilamentsSelected": "Não seleccionou nenhum filamento.",
+            "selectAll": "Selecionar/desmarcar tudo",
+            "selectedTotal_one": "{Filamento selecionado",
+            "selectedTotal_other": "{Filamentos seleccionados"
+        },
+        "vendorSelect": {
+            "title": "Selecionar fornecedores",
+            "noVendorsSelected": "Não seleccionou nenhum fornecedor.",
+            "selectAll": "Selecionar/desmarcar tudo",
+            "selectedTotal_one": "{Fornecedor selecionado",
+            "selectedTotal_other": "{Fornecedores seleccionados"
         }
     },
     "spool": {
@@ -307,6 +321,15 @@
                 "useFullUrl": "Utilizar o URL completo",
                 "useFullUrlHelp": "Se estiver ativado, é adicionado o URL completo em vez da hiperligação interna."
             }
+        },
+        "spoolSelect": {
+            "description": "Selecionar os spools a exportar."
+        },
+        "filamentSelect": {
+            "description": "Selecionar os filamentos a exportar."
+        },
+        "vendorSelect": {
+            "description": "Seleccione os fornecedores a exportar."
         }
     }
 }
