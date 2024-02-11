@@ -116,6 +116,20 @@
             "selectAll": "Select/Unselect All",
             "selectedTotal_one": "{{count}} spool selected",
             "selectedTotal_other": "{{count}} spools selected"
+        },
+        "filamentSelect": {
+            "title": "Select Filaments",
+            "noFilamentsSelected": "You have not selected any filaments.",
+            "selectAll": "Select/Unselect All",
+            "selectedTotal_one": "{{count}} filament selected",
+            "selectedTotal_other": "{{count}} filaments selected"
+        },
+        "vendorSelect": {
+            "title": "Select Vendors",
+            "noVendorsSelected": "You have not selected any vendors.",
+            "selectAll": "Select/Unselect All",
+            "selectedTotal_one": "{{count}} vendor selected",
+            "selectedTotal_other": "{{count}} vendors selected"
         }
     },
     "scanner": {
@@ -352,6 +366,15 @@
                 "useFullUrl": "Use full URL",
                 "useFullUrlHelp": "If activated, the full URL is added instead of the internal hyperlink."
             }
+        },
+        "spoolSelect": {
+            "description": "Select spools to export."
+        },
+        "filamentSelect": {
+            "description": "Select filaments to export."
+        },
+        "vendorSelect": {
+            "description": "Select vendors to export."
         }
     }
 }

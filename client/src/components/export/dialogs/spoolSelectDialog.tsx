@@ -23,11 +23,11 @@ const SpoolSelectAndExport: React.FC = () => {
           setStep(1);
         }}
       >
-        {"Export"}
+        {t("exporting.generic.export")}
       </Button>
       <SpoolSelectModal
         visible={step === 1}
-        description={t("printing.spoolSelect.description")}
+        description={t("exporting.spoolSelect.description")}
         onCancel={() => {
           setStep(0);
         }}

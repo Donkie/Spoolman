@@ -23,11 +23,11 @@ const VendorSelectAndExport: React.FC = () => {
           setStep(1);
         }}
       >
-        {"Export"}
+        {t("exporting.generic.export")}
       </Button>
       <VendorSelectModal
         visible={step === 1}
-        description={t("printing.spoolSelect.description")}
+        description={t("exporting.vendorSelect.description")}
         onCancel={() => {
           setStep(0);
         }}

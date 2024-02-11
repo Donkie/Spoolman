@@ -23,11 +23,11 @@ const FilamentSelectAndExport: React.FC = () => {
           setStep(1);
         }}
       >
-        {"Export"}
+        {t("exporting.generic.export")}
       </Button>
       <FilamentSelectModal
         visible={step === 1}
-        description={t("printing.spoolSelect.description")}
+        description={t("exporting.filamentSelect.description")}
         onCancel={() => {
           setStep(0);
         }}

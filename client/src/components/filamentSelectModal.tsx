@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Modal, Table, Checkbox, Space, Row, Col, message } from "antd";
-import { ISpool } from "../pages/spools/model";
 import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "./column";
 import { TableState } from "../utils/saveload";
 import { useTable } from "@refinedev/antd";
@@ -8,7 +7,6 @@ import { t } from "i18next";
 import { useSpoolmanFilamentFilter, useSpoolmanMaterials } from "./otherModels";
 import { removeUndefined } from "../utils/filtering";
 import { useNavigate } from "react-router-dom";
-import { IVendor } from "../pages/vendors/model";
 import { IFilament } from "../pages/filaments/model";
 
 interface Props {
@@ -20,16 +18,10 @@ interface Props {
 
 const FilamentSelectModal: React.FC<Props> = ({ visible, description, onCancel, onContinue }) => {
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
-  const [showArchived, setShowArchived] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
 
   const { tableProps, sorters, filters, current, pageSize } = useTable<IFilament>({
-    meta: {
-      queryParams: {
-        ["allow_archived"]: showArchived,
-      },
-    },
     syncWithLocation: false,
     pagination: {
       mode: "off",
@@ -98,14 +90,14 @@ const FilamentSelectModal: React.FC<Props> = ({ visible, description, onCancel, 
 
   return (
     <Modal
-      title={t("printing.spoolSelect.title")}
+      title={t("printing.filamentSelect.title")}
       open={visible}
       onCancel={onCancel}
       onOk={() => {
         if (selectedItems.length === 0) {
           messageApi.open({
             type: "error",
-            content: t("printing.spoolSelect.noSpoolsSelected"),
+            content: t("printing.filamentSelect.noFilamentsSelected"),
           });
           return;
         }
@@ -160,12 +152,12 @@ const FilamentSelectModal: React.FC<Props> = ({ visible, description, onCancel, 
                 selectUnselectFiltered(e.target.checked);
               }}
             >
-              {t("printing.spoolSelect.selectAll")}
+              {t("printing.filamentSelect.selectAll")}
             </Checkbox>
           </Col>
           <Col span={12}>
             <div style={{ float: "right" }}>
-              {t("printing.spoolSelect.selectedTotal", {
+              {t("printing.filamentSelect.selectedTotal", {
                 count: selectedItems.length,
               })}
             </div>
