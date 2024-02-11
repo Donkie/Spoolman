@@ -36,13 +36,6 @@ app = FastAPI(
     version=env.get_version(),
 )
 app.add_middleware(GZipMiddleware)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=['*'],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 app.mount("/api/v1", v1_app)
 app.mount("/", app=SinglePageApplication(directory="client/dist"), name="client")
 
