@@ -116,6 +116,20 @@
             "selectedTotal_one": "{{count}} vybraná cívka",
             "selectedTotal_few": "{{count}} vybraných cívek",
             "selectedTotal_other": "{{count}} vybrané cívky"
+        },
+        "filamentSelect": {
+            "title": "Vybrat vlákna",
+            "noFilamentsSelected": "Nevybrali jste žádná vlákna.",
+            "selectAll": "Vybrat/odebrat vše",
+            "selectedTotal_one": "{{count}} vybrané vlákno",
+            "selectedTotal_other": "{{count}} vybraná vlákna"
+        },
+        "vendorSelect": {
+            "title": "Vybraní prodejci",
+            "noVendorsSelected": "Nevybrali jste žádné prodejce.",
+            "selectAll": "Vybrat/odebrat vše",
+            "selectedTotal_one": "{{count}} vybraný prodejce",
+            "selectedTotal_other": "{{count}} vybraní prodejci"
         }
     },
     "scanner": {
@@ -327,6 +341,40 @@
             "currency": {
                 "label": "Měna"
             }
+        }
+    },
+    "exporting": {
+        "generic": {
+            "title": "Export",
+            "export": "Export",
+            "description": "Upravte níže uvedená nastavení tak, abyste vytvořili požadované rozložení exportu.",
+            "exportType": "Typ vývozu",
+            "csvOptions": {
+                "title": "Možnosti CSV",
+                "delimiter": "Oddělovač",
+                "includeHeaders": "Vložit záhlaví",
+                "spoolFields": "Nastavení cívky",
+                "filamentFields": "Nastavení vlákna",
+                "vendorFields": "Nastavení výrobce"
+            },
+            "qrOptions": {
+                "title": "Možnosti kódu QR",
+                "size": "Velikost",
+                "sizeHelp": "Velikost jednotlivých bloků v pixelech.",
+                "padding": "Vzdálenost",
+                "paddingHelp": "Vzdálenost mezi okraji měřená v blocích.",
+                "useFullUrl": "Použijte úplnou adresu URL",
+                "useFullUrlHelp": "Pokud je aktivována, přidá se místo interního hypertextového odkazu celá adresa URL."
+            }
+        },
+        "spoolSelect": {
+            "description": "Vyberte cívky, které chcete exportovat."
+        },
+        "filamentSelect": {
+            "description": "Vyberte vlákna, která chcete exportovat."
+        },
+        "vendorSelect": {
+            "description": "Vyberte prodejce, které chcete exportovat."
         }
     }
 }

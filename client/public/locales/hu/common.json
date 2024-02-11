@@ -58,6 +58,20 @@
             "title": "Tekercs kiválasztása",
             "selectAll": "Összes kijelölése/kijelölésének törlése",
             "noSpoolsSelected": "Nem választotál ki egyetlen tekercset sem."
+        },
+        "filamentSelect": {
+            "title": "Szálak kiválasztása",
+            "noFilamentsSelected": "Nem választott ki egyetlen szál sem.",
+            "selectAll": "Összes kijelölése/elhagyása",
+            "selectedTotal_one": "{{count}} kiválasztott szál",
+            "selectedTotal_other": "{{count}} kiválasztott szálak"
+        },
+        "vendorSelect": {
+            "title": "Válassza ki a forgalmazókat",
+            "noVendorsSelected": "Ön nem választott ki egyetlen szállítót sem.",
+            "selectAll": "Összes kijelölése/elhagyása",
+            "selectedTotal_one": "{{count}} kiválasztott eladó",
+            "selectedTotal_other": "{{count}} kiválasztott szállítók"
         }
     },
     "documentTitle": {
@@ -282,5 +296,39 @@
         },
         "help": "",
         "description": ""
+    },
+    "exporting": {
+        "generic": {
+            "title": "Exportálás",
+            "export": "Exportálás",
+            "description": "Az alábbi beállításokat a kívánt exportálási elrendezés létrehozásához igazítsa.",
+            "exportType": "A kivitel típusa",
+            "csvOptions": {
+                "title": "CSV beállítások",
+                "delimiter": "Elválasztó",
+                "includeHeaders": "Fejléc beillesztése",
+                "spoolFields": "Tekercs beállítások",
+                "filamentFields": "Szál beállítások",
+                "vendorFields": "Gyártó beállításai"
+            },
+            "qrOptions": {
+                "title": "QR-kód opciók",
+                "size": "Méret",
+                "sizeHelp": "Az egyes blokkok mérete pixelben.",
+                "padding": "Távolság",
+                "paddingHelp": "Az él közötti távolság, blokkokban mérve.",
+                "useFullUrl": "Teljes URL használata",
+                "useFullUrlHelp": "Ha aktiválva van, a belső hiperhivatkozás helyett a teljes URL kerül hozzáadásra."
+            }
+        },
+        "spoolSelect": {
+            "description": "Válassza ki az exportálandó orsókat."
+        },
+        "filamentSelect": {
+            "description": "Válassza ki az exportálandó szálakat."
+        },
+        "vendorSelect": {
+            "description": "Válassza ki az exportálandó szállítók listáját."
+        }
     }
 }

@@ -58,6 +58,20 @@
             "title": "Vælg spoler",
             "selectAll": "Vælg alle/ingen",
             "noSpoolsSelected": "Du har ikke valgt nogle spoler."
+        },
+        "filamentSelect": {
+            "title": "Vælg filamenter",
+            "noFilamentsSelected": "Du har ikke valgt nogen filamenter.",
+            "selectAll": "Vælg/fravælg alle",
+            "selectedTotal_one": "{{count}} filament valgt",
+            "selectedTotal_other": "{{count}} filamenter valgt"
+        },
+        "vendorSelect": {
+            "title": "Vælg leverandører",
+            "noVendorsSelected": "Du har ikke valgt nogen leverandører.",
+            "selectAll": "Vælg/fravælg alle",
+            "selectedTotal_one": "{{count}} Leverandør valgt",
+            "selectedTotal_other": "{{count}} leverandører valgt"
         }
     },
     "documentTitle": {
@@ -282,5 +296,39 @@
     "kofi": "Donér på Ko-fi",
     "home": {
         "home": "Hjem"
+    },
+    "exporting": {
+        "generic": {
+            "title": "Eksport",
+            "export": "Eksport",
+            "description": "Juster indstillingerne nedenfor for at skabe det ønskede eksportlayout.",
+            "exportType": "Type af eksport",
+            "csvOptions": {
+                "title": "CSV-muligheder",
+                "delimiter": "Separator",
+                "includeHeaders": "Indsæt overskrift",
+                "spoolFields": "Spoleindstillinger",
+                "filamentFields": "Indstillinger for filament",
+                "vendorFields": "Producentens indstillinger"
+            },
+            "qrOptions": {
+                "title": "Muligheder for QR-koder",
+                "size": "Størrelse",
+                "sizeHelp": "Størrelse på de enkelte blokke i pixels.",
+                "padding": "Afstand",
+                "paddingHelp": "Afstand mellem kanten, målt i blokke.",
+                "useFullUrl": "Brug den fulde URL",
+                "useFullUrlHelp": "Hvis den er aktiveret, tilføjes den fulde URL i stedet for det interne hyperlink."
+            }
+        },
+        "spoolSelect": {
+            "description": "Vælg spoler, der skal eksporteres."
+        },
+        "filamentSelect": {
+            "description": "Vælg filamenter, der skal eksporteres."
+        },
+        "vendorSelect": {
+            "description": "Vælg leverandører, der skal eksporteres."
+        }
     }
 }

@@ -116,6 +116,20 @@
             "selectAll": "Select/Unselect All",
             "selectedTotal_one": "{{count}} spool selected",
             "selectedTotal_other": "{{count}} spools selected"
+        },
+        "filamentSelect": {
+            "title": "Select Filaments",
+            "noFilamentsSelected": "You have not selected any filaments.",
+            "selectAll": "Select/Unselect All",
+            "selectedTotal_one": "{{count}} filament selected",
+            "selectedTotal_other": "{{count}} filaments selected"
+        },
+        "vendorSelect": {
+            "title": "Select Vendors",
+            "noVendorsSelected": "You have not selected any vendors.",
+            "selectAll": "Select/Unselect All",
+            "selectedTotal_one": "{{count}} vendor selected",
+            "selectedTotal_other": "{{count}} vendors selected"
         }
     },
     "scanner": {
@@ -327,6 +341,40 @@
             "edit": "#{{id}} Edit Vendor | Spoolman",
             "create": "Create Vendor | Spoolman",
             "clone": "#{{id}} Clone Vendor | Spoolman"
+        }
+    },
+    "exporting": {
+        "generic": {
+            "title": "Export",
+            "export": "Export",
+            "description": "Adjust the settings below to create the desired export layout.",
+            "exportType": "Type of export",
+            "csvOptions": {
+                "title": "CSV options",
+                "delimiter": "Separator",
+                "includeHeaders": "Insert header",
+                "spoolFields": "Spool settings",
+                "filamentFields": "Filament settings",
+                "vendorFields": "Manufacturer settings"
+            },
+            "qrOptions": {
+                "title": "QR code options",
+                "size": "Size",
+                "sizeHelp": "Size of the individual blocks in pixels.",
+                "padding": "Distance",
+                "paddingHelp": "Distance between the edge, measured in blocks.",
+                "useFullUrl": "Use full URL",
+                "useFullUrlHelp": "If activated, the full URL is added instead of the internal hyperlink."
+            }
+        },
+        "spoolSelect": {
+            "description": "Select spools to export."
+        },
+        "filamentSelect": {
+            "description": "Select filaments to export."
+        },
+        "vendorSelect": {
+            "description": "Select vendors to export."
         }
     }
 }

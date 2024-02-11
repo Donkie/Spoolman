@@ -20,6 +20,7 @@ dependencies = [
     "psycopg2-binary~=2.9",
     "setuptools~=68.0",
     "WebSockets>=11.0.3",
+    "qrcode>=7.4.2",
 ]
 requires-python = ">=3.9"
 

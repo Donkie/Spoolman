@@ -12,6 +12,7 @@ import { useLiveify } from "../../components/liveify";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useNavigate } from "react-router-dom";
+import VendorSelectAndExport from "../../components/export/dialogs/vendorSelectDialog";
 
 dayjs.extend(utc);
 
@@ -101,6 +102,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
     <List
       headerButtons={({ defaultButtons }) => (
         <>
+          <VendorSelectAndExport />
           <Button
             type="primary"
             icon={<FilterOutlined />}

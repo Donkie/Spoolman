@@ -8,6 +8,7 @@ import { ISpool } from "./model";
 import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
 import {
   EditOutlined,
+  ExportOutlined,
   EyeOutlined,
   FilterOutlined,
   InboxOutlined,
@@ -38,6 +39,7 @@ import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useNavigate } from "react-router-dom";
 import { useCurrency } from "../../utils/settings";
+import SpoolSelectAndExport from "../../components/export/dialogs/spoolSelectDialog";
 
 dayjs.extend(utc);
 
@@ -255,6 +257,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
       headerButtons={({ defaultButtons }) => (
         <>
           <SelectAndPrint />
+          <SpoolSelectAndExport />
           <Button
             type="primary"
             icon={<InboxOutlined />}

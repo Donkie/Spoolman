@@ -114,6 +114,20 @@
             "showSpoolComment": "Comentário do carretel",
             "showFilamentComment": "Comentário de filamento",
             "showVendorComment": "Comentário do fornecedor"
+        },
+        "filamentSelect": {
+            "title": "Selecionar filamentos",
+            "noFilamentsSelected": "Não seleccionou nenhum filamento.",
+            "selectAll": "Selecionar/desmarcar tudo",
+            "selectedTotal_one": "{Filamento selecionado",
+            "selectedTotal_other": "{Filamentos seleccionados"
+        },
+        "vendorSelect": {
+            "title": "Selecionar fornecedores",
+            "noVendorsSelected": "Não seleccionou nenhum fornecedor.",
+            "selectAll": "Selecionar/desmarcar tudo",
+            "selectedTotal_one": "{Fornecedor selecionado",
+            "selectedTotal_other": "{Fornecedores seleccionados"
         }
     },
     "spool": {
@@ -283,5 +297,39 @@
     },
     "table": {
         "actions": "Ações"
+    },
+    "exporting": {
+        "generic": {
+            "title": "Exportação",
+            "export": "Exportação",
+            "description": "Ajuste as definições abaixo para criar o esquema de exportação pretendido.",
+            "exportType": "Tipo de exportação",
+            "csvOptions": {
+                "title": "Opções CSV",
+                "delimiter": "Separador",
+                "includeHeaders": "Inserir cabeçalho",
+                "spoolFields": "Definições da bobina",
+                "filamentFields": "Definições do filamento",
+                "vendorFields": "Definições do fabricante"
+            },
+            "qrOptions": {
+                "title": "Opções de código QR",
+                "size": "Tamanho",
+                "sizeHelp": "Tamanho dos blocos individuais em pixéis.",
+                "padding": "Distância",
+                "paddingHelp": "Distância entre os bordos, medida em blocos.",
+                "useFullUrl": "Utilizar o URL completo",
+                "useFullUrlHelp": "Se estiver ativado, é adicionado o URL completo em vez da hiperligação interna."
+            }
+        },
+        "spoolSelect": {
+            "description": "Selecionar os spools a exportar."
+        },
+        "filamentSelect": {
+            "description": "Selecionar os filamentos a exportar."
+        },
+        "vendorSelect": {
+            "description": "Seleccione os fornecedores a exportar."
+        }
     }
 }
