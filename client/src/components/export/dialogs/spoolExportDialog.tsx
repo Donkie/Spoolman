@@ -262,7 +262,7 @@ const SpoolExportDialog: React.FC<SpoolExportDialog> = ({ visible, items, onCanc
                     }}
                   />
                 </Form.Item>
-                <Form.Item label={t("spool.fields.remaining_weight")}>
+                <Form.Item label={t("spool.fields.remaining_length")}>
                   <Switch
                     checked={csvExportOptions.remaining_length}
                     onChange={(checked) => {
