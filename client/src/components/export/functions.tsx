@@ -114,11 +114,37 @@ function csvHeaderRecursion(prefix: string, opts: any): Map<string, string> {
 
 // Sort the CSV entries by key.
 // This is to ensure that the values are always in the same order.
+// This also ensures that id is always the first column.
 function csvSort(aAny: [string, string], bAny: [string, string]) {
     const a = aAny[0].toString();
     const b = bAny[0].toString();
 
-    return a.toString().localeCompare(b.toString());
+    const remainingA = a.split('.').slice(0, -1).join('.');
+    const remainingB = b.split('.').slice(0, -1).join('.');
+
+    console.log(remainingA, remainingB);
+
+    const compare = remainingA.localeCompare(remainingB);
+    if (compare !== 0) {
+        return compare;
+    }
+
+    const lastBPart = b.split('.').pop();
+    const lastAPart = a.split('.').pop();
+
+    if (lastAPart === undefined || lastBPart === undefined) {
+        return 0;
+    }
+
+    if (lastAPart === 'id') {
+        return -1;
+    }
+
+    if (lastBPart === 'id') {
+        return 1;
+    }
+
+    return lastAPart.localeCompare(lastBPart);
 }
 
 /// Function that takes in an array of items and downloads the resulting QR code files.
