@@ -181,6 +181,10 @@ export const exportQRCode = (qrCodeContents: {title: string, data: string}[], op
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            });
         });
     }
 };
