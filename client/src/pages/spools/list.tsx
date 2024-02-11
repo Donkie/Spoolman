@@ -114,7 +114,10 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
 
   const { triggerExport, isLoading } = useExport<ISpool>(
       {
-        mapData: item => flatten(item)
+        mapData: item => flatten(item),
+        unparseConfig: {
+          columns: allColumnsWithExtraFields
+        }
       }
   );
 
