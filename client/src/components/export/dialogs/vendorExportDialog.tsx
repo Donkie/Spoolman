@@ -16,6 +16,7 @@ const VendorExportDialog: React.FC<VendorExportDialog> = ({ visible, items, onCa
   const [csvExportOptions, setCSVExportOptions] = useSavedState<CSVExportOptions<IVendor>>("export-CSVOptions-vendor", {
     delimiter: ";",
     includeHeaders: true,
+    filename: "Vendor Export",
   });
 
 

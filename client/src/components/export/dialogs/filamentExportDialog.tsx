@@ -17,6 +17,7 @@ const FilamentExportDialog: React.FC<FilamentExportDialog> = ({ visible, items, 
   const [csvExportOptions, setCSVExportOptions] = useSavedState<CSVExportOptions<IFilament>>("export-CSVOptions-filament", {
     delimiter: ";",
     includeHeaders: true,
+    filename: "Filament Export",
   });
 
 

@@ -24,6 +24,7 @@ const SpoolExportDialog: React.FC<SpoolExportDialog> = ({ visible, items, onCanc
   const [csvExportOptions, setCSVExportOptions] = useSavedState<CSVExportOptions<ISpool>>("export-CSVOptions-spool", {
     delimiter: ";",
     includeHeaders: true,
+    filename: "Spool Export",
     id: true,
     location: true,
     remaining_length: true,

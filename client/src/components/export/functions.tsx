@@ -7,6 +7,7 @@ export type QRExportOptions = {
 export type CSVExportOptions<T> = {
     delimiter: string;
     includeHeaders: boolean;
+    filename: string;
 } & CSVTypeExportOptions<T>;
 
 // Base types that can be exported to CSV.
@@ -54,7 +55,7 @@ export function exportAsCSV<T>(items: T[], opts: CSVExportOptions<T>) {
 
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "spools.csv");
+    link.setAttribute("download", `${opts.filename}.csv`);
     document.body.appendChild(link); // Required for FF
     link.click();
 };
