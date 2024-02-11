@@ -1,6 +1,4 @@
-import { ISpool } from "../../pages/spools/model";
-
-export type PNGExportOptions = {
+export type QRExportOptions = {
     boxSize?: number;
     padding?: number;
     useFullURL?: boolean;
@@ -11,15 +9,19 @@ export type CSVExportOptions<T> = {
     includeHeaders: boolean;
 } & CSVTypeExportOptions<T>;
 
+// Base types that can be exported to CSV.
 type BaseTypes = string | number | boolean | Date | null | undefined;
 
+// Recursive type that allows for nested objects to be defined as exportable or not.
 type CSVTypeExportOptions<T> = {
     [key in keyof T]?: T[key] extends BaseTypes ? boolean : CSVTypeExportOptions<T[key]>;
 };
 
+// Function that takes in an array of items and downloads the resulting CSV file.
 export function exportAsCSV<T>(items: T[], opts: CSVExportOptions<T>) {
     let csvContent = "data:text/csv;charset=utf-8,";
 
+    // Omit the delimiter and includeHeaders from the export options.
     const omitters = ["delimiter", "includeHeaders"];
     let exportOpts: any = { ...opts };
     omitters.forEach((omitter) => {
@@ -28,6 +30,9 @@ export function exportAsCSV<T>(items: T[], opts: CSVExportOptions<T>) {
 
     if (opts.includeHeaders) {
         const headers = csvHeaderRecursion("", exportOpts);
+        // We sort the headers by key to ensure that the headers are always in the same order.
+        // Otherwise the user could change the order, by disabling and enabling the headers in another order.
+        // This could lead to confusion.
         const sortedByKeys = new Map([...headers.entries()].sort(csvSort));
 
         csvContent += Array.from(sortedByKeys.keys()).join(opts.delimiter);
@@ -36,11 +41,12 @@ export function exportAsCSV<T>(items: T[], opts: CSVExportOptions<T>) {
 
     items.forEach((item) => {
         const items = csvItem("", item, exportOpts);
+        // We sort the headers by key to ensure that the headers are always in the same order.
+        // Otherwise the user could change the order, by disabling and enabling the headers in another order.
+        // This could lead to confusion.
         const sortedByKeys = new Map([...items.entries()].sort(csvSort));
-        debugger;
 
         csvContent += Array.from(sortedByKeys.values()).join(opts.delimiter);
-
         csvContent += "\n";
     });
 
@@ -53,17 +59,18 @@ export function exportAsCSV<T>(items: T[], opts: CSVExportOptions<T>) {
     link.click();
 };
 
+// Recusively create a map of the items to be exported.
 function csvItem(prefix: string, item: any, opts: any): Map<string, string> {
     let result = new Map<string, string>();
 
     for (let key in opts) {
         const shouldExport = opts[key];
         const value = item[key];
+        // Check if the user wants to export this field.
+        // If its an object, we need to recurse into it.
         if (shouldExport !== true && !(value instanceof Object)) {
             continue;
         }
-
-        console.log(key, value);
 
         if (value instanceof Object) {
             const subMap = csvItem(prefix + key + '.', value, opts[key]);
@@ -78,11 +85,14 @@ function csvItem(prefix: string, item: any, opts: any): Map<string, string> {
     return result;
 }
 
+// Recusively create a map of the items to be exported.
 function csvHeaderRecursion(prefix: string, opts: any): Map<string, string> {
     const result = new Map<string, string>();
 
     for (let key in opts) {
         const shouldExport = opts[key];
+        // Check if the user wants to export this field.
+        // If its an object, we need to recurse into it.
         if (shouldExport !== true && !(shouldExport instanceof Object)) {
             continue;
         }
@@ -102,6 +112,8 @@ function csvHeaderRecursion(prefix: string, opts: any): Map<string, string> {
     return result;
 }
 
+// Sort the CSV entries by key.
+// This is to ensure that the values are always in the same order.
 function csvSort(aAny: [string, string], bAny: [string, string]) {
     const a = aAny[0].toString();
     const b = bAny[0].toString();
@@ -109,7 +121,10 @@ function csvSort(aAny: [string, string], bAny: [string, string]) {
     return a.toString().localeCompare(b.toString());
 }
 
-export const exportQRCode = (qrCodeContents: {title: string, data: string}[], opts: PNGExportOptions) => {
+/// Function that takes in an array of items and downloads the resulting QR code files.
+/// The title is used as the filename for the QR code.
+/// The data is the content of the QR code.
+export const exportQRCode = (qrCodeContents: {title: string, data: string}[], opts: QRExportOptions) => {
     const apiEndpoint = import.meta.env.VITE_APIURL;
 
     const url = `${apiEndpoint}/qr`;

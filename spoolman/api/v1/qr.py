@@ -1,17 +1,15 @@
 """QR-Code related endpoints."""
 
+# ruff: noqa: D103
+
 import io
 import logging
-from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
-import qrcode
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Response
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from spoolman.database import filament, spool
-from spoolman.database.database import get_db_session
+import qrcode
+from fastapi import APIRouter, Response
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -20,11 +18,14 @@ router = APIRouter(
     tags=["qrcode"],
 )
 
+
 class QRRequestBody(BaseModel):
     """The request body for the QR code endpoint."""
+
     data: Annotated[str, "The data to encode into the QR code."]
     box_size: Annotated[int, "The size of the boxes in the QR code."] = 10
     border: Annotated[int, "The size of the border around the QR code."] = 2
+
 
 @router.post(
     "/qr",
@@ -37,20 +38,20 @@ class QRRequestBody(BaseModel):
             "content": {
                 "image/png": {},
             },
-        }
-    }
+        },
+    },
 )
 async def export_qr(
     *,
     body: QRRequestBody,
-):
+) -> StreamingResponse:
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_M,
         box_size=body.box_size,
         border=body.border,
     )
-    
+
     qr.add_data(body.data)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")

@@ -1,8 +1,7 @@
-import { Button, Col, Collapse, Form, Input, InputNumber, Modal, Radio, Row, Switch } from "antd";
-import { IFilament } from "../../../pages/filaments/model";
+import { Col, Collapse, Form, Input, InputNumber, Modal, Radio, Switch } from "antd";
 import { ISpool } from "../../../pages/spools/model";
 import { useSavedState } from "../../../utils/saveload";
-import { CSVExportOptions, PNGExportOptions, exportAsCSV, exportQRCode } from "../functions";
+import { CSVExportOptions, QRExportOptions, exportAsCSV, exportQRCode } from "../functions";
 import { useTranslate } from "@refinedev/core";
 import { RadioChangeEvent } from "antd/lib";
 import { numberFormatter, numberParser } from "../../../utils/parsing";
@@ -16,7 +15,7 @@ interface SpoolExportDialog {
 const SpoolExportDialog: React.FC<SpoolExportDialog> = ({ visible, items, onCancel }) => {
   const t = useTranslate();
 
-  const [pngForm] = Form.useForm();
+  const [qrForm] = Form.useForm();
   const [csvForm] = Form.useForm();
 
   const [exportType, setExportType] = useSavedState<"QR-Code" | "CSV">("export-exportType", "QR-Code");
@@ -30,7 +29,7 @@ const SpoolExportDialog: React.FC<SpoolExportDialog> = ({ visible, items, onCanc
     remaining_length: true,
     used_length: true,
   });
-  const [pngExportOptions, setPNGExportOptions] = useSavedState<PNGExportOptions>("export-qrOptions-spool", {
+  const [qrExportOptions, setQRExportOptions] = useSavedState<QRExportOptions>("export-qrOptions-spool", {
     boxSize: 32,
     padding: 2,
     useFullURL: false,
@@ -40,7 +39,7 @@ const SpoolExportDialog: React.FC<SpoolExportDialog> = ({ visible, items, onCanc
 
     let content = `web+spoolman:s-${spool.id}`;
 
-    if (pngExportOptions.useFullURL) {
+    if (qrExportOptions.useFullURL) {
       content = `${window.location.origin}/spool/show/${spool.id}`;
     }
 
@@ -65,13 +64,13 @@ const SpoolExportDialog: React.FC<SpoolExportDialog> = ({ visible, items, onCanc
       }
 
       case 'QR-Code': {
-        const formValid = await pngForm.validateFields();
+        const formValid = await qrForm.validateFields();
 
         if (formValid.errorFields && formValid.errorFields.length > 0) {
           return;
         }
 
-        exportQRCode(items.map(transformSpoolToQRContent), pngExportOptions);
+        exportQRCode(items.map(transformSpoolToQRContent), qrExportOptions);
         break;
       }
 
@@ -116,12 +115,12 @@ const SpoolExportDialog: React.FC<SpoolExportDialog> = ({ visible, items, onCanc
         </Col>
         <Col hidden={exportType != 'QR-Code'}>
           {t("exporting.generic.qrOptions.title")}
-          <Form form={pngForm}>
+          <Form form={qrForm}>
             <Form.Item
               label={t("exporting.generic.qrOptions.size")}
               name={["boxSize"]}
               help={t("exporting.generic.qrOptions.sizeHelp")}
-              initialValue={pngExportOptions.boxSize}
+              initialValue={qrExportOptions.boxSize}
               rules={[
                 {
                   required: true,
@@ -136,7 +135,7 @@ const SpoolExportDialog: React.FC<SpoolExportDialog> = ({ visible, items, onCanc
                 onChange={(value) => {
                   if (value == null) return;
 
-                  setPNGExportOptions({ ...pngExportOptions, boxSize: value });
+                  setQRExportOptions({ ...qrExportOptions, boxSize: value });
                 }}
               />
             </Form.Item>
@@ -144,7 +143,7 @@ const SpoolExportDialog: React.FC<SpoolExportDialog> = ({ visible, items, onCanc
               label={t("exporting.generic.qrOptions.padding")}
               name={["padding"]}
               help={t("exporting.generic.qrOptions.paddingHelp")}
-              initialValue={pngExportOptions.padding}
+              initialValue={qrExportOptions.padding}
               rules={[
                 {
                   required: true,
@@ -158,7 +157,7 @@ const SpoolExportDialog: React.FC<SpoolExportDialog> = ({ visible, items, onCanc
                 onChange={(value) => {
                   if (value == null) return;
 
-                  setPNGExportOptions({ ...pngExportOptions, padding: value });
+                  setQRExportOptions({ ...qrExportOptions, padding: value });
                 }}
               />
             </Form.Item>
@@ -168,9 +167,9 @@ const SpoolExportDialog: React.FC<SpoolExportDialog> = ({ visible, items, onCanc
               help={t("exporting.generic.qrOptions.useFullUrlHelp")}
             >
               <Switch
-                checked={pngExportOptions.useFullURL}
+                checked={qrExportOptions.useFullURL}
                 onChange={(checked) => {
-                  setPNGExportOptions({ ...pngExportOptions, useFullURL: checked });
+                  setQRExportOptions({ ...qrExportOptions, useFullURL: checked });
                 }}
               />
             </Form.Item>

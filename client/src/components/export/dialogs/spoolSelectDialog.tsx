@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button } from "antd";
-import { ExportOutlined, PrinterOutlined } from "@ant-design/icons";
+import { ExportOutlined } from "@ant-design/icons";
 import { useTranslate } from "@refinedev/core";
 import { ISpool } from "../../../pages/spools/model";
 import SpoolSelectModal from "../../spoolSelectModal";
