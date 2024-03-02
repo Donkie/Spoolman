@@ -86,10 +86,10 @@
         },
         "suffix": " | Spoolman",
         "home": {
-            "list": ""
+            "list": "Home | Spoolman"
         },
         "help": {
-            "list": ""
+            "list": "Aiuto | Spoolman"
         }
     },
     "spool": {
@@ -111,7 +111,7 @@
             "used_weight": "Peso Utilizzato",
             "id": "ID",
             "remaining_weight": "Peso Rimanente",
-            "price": ""
+            "price": "Prezzo"
         },
         "titles": {
             "archive": "Archivia Bobina",
@@ -129,7 +129,7 @@
             "lot_nr": "Numero di lotto del produttore. Può essere utilizzato per garantire che la stampa abbia colori uniformi se vengono utilizzate più bobine.",
             "remaining_weight": "Quanto filamento è rimasto sulla bobina. Per una nuova bobina questo dovrebbe corrispondere al peso della bobina.",
             "location": "Dove si trova la bobina se disponi di più posizioni in cui conservare le bobine.",
-            "price": ""
+            "price": "Prezzo di una bobina completa. Se non viene impostato, verrà utilizzato il prezzo del filamento."
         },
         "form": {
             "new_location_prompt": "Inserisci nuova posizione",
@@ -169,7 +169,7 @@
             "name": "Nome del filamento, per distinguere questo tipo di filamento dagli altri dello stesso produttore. Dovrebbe contenere il colore, ad esempio.",
             "article_number": "Es.: EAN, UPC, etc.",
             "spool_weight": "Il peso di una bobina vuota. Utilizzato per determinare il peso misurato di una bobina.",
-            "price": "Prezzo di una bobina intera nella valuta configurata dal sistema.",
+            "price": "Prezzo di una bobina piena.",
             "weight": "Il peso del filamento di una bobina piena (peso netto). Questo non dovrebbe includere il peso della bobina stessa, ma solo del filamento. È quello che solitamente c'è scritto sulla confezione.",
             "material": "Es.: PLA, ABS, PETG, etc."
         },
@@ -203,6 +203,9 @@
         "filament": "Filamenti",
         "form": {
             "filament_updated": "Ci sono stati degli aggiornamenti per questo filamento da quando è stata aperta questa pagina. Il salvataggio sovrascriverà le modifiche!"
+        },
+        "buttons": {
+            "add_spool": "Aggiungi Bobina"
         }
     },
     "actions": {
@@ -254,7 +257,9 @@
         "success": "Riuscito",
         "editSuccess": "{{resource}} modificata con successo",
         "deleteError": "Error nella cancellazione di {{resource}} (status code: {{statusCode}})",
-        "createSuccess": "{{resource}} creata correttamente"
+        "createSuccess": "{{resource}} creata correttamente",
+        "saveSuccessful": "Salvataggio completato!",
+        "validationError": "Errore di convalida: {{error}}"
     },
     "no": "No",
     "unknown": "Sconosciuto",
@@ -280,8 +285,49 @@
         },
         "help": "Aiuto"
     },
-    "kofi": "",
+    "kofi": "Donazione su Ko-fi",
     "home": {
-        "home": ""
+        "home": "Home"
+    },
+    "settings": {
+        "settings": "Impostazioni",
+        "extra_fields": {
+            "params": {
+                "order": "Ordine",
+                "default_value": "Valore di Default",
+                "key": "Chiave",
+                "name": "Nome",
+                "field_type": "Tipo",
+                "choices": "Scelte",
+                "multi_choice": "Scelta multipla",
+                "unit": "Unità"
+            },
+            "field_type": {
+                "text": "\"Testo\" per tipo campo extra",
+                "datetime": "Data e ora",
+                "choice": "Scelta",
+                "float": "Decimali",
+                "integer_range": "Intervallo di numeri interi",
+                "float_range": "Intervallo decimali",
+                "boolean": "Booleano",
+                "integer": "\"Intero\" per tipo campo extra, numero intero senza decimali"
+            },
+            "choices_missing_error": "Non è possibile rimuovere le scelte. Mancano i seguenti elementi: {{choices}}",
+            "non_unique_key_error": "La chiave deve essere univoca.",
+            "key_not_changed": "Si prega di utilizzare una chiave diversa.",
+            "boolean_true": "Si",
+            "boolean_false": "No",
+            "delete_confirm": "Cancellare il campo {{name}}?",
+            "delete_confirm_description": "Questo eliminerà il campo e tutti i dati associati di tutte le selezioni.",
+            "tab": "Campi extra",
+            "description": "<p>Qui è possibile aggiungere campi personalizzati.</p><p>Una volta aggiunto un campo, non è possibile modificarne la chiave o il tipo, e per i campi di tipo scelta non è possibile rimuovere le scelte o modificare lo stato di scelta multipla. Se si rimuove un campo, tutti i dati associati saranno cancellati.</p><p>La chiave è il modo in cui gli altri programmi leggono/scrivono i dati, quindi se il campo personalizzato deve integrarsi con un programma di terze parti, assicurarsi di impostarla correttamente. Il valore predefinito viene applicato solo ai nuovi elementi.</p><p>I campi extra non possono essere ordinati o filtrati nelle viste tabella.</p>"
+        },
+        "header": "Impostazioni",
+        "general": {
+            "tab": "Generale",
+            "currency": {
+                "label": "Corrente"
+            }
+        }
     }
 }
