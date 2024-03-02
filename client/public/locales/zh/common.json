@@ -41,7 +41,9 @@
         "deleteError": "删除 {{resource}} 时出现错误 (状态码：{{statusCode}})",
         "editSuccess": "成功修改 {{resource}}",
         "editError": "修改 {{resource}} 时出现错误 (状态码：{{statusCode}})",
-        "importProgress": "导入中： {{processed}}/{{total}}"
+        "importProgress": "导入中： {{processed}}/{{total}}",
+        "saveSuccessful": "保存成功！",
+        "validationError": "校验错误：{{error}}"
     },
     "loading": "加载中",
     "version": "版本",
@@ -213,6 +215,9 @@
         },
         "form": {
             "filament_updated": "自您打开此页面以来，此耗材已被其他人/事物更新。保存将覆盖这些更改！"
+        },
+        "buttons": {
+            "add_spool": "添加料盘"
         }
     },
     "vendor": {
@@ -281,5 +286,24 @@
             "spool": "特定耗材的单个物理卷轴。"
         },
         "description": "<title>帮助</title><p>以下是一些入门提示。</p><p>Spoolman保存了3种不同类型的数据：</p><itemsHelp/><p>要向数据库添加新的料盘，请先创建一个 <filamentCreateLink>耗材</filamentCreateLink> 对象。完成后，继续为该特定耗材创建一个 <spoolCreateLink>料盘</spoolCreateLink> 对象。如果以后获取相同耗材的其他料盘，只需生成其他的料盘对象并重复使用同一个耗材对象。</p><p>同时，如果您希望跟踪该信息，还可以为制造耗材的公司生成一个 <vendorCreateLink>供应商</vendorCreateLink> 对象。</p><p>您可以选择将其他3D打印机服务链接到 Spoolman，例如 Moonraker，它可以自动监视耗材使用情况并为您更新料盘对象。请参阅 <readmeLink>Spoolman README</readmeLink> 获取有关如何设置的指导。</p>"
+    },
+    "settings": {
+        "settings": "设置",
+        "extra_fields": {
+            "tab": "额外字段",
+            "field_type": {
+                "integer_range": "整数范围",
+                "float": "浮点数",
+                "float_range": "浮点数范围",
+                "boolean": "布尔数"
+            }
+        },
+        "header": "设置",
+        "general": {
+            "tab": "常规",
+            "currency": {
+                "label": "货币"
+            }
+        }
     }
 }
