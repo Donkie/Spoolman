@@ -170,6 +170,16 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
               filterValueQuery: useSpoolmanMaterials(),
             }),
           ])}
+          onRow={(record, rowIndex) => {
+            return {
+              onClick: (event) => {
+                if (event.target.type != "checkbox") {
+                  handleSelectItem(record.id);
+                }
+                //handleSelectItem(record.id);
+              }, // click row
+            };
+          }}
         />
         <Row>
           <Col span={12}>
