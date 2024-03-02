@@ -85,7 +85,7 @@
             "weight_to_use": "Elegir el peso a usar. El peso medido solo esta disponible si existe el valor de peso del carrete seleccionado.",
             "measured_weight": "Cuanto pesa el filamento y el carrete.",
             "remaining_weight": "Cuanto filamento resta en el carrete. Para un carrete nuevo el peso debe ser igual al peso indicado de fabrica.",
-            "price": "Precio de una bobina completa en la moneda configurada en el sistema. Si no se establece, se asumirá en su lugar el precio del filamento."
+            "price": "Precio de una bobina completa. Si no se establece, se asumirá en su lugar el precio del filamento."
         },
         "titles": {
             "create": "Crear Carrete",
@@ -128,7 +128,7 @@
         "fields_help": {
             "name": "Nombre del filamento, para distinguirlo de otros de la misma marca. Por ejemplo, debería contener el nombre del color.",
             "material": "ej. PLA, ABS, PETG, etc.",
-            "price": "Precio del carrete completo en la divisa configurada en el sistema.",
+            "price": "Precio de una bobina completa.",
             "weight": "El peso de un carrete entero (peso neto). Esta cifra no debe incluir el peso del carrete vacío, solo el filamento. Es, usualmente, el peso escrito en la etiqueta del carrete.",
             "spool_weight": "El peso de un carrete vacío. Se utiliza para determinar el peso medido de un carrete.",
             "article_number": "ej. EAN, UPC, etc."
@@ -143,6 +143,9 @@
         },
         "form": {
             "filament_updated": "Este filamento ha sido actualizado por alguien/algo más desde que abrió esta página. ¡Al guardar, se sobrescribirán los cambios!"
+        },
+        "buttons": {
+            "add_spool": "Añadir bobina"
         }
     },
     "vendor": {
@@ -324,6 +327,7 @@
             "delete_confirm": "¿Borrar campo {{name}}?",
             "delete_confirm_description": "Esto eliminará el campo y todos los datos asociados para todas las entidades.",
             "description": "<p> Aquí puede agregar más campos personalizados a los asuntos.</p><p> Una vez que se agrega un campo, no puede cambiar su clave o tipo, y no puede eliminar opciones ni cambiar el estado de múltiples opciones para campos seleccionados. Si elimina un campo, se eliminarán los datos asociados a todos los sujetos.</p><p> La forma en que otros programas leen/escriben los datos es clave, por lo que si su campo personalizado se va a integrar con un programa de terceros, asegúrese de que esté configurado correctamente. El valor predeterminado solo se utilizará para elementos nuevos.</p><p> Los campos de salida no se pueden ordenar ni filtrar en las vistas de tabla.</p>"
-        }
+        },
+        "settings": "Ajustes"
     }
 }
