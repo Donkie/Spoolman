@@ -21,7 +21,8 @@
         "notAccessTitle": "У Вас бракує прав для доступу",
         "clone": "Клонувати",
         "unArchive": "Розархівувати",
-        "saveAndAdd": "Зберегти та додати"
+        "saveAndAdd": "Зберегти та додати",
+        "export": "Експорт"
     },
     "spool": {
         "fields": {

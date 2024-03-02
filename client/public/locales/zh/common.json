@@ -28,7 +28,8 @@
         "notAccessTitle": "您没有访问权限",
         "hideColumns": "隐藏列",
         "clearFilters": "清除筛选器",
-        "saveAndAdd": "保存并添加"
+        "saveAndAdd": "保存并添加",
+        "export": "导出到"
     },
     "warnWhenUnsavedChanges": "您确定要离开吗？您有未保存的更改。",
     "notifications": {

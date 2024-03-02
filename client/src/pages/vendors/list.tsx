@@ -1,6 +1,6 @@
 import React from "react";
-import { IResourceComponentsProps, useTranslate, useInvalidate, useNavigation } from "@refinedev/core";
-import { useTable, List } from "@refinedev/antd";
+import { IResourceComponentsProps, useTranslate, useInvalidate, useNavigation, useExport } from "@refinedev/core";
+import { useTable, List, ExportButton } from "@refinedev/antd";
 import { Table, Button, Dropdown } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -12,6 +12,7 @@ import { useLiveify } from "../../components/liveify";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useNavigate } from "react-router-dom";
+import { flatten } from "../../utils/objects";
 
 dayjs.extend(utc);
 
@@ -29,6 +30,13 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
 
   // Load initial state
   const initialState = useInitialTableState(namespace);
+
+    const { triggerExport, isLoading } = useExport<IVendor>({
+        mapData: item => flatten(item),
+        unparseConfig: {
+          columns: allColumnsWithExtraFields
+        }
+    });
 
   // Fetch data from the API
   const { tableProps, sorters, setSorters, filters, setFilters, current, pageSize, setCurrent } = useTable<IVendor>({
@@ -145,6 +153,9 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
             </Button>
           </Dropdown>
           {defaultButtons}
+          <ExportButton type="dashed" onClick={triggerExport} loading={isLoading} >
+              {t("buttons.export")}
+          </ExportButton>
         </>
       )}
     >

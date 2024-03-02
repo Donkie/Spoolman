@@ -162,7 +162,8 @@
         "unArchive": "Ripristina",
         "clone": "Clona",
         "clear": "Pulisci",
-        "saveAndAdd": "Salva e aggiungi"
+        "saveAndAdd": "Salva e aggiungi",
+        "export": "Esporta"
     },
     "filament": {
         "fields_help": {
