@@ -85,10 +85,10 @@
         },
         "suffix": " | Spoolman",
         "home": {
-            "list": ""
+            "list": "Kezdőlap | Spoolman"
         },
         "help": {
-            "list": ""
+            "list": "Segítség | Spoolman"
         }
     },
     "spool": {
@@ -110,7 +110,7 @@
             "used_weight": "Felhasznált súly",
             "id": "ID",
             "remaining_weight": "Hátralévő súly",
-            "price": ""
+            "price": "Ár"
         },
         "titles": {
             "archive": "Arhivált tekercs",
@@ -128,7 +128,7 @@
             "lot_nr": "Gyártói tételszám. A szín egységesség ellenőrzésére használható, ha több tekercset használsz egy nyomtatáshoz.",
             "remaining_weight": "Mennyi filament van még a tekercsen. Egy új tekercsnél ez a tekercs súlyával kell megegyeznie.",
             "location": "Hol található a tekercs, ha több helyen tárolod a tekercseidet.",
-            "price": ""
+            "price": "Egy teljes tekercs ára. Ha nincs beállítva, a rendszer az filament árát veszi fel helyette."
         },
         "form": {
             "new_location_prompt": "Add meg az új helyet",
@@ -168,7 +168,7 @@
             "name": "Filament neve, hogy megkülönböztesd ezt a filament típust másoktól ugyanattól a gyártótól. Tartalmazhatja például a színét.",
             "article_number": "Például. EAN, UPC stb.",
             "spool_weight": "Az üres tekercs súlya. Ezt használják a tekercs mért súlyának meghatározásához.",
-            "price": "A teljes tekercs ára a konfigurált pénznemben a rendszerben.",
+            "price": "A teljes tekercs ára.",
             "weight": "A teljes tekercs súlya (nettó súly), amely nem tartalmazza a tekercs saját súlyát, csak a filament súlyát. Általában ez szerepel a csomagoláson.",
             "material": "Például. PLA, ABS, PETG stb."
         },
@@ -202,6 +202,9 @@
         "filament": "Filamentek",
         "form": {
             "filament_updated": "Ez a szál anyag azóta frissült valaki/valami más által, mióta megnyitottad ezt az oldalt. A mentés felül fogja írni ezeket a változásokat!"
+        },
+        "buttons": {
+            "add_spool": "Tekercs hozzáadása"
         }
     },
     "actions": {
@@ -253,7 +256,9 @@
         "success": "Sikeres",
         "editSuccess": "Sikeresen módosítva {{resource}}",
         "deleteError": "Hiba a(z) {{resource}} törlésekor (hibakód: {{statusCode}})",
-        "createSuccess": "Sikeresen létrehozva {{resource}}"
+        "createSuccess": "Sikeresen létrehozva {{resource}}",
+        "saveSuccessful": "Sikeres mentés!",
+        "validationError": "Validációs hiba:{{error}}"
     },
     "no": "Nem",
     "unknown": "Ismeretlen",
@@ -270,17 +275,58 @@
     "tags": {
         "clone": "Másolás"
     },
-    "kofi": "",
+    "kofi": "Tipp a Ko-fi-ra",
     "home": {
-        "home": ""
+        "home": "Kezdő lap"
     },
     "help": {
         "resources": {
-            "spool": "",
-            "vendor": "",
-            "filament": ""
+            "spool": "Egyedi fizikai tekercs egy adott filamentből.",
+            "vendor": "Azok a cégek, amelyek gyártják a filamentet.",
+            "filament": "Filament márkája. Olyan tulajdonságokkal rendelkeznek, mint a név, az anyag, a szín, az átmérő stb."
         },
-        "help": "",
-        "description": ""
+        "help": "Segítség",
+        "description": "<title>Segítség</title><p>Íme néhány tipp a kezdéshez.</p><p>A Spoolman 3 különböző adattípust tartalmaz:</p><itemsHelp/><p>Ha új tekercs szeretne hozzáadni az adatbázishoz, kezdje azzal, hogy létrehoz egy <filamentCreateLink>Filament</filamentCreateLink> objektumot. Amikor ezzel megvan, folytassa azzal, hogy létrehoz egy <spoolCreateLink>Tekercs</spoolCreateLink> objektumot az adott tekercs. Ha később további tekercsket szerez ugyanabból a filamentből, egyszerűen generáljon további Tekercs objektumokat, és újra használja ugyanazt a Filament objektumot.</p><p>Opcionálisan létrehozhat egy <vendorCreateLink>Gyártó</vendorCreateLink> objektumot is a filamentet gyártó vállalathoz, ha szeretné követni ezt az információt.</p><p>A Spoolmanhez más 3D-nyomtató szolgáltatásokat is csatlakoztathat, például a Moonrakert, amely automatikusan figyelemmel kíséri a filamenthasználatot, és frissíti az Tekercs objektumokat. Olvassa el a <readmeLink>Spoolman README</readmeLink> fájlt a beállításokkal kapcsolatos útmutatásért.</p>"
+    },
+    "settings": {
+        "settings": "Beállítások",
+        "extra_fields": {
+            "params": {
+                "choices": "Választás",
+                "multi_choice": "Több kiválasztása",
+                "key": "Kulcs",
+                "name": "Név",
+                "field_type": "Típus",
+                "unit": "Egység",
+                "order": "Rendezés",
+                "default_value": "Alapértelmezet érték"
+            },
+            "field_type": {
+                "text": "Szöveg",
+                "integer": "Egész szám",
+                "datetime": "Dátum és idő",
+                "float": "Lebegőpontos szám",
+                "integer_range": "Egész szám tartománya",
+                "float_range": "Lebegőpontos szám tartomány",
+                "choice": "Választás",
+                "boolean": "Logikai"
+            },
+            "key_not_changed": "Kérlek változtasd meg a kulcsot valami másra.",
+            "boolean_false": "Nem",
+            "tab": "Extra mezők",
+            "boolean_true": "Igen",
+            "choices_missing_error": "Nem tudod eltávolítani a választásokat. A következő választások hiányoznak: {{choices}}",
+            "non_unique_key_error": "A kulcsnak egyedinek kell lennie.",
+            "delete_confirm": "Töröli a következő mezőt: {{name}}?",
+            "delete_confirm_description": "Ez a mező törlése és az összes entitáshoz tartozó adat törlése.",
+            "description": "<p>Itt hozzáadhatsz további egyedi mezőket az entitásokhoz.</p><p>Ha egy mezőt hozzáadtál, nem lehet megváltoztatni annak kulcsát vagy típusát, és a választási típusú mezők esetében nem lehet eltávolítani a választásokat vagy megváltoztatni a többválasztásos állapotot. Ha eltávolítasz egy mezőt, az összes entitásra vonatkozó adat törlődik.</p><p>A kulcs az, amit más programok olvasnak/írnak az adatokként, tehát ha az egyedi meződ egy harmadik féllel integrálódik, győződj meg róla, hogy helyesen van beállítva. Az alapértelmezett érték csak az új elemekre vonatkozik.</p><p>Az extra mezőket nem lehet rendezni vagy szűrni a táblázatnézetekben.</p>"
+        },
+        "header": "Beállítások",
+        "general": {
+            "currency": {
+                "label": "Pénznem"
+            },
+            "tab": "Általános"
+        }
     }
 }

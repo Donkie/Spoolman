@@ -129,7 +129,7 @@
             "lot_nr": "Numéro de lot du fabricant. Peut être utilisé pour s'assurer que la couleur d'une impression est homogène si plusieurs bobines sont utilisées.",
             "remaining_weight": "La quantité de filament restant sur la bobine. Pour une nouvelle bobine, cela devrait correspondre au poids de la bobine.",
             "location": "L'emplacement de la bobine si vous stockez vos bobines à plusieurs endroits.",
-            "price": "Prix d'une bobine complète dans la devise configurée par le système. S'il n'est pas défini, le prix du filament sera pris en compte."
+            "price": "Prix d'une bobine complète. S'il n'est pas défini, le prix du filament sera pris en compte."
         },
         "spool": "Bobines",
         "messages": {
@@ -169,7 +169,7 @@
             "name": "Nom du filament, pour distinguer ce type de filament parmi d'autres du même fournisseur. Il doit contenir la couleur, par exemple.",
             "article_number": "Exemple EAN, UPC, etc.",
             "spool_weight": "Le poids d'une bobine vide. Utilisé pour déterminer le poids d'une bobine.",
-            "price": "Prix d'une bobine complète dans la devise configurée par le système.",
+            "price": "Prix d'une bobine complète.",
             "weight": "Le poids du filament d'une bobine complète (poids net). Ce poids ne doit pas inclure le poids de la bobine elle-même, mais uniquement celui du filament. C'est ce qui est généralement indiqué sur l'emballage.",
             "material": "Exemple PLA, ABS, PETG, etc."
         },
@@ -203,6 +203,9 @@
         "filament": "Filaments",
         "form": {
             "filament_updated": "Ce filament a été mis à jour par quelqu'un/quelque chose depuis que vous avez ouvert cette page. Enregistrer écrasera ces changements !"
+        },
+        "buttons": {
+            "add_spool": "Ajouter une bobine"
         }
     },
     "actions": {
@@ -234,7 +237,9 @@
         "success": "Réussite",
         "editSuccess": "Édité avec succès {{resource}}",
         "deleteError": "Erreur lors de la suppression de {{resource}} (status code : {{statusCode}})",
-        "createSuccess": "Création réussie de {{resource}}"
+        "createSuccess": "Création réussie de {{resource}}",
+        "saveSuccessful": "Sauvegarde réussie !",
+        "validationError": "Erreur de validation : {{error}}"
     },
     "no": "Non",
     "unknown": "Inconnu",
@@ -283,5 +288,46 @@
     "kofi": "Me donner un pourboire sur Ko-fi",
     "home": {
         "home": "Accueil"
+    },
+    "settings": {
+        "settings": "Paramètres",
+        "extra_fields": {
+            "params": {
+                "choices": "Choix",
+                "multi_choice": "Choix multiple",
+                "default_value": "Valeur par défaut",
+                "key": "Clé",
+                "name": "Nom",
+                "field_type": "Type",
+                "unit": "Unité",
+                "order": "Ordre"
+            },
+            "field_type": {
+                "text": "Texte",
+                "choice": "Choix",
+                "integer": "Entier",
+                "float_range": "Plage décimal",
+                "datetime": "Date et heure",
+                "boolean": "Booléen",
+                "integer_range": "Plage d'entier",
+                "float": "Décimal"
+            },
+            "tab": "Champs additionnel",
+            "boolean_true": "Oui",
+            "boolean_false": "Non",
+            "non_unique_key_error": "La clé doit être unique.",
+            "delete_confirm_description": "Ceci supprimera le champ ainsi que toutes les données associées pour toutes les entités.",
+            "choices_missing_error": "Vous ne pouvez pas retirer les choix. Les choix suivants sont manquants : {{choices}}",
+            "key_not_changed": "Changer la clé pour quelque chose d'autre.",
+            "delete_confirm": "Supprimer le champ {{name}} ?",
+            "description": "<p>Ici vous pouvez ajouter des champs personnalisés supplémentaires à vos entités.</p><p>Une fois qu'un champ est ajouté, vous ne pouvez plus changer sa clé ou son type, et pour les champs de types \"Choix\", vous ne pouvez plus retirer un choix ou changer l'état des choix multiples. Si vous supprimez un champ, les données associées aux entités seront supprimées.</p><p>La clé correspond à ce que les autres programmes lisent/écrivent, donc si votre champs doit s'intégrer avec un programme tiers, assurez-vous de le configurer correctement. La valeur par défaut n'est appliquées qu'aux nouveaux éléments.</p><p>Les champs supplementaires ne peuvent pas être triés ou filtrés dans les vues de table.</p>"
+        },
+        "header": "Paramètres",
+        "general": {
+            "currency": {
+                "label": "Devise"
+            },
+            "tab": "Général"
+        }
     }
 }

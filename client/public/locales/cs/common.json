@@ -159,7 +159,7 @@
             "measured_weight": "Jaká je hmotnost filamentu a cívky.",
             "location": "Kde se cívka nachází, pokud máte více míst, kde cívky skladujete.",
             "lot_nr": "Číslo šarže výrobce. Lze použít k zajištění jednotné barvy tisku v případě použití více cívek.",
-            "price": "Cena celé cívky v měně nastavené v systému. Pokud není nastavena, předpokládá se cena filamentu."
+            "price": "Cena celé cívky. Pokud není nastavena, předpokládá se cena filamentu."
         },
         "titles": {
             "create": "Vytvořit cívku",
@@ -202,7 +202,7 @@
         "fields_help": {
             "name": "Název filamentu, aby se tento typ filamentu odlišil od ostatních filamentů od stejného dodavatele. Měl by obsahovat například barvu.",
             "material": "Např. PLA, ABS, ASA, PETG, atd.",
-            "price": "Cena celé cívky v měně nastavené v systému.",
+            "price": "Cena celé cívky.",
             "weight": "Hmotnost plného cívky filamentu (čistá hmotnost). Tato hmotnost by neměla zahrnovat hmotnost samotné cívky, ale pouze filamentu. Obvykle se uvádí na obalu.",
             "spool_weight": "Hmotnost prázdné cívky. Slouží k určení naměřené hmotnosti cívky.",
             "article_number": "Např. EAN, UPC, atd."
@@ -327,6 +327,7 @@
             "currency": {
                 "label": "Měna"
             }
-        }
+        },
+        "settings": "Nastavení"
     }
 }
