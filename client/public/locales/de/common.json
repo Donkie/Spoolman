@@ -333,9 +333,7 @@
                 "title": "CSV Optionen",
                 "delimiter": "Trennzeichen",
                 "includeHeaders": "Kopfzeile einfügen",
-                "spoolFields": "Spulen einstellungen",
-                "filamentFields": "Filament einstellungen",
-                "vendorFields": "Hersteller einstellungen"
+                "fieldToExport": "Felder zum Exportieren"
             },
             "qrOptions": {
                 "title": "QR-Code Optionen",

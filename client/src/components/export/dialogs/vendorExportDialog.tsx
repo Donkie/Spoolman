@@ -1,8 +1,8 @@
-import { Col, Form, Input, Modal, Switch } from "antd";
+import { Cascader, Col, Form, Input, Modal, Switch, Typography } from "antd";
 import { useSavedState } from "../../../utils/saveload";
-import { CSVExportOptions, exportAsCSV } from "../functions";
 import { useTranslate } from "@refinedev/core";
-import { IVendor } from "../../../pages/vendors/model";
+import { IVendor, IVendorEportableKeys } from "../../../pages/vendors/model";
+import { CSVExportConfig, exportAsCSV } from "../../../utils/csvGeneration";
 
 interface VendorExportDialog {
   visible: boolean;
@@ -13,19 +13,25 @@ interface VendorExportDialog {
 const VendorExportDialog: React.FC<VendorExportDialog> = ({ visible, items, onCancel }) => {
   const t = useTranslate();
 
-  const [csvExportOptions, setCSVExportOptions] = useSavedState<CSVExportOptions<IVendor>>("export-CSVOptions-vendor", {
+  const [csvExportOptions, setCSVExportOptions] = useSavedState<CSVExportConfig>("export-CSVOptions-vendor", {
     delimiter: ";",
     includeHeaders: true,
     filename: "Vendor Export",
   });
 
+  const [exportField, setExportField] = useSavedState<(string | number)[][]>("export-vendor-exportField", [["id"], ["registered"], ["first_used"], ["last_used"], ["filament"], ["price"], ["remaining_weight"], ["used_weight"]]);
 
   return (
     <Modal
       open={visible}
       title={t("exporting.generic.title")}
       onCancel={onCancel}
-      onOk={() => exportAsCSV(items, csvExportOptions)}
+      onOk={() => exportAsCSV(items, {
+        delimiter: csvExportOptions.delimiter,
+        includeHeaders: csvExportOptions.includeHeaders,
+        filename: csvExportOptions.filename,
+        options: exportField,
+      })}
       okText={t("exporting.generic.export")}
     >
       <Col>
@@ -55,38 +61,16 @@ const VendorExportDialog: React.FC<VendorExportDialog> = ({ visible, items, onCa
               }}
             />
           </Form.Item>
-          <Form.Item label={t("vendor.fields.id")}>
-            <Switch
-              checked={csvExportOptions.id}
-              onChange={(checked) => {
-                setCSVExportOptions({ ...csvExportOptions, id: checked });
+          <Typography.Title level={5}>{t('exporting.generic.csvOptions.fieldToExport')}</Typography.Title>
+            <Cascader
+              defaultValue={exportField}
+              onChange={(value) => {
+                setExportField(value);
               }}
+              multiple
+              style={{ width: '100%' }}
+              options={IVendorEportableKeys(t)}
             />
-          </Form.Item>
-          <Form.Item label={t("vendor.fields.registered")}>
-            <Switch
-              checked={csvExportOptions.registered}
-              onChange={(checked) => {
-                setCSVExportOptions({ ...csvExportOptions, registered: checked });
-              }}
-            />
-          </Form.Item>
-          <Form.Item label={t("vendor.fields.name")}>
-            <Switch
-              checked={csvExportOptions.name}
-              onChange={(checked) => {
-                setCSVExportOptions({ ...csvExportOptions, name: checked });
-              }}
-            />
-          </Form.Item>
-          <Form.Item label={t("vendor.fields.comment")}>
-            <Switch
-              checked={csvExportOptions.comment}
-              onChange={(checked) => {
-                setCSVExportOptions({ ...csvExportOptions, comment: checked });
-              }}
-            />
-          </Form.Item>
         </Col>
       </Col>
     </Modal>
