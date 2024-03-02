@@ -305,11 +305,13 @@
                 "default_value": "Standardwert",
                 "order": "Bestellung",
                 "multi_choice": "Mehrfachauswahl",
-                "key": "Schlüssel"
+                "key": "Schlüssel",
+                "choices": "Auswahl"
             },
             "field_type": {
                 "text": "Text",
-                "float": "Dezimalzahl"
+                "float": "Dezimalzahl",
+                "integer": "Ganze Zahl"
             },
             "boolean_true": "Ja",
             "boolean_false": "Nein",
