@@ -107,7 +107,10 @@
             "showSpoolComment": "Spool Comment",
             "showFilamentComment": "Filament Comment",
             "showVendorComment": "Vendor Comment",
-            "useHTTPUrl": "Use HTTP(S) link in QR code"
+            "useHTTPUrl": {
+                "label": "Use HTTP(S) link in QR code",
+                "tooltip": "Uses either the base URL specified in settings, or the current page URL if not set."
+            }
         },
         "spoolSelect": {
             "title": "Select Spools",
@@ -265,6 +268,10 @@
             "tab": "General",
             "currency": {
                 "label": "Currency"
+            },
+            "qr_code_url": {
+                "label": "URL for QR codes",
+                "tooltip": "The base URL to use when generating QR codes. If you can access your Spoolman via multiple URLs, set this to the 'canonical' URL of your Spoolman instance."
             }
         },
         "extra_fields": {

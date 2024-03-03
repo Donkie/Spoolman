@@ -327,6 +327,10 @@
             "tab": "Obecné",
             "currency": {
                 "label": "Měna"
+            },
+            "qr_code_url": {
+                "label": "URL pro QR kódy",
+                "tooltip": "Základ URL pro generování QR kódů. Pokud můžete přistupovat ke svému Spoolmanovi přes více URL, nastavte zde vaší 'kanonickou' URL instance Spoolmana."
             }
         }
     }
