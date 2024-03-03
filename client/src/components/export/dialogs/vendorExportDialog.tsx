@@ -19,7 +19,7 @@ const VendorExportDialog: React.FC<VendorExportDialog> = ({ visible, items, onCa
     filename: "Vendor Export",
   });
 
-  const [exportField, setExportField] = useSavedState<(string | number)[][]>("export-vendor-exportField", [["id"], ["registered"], ["first_used"], ["last_used"], ["filament"], ["price"], ["remaining_weight"], ["used_weight"]]);
+  const [exportField, setExportField] = useSavedState<(string | number)[][]>("export-vendor-exportField", [["id"], ["registered"], ["name"], ["comment"], ["extra"]]);
 
   return (
     <Modal

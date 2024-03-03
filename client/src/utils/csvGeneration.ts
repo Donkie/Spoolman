@@ -112,13 +112,7 @@ function mapSort<T>(map: Map<string, T[]>) {
 
             // If the length of the keys are different, the shorter one should be first.
             if(a.length != b.length) {
-                for(let i = 0; i < Math.min(a.length, b.length); i++) {
-                    if (a[i] !== b[i]) {
-                        return a[i].localeCompare(b[i]);
-                    }
-                }
-
-                return 0;
+                return a.length - b.length;
             }
 
             const maxLength = Math.min(a.length, b.length) - 1;

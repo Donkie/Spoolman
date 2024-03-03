@@ -21,7 +21,7 @@ const SpoolExportDialog: React.FC<SpoolExportDialog> = ({ visible, items, onCanc
   const [csvForm] = Form.useForm();
 
   const [exportType, setExportType] = useSavedState<"QR-Code" | "CSV">("export-exportType", "QR-Code");
-  const [exportField, setExportField] = useSavedState<(string | number)[][]>("export-exportField", [["id"], ["registered"], ["first_used"], ["last_used"], ["filament"], ["price"], ["remaining_weight"], ["used_weight"]]);
+  const [exportField, setExportField] = useSavedState<(string | number)[][]>("export-exportField", [["id"], ["registered"], ["first_used"], ["last_used"], ["filament"], ["price"], ["remaining_weight"], ["used_weight"], ["comment"], ["extra"]]);
 
   const [csvExportOptions, setCSVExportOptions] = useSavedState<CSVExportConfig>("export-CSVOptions-spool", {
     delimiter: ";",

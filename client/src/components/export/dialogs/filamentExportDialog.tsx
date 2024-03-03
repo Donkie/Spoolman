@@ -20,7 +20,7 @@ const FilamentExportDialog: React.FC<FilamentExportDialog> = ({ visible, items, 
     filename: "Filament Export",
   });
 
-  const [exportField, setExportField] = useSavedState<(string | number)[][]>("export-filament-exportField", [["id"]]);
+  const [exportField, setExportField] = useSavedState<(string | number)[][]>("export-filament-exportField", [["id"], ["name"], ["material"], ["price"], ["weight"], ["comment"], ["extra"]]);
 
   return (
     <Modal
