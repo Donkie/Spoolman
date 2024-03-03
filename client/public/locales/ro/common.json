@@ -308,9 +308,7 @@
                 "title": "Opțiuni CSV",
                 "delimiter": "Separator",
                 "includeHeaders": "Introduceți antetul",
-                "spoolFields": "Setări ale bobinei",
-                "filamentFields": "Setări pentru filament",
-                "vendorFields": "Setări ale producătorului"
+                "fieldsToExport": "Câmpuri de exportat"
             },
             "qrOptions": {
                 "title": "Opțiuni de cod QR",

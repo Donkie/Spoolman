@@ -353,9 +353,7 @@
                 "title": "Možnosti CSV",
                 "delimiter": "Oddělovač",
                 "includeHeaders": "Vložit záhlaví",
-                "spoolFields": "Nastavení cívky",
-                "filamentFields": "Nastavení vlákna",
-                "vendorFields": "Nastavení výrobce"
+                "fieldsToExport": "Pole k exportu"
             },
             "qrOptions": {
                 "title": "Možnosti kódu QR",

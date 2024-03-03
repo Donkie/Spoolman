@@ -307,9 +307,7 @@
                 "title": "Opcje CSV",
                 "delimiter": "Separator",
                 "includeHeaders": "Wstaw nagłówek",
-                "spoolFields": "Ustawienia cewki",
-                "filamentFields": "Ustawienia żarnika",
-                "vendorFields": "Ustawienia producenta"
+                "fieldsToExport": "Pola do wyeksportowania"
             },
             "qrOptions": {
                 "title": "Opcje kodów QR",

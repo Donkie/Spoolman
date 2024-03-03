@@ -307,9 +307,7 @@
                 "title": "Επιλογές CSV",
                 "delimiter": "Διαχωριστής",
                 "includeHeaders": "Εισαγωγή κεφαλίδας",
-                "spoolFields": "Ρυθμίσεις πηνίου",
-                "filamentFields": "Ρυθμίσεις νήματος",
-                "vendorFields": "Ρυθμίσεις κατασκευαστή"
+                "fieldsToExport": "Πεδία προς εξαγωγή"
             },
             "qrOptions": {
                 "title": "Επιλογές κώδικα QR",

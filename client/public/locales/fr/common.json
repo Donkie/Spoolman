@@ -308,9 +308,7 @@
                 "title": "Options CSV",
                 "delimiter": "Séparateur",
                 "includeHeaders": "Insérer un en-tête",
-                "spoolFields": "Réglages des bobines",
-                "filamentFields": "Réglages des filaments",
-                "vendorFields": "Paramètres du fabricant"
+                "fieldsToExport" : "Champs à exporter"
             },
             "qrOptions": {
                 "title": "Options de code QR",

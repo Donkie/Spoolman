@@ -306,9 +306,7 @@
                 "title": "CSV 选项",
                 "delimiter": "分离器",
                 "includeHeaders": "插入页眉",
-                "spoolFields": "线圈设置",
-                "filamentFields": "灯丝设置",
-                "vendorFields": "制造商设置"
+                "fieldsToExport": "要导出的字段"
             },
             "qrOptions": {
                 "title": "QR 码选项",

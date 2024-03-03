@@ -307,9 +307,7 @@
                 "title": "CSV-muligheder",
                 "delimiter": "Separator",
                 "includeHeaders": "Indsæt overskrift",
-                "spoolFields": "Spoleindstillinger",
-                "filamentFields": "Indstillinger for filament",
-                "vendorFields": "Producentens indstillinger"
+                "fieldsToExport": "Felter, der skal eksporteres"
             },
             "qrOptions": {
                 "title": "Muligheder for QR-koder",

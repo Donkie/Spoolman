@@ -61,7 +61,7 @@ const VendorExportDialog: React.FC<VendorExportDialog> = ({ visible, items, onCa
               }}
             />
           </Form.Item>
-          <Typography.Title level={5}>{t('exporting.generic.csvOptions.fieldToExport')}</Typography.Title>
+          <Typography.Title level={5}>{t('exporting.generic.csvOptions.fieldsToExport')}</Typography.Title>
             <Cascader
               defaultValue={exportField}
               onChange={(value) => {

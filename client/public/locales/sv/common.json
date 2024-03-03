@@ -353,9 +353,7 @@
                 "title": "CSV-alternativ",
                 "delimiter": "Separator",
                 "includeHeaders": "Infoga rubrik",
-                "spoolFields": "Inställningar för spole",
-                "filamentFields": "Inställningar för filament",
-                "vendorFields": "Tillverkarens inställningar"
+                "fieldsToExport": "Fält att exportera"
             },
             "qrOptions": {
                 "title": "Alternativ för QR-kod",

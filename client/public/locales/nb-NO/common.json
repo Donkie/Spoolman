@@ -307,9 +307,7 @@
                 "title": "CSV-alternativer",
                 "delimiter": "Separator",
                 "includeHeaders": "Sett inn overskrift",
-                "spoolFields": "Spoleinnstillinger",
-                "filamentFields": "Filamentinnstillinger",
-                "vendorFields": "Produsentens innstillinger"
+                "fieldsToExport": "Felt som skal eksporteres"
             },
             "qrOptions": {
                 "title": "Alternativer for QR-kode",

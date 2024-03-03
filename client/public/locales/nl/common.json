@@ -352,9 +352,7 @@
                 "title": "CSV-opties",
                 "delimiter": "Scheider",
                 "includeHeaders": "Koptekst invoegen",
-                "spoolFields": "Spoelinstellingen",
-                "filamentFields": "Draadinstellingen",
-                "vendorFields": "Instellingen fabrikant"
+                "fieldsToExport": "Te exporteren velden"
             },
             "qrOptions": {
                 "title": "QR-code opties",

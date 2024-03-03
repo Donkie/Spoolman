@@ -353,9 +353,7 @@
                 "title": "CSV options",
                 "delimiter": "Separator",
                 "includeHeaders": "Insert header",
-                "spoolFields": "Spool settings",
-                "filamentFields": "Filament settings",
-                "vendorFields": "Manufacturer settings"
+                "fieldsToExport": "Fields to export"
             },
             "qrOptions": {
                 "title": "QR code options",

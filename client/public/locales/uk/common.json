@@ -352,9 +352,7 @@
                 "title": "Параметри CSV",
                 "delimiter": "Сепаратор",
                 "includeHeaders": "Вставити заголовок",
-                "spoolFields": "Налаштування котушки",
-                "filamentFields": "Налаштування нитки",
-                "vendorFields": "Налаштування виробника"
+                "fieldsToExport": "Поля для експорту"
             },
             "qrOptions": {
                 "title": "Параметри QR-коду",

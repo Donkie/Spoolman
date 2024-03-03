@@ -350,9 +350,7 @@
                 "title": "Opciones CSV",
                 "delimiter": "Separador",
                 "includeHeaders": "Insertar cabecera",
-                "spoolFields": "Ajustes de la bobina",
-                "filamentFields": "Ajustes del filamento",
-                "vendorFields": "Ajustes del fabricante"
+                "fieldsToExport": "Campos a exportar"
             },
             "qrOptions": {
                 "title": "Opciones de código QR",

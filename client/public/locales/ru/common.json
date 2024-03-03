@@ -355,9 +355,7 @@
                 "title": "Параметры CSV",
                 "delimiter": "Сепаратор",
                 "includeHeaders": "Вставить заголовок",
-                "spoolFields": "Настройки катушки",
-                "filamentFields": "Настройки нити",
-                "vendorFields": "Настройки производителя"
+                "fieldsToExport": "Поля для экспорта"
             },
             "qrOptions": {
                 "title": "Варианты QR-кодов",

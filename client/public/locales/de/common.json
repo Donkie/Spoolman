@@ -333,7 +333,7 @@
                 "title": "CSV Optionen",
                 "delimiter": "Trennzeichen",
                 "includeHeaders": "Kopfzeile einfügen",
-                "fieldToExport": "Felder zum Exportieren"
+                "fieldsToExport": "Felder zum Exportieren"
             },
             "qrOptions": {
                 "title": "QR-Code Optionen",

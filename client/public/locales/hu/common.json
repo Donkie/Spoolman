@@ -307,9 +307,7 @@
                 "title": "CSV beállítások",
                 "delimiter": "Elválasztó",
                 "includeHeaders": "Fejléc beillesztése",
-                "spoolFields": "Tekercs beállítások",
-                "filamentFields": "Szál beállítások",
-                "vendorFields": "Gyártó beállításai"
+                "fieldsToExport": "Exportálandó mezők"
             },
             "qrOptions": {
                 "title": "QR-kód opciók",
