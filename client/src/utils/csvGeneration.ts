@@ -44,59 +44,71 @@ export function exportAsCSV<T>(items: T[], opts: CSVExportOptions<T>) {
     document.body.removeChild(link);
 };
 
+
 /// Function that takes in an array of items and returns a map of the CSV content.
 /// The keys are the headers of the CSV file, and the values are the content of the CSV file.
 function parseCSV<T>(items: T[], keys: ItemKey[][]): Map<string, string[]>{
     let result = new Map<string, string[]>();
 
-    for (let item of items) {
-        for (let key of keys) {
-            // Skip empty keys.
-            if(key.length === 0) {
-                continue;
-            }
-    
-            // If the key is a single value, we can just add it to the map.
-            if(key.length === 1) {
-                const value = item[key[0] as keyof T];
-                // If the value is null or undefined, we should add an empty string to the map.
-                // Technically, we don't need to, as this should be handled later anyways, but it's better safe than sorry.
-                if(value === null || value === undefined) {
-                    setOrPush(result, `${key}`, "");
-                    continue;
-                }
-    
-                // If the value is a Object, we want to add all the keys of the object to the map.
-                if(value instanceof Object) {
-                    const subMap = parseCSV([value], Object.keys(value).map((k) => [k]));
-                    subMap.forEach((v, k) => {
-                        setOrPush(result, `${key}.${k}`, ...v);
-                    });
-                    continue;
-                }
+    for (let [index, item] of items.entries()) {
+        const subMap = parseCSVItem(index, item, keys);
+        subMap.forEach((v, k) => {
+            setOrPush(result, index, k, v);
+        });
+    }
 
-                setOrPush(result, `${key}`, String(item[key[0] as keyof T]));
+    return result;
+}
+
+function parseCSVItem<T>(index: number, item: T, keys: ItemKey[][]): Map<string, string> {
+    let result = new Map<string, string>();
+
+    for (let key of keys) {
+        // Skip empty keys.
+        if(key.length === 0) {
+            continue;
+        }
+
+        // If the key is a single value, we can just add it to the map.
+        if(key.length === 1) {
+            const value = item[key[0] as keyof T];
+            // If the value is null or undefined, we should add an empty string to the map.
+            // Technically, we don't need to, as this should be handled later anyways, but it's better safe than sorry.
+            if(value === null || value === undefined) {
+                result.set(`${key}`, "");
                 continue;
             }
-    
-            const subMap = parseCSV([item[key[0] as keyof T]], [key.slice(1)]);
-            subMap.forEach((v, k) => {
-                setOrPush(result, `${key[0]}.${k}`, ...v);
-            });
+
+            // If the value is a Object, we want to add all the keys of the object to the map.
+            if(value instanceof Object) {
+                const subMap = parseCSVItem(index, value, Object.keys(value).map((k) => [k]));
+                subMap.forEach((v, k) => {
+                    result.set(`${key}.${k}`, v);
+                });
+                continue;
+            }
+
+            result.set(`${key}`, String(item[key[0] as keyof T]));
+            continue;
         }
+
+        const subMap = parseCSVItem(index, item[key[0] as keyof T], [key.slice(1)]);
+        subMap.forEach((v, k) => {
+            result.set(`${key[0]}.${k}`, v);
+        });
     }
 
     return result;
 }
 
 /// Add the value to the map if the key is not present, otherwise push the value to the array.
-function setOrPush<T>(map: Map<string, T[]>, key: string, ...value: T[]) {
-    if(map.has(key)) {
-        map.set(key, [...map.get(key)!, ...value]);
-        return;
-    }
+function setOrPush<T>(map: Map<string, T[]>, index: number, key: string, ...value: T[]) {
+    const arr = map.get(key) ?? [];
 
-    map.set(key, value);
+    // If the array is too short, we need to fill it with empty strings.
+    const newArr = [...arr.slice(0, index), ...Array(Math.max(0, index - arr.length)).fill(""), ...value, ...arr.slice(index + 1)];
+    
+    map.set(key, newArr);
 }
 
 /// Sort the map so that the id is always first, and the rest is sorted alphabetically.
