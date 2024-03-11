@@ -15,6 +15,7 @@ export function GeneralSettings() {
     if (settings.data) {
       form.setFieldsValue({
         currency: JSON.parse(settings.data.currency.value),
+        qr_code_url: JSON.parse(settings.data.qr_code_url.value),
       });
     }
   }, [settings.data, form]);
@@ -27,12 +28,19 @@ export function GeneralSettings() {
   }, [setSetting.isSuccess, messageApi, t]);
 
   // Handle form submit
-  const onFinish = (values: { currency: string }) => {
+  const onFinish = (values: { currency: string, qr_code_url: string }) => {
     // Check if the currency has changed
     if (settings.data?.currency.value !== JSON.stringify(values.currency)) {
       setSetting.mutate({
         key: "currency",
         value: JSON.stringify(values.currency),
+      });
+    }
+    // Check if the QR code URL has changed
+    if (settings.data?.qr_code_url.value !== JSON.stringify(values.qr_code_url)) {
+      setSetting.mutate({
+        key: "qr_code_url",
+        value: JSON.stringify(values.qr_code_url),
       });
     }
   };
@@ -65,6 +73,24 @@ export function GeneralSettings() {
           ]}
         >
           <Input />
+        </Form.Item>
+
+        <Form.Item
+          label={t("settings.general.qr_code_url.label")}
+          tooltip={t("settings.general.qr_code_url.tooltip")}
+          name="qr_code_url"
+          rules={[
+            {
+              required: false,
+            },
+            {
+              pattern: /^https?:\/\/.*/,
+            },
+          ]}
+        >
+          <Input
+            placeholder="https://example.com:8000/"
+          />
         </Form.Item>
 
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>

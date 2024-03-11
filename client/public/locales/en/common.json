@@ -106,7 +106,11 @@
             "showTemperatures": "Temperatures",
             "showSpoolComment": "Spool Comment",
             "showFilamentComment": "Filament Comment",
-            "showVendorComment": "Vendor Comment"
+            "showVendorComment": "Vendor Comment",
+            "useHTTPUrl": {
+                "label": "Use HTTP(S) link in QR code",
+                "tooltip": "Uses either the base URL specified in settings, or the current page URL if not set. If disabled will use proprietary link that will work only if scanned from Spoolman's scanning feature."
+            }
         },
         "spoolSelect": {
             "title": "Select Spools",
@@ -264,6 +268,10 @@
             "tab": "General",
             "currency": {
                 "label": "Currency"
+            },
+            "qr_code_url": {
+                "label": "URL for QR codes",
+                "tooltip": "The base URL to use when generating QR codes. If you can access your Spoolman via multiple URLs, set this to the 'canonical' URL of your Spoolman instance."
             }
         },
         "extra_fields": {
