@@ -106,7 +106,10 @@
             "showSpoolComment": "Poznámka k cívce",
             "showFilamentComment": "Poznámka k filamentu",
             "showVendorComment": "Poznámka k výrobci",
-            "useHTTPUrl": "Použít HTTP(S) odkaz v QR kódu"
+            "useHTTPUrl": {
+                "label": "Použít HTTP(S) URL",
+                "tooltip": "Použít HTTP(S) odkaz v QR kódu. Pokud je vypnuto, použije se speciální kód, který půjde načíst pouze skrz skener v aplikaci Spoolman."
+            }
         },
         "spoolSelect": {
             "title": "Vybrat cívky",

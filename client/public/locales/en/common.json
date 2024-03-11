@@ -109,7 +109,7 @@
             "showVendorComment": "Vendor Comment",
             "useHTTPUrl": {
                 "label": "Use HTTP(S) link in QR code",
-                "tooltip": "Uses either the base URL specified in settings, or the current page URL if not set."
+                "tooltip": "Uses either the base URL specified in settings, or the current page URL if not set. If disabled will use proprietary link that will work only if scanned from Spoolman's scanning feature."
             }
         },
         "spoolSelect": {
