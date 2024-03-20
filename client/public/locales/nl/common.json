@@ -9,16 +9,16 @@
         "showArchived": "Gearchiveerd tonen",
         "archive": "Archiveren",
         "hideColumns": "Kolommen verbergen",
-        "confirm": "Weet je het zeker?",
+        "confirm": "Weet u het zeker?",
         "delete": "Verwijderen",
         "undo": "Ongedaan maken",
         "import": "Importeren",
         "logout": "Uitloggen",
         "refresh": "Vernieuwen",
-        "notAccessTitle": "Je hebt geen toegang tot",
+        "notAccessTitle": "U heeft geen toegang tot",
         "hideArchived": "Gearchiveerd verbergen",
         "clearFilters": "Filters leegmaken",
-        "unArchive": "Dearchiveren",
+        "unArchive": "Terugzetten",
         "clone": "Klonen",
         "clear": "Wissen",
         "saveAndAdd": "Opslaan en Toevoegen"
@@ -39,10 +39,10 @@
             "helpPrinterMargin": "Safe-Zone moet worden ingesteld op hoe dicht bij de papierrand uw printer kan afdrukken. Als u deze wijzigt, heeft dit geen invloed op het hele raster.",
             "previewScale": "Voorbeeldschaal",
             "helpMargin": "Marges moeten worden geconfigureerd zodat ze overeenkomen met je labelpapier en printer. Als u deze wijzigt, heeft dit invloed op de grootte van het hele raster.",
-            "skipItems": "Items overlaan",
+            "skipItems": "Items overslaan",
             "paperSize": "Papierformaat",
             "columns": "Kolommen",
-            "description": "Stem de onderstaande instellingen af om de gewenste printlay-out te krijgen. Houd er rekening mee dat printers en je besturingssysteem hun eigen marges en schaling kunnen toepassen, dus het kan zijn dat je met wat instellingen moet spelen voordat alles correct is. Test het op een stuk gewoon papier voordat u op de daadwerkelijke etiketten afdrukt.",
+            "description": "Stem de onderstaande instellingen af om de gewenste print lay-out te krijgen. Houd er rekening mee dat printers en je besturingssysteem hun eigen marges en schaling kunnen toepassen, dus het kan zijn dat je met wat instellingen moet spelen voordat alles correct is. Test het op een stuk gewoon papier voordat u op de daadwerkelijke etiketten afdrukt.",
             "showBorder": "Rand tonen",
             "dimensions": "Afmetingen",
             "print": "Printen",
@@ -75,9 +75,9 @@
             "textSize": "Inhoud tekstgrootte",
             "title": "QR-Code afdrukken",
             "showSpoolmanIcon": "Spoolman icoon tonen",
-            "showLotNr": "Lotnr",
+            "showLotNr": "Lotnummer",
             "bedTemp": "BT: {{temp}}",
-            "lotNr": "Lotnr: {{lot}}",
+            "lotNr": "Lotnummer: {{lot}}",
             "showFilamentComment": "Opmerking filament",
             "button": "QR-Codes afdrukken"
         },
@@ -87,15 +87,15 @@
             "description": "Selecteer spoelen waarvoor je QR-codes wilt afdrukken.",
             "showArchived": "Gearchiveerde tonen",
             "title": "Spoelen selecteren",
-            "selectAll": "Alles selecteren/deselecteren",
-            "noSpoolsSelected": "Je hebt geen spoelen geselecteerd."
+            "selectAll": "Alles (de)selecteren",
+            "noSpoolsSelected": "U heeft geen spoelen geselecteerd."
         }
     },
     "notifications": {
         "deleteSuccess": "{{resource}} succesvol verwijderd",
         "error": "Fout (fout code {{statusCode}})",
         "editError": "Fout opgetreden bij het bewerken van {{resource}} (status code {{statusCode}})",
-        "undoable": "Je hebt {{seconds}} seconden om ongedaan te maken.",
+        "undoable": "U heeft {{seconds}} seconden om ongedaan te maken.",
         "importProgress": "Importeren: {{processed}}/{{total}}",
         "createError": "Er is een fout opgetreden bij het aanmaken van {{resource}} (status code {{statusCode}})",
         "success": "Succesvol",
@@ -109,7 +109,7 @@
     "unknown": "Onbekend",
     "yes": "Ja",
     "version": "Versie",
-    "warnWhenUnsavedChanges": "Weet je zeker dat je wil vertrekken? Er zijn niet-opgeslagen wijzigingen.",
+    "warnWhenUnsavedChanges": "Weet u zeker dat u deze pagina wilt verlaten? Er zijn niet-opgeslagen wijzigingen.",
     "loading": "Laden",
     "dashboard": {
         "title": "Dashboard"
@@ -154,7 +154,7 @@
             "last_used": "Laatst gebruikt",
             "material": "Materiaal",
             "weight_to_use": "Gewicht",
-            "lot_nr": "Lotnr",
+            "lot_nr": "Lotnummer",
             "filament_name": "Filament",
             "comment": "Opmerking",
             "filament": "Filament",
@@ -180,16 +180,16 @@
         },
         "fields_help": {
             "used_weight": "Hoeveel filament er van de spoel is gebruikt. Op een nieuwe spoel zal 0g gebruikt zijn.",
-            "weight_to_use": "Selecteer welke gewichtswaarde je wilt invoeren. Het gemeten gewicht is alleen beschikbaar als het spoelgewicht is ingesteld voor het geselecteerde filament.",
+            "weight_to_use": "Selecteer welke gewichtswaarde u wilt invoeren. Het gemeten gewicht is alleen beschikbaar als het spoelgewicht is ingesteld voor het geselecteerde filament.",
             "measured_weight": "Hoeveel het filament en de spoel wegen.",
             "lot_nr": "Lotnummer van de fabrikant. Kan worden gebruikt om ervoor te zorgen dat een afdruk een consistente kleur heeft als er meerdere spoelen worden gebruikt.",
             "remaining_weight": "Hoeveel filament zit er nog op de spoel. Bij een nieuwe spoel zal dit overeenkomen met het spoelgewicht.",
-            "location": "Waar de spoel zich bevindt als je meerdere locaties hebt waar je jouw spoelen opslaat.",
+            "location": "Waar de spoel zich bevindt, wanneer er meerdere opslag locaties zijn.",
             "price": "Prijs van een volledige spoel. Als dit niet wordt ingevuld, wordt in plaats daarvan uitgegaan van de prijs van het filament."
         },
         "spool": "Spoelen",
         "messages": {
-            "archive": "Weet je zeker dat je deze spoel wil archiveren?"
+            "archive": "Weet u zeker dat u deze spoel wil archiveren?"
         },
         "form": {
             "new_location_prompt": "Voer een nieuwe locatie in",
@@ -221,13 +221,13 @@
             "density": "Dichtheid",
             "id": "ID",
             "color_hex": "Kleur",
-            "article_number": "Artiekelnummer",
+            "article_number": "Artikel nummer",
             "spools": "Spoelen tonen"
         },
         "titles": {
-            "clone": "Flimanent klonen",
+            "clone": "Filament klonen",
             "show": "Filament tonen",
-            "create": "Flimament maken",
+            "create": "Filament maken",
             "edit": "Filament bewerken",
             "list": "Filamenten",
             "show_title": "[Filament #{{id}}] {{name}}"
@@ -269,11 +269,11 @@
         },
         "vendor": "Fabrikanten",
         "form": {
-            "vendor_updated": "Deze leverancier is bijgewerkt dor iemand/iets anders sinds je deze pagina geopend hebt. De veranderingen worden overschreven als je opslaat!"
+            "vendor_updated": "Deze leverancier is bijgewerkt door iemand/iets anders sinds je deze pagina geopend hebt. De veranderingen worden overschreven als je opslaat!"
         }
     },
     "table": {
-        "actions": "Akties"
+        "actions": "Acties"
     },
     "help": {
         "resources": {
@@ -322,7 +322,7 @@
             "boolean_false": "Nee",
             "choices_missing_error": "U kunt geen keuzes verwijderen. De volgende keuzes ontbreken: {{choices}}",
             "non_unique_key_error": "De key moet uniek zijn.",
-            "key_not_changed": "Verander de key in iets anders.",
+            "key_not_changed": "Key niet gewijzigd.",
             "delete_confirm": "Veld {{name}} verwijderen?",
             "delete_confirm_description": "Hierdoor worden het veld en alle bijbehorende gegevens voor alle entiteiten verwijderd.",
             "description": "<p>Hier kunt u extra aangepaste velden toevoegen aan uw entiteiten.</p><p>Zodra een veld is toegevoegd, kunt u de key of het type ervan niet wijzigen, en voor velden met keuzetypes kunt u geen keuzes verwijderen of de meervoudige velden wijzigen. Als u een veld verwijdert, worden de bijbehorende gegevens voor alle entiteiten verwijderd.</p><p>De key is hoe andere programma's de gegevens lezen/schrijven, dus of uw aangepaste veld moet worden geïntegreerd met een derde partij programma, zorg ervoor dat u het correct instelt. De standaardwaarde wordt alleen toegepast op nieuwe items.</p><p>Extra velden kunnen niet worden gesorteerd of gefilterd in de tabelweergaven.</p>"
