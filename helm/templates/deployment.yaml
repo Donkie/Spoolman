@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "helm.fullname" . }}
+  labels:
+    {{- include "helm.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.autoscaling.minReplicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "helm.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- toYaml .Values.podAnnotations | nindent 8 }}
+      labels:
+        {{- include "helm.labels" . | nindent 8 }}
+      {{- if len .Values.podLabels }}
+        {{- toYaml .Values.podLabels | nindent 8 }}
+      {{- end }}
+    spec:
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      serviceAccountName: {{ include "helm.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - env:
+            - name: SPOOLMAN_HOST
+              value: 0.0.0.0
+            - name: SPOOLMAN_PORT
+              value: '8000'
+            - name: SPOOLMAN_LOGGING_LEVEL
+              value: {{ .Values.application.logLevel }}
+            - name: SPOOLMAN_AUTOMATIC_BACKUP
+              value: {{ ternary "TRUE" "FALSE" .Values.application.autoBackup | quote }}
+            {{- range $name, $value := .Values.application.environment }}
+            - name: {{ $name | quote }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- if .Values.application.environmentSecret }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.application.environmentSecret }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if not .Values.application.disableProbes }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+        {{- end }}
+          name: {{ .Chart.Name }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+        {{- if not .Values.application.disableProbes }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+        {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            - mountPath: /home/app/.local/share/spoolman
+              name: data-mount
+      volumes:
+        - name: data-mount
+          persistentVolumeClaim:
+            claimName: {{ .Values.application.claimName }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
