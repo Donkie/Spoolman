@@ -194,12 +194,8 @@ async def update(
         if k == "filament_id":
             spool.filament = await filament.get_by_id(db, v)
             # If there is no initial_weight, calculate it from the filament weight
-            if (
-                spool.initial_weight is None
-                and spool.empty_weight is None
-                and spool.filament.weight is not None
-            ):
-                spool_weight = (spool.empty_weight if spool.empty_weight is not None else 0)
+            if spool.initial_weight is None and spool.empty_weight is None and spool.filament.weight is not None:
+                spool_weight = spool.empty_weight if spool.empty_weight is not None else 0
                 spool.initial_weight = spool.filament.weight + spool_weight
                 spool.empty_weight = spool_weight
 
