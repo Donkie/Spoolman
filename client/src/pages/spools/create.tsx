@@ -107,6 +107,9 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   });
   filamentOptions?.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
 
+  const [defaultEmptySpoolWeight, setDefaultEmptySpoolWeight] = useState(0);
+  const [defaultInitialTotalWeight, setDefaultInitialTotalWeight] = useState(0);
+
   const [weightToEnter, setWeightToEnter] = useState(1);
   const [usedWeight, setUsedWeight] = useState(0);
 
@@ -123,6 +126,9 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     });
     const newFilamentWeight = newSelectedFilament?.weight || 0;
     const newSpoolWeight = newSelectedFilament?.spool_weight || 0;
+
+    setDefaultEmptySpoolWeight(newSpoolWeight);
+    setDefaultInitialTotalWeight(newFilamentWeight + newSpoolWeight);
 
     if (weightToEnter >= 3) {
       if (!(newFilamentWeight && newSpoolWeight)) {
@@ -254,6 +260,42 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             parser={numberParser}
           />
         </Form.Item>
+        <Form.Item
+          label={t("spool.fields.initial_weight")}
+          help={t("spool.fields_help.initial_weight")}
+          name={["initial_weight"]}
+          rules={[
+            {
+              required: false,
+              type: "number",
+              min: 0,
+            },
+          ]}
+        >
+          <InputNumber 
+            addonAfter="g"
+            precision={1}
+            defaultValue={defaultInitialTotalWeight} />
+        </Form.Item>
+
+        <Form.Item
+          label={t("spool.fields.empty_weight")}
+          help={t("spool.fields_help.empty_weight")}
+          name={["empty_weight"]}
+          rules={[
+            {
+              required: false,
+              type: "number",
+              min: 0,
+            },
+          ]}
+        >
+          <InputNumber 
+            addonAfter="g" 
+            precision={1}
+            defaultValue={defaultEmptySpoolWeight} />
+        </Form.Item>
+
         <Form.Item hidden={true} name={["used_weight"]} initialValue={0}>
           <InputNumber value={usedWeight} />
         </Form.Item>

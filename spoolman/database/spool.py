@@ -35,6 +35,8 @@ async def create(
     db: AsyncSession,
     filament_id: int,
     remaining_weight: Optional[float] = None,
+    initial_weight: Optional[float] = None,
+    empty_weight: Optional[float] = None,
     used_weight: Optional[float] = None,
     first_used: Optional[datetime] = None,
     last_used: Optional[datetime] = None,
@@ -47,11 +49,19 @@ async def create(
 ) -> models.Spool:
     """Add a new spool to the database. Leave weight empty to assume full spool."""
     filament_item = await filament.get_by_id(db, filament_id)
+
+    if empty_weight is None:
+        empty_weight = filament_item.spool_weight if filament_item.spool_weight is not None else 0
+
+    # Calculate initial_weight if not provided
+    if initial_weight is None:
+        initial_weight = (filament_item.weight if filament_item.weight is not None else 0) + empty_weight
+
     if used_weight is None:
         if remaining_weight is not None:
-            if filament_item.weight is None:
-                raise ItemCreateError("remaining_weight can only be used if the filament type has a weight set.")
-            used_weight = max(filament_item.weight - remaining_weight, 0)
+            if initial_weight is None or initial_weight == 0:
+                raise ItemCreateError("remaining_weight can only be used if the initial_weight is defined.")
+            used_weight = max(initial_weight - empty_weight - remaining_weight, 0)
         else:
             used_weight = 0
 
@@ -64,6 +74,8 @@ async def create(
     spool = models.Spool(
         filament=filament_item,
         registered=datetime.utcnow().replace(microsecond=0),
+        initial_weight=initial_weight,
+        empty_weight=empty_weight,
         used_weight=used_weight,
         price=price,
         first_used=first_used,
@@ -150,7 +162,7 @@ async def find(
         for fieldstr, order in sort_by.items():
             sorts = []
             if fieldstr in {"remaining_weight", "remaining_length"}:
-                sorts.append(models.Filament.weight - models.Spool.used_weight)
+                sorts.append(models.Spool.initial_weight - models.Spool.empty_weight - models.Spool.used_weight)
             elif fieldstr == "filament.combined_name":
                 sorts.append(models.Vendor.name)
                 sorts.append(models.Filament.name)
@@ -181,10 +193,20 @@ async def update(
     for k, v in data.items():
         if k == "filament_id":
             spool.filament = await filament.get_by_id(db, v)
+            # If there is no initial_weight, calculate it from the filament weight
+            if (
+                spool.initial_weight is None
+                and spool.empty_weight is None
+                and spool.filament.weight is not None
+            ):
+                spool_weight = (spool.empty_weight if spool.empty_weight is not None else 0)
+                spool.initial_weight = spool.filament.weight + spool_weight
+                spool.empty_weight = spool_weight
+
         elif k == "remaining_weight":
-            if spool.filament.weight is None:
-                raise ItemCreateError("remaining_weight can only be used if the filament type has a weight set.")
-            spool.used_weight = max(spool.filament.weight - v, 0)
+            if spool.initial_weight is None:
+                raise ItemCreateError("remaining_weight can only be used if initial_weight is set.")
+            spool.used_weight = max((spool.initial_weight - spool.empty_weight) - v, 0)
         elif isinstance(v, datetime):
             setattr(spool, k, utc_timezone_naive(v))
         elif k == "extra":

@@ -56,6 +56,9 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
     formProps.initialValues = ParsedExtras(formProps.initialValues);
   }
 
+  const [defaultEmptySpoolWeight, setDefaultEmptySpoolWeight] = useState(0);
+  const [defaultInitialTotalWeight, setDefaultInitialTotalWeight] = useState(0);
+
   // Override the form's onFinish method to stringify the extra fields
   const originalOnFinish = formProps.onFinish;
   formProps.onFinish = (allValues: ISpoolParsedExtras) => {
@@ -107,6 +110,13 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
     const newSelectedFilament = filamentOptions?.find((obj) => {
       return obj.value === newID;
     });
+
+    const newFilamentWeight = newSelectedFilament?.weight || 0;
+    const newSpoolWeight = newSelectedFilament?.spool_weight || 0;
+
+    setDefaultEmptySpoolWeight(newSpoolWeight);
+    setDefaultInitialTotalWeight(newFilamentWeight + newSpoolWeight);
+
     const filamentHasWeight = newSelectedFilament?.weight || 0;
     const filamentHasSpoolWeight = newSelectedFilament?.spool_weight || 0;
 
@@ -238,6 +248,42 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
             parser={numberParser}
           />
         </Form.Item>
+        <Form.Item
+          label={t("spool.fields.initial_weight")}
+          help={t("spool.fields_help.initial_weight")}
+          name={["initial_weight"]}
+          rules={[
+            {
+              required: false,
+              type: "number",
+              min: 0,
+            },
+          ]}
+        >
+          <InputNumber 
+            addonAfter="g"
+            precision={1}
+            defaultValue={defaultInitialTotalWeight} />
+        </Form.Item>
+
+        <Form.Item
+          label={t("spool.fields.empty_weight")}
+          help={t("spool.fields_help.empty_weight")}
+          name={["empty_weight"]}
+          rules={[
+            {
+              required: false,
+              type: "number",
+              min: 0,
+            },
+          ]}
+        >
+          <InputNumber 
+            addonAfter="g" 
+            precision={1}
+            defaultValue={defaultEmptySpoolWeight} />
+        </Form.Item>
+
         <Form.Item hidden={true} name={["used_weight"]} initialValue={0}>
           <InputNumber value={usedWeight} />
         </Form.Item>

@@ -40,6 +40,16 @@ class SpoolParameters(BaseModel):
         description="The price of this filament in the system configured currency.",
         example=20.0,
     )
+    initial_weight: Optional[float] = Field(
+        ge=0,
+        description="The initial total weight of the spool.",
+        example=200,
+    )
+    empty_weight: Optional[float] = Field(
+        ge=0,
+        description="The weight of an empty spool.",
+        example=200,
+    )
     remaining_weight: Optional[float] = Field(
         ge=0,
         description=(
@@ -354,6 +364,8 @@ async def create(  # noqa: ANN201
             db=db,
             filament_id=body.filament_id,
             price=body.price,
+            initial_weight=body.initial_weight,
+            empty_weight=body.empty_weight,
             remaining_weight=body.remaining_weight,
             used_weight=body.used_weight,
             first_used=body.first_used,
