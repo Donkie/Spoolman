@@ -235,6 +235,7 @@ async def use_weight_safe(db: AsyncSession, spool_id: int, weight: float) -> Non
         db (AsyncSession): Database session
         spool_id (int): Spool ID
         weight (float): Filament weight to consume, in grams
+
     """
     await db.execute(
         sqlalchemy.update(models.Spool)
@@ -261,6 +262,7 @@ async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.S
 
     Returns:
         models.Spool: Updated spool object
+
     """
     await use_weight_safe(db, spool_id, weight)
 
@@ -288,6 +290,7 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
 
     Returns:
         models.Spool: Updated spool object
+
     """
     # Get filament diameter and density
     result = await db.execute(

@@ -48,6 +48,9 @@ async def create(
     vendor_item: Optional[models.Vendor] = None
     if vendor_id is not None:
         vendor_item = await vendor.get_by_id(db, vendor_id)
+        # default spool weight from vendor
+        if spool_weight is None and vendor_item.empty_spool_weight is not None:
+            spool_weight = vendor_item.empty_spool_weight
 
     filament = models.Filament(
         name=name,
