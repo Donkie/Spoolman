@@ -7,7 +7,7 @@ import utc from "dayjs/plugin/utc";
 import { IVendor } from "./model";
 import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
 import { EditOutlined, EyeOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
-import { DateColumn, RichColumn, SortedColumn, ActionsColumn, CustomFieldColumn } from "../../components/column";
+import { DateColumn, RichColumn, SortedColumn, ActionsColumn, CustomFieldColumn, NumberColumn } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
@@ -17,7 +17,7 @@ dayjs.extend(utc);
 
 const namespace = "vendorList-v2";
 
-const allColumns: (keyof IVendor & string)[] = ["id", "name", "registered", "comment"];
+const allColumns: (keyof IVendor & string)[] = ["id", "name", "registered", "comment", "empty_spool_weight"];
 
 export const VendorList: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
@@ -171,6 +171,15 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
             ...commonProps,
             id: "registered",
             i18ncat: "vendor",
+            width: 200,
+          }),
+          NumberColumn({
+            ...commonProps,
+            id: "empty_spool_weight",
+            i18ncat: "vendor",
+            unit: "g",
+            maxDecimals: 0,
+            width: 200,
           }),
           ...(extraFields.data?.map((field) => {
             return CustomFieldColumn({

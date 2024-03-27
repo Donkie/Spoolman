@@ -227,8 +227,12 @@
         "fields": {
             "id": "ID",
             "name": "Name",
+            "empty_spool_weight": "Empty Spool Weight",
             "registered": "Registered",
             "comment": "Comment"
+        },
+        "fields_help": {
+            "empty_spool_weight": "The weight of an empty spool from this vendor."
         },
         "titles": {
             "create": "Create Vendor",

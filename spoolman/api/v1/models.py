@@ -60,6 +60,7 @@ class Vendor(BaseModel):
     registered: datetime = Field(description="When the vendor was registered in the database. UTC Timezone.")
     name: str = Field(max_length=64, description="Vendor name.", example="Polymaker")
     comment: Optional[str] = Field(max_length=1024, description="Free text comment about this vendor.", example="")
+    empty_spool_weight: Optional[float] = Field(gt=0, description="The empty spool weight, in grams.", example=140)
     extra: dict[str, str] = Field(
         description=(
             "Extra fields for this vendor. All values are JSON-encoded data. "
@@ -75,6 +76,7 @@ class Vendor(BaseModel):
             registered=item.registered,
             name=item.name,
             comment=item.comment,
+            empty_spool_weight=item.empty_spool_weight,
             extra={field.key: field.value for field in item.extra},
         )
 

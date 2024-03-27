@@ -33,6 +33,11 @@ class VendorParameters(BaseModel):
         description="Free text comment about this vendor.",
         example="",
     )
+    empty_spool_weight: Optional[float] = Field(
+        ge=0,
+        description="The weight of an empty spool.",
+        example=200,
+    )
     extra: Optional[dict[str, str]] = Field(
         None,
         description="Extra fields for this vendor.",
@@ -41,11 +46,6 @@ class VendorParameters(BaseModel):
 
 class VendorUpdateParameters(VendorParameters):
     name: Optional[str] = Field(max_length=64, description="Vendor name.", example="Polymaker")
-    comment: Optional[str] = Field(
-        max_length=1024,
-        description="Free text comment about this vendor.",
-        example="",
-    )
 
 
 @router.get(
@@ -190,6 +190,7 @@ async def create(  # noqa: ANN201
         db=db,
         name=body.name,
         comment=body.comment,
+        empty_spool_weight=body.empty_spool_weight,
         extra=body.extra,
     )
 
