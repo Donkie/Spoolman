@@ -144,6 +144,8 @@
             "measured_weight": "Measured Weight",
             "used_length": "Used Length",
             "remaining_length": "Remaining Length",
+            "initial_weight": "Initial Weight",
+            "empty_weight": "Empty Weight",
             "location": "Location",
             "lot_nr": "Lot Nr",
             "first_used": "First Used",
@@ -158,6 +160,8 @@
             "used_weight": "How much filament has been used from the spool. A new spool should have 0g used.",
             "remaining_weight": "How much filament is left on the spool. For a new spool this should match the spool weight.",
             "measured_weight": "How much the filament and spool weigh.",
+            "initial_weight": "The initial Total Weight of the filament and spool.",
+            "empty_weight": "The weight of the spool when it is empty.",
             "location": "Where the spool is located if you have multiple locations where you store your spools.",
             "lot_nr": "Manufacturer's lot number. Can be used to ensure a print has consistent color if multiple spools are used."
         },

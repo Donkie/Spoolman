@@ -187,6 +187,18 @@ class Spool(BaseModel):
         ),
         example=500.6,
     )
+    initial_weight: Optional[float] = Field(
+        default=None,
+        ge=0,
+        description=("Initial weight of the filament and spool (gross weight)"),
+        example=1246,
+    )
+    empty_weight: Optional[float] = Field(
+        default=None,
+        ge=0,
+        description=("Weight of an empty spool (tare weight)."),
+        example=246,
+    )
     used_weight: float = Field(ge=0, description="Consumed weight of filament from the spool in grams.", example=500.3)
     remaining_length: Optional[float] = Field(
         default=None,
@@ -228,7 +240,17 @@ class Spool(BaseModel):
 
         remaining_weight: Optional[float] = None
         remaining_length: Optional[float] = None
-        if filament.weight is not None:
+
+        if item.initial_weight is not None:
+            filament_spool_weight = item.filament.spool_weight if item.filament.spool_weight is not None else 0
+            spool_weight = item.empty_weight if item.empty_weight is not None else filament_spool_weight
+            remaining_weight = max(item.initial_weight - spool_weight - item.used_weight, 0)
+            remaining_length = length_from_weight(
+                weight=remaining_weight,
+                density=filament.density,
+                diameter=filament.diameter,
+            )
+        elif filament.weight is not None:
             remaining_weight = max(filament.weight - item.used_weight, 0)
             remaining_length = length_from_weight(
                 weight=remaining_weight,
@@ -249,6 +271,8 @@ class Spool(BaseModel):
             last_used=item.last_used,
             filament=filament,
             price=item.price,
+            initial_weight=item.initial_weight,
+            empty_weight=item.empty_weight,
             used_weight=item.used_weight,
             used_length=used_length,
             remaining_weight=remaining_weight,

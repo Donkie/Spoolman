@@ -1,5 +1,11 @@
 import { IFilament } from "../filaments/model";
 
+export enum WeightToEnter {
+  used_weight = 1,
+  remaining_weight = 2,
+  measured_weight = 3,
+}
+
 export interface ISpool {
   id: number;
   registered: string;
@@ -7,6 +13,8 @@ export interface ISpool {
   last_used?: string;
   filament: IFilament;
   price?: number;
+  initial_weight?: number;
+  empty_weight?: number;
   remaining_weight?: number;
   used_weight: number;
   remaining_length?: number;

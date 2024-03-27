@@ -42,12 +42,12 @@ class SpoolParameters(BaseModel):
     )
     initial_weight: Optional[float] = Field(
         ge=0,
-        description="The initial total weight of the spool.",
+        description="The initial total weight of the filament and spool. (gross weight)",
         example=200,
     )
     empty_weight: Optional[float] = Field(
         ge=0,
-        description="The weight of an empty spool.",
+        description="The weight of an empty spool. (tare weight)",
         example=200,
     )
     remaining_weight: Optional[float] = Field(
@@ -83,6 +83,10 @@ class SpoolUpdateParameters(SpoolParameters):
 class SpoolUseParameters(BaseModel):
     use_length: Optional[float] = Field(description="Length of filament to reduce by, in mm.", example=2.2)
     use_weight: Optional[float] = Field(description="Filament weight to reduce by, in g.", example=5.3)
+
+
+class SpoolMeasureParameters(BaseModel):
+    weight: float = Field(description="Current gross weight of the spool.", example=200)
 
 
 @router.get(
@@ -492,3 +496,23 @@ async def use(  # noqa: ANN201
         status_code=400,
         content={"message": "Either use_weight or use_length must be specified."},
     )
+
+
+@router.put(
+    "/{spool_id}/measure",
+    name="Use spool filament based on the current weight measurement",
+    description=("Use some weight of filament from the spool. Specify the current gross weight of the spool."),
+    response_model_exclude_none=True,
+    response_model=Spool,
+    responses={
+        400: {"model": Message},
+        404: {"model": Message},
+    },
+)
+async def measure(  # noqa: ANN201
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    spool_id: int,
+    body: SpoolMeasureParameters,
+):
+    db_item = await spool.measure(db, spool_id, body.weight)
+    return Spool.from_db(db_item)

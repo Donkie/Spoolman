@@ -323,6 +323,53 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
     return spool
 
 
+async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spool:
+    """Record usage based on current gross weight of spool.
+
+    Increases the used_weight attribute of the spool.
+    Updates the first_used and last_used attributes where appropriate.
+
+    Args:
+        db (AsyncSession): Database session
+        spool_id (int): Spool ID
+        weight (float): Length of filament to consume, in mm
+
+    Returns:
+        models.Spool: Updated spool object
+
+    """
+    spool_result = await db.execute(
+        sqlalchemy.select(models.Spool.initial_weight, models.Spool.used_weight).where(models.Spool.id == spool_id),
+    )
+
+    try:
+        spool_info = spool_result.one()
+    except NoResultFound as exc:
+        raise ItemNotFoundError("Spool not found.") from exc
+
+    initial_weight = spool_info[0]
+
+    if initial_weight is None:
+        # Get filament weight and spool_weight
+        result = await db.execute(
+            sqlalchemy.select(models.Filament.weight, models.Filament.spool_weight)
+            .join(models.Spool, models.Spool.filament_id == models.Filament.id)
+            .where(models.Spool.id == spool_id),
+        )
+        try:
+            filament_info = result.one()
+        except NoResultFound as exc:
+            raise ItemNotFoundError("Filament not found for spool.") from exc
+        initial_weight = filament_info[0] + filament_info[1]
+
+    # Calculate the current gross weight (initial_weight - used_weight)
+    current_use = initial_weight - spool_info[1]
+    # Calculate the weight used since last measure
+    weight_to_use = current_use - weight
+
+    return await use_weight(db, spool_id, weight_to_use)
+
+
 async def find_locations(
     *,
     db: AsyncSession,
