@@ -17,7 +17,7 @@ from spoolman.api.v1.models import Message, Spool, SpoolEvent
 from spoolman.database import spool
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
-from spoolman.exceptions import ItemCreateError
+from spoolman.exceptions import ItemCreateError, SpoolMeasureError
 from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
 from spoolman.ws import websocket_manager
 
@@ -514,5 +514,12 @@ async def measure(  # noqa: ANN201
     spool_id: int,
     body: SpoolMeasureParameters,
 ):
-    db_item = await spool.measure(db, spool_id, body.weight)
-    return Spool.from_db(db_item)
+    try:
+        db_item = await spool.measure(db, spool_id, body.weight)
+        return Spool.from_db(db_item)
+    except SpoolMeasureError as e:
+        logger.exception("Failed to update spool measurement.")
+        return JSONResponse(
+            status_code=400,
+            content={"message": e.args[0]},
+        )

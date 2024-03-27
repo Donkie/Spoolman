@@ -11,3 +11,7 @@ class ItemDeleteError(Exception):
 
 class ItemCreateError(Exception):
     pass
+
+
+class SpoolMeasureError(Exception):
+    pass

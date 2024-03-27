@@ -20,7 +20,7 @@ from spoolman.database.utils import (
     add_where_clause_str_opt,
     parse_nested_field,
 )
-from spoolman.exceptions import ItemCreateError, ItemNotFoundError
+from spoolman.exceptions import ItemCreateError, ItemNotFoundError, SpoolMeasureError
 from spoolman.math import weight_from_length
 from spoolman.ws import websocket_manager
 
@@ -339,17 +339,19 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
 
     """
     spool_result = await db.execute(
-        sqlalchemy.select(models.Spool.initial_weight, models.Spool.used_weight).where(models.Spool.id == spool_id),
+        sqlalchemy.select(models.Spool.initial_weight, models.Spool.used_weight, models.Spool.empty_weight).where(
+            models.Spool.id == spool_id,
+        ),
     )
 
     try:
         spool_info = spool_result.one()
     except NoResultFound as exc:
-        raise ItemNotFoundError("Spool not found.") from exc
+        raise SpoolMeasureError("Spool not found.") from exc
 
     initial_weight = spool_info[0]
-
-    if initial_weight is None:
+    empty_weight = spool_info[2]
+    if initial_weight is None or empty_weight is None:
         # Get filament weight and spool_weight
         result = await db.execute(
             sqlalchemy.select(models.Filament.weight, models.Filament.spool_weight)
@@ -360,12 +362,24 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
             filament_info = result.one()
         except NoResultFound as exc:
             raise ItemNotFoundError("Filament not found for spool.") from exc
-        initial_weight = filament_info[0] + filament_info[1]
+        if empty_weight is None:
+            empty_weight = filament_info[1]
+
+        if initial_weight is None:
+            initial_weight = filament_info[0] + empty_weight
+
+    # if the measurement is greater than the initial weight, raise an error
+    if weight > initial_weight:
+        raise SpoolMeasureError("Measured weight is greater than the initial weight of the spool.")
 
     # Calculate the current gross weight (initial_weight - used_weight)
     current_use = initial_weight - spool_info[1]
     # Calculate the weight used since last measure
     weight_to_use = current_use - weight
+
+    # If the measured weight is less than the empty weight, use the rest of the spool
+    if (initial_weight - weight_to_use) < empty_weight:
+        weight_to_use = current_use - empty_weight
 
     return await use_weight(db, spool_id, weight_to_use)
 
