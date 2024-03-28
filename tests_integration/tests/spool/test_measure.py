@@ -89,3 +89,56 @@ def test_measure_spool_invalid(random_filament: dict[str, Any], measurement: flo
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
+
+
+@pytest.mark.parametrize("measurements", [[1244, 1233, 1200], [1000, 900, 800], [1000, 1000, 1000]])
+def test_measure_spool_sequence(random_filament: dict[str, Any], measurements: list[float]):
+    """Test using a spool in the database."""
+    # Setup
+    random_filament["weight"]
+    initial_weight = 1255
+    current_weight = initial_weight
+    empty_weight = 246
+    start_weight = 1000
+    result = httpx.post(
+        f"{URL}/api/v1/spool",
+        json={
+            "filament_id": random_filament["id"],
+            "remaining_weight": start_weight,
+            "initial_weight": initial_weight,
+            "empty_weight": empty_weight,
+        },
+    )
+    result.raise_for_status()
+    spool = result.json()
+
+    for m in measurements:
+        # Execute
+        result = httpx.put(
+            f"{URL}/api/v1/spool/{spool['id']}/measure",
+            json={
+                "weight": m,
+            },
+        )
+        result.raise_for_status()
+
+        # Verify
+        spool = result.json()
+        # remaining_weight should be clamped so it's never negative,
+        # but used_weight should not be clamped to the net weight
+        expected_use = min(initial_weight - m, initial_weight - empty_weight)
+        assert spool["used_weight"] == pytest.approx(expected_use)
+        expected_remaining = max(m - empty_weight, 0)
+        assert spool["remaining_weight"] == pytest.approx(expected_remaining)
+        # Verify that first_used has been updated
+        diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["first_used"])).total_seconds())
+        assert diff < 60
+
+        # Verify that last_used has been updated
+        diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["last_used"])).total_seconds())
+        assert diff < 60
+
+        current_weight = current_weight - expected_use
+
+    # Clean up
+    httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()

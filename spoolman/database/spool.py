@@ -368,12 +368,13 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
         if initial_weight is None:
             initial_weight = filament_info[0] + empty_weight
 
-    # if the measurement is greater than the initial weight, raise an error
-    if weight > initial_weight:
-        raise SpoolMeasureError("Measured weight is greater than the initial weight of the spool.")
-
     # Calculate the current gross weight (initial_weight - used_weight)
     current_use = initial_weight - spool_info[1]
+
+    # if the measurement is greater than the initial weight, raise an error
+    if weight > current_use:
+        raise SpoolMeasureError("Measured weight cannot increase.")
+
     # Calculate the weight used since last measure
     weight_to_use = current_use - weight
 
