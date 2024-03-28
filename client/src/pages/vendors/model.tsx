@@ -3,6 +3,7 @@ export interface IVendor {
   registered: string;
   name: string;
   comment?: string;
+  empty_spool_weight?: number;
   extra: { [key: string]: string };
 }
 

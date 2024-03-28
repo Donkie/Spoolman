@@ -19,6 +19,7 @@ async def create(
     db: AsyncSession,
     name: Optional[str] = None,
     comment: Optional[str] = None,
+    empty_spool_weight: Optional[float] = None,
     extra: Optional[dict[str, str]] = None,
 ) -> models.Vendor:
     """Add a new vendor to the database."""
@@ -26,6 +27,7 @@ async def create(
         name=name,
         registered=datetime.utcnow().replace(microsecond=0),
         comment=comment,
+        empty_spool_weight=empty_spool_weight,
         extra=[models.VendorField(key=k, value=v) for k, v in (extra or {}).items()],
     )
     db.add(vendor)

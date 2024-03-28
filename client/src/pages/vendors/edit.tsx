@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Edit, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker, message, Alert, Typography } from "antd";
+import { Form, Input, DatePicker, message, Alert, Typography, InputNumber } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { IVendor, IVendorParsedExtras } from "./model";
@@ -99,6 +99,22 @@ export const VendorEdit: React.FC<IResourceComponentsProps> = () => {
           ]}
         >
           <TextArea maxLength={1024} />
+        </Form.Item>
+        <Form.Item
+          label={t("vendor.fields.empty_spool_weight")}
+          help={t("vendor.fields_help.empty_spool_weight")}
+          name={["empty_spool_weight"]}
+          rules={[
+            {
+              required: false,
+              type: "number",
+              min: 0,
+            },
+          ]}
+        >
+          <InputNumber 
+            addonAfter="g"
+            precision={1}/>
         </Form.Item>
         <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
         {extraFields.data?.map((field, index) => (

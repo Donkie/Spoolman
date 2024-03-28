@@ -1,7 +1,7 @@
 import React from "react";
 import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Create, useForm } from "@refinedev/antd";
-import { Button, Form, Input, Typography } from "antd";
+import { Button, Form, Input, Typography, InputNumber } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { IVendor, IVendorParsedExtras } from "./model";
 import { EntityType, useGetFields } from "../../utils/queryFields";
@@ -84,6 +84,22 @@ export const VendorCreate: React.FC<IResourceComponentsProps & CreateOrCloneProp
           ]}
         >
           <TextArea maxLength={1024} />
+        </Form.Item>
+        <Form.Item
+          label={t("vendor.fields.empty_spool_weight")}
+          help={t("vendor.fields_help.empty_spool_weight")}
+          name={["empty_spool_weight"]}
+          rules={[
+            {
+              required: false,
+              type: "number",
+              min: 0,
+            },
+          ]}
+        >
+          <InputNumber 
+            addonAfter="g"
+            precision={1}/>
         </Form.Item>
         <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
         {extraFields.data?.map((field, index) => (

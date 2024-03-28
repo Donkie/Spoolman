@@ -58,7 +58,10 @@ def random_vendor_impl():
     # Add vendor
     result = httpx.post(
         f"{URL}/api/v1/vendor",
-        json={"name": "John"},
+        json={
+            "name": "John",
+            "empty_spool_weight": 246,
+        },
     )
     result.raise_for_status()
 
