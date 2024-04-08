@@ -35,7 +35,7 @@ class VendorParameters(BaseModel):
     )
     empty_spool_weight: Optional[float] = Field(
         ge=0,
-        description="The weight of an empty spool.",
+        description="The weight of an empty spool, in g.",
         example=200,
     )
     extra: Optional[dict[str, str]] = Field(

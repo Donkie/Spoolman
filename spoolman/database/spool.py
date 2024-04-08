@@ -56,12 +56,15 @@ async def create(
 
     # Calculate initial_weight if not provided
     if initial_weight is None and filament_item.weight is not None:
-        initial_weight = filament_item.weight - (empty_weight if empty_weight is not None else 0)
+        initial_weight = filament_item.weight + (empty_weight if empty_weight is not None else 0)
 
     if used_weight is None:
         if remaining_weight is not None:
             if initial_weight is None or initial_weight == 0:
-                raise ItemCreateError("remaining_weight can only be used if the initial_weight is defined.")
+                raise ItemCreateError(
+                    "remaining_weight can only be used if the initial_weight is "
+                    "defined or the filament has a weight set.",
+                )
             used_weight = max(initial_weight - empty_weight - remaining_weight, 0)
         else:
             used_weight = 0
@@ -352,7 +355,7 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
 
     initial_weight = spool_info[0]
     empty_weight = spool_info[2]
-    if initial_weight is None or empty_weight is None:
+    if initial_weight is None or initial_weight == 0 or empty_weight is None or empty_weight == 0:
         # Get filament weight and spool_weight
         result = await db.execute(
             sqlalchemy.select(models.Filament.weight, models.Filament.spool_weight)
@@ -363,11 +366,15 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
             filament_info = result.one()
         except NoResultFound as exc:
             raise ItemNotFoundError("Filament not found for spool.") from exc
-        if empty_weight is None:
+
+        if empty_weight is None or empty_weight == 0:
             empty_weight = filament_info[1]
 
-        if initial_weight is None:
-            initial_weight = filament_info[0] + empty_weight
+        if initial_weight is None or initial_weight == 0:
+            initial_weight = (filament_info[0] if filament_info[0] is not None else 0) + empty_weight
+
+    if initial_weight is None or initial_weight == 0:
+        raise SpoolMeasureError("Initial weight is not set.")
 
     # Calculate the current gross weight (initial_weight - used_weight)
     current_use = initial_weight - spool_info[1]

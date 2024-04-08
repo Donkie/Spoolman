@@ -42,12 +42,12 @@ class SpoolParameters(BaseModel):
     )
     initial_weight: Optional[float] = Field(
         ge=0,
-        description="The initial total weight of the filament and spool. (gross weight)",
+        description="The initial total weight of the filament and spool, in g. (gross weight)",
         example=200,
     )
     empty_weight: Optional[float] = Field(
         ge=0,
-        description="The weight of an empty spool. (tare weight)",
+        description="The weight of an empty spool, in g. (tare weight)",
         example=200,
     )
     remaining_weight: Optional[float] = Field(
@@ -86,7 +86,7 @@ class SpoolUseParameters(BaseModel):
 
 
 class SpoolMeasureParameters(BaseModel):
-    weight: float = Field(description="Current gross weight of the spool.", example=200)
+    weight: float = Field(description="Current gross weight of the spool, in g.", example=200)
 
 
 @router.get(
