@@ -42,12 +42,12 @@ class SpoolParameters(BaseModel):
     )
     initial_weight: Optional[float] = Field(
         ge=0,
-        description="The initial total weight of the filament and spool, in g. (gross weight)",
+        description="The initial total weight of the filament and spool, in grams. (gross weight)",
         example=200,
     )
     empty_weight: Optional[float] = Field(
         ge=0,
-        description="The weight of an empty spool, in g. (tare weight)",
+        description="The weight of an empty spool, in grams. (tare weight)",
         example=200,
     )
     remaining_weight: Optional[float] = Field(
