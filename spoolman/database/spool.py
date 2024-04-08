@@ -50,12 +50,13 @@ async def create(
     """Add a new spool to the database. Leave weight empty to assume full spool."""
     filament_item = await filament.get_by_id(db, filament_id)
 
-    if empty_weight is None:
-        empty_weight = filament_item.spool_weight if filament_item.spool_weight is not None else 0
+    # Set empty_weight to spool_weight if spool_weight is not null and empty_weight not provided
+    if empty_weight is None and filament_item.spool_weight is not None:
+        empty_weight = filament_item.spool_weight
 
     # Calculate initial_weight if not provided
-    if initial_weight is None:
-        initial_weight = (filament_item.weight if filament_item.weight is not None else 0) + empty_weight
+    if initial_weight is None and filament_item.weight is not None:
+        initial_weight = filament_item.weight - (empty_weight if empty_weight is not None else 0)
 
     if used_weight is None:
         if remaining_weight is not None:
