@@ -1,6 +1,6 @@
 FROM python:3.11-alpine as python-builder
 
-RUN apk add --no-cache g++ python3-dev libpq-dev libstdc++ shadow
+RUN apk add --no-cache g++ python3-dev libpq-dev libstdc++ shadow libffi-dev
 
 # Add local user so we don't run as root
 RUN groupmod -g 1000 users \

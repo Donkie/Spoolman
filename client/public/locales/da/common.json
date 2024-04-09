@@ -132,7 +132,7 @@
             "lot_nr": "Producentens \"batchnummer\". Kan bruges til at sikre ensartede farver ved brug af flere ruller.",
             "remaining_weight": "Hvor meget filament er der tilbage på spolen. For en ny spole bør dette matches spolens vægt.",
             "location": "Placering af spolen. Hvis du har flere lokationer.",
-            "price": "Pris for en fuld spole, i den i systemet konfigurerede valuta. Hvis ikke indstillet, vil prisen bliver estimeret."
+            "price": "Pris for en fuld spole. Hvis ikke indstillet, vil prisen bliver estimeret."
         },
         "spool": "Spoler",
         "messages": {
@@ -168,7 +168,7 @@
             "name": "Filament navn, for at adskille dette filament fra andre fra samme producent. Kan for eksempel indeholde farven.",
             "article_number": "f.eks. EAN, UPC osv.",
             "spool_weight": "Vægten af en tom spole. Bruges til at angive den målte vægt af en spole.",
-            "price": "Pris for en ny spole i systemets valutaenhed.",
+            "price": "Pris for en ny spole.",
             "weight": "Filamentets vægt på en ny spole (Netto vægt). Dette bør ikke inkludere vægten af selve spolen, kun filamentet. Det er som regel den angivne vægt på pakken.",
             "material": "f.eks. PLA, ABS, PETG osv."
         },
@@ -202,7 +202,10 @@
         "form": {
             "filament_updated": "Dette filament er blevet redigeret af nogen/noget andet siden du åbnede denne side. Hvis du gemmer overskrives disse ændringer!"
         },
-        "filament": "Filamenter"
+        "filament": "Filamenter",
+        "buttons": {
+            "add_spool": "Tilføj spole"
+        }
     },
     "actions": {
         "create": "Opret",
@@ -253,7 +256,9 @@
         "success": "Succes",
         "editSuccess": "Redigering af {{resource}} lykkedes",
         "deleteError": "Fejl ved sletning af {{resource}} (status kode: {{statusCode}})",
-        "createSuccess": "Oprettelse af {{resource}} lykkedes"
+        "createSuccess": "Oprettelse af {{resource}} lykkedes",
+        "saveSuccessful": "Gemt!",
+        "validationError": "Kunne ikke gennemføres: {{error}}"
     },
     "no": "Nej",
     "unknown": "Ukendt",
@@ -282,5 +287,46 @@
     "kofi": "Donér på Ko-fi",
     "home": {
         "home": "Hjem"
+    },
+    "settings": {
+        "header": "Indstillinger",
+        "general": {
+            "tab": "Generelt",
+            "currency": {
+                "label": "Valuta"
+            }
+        },
+        "extra_fields": {
+            "params": {
+                "key": "Nøgle",
+                "name": "Navn",
+                "field_type": "Type",
+                "unit": "Enhed",
+                "order": "Sortering",
+                "default_value": "Standard-værdi",
+                "multi_choice": "Multi-valg",
+                "choices": "Valgmuligheder"
+            },
+            "field_type": {
+                "integer_range": "Heltals spænd",
+                "float": "Decimaltal",
+                "float_range": "Decimaltal spænd",
+                "datetime": "Dato-tid",
+                "boolean": "Boolean (Ja/Nej)",
+                "choice": "Valg",
+                "text": "Tekst",
+                "integer": "Heltal"
+            },
+            "choices_missing_error": "Du kan ikke fjerne valg. De følgende valg mangler: {{choices}}",
+            "tab": "Ekstra felter",
+            "description": "<p>Her kan du tilføje ekstra felter til dine poster.</p><p>Når et felt er tilføjet kan du ikke redigere Nøgle og Type, og for visse felttyper kan du ikke fjerne valg, eller ændre multi-valgs status. Hvis du fjerner et felt, vil associerede data i alle poster blive slettet.</p><p>Nøglen er hvad andre programmer læser/skriver data som, så hvis dit felt skal integreres med en tredje parts program, skal du sørge for at indstille det korrekt. Standard-værdi bliver kun tilføjet til nye felter.</p><p>Ekstra felter kan ikke bruges til sortering eller filtrering i oversigterne.</p>",
+            "boolean_true": "Ja",
+            "boolean_false": "Nej",
+            "non_unique_key_error": "Nøglen skal være Unik.",
+            "key_not_changed": "Ændr venligst nøglen til noget andet.",
+            "delete_confirm": "Slet felt: {{name}}?",
+            "delete_confirm_description": "Dette vil slette feltet samt alle associerede data for alle poster."
+        },
+        "settings": "Indstillinger"
     }
 }
