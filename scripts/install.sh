@@ -6,6 +6,18 @@ ORANGE='\033[0;33m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
+# Warn with a prompt if we're running as root
+if [ "$EUID" -eq 0 ]; then
+    echo -e "${ORANGE}WARNING: You are running this script as root. It is recommended to run this script as a non-root user.${NC}"
+    echo -e "${ORANGE}Do you want to continue? (y/n)${NC}"
+    read choice
+
+    if [ "$choice" != "y" ] && [ "$choice" != "Y" ]; then
+        echo -e "${ORANGE}Aborting installation.${NC}"
+        exit 1
+    fi
+fi
+
 # CD to project root if we're in the scripts dir
 current_dir=$(pwd)
 if [ "$(basename "$current_dir")" = "scripts" ]; then
@@ -39,38 +51,63 @@ else
     echo -e "${ORANGE}Please look up how to install Python 3.9 or later for your specific operating system.${NC}"
     exit 1
 fi
-
 #
-# Install needed system packages
+# Get os package manager
 #
-# Run pacman update
-echo -e "${GREEN}Updating pacman cache...${NC}"
-sudo pacman -Syyu || exit 1
+if [[ -f /etc/os-release ]]; then
+    source /etc/os-release
+    if [[ "$ID_LIKE" == *"debian"* ]]; then
+        pkg_manager="apt-get"
+        update_cmd="sudo $pkg_manager update"
+        install_cmd="sudo $pkg_manager install -y"
+    elif [[ "$ID_LIKE" == *"arch"* ]]; then
+        pkg_manager="pacman"
+        update_cmd="sudo $pkg_manager -Sy"
+        install_cmd="sudo $pkg_manager -S --noconfirm"
+    else
+        echo -e "${ORANGE}Your operating system is not supported. Either try to install manually or reach out to spoolman github for support.${NC}"
+        exit 1
+    fi
+fi
 
-install_packages=0
+# Run pkg manager update
+echo -e "${GREEN}Updating $pkg_manager cache...${NC}"
+$update_cmd || exit 1
+packages=""
 if ! python3 -c 'import venv, ensurepip' &>/dev/null; then
     echo -e "${ORANGE}Python venv module is not accessible. Installing venv...${NC}"
-    install_packages=1
+    if [[ "$pkg_manager" == "apt-get" ]]; then
+        packages+="python3-venv"
+    elif [[ "$pkg_manager" == "pacman" ]]; then
+        packages+="python-virtualenv"
+    fi
 fi
 
 if ! command -v pip3 &>/dev/null; then
     echo -e "${ORANGE}Python pip is not installed. Installing pip...${NC}"
-    install_packages=1
+    if [[ "$pkg_manager" == "apt-get" ]]; then
+        packages+="python3-pip"
+    elif [[ "$pkg_manager" == "pacman" ]]; then
+        packages+="python-pip"
+    fi
 fi
 
 if ! command -v pg_config &>/dev/null; then
-    echo -e "${ORANGE}pg_config is not available. Installing postgresql-libs...${NC}"
-    install_packages=1
+    echo -e "${ORANGE}pg_config is not available. Installing libpq-dev...${NC}"
+    if [[ "$pkg_manager" == "apt-get" ]]; then
+        packages+="libpq-dev"
+    elif [[ "$pkg_manager" == "pacman" ]]; then
+        packages+="postgresql-libs"
+    fi
 fi
 
 if ! command -v unzip &>/dev/null; then
     echo -e "${ORANGE}unzip is not available. Installing unzip...${NC}"
-    install_packages=1
+    packages+="unzip"
 fi
 
-if [ "$install_packages" -eq 1 ]; then
-    # sudo pacman update
-    sudo pacman -S python-pip python-virtualenv postgresql-libs unzip --noconfirm || exit 1
+if [[ -n "$packages" ]]; then
+    $install_cmd $packages || exit 1
 fi
 
 #
@@ -82,26 +119,47 @@ echo -e "${GREEN}Updating pip...${NC}"
 upgrade_output=$(python3 -m pip install --user --upgrade pip 2>&1)
 exit_code=$?
 
+# Check if the upgrade command failed and contains the specified error message
+is_externally_managed_env=$(echo "$upgrade_output" | grep "error: externally-managed-environment")
+if [[ $exit_code -ne 0 ]]; then
+    if [[ $is_externally_managed_env ]]; then
+        echo -e "${GREEN}Warning:${NC} Failed to upgrade pip since it's version is managed by the OS. Continuing anyway..."
+    else
+        echo -e "${GREEN}Error:${NC} Pip upgrade failed with exit code $exit_code and the following output:"
+        echo "$upgrade_output"
+        exit 1
+    fi
+else
+    echo -e "${GREEN}Pip updated successfully.${NC}"
+fi
+
 #
 # Install various pip packages if needed
 #
-echo -e "${GREEN}Installing system-wide python packages needed for Spoolman...${NC}"
-packages=("python-setuptools" "python-wheel" "python-pdm")
-for package in "${packages[@]}"; do
-    if ! pacman -Ss "$package" &>/dev/null; then
-        echo -e "${GREEN}Installing $package...${NC}"
-        sudo pacman -S "$package" --noconfirm || exit 1
+echo -e "${GREEN}Installing system-wide pip packages needed for Spoolman...${NC}"
+if [[ $is_externally_managed_env ]]; then
+    echo -e "${GREEN}Installing the packages using apt-get instead of pip since pip is externally managed...${NC}"
+    if [[ "$pkg_manager" == "apt-get" ]]; then
+        packages="python3-setuptools python3-wheel"
+    elif [[ "$pkg_manager" == "pacman" ]]; then
+        packages="python-setuptools python-wheel"
     fi
-done
+    $install_cmd $packages || exit 1
+else
+    packages="setuptools wheel"
+    for package in $packages; do
+        if ! pip3 show "$package" &>/dev/null; then
+            echo -e "${GREEN}Installing $package...${NC}"
+            pip3 install --user "$package" || exit 1
+        fi
+    done
+fi
 
 #
 # Add python bin dir to PATH if needed
 #
 user_python_bin_dir=$(python3 -m site --user-base)/bin
 if [[ ! "$PATH" =~ "$user_python_bin_dir" ]]; then
-    echo -e "${ORANGE}WARNING: $user_python_bin_dir is not in PATH, this will make it difficult to run PDM commands. Temporarily adding $user_python_bin_dir to PATH...${NC}"
-    echo -e "${ORANGE}To make this permanent, add the following line to your .bashrc or .zshrc file:${NC}"
-    echo -e "${ORANGE}export PATH=$user_python_bin_dir:\$PATH${NC}"
     export PATH=$user_python_bin_dir:$PATH
 fi
 
@@ -109,12 +167,18 @@ fi
 # Install Spoolman
 #
 
-# Install PDM dependencies
-echo -e "${GREEN}Installing Spoolman backend and its dependencies using PDM...${NC}"
+# Install dependencies
+echo -e "${GREEN}Installing Spoolman backend and its dependencies...${NC}"
+# Create venv if it doesn't exist
+if [ ! -d ".venv" ]; then
+    python3 -m venv .venv || exit 1
+fi
 
-# Force PDM to use venv. The default is virtualenv which has had some compatibility issues
-pdm config venv.backend venv || exit 1
-pdm sync --prod --no-editable || exit 1
+# Activate venv
+source .venv/bin/activate || exit 1
+
+# Install dependencies using pip
+pip3 install -r requirements.txt || exit 1
 
 #
 # Initialize the .env file if it doesn't exist
@@ -123,6 +187,12 @@ if [ ! -f ".env" ]; then
     echo -e "${ORANGE}.env file not found. Creating it...${NC}"
     cp .env.example .env
 fi
+
+#
+# Add execute permissions of all files in scripts dir
+#
+echo -e "${GREEN}Adding execute permissions to all files in scripts dir...${NC}"
+chmod +x scripts/*.sh
 
 #
 # Install systemd service
@@ -166,7 +236,7 @@ Description=Spoolman
 
 [Service]
 Type=simple
-ExecStart=$spoolman_dir/scripts/start.sh
+ExecStart=bash $spoolman_dir/scripts/start.sh
 WorkingDirectory=$spoolman_dir
 User=$USER
 Restart=always
@@ -191,7 +261,7 @@ WantedBy=default.target
     source .env
     set +o allexport
 
-    local_ip=$(hostname)
+    local_ip=$(hostname -I | awk '{print $1}')
 
     echo -e "${GREEN}Spoolman systemd service has been installed and Spoolman is now starting.${NC}"
     echo -e "${GREEN}Spoolman will soon be reachable at ${ORANGE}http://$local_ip:$SPOOLMAN_PORT${NC}"
