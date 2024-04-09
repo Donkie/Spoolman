@@ -16,6 +16,8 @@ from spoolman.api.v1.router import app as v1_app
 from spoolman.client import SinglePageApplication
 from spoolman.database import database
 
+from spoolman.prometheus.metrics import metrics_app
+
 # Define a console logger
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(logging.Formatter("%(name)-26s %(levelname)-8s %(message)s"))
@@ -37,8 +39,8 @@ app = FastAPI(
 )
 app.add_middleware(GZipMiddleware)
 app.mount("/api/v1", v1_app)
+app.mount("/metrics", metrics_app)
 app.mount("/", app=SinglePageApplication(directory="client/dist"), name="client")
-
 
 # Allow all origins if in debug mode
 if env.is_debug_mode():
