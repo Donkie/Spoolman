@@ -42,10 +42,10 @@ class SpoolParameters(BaseModel):
     )
     initial_weight: Optional[float] = Field(
         ge=0,
-        description="The initial total weight of the filament and spool, in grams. (gross weight)",
+        description="The initial weight of the filament on the spool, in grams. (net weight)",
         example=200,
     )
-    empty_weight: Optional[float] = Field(
+    spool_weight: Optional[float] = Field(
         ge=0,
         description="The weight of an empty spool, in grams. (tare weight)",
         example=200,
@@ -369,7 +369,7 @@ async def create(  # noqa: ANN201
             filament_id=body.filament_id,
             price=body.price,
             initial_weight=body.initial_weight,
-            empty_weight=body.empty_weight,
+            spool_weight=body.spool_weight,
             remaining_weight=body.remaining_weight,
             used_weight=body.used_weight,
             first_used=body.first_used,

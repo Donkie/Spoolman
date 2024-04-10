@@ -201,7 +201,7 @@ def test_add_spool_initial_weight(random_filament: dict[str, Any]):
     """Test adding a spool to the database."""
     # Execute
     remaining_weight = 750
-    initial_weight = 1245
+    initial_weight = 1010
     location = "The Pantry"
     lot_nr = "123456789"
     comment = "abcdefghåäö"
@@ -225,7 +225,7 @@ def test_add_spool_initial_weight(random_filament: dict[str, Any]):
     result.raise_for_status()
 
     # Verify
-    used_weight = initial_weight - random_filament["spool_weight"] - remaining_weight
+    used_weight = initial_weight - remaining_weight
     used_length = length_from_weight(
         weight=used_weight,
         density=random_filament["density"],
@@ -247,7 +247,7 @@ def test_add_spool_initial_weight(random_filament: dict[str, Any]):
             "last_used": "2023-01-02T11:00:00Z",
             "filament": random_filament,
             "initial_weight": pytest.approx(initial_weight),
-            "empty_weight": pytest.approx(random_filament["spool_weight"]),
+            "spool_weight": pytest.approx(random_filament["spool_weight"]),
             "remaining_weight": pytest.approx(remaining_weight),
             "used_weight": pytest.approx(used_weight),
             "remaining_length": pytest.approx(remaining_length),
@@ -268,11 +268,11 @@ def test_add_spool_initial_weight(random_filament: dict[str, Any]):
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
 
 
-def test_add_spool_empty_weight(random_filament: dict[str, Any]):
+def test_add_spool_spool_weight(random_filament: dict[str, Any]):
     """Test adding a spool to the database."""
     # Execute
     remaining_weight = 750
-    empty_weight = 200
+    spool_weight = 200
     location = "The Pantry"
     lot_nr = "123456789"
     comment = "abcdefghåäö"
@@ -285,7 +285,7 @@ def test_add_spool_empty_weight(random_filament: dict[str, Any]):
             "last_used": "2023-01-02T11:00:00Z",
             "filament_id": random_filament["id"],
             "remaining_weight": remaining_weight,
-            "empty_weight": empty_weight,
+            "spool_weight": spool_weight,
             "location": location,
             "lot_nr": lot_nr,
             "comment": comment,
@@ -317,8 +317,8 @@ def test_add_spool_empty_weight(random_filament: dict[str, Any]):
             "first_used": "2023-01-02T11:00:00Z",
             "last_used": "2023-01-02T11:00:00Z",
             "filament": random_filament,
-            "initial_weight": pytest.approx(random_filament["weight"] + empty_weight),
-            "empty_weight": pytest.approx(empty_weight),
+            "initial_weight": pytest.approx(random_filament["weight"]),
+            "spool_weight": pytest.approx(spool_weight),
             "remaining_weight": pytest.approx(remaining_weight),
             "used_weight": pytest.approx(used_weight),
             "remaining_length": pytest.approx(remaining_length),

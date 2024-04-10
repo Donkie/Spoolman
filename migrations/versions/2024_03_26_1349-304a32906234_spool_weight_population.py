@@ -37,7 +37,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column(
-            "empty_weight",
+            "spool_weight",
             sa.Float(),
             nullable=False,
         ),
@@ -48,13 +48,13 @@ def upgrade() -> None:
         .where(filament.c.id == spool.c.filament_id)
         .scalar_subquery()
     )
-    empty_weight = sa.select(filament.c.spool_weight).where(filament.c.id == spool.c.filament_id).scalar_subquery()
+    spool_weight = sa.select(filament.c.spool_weight).where(filament.c.id == spool.c.filament_id).scalar_subquery()
 
     set_initial_weight = sa.update(spool).values(initial_weight=initial_weight)
     op.execute(set_initial_weight)
 
-    set_empty_weight = sa.update(spool).values(empty_weight=empty_weight)
-    op.execute(set_empty_weight)
+    set_spool_weight = sa.update(spool).values(spool_weight=spool_weight)
+    op.execute(set_spool_weight)
     pass
 
 

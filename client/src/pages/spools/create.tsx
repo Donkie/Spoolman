@@ -5,7 +5,7 @@ import { Form, Input, DatePicker, Select, InputNumber, Radio, Divider, Button, T
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { IFilament } from "../filaments/model";
-import { ISpool, ISpoolParsedExtras } from "./model";
+import { ISpool, ISpoolParsedExtras, WeightToEnter } from "./model";
 import { numberFormatter, numberParser } from "../../utils/parsing";
 import { useSpoolmanLocations } from "../../components/otherModels";
 import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
@@ -14,6 +14,7 @@ import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
 import utc from "dayjs/plugin/utc";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
+import { ValueType } from "rc-input-number";
 
 dayjs.extend(utc);
 
@@ -38,6 +39,9 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   if (!formProps.initialValues) {
     formProps.initialValues = {};
   }
+
+  const initialWeightValue = Form.useWatch("initial_weight", form);
+  const spoolWeightValue = Form.useWatch("spool_weight", form);
 
   if (props.mode === "clone") {
     // Clear out the values that we don't want to clone
@@ -121,19 +125,19 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
       return obj.value === newID;
     });
 
-    const initial_weight = form.getFieldValue("initial_weight") as number ?? 0;
-    const empty_weight = form.getFieldValue("empty_weight") as number ?? 0;
+    const initial_weight = initialWeightValue ?? 0;
+    const spool_weight = spoolWeightValue ?? 0;
     
     const newFilamentWeight = newSelectedFilament?.weight || 0;
     const newSpoolWeight = newSelectedFilament?.spool_weight || 0;
 
     const currentCalculatedFilamentWeight = getTotalWeightFromFilament();
     if ((initial_weight === 0 || initial_weight === currentCalculatedFilamentWeight) && newFilamentWeight > 0) {
-      form.setFieldValue("initial_weight", newFilamentWeight + newSpoolWeight);
+      form.setFieldValue("initial_weight", newFilamentWeight);
     }
 
-    if ((empty_weight === 0 || empty_weight === (selectedFilament?.spool_weight ?? 0)) && newSpoolWeight > 0) {
-      form.setFieldValue("empty_weight", newSpoolWeight);
+    if ((spool_weight === 0 || spool_weight === (selectedFilament?.spool_weight ?? 0)) && newSpoolWeight > 0) {
+      form.setFieldValue("spool_weight", newSpoolWeight);
     }
   };
 
@@ -161,57 +165,34 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     setQuantity(quantity - 1);
   };
 
-  const getSpoolTotalWeight = (): number => {
-    const initial_weight = form.getFieldValue("initial_weight") as number;
-    const empty_weight = form.getFieldValue("empty_weight") as number;
-    const spool_weight = empty_weight ?? selectedFilament?.spool_weight;
-    return initial_weight ?? (selectedFilament?.weight ?? 0) + spool_weight;
+  const getSpoolWeight = (): number => {
+    return spoolWeightValue ?? (selectedFilament?.spool_weight ?? 0);
+  }
+
+  const getFilamentWeight = (): number => {
+    return initialWeightValue ?? (selectedFilament?.weight ?? 0)
+  }
+
+  const getGrossWeight = (): number => {
+    const net_weight = getFilamentWeight();
+    const spool_weight = getSpoolWeight();
+    return net_weight + spool_weight;
   };
 
   const getTotalWeightFromFilament = (): number => {
     return (selectedFilament?.weight ?? 0) + (selectedFilament?.spool_weight ?? 0);
   }
 
-  const getFilamentWeight = (): number => {
-    const initial_weight = form.getFieldValue("initial_weight") as number;
-    const empty_weight = form.getFieldValue("empty_weight") as number;
-    const spool_weight = empty_weight ?? selectedFilament?.spool_weight;
-    if (initial_weight) {
-      return initial_weight - (spool_weight ?? 0);
-    }
-    return selectedFilament?.weight ?? 0;
-  }
-
   const getMeasuredWeight = (): number => {
-    const initial_weight = form.getFieldValue("initial_weight") as number;
+    const grossWeight = getGrossWeight();
 
-    if (initial_weight) {
-      return initial_weight - usedWeight;
-    }
-    const empty_weight = form.getFieldValue("empty_weight") as number;
-    const spool_weight = empty_weight ?? selectedFilament?.spool_weight;
-
-    if (selectedFilament?.weight && spool_weight) {
-      return selectedFilament?.weight - usedWeight + spool_weight;
-    }
-    return 0;
+    return grossWeight - usedWeight;
   }
 
   const getRemainingWeight = (): number => {
-    const initial_weight = form.getFieldValue("initial_weight") as number ?? 0;
-    const empty_weight = form.getFieldValue("empty_weight") as number;
-    const spool_weight = empty_weight ?? selectedFilament?.spool_weight;
+    const initial_weight = getFilamentWeight();
 
-    let remaining_weight = 0;
-
-    if (initial_weight === 0) {
-      remaining_weight = (selectedFilament?.weight ?? 0) - usedWeight;
-    }
-    else {
-      remaining_weight = initial_weight - spool_weight - usedWeight;
-    }
-    
-    return (remaining_weight >= 0) ? remaining_weight : 0;
+    return initial_weight - usedWeight;
   }
 
   const isMeasuredWeightEnabled = (): boolean => {
@@ -220,13 +201,13 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
       return false;
     }
 
-    const empty_weight = form.getFieldValue("empty_weight") as number;
+    const spool_weight = spoolWeightValue;
 
-    return (empty_weight || selectedFilament?.spool_weight) ? true : false;
+    return (spool_weight || selectedFilament?.spool_weight) ? true : false;
   }
   
   const isRemainingWeightEnabled = (): boolean => {
-    const initial_weight = form.getFieldValue("initial_weight") as number;
+    const initial_weight = initialWeightValue;
 
     if (initial_weight) {
       return true;
@@ -236,21 +217,21 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   }
 
   React.useEffect(() => {
-    if (weightToEnter >= 3) 
+    if (weightToEnter >= WeightToEnter.measured_weight) 
     {
       if (!isMeasuredWeightEnabled()) {
-        setWeightToEnter(2);
+        setWeightToEnter(WeightToEnter.remaining_weight);
         return;
       }
     }
-    if (weightToEnter >= 2)
+    if (weightToEnter >= WeightToEnter.remaining_weight)
     {
       if (!isRemainingWeightEnabled()) {
-        setWeightToEnter(1);
+        setWeightToEnter(WeightToEnter.used_weight);
         return;
       }
     }
-  }, [selectedFilament, weightChange])
+  }, [selectedFilament])
 
 
   return (
@@ -359,13 +340,13 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             },
           ]}
         >
-          <InputNumber addonAfter="g" precision={1}/>
+          <InputNumber addonAfter="g" precision={1} />
         </Form.Item>
 
         <Form.Item
-          label={t("spool.fields.empty_weight")}
-          help={t("spool.fields_help.empty_weight")}
-          name={["empty_weight"]}
+          label={t("spool.fields.spool_weight")}
+          help={t("spool.fields_help.spool_weight")}
+          name={["spool_weight"]}
           rules={[
             {
               required: false,
@@ -386,14 +367,14 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             onChange={(value) => {
               setWeightToEnter(value.target.value);
             }}
-            defaultValue={1}
+            defaultValue={WeightToEnter.used_weight}
             value={weightToEnter}
           >
-            <Radio.Button value={1}>{t("spool.fields.used_weight")}</Radio.Button>
-            <Radio.Button value={2} disabled={!isRemainingWeightEnabled()}>
+            <Radio.Button value={WeightToEnter.used_weight}>{t("spool.fields.used_weight")}</Radio.Button>
+            <Radio.Button value={WeightToEnter.remaining_weight} disabled={!isRemainingWeightEnabled()}>
               {t("spool.fields.remaining_weight")}
             </Radio.Button>
-            <Radio.Button value={3} disabled={!isMeasuredWeightEnabled()}>
+            <Radio.Button value={WeightToEnter.measured_weight} disabled={!isMeasuredWeightEnabled()}>
               {t("spool.fields.measured_weight")}
             </Radio.Button>
           </Radio.Group>
@@ -406,7 +387,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             precision={1}
             formatter={numberFormatter}
             parser={numberParser}
-            disabled={weightToEnter != 1}
+            disabled={weightToEnter != WeightToEnter.used_weight}
             value={usedWeight}
             onChange={(value) => {
               weightChange(value ?? 0);
@@ -424,7 +405,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             precision={1}
             formatter={numberFormatter}
             parser={numberParser}
-            disabled={weightToEnter != 2}
+            disabled={weightToEnter != WeightToEnter.remaining_weight}
             value={getRemainingWeight()}
             onChange={(value) => {
               weightChange(getFilamentWeight() - (value ?? 0));
@@ -442,10 +423,10 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             precision={1}
             formatter={numberFormatter}
             parser={numberParser}
-            disabled={weightToEnter != 3}
+            disabled={weightToEnter != WeightToEnter.measured_weight}
             value={getMeasuredWeight()}
             onChange={(value) => {
-              const totalWeight = getSpoolTotalWeight();
+              const totalWeight = getGrossWeight();
               weightChange(totalWeight - (value ?? 0));
             }}
           />

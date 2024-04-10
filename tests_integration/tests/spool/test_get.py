@@ -83,8 +83,8 @@ def test_get_spool_default_weights(random_filament: dict[str, Any]):
 
     # Verify
     assert result_spool == spool
-    assert result_spool["initial_weight"] == pytest.approx(random_filament["weight"] + random_filament["spool_weight"])
-    assert result_spool["empty_weight"] == pytest.approx(random_filament["spool_weight"])
+    assert result_spool["initial_weight"] == pytest.approx(random_filament["weight"])
+    assert result_spool["spool_weight"] == pytest.approx(random_filament["spool_weight"])
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
@@ -97,7 +97,7 @@ def test_get_spool_weights(random_filament: dict[str, Any]):
     last_used = "2023-01-02T00:00:00"
     remaining_weight = 750
     initial_weight = 1255
-    empty_weight = 246
+    spool_weight = 246
     location = "The Pantry"
     lot_nr = "123456789"
     comment = "abcdefghåäö"
@@ -111,7 +111,7 @@ def test_get_spool_weights(random_filament: dict[str, Any]):
             "filament_id": random_filament["id"],
             "remaining_weight": remaining_weight,
             "initial_weight": initial_weight,
-            "empty_weight": empty_weight,
+            "spool_weight": spool_weight,
             "location": location,
             "lot_nr": lot_nr,
             "comment": comment,

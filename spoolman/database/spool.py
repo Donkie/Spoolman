@@ -36,7 +36,7 @@ async def create(
     filament_id: int,
     remaining_weight: Optional[float] = None,
     initial_weight: Optional[float] = None,
-    empty_weight: Optional[float] = None,
+    spool_weight: Optional[float] = None,
     used_weight: Optional[float] = None,
     first_used: Optional[datetime] = None,
     last_used: Optional[datetime] = None,
@@ -50,13 +50,13 @@ async def create(
     """Add a new spool to the database. Leave weight empty to assume full spool."""
     filament_item = await filament.get_by_id(db, filament_id)
 
-    # Set empty_weight to spool_weight if spool_weight is not null and empty_weight not provided
-    if empty_weight is None and filament_item.spool_weight is not None:
-        empty_weight = filament_item.spool_weight
+    # Set spool_weight to spool_weight if spool_weight is not null and spool_weight not provided
+    if spool_weight is None and filament_item.spool_weight is not None:
+        spool_weight = filament_item.spool_weight
 
     # Calculate initial_weight if not provided
     if initial_weight is None and filament_item.weight is not None:
-        initial_weight = filament_item.weight + (empty_weight if empty_weight is not None else 0)
+        initial_weight = filament_item.weight
 
     if used_weight is None:
         if remaining_weight is not None:
@@ -65,7 +65,7 @@ async def create(
                     "remaining_weight can only be used if the initial_weight is "
                     "defined or the filament has a weight set.",
                 )
-            used_weight = max(initial_weight - empty_weight - remaining_weight, 0)
+            used_weight = max(initial_weight - remaining_weight, 0)
         else:
             used_weight = 0
 
@@ -79,7 +79,7 @@ async def create(
         filament=filament_item,
         registered=datetime.utcnow().replace(microsecond=0),
         initial_weight=initial_weight,
-        empty_weight=empty_weight,
+        spool_weight=spool_weight,
         used_weight=used_weight,
         price=price,
         first_used=first_used,
@@ -166,7 +166,7 @@ async def find(
         for fieldstr, order in sort_by.items():
             sorts = []
             if fieldstr in {"remaining_weight", "remaining_length"}:
-                sorts.append(models.Spool.initial_weight - models.Spool.empty_weight - models.Spool.used_weight)
+                sorts.append(models.Spool.initial_weight - models.Spool.spool_weight - models.Spool.used_weight)
             elif fieldstr == "filament.combined_name":
                 sorts.append(models.Vendor.name)
                 sorts.append(models.Filament.name)
@@ -198,15 +198,13 @@ async def update(
         if k == "filament_id":
             spool.filament = await filament.get_by_id(db, v)
             # If there is no initial_weight, calculate it from the filament weight
-            if spool.initial_weight is None and spool.empty_weight is None and spool.filament.weight is not None:
-                spool_weight = spool.empty_weight if spool.empty_weight is not None else 0
-                spool.initial_weight = spool.filament.weight + spool_weight
-                spool.empty_weight = spool_weight
+            if spool.initial_weight is None and spool.filament.weight is not None:
+                spool.initial_weight = spool.filament.weight
 
         elif k == "remaining_weight":
             if spool.initial_weight is None:
                 raise ItemCreateError("remaining_weight can only be used if initial_weight is set.")
-            spool.used_weight = max((spool.initial_weight - spool.empty_weight) - v, 0)
+            spool.used_weight = max(spool.initial_weight - v, 0)
         elif isinstance(v, datetime):
             setattr(spool, k, utc_timezone_naive(v))
         elif k == "extra":
@@ -343,7 +341,7 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
 
     """
     spool_result = await db.execute(
-        sqlalchemy.select(models.Spool.initial_weight, models.Spool.used_weight, models.Spool.empty_weight).where(
+        sqlalchemy.select(models.Spool.initial_weight, models.Spool.used_weight, models.Spool.spool_weight).where(
             models.Spool.id == spool_id,
         ),
     )
@@ -354,8 +352,8 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
         raise SpoolMeasureError("Spool not found.") from exc
 
     initial_weight = spool_info[0]
-    empty_weight = spool_info[2]
-    if initial_weight is None or initial_weight == 0 or empty_weight is None or empty_weight == 0:
+    spool_weight = spool_info[2]
+    if initial_weight is None or initial_weight == 0 or spool_weight is None or spool_weight == 0:
         # Get filament weight and spool_weight
         result = await db.execute(
             sqlalchemy.select(models.Filament.weight, models.Filament.spool_weight)
@@ -367,17 +365,19 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
         except NoResultFound as exc:
             raise ItemNotFoundError("Filament not found for spool.") from exc
 
-        if empty_weight is None or empty_weight == 0:
-            empty_weight = filament_info[1]
+        if spool_weight is None or spool_weight == 0:
+            spool_weight = filament_info[1]
 
         if initial_weight is None or initial_weight == 0:
-            initial_weight = (filament_info[0] if filament_info[0] is not None else 0) + empty_weight
+            initial_weight = filament_info[0] if filament_info[0] is not None else 0
 
     if initial_weight is None or initial_weight == 0:
         raise SpoolMeasureError("Initial weight is not set.")
 
+    initial_gross_weight = initial_weight + spool_weight
+
     # Calculate the current gross weight (initial_weight - used_weight)
-    current_use = initial_weight - spool_info[1]
+    current_use = initial_gross_weight - spool_info[1]
 
     # if the measurement is greater than the initial weight, raise an error
     if weight > current_use:
@@ -387,8 +387,8 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
     weight_to_use = current_use - weight
 
     # If the measured weight is less than the empty weight, use the rest of the spool
-    if (initial_weight - weight_to_use) < empty_weight:
-        weight_to_use = current_use - empty_weight
+    if (initial_gross_weight - weight_to_use) < spool_weight:
+        weight_to_use = current_use - spool_weight
 
     return await use_weight(db, spool_id, weight_to_use)
 

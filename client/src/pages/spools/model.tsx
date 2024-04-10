@@ -14,7 +14,7 @@ export interface ISpool {
   filament: IFilament;
   price?: number;
   initial_weight?: number;
-  empty_weight?: number;
+  spool_weight?: number;
   remaining_weight?: number;
   used_weight: number;
   remaining_length?: number;

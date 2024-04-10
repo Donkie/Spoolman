@@ -37,6 +37,8 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
     },
   });
 
+  const initialWeightValue = Form.useWatch("initial_weight", form);
+  const spoolWeightValue = Form.useWatch("spool_weight", form);
   // Get filament selection options
   const { queryResult } = useSelect<IFilament>({
     resource: "filament",
@@ -101,19 +103,19 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
       return obj.value === newID;
     });
 
-    const initial_weight = form.getFieldValue("initial_weight") as number ?? 0;
-    const empty_weight = form.getFieldValue("empty_weight") as number ?? 0;
+    const initial_weight = initialWeightValue ?? 0;
+    const spool_weight = spoolWeightValue ?? 0;
     
     const newFilamentWeight = newSelectedFilament?.weight || 0;
     const newSpoolWeight = newSelectedFilament?.spool_weight || 0;
 
     const currentCalculatedFilamentWeight = getTotalWeightFromFilament();
     if ((initial_weight === 0 || initial_weight === currentCalculatedFilamentWeight) && newFilamentWeight > 0) {
-      form.setFieldValue("initial_weight", newFilamentWeight + newSpoolWeight);
+      form.setFieldValue("initial_weight", newFilamentWeight);
     }
 
-    if ((empty_weight === 0 || empty_weight === (selectedFilament?.spool_weight ?? 0)) && newSpoolWeight > 0) {
-      form.setFieldValue("empty_weight", newSpoolWeight);
+    if ((spool_weight === 0 || spool_weight === (selectedFilament?.spool_weight ?? 0)) && newSpoolWeight > 0) {
+      form.setFieldValue("spool_weight", newSpoolWeight);
     }
   };
 
@@ -132,57 +134,34 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
     allLocations.push(newLocation.trim());
   }
 
-  const getSpoolTotalWeight = (): number => {
-    const initial_weight = form.getFieldValue("initial_weight") as number;
-    const empty_weight = form.getFieldValue("empty_weight") as number;
-    const spool_weight = empty_weight ?? selectedFilament?.spool_weight;
-    return initial_weight ?? (selectedFilament?.weight ?? 0) + spool_weight;
+const getSpoolWeight = (): number => {
+    return spoolWeightValue ?? (selectedFilament?.spool_weight ?? 0);
+  }
+
+  const getFilamentWeight = (): number => {
+    return initialWeightValue ?? (selectedFilament?.weight ?? 0)
+  }
+
+  const getGrossWeight = (): number => {
+    const net_weight = getFilamentWeight();
+    const spool_weight = getSpoolWeight();
+    return net_weight + spool_weight;
   };
 
   const getTotalWeightFromFilament = (): number => {
     return (selectedFilament?.weight ?? 0) + (selectedFilament?.spool_weight ?? 0);
   }
 
-  const getFilamentWeight = (): number => {
-    const initial_weight = form.getFieldValue("initial_weight") as number;
-    const empty_weight = form.getFieldValue("empty_weight") as number;
-    const spool_weight = empty_weight ?? selectedFilament?.spool_weight;
-    if (initial_weight) {
-      return initial_weight - (spool_weight ?? 0);
-    }
-    return selectedFilament?.weight ?? 0;
-  }
-
   const getMeasuredWeight = (): number => {
-    const initial_weight = form.getFieldValue("initial_weight") as number;
+    const grossWeight = getGrossWeight();
 
-    if (initial_weight) {
-      return initial_weight - usedWeight;
-    }
-    const empty_weight = form.getFieldValue("empty_weight") as number;
-    const spool_weight = empty_weight ?? selectedFilament?.spool_weight;
-
-    if (selectedFilament?.weight && spool_weight) {
-      return selectedFilament?.weight - usedWeight + spool_weight;
-    }
-    return 0;
+    return grossWeight - usedWeight;
   }
 
   const getRemainingWeight = (): number => {
-    const initial_weight = form.getFieldValue("initial_weight") as number ?? 0;
-    const empty_weight = form.getFieldValue("empty_weight") as number;
-    const spool_weight = empty_weight ?? selectedFilament?.spool_weight;
+    const initial_weight = getFilamentWeight();
 
-    let remaining_weight = 0;
-
-    if (initial_weight === 0) {
-      remaining_weight = (selectedFilament?.weight ?? 0) - usedWeight;
-    }
-    else {
-      remaining_weight = initial_weight - spool_weight - usedWeight;
-    }
-    
-    return (remaining_weight >= 0) ? remaining_weight : 0;
+    return initial_weight - usedWeight;
   }
 
   const isMeasuredWeightEnabled = (): boolean => {
@@ -191,13 +170,13 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
       return false;
     }
 
-    const empty_weight = form.getFieldValue("empty_weight") as number;
+    const spool_weight = spoolWeightValue;
 
-    return (empty_weight || selectedFilament?.spool_weight) ? true : false;
+    return (spool_weight || selectedFilament?.spool_weight) ? true : false;
   }
   
   const isRemainingWeightEnabled = (): boolean => {
-    const initial_weight = form.getFieldValue("initial_weight") as number;
+    const initial_weight = initialWeightValue;
 
     if (initial_weight) {
       return true;
@@ -221,7 +200,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
         return;
       }
     }
-  }, [selectedFilament, weightChange])
+  }, [selectedFilament])
 
   const initialUsedWeight = formProps.initialValues?.used_weight || 0;
   useEffect(() => {
@@ -342,9 +321,9 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
         </Form.Item>
 
         <Form.Item
-          label={t("spool.fields.empty_weight")}
-          help={t("spool.fields_help.empty_weight")}
-          name={["empty_weight"]}
+          label={t("spool.fields.spool_weight")}
+          help={t("spool.fields_help.spool_weight")}
+          name={["spool_weight"]}
           rules={[
             {
               required: false,
@@ -421,7 +400,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
             disabled={weightToEnter != WeightToEnter.measured_weight}
             value={getMeasuredWeight()}
             onChange={(value) => {
-              const totalWeight = getSpoolTotalWeight();
+              const totalWeight = getGrossWeight();
               weightChange(totalWeight - (value ?? 0));
             }}
           />

@@ -9,21 +9,20 @@ import pytest
 from ..conftest import URL
 
 
-@pytest.mark.parametrize("measurement", [0, 0.05, -0.05, 1000])
+@pytest.mark.parametrize("measurement", [246, 500, 600, 1000])
 def test_measure_spool(random_filament: dict[str, Any], measurement: float):
     """Test using a spool in the database."""
     # Setup
     random_filament["weight"]
-    initial_weight = 1255
-    empty_weight = 246
+    spool_weight = 246
     start_weight = 1000
     result = httpx.post(
         f"{URL}/api/v1/spool",
         json={
             "filament_id": random_filament["id"],
             "remaining_weight": start_weight,
-            "initial_weight": initial_weight,
-            "empty_weight": empty_weight,
+            "initial_weight": start_weight,
+            "spool_weight": spool_weight,
         },
     )
     result.raise_for_status()
@@ -41,9 +40,9 @@ def test_measure_spool(random_filament: dict[str, Any], measurement: float):
     # Verify
     spool = result.json()
     # remaining_weight should be clamped so it's never negative, but used_weight should not be clamped to the net weight
-    expected_use = min(initial_weight - measurement, initial_weight - empty_weight)
+    expected_use = min(start_weight - (measurement - spool_weight), start_weight)
     assert spool["used_weight"] == pytest.approx(expected_use)
-    expected_remaining = max(measurement - empty_weight, 0)
+    expected_remaining = max(measurement - spool_weight, 0)
     assert spool["remaining_weight"] == pytest.approx(expected_remaining)
     # Verify that first_used has been updated
     diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["first_used"])).total_seconds())
@@ -62,16 +61,15 @@ def test_measure_spool_invalid(random_filament: dict[str, Any], measurement: flo
     """Test using a spool in the database."""
     # Setup
     random_filament["weight"]
-    initial_weight = 1255
-    empty_weight = 246
+    spool_weight = 246
     start_weight = 1000
     result = httpx.post(
         f"{URL}/api/v1/spool",
         json={
             "filament_id": random_filament["id"],
             "remaining_weight": start_weight,
-            "initial_weight": initial_weight,
-            "empty_weight": empty_weight,
+            "initial_weight": start_weight,
+            "spool_weight": spool_weight,
         },
     )
     result.raise_for_status()
@@ -96,17 +94,17 @@ def test_measure_spool_sequence(random_filament: dict[str, Any], measurements: l
     """Test using a spool in the database."""
     # Setup
     random_filament["weight"]
-    initial_weight = 1255
+    spool_weight = 246
+    start_weight = 1009
+    initial_weight = start_weight + spool_weight
     current_weight = initial_weight
-    empty_weight = 246
-    start_weight = 1000
     result = httpx.post(
         f"{URL}/api/v1/spool",
         json={
             "filament_id": random_filament["id"],
             "remaining_weight": start_weight,
-            "initial_weight": initial_weight,
-            "empty_weight": empty_weight,
+            "initial_weight": start_weight,
+            "spool_weight": spool_weight,
         },
     )
     result.raise_for_status()
@@ -126,9 +124,9 @@ def test_measure_spool_sequence(random_filament: dict[str, Any], measurements: l
         spool = result.json()
         # remaining_weight should be clamped so it's never negative,
         # but used_weight should not be clamped to the net weight
-        expected_use = min(initial_weight - m, initial_weight - empty_weight)
+        expected_use = min(initial_weight - m, initial_weight - spool_weight)
         assert spool["used_weight"] == pytest.approx(expected_use)
-        expected_remaining = max(m - empty_weight, 0)
+        expected_remaining = max(m - spool_weight, 0)
         assert spool["remaining_weight"] == pytest.approx(expected_remaining)
         # Verify that first_used has been updated
         diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["first_used"])).total_seconds())
@@ -148,17 +146,17 @@ def test_measure_spool_sequence(random_filament: dict[str, Any], measurements: l
 def test_measure_spool_empty(random_empty_filament: dict[str, Any], measurements: list[float]):
     """Test using a spool in the database."""
     # Setup
-    initial_weight = 1255
-    current_weight = initial_weight
-    empty_weight = 246
+    spool_weight = 246
     start_weight = 1000
+    initial_weight = start_weight + spool_weight
+    current_weight = initial_weight
     result = httpx.post(
         f"{URL}/api/v1/spool",
         json={
             "filament_id": random_empty_filament["id"],
             "remaining_weight": start_weight,
-            "initial_weight": initial_weight,
-            "empty_weight": empty_weight,
+            "initial_weight": start_weight,
+            "spool_weight": spool_weight,
         },
     )
     result.raise_for_status()
@@ -178,9 +176,9 @@ def test_measure_spool_empty(random_empty_filament: dict[str, Any], measurements
         spool = result.json()
         # remaining_weight should be clamped so it's never negative,
         # but used_weight should not be clamped to the net weight
-        expected_use = min(initial_weight - m, initial_weight - empty_weight)
+        expected_use = min(initial_weight - m, initial_weight - spool_weight)
         assert spool["used_weight"] == pytest.approx(expected_use)
-        expected_remaining = max(m - empty_weight, 0)
+        expected_remaining = max(m - spool_weight, 0)
         assert spool["remaining_weight"] == pytest.approx(expected_remaining)
         # Verify that first_used has been updated
         diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["first_used"])).total_seconds())
