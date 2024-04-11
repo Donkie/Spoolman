@@ -5,6 +5,7 @@ import logging
 import shutil
 import sqlite3
 from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from os import PathLike
 from pathlib import Path
 from typing import Optional, Union
@@ -188,9 +189,9 @@ async def _backup_task() -> Optional[Path]:
 async def _metrics() -> None:
     """Create some useful prometheus metrics"""
     logger.info("Start metrics collection")
-    if __db is None:
-        raise RuntimeError("DB is not setup.")
-    await asyncio.gather(*[filament_metrics(__db.session_maker()), spool_metrics(__db.session_maker())])
+    async with get_session() as session:
+        await filament_metrics(session)
+        await spool_metrics(session)
     logger.info("End metrics collection")
 
 
@@ -219,6 +220,21 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     Yields:
         The database session.
     """
+    if __db is None or __db.session_maker is None:
+        raise RuntimeError("DB is not setup.")
+    async with __db.session_maker() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception as exc:
+            await session.rollback()
+            raise exc
+        finally:
+            await session.close()
+
+
+@asynccontextmanager
+async def get_session() -> AsyncSession:
     if __db is None or __db.session_maker is None:
         raise RuntimeError("DB is not setup.")
     async with __db.session_maker() as session:
