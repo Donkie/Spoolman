@@ -46,7 +46,9 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     formProps.initialValues.used_weight = 0;
 
     // Fix the filament_id
-    formProps.initialValues.filament_id = formProps.initialValues.filament.id;
+    if (formProps.initialValues.filament) {
+      formProps.initialValues.filament_id = formProps.initialValues.filament.id;
+    }
   }
 
   // If the query variable filament_id is set, set the filament_id field to that value
