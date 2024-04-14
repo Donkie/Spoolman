@@ -1,5 +1,4 @@
 """Main entrypoint to the server."""
-
 import logging
 import subprocess
 from logging.handlers import TimedRotatingFileHandler
@@ -9,14 +8,15 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import PlainTextResponse
+from prometheus_client import generate_latest
 from scheduler.asyncio.scheduler import Scheduler
 
 from spoolman import env
 from spoolman.api.v1.router import app as v1_app
 from spoolman.client import SinglePageApplication
 from spoolman.database import database
-
-from spoolman.prometheus.metrics import metrics_app
+from spoolman.prometheus.metrics import registry
 
 # Define a console logger
 console_handler = logging.StreamHandler()
@@ -39,8 +39,24 @@ app = FastAPI(
 )
 app.add_middleware(GZipMiddleware)
 app.mount("/api/v1", v1_app)
-app.mount("/metrics", metrics_app)
-app.mount("/", app=SinglePageApplication(directory="client/dist"), name="client")
+
+
+# WA for prometheus /metrics bind with SinglePageApp at root
+@app.get(
+    "/metrics",
+    response_class=PlainTextResponse,
+    name="Get metrics for prometheus",
+    description=(
+        "Get app metrics for prometheusIf enabled SPOOLMAN_METRICS_ENABLED returned metrics by Spools and Filaments"
+    ),
+)
+def get_metrics() -> bytes:
+    """Return prometheus metrics."""
+    return generate_latest(registry)
+
+
+app.mount("", app=SinglePageApplication(directory="client/dist"))
+
 
 # Allow all origins if in debug mode
 if env.is_debug_mode():

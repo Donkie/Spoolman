@@ -1,11 +1,9 @@
 """SQLAlchemy database setup."""
-import asyncio
 import datetime
 import logging
 import shutil
 import sqlite3
 from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
 from os import PathLike
 from pathlib import Path
 from typing import Optional, Union
@@ -15,7 +13,6 @@ from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from spoolman import env
-
 from spoolman.prometheus.metrics import filament_metrics, spool_metrics
 
 logger = logging.getLogger(__name__)
@@ -187,12 +184,12 @@ async def _backup_task() -> Optional[Path]:
 
 
 async def _metrics() -> None:
-    """Create some useful prometheus metrics"""
-    logger.info("Start metrics collection")
-    async with get_session() as session:
+    """Create some useful prometheus metrics."""
+    logger.debug("Start metrics collection")
+    async for session in get_db_session():
         await filament_metrics(session)
         await spool_metrics(session)
-    logger.info("End metrics collection")
+    logger.debug("End metrics collection")
 
 
 def schedule_tasks(scheduler: Scheduler) -> None:
@@ -203,15 +200,16 @@ def schedule_tasks(scheduler: Scheduler) -> None:
     """
     if __db is None:
         raise RuntimeError("DB is not setup.")
+    if env.is_metrics_enabled():
+        logger.info("Scheduling automatic metric collection.")
+        # Run every minute, may be needs specify timer
+        scheduler.minutely(datetime.time(second=0), _metrics)
     if not env.is_automatic_backup_enabled():
         return
     if "sqlite" in __db.connection_url.drivername:
         logger.info("Scheduling automatic database backup for midnight.")
         # Schedule for midnight
         scheduler.daily(datetime.time(hour=0, minute=0, second=0), _backup_task)  # type: ignore[arg-type]
-        logger.info("Scheduling automatic metric collection.")
-        logger.info("%s", datetime.time(minute=1))
-        scheduler.minutely(datetime.time(second=0), _metrics)
 
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
@@ -220,21 +218,6 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     Yields:
         The database session.
     """
-    if __db is None or __db.session_maker is None:
-        raise RuntimeError("DB is not setup.")
-    async with __db.session_maker() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception as exc:
-            await session.rollback()
-            raise exc
-        finally:
-            await session.close()
-
-
-@asynccontextmanager
-async def get_session() -> AsyncSession:
     if __db is None or __db.session_maker is None:
         raise RuntimeError("DB is not setup.")
     async with __db.session_maker() as session:
