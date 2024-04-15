@@ -44,7 +44,7 @@ def upgrade() -> None:
     )
 
     initial_weight = (
-        sa.select((filament.c.weight + filament.c.spool_weight).label("initial_weight"))
+        sa.select((filament.c.weight).label("initial_weight"))
         .where(filament.c.id == spool.c.filament_id)
         .scalar_subquery()
     )
@@ -55,7 +55,6 @@ def upgrade() -> None:
 
     set_spool_weight = sa.update(spool).values(spool_weight=spool_weight)
     op.execute(set_spool_weight)
-    pass
 
 
 def downgrade() -> None:
