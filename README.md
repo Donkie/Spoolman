@@ -115,7 +115,7 @@ These are either set in the .env file if you use the standalone installation, or
 If you want to connect with an external database instead, specify the `SPOOLMAN_DB_*` environment variables from the table below.
 
 | Variable                  | Description                                                                                                                  |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+|---------------------------|------------------------------------------------------------------------------------------------------------------------------|
 | SPOOLMAN_DB_TYPE          | Type of database, any of: `postgres`, `mysql`, `sqlite`, `cockroachdb`                                                       |
 | SPOOLMAN_DB_HOST          | Database hostname                                                                                                            |
 | SPOOLMAN_DB_PORT          | Database port                                                                                                                |
@@ -130,6 +130,7 @@ If you want to connect with an external database instead, specify the `SPOOLMAN_
 | PGID                      | (*docker only*) Set the GID of the user in the docker container. Default is 1000.                                            |
 | SPOOLMAN_PORT             | The port Spoolman should run on (default: 8000)                                                                              |
 | SPOOLMAN_HOST             | The hostname/ip Spoolman should bind to (default: 0.0.0.0)                                                                   |
+| SPOOLMAN_METRICS_ENABLED  | Enable collect Spoolman prometheus metrics at database. Default `False`                                                      |
 
 ## Frequently Asked Questions (FAQs)
 ### QR Code Does not work on HTTP / The page is not served over HTTPS
@@ -148,6 +149,7 @@ To setup yourself for Python development, do the following:
 1. Clone this repo
 2. CD into the repo
 3. Install PDM: `pip install --user pdm`
+> At pre-commit hook used pdm==2.7.4
 4. Install Spoolman dependencies: `pdm sync`
 
 And you should be all setup. Read the Style and Integration Testing sections below as well.
