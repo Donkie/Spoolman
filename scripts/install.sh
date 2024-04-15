@@ -60,10 +60,12 @@ if [[ -f /etc/os-release ]]; then
         pkg_manager="apt-get"
         update_cmd="sudo $pkg_manager update"
         install_cmd="sudo $pkg_manager install -y"
+        echo -e "${GREEN}Detected Debian-based system. Using apt-get package manager.${NC}"
     elif [[ "$ID_LIKE" == *"arch"* ]]; then
         pkg_manager="pacman"
         update_cmd="sudo $pkg_manager -Sy"
         install_cmd="sudo $pkg_manager -S --noconfirm"
+        echo -e "${GREEN}Detected Arch-based system. Using pacman package manager.${NC}"
     else
         echo -e "${ORANGE}Your operating system is not supported. Either try to install manually or reach out to spoolman github for support.${NC}"
         exit 1
