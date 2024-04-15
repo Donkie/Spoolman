@@ -57,7 +57,7 @@ def test_measure_spool(random_filament: dict[str, Any], measurement: float):
 
 
 @pytest.mark.parametrize("measurement", [1500])  # 1500 is more than the initial weight
-def test_measure_spool_invalid(random_filament: dict[str, Any], measurement: float):
+def test_measure_spool_higher_initial(random_filament: dict[str, Any], measurement: float):
     """Test using a spool in the database."""
     # Setup
     random_filament["weight"]
@@ -83,13 +83,27 @@ def test_measure_spool_invalid(random_filament: dict[str, Any], measurement: flo
         },
     )
     # Update is invalid if the weight is more than the initial weight
-    assert result.status_code == 400
+    result.raise_for_status()
 
+    # Verify
+    spool = result.json()
+    # remaining_weight should be clamped so it's never negative,
+    # but used_weight should not be clamped to the net weight
+    expected_use = 0
+    expected_initial_weight = measurement - spool_weight
+    expected_remaining = max(measurement - spool_weight, 0)
+
+    assert spool["used_weight"] == pytest.approx(expected_use)
+    assert spool["remaining_weight"] == pytest.approx(expected_remaining)
+    assert spool["initial_weight"] == pytest.approx(expected_initial_weight)
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
 
 
-@pytest.mark.parametrize("measurements", [[1244, 1233, 1200], [1000, 900, 800], [1000, 1000, 1000]])
+@pytest.mark.parametrize(
+    "measurements",
+    [[1244, 1233, 1200], [1000, 900, 800], [1000, 1000, 1000], [1000, 900, 800, 815]],
+)
 def test_measure_spool_sequence(random_filament: dict[str, Any], measurements: list[float]):
     """Test using a spool in the database."""
     # Setup

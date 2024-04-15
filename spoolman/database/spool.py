@@ -376,12 +376,12 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
 
     initial_gross_weight = initial_weight + spool_weight
 
-    # Calculate the current gross weight (initial_weight - used_weight)
-    current_use = initial_gross_weight - spool_info[1]
+    # if the measurement is greater than the initial weight, set the initial weight to the measurement
+    if weight > initial_gross_weight:
+        return await reset_initial_weight(db, spool_id, weight - spool_weight)
 
-    # if the measurement is greater than the initial weight, raise an error
-    if weight > current_use:
-        raise SpoolMeasureError("Measured weight cannot increase.")
+    # Calculate the current net weight
+    current_use = initial_gross_weight - spool_info[1]
 
     # Calculate the weight used since last measure
     weight_to_use = current_use - weight
@@ -424,3 +424,14 @@ async def spool_changed(spool: models.Spool, typ: EventType) -> None:
             payload=Spool.from_db(spool),
         ),
     )
+
+
+async def reset_initial_weight(db: AsyncSession, spool_id: int, weight: float) -> models.Spool:
+    """Reset inital weight to new weight and used_weight to 0."""
+    spool = await get_by_id(db, spool_id)
+
+    spool.initial_weight = weight
+    spool.used_weight = 0
+    await db.commit()
+    await spool_changed(spool, EventType.UPDATED)
+    return spool
