@@ -380,3 +380,21 @@ def is_data_dir_mounted() -> bool:
     mounts = subprocess.run("mount", check=True, stdout=subprocess.PIPE, text=True)  # noqa: S603, S607
     data_dir = str(get_data_dir().resolve())
     return any(data_dir in line for line in mounts.stdout.splitlines())
+
+
+def is_metrics_enabled() -> bool:
+    """Get whether collect prometheus metrics at database is enabled.
+
+        Returns False if no environment variable was set for collect metrics.
+
+    Returns:
+        bool: Whether collect metrics is enabled.
+    """
+    metrics_enabled = os.getenv("SPOOLMAN_METRICS_ENABLED", "FALSE").upper()
+    if metrics_enabled in {"FALSE", "0"}:
+        return False
+    if metrics_enabled in {"TRUE", "1"}:
+        return True
+    raise ValueError(
+        f"Failed to parse SPOOLMAN_METRICS_ENABLED variable: Unknown metrics enabled '{metrics_enabled}'.",
+    )

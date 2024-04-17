@@ -1,5 +1,4 @@
 """SQLAlchemy database setup."""
-
 import datetime
 import logging
 import shutil
@@ -14,6 +13,7 @@ from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from spoolman import env
+from spoolman.prometheus.metrics import filament_metrics, spool_metrics
 
 logger = logging.getLogger(__name__)
 
@@ -183,6 +183,15 @@ async def _backup_task() -> Optional[Path]:
     return __db.backup_and_rotate(env.get_backups_dir(), num_backups=5)
 
 
+async def _metrics() -> None:
+    """Create some useful prometheus metrics."""
+    logger.debug("Start metrics collection")
+    async for session in get_db_session():
+        await filament_metrics(session)
+        await spool_metrics(session)
+    logger.debug("End metrics collection")
+
+
 def schedule_tasks(scheduler: Scheduler) -> None:
     """Schedule tasks to be executed by the provided scheduler.
 
@@ -191,6 +200,10 @@ def schedule_tasks(scheduler: Scheduler) -> None:
     """
     if __db is None:
         raise RuntimeError("DB is not setup.")
+    if env.is_metrics_enabled():
+        logger.info("Scheduling automatic metric collection.")
+        # Run every minute, may be needs specify timer
+        scheduler.minutely(datetime.time(second=0), _metrics)
     if not env.is_automatic_backup_enabled():
         return
     if "sqlite" in __db.connection_url.drivername:
