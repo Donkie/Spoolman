@@ -17,7 +17,7 @@ from spoolman.api.v1.models import Message, Spool, SpoolEvent
 from spoolman.database import spool
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
-from spoolman.exceptions import ItemCreateError
+from spoolman.exceptions import ItemCreateError, SpoolMeasureError
 from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
 from spoolman.ws import websocket_manager
 
@@ -39,6 +39,16 @@ class SpoolParameters(BaseModel):
         ge=0,
         description="The price of this filament in the system configured currency.",
         example=20.0,
+    )
+    initial_weight: Optional[float] = Field(
+        ge=0,
+        description="The initial weight of the filament on the spool, in grams. (net weight)",
+        example=200,
+    )
+    spool_weight: Optional[float] = Field(
+        ge=0,
+        description="The weight of an empty spool, in grams. (tare weight)",
+        example=200,
     )
     remaining_weight: Optional[float] = Field(
         ge=0,
@@ -73,6 +83,10 @@ class SpoolUpdateParameters(SpoolParameters):
 class SpoolUseParameters(BaseModel):
     use_length: Optional[float] = Field(description="Length of filament to reduce by, in mm.", example=2.2)
     use_weight: Optional[float] = Field(description="Filament weight to reduce by, in g.", example=5.3)
+
+
+class SpoolMeasureParameters(BaseModel):
+    weight: float = Field(description="Current gross weight of the spool, in g.", example=200)
 
 
 @router.get(
@@ -354,6 +368,8 @@ async def create(  # noqa: ANN201
             db=db,
             filament_id=body.filament_id,
             price=body.price,
+            initial_weight=body.initial_weight,
+            spool_weight=body.spool_weight,
             remaining_weight=body.remaining_weight,
             used_weight=body.used_weight,
             first_used=body.first_used,
@@ -480,3 +496,30 @@ async def use(  # noqa: ANN201
         status_code=400,
         content={"message": "Either use_weight or use_length must be specified."},
     )
+
+
+@router.put(
+    "/{spool_id}/measure",
+    name="Use spool filament based on the current weight measurement",
+    description=("Use some weight of filament from the spool. Specify the current gross weight of the spool."),
+    response_model_exclude_none=True,
+    response_model=Spool,
+    responses={
+        400: {"model": Message},
+        404: {"model": Message},
+    },
+)
+async def measure(  # noqa: ANN201
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    spool_id: int,
+    body: SpoolMeasureParameters,
+):
+    try:
+        db_item = await spool.measure(db, spool_id, body.weight)
+        return Spool.from_db(db_item)
+    except SpoolMeasureError as e:
+        logger.exception("Failed to update spool measurement.")
+        return JSONResponse(
+            status_code=400,
+            content={"message": e.args[0]},
+        )

@@ -18,6 +18,7 @@ class Vendor(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     registered: Mapped[datetime] = mapped_column()
     name: Mapped[str] = mapped_column(String(64))
+    empty_spool_weight: Mapped[Optional[float]] = mapped_column(comment="The weight of an empty spool.")
     comment: Mapped[Optional[str]] = mapped_column(String(1024))
     filaments: Mapped[list["Filament"]] = relationship(back_populates="vendor")
     extra: Mapped[list["VendorField"]] = relationship(
@@ -64,6 +65,8 @@ class Spool(Base):
     price: Mapped[Optional[float]] = mapped_column()
     filament_id: Mapped[int] = mapped_column(ForeignKey("filament.id"))
     filament: Mapped["Filament"] = relationship(back_populates="spools")
+    initial_weight: Mapped[Optional[float]] = mapped_column()
+    spool_weight: Mapped[Optional[float]] = mapped_column()
     used_weight: Mapped[float] = mapped_column()
     location: Mapped[Optional[str]] = mapped_column(String(64))
     lot_nr: Mapped[Optional[str]] = mapped_column(String(64))

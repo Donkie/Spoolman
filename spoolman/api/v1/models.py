@@ -60,6 +60,7 @@ class Vendor(BaseModel):
     registered: datetime = Field(description="When the vendor was registered in the database. UTC Timezone.")
     name: str = Field(max_length=64, description="Vendor name.", example="Polymaker")
     comment: Optional[str] = Field(max_length=1024, description="Free text comment about this vendor.", example="")
+    empty_spool_weight: Optional[float] = Field(gt=0, description="The empty spool weight, in grams.", example=140)
     extra: dict[str, str] = Field(
         description=(
             "Extra fields for this vendor. All values are JSON-encoded data. "
@@ -75,6 +76,7 @@ class Vendor(BaseModel):
             registered=item.registered,
             name=item.name,
             comment=item.comment,
+            empty_spool_weight=item.empty_spool_weight,
             extra={field.key: field.value for field in item.extra},
         )
 
@@ -185,6 +187,18 @@ class Spool(BaseModel):
         ),
         example=500.6,
     )
+    initial_weight: Optional[float] = Field(
+        default=None,
+        ge=0,
+        description=("The initial weight, in grams, of the filament on the spool (net weight)."),
+        example=1246,
+    )
+    spool_weight: Optional[float] = Field(
+        default=None,
+        ge=0,
+        description=("Weight of an empty spool (tare weight)."),
+        example=246,
+    )
     used_weight: float = Field(ge=0, description="Consumed weight of filament from the spool in grams.", example=500.3)
     remaining_length: Optional[float] = Field(
         default=None,
@@ -226,7 +240,15 @@ class Spool(BaseModel):
 
         remaining_weight: Optional[float] = None
         remaining_length: Optional[float] = None
-        if filament.weight is not None:
+
+        if item.initial_weight is not None:
+            remaining_weight = max(item.initial_weight - item.used_weight, 0)
+            remaining_length = length_from_weight(
+                weight=remaining_weight,
+                density=filament.density,
+                diameter=filament.diameter,
+            )
+        elif filament.weight is not None:
             remaining_weight = max(filament.weight - item.used_weight, 0)
             remaining_length = length_from_weight(
                 weight=remaining_weight,
@@ -247,6 +269,8 @@ class Spool(BaseModel):
             last_used=item.last_used,
             filament=filament,
             price=item.price,
+            initial_weight=item.initial_weight,
+            spool_weight=item.spool_weight,
             used_weight=item.used_weight,
             used_length=used_length,
             remaining_weight=remaining_weight,
