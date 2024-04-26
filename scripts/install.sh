@@ -79,33 +79,33 @@ packages=""
 if ! python3 -c 'import venv, ensurepip' &>/dev/null; then
     echo -e "${ORANGE}Python venv module is not accessible. Installing venv...${NC}"
     if [[ "$pkg_manager" == "apt-get" ]]; then
-        packages+="python3-venv"
+        packages+=" python3-venv"
     elif [[ "$pkg_manager" == "pacman" ]]; then
-        packages+="python-virtualenv"
+        packages+=" python-virtualenv"
     fi
 fi
 
 if ! command -v pip3 &>/dev/null; then
     echo -e "${ORANGE}Python pip is not installed. Installing pip...${NC}"
     if [[ "$pkg_manager" == "apt-get" ]]; then
-        packages+="python3-pip"
+        packages+=" python3-pip"
     elif [[ "$pkg_manager" == "pacman" ]]; then
-        packages+="python-pip"
+        packages+=" python-pip"
     fi
 fi
 
 if ! command -v pg_config &>/dev/null; then
     echo -e "${ORANGE}pg_config is not available. Installing libpq-dev...${NC}"
     if [[ "$pkg_manager" == "apt-get" ]]; then
-        packages+="libpq-dev"
+        packages+=" libpq-dev"
     elif [[ "$pkg_manager" == "pacman" ]]; then
-        packages+="postgresql-libs"
+        packages+=" postgresql-libs"
     fi
 fi
 
 if ! command -v unzip &>/dev/null; then
     echo -e "${ORANGE}unzip is not available. Installing unzip...${NC}"
-    packages+="unzip"
+    packages+=" unzip"
 fi
 
 if [[ -n "$packages" ]]; then
