@@ -56,12 +56,12 @@ fi
 #
 if [[ -f /etc/os-release ]]; then
     source /etc/os-release
-    if [[ "$ID_LIKE" == *"debian"* ]]; then
+    if [[ "$ID_LIKE" == *"debian"* || "$ID" == *"debian"* ]]; then
         pkg_manager="apt-get"
         update_cmd="sudo $pkg_manager update"
         install_cmd="sudo $pkg_manager install -y"
         echo -e "${GREEN}Detected Debian-based system. Using apt-get package manager.${NC}"
-    elif [[ "$ID_LIKE" == *"arch"* ]]; then
+    elif [[ "$ID_LIKE" == *"arch"* || "$ID" == *"arch"* ]]; then
         pkg_manager="pacman"
         update_cmd="sudo $pkg_manager -Sy"
         install_cmd="sudo $pkg_manager -S --noconfirm"
