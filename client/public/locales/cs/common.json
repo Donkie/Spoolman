@@ -150,7 +150,9 @@
             "registered": "Registrováno",
             "comment": "Komentář",
             "archived": "Archivováno",
-            "price": "Cena"
+            "price": "Cena",
+            "spool_weight": "Prázdná hmotnost",
+            "initial_weight": "Výchozí hmotnost"
         },
         "fields_help": {
             "weight_to_use": "Vyberte, jakou hodnotu hmotnosti chcete zadat. Naměřená hmotnost je k dispozici pouze v případě, že je pro vybraný filament nastavena hmotnost cívky.",
@@ -159,7 +161,9 @@
             "measured_weight": "Jaká je hmotnost filamentu a cívky.",
             "location": "Kde se cívka nachází, pokud máte více míst, kde cívky skladujete.",
             "lot_nr": "Číslo šarže výrobce. Lze použít k zajištění jednotné barvy tisku v případě použití více cívek.",
-            "price": "Cena celé cívky. Pokud není nastavena, předpokládá se cena filamentu."
+            "price": "Cena celé cívky. Pokud není nastavena, předpokládá se cena filamentu.",
+            "spool_weight": "Hmotnost prázdné cívky.  Tato hodnota může pocházet buď od vlákna, nebo od prodejce, ale sleduje se na úrovni cívky, aby bylo možné zohlednit individuální odchylky hmotnosti prázdné cívky.",
+            "initial_weight": "Počáteční hmotnost vlákna (čistá hmotnost).  Tato hodnota může vycházet z vlákna, ale sleduje se na úrovni cívky, aby bylo možné zohlednit individuální změny hmotnosti vlákna na cívce."
         },
         "titles": {
             "create": "Vytvořit cívku",
@@ -228,7 +232,8 @@
             "id": "Id",
             "name": "Název",
             "registered": "Registrováno",
-            "comment": "Komentář"
+            "comment": "Komentář",
+            "empty_spool_weight": "Hmotnost prázdné cívky"
         },
         "titles": {
             "create": "Vytvořit výrobce",
@@ -240,6 +245,9 @@
         },
         "form": {
             "vendor_updated": "Od otevření této stránky byl tento prodejce někým/něčím aktualizován. Uložením se tyto změny přepíší!"
+        },
+        "fields_help": {
+            "empty_spool_weight": "Hmotnost prázdné cívky od tohoto výrobce."
         }
     },
     "table": {
