@@ -59,7 +59,7 @@
             "registered": "Zarejestrowano",
             "measured_weight": "Zmierzona waga",
             "weight_to_use": "Waga",
-            "price": ""
+            "price": "Cena"
         },
         "fields_help": {
             "location": "Wpisz gdzie znajduje się szpula, jeśli masz wiele lokalizacji, w których przechowujesz szpule.",
@@ -91,7 +91,8 @@
         "editError": "Błąd podczas edycji {{resource}} (kod statusu: {{statusCode}})",
         "importProgress": "Importowanie: {{processed}}/{{total}}",
         "error": "Błąd (kod statusu: {{statusCode}})",
-        "createError": "Wystąpił błąd podczas tworzenia {{resource}} (kod statusu: {{statusCode}})"
+        "createError": "Wystąpił błąd podczas tworzenia {{resource}} (kod statusu: {{statusCode}})",
+        "saveSuccessful": "Zapisano pomyślnie!"
     },
     "loading": "Wczytywanie",
     "version": "Wersja",
@@ -198,7 +199,7 @@
         },
         "fields_help": {
             "material": "Np. PLA, ABS, PETG itp.",
-            "price": "Cena pełnej szpuli w walucie skonfigurowanej przez system.",
+            "price": "Cena pełnej szpuli.",
             "spool_weight": "Waga pustej szpuli. Używana do określenia ciężaru szpuli.",
             "article_number": "Np. EAN, UPC itp.",
             "name": "Nazwa filamentu, aby odróżnić ten typ filamentu od innych pochodzących od tego samego producenta. Powinna zawierać np. kolor.",
@@ -214,6 +215,9 @@
         },
         "form": {
             "filament_updated": "Ten filament został zaktualizowany przez kogoś/coś innego od czasu otwarcia tej strony. Zapisanie nadpisze te zmiany!"
+        },
+        "buttons": {
+            "add_spool": "Dodaj Szpulę"
         }
     },
     "vendor": {
@@ -282,5 +286,26 @@
     "kofi": "Daj napiwek na Ko-fi",
     "home": {
         "home": "Strona główna"
+    },
+    "settings": {
+        "settings": "Ustawienia",
+        "general": {
+            "currency": {
+                "label": "Waluta"
+            }
+        },
+        "extra_fields": {
+            "tab": "Dodatkowe Parametry",
+            "boolean_true": "Tak",
+            "boolean_false": "Nie",
+            "params": {
+                "name": "Nazwa",
+                "field_type": "Typ",
+                "unit": "Jednostka",
+                "order": "Kolejność",
+                "default_value": "Domyślna Wartość"
+            }
+        },
+        "header": "Ustawienia"
     }
 }
