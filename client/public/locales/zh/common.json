@@ -157,7 +157,7 @@
             "measured_weight": "耗材和料盘的重量分别是多少。",
             "location": "如果您有多个存放料盘的地方，请填写料盘所在的位置。",
             "lot_nr": "制造商的批号。如果使用多个料盘可以使用批号进行控制，以确保打印颜色一致。",
-            "price": "以系统配置的货币计价的整卷料盘的价格。如果未设置，则默认使用该耗材的价格。"
+            "price": "整卷料盘的价格。如果未设置，则默认使用该耗材的价格。"
         },
         "titles": {
             "create": "创建料盘",
@@ -295,8 +295,30 @@
                 "integer_range": "整数范围",
                 "float": "浮点数",
                 "float_range": "浮点数范围",
-                "boolean": "布尔数"
-            }
+                "boolean": "布尔类型",
+                "datetime": "日期时间",
+                "text": "文本",
+                "integer": "整数",
+                "choice": "选项"
+            },
+            "delete_confirm_description": "这将删除该字段以及所有实体的关联数据。",
+            "description": "<p>这里你可以为你的实体添加额外的自定义字段。</p><p>一旦添加了字段，就无法更改其键或类型；对于选择类型字段，无法删除选项或更改多选状态。如果删除字段，则所有实体的相关数据将被删除。</p><p>键是其他程序读取/写入数据的标识，因此，如果你的自定义字段需要与第三方程序集成，请确保设置正确。默认值仅适用于新项目。</p><p>额外字段在表视图中无法进行排序或过滤。</p>",
+            "params": {
+                "name": "名称",
+                "field_type": "类型",
+                "order": "顺序",
+                "default_value": "默认值",
+                "multi_choice": "多选",
+                "choices": "选择项",
+                "key": "键",
+                "unit": "单位"
+            },
+            "boolean_true": "是",
+            "boolean_false": "否",
+            "choices_missing_error": "您无法删除选择。以下选项丢失：{{choices}}",
+            "non_unique_key_error": "键必须是唯一的。",
+            "key_not_changed": "请将键改成其他的。",
+            "delete_confirm": "删除字段 {{name}}？"
         },
         "header": "设置",
         "general": {
