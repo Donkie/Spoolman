@@ -7,7 +7,7 @@ services:
       - TZ='GMT+4'
       - PGTZ='GMT+4'
   spoolman:
-    image: donkie/spoolman:test
+    image: tomw1605/spoolman:test
     environment:
       - SPOOLMAN_DB_TYPE=postgres
       - SPOOLMAN_DB_HOST=db
@@ -20,7 +20,7 @@ services:
     depends_on:
       - db
   tester:
-    image: donkie/spoolman-tester:latest
+    image: tomw1605/spoolman-tester:latest
     volumes:
       - ./tests:/tester/tests
     environment:
