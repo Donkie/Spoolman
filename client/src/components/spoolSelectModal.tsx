@@ -173,7 +173,7 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
           onRow={(record, rowIndex) => {
             return {
               onClick: (event) => {
-                if (event.target.tagName != "INPUT") {
+                if ((event.target as Element).tagName != "INPUT") {
                   handleSelectItem(record.id);
                 }
                 //handleSelectItem(record.id);

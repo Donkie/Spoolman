@@ -45,7 +45,7 @@ const RenderLabelTemplate = (spool: ISpool, template: string) => {
         "density": format_density(spool?.filament?.density as number),
         "diameter": format_diameter(spool?.filament?.diameter as number),
         "net_weight": format_weight(spool?.filament?.weight as number),
-        "color_hex": format_id(spool?.filament?.color_hex as number),
+        "color_hex": spool?.filament?.color_hex,
     }
 
     let label_text = template;
@@ -54,7 +54,7 @@ const RenderLabelTemplate = (spool: ISpool, template: string) => {
     let matches = [...template.matchAll(/{(.*?){(.*?)}(.*?)}/gs)];
     // console.log(matches)
     matches.forEach((match) => {
-        let substitution = placeholder_map[match[2]]
+        let substitution = placeholder_map[match[2] as any]
         if (substitution == null) {
             label_text = label_text.replace(match[0], "");
         } else {
