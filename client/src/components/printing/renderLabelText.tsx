@@ -6,21 +6,21 @@ function format_id(id: number) {
     return "#" + id;
 }
 
-function format_weight(weight: number | undefined): string {
+function format_weight(weight: number | undefined): string | undefined {
     if (weight == null) {
         return null;
     }
     return weight.toLocaleString(undefined, { maximumFractionDigits: 2 }) + " g";
 }
 
-function format_temp(temp: number | undefined): string {
+function format_temp(temp: number | undefined): string | undefined {
     if (temp == null) {
         return null;
     }
     return temp.toLocaleString(undefined, { maximumFractionDigits: 0 }) + "°C";
 }
 
-function format_price(price: number | undefined, currency: string): string {
+function format_price(price: number | undefined, currency: string): string | undefined {
     if (price == null) {
         return null;
     }
@@ -35,7 +35,7 @@ function format_diameter(diameter: number): string {
     return diameter.toLocaleString(undefined, { maximumFractionDigits: 2 }) + " mm";
 }
 
-function format_date(date: string): string {
+function format_date(date: string): string | undefined {
     if (date == null) {
         return null;
     }
