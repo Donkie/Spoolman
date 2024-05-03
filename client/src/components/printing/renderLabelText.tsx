@@ -1,28 +1,30 @@
-function format_id(id) {
+import {ISpool} from "../../pages/spools/model";
+
+function format_id(id: number) {
     return id ? "#"+id : id
 }
 
-function format_weight(weight) {
-    return weight ? weight.toLocaleString(undefined,{ maximumFractionDigits: 2 })+" g" : weight
+function format_weight(weight: number) {
+    return weight ? weight.toLocaleString(undefined, { maximumFractionDigits: 2 })+" g" : weight
 }
 
-function format_temp(temp) {
+function format_temp(temp: number) {
     return temp ? temp+"°C" : temp
 }
 
-function format_price(price) {
+function format_price(price: number) {
     return price ? "$"+price : price
 }
 
-function format_density(density) {
+function format_density(density: number) {
     return density ? density+" g/cm³" : density
 }
 
-function format_diameter(diameter) {
+function format_diameter(diameter: number) {
     return diameter ? diameter+" mm" : diameter
 }
 
-const RenderLabelTemplate = (spool: ISpool, template: str) => {
+const RenderLabelTemplate = (spool: ISpool, template: string) => {
 	console.log(spool.id);
     const placeholder_map = {
         "id": format_id(spool?.id),
