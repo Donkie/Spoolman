@@ -162,7 +162,9 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
               alignContent: "flex-start",
             }}
           >
+            <tbody>
             {itemRows}
+            </tbody>
           </table>
         </div>
       </div>
