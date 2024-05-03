@@ -5,6 +5,7 @@ import QRCodePrintingDialog from "./qrCodePrintingDialog";
 import { useSavedState } from "../../utils/saveload";
 import { useTranslate } from "@refinedev/core";
 import renderLabelTemplate from "./renderLabelText";
+import {useCurrency} from "../../utils/settings";
 
 const { TextArea } = Input;
 
@@ -16,6 +17,8 @@ interface SpoolQRCodePrintingDialog {
 
 const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ visible, items, onCancel }) => {
   const t = useTranslate();
+
+  const currency = useCurrency()
 
   const [showVendor, setShowVendor] = useSavedState("print-showVendor", true);
   const [showLotNr, setShowLotNr] = useSavedState("print-showLotNr", true);
@@ -53,7 +56,7 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ visibl
         }
         const tempLine = temps.join(" - ");
 		
-		const renderedTemplate = renderLabelTemplate(spool, labelTextTemplate);
+		const renderedTemplate = renderLabelTemplate(spool, labelTextTemplate, currency);
 
         return {
           value: `web+spoolman:s-${spool.id}`,

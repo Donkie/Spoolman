@@ -1,5 +1,5 @@
 import {ISpool} from "../../pages/spools/model";
-import {getCurrencySymbol, useCurrency} from "../../utils/settings";
+import {getCurrencySymbol} from "../../utils/settings";
 
 function format_id(id: number) {
     return id ? "#"+id : id
@@ -13,8 +13,8 @@ function format_temp(temp: number) {
     return temp ? temp.toLocaleString(undefined, { maximumFractionDigits: 0 })+"°C" : temp
 }
 
-function format_price(price: number) {
-    return price ? getCurrencySymbol(undefined, useCurrency())+price.toLocaleString(undefined, { maximumFractionDigits: 2 }) : price
+function format_price(price: number, currency: number) {
+    return price ? getCurrencySymbol(undefined, currency)+price.toLocaleString(undefined, { maximumFractionDigits: 2 }) : price
 }
 
 function format_density(density: number) {
@@ -25,7 +25,7 @@ function format_diameter(diameter: number) {
     return diameter ? diameter.toLocaleString(undefined, { maximumFractionDigits: 2 })+" mm" : diameter
 }
 
-const RenderLabelTemplate = (spool: ISpool, template: string) => {
+const RenderLabelTemplate = (spool: ISpool, template: string, currency: number) => {
 	console.log(spool.id);
     const placeholder_map = {
         "id": format_id(spool?.id as number),
@@ -40,7 +40,7 @@ const RenderLabelTemplate = (spool: ISpool, template: string) => {
         "extruder_temp": format_temp(spool?.filament?.settings_extruder_temp as number),
         "bed_temp": format_temp(spool?.filament?.settings_bed_temp as number),
         "first_used": spool?.first_used,
-        "price": format_price((spool?.price ? spool?.price : spool?.filament?.price) as number),
+        "price": format_price((spool?.price ? spool?.price : spool?.filament?.price) as number, currency),
         "remaining_weight": format_weight(spool?.remaining_weight as number),
         "used_weight": spool?.used_weight,
         "density": format_density(spool?.filament?.density as number),
