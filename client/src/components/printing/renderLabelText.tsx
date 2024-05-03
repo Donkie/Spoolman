@@ -27,25 +27,25 @@ function format_diameter(diameter: number) {
 const RenderLabelTemplate = (spool: ISpool, template: string) => {
 	console.log(spool.id);
     const placeholder_map = {
-        "id": format_id(spool?.id),
+        "id": format_id(spool?.id as number),
         "vendor": spool?.filament?.vendor?.name,
         "name": spool?.filament?.name,
         "material": spool?.filament?.material,
-        "spool_weight": format_weight(spool?.filament?.spool_weight),
+        "spool_weight": format_weight(spool?.filament?.spool_weight as number),
         "lot_nr": spool?.lot_nr,
         "spool_comment": spool?.comment,
         "filament_comment": spool?.filament?.comment,
         "vendor_comment": spool?.filament?.vendor?.comment,
-        "extruder_temp": format_temp(spool?.filament?.settings_extruder_temp),
-        "bed_temp": format_temp(spool?.filament?.settings_bed_temp),
+        "extruder_temp": format_temp(spool?.filament?.settings_extruder_temp as number),
+        "bed_temp": format_temp(spool?.filament?.settings_bed_temp as number),
         "first_used": spool?.first_used,
-        "price": format_price(spool?.price),
-        "remaining_weight": format_weight(spool?.remaining_weight),
+        "price": format_price(spool?.price as number),
+        "remaining_weight": format_weight(spool?.remaining_weight as number),
         "used_weight": spool?.used_weight,
-        "density": format_density(spool?.filament?.density),
-        "diameter": format_diameter(spool?.filament?.diameter),
-        "net_weight": format_weight(spool?.filament?.weight),
-        "color_hex": format_id(spool?.filament?.color_hex),
+        "density": format_density(spool?.filament?.density as number),
+        "diameter": format_diameter(spool?.filament?.diameter as number),
+        "net_weight": format_weight(spool?.filament?.weight as number),
+        "color_hex": format_id(spool?.filament?.color_hex as number),
     }
 
     let label_text = template;
