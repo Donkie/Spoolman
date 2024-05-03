@@ -13,7 +13,7 @@ function format_temp(temp: number) {
     return temp ? temp.toLocaleString(undefined, { maximumFractionDigits: 0 })+"°C" : temp
 }
 
-function format_price(price: number, currency: number) {
+function format_price(price: number, currency: string) {
     return price ? getCurrencySymbol(undefined, currency)+price.toLocaleString(undefined, { maximumFractionDigits: 2 }) : price
 }
 
@@ -25,7 +25,7 @@ function format_diameter(diameter: number) {
     return diameter ? diameter.toLocaleString(undefined, { maximumFractionDigits: 2 })+" mm" : diameter
 }
 
-const RenderLabelTemplate = (spool: ISpool, template: string, currency: number) => {
+const RenderLabelTemplate = (spool: ISpool, template: string, currency: string) => {
 	console.log(spool.id);
     const placeholder_map = {
         "id": format_id(spool?.id as number),
