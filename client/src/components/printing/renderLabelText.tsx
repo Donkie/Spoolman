@@ -54,7 +54,7 @@ const RenderLabelTemplate = (spool: ISpool, template: string) => {
     let matches = [...template.matchAll(/{(.*?){(.*?)}(.*?)}/gs)];
     // console.log(matches)
     matches.forEach((match) => {
-        let substitution = placeholder_map[match[2] as any]
+        let substitution = placeholder_map[match[2]] as any
         if (substitution == null) {
             label_text = label_text.replace(match[0], "");
         } else {
