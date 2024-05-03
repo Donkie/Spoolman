@@ -8,21 +8,21 @@ function format_id(id: number) {
 
 function format_weight(weight: number | undefined): string | undefined {
     if (weight == null) {
-        return null;
+        return undefined;
     }
     return weight.toLocaleString(undefined, { maximumFractionDigits: 2 }) + " g";
 }
 
 function format_temp(temp: number | undefined): string | undefined {
     if (temp == null) {
-        return null;
+        return undefined;
     }
     return temp.toLocaleString(undefined, { maximumFractionDigits: 0 }) + "°C";
 }
 
 function format_price(price: number | undefined, currency: string): string | undefined {
     if (price == null) {
-        return null;
+        return undefined;
     }
     return getCurrencySymbol(undefined, currency) + price.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
@@ -37,12 +37,12 @@ function format_diameter(diameter: number): string {
 
 function format_date(date: string): string | undefined {
     if (date == null) {
-        return null;
+        return undefined;
     }
     return dayjs.utc(date).local().format("YYYY-MM-DD");
 }
 
-function escape_regex(string) {
+function escape_regex(string: string): string {
     return string.replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&");
 }
 
