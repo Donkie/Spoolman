@@ -9,19 +9,19 @@ function format_weight(weight: number) {
 }
 
 function format_temp(temp: number) {
-    return temp ? temp+"°C" : temp
+    return temp ? temp.toLocaleString(undefined, { maximumFractionDigits: 0 })+"°C" : temp
 }
 
 function format_price(price: number) {
-    return price ? "$"+price : price
+    return price ? "$"+price.toLocaleString(undefined, { maximumFractionDigits: 2 }) : price
 }
 
 function format_density(density: number) {
-    return density ? density+" g/cm³" : density
+    return density ? density.toLocaleString(undefined, { maximumFractionDigits: 2 })+" g/cm³" : density
 }
 
 function format_diameter(diameter: number) {
-    return diameter ? diameter+" mm" : diameter
+    return diameter ? diameter.toLocaleString(undefined, { maximumFractionDigits: 2 })+" mm" : diameter
 }
 
 const RenderLabelTemplate = (spool: ISpool, template: string) => {
