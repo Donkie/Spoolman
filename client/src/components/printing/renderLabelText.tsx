@@ -2,27 +2,27 @@ import {ISpool} from "../../pages/spools/model";
 import {getCurrencySymbol} from "../../utils/settings";
 
 function format_id(id: number) {
-    return id ? "#"+id : id
+    return "#"+id
 }
 
 function format_weight(weight: number) {
-    return weight ? weight.toLocaleString(undefined, { maximumFractionDigits: 2 })+" g" : weight
+    return weight.toLocaleString(undefined, { maximumFractionDigits: 2 })+" g"
 }
 
 function format_temp(temp: number) {
-    return temp ? temp.toLocaleString(undefined, { maximumFractionDigits: 0 })+"°C" : temp
+    return temp.toLocaleString(undefined, { maximumFractionDigits: 0 })+"°C"
 }
 
 function format_price(price: number, currency: string) {
-    return price ? getCurrencySymbol(undefined, currency)+price.toLocaleString(undefined, { maximumFractionDigits: 2 }) : price
+    return getCurrencySymbol(undefined, currency)+price.toLocaleString(undefined, { maximumFractionDigits: 2 })
 }
 
 function format_density(density: number) {
-    return density ? density.toLocaleString(undefined, { maximumFractionDigits: 2 })+" g/cm³" : density
+    return density.toLocaleString(undefined, { maximumFractionDigits: 2 })+" g/cm³"
 }
 
 function format_diameter(diameter: number) {
-    return diameter ? diameter.toLocaleString(undefined, { maximumFractionDigits: 2 })+" mm" : diameter
+    return diameter.toLocaleString(undefined, { maximumFractionDigits: 2 })+" mm"
 }
 
 const RenderLabelTemplate = (spool: ISpool, template: string, currency: string) => {
