@@ -56,7 +56,7 @@ mkdir -p ./Spoolman && \
 source_url=$(curl -s https://api.github.com/repos/Donkie/Spoolman/releases/latest | jq -r '.assets[] | select(.name == "spoolman.zip").browser_download_url') && \
 curl -sSL $source_url -o temp.zip && unzip temp.zip -d ./Spoolman && rm temp.zip && \
 cd ./Spoolman && \
-bash ./scripts/install_debian.sh
+bash ./scripts/install.sh
 ```
 
 #### Updating
@@ -77,7 +77,7 @@ source_url=$(curl -s https://api.github.com/repos/Donkie/Spoolman/releases/lates
 curl -sSL $source_url -o temp.zip && unzip temp.zip -d ./Spoolman && rm temp.zip && \
 cp Spoolman_old/.env Spoolman/.env && \
 cd ./Spoolman && \
-bash ./scripts/install_debian.sh && \
+bash ./scripts/install.sh && \
 rm -rf ../Spoolman_old
 ```
 
