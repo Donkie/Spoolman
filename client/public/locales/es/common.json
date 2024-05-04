@@ -76,7 +76,9 @@
             "archived": "Archivado",
             "measured_weight": "Peso Medido",
             "weight_to_use": "Peso",
-            "price": "Precio"
+            "price": "Precio",
+            "initial_weight": "Peso inicial",
+            "spool_weight": "Peso vacio"
         },
         "fields_help": {
             "used_weight": "Cuanto filamento ha sido usado de la bobina. Una bobina nueva debería tener 0g usados.",
@@ -85,7 +87,9 @@
             "weight_to_use": "Elegir el peso a usar. El peso medido solo está disponible si existe el valor de peso del carrete seleccionado.",
             "measured_weight": "Cuanto pesa el filamento y la bobina.",
             "remaining_weight": "Cuanto filamento resta en la bobina. Para una bobina nueva el peso debe ser igual al peso indicado de fábrica.",
-            "price": "Precio de una bobina completa. Si no se establece, se asumirá en su lugar el precio del filamento."
+            "price": "Precio de una bobina completa. Si no se establece, se asumirá en su lugar el precio del filamento.",
+            "initial_weight": "El peso inicial del filamento (peso neto).  Este valor puede proceder del filamento, pero se rastrea a nivel de bobina para permitir variaciones individuales del peso del filamento en la bobina.",
+            "spool_weight": "El peso de la bobina cuando está vacía.  Este valor puede proceder del filamento o del proveedor, pero se rastrea a nivel de bobina para permitir variaciones individuales del peso de una bobina vacía."
         },
         "titles": {
             "create": "Crear Bobina",
@@ -154,7 +158,8 @@
             "id": "ID",
             "name": "Nombre",
             "registered": "Registrado",
-            "comment": "Comentarios"
+            "comment": "Comentarios",
+            "empty_spool_weight": "Peso de bobina vacía"
         },
         "titles": {
             "create": "Crear Fabricante",
@@ -166,6 +171,9 @@
         },
         "form": {
             "vendor_updated": "Este fabricante ha sido actualizado por alguien/algo desde que abrió esta página. ¡Al guardar, se sobrescribirán los cambios!"
+        },
+        "fields_help": {
+            "empty_spool_weight": "El peso de una bobina vacía de este proveedor."
         }
     },
     "table": {
