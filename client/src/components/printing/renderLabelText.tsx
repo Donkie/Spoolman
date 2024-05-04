@@ -100,8 +100,25 @@ const RenderLabelTemplate = (spool: ISpool, template: string, currency: string) 
     console.log(template);
     let matches = [...template.matchAll(/{(.*?){(.*?)}(.*?)}/gs)];
     // console.log(matches)
-    matches.forEach((match) => {
-        let substitution = placeholder_map[match[2] as keyof typeof placeholder_map];
+    matches.forEach((match) =>
+    {
+        const placeholder = match[2];
+        let substitution = null
+        if (placeholder.toUpperCase().startsWith("SE_")) {
+            const extra_name = placeholder.substring(3);
+            substitution = spool?.extra[extra_name];
+        }
+        else if (placeholder.toUpperCase().startsWith("FE_")) {
+            const extra_name = placeholder.substring(3);
+            substitution = spool?.filament?.extra[extra_name];
+        }
+        else if (placeholder.toUpperCase().startsWith("VE_")) {
+            const extra_name = placeholder.substring(3);
+            substitution = spool?.filament?.vendor?.extra[extra_name];
+        }
+        else {
+            substitution = placeholder_map[placeholder as keyof typeof placeholder_map];
+        }
         if (substitution == null) {
             label_text = label_text.replace(match[0], "");
         } else {
