@@ -35,7 +35,7 @@ function format_diameter(diameter: number): string {
     return diameter.toLocaleString(undefined, { maximumFractionDigits: 2 }) + " mm";
 }
 
-function format_date(date: string): string | undefined {
+function format_date(date: string | undefined): string | undefined {
     if (date == null) {
         return undefined;
     }
