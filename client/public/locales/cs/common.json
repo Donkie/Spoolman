@@ -162,8 +162,8 @@
             "location": "Kde se cívka nachází, pokud máte více míst, kde cívky skladujete.",
             "lot_nr": "Číslo šarže výrobce. Lze použít k zajištění jednotné barvy tisku v případě použití více cívek.",
             "price": "Cena celé cívky. Pokud není nastavena, předpokládá se cena filamentu.",
-            "spool_weight": "Hmotnost prázdné cívky.  Tato hodnota může pocházet buď od vlákna, nebo od prodejce, ale sleduje se na úrovni cívky, aby bylo možné zohlednit individuální odchylky hmotnosti prázdné cívky.",
-            "initial_weight": "Počáteční hmotnost vlákna (čistá hmotnost).  Tato hodnota může vycházet z vlákna, ale sleduje se na úrovni cívky, aby bylo možné zohlednit individuální změny hmotnosti vlákna na cívce."
+            "spool_weight": "Hmotnost prázdné cívky. Tato hodnota může pocházet buď od vlákna, nebo od prodejce, ale sleduje se na úrovni cívky, aby bylo možné zohlednit individuální odchylky hmotnosti prázdné cívky.",
+            "initial_weight": "Počáteční hmotnost vlákna (čistá hmotnost). Tato hodnota může vycházet z vlákna, ale sleduje se na úrovni cívky, aby bylo možné zohlednit individuální změny hmotnosti vlákna na cívce."
         },
         "titles": {
             "create": "Vytvořit cívku",
