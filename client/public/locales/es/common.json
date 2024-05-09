@@ -88,8 +88,8 @@
             "measured_weight": "Cuanto pesa el filamento y la bobina.",
             "remaining_weight": "Cuanto filamento resta en la bobina. Para una bobina nueva el peso debe ser igual al peso indicado de fábrica.",
             "price": "Precio de una bobina completa. Si no se establece, se asumirá en su lugar el precio del filamento.",
-            "initial_weight": "El peso inicial del filamento (peso neto).  Este valor puede proceder del filamento, pero se rastrea a nivel de bobina para permitir variaciones individuales del peso del filamento en la bobina.",
-            "spool_weight": "El peso de la bobina cuando está vacía.  Este valor puede proceder del filamento o del proveedor, pero se rastrea a nivel de bobina para permitir variaciones individuales del peso de una bobina vacía."
+            "initial_weight": "El peso inicial del filamento (peso neto). Este valor puede proceder del filamento, pero se rastrea a nivel de bobina para permitir variaciones individuales del peso del filamento en la bobina.",
+            "spool_weight": "El peso de la bobina cuando está vacía. Este valor puede proceder del filamento o del proveedor, pero se rastrea a nivel de bobina para permitir variaciones individuales del peso de una bobina vacía."
         },
         "titles": {
             "create": "Crear Bobina",
