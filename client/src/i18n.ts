@@ -109,6 +109,7 @@ i18n
     backend: {
       loadPath: getBasePath() + "/locales/{{lng}}/{{ns}}.json",
     },
+    ns: "common",
     defaultNS: "common",
     fallbackLng: "en",
   });
