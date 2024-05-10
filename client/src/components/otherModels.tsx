@@ -3,14 +3,14 @@ import { IFilament } from "../pages/filaments/model";
 import { IVendor } from "../pages/vendors/model";
 import { ColumnFilterItem } from "antd/es/table/interface";
 import { Tooltip } from "antd";
+import { getAPIURL } from "../utils/url";
 
 export function useSpoolmanFilamentFilter(enabled: boolean = false) {
-  const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<IFilament[], unknown, ColumnFilterItem[]>({
     enabled: enabled,
     queryKey: ["filaments"],
     queryFn: async () => {
-      const response = await fetch(apiEndpoint + "/filament");
+      const response = await fetch(getAPIURL() + "/filament");
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -86,12 +86,11 @@ export function useSpoolmanFilamentFilter(enabled: boolean = false) {
 }
 
 export function useSpoolmanFilamentNames(enabled: boolean = false) {
-  const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<IFilament[], unknown, string[]>({
     enabled: enabled,
     queryKey: ["filaments"],
     queryFn: async () => {
-      const response = await fetch(apiEndpoint + "/filament");
+      const response = await fetch(getAPIURL() + "/filament");
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -115,12 +114,11 @@ export function useSpoolmanFilamentNames(enabled: boolean = false) {
 }
 
 export function useSpoolmanVendors(enabled: boolean = false) {
-  const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<IVendor[], unknown, string[]>({
     enabled: enabled,
     queryKey: ["vendors"],
     queryFn: async () => {
-      const response = await fetch(apiEndpoint + "/vendor");
+      const response = await fetch(getAPIURL() + "/vendor");
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -137,12 +135,11 @@ export function useSpoolmanVendors(enabled: boolean = false) {
 }
 
 export function useSpoolmanMaterials(enabled: boolean = false) {
-  const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<string[]>({
     enabled: enabled,
     queryKey: ["materials"],
     queryFn: async () => {
-      const response = await fetch(apiEndpoint + "/material");
+      const response = await fetch(getAPIURL() + "/material");
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -155,12 +152,11 @@ export function useSpoolmanMaterials(enabled: boolean = false) {
 }
 
 export function useSpoolmanArticleNumbers(enabled: boolean = false) {
-  const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<string[]>({
     enabled: enabled,
     queryKey: ["articleNumbers"],
     queryFn: async () => {
-      const response = await fetch(apiEndpoint + "/article-number");
+      const response = await fetch(getAPIURL() + "/article-number");
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -173,12 +169,11 @@ export function useSpoolmanArticleNumbers(enabled: boolean = false) {
 }
 
 export function useSpoolmanLotNumbers(enabled: boolean = false) {
-  const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<string[]>({
     enabled: enabled,
     queryKey: ["lotNumbers"],
     queryFn: async () => {
-      const response = await fetch(apiEndpoint + "/lot-number");
+      const response = await fetch(getAPIURL() + "/lot-number");
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -191,12 +186,11 @@ export function useSpoolmanLotNumbers(enabled: boolean = false) {
 }
 
 export function useSpoolmanLocations(enabled: boolean = false) {
-  const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<string[]>({
     enabled: enabled,
     queryKey: ["locations"],
     queryFn: async () => {
-      const response = await fetch(apiEndpoint + "/location");
+      const response = await fetch(getAPIURL() + "/location");
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }

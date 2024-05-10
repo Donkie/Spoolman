@@ -1,4 +1,5 @@
 """Main entrypoint to the server."""
+
 import logging
 import subprocess
 from logging.handlers import TimedRotatingFileHandler
@@ -8,7 +9,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, RedirectResponse, Response
 from prometheus_client import generate_latest
 from scheduler.asyncio.scheduler import Scheduler
 
@@ -38,12 +39,12 @@ app = FastAPI(
     version=env.get_version(),
 )
 app.add_middleware(GZipMiddleware)
-app.mount("/api/v1", v1_app)
+app.mount(env.get_base_path() + "/api/v1", v1_app)
 
 
 # WA for prometheus /metrics bind with SinglePageApp at root
 @app.get(
-    "/metrics",
+    env.get_base_path() + "/metrics",
     response_class=PlainTextResponse,
     name="Get metrics for prometheus",
     description=(
@@ -55,8 +56,36 @@ def get_metrics() -> bytes:
     return generate_latest(registry)
 
 
-app.mount("", app=SinglePageApplication(directory="client/dist"))
+base_path = env.get_base_path()
+if base_path != "":
+    logger.info("Base path is: %s", base_path)
 
+    # If base path is set, add a redirect from non-slash suffix to slash
+    # suffix. Otherwise it won't work.
+    @app.get(base_path)
+    def root_redirect() -> Response:
+        """Redirect to base path."""
+        return RedirectResponse(base_path + "/")
+
+
+# Return a dynamic js config file
+# This is so that the client side can access the base path variable.
+@app.get(env.get_base_path() + "/config.js")
+def get_configjs() -> Response:
+    """Return a dynamic js config file."""
+    if '"' in base_path:
+        raise ValueError("Base path contains quotes, which are not allowed.")
+
+    return Response(
+        content=f"""
+window.SPOOLMAN_BASE_PATH = "{base_path}";
+""",
+        media_type="text/javascript",
+    )
+
+
+# Mount the client side app
+app.mount(base_path, app=SinglePageApplication(directory="client/dist", base_path=env.get_base_path()))
 
 # Allow all origins if in debug mode
 if env.is_debug_mode():

@@ -1,8 +1,9 @@
 import { LiveEvent } from "@refinedev/core";
 import React from "react";
 import liveProvider from "./liveProvider";
+import { getAPIURL } from "../utils/url";
 
-const liveProviderInstance = liveProvider(import.meta.env.VITE_APIURL);
+const liveProviderInstance = liveProvider(getAPIURL());
 
 /**
  * Hook that subscribes to live updates for the items in the dataSource

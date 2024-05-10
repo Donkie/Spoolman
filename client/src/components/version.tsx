@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Spin, Typography } from "antd";
+import { getAPIURL } from "../utils/url";
 
 const { Text } = Typography;
 
@@ -15,12 +16,10 @@ interface IInfo {
 }
 
 export const Version: React.FC = () => {
-  const apiEndpoint = import.meta.env.VITE_APIURL;
-
   const infoResult = useQuery<IInfo>({
     queryKey: ["info"],
     queryFn: async () => {
-      const response = await fetch(apiEndpoint + "/info");
+      const response = await fetch(getAPIURL() + "/info");
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }

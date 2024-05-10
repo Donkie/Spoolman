@@ -5,6 +5,7 @@ import { Version } from "./version";
 import { Button } from "antd";
 import Logo from "../icon.svg?react";
 import { useTranslate } from "@refinedev/core";
+import { getBasePath } from "../utils/url";
 
 const SpoolmanFooter: React.FC = () => {
   const t = useTranslate();
@@ -27,7 +28,7 @@ const SpoolmanFooter: React.FC = () => {
           <Button
             icon={
               <img
-                src="/kofi_s_logo_nolabel.png"
+                src={getBasePath() + "/kofi_s_logo_nolabel.png"}
                 style={{
                   height: "1.6em",
                 }}

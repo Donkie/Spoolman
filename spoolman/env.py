@@ -398,3 +398,19 @@ def is_metrics_enabled() -> bool:
     raise ValueError(
         f"Failed to parse SPOOLMAN_METRICS_ENABLED variable: Unknown metrics enabled '{metrics_enabled}'.",
     )
+
+
+def get_base_path() -> str:
+    """Get the base path.
+
+    This is formated so that it always starts with a /, and does not end with a /
+
+    Returns:
+        str: The base path.
+    """
+    path = os.getenv("SPOOLMAN_BASE_PATH", "")
+    if len(path) == 0:
+        return ""
+
+    # Ensure it starts with / and does not end with /
+    return "/" + path.strip("/")

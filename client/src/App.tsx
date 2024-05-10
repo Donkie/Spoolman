@@ -26,6 +26,8 @@ import loadable from "@loadable/component";
 import SpoolmanNotificationProvider from "./components/notificationProvider";
 import { SpoolmanLayout } from "./components/layout";
 import liveProvider from "./components/liveProvider";
+import { getAPIURL, getBasePath } from "./utils/url";
+import { Favicon } from "./components/favicon";
 
 interface ResourcePageProps {
   resource: "spools" | "filaments" | "vendors";
@@ -84,7 +86,7 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={getBasePath() + "/"}>
       <RefineKbarProvider>
         <ColorModeContextProvider>
           <ConfigProvider
@@ -96,11 +98,11 @@ function App() {
             }}
           >
             <Refine
-              dataProvider={dataProvider(import.meta.env.VITE_APIURL)}
+              dataProvider={dataProvider(getAPIURL())}
               notificationProvider={SpoolmanNotificationProvider}
               i18nProvider={i18nProvider}
               routerProvider={routerBindings}
-              liveProvider={liveProvider(import.meta.env.VITE_APIURL)}
+              liveProvider={liveProvider(getAPIURL())}
               resources={[
                 {
                   name: "home",
@@ -227,6 +229,7 @@ function App() {
               <UnsavedChangesNotifier />
               <DocumentTitleHandler />
               <ReactQueryDevtools />
+              <Favicon url={getBasePath() + "/favicon.svg"} />
             </Refine>
           </ConfigProvider>
         </ColorModeContextProvider>

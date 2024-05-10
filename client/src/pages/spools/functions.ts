@@ -1,7 +1,7 @@
+import { getAPIURL } from "../../utils/url";
 import { ISpool } from "./model";
 
 export async function setSpoolArchived(spool: ISpool, archived: boolean) {
-  const apiEndpoint = import.meta.env.VITE_APIURL;
   const init: RequestInit = {
     method: "PATCH",
     headers: {
@@ -11,6 +11,6 @@ export async function setSpoolArchived(spool: ISpool, archived: boolean) {
       archived: archived,
     }),
   };
-  const request = new Request(apiEndpoint + "/spool/" + spool.id);
+  const request = new Request(getAPIURL() + "/spool/" + spool.id);
   await fetch(request, init);
 }

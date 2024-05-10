@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
+import { getAPIURL } from "./url";
 
 export enum FieldType {
   text = "text",
@@ -34,11 +35,10 @@ export interface Field extends FieldParameters {
 }
 
 export function useGetFields(entity_type: EntityType) {
-  const apiEndpoint = import.meta.env.VITE_APIURL;
   return useQuery<Field[]>({
     queryKey: ["fields", entity_type],
     queryFn: async () => {
-      const response = await fetch(`${apiEndpoint}/field/${entity_type}`);
+      const response = await fetch(`${getAPIURL()}/field/${entity_type}`);
       return response.json();
     },
   });
@@ -47,10 +47,9 @@ export function useGetFields(entity_type: EntityType) {
 export function useSetField(entity_type: EntityType) {
   const queryClient = useQueryClient();
 
-  const apiEndpoint = import.meta.env.VITE_APIURL;
   return useMutation<Field[], unknown, { key: string; params: FieldParameters }, { previousFields?: Field[] }>({
     mutationFn: async ({ key, params }) => {
-      const response = await fetch(`${apiEndpoint}/field/${entity_type}/${key}`, {
+      const response = await fetch(`${getAPIURL()}/field/${entity_type}/${key}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -110,10 +109,9 @@ export function useSetField(entity_type: EntityType) {
 export function useDeleteField(entity_type: EntityType) {
   const queryClient = useQueryClient();
 
-  const apiEndpoint = import.meta.env.VITE_APIURL;
   return useMutation<Field[], unknown, string>({
     mutationFn: async (key) => {
-      const response = await fetch(`${apiEndpoint}/field/${entity_type}/${key}`, {
+      const response = await fetch(`${getAPIURL()}/field/${entity_type}/${key}`, {
         method: "DELETE",
       });
 

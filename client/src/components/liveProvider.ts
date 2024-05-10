@@ -1,4 +1,5 @@
 import { BaseKey, LiveEvent, LiveProvider } from "@refinedev/core";
+import { getBasePath } from "../utils/url";
 
 /**
  * A spoolman websocket event.
