@@ -37,7 +37,7 @@ It is currently only supported in the Klipper ecosystem, with official support f
   * ✔️ KlipperScreen
   * ✔️ Mainsail
 * ✖️ Octoprint - A plugin is in progress: [OctoPrint-Spoolman](https://github.com/mkevenaar/OctoPrint-Spoolman)
-* ✔️ Home Assistant integration (https://github.com/Disane87/spoolman-homeassistant)
+* ✔️ Home Assistant integration: [spoolman-homeassistant](https://github.com/Disane87/spoolman-homeassistant)
 
 ## Installation
 Spoolman can interact with any of the following databases: SQLite, PostgreSQL, MySQL, MariaDB, CockroachDB.
@@ -110,27 +110,7 @@ Once you have it up and running, you can access the web UI by browsing to `http:
 If a new version of Spoolman has been released, you can update to it by first browsing to the directory where you have the `docker-compose.yml` file and then running `docker compose pull && docker compose up -d`.
 
 ### Environment variables
-These are either set in the .env file if you use the standalone installation, or in the docker-compose.yml if you use Docker.
-
-If you want to connect with an external database instead, specify the `SPOOLMAN_DB_*` environment variables from the table below.
-
-| Variable                  | Description                                                                                                                  |
-|---------------------------|------------------------------------------------------------------------------------------------------------------------------|
-| SPOOLMAN_DB_TYPE          | Type of database, any of: `postgres`, `mysql`, `sqlite`, `cockroachdb`                                                       |
-| SPOOLMAN_DB_HOST          | Database hostname                                                                                                            |
-| SPOOLMAN_DB_PORT          | Database port                                                                                                                |
-| SPOOLMAN_DB_NAME          | Database name                                                                                                                |
-| SPOOLMAN_DB_USERNAME      | Database username                                                                                                            |
-| SPOOLMAN_DB_PASSWORD_FILE | Path of file which contains the database password. Can be used instead of SPOOLMAN_DB_PASSWORD if desired.                   |
-| SPOOLMAN_DB_PASSWORD      | Database password                                                                                                            |
-| SPOOLMAN_DB_QUERY         | Query parameters for the database connection, e.g. set to `unix_socket=/path/to/mysql.sock` to connect using a MySQL socket. |
-| SPOOLMAN_LOGGING_LEVEL    | Logging level, any of: `CRITICAL`, `ERROR`, `WARNING`, `INFO`, `DEBUG`, defaults to `INFO`.                                  |
-| SPOOLMAN_AUTOMATIC_BACKUP | Automatic nightly DB backups for SQLite databases. Enabled by default, set to `FALSE` to disable.                            |
-| PUID                      | (*docker only*) Set the UID of the user in the docker container. Default is 1000.                                            |
-| PGID                      | (*docker only*) Set the GID of the user in the docker container. Default is 1000.                                            |
-| SPOOLMAN_PORT             | The port Spoolman should run on (default: 8000)                                                                              |
-| SPOOLMAN_HOST             | The hostname/ip Spoolman should bind to (default: 0.0.0.0)                                                                   |
-| SPOOLMAN_METRICS_ENABLED  | Enable collect Spoolman prometheus metrics at database. Default `False`                                                      |
+See the `.env.example` file for a list of all environment variables you can use.
 
 ## Frequently Asked Questions (FAQs)
 ### QR Code Does not work on HTTP / The page is not served over HTTPS
