@@ -167,7 +167,9 @@
             "used_weight": "Gebruikt gewicht",
             "id": "ID",
             "remaining_weight": "Overgebleven gewicht",
-            "price": "Prijs"
+            "price": "Prijs",
+            "initial_weight": "Initieel gewicht",
+            "spool_weight": "Leeg gewicht"
         },
         "titles": {
             "archive": "Spoel archiveren",
@@ -185,7 +187,9 @@
             "lot_nr": "Lotnummer van de fabrikant. Kan worden gebruikt om ervoor te zorgen dat een afdruk een consistente kleur heeft als er meerdere spoelen worden gebruikt.",
             "remaining_weight": "Hoeveel filament zit er nog op de spoel. Bij een nieuwe spoel zal dit overeenkomen met het spoelgewicht.",
             "location": "Waar de spoel zich bevindt, wanneer er meerdere opslag locaties zijn.",
-            "price": "Prijs van een volledige spoel. Als dit niet wordt ingevuld, wordt in plaats daarvan uitgegaan van de prijs van het filament."
+            "price": "Prijs van een volledige spoel. Als dit niet wordt ingevuld, wordt in plaats daarvan uitgegaan van de prijs van het filament.",
+            "initial_weight": "Het initiële gewicht van het filament (nettogewicht). Deze waarde kan afkomstig zijn van het filament, maar wordt bijgehouden op spoelniveau om individuele variaties in het gewicht van het filament op de spoel mogelijk te maken.",
+            "spool_weight": "Het gewicht van de spoel als deze leeg is. Deze waarde kan afkomstig zijn van het filament of de leverancier, maar wordt op spoelniveau bijgehouden om individuele variaties van het gewicht van een lege spoel mogelijk te maken."
         },
         "spool": "Spoelen",
         "messages": {
@@ -265,11 +269,15 @@
             "registered": "Geregistreerd",
             "comment": "Opmerking",
             "name": "Naam",
-            "id": "ID"
+            "id": "ID",
+            "empty_spool_weight": "Gewicht lege spoel"
         },
         "vendor": "Fabrikanten",
         "form": {
             "vendor_updated": "Deze leverancier is bijgewerkt door iemand/iets anders sinds je deze pagina geopend hebt. De veranderingen worden overschreven als je opslaat!"
+        },
+        "fields_help": {
+            "empty_spool_weight": "Het gewicht van een lege spoel van deze leverancier."
         }
     },
     "table": {

@@ -111,7 +111,9 @@
             "used_weight": "Poids utilisé",
             "id": "ID",
             "remaining_weight": "Poids restant",
-            "price": "Prix"
+            "price": "Prix",
+            "initial_weight": "Poids initial",
+            "spool_weight": "Poids à vide"
         },
         "titles": {
             "archive": "Archiver la bobine",
@@ -129,7 +131,9 @@
             "lot_nr": "Numéro de lot du fabricant. Peut être utilisé pour s'assurer que la couleur d'une impression est homogène si plusieurs bobines sont utilisées.",
             "remaining_weight": "La quantité de filament restant sur la bobine. Pour une nouvelle bobine, cela devrait correspondre au poids de la bobine.",
             "location": "L'emplacement de la bobine si vous stockez vos bobines à plusieurs endroits.",
-            "price": "Prix d'une bobine complète. S'il n'est pas défini, le prix du filament sera pris en compte."
+            "price": "Prix d'une bobine complète. S'il n'est pas défini, le prix du filament sera pris en compte.",
+            "initial_weight": "Le poids initial du filament (poids net). Cette valeur peut provenir du filament, mais est suivie au niveau de la bobine pour permettre des variations individuelles du poids du filament sur la bobine.",
+            "spool_weight": "Le poids de la bobine lorsqu'elle est vide. Cette valeur peut provenir soit du filament, soit du fournisseur, mais est suivie au niveau de la bobine pour permettre des variations individuelles du poids d'une bobine vide."
         },
         "spool": "Bobines",
         "messages": {
@@ -256,11 +260,15 @@
             "registered": "Enregistré",
             "comment": "Commentaire",
             "name": "Nom",
-            "id": "ID"
+            "id": "ID",
+            "empty_spool_weight": "Poids de la bobine vide"
         },
         "vendor": "Vendeurs",
         "form": {
             "vendor_updated": "Ce vendeur a été mis à jours par quelqu'un/quelque chose depuis que vous avez ouvert cette page. Enregistrer écrasera ces changements !"
+        },
+        "fields_help": {
+            "empty_spool_weight": "Le poids d'une bobine vide de ce vendeur."
         }
     },
     "yes": "Oui",
