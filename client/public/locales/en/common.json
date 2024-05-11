@@ -99,14 +99,14 @@
             "extruderTemp": "ET: {{temp}}",
             "textSize": "Content Text Size",
             "showSpoolmanIcon": "Show Spoolman Icon",
-            "showVendor": "Vendor",
+            "showVendor": "Manufacturer",
             "showContent": "Print Label",
             "showLotNr": "Lot Nr",
             "showSpoolWeight": "Spool Weight",
             "showTemperatures": "Temperatures",
             "showSpoolComment": "Spool Comment",
             "showFilamentComment": "Filament Comment",
-            "showVendorComment": "Vendor Comment"
+            "showVendorComment": "Manufacturer Comment"
         },
         "spoolSelect": {
             "title": "Select Spools",
@@ -160,8 +160,8 @@
             "used_weight": "How much filament has been used from the spool. A new spool should have 0g used.",
             "remaining_weight": "How much filament is left on the spool. For a new spool this should match the spool weight.",
             "measured_weight": "How much the filament and spool weigh.",
-            "initial_weight": "The initial Weight of the filament (net weight). This value may come from the filament, but is tracked at the spool level to allow for individual variations the weight of filament on the spool.",
-            "spool_weight": "The weight of the spool when it is empty. This value may come from either the filament or the vendor, but is tracked at the spool level to allow for individual variations of the weight of an empty spool.",
+            "initial_weight": "The initial weight of filament on the spool (net weight). Will use the weight from the filament object if not set.",
+            "spool_weight": "The weight of the spool when it is empty. Leave empty to use the value from the filament or the manufacturer.",
             "location": "Where the spool is located if you have multiple locations where you store your spools.",
             "lot_nr": "Manufacturer's lot number. Can be used to ensure a print has consistent color if multiple spools are used."
         },
@@ -186,8 +186,8 @@
         "filament": "Filaments",
         "fields": {
             "id": "ID",
-            "vendor_name": "Vendor",
-            "vendor": "Vendor",
+            "vendor_name": "Manufacturer",
+            "vendor": "Manufacturer",
             "name": "Name",
             "material": "Material",
             "price": "Price",
@@ -204,7 +204,7 @@
             "spools": "Show Spools"
         },
         "fields_help": {
-            "name": "Filament name, to distinguish this filament type among others from the same vendor. Should contain the color for example.",
+            "name": "Filament name, to distinguish this filament type among others from the same manufacturer. Should contain the color for example.",
             "material": "E.g. PLA, ABS, PETG, etc.",
             "price": "Price of a full spool.",
             "weight": "The filament weight of a full spool (net weight). This should not include the weight of the spool itself, only the filament. It is what is usually written on the packaging.",
@@ -227,7 +227,7 @@
         }
     },
     "vendor": {
-        "vendor": "Vendors",
+        "vendor": "Manufacturers",
         "fields": {
             "id": "ID",
             "name": "Name",
@@ -236,18 +236,18 @@
             "comment": "Comment"
         },
         "fields_help": {
-            "empty_spool_weight": "The weight of an empty spool from this vendor."
+            "empty_spool_weight": "The weight of an empty spool from this manufacturer."
         },
         "titles": {
-            "create": "Create Vendor",
-            "clone": "Clone Vendor",
-            "edit": "Edit Vendor",
-            "list": "Vendors",
-            "show": "Show Vendor",
-            "show_title": "[Vendor #{{id}}] {{name}}"
+            "create": "Create Manufacturer",
+            "clone": "Clone Manufacturer",
+            "edit": "Edit Manufacturer",
+            "list": "Manufacturers",
+            "show": "Show Manufacturer",
+            "show_title": "[Manufacturer #{{id}}] {{name}}"
         },
         "form": {
-            "vendor_updated": "This vendor has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
+            "vendor_updated": "This manufacturer has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
         }
     },
     "home": {
@@ -260,7 +260,7 @@
             "spool": "Individual physical spools of a specific filament.",
             "vendor": "The companies that make the filament."
         },
-        "description": "<title>Help</title><p>Here are some tips to get you started.</p><p>Spoolman holds 3 different types of data:</p><itemsHelp/><p>To add a new spool to the database, start by creating a <filamentCreateLink>Filament</filamentCreateLink> object. Once that's done, proceed to create a <spoolCreateLink>Spool</spoolCreateLink> object for that specific spool. If you acquire additional spools of the same filament later on, simply generate additional Spool objects and reuse the same Filament object.</p><p>Optionally, you can also generate a <vendorCreateLink>Vendor</vendorCreateLink> object for the company manufacturing the filament if you wish to track that information.</p><p>You have the option to link other 3D printer services to Spoolman, like Moonraker, which can automatically monitor filament usage and update the Spool objects for you. Refer to the <readmeLink>Spoolman README</readmeLink> for guidance on how to set that up.</p>"
+        "description": "<title>Help</title><p>Here are some tips to get you started.</p><p>Spoolman holds 3 different types of data:</p><itemsHelp/><p>To add a new spool to the database, start by creating a <filamentCreateLink>Filament</filamentCreateLink> object. Once that's done, proceed to create a <spoolCreateLink>Spool</spoolCreateLink> object for that specific spool. If you acquire additional spools of the same filament later on, simply generate additional Spool objects and reuse the same Filament object.</p><p>Optionally, you can also generate a <vendorCreateLink>Manufacturer</vendorCreateLink> object for the company manufacturing the filament if you wish to track that information.</p><p>You have the option to link other 3D printer services to Spoolman, like Moonraker, which can automatically monitor filament usage and update the Spool objects for you. Refer to the <readmeLink>Spoolman README</readmeLink> for guidance on how to set that up.</p>"
     },
     "table": {
         "actions": "Actions"
@@ -330,11 +330,11 @@
             "clone": "#{{id}} Clone Spool | Spoolman"
         },
         "vendor": {
-            "list": "Vendors | Spoolman",
-            "show": "#{{id}} Show Vendor | Spoolman",
-            "edit": "#{{id}} Edit Vendor | Spoolman",
-            "create": "Create Vendor | Spoolman",
-            "clone": "#{{id}} Clone Vendor | Spoolman"
+            "list": "Manufacturers | Spoolman",
+            "show": "#{{id}} Show Manufacturer | Spoolman",
+            "edit": "#{{id}} Edit Manufacturer | Spoolman",
+            "create": "Create Manufacturer | Spoolman",
+            "clone": "#{{id}} Clone Manufacturer | Spoolman"
         }
     }
 }

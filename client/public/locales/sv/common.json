@@ -99,13 +99,13 @@
             "textSize": "Textstorlek",
             "showSpoolmanIcon": "Visa Spoolman-ikon",
             "showContent": "Etikett",
-            "showVendor": "Leverantör",
+            "showVendor": "Tillverkare",
             "showLotNr": "Batchnummer",
             "showSpoolWeight": "Spolvikt",
             "showTemperatures": "Temperaturer",
             "showSpoolComment": "Spolkommentar",
             "showFilamentComment": "Filamentkommentar",
-            "showVendorComment": "Leverantörskommentar"
+            "showVendorComment": "Tillverkarkommentar"
         },
         "spoolSelect": {
             "title": "Välj spolar",
@@ -149,7 +149,9 @@
             "archived": "Arkiverad",
             "measured_weight": "Uppmätt vikt",
             "weight_to_use": "Vikt",
-            "price": "Pris"
+            "price": "Pris",
+            "initial_weight": "Initial Vikt",
+            "spool_weight": "Tom Vikt"
         },
         "fields_help": {
             "used_weight": "Hur mycket filament som använts på spolen. En ny spole har värdet 0g.",
@@ -158,7 +160,9 @@
             "weight_to_use": "Välj vilken typ av vikt du vill fylla i. Uppmätt vikt är endast tillgänglig om det valda filamentet har en spolvikt satt.",
             "measured_weight": "Hur mycket filamentet och spolen väger tillsammans.",
             "remaining_weight": "Hur mycket filament som finns kvar på spolen. För en ny spole så är detta det värdet som står på etiketten.",
-            "price": "Pris för en hel rulle. Om det inte är inställt kommer priset för filamentet istället att antas."
+            "price": "Pris för en hel rulle. Om det inte är inställt kommer priset för filamentet istället att antas.",
+            "initial_weight": "Ursprungsvikt av filament på spolen (nettovikt). Om du inte sätter detta så tas vikten från filamentobjektet.",
+            "spool_weight": "Vikten på en tom spole. Lämna tom för att ta värdet från filament- eller tillverkarobjektet."
         },
         "titles": {
             "create": "Skapa spole",
@@ -181,8 +185,8 @@
         "filament": "Filament",
         "fields": {
             "id": "ID",
-            "vendor_name": "Leverantör",
-            "vendor": "Leverantör",
+            "vendor_name": "Tillverkare",
+            "vendor": "Tillverkare",
             "name": "Namn",
             "material": "Material",
             "price": "Pris",
@@ -199,7 +203,7 @@
             "spools": "Visa spolar"
         },
         "fields_help": {
-            "name": "Filamentets namn, för att skilja detta filament från andra från samma leverantör. Bör innehålla färgen till exempel.",
+            "name": "Filamentets namn, för att skilja detta filament från andra från samma tillverkare. Bör innehålla färgen till exempel.",
             "material": "T.ex. PLA, ABS, PETG, etc.",
             "price": "Pris för en full spole.",
             "weight": "Vikten på en full spole (nettovikt). Detta ska inte inkludera vikten på spolen själv, bara filamentet. Det är vad som vanligtvis står på förpackningen.",
@@ -222,23 +226,27 @@
         }
     },
     "vendor": {
-        "vendor": "Leverantörer",
+        "vendor": "Tillverkare",
         "fields": {
             "id": "ID",
             "name": "Namn",
             "registered": "Registrerad",
-            "comment": "Kommentar"
+            "comment": "Kommentar",
+            "empty_spool_weight": "Tom spolvikt"
         },
         "titles": {
-            "create": "Skapa leverantör",
-            "clone": "Klona leverantör",
-            "edit": "Ändra leverantör",
-            "list": "Leverantörer",
-            "show": "Visa leverantör",
-            "show_title": "[Leverantör #{{id}}] {{name}}"
+            "create": "Skapa tillverkare",
+            "clone": "Klona tillverkare",
+            "edit": "Ändra tillverkare",
+            "list": "Tillverkare",
+            "show": "Visa tillverkare",
+            "show_title": "[Tillverkare #{{id}}] {{name}}"
         },
         "form": {
-            "vendor_updated": "Den här leverantören har uppdaterats av något eller någon sedan du öppnade den här sidan. Om du sparar så skriver du över ändringarna!"
+            "vendor_updated": "Den här tillverkaren har uppdaterats av något eller någon sedan du öppnade den här sidan. Om du sparar så skriver du över ändringarna!"
+        },
+        "fields_help": {
+            "empty_spool_weight": "Vikten av en tom spool från denna tillverkare."
         }
     },
     "home": {
@@ -309,11 +317,11 @@
             "clone": "#{{id}} Klona spole | Spoolman"
         },
         "vendor": {
-            "list": "Leverantörer | Spoolman",
-            "show": "#{{id}} Visa leverantör | Spoolman",
-            "edit": "#{{id}} Redigera leverantör | Spoolman",
-            "create": "Skapa leverantör | Spoolman",
-            "clone": "#{{id}} Klona leverantör | Spoolman"
+            "list": "Tillverkare | Spoolman",
+            "show": "#{{id}} Visa tillverkare | Spoolman",
+            "edit": "#{{id}} Redigera tillverkare | Spoolman",
+            "create": "Skapa tillverkare | Spoolman",
+            "clone": "#{{id}} Klona tillverkare | Spoolman"
         },
         "help": {
             "list": "Hjälp | Spoolman"
@@ -325,7 +333,7 @@
             "filament": "Märken av filament. De har egenskaper som namn, material, färg, diameter och mer.",
             "spool": "Individuella fysiska spolar av ett specifikt filament."
         },
-        "description": "<title>Hjälp</title><p>Här är några tips för att komma igång.</p><p>Spoolman innehåller 3 olika typer av data:</p><itemsHelp/><p>För att lägga till en ny spole i databasen måste du först skapa ett <filamentCreateLink>Filament</filamentCreateLink>-objekt för den. När det är klart kan du sedan skapa ett <spoolCreateLink>Spol</spoolCreateLink>-objekt för den individuella spolen. Om du sedan köper ytterligare spolar av samma filament kan du bara skapa ytterligare Spol-objekt och återanvända samma Filament-objekt.</p><p>Du kan valfritt också skapa ett <vendorCreateLink>Leverantörs</vendorCreateLink>-objekt för företaget som tillverkar filamentet om du vill spåra den informationen.</p><p>Du kan koppla andra 3D-skrivartjänster till Spoolman, som Moonraker, som sedan automatiskt kan spåra filamentanvändning och uppdatera Spol-objekten åt dig. Se <readmeLink>Spoolman README</readmeLink> för hur du gör det.</p>",
+        "description": "<title>Hjälp</title><p>Här är några tips för att komma igång.</p><p>Spoolman innehåller 3 olika typer av data:</p><itemsHelp/><p>För att lägga till en ny spole i databasen måste du först skapa ett <filamentCreateLink>Filament</filamentCreateLink>-objekt för den. När det är klart kan du sedan skapa ett <spoolCreateLink>Spol</spoolCreateLink>-objekt för den individuella spolen. Om du sedan köper ytterligare spolar av samma filament kan du bara skapa ytterligare Spol-objekt och återanvända samma Filament-objekt.</p><p>Du kan valfritt också skapa ett <vendorCreateLink>Tillverkar</vendorCreateLink>-objekt för företaget som tillverkar filamentet om du vill spåra den informationen.</p><p>Du kan koppla andra 3D-skrivartjänster till Spoolman, som Moonraker, som sedan automatiskt kan spåra filamentanvändning och uppdatera Spol-objekten åt dig. Se <readmeLink>Spoolman README</readmeLink> för hur du gör det.</p>",
         "help": "Hjälp"
     },
     "kofi": "Dricksa mig på Ko-fi"
