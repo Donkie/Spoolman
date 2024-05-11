@@ -121,6 +121,23 @@ You can put Spoolman behind a reverse proxy like Caddy or Nginx to enable HTTPS.
 ### Can Spoolman be translated into my language?
 Yes, head over to [Weblate](https://hosted.weblate.org/projects/spoolman/) to start the Translation
 
+## Install from source
+**Advanced users only.**
+
+If you want to run the absolute latest version of Spoolman, you can either use the `edge` tagged Docker image, or follow
+these steps to install from source. Keep in mind that this may contain bugs and is not recommended for production use.
+
+1. Make sure you have at least NodeJS 20 or higher installed, and Python 3.9 or higher installed.
+1. Clone this repo or download the zip source.
+2. Inside the `client/` folder:
+   1. Create a .env file with `VITE_APIURL=/api/v1` in it
+   2. Run `npm ci`
+   3. Run `npm run build`
+3. Give scripts permissions: `chmod +x ./scripts/*.sh`
+4. Install PDM using `pip install --user pdm`
+5. Build the requirements.txt file: `pdm export -o requirements.txt --without-hashes > requirements.txt`
+6. Run the installer script like the normal install: `./scripts/install.sh`
+
 ## Development
 ### Server/Backend (Python)
 The Python backend runs on Python 3.9. It's built on FastAPI for the REST API, and SQLAlchemy to handle the databases.
