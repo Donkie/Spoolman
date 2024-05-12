@@ -30,6 +30,7 @@ import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { ExternalFilament, useGetExternalDBFilaments } from "../../utils/queryExternalDB";
 import { createFilamentFromExternal } from "../filaments/functions";
 import { formatFilamentLabel, useGetFilamentSelectOptions } from "./functions";
+import { searchMatches } from "../../utils/filtering";
 
 dayjs.extend(utc);
 
@@ -40,15 +41,6 @@ interface CreateOrCloneProps {
 type ISpoolRequest = Omit<ISpoolParsedExtras, "id" | "registered"> & {
   filament_id: number | string;
 };
-
-/**
- * Performs a case-insensitive search for the given query in the given string.
- * The query is broken down into words and the search is performed on each word.
- */
-function selectSearchMatches(query: string, test: string): boolean {
-  const words = query.toLowerCase().split(" ");
-  return words.every((word) => test.toLowerCase().includes(word));
-}
 
 export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
@@ -308,9 +300,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
           <Select
             options={filamentOptions}
             showSearch
-            filterOption={(input, option) =>
-              typeof option?.label === "string" && selectSearchMatches(input, option?.label)
-            }
+            filterOption={(input, option) => typeof option?.label === "string" && searchMatches(input, option?.label)}
           />
         </Form.Item>
         {selectedFilament?.is_internal === false && (

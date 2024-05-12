@@ -13,6 +13,9 @@ import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
 import { ParsedExtras } from "../../components/extraFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
+import { useGetFilamentSelectOptions } from "./functions";
+import { searchMatches } from "../../utils/filtering";
+import { createFilamentFromExternal } from "../filaments/functions";
 
 /*
 The API returns the extra fields as JSON values, but we need to parse them into their real types
@@ -21,6 +24,10 @@ We also need to stringify them again before sending them back to the API, which 
 the form's onFinish method. Form.Item's normalize should do this, but it doesn't seem to work.
 */
 
+type ISpoolRequest = ISpoolParsedExtras & {
+  filament_id: number | string;
+};
+
 export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
   const [messageApi, contextHolder] = message.useMessage();
@@ -28,7 +35,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   const extraFields = useGetFields(EntityType.spool);
   const currency = useCurrency();
 
-  const { form, formProps, saveButtonProps } = useForm<ISpool, HttpError, ISpool, ISpool>({
+  const { form, formProps, saveButtonProps } = useForm<ISpool, HttpError, ISpoolRequest, ISpool>({
     liveMode: "manual",
     onLiveEvent() {
       // Warn the user if the spool has been updated since the form was opened
@@ -52,71 +59,57 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
     formProps.initialValues = ParsedExtras(formProps.initialValues);
   }
 
+  //
+  // Set up the filament selection options
+  //
+  const { options: filamentOptions, getById, allExternalFilaments } = useGetFilamentSelectOptions();
+
+  const selectedFilamentID = Form.useWatch("filament_id", form);
+  const selectedFilament = getById(selectedFilamentID);
+
   // Override the form's onFinish method to stringify the extra fields
   const originalOnFinish = formProps.onFinish;
-  formProps.onFinish = (allValues: ISpoolParsedExtras) => {
+  formProps.onFinish = (allValues: ISpoolRequest) => {
     if (allValues !== undefined && allValues !== null) {
       // Lot of stupidity here to make types work
-      const stringifiedAllValues = StringifiedExtras<ISpoolParsedExtras>(allValues);
-      originalOnFinish?.({
-        extra: {},
-        ...stringifiedAllValues,
-      });
+      const values = StringifiedExtras<ISpoolRequest>(allValues);
+      const selectOption = getById(values.filament_id);
+      if (selectOption?.is_internal === false) {
+        // Filament ID being a string indicates its an external filament.
+        // If so, we should first create the internal filament version, then edit the spool
+        const externalFilament = allExternalFilaments?.find((f) => f.id === values.filament_id);
+        if (!externalFilament) {
+          throw new Error("Unknown external filament");
+        }
+        createFilamentFromExternal(externalFilament).then((internalFilament) => {
+          values.filament_id = internalFilament.id;
+          originalOnFinish?.({
+            extra: {},
+            ...values,
+          });
+        });
+      } else {
+        originalOnFinish?.({
+          extra: {},
+          ...values,
+        });
+      }
     }
   };
-
-  const filamentOptions = queryResult.data?.data.map((item) => {
-    let vendorPrefix = "";
-    if (item.vendor) {
-      vendorPrefix = `${item.vendor.name} - `;
-    }
-    let name = item.name;
-    if (!name) {
-      name = `ID: ${item.id}`;
-    }
-    let material = "";
-    if (item.material) {
-      material = ` - ${item.material}`;
-    }
-    const label = `${vendorPrefix}${name}${material}`;
-
-    return {
-      label: label,
-      value: item.id,
-      weight: item.weight,
-      spool_weight: item.spool_weight,
-    };
-  });
-  filamentOptions?.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
 
   const [weightToEnter, setWeightToEnter] = useState(1);
   const [usedWeight, setUsedWeight] = useState(0);
 
-  const selectedFilamentID = Form.useWatch("filament_id", form);
-  const selectedFilament = filamentOptions?.find((obj) => {
-    return obj.value === selectedFilamentID;
-  });
-
-  const filamentChange = (newID: number) => {
-    const newSelectedFilament = filamentOptions?.find((obj) => {
-      return obj.value === newID;
-    });
-
-    const initial_weight = initialWeightValue ?? 0;
-    const spool_weight = spoolWeightValue ?? 0;
-
-    const newFilamentWeight = newSelectedFilament?.weight || 0;
-    const newSpoolWeight = newSelectedFilament?.spool_weight || 0;
-
-    const currentCalculatedFilamentWeight = getTotalWeightFromFilament();
-    if ((initial_weight === 0 || initial_weight === currentCalculatedFilamentWeight) && newFilamentWeight > 0) {
+  React.useEffect(() => {
+    const newFilamentWeight = selectedFilament?.weight || 0;
+    const newSpoolWeight = selectedFilament?.spool_weight || 0;
+    if (newFilamentWeight > 0) {
       form.setFieldValue("initial_weight", newFilamentWeight);
     }
-
-    if ((spool_weight === 0 || spool_weight === (selectedFilament?.spool_weight ?? 0)) && newSpoolWeight > 0) {
+    if (newSpoolWeight > 0) {
       form.setFieldValue("spool_weight", newSpoolWeight);
     }
-  };
+  }, [selectedFilament]);
 
   const weightChange = (weight: number) => {
     setUsedWeight(weight);
@@ -145,10 +138,6 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
     const net_weight = getFilamentWeight();
     const spool_weight = getSpoolWeight();
     return net_weight + spool_weight;
-  };
-
-  const getTotalWeightFromFilament = (): number => {
-    return (selectedFilament?.weight ?? 0) + (selectedFilament?.spool_weight ?? 0);
   };
 
   const getMeasuredWeight = (): number => {
@@ -274,14 +263,12 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
           <Select
             options={filamentOptions}
             showSearch
-            filterOption={(input, option) =>
-              typeof option?.label === "string" && option?.label.toLowerCase().includes(input.toLowerCase())
-            }
-            onChange={(value) => {
-              filamentChange(value);
-            }}
+            filterOption={(input, option) => typeof option?.label === "string" && searchMatches(input, option?.label)}
           />
         </Form.Item>
+        {selectedFilament?.is_internal === false && (
+          <Alert message={t("spool.fields_help.external_filament")} type="info" />
+        )}
         <Form.Item
           label={t("spool.fields.price")}
           help={t("spool.fields_help.price")}
