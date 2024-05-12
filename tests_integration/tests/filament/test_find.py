@@ -50,6 +50,7 @@ def filaments(random_vendor_mod: dict[str, Any], random_empty_vendor_mod: dict[s
             "spool_weight": 250,
             "article_number": "987654321",
             "color_hex": "EE0000",
+            "external_id": "some_external_id",
             "comment": "abcdefghåäö",
         },
     )
@@ -416,6 +417,35 @@ def test_find_filaments_by_empty_article_number(filaments: Fixture):
     # Verify
     filaments_result = result.json()
     assert_lists_compatible(filaments_result, filaments.filaments[3:])
+
+
+def test_find_filaments_by_external_id(filaments: Fixture):
+    # Execute
+    result = httpx.get(
+        f"{URL}/api/v1/filament",
+        params={"external_id": "some_external_id"},
+    )
+    result.raise_for_status()
+
+    # Verify
+    filaments_result = result.json()
+    assert filaments_result[0] == filaments.filaments[1]
+
+
+def test_find_filaments_by_empty_external_id(filaments: Fixture):
+    # Execute
+    result = httpx.get(
+        f"{URL}/api/v1/filament",
+        params={"external_id": ""},
+    )
+    result.raise_for_status()
+
+    # Verify
+    filaments_result = result.json()
+    assert_lists_compatible(
+        filaments_result,
+        [filaments.filaments[0], filaments.filaments[2], filaments.filaments[3], filaments.filaments[4]],
+    )
 
 
 def test_find_filaments_by_similar_color(filaments: Fixture):

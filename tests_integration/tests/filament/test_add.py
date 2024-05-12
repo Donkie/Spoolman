@@ -23,6 +23,7 @@ def test_add_filament(random_vendor: dict[str, Any]):
     settings_extruder_temp = 200
     settings_bed_temp = 60
     color_hex = "FF0000"
+    external_id = "polymaker_pla_polysonicblack_1000_175"
     result = httpx.post(
         f"{URL}/api/v1/filament",
         json={
@@ -39,6 +40,7 @@ def test_add_filament(random_vendor: dict[str, Any]):
             "settings_extruder_temp": settings_extruder_temp,
             "settings_bed_temp": settings_bed_temp,
             "color_hex": color_hex,
+            "external_id": external_id,
         },
     )
     result.raise_for_status()
@@ -63,6 +65,7 @@ def test_add_filament(random_vendor: dict[str, Any]):
             "settings_extruder_temp": settings_extruder_temp,
             "settings_bed_temp": settings_bed_temp,
             "color_hex": color_hex,
+            "external_id": external_id,
         },
     )
 

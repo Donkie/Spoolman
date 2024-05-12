@@ -27,7 +27,7 @@ def vendors() -> Iterable[Fixture]:
 
     result = httpx.post(
         f"{URL}/api/v1/vendor",
-        json={"name": "Stan", "comment": "gfdadfg"},
+        json={"name": "Stan", "comment": "gfdadfg", "external_id": "some_external_id"},
     )
     result.raise_for_status()
     vendor_2 = result.json()
@@ -185,3 +185,29 @@ def test_find_vendors_by_empty_name(vendors: Fixture):
     # Verify
     vendors_result = result.json()
     assert vendors_result == [vendors.vendors[2]]
+
+
+def test_find_vendors_by_external_id(vendors: Fixture):
+    # Execute
+    result = httpx.get(
+        f"{URL}/api/v1/vendor",
+        params={"external_id": "some_external_id"},
+    )
+    result.raise_for_status()
+
+    # Verify
+    vendors_result = result.json()
+    assert vendors_result == [vendors.vendors[1]]
+
+
+def test_find_vendors_by_empty_external_id(vendors: Fixture):
+    # Execute
+    result = httpx.get(
+        f"{URL}/api/v1/vendor",
+        params={"external_id": ""},
+    )
+    result.raise_for_status()
+
+    # Verify
+    vendors_result = result.json()
+    assert_lists_compatible(vendors_result, [vendors.vendors[0], vendors.vendors[2]])

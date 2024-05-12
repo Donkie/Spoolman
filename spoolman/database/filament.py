@@ -98,6 +98,7 @@ async def find(
     name: Optional[str] = None,
     material: Optional[str] = None,
     article_number: Optional[str] = None,
+    external_id: Optional[str] = None,
     sort_by: Optional[dict[str, SortOrder]] = None,
     limit: Optional[int] = None,
     offset: int = 0,
@@ -121,6 +122,7 @@ async def find(
     stmt = add_where_clause_str_opt(stmt, models.Filament.name, name)
     stmt = add_where_clause_str_opt(stmt, models.Filament.material, material)
     stmt = add_where_clause_str_opt(stmt, models.Filament.article_number, article_number)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.external_id, external_id)
 
     total_count = None
 

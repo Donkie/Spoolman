@@ -76,6 +76,15 @@ async def find(
         title="Vendor Name",
         description="Partial case-insensitive search term for the vendor name. Separate multiple terms with a comma.",
     ),
+    external_id: Optional[str] = Query(
+        default=None,
+        title="Vendor External ID",
+        description=(
+            "Exact match for the vendor external ID. "
+            "Separate multiple IDs with a comma. "
+            "Specify empty string to match filaments with no external ID."
+        ),
+    ),
     sort: Optional[str] = Query(
         default=None,
         title="Sort",
@@ -104,6 +113,7 @@ async def find(
     db_items, total_count = await vendor.find(
         db=db,
         name=name,
+        external_id=external_id,
         sort_by=sort_by,
         limit=limit,
         offset=offset,

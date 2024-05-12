@@ -26,6 +26,7 @@ def test_update_filament(random_vendor: dict[str, Any]):
             "settings_extruder_temp": 200,
             "settings_bed_temp": 60,
             "color_hex": "FF0000",
+            "external_id": "external_id1",
         },
     )
     result.raise_for_status()
@@ -44,6 +45,7 @@ def test_update_filament(random_vendor: dict[str, Any]):
     new_settings_extruder_temp = 210
     new_settings_bed_temp = 70
     new_color_hex = "00FF00"
+    new_external_id = "external_id2"
     result = httpx.patch(
         f"{URL}/api/v1/filament/{added_filament['id']}",
         json={
@@ -60,6 +62,7 @@ def test_update_filament(random_vendor: dict[str, Any]):
             "settings_extruder_temp": new_settings_extruder_temp,
             "settings_bed_temp": new_settings_bed_temp,
             "color_hex": new_color_hex,
+            "external_id": new_external_id,
         },
     )
     result.raise_for_status()
@@ -84,6 +87,7 @@ def test_update_filament(random_vendor: dict[str, Any]):
             "settings_extruder_temp": new_settings_extruder_temp,
             "settings_bed_temp": new_settings_bed_temp,
             "color_hex": new_color_hex,
+            "external_id": new_external_id,
         },
     )
 

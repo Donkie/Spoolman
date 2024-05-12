@@ -207,6 +207,15 @@ async def find(
         ),
         example=20.0,
     ),
+    external_id: Optional[str] = Query(
+        default=None,
+        description=(
+            "Find filaments imported by the given external ID. "
+            "Separate multiple IDs with a comma. "
+            "Specify empty string to match filaments with no external ID."
+        ),
+        example="polymaker_pla_polysonicblack_1000_175",
+    ),
     sort: Optional[str] = Query(
         default=None,
         title="Sort",
@@ -259,6 +268,7 @@ async def find(
         name=name,
         material=material,
         article_number=article_number,
+        external_id=external_id,
         sort_by=sort_by,
         limit=limit,
         offset=offset,

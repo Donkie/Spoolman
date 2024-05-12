@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import EventType, Vendor, VendorEvent
 from spoolman.database import models
-from spoolman.database.utils import SortOrder, add_where_clause_str
+from spoolman.database.utils import SortOrder, add_where_clause_str, add_where_clause_str_opt
 from spoolman.exceptions import ItemNotFoundError
 from spoolman.ws import websocket_manager
 
@@ -50,6 +50,7 @@ async def find(
     *,
     db: AsyncSession,
     name: Optional[str] = None,
+    external_id: Optional[str] = None,
     sort_by: Optional[dict[str, SortOrder]] = None,
     limit: Optional[int] = None,
     offset: int = 0,
@@ -61,6 +62,7 @@ async def find(
     stmt = select(models.Vendor)
 
     stmt = add_where_clause_str(stmt, models.Vendor.name, name)
+    stmt = add_where_clause_str_opt(stmt, models.Vendor.external_id, external_id)
 
     total_count = None
 
