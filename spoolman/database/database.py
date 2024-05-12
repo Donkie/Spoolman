@@ -1,4 +1,5 @@
 """SQLAlchemy database setup."""
+
 import datetime
 import logging
 import shutil
@@ -203,7 +204,7 @@ def schedule_tasks(scheduler: Scheduler) -> None:
     if env.is_metrics_enabled():
         logger.info("Scheduling automatic metric collection.")
         # Run every minute, may be needs specify timer
-        scheduler.minutely(datetime.time(second=0), _metrics)
+        scheduler.minutely(datetime.time(second=0), _metrics)  # type: ignore[arg-type]
     if not env.is_automatic_backup_enabled():
         return
     if "sqlite" in __db.connection_url.drivername:

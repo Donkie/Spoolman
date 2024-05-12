@@ -13,7 +13,7 @@ from fastapi.responses import PlainTextResponse, RedirectResponse, Response
 from prometheus_client import generate_latest
 from scheduler.asyncio.scheduler import Scheduler
 
-from spoolman import env
+from spoolman import env, externaldb
 from spoolman.api.v1.router import app as v1_app
 from spoolman.client import SinglePageApplication
 from spoolman.database import database
@@ -143,6 +143,7 @@ async def startup() -> None:
     # Setup scheduler
     schedule = Scheduler()
     database.schedule_tasks(schedule)
+    externaldb.schedule_tasks(schedule)
 
     logger.info("Startup complete.")
 
