@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get(
-    "/filaments",
+    "/filament",
     name="Get all external filaments",
     response_model_exclude_none=True,
     response_model=list[ExternalFilament],
@@ -29,7 +29,7 @@ async def filaments() -> FileResponse:
 
 
 @router.get(
-    "/materials",
+    "/material",
     name="Get all external materials",
     response_model_exclude_none=True,
     response_model=list[ExternalMaterial],
