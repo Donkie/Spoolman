@@ -1,12 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAPIURL } from "./url";
 
-interface ExternalFilament {
+export interface ExternalFilament {
   id: string;
   manufacturer: string;
   name: string;
   material: string;
-  density: number | null;
+  density: number;
   weight: number;
   spool_weight: number | null;
   diameter: number;
@@ -15,7 +15,7 @@ interface ExternalFilament {
   bed_temp: number | null;
 }
 
-interface ExternalMaterial {
+export interface ExternalMaterial {
   material: string;
   density: number;
 }

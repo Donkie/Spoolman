@@ -44,6 +44,8 @@ export const VendorShow: React.FC<IResourceComponentsProps> = () => {
       <TextField value={enrichText(record?.comment)} />
       <Title level={5}>{t("vendor.fields.empty_spool_weight")}</Title>
       <TextField value={record?.empty_spool_weight} />
+      <Title level={5}>{t("vendor.fields.external_id")}</Title>
+      <TextField value={record?.external_id} />
       <Title level={4}>{t("settings.extra_fields.tab")}</Title>
       {extraFields?.data?.map((field, index) => (
         <ExtraFieldDisplay key={index} field={field} value={record?.extra[field.key]} />

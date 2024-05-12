@@ -136,6 +136,8 @@
             "id": "ID",
             "filament_name": "Filament",
             "filament": "Filament",
+            "filament_internal": "Internal",
+            "filament_external": "External",
             "price": "Price",
             "material": "Material",
             "weight_to_use": "Weight",
@@ -163,7 +165,8 @@
             "initial_weight": "The initial weight of filament on the spool (net weight). Will use the weight from the filament object if not set.",
             "spool_weight": "The weight of the spool when it is empty. Leave empty to use the value from the filament or the manufacturer.",
             "location": "Where the spool is located if you have multiple locations where you store your spools.",
-            "lot_nr": "Manufacturer's lot number. Can be used to ensure a print has consistent color if multiple spools are used."
+            "lot_nr": "Manufacturer's lot number. Can be used to ensure a print has consistent color if multiple spools are used.",
+            "external_filament": "You have selected a filament from the external database. A filament object (and possibly a manufacturer object) will be created automatically when you create this spool. This can create duplicate filament objects if you have already created a filament object for this filament."
         },
         "titles": {
             "create": "Create Spool",
@@ -201,6 +204,7 @@
             "settings_extruder_temp": "Extruder Temp",
             "settings_bed_temp": "Bed Temp",
             "color_hex": "Color",
+            "external_id": "External ID",
             "spools": "Show Spools"
         },
         "fields_help": {
@@ -232,6 +236,7 @@
             "id": "ID",
             "name": "Name",
             "empty_spool_weight": "Empty Spool Weight",
+            "external_id": "External ID",
             "registered": "Registered",
             "comment": "Comment"
         },

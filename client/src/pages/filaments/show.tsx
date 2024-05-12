@@ -143,6 +143,8 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       )}
       <Title level={5}>{t("filament.fields.article_number")}</Title>
       <TextField value={record?.article_number} />
+      <Title level={5}>{t("filament.fields.external_id")}</Title>
+      <TextField value={record?.external_id} />
       <Title level={5}>{t("filament.fields.comment")}</Title>
       <TextField value={enrichText(record?.comment)} />
       <Title level={4}>{t("settings.extra_fields.tab")}</Title>
