@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 import { IFilament } from "../filaments/model";
 import { ISpool, ISpoolParsedExtras, WeightToEnter } from "./model";
-import { numberFormatter, numberParser } from "../../utils/parsing";
+import { formatLength, formatWeight, numberFormatter, numberParser } from "../../utils/parsing";
 import { useSpoolmanLocations } from "../../components/otherModels";
 import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
 import "../../utils/overrides.css";
@@ -14,7 +14,7 @@ import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
 import utc from "dayjs/plugin/utc";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
-import { ValueType } from "rc-input-number";
+import { useGetExternalDBFilaments } from "../../utils/queryExternalDB";
 
 dayjs.extend(utc);
 
@@ -22,10 +22,37 @@ interface CreateOrCloneProps {
   mode: "create" | "clone";
 }
 
+function formatFilamentLabel(name: string, diameter: number, vendorName?: string, material?: string, weight?: number) {
+  const portions = [];
+  if (vendorName) {
+    portions.push(vendorName);
+  }
+  portions.push(name);
+  const extras = [];
+  if (material) {
+    extras.push(material);
+  }
+  extras.push(formatLength(diameter));
+  if (weight) {
+    extras.push(formatWeight(weight));
+  }
+  return `${portions.join(" - ")} (${extras.join(" ")})`;
+}
+
+/**
+ * Performs a case-insensitive search for the given query in the given string.
+ * The query is broken down into words and the search is performed on each word.
+ */
+function selectSearchMatches(query: string, test: string): boolean {
+  const words = query.toLowerCase().split(" ");
+  return words.every((word) => test.toLowerCase().includes(word));
+}
+
 export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.spool);
   const currency = useCurrency();
+  const externalFilaments = useGetExternalDBFilaments();
 
   const { form, formProps, formLoading, onFinish, redirect } = useForm<
     ISpool,
@@ -74,7 +101,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     redirect(redirectTo, (values as ISpool).id);
   };
 
-  const { queryResult } = useSelect<IFilament>({
+  const { queryResult: filamentsQuery } = useSelect<IFilament>({
     resource: "filament",
   });
 
@@ -89,40 +116,55 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     });
   }, [form, extraFields.data, formProps.initialValues]);
 
-  const filamentOptions = queryResult.data?.data.map((item) => {
-    let vendorPrefix = "";
-    if (item.vendor) {
-      vendorPrefix = `${item.vendor.name} - `;
-    }
-    let name = item.name;
-    if (!name) {
-      name = `ID: ${item.id}`;
-    }
-    let material = "";
-    if (item.material) {
-      material = ` - ${item.material}`;
-    }
-    const label = `${vendorPrefix}${name}${material}`;
-
+  const filamentSelectInternal = filamentsQuery.data?.data.map((item) => {
     return {
-      label: label,
+      label: formatFilamentLabel(
+        item.name ?? `ID ${item.id}`,
+        item.diameter,
+        item.vendor?.name,
+        item.material,
+        item.weight
+      ),
       value: item.id,
       weight: item.weight,
       spool_weight: item.spool_weight,
     };
   });
-  filamentOptions?.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+  filamentSelectInternal?.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+
+  const filamentSelectExternal = externalFilaments.data?.map((item) => {
+    return {
+      label: formatFilamentLabel(item.name, item.diameter, item.manufacturer, item.material, item.weight),
+      value: item.id,
+      weight: item.weight,
+      spool_weight: item.spool_weight,
+    };
+  });
+  filamentSelectExternal?.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+
+  const filamentSelectOptions = [
+    {
+      title: "Internal",
+      label: <span>Internal</span>,
+      options: filamentSelectInternal ?? [],
+    },
+    {
+      title: "External",
+      label: <span>External</span>,
+      options: filamentSelectExternal ?? [],
+    },
+  ];
 
   const [weightToEnter, setWeightToEnter] = useState(1);
   const [usedWeight, setUsedWeight] = useState(0);
 
   const selectedFilamentID = Form.useWatch("filament_id", form);
-  const selectedFilament = filamentOptions?.find((obj) => {
+  const selectedFilament = filamentSelectInternal?.find((obj) => {
     return obj.value === selectedFilamentID;
   });
 
   const filamentChange = (newID: number) => {
-    const newSelectedFilament = filamentOptions?.find((obj) => {
+    const newSelectedFilament = filamentSelectInternal?.find((obj) => {
       return obj.value === newID;
     });
 
@@ -296,10 +338,10 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
           ]}
         >
           <Select
-            options={filamentOptions}
+            options={filamentSelectOptions}
             showSearch
             filterOption={(input, option) =>
-              typeof option?.label === "string" && option?.label.toLowerCase().includes(input.toLowerCase())
+              typeof option?.label === "string" && selectSearchMatches(input, option?.label)
             }
             onChange={(value) => {
               filamentChange(value);

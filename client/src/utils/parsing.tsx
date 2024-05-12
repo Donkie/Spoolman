@@ -84,3 +84,35 @@ export function enrichText(text: string | undefined) {
 
   return <>{elements}</>;
 }
+
+/**
+ * Formats the weight in grams to either kilograms or grams based on the provided precision.
+ *
+ * @param {number} weightInGrams - The weight in grams to be formatted.
+ * @param {number} [precision=2] - The precision of the formatting (number of decimal places).
+ * @return {string} The formatted weight with the appropriate unit (kg or g).
+ */
+export function formatWeight(weightInGrams: number, precision: number = 2): string {
+  if (weightInGrams >= 1000) {
+    const kilograms = (weightInGrams / 1000).toFixed(precision).replace(/\.?0+$/, ""); // Remove trailing zeros
+    return `${kilograms} kg`;
+  } else {
+    return `${weightInGrams} g`;
+  }
+}
+
+/**
+ * Formats the length in millimeters to either meters or millimeters based on the provided precision.
+ *
+ * @param {number} lengthInMillimeter - The length in millimeters to be formatted.
+ * @param {number} [precision=2] - The precision of the formatting (number of decimal places).
+ * @return {string} The formatted length with the appropriate unit (m or mm).
+ */
+export function formatLength(lengthInMillimeter: number, precision: number = 2): string {
+  if (lengthInMillimeter >= 1000) {
+    const meters = (lengthInMillimeter / 1000).toFixed(precision).replace(/\.?0+$/, ""); // Remove trailing zeros
+    return `${meters} m`;
+  } else {
+    return `${lengthInMillimeter} mm`;
+  }
+}
