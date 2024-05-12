@@ -30,7 +30,7 @@ class ExternalFilament(BaseModel):
     weight: float = Field(description="Net weight of a single spool.", example=1000)
     spool_weight: Optional[float] = Field(default=None, description="Weight of an empty spool.", example=140)
     diameter: float = Field(description="Filament in mm.", example=1.75)
-    color_hex: str = Field(description="Filament color code in hex format.", example="#2c3232")
+    color_hex: str = Field(description="Filament color code in hex format.", example="2c3232")
     extruder_temp: Optional[int] = Field(default=None, description="Extruder/nozzle temperature in °C.", example=210)
     bed_temp: Optional[int] = Field(default=None, description="Bed temperature in °C.", example=50)
 
