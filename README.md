@@ -133,9 +133,9 @@ these steps to install from source. Keep in mind that this may contain bugs and 
    1. Create a .env file with `VITE_APIURL=/api/v1` in it
    2. Run `npm ci`
    3. Run `npm run build`
-3. Give scripts permissions: `chmod +x ./scripts/*.sh`
 4. Install PDM using `pip install --user pdm`
 5. Build the requirements.txt file: `pdm export -o requirements.txt --without-hashes > requirements.txt`
+3. Give scripts permissions: `chmod +x ./scripts/*.sh`
 6. Run the installer script like the normal install: `./scripts/install.sh`
 
 ## Development
