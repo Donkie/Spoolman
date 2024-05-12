@@ -29,6 +29,7 @@ import utc from "dayjs/plugin/utc";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { ExternalFilament, useGetExternalDBFilaments } from "../../utils/queryExternalDB";
 import { createFilamentFromExternal } from "../filaments/functions";
+import { formatFilamentLabel, useGetFilamentSelectOptions } from "./functions";
 
 dayjs.extend(utc);
 
@@ -39,23 +40,6 @@ interface CreateOrCloneProps {
 type ISpoolRequest = Omit<ISpoolParsedExtras, "id" | "registered"> & {
   filament_id: number | string;
 };
-
-function formatFilamentLabel(name: string, diameter: number, vendorName?: string, material?: string, weight?: number) {
-  const portions = [];
-  if (vendorName) {
-    portions.push(vendorName);
-  }
-  portions.push(name);
-  const extras = [];
-  if (material) {
-    extras.push(material);
-  }
-  extras.push(formatLength(diameter));
-  if (weight) {
-    extras.push(formatWeight(weight));
-  }
-  return `${portions.join(" - ")} (${extras.join(", ")})`;
-}
 
 /**
  * Performs a case-insensitive search for the given query in the given string.
@@ -70,7 +54,6 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.spool);
   const currency = useCurrency();
-  const externalFilaments = useGetExternalDBFilaments();
 
   const { form, formProps, formLoading, onFinish, redirect } = useForm<
     ISpool,
@@ -107,12 +90,25 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     formProps.initialValues.filament_id = parseInt(filament_id);
   }
 
+  //
+  // Set up the filament selection options
+  //
+  const { options: filamentOptions, getById, allExternalFilaments } = useGetFilamentSelectOptions();
+
+  const selectedFilamentID = Form.useWatch("filament_id", form);
+  const selectedFilament = getById(selectedFilamentID);
+
+  //
+  // Submit handler
+  //
+
   const handleSubmit = async (redirectTo: "list" | "edit" | "create") => {
     const values = StringifiedExtras(await form.validateFields());
-    if (typeof values.filament_id === "string") {
+    const selectOption = getById(values.filament_id);
+    if (selectOption?.is_internal === false) {
       // Filament ID being a string indicates its an external filament.
       // If so, we should first create the internal filament version, then create the spool(s)
-      const externalFilament = externalFilaments.data?.find((f) => f.id === values.filament_id);
+      const externalFilament = allExternalFilaments?.find((f) => f.id === values.filament_id);
       if (!externalFilament) {
         throw new Error("Unknown external filament");
       }
@@ -131,10 +127,6 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     redirect(redirectTo);
   };
 
-  const { queryResult: filamentsQuery } = useSelect<IFilament>({
-    resource: "filament",
-  });
-
   // Use useEffect to update the form's initialValues when the extra fields are loaded
   // This is necessary because the form is rendered before the extra fields are loaded
   React.useEffect(() => {
@@ -147,72 +139,6 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   }, [form, extraFields.data, formProps.initialValues]);
 
   //
-  // Set up the filament selection options
-  //
-
-  interface SelectOption {
-    label: string;
-    value: string | number;
-    weight?: number;
-    spool_weight?: number;
-    is_internal: boolean;
-  }
-
-  const filamentSelectInternal: SelectOption[] | undefined = filamentsQuery.data?.data.map((item) => {
-    return {
-      label: formatFilamentLabel(
-        item.name ?? `ID ${item.id}`,
-        item.diameter,
-        item.vendor?.name,
-        item.material,
-        item.weight
-      ),
-      value: item.id,
-      weight: item.weight,
-      spool_weight: item.spool_weight,
-      is_internal: true,
-    };
-  });
-  filamentSelectInternal?.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
-
-  const filamentSelectExternal: SelectOption[] | undefined = externalFilaments.data?.map((item) => {
-    return {
-      label: formatFilamentLabel(item.name, item.diameter, item.manufacturer, item.material, item.weight),
-      value: item.id,
-      weight: item.weight,
-      spool_weight: item.spool_weight || undefined,
-      is_internal: false,
-    };
-  });
-  filamentSelectExternal?.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
-
-  const filamentSelectOptions = [
-    {
-      label: <span>{t("spool.fields.filament_internal")}</span>,
-      options: filamentSelectInternal ?? [],
-    },
-    {
-      label: <span>{t("spool.fields.filament_external")}</span>,
-      options: filamentSelectExternal ?? [],
-    },
-  ];
-
-  const selectedFilamentID: number | string | undefined = Form.useWatch("filament_id", form);
-  let selectedFilament: SelectOption | null = null;
-  // selectedFilamentID is a number of it's an internal filament, and a string of it's an external filament.
-  if (typeof selectedFilamentID === "number") {
-    selectedFilament =
-      filamentSelectInternal?.find((obj) => {
-        return obj.value === selectedFilamentID;
-      }) ?? null;
-  } else if (typeof selectedFilamentID === "string") {
-    selectedFilament =
-      filamentSelectExternal?.find((obj) => {
-        return obj.value === selectedFilamentID;
-      }) ?? null;
-  }
-
-  //
   // Weight calculations
   //
 
@@ -220,17 +146,11 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   const [usedWeight, setUsedWeight] = useState(0);
 
   React.useEffect(() => {
-    const initial_weight = initialWeightValue ?? 0;
-    const spool_weight = spoolWeightValue ?? 0;
-
     const newFilamentWeight = selectedFilament?.weight || 0;
     const newSpoolWeight = selectedFilament?.spool_weight || 0;
-
-    const currentCalculatedFilamentWeight = selectedFilament ? calcTotalWeight(selectedFilament) : 0;
     if (newFilamentWeight > 0) {
       form.setFieldValue("initial_weight", newFilamentWeight);
     }
-
     if (newSpoolWeight > 0) {
       form.setFieldValue("spool_weight", newSpoolWeight);
     }
@@ -273,10 +193,6 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     const spool_weight = getSpoolWeight();
     return net_weight + spool_weight;
   };
-
-  function calcTotalWeight(filament: SelectOption): number {
-    return (filament.weight ?? 0) + (filament.spool_weight ?? 0);
-  }
 
   const getMeasuredWeight = (): number => {
     const grossWeight = getGrossWeight();
@@ -390,7 +306,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
           ]}
         >
           <Select
-            options={filamentSelectOptions}
+            options={filamentOptions}
             showSearch
             filterOption={(input, option) =>
               typeof option?.label === "string" && selectSearchMatches(input, option?.label)
