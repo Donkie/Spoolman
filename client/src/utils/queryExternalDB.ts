@@ -18,6 +18,8 @@ export interface ExternalFilament {
 export interface ExternalMaterial {
   material: string;
   density: number;
+  extruder_temp: number | null;
+  bed_temp: number | null;
 }
 
 export function useGetExternalDBFilaments() {

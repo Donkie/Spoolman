@@ -42,6 +42,8 @@ class ExternalFilamentsFile(BaseModel):
 class ExternalMaterial(BaseModel):
     material: str = Field(example="PLA")
     density: float = Field(example=1.24)
+    extruder_temp: Optional[int] = Field(default=None, description="Extruder/nozzle temperature in °C.", example=210)
+    bed_temp: Optional[int] = Field(default=None, description="Bed temperature in °C.", example=50)
 
 
 class ExternalMaterialsFile(BaseModel):
