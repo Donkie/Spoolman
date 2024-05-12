@@ -26,7 +26,7 @@ class ExternalFilament(BaseModel):
     manufacturer: str = Field(description="Filament manufacturer.", example="Polymaker")
     name: str = Field(description="Filament name.", example="Polysonic\u2122 Black")
     material: str = Field(description="Filament material.", example="PLA")
-    density: Optional[float] = Field(default=None, description="Density in g/cm3.", example=1.23)
+    density: float = Field(description="Density in g/cm3.", example=1.23)
     weight: float = Field(description="Net weight of a single spool.", example=1000)
     spool_weight: Optional[float] = Field(default=None, description="Weight of an empty spool.", example=140)
     diameter: float = Field(description="Filament in mm.", example=1.75)
