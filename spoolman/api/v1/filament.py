@@ -82,6 +82,13 @@ class FilamentParameters(BaseModel):
         description="Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end.",
         example="FF0000",
     )
+    external_id: Optional[str] = Field(
+        max_length=256,
+        description=(
+            "Set if this filament comes from an external database. This contains the ID in the external database."
+        ),
+        example="polymaker_pla_polysonicblack_1000_175",
+    )
     extra: Optional[dict[str, str]] = Field(
         None,
         description="Extra fields for this filament.",
@@ -357,6 +364,7 @@ async def create(  # noqa: ANN201
         settings_extruder_temp=body.settings_extruder_temp,
         settings_bed_temp=body.settings_bed_temp,
         color_hex=body.color_hex,
+        external_id=body.external_id,
         extra=body.extra,
     )
 

@@ -21,6 +21,7 @@ class Vendor(Base):
     empty_spool_weight: Mapped[Optional[float]] = mapped_column(comment="The weight of an empty spool.")
     comment: Mapped[Optional[str]] = mapped_column(String(1024))
     filaments: Mapped[list["Filament"]] = relationship(back_populates="vendor")
+    external_id: Mapped[Optional[str]] = mapped_column(String(256))
     extra: Mapped[list["VendorField"]] = relationship(
         back_populates="vendor",
         cascade="save-update, merge, delete, delete-orphan",
@@ -48,6 +49,7 @@ class Filament(Base):
     settings_extruder_temp: Mapped[Optional[int]] = mapped_column(comment="Overridden extruder temperature.")
     settings_bed_temp: Mapped[Optional[int]] = mapped_column(comment="Overridden bed temperature.")
     color_hex: Mapped[Optional[str]] = mapped_column(String(8))
+    external_id: Mapped[Optional[str]] = mapped_column(String(256))
     extra: Mapped[list["FilamentField"]] = relationship(
         back_populates="filament",
         cascade="save-update, merge, delete, delete-orphan",

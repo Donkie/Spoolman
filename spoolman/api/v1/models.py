@@ -61,6 +61,13 @@ class Vendor(BaseModel):
     name: str = Field(max_length=64, description="Vendor name.", example="Polymaker")
     comment: Optional[str] = Field(max_length=1024, description="Free text comment about this vendor.", example="")
     empty_spool_weight: Optional[float] = Field(gt=0, description="The empty spool weight, in grams.", example=140)
+    external_id: Optional[str] = Field(
+        max_length=256,
+        description=(
+            "Set if this vendor comes from an external database. This contains the ID in the external database."
+        ),
+        example="eSun",
+    )
     extra: dict[str, str] = Field(
         description=(
             "Extra fields for this vendor. All values are JSON-encoded data. "
@@ -77,6 +84,7 @@ class Vendor(BaseModel):
             name=item.name,
             comment=item.comment,
             empty_spool_weight=item.empty_spool_weight,
+            external_id=item.external_id,
             extra={field.key: field.value for field in item.extra},
         )
 
@@ -137,6 +145,13 @@ class Filament(BaseModel):
         description="Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end.",
         example="FF0000",
     )
+    external_id: Optional[str] = Field(
+        max_length=256,
+        description=(
+            "Set if this filament comes from an external database. This contains the ID in the external database."
+        ),
+        example="polymaker_pla_polysonicblack_1000_175",
+    )
     extra: dict[str, str] = Field(
         description=(
             "Extra fields for this filament. All values are JSON-encoded data. "
@@ -163,6 +178,7 @@ class Filament(BaseModel):
             settings_extruder_temp=item.settings_extruder_temp,
             settings_bed_temp=item.settings_bed_temp,
             color_hex=item.color_hex,
+            external_id=item.external_id,
             extra={field.key: field.value for field in item.extra},
         )
 

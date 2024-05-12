@@ -42,6 +42,7 @@ async def create(
     settings_extruder_temp: Optional[int] = None,
     settings_bed_temp: Optional[int] = None,
     color_hex: Optional[str] = None,
+    external_id: Optional[str] = None,
     extra: Optional[dict[str, str]] = None,
 ) -> models.Filament:
     """Add a new filament to the database."""
@@ -67,6 +68,7 @@ async def create(
         settings_extruder_temp=settings_extruder_temp,
         settings_bed_temp=settings_bed_temp,
         color_hex=color_hex,
+        external_id=external_id,
         extra=[models.FilamentField(key=k, value=v) for k, v in (extra or {}).items()],
     )
     db.add(filament)

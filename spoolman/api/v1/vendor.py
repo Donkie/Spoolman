@@ -38,6 +38,13 @@ class VendorParameters(BaseModel):
         description="The weight of an empty spool, in grams.",
         example=200,
     )
+    external_id: Optional[str] = Field(
+        max_length=256,
+        description=(
+            "Set if this vendor comes from an external database. This contains the ID in the external database."
+        ),
+        example="eSun",
+    )
     extra: Optional[dict[str, str]] = Field(
         None,
         description="Extra fields for this vendor.",
@@ -191,6 +198,7 @@ async def create(  # noqa: ANN201
         name=body.name,
         comment=body.comment,
         empty_spool_weight=body.empty_spool_weight,
+        external_id=body.external_id,
         extra=body.extra,
     )
 
