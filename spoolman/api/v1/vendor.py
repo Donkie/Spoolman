@@ -66,7 +66,6 @@ class VendorUpdateParameters(VendorParameters):
     response_model_exclude_none=True,
     responses={
         200: {"model": list[Vendor]},
-        404: {"model": Message},
         299: {"model": VendorEvent, "description": "Websocket message"},
     },
 )

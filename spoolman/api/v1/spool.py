@@ -100,7 +100,6 @@ class SpoolMeasureParameters(BaseModel):
     response_model_exclude_none=True,
     responses={
         200: {"model": list[Spool]},
-        404: {"model": Message},
         299: {"model": SpoolEvent, "description": "Websocket message"},
     },
 )

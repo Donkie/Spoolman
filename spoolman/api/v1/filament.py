@@ -130,7 +130,6 @@ class FilamentUpdateParameters(FilamentParameters):
     response_model_exclude_none=True,
     responses={
         200: {"model": list[Filament]},
-        404: {"model": Message},
         299: {"model": FilamentEvent, "description": "Websocket message"},
     },
 )
