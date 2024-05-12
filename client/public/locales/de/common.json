@@ -161,8 +161,8 @@
             "location": "Ort, an dem die Spule gelagert wird.",
             "lot_nr": "Chargennummer des Herstellers. Kann verwendet werden um gleichmäßige Farben zu garantieren, wenn mehrere Spulen verwendet werden.",
             "price": "Preis einer vollen Spule in der im System konfigurierten Währung. Falls nicht ausgewählt, wird der Preis des Filaments verwendet.",
-            "initial_weight": "Das Anfangsgewicht des Filaments (Nettogewicht). Dieser Wert kann vom Filament stammen, wird jedoch auf Spulenebene verfolgt, um individuelle Schwankungen des Filamentgewichts auf der Spule zu berücksichtigen.",
-            "spool_weight": "Das Gewicht der leeren Spule. Dieser Wert kann entweder vom Filament oder vom Hersteller stammen, wird jedoch auf Spulenebene verfolgt, um individuelle Schwankungen des Gewichts einer leeren Spule zu berücksichtigen."
+            "initial_weight": "Das Anfangsgewicht des Filaments (Nettogewicht) auf der Spule. Wenn nicht gesetzt, dann wird der Wert aus dem Filament Objekt genutzt.",
+            "spool_weight": "Das Gewicht der leeren Spule. Leer lassen um das Gewicht vom Hersteller zu nutzen."
         },
         "titles": {
             "create": "Spule erstellen",
@@ -240,10 +240,10 @@
             "edit": "Hersteller bearbeiten",
             "list": "Hersteller",
             "show": "Hersteller anzeigen",
-            "show_title": "[Marke #{{id}}] {{name}}"
+            "show_title": "[Hersteller #{{id}}] {{name}}"
         },
         "form": {
-            "vendor_updated": "Diese Marke wurde, seit dem die Seite geöffnet wurde, von jemand anderem/etwas anderem bearbeitet. Speichern wird diese Änderungen überschreiben!"
+            "vendor_updated": "Dieser Hersteller wurde, seit dem die Seite geöffnet wurde, von jemand anderem/etwas anderem bearbeitet. Speichern wird diese Änderungen überschreiben!"
         },
         "fields_help": {
             "empty_spool_weight": "Das Gewicht einer leeren Spule von diesem Hersteller."
