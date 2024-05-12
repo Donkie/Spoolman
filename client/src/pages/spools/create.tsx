@@ -120,16 +120,15 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   const selectedFilament = filamentOptions?.find((obj) => {
     return obj.value === selectedFilamentID;
   });
- 
+
   const filamentChange = (newID: number) => {
-    
     const newSelectedFilament = filamentOptions?.find((obj) => {
       return obj.value === newID;
     });
 
     const initial_weight = initialWeightValue ?? 0;
     const spool_weight = spoolWeightValue ?? 0;
-    
+
     const newFilamentWeight = newSelectedFilament?.weight || 0;
     const newSpoolWeight = newSelectedFilament?.spool_weight || 0;
 
@@ -168,12 +167,12 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   };
 
   const getSpoolWeight = (): number => {
-    return spoolWeightValue ?? (selectedFilament?.spool_weight ?? 0);
-  }
+    return spoolWeightValue ?? selectedFilament?.spool_weight ?? 0;
+  };
 
   const getFilamentWeight = (): number => {
-    return initialWeightValue ?? (selectedFilament?.weight ?? 0)
-  }
+    return initialWeightValue ?? selectedFilament?.weight ?? 0;
+  };
 
   const getGrossWeight = (): number => {
     const net_weight = getFilamentWeight();
@@ -183,31 +182,30 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
 
   const getTotalWeightFromFilament = (): number => {
     return (selectedFilament?.weight ?? 0) + (selectedFilament?.spool_weight ?? 0);
-  }
+  };
 
   const getMeasuredWeight = (): number => {
     const grossWeight = getGrossWeight();
 
     return grossWeight - usedWeight;
-  }
+  };
 
   const getRemainingWeight = (): number => {
     const initial_weight = getFilamentWeight();
 
     return initial_weight - usedWeight;
-  }
+  };
 
   const isMeasuredWeightEnabled = (): boolean => {
-
     if (!isRemainingWeightEnabled()) {
       return false;
     }
 
     const spool_weight = spoolWeightValue;
 
-    return (spool_weight || selectedFilament?.spool_weight) ? true : false;
-  }
-  
+    return spool_weight || selectedFilament?.spool_weight ? true : false;
+  };
+
   const isRemainingWeightEnabled = (): boolean => {
     const initial_weight = initialWeightValue;
 
@@ -216,25 +214,22 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     }
 
     return selectedFilament?.weight ? true : false;
-  }
+  };
 
   React.useEffect(() => {
-    if (weightToEnter >= WeightToEnter.measured_weight) 
-    {
+    if (weightToEnter >= WeightToEnter.measured_weight) {
       if (!isMeasuredWeightEnabled()) {
         setWeightToEnter(WeightToEnter.remaining_weight);
         return;
       }
     }
-    if (weightToEnter >= WeightToEnter.remaining_weight)
-    {
+    if (weightToEnter >= WeightToEnter.remaining_weight) {
       if (!isRemainingWeightEnabled()) {
         setWeightToEnter(WeightToEnter.used_weight);
         return;
       }
     }
-  }, [selectedFilament])
-
+  }, [selectedFilament]);
 
   return (
     <Create

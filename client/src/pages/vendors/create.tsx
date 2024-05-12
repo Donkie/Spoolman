@@ -97,9 +97,7 @@ export const VendorCreate: React.FC<IResourceComponentsProps & CreateOrCloneProp
             },
           ]}
         >
-          <InputNumber 
-            addonAfter="g"
-            precision={1}/>
+          <InputNumber addonAfter="g" precision={1} />
         </Form.Item>
         <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
         {extraFields.data?.map((field, index) => (

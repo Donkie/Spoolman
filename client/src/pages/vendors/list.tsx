@@ -7,7 +7,14 @@ import utc from "dayjs/plugin/utc";
 import { IVendor } from "./model";
 import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
 import { EditOutlined, EyeOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
-import { DateColumn, RichColumn, SortedColumn, ActionsColumn, CustomFieldColumn, NumberColumn } from "../../components/column";
+import {
+  DateColumn,
+  RichColumn,
+  SortedColumn,
+  ActionsColumn,
+  CustomFieldColumn,
+  NumberColumn,
+} from "../../components/column";
 import { useLiveify } from "../../components/liveify";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";

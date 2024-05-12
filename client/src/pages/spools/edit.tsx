@@ -96,16 +96,15 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   const selectedFilament = filamentOptions?.find((obj) => {
     return obj.value === selectedFilamentID;
   });
- 
+
   const filamentChange = (newID: number) => {
-    
     const newSelectedFilament = filamentOptions?.find((obj) => {
       return obj.value === newID;
     });
 
     const initial_weight = initialWeightValue ?? 0;
     const spool_weight = spoolWeightValue ?? 0;
-    
+
     const newFilamentWeight = newSelectedFilament?.weight || 0;
     const newSpoolWeight = newSelectedFilament?.spool_weight || 0;
 
@@ -134,13 +133,13 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
     allLocations.push(newLocation.trim());
   }
 
-const getSpoolWeight = (): number => {
-    return spoolWeightValue ?? (selectedFilament?.spool_weight ?? 0);
-  }
+  const getSpoolWeight = (): number => {
+    return spoolWeightValue ?? selectedFilament?.spool_weight ?? 0;
+  };
 
   const getFilamentWeight = (): number => {
-    return initialWeightValue ?? (selectedFilament?.weight ?? 0)
-  }
+    return initialWeightValue ?? selectedFilament?.weight ?? 0;
+  };
 
   const getGrossWeight = (): number => {
     const net_weight = getFilamentWeight();
@@ -150,31 +149,30 @@ const getSpoolWeight = (): number => {
 
   const getTotalWeightFromFilament = (): number => {
     return (selectedFilament?.weight ?? 0) + (selectedFilament?.spool_weight ?? 0);
-  }
+  };
 
   const getMeasuredWeight = (): number => {
     const grossWeight = getGrossWeight();
 
     return grossWeight - usedWeight;
-  }
+  };
 
   const getRemainingWeight = (): number => {
     const initial_weight = getFilamentWeight();
 
     return initial_weight - usedWeight;
-  }
+  };
 
   const isMeasuredWeightEnabled = (): boolean => {
-
     if (!isRemainingWeightEnabled()) {
       return false;
     }
 
     const spool_weight = spoolWeightValue;
 
-    return (spool_weight || selectedFilament?.spool_weight) ? true : false;
-  }
-  
+    return spool_weight || selectedFilament?.spool_weight ? true : false;
+  };
+
   const isRemainingWeightEnabled = (): boolean => {
     const initial_weight = initialWeightValue;
 
@@ -183,24 +181,22 @@ const getSpoolWeight = (): number => {
     }
 
     return selectedFilament?.weight ? true : false;
-  }
+  };
 
   React.useEffect(() => {
-    if (weightToEnter >= WeightToEnter.measured_weight) 
-    {
+    if (weightToEnter >= WeightToEnter.measured_weight) {
       if (!isMeasuredWeightEnabled()) {
         setWeightToEnter(WeightToEnter.remaining_weight);
         return;
       }
     }
-    if (weightToEnter >= WeightToEnter.remaining_weight)
-    {
+    if (weightToEnter >= WeightToEnter.remaining_weight) {
       if (!isRemainingWeightEnabled()) {
         setWeightToEnter(WeightToEnter.used_weight);
         return;
       }
     }
-  }, [selectedFilament])
+  }, [selectedFilament]);
 
   const initialUsedWeight = formProps.initialValues?.used_weight || 0;
   useEffect(() => {
@@ -317,7 +313,7 @@ const getSpoolWeight = (): number => {
             },
           ]}
         >
-          <InputNumber addonAfter="g" precision={1}/>
+          <InputNumber addonAfter="g" precision={1} />
         </Form.Item>
 
         <Form.Item
@@ -370,10 +366,7 @@ const getSpoolWeight = (): number => {
             }}
           />
         </Form.Item>
-        <Form.Item
-          label={t("spool.fields.remaining_weight")}
-          help={t("spool.fields_help.remaining_weight")}
-        >
+        <Form.Item label={t("spool.fields.remaining_weight")} help={t("spool.fields_help.remaining_weight")}>
           <InputNumber
             min={0}
             addonAfter="g"
@@ -387,10 +380,7 @@ const getSpoolWeight = (): number => {
             }}
           />
         </Form.Item>
-        <Form.Item
-          label={t("spool.fields.measured_weight")}
-          help={t("spool.fields_help.measured_weight")}
-        >
+        <Form.Item label={t("spool.fields.measured_weight")} help={t("spool.fields_help.measured_weight")}>
           <InputNumber
             min={0}
             addonAfter="g"
