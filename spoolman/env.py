@@ -354,7 +354,7 @@ def check_write_permissions() -> None:
 
         # Try fixing it by chowning the directory to the current user
         logger.warning("Data directory is not writable, trying to fix it...")
-        if not chown_dir(get_data_dir()) or not can_write_to_data_dir():
+        if not chown_dir(str(get_data_dir())) or not can_write_to_data_dir():
             uid = os.getuid()
             gid = os.getgid()
 
