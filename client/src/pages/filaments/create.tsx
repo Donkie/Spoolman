@@ -23,6 +23,10 @@ interface CreateOrCloneProps {
   mode: "create" | "clone";
 }
 
+type IFilamentRequest = Omit<IFilamentParsedExtras, "id" | "registered"> & {
+  vendor_id: number;
+};
+
 export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.filament);
@@ -33,7 +37,7 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
   const { form, formProps, formLoading, onFinish, redirect } = useForm<
     IFilament,
     HttpError,
-    IFilamentParsedExtras,
+    IFilamentRequest,
     IFilamentParsedExtras
   >();
 
@@ -48,10 +52,10 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
     }
   }
 
-  const handleSubmit = async (redirectTo: "list" | "edit" | "create") => {
+  const handleSubmit = async (redirectTo: "list" | "create") => {
     const values = StringifiedExtras(await form.validateFields());
     await onFinish(values);
-    redirect(redirectTo, (values as IFilament).id);
+    redirect(redirectTo);
   };
 
   const { selectProps: vendorSelect } = useSelect<IVendor>({
