@@ -224,7 +224,9 @@
             "show_title": "[Filament #{{id}}] {{name}}"
         },
         "form": {
-            "filament_updated": "This filament has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
+            "filament_updated": "This filament has been updated by someone/something else since you opened this page. Saving will overwrite those changes!",
+            "import_external": "Import from External",
+            "import_external_description": "Select a filament in the list to automatically populate its details in the filament creation form. This will overwrite any data you have entered in the form.<br><br>A Manufacturer object will be created automatically when you click Ok, if necessary."
         },
         "buttons": {
             "add_spool": "Add Spool"

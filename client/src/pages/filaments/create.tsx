@@ -1,7 +1,7 @@
 import React from "react";
-import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
+import { HttpError, IResourceComponentsProps, useInvalidate, useTranslate } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, Select, InputNumber, ColorPicker, Button, Typography } from "antd";
+import { Form, Input, Select, InputNumber, ColorPicker, Button, Typography, Modal } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { numberFormatter, numberParser } from "../../utils/parsing";
 import { IVendor } from "../vendors/model";
@@ -11,6 +11,11 @@ import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFie
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
+import { searchMatches } from "../../utils/filtering";
+import { ExternalFilament, useGetExternalDBFilaments } from "../../utils/queryExternalDB";
+import { formatFilamentLabel } from "../spools/functions";
+import { FilamentImportModal } from "../../components/filamentImportModal";
+import { getOrCreateVendorFromExternal } from "../vendors/functions";
 
 dayjs.extend(utc);
 
@@ -22,6 +27,8 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.filament);
   const currency = useCurrency();
+  const [isImportExtOpen, setIsImportExtOpen] = React.useState(false);
+  const invalidate = useInvalidate();
 
   const { form, formProps, formLoading, onFinish, redirect } = useForm<
     IFilament,
@@ -47,10 +54,31 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
     redirect(redirectTo, (values as IFilament).id);
   };
 
-  const { selectProps } = useSelect<IVendor>({
+  const { selectProps: vendorSelect } = useSelect<IVendor>({
     resource: "vendor",
     optionLabel: "name",
   });
+
+  const importFilament = async (filament: ExternalFilament) => {
+    const vendor = await getOrCreateVendorFromExternal(filament.manufacturer);
+    await invalidate({
+      resource: "vendor",
+      invalidates: ["list", "detail"],
+    });
+
+    form.setFieldsValue({
+      name: filament.name,
+      vendor_id: vendor.id,
+      material: filament.material,
+      density: filament.density,
+      diameter: filament.diameter,
+      weight: filament.weight,
+      spool_weight: filament.spool_weight || undefined,
+      color_hex: filament.color_hex,
+      settings_extruder_temp: filament.extruder_temp || undefined,
+      settings_bed_temp: filament.bed_temp || undefined,
+    });
+  };
 
   // Use useEffect to update the form's initialValues when the extra fields are loaded
   // This is necessary because the form is rendered before the extra fields are loaded
@@ -67,6 +95,13 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
     <Create
       title={props.mode === "create" ? t("filament.titles.create") : t("filament.titles.clone")}
       isLoading={formLoading}
+      headerButtons={() => (
+        <>
+          <Button type="primary" onClick={() => setIsImportExtOpen(true)}>
+            {t("filament.form.import_external")}
+          </Button>
+        </>
+      )}
       footerButtons={() => (
         <>
           <Button type="primary" onClick={() => handleSubmit("list")}>
@@ -78,6 +113,14 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
         </>
       )}
     >
+      <FilamentImportModal
+        isOpen={isImportExtOpen}
+        onImport={(value) => {
+          setIsImportExtOpen(false);
+          importFilament(value);
+        }}
+        onClose={() => setIsImportExtOpen(false)}
+      />
       <Form {...formProps} layout="vertical">
         <Form.Item
           label={t("filament.fields.name")}
@@ -101,7 +144,7 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
           ]}
         >
           <Select
-            {...selectProps}
+            {...vendorSelect}
             allowClear
             filterSort={(a, b) => {
               return a?.label && b?.label
