@@ -36,7 +36,7 @@ It is currently only supported in the Klipper ecosystem, with official support f
   * ✔️ Fluidd
   * ✔️ KlipperScreen
   * ✔️ Mainsail
-* ✖️ Octoprint - A plugin is in progress: [OctoPrint-Spoolman](https://github.com/mdziekon/octoprint-spoolman)
+* ✔️ Octoprint: [OctoPrint-Spoolman](https://github.com/mdziekon/octoprint-spoolman)
 * ✔️ Home Assistant integration: [spoolman-homeassistant](https://github.com/Disane87/spoolman-homeassistant)
 
 ## Installation
