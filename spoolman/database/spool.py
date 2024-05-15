@@ -9,6 +9,7 @@ from sqlalchemy import case, func
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
+from sqlalchemy.sql.functions import coalesce
 
 from spoolman.api.v1.models import EventType, Spool, SpoolEvent
 from spoolman.database import filament, models
@@ -108,7 +109,7 @@ async def get_by_id(db: AsyncSession, spool_id: int) -> models.Spool:
     return spool
 
 
-async def find(
+async def find(  # noqa: C901
     *,
     db: AsyncSession,
     filament_name: Optional[str] = None,
@@ -165,8 +166,16 @@ async def find(
     if sort_by is not None:
         for fieldstr, order in sort_by.items():
             sorts = []
-            if fieldstr in {"remaining_weight", "remaining_length"}:
-                sorts.append(models.Spool.initial_weight - models.Spool.spool_weight - models.Spool.used_weight)
+            if fieldstr == "remaining_weight":
+                sorts.append(coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight)
+            elif fieldstr == "remaining_length":
+                # Simplified weight -> length formula. Absolute value is not correct but the proportionality is still
+                # kept, which means the sort order is correct.
+                sorts.append(
+                    (coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight)
+                    / models.Filament.density
+                    / (models.Filament.diameter * models.Filament.diameter),
+                )
             elif fieldstr == "filament.combined_name":
                 sorts.append(models.Vendor.name)
                 sorts.append(models.Filament.name)
