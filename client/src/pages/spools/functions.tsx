@@ -4,6 +4,7 @@ import { getAPIURL } from "../../utils/url";
 import { ISpool } from "./model";
 import { IFilament } from "../filaments/model";
 import { useGetExternalDBFilaments } from "../../utils/queryExternalDB";
+import { useMemo } from "react";
 
 export async function setSpoolArchived(spool: ISpool, archived: boolean) {
   const init: RequestInit = {
@@ -62,36 +63,42 @@ export function useGetFilamentSelectOptions() {
   const externalFilaments = useGetExternalDBFilaments();
 
   // Format and sort internal filament options
-  const filamentSelectInternal: SelectOption[] =
-    internalFilaments.data?.data.map((item) => {
-      return {
-        label: formatFilamentLabel(
-          item.name ?? `ID ${item.id}`,
-          item.diameter,
-          item.vendor?.name,
-          item.material,
-          item.weight
-        ),
-        value: item.id,
-        weight: item.weight,
-        spool_weight: item.spool_weight,
-        is_internal: true,
-      };
-    }) ?? [];
-  filamentSelectInternal.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+  const filamentSelectInternal: SelectOption[] = useMemo(() => {
+    const data =
+      internalFilaments.data?.data.map((item) => {
+        return {
+          label: formatFilamentLabel(
+            item.name ?? `ID ${item.id}`,
+            item.diameter,
+            item.vendor?.name,
+            item.material,
+            item.weight
+          ),
+          value: item.id,
+          weight: item.weight,
+          spool_weight: item.spool_weight,
+          is_internal: true,
+        };
+      }) ?? [];
+    data.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+    return data;
+  }, [internalFilaments.data?.data]);
 
   // Format and sort external filament options
-  const filamentSelectExternal: SelectOption[] =
-    externalFilaments.data?.map((item) => {
-      return {
-        label: formatFilamentLabel(item.name, item.diameter, item.manufacturer, item.material, item.weight),
-        value: item.id,
-        weight: item.weight,
-        spool_weight: item.spool_weight || undefined,
-        is_internal: false,
-      };
-    }) ?? [];
-  filamentSelectExternal.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+  const filamentSelectExternal: SelectOption[] = useMemo(() => {
+    const data =
+      externalFilaments.data?.map((item) => {
+        return {
+          label: formatFilamentLabel(item.name, item.diameter, item.manufacturer, item.material, item.weight),
+          value: item.id,
+          weight: item.weight,
+          spool_weight: item.spool_weight || undefined,
+          is_internal: false,
+        };
+      }) ?? [];
+    data.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+    return data;
+  }, [externalFilaments.data]);
 
   return {
     options: [
@@ -104,24 +111,8 @@ export function useGetFilamentSelectOptions() {
         options: filamentSelectExternal,
       },
     ],
-    getById: (id: number | string | null) => {
-      // id is a number of it's an internal filament, and a string of it's an external filament.
-      if (typeof id === "number") {
-        return (
-          filamentSelectInternal?.find((obj) => {
-            return obj.value === id;
-          }) ?? null
-        );
-      } else if (typeof id === "string") {
-        return (
-          filamentSelectExternal?.find((obj) => {
-            return obj.value === id;
-          }) ?? null
-        );
-      } else {
-        return null;
-      }
-    },
+    internalSelectOptions: filamentSelectInternal,
+    externalSelectOptions: filamentSelectExternal,
     allExternalFilaments: externalFilaments.data,
   };
 }

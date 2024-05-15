@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
 import {
@@ -85,10 +85,32 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   //
   // Set up the filament selection options
   //
-  const { options: filamentOptions, getById, allExternalFilaments } = useGetFilamentSelectOptions();
+  const {
+    options: filamentOptions,
+    internalSelectOptions,
+    externalSelectOptions,
+    allExternalFilaments,
+  } = useGetFilamentSelectOptions();
 
   const selectedFilamentID = Form.useWatch("filament_id", form);
-  const selectedFilament = getById(selectedFilamentID);
+  const selectedFilament = useMemo(() => {
+    // id is a number of it's an internal filament, and a string of it's an external filament.
+    if (typeof selectedFilamentID === "number") {
+      return (
+        internalSelectOptions?.find((obj) => {
+          return obj.value === selectedFilamentID;
+        }) ?? null
+      );
+    } else if (typeof selectedFilamentID === "string") {
+      return (
+        externalSelectOptions?.find((obj) => {
+          return obj.value === selectedFilamentID;
+        }) ?? null
+      );
+    } else {
+      return null;
+    }
+  }, [selectedFilamentID, internalSelectOptions, externalSelectOptions]);
 
   //
   // Submit handler
@@ -96,8 +118,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
 
   const handleSubmit = async (redirectTo: "list" | "edit" | "create") => {
     const values = StringifiedExtras(await form.validateFields());
-    const selectOption = getById(values.filament_id);
-    if (selectOption?.is_internal === false) {
+    if (selectedFilament?.is_internal === false) {
       // Filament ID being a string indicates its an external filament.
       // If so, we should first create the internal filament version, then create the spool(s)
       const externalFilament = allExternalFilaments?.find((f) => f.id === values.filament_id);

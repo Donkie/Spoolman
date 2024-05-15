@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, DatePicker, Select, InputNumber, Radio, Divider, Alert, Typography } from "antd";
@@ -46,10 +46,6 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
 
   const initialWeightValue = Form.useWatch("initial_weight", form);
   const spoolWeightValue = Form.useWatch("spool_weight", form);
-  // Get filament selection options
-  const { queryResult } = useSelect<IFilament>({
-    resource: "filament",
-  });
 
   // Add the filament_id field to the form
   if (formProps.initialValues) {
@@ -62,10 +58,32 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   //
   // Set up the filament selection options
   //
-  const { options: filamentOptions, getById, allExternalFilaments } = useGetFilamentSelectOptions();
+  const {
+    options: filamentOptions,
+    internalSelectOptions,
+    externalSelectOptions,
+    allExternalFilaments,
+  } = useGetFilamentSelectOptions();
 
   const selectedFilamentID = Form.useWatch("filament_id", form);
-  const selectedFilament = getById(selectedFilamentID);
+  const selectedFilament = useMemo(() => {
+    // id is a number of it's an internal filament, and a string of it's an external filament.
+    if (typeof selectedFilamentID === "number") {
+      return (
+        internalSelectOptions?.find((obj) => {
+          return obj.value === selectedFilamentID;
+        }) ?? null
+      );
+    } else if (typeof selectedFilamentID === "string") {
+      return (
+        externalSelectOptions?.find((obj) => {
+          return obj.value === selectedFilamentID;
+        }) ?? null
+      );
+    } else {
+      return null;
+    }
+  }, [selectedFilamentID, internalSelectOptions, externalSelectOptions]);
 
   // Override the form's onFinish method to stringify the extra fields
   const originalOnFinish = formProps.onFinish;
@@ -73,8 +91,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
     if (allValues !== undefined && allValues !== null) {
       // Lot of stupidity here to make types work
       const values = StringifiedExtras<ISpoolRequest>(allValues);
-      const selectOption = getById(values.filament_id);
-      if (selectOption?.is_internal === false) {
+      if (selectedFilament?.is_internal === false) {
         // Filament ID being a string indicates its an external filament.
         // If so, we should first create the internal filament version, then edit the spool
         const externalFilament = allExternalFilaments?.find((f) => f.id === values.filament_id);
@@ -103,6 +120,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   React.useEffect(() => {
     const newFilamentWeight = selectedFilament?.weight || 0;
     const newSpoolWeight = selectedFilament?.spool_weight || 0;
+    console.log("selectedFilament", selectedFilament, newFilamentWeight, newSpoolWeight);
     if (newFilamentWeight > 0) {
       form.setFieldValue("initial_weight", newFilamentWeight);
     }
