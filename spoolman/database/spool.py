@@ -176,6 +176,12 @@ async def find(  # noqa: C901
                     / models.Filament.density
                     / (models.Filament.diameter * models.Filament.diameter),
                 )
+            elif fieldstr == "used_length":
+                sorts.append(
+                    models.Spool.used_weight
+                    / models.Filament.density
+                    / (models.Filament.diameter * models.Filament.diameter),
+                )
             elif fieldstr == "filament.combined_name":
                 sorts.append(models.Vendor.name)
                 sorts.append(models.Filament.name)
