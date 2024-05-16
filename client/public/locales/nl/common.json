@@ -120,7 +120,7 @@
     "documentTitle": {
         "vendor": {
             "create": "Fabrikant maken | Spoolman",
-            "clone": "#{{id}} Leverancier klonen | Spoolman",
+            "clone": "#{{id}} Fabrikant klonen | Spoolman",
             "edit": "#{{id}} Fabrikant bewerken | Spoolman",
             "list": "Fabrikanten | Spoolman",
             "show": "#{{id}} Fabrikant tonen | Spoolman"
@@ -169,7 +169,9 @@
             "remaining_weight": "Overgebleven gewicht",
             "price": "Prijs",
             "initial_weight": "Initieel gewicht",
-            "spool_weight": "Leeg gewicht"
+            "spool_weight": "Leeg gewicht",
+            "filament_internal": "Intern",
+            "filament_external": "Extern"
         },
         "titles": {
             "archive": "Spoel archiveren",
@@ -188,8 +190,9 @@
             "remaining_weight": "Hoeveel filament zit er nog op de spoel. Bij een nieuwe spoel zal dit overeenkomen met het spoelgewicht.",
             "location": "Waar de spoel zich bevindt, wanneer er meerdere opslag locaties zijn.",
             "price": "Prijs van een volledige spoel. Als dit niet wordt ingevuld, wordt in plaats daarvan uitgegaan van de prijs van het filament.",
-            "initial_weight": "Het initiële gewicht van het filament (nettogewicht). Deze waarde kan afkomstig zijn van het filament, maar wordt bijgehouden op spoelniveau om individuele variaties in het gewicht van het filament op de spoel mogelijk te maken.",
-            "spool_weight": "Het gewicht van de spoel als deze leeg is. Deze waarde kan afkomstig zijn van het filament of de leverancier, maar wordt op spoelniveau bijgehouden om individuele variaties van het gewicht van een lege spoel mogelijk te maken."
+            "initial_weight": "Het initiële gewicht van het filament op de spoel (nettogewicht). Als dit niet is opgegeven, wordt het gewicht van het filament-object gebruikt.",
+            "spool_weight": "Het gewicht van de spoel als deze leeg is. Laat dit leeg om de waarde van het filament of de fabrikant te gebruiken.",
+            "external_filament": "U heeft een filament uit de externe database geselecteerd. Er wordt automatisch een filament-object (en mogelijk een fabrikant-object) gemaakt wanneer u deze spoel maakt. Hierdoor kunnen dubbele filament-objecten ontstaan als u al een filament-object voor dit filament hebt gemaakt."
         },
         "spool": "Spoelen",
         "messages": {
@@ -202,7 +205,7 @@
     },
     "filament": {
         "fields_help": {
-            "name": "Filamentnaam, om dit filamenttype onder andere van dezelfde fabrikant te onderscheiden. Kan bijvoorbeeld de kleur bevatten.",
+            "name": "Filamentnaam, om dit filamenttype onder andere van dezelfde fabrikant te onderscheiden. Moet bijvoorbeeld de kleur bevatten.",
             "article_number": "Bv. EAN. UPC, enz.",
             "spool_weight": "Het gewicht van een lege spoel. Wordt gebruikt om het gemeten gewicht van een spoel te bepalen.",
             "price": "Prijs van een volledige spoel.",
@@ -226,7 +229,8 @@
             "id": "ID",
             "color_hex": "Kleur",
             "article_number": "Artikel nummer",
-            "spools": "Spoelen tonen"
+            "spools": "Spoelen tonen",
+            "external_id": "Extern ID"
         },
         "titles": {
             "clone": "Filament klonen",
@@ -238,7 +242,9 @@
         },
         "filament": "Filamenten",
         "form": {
-            "filament_updated": "Dit filament is bijgewerkt door iemand/iets anders sinds je deze pagina geopend hebt. Deze veranderingen worden overschreven als je op slaat!"
+            "filament_updated": "Dit filament is bijgewerkt door iemand/iets anders sinds je deze pagina geopend hebt. Deze veranderingen worden overschreven als je op slaat!",
+            "import_external_description": "Selecteer een filament in de lijst om de details ervan automatisch in te vullen in het formulier voor het maken van filamenten. Hierdoor worden alle gegevens die u in het formulier hebt ingevoerd, overschreven.<br><br>Er wordt indien nodig automatisch een Fabrikant-object gemaakt als u op OK klikt.",
+            "import_external": "Importeren van extern"
         },
         "buttons": {
             "add_spool": "Spoel toevoegen"
@@ -270,14 +276,15 @@
             "comment": "Opmerking",
             "name": "Naam",
             "id": "ID",
-            "empty_spool_weight": "Gewicht lege spoel"
+            "empty_spool_weight": "Gewicht lege spoel",
+            "external_id": "Extern ID"
         },
         "vendor": "Fabrikanten",
         "form": {
-            "vendor_updated": "Deze leverancier is bijgewerkt door iemand/iets anders sinds je deze pagina geopend hebt. De veranderingen worden overschreven als je opslaat!"
+            "vendor_updated": "Deze fabrikant is bijgewerkt door iemand/iets anders sinds je deze pagina geopend hebt. De veranderingen worden overschreven als je opslaat!"
         },
         "fields_help": {
-            "empty_spool_weight": "Het gewicht van een lege spoel van deze leverancier."
+            "empty_spool_weight": "Het gewicht van een lege spoel van deze fabrikant."
         }
     },
     "table": {
@@ -289,7 +296,7 @@
             "filament": "Merken filament. Ze hebben eigenschappen zoals naam, materiaal, kleur, diameter en meer.",
             "spool": "Individuele fysieke spoelen van een specifiek filament."
         },
-        "description": "<title>Help</title><p>Hier zijn enkele tips om u op weg te helpen.</p><p>Spoolman bewaart 3 verschillende soorten gegevens:</p><itemsHelp/><p>Om een nieuwe toe spoel toe te voegen in de database, begin dan met het maken van een <filamentCreateLink>Filament</filamentCreateLink> object. Zodra dat is gebeurd, gaat u verder met het maken van een <spoolCreateLink>Spoel</spoolCreateLink>-object voor die specifieke spoel. Als u later extra spoelen van hetzelfde filament aanschaft, genereert u eenvoudigweg extra Spoel-objecten en hergebruikt u hetzelfde Filament-object.</p><p>Optioneel kunt u ook een <vendorCreateLink>Vendor</vendorCreateLink>-object voor het bedrijf genereren als u die informatie wilt bijhouden.</p><p>U heeft de mogelijkheid om andere 3D-printerservices aan Spoolman te koppelen, zoals Moonraker, die automatisch het filament gebruik kan monitoren en de Spoel-objecten voor u kan bijwerken. Raadpleeg de <readmeLink>Spoolman README</readmeLink> voor richtlijnen over hoe u dat kunt instellen.</p>",
+        "description": "<title>Help</title><p>Hier zijn enkele tips om u op weg te helpen.</p><p>Spoolman bewaart 3 verschillende soorten gegevens:</p><itemsHelp/><p>Om een nieuwe toe spoel toe te voegen in de database, begin dan met het maken van een <filamentCreateLink>Filament</filamentCreateLink> object. Zodra dat is gebeurd, gaat u verder met het maken van een <spoolCreateLink>Spoel</spoolCreateLink>-object voor die specifieke spoel. Als u later extra spoelen van hetzelfde filament aanschaft, genereert u eenvoudigweg extra Spoel-objecten en hergebruikt u hetzelfde Filament-object.</p><p>Optioneel kunt u ook een <vendorCreateLink>Fabrikant</vendorCreateLink>-object voor het bedrijf genereren als u die informatie wilt bijhouden.</p><p>U heeft de mogelijkheid om andere 3D-printerservices aan Spoolman te koppelen, zoals Moonraker, die automatisch het filament gebruik kan monitoren en de Spoel-objecten voor u kan bijwerken. Raadpleeg de <readmeLink>Spoolman README</readmeLink> voor richtlijnen over hoe u dat kunt instellen.</p>",
         "help": "Help"
     },
     "kofi": "Tip mij op Ko-fi",
