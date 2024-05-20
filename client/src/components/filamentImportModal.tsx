@@ -18,7 +18,14 @@ export function FilamentImportModal(props: {
   const filamentOptions =
     externalFilaments.data?.map((item) => {
       return {
-        label: formatFilamentLabel(item.name, item.diameter, item.manufacturer, item.material, item.weight),
+        label: formatFilamentLabel(
+          item.name,
+          item.diameter,
+          item.manufacturer,
+          item.material,
+          item.weight,
+          item.spool_type
+        ),
         value: item.id,
         item: item,
       };

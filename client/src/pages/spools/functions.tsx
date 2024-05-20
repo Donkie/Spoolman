@@ -3,7 +3,7 @@ import { formatLength, formatWeight } from "../../utils/parsing";
 import { getAPIURL } from "../../utils/url";
 import { ISpool } from "./model";
 import { IFilament } from "../filaments/model";
-import { useGetExternalDBFilaments } from "../../utils/queryExternalDB";
+import { SpoolType, useGetExternalDBFilaments } from "../../utils/queryExternalDB";
 import { useMemo } from "react";
 
 export async function setSpoolArchived(spool: ISpool, archived: boolean) {
@@ -28,7 +28,8 @@ export function formatFilamentLabel(
   diameter: number,
   vendorName?: string,
   material?: string,
-  weight?: number
+  weight?: number,
+  spoolType?: SpoolType
 ): string {
   const portions = [];
   if (vendorName) {
@@ -42,6 +43,9 @@ export function formatFilamentLabel(
   extras.push(formatLength(diameter));
   if (weight) {
     extras.push(formatWeight(weight));
+  }
+  if (spoolType) {
+    extras.push(spoolType.charAt(0).toUpperCase() + spoolType.slice(1) + " spool");
   }
   return `${portions.join(" - ")} (${extras.join(", ")})`;
 }
@@ -89,7 +93,14 @@ export function useGetFilamentSelectOptions() {
     const data =
       externalFilaments.data?.map((item) => {
         return {
-          label: formatFilamentLabel(item.name, item.diameter, item.manufacturer, item.material, item.weight),
+          label: formatFilamentLabel(
+            item.name,
+            item.diameter,
+            item.manufacturer,
+            item.material,
+            item.weight,
+            item.spool_type
+          ),
           value: item.id,
           weight: item.weight,
           spool_weight: item.spool_weight || undefined,

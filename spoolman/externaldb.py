@@ -3,6 +3,7 @@
 import datetime
 import logging
 import os
+from enum import Enum
 from pathlib import Path
 from typing import Optional
 
@@ -21,6 +22,27 @@ cache_storage = hishel.AsyncFileStorage()
 logger = logging.getLogger(__name__)
 
 
+class SpoolType(Enum):
+    PLASTIC = "plastic"
+    CARDBOARD = "cardboard"
+    METAL = "metal"
+
+
+class Finish(Enum):
+    MATTE = "matte"
+    GLOSSY = "glossy"
+
+
+class MultiColorDirection(Enum):
+    COAXIAL = "coaxial"
+    LONGITUDINAL = "longitudinal"
+
+
+class Pattern(Enum):
+    MARBLE = "marble"
+    SPARKLE = "sparkle"
+
+
 class ExternalFilament(BaseModel):
     id: str = Field(description="A unique ID for this filament.", example="polymaker_pla_polysonicblack_1000_175")
     manufacturer: str = Field(description="Filament manufacturer.", example="Polymaker")
@@ -29,10 +51,29 @@ class ExternalFilament(BaseModel):
     density: float = Field(description="Density in g/cm3.", example=1.23)
     weight: float = Field(description="Net weight of a single spool.", example=1000)
     spool_weight: Optional[float] = Field(default=None, description="Weight of an empty spool.", example=140)
+    spool_type: Optional[SpoolType] = Field(description="Type of spool.", example=SpoolType.PLASTIC)
     diameter: float = Field(description="Filament in mm.", example=1.75)
-    color_hex: str = Field(description="Filament color code in hex format.", example="2c3232")
+    color_hex: Optional[str] = Field(
+        default=None,
+        description="Filament color code in hex format, for single-color filaments.",
+        example="2c3232",
+    )
+    color_hexes: Optional[list[str]] = Field(
+        default=None,
+        description="For multi-color filaments. List of hex color codes in hex format.",
+        example=["2c3232", "5f5f5f"],
+    )
     extruder_temp: Optional[int] = Field(default=None, description="Extruder/nozzle temperature in °C.", example=210)
     bed_temp: Optional[int] = Field(default=None, description="Bed temperature in °C.", example=50)
+    finish: Optional[Finish] = Field(default=None, description="Finish of the filament.", example=Finish.MATTE)
+    multi_color_direction: Optional[MultiColorDirection] = Field(
+        default=None,
+        description="Direction of multi-color filaments.",
+        example=MultiColorDirection.COAXIAL,
+    )
+    pattern: Optional[Pattern] = Field(default=None, description="Pattern of the filament.", example=Pattern.MARBLE)
+    translucent: bool = Field(default=False, description="Whether the filament is translucent.")
+    glow: bool = Field(default=False, description="Whether the filament is glow-in-the-dark.")
 
 
 class ExternalFilamentsFile(BaseModel):
