@@ -30,11 +30,11 @@
         "show": "arata",
         "edit": "editeaza"
     },
-    "warnWhenUnsavedChanges": "Esti sigur? Modificarile ne-salvate vor fi pierdute",
+    "warnWhenUnsavedChanges": "Esti sigur? Modificarile ne-salvate vor fi pierdute.",
     "notifications": {
         "success": "succes",
         "error": "Eroare (Cod: {{statusCode}})",
-        "undoable": "Ai inca {{seconds}} secunde sa corectezi",
+        "undoable": "Ai inca {{seconds}} secunde sa corectezi.",
         "createSuccess": "{{resource}} creata cu succes",
         "createError": "Eroare la crearea {{resource}} (status code: {{statusCode}})",
         "deleteSuccess": "{{resource}} stearsa cu succes",
@@ -90,12 +90,12 @@
         "spoolSelect": {
             "showArchived": "Arata arhivate",
             "title": "Selectați bobine",
-            "description": "Selectati bobinele pentru care trebuie printate etichete",
+            "description": "Selectati bobinele pentru care trebuie printate etichete.",
             "selectedTotal_one": "{{count}} bobina selectata",
             "selectedTotal_few": "{{count}} bobine selectate",
             "selectedTotal_other": "{{count}} bobine selectate",
             "selectAll": "Selecteaza/deselecteaza tot",
-            "noSpoolsSelected": "Nu ati selectat nicio bobina"
+            "noSpoolsSelected": "Nu ati selectat nicio bobina."
         },
         "qrcode": {
             "bedTemp": "BT: {{temp}}",
@@ -199,7 +199,7 @@
             "archive": "Esti sigur ca vrei sa arhivezi aceasta bobina?"
         },
         "form": {
-            "spool_updated": "Aceasta bobina a fost modificata de de altcineva in timpul scurs de la deschiderea acestei pagini, Salvarea va suprascrie aceste schimbari!",
+            "spool_updated": "Aceasta bobina a fost modificata de altcineva in timpul scurs de la deschiderea acestei pagini, Salvarea va suprascrie aceste schimbari!",
             "new_location_prompt": "Introduceti o locatie noua"
         },
         "spool": "Bobine"

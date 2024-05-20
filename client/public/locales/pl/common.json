@@ -71,7 +71,7 @@
             "measured_weight": "Waga filamentu i szpuli.",
             "weight_to_use": "Wybierz jaką wagę wprowadzić. Zmierzona waga jest dostępna tylko wtedy, gdy waga szpuli jest ustawiona dla wybranego filamentu.",
             "price": "Cena pełnej szpuli. Jeśli nie ustawiona, cena filamentu będzie domyślna.",
-            "initial_weight": "Masa początkowa filamentu(netto). Może być podana przez producenta, ale możesz ustawić dla każdej szpuli, aby uwzględnić ewentualne niedokładności",
+            "initial_weight": "Masa początkowa filamentu(netto). Może być podana przez producenta, ale możesz ustawić dla każdej szpuli, aby uwzględnić ewentualne niedokładności.",
             "spool_weight": "Waga pustej szpuli. Może być podana przez producenta, ale możesz ją ustawić osobno dla każdej szpuli, aby uwzględnić niedokładności."
         },
         "messages": {
