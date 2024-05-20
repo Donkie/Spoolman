@@ -109,7 +109,7 @@ async def get_by_id(db: AsyncSession, spool_id: int) -> models.Spool:
     return spool
 
 
-async def find(  # noqa: C901
+async def find(  # noqa: C901, PLR0912
     *,
     db: AsyncSession,
     filament_name: Optional[str] = None,
@@ -185,6 +185,8 @@ async def find(  # noqa: C901
             elif fieldstr == "filament.combined_name":
                 sorts.append(models.Vendor.name)
                 sorts.append(models.Filament.name)
+            elif fieldstr == "price":
+                sorts.append(coalesce(models.Spool.price, models.Filament.price))
             else:
                 sorts.append(parse_nested_field(models.Spool, fieldstr))
 
