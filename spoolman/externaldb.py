@@ -13,13 +13,22 @@ from scheduler.asyncio.scheduler import Scheduler
 
 from spoolman import filecache
 
+logger = logging.getLogger(__name__)
+
+
 DEFAULT_EXTERNAL_DB_URL = "https://donkie.github.io/SpoolmanDB/"
 DEFAULT_SYNC_INTERVAL = 3600
 
 controller = hishel.Controller(allow_stale=True)
-cache_storage = hishel.AsyncFileStorage()
-
-logger = logging.getLogger(__name__)
+try:
+    cache_storage = hishel.AsyncFileStorage()
+except PermissionError:
+    logger.warning(
+        "Failed to setup disk-based cache due to permission error. Ensure the path %s is writable. "
+        "Using in-memory cache instead as fallback.",
+        str(Path(".cache/hishel").resolve()),
+    )
+    cache_storage = hishel.AsyncInMemoryStorage()
 
 
 class SpoolType(Enum):
