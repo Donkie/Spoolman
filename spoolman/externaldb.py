@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 from scheduler.asyncio.scheduler import Scheduler
 
 from spoolman import filecache
+from spoolman.env import get_cache_dir
 
 logger = logging.getLogger(__name__)
 
@@ -21,12 +22,13 @@ DEFAULT_SYNC_INTERVAL = 3600
 
 controller = hishel.Controller(allow_stale=True)
 try:
-    cache_storage = hishel.AsyncFileStorage()
+    cache_path = get_cache_dir() / "hishel"
+    cache_storage = hishel.AsyncFileStorage(base_path=cache_path)
 except PermissionError:
     logger.warning(
         "Failed to setup disk-based cache due to permission error. Ensure the path %s is writable. "
         "Using in-memory cache instead as fallback.",
-        str(Path(".cache/hishel").resolve()),
+        str(cache_path.resolve()),
     )
     cache_storage = hishel.AsyncInMemoryStorage()
 

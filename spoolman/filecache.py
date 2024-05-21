@@ -2,17 +2,12 @@
 
 from pathlib import Path
 
-from spoolman.env import get_data_dir
-
-
-def _get_cache_dir() -> Path:
-    """Get the cache directory."""
-    return get_data_dir() / "cache"
+from spoolman.env import get_cache_dir
 
 
 def get_file(name: str) -> Path:
-    """Get the path to a file."""
-    return _get_cache_dir() / name
+    """Get the path to a file in the cache dir."""
+    return get_cache_dir() / name
 
 
 def update_file(name: str, data: bytes) -> None:

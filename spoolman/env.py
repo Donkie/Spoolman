@@ -264,6 +264,11 @@ def get_backups_dir() -> Path:
     return backups_dir
 
 
+def get_cache_dir() -> Path:
+    """Get the cache directory."""
+    return get_data_dir() / "cache"
+
+
 def get_version() -> str:
     """Get the version of the package.
 
