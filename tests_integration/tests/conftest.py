@@ -240,6 +240,7 @@ def length_from_weight(*, weight: float, diameter: float, density: float) -> flo
 
     Returns:
         float: Length in mm
+
     """
     volume_cm3 = weight / density
     volume_mm3 = volume_cm3 * 1000
@@ -256,6 +257,7 @@ def assert_dicts_compatible(actual: Any, expected: Any, path: str = "") -> None:
 
     Raises:
         AssertionError: If dictionaries are not compatible.
+
     """
     # Check if both inputs are dictionaries
     if not (isinstance(actual, dict) and isinstance(expected, dict)):

@@ -3,6 +3,7 @@
 Revision ID: 684d32cf7e4d
 Create Date: 2023-05-27 21:46:24.361353
 """
+
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.engine.reflection import Inspector

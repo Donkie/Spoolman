@@ -45,13 +45,13 @@ class ExtraFieldParameters(BaseModel):
     choices: Optional[list[str]] = Field(
         None,
         description="Choices for the field, only for field type choice",
-        min_items=1,
+        min_length=1,
     )
     multi_choice: Optional[bool] = Field(None, description="Whether multiple choices can be selected")
 
 
 class ExtraField(ExtraFieldParameters):
-    key: str = Field(description="Unique key", regex="^[a-z0-9_]+$", min_length=1, max_length=64)
+    key: str = Field(description="Unique key", pattern="^[a-z0-9_]+$", min_length=1, max_length=64)
     entity_type: EntityType = Field(description="Entity type this field is for")
 
 

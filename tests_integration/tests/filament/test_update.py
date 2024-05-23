@@ -95,6 +95,44 @@ def test_update_filament(random_vendor: dict[str, Any]):
     httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()
 
 
+def test_update_filament_cant_set_none(random_vendor: dict[str, Any]):
+    """Test updating a filament and setting density and diameter fields to None, should result in 422 error."""
+    # Setup
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={
+            "name": "Filament X",
+            "vendor_id": random_vendor["id"],
+            "material": "PLA",
+            "price": 100,
+            "density": 1.25,
+            "diameter": 1.75,
+            "weight": 1000,
+            "spool_weight": 250,
+            "article_number": "123456789",
+            "comment": "abcdefghåäö",
+            "settings_extruder_temp": 200,
+            "settings_bed_temp": 60,
+            "color_hex": "FF0000",
+            "external_id": "external_id1",
+        },
+    )
+    result.raise_for_status()
+    added_filament = result.json()
+
+    # Execute
+    result = httpx.patch(
+        f"{URL}/api/v1/filament/{added_filament['id']}",
+        json={"density": None, "diameter": None},
+    )
+
+    # Verify
+    assert result.status_code == 422
+
+    # Clean up
+    httpx.delete(f"{URL}/api/v1/filament/{added_filament['id']}").raise_for_status()
+
+
 def test_update_filament_not_found():
     """Test updating a filament that does not exist."""
     # Execute

@@ -7,10 +7,8 @@ from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-from pydantic.error_wrappers import ErrorWrapper
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import Message, Spool, SpoolEvent
@@ -32,42 +30,58 @@ router = APIRouter(
 
 
 class SpoolParameters(BaseModel):
-    first_used: Optional[datetime] = Field(description="First logged occurence of spool usage.")
-    last_used: Optional[datetime] = Field(description="Last logged occurence of spool usage.")
+    first_used: Optional[datetime] = Field(None, description="First logged occurence of spool usage.")
+    last_used: Optional[datetime] = Field(None, description="Last logged occurence of spool usage.")
     filament_id: int = Field(description="The ID of the filament type of this spool.")
     price: Optional[float] = Field(
+        None,
         ge=0,
         description="The price of this filament in the system configured currency.",
-        example=20.0,
+        examples=[20.0],
     )
     initial_weight: Optional[float] = Field(
+        None,
         ge=0,
         description="The initial weight of the filament on the spool, in grams. (net weight)",
-        example=200,
+        examples=[200],
     )
     spool_weight: Optional[float] = Field(
+        None,
         ge=0,
         description="The weight of an empty spool, in grams. (tare weight)",
-        example=200,
+        examples=[200],
     )
     remaining_weight: Optional[float] = Field(
+        None,
         ge=0,
         description=(
             "Remaining weight of filament on the spool. Can only be used if the filament type has a weight set."
         ),
-        example=800,
+        examples=[800],
     )
-    used_weight: Optional[float] = Field(ge=0, description="Used weight of filament on the spool.", example=200)
-    location: Optional[str] = Field(max_length=64, description="Where this spool can be found.", example="Shelf A")
+    used_weight: Optional[float] = Field(
+        None,
+        ge=0,
+        description="Used weight of filament on the spool.",
+        examples=[200],
+    )
+    location: Optional[str] = Field(
+        None,
+        max_length=64,
+        description="Where this spool can be found.",
+        examples=["Shelf A"],
+    )
     lot_nr: Optional[str] = Field(
+        None,
         max_length=64,
         description="Vendor manufacturing lot/batch number of the spool.",
-        example="52342",
+        examples=["52342"],
     )
     comment: Optional[str] = Field(
+        None,
         max_length=1024,
         description="Free text comment about this specific spool.",
-        example="",
+        examples=[""],
     )
     archived: bool = Field(default=False, description="Whether this spool is archived and should not be used anymore.")
     extra: Optional[dict[str, str]] = Field(
@@ -77,16 +91,24 @@ class SpoolParameters(BaseModel):
 
 
 class SpoolUpdateParameters(SpoolParameters):
-    filament_id: Optional[int] = Field(description="The ID of the filament type of this spool.")
+    filament_id: Optional[int] = Field(None, description="The ID of the filament type of this spool.")
+
+    @field_validator("filament_id")
+    @classmethod
+    def prevent_none(cls: type["SpoolUpdateParameters"], v: Optional[int]) -> Optional[int]:
+        """Prevent filament_id from being None."""
+        if v is None:
+            raise ValueError("Value must not be None.")
+        return v
 
 
 class SpoolUseParameters(BaseModel):
-    use_length: Optional[float] = Field(description="Length of filament to reduce by, in mm.", example=2.2)
-    use_weight: Optional[float] = Field(description="Filament weight to reduce by, in g.", example=5.3)
+    use_length: Optional[float] = Field(None, description="Length of filament to reduce by, in mm.", examples=[2.2])
+    use_weight: Optional[float] = Field(None, description="Filament weight to reduce by, in g.", examples=[5.3])
 
 
 class SpoolMeasureParameters(BaseModel):
-    weight: float = Field(description="Current gross weight of the spool, in g.", example=200)
+    weight: float = Field(description="Current gross weight of the spool, in g.", examples=[200])
 
 
 @router.get(
@@ -119,6 +141,7 @@ async def find(
         title="Filament ID",
         description="See filament.id.",
         deprecated=True,
+        pattern=r"^-?\d+(,-?\d+)*$",
     ),
     filament_material_old: Optional[str] = Query(
         alias="filament_material",
@@ -140,6 +163,7 @@ async def find(
         title="Vendor ID",
         description="See filament.vendor.id.",
         deprecated=True,
+        pattern=r"^-?\d+(,-?\d+)*$",
     ),
     filament_name: Optional[str] = Query(
         alias="filament.name",
@@ -156,6 +180,7 @@ async def find(
         title="Filament ID",
         description="Match an exact filament ID. Separate multiple IDs with a comma.",
         examples=["1", "1,2"],
+        pattern=r"^-?\d+(,-?\d+)*$",
     ),
     filament_material: Optional[str] = Query(
         alias="filament.material",
@@ -184,6 +209,7 @@ async def find(
             "Set it to -1 to match spools with filaments with no vendor."
         ),
         examples=["1", "1,2"],
+        pattern=r"^-?\d+(,-?\d+)*$",
     ),
     location: Optional[str] = Query(
         default=None,
@@ -233,21 +259,13 @@ async def find(
 
     filament_id = filament_id if filament_id is not None else filament_id_old
     if filament_id is not None:
-        try:
-            filament_ids = [int(filament_id_item) for filament_id_item in filament_id.split(",")]
-        except ValueError as e:
-            raise RequestValidationError(
-                [ErrorWrapper(ValueError("Invalid filament_id"), ("query", "filament_id"))],
-            ) from e
+        filament_ids = [int(filament_id_item) for filament_id_item in filament_id.split(",")]
     else:
         filament_ids = None
 
     filament_vendor_id = filament_vendor_id if filament_vendor_id is not None else vendor_id_old
     if filament_vendor_id is not None:
-        try:
-            filament_vendor_ids = [int(vendor_id_item) for vendor_id_item in filament_vendor_id.split(",")]
-        except ValueError as e:
-            raise RequestValidationError([ErrorWrapper(ValueError("Invalid vendor_id"), ("query", "vendor_id"))]) from e
+        filament_vendor_ids = [int(vendor_id_item) for vendor_id_item in filament_vendor_id.split(",")]
     else:
         filament_vendor_ids = None
 
@@ -409,7 +427,7 @@ async def update(  # noqa: ANN201
     spool_id: int,
     body: SpoolUpdateParameters,
 ):
-    patch_data = body.dict(exclude_unset=True)
+    patch_data = body.model_dump(exclude_unset=True)
 
     if body.remaining_weight is not None and body.used_weight is not None:
         return JSONResponse(
@@ -423,11 +441,6 @@ async def update(  # noqa: ANN201
             validate_extra_field_dict(all_fields, body.extra)
         except ValueError as e:
             return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
-
-    if "filament_id" in patch_data and body.filament_id is None:
-        raise RequestValidationError(
-            [ErrorWrapper(ValueError("filament_id cannot be unset"), ("query", "filament_id"))],
-        )
 
     try:
         db_item = await spool.update(

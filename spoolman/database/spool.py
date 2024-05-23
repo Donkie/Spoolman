@@ -261,7 +261,7 @@ async def use_weight_safe(db: AsyncSession, spool_id: int, weight: float) -> Non
         .where(models.Spool.id == spool_id)
         .values(
             used_weight=case(
-                (models.Spool.used_weight + weight >= 0.0, models.Spool.used_weight + weight),  # noqa: PLR2004
+                (models.Spool.used_weight + weight >= 0.0, models.Spool.used_weight + weight),
                 else_=0.0,  # Set used_weight to 0 if the result would be negative
             ),
         ),

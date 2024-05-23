@@ -3,12 +3,13 @@
 import datetime
 import logging
 import os
+from collections.abc import Iterator
 from enum import Enum
 from pathlib import Path
 from typing import Optional
 
 import hishel
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, RootModel
 from scheduler.asyncio.scheduler import Scheduler
 
 from spoolman import filecache
@@ -55,51 +56,67 @@ class Pattern(Enum):
 
 
 class ExternalFilament(BaseModel):
-    id: str = Field(description="A unique ID for this filament.", example="polymaker_pla_polysonicblack_1000_175")
-    manufacturer: str = Field(description="Filament manufacturer.", example="Polymaker")
-    name: str = Field(description="Filament name.", example="Polysonic\u2122 Black")
-    material: str = Field(description="Filament material.", example="PLA")
-    density: float = Field(description="Density in g/cm3.", example=1.23)
-    weight: float = Field(description="Net weight of a single spool.", example=1000)
-    spool_weight: Optional[float] = Field(default=None, description="Weight of an empty spool.", example=140)
-    spool_type: Optional[SpoolType] = Field(description="Type of spool.", example=SpoolType.PLASTIC)
-    diameter: float = Field(description="Filament in mm.", example=1.75)
+    id: str = Field(description="A unique ID for this filament.", examples=["polymaker_pla_polysonicblack_1000_175"])
+    manufacturer: str = Field(description="Filament manufacturer.", examples=["Polymaker"])
+    name: str = Field(description="Filament name.", examples=["Polysonic\u2122 Black"])
+    material: str = Field(description="Filament material.", examples=["PLA"])
+    density: float = Field(description="Density in g/cm3.", examples=[1.23])
+    weight: float = Field(description="Net weight of a single spool.", examples=[1000])
+    spool_weight: Optional[float] = Field(default=None, description="Weight of an empty spool.", examples=[140])
+    spool_type: Optional[SpoolType] = Field(None, description="Type of spool.", examples=[SpoolType.PLASTIC])
+    diameter: float = Field(description="Filament in mm.", examples=[1.75])
     color_hex: Optional[str] = Field(
         default=None,
         description="Filament color code in hex format, for single-color filaments.",
-        example="2c3232",
+        examples=["2c3232"],
     )
     color_hexes: Optional[list[str]] = Field(
         default=None,
         description="For multi-color filaments. List of hex color codes in hex format.",
-        example=["2c3232", "5f5f5f"],
+        examples=[["2c3232", "5f5f5f"]],
     )
-    extruder_temp: Optional[int] = Field(default=None, description="Extruder/nozzle temperature in °C.", example=210)
-    bed_temp: Optional[int] = Field(default=None, description="Bed temperature in °C.", example=50)
-    finish: Optional[Finish] = Field(default=None, description="Finish of the filament.", example=Finish.MATTE)
+    extruder_temp: Optional[int] = Field(default=None, description="Extruder/nozzle temperature in °C.", examples=[210])
+    bed_temp: Optional[int] = Field(default=None, description="Bed temperature in °C.", examples=[50])
+    finish: Optional[Finish] = Field(default=None, description="Finish of the filament.", examples=[Finish.MATTE])
     multi_color_direction: Optional[MultiColorDirection] = Field(
         default=None,
         description="Direction of multi-color filaments.",
-        example=MultiColorDirection.COAXIAL,
+        examples=[MultiColorDirection.COAXIAL],
     )
-    pattern: Optional[Pattern] = Field(default=None, description="Pattern of the filament.", example=Pattern.MARBLE)
+    pattern: Optional[Pattern] = Field(default=None, description="Pattern of the filament.", examples=[Pattern.MARBLE])
     translucent: bool = Field(default=False, description="Whether the filament is translucent.")
     glow: bool = Field(default=False, description="Whether the filament is glow-in-the-dark.")
 
 
-class ExternalFilamentsFile(BaseModel):
-    __root__: list[ExternalFilament]
+class ExternalFilamentsFile(RootModel):
+    root: list[ExternalFilament]
+
+    def __iter__(self) -> Iterator[ExternalFilament]:
+        """Iterate over the filaments."""
+        return iter(self.root)
+
+    def __getitem__(self, index: int) -> ExternalFilament:
+        """Get a specific filament by index."""
+        return self.root[index]
 
 
 class ExternalMaterial(BaseModel):
-    material: str = Field(example="PLA")
-    density: float = Field(example=1.24)
-    extruder_temp: Optional[int] = Field(default=None, description="Extruder/nozzle temperature in °C.", example=210)
-    bed_temp: Optional[int] = Field(default=None, description="Bed temperature in °C.", example=50)
+    material: str = Field(examples=["PLA"])
+    density: float = Field(examples=[1.24])
+    extruder_temp: Optional[int] = Field(default=None, description="Extruder/nozzle temperature in °C.", examples=[210])
+    bed_temp: Optional[int] = Field(default=None, description="Bed temperature in °C.", examples=[50])
 
 
-class ExternalMaterialsFile(BaseModel):
-    __root__: list[ExternalMaterial]
+class ExternalMaterialsFile(RootModel):
+    root: list[ExternalMaterial]
+
+    def __iter__(self) -> Iterator[ExternalMaterial]:
+        """Iterate over the materials."""
+        return iter(self.root)
+
+    def __getitem__(self, index: int) -> ExternalMaterial:
+        """Get a specific material by index."""
+        return self.root[index]
 
 
 def get_external_db_url() -> str:
@@ -161,8 +178,8 @@ async def _sync() -> None:
 
     logger.info(
         "External DB synced. Filaments: %d, Materials: %d",
-        len(filaments.__root__),
-        len(materials.__root__),
+        len(filaments.root),
+        len(materials.root),
     )
 
 
@@ -171,6 +188,7 @@ def schedule_tasks(scheduler: Scheduler) -> None:
 
     Args:
         scheduler: The scheduler to use for scheduling tasks.
+
     """
     if len(get_external_db_url().strip()) == 0:
         logger.info("External DB URL is empty. Skipping sync.")

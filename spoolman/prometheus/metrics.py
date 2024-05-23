@@ -1,4 +1,5 @@
 """Prometheus metrics collectors."""
+
 import logging
 from typing import Callable
 
@@ -13,16 +14,16 @@ registry = REGISTRY
 
 PREFIX = "spoolman"
 
-SPOOL_PRICE = Gauge("%s_spool_price" % PREFIX, "Total Spool price", ["spool_id", "filament_id"])
-SPOOL_USED_WEIGHT = Gauge("%s_spool_weight_used" % PREFIX, "Spool Used Weight", ["spool_id", "filament_id"])
+SPOOL_PRICE = Gauge(f"{PREFIX}_spool_price", "Total Spool price", ["spool_id", "filament_id"])
+SPOOL_USED_WEIGHT = Gauge(f"{PREFIX}_spool_weight_used", "Spool Used Weight", ["spool_id", "filament_id"])
 FILAMENT_INFO = Gauge(
-    "%s_filament_info" % PREFIX,
+    f"{PREFIX}_filament_info",
     "Filament information",
     ["filament_id", "vendor", "name", "material", "color"],
 )
-FILAMENT_DENSITY = Gauge("%s_filament_density" % PREFIX, "Density of filament", ["filament_id"])
-FILAMENT_DIAMETER = Gauge("%s_filament_diameter" % PREFIX, "Diameter of filament", ["filament_id"])
-FILAMENT_WEIGHT = Gauge("%s_filament_weight" % PREFIX, "Net weight of filament", ["filament_id"])
+FILAMENT_DENSITY = Gauge(f"{PREFIX}_filament_density", "Density of filament", ["filament_id"])
+FILAMENT_DIAMETER = Gauge(f"{PREFIX}_filament_diameter", "Diameter of filament", ["filament_id"])
+FILAMENT_WEIGHT = Gauge(f"{PREFIX}_filament_weight", "Net weight of filament", ["filament_id"])
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,7 @@ async def spool_metrics(db: AsyncSession) -> None:
 
     Args:
         db: async db session
+
     """
     stmt = sqlalchemy.select(models.Spool).where(
         sqlalchemy.or_(
@@ -61,6 +63,7 @@ async def filament_metrics(db: AsyncSession) -> None:
 
     Args:
         db: async db session
+
     """
     stmt = (
         sqlalchemy.select(models.Filament)

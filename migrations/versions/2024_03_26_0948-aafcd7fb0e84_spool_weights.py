@@ -4,6 +4,7 @@ Revision ID: aafcd7fb0e84
 Revises: b8881bdb716c
 Create Date: 2024-03-26 09:48:09.930022
 """
+
 import sqlalchemy as sa
 from alembic import op
 

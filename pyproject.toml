@@ -6,37 +6,37 @@ authors = [
     { name = "Donkie", email = "daniel.cf.hultgren@gmail.com" },
 ]
 dependencies = [
-    "uvicorn~=0.22.0",
+    "uvicorn~=0.29.0",
     "httptools>=0.5.0; platform_machine != \"armv7l\"",
     "uvloop!=0.15.0,!=0.15.1,>=0.14.0; platform_machine != \"armv7l\" and sys_platform != \"win32\" and (sys_platform != \"cygwin\" and platform_python_implementation != \"PyPy\")",
-    "fastapi~=0.99",
+    "fastapi~=0.110.0",
     "SQLAlchemy[aiomysql,aiosqlite,asyncio,postgresql_asyncpg]~=2.0",
-    "pydantic~=1.10",
-    "platformdirs~=3.8",
-    "alembic~=1.11",
-    "scheduler~=0.8",
+    "pydantic~=2.7.1",
+    "platformdirs~=4.2.2",
+    "alembic~=1.13.1",
+    "scheduler~=0.8.5",
     "sqlalchemy-cockroachdb~=2.0",
     "asyncpg~=0.27",
     "psycopg2-binary~=2.9",
-    "setuptools~=68.0",
-    "WebSockets>=11.0.3",
-    "prometheus-client>=0.20.0",
-    "httpx>=0.27.0",
-    "hishel>=0.0.26",
+    "setuptools~=70.0.0",
+    "WebSockets~=12.0",
+    "prometheus-client~=0.20.0",
+    "httpx~=0.27.0",
+    "hishel~=0.0.26",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.9,<=3.12"
 
 [project.license]
 text = "MIT"
 
 [tool.pdm.dev-dependencies]
 dev = [
-    "ruff==0.0.286",
-    "black~=23.3",
-    "pre-commit~=3.3",
-    "pytest~=7.3",
-    "pytest-asyncio~=0.21",
-    "httpx~=0.24",
+    "ruff==0.4.4",
+    "black~=24.4.2",
+    "pre-commit~=3.7.1",
+    "pytest~=8.2.1",
+    "pytest-asyncio~=0.23.7",
+    "httpx~=0.27.0",
 ]
 
 [tool.pdm.scripts.docs]
@@ -52,6 +52,10 @@ cmd = "uvicorn spoolman.main:app"
 cmd = "python tests_integration/run.py"
 
 [tool.ruff]
+line-length = 120
+target-version = "py39"
+
+[tool.ruff.lint]
 select = [
     "ALL",
 ]
@@ -77,10 +81,8 @@ ignore = [
     "TD002",
     "TD003",
 ]
-line-length = 120
-target-version = "py39"
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "tests*/*" = [
     "ANN201",
     "S101",

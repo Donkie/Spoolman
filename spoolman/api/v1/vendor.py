@@ -5,10 +5,8 @@ from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-from pydantic.error_wrappers import ErrorWrapper
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import Message, Vendor, VendorEvent
@@ -27,23 +25,26 @@ router = APIRouter(
 
 
 class VendorParameters(BaseModel):
-    name: str = Field(max_length=64, description="Vendor name.", example="Polymaker")
+    name: str = Field(max_length=64, description="Vendor name.", examples=["Polymaker"])
     comment: Optional[str] = Field(
+        None,
         max_length=1024,
         description="Free text comment about this vendor.",
-        example="",
+        examples=[""],
     )
     empty_spool_weight: Optional[float] = Field(
+        None,
         ge=0,
         description="The weight of an empty spool, in grams.",
-        example=200,
+        examples=[200],
     )
     external_id: Optional[str] = Field(
+        None,
         max_length=256,
         description=(
             "Set if this vendor comes from an external database. This contains the ID in the external database."
         ),
-        example="eSun",
+        examples=["eSun"],
     )
     extra: Optional[dict[str, str]] = Field(
         None,
@@ -52,7 +53,15 @@ class VendorParameters(BaseModel):
 
 
 class VendorUpdateParameters(VendorParameters):
-    name: Optional[str] = Field(max_length=64, description="Vendor name.", example="Polymaker")
+    name: Optional[str] = Field(None, max_length=64, description="Vendor name.", examples=["Polymaker"])
+
+    @field_validator("name")
+    @classmethod
+    def prevent_none(cls: type["VendorUpdateParameters"], v: Optional[str]) -> Optional[str]:
+        """Prevent name from being None."""
+        if v is None:
+            raise ValueError("Value must not be None.")
+        return v
 
 
 @router.get(
@@ -233,10 +242,7 @@ async def update(  # noqa: ANN201
     vendor_id: int,
     body: VendorUpdateParameters,
 ):
-    patch_data = body.dict(exclude_unset=True)
-
-    if "name" in patch_data and body.name is None:
-        raise RequestValidationError([ErrorWrapper(ValueError("name cannot be unset"), ("query", "name"))])
+    patch_data = body.model_dump(exclude_unset=True)
 
     if body.extra:
         all_fields = await get_extra_fields(db, EntityType.vendor)

@@ -28,6 +28,7 @@ class DatabaseType(Enum):
 
         Returns:
             str: The drivername.
+
         """
         if self is DatabaseType.POSTGRES:
             return "postgresql+asyncpg"
@@ -47,6 +48,7 @@ def get_database_type() -> Optional[DatabaseType]:
 
     Returns:
         Optional[DatabaseType]: The database type.
+
     """
     database_type = os.getenv("SPOOLMAN_DB_TYPE")
     if database_type is None:
@@ -69,6 +71,7 @@ def get_host() -> Optional[str]:
 
     Returns:
         Optional[str]: The host.
+
     """
     return os.getenv("SPOOLMAN_DB_HOST")
 
@@ -80,6 +83,7 @@ def get_port() -> Optional[int]:
 
     Returns:
         Optional[str]: The port.
+
     """
     port = os.getenv("SPOOLMAN_DB_PORT")
     if port is None:
@@ -97,6 +101,7 @@ def get_database() -> Optional[str]:
 
     Returns:
         Optional[str]: The name.
+
     """
     return os.getenv("SPOOLMAN_DB_NAME")
 
@@ -108,6 +113,7 @@ def get_query() -> Optional[dict[str, str]]:
 
     Returns:
         Optional[dict]: The query.
+
     """
     query = os.getenv("SPOOLMAN_DB_QUERY")
     if query is None:
@@ -126,6 +132,7 @@ def get_username() -> Optional[str]:
 
     Returns:
         Optional[str]: The username.
+
     """
     return os.getenv("SPOOLMAN_DB_USERNAME")
 
@@ -140,6 +147,7 @@ def get_password() -> Optional[str]:
 
     Returns:
         Optional[str]: The password.
+
     """
     # First attempt: grab password from a file. This is the most secure way of storing passwords.
     file_path = os.getenv("SPOOLMAN_DB_PASSWORD_FILE")
@@ -170,6 +178,7 @@ def get_logging_level() -> int:
 
     Returns:
         str: The logging level.
+
     """
     log_level_str = os.getenv("SPOOLMAN_LOGGING_LEVEL", "INFO").upper()
     if log_level_str == "DEBUG":
@@ -192,6 +201,7 @@ def is_debug_mode() -> bool:
 
     Returns:
         bool: Whether debug mode is enabled.
+
     """
     debug_mode = os.getenv("SPOOLMAN_DEBUG_MODE", "FALSE").upper()
     if debug_mode in {"FALSE", "0"}:
@@ -208,6 +218,7 @@ def is_automatic_backup_enabled() -> bool:
 
     Returns:
         bool: Whether automatic backup is enabled.
+
     """
     automatic_backup = os.getenv("SPOOLMAN_AUTOMATIC_BACKUP", "TRUE").upper()
     if automatic_backup in {"FALSE", "0"}:
@@ -224,6 +235,7 @@ def get_data_dir() -> Path:
 
     Returns:
         Path: The data directory.
+
     """
     env_data_dir = os.getenv("SPOOLMAN_DIR_DATA")
     if env_data_dir is not None:
@@ -239,6 +251,7 @@ def get_logs_dir() -> Path:
 
     Returns:
         Path: The logs directory.
+
     """
     env_logs_dir = os.getenv("SPOOLMAN_DIR_LOGS")
     if env_logs_dir is not None:
@@ -254,6 +267,7 @@ def get_backups_dir() -> Path:
 
     Returns:
         Path: The backups directory.
+
     """
     env_backups_dir = os.getenv("SPOOLMAN_DIR_BACKUPS")
     if env_backups_dir is not None:
@@ -274,6 +288,7 @@ def get_version() -> str:
 
     Returns:
         str: The version.
+
     """
     # Read version from pyproject.toml, don't use pkg_resources because it requires the package to be installed
     with Path("pyproject.toml").open(encoding="utf-8") as f:
@@ -290,6 +305,7 @@ def get_commit_hash() -> Optional[str]:
 
     Returns:
         Optional[str]: The commit hash.
+
     """
     # Read commit has from build.txt
     # commit is written as GIT_COMMIT=<hash> in build.txt
@@ -308,6 +324,7 @@ def get_build_date() -> Optional[datetime]:
 
     Returns:
         Optional[datetime.datetime]: The build date.
+
     """
     # Read build date has from build.txt
     # build date is written as BUILD_DATE=<hash> in build.txt
@@ -394,6 +411,7 @@ def is_metrics_enabled() -> bool:
 
     Returns:
         bool: Whether collect metrics is enabled.
+
     """
     metrics_enabled = os.getenv("SPOOLMAN_METRICS_ENABLED", "FALSE").upper()
     if metrics_enabled in {"FALSE", "0"}:
@@ -412,6 +430,7 @@ def get_base_path() -> str:
 
     Returns:
         str: The base path.
+
     """
     path = os.getenv("SPOOLMAN_BASE_PATH", "")
     if len(path) == 0:
