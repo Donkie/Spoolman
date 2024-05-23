@@ -297,3 +297,9 @@ def assert_httpx_success(response: httpx.Response) -> None:
     """Assert that a response is successful."""
     if not response.is_success:
         pytest.fail(f"Request failed: {response.status_code} {response.text}")
+
+
+def assert_httpx_code(response: httpx.Response, code: int) -> None:
+    """Assert that a response has the expected status code."""
+    if response.status_code != code:
+        pytest.fail(f"Request failed: {response.status_code} {response.text}")

@@ -209,7 +209,7 @@ async def create(  # noqa: ANN201
         try:
             validate_extra_field_dict(all_fields, body.extra)
         except ValueError as e:
-            return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
+            return JSONResponse(status_code=400, content=Message(message=str(e)).model_dump())
 
     db_item = await vendor.create(
         db=db,

@@ -82,7 +82,7 @@ def test_set_currency_wrong_type():
         f"{URL}/api/v1/setting/currency",
         json=123,
     )
-    assert result.status_code == 400
+    assert result.status_code == 422
 
 
 def test_set_big_value():
