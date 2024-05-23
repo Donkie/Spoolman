@@ -1,6 +1,17 @@
-FROM python:3.11-alpine as python-builder
+FROM python:3.12-bookworm as python-builder
 
-RUN apk add --no-cache g++ python3-dev libpq-dev libstdc++ shadow libffi-dev
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    g++ \
+    python3-dev \
+    libpq-dev \
+    libffi-dev \
+    python3-pip \
+    python3-setuptools \
+    python3-wheel \
+    python3-pdm \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Add local user so we don't run as root
 RUN groupmod -g 1000 users \
@@ -8,10 +19,6 @@ RUN groupmod -g 1000 users \
     && usermod -G users app
 
 ENV PATH="/home/app/.local/bin:${PATH}"
-
-# Install PDM
-RUN pip install pip setuptools wheel\
-    && pip install pdm
 
 # Copy and install dependencies
 COPY --chown=app:app pyproject.toml /home/app/spoolman/
@@ -25,13 +32,28 @@ COPY --chown=app:app spoolman /home/app/spoolman/spoolman
 COPY --chown=app:app alembic.ini /home/app/spoolman/
 COPY --chown=app:app README.md /home/app/spoolman/
 
-FROM python:3.11-alpine as python-runner
+FROM python:3.12-bookworm as python-runner
 
 LABEL org.opencontainers.image.source=https://github.com/Donkie/Spoolman
 LABEL org.opencontainers.image.description="Keep track of your inventory of 3D-printer filament spools."
 LABEL org.opencontainers.image.licenses=MIT
 
-RUN apk add --no-cache libstdc++ su-exec shadow
+# Install latest su-exec
+RUN set -ex; \
+    \
+    curl -o /usr/local/bin/su-exec.c https://raw.githubusercontent.com/ncopa/su-exec/master/su-exec.c; \
+    \
+    fetch_deps='gcc libc-dev'; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends $fetch_deps; \
+    rm -rf /var/lib/apt/lists/*; \
+    gcc -Wall \
+    /usr/local/bin/su-exec.c -o/usr/local/bin/su-exec; \
+    chown root:root /usr/local/bin/su-exec; \
+    chmod 0755 /usr/local/bin/su-exec; \
+    rm /usr/local/bin/su-exec.c; \
+    \
+    apt-get purge -y --auto-remove $fetch_deps
 
 # Add local user so we don't run as root
 RUN groupmod -g 1000 users \
