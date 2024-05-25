@@ -61,7 +61,7 @@ def filaments(random_vendor_mod: dict[str, Any], random_empty_vendor_mod: dict[s
         f"{URL}/api/v1/filament",
         json={
             "name": "Filament Z",
-            "material": "PETG",
+            "material": "PLA+",
             "price": 200,
             "density": 1.25,
             "diameter": 1.75,
@@ -256,7 +256,20 @@ def test_find_filaments_by_name(filaments: Fixture):
     # Execute
     result = httpx.get(
         f"{URL}/api/v1/filament",
-        params={"name": "Filament X"},
+        params={"name": "Filament"},
+    )
+    result.raise_for_status()
+
+    # Verify
+    filaments_result = result.json()
+    assert_lists_compatible(filaments_result, filaments.filaments[:3])
+
+
+def test_find_filaments_by_exact_name(filaments: Fixture):
+    # Execute
+    result = httpx.get(
+        f"{URL}/api/v1/filament",
+        params={"name": '"Filament X"'},
     )
     result.raise_for_status()
 
@@ -301,7 +314,20 @@ def test_find_filaments_by_multiple_materials(filaments: Fixture):
 
     # Verify
     filaments_result = result.json()
-    assert_lists_compatible(filaments_result, filaments.filaments[:2])
+    assert_lists_compatible(filaments_result, filaments.filaments[:3])
+
+
+def test_find_filaments_by_exact_material(filaments: Fixture):
+    # Execute
+    result = httpx.get(
+        f"{URL}/api/v1/filament",
+        params={"material": '"PLA"'},
+    )
+    result.raise_for_status()
+
+    # Verify
+    filaments_result = result.json()
+    assert_lists_compatible(filaments_result, filaments.filaments[:1])
 
 
 def test_find_filaments_by_empty_material(filaments: Fixture):

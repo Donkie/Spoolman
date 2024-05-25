@@ -47,9 +47,14 @@ def add_where_clause_str_opt(
     if value is not None:
         conditions = []
         for value_part in value.split(","):
+            # If part is empty, search for empty fields
             if len(value_part) == 0:
                 conditions.append(field.is_(None))
                 conditions.append(field == "")
+            # Do exact match if value_part is surrounded by quotes
+            elif value_part[0] == '"' and value_part[-1] == '"':
+                conditions.append(field == value_part[1:-1])
+            # Do fuzzy match if value_part is not surrounded by quotes
             else:
                 conditions.append(field.ilike(f"%{value_part}%"))
 
@@ -66,8 +71,13 @@ def add_where_clause_str(
     if value is not None:
         conditions = []
         for value_part in value.split(","):
+            # If part is empty, search for empty fields
             if len(value_part) == 0:
                 conditions.append(field == "")
+            # Do exact match if value_part is surrounded by quotes
+            elif value_part[0] == '"' and value_part[-1] == '"':
+                conditions.append(field == value_part[1:-1])
+            # Do fuzzy match if value_part is not surrounded by quotes
             else:
                 conditions.append(field.ilike(f"%{value_part}%"))
 

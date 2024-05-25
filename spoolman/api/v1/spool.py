@@ -170,8 +170,9 @@ async def find(
         default=None,
         title="Filament Name",
         description=(
-            "Partial case-insensitive search term for the filament name. Separate multiple terms with a comma."
-            " Specify an empty string to match spools with no filament name."
+            "Partial case-insensitive search term for the filament name. Separate multiple terms with a comma. "
+            "Specify an empty string to match spools with no filament name. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     filament_id: Optional[str] = Query(
@@ -188,7 +189,8 @@ async def find(
         title="Filament Material",
         description=(
             "Partial case-insensitive search term for the filament material. Separate multiple terms with a comma. "
-            "Specify an empty string to match spools with no filament material."
+            "Specify an empty string to match spools with no filament material. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     filament_vendor_name: Optional[str] = Query(
@@ -197,7 +199,8 @@ async def find(
         title="Vendor Name",
         description=(
             "Partial case-insensitive search term for the filament vendor name. Separate multiple terms with a comma. "
-            "Specify an empty string to match spools with no vendor name."
+            "Specify an empty string to match spools with no vendor name. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     filament_vendor_id: Optional[str] = Query(
@@ -216,7 +219,8 @@ async def find(
         title="Location",
         description=(
             "Partial case-insensitive search term for the spool location. Separate multiple terms with a comma. "
-            "Specify an empty string to match spools with no location."
+            "Specify an empty string to match spools with no location. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     lot_nr: Optional[str] = Query(
@@ -224,7 +228,8 @@ async def find(
         title="Lot/Batch Number",
         description=(
             "Partial case-insensitive search term for the spool lot number. Separate multiple terms with a comma. "
-            "Specify an empty string to match spools with no lot nr."
+            "Specify an empty string to match spools with no lot nr. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     allow_archived: bool = Query(

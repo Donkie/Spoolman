@@ -83,7 +83,10 @@ async def find(
     name: Optional[str] = Query(
         default=None,
         title="Vendor Name",
-        description="Partial case-insensitive search term for the vendor name. Separate multiple terms with a comma.",
+        description=(
+            "Partial case-insensitive search term for the vendor name. Separate multiple terms with a comma. "
+            "Surround a term with quotes to search for the exact term."
+        ),
     ),
     external_id: Optional[str] = Query(
         default=None,
@@ -91,7 +94,8 @@ async def find(
         description=(
             "Exact match for the vendor external ID. "
             "Separate multiple IDs with a comma. "
-            "Specify empty string to match filaments with no external ID."
+            "Specify empty string to match filaments with no external ID. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     sort: Optional[str] = Query(

@@ -174,7 +174,8 @@ async def find(
         title="Vendor Name",
         description=(
             "Partial case-insensitive search term for the filament vendor name. "
-            "Separate multiple terms with a comma. Specify an empty string to match filaments with no vendor name."
+            "Separate multiple terms with a comma. Specify an empty string to match filaments with no vendor name. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     vendor_id: Optional[str] = Query(
@@ -193,7 +194,8 @@ async def find(
         title="Filament Name",
         description=(
             "Partial case-insensitive search term for the filament name. Separate multiple terms with a comma. "
-            "Specify an empty string to match filaments with no name."
+            "Specify an empty string to match filaments with no name. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     material: Optional[str] = Query(
@@ -201,7 +203,8 @@ async def find(
         title="Filament Material",
         description=(
             "Partial case-insensitive search term for the filament material. Separate multiple terms with a comma. "
-            "Specify an empty string to match filaments with no material."
+            "Specify an empty string to match filaments with no material. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     article_number: Optional[str] = Query(
@@ -210,7 +213,8 @@ async def find(
         description=(
             "Partial case-insensitive search term for the filament article number. "
             "Separate multiple terms with a comma. "
-            "Specify an empty string to match filaments with no article number."
+            "Specify an empty string to match filaments with no article number. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     color_hex: Optional[str] = Query(
@@ -231,7 +235,8 @@ async def find(
         description=(
             "Find filaments imported by the given external ID. "
             "Separate multiple IDs with a comma. "
-            "Specify empty string to match filaments with no external ID."
+            "Specify empty string to match filaments with no external ID. "
+            "Surround a term with quotes to search for the exact term."
         ),
         example="polymaker_pla_polysonicblack_1000_175",
     ),
