@@ -196,7 +196,7 @@ export function FilteredQueryColumn<Obj extends Entity>(props: FilteredQueryColu
       if (typeof item === "string") {
         return {
           text: item,
-          value: item,
+          value: '"' + item + '"',
         };
       }
       return item;
@@ -308,7 +308,7 @@ export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<
       if (typeof item === "string") {
         return {
           text: item,
-          value: item,
+          value: '"' + item + '"',
         };
       }
       return item;
