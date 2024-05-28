@@ -168,6 +168,8 @@ async def update(
                 filament.vendor = await vendor.get_by_id(db, v)
         elif k == "extra":
             filament.extra = [models.FilamentField(key=k, value=v) for k, v in v.items()]
+        elif k == "multi_color_direction":
+            filament.multi_color_direction = v.value if v is not None else None
         else:
             setattr(filament, k, v)
     await db.commit()

@@ -95,6 +95,49 @@ def test_update_filament(random_vendor: dict[str, Any]):
     httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()
 
 
+def test_update_filament_multi_color():
+    """Test updating a filament in the database."""
+    # Setup
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={
+            "density": 1.25,
+            "diameter": 1.75,
+            "multi_color_hexes": "FF0000,00FF00",
+            "multi_color_direction": "coaxial",
+        },
+    )
+    result.raise_for_status()
+    added_filament = result.json()
+
+    # Execute
+    new_multi_color_hexes = "00FF00,0000FF"
+    new_multi_color_direction = "longitudinal"
+    result = httpx.patch(
+        f"{URL}/api/v1/filament/{added_filament['id']}",
+        json={
+            "multi_color_hexes": new_multi_color_hexes,
+            "multi_color_direction": new_multi_color_direction,
+        },
+    )
+    result.raise_for_status()
+
+    # Verify
+    filament = result.json()
+    assert_dicts_compatible(
+        filament,
+        {
+            "id": added_filament["id"],
+            "registered": added_filament["registered"],
+            "multi_color_hexes": new_multi_color_hexes,
+            "multi_color_direction": new_multi_color_direction,
+        },
+    )
+
+    # Clean up
+    httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()
+
+
 def test_update_filament_cant_set_none(random_vendor: dict[str, Any]):
     """Test updating a filament and setting density and diameter fields to None, should result in 422 error."""
     # Setup
