@@ -128,3 +128,106 @@ def test_add_filament_color_hex_alpha():
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()
+
+
+def test_add_filament_multi_color():
+    """Test adding a filament with multi color hexes."""
+    multi_color_hexes = "FF0000,00FF00"
+    multi_color_direction = "coaxial"
+
+    # Execute
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={
+            "density": 1.25,
+            "diameter": 1.75,
+            "multi_color_hexes": multi_color_hexes,
+            "multi_color_direction": multi_color_direction,
+        },
+    )
+    result.raise_for_status()
+
+    # Verify
+    filament = result.json()
+    assert filament["multi_color_hexes"] == multi_color_hexes
+    assert filament["multi_color_direction"] == multi_color_direction
+
+    # Clean up
+    httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()
+
+
+def test_add_filament_multi_color_errors():
+    """Test adding a filament with multi color hexes with errors."""
+    # Bad hex color list
+    # Execute
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={
+            "density": 1.25,
+            "diameter": 1.75,
+            "multi_color_hexes": "FF0000,",  # Bad 2nd color
+            "multi_color_direction": "coaxial",
+        },
+    )
+
+    # Verify
+    assert result.status_code == 422
+
+    # Missing multi_color_hexes but direction is specified
+    # Execute
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={
+            "density": 1.25,
+            "diameter": 1.75,
+            "multi_color_direction": "coaxial",
+        },
+    )
+
+    # Verify
+    assert result.status_code == 422
+
+    # multi_color_hexes is specified but direction is not
+    # Execute
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={
+            "density": 1.25,
+            "diameter": 1.75,
+            "multi_color_hexes": "FF0000,00FF00",
+        },
+    )
+
+    # Verify
+    assert result.status_code == 422
+
+    # multi_color_hexes only has a single color
+    # Execute
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={
+            "density": 1.25,
+            "diameter": 1.75,
+            "multi_color_hexes": "FF0000",
+            "multi_color_direction": "coaxial",
+        },
+    )
+
+    # Verify
+    assert result.status_code == 422
+
+    # Both multi_color_hexes and color_hex is specified
+    # Execute
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={
+            "density": 1.25,
+            "diameter": 1.75,
+            "color_hex": "FF0000",
+            "multi_color_hexes": "FF0000,00FF00",
+            "multi_color_direction": "coaxial",
+        },
+    )
+
+    # Verify
+    assert result.status_code == 422

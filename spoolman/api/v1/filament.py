@@ -7,10 +7,10 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman.api.v1.models import Filament, FilamentEvent, Message
+from spoolman.api.v1.models import Filament, FilamentEvent, Message, MultiColorDirection
 from spoolman.database import filament
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
@@ -86,8 +86,25 @@ class FilamentParameters(BaseModel):
     )
     color_hex: Optional[str] = Field(
         None,
-        description="Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end.",
+        description=(
+            "Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end. "
+            "If it's a multi-color filament, the multi_color_hexes field is used instead."
+        ),
         examples=["FF0000"],
+    )
+    multi_color_hexes: Optional[str] = Field(
+        None,
+        description=(
+            "Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end. "
+            "Specifying multiple colors separated by commas. "
+            "Also set the multi_color_direction field if you specify multiple colors."
+        ),
+        examples=["FF0000,00FF00,0000FF"],
+    )
+    multi_color_direction: Optional[MultiColorDirection] = Field(
+        None,
+        description=("Type of multi-color filament. Only set if the color_hex field contains multiple colors. "),
+        examples=["coaxial", "longitudinal"],
     )
     external_id: Optional[str] = Field(
         None,
@@ -104,23 +121,57 @@ class FilamentParameters(BaseModel):
 
     @field_validator("color_hex")
     @classmethod
-    @classmethod
     def color_hex_validator(cls, v: Optional[str]) -> Optional[str]:  # noqa: ANN102
         """Validate the color_hex field."""
         if not v:
             return None
-        if v.startswith("#"):
-            v = v[1:]
-        v = v.upper()
 
-        for c in v:
+        clr = v.upper()
+        if clr.startswith("#"):
+            clr = clr[1:]
+
+        for c in clr:
             if c not in "0123456789ABCDEF":
                 raise ValueError("Invalid character in color code.")
 
-        if len(v) not in (6, 8):
+        if len(clr) not in (6, 8):
             raise ValueError("Color code must be 6 or 8 characters long.")
 
         return v
+
+    @field_validator("multi_color_hexes")
+    @classmethod
+    def multi_color_hexes_validator(cls, v: Optional[str]) -> Optional[str]:  # noqa: ANN102
+        """Validate the multi_color_hexes field."""
+        if not v:
+            return None
+        for clr_raw in v.split(","):
+            clr = clr_raw.upper()
+            if clr.startswith("#"):
+                clr = clr[1:]
+
+            for c in clr:
+                if c not in "0123456789ABCDEF":
+                    raise ValueError("Invalid character in color code.")
+
+            if len(clr) not in (6, 8):
+                raise ValueError("Color code must be 6 or 8 characters long.")
+
+        return v
+
+    @model_validator(mode="after")  # type: ignore[]
+    def validate(self) -> "FilamentParameters":
+        """Validate the model."""
+        if self.color_hex and self.multi_color_hexes:
+            raise ValueError("Cannot specify both color_hex and multi_color_hexes.")
+        if self.multi_color_hexes and len(self.multi_color_hexes.split(",")) < 2:  # noqa: PLR2004
+            raise ValueError("Must specify at least two colors in multi_color_hexes.")
+        if self.multi_color_hexes and not self.multi_color_direction:
+            raise ValueError("Multi-color filament must have multi_color_direction set.")
+        if not self.multi_color_hexes and self.multi_color_direction:
+            raise ValueError("Single-color filament must not have multi_color_direction set.")
+
+        return self
 
 
 class FilamentUpdateParameters(FilamentParameters):
@@ -394,6 +445,8 @@ async def create(  # noqa: ANN201
         settings_extruder_temp=body.settings_extruder_temp,
         settings_bed_temp=body.settings_bed_temp,
         color_hex=body.color_hex,
+        multi_color_hexes=body.multi_color_hexes,
+        multi_color_direction=body.multi_color_direction,
         external_id=body.external_id,
         extra=body.extra,
     )

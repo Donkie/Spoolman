@@ -93,6 +93,13 @@ class Vendor(BaseModel):
         )
 
 
+class MultiColorDirection(Enum):
+    """Enum for multi-color direction."""
+
+    COAXIAL = "coaxial"
+    LONGITUDINAL = "longitudinal"
+
+
 class Filament(BaseModel):
     id: int = Field(description="Unique internal ID of this filament type.")
     registered: SpoolmanDateTime = Field(description="When the filament was registered in the database. UTC Timezone.")
@@ -155,8 +162,26 @@ class Filament(BaseModel):
         None,
         min_length=6,
         max_length=8,
-        description="Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end.",
+        description=(
+            "Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end. "
+            "If it's a multi-color filament, the multi_color_hexes field is used instead."
+        ),
         examples=["FF0000"],
+    )
+    multi_color_hexes: Optional[str] = Field(
+        None,
+        min_length=6,
+        description=(
+            "Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end. "
+            "Specifying multiple colors separated by commas. "
+            "Also set the multi_color_direction field if you specify multiple colors."
+        ),
+        examples=["FF0000,00FF00,0000FF"],
+    )
+    multi_color_direction: Optional[MultiColorDirection] = Field(
+        None,
+        description=("Type of multi-color filament. Only set if the multi_color_hexes field is set."),
+        examples=["coaxial", "longitudinal"],
     )
     external_id: Optional[str] = Field(
         None,
@@ -192,6 +217,10 @@ class Filament(BaseModel):
             settings_extruder_temp=item.settings_extruder_temp,
             settings_bed_temp=item.settings_bed_temp,
             color_hex=item.color_hex,
+            multi_color_hexes=item.multi_color_hexes,
+            multi_color_direction=(
+                MultiColorDirection(item.multi_color_direction) if item.multi_color_direction is not None else None
+            ),
             external_id=item.external_id,
             extra={field.key: field.value for field in item.extra},
         )
