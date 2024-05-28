@@ -98,6 +98,11 @@ export const languages: { [key: string]: Language } = {
     countryCode: "dk",
     fullCode: "da-DK",
   },
+  ["pt"]: {
+    name: "Português",
+    countryCode: "pt",
+    fullCode: "pt-PT",
+  },
 };
 
 i18n
