@@ -38,6 +38,7 @@ It is currently only supported in the Klipper ecosystem, with official support f
   * ✔️ Mainsail
 * ✔️ Octoprint: [OctoPrint-Spoolman](https://github.com/mdziekon/octoprint-spoolman)
 * ✔️ Home Assistant integration: [spoolman-homeassistant](https://github.com/Disane87/spoolman-homeassistant)
+* ✔️ Free & Secure Remote Access: [OctoEverywhere for Spoolman](https://octoeverywhere.com/spoolman?source=github_spoolman)
 
 ## Installation
 Spoolman can interact with any of the following databases: SQLite, PostgreSQL, MySQL, MariaDB, CockroachDB.
@@ -116,7 +117,9 @@ See the `.env.example` file for a list of all environment variables you can use.
 ### QR Code Does not work on HTTP / The page is not served over HTTPS
 This is a limitation of the browsers. Browsers require a secure connection to the server to enable HTTPS. This is not a limitation of Spoolman. For more information read this [blog](https://blog.mozilla.org/webrtc/camera-microphone-require-https-in-firefox-68/) from Mozilla.
 
-You can put Spoolman behind a reverse proxy like Caddy or Nginx to enable HTTPS. See for example [this guide](https://caddyserver.com/docs/quick-starts/reverse-proxy) for Caddy.
+[OctoEverywhere.com](https://octoeverywhere.com/spoolman?source=github_spoolman_qr) is An easy way to get secure HTTPS access to Spoolman. Remote access with OctoEverywhere is always secure and easier than setting up a reverse proxy + SSL self-signed certificate.
+
+Another option is to put Spoolman behind a reverse proxy like Caddy or Nginx to enable HTTPS. See for example [this guide](https://caddyserver.com/docs/quick-starts/reverse-proxy) for Caddy.
 
 ### Can Spoolman be translated into my language?
 Yes, head over to [Weblate](https://hosted.weblate.org/projects/spoolman/) to start the Translation
