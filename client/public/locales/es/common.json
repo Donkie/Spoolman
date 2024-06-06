@@ -90,7 +90,7 @@
             "measured_weight": "Cuanto pesa el filamento y la bobina.",
             "remaining_weight": "Cuanto filamento resta en la bobina. Para una bobina nueva el peso debe ser igual al peso indicado de fábrica.",
             "price": "Precio de una bobina completa. Si no se establece, se asumirá en su lugar el precio del filamento.",
-            "initial_weight": "El peso inicial del filamento (peso neto). Este valor puede proceder del filamento, pero se rastrea a nivel de bobina para permitir variaciones individuales del peso del filamento en la bobina.",
+            "initial_weight": "El peso inicial del filamento en el carrete (peso neto). Utilizará el peso del objeto de filamento si no está configurado.",
             "spool_weight": "El peso de la bobina cuando está vacía. Dejar vacío para usar el valor del filamento o del fabricante.",
             "external_filament": "Has elegido un filamento desde la base de datos externa. Un objeto filamento (y posiblemente un objeto fabricante) será creado automáticamente cuando crees este carrete. Esto puede crear objetos filamento duplicados si ya has creado un objeto filamento para este filamento."
         },
@@ -134,7 +134,7 @@
             "external_id": "ID Externo"
         },
         "fields_help": {
-            "name": "Nombre del filamento, para distinguirlo de otros del mismo fabricante. Por ejemplo, debería contener el nombre del color.",
+            "name": "Nombre del filamento, para distinguir este tipo de filamento entre otros del mismo fabricante. Debe contener por ejemplo: el color.",
             "material": "ej. PLA, ABS, PETG, etc.",
             "price": "Precio de una bobina completa.",
             "weight": "El peso de una bobina entera (peso neto). Esta cifra no debe incluir el peso de la bobina vacía, solo el filamento. Es, normalmente, el peso escrito en la etiqueta de la bobina.",
@@ -168,9 +168,9 @@
             "empty_spool_weight": "Peso de bobina vacía"
         },
         "titles": {
-            "create": "Crear Fabricante",
-            "clone": "Duplicar Fabricante",
-            "edit": "Editar Fabricante",
+            "create": "Crear un fabricante",
+            "clone": "Duplicar un fabricante",
+            "edit": "Editar un fabricante",
             "list": "Fabricantes",
             "show": "Mostrar Fabricante",
             "show_title": "[Fabricante #{{id}}] {{name}}"
@@ -179,7 +179,7 @@
             "vendor_updated": "Este fabricante ha sido actualizado por alguien/algo desde que abrió esta página. ¡Al guardar, se sobrescribirán los cambios!"
         },
         "fields_help": {
-            "empty_spool_weight": "El peso de una bobina vacía de este proveedor."
+            "empty_spool_weight": "El peso de una bobina vacía de este fabricante."
         }
     },
     "table": {
@@ -204,10 +204,10 @@
         },
         "vendor": {
             "list": "Fabricantes | Spoolman",
-            "show": "#{{id}} Mostrar Fabricante | Spoolman",
-            "edit": "#{{id}} Editar Fabricante | Spoolman",
-            "create": "Crear Fabricante | Spoolman",
-            "clone": "#{{id}} Duplicar Fabricante | Spoolman"
+            "show": "#{{id}} Mostrar el fabricante | Spoolman",
+            "edit": "#{{id}} Editar el fabricante | Spoolman",
+            "create": "Crear un fabricante | Spoolman",
+            "clone": "#{{id}} Duplicar un fabricante | Spoolman"
         },
         "home": {
             "list": "Inicio | Spoolman"
