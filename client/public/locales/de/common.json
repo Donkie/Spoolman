@@ -25,12 +25,12 @@
         "hideColumns": "Spalten anpassen",
         "clearFilters": "Filter leeren",
         "showArchived": "Archivierte anzeigen",
-        "archive": "Archivieren",
+        "archive": "Archiv",
         "hideArchived": "Archivierte verstecken",
         "unArchive": "Archivieren rückgängig machen",
         "saveAndAdd": "Speichern und hinzufügen"
     },
-    "warnWhenUnsavedChanges": "Sicher? Nicht gespeicherte Änderungen gehen verloren.",
+    "warnWhenUnsavedChanges": "Bist du Sicher? Nicht gespeicherte Änderungen gehen verloren!",
     "notifications": {
         "success": "Erfolg",
         "error": "Fehler (status code: {{statusCode}})",
@@ -162,7 +162,7 @@
             "measured_weight": "Gesamtgewicht von Spule und Filament.",
             "location": "Ort, an dem die Spule gelagert wird.",
             "lot_nr": "Chargennummer des Herstellers. Kann verwendet werden um gleichmäßige Farben zu garantieren, wenn mehrere Spulen verwendet werden.",
-            "price": "Preis einer vollen Spule in der im System konfigurierten Währung. Falls nicht ausgewählt, wird der Preis des Filaments verwendet.",
+            "price": "Preis einer vollen Spule. Falls nicht ausgewählt, wird der Preis des Filaments geschätzt.",
             "initial_weight": "Das Anfangsgewicht des Filaments (Nettogewicht) auf der Spule. Wenn nicht gesetzt, dann wird der Wert aus dem Filament Objekt genutzt.",
             "spool_weight": "Das Gewicht der leeren Spule. Leer lassen um das Gewicht vom Hersteller zu nutzen.",
             "external_filament": "Sie haben ein Filament aus der externen Datenbank ausgewählt. Ein Filamentobjekt (und möglicherweise ein Herstellerobjekt) wird automatisch erstellt, wenn Sie diese Spule erstellen. Dadurch können doppelte Filamentobjekte entstehen, wenn Sie bereits ein Filamentobjekt für dieses Filament erstellt haben."
@@ -327,7 +327,7 @@
                 "text": "Text",
                 "float": "Dezimalzahl",
                 "integer": "Ganze Zahl",
-                "choice": "Auswahlmöglichkeit",
+                "choice": "Auswahl",
                 "integer_range": "Ganzzahlbereich",
                 "boolean": "Wahr/Falsch",
                 "float_range": "Float-Bereich",
@@ -337,9 +337,9 @@
             "boolean_false": "Nein",
             "delete_confirm": "Feld {{name}} entfernen?",
             "description": "<p>Hier können Sie zusätzliche benutzerdefinierte Felder zu Ihren Elementen hinzufügen.</p><p>Nach dem Hinzufügen eines Feldes können Sie dessen Schlüssel oder Typ nicht mehr ändern, und bei Auswahlfeldern können Sie keine Auswahlmöglichkeiten entfernen oder den Mehrfachauswahlstatus ändern. Wenn Sie ein Feld entfernen, werden die zugehörigen Daten für alle Elemente gelöscht.</p><p>Der Schlüssel ist derjenige, unter dem andere Programme die Daten lesen/schreiben, wenn Ihr benutzerdefiniertes Feld also mit einem Programm eines Drittanbieters integriert werden soll, stellen Sie sicher, dass Sie ihn richtig einstellen. Der Standardwert wird nur auf neue Elemente angewendet.</p><p>Zusätzliche Felder können in den Tabellenansichten nicht sortiert oder gefiltert werden.</p>",
-            "choices_missing_error": "Du kannst keine Auswahlmöglichkeiten löschen. Die folgenden Auswahlmöglichkeiten fehlen: {{choices}}",
-            "key_not_changed": "Bitte ändere den Schlüssel zu einem anderen Wert.",
-            "delete_confirm_description": "Dadurch werden das Feld und alle zugehörigen Daten für alle Entitäten gelöscht.",
+            "choices_missing_error": "Du kannst die Auswahl nicht entfernen. Folgende Auswahlmöglichkeiten fehlen: {{choices}}",
+            "key_not_changed": "Bitte ändere den Schlüssel auf einen anderen Wert.",
+            "delete_confirm_description": "Dieses Feld und alle damit verbundenen Einträge werden gelöscht.",
             "non_unique_key_error": "Der Schlüssel muss eindeutig sein."
         },
         "settings": "Einstellungen"
