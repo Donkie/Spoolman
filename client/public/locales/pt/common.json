@@ -108,14 +108,14 @@
             "extruderTemp": "Temperatura do Bico: {{temp}}",
             "textSize": "Tamanho do Texto do Conteúdo",
             "showSpoolmanIcon": "Mostrar ícone do Spoolman",
-            "showVendor": "Fornecedor",
+            "showVendor": "Fabricante",
             "showContent": "Imprimir Etiqueta",
             "showLotNr": "Número do Lote",
             "showSpoolWeight": "Peso do Carretel",
             "showTemperatures": "Temperaturas",
             "showSpoolComment": "Comentário sobre o Carretel",
             "showFilamentComment": "Comentário sobre o Filamento",
-            "showVendorComment": "Comentário sobre o Fornecedor"
+            "showVendorComment": "Comentário sobre o Fabricante"
         }
     },
     "spool": {
@@ -139,7 +139,9 @@
             "filament": "Filamento",
             "price": "Preço",
             "initial_weight": "Peso Inicial",
-            "spool_weight": "Peso sem Filamento"
+            "spool_weight": "Peso sem Filamento",
+            "filament_internal": "Interno",
+            "filament_external": "Externo"
         },
         "fields_help": {
             "weight_to_use": "Selecione qual valor de peso inserir. O peso medido só estará disponível se o peso do carretel estiver definido para o filamento selecionado.",
@@ -150,7 +152,8 @@
             "location": "Onde o carretel está localizado se você tiver vários locais onde armazena seus carretéis.",
             "price": "Preço de um carretel completo na moeda definida no sistema. Se não for definido, o preço do filamento será presumido.",
             "initial_weight": "O peso inicial do filamento sem o peso do carretel (peso liquido). Se nada for indicado, será usado o peso da definição do filamento.",
-            "spool_weight": "O peso do carretel quando vazio. Deixe em branco para usar o valor do filamento ou do fornecedor."
+            "spool_weight": "O peso do carretel quando vazio. Deixe em branco para usar o valor do filamento ou do fabricante.",
+            "external_filament": "Escolheu um filamento de uma base de dados externa. O filamento (e possivelmente o fabricante) será criado automaticamente quando for criado o carretel. Isto poderá criar filamentos duplicados caso já tenha criado um filamento para este filamento específico."
         },
         "titles": {
             "create": "Criar Carretel",
@@ -174,7 +177,7 @@
         "filament": "Filamentos",
         "fields": {
             "id": "ID",
-            "vendor_name": "Fornecedor",
+            "vendor_name": "Fabricante",
             "name": "Nome",
             "price": "Preço",
             "diameter": "Diâmetro",
@@ -182,19 +185,20 @@
             "spool_weight": "Peso do Carretel",
             "article_number": "Número do Artigo",
             "registered": "Registrado",
-            "vendor": "Fornecedor",
+            "vendor": "Fabricante",
             "material": "Material",
             "density": "Densidade",
             "comment": "Comentário",
             "settings_extruder_temp": "Temperatura do Bico",
             "settings_bed_temp": "Temperatura da Mesa",
             "color_hex": "Cor",
-            "spools": "Mostrar Carretéis"
+            "spools": "Mostrar Carretéis",
+            "external_id": "ID Externo"
         },
         "fields_help": {
             "article_number": "Por exemplo EAN, UPC, etc.",
             "price": "Preço de um carretel completo.",
-            "name": "Nome do filamento, para distinguir este tipo de filamento entre outros do mesmo fornecedor. Deve conter a cor, por exemplo.",
+            "name": "Nome do filamento, para distinguir este tipo de filamento entre outros do mesmo fabricante. Deve conter a cor, por exemplo.",
             "material": "Por exemplo PLA, ABS, PETG, etc.",
             "weight": "O peso do filamento de um carretel cheio (peso líquido). Isso não deve incluir o peso do carretel em si, apenas o filamento. É o que normalmente está escrito na embalagem.",
             "spool_weight": "O peso de um carretel vazio. Usado para determinar o peso medido de um carretel."
@@ -208,34 +212,37 @@
             "show_title": "[Filamento #{{id}}] {{name}}"
         },
         "form": {
-            "filament_updated": "Este filamento foi atualizado por alguém desde que abriu esta página. Guardar substituirá essas alterações!"
+            "filament_updated": "Este filamento foi atualizado por alguém desde que abriu esta página. Guardar substituirá essas alterações!",
+            "import_external": "Importar do Exterior",
+            "import_external_description": "Escolha um filamento da lista para preencher automaticamente os detalhes do filamento no formulário de criação. Isto irá substituir quaisquer dados que já tenha introduzido no formulário.<br><br>Será criado o fabricante automaticamente caso seja necessário."
         },
         "buttons": {
             "add_spool": "Adicionar Carretel"
         }
     },
     "vendor": {
-        "vendor": "Fornecedores",
+        "vendor": "Fabricantes",
         "fields": {
             "id": "ID",
             "name": "Nome",
             "registered": "Registrado",
             "comment": "Comentário",
-            "empty_spool_weight": "Peso do Carretel Vazio"
+            "empty_spool_weight": "Peso do Carretel Vazio",
+            "external_id": "ID Externo"
         },
         "titles": {
-            "create": "Criar Fornecedor",
-            "clone": "Clonar Fornecedor",
-            "edit": "Editar Fornecedor",
-            "list": "Fornecedores",
-            "show": "Mostrar Fornecedor",
-            "show_title": "[Fornecedor #{{id}}] {{name}}"
+            "create": "Criar Fabricante",
+            "clone": "Clonar Fabricante",
+            "edit": "Editar Fabricante",
+            "list": "Fabricantes",
+            "show": "Mostrar Fabricante",
+            "show_title": "[Fabricante #{{id}}] {{name}}"
         },
         "form": {
-            "vendor_updated": "Este fornecedor foi atualizado por alguém desde que abriu esta página. Guardar substituirá essas alterações!"
+            "vendor_updated": "Este fabricante foi atualizado por alguém desde que abriu esta página. Guardar substituirá essas alterações!"
         },
         "fields_help": {
-            "empty_spool_weight": "O peso do carretel vazio do fornecedor."
+            "empty_spool_weight": "O peso do carretel vazio do fabricante."
         }
     },
     "home": {
@@ -248,7 +255,7 @@
             "spool": "Carretéis físicos individuais de um filamento específico.",
             "vendor": "As empresas que fabricam o filamento."
         },
-        "description": "<title>Ajuda</title><p>Aqui estão algumas dicas para começar.</p><p>O Spoolman contém três tipos diferentes de dados:</p><itemsHelp/><p>Para adicionar um novo carretel para o banco de dados, comece criando um <filamentCreateLink>Filamento</filamentCreateLink>. Feito isso, prossiga para criar um <spoolCreateLink>Carretel</spoolCreateLink> para esse carretel específico. Se você adquirir carretéis adicionais do mesmo filamento posteriormente, simplesmente gere Carretéis adicionais e reutilize o mesmo objeto Filamento.</p><p>Opcionalmente, você também pode criar um <vendorCreateLink>Fornecedor</vendorCreateLink> para a empresa que fabrica o filamento, se desejar rastrear essas informações.</p><p>Você tem a opção de vincular outros serviços de impressora 3D ao Spoolman, como o Moonraker, que pode monitorar automaticamente o uso do filamento e atualizar os carretéis para você. Consulte o <readmeLink>README do Spoolman</readmeLink> para obter orientação sobre como configurar isso.</p>"
+        "description": "<title>Ajuda</title><p>Aqui estão algumas dicas para começar.</p><p>O Spoolman contém três tipos diferentes de dados:</p><itemsHelp/><p>Para adicionar um novo carretel para o banco de dados, comece criando um <filamentCreateLink>Filamento</filamentCreateLink>. Feito isso, prossiga para criar um <spoolCreateLink>Carretel</spoolCreateLink> para esse carretel específico. Se você adquirir carretéis adicionais do mesmo filamento posteriormente, simplesmente gere Carretéis adicionais e reutilize o mesmo objeto Filamento.</p><p>Opcionalmente, você também pode criar um <vendorCreateLink>Fabricante</vendorCreateLink> para a empresa que fabrica o filamento, se desejar rastrear essas informações.</p><p>Você tem a opção de vincular outros serviços de impressora 3D ao Spoolman, como o Moonraker, que pode monitorar automaticamente o uso do filamento e atualizar os carretéis para você. Consulte o <readmeLink>README do Spoolman</readmeLink> para obter orientação sobre como configurar isso.</p>"
     },
     "documentTitle": {
         "suffix": " | Spoolman",
@@ -273,11 +280,11 @@
             "clone": "#{{id}} Clonar Carretel | Spoolman"
         },
         "vendor": {
-            "show": "#{{id}} Mostrar Fornecedor | Spoolman",
-            "list": "Fornecedores | Spoolman",
-            "create": "Criar Fornecedor | Spoolman",
-            "edit": "#{{id}} Editar Fornecedor | Spoolman",
-            "clone": "#{{id}} Clonar Fornecedor | Spoolman"
+            "show": "#{{id}} Mostrar Fabricante | Spoolman",
+            "list": "Fabricantes | Spoolman",
+            "create": "Criar Fabricante | Spoolman",
+            "edit": "#{{id}} Editar Fabricante | Spoolman",
+            "clone": "#{{id}} Clonar Fabricante | Spoolman"
         },
         "default": "Spoolman"
     },

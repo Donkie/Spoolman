@@ -165,7 +165,8 @@
             "name": "Nombre",
             "registered": "Registrado",
             "comment": "Comentarios",
-            "empty_spool_weight": "Peso de bobina vacía"
+            "empty_spool_weight": "Peso de bobina vacía",
+            "external_id": "ID Externa"
         },
         "titles": {
             "create": "Crear un fabricante",
