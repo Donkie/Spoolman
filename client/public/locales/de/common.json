@@ -42,8 +42,8 @@
         "editSuccess": "{{resource}} erfolgreich bearbeitet",
         "editError": "Fehler beim Bearbeiten von {{resource}} (status code: {{statusCode}})",
         "importProgress": "{{processed}}/{{total}} importiert",
-        "saveSuccessful": "Erfolgreich gesichert!",
-        "validationError": "Validierungsfehler: {{error}}"
+        "saveSuccessful": "Erfolgreich gespeichert!",
+        "validationError": "Fehler bei der Validierung: {{error}}"
     },
     "loading": "Laden",
     "version": "Version",
@@ -58,7 +58,7 @@
     },
     "printing": {
         "generic": {
-            "title": "Drucken",
+            "title": "Druckt",
             "description": "Einstellungen unten anpassen, um das gewünschte Drucklayout zu erstellen. Der Drucker oder das Betriebssystem fügen möglichweise eigene Abstände und Skalierungen hinzu. Eventuell muss ein wenig experimentiert werden, bevor alles korrekt funktioniert. Auf normalem Papier testen, bevor auf Label-Papier gedruckt wird.",
             "helpMargin": "Abstände sollten so konfiguriert werden, dass sie zum Papier und Drucker passen. Änderungen beeinflussen die Größe des gesamten Gitters.",
             "helpPrinterMargin": "Der Sicherheitsabstand sollte so eingestellt werden, wie dicht der Drucker am Rand des Papiers drucken kann. Änderungen beeinflussen nicht die Größe des Gitters.",
@@ -151,7 +151,9 @@
             "archived": "Archiviert",
             "price": "Preis",
             "initial_weight": "Anfangsgewicht",
-            "spool_weight": "Leergewicht"
+            "spool_weight": "Leergewicht",
+            "filament_internal": "Intern",
+            "filament_external": "Extern"
         },
         "fields_help": {
             "weight_to_use": "Auswählen welches Gewicht verwendet werden soll. \"Gemessenes Gewicht\" ist nur verfügbar, wenn das Gewicht der Spule für das Filament hinterlegt ist.",
@@ -162,7 +164,8 @@
             "lot_nr": "Chargennummer des Herstellers. Kann verwendet werden um gleichmäßige Farben zu garantieren, wenn mehrere Spulen verwendet werden.",
             "price": "Preis einer vollen Spule in der im System konfigurierten Währung. Falls nicht ausgewählt, wird der Preis des Filaments verwendet.",
             "initial_weight": "Das Anfangsgewicht des Filaments (Nettogewicht) auf der Spule. Wenn nicht gesetzt, dann wird der Wert aus dem Filament Objekt genutzt.",
-            "spool_weight": "Das Gewicht der leeren Spule. Leer lassen um das Gewicht vom Hersteller zu nutzen."
+            "spool_weight": "Das Gewicht der leeren Spule. Leer lassen um das Gewicht vom Hersteller zu nutzen.",
+            "external_filament": "Sie haben ein Filament aus der externen Datenbank ausgewählt. Ein Filamentobjekt (und möglicherweise ein Herstellerobjekt) wird automatisch erstellt, wenn Sie diese Spule erstellen. Dadurch können doppelte Filamentobjekte entstehen, wenn Sie bereits ein Filamentobjekt für dieses Filament erstellt haben."
         },
         "titles": {
             "create": "Spule erstellen",
@@ -200,7 +203,8 @@
             "settings_extruder_temp": "Düsentemperatur",
             "settings_bed_temp": "Betttemperatur",
             "color_hex": "Farbe",
-            "spools": "Zeige Spulen"
+            "spools": "Zeige Spulen",
+            "external_id": "Externe ID"
         },
         "fields_help": {
             "name": "Name des Filaments um es von anderen Typen des gleichen Herstellers zu unterscheiden. Sollte z.B. die Farbe enthalten.",
@@ -219,7 +223,9 @@
             "show_title": "[Filament #{{id}}] {{name}}"
         },
         "form": {
-            "filament_updated": "Dieses Filament wurde, seit dem die Seite geöffnet wurde, von jemand anderem/etwas anderem bearbeitet. Speichern wird diese Änderungen überschreiben!"
+            "filament_updated": "Dieses Filament wurde, seit dem die Seite geöffnet wurde, von jemand anderem/etwas anderem bearbeitet. Speichern wird diese Änderungen überschreiben!",
+            "import_external": "Importieren von extern",
+            "import_external_description": "Wählen Sie ein Filament in der Liste aus, um dessen Details automatisch in das Formular zur Filamenterstellung einzutragen. Dadurch werden alle Daten, die Sie in das Formular eingegeben haben, überschrieben.<br><br>Wenn Sie auf Ok klicken, wird automatisch ein Herstellerobjekt erstellt, falls erforderlich."
         },
         "buttons": {
             "add_spool": "Spule hinzufügen"
@@ -232,7 +238,8 @@
             "name": "Name",
             "registered": "Registriert",
             "comment": "Kommentar",
-            "empty_spool_weight": "Gewicht der leeren Spule"
+            "empty_spool_weight": "Gewicht der leeren Spule",
+            "external_id": "Externe ID"
         },
         "titles": {
             "create": "Hersteller erstellen",
@@ -311,7 +318,7 @@
                 "field_type": "Typ",
                 "unit": "Einheit",
                 "default_value": "Standardwert",
-                "order": "Bestellung",
+                "order": "Reihenfolge",
                 "multi_choice": "Mehrfachauswahl",
                 "key": "Schlüssel",
                 "choices": "Auswahlmöglichkeiten"
@@ -322,9 +329,9 @@
                 "integer": "Ganze Zahl",
                 "choice": "Auswahlmöglichkeit",
                 "integer_range": "Ganzzahlbereich",
-                "boolean": "Boolescher Wert",
+                "boolean": "Wahr/Falsch",
                 "float_range": "Float-Bereich",
-                "datetime": "Zeit"
+                "datetime": "Datum und Uhrzeit"
             },
             "boolean_true": "Ja",
             "boolean_false": "Nein",
