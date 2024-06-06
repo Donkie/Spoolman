@@ -319,7 +319,7 @@
                 "unit": "Einheit",
                 "default_value": "Standardwert",
                 "order": "Reihenfolge",
-                "multi_choice": "Mehrfachauswahl",
+                "multi_choice": "mehrfach Auswahl",
                 "key": "Schlüssel",
                 "choices": "Auswahlmöglichkeiten"
             },
@@ -340,7 +340,7 @@
             "choices_missing_error": "Du kannst die Auswahl nicht entfernen. Folgende Auswahlmöglichkeiten fehlen: {{choices}}",
             "key_not_changed": "Bitte ändere den Schlüssel auf einen anderen Wert.",
             "delete_confirm_description": "Dieses Feld und alle damit verbundenen Einträge werden gelöscht.",
-            "non_unique_key_error": "Der Schlüssel muss eindeutig sein."
+            "non_unique_key_error": "Der Schlüssel muss einzigartig sein."
         },
         "settings": "Einstellungen"
     }
