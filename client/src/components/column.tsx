@@ -7,13 +7,12 @@ import { NumberFieldUnit, NumberFieldUnitRange } from "./numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { DateField, TextField } from "@refinedev/antd";
-import Icon from "@ant-design/icons";
-import SpoolIcon from "../icon_spool.svg?react";
 import { useTranslate } from "@refinedev/core";
 import { enrichText } from "../utils/parsing";
 import { UseQueryResult } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Field, FieldType } from "../utils/queryFields";
+import SpoolIcon from "./spoolIcon";
 
 dayjs.extend(utc);
 
@@ -348,14 +347,7 @@ export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<
         <Row wrap={false} justify="space-around" align="middle">
           {colorStr && (
             <Col flex="none">
-              <Icon
-                component={SpoolIcon}
-                style={{
-                  color: "#" + colorStr,
-                  fontSize: 42,
-                  marginRight: 0,
-                }}
-              />
+              <SpoolIcon color={colorStr} />
             </Col>
           )}
           <Col flex="auto">{value}</Col>
