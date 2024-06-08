@@ -13,36 +13,36 @@
         "delete": "Löschen",
         "edit": "Bearbeiten",
         "cancel": "Abbrechen",
-        "confirm": "Sicher?",
+        "confirm": "bist du sicher?",
         "filter": "Filter",
-        "clear": "Löschen",
+        "clear": "Bereinigen",
         "refresh": "Aktualisieren",
         "show": "Anzeigen",
         "undo": "Rückgängig",
         "import": "Importieren",
         "clone": "Duplizieren",
-        "notAccessTitle": "Keine Berechtigung, um hierauf zuzugreifen",
-        "hideColumns": "Spalten anpassen",
-        "clearFilters": "Filter leeren",
+        "notAccessTitle": "Du hast keine Zugriffsberechtigung",
+        "hideColumns": "Spalten ausblenden",
+        "clearFilters": "Filter bereinigen",
         "showArchived": "Archivierte anzeigen",
-        "archive": "Archivieren",
+        "archive": "Archiv",
         "hideArchived": "Archivierte verstecken",
-        "unArchive": "Archivieren rückgängig",
+        "unArchive": "Archivieren rückgängig machen",
         "saveAndAdd": "Speichern und hinzufügen"
     },
-    "warnWhenUnsavedChanges": "Sicher? Nicht gespeicherte Änderungen gehen verloren.",
+    "warnWhenUnsavedChanges": "Bist du sicher, dass du die Seite verlassen willst? Du hast ungespeicherte Änderungen.",
     "notifications": {
-        "success": "Erfolg",
+        "success": "Erfolgreich",
         "error": "Fehler (status code: {{statusCode}})",
         "undoable": "Noch {{seconds}} Sekunden um die Aktion rückgängig zu machen.",
         "createSuccess": "{{resource}} erfolgreich erstellt",
-        "createError": "Fehler beim Erstellen von {{resource}} (status code: {{statusCode}})",
+        "createError": "Fehler beim erstellen von {{resource}} (status code: {{statusCode}})",
         "deleteSuccess": "{{resource}} erfolgreich gelöscht",
-        "deleteError": "Fehler beim Löschen von {{resource}} (status code: {{statusCode}})",
+        "deleteError": "Fehler beim löschen von {{resource}} (status code: {{statusCode}})",
         "editSuccess": "{{resource}} erfolgreich bearbeitet",
-        "editError": "Fehler beim Bearbeiten von {{resource}} (status code: {{statusCode}})",
+        "editError": "Fehler beim bearbeiten von {{resource}} (status code: {{statusCode}})",
         "importProgress": "{{processed}}/{{total}} importiert",
-        "saveSuccessful": "Erfolgreich gesichert!",
+        "saveSuccessful": "Erfolgreich gespeichert!",
         "validationError": "Validierungsfehler: {{error}}"
     },
     "loading": "Laden",
@@ -58,19 +58,19 @@
     },
     "printing": {
         "generic": {
-            "title": "Drucken",
-            "description": "Einstellungen unten anpassen, um das gewünschte Drucklayout zu erstellen. Der Drucker oder das Betriebssystem fügen möglichweise eigene Abstände und Skalierungen hinzu. Eventuell muss ein wenig experimentiert werden, bevor alles korrekt funktioniert. Auf normalem Papier testen, bevor auf Label-Papier gedruckt wird.",
-            "helpMargin": "Abstände sollten so konfiguriert werden, dass sie zum Papier und Drucker passen. Änderungen beeinflussen die Größe des gesamten Gitters.",
-            "helpPrinterMargin": "Der Sicherheitsabstand sollte so eingestellt werden, wie dicht der Drucker am Rand des Papiers drucken kann. Änderungen beeinflussen nicht die Größe des Gitters.",
+            "title": "druckt",
+            "description": "Passe die Einstellungen unten an, um das gewünschte Drucklayout zu bekommen. Denk daran, dass Drucker und dein OS eigene Abstände und Skalierungen anwenden könnte, also musst du vielleicht ein bisschen ausprobieren, bis alles passt. Teste es auf einem normalen Blatt Papier, bevor du auf die richtigen Labels druckst.",
+            "helpMargin": "Abstände sollten so konfiguriert werden, dass sie zum Papier und Drucker passen. Änderungen beeinflussen die Abmessungen des gesamten Gitters.",
+            "helpPrinterMargin": "Der Sicherheitsabstand sollte so eingestellt werden, wie dicht der Drucker am Rand des Papiers drucken kann. Änderungen beeinflussen nicht die Abmessungen des Gitters.",
             "print": "Drucken",
             "columns": "Spalten",
-            "rows": "Reihen",
+            "rows": "Zeilen",
             "paperSize": "Papiergröße",
             "customSize": "Benutzerdefiniert",
             "dimensions": "Dimensionen",
-            "showBorder": "Rahmen anzeigen",
+            "showBorder": "Ränder anzeigen",
             "previewScale": "Vorschau-Skalierung",
-            "skipItems": "Elemente überspringen",
+            "skipItems": "Objekt überspringen",
             "contentSettings": "Einstellungen: Inhalt",
             "layoutSettings": "Einstellungen: Layout",
             "horizontalSpacing": "Horizontaler Abstand",
@@ -85,17 +85,17 @@
             "printerMarginBottom": "Sicherheitsabstand Unten",
             "borders": {
                 "none": "Keine",
-                "border": "Rahmen",
+                "border": "Ränder",
                 "grid": "Gitter"
             }
         },
         "qrcode": {
             "button": "QR-Codes drucken",
-            "title": "QR Codes Drucken",
+            "title": "QR Codes drucken",
             "spoolWeight": "Gewicht Spule: {{weight}}",
-            "lotNr": "Ch. Nr: {{lot}}",
+            "lotNr": "Lot. Nr: {{lot}}",
             "bedTemp": "BT: {{temp}}",
-            "extruderTemp": "DT: {{temp}}",
+            "extruderTemp": "ET: {{temp}}",
             "textSize": "Textgröße Label",
             "showSpoolmanIcon": "Spoolman Icon anzeigen",
             "showVendor": "Hersteller",
@@ -111,7 +111,7 @@
             "title": "Spulenauswahl",
             "description": "Spulen auswählen, für die ein QR-Code gedruckt werden soll.",
             "showArchived": "Archivierte anzeigen",
-            "noSpoolsSelected": "Keine Spulen ausgewählt.",
+            "noSpoolsSelected": "Du hast keine Spulen ausgewählt.",
             "selectAll": "Alle aus-/abwählen",
             "selectedTotal_one": "{{count}} Spule ausgewählt",
             "selectedTotal_other": "{{count}} Spulen ausgewählt"
@@ -119,7 +119,7 @@
     },
     "scanner": {
         "title": "QR-Code Scanner",
-        "description": "Spoolman QR-Code scannen, um Details zur Spule anzuzeigen.",
+        "description": "Spoolman QR-Code scannen, um Details der Spule anzuzeigen.",
         "error": {
             "notAllowed": "Zugriff auf Kamera wurde nicht erlaubt.",
             "insecureContext": "Die Seite wird nicht über HTTPS bereitgestellt.",
@@ -151,18 +151,21 @@
             "archived": "Archiviert",
             "price": "Preis",
             "initial_weight": "Anfangsgewicht",
-            "spool_weight": "Leergewicht"
+            "spool_weight": "Leergewicht",
+            "filament_internal": "Intern",
+            "filament_external": "Extern"
         },
         "fields_help": {
-            "weight_to_use": "Auswählen welches Gewicht verwendet werden soll. \"Gemessenes Gewicht\" ist nur verfügbar, wenn das Gewicht der Spule für das Filament hinterlegt ist.",
+            "weight_to_use": "Auswählen, welches Gewicht verwendet werden soll. Das gemessenes Gewicht ist nur verfügbar, wenn das Gewicht der Spule für das Filament hinterlegt ist",
             "used_weight": "Wie viel Gewicht bereits verbraucht wurde z.B. 0g für eine neue Spule.",
             "remaining_weight": "Wie viel Filament noch auf der Spule ist. Entspricht dem auf der Spule angegeben Nettogewicht, wenn die Spule neu ist.",
             "measured_weight": "Gesamtgewicht von Spule und Filament.",
             "location": "Ort, an dem die Spule gelagert wird.",
             "lot_nr": "Chargennummer des Herstellers. Kann verwendet werden um gleichmäßige Farben zu garantieren, wenn mehrere Spulen verwendet werden.",
-            "price": "Preis einer vollen Spule in der im System konfigurierten Währung. Falls nicht ausgewählt, wird der Preis des Filaments verwendet.",
+            "price": "Preis einer vollen Spule. Falls nicht ausgewählt, wird der Preis des Filaments geschätzt.",
             "initial_weight": "Das Anfangsgewicht des Filaments (Nettogewicht) auf der Spule. Wenn nicht gesetzt, dann wird der Wert aus dem Filament Objekt genutzt.",
-            "spool_weight": "Das Gewicht der leeren Spule. Leer lassen um das Gewicht vom Hersteller zu nutzen."
+            "spool_weight": "Das Gewicht der leeren Spule. Leer lassen um das Gewicht vom Hersteller zu nutzen.",
+            "external_filament": "Sie haben ein Filament aus der externen Datenbank ausgewählt. Ein Filamentobjekt (und möglicherweise ein Herstellerobjekt) wird automatisch erstellt, wenn Sie diese Spule erstellen. Dadurch können doppelte Filamentobjekte entstehen, wenn Sie bereits ein Filamentobjekt für dieses Filament erstellt haben."
         },
         "titles": {
             "create": "Spule erstellen",
@@ -185,8 +188,8 @@
         "filament": "Filamente",
         "fields": {
             "id": "ID",
-            "vendor_name": "Hersteller",
-            "vendor": "Hersteller",
+            "vendor_name": "Marke",
+            "vendor": "Marke",
             "name": "Name",
             "material": "Material",
             "price": "Preis",
@@ -200,7 +203,8 @@
             "settings_extruder_temp": "Düsentemperatur",
             "settings_bed_temp": "Betttemperatur",
             "color_hex": "Farbe",
-            "spools": "Zeige Spulen"
+            "spools": "Zeige Spulen",
+            "external_id": "Externe ID"
         },
         "fields_help": {
             "name": "Name des Filaments um es von anderen Typen des gleichen Herstellers zu unterscheiden. Sollte z.B. die Farbe enthalten.",
@@ -219,26 +223,29 @@
             "show_title": "[Filament #{{id}}] {{name}}"
         },
         "form": {
-            "filament_updated": "Dieses Filament wurde, seit dem die Seite geöffnet wurde, von jemand anderem/etwas anderem bearbeitet. Speichern wird diese Änderungen überschreiben!"
+            "filament_updated": "Dieses Filament wurde, seit dem die Seite geöffnet wurde, von jemand anderem/etwas anderem bearbeitet. Speichern wird diese Änderungen überschreiben!",
+            "import_external": "Importieren von extern",
+            "import_external_description": "Wählen Sie ein Filament in der Liste aus, um dessen Details automatisch in das Formular zur Filamenterstellung einzutragen. Dadurch werden alle Daten, die Sie in das Formular eingegeben haben, überschrieben.<br><br>Wenn Sie auf Ok klicken, wird automatisch ein Herstellerobjekt erstellt, falls erforderlich."
         },
         "buttons": {
             "add_spool": "Spule hinzufügen"
         }
     },
     "vendor": {
-        "vendor": "Hersteller",
+        "vendor": "Marke",
         "fields": {
             "id": "ID",
             "name": "Name",
             "registered": "Registriert",
             "comment": "Kommentar",
-            "empty_spool_weight": "Gewicht der leeren Spule"
+            "empty_spool_weight": "Gewicht der leeren Spule",
+            "external_id": "Externe ID"
         },
         "titles": {
             "create": "Hersteller erstellen",
             "clone": "Hersteller duplizieren",
             "edit": "Hersteller bearbeiten",
-            "list": "Hersteller",
+            "list": "Marke",
             "show": "Hersteller anzeigen",
             "show_title": "[Hersteller #{{id}}] {{name}}"
         },
@@ -311,8 +318,8 @@
                 "field_type": "Typ",
                 "unit": "Einheit",
                 "default_value": "Standardwert",
-                "order": "Bestellung",
-                "multi_choice": "Mehrfachauswahl",
+                "order": "Reihenfolge",
+                "multi_choice": "mehrfach Auswahl",
                 "key": "Schlüssel",
                 "choices": "Auswahlmöglichkeiten"
             },
@@ -320,20 +327,20 @@
                 "text": "Text",
                 "float": "Dezimalzahl",
                 "integer": "Ganze Zahl",
-                "choice": "Auswahlmöglichkeit",
+                "choice": "Auswahl",
                 "integer_range": "Ganzzahlbereich",
-                "boolean": "Boolescher Wert",
+                "boolean": "Wahr/Falsch",
                 "float_range": "Float-Bereich",
-                "datetime": "Zeit"
+                "datetime": "Datum und Uhrzeit"
             },
             "boolean_true": "Ja",
             "boolean_false": "Nein",
             "delete_confirm": "Feld {{name}} entfernen?",
             "description": "<p>Hier können Sie zusätzliche benutzerdefinierte Felder zu Ihren Elementen hinzufügen.</p><p>Nach dem Hinzufügen eines Feldes können Sie dessen Schlüssel oder Typ nicht mehr ändern, und bei Auswahlfeldern können Sie keine Auswahlmöglichkeiten entfernen oder den Mehrfachauswahlstatus ändern. Wenn Sie ein Feld entfernen, werden die zugehörigen Daten für alle Elemente gelöscht.</p><p>Der Schlüssel ist derjenige, unter dem andere Programme die Daten lesen/schreiben, wenn Ihr benutzerdefiniertes Feld also mit einem Programm eines Drittanbieters integriert werden soll, stellen Sie sicher, dass Sie ihn richtig einstellen. Der Standardwert wird nur auf neue Elemente angewendet.</p><p>Zusätzliche Felder können in den Tabellenansichten nicht sortiert oder gefiltert werden.</p>",
-            "choices_missing_error": "Du kannst keine Auswahlmöglichkeiten löschen. Die folgenden Auswahlmöglichkeiten fehlen: {{choices}}",
-            "key_not_changed": "Bitte ändere den Schlüssel zu einem anderen Wert.",
-            "delete_confirm_description": "Dadurch werden das Feld und alle zugehörigen Daten für alle Entitäten gelöscht.",
-            "non_unique_key_error": "Der Schlüssel muss eindeutig sein."
+            "choices_missing_error": "Du kannst die Auswahl nicht entfernen. Folgende Auswahlmöglichkeiten fehlen: {{choices}}",
+            "key_not_changed": "Bitte ändere den Schlüssel auf einen anderen Wert.",
+            "delete_confirm_description": "Dieses Feld und alle damit verbundenen Einträge werden gelöscht.",
+            "non_unique_key_error": "Der Schlüssel muss einzigartig sein."
         },
         "settings": "Einstellungen"
     }

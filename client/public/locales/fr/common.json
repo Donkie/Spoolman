@@ -4,10 +4,10 @@
             "extruderTemp": "ET : {{temp}}",
             "showSpoolWeight": "Poids de la bobine",
             "showContent": "Imprimer l'étiquette",
-            "showVendorComment": "Commentaire sur le vendeur",
+            "showVendorComment": "Commentaire sur le fabricant",
             "spoolWeight": "Poids de la bobine : {{weight}}",
             "showTemperatures": "Températures",
-            "showVendor": "Vendeur",
+            "showVendor": "Fabricant",
             "showSpoolComment": "Commentaire sur la bobine",
             "textSize": "Contenu Taille du texte",
             "title": "Impression de codes QR",
@@ -63,11 +63,11 @@
     },
     "documentTitle": {
         "vendor": {
-            "create": "Créer le Vendeur | Spoolman",
-            "clone": "#{{id}} Cloner le Vendeur | Spoolman",
-            "edit": "#{{id}} Editer le Vendeur | Spoolman",
-            "list": "Vendeurs | Spoolman",
-            "show": "#{{id}} Afficher le vendeur | Spoolman"
+            "create": "Créer le fabricant | Spoolman",
+            "clone": "#{{id}} Cloner le fabricant | Spoolman",
+            "edit": "#{{id}} Éditer le fabricant| Spoolman",
+            "list": "Fabricants | Spoolman",
+            "show": "#{{id}} Afficher le fabricant | Spoolman"
         },
         "default": "Spoolman",
         "spool": {
@@ -113,7 +113,9 @@
             "remaining_weight": "Poids restant",
             "price": "Prix",
             "initial_weight": "Poids initial",
-            "spool_weight": "Poids à vide"
+            "spool_weight": "Poids à vide",
+            "filament_internal": "Interne",
+            "filament_external": "Externe"
         },
         "titles": {
             "archive": "Archiver la bobine",
@@ -132,8 +134,9 @@
             "remaining_weight": "La quantité de filament restant sur la bobine. Pour une nouvelle bobine, cela devrait correspondre au poids de la bobine.",
             "location": "L'emplacement de la bobine si vous stockez vos bobines à plusieurs endroits.",
             "price": "Prix d'une bobine complète. S'il n'est pas défini, le prix du filament sera pris en compte.",
-            "initial_weight": "Le poids initial du filament (poids net). Cette valeur peut provenir du filament, mais est suivie au niveau de la bobine pour permettre des variations individuelles du poids du filament sur la bobine.",
-            "spool_weight": "Le poids de la bobine lorsqu'elle est vide. Cette valeur peut provenir soit du filament, soit du fournisseur, mais est suivie au niveau de la bobine pour permettre des variations individuelles du poids d'une bobine vide."
+            "initial_weight": "Le poids initial du filament sur la bobine (poids net). Utilisera le poids de l'objet filament s'il n'est pas défini.",
+            "spool_weight": "Le poids de la bobine lorsqu'elle est vide. Laissez vide pour utiliser la valeur du filament ou du fabricant.",
+            "external_filament": "Vous avez sélectionné un filament dans la base de données externe. Un objet filament (et éventuellement un objet fabricant) sera créé automatiquement lorsque vous créerez cette bobine. Cela peut créer des objets filament en double si vous avez déjà créé un objet filament pour ce filament."
         },
         "spool": "Bobines",
         "messages": {
@@ -170,7 +173,7 @@
     },
     "filament": {
         "fields_help": {
-            "name": "Nom du filament, pour distinguer ce type de filament parmi d'autres du même fournisseur. Il doit contenir la couleur, par exemple.",
+            "name": "Nom du filament, pour distinguer ce type de filament parmi d'autres du même fabricant. Doit contenir la couleur par exemple.",
             "article_number": "Exemple EAN, UPC, etc.",
             "spool_weight": "Le poids d'une bobine vide. Utilisé pour déterminer le poids d'une bobine.",
             "price": "Prix d'une bobine complète.",
@@ -179,7 +182,7 @@
         },
         "fields": {
             "material": "Matériau",
-            "vendor_name": "Vendeur",
+            "vendor_name": "Fabricant",
             "settings_extruder_temp": "Température de l'extrudeuse",
             "comment": "Commentaire",
             "diameter": "Diamètre",
@@ -189,12 +192,13 @@
             "name": "Nom",
             "price": "Prix",
             "settings_bed_temp": "Température du lit",
-            "vendor": "Vendeur",
+            "vendor": "Fabricant",
             "density": "Densité",
             "id": "ID",
             "color_hex": "Couleur",
             "article_number": "Numéro d'article",
-            "spools": "Afficher les bobines"
+            "spools": "Afficher les bobines",
+            "external_id": "ID externe"
         },
         "titles": {
             "clone": "Cloner un filament",
@@ -206,7 +210,9 @@
         },
         "filament": "Filaments",
         "form": {
-            "filament_updated": "Ce filament a été mis à jour par quelqu'un/quelque chose depuis que vous avez ouvert cette page. Enregistrer écrasera ces changements !"
+            "filament_updated": "Ce filament a été mis à jour par quelqu'un/quelque chose depuis que vous avez ouvert cette page. Enregistrer écrasera ces changements !",
+            "import_external": "Importer depuis externe",
+            "import_external_description": "Sélectionnez un filament dans la liste pour renseigner automatiquement ses détails dans le formulaire de création de filament. Cela écrasera toutes les données que vous avez saisies dans le formulaire.<br><br>Un objet fabricant sera créé automatiquement lorsque vous cliquerez sur OK, si nécessaire."
         },
         "buttons": {
             "add_spool": "Ajouter une bobine"
@@ -249,26 +255,27 @@
     "unknown": "Inconnu",
     "vendor": {
         "titles": {
-            "show": "Afficher le vendeur",
-            "edit": "Editer un Vendeur",
-            "clone": "Cloner un Vendeur",
-            "create": "Créer un Vendeur",
-            "list": "Vendeurs",
-            "show_title": "[Vendeur #{{id}}] {{name}}"
+            "show": "Afficher le fabricant",
+            "edit": "Éditer un fabricant",
+            "clone": "Cloner un fabricant",
+            "create": "Créer un fabricant",
+            "list": "Fabricants",
+            "show_title": "[#{{id}} fabricant] {{name}}"
         },
         "fields": {
             "registered": "Enregistré",
             "comment": "Commentaire",
             "name": "Nom",
             "id": "ID",
-            "empty_spool_weight": "Poids de la bobine vide"
+            "empty_spool_weight": "Poids de la bobine vide",
+            "external_id": "ID externe"
         },
-        "vendor": "Vendeurs",
+        "vendor": "Fabricants",
         "form": {
-            "vendor_updated": "Ce vendeur a été mis à jours par quelqu'un/quelque chose depuis que vous avez ouvert cette page. Enregistrer écrasera ces changements !"
+            "vendor_updated": "Ce fabricant a été mis à jours par quelqu'un/quelque chose depuis que vous avez ouvert cette page. Enregistrer écrasera ces changements !"
         },
         "fields_help": {
-            "empty_spool_weight": "Le poids d'une bobine vide de ce vendeur."
+            "empty_spool_weight": "Le poids d'une bobine vide de ce fabricant."
         }
     },
     "yes": "Oui",
@@ -290,7 +297,7 @@
             "filament": "Marques de filament. Contient les propriétés comme le nom, le matériau, la couleur, le diamètre, etc.",
             "spool": "Les bobines physiques pour un filament spécifique."
         },
-        "description": "<title>Aide</title><p>Voici quelques informations pour commencer.</p><p>Spoolman garde 3 types d'informations différentes :</p><itemsHelp/><p>Pour ajouter une nouvelle bobine dans la base de données, commencez par créer un objet <filamentCreateLink>Filament</filamentCreateLink>. Une fois cela fait, créez un objet <spoolCreateLink>bobine</spoolCreateLink> pour cette bobine spécifique. Si vous achetez plus tard des bobines supplémentaires du même filament, créez simplement un objet bobine supplémentaire et réutilisez le même objet Filament.</p><p>En option, vous pouvez créer un <vendorCreateLink>Vendeur</vendorCreateLink> pour la société qui fabrique le filament si vous voulez garder une trace de cette information.</p><p>Vous avez l'option de connecter d'autres service d'impression 3D à Spoolman, comme Moonraker, pour qu'ils puissent suivre automatiquement votre utilisation de filament et mettre automatiquement à jour l'objet Bobine pour vous. Voir le <readmeLink>README Spoolman</readmeLink> pour avoir la marche à suivre pour le mettre en place.</p>",
+        "description": "<title>Aide</title><p>Voici quelques informations pour commencer.</p><p>Spoolman garde 3 types d'informations différentes :</p><itemsHelp/><p>Pour ajouter une nouvelle bobine dans la base de données, commencez par créer un objet <filamentCreateLink>Filament</filamentCreateLink>. Une fois cela fait, créez un objet <spoolCreateLink>bobine</spoolCreateLink> pour cette bobine spécifique. Si vous achetez plus tard des bobines supplémentaires du même filament, créez simplement un objet bobine supplémentaire et réutilisez le même objet Filament.</p><p>En option, vous pouvez créer un <vendorCreateLink>Fabricant</vendorCreateLink> pour la société qui fabrique le filament si vous voulez garder une trace de cette information.</p><p>Vous avez l'option de connecter d'autres service d'impression 3D à Spoolman, comme Moonraker, pour qu'ils puissent suivre automatiquement votre utilisation de filament et mettre automatiquement à jour l'objet Bobine pour vous. Voir le <readmeLink>README Spoolman</readmeLink> pour avoir la marche à suivre pour le mettre en place.</p>",
         "help": "Aide"
     },
     "kofi": "Me donner un pourboire sur Ko-fi",
