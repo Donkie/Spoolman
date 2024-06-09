@@ -75,6 +75,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
   const [paperColumns, setPaperColumns] = useSavedState("print-itemsPerRow", 3);
   const [paperRows, setPaperRows] = useSavedState("print-rowsPerPage", 8);
   const [skipItems, setSkipItems] = useSavedState("print-skipItems", 0);
+  const [itemCopies, setItemCopies] = useSavedState("print-itemCopies", 1);
   const [paperSize, setPaperSize] = useSavedState("print-paperSize", "A4");
   const [customPaperWidth, setCustomPaperWidth] = useSavedState("print-customPaperWidth", 210);
   const [customPaperHeight, setCustomPaperHeight] = useSavedState("print-customPaperHeight", 297);
@@ -92,7 +93,12 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
   const itemsPerRow = paperColumns;
   const rowsPerPage = paperRows;
 
-  const itemsIncludingSkipped = [...Array(skipItems).fill(<></>), ...items];
+  const itemsIncludingSkipped = [...Array(skipItems).fill(<></>)];
+  for (const item of items) {
+    for (let i = 0; i < itemCopies; i += 1) {
+      itemsIncludingSkipped.push(item);
+    }
+  }
 
   const rowsOfItems = [];
   for (let row_idx = 0; row_idx < itemsIncludingSkipped.length / itemsPerRow; row_idx += 1) {
@@ -267,6 +273,30 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({ items, style, extraSett
                     value={skipItems}
                     onChange={(value) => {
                       setSkipItems(value ?? 1);
+                    }}
+                  />
+                </Col>
+              </Row>
+            </Form.Item>
+            <Form.Item label={t("printing.generic.itemCopies")}>
+              <Row>
+                <Col span={12}>
+                  <Slider
+                    min={1}
+                    max={3}
+                    value={itemCopies}
+                    onChange={(value) => {
+                      setItemCopies(value);
+                    }}
+                  />
+                </Col>
+                <Col span={12}>
+                  <InputNumber
+                    min={1}
+                    style={{ margin: "0 16px" }}
+                    value={itemCopies}
+                    onChange={(value) => {
+                      setItemCopies(value ?? 1);
                     }}
                   />
                 </Col>
