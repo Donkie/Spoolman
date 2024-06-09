@@ -295,7 +295,7 @@ export function ActionsColumn<Obj extends Entity>(actionsFn: (record: Obj) => Ac
 }
 
 interface SpoolIconColumnProps<Obj extends Entity> extends FilteredQueryColumnProps<Obj> {
-  color: (record: Obj) => string | undefined;
+  color: (record: Obj) => string | string[] | undefined;
 }
 
 export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<Obj>) {

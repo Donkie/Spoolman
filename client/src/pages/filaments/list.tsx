@@ -240,7 +240,8 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             ...commonProps,
             id: "name",
             i18ncat: "filament",
-            color: (record: IFilamentCollapsed) => record.color_hex,
+            color: (record: IFilamentCollapsed) =>
+              record.multi_color_hexes ? record.multi_color_hexes.split(",") : record.color_hex,
             filterValueQuery: useSpoolmanFilamentNames(),
           }),
           FilteredQueryColumn({

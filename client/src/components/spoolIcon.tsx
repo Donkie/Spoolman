@@ -1,15 +1,18 @@
-import Icon from "@ant-design/icons";
-import SpoolSVG from "../icon_spool.svg?react";
+import "./spoolIcon.css";
 
-export default function SpoolIcon(props: { color: string }) {
+export default function SpoolIcon(props: { color: string | string[] }) {
+  const cols = Array.isArray(props.color) ? props.color : [props.color];
+
   return (
-    <Icon
-      component={SpoolSVG}
-      style={{
-        color: "#" + props.color,
-        fontSize: 42,
-        marginRight: 0,
-      }}
-    />
+    <div className="spool-icon">
+      {cols.map((col) => (
+        <div
+          key={col}
+          style={{
+            backgroundColor: "#" + col.replace("#", ""),
+          }}
+        ></div>
+      ))}
+    </div>
   );
 }

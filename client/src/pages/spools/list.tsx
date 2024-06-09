@@ -342,7 +342,10 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             ...commonProps,
             id: "filament.combined_name",
             i18nkey: "spool.fields.filament_name",
-            color: (record: ISpoolCollapsed) => record.filament.color_hex,
+            color: (record: ISpoolCollapsed) =>
+              record.filament.multi_color_hexes
+                ? record.filament.multi_color_hexes.split(",")
+                : record.filament.color_hex,
             dataId: "filament.combined_name",
             filterValueQuery: useSpoolmanFilamentFilter(),
           }),
