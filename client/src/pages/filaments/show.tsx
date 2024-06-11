@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldDisplay } from "../../components/extraFields";
 import { useCurrency } from "../../utils/settings";
+import SpoolIcon from "../../components/spoolIcon";
 dayjs.extend(utc);
 
 const { Title } = Typography;
@@ -49,6 +50,13 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
     navigate(URL);
   };
 
+  const colorObj = record?.multi_color_hexes
+    ? {
+        colors: record.multi_color_hexes.split(","),
+        vertical: record.multi_color_direction === "longitudinal",
+      }
+    : record?.color_hex;
+
   return (
     <Show
       isLoading={isLoading}
@@ -80,7 +88,7 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       <Title level={5}>{t("filament.fields.name")}</Title>
       <TextField value={record?.name} />
       <Title level={5}>{t("filament.fields.color_hex")}</Title>
-      <TextField value={record?.color_hex} />
+      {colorObj && <SpoolIcon color={colorObj} size="large" />}
       <Title level={5}>{t("filament.fields.material")}</Title>
       <TextField value={record?.material} />
       <Title level={5}>{t("filament.fields.price")}</Title>

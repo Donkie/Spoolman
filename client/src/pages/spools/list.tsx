@@ -344,7 +344,10 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             i18nkey: "spool.fields.filament_name",
             color: (record: ISpoolCollapsed) =>
               record.filament.multi_color_hexes
-                ? record.filament.multi_color_hexes.split(",")
+                ? {
+                    colors: record.filament.multi_color_hexes.split(","),
+                    vertical: record.filament.multi_color_direction === "longitudinal",
+                  }
                 : record.filament.color_hex,
             dataId: "filament.combined_name",
             filterValueQuery: useSpoolmanFilamentFilter(),

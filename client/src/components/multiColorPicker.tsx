@@ -67,7 +67,7 @@ export function MultiColorPicker(props: {
 
   return (
     <>
-      <Space direction="horizontal" size="middle">
+      <Space direction="horizontal" size="middle" style={{ marginTop: "1em" }}>
         {pickers}
         {values.length < (props.max ?? Infinity) && (
           <Button
