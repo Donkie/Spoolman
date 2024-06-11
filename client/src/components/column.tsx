@@ -7,13 +7,12 @@ import { NumberFieldUnit, NumberFieldUnitRange } from "./numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { DateField, TextField } from "@refinedev/antd";
-import Icon from "@ant-design/icons";
-import SpoolIcon from "../icon_spool.svg?react";
 import { useTranslate } from "@refinedev/core";
 import { enrichText } from "../utils/parsing";
 import { UseQueryResult } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Field, FieldType } from "../utils/queryFields";
+import SpoolIcon from "./spoolIcon";
 
 dayjs.extend(utc);
 
@@ -296,7 +295,7 @@ export function ActionsColumn<Obj extends Entity>(actionsFn: (record: Obj) => Ac
 }
 
 interface SpoolIconColumnProps<Obj extends Entity> extends FilteredQueryColumnProps<Obj> {
-  color: (record: Obj) => string | undefined;
+  color: (record: Obj) => string | { colors: string[]; vertical: boolean } | undefined;
 }
 
 export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<Obj>) {
@@ -343,19 +342,12 @@ export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<
     },
     render: (rawValue, record: Obj) => {
       const value = props.transform ? props.transform(rawValue) : rawValue;
-      const colorStr = props.color(record);
+      const colorObj = props.color(record);
       return (
         <Row wrap={false} justify="space-around" align="middle">
-          {colorStr && (
+          {colorObj && (
             <Col flex="none">
-              <Icon
-                component={SpoolIcon}
-                style={{
-                  color: "#" + colorStr,
-                  fontSize: 42,
-                  marginRight: 0,
-                }}
-              />
+              <SpoolIcon color={colorObj} />
             </Col>
           )}
           <Col flex="auto">{value}</Col>

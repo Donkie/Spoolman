@@ -1,7 +1,7 @@
 import React from "react";
 import { HttpError, IResourceComponentsProps, useInvalidate, useTranslate } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, Select, InputNumber, ColorPicker, Button, Typography, Modal } from "antd";
+import { Form, Input, Select, InputNumber, ColorPicker, Button, Typography, Modal, Radio } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { numberFormatter, numberParser } from "../../utils/parsing";
 import { IVendor } from "../vendors/model";
@@ -16,6 +16,7 @@ import { ExternalFilament, useGetExternalDBFilaments } from "../../utils/queryEx
 import { formatFilamentLabel } from "../spools/functions";
 import { FilamentImportModal } from "../../components/filamentImportModal";
 import { getOrCreateVendorFromExternal } from "../vendors/functions";
+import { MultiColorPicker } from "../../components/multiColorPicker";
 
 dayjs.extend(utc);
 
@@ -33,6 +34,7 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
   const currency = useCurrency();
   const [isImportExtOpen, setIsImportExtOpen] = React.useState(false);
   const invalidate = useInvalidate();
+  const [colorType, setColorType] = React.useState<"single" | "multi">("single");
 
   const { form, formProps, formLoading, onFinish, redirect } = useForm<
     IFilament,
@@ -160,20 +162,62 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
             }
           />
         </Form.Item>
-        <Form.Item
-          label={t("filament.fields.color_hex")}
-          name={["color_hex"]}
-          rules={[
-            {
-              required: false,
-            },
-          ]}
-          getValueFromEvent={(e) => {
-            return e?.toHex();
-          }}
-        >
-          <ColorPicker format="hex" />
+        <Form.Item label={t("filament.fields.color_hex")}>
+          <Radio.Group
+            onChange={(value) => {
+              setColorType(value.target.value);
+            }}
+            defaultValue={colorType}
+            value={colorType}
+          >
+            <Radio.Button value={"single"}>{t("filament.fields.single_color")}</Radio.Button>
+            <Radio.Button value={"multi"}>{t("filament.fields.multi_color")}</Radio.Button>
+          </Radio.Group>
         </Form.Item>
+        {colorType == "single" && (
+          <Form.Item
+            name={"color_hex"}
+            rules={[
+              {
+                required: false,
+              },
+            ]}
+            getValueFromEvent={(e) => {
+              return e?.toHex();
+            }}
+          >
+            <ColorPicker format="hex" />
+          </Form.Item>
+        )}
+        {colorType == "multi" && (
+          <Form.Item
+            name={"multi_color_direction"}
+            help={t("filament.fields_help.multi_color_direction")}
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+            initialValue={"coaxial"}
+          >
+            <Radio.Group>
+              <Radio.Button value={"coaxial"}>{t("filament.fields.coaxial")}</Radio.Button>
+              <Radio.Button value={"longitudinal"}>{t("filament.fields.longitudinal")}</Radio.Button>
+            </Radio.Group>
+          </Form.Item>
+        )}
+        {colorType == "multi" && (
+          <Form.Item
+            name={"multi_color_hexes"}
+            rules={[
+              {
+                required: false,
+              },
+            ]}
+          >
+            <MultiColorPicker min={2} max={14} />
+          </Form.Item>
+        )}
         <Form.Item
           label={t("filament.fields.material")}
           help={t("filament.fields_help.material")}

@@ -11,6 +11,7 @@ import { IFilament } from "../filaments/model";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldDisplay } from "../../components/extraFields";
 import { useCurrency } from "../../utils/settings";
+import SpoolIcon from "../../components/spoolIcon";
 
 dayjs.extend(utc);
 
@@ -66,12 +67,19 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
     });
   };
 
+  const colorObj = record?.filament.multi_color_hexes
+    ? {
+        colors: record.filament.multi_color_hexes.split(","),
+        vertical: record.filament.multi_color_direction === "longitudinal",
+      }
+    : record?.filament.color_hex;
+
   return (
     <Show isLoading={isLoading} title={record ? formatTitle(record) : ""}>
       <Title level={5}>{t("spool.fields.id")}</Title>
       <NumberField value={record?.id ?? ""} />
       <Title level={5}>{t("spool.fields.filament")}</Title>
-      <TextField value={record ? filamentURL(record?.filament) : ""} />
+      {colorObj && <SpoolIcon color={colorObj} />} <TextField value={record ? filamentURL(record?.filament) : ""} />
       <Title level={5}>{t("spool.fields.price")}</Title>
       <NumberField
         value={record ? spoolPrice(record) : ""}

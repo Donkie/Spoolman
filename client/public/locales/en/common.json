@@ -205,6 +205,10 @@
             "settings_extruder_temp": "Extruder Temp",
             "settings_bed_temp": "Bed Temp",
             "color_hex": "Color",
+            "single_color": "Single",
+            "multi_color": "Multi",
+            "coaxial": "Coextruded",
+            "longitudinal": "Longitudinal",
             "external_id": "External ID",
             "spools": "Show Spools"
         },
@@ -214,7 +218,8 @@
             "price": "Price of a full spool.",
             "weight": "The filament weight of a full spool (net weight). This should not include the weight of the spool itself, only the filament. It is what is usually written on the packaging.",
             "spool_weight": "The weight of an empty spool. Used to determine measured weight of a spool.",
-            "article_number": "E.g. EAN, UPC, etc."
+            "article_number": "E.g. EAN, UPC, etc.",
+            "multi_color_direction": "Filaments can have multiple colors in two ways: either through coextrusion, like dual-color filaments with consistent multi-colors, or through longitudinal color changes, like gradient filaments that shift colors along the spool."
         },
         "titles": {
             "create": "Create Filament",

@@ -1,0 +1,41 @@
+.spool-icon {
+  display: flex;
+  width: 1.5em;
+  height: 2.5em;
+  gap: 2px;
+  margin: 0 0.5em;
+}
+
+.spool-icon.vertical {
+  flex-direction: column;
+}
+
+.spool-icon.large {
+  width: 4em;
+  height: 4em;
+}
+
+.spool-icon * {
+  flex: 1 1 0px;
+  border-radius: 2px;
+}
+
+.spool-icon.vertical *:first-child {
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.spool-icon.vertical *:last-child {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.spool-icon.horizontal *:first-child {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+.spool-icon.horizontal *:last-child {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
