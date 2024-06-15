@@ -4,6 +4,7 @@ import { ISpool } from "../../pages/spools/model";
 import QRCodePrintingDialog from "./qrCodePrintingDialog";
 import { useSavedState } from "../../utils/saveload";
 import { useTranslate } from "@refinedev/core";
+import { useGetPrintSettings, useSetPrintSettings } from "./printing";
 
 interface SpoolQRCodePrintingDialog {
   visible: boolean;
@@ -13,14 +14,16 @@ interface SpoolQRCodePrintingDialog {
 
 const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ visible, items, onCancel }) => {
   const t = useTranslate();
+  const printSettings = useGetPrintSettings()[0];
+  const setPrintSettings = useSetPrintSettings();
 
-  const [showVendor, setShowVendor] = useSavedState("print-showVendor", true);
-  const [showLotNr, setShowLotNr] = useSavedState("print-showLotNr", true);
-  const [showSpoolWeight, setShowSpoolWeight] = useSavedState("print-showSpoolWeight", true);
-  const [showTemperatures, setShowTemperatures] = useSavedState("print-showTemperatures", true);
-  const [showSpoolComment, setShowSpoolComment] = useSavedState("print-showSpoolComment", false);
-  const [showFilamentComment, setShowFilamentComment] = useSavedState("print-showFilamentComment", false);
-  const [showVendorComment, setShowVendorComment] = useSavedState("print-showVendorComment", false);
+  const showVendor = printSettings?.showVendor;
+  const showLotNr = printSettings?.showLotNr;
+  const showSpoolWeight = printSettings?.showSpoolWeight;
+  const showTemperatures = printSettings?.showTemperatures;
+  const showSpoolComment = printSettings?.showSpoolComment;
+  const showFilamentComment = printSettings?.showFilamentComment;
+  const showVendorComment = printSettings?.showVendorComment;
 
   const formatFilament = (filament: IFilament) => {
     let vendorPrefix = "";
@@ -38,6 +41,11 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ visibl
     <QRCodePrintingDialog
       visible={visible}
       onCancel={onCancel}
+      printSettings={printSettings.labelSettings}
+      setPrintSettings={(newSettings) => {
+        printSettings.labelSettings = newSettings;
+        setPrintSettings([printSettings]);
+      }}
       items={items.map(function (spool) {
         const temps = [];
         if (spool.filament.settings_extruder_temp) {
@@ -106,25 +114,67 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ visibl
       extraSettings={
         <>
           <Form.Item label={t("printing.qrcode.showVendor")}>
-            <Switch checked={showVendor} onChange={(checked) => setShowVendor(checked)} />
+            <Switch
+              checked={showVendor}
+              onChange={(checked) => {
+                printSettings.showVendor = checked;
+                setPrintSettings([printSettings]);
+              }}
+            />
           </Form.Item>
           <Form.Item label={t("printing.qrcode.showSpoolWeight")}>
-            <Switch checked={showSpoolWeight} onChange={(checked) => setShowSpoolWeight(checked)} />
+            <Switch
+              checked={showSpoolWeight}
+              onChange={(checked) => {
+                printSettings.showSpoolWeight = checked;
+                setPrintSettings([printSettings]);
+              }}
+            />
           </Form.Item>
           <Form.Item label={t("printing.qrcode.showTemperatures")}>
-            <Switch checked={showTemperatures} onChange={(checked) => setShowTemperatures(checked)} />
+            <Switch
+              checked={showTemperatures}
+              onChange={(checked) => {
+                printSettings.showTemperatures = checked;
+                setPrintSettings([printSettings]);
+              }}
+            />
           </Form.Item>
           <Form.Item label={t("printing.qrcode.showLotNr")}>
-            <Switch checked={showLotNr} onChange={(checked) => setShowLotNr(checked)} />
+            <Switch
+              checked={showLotNr}
+              onChange={(checked) => {
+                printSettings.showLotNr = checked;
+                setPrintSettings([printSettings]);
+              }}
+            />
           </Form.Item>
           <Form.Item label={t("printing.qrcode.showSpoolComment")}>
-            <Switch checked={showSpoolComment} onChange={(checked) => setShowSpoolComment(checked)} />
+            <Switch
+              checked={showSpoolComment}
+              onChange={(checked) => {
+                printSettings.showSpoolComment = checked;
+                setPrintSettings([printSettings]);
+              }}
+            />
           </Form.Item>
           <Form.Item label={t("printing.qrcode.showFilamentComment")}>
-            <Switch checked={showFilamentComment} onChange={(checked) => setShowFilamentComment(checked)} />
+            <Switch
+              checked={showFilamentComment}
+              onChange={(checked) => {
+                printSettings.showFilamentComment = checked;
+                setPrintSettings([printSettings]);
+              }}
+            />
           </Form.Item>
           <Form.Item label={t("printing.qrcode.showVendorComment")}>
-            <Switch checked={showVendorComment} onChange={(checked) => setShowVendorComment(checked)} />
+            <Switch
+              checked={showVendorComment}
+              onChange={(checked) => {
+                printSettings.showVendorComment = checked;
+                setPrintSettings([printSettings]);
+              }}
+            />
           </Form.Item>
         </>
       }

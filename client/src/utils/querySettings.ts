@@ -31,17 +31,17 @@ export function useGetSetting(key: string) {
   });
 }
 
-export function useSetSetting() {
+export function useSetSetting<T>(key: string) {
   const queryClient = useQueryClient();
 
-  return useMutation<SettingResponseValue, unknown, { key: string; value: unknown }>({
-    mutationFn: async ({ key, value }) => {
+  return useMutation<SettingResponseValue, unknown, T, SettingResponseValue | undefined>({
+    mutationFn: async (value) => {
       const response = await fetch(`${getAPIURL()}/setting/${key}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(value),
+        body: JSON.stringify(JSON.stringify(value)),
       });
 
       // Throw error if response is not ok
@@ -51,7 +51,18 @@ export function useSetSetting() {
 
       return response.json();
     },
-    onSuccess: (_data, { key }) => {
+    onMutate: async (value) => {
+      await queryClient.cancelQueries(["settings", key]);
+      const previousValue = queryClient.getQueryData<SettingResponseValue>(["settings", key]);
+      queryClient.setQueryData<SettingResponseValue>(["settings", key], (old) =>
+        old ? { ...old, value: JSON.stringify(value) } : undefined
+      );
+      return previousValue;
+    },
+    onError: (_error, _value, context) => {
+      queryClient.setQueryData<SettingResponseValue>(["settings", key], context);
+    },
+    onSuccess: (_data, _value) => {
       // Invalidate and refetch
       queryClient.invalidateQueries(["settings", key]);
     },

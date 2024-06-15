@@ -5,7 +5,7 @@ import { useGetSettings, useSetSetting } from "../../utils/querySettings";
 
 export function GeneralSettings() {
   const settings = useGetSettings();
-  const setSetting = useSetSetting();
+  const setCurrency = useSetSetting("currency");
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
   const t = useTranslate();
@@ -21,16 +21,16 @@ export function GeneralSettings() {
 
   // Popup message if setSetting is successful
   React.useEffect(() => {
-    if (setSetting.isSuccess) {
+    if (setCurrency.isSuccess) {
       messageApi.success(t("notifications.saveSuccessful"));
     }
-  }, [setSetting.isSuccess, messageApi, t]);
+  }, [setCurrency.isSuccess, messageApi, t]);
 
   // Handle form submit
   const onFinish = (values: { currency: string }) => {
     // Check if the currency has changed
     if (settings.data?.currency.value !== JSON.stringify(values.currency)) {
-      setSetting.mutate({
+      setCurrency.mutate({
         key: "currency",
         value: JSON.stringify(values.currency),
       });
@@ -68,7 +68,7 @@ export function GeneralSettings() {
         </Form.Item>
 
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-          <Button type="primary" htmlType="submit" loading={settings.isFetching || setSetting.isLoading}>
+          <Button type="primary" htmlType="submit" loading={settings.isFetching || setCurrency.isLoading}>
             {t("buttons.save")}
           </Button>
         </Form.Item>
