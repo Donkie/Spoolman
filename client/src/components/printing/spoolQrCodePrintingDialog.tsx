@@ -5,7 +5,7 @@ import QRCodePrintingDialog from "./qrCodePrintingDialog";
 import { useSavedState } from "../../utils/saveload";
 import { useTranslate } from "@refinedev/core";
 import { QRCodePrintSettings, SpoolQRCodePrintSettings, useGetPrintSettings, useSetPrintSettings } from "./printing";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { v4 as uuidv4 } from "uuid";
 import _ from "lodash";
@@ -22,8 +22,18 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ visibl
   // Selected setting state
   const [selectedSetting, setSelectedSetting] = useState<string | undefined>();
 
-  const allPrintSettings = useGetPrintSettings();
-  const setPrintSettings = useSetPrintSettings();
+  // Keep a local copy of the settings which is what's actually displayed. Use the remote state only for saving.
+  // This decouples the debounce stuff from the UI
+  const [localSettings, setLocalSettings] = useState<SpoolQRCodePrintSettings[] | undefined>();
+  const remoteSettings = useGetPrintSettings();
+  const setRemoteSettings = useSetPrintSettings();
+  const debouncedSetRemoteSettings = useMemo(() => _.debounce(setRemoteSettings, 500), []);
+
+  const allPrintSettings = localSettings ?? remoteSettings;
+  const setPrintSettings = (newSettings: SpoolQRCodePrintSettings[]) => {
+    setLocalSettings(newSettings);
+    debouncedSetRemoteSettings(newSettings);
+  };
 
   // Functions to update settings
   const addNewPrintSettings = () => {
