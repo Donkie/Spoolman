@@ -1,6 +1,8 @@
 import { useGetSetting, useSetSetting } from "../../utils/querySettings";
+import { v4 as uuidv4 } from "uuid";
 
 export interface PrintSettings {
+  id: string;
   name?: string;
   margin?: { top: number; bottom: number; left: number; right: number };
   printerMargin?: { top: number; bottom: number; left: number; right: number };
@@ -32,21 +34,18 @@ export interface SpoolQRCodePrintSettings {
   labelSettings: QRCodePrintSettings;
 }
 
-function defaultSpoolQRCodePrintSettings(): SpoolQRCodePrintSettings {
-  return {
-    labelSettings: {
-      printSettings: {},
-    },
-  };
-}
-
-export function useGetPrintSettings(): SpoolQRCodePrintSettings[] {
+export function useGetPrintSettings(): SpoolQRCodePrintSettings[] | undefined {
   const { data } = useGetSetting("print_settings");
-  const parsed = data && data.value ? JSON.parse(data.value) : ([] as SpoolQRCodePrintSettings[]);
-  if (parsed.length === 0) {
-    parsed.push(defaultSpoolQRCodePrintSettings());
-  }
-  return parsed;
+  if (!data) return;
+  const parsed: SpoolQRCodePrintSettings[] =
+    data && data.value ? JSON.parse(data.value) : ([] as SpoolQRCodePrintSettings[]);
+  // Loop through all parsed and generate a new ID field if it's not set
+  return parsed.map((settings) => {
+    if (!settings.labelSettings.printSettings.id) {
+      settings.labelSettings.printSettings.id = uuidv4();
+    }
+    return settings;
+  });
 }
 
 export function useSetPrintSettings(): (spoolQRCodePrintSettings: SpoolQRCodePrintSettings[]) => void {

@@ -89,7 +89,14 @@
                 "none": "None",
                 "border": "Border",
                 "grid": "Grid"
-            }
+            },
+            "settings": "Settings",
+            "defaultSettings": "Default",
+            "addSettings": "Add New Setting",
+            "newSetting": "New",
+            "deleteSettings": "Delete Current Setting",
+            "deleteSettingsConfirm": "Are you sure you want to delete this setting?",
+            "settingsName": "Setting Name"
         },
         "qrcode": {
             "button": "Print QR Codes",

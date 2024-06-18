@@ -24,6 +24,7 @@ interface PrintingDialogProps {
   setPrintSettings: (setPrintSettings: PrintSettings) => void;
   style?: string;
   extraSettings?: JSX.Element;
+  extraSettingsStart?: JSX.Element;
   visible: boolean;
   onCancel: () => void;
   title?: string;
@@ -67,6 +68,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
   setPrintSettings,
   style,
   extraSettings,
+  extraSettingsStart,
   visible,
   onCancel,
   title,
@@ -195,16 +197,8 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
       width={1200} // Set the modal width to accommodate the preview
     >
       <Row gutter={16}>
-        <Col
-          span={24}
-          style={{
-            whiteSpace: "pre-line",
-            marginBottom: "1em",
-          }}
-        >
-          {t("printing.generic.description")}
-        </Col>
         <Col span={14}>
+          {t("printing.generic.description")}
           <div
             style={{
               transform: "translateZ(0)",
@@ -259,6 +253,8 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
         </Col>
         <Col span={10}>
           <Form labelAlign="left" colon={false} labelWrap={true} labelCol={{ span: 8 }} wrapperCol={{ span: 16 }}>
+            {extraSettingsStart}
+            <Divider />
             <Form.Item label={t("printing.generic.skipItems")}>
               <Row>
                 <Col span={12}>
