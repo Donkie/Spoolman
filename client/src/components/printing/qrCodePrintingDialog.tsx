@@ -31,9 +31,9 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
 }) => {
   const t = useTranslate();
 
-  const showContent = printSettings?.showContent;
+  const showContent = printSettings?.showContent === undefined ? true : printSettings?.showContent;
   const textSize = printSettings?.textSize || 5;
-  const showSpoolmanIcon = printSettings?.showSpoolmanIcon;
+  const showSpoolmanIcon = printSettings?.showSpoolmanIcon === undefined ? true : printSettings?.showSpoolmanIcon;
 
   const elements = items.map((item) => {
     return (

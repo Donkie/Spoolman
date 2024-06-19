@@ -131,7 +131,17 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ visibl
   }
 
   const [templateHelpOpen, setTemplateHelpOpen] = useState(false);
-  const template = selectedPrintSetting.template ?? "";
+  const template =
+    selectedPrintSetting.template ??
+    `**{filament.vendor.name} - {filament.name}
+#{id} - {filament.material}**
+Spool Weight: {filament.spool_weight} g
+ET: {filament.settings_extruder_temp} °C
+BT: {filament.settings_bed_temp} °C
+Lot Nr: {lot_nr}
+{comment}
+{filament.comment}
+{filament.vendor.comment}`;
 
   const spoolTags = [
     { tag: "id" },
