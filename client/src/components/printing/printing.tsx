@@ -72,21 +72,32 @@ function getTagValue(tag: string, obj: GenericObject): any {
   return value;
 }
 
-export function renderLabelContents(template: string, spool: ISpool): ReactNode {
+function applyNewline(text: string): JSX.Element[] {
+  return text.split("\n").map((line, idx, arr) => (
+    <span key={idx}>
+      {line}
+      {idx < arr.length - 1 && <br />}
+    </span>
+  ));
+}
+
+function applyTextFormatting(text: string): JSX.Element[] {
+  const regex = /\*\*([\w\W]*?)\*\*/g;
+  const parts = text.split(regex);
+  // Map over the parts and wrap matched text with <b> tags
+  const elements = parts.map((part, index) => {
+    // Even index: outside asterisks, odd index: inside asterisks (to be bolded)
+    const node = applyNewline(part);
+    return index % 2 === 0 ? <span key={index}>{node}</span> : <b key={index}>{node}</b>;
+  });
+  return elements;
+}
+export function renderLabelContents(template: string, spool: ISpool): JSX.Element {
   // Find all {tags} in the template string and loop over them
   let result = template.replace(/\{(.*?)\}/g, function (_, tag) {
     return getTagValue(tag, spool);
   });
 
   // Split string on \n into individual lines
-  return (
-    <>
-      {result.split("\n").map((line, index) => (
-        <span key={index}>
-          {line}
-          <br />
-        </span>
-      ))}
-    </>
-  );
+  return <>{applyTextFormatting(result)}</>;
 }
