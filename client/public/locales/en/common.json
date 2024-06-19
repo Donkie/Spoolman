@@ -101,20 +101,10 @@
         "qrcode": {
             "button": "Print QR Codes",
             "title": "QR Code Printing",
-            "spoolWeight": "Spool Weight: {{weight}}",
-            "lotNr": "Lot Nr: {{lot}}",
-            "bedTemp": "BT: {{temp}}",
-            "extruderTemp": "ET: {{temp}}",
+            "template": "Template",
+            "templateHelp": "Use {} to insert values of the spool object as text. For example {id} will be replaced with the spool id, or {filament.material} will be replaced with the material of the spool. Click the button to view a list of all available tags.",
             "textSize": "Content Text Size",
-            "showSpoolmanIcon": "Show Spoolman Icon",
-            "showVendor": "Manufacturer",
-            "showContent": "Print Label",
-            "showLotNr": "Lot Nr",
-            "showSpoolWeight": "Spool Weight",
-            "showTemperatures": "Temperatures",
-            "showSpoolComment": "Spool Comment",
-            "showFilamentComment": "Filament Comment",
-            "showVendorComment": "Manufacturer Comment"
+            "showSpoolmanIcon": "Show Spoolman Icon"
         },
         "spoolSelect": {
             "title": "Select Spools",

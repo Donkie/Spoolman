@@ -1,14 +1,24 @@
-import { Button, Flex, Form, Input, Modal, Popconfirm, Select, Space, Switch } from "antd";
+import { Button, Flex, Form, Input, Modal, Popconfirm, Select, Space, Switch, Table, Typography } from "antd";
 import { IFilament } from "../../pages/filaments/model";
 import { ISpool } from "../../pages/spools/model";
 import QRCodePrintingDialog from "./qrCodePrintingDialog";
 import { useSavedState } from "../../utils/saveload";
 import { useTranslate } from "@refinedev/core";
-import { QRCodePrintSettings, SpoolQRCodePrintSettings, useGetPrintSettings, useSetPrintSettings } from "./printing";
+import {
+  QRCodePrintSettings,
+  SpoolQRCodePrintSettings,
+  renderLabelContents,
+  useGetPrintSettings,
+  useSetPrintSettings,
+} from "./printing";
 import { useMemo, useState } from "react";
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { v4 as uuidv4 } from "uuid";
 import _ from "lodash";
+import TextArea from "antd/es/input/TextArea";
+import { EntityType, useGetFields } from "../../utils/queryFields";
+
+const { Text } = Typography;
 
 interface SpoolQRCodePrintingDialog {
   visible: boolean;
@@ -120,25 +130,73 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ visibl
     }
   }
 
-  const showVendor = selectedPrintSetting?.showVendor;
-  const showLotNr = selectedPrintSetting?.showLotNr;
-  const showSpoolWeight = selectedPrintSetting?.showSpoolWeight;
-  const showTemperatures = selectedPrintSetting?.showTemperatures;
-  const showSpoolComment = selectedPrintSetting?.showSpoolComment;
-  const showFilamentComment = selectedPrintSetting?.showFilamentComment;
-  const showVendorComment = selectedPrintSetting?.showVendorComment;
+  const [templateHelpOpen, setTemplateHelpOpen] = useState(false);
+  const template = selectedPrintSetting.template ?? "";
 
-  const formatFilament = (filament: IFilament) => {
-    let vendorPrefix = "";
-    if (showVendor && filament.vendor) {
-      vendorPrefix = `${filament.vendor.name} - `;
-    }
-    let name = filament.name;
-    if (!name) {
-      name = `Filament #${filament.id}`;
-    }
-    return `${vendorPrefix}${name}`;
-  };
+  const spoolTags = [
+    { tag: "id" },
+    { tag: "registered" },
+    { tag: "first_used" },
+    { tag: "last_used" },
+    { tag: "price" },
+    { tag: "initial_weight" },
+    { tag: "spool_weight" },
+    { tag: "remaining_weight" },
+    { tag: "used_weight" },
+    { tag: "remaining_length" },
+    { tag: "used_length" },
+    { tag: "location" },
+    { tag: "lot_nr" },
+    { tag: "comment" },
+    { tag: "archived" },
+  ];
+  const spoolFields = useGetFields(EntityType.spool);
+  if (spoolFields.data !== undefined) {
+    spoolFields.data.forEach((field) => {
+      spoolTags.push({ tag: `extra.${field.key}` });
+    });
+  }
+  const filamentTags = [
+    { tag: "filament.id" },
+    { tag: "filament.registered" },
+    { tag: "filament.name" },
+    { tag: "filament.material" },
+    { tag: "filament.price" },
+    { tag: "filament.density" },
+    { tag: "filament.diameter" },
+    { tag: "filament.weight" },
+    { tag: "filament.spool_weight" },
+    { tag: "filament.article_number" },
+    { tag: "filament.comment" },
+    { tag: "filament.settings_extruder_temp" },
+    { tag: "filament.settings_bed_temp" },
+    { tag: "filament.color_hex" },
+    { tag: "filament.multi_color_hexes" },
+    { tag: "filament.multi_color_direction" },
+    { tag: "filament.external_id" },
+  ];
+  const filamentFields = useGetFields(EntityType.filament);
+  if (filamentFields.data !== undefined) {
+    filamentFields.data.forEach((field) => {
+      filamentTags.push({ tag: `filament.extra.${field.key}` });
+    });
+  }
+  const vendorTags = [
+    { tag: "filament.vendor.id" },
+    { tag: "filament.vendor.registered" },
+    { tag: "filament.vendor.name" },
+    { tag: "filament.vendor.comment" },
+    { tag: "filament.vendor.empty_spool_weight" },
+    { tag: "filament.vendor.external_id" },
+  ];
+  const vendorFields = useGetFields(EntityType.vendor);
+  if (vendorFields.data !== undefined) {
+    vendorFields.data.forEach((field) => {
+      vendorTags.push({ tag: `filament.vendor.extra.${field.key}` });
+    });
+  }
+
+  const templateTags = [...spoolTags, ...filamentTags, ...vendorTags];
 
   return (
     <QRCodePrintingDialog
@@ -202,65 +260,16 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ visibl
         </>
       }
       items={items.map(function (spool) {
-        const temps = [];
-        if (spool.filament.settings_extruder_temp) {
-          temps.push(t("printing.qrcode.extruderTemp", { temp: `${spool.filament.settings_extruder_temp} °C` }));
-        }
-        if (spool.filament.settings_bed_temp) {
-          temps.push(t("printing.qrcode.bedTemp", { temp: `${spool.filament.settings_bed_temp} °C` }));
-        }
-        const tempLine = temps.join(" - ");
-
         return {
           value: `web+spoolman:s-${spool.id}`,
           label: (
             <p
               style={{
                 padding: "1mm 1mm 1mm 0",
+                whiteSpace: "pre-wrap",
               }}
             >
-              <b>{formatFilament(spool.filament)}</b>
-              <br />
-              <b>
-                #{spool.id}
-                {spool.filament.material && <> - {spool.filament.material}</>}
-              </b>
-              {showSpoolWeight && (
-                <>
-                  <br />
-                  {t("printing.qrcode.spoolWeight", { weight: `${spool.filament.spool_weight ?? "?"} g` })}
-                </>
-              )}
-              {showTemperatures && tempLine && (
-                <>
-                  <br />
-                  {tempLine}
-                </>
-              )}
-              {showLotNr && (
-                <>
-                  <br />
-                  {t("printing.qrcode.lotNr", { lot: spool.lot_nr ?? "?" })}
-                </>
-              )}
-              {showSpoolComment && spool.comment && (
-                <>
-                  <br />
-                  {spool.comment}
-                </>
-              )}
-              {showFilamentComment && spool.filament.comment && (
-                <>
-                  <br />
-                  {spool.filament.comment}
-                </>
-              )}
-              {showVendorComment && spool.filament.vendor?.comment && (
-                <>
-                  <br />
-                  {spool.filament.vendor.comment}
-                </>
-              )}
+              {renderLabelContents(template, spool)}
             </p>
           ),
           errorLevel: "H",
@@ -268,69 +277,32 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ visibl
       })}
       extraSettings={
         <>
-          <Form.Item label={t("printing.qrcode.showVendor")}>
-            <Switch
-              checked={showVendor}
-              onChange={(checked) => {
-                selectedPrintSetting.showVendor = checked;
+          <Form.Item label={t("printing.qrcode.template")}>
+            <TextArea
+              value={template}
+              rows={8}
+              onChange={(newValue) => {
+                selectedPrintSetting.template = newValue.target.value;
                 updateCurrentPrintSettings(selectedPrintSetting);
               }}
             />
           </Form.Item>
-          <Form.Item label={t("printing.qrcode.showSpoolWeight")}>
-            <Switch
-              checked={showSpoolWeight}
-              onChange={(checked) => {
-                selectedPrintSetting.showSpoolWeight = checked;
-                updateCurrentPrintSettings(selectedPrintSetting);
-              }}
+          <Modal open={templateHelpOpen} footer={null} onCancel={() => setTemplateHelpOpen(false)}>
+            <Table
+              size="small"
+              showHeader={false}
+              pagination={false}
+              scroll={{ y: 400 }}
+              columns={[{ dataIndex: "tag" }]}
+              dataSource={templateTags}
             />
-          </Form.Item>
-          <Form.Item label={t("printing.qrcode.showTemperatures")}>
-            <Switch
-              checked={showTemperatures}
-              onChange={(checked) => {
-                selectedPrintSetting.showTemperatures = checked;
-                updateCurrentPrintSettings(selectedPrintSetting);
-              }}
-            />
-          </Form.Item>
-          <Form.Item label={t("printing.qrcode.showLotNr")}>
-            <Switch
-              checked={showLotNr}
-              onChange={(checked) => {
-                selectedPrintSetting.showLotNr = checked;
-                updateCurrentPrintSettings(selectedPrintSetting);
-              }}
-            />
-          </Form.Item>
-          <Form.Item label={t("printing.qrcode.showSpoolComment")}>
-            <Switch
-              checked={showSpoolComment}
-              onChange={(checked) => {
-                selectedPrintSetting.showSpoolComment = checked;
-                updateCurrentPrintSettings(selectedPrintSetting);
-              }}
-            />
-          </Form.Item>
-          <Form.Item label={t("printing.qrcode.showFilamentComment")}>
-            <Switch
-              checked={showFilamentComment}
-              onChange={(checked) => {
-                selectedPrintSetting.showFilamentComment = checked;
-                updateCurrentPrintSettings(selectedPrintSetting);
-              }}
-            />
-          </Form.Item>
-          <Form.Item label={t("printing.qrcode.showVendorComment")}>
-            <Switch
-              checked={showVendorComment}
-              onChange={(checked) => {
-                selectedPrintSetting.showVendorComment = checked;
-                updateCurrentPrintSettings(selectedPrintSetting);
-              }}
-            />
-          </Form.Item>
+          </Modal>
+          <Text type="secondary">
+            {t("printing.qrcode.templateHelp")}{" "}
+            <Button size="small" onClick={() => setTemplateHelpOpen(true)}>
+              {t("actions.show")}
+            </Button>
+          </Text>
         </>
       }
     />
