@@ -123,9 +123,8 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
         <tr key={rowIdx}>
           {row.map(function (item, colIdx) {
             return (
-              <td>
+              <td key={colIdx}>
                 <div
-                  key={colIdx}
                   style={{
                     width: `${itemWidth}mm`,
                     height: `${itemHeight}mm`,
