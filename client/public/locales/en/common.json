@@ -104,6 +104,7 @@
             "template": "Template",
             "templateHelp": "Use {} to insert values of the spool object as text. For example {id} will be replaced with the spool id, or {filament.material} will be replaced with the material of the spool. Click the button to view a list of all available tags.",
             "textSize": "Content Text Size",
+            "showContent": "Print Label",
             "showSpoolmanIcon": "Show Spoolman Icon"
         },
         "spoolSelect": {
