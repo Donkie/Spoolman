@@ -260,6 +260,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             ...commonProps,
             id: "price",
             i18ncat: "filament",
+            align: 'right',
             width: 80,
             render: (_, obj: IFilamentCollapsed) => {
               return obj.price?.toLocaleString(undefined, {
@@ -291,7 +292,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             id: "weight",
             i18ncat: "filament",
             unit: "g",
-            maxDecimals: 1,
+            maxDecimals: 0,
             width: 100,
           }),
           NumberColumn({
@@ -299,7 +300,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             id: "spool_weight",
             i18ncat: "filament",
             unit: "g",
-            maxDecimals: 1,
+            maxDecimals: 0,
             width: 100,
           }),
           FilteredQueryColumn({

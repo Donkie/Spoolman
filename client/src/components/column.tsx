@@ -44,6 +44,7 @@ interface BaseColumnProps<Obj extends Entity> {
   i18ncat?: string;
   i18nkey?: string;
   title?: string;
+  align?: AlignType;
   sorter?: boolean;
   t: (key: string) => string;
   navigate: (link: string) => void;
@@ -87,6 +88,7 @@ function Column<Obj extends Entity>(
 
   const columnProps: ColumnType<Obj> = {
     dataIndex: props.id,
+    align: props.align,
     title: props.title ?? t(props.i18nkey ?? `${props.i18ncat}.fields.${props.id}`),
     filterMultiple: props.allowMultipleFilters ?? true,
     width: props.width ?? undefined,
@@ -226,6 +228,7 @@ interface NumberColumnProps<Obj extends Entity> extends BaseColumnProps<Obj> {
 export function NumberColumn<Obj extends Entity>(props: NumberColumnProps<Obj>) {
   return Column({
     ...props,
+    align: 'right',
     render: (rawValue) => {
       const value = props.transform ? props.transform(rawValue) : rawValue;
       if (value === null || value === undefined) {
@@ -255,7 +258,7 @@ export function DateColumn<Obj extends Entity>(props: BaseColumnProps<Obj>) {
           hidden={!value}
           value={dayjs.utc(value).local()}
           title={dayjs.utc(value).local().format()}
-          format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm"
         />
       );
     },
