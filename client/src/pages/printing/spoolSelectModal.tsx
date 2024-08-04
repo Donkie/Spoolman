@@ -1,18 +1,16 @@
 import React, { useState } from "react";
-import { Modal, Table, Checkbox, Space, Row, Col, message } from "antd";
-import { ISpool } from "../pages/spools/model";
-import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "./column";
-import { TableState } from "../utils/saveload";
+import { Modal, Table, Checkbox, Space, Row, Col, message, Button } from "antd";
+import { ISpool } from "../spools/model";
+import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
+import { TableState } from "../../utils/saveload";
 import { useTable } from "@refinedev/antd";
 import { t } from "i18next";
-import { useSpoolmanFilamentFilter, useSpoolmanMaterials } from "./otherModels";
-import { removeUndefined } from "../utils/filtering";
+import { useSpoolmanFilamentFilter, useSpoolmanMaterials } from "../../components/otherModels";
+import { removeUndefined } from "../../utils/filtering";
 import { useNavigate } from "react-router-dom";
 
 interface Props {
-  visible: boolean;
   description?: string;
-  onCancel: () => void;
   onContinue: (selectedSpools: ISpool[]) => void;
 }
 
@@ -37,13 +35,14 @@ function collapseSpool(element: ISpool): ISpoolCollapsed {
   };
 }
 
-const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onContinue }) => {
+const SpoolSelectModal: React.FC<Props> = ({ description, onContinue }) => {
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
 
   const { tableProps, sorters, filters, current, pageSize } = useTable<ISpoolCollapsed>({
+    resource: "spool",
     meta: {
       queryParams: {
         ["allow_archived"]: showArchived,
@@ -116,22 +115,7 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
   };
 
   return (
-    <Modal
-      title={t("printing.spoolSelect.title")}
-      open={visible}
-      onCancel={onCancel}
-      onOk={() => {
-        if (selectedItems.length === 0) {
-          messageApi.open({
-            type: "error",
-            content: t("printing.spoolSelect.noSpoolsSelected"),
-          });
-          return;
-        }
-        onContinue(dataSource.filter((spool) => selectedItems.includes(spool.id)));
-      }}
-      width={600}
-    >
+    <>
       {contextHolder}
       <Space direction="vertical" style={{ width: "100%" }}>
         {description && <div>{description}</div>}
@@ -210,7 +194,19 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
           </Col>
         </Row>
       </Space>
-    </Modal>
+      <Button
+        onClick={() => {
+          if (selectedItems.length === 0) {
+            messageApi.open({
+              type: "error",
+              content: t("printing.spoolSelect.noSpoolsSelected"),
+            });
+            return;
+          }
+          onContinue(dataSource.filter((spool) => selectedItems.includes(spool.id)));
+        }}
+      ></Button>
+    </>
   );
 };
 

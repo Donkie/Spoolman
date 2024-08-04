@@ -1,6 +1,6 @@
 import { Button, Flex, Form, Input, Modal, Popconfirm, Select, Space, Switch, Table, Typography } from "antd";
-import { IFilament } from "../../pages/filaments/model";
-import { ISpool } from "../../pages/spools/model";
+import { IFilament } from "../filaments/model";
+import { ISpool } from "../spools/model";
 import QRCodePrintingDialog from "./qrCodePrintingDialog";
 import { useSavedState } from "../../utils/saveload";
 import { useTranslate } from "@refinedev/core";
@@ -21,12 +21,10 @@ import { EntityType, useGetFields } from "../../utils/queryFields";
 const { Text } = Typography;
 
 interface SpoolQRCodePrintingDialog {
-  visible: boolean;
   items: ISpool[];
-  onCancel: () => void;
 }
 
-const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ visible, items, onCancel }) => {
+const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ items }) => {
   const t = useTranslate();
 
   // Selected setting state
@@ -210,8 +208,6 @@ Lot Nr: {lot_nr}
 
   return (
     <QRCodePrintingDialog
-      visible={visible}
-      onCancel={onCancel}
       printSettings={selectedPrintSetting.labelSettings}
       setPrintSettings={(newSettings) => {
         selectedPrintSetting.labelSettings = newSettings;
@@ -276,6 +272,7 @@ Lot Nr: {lot_nr}
             <p
               style={{
                 padding: "1mm 1mm 1mm 0",
+                margin: 0,
                 whiteSpace: "pre-wrap",
               }}
             >

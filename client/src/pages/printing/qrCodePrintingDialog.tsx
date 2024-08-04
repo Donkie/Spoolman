@@ -11,28 +11,24 @@ interface QRCodeData {
 }
 
 interface QRCodePrintingDialogProps {
-  visible: boolean;
   items: QRCodeData[];
   printSettings: QRCodePrintSettings;
   setPrintSettings: (setPrintSettings: QRCodePrintSettings) => void;
-  onCancel: () => void;
   extraSettings?: JSX.Element;
   extraSettingsStart?: JSX.Element;
 }
 
 const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
-  visible,
   items,
   printSettings,
   setPrintSettings,
-  onCancel,
   extraSettings,
   extraSettingsStart,
 }) => {
   const t = useTranslate();
 
   const showContent = printSettings?.showContent === undefined ? true : printSettings?.showContent;
-  const textSize = printSettings?.textSize || 5;
+  const textSize = printSettings?.textSize || 3;
   const showSpoolmanIcon = printSettings?.showSpoolmanIcon === undefined ? true : printSettings?.showSpoolmanIcon;
 
   const elements = items.map((item) => {
@@ -55,8 +51,6 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
 
   return (
     <PrintingDialog
-      visible={visible}
-      title={t("printing.qrcode.title")}
       items={elements}
       printSettings={printSettings.printSettings}
       setPrintSettings={(newSettings) => {
@@ -123,7 +117,7 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
             .print-page .print-qrcode-item {
               display: flex;
               width: 100%;
-              max-height: 100%;
+              height: 100%;
               justify-content: center;
             }
 
@@ -135,6 +129,7 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
             .print-page .print-qrcode {
               width: auto !important;
               height: auto !important;
+              padding: 2mm;
             }
 
             .print-page .print-qrcode-title {
@@ -153,7 +148,6 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
               max-width: 100%;
             }
             `}
-      onCancel={onCancel}
     />
   );
 };

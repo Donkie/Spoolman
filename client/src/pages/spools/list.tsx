@@ -26,7 +26,6 @@ import {
   CustomFieldColumn,
 } from "../../components/column";
 import { setSpoolArchived } from "./functions";
-import SelectAndPrint from "../../components/selectAndPrintDialog";
 import {
   useSpoolmanFilamentFilter,
   useSpoolmanLocations,
@@ -254,7 +253,6 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     <List
       headerButtons={({ defaultButtons }) => (
         <>
-          <SelectAndPrint />
           <Button
             type="primary"
             icon={<InboxOutlined />}

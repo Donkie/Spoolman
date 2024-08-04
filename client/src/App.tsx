@@ -192,6 +192,7 @@ function App() {
                     />
                     <Route path="edit/:id" element={<LoadableResourcePage resource="spools" page="edit" />} />
                     <Route path="show/:id" element={<LoadableResourcePage resource="spools" page="show" />} />
+                    <Route path="print" element={<LoadablePage name="printing" />} />
                   </Route>
                   <Route path="/filament">
                     <Route index element={<LoadableResourcePage resource="filaments" page="list" />} />
