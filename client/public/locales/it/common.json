@@ -259,7 +259,7 @@
         },
         "vendor": "Produttori",
         "form": {
-            "vendor_updated": "Questo profilo produttore ha subito modifiche da qualcuno/qualcosa da quando hai aperto questa pagina. Il salvataggio sovrascriverà tali modifiche!"
+            "vendor_updated": "Ci sono stati degli aggiornamenti per questo produttore da quando hai aperto questa pagina. Il salvataggio sovrascriverà le modifiche!"
         },
         "fields_help": {
             "empty_spool_weight": "Il peso di una bobina vuota di questo produttore."
