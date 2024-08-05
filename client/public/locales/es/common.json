@@ -4,7 +4,7 @@
         "create": "Crear",
         "edit": "Editar",
         "show": "Mostrar",
-        "clone": "Duplicar"
+        "clone": "Clonar"
     },
     "buttons": {
         "create": "Crear",
@@ -28,7 +28,8 @@
         "notAccessTitle": "No tienes permiso de acceso",
         "hideColumns": "Ocultar Columnas",
         "clearFilters": "Borrar filtros",
-        "saveAndAdd": "Guardar y añadir"
+        "saveAndAdd": "Guardar y añadir",
+        "continue": "Continuar"
     },
     "warnWhenUnsavedChanges": "¿Estás seguro que quieres salir? Hay cambios sin guardar.",
     "notifications": {
@@ -275,13 +276,15 @@
             "dimensions": "Dimensiones",
             "print": "Imprimir",
             "itemCopies": "Copias del artículo",
-            "settings": "Ajustes",
+            "settings": "Ajustes preestablecidos",
             "defaultSettings": "Por defecto",
-            "addSettings": "Añadir un nuevo ajuste",
+            "addSettings": "Añadir un nuevo ajustes preestablecidos",
             "newSetting": "Nuevo",
-            "deleteSettings": "Eliminar configuración actual",
-            "deleteSettingsConfirm": "¿Está seguro de que desea eliminar esta configuración?",
-            "settingsName": "Nombre de la configuración"
+            "deleteSettings": "Eliminar ajustes preestablecidos",
+            "deleteSettingsConfirm": "¿Estás seguro de que deseas eliminar este ajuste preestablecido?",
+            "settingsName": "Nombre preestablecido",
+            "duplicateSettings": "Duplicar",
+            "saveSetting": "Guardar ajustes preestablecidos"
         },
         "spoolSelect": {
             "selectedTotal_one": "{{count}} bobina seleccionada",
