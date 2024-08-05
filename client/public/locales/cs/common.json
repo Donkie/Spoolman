@@ -87,7 +87,15 @@
                 "none": "Žádný",
                 "border": "Ohraničení",
                 "grid": "Mřížka"
-            }
+            },
+            "itemCopies": "Kopie položky",
+            "defaultSettings": "Výchozí",
+            "addSettings": "Přidat nové nastavení",
+            "newSetting": "Nový",
+            "deleteSettings": "Smazat aktuální nastavení",
+            "settingsName": "Název nastavení",
+            "settings": "Nastavení",
+            "deleteSettingsConfirm": "Opravdu chcete toto nastavení odstranit?"
         },
         "qrcode": {
             "button": "Tisk QR kódů",
@@ -105,7 +113,9 @@
             "showTemperatures": "Teploty",
             "showSpoolComment": "Poznámka k cívce",
             "showFilamentComment": "Poznámka k filamentu",
-            "showVendorComment": "Poznámka k výrobci"
+            "showVendorComment": "Poznámka k výrobci",
+            "template": "Šablona",
+            "templateHelp": "Pomocí {} vložíte hodnoty objektu cívky jako text. Například {id} bude nahrazeno ID cívky nebo {filament.material} bude nahrazeno materiálem cívky. Text uzavřete dvojitou hvězdičkou **, aby byl tučný. Kliknutím na tlačítko zobrazíte seznam všech dostupných značek."
         },
         "spoolSelect": {
             "title": "Vybrat cívky",
@@ -205,7 +215,11 @@
             "settings_bed_temp": "Teplota podložky",
             "color_hex": "Barva",
             "spools": "Zobrazit cívky",
-            "external_id": "Externí ID"
+            "external_id": "Externí ID",
+            "single_color": "Jediný",
+            "coaxial": "Koextrudovaný",
+            "longitudinal": "Podélná",
+            "multi_color": "Více"
         },
         "fields_help": {
             "name": "Název filamentu, aby se tento typ vlákna odlišil od ostatních filamentů od stejného výrobce. Měl by obsahovat například barvu.",
@@ -213,7 +227,8 @@
             "price": "Cena celé cívky.",
             "weight": "Hmotnost plného cívky filamentu (čistá hmotnost). Tato hmotnost by neměla zahrnovat hmotnost samotné cívky, ale pouze filamentu. Obvykle se uvádí na obalu.",
             "spool_weight": "Hmotnost prázdné cívky. Slouží k určení naměřené hmotnosti cívky.",
-            "article_number": "Např. EAN, UPC, atd."
+            "article_number": "Např. EAN, UPC, atd.",
+            "multi_color_direction": "Filamenty mohou mít více barev dvěma způsoby: buď koextruzí jako dvoubarevná vlákna s konzistentními více barvami, nebo podélnými změnami barev jako gradientní vlákna, která mění barvy podél cívky."
         },
         "titles": {
             "create": "Vytvořit filament",
