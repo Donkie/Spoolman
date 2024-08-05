@@ -87,7 +87,15 @@
                 "border": "Borda",
                 "grid": "Grade"
             },
-            "printerMarginTop": "Área Segura Superior"
+            "printerMarginTop": "Área Segura Superior",
+            "settings": "Opções",
+            "defaultSettings": "Por omissão",
+            "addSettings": "Adicionar Opção",
+            "newSetting": "Novo",
+            "deleteSettings": "Remover Opção Actual",
+            "deleteSettingsConfirm": "Tem a certeza que pretender remover esta opção?",
+            "settingsName": "Nome da Opção",
+            "itemCopies": "Cópias do Artigo"
         },
         "spoolSelect": {
             "selectedTotal_one": "{{count}} carretel selecionado",
@@ -115,7 +123,9 @@
             "showTemperatures": "Temperaturas",
             "showSpoolComment": "Comentário sobre o Carretel",
             "showFilamentComment": "Comentário sobre o Filamento",
-            "showVendorComment": "Comentário sobre o Fabricante"
+            "showVendorComment": "Comentário sobre o Fabricante",
+            "template": "Modelo",
+            "templateHelp": "Use {} para incluir valores da bobine como texto. Por exemplo {id} será substituído pelo ID da bobine, ou {filament.material} será substituído pelo material da bobine. Coloque texto entre duplos asteriscos ** para colocar a negrito. Pressione o botão para ver a lista de etiquetas disponíveis."
         }
     },
     "spool": {
@@ -193,7 +203,11 @@
             "settings_bed_temp": "Temperatura da Mesa",
             "color_hex": "Cor",
             "spools": "Mostrar Carretéis",
-            "external_id": "ID Externo"
+            "external_id": "ID Externo",
+            "single_color": "Único",
+            "multi_color": "Múltiplo",
+            "coaxial": "Coextrusado",
+            "longitudinal": "Longitudinal"
         },
         "fields_help": {
             "article_number": "Por exemplo EAN, UPC, etc.",
@@ -201,7 +215,8 @@
             "name": "Nome do filamento, para distinguir este tipo de filamento entre outros do mesmo fabricante. Deve conter a cor, por exemplo.",
             "material": "Por exemplo PLA, ABS, PETG, etc.",
             "weight": "O peso do filamento de um carretel cheio (peso líquido). Isso não deve incluir o peso do carretel em si, apenas o filamento. É o que normalmente está escrito na embalagem.",
-            "spool_weight": "O peso de um carretel vazio. Usado para determinar o peso medido de um carretel."
+            "spool_weight": "O peso de um carretel vazio. Usado para determinar o peso medido de um carretel.",
+            "multi_color_direction": "Os filamentos podem ter múltiplas cores de duas formas: por coextrusão, como os filamentos de duas cores com estas consistentes ao longo do filamento, or através de mudança de cor longitudinal, como os filamentos que contêm gradientes de cores que vão mudando ao longo da bobine."
         },
         "titles": {
             "create": "Criar Filamento",

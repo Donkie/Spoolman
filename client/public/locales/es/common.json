@@ -131,7 +131,11 @@
             "settings_bed_temp": "Temp. de Cama",
             "color_hex": "Color",
             "spools": "Mostrar las Bobinas",
-            "external_id": "ID Externo"
+            "external_id": "ID Externo",
+            "coaxial": "coextruido",
+            "single_color": "Único",
+            "longitudinal": "Longitudinal",
+            "multi_color": "Multiple"
         },
         "fields_help": {
             "name": "Nombre del filamento, para distinguir este tipo de filamento entre otros del mismo fabricante. Debe contener por ejemplo: el color.",
@@ -139,7 +143,8 @@
             "price": "Precio de una bobina completa.",
             "weight": "El peso de una bobina entera (peso neto). Esta cifra no debe incluir el peso de la bobina vacía, solo el filamento. Es, normalmente, el peso escrito en la etiqueta de la bobina.",
             "spool_weight": "El peso de una bobina vacía. Se utiliza para determinar el peso medido de una bobina.",
-            "article_number": "ej. EAN, UPC, etc."
+            "article_number": "ej. EAN, UPC, etc.",
+            "multi_color_direction": "Los filamentos pueden tener varios colores de dos formas: mediante coextrusión, como los filamentos bicolor con multicolores consistentes, o mediante cambios de color longitudinales, como los filamentos degradados que cambian de color a lo largo de la bobina."
         },
         "titles": {
             "create": "Crear Filamento",
@@ -234,7 +239,9 @@
             "bedTemp": "TC:{{temp}}",
             "lotNr": "No. Lote:{{lot}}",
             "showFilamentComment": "Comentario de Filamento",
-            "button": "Imprimir Códigos QR"
+            "button": "Imprimir Códigos QR",
+            "template": "Plantilla",
+            "templateHelp": "Utiliza {} para insertar valores del objeto spool como texto. Por ejemplo {id} será reemplazado por el id del spool, o {filament.material} será reemplazado por el material del spool. Encierra el texto con un doble asterisco ** para ponerlo en negrita. Haz clic en el botón para ver una lista de todas las etiquetas disponibles."
         },
         "generic": {
             "printerMarginBottom": "Zona Segura Inferior",
@@ -266,7 +273,15 @@
             "showBorder": "Mostrar Borde",
             "printerMarginLeft": "Zona Segura Izquierda",
             "dimensions": "Dimensiones",
-            "print": "Imprimir"
+            "print": "Imprimir",
+            "itemCopies": "Copias del artículo",
+            "settings": "Ajustes",
+            "defaultSettings": "Por defecto",
+            "addSettings": "Añadir un nuevo ajuste",
+            "newSetting": "Nuevo",
+            "deleteSettings": "Eliminar configuración actual",
+            "deleteSettingsConfirm": "¿Está seguro de que desea eliminar esta configuración?",
+            "settingsName": "Nombre de la configuración"
         },
         "spoolSelect": {
             "selectedTotal_one": "{{count}} bobina seleccionada",
