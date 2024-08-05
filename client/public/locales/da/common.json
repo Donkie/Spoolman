@@ -16,7 +16,9 @@
             "bedTemp": "BT: {{temp}}",
             "lotNr": "Gruppe nr: {{lot}}",
             "showFilamentComment": "Filament kommentarer",
-            "button": "Print QR koder"
+            "button": "Print QR koder",
+            "template": "Skabelon",
+            "templateHelp": "Brug {} til at indsætte værdier for spolen som tekst. For eksempen vil {id} blive erstattet med spolens id, eller {filament.material} vil blive erstattet med materialet på spolen. Omgiv teksten med dobbelte asterisk ** for at gøre teksten fed. Klik på knappen for at vise en liste med mulige tags."
         },
         "generic": {
             "printerMarginBottom": "Safe-Zone bund",
@@ -48,7 +50,15 @@
             "showBorder": "Vis ramme",
             "printerMarginLeft": "Safe-Zone venstre",
             "dimensions": "Dimensioner",
-            "print": "Udskriv"
+            "print": "Udskriv",
+            "settings": "Indstillinger",
+            "defaultSettings": "Standard",
+            "addSettings": "Tilføj ny indstilling",
+            "newSetting": "Ny",
+            "deleteSettings": "Slet nuværende indstilling",
+            "deleteSettingsConfirm": "Er du sikker på du vil slette denne indstilling?",
+            "settingsName": "Indstillingsnavn",
+            "itemCopies": "Kopier"
         },
         "spoolSelect": {
             "selectedTotal_one": "{{count}} spole valgt",
@@ -62,11 +72,11 @@
     },
     "documentTitle": {
         "vendor": {
-            "create": "Opret sælger | Spoolman",
-            "clone": "#{{id}} Klon sælger | Spoolman",
-            "edit": "#{{id}} Redigér sælger | Spoolman",
-            "list": "Sælgere | Spoolman",
-            "show": "#{{id}} Vis sælger | Spoolman"
+            "create": "Opret producent | Spoolman",
+            "clone": "#{{id}} Klon producent | Spoolman",
+            "edit": "#{{id}} Redigér producent | Spoolman",
+            "list": "Producenter | Spoolman",
+            "show": "#{{id}} Vis producent | Spoolman"
         },
         "default": "Spoolman",
         "spool": {
@@ -110,7 +120,11 @@
             "used_weight": "Brugt vægt",
             "id": "ID",
             "remaining_weight": "Resterende vægt",
-            "price": "Pris"
+            "price": "Pris",
+            "initial_weight": "Startvægt",
+            "spool_weight": "Tom vægt",
+            "filament_internal": "Intern",
+            "filament_external": "Ekstern"
         },
         "titles": {
             "archive": "Arkivér spole",
@@ -132,7 +146,10 @@
             "lot_nr": "Producentens \"batchnummer\". Kan bruges til at sikre ensartede farver ved brug af flere ruller.",
             "remaining_weight": "Hvor meget filament er der tilbage på spolen. For en ny spole bør dette matches spolens vægt.",
             "location": "Placering af spolen. Hvis du har flere lokationer.",
-            "price": "Pris for en fuld spole. Hvis ikke indstillet, vil prisen bliver estimeret."
+            "price": "Pris for en fuld spole. Hvis ikke indstillet, vil prisen bliver estimeret.",
+            "external_filament": "Du har valgt et Filament fra den eksterne database, Et Filament (og muligvis en Producent) vil blive oprettet automatisk når du gemmer denne spole. Dette kan oprette duplikerede objekter, hvis du allerede har dette filament oprettet.",
+            "initial_weight": "Startvægten af filament på spolen (nettovægt). Bruger filamentets standardvægt hvis ikke angivet.",
+            "spool_weight": "Vægten af spolen når den er tom. Et tomt felt vil bruge værdien fra Filament eller Producent."
         },
         "spool": "Spoler",
         "messages": {
@@ -170,11 +187,12 @@
             "spool_weight": "Vægten af en tom spole. Bruges til at angive den målte vægt af en spole.",
             "price": "Pris for en ny spole.",
             "weight": "Filamentets vægt på en ny spole (Netto vægt). Dette bør ikke inkludere vægten af selve spolen, kun filamentet. Det er som regel den angivne vægt på pakken.",
-            "material": "f.eks. PLA, ABS, PETG osv."
+            "material": "f.eks. PLA, ABS, PETG osv.",
+            "multi_color_direction": "Filamenter kan have flere farver på to måder: Enten koaksialt, som 2- & 3-farvede filamenter med vedvarende flerfarvethed, eller gennem længdeværts ændringer, som regnbuefilamenter, hvor farven skifter undervejs på spolen."
         },
         "fields": {
             "material": "Materiale",
-            "vendor_name": "Sælger",
+            "vendor_name": "Producent",
             "settings_extruder_temp": "Extruder temperatur",
             "comment": "Kommentar",
             "diameter": "Diameter",
@@ -184,12 +202,17 @@
             "name": "Navn",
             "price": "Pris",
             "settings_bed_temp": "Bed temperatur",
-            "vendor": "Sælger",
+            "vendor": "Producent",
             "density": "Massefylde",
             "id": "ID",
             "color_hex": "Farve",
             "article_number": "Produkt nummer",
-            "spools": "Vis spoler"
+            "spools": "Vis spoler",
+            "external_id": "Eksternt ID",
+            "longitudinal": "Længdeværts",
+            "multi_color": "Flerfarvet",
+            "coaxial": "Koaksialt",
+            "single_color": "Enkeltfarvet"
         },
         "titles": {
             "clone": "Klon filament",
@@ -200,7 +223,9 @@
             "list": "Filamenter"
         },
         "form": {
-            "filament_updated": "Dette filament er blevet redigeret af nogen/noget andet siden du åbnede denne side. Hvis du gemmer overskrives disse ændringer!"
+            "filament_updated": "Dette filament er blevet redigeret af nogen/noget andet siden du åbnede denne side. Hvis du gemmer overskrives disse ændringer!",
+            "import_external": "Importér fra Eksternt",
+            "import_external_description": "Vælg et filament på listen for automatisk at udfylde formularen. Dette vil overskrive alle data du allerede har indtastet i formularen. <br><br> En Producent vil blive oprettet automatisk hvis nødvendigt, når du klikker OK."
         },
         "filament": "Filamenter",
         "buttons": {
@@ -216,23 +241,28 @@
     },
     "vendor": {
         "titles": {
-            "show_title": "[Sælger #{{id}}] {{name}}",
-            "show": "Vis sælger",
-            "edit": "Redigér sælger",
-            "clone": "Klon sælger",
-            "create": "Opret sælger",
-            "list": "Sælgere"
+            "show_title": "[Producent #{{id}}] {{name}}",
+            "show": "Vis producent",
+            "edit": "Redigér producent",
+            "clone": "Klon producent",
+            "create": "Opret producent",
+            "list": "Producenter"
         },
         "form": {
-            "vendor_updated": "Denne sælger er blevet redigeret af nogen/noget andet siden du åbnede denne side. Hvis du gemmer overskrives disse ændringer!"
+            "vendor_updated": "Denne producent er blevet redigeret af nogen/noget andet siden du åbnede denne side. Hvis du gemmer overskrives disse ændringer!"
         },
         "fields": {
             "registered": "Registreret",
             "comment": "Kommentar",
             "name": "Navn",
-            "id": "ID"
+            "id": "ID",
+            "external_id": "Eksternt ID",
+            "empty_spool_weight": "Tom Spolevægt"
         },
-        "vendor": "Sælgere"
+        "vendor": "Producenter",
+        "fields_help": {
+            "empty_spool_weight": "Vægten af en tom spole fra denne producent."
+        }
     },
     "scanner": {
         "title": "QR kode skanner",
@@ -281,7 +311,7 @@
             "filament": "Filament mærker. De har værdier såsom Navn, Materiale, Farve, Diameter m.fl.",
             "spool": "Individuelle fysiske spoler af et specifikt filament."
         },
-        "description": "<title>Hjælp</title><p>Her er nogle tips til at komme i gang.</p><p>Spoolman indeholder 3 forskellige typer data:</p><itemsHelp/><p>For at tilføje en ny spole til databasen, skal du starte med at oprette et <filamentCreateLink>Filament</filamentCreateLink> objekt. Når dette er gjort, fortsættes der ved at oprette et <spoolCreateLink>Spole</spoolCreateLink> objekt for den specifikke spole. Hvis du har flere spoler af samme filament, opretter du blot et nyt spole objekt og genbruger samme filament. </p><p> Du har også mulighed for at oprette et <vendorCreateLink>Forhandler</vendorCreateLink> objekt for firmaet der producerer filamentet, hvis du ønsker.</p><p>Du har mulighed for at linke andre 3D printer services til Spoolman, Som f.eks. Moonraker. Dette giver mulighed for automatisk at opdatere og overvåge forbruget af filament for hvert print. Læs <readmeLink>Spoolman README</readmeLink> for information om opsætning af dette.</p>",
+        "description": "<title>Hjælp</title><p>Her er nogle tips til at komme i gang.</p><p>Spoolman indeholder 3 forskellige typer data:</p><itemsHelp/><p>For at tilføje en ny spole til databasen, skal du starte med at oprette et <filamentCreateLink>Filament</filamentCreateLink> objekt. Når dette er gjort, fortsættes der ved at oprette et <spoolCreateLink>Spole</spoolCreateLink> objekt for den specifikke spole. Hvis du har flere spoler af samme filament, opretter du blot et nyt spole objekt og genbruger samme filament. </p><p> Du har også mulighed for at oprette et <vendorCreateLink>Producent</vendorCreateLink> objekt for firmaet der producerer filamentet, hvis du ønsker.</p><p>Du har mulighed for at linke andre 3D printer services til Spoolman, Som f.eks. Moonraker. Dette giver mulighed for automatisk at opdatere og overvåge forbruget af filament for hvert print. Læs <readmeLink>Spoolman README</readmeLink> for information om opsætning af dette.</p>",
         "help": "Hjælp"
     },
     "kofi": "Donér på Ko-fi",
