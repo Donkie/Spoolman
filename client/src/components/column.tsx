@@ -13,6 +13,7 @@ import { UseQueryResult } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Field, FieldType } from "../utils/queryFields";
 import SpoolIcon from "./spoolIcon";
+import { AlignType } from "rc-table/lib/interface";
 
 dayjs.extend(utc);
 
@@ -228,7 +229,7 @@ interface NumberColumnProps<Obj extends Entity> extends BaseColumnProps<Obj> {
 export function NumberColumn<Obj extends Entity>(props: NumberColumnProps<Obj>) {
   return Column({
     ...props,
-    align: 'right',
+    align: "right",
     render: (rawValue) => {
       const value = props.transform ? props.transform(rawValue) : rawValue;
       if (value === null || value === undefined) {
