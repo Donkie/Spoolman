@@ -1,6 +1,5 @@
 import React, { useRef } from "react";
 import {
-  Modal,
   Slider,
   Button,
   Select,

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Modal, Table, Checkbox, Space, Row, Col, message, Button } from "antd";
+import { Table, Checkbox, Space, Row, Col, message, Button } from "antd";
 import { ISpool } from "../spools/model";
 import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
 import { TableState } from "../../utils/saveload";

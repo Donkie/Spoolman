@@ -12,6 +12,7 @@ import {
   FilterOutlined,
   InboxOutlined,
   PlusSquareOutlined,
+  PrinterOutlined,
   ToTopOutlined,
 } from "@ant-design/icons";
 import {
@@ -253,6 +254,15 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     <List
       headerButtons={({ defaultButtons }) => (
         <>
+          <Button
+            type="primary"
+            icon={<PrinterOutlined />}
+            onClick={() => {
+              navigate("print");
+            }}
+          >
+            {t("printing.qrcode.button")}
+          </Button>
           <Button
             type="primary"
             icon={<InboxOutlined />}

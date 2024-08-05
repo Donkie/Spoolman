@@ -1,5 +1,4 @@
 import { Col, Form, InputNumber, QRCode, Row, Slider, Switch } from "antd";
-import { useSavedState } from "../../utils/saveload";
 import PrintingDialog from "./printingDialog";
 import { useTranslate } from "@refinedev/core";
 import { QRCodePrintSettings } from "./printing";

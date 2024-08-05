@@ -1,4 +1,3 @@
-import React, { ReactNode } from "react";
 import { ISpool } from "../spools/model";
 import { useGetSetting, useSetSetting } from "../../utils/querySettings";
 import { v4 as uuidv4 } from "uuid";

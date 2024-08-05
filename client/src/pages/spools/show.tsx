@@ -1,7 +1,7 @@
 import React from "react";
 import { IResourceComponentsProps, useShow, useTranslate } from "@refinedev/core";
 import { Show, NumberField, DateField, TextField } from "@refinedev/antd";
-import { Typography } from "antd";
+import { Button, Typography } from "antd";
 import { NumberFieldUnit } from "../../components/numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -12,6 +12,7 @@ import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldDisplay } from "../../components/extraFields";
 import { useCurrency } from "../../utils/settings";
 import SpoolIcon from "../../components/spoolIcon";
+import { PrinterOutlined } from "@ant-design/icons";
 
 dayjs.extend(utc);
 
@@ -75,7 +76,22 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
     : record?.filament.color_hex;
 
   return (
-    <Show isLoading={isLoading} title={record ? formatTitle(record) : ""}>
+    <Show
+      isLoading={isLoading}
+      title={record ? formatTitle(record) : ""}
+      headerButtons={({ defaultButtons }) => (
+        <>
+          <Button
+            type="primary"
+            icon={<PrinterOutlined />}
+            href={"/spool/print?spools=" + record?.id + "&return=" + encodeURIComponent(window.location.pathname)}
+          >
+            {t("printing.qrcode.button")}
+          </Button>
+          {defaultButtons}
+        </>
+      )}
+    >
       <Title level={5}>{t("spool.fields.id")}</Title>
       <NumberField value={record?.id ?? ""} />
       <Title level={5}>{t("spool.fields.filament")}</Title>
