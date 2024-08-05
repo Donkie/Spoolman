@@ -59,7 +59,7 @@ class FilamentParameters(BaseModel):
         description="The weight of the filament in a full spool, in grams. (net weight)",
         examples=[1000],
     )
-    spool_weight: Optional[float] = Field(None, gt=0, description="The empty spool weight, in grams.", examples=[140])
+    spool_weight: Optional[float] = Field(None, ge=0, description="The empty spool weight, in grams.", examples=[140])
     article_number: Optional[str] = Field(
         None,
         max_length=64,
