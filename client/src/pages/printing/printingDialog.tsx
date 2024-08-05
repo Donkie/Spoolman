@@ -178,12 +178,21 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
   return (
     <>
       <Row gutter={16}>
-        <Col span={14}>
+        <Col
+          span={14}
+          style={{
+            // This magic makes this column take the height of the sibling column
+            // https://stackoverflow.com/a/49065029/2911165
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <div
             style={{
               transform: "translateZ(0)",
-              overflow: "hidden scroll",
-              height: "70vh",
+              overflow: "auto",
+              flexBasis: "0px",
+              flexGrow: "1",
             }}
           >
             <div
