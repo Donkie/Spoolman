@@ -32,7 +32,7 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
 
   const spoolPrice = (item: ISpool) => {
     let spoolPrice = "";
-    if (!item.price) {
+    if (item.price === undefined) {
       spoolPrice = `${item.filament.price}`;
       return spoolPrice;
     }
