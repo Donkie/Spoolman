@@ -371,6 +371,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             ...commonProps,
             id: "price",
             i18ncat: "spool",
+            align: 'right',
             width: 80,
             render: (_, obj: ISpoolCollapsed) => {
               return obj.price?.toLocaleString(undefined, {
@@ -385,8 +386,9 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             ...commonProps,
             id: "used_weight",
             i18ncat: "spool",
+            align: 'right',
             unit: "g",
-            maxDecimals: 1,
+            maxDecimals: 0,
             width: 110,
           }),
           NumberColumn({
@@ -394,7 +396,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             id: "remaining_weight",
             i18ncat: "spool",
             unit: "g",
-            maxDecimals: 1,
+            maxDecimals: 0,
             defaultText: t("unknown"),
             width: 110,
           }),
@@ -403,7 +405,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             id: "used_length",
             i18ncat: "spool",
             unit: "mm",
-            maxDecimals: 1,
+            maxDecimals: 0,
             width: 120,
           }),
           NumberColumn({
@@ -411,7 +413,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             id: "remaining_length",
             i18ncat: "spool",
             unit: "mm",
-            maxDecimals: 1,
+            maxDecimals: 0,
             defaultText: t("unknown"),
             width: 120,
           }),
