@@ -10,7 +10,7 @@ import {
   useSetPrintSettings as useSetPrintPresets,
 } from "./printing";
 import { useState } from "react";
-import { DeleteOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
+import { CopyOutlined, DeleteOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
 import { v4 as uuidv4 } from "uuid";
 import TextArea from "antd/es/input/TextArea";
 import { EntityType, useGetFields } from "../../utils/queryFields";
@@ -64,6 +64,16 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ spoolI
     setLocalPresets([...localOrRemotePresets, newPreset]);
     setSelectedPresetState(newId);
     return newPreset;
+  };
+  const duplicateCurrentPreset = () => {
+    if (!localOrRemotePresets) return;
+    const newPreset = {
+      ...curPreset,
+      labelSettings: { ...curPreset.labelSettings, printSettings: { ...curPreset.labelSettings.printSettings } },
+    };
+    newPreset.labelSettings.printSettings.id = uuidv4();
+    setLocalPresets([...localOrRemotePresets, newPreset]);
+    setSelectedPresetState(newPreset.labelSettings.printSettings.id);
   };
   const updateCurrentPreset = (newSettings: SpoolQRCodePrintSettings) => {
     if (!localOrRemotePresets) return;
@@ -243,6 +253,12 @@ Lot Nr: {lot_nr}
                   icon={<PlusOutlined />}
                   title={t("printing.generic.addSettings")}
                   onClick={addNewPreset}
+                />
+                <Button
+                  style={{ width: "3em" }}
+                  icon={<CopyOutlined />}
+                  title={t("printing.generic.duplicateSettings")}
+                  onClick={duplicateCurrentPreset}
                 />
                 {localOrRemotePresets && localOrRemotePresets.length > 1 && (
                   <Popconfirm

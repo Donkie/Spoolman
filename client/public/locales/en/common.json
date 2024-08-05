@@ -94,6 +94,7 @@
             "defaultSettings": "Default",
             "addSettings": "Add New Preset",
             "newSetting": "New",
+            "duplicateSettings": "Duplicate",
             "deleteSettings": "Delete Current Preset",
             "deleteSettingsConfirm": "Are you sure you want to delete this preset?",
             "settingsName": "Preset Name",
