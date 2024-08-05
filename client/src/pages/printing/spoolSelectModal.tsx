@@ -8,6 +8,7 @@ import { t } from "i18next";
 import { useSpoolmanFilamentFilter, useSpoolmanMaterials } from "../../components/otherModels";
 import { removeUndefined } from "../../utils/filtering";
 import { useNavigate } from "react-router-dom";
+import { RightOutlined } from "@ant-design/icons";
 
 interface Props {
   description?: string;
@@ -155,7 +156,7 @@ const SpoolSelectModal: React.FC<Props> = ({ description, onContinue }) => {
             }),
           ])}
         />
-        <Row>
+        <Row gutter={[10, 10]}>
           <Col span={12}>
             <Checkbox
               checked={isAllFilteredSelected}
@@ -192,20 +193,27 @@ const SpoolSelectModal: React.FC<Props> = ({ description, onContinue }) => {
               {t("printing.spoolSelect.showArchived")}
             </Checkbox>
           </Col>
+          <Col span={24}>
+            <Button
+              type="primary"
+              icon={<RightOutlined />}
+              iconPosition="end"
+              onClick={() => {
+                if (selectedItems.length === 0) {
+                  messageApi.open({
+                    type: "error",
+                    content: t("printing.spoolSelect.noSpoolsSelected"),
+                  });
+                  return;
+                }
+                onContinue(dataSource.filter((spool) => selectedItems.includes(spool.id)));
+              }}
+            >
+              {t("buttons.continue")}
+            </Button>
+          </Col>
         </Row>
       </Space>
-      <Button
-        onClick={() => {
-          if (selectedItems.length === 0) {
-            messageApi.open({
-              type: "error",
-              content: t("printing.spoolSelect.noSpoolsSelected"),
-            });
-            return;
-          }
-          onContinue(dataSource.filter((spool) => selectedItems.includes(spool.id)));
-        }}
-      ></Button>
     </>
   );
 };
