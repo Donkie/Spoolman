@@ -5,7 +5,7 @@ import { Button, Form, Input, Typography, InputNumber } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { IVendor, IVendorParsedExtras } from "./model";
 import { EntityType, useGetFields } from "../../utils/queryFields";
-import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
+import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
@@ -28,6 +28,11 @@ export const VendorCreate: React.FC<IResourceComponentsProps & CreateOrCloneProp
 
   if (!formProps.initialValues) {
     formProps.initialValues = {};
+  }
+
+  if (props.mode === "clone") {
+    // Parse the extra fields from string values into real types
+    formProps.initialValues = ParsedExtras(formProps.initialValues);
   }
 
   const handleSubmit = async (redirectTo: "list" | "edit" | "create") => {

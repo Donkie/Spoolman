@@ -7,7 +7,7 @@ import { numberFormatter, numberParser } from "../../utils/parsing";
 import { IVendor } from "../vendors/model";
 import { IFilament, IFilamentParsedExtras } from "./model";
 import { EntityType, useGetFields } from "../../utils/queryFields";
-import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
+import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
@@ -52,6 +52,9 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
     if (formProps.initialValues.vendor) {
       formProps.initialValues.vendor_id = formProps.initialValues.vendor.id;
     }
+
+    // Parse the extra fields from string values into real types
+    formProps.initialValues = ParsedExtras(formProps.initialValues);
   }
 
   const handleSubmit = async (redirectTo: "list" | "create") => {

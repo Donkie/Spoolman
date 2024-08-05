@@ -24,7 +24,7 @@ import { useSpoolmanLocations } from "../../components/otherModels";
 import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
 import "../../utils/overrides.css";
 import { EntityType, useGetFields } from "../../utils/queryFields";
-import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
+import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import utc from "dayjs/plugin/utc";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { ExternalFilament, useGetExternalDBFilaments } from "../../utils/queryExternalDB";
@@ -73,6 +73,9 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     if (formProps.initialValues.filament) {
       formProps.initialValues.filament_id = formProps.initialValues.filament.id;
     }
+
+    // Parse the extra fields from string values into real types
+    formProps.initialValues = ParsedExtras(formProps.initialValues);
   }
 
   // If the query variable filament_id is set, set the filament_id field to that value
