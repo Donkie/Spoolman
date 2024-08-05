@@ -90,13 +90,14 @@
                 "border": "Border",
                 "grid": "Grid"
             },
-            "settings": "Settings",
+            "settings": "Presets",
             "defaultSettings": "Default",
-            "addSettings": "Add New Setting",
+            "addSettings": "Add New Preset",
             "newSetting": "New",
-            "deleteSettings": "Delete Current Setting",
-            "deleteSettingsConfirm": "Are you sure you want to delete this setting?",
-            "settingsName": "Setting Name"
+            "deleteSettings": "Delete Current Preset",
+            "deleteSettingsConfirm": "Are you sure you want to delete this preset?",
+            "settingsName": "Preset Name",
+            "saveSetting": "Save Presets"
         },
         "qrcode": {
             "button": "Print QR Codes",

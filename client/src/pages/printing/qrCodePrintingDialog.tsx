@@ -16,6 +16,7 @@ interface QRCodePrintingDialogProps {
   setPrintSettings: (setPrintSettings: QRCodePrintSettings) => void;
   extraSettings?: JSX.Element;
   extraSettingsStart?: JSX.Element;
+  extraButtons?: JSX.Element;
 }
 
 const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
@@ -24,6 +25,7 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
   setPrintSettings,
   extraSettings,
   extraSettingsStart,
+  extraButtons,
 }) => {
   const t = useTranslate();
 
@@ -57,6 +59,7 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
         printSettings.printSettings = newSettings;
         setPrintSettings(printSettings);
       }}
+      extraButtons={extraButtons}
       extraSettingsStart={extraSettingsStart}
       extraSettings={
         <>

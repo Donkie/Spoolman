@@ -1,20 +1,17 @@
-import { Button, Flex, Form, Input, Modal, Popconfirm, Select, Space, Switch, Table, Typography } from "antd";
-import { IFilament } from "../filaments/model";
+import { Button, Flex, Form, Input, Modal, Popconfirm, Select, Table, Typography, message } from "antd";
 import { ISpool } from "../spools/model";
 import QRCodePrintingDialog from "./qrCodePrintingDialog";
 import { useSavedState } from "../../utils/saveload";
 import { useTranslate } from "@refinedev/core";
 import {
-  QRCodePrintSettings,
   SpoolQRCodePrintSettings,
   renderLabelContents,
-  useGetPrintSettings,
-  useSetPrintSettings,
+  useGetPrintSettings as useGetPrintPresets,
+  useSetPrintSettings as useSetPrintPresets,
 } from "./printing";
-import { useMemo, useState } from "react";
-import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { useState } from "react";
+import { DeleteOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
 import { v4 as uuidv4 } from "uuid";
-import _ from "lodash";
 import TextArea from "antd/es/input/TextArea";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useGetSpoolsByIds } from "../spools/functions";
@@ -27,6 +24,7 @@ interface SpoolQRCodePrintingDialog {
 
 const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ spoolIds }) => {
   const t = useTranslate();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const itemQueries = useGetSpoolsByIds(spoolIds);
   const items = itemQueries
@@ -35,27 +33,27 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ spoolI
     })
     .filter((item) => item !== null) as ISpool[];
 
-  // Selected setting state
-  const [selectedSetting, setSelectedSetting] = useState<string | undefined>();
+  // Selected preset state
+  const [selectedPresetState, setSelectedPresetState] = useSavedState<string | undefined>("selectedPreset", undefined);
 
   // Keep a local copy of the settings which is what's actually displayed. Use the remote state only for saving.
   // This decouples the debounce stuff from the UI
-  const [localSettings, setLocalSettings] = useState<SpoolQRCodePrintSettings[] | undefined>();
-  const remoteSettings = useGetPrintSettings();
-  const setRemoteSettings = useSetPrintSettings();
-  const debouncedSetRemoteSettings = useMemo(() => _.debounce(setRemoteSettings, 500), []);
+  const [localPresets, setLocalPresets] = useState<SpoolQRCodePrintSettings[] | undefined>();
+  const remotePresets = useGetPrintPresets();
+  const setRemotePresets = useSetPrintPresets();
 
-  const allPrintSettings = localSettings ?? remoteSettings;
-  const setPrintSettings = (newSettings: SpoolQRCodePrintSettings[]) => {
-    setLocalSettings(newSettings);
-    debouncedSetRemoteSettings(newSettings);
+  const localOrRemotePresets = localPresets ?? remotePresets;
+
+  const savePresetsRemote = () => {
+    if (!localPresets) return;
+    setRemotePresets(localPresets);
   };
 
   // Functions to update settings
-  const addNewPrintSettings = () => {
-    if (!allPrintSettings) return;
+  const addNewPreset = () => {
+    if (!localOrRemotePresets) return;
     const newId = uuidv4();
-    const newSetting = {
+    const newPreset = {
       labelSettings: {
         printSettings: {
           id: newId,
@@ -63,31 +61,31 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ spoolI
         },
       },
     };
-    setPrintSettings([...allPrintSettings, newSetting]);
-    setSelectedSetting(newId);
-    return newSetting;
+    setLocalPresets([...localOrRemotePresets, newPreset]);
+    setSelectedPresetState(newId);
+    return newPreset;
   };
-  const updateCurrentPrintSettings = (newSettings: SpoolQRCodePrintSettings) => {
-    if (!allPrintSettings) return;
-    setPrintSettings(
-      allPrintSettings.map((settings) =>
-        settings.labelSettings.printSettings.id === newSettings.labelSettings.printSettings.id ? newSettings : settings
+  const updateCurrentPreset = (newSettings: SpoolQRCodePrintSettings) => {
+    if (!localOrRemotePresets) return;
+    setLocalPresets(
+      localOrRemotePresets.map((presets) =>
+        presets.labelSettings.printSettings.id === newSettings.labelSettings.printSettings.id ? newSettings : presets
       )
     );
   };
-  const deleteCurrentPrintSettings = () => {
-    if (!allPrintSettings) return;
-    setPrintSettings(
-      allPrintSettings.filter((qSetting) => qSetting.labelSettings.printSettings.id !== selectedSetting)
+  const deleteCurrentPreset = () => {
+    if (!localOrRemotePresets) return;
+    setLocalPresets(
+      localOrRemotePresets.filter((qPreset) => qPreset.labelSettings.printSettings.id !== selectedPresetState)
     );
-    setSelectedSetting(undefined);
+    setSelectedPresetState(undefined);
   };
 
-  // Initialize settings
-  let selectedPrintSetting: SpoolQRCodePrintSettings;
-  if (allPrintSettings === undefined) {
+  // Initialize presets
+  let curPreset: SpoolQRCodePrintSettings;
+  if (localOrRemotePresets === undefined) {
     // DB not loaded yet, use a temporary one
-    selectedPrintSetting = {
+    curPreset = {
       labelSettings: {
         printSettings: {
           id: "TEMP",
@@ -97,33 +95,33 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ spoolI
     };
   } else {
     // DB is loaded, find the selected setting
-    if (allPrintSettings.length === 0) {
+    if (localOrRemotePresets.length === 0) {
       // DB loaded, but no settings found, add a new one and select it
-      const newSetting = addNewPrintSettings();
+      const newSetting = addNewPreset();
       if (!newSetting) {
         console.error("Error adding new setting, this should never happen");
         return;
       }
 
       // Mutate the allPrintSettings list so that the rest of the UI will work fine
-      allPrintSettings.push(newSetting);
-      selectedPrintSetting = newSetting;
+      localOrRemotePresets.push(newSetting);
+      curPreset = newSetting;
     } else {
       // DB loaded and at least 1 setting exists
-      if (!selectedSetting) {
+      if (!selectedPresetState) {
         // No setting has been selected, select the first one
-        selectedPrintSetting = allPrintSettings[0];
-        setSelectedSetting(allPrintSettings[0].labelSettings.printSettings.id);
+        curPreset = localOrRemotePresets[0];
+        setSelectedPresetState(localOrRemotePresets[0].labelSettings.printSettings.id);
       } else {
         // A setting has been selected, find it
-        const foundSetting = allPrintSettings.find(
-          (settings) => settings.labelSettings.printSettings.id === selectedSetting
+        const foundSetting = localOrRemotePresets.find(
+          (settings) => settings.labelSettings.printSettings.id === selectedPresetState
         );
         if (foundSetting) {
-          selectedPrintSetting = foundSetting;
+          curPreset = foundSetting;
         } else {
           // Selected setting not found, select a temp one
-          selectedPrintSetting = {
+          curPreset = {
             labelSettings: {
               printSettings: {
                 id: "TEMP",
@@ -138,7 +136,7 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ spoolI
 
   const [templateHelpOpen, setTemplateHelpOpen] = useState(false);
   const template =
-    selectedPrintSetting.template ??
+    curPreset.template ??
     `**{filament.vendor.name} - {filament.name}
 #{id} - {filament.material}**
 Spool Weight: {filament.spool_weight} g
@@ -215,110 +213,128 @@ Lot Nr: {lot_nr}
   const templateTags = [...spoolTags, ...filamentTags, ...vendorTags];
 
   return (
-    <QRCodePrintingDialog
-      printSettings={selectedPrintSetting.labelSettings}
-      setPrintSettings={(newSettings) => {
-        selectedPrintSetting.labelSettings = newSettings;
-        updateCurrentPrintSettings(selectedPrintSetting);
-      }}
-      extraSettingsStart={
-        <>
-          <Form.Item label={t("printing.generic.settings")}>
-            <Flex gap={8}>
-              <Select
-                value={selectedSetting}
-                onChange={(value) => {
-                  setSelectedSetting(value);
-                }}
-                options={
-                  allPrintSettings &&
-                  allPrintSettings.map((settings) => ({
-                    label: settings.labelSettings.printSettings?.name || t("printing.generic.defaultSettings"),
-                    value: settings.labelSettings.printSettings.id,
-                  }))
-                }
-              ></Select>
-              <Button
-                style={{ width: "3em" }}
-                icon={<PlusOutlined />}
-                title={t("printing.generic.addSettings")}
-                onClick={addNewPrintSettings}
-              />
-              {allPrintSettings && allPrintSettings.length > 1 && (
-                <Popconfirm
-                  title={t("printing.generic.deleteSettings")}
-                  description={t("printing.generic.deleteSettingsConfirm")}
-                  onConfirm={deleteCurrentPrintSettings}
-                  okText={t("buttons.delete")}
-                  cancelText={t("buttons.cancel")}
-                >
-                  <Button
-                    style={{ width: "3em" }}
-                    danger
-                    icon={<DeleteOutlined />}
+    <>
+      {contextHolder}
+      <QRCodePrintingDialog
+        printSettings={curPreset.labelSettings}
+        setPrintSettings={(newSettings) => {
+          curPreset.labelSettings = newSettings;
+          updateCurrentPreset(curPreset);
+        }}
+        extraSettingsStart={
+          <>
+            <Form.Item label={t("printing.generic.settings")}>
+              <Flex gap={8}>
+                <Select
+                  value={selectedPresetState}
+                  onChange={(value) => {
+                    setSelectedPresetState(value);
+                  }}
+                  options={
+                    localOrRemotePresets &&
+                    localOrRemotePresets.map((settings) => ({
+                      label: settings.labelSettings.printSettings?.name || t("printing.generic.defaultSettings"),
+                      value: settings.labelSettings.printSettings.id,
+                    }))
+                  }
+                ></Select>
+                <Button
+                  style={{ width: "3em" }}
+                  icon={<PlusOutlined />}
+                  title={t("printing.generic.addSettings")}
+                  onClick={addNewPreset}
+                />
+                {localOrRemotePresets && localOrRemotePresets.length > 1 && (
+                  <Popconfirm
                     title={t("printing.generic.deleteSettings")}
-                  />
-                </Popconfirm>
-              )}
-            </Flex>
-          </Form.Item>
-          <Form.Item label={t("printing.generic.settingsName")}>
-            <Input
-              value={selectedPrintSetting.labelSettings.printSettings?.name}
-              onChange={(e) => {
-                selectedPrintSetting.labelSettings.printSettings.name = e.target.value;
-                updateCurrentPrintSettings(selectedPrintSetting);
+                    description={t("printing.generic.deleteSettingsConfirm")}
+                    onConfirm={deleteCurrentPreset}
+                    okText={t("buttons.delete")}
+                    cancelText={t("buttons.cancel")}
+                  >
+                    <Button
+                      style={{ width: "3em" }}
+                      danger
+                      icon={<DeleteOutlined />}
+                      title={t("printing.generic.deleteSettings")}
+                    />
+                  </Popconfirm>
+                )}
+              </Flex>
+            </Form.Item>
+            <Form.Item label={t("printing.generic.settingsName")}>
+              <Input
+                value={curPreset.labelSettings.printSettings?.name}
+                onChange={(e) => {
+                  curPreset.labelSettings.printSettings.name = e.target.value;
+                  updateCurrentPreset(curPreset);
+                }}
+              />
+            </Form.Item>
+          </>
+        }
+        items={items.map((spool) => ({
+          value: `web+spoolman:s-${spool.id}`,
+          label: (
+            <p
+              style={{
+                padding: "1mm 1mm 1mm 0",
+                margin: 0,
+                whiteSpace: "pre-wrap",
               }}
-            />
-          </Form.Item>
-        </>
-      }
-      items={items.map((spool) => ({
-        value: `web+spoolman:s-${spool.id}`,
-        label: (
-          <p
-            style={{
-              padding: "1mm 1mm 1mm 0",
-              margin: 0,
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {renderLabelContents(template, spool)}
-          </p>
-        ),
-        errorLevel: "H",
-      }))}
-      extraSettings={
-        <>
-          <Form.Item label={t("printing.qrcode.template")}>
-            <TextArea
-              value={template}
-              rows={8}
-              onChange={(newValue) => {
-                selectedPrintSetting.template = newValue.target.value;
-                updateCurrentPrintSettings(selectedPrintSetting);
+            >
+              {renderLabelContents(template, spool)}
+            </p>
+          ),
+          errorLevel: "H",
+        }))}
+        extraSettings={
+          <>
+            <Form.Item label={t("printing.qrcode.template")}>
+              <TextArea
+                value={template}
+                rows={8}
+                onChange={(newValue) => {
+                  curPreset.template = newValue.target.value;
+                  updateCurrentPreset(curPreset);
+                }}
+              />
+            </Form.Item>
+            <Modal open={templateHelpOpen} footer={null} onCancel={() => setTemplateHelpOpen(false)}>
+              <Table
+                size="small"
+                showHeader={false}
+                pagination={false}
+                scroll={{ y: 400 }}
+                columns={[{ dataIndex: "tag" }]}
+                dataSource={templateTags}
+              />
+            </Modal>
+            <Text type="secondary">
+              {t("printing.qrcode.templateHelp")}{" "}
+              <Button size="small" onClick={() => setTemplateHelpOpen(true)}>
+                {t("actions.show")}
+              </Button>
+            </Text>
+          </>
+        }
+        extraButtons={
+          <>
+            <Button
+              type="primary"
+              size="large"
+              icon={<SaveOutlined />}
+              onClick={() => {
+                savePresetsRemote();
+                messageApi.success(t("notifications.saveSuccessful"));
               }}
-            />
-          </Form.Item>
-          <Modal open={templateHelpOpen} footer={null} onCancel={() => setTemplateHelpOpen(false)}>
-            <Table
-              size="small"
-              showHeader={false}
-              pagination={false}
-              scroll={{ y: 400 }}
-              columns={[{ dataIndex: "tag" }]}
-              dataSource={templateTags}
-            />
-          </Modal>
-          <Text type="secondary">
-            {t("printing.qrcode.templateHelp")}{" "}
-            <Button size="small" onClick={() => setTemplateHelpOpen(true)}>
-              {t("actions.show")}
+            >
+              {t("printing.generic.saveSetting")}
             </Button>
-          </Text>
-        </>
-      }
-    />
+          </>
+        }
+      />
+    </>
   );
 };
 

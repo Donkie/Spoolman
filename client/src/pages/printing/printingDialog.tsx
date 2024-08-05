@@ -12,11 +12,13 @@ import {
   Radio,
   InputNumber,
   Collapse,
+  Space,
 } from "antd";
 import ReactToPrint from "react-to-print";
 import { useSavedState } from "../../utils/saveload";
 import { useTranslate } from "@refinedev/core";
 import { PrintSettings } from "./printing";
+import { PrinterOutlined } from "@ant-design/icons";
 
 interface PrintingDialogProps {
   items: JSX.Element[];
@@ -25,6 +27,7 @@ interface PrintingDialogProps {
   style?: string;
   extraSettings?: JSX.Element;
   extraSettingsStart?: JSX.Element;
+  extraButtons?: JSX.Element;
 }
 
 interface PaperDimensions {
@@ -66,6 +69,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
   style,
   extraSettings,
   extraSettingsStart,
+  extraButtons,
 }) => {
   const t = useTranslate();
 
@@ -774,11 +778,18 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
       </Row>
       <Row justify={"end"}>
         <Col>
-          <ReactToPrint
-            key="print-button"
-            trigger={() => <Button type="primary">{t("printing.generic.print")}</Button>}
-            content={() => printRef.current}
-          />
+          <Space>
+            {extraButtons}
+            <ReactToPrint
+              key="print-button"
+              trigger={() => (
+                <Button type="primary" icon={<PrinterOutlined />} size="large">
+                  {t("printing.generic.print")}
+                </Button>
+              )}
+              content={() => printRef.current}
+            />
+          </Space>
         </Col>
       </Row>
     </>
