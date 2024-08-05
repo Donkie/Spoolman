@@ -371,7 +371,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             ...commonProps,
             id: "price",
             i18ncat: "spool",
-            align: 'right',
+            align: "right",
             width: 80,
             render: (_, obj: ISpoolCollapsed) => {
               return obj.price?.toLocaleString(undefined, {
@@ -386,7 +386,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             ...commonProps,
             id: "used_weight",
             i18ncat: "spool",
-            align: 'right',
+            align: "right",
             unit: "g",
             maxDecimals: 0,
             width: 110,

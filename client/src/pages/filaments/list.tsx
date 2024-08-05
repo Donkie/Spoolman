@@ -260,7 +260,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             ...commonProps,
             id: "price",
             i18ncat: "filament",
-            align: 'right',
+            align: "right",
             width: 80,
             render: (_, obj: IFilamentCollapsed) => {
               return obj.price?.toLocaleString(undefined, {
