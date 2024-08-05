@@ -64,9 +64,9 @@
     "documentTitle": {
         "vendor": {
             "create": "Crea Produttore | Spoolman",
-            "clone": "#{{id}} Clona Produttore | Spoolman",
+            "clone": "#{{id}} Duplica Produttore | Spoolman",
             "edit": "#{{id}} Modifica Produttore | Spoolman",
-            "list": "Produttore | Spoolman",
+            "list": "Produttori | Spoolman",
             "show": "#{{id}} Mostra Produttore | Spoolman"
         },
         "default": "Spoolman",
@@ -111,7 +111,11 @@
             "used_weight": "Peso Utilizzato",
             "id": "ID",
             "remaining_weight": "Peso Rimanente",
-            "price": "Prezzo"
+            "price": "Prezzo",
+            "filament_external": "Esterno",
+            "filament_internal": "Interno",
+            "spool_weight": "Peso a vuoto / Tara",
+            "initial_weight": "Peso iniziale"
         },
         "titles": {
             "archive": "Archivia Bobina",
@@ -129,7 +133,10 @@
             "lot_nr": "Numero di lotto del produttore. Può essere utilizzato per garantire che la stampa abbia colori uniformi se vengono utilizzate più bobine.",
             "remaining_weight": "Quanto filamento è rimasto sulla bobina. Per una nuova bobina questo dovrebbe corrispondere al peso della bobina.",
             "location": "Dove si trova la bobina se disponi di più posizioni in cui conservare le bobine.",
-            "price": "Prezzo di una bobina completa. Se non viene impostato, verrà utilizzato il prezzo del filamento."
+            "price": "Prezzo di una bobina completa. Se non viene impostato, verrà utilizzato il prezzo del filamento.",
+            "spool_weight": "Il peso della bobina vuota (tara). Lasciare vuoto per usare il valore dal profilo filamento o dal profilo produttore",
+            "external_filament": "Hai selezionato un filamento da un database esterno. Un profilo filamento (e possibilmente anche un profilo produttore) verrà creato automaticamente quando crei questa bobina. Ciò potrebbe creare un profilo filamento duplicato se hai già creato un profilo per questo filamento.",
+            "initial_weight": "Peso iniziale del filamento sulla bobina (peso netto). Se non impostato, viene utilizzato il peso dal profilo del filamento"
         },
         "form": {
             "new_location_prompt": "Inserisci nuova posizione",
@@ -190,7 +197,8 @@
             "id": "ID",
             "color_hex": "Colore",
             "article_number": "Numero Articolo",
-            "spools": "Mostra bobine"
+            "spools": "Mostra bobine",
+            "external_id": "ID esterno"
         },
         "titles": {
             "clone": "Clona Filamento",
@@ -202,7 +210,9 @@
         },
         "filament": "Filamenti",
         "form": {
-            "filament_updated": "Ci sono stati degli aggiornamenti per questo filamento da quando è stata aperta questa pagina. Il salvataggio sovrascriverà le modifiche!"
+            "filament_updated": "Ci sono stati degli aggiornamenti per questo filamento da quando è stata aperta questa pagina. Il salvataggio sovrascriverà le modifiche!",
+            "import_external": "Importa da Esterno",
+            "import_external_description": "Seleziona un filamento dalla lista per compilare automaticamente i dettagli del modulo creazione filamento. Ciò sovrascriverà qualsiasi informazione hai precedentemente inserito nel modulo. <rb><br> Se necessario, verrà creato automaticamente un profilo Produttore quando clicchi Ok."
         },
         "buttons": {
             "add_spool": "Aggiungi Bobina"
@@ -220,7 +230,7 @@
             "show_title": "[Produttore #{{id}}] {{name}}",
             "show": "Mostra Produttori",
             "edit": "Modifica Produttore",
-            "clone": "Clona Produttore",
+            "clone": "Duplica Produttore",
             "create": "Crea Produttore",
             "list": "Produttori"
         },
@@ -228,11 +238,16 @@
             "registered": "Registrato",
             "comment": "Note",
             "name": "Nome",
-            "id": "ID"
+            "id": "ID",
+            "external_id": "ID Esterno",
+            "empty_spool_weight": "Peso a vuoto della bobina / Tara"
         },
         "vendor": "Produttori",
         "form": {
-            "vendor_updated": "Ci sono stati degli aggiornamenti per questo produttore da quando è stata aperta questa pagina. Il salvataggio sovrascriverà le modifiche!"
+            "vendor_updated": "Questo profilo Produttore ha subito modifiche da qualcuno/qualcosa da quando hai aperto questa pagina. Il salvataggio sovrascriverà tali modifiche!"
+        },
+        "fields_help": {
+            "empty_spool_weight": "Il peso di una bobina vuota di questo produttore."
         }
     },
     "scanner": {
