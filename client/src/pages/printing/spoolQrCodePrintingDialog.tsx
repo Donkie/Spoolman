@@ -17,15 +17,23 @@ import { v4 as uuidv4 } from "uuid";
 import _ from "lodash";
 import TextArea from "antd/es/input/TextArea";
 import { EntityType, useGetFields } from "../../utils/queryFields";
+import { useGetSpoolsByIds } from "../spools/functions";
 
 const { Text } = Typography;
 
 interface SpoolQRCodePrintingDialog {
-  items: ISpool[];
+  spoolIds: number[];
 }
 
-const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ items }) => {
+const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ spoolIds }) => {
   const t = useTranslate();
+
+  const itemQueries = useGetSpoolsByIds(spoolIds);
+  const items = itemQueries
+    .map((itemQuery) => {
+      return itemQuery.data ?? null;
+    })
+    .filter((item) => item !== null) as ISpool[];
 
   // Selected setting state
   const [selectedSetting, setSelectedSetting] = useState<string | undefined>();
@@ -265,23 +273,21 @@ Lot Nr: {lot_nr}
           </Form.Item>
         </>
       }
-      items={items.map(function (spool) {
-        return {
-          value: `web+spoolman:s-${spool.id}`,
-          label: (
-            <p
-              style={{
-                padding: "1mm 1mm 1mm 0",
-                margin: 0,
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              {renderLabelContents(template, spool)}
-            </p>
-          ),
-          errorLevel: "H",
-        };
-      })}
+      items={items.map((spool) => ({
+        value: `web+spoolman:s-${spool.id}`,
+        label: (
+          <p
+            style={{
+              padding: "1mm 1mm 1mm 0",
+              margin: 0,
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {renderLabelContents(template, spool)}
+          </p>
+        ),
+        errorLevel: "H",
+      }))}
       extraSettings={
         <>
           <Form.Item label={t("printing.qrcode.template")}>

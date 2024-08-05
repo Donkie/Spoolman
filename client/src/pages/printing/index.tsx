@@ -7,6 +7,7 @@ import { theme } from "antd";
 import SpoolQRCodePrintingDialog from "./spoolQrCodePrintingDialog";
 import SpoolSelectModal from "./spoolSelectModal";
 import { ISpool } from "../spools/model";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 dayjs.extend(utc);
 
@@ -15,9 +16,10 @@ const { useToken } = theme;
 export const Printing: React.FC<IResourceComponentsProps> = () => {
   const { token } = useToken();
   const t = useTranslate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [step, setStep] = React.useState<0 | 1>(0);
-  const [selectedSpools, setSelectedSpools] = React.useState<ISpool[]>([]);
+  const spoolIds = searchParams.getAll("spools").map(Number);
+  const step = spoolIds.length > 0 ? 1 : 0;
 
   return (
     <Content
@@ -37,12 +39,16 @@ export const Printing: React.FC<IResourceComponentsProps> = () => {
         <SpoolSelectModal
           description={t("printing.spoolSelect.description")}
           onContinue={(spools) => {
-            setSelectedSpools(spools);
-            setStep(1);
+            setSearchParams((prev) => {
+              const newParams = new URLSearchParams(prev);
+              newParams.delete("spools");
+              spools.forEach((spool) => newParams.append("spools", spool.id.toString()));
+              return newParams;
+            });
           }}
         />
       )}
-      {step === 1 && <SpoolQRCodePrintingDialog items={selectedSpools} />}
+      {step === 1 && <SpoolQRCodePrintingDialog spoolIds={spoolIds} />}
     </Content>
   );
 };

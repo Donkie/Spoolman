@@ -5,6 +5,7 @@ import { ISpool } from "./model";
 import { IFilament } from "../filaments/model";
 import { SpoolType, useGetExternalDBFilaments } from "../../utils/queryExternalDB";
 import { useMemo } from "react";
+import { useQueries } from "@tanstack/react-query";
 
 export async function setSpoolArchived(spool: ISpool, archived: boolean) {
   const init: RequestInit = {
@@ -18,6 +19,27 @@ export async function setSpoolArchived(spool: ISpool, archived: boolean) {
   };
   const request = new Request(getAPIURL() + "/spool/" + spool.id);
   await fetch(request, init);
+}
+
+/**
+ * Returns an array of queries using the useQueries hook from @tanstack/react-query.
+ * Each query fetches a spool by its ID from the server.
+ *
+ * @param {number[]} ids - An array of spool IDs to fetch.
+ * @return An array of query results, each containing the fetched spool data.
+ */
+export function useGetSpoolsByIds(ids: number[]) {
+  return useQueries({
+    queries: ids.map((id) => {
+      return {
+        queryKey: ["spool", id],
+        queryFn: async () => {
+          const res = await fetch(getAPIURL() + "/spool/" + id);
+          return (await res.json()) as ISpool;
+        },
+      };
+    }),
+  });
 }
 
 /**
