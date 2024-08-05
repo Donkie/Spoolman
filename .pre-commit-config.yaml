@@ -19,6 +19,6 @@ repos:
       - id: ruff
         args: ["--target-version", "py39"]
   - repo: https://github.com/pdm-project/pdm
-    rev: 2.15.3
+    rev: 2.17.3
     hooks:
       - id: pdm-lock-check
