@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
 import { useTable, List } from "@refinedev/antd";
 import { Table, Button, Dropdown, Modal } from "antd";
@@ -13,6 +13,7 @@ import {
   InboxOutlined,
   PlusSquareOutlined,
   PrinterOutlined,
+  ToolOutlined,
   ToTopOutlined,
 } from "@ant-design/icons";
 import {
@@ -26,7 +27,7 @@ import {
   ActionsColumn,
   CustomFieldColumn,
 } from "../../components/column";
-import { setSpoolArchived } from "./functions";
+import { setSpoolArchived, useSpoolAdjustModal } from "./functions";
 import {
   useSpoolmanFilamentFilter,
   useSpoolmanLocations,
@@ -102,6 +103,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const navigate = useNavigate();
   const extraFields = useGetFields(EntityType.spool);
   const currency = useCurrency();
+  const { openSpoolAdjustModal, spoolAdjustModal } = useSpoolAdjustModal();
 
   const allColumnsWithExtraFields = [...allColumns, ...(extraFields.data?.map((field) => "extra." + field.key) ?? [])];
 
@@ -208,23 +210,27 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   }
 
   const { editUrl, showUrl, cloneUrl } = useNavigation();
-  const actions = (record: ISpoolCollapsed) => {
-    const actions: Action[] = [
-      { name: t("buttons.show"), icon: <EyeOutlined />, link: showUrl("spool", record.id) },
-      { name: t("buttons.edit"), icon: <EditOutlined />, link: editUrl("spool", record.id) },
-      { name: t("buttons.clone"), icon: <PlusSquareOutlined />, link: cloneUrl("spool", record.id) },
-    ];
-    if (record.archived) {
-      actions.push({
-        name: t("buttons.unArchive"),
-        icon: <ToTopOutlined />,
-        onClick: () => archiveSpool(record, false),
-      });
-    } else {
-      actions.push({ name: t("buttons.archive"), icon: <InboxOutlined />, onClick: () => archiveSpoolPopup(record) });
-    }
-    return actions;
-  };
+  const actions = useCallback(
+    (record: ISpoolCollapsed) => {
+      const actions: Action[] = [
+        { name: t("buttons.show"), icon: <EyeOutlined />, link: showUrl("spool", record.id) },
+        { name: t("buttons.edit"), icon: <EditOutlined />, link: editUrl("spool", record.id) },
+        { name: t("buttons.clone"), icon: <PlusSquareOutlined />, link: cloneUrl("spool", record.id) },
+        { name: t("spool.titles.adjust"), icon: <ToolOutlined />, onClick: () => openSpoolAdjustModal(record) },
+      ];
+      if (record.archived) {
+        actions.push({
+          name: t("buttons.unArchive"),
+          icon: <ToTopOutlined />,
+          onClick: () => archiveSpool(record, false),
+        });
+      } else {
+        actions.push({ name: t("buttons.archive"), icon: <InboxOutlined />, onClick: () => archiveSpoolPopup(record) });
+      }
+      return actions;
+    },
+    [t, editUrl, showUrl, cloneUrl, openSpoolAdjustModal, archiveSpool, archiveSpoolPopup]
+  );
 
   const originalOnChange = tableProps.onChange;
   tableProps.onChange = (pagination, filters, sorter, extra) => {
@@ -319,6 +325,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
         </>
       )}
     >
+      {spoolAdjustModal}
       <Table
         {...tableProps}
         sticky

@@ -177,9 +177,17 @@
             "list": "Spools",
             "show": "Show Spool",
             "show_title": "[Spool #{{id}}] {{name}}",
-            "archive": "Archive Spool"
+            "archive": "Archive Spool",
+            "adjust": "Adjust Spool Filament"
         },
         "form": {
+            "measurement_type": {
+                "length": "Length",
+                "weight": "Weight"
+            },
+            "measurement_type_label": "Measurement Type",
+            "adjust_filament_help": "Here you can directly add or subtract filament from the spool. A positive value will consume filament, a negative value will add it.",
+            "adjust_filament_value": "Consume Amount",
             "new_location_prompt": "Enter a new location",
             "spool_updated": "This spool has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
         },
