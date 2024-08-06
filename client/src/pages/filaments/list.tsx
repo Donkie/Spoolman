@@ -1,4 +1,4 @@
-import React from "react";
+import { useMemo, useState } from "react";
 import { IResourceComponentsProps, useTranslate, useInvalidate, useNavigation } from "@refinedev/core";
 import { useTable, List } from "@refinedev/antd";
 import { Table, Button, Dropdown } from "antd";
@@ -125,7 +125,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
     });
 
   // Create state for the columns to show
-  const [showColumns, setShowColumns] = React.useState<string[]>(initialState.showColumns ?? defaultColumns);
+  const [showColumns, setShowColumns] = useState<string[]>(initialState.showColumns ?? defaultColumns);
 
   // Store state in local storage
   const tableState: TableState = {
@@ -137,7 +137,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   useStoreInitialState(namespace, tableState);
 
   // Collapse the dataSource to a mutable list
-  const queryDataSource: IFilamentCollapsed[] = React.useMemo(
+  const queryDataSource: IFilamentCollapsed[] = useMemo(
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource]
   );

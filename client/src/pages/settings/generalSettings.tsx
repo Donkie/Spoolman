@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import { useTranslate } from "@refinedev/core";
 import { Button, Form, Input, message } from "antd";
 import { useGetSettings, useSetSetting } from "../../utils/querySettings";
@@ -11,7 +11,7 @@ export function GeneralSettings() {
   const t = useTranslate();
 
   // Set initial form values
-  React.useEffect(() => {
+  useEffect(() => {
     if (settings.data) {
       form.setFieldsValue({
         currency: JSON.parse(settings.data.currency.value),
@@ -20,7 +20,7 @@ export function GeneralSettings() {
   }, [settings.data, form]);
 
   // Popup message if setSetting is successful
-  React.useEffect(() => {
+  useEffect(() => {
     if (setCurrency.isSuccess) {
       messageApi.success(t("notifications.saveSuccessful"));
     }

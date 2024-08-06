@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, DatePicker, Select, InputNumber, ColorPicker, message, Alert, Typography, Radio } from "antd";
@@ -26,7 +26,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
   const [hasChanged, setHasChanged] = useState(false);
   const extraFields = useGetFields(EntityType.filament);
   const currency = useCurrency();
-  const [colorType, setColorType] = React.useState<"single" | "multi">("single");
+  const [colorType, setColorType] = useState<"single" | "multi">("single");
 
   const { formProps, saveButtonProps } = useForm<IFilament, HttpError, IFilament, IFilament>({
     liveMode: "manual",
@@ -52,7 +52,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
   }
 
   // Update colorType state
-  React.useEffect(() => {
+  useEffect(() => {
     console.log(formProps.initialValues?.multi_color_hexes);
     if (formProps.initialValues?.multi_color_hexes) {
       setColorType("multi");

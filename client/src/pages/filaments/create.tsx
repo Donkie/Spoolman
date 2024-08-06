@@ -1,7 +1,6 @@
-import React from "react";
 import { HttpError, IResourceComponentsProps, useInvalidate, useTranslate } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, Select, InputNumber, ColorPicker, Button, Typography, Modal, Radio } from "antd";
+import { Form, Input, Select, InputNumber, ColorPicker, Button, Typography, Radio } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { numberFormatter, numberParser } from "../../utils/parsing";
 import { IVendor } from "../vendors/model";
@@ -11,12 +10,11 @@ import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../compo
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
-import { searchMatches } from "../../utils/filtering";
-import { ExternalFilament, useGetExternalDBFilaments } from "../../utils/queryExternalDB";
-import { formatFilamentLabel } from "../spools/functions";
+import { ExternalFilament } from "../../utils/queryExternalDB";
 import { FilamentImportModal } from "../../components/filamentImportModal";
 import { getOrCreateVendorFromExternal } from "../vendors/functions";
 import { MultiColorPicker } from "../../components/multiColorPicker";
+import { useEffect, useState } from "react";
 
 dayjs.extend(utc);
 
@@ -32,9 +30,9 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.filament);
   const currency = useCurrency();
-  const [isImportExtOpen, setIsImportExtOpen] = React.useState(false);
+  const [isImportExtOpen, setIsImportExtOpen] = useState(false);
   const invalidate = useInvalidate();
-  const [colorType, setColorType] = React.useState<"single" | "multi">("single");
+  const [colorType, setColorType] = useState<"single" | "multi">("single");
 
   const { form, formProps, formLoading, onFinish, redirect } = useForm<
     IFilament,
@@ -91,7 +89,7 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
 
   // Use useEffect to update the form's initialValues when the extra fields are loaded
   // This is necessary because the form is rendered before the extra fields are loaded
-  React.useEffect(() => {
+  useEffect(() => {
     extraFields.data?.forEach((field) => {
       if (formProps.initialValues && field.default_value) {
         const parsedValue = JSON.parse(field.default_value as string);

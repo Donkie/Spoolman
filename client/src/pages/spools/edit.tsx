@@ -1,10 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
-import { Edit, useForm, useSelect } from "@refinedev/antd";
+import { Edit, useForm } from "@refinedev/antd";
 import { Form, Input, DatePicker, Select, InputNumber, Radio, Divider, Alert, Typography } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
-import { IFilament } from "../filaments/model";
 import { ISpool, ISpoolParsedExtras, WeightToEnter } from "./model";
 import { numberFormatter, numberParser } from "../../utils/parsing";
 import { useSpoolmanLocations } from "../../components/otherModels";
@@ -117,7 +116,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   const [weightToEnter, setWeightToEnter] = useState(1);
   const [usedWeight, setUsedWeight] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const newFilamentWeight = selectedFilament?.weight || 0;
     const newSpoolWeight = selectedFilament?.spool_weight || 0;
     console.log("selectedFilament", selectedFilament, newFilamentWeight, newSpoolWeight);
@@ -190,7 +189,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
     return selectedFilament?.weight ? true : false;
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (weightToEnter >= WeightToEnter.measured_weight) {
       if (!isMeasuredWeightEnabled()) {
         setWeightToEnter(WeightToEnter.remaining_weight);

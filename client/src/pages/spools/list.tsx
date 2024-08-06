@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
 import { useTable, List } from "@refinedev/antd";
 import { Table, Button, Dropdown, Modal } from "antd";
@@ -159,7 +159,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     });
 
   // Create state for the columns to show
-  const [showColumns, setShowColumns] = React.useState<string[]>(initialState.showColumns ?? defaultColumns);
+  const [showColumns, setShowColumns] = useState<string[]>(initialState.showColumns ?? defaultColumns);
 
   // Store state in local storage
   const tableState: TableState = {
@@ -171,7 +171,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   useStoreInitialState(namespace, tableState);
 
   // Collapse the dataSource to a mutable list
-  const queryDataSource: ISpoolCollapsed[] = React.useMemo(
+  const queryDataSource: ISpoolCollapsed[] = useMemo(
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource]
   );

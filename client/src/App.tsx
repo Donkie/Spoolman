@@ -19,7 +19,6 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { ConfigProvider } from "antd";
-import React from "react";
 import { Locale } from "antd/es/locale";
 import { languages } from "./i18n";
 import loadable from "@loadable/component";
@@ -28,6 +27,7 @@ import { SpoolmanLayout } from "./components/layout";
 import liveProvider from "./components/liveProvider";
 import { getAPIURL, getBasePath } from "./utils/url";
 import { Favicon } from "./components/favicon";
+import { useEffect, useState } from "react";
 
 interface ResourcePageProps {
   resource: "spools" | "filaments" | "vendors";
@@ -62,8 +62,8 @@ function App() {
   };
 
   // Fetch the antd locale using dynamic imports
-  const [antdLocale, setAntdLocale] = React.useState<Locale | undefined>();
-  React.useEffect(() => {
+  const [antdLocale, setAntdLocale] = useState<Locale | undefined>();
+  useEffect(() => {
     const fetchLocale = async () => {
       const locale = await import(
         `./../node_modules/antd/es/locale/${languages[i18n.language].fullCode.replace("-", "_")}.js`

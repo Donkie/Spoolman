@@ -1,4 +1,3 @@
-import React from "react";
 import { IResourceComponentsProps, useTranslate, useInvalidate, useNavigation } from "@refinedev/core";
 import { useTable, List } from "@refinedev/antd";
 import { Table, Button, Dropdown } from "antd";
@@ -19,6 +18,7 @@ import { useLiveify } from "../../components/liveify";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
 
 dayjs.extend(utc);
 
@@ -66,7 +66,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
   });
 
   // Create state for the columns to show
-  const [showColumns, setShowColumns] = React.useState<string[]>(initialState.showColumns ?? allColumns);
+  const [showColumns, setShowColumns] = useState<string[]>(initialState.showColumns ?? allColumns);
 
   // Store state in local storage
   const tableState: TableState = {
@@ -78,9 +78,9 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
   useStoreInitialState(namespace, tableState);
 
   // Collapse the dataSource to a mutable list
-  const queryDataSource: IVendor[] = React.useMemo(
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource]
+  const queryDataSource: IVendor[] = useMemo(
   );
   const dataSource = useLiveify("vendor", queryDataSource, (record: IVendor) => record);
 

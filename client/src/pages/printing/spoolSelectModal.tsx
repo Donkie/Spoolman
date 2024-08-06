@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useMemo, useState } from "react";
 import { Table, Checkbox, Space, Row, Col, message, Button } from "antd";
 import { ISpool } from "../spools/model";
 import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
@@ -79,7 +79,7 @@ const SpoolSelectModal: React.FC<Props> = ({ description, onContinue }) => {
   };
 
   // Collapse the dataSource to a mutable list and add a filament_name field
-  const dataSource: ISpoolCollapsed[] = React.useMemo(
+  const dataSource: ISpoolCollapsed[] = useMemo(
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource]
   );

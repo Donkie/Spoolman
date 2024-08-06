@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Create, useForm } from "@refinedev/antd";
 import { Button, Form, Input, Typography, InputNumber } from "antd";
@@ -43,7 +43,7 @@ export const VendorCreate: React.FC<IResourceComponentsProps & CreateOrCloneProp
 
   // Use useEffect to update the form's initialValues when the extra fields are loaded
   // This is necessary because the form is rendered before the extra fields are loaded
-  React.useEffect(() => {
+  useEffect(() => {
     extraFields.data?.forEach((field) => {
       if (formProps.initialValues && field.default_value) {
         const parsedValue = JSON.parse(field.default_value as string);

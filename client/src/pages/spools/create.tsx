@@ -1,25 +1,11 @@
-import React, { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
-import { Create, useForm, useSelect } from "@refinedev/antd";
-import {
-  Form,
-  Input,
-  DatePicker,
-  Select,
-  InputNumber,
-  Radio,
-  Divider,
-  Button,
-  Typography,
-  ConfigProvider,
-  Alert,
-  Space,
-} from "antd";
+import { Create, useForm } from "@refinedev/antd";
+import { Form, Input, DatePicker, Select, InputNumber, Radio, Divider, Button, Typography, Alert } from "antd";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
-import { IFilament } from "../filaments/model";
 import { ISpool, ISpoolParsedExtras, WeightToEnter } from "./model";
-import { formatLength, formatWeight, numberFormatter, numberParser } from "../../utils/parsing";
+import { numberFormatter, numberParser } from "../../utils/parsing";
 import { useSpoolmanLocations } from "../../components/otherModels";
 import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
 import "../../utils/overrides.css";
@@ -27,9 +13,8 @@ import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import utc from "dayjs/plugin/utc";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
-import { ExternalFilament, useGetExternalDBFilaments } from "../../utils/queryExternalDB";
 import { createFilamentFromExternal } from "../filaments/functions";
-import { formatFilamentLabel, useGetFilamentSelectOptions } from "./functions";
+import { useGetFilamentSelectOptions } from "./functions";
 import { searchMatches } from "../../utils/filtering";
 
 dayjs.extend(utc);
@@ -145,7 +130,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
 
   // Use useEffect to update the form's initialValues when the extra fields are loaded
   // This is necessary because the form is rendered before the extra fields are loaded
-  React.useEffect(() => {
+  useEffect(() => {
     extraFields.data?.forEach((field) => {
       if (formProps.initialValues && field.default_value) {
         const parsedValue = JSON.parse(field.default_value as string);
@@ -161,7 +146,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   const [weightToEnter, setWeightToEnter] = useState(1);
   const [usedWeight, setUsedWeight] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const newFilamentWeight = selectedFilament?.weight || 0;
     const newSpoolWeight = selectedFilament?.spool_weight || 0;
     if (newFilamentWeight > 0) {
@@ -242,7 +227,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     return selectedFilament?.weight ? true : false;
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (weightToEnter >= WeightToEnter.measured_weight) {
       if (!isMeasuredWeightEnabled()) {
         setWeightToEnter(WeightToEnter.remaining_weight);
