@@ -11,7 +11,7 @@ from typing import Any
 import httpx
 import pytest
 
-TIMEOUT = 10
+TIMEOUT = 30
 
 URL = "http://spoolman:" + os.environ.get("SPOOLMAN_PORT", "8000")
 
