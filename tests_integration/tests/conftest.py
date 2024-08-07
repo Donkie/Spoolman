@@ -37,7 +37,7 @@ def get_db_type() -> DbType:
     return db_type
 
 
-def pytest_sessionstart(_: pytest.Session) -> None:
+def pytest_sessionstart(session):  # noqa: ARG001, ANN001
     """Wait for the server to start up."""
     start_time = time.time()
     while True:
