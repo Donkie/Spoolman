@@ -18,7 +18,7 @@ import { useLiveify } from "../../components/liveify";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useNavigate } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 dayjs.extend(utc);
 
@@ -78,11 +78,14 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
   useStoreInitialState(namespace, tableState);
 
   // Collapse the dataSource to a mutable list
-    () => (tableProps.dataSource || []).map((record) => ({ ...record })),
-    [tableProps.dataSource]
-  const queryDataSource: IVendor[] = useMemo(
+  const queryDataSource: IVendor[] = useMemo(() => {
+    return (tableProps.dataSource || []).map((record) => ({ ...record }));
+  }, [tableProps.dataSource]);
+  const dataSource = useLiveify(
+    "vendor",
+    queryDataSource,
+    useCallback((record: IVendor) => record, [])
   );
-  const dataSource = useLiveify("vendor", queryDataSource, (record: IVendor) => record);
 
   if (tableProps.pagination) {
     tableProps.pagination.showSizeChanger = true;
