@@ -1,21 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
-import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
-import { Create, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, InputNumber, Radio, Divider, Button, Typography, Alert } from "antd";
-import dayjs from "dayjs";
-import TextArea from "antd/es/input/TextArea";
-import { ISpool, ISpoolParsedExtras, WeightToEnter } from "./model";
-import { numberFormatter, numberParser } from "../../utils/parsing";
-import { useSpoolmanLocations } from "../../components/otherModels";
 import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
-import "../../utils/overrides.css";
-import { EntityType, useGetFields } from "../../utils/queryFields";
-import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
+import { Create, useForm } from "@refinedev/antd";
+import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
+import { Alert, Button, DatePicker, Divider, Form, Input, InputNumber, Radio, Select, Typography } from "antd";
+import TextArea from "antd/es/input/TextArea";
+import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { useEffect, useMemo, useState } from "react";
+import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
+import { useSpoolmanLocations } from "../../components/otherModels";
+import { searchMatches } from "../../utils/filtering";
+import "../../utils/overrides.css";
+import { numberFormatter, numberParser } from "../../utils/parsing";
+import { EntityType, useGetFields } from "../../utils/queryFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { createFilamentFromExternal } from "../filaments/functions";
 import { useGetFilamentSelectOptions } from "./functions";
-import { searchMatches } from "../../utils/filtering";
+import { ISpool, ISpoolParsedExtras, WeightToEnter } from "./model";
 
 dayjs.extend(utc);
 

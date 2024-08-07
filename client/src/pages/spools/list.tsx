@@ -1,11 +1,3 @@
-import { useCallback, useMemo, useState } from "react";
-import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
-import { useTable, List } from "@refinedev/antd";
-import { Table, Button, Dropdown, Modal } from "antd";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import { ISpool } from "./model";
-import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
 import {
   EditOutlined,
   EyeOutlined,
@@ -16,29 +8,37 @@ import {
   ToolOutlined,
   ToTopOutlined,
 } from "@ant-design/icons";
+import { List, useTable } from "@refinedev/antd";
+import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
+import { Button, Dropdown, Modal, Table } from "antd";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { useCallback, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
+  Action,
+  ActionsColumn,
+  CustomFieldColumn,
   DateColumn,
   FilteredQueryColumn,
   NumberColumn,
   RichColumn,
   SortedColumn,
   SpoolIconColumn,
-  Action,
-  ActionsColumn,
-  CustomFieldColumn,
 } from "../../components/column";
-import { setSpoolArchived, useSpoolAdjustModal } from "./functions";
+import { useLiveify } from "../../components/liveify";
 import {
   useSpoolmanFilamentFilter,
   useSpoolmanLocations,
   useSpoolmanLotNumbers,
   useSpoolmanMaterials,
 } from "../../components/otherModels";
-import { useLiveify } from "../../components/liveify";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
-import { useNavigate } from "react-router-dom";
+import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
 import { useCurrency } from "../../utils/settings";
+import { setSpoolArchived, useSpoolAdjustModal } from "./functions";
+import { ISpool } from "./model";
 
 dayjs.extend(utc);
 

@@ -1,14 +1,14 @@
-import { useMemo, useState } from "react";
-import { Table, Checkbox, Space, Row, Col, message, Button } from "antd";
-import { ISpool } from "../spools/model";
-import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
-import { TableState } from "../../utils/saveload";
+import { RightOutlined } from "@ant-design/icons";
 import { useTable } from "@refinedev/antd";
+import { Button, Checkbox, Col, message, Row, Space, Table } from "antd";
 import { t } from "i18next";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
 import { useSpoolmanFilamentFilter, useSpoolmanMaterials } from "../../components/otherModels";
 import { removeUndefined } from "../../utils/filtering";
-import { useNavigate } from "react-router-dom";
-import { RightOutlined } from "@ant-design/icons";
+import { TableState } from "../../utils/saveload";
+import { ISpool } from "../spools/model";
 
 interface Props {
   description?: string;

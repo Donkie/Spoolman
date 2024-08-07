@@ -1,20 +1,20 @@
-import { HttpError, IResourceComponentsProps, useInvalidate, useTranslate } from "@refinedev/core";
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, Select, InputNumber, ColorPicker, Button, Typography, Radio } from "antd";
+import { HttpError, IResourceComponentsProps, useInvalidate, useTranslate } from "@refinedev/core";
+import { Button, ColorPicker, Form, Input, InputNumber, Radio, Select, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
-import { numberFormatter, numberParser } from "../../utils/parsing";
-import { IVendor } from "../vendors/model";
-import { IFilament, IFilamentParsedExtras } from "./model";
-import { EntityType, useGetFields } from "../../utils/queryFields";
-import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { getCurrencySymbol, useCurrency } from "../../utils/settings";
-import { ExternalFilament } from "../../utils/queryExternalDB";
-import { FilamentImportModal } from "../../components/filamentImportModal";
-import { getOrCreateVendorFromExternal } from "../vendors/functions";
-import { MultiColorPicker } from "../../components/multiColorPicker";
 import { useEffect, useState } from "react";
+import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
+import { FilamentImportModal } from "../../components/filamentImportModal";
+import { MultiColorPicker } from "../../components/multiColorPicker";
+import { numberFormatter, numberParser } from "../../utils/parsing";
+import { ExternalFilament } from "../../utils/queryExternalDB";
+import { EntityType, useGetFields } from "../../utils/queryFields";
+import { getCurrencySymbol, useCurrency } from "../../utils/settings";
+import { getOrCreateVendorFromExternal } from "../vendors/functions";
+import { IVendor } from "../vendors/model";
+import { IFilament, IFilamentParsedExtras } from "./model";
 
 dayjs.extend(utc);
 

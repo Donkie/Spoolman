@@ -1,10 +1,9 @@
-import { Form, InputNumber, Modal, Select } from "antd";
-import { useState } from "react";
-import { ExternalFilament, useGetExternalDBFilaments } from "../utils/queryExternalDB";
+import { useTranslate } from "@refinedev/core";
+import { Form, Modal, Select } from "antd";
+import { Trans } from "react-i18next";
 import { formatFilamentLabel } from "../pages/spools/functions";
 import { searchMatches } from "../utils/filtering";
-import { useTranslate } from "@refinedev/core";
-import { Trans } from "react-i18next";
+import { ExternalFilament, useGetExternalDBFilaments } from "../utils/queryExternalDB";
 
 export function FilamentImportModal(props: {
   isOpen: boolean;

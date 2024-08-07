@@ -1,13 +1,13 @@
 import { useSelect, useTranslate } from "@refinedev/core";
-import { formatLength, formatWeight } from "../../utils/parsing";
-import { getAPIURL } from "../../utils/url";
-import { ISpool } from "./model";
-import { IFilament } from "../filaments/model";
-import { SpoolType, useGetExternalDBFilaments } from "../../utils/queryExternalDB";
-import { useCallback, useMemo, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
-import { Button, Form, InputNumber, Modal, Radio } from "antd";
+import { Form, InputNumber, Modal, Radio } from "antd";
 import { useForm } from "antd/es/form/Form";
+import { useCallback, useMemo, useState } from "react";
+import { formatLength, formatWeight } from "../../utils/parsing";
+import { SpoolType, useGetExternalDBFilaments } from "../../utils/queryExternalDB";
+import { getAPIURL } from "../../utils/url";
+import { IFilament } from "../filaments/model";
+import { ISpool } from "./model";
 
 export async function setSpoolArchived(spool: ISpool, archived: boolean) {
   const init: RequestInit = {

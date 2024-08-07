@@ -1,6 +1,6 @@
-import React from "react";
-import { Typography } from "antd";
 import { NumberFieldProps } from "@refinedev/antd/dist/components/fields/types";
+import { Typography } from "antd";
+import React from "react";
 
 const { Text } = Typography;
 

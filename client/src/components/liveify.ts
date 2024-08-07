@@ -1,7 +1,7 @@
 import { LiveEvent } from "@refinedev/core";
-import liveProvider from "./liveProvider";
-import { getAPIURL } from "../utils/url";
 import { useEffect, useState } from "react";
+import { getAPIURL } from "../utils/url";
+import liveProvider from "./liveProvider";
 
 const liveProviderInstance = liveProvider(getAPIURL());
 

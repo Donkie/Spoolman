@@ -1,7 +1,7 @@
-import { Col, Form, InputNumber, QRCode, Row, Slider, Switch } from "antd";
-import PrintingDialog from "./printingDialog";
 import { useTranslate } from "@refinedev/core";
+import { Col, Form, InputNumber, QRCode, Row, Slider, Switch } from "antd";
 import { QRCodePrintSettings } from "./printing";
+import PrintingDialog from "./printingDialog";
 
 interface QRCodeData {
   value: string;

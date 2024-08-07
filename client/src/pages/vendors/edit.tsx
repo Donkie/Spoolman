@@ -1,13 +1,12 @@
-import React, { useState } from "react";
-import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Edit, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker, message, Alert, Typography, InputNumber } from "antd";
-import dayjs from "dayjs";
+import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
+import { Alert, DatePicker, Form, Input, InputNumber, message, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
-import { IVendor, IVendorParsedExtras } from "./model";
+import dayjs from "dayjs";
+import React, { useState } from "react";
+import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import { EntityType, useGetFields } from "../../utils/queryFields";
-import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
-import { ParsedExtras } from "../../components/extraFields";
+import { IVendor, IVendorParsedExtras } from "./model";
 
 /*
 The API returns the extra fields as JSON values, but we need to parse them into their real types

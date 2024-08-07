@@ -1,20 +1,20 @@
-import { Button, Flex, Form, Input, Modal, Popconfirm, Select, Table, Typography, message } from "antd";
-import { ISpool } from "../spools/model";
-import QRCodePrintingDialog from "./qrCodePrintingDialog";
-import { useSavedState } from "../../utils/saveload";
+import { CopyOutlined, DeleteOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
 import { useTranslate } from "@refinedev/core";
+import { Button, Flex, Form, Input, Modal, Popconfirm, Select, Table, Typography, message } from "antd";
+import TextArea from "antd/es/input/TextArea";
+import { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
+import { EntityType, useGetFields } from "../../utils/queryFields";
+import { useSavedState } from "../../utils/saveload";
+import { useGetSpoolsByIds } from "../spools/functions";
+import { ISpool } from "../spools/model";
 import {
   SpoolQRCodePrintSettings,
   renderLabelContents,
   useGetPrintSettings as useGetPrintPresets,
   useSetPrintSettings as useSetPrintPresets,
 } from "./printing";
-import { useState } from "react";
-import { CopyOutlined, DeleteOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
-import { v4 as uuidv4 } from "uuid";
-import TextArea from "antd/es/input/TextArea";
-import { EntityType, useGetFields } from "../../utils/queryFields";
-import { useGetSpoolsByIds } from "../spools/functions";
+import QRCodePrintingDialog from "./qrCodePrintingDialog";
 
 const { Text } = Typography;
 

@@ -1,6 +1,6 @@
-import { ISpool } from "../spools/model";
-import { useGetSetting, useSetSetting } from "../../utils/querySettings";
 import { v4 as uuidv4 } from "uuid";
+import { useGetSetting, useSetSetting } from "../../utils/querySettings";
+import { ISpool } from "../spools/model";
 
 export interface PrintSettings {
   id: string;

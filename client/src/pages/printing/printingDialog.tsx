@@ -1,23 +1,23 @@
-import React, { useRef } from "react";
+import { PrinterOutlined } from "@ant-design/icons";
+import { useTranslate } from "@refinedev/core";
 import {
-  Slider,
   Button,
-  Select,
-  Row,
   Col,
-  Form,
-  Divider,
-  RadioChangeEvent,
-  Radio,
-  InputNumber,
   Collapse,
+  Divider,
+  Form,
+  InputNumber,
+  Radio,
+  RadioChangeEvent,
+  Row,
+  Select,
+  Slider,
   Space,
 } from "antd";
+import React, { useRef } from "react";
 import ReactToPrint from "react-to-print";
 import { useSavedState } from "../../utils/saveload";
-import { useTranslate } from "@refinedev/core";
 import { PrintSettings } from "./printing";
-import { PrinterOutlined } from "@ant-design/icons";
 
 interface PrintingDialogProps {
   items: JSX.Element[];

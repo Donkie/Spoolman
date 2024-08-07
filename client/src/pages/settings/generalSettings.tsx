@@ -1,6 +1,6 @@
-import { useEffect } from "react";
 import { useTranslate } from "@refinedev/core";
 import { Button, Form, Input, message } from "antd";
+import { useEffect } from "react";
 import { useGetSettings, useSetSetting } from "../../utils/querySettings";
 
 export function GeneralSettings() {

@@ -5,11 +5,6 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ErrorComponent } from "@refinedev/antd";
 import "@refinedev/antd/dist/reset.css";
 
-import routerBindings, { DocumentTitleHandler, UnsavedChangesNotifier } from "@refinedev/react-router-v6";
-import dataProvider from "./components/dataProvider";
-import { useTranslation } from "react-i18next";
-import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
-import { ColorModeContextProvider } from "./contexts/color-mode";
 import {
   FileOutlined,
   HighlightOutlined,
@@ -18,16 +13,21 @@ import {
   ToolOutlined,
   UserOutlined,
 } from "@ant-design/icons";
+import loadable from "@loadable/component";
+import routerBindings, { DocumentTitleHandler, UnsavedChangesNotifier } from "@refinedev/react-router-v6";
 import { ConfigProvider } from "antd";
 import { Locale } from "antd/es/locale";
-import { languages } from "./i18n";
-import loadable from "@loadable/component";
-import SpoolmanNotificationProvider from "./components/notificationProvider";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
+import dataProvider from "./components/dataProvider";
+import { Favicon } from "./components/favicon";
 import { SpoolmanLayout } from "./components/layout";
 import liveProvider from "./components/liveProvider";
+import SpoolmanNotificationProvider from "./components/notificationProvider";
+import { ColorModeContextProvider } from "./contexts/color-mode";
+import { languages } from "./i18n";
 import { getAPIURL, getBasePath } from "./utils/url";
-import { Favicon } from "./components/favicon";
-import { useEffect, useState } from "react";
 
 interface ResourcePageProps {
   resource: "spools" | "filaments" | "vendors";

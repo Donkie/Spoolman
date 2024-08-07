@@ -1,13 +1,13 @@
-import React from "react";
+import { FileOutlined, HighlightOutlined, SolutionOutlined, ToolOutlined, UserOutlined } from "@ant-design/icons";
 import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
+import { Menu, theme } from "antd";
+import { Content } from "antd/es/layout/layout";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { Content } from "antd/es/layout/layout";
-import { Menu, theme } from "antd";
-import { FileOutlined, HighlightOutlined, SolutionOutlined, ToolOutlined, UserOutlined } from "@ant-design/icons";
-import { GeneralSettings } from "./generalSettings";
-import { ExtraFieldsSettings } from "./extraFieldsSettings";
+import React from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
+import { ExtraFieldsSettings } from "./extraFieldsSettings";
+import { GeneralSettings } from "./generalSettings";
 
 dayjs.extend(utc);
 

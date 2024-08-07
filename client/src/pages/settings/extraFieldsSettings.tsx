@@ -1,3 +1,5 @@
+import { PlusOutlined } from "@ant-design/icons";
+import { useTranslate } from "@refinedev/core";
 import {
   Button,
   Checkbox,
@@ -12,20 +14,18 @@ import {
   Table,
   message,
 } from "antd";
-import { EntityType, Field, FieldType, useDeleteField, useGetFields, useSetField } from "../../utils/queryFields";
-import { useTranslate } from "@refinedev/core";
-import { useState } from "react";
+import { FormItemProps, Rule } from "antd/es/form";
 import { ColumnType } from "antd/es/table";
+import dayjs from "dayjs";
+import advancedFormat from "dayjs/plugin/advancedFormat";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+import { useState } from "react";
 import { Trans } from "react-i18next";
 import { useParams } from "react-router-dom";
-import { FormItemProps, Rule } from "antd/es/form";
-import { PlusOutlined } from "@ant-design/icons";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-import advancedFormat from "dayjs/plugin/advancedFormat";
 import { DateTimePicker } from "../../components/dateTimePicker";
 import { InputNumberRange } from "../../components/inputNumberRange";
+import { EntityType, Field, FieldType, useDeleteField, useGetFields, useSetField } from "../../utils/queryFields";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

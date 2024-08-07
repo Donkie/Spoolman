@@ -1,5 +1,5 @@
 import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
-import { Badge, Button, ColorPicker, InputNumber, Space } from "antd";
+import { Badge, Button, ColorPicker, Space } from "antd";
 
 function generateRandomColor() {
   return "000000".replace(/0/g, function () {

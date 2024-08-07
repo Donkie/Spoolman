@@ -1,17 +1,17 @@
-import React from "react";
+import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
 import { IResourceComponentsProps, useShow, useTranslate } from "@refinedev/core";
-import { Show, NumberField, DateField, TextField } from "@refinedev/antd";
 import { Button, Typography } from "antd";
-import { NumberFieldUnit } from "../../components/numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { IFilament } from "./model";
-import { enrichText } from "../../utils/parsing";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldDisplay } from "../../components/extraFields";
-import { useCurrency } from "../../utils/settings";
+import { NumberFieldUnit } from "../../components/numberField";
 import SpoolIcon from "../../components/spoolIcon";
+import { enrichText } from "../../utils/parsing";
+import { EntityType, useGetFields } from "../../utils/queryFields";
+import { useCurrency } from "../../utils/settings";
+import { IFilament } from "./model";
 dayjs.extend(utc);
 
 const { Title } = Typography;

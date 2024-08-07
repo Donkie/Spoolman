@@ -1,13 +1,13 @@
 import { DownOutlined } from "@ant-design/icons";
 import type { RefineThemedLayoutV2HeaderProps } from "@refinedev/antd";
 import { useGetLocale, useSetLocale } from "@refinedev/core";
-import { Button, Dropdown, Layout as AntdLayout, MenuProps, Space, Switch, theme } from "antd";
+import { Layout as AntdLayout, Button, Dropdown, MenuProps, Space, Switch, theme } from "antd";
 import React, { useContext } from "react";
 import { ColorModeContext } from "../../contexts/color-mode";
 
-import "/node_modules/flag-icons/css/flag-icons.min.css";
 import { languages } from "../../i18n";
 import QRCodeScannerModal from "../qrCodeScanner";
+import "/node_modules/flag-icons/css/flag-icons.min.css";
 
 const { useToken } = theme;
 

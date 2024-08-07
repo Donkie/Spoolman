@@ -1,17 +1,16 @@
-import { useEffect, useState } from "react";
-import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, InputNumber, ColorPicker, message, Alert, Typography, Radio } from "antd";
-import dayjs from "dayjs";
+import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
+import { Alert, ColorPicker, DatePicker, Form, Input, InputNumber, message, Radio, Select, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
+import dayjs from "dayjs";
+import { useEffect, useState } from "react";
+import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
+import { MultiColorPicker } from "../../components/multiColorPicker";
 import { numberFormatter, numberParser } from "../../utils/parsing";
+import { EntityType, useGetFields } from "../../utils/queryFields";
+import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { IVendor } from "../vendors/model";
 import { IFilament, IFilamentParsedExtras } from "./model";
-import { EntityType, useGetFields } from "../../utils/queryFields";
-import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
-import { ParsedExtras } from "../../components/extraFields";
-import { getCurrencySymbol, useCurrency } from "../../utils/settings";
-import { MultiColorPicker } from "../../components/multiColorPicker";
 
 /*
 The API returns the extra fields as JSON values, but we need to parse them into their real types
