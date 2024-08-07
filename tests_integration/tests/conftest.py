@@ -37,17 +37,19 @@ def get_db_type() -> DbType:
     return db_type
 
 
-@pytest.fixture(scope="session", autouse=True)
-def _wait_for_server():  # noqa: ANN202
+def pytest_sessionstart(_: pytest.Session) -> None:
     """Wait for the server to start up."""
     start_time = time.time()
     while True:
         try:
+            print("pytest: Waiting for spoolman to be available...")  # noqa: T201
             response = httpx.get(URL, timeout=1)
             response.raise_for_status()
+            print("pytest: Spoolman now seems to be up!")  # noqa: T201
         except httpx.HTTPError:  # noqa: PERF203
             if time.time() - start_time > TIMEOUT:
                 raise
+            time.sleep(0.5)
         else:
             break
 
