@@ -25,7 +25,7 @@ export const Printing: React.FC<IResourceComponentsProps> = () => {
   return (
     <>
       <PageHeader
-        title="Print QR Codes"
+        title={t("printing.qrcode.button")}
         onBack={() => {
           const returnUrl = searchParams.get("return");
           if (returnUrl) {

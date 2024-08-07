@@ -102,17 +102,22 @@
             "saveSetting": "Save Presets"
         },
         "qrcode": {
-            "button": "Print QR Codes",
-            "title": "QR Code Printing",
-            "template": "Template",
+            "button": "Print Labels",
+            "title": "Label Printing",
+            "template": "Label Template",
             "templateHelp": "Use {} to insert values of the spool object as text. For example {id} will be replaced with the spool id, or {filament.material} will be replaced with the material of the spool. Enclose text with double asterix ** to make it bold. Click the button to view a list of all available tags.",
-            "textSize": "Content Text Size",
+            "textSize": "Label Text Size",
             "showContent": "Print Label",
-            "showSpoolmanIcon": "Show Spoolman Icon"
+            "showQRCode": "Print QR Code",
+            "showQRCodeMode": {
+                "no": "No",
+                "simple": "Simple",
+                "withIcon": "With Icon"
+            }
         },
         "spoolSelect": {
             "title": "Select Spools",
-            "description": "Select spools to print QR codes for.",
+            "description": "Select spools to print labels for.",
             "showArchived": "Show Archived",
             "noSpoolsSelected": "You have not selected any spools.",
             "selectAll": "Select/Unselect All",
