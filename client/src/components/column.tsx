@@ -266,11 +266,12 @@ export function DateColumn<Obj extends Entity>(props: BaseColumnProps<Obj>) {
   });
 }
 
-export function ActionsColumn<Obj extends Entity>(actionsFn: (record: Obj) => Action[]): ColumnType<Obj> | undefined {
-  const t = useTranslate();
-
+export function ActionsColumn<Obj extends Entity>(
+  title: string,
+  actionsFn: (record: Obj) => Action[]
+): ColumnType<Obj> | undefined {
   return {
-    title: t("table.actions"),
+    title,
     responsive: ["lg"],
     render: (_, record) => {
       const buttons = actionsFn(record).map((action) => {

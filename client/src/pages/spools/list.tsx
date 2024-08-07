@@ -465,7 +465,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             i18ncat: "spool",
             width: 150,
           }),
-          ActionsColumn(actions),
+          ActionsColumn(t("table.actions"), actions),
         ])}
       />
     </List>

@@ -343,7 +343,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             i18ncat: "filament",
             width: 150,
           }),
-          ActionsColumn(actions),
+          ActionsColumn(t("table.actions"), actions),
         ])}
       />
     </List>

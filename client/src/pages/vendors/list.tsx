@@ -202,7 +202,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
             id: "comment",
             i18ncat: "vendor",
           }),
-          ActionsColumn<IVendor>(actions),
+          ActionsColumn<IVendor>(t("table.actions"), actions),
         ])}
       />
     </List>
