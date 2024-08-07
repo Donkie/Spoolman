@@ -60,7 +60,11 @@ function getTagValue(tag: string, obj: GenericObject): any {
   // Split tag by .
   const tagParts = tag.split(".");
   if (tagParts[0] === "extra") {
-    return JSON.parse(obj.extra[tagParts[1]]);
+    const extraValue = obj.extra[tagParts[1]];
+    if (extraValue === undefined) {
+      return "?";
+    }
+    return JSON.parse(extraValue);
   }
 
   const value = obj[tagParts[0]] ?? "?";
