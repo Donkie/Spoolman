@@ -23,6 +23,7 @@
     "antd": "^5.20.0",
     "axios": "^1.7.3",
     "flag-icons": "^7.2.3",
+    "html-to-image": "^1.11.11",
     "i18next": "^23.12.2",
     "i18next-browser-languagedetector": "^8.0.0",
     "i18next-http-backend": "^2.5.2",

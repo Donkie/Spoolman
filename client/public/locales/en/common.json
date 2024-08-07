@@ -99,7 +99,8 @@
             "deleteSettings": "Delete Current Preset",
             "deleteSettingsConfirm": "Are you sure you want to delete this preset?",
             "settingsName": "Preset Name",
-            "saveSetting": "Save Presets"
+            "saveSetting": "Save Presets",
+            "saveAsImage": "Save as Image"
         },
         "qrcode": {
             "button": "Print Labels",
