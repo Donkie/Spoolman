@@ -53,12 +53,10 @@ export function MultiColorPicker(props: {
       }
     >
       <ColorPicker
-        format="hex"
         value={value}
-        onChange={(_, newHex) => {
+        onChange={(clr) => {
           if (props.onChange) {
-            newHex = newHex.replace("#", "");
-            props.onChange(values.map((v, i) => (i === idx ? newHex : v)).join(","));
+            props.onChange(values.map((v, i) => (i === idx ? clr.toHex() : v)).join(","));
           }
         }}
       />
