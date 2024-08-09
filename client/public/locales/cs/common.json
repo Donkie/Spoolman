@@ -28,7 +28,8 @@
         "notAccessTitle": "Nemáte oprávnění k přístupu",
         "hideColumns": "Skrýt sloupce",
         "clearFilters": "Zrušit filtry",
-        "saveAndAdd": "Uložit a přidat"
+        "saveAndAdd": "Uložit a přidat",
+        "continue": "Pokračovat"
     },
     "warnWhenUnsavedChanges": "Jste si jisti, že chcete odejít? Máte neuložené změny.",
     "notifications": {
@@ -90,21 +91,24 @@
             },
             "itemCopies": "Kopie položky",
             "defaultSettings": "Výchozí",
-            "addSettings": "Přidat nové nastavení",
+            "addSettings": "Přidat novou předvolbu",
             "newSetting": "Nový",
-            "deleteSettings": "Smazat aktuální nastavení",
-            "settingsName": "Název nastavení",
-            "settings": "Nastavení",
-            "deleteSettingsConfirm": "Opravdu chcete toto nastavení odstranit?"
+            "deleteSettings": "Smazat aktuální předvolbu",
+            "settingsName": "Název předvolby",
+            "settings": "Předvolby",
+            "deleteSettingsConfirm": "Opravdu chcete tuto předvolbu smazat?",
+            "duplicateSettings": "Duplikát",
+            "saveSetting": "Uložit předvolby",
+            "saveAsImage": "Uložit jako obrázek"
         },
         "qrcode": {
-            "button": "Tisk QR kódů",
-            "title": "Tisk QR kódů",
+            "button": "Tisk štítků",
+            "title": "Tisk štítku",
             "spoolWeight": "Hmotnost cívky: {{weight}}",
             "lotNr": "Číslo šarže: {{lot}}",
             "bedTemp": "BT: {{temp}}",
             "extruderTemp": "ET: {{temp}}",
-            "textSize": "Velikost textu obsahu",
+            "textSize": "Velikost textu štítku",
             "showSpoolmanIcon": "Zobrazit ikonu Spoolman",
             "showVendor": "Výrobce",
             "showContent": "Tisk štítku",
@@ -114,12 +118,18 @@
             "showSpoolComment": "Poznámka k cívce",
             "showFilamentComment": "Poznámka k filamentu",
             "showVendorComment": "Poznámka k výrobci",
-            "template": "Šablona",
-            "templateHelp": "Pomocí {} vložíte hodnoty objektu cívky jako text. Například {id} bude nahrazeno ID cívky nebo {filament.material} bude nahrazeno materiálem cívky. Text uzavřete dvojitou hvězdičkou **, aby byl tučný. Kliknutím na tlačítko zobrazíte seznam všech dostupných značek."
+            "template": "Šablona štítku",
+            "templateHelp": "Pomocí {} vložíte hodnoty objektu cívky jako text. Například {id} bude nahrazeno ID cívky nebo {filament.material} bude nahrazeno materiálem cívky. Text uzavřete dvojitou hvězdičkou **, aby byl tučný. Kliknutím na tlačítko zobrazíte seznam všech dostupných značek.",
+            "showQRCode": "Tisk QR kódu",
+            "showQRCodeMode": {
+                "no": "Ne",
+                "simple": "Jednoduchý",
+                "withIcon": "S ikonou"
+            }
         },
         "spoolSelect": {
             "title": "Vybrat cívky",
-            "description": "Vyberte cívky pro tisk QR kódů.",
+            "description": "Vyberte cívky, pro které chcete tisknout štítky.",
             "showArchived": "Zobrazit archivované",
             "noSpoolsSelected": "Nevybrali jste žádné cívky.",
             "selectAll": "Vybrat/odebrat vše",
@@ -185,14 +195,22 @@
             "list": "Cívky",
             "show": "Zobrazit cívku",
             "archive": "Archivní cívka",
-            "show_title": "[Cívka #{{id}}] {{name}}"
+            "show_title": "[Cívka #{{id}}] {{name}}",
+            "adjust": "Nastavení cívky filamentu"
         },
         "messages": {
             "archive": "Opravdu chcete tuto cívku archivovat?"
         },
         "form": {
             "new_location_prompt": "Zadejte nové umístění",
-            "spool_updated": "Od otevření této stránky byla tato cívka někým/něčím aktualizována. Uložením se tyto změny přepíší!"
+            "spool_updated": "Od otevření této stránky byla tato cívka někým/něčím aktualizována. Uložením se tyto změny přepíší!",
+            "measurement_type": {
+                "length": "Délka",
+                "weight": "Hmotnost"
+            },
+            "measurement_type_label": "Typ měření",
+            "adjust_filament_help": "Zde můžete přímo přidávat nebo odebírat filament z cívky. Kladná hodnota filament odebere, záporná hodnota ho přidá.",
+            "adjust_filament_value": "Spotřebované množství"
         }
     },
     "filament": {
@@ -312,7 +330,7 @@
             "filament": "Značky vláken. Mají vlastnosti, jako je název, materiál, barva, průměr a další.",
             "spool": "Jednotlivé fyzické cívky určitého vlákna."
         },
-        "description": "<title>Nápověda</title><p>Zde je několik tipů, které vám pomohou začít.</p><p>Spoolman uchovává 3 různé typy dat:</p><itemsHelp/><p>Chcete-li do databáze přidat novou cívku, začněte vytvořením položky <filamentCreateLink>Filament</filamentCreateLink> objekt. Jakmile to uděláte, vytvořte položku <spoolCreateLink>Cívka</spoolCreateLink> popis pro danou cívku. Pokud později získáte další cívky stejného filamentu, jednoduše vygenerujte další objekty Cívky a znovu použijte stejný objekt Filament.</p><p>Volitelně můžete také vygenerovat <vendorCreateLink>Výrobce</vendorCreateLink> název společnosti vyrábějící vlákno, pokud si přejete tyto informace sledovat.</p><p>Máte možnost propojit se Spoolmanem další služby 3D tiskárny, například Moonraker, který může automaticky sledovat využití filamentu a aktualizovat objekty Cívek za vás. Pokyny k nastavení najdete v <readmeLink>Spoolman README</readmeLink>.</p>",
+        "description": "<title>Nápověda</title><p>Zde je několik tipů, které vám pomohou začít.</p><p>Spoolman ukládá 3 různé typy dat:</p><itemsHelp/><p>Chcete-li do databáze přidat novou cívku, začněte vytvořením položky <filamentCreateLink>Filament</filamentCreateLink> . Jakmile to uděláte, vytvořte položku <spoolCreateLink>Cívka</spoolCreateLink> s popisem pro danou cívku. Pokud později získáte další cívky stejného filamentu, jednoduše vygenerujte další Cívku a použijte opět stejný Filament.</p><p>Volitelně můžete také vygenerovat <vendorCreateLink>Výrobce</vendorCreateLink> název společnosti vyrábějící filamenty, pokud si přejete tyto informace sledovat.</p><p>Máte možnost propojit se Spoolmanem další služby 3D tiskárny, například Moonraker, který může automaticky sledovat využití filamentu a aktualizovat dané Cívky za vás. Pokyny k nastavení najdete v <readmeLink>Spoolman README</readmeLink>.</p>",
         "help": "Nápověda"
     },
     "kofi": "Příspěvek autorovi na Ko-fi",
