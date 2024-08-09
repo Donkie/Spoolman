@@ -28,7 +28,8 @@
         "notAccessTitle": "Du har inte tillgång till denna sida",
         "hideColumns": "Dölj kolumner",
         "clearFilters": "Rensa filter",
-        "saveAndAdd": "Spara och Lägg till"
+        "saveAndAdd": "Spara och Lägg till",
+        "continue": "Fortsätt"
     },
     "warnWhenUnsavedChanges": "Är du säker på att du vill lämna sidan? Du har osparade ändringar.",
     "notifications": {
@@ -87,29 +88,48 @@
                 "none": "Ingen",
                 "border": "Ram",
                 "grid": "Rutnät"
-            }
+            },
+            "defaultSettings": "Standard",
+            "newSetting": "Ny",
+            "settingsName": "Inställningsnamn",
+            "deleteSettingsConfirm": "Är du säker på att du vill radera den nuvarande inställningen?",
+            "itemCopies": "Kopior",
+            "settings": "Inställningar",
+            "addSettings": "Skapa inställning",
+            "saveSetting": "Spara inställningar",
+            "duplicateSettings": "Duplicera",
+            "deleteSettings": "Radera nuvarande inställning",
+            "saveAsImage": "Spara som bild"
         },
         "qrcode": {
-            "button": "Skriv ut QR-koder",
-            "title": "QR-kod utskrift",
+            "button": "Skriv ut etiketter",
+            "title": "Etikettutskrift",
             "spoolWeight": "Spolvikt: {{weight}}",
             "lotNr": "Batch: {{lot}}",
             "bedTemp": "BT: {{temp}}",
             "extruderTemp": "ET: {{temp}}",
             "textSize": "Textstorlek",
             "showSpoolmanIcon": "Visa Spoolman-ikon",
-            "showContent": "Etikett",
+            "showContent": "Visa text",
             "showVendor": "Tillverkare",
             "showLotNr": "Batchnummer",
             "showSpoolWeight": "Spolvikt",
             "showTemperatures": "Temperaturer",
             "showSpoolComment": "Spolkommentar",
             "showFilamentComment": "Filamentkommentar",
-            "showVendorComment": "Tillverkarkommentar"
+            "showVendorComment": "Tillverkarkommentar",
+            "template": "Textmall",
+            "templateHelp": "Använd {} för att infoga värden från spolobjektet som text. Till exempel kommer {id} att ersättas med spolens id, eller {filament.material} att ersättas med filamentets material. Omslut text med dubbla asterisker ** för att göra den fetstilad. Klicka på knappen för att visa en lista över alla tillgängliga taggar.",
+            "showQRCode": "Visa QR-kod",
+            "showQRCodeMode": {
+                "no": "Nej",
+                "simple": "Enkel",
+                "withIcon": "Med logga"
+            }
         },
         "spoolSelect": {
             "title": "Välj spolar",
-            "description": "Välj spolar att skriva ut QR-koder för.",
+            "description": "Välj spolar att skriva ut etiketter för.",
             "showArchived": "Tillåt arkiverade",
             "noSpoolsSelected": "Du har inte valt några spolar.",
             "selectAll": "Markera/avmarkera alla",
@@ -151,7 +171,9 @@
             "weight_to_use": "Vikt",
             "price": "Pris",
             "initial_weight": "Initial Vikt",
-            "spool_weight": "Tom Vikt"
+            "spool_weight": "Tom Vikt",
+            "filament_internal": "Interna",
+            "filament_external": "Externa"
         },
         "fields_help": {
             "used_weight": "Hur mycket filament som använts på spolen. En ny spole har värdet 0g.",
@@ -162,7 +184,8 @@
             "remaining_weight": "Hur mycket filament som finns kvar på spolen. För en ny spole så är detta det värdet som står på etiketten.",
             "price": "Pris för en hel rulle. Om det inte är inställt kommer priset för filamentet istället att antas.",
             "initial_weight": "Ursprungsvikt av filament på spolen (nettovikt). Om du inte sätter detta så tas vikten från filamentobjektet.",
-            "spool_weight": "Vikten på en tom spole. Lämna tom för att ta värdet från filament- eller tillverkarobjektet."
+            "spool_weight": "Vikten på en tom spole. Lämna tom för att ta värdet från filament- eller tillverkarobjektet.",
+            "external_filament": "Du har valt ett filament från den externa databasen. Ett filamentobjekt (och eventuellt ett tillverkarobjekt) kommer att skapas automatiskt när du skapar denna spole. Detta kan skapa duplicerade filamentobjekt om du redan har skapat ett filamentobjekt för denna filament."
         },
         "titles": {
             "create": "Skapa spole",
@@ -171,14 +194,22 @@
             "list": "Spolar",
             "show": "Visa spole",
             "archive": "Arkivera spole",
-            "show_title": "[Spole #{{id}}] {{name}}"
+            "show_title": "[Spole #{{id}}] {{name}}",
+            "adjust": "Justera Spolmängd"
         },
         "messages": {
             "archive": "Är du säker på att du vill arkivera denna spole?"
         },
         "form": {
             "new_location_prompt": "Fyll i en ny plats",
-            "spool_updated": "Den här spolen har uppdaterats av något eller någon sedan du öppnade den här sidan. Om du sparar så skriver du över ändringarna!"
+            "spool_updated": "Den här spolen har uppdaterats av något eller någon sedan du öppnade den här sidan. Om du sparar så skriver du över ändringarna!",
+            "measurement_type": {
+                "length": "Längd",
+                "weight": "Vikt"
+            },
+            "measurement_type_label": "Mättyp",
+            "adjust_filament_value": "Mängd att konsumera",
+            "adjust_filament_help": "Här kan du direkt lägga till eller subtrahera filament från spolen. Ett positivt värde kommer att konsumera filament, ett negativt värde kommer att lägga till det."
         }
     },
     "filament": {
@@ -200,7 +231,12 @@
             "settings_extruder_temp": "Extrudertemp",
             "settings_bed_temp": "Bäddtemp",
             "color_hex": "Färg",
-            "spools": "Visa spolar"
+            "spools": "Visa spolar",
+            "single_color": "Enkel",
+            "multi_color": "Flerfärgad",
+            "coaxial": "Coextruderad",
+            "longitudinal": "Longitudinell",
+            "external_id": "Externt ID"
         },
         "fields_help": {
             "name": "Filamentets namn, för att skilja detta filament från andra från samma tillverkare. Bör innehålla färgen till exempel.",
@@ -208,7 +244,8 @@
             "price": "Pris för en full spole.",
             "weight": "Vikten på en full spole (nettovikt). Detta ska inte inkludera vikten på spolen själv, bara filamentet. Det är vad som vanligtvis står på förpackningen.",
             "spool_weight": "Vikten på en tom spole. Används för att beräkna filamentvikten från en vägning.",
-            "article_number": "T.ex. EAN, UPC, etc."
+            "article_number": "T.ex. EAN, UPC, etc.",
+            "multi_color_direction": "Filament kan ha flera färger på två sätt: antingen genom coextrudering, så som två-färgs filament med konsekventa multifärger, eller genom longitudinella färgförändringar, så som gradientfilament som skiftar färger längs spolen."
         },
         "titles": {
             "create": "Skapa filament",
@@ -219,7 +256,9 @@
             "show_title": "[Filament #{{id}}] {{name}}"
         },
         "form": {
-            "filament_updated": "Det här filamentet har uppdaterats av något eller någon sedan du öppnade den här sidan. Om du sparar så skriver du över ändringarna!"
+            "filament_updated": "Det här filamentet har uppdaterats av något eller någon sedan du öppnade den här sidan. Om du sparar så skriver du över ändringarna!",
+            "import_external": "Importera från externt",
+            "import_external_description": "Välj ett filament i listan för att automatiskt fylla dess detaljer i formuläret. Detta kommer att skriva över alla data som du har angett i formuläret.<br><br>Ett tillverkarobjekt skapas automatiskt när du klickar på Ok, om det behövs."
         },
         "buttons": {
             "add_spool": "Skapa Spole"
@@ -232,7 +271,8 @@
             "name": "Namn",
             "registered": "Registrerad",
             "comment": "Kommentar",
-            "empty_spool_weight": "Tom spolvikt"
+            "empty_spool_weight": "Tom spolvikt",
+            "external_id": "Externt ID"
         },
         "titles": {
             "create": "Skapa tillverkare",

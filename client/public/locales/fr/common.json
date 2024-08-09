@@ -9,14 +9,22 @@
             "showTemperatures": "Températures",
             "showVendor": "Fabricant",
             "showSpoolComment": "Commentaire sur la bobine",
-            "textSize": "Contenu Taille du texte",
-            "title": "Impression de codes QR",
+            "textSize": "Taille du texte de l'étiquette",
+            "title": "Impression d'étiquettes",
             "showSpoolmanIcon": "Montrer l'icône Spoolman",
             "showLotNr": "N° de Lot",
             "bedTemp": "BT : {{temp}}",
             "lotNr": "N° de Lot : {{lot}}",
             "showFilamentComment": "Commentaire sur le filament",
-            "button": "Imprimer des codes QR"
+            "button": "Imprimer des étiquettes",
+            "showQRCode": "Imprimer le QR Code",
+            "templateHelp": "Utilisez {} pour insérer les valeurs de l'objet bobine sous forme de texte. Par exemple, {id} sera remplacé par l'identifiant de la bobine ou {filament.material} sera remplacé par le matériau de la bobine. Entourez le texte d'un double astérisque ** pour le mettre en gras. Cliquez sur le bouton pour afficher une liste de toutes les balises disponibles.",
+            "template": "Modèle d'étiquette",
+            "showQRCodeMode": {
+                "no": "Non",
+                "simple": "Simple",
+                "withIcon": "Avec icône"
+            }
         },
         "generic": {
             "printerMarginBottom": "Zone de sécurité en bas",
@@ -37,7 +45,7 @@
             "previewScale": "Échelle de prévisualisation",
             "helpMargin": "Les marges doivent être configurées en fonction de votre papier à étiquettes et de votre imprimante, car leur modification aura une incidence sur la taille de l'ensemble de la grille.",
             "marginTop": "Marge supérieure",
-            "skipItems": "Passer les articles",
+            "skipItems": "Articles ignorés",
             "layoutSettings": "Paramètres de mise en page",
             "paperSize": "Format du papier",
             "columns": "Colonnes",
@@ -48,13 +56,24 @@
             "showBorder": "Afficher les bords",
             "printerMarginLeft": "Zone de sécurité à gauche",
             "dimensions": "Dimensions",
-            "print": "Imprimer"
+            "print": "Imprimer",
+            "settings": "Préréglages",
+            "defaultSettings": "Défaut",
+            "addSettings": "Ajouter un nouveau préréglage",
+            "newSetting": "Nouveau",
+            "deleteSettings": "Supprimer le préréglage actuel",
+            "deleteSettingsConfirm": "Êtes-vous sûr de vouloir supprimer ce préréglage ?",
+            "settingsName": "Nom du préréglage",
+            "saveAsImage": "Enregistrer comme image",
+            "itemCopies": "Nombre d'article",
+            "duplicateSettings": "Dupliquer",
+            "saveSetting": "Enregistrer les préréglages"
         },
         "spoolSelect": {
             "selectedTotal_one": "{{count}} bobine sélectionnée",
             "selectedTotal_many": "{{count}} bobines sélectionnées",
             "selectedTotal_other": "{{count}} bobines sélectionnées",
-            "description": "Sélectionnez les bobines pour lesquelles vous souhaitez imprimer des codes QR.",
+            "description": "Sélectionnez les bobines pour lesquelles imprimer des étiquettes.",
             "showArchived": "Afficher les archives",
             "title": "Sélectionner les bobines",
             "selectAll": "Sélectionner/Désélectionner tout",
@@ -124,7 +143,8 @@
             "create": "Créer une bobine",
             "clone": "Cloner une bobine",
             "list": "Bobines",
-            "show_title": "[Bobine #{{id}}] {{name}}"
+            "show_title": "[Bobine #{{id}}] {{name}}",
+            "adjust": "Ajuster la bobine de filament"
         },
         "fields_help": {
             "used_weight": "Combien de filament a été utilisé à partir de la bobine. Une bobine neuve devrait avoir 0g utilisé.",
@@ -144,7 +164,14 @@
         },
         "form": {
             "spool_updated": "Cette bobine a été mise à jour par quelqu'un/quelque chose depuis la dernière ouverture de la page. Enregistrer écrasera ces changements !",
-            "new_location_prompt": "Entrer une nouvelle localisation"
+            "new_location_prompt": "Entrer une nouvelle localisation",
+            "measurement_type": {
+                "length": "Longueur",
+                "weight": "Poids"
+            },
+            "measurement_type_label": "Type de mesure",
+            "adjust_filament_help": "Ici, vous pouvez directement ajouter ou soustraire du filament à la bobine. Une valeur positive consommera du filament, une valeur négative en ajoutera.",
+            "adjust_filament_value": "Quantité consommée"
         }
     },
     "buttons": {
@@ -169,7 +196,8 @@
         "unArchive": "Désarchiver",
         "clone": "Cloner",
         "clear": "Effacer",
-        "saveAndAdd": "Sauvegarder et ajouter"
+        "saveAndAdd": "Sauvegarder et ajouter",
+        "continue": "Continuer"
     },
     "filament": {
         "fields_help": {
@@ -178,7 +206,8 @@
             "spool_weight": "Le poids d'une bobine vide. Utilisé pour déterminer le poids d'une bobine.",
             "price": "Prix d'une bobine complète.",
             "weight": "Le poids du filament d'une bobine complète (poids net). Ce poids ne doit pas inclure le poids de la bobine elle-même, mais uniquement celui du filament. C'est ce qui est généralement indiqué sur l'emballage.",
-            "material": "Exemple PLA, ABS, PETG, etc."
+            "material": "Exemple PLA, ABS, PETG, etc.",
+            "multi_color_direction": "Les filaments peuvent avoir plusieurs couleurs de deux manières : soit par coextrusion, comme les filaments bicolores avec plusieurs couleurs uniformes, soit par des changements de couleur longitudinaux, comme les filaments dégradés qui changent de couleurs le long de la bobine."
         },
         "fields": {
             "material": "Matériau",
@@ -198,7 +227,11 @@
             "color_hex": "Couleur",
             "article_number": "Numéro d'article",
             "spools": "Afficher les bobines",
-            "external_id": "ID externe"
+            "external_id": "ID externe",
+            "single_color": "Unique",
+            "multi_color": "Multi",
+            "longitudinal": "Longitudinale",
+            "coaxial": "Coextrudée"
         },
         "titles": {
             "clone": "Cloner un filament",

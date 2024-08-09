@@ -102,14 +102,22 @@
             "list": "Bobinas",
             "show": "Mostrar Bobina",
             "archive": "Archivar Bobina",
-            "show_title": "[Bobina #{{id}}] {{name}}"
+            "show_title": "[Bobina #{{id}}] {{name}}",
+            "adjust": "Ajustar la bobina del filamento"
         },
         "messages": {
             "archive": "¿Esta seguro que quiere archivar esta bobina?"
         },
         "form": {
             "new_location_prompt": "Introduce una nueva ubicación",
-            "spool_updated": "Esta bobina ha sido actualizada por alguien/algo desde que abriste esta página. ¡Al guardar, se sobrescribirán los cambios!"
+            "spool_updated": "Esta bobina ha sido actualizada por alguien/algo desde que abriste esta página. ¡Al guardar, se sobrescribirán los cambios!",
+            "measurement_type": {
+                "length": "Longitud",
+                "weight": "Peso"
+            },
+            "measurement_type_label": "Tipo de medición",
+            "adjust_filament_value": "Cantidad consumida",
+            "adjust_filament_help": "Aquí puedes añadir o restar directamente filamento de la bobina. Un valor positivo consumirá filamento, un valor negativo lo añadirá."
         }
     },
     "filament": {
@@ -233,16 +241,22 @@
             "showTemperatures": "Temperaturas",
             "showVendor": "Fabricante",
             "showSpoolComment": "Comentario de la Bobina",
-            "textSize": "Tamaño del Texto",
-            "title": "Impresión de Códigos QR",
+            "textSize": "Tamaño del texto para la etiqueta",
+            "title": "Imprimiendo las etiquetas",
             "showSpoolmanIcon": "Mostrar Icono de Spoolman",
             "showLotNr": "No. Lote",
             "bedTemp": "TC:{{temp}}",
             "lotNr": "No. Lote:{{lot}}",
             "showFilamentComment": "Comentario de Filamento",
-            "button": "Imprimir Códigos QR",
-            "template": "Plantilla",
-            "templateHelp": "Utiliza {} para insertar valores del objeto spool como texto. Por ejemplo {id} será reemplazado por el id del spool, o {filament.material} será reemplazado por el material del spool. Encierra el texto con un doble asterisco ** para ponerlo en negrita. Haz clic en el botón para ver una lista de todas las etiquetas disponibles."
+            "button": "Imprimir las etiquetas",
+            "template": "Plantilla para la etiqueta",
+            "templateHelp": "Utiliza {} para insertar valores del objeto spool como texto. Por ejemplo {id} será reemplazado por el id del spool, o {filament.material} será reemplazado por el material del spool. Encierra el texto con un doble asterisco ** para ponerlo en negrita. Haz clic en el botón para ver una lista de todas las etiquetas disponibles.",
+            "showQRCode": "Imprimir un código qr",
+            "showQRCodeMode": {
+                "no": "No",
+                "simple": "Sencilla",
+                "withIcon": "Con un icono"
+            }
         },
         "generic": {
             "printerMarginBottom": "Zona Segura Inferior",
@@ -284,14 +298,15 @@
             "deleteSettingsConfirm": "¿Estás seguro de que deseas eliminar este ajuste preestablecido?",
             "settingsName": "Nombre preestablecido",
             "duplicateSettings": "Duplicar",
-            "saveSetting": "Guardar ajustes preestablecidos"
+            "saveSetting": "Guardar ajustes preestablecidos",
+            "saveAsImage": "Guardar como una imagen"
         },
         "spoolSelect": {
             "selectedTotal_one": "{{count}} bobina seleccionada",
             "selectedTotal_many": "{{count}} bobinas seleccionadas",
             "selectedTotal_other": "{{count}} bobinas seleccionadas",
-            "description": "Seleccionar Bobinas para imprimir códigos de QR.",
-            "showArchived": "Mostrar Archivados",
+            "description": "Selecciona los carretes para los que deseas imprimir las etiquetas.",
+            "showArchived": "Mostrar archivados",
             "title": "Selección de Bobinas",
             "selectAll": "Seleccionar/Deseleccionar Todos",
             "noSpoolsSelected": "No has seleccionado ninguna bobina."
