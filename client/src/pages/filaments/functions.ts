@@ -10,12 +10,14 @@ import { IFilament } from "./model";
 export async function createFilamentFromExternal(externalFilament: ExternalFilament): Promise<IFilament> {
   const vendor = await getOrCreateVendorFromExternal(externalFilament.manufacturer);
 
-  let color_hex = undefined;
+  let color_hex: string | undefined = undefined;
+  let multi_color_hexes: string | undefined = undefined;
+  let multi_color_direction: string | undefined = undefined;
   if (externalFilament.color_hex) {
     color_hex = externalFilament.color_hex;
   } else if (externalFilament.color_hexes && externalFilament.color_hexes.length > 0) {
-    // TODO: Support for multi-color filaments
-    color_hex = externalFilament.color_hexes[0];
+    multi_color_hexes = externalFilament.color_hexes.join(",")
+    multi_color_direction = externalFilament.multi_color_direction
   }
 
   const body: Omit<IFilament, "id" | "registered" | "extra"> & { vendor_id: number } = {
@@ -27,6 +29,8 @@ export async function createFilamentFromExternal(externalFilament: ExternalFilam
     weight: externalFilament.weight,
     spool_weight: externalFilament.spool_weight || undefined,
     color_hex: color_hex,
+    multi_color_hexes: multi_color_hexes,
+    multi_color_direction: multi_color_direction,
     settings_extruder_temp: externalFilament.extruder_temp || undefined,
     settings_bed_temp: externalFilament.bed_temp || undefined,
     external_id: externalFilament.id,
