@@ -21,7 +21,8 @@
         "unArchive": "Terugzetten",
         "clone": "Klonen",
         "clear": "Wissen",
-        "saveAndAdd": "Opslaan en Toevoegen"
+        "saveAndAdd": "Opslaan en Toevoegen",
+        "continue": "Doorgaan"
     },
     "actions": {
         "create": "Aanmaken",
@@ -62,14 +63,17 @@
             "horizontalSpacing": "Horizontale afstand",
             "marginLeft": "Linker marge",
             "printerMarginLeft": "Linker Safe-Zone",
-            "settings": "Instellingen",
+            "settings": "Voorinstellingen",
             "defaultSettings": "Standaard",
-            "addSettings": "Nieuwe instelling toevoegen",
+            "addSettings": "Nieuwe voorinstelling toevoegen",
             "newSetting": "Nieuw",
-            "deleteSettings": "Huidige instelling wissen",
-            "deleteSettingsConfirm": "Weet je zeker dat je deze instelling wilt verwijderen?",
-            "settingsName": "Naam instelling",
-            "itemCopies": "Itemkopieën"
+            "deleteSettings": "Huidige voorinstelling wissen",
+            "deleteSettingsConfirm": "Weet je zeker dat je deze voorinstelling wilt verwijderen?",
+            "settingsName": "Voorinstellingsnaam",
+            "itemCopies": "Itemkopieën",
+            "duplicateSettings": "Dupliceren",
+            "saveSetting": "Voorinstelling opslaan",
+            "saveAsImage": "Opslaan als afbeelding"
         },
         "qrcode": {
             "extruderTemp": "ET: {{temp}}",
@@ -80,21 +84,27 @@
             "showTemperatures": "Temperaturen",
             "showVendor": "Fabrikant",
             "showSpoolComment": "Opmerking spoel",
-            "textSize": "Inhoud tekstgrootte",
-            "title": "QR-Code afdrukken",
+            "textSize": "Label tekstgrootte",
+            "title": "Label afdrukken",
             "showSpoolmanIcon": "Spoolman icoon tonen",
             "showLotNr": "Lotnummer",
             "bedTemp": "BT: {{temp}}",
             "lotNr": "Lotnummer: {{lot}}",
             "showFilamentComment": "Opmerking filament",
-            "button": "QR-Codes afdrukken",
-            "template": "Sjabloon",
-            "templateHelp": "Gebruik {} om waarden van het spoelobject als tekst in te voegen. Bijvoorbeeld {id} wordt vervangen door het id van de spoel, of {filament.material} wordt vervangen door het materiaal van de spoel. Voeg een dubbel sterretje (**) toe voor en achter de tekst om het vet te maken. Klik op de knop om een lijst met alle beschikbare tags te bekijken."
+            "button": "Labels afdrukken",
+            "template": "Label Sjabloon",
+            "templateHelp": "Gebruik {} om waarden van het spoelobject als tekst in te voegen. Bijvoorbeeld {id} wordt vervangen door het id van de spoel, of {filament.material} wordt vervangen door het materiaal van de spoel. Voeg een dubbel sterretje (**) toe voor en achter de tekst om het vet te maken. Klik op de knop om een lijst met alle beschikbare tags te bekijken.",
+            "showQRCodeMode": {
+                "no": "Nee",
+                "simple": "Simpel",
+                "withIcon": "Met Icoon"
+            },
+            "showQRCode": "Print QR-Code"
         },
         "spoolSelect": {
             "selectedTotal_one": "{{count}} spoel geselecteerd",
             "selectedTotal_other": "{{count}} spoelen geselecteerd",
-            "description": "Selecteer spoelen waarvoor je QR-codes wilt afdrukken.",
+            "description": "Selecteer spoelen waarvoor je labels wilt afdrukken.",
             "showArchived": "Gearchiveerde tonen",
             "title": "Spoelen selecteren",
             "selectAll": "Alles (de)selecteren",
@@ -190,7 +200,8 @@
             "create": "Spoel maken",
             "clone": "Spoel klonen",
             "list": "Spoelen",
-            "show_title": "[Spoel #{{id}}] {{name}}"
+            "show_title": "[Spoel #{{id}}] {{name}}",
+            "adjust": "Spoel Filament aanpassen"
         },
         "fields_help": {
             "used_weight": "Hoeveel filament er van de spoel is gebruikt. Op een nieuwe spoel zal 0g gebruikt zijn.",
@@ -210,7 +221,14 @@
         },
         "form": {
             "new_location_prompt": "Voer een nieuwe locatie in",
-            "spool_updated": "Deze spoel is bijgewerkt door iemand/iets anders sinds je deze pagina hebt geopend. Opslaan zal die wijzigingen overschrijven!"
+            "spool_updated": "Deze spoel is bijgewerkt door iemand/iets anders sinds je deze pagina hebt geopend. Opslaan zal die wijzigingen overschrijven!",
+            "adjust_filament_help": "Hier kunt u direct filament toevoegen of verwijderen van de spoel. Een positieve waarde zal filament verbruiken, een negatieve waarde zal het toevoegen.",
+            "measurement_type": {
+                "length": "Lengte",
+                "weight": "Gewicht"
+            },
+            "measurement_type_label": "Meettype",
+            "adjust_filament_value": "Verbruikte hoeveelheid"
         }
     },
     "filament": {
