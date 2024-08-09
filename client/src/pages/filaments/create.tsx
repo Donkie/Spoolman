@@ -73,6 +73,8 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
       invalidates: ["list", "detail"],
     });
 
+    setColorType(filament.color_hexes ? "multi" : "single")
+
     form.setFieldsValue({
       name: filament.name,
       vendor_id: vendor.id,
@@ -82,6 +84,8 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
       weight: filament.weight,
       spool_weight: filament.spool_weight || undefined,
       color_hex: filament.color_hex,
+      multi_color_hexes: filament.color_hexes?.join(",") || undefined,
+      multi_color_direction: filament.multi_color_direction,
       settings_extruder_temp: filament.extruder_temp || undefined,
       settings_bed_temp: filament.bed_temp || undefined,
     });
