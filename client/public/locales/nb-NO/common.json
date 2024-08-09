@@ -21,7 +21,8 @@
         "filter": "Filtrer",
         "refresh": "Gjenoppfrisk",
         "notAccessTitle": "Du har ikke rettighet til å få tilgang",
-        "saveAndAdd": "Lagre og legg til"
+        "saveAndAdd": "Lagre og legg til",
+        "continue": "Fortsett"
     },
     "filament": {
         "fields": {
@@ -95,25 +96,42 @@
             "description": "Still inn innstillingene nedenfor for å få ønsket utskriftsoppsett. Husk at skrivere og operativsystemet ditt kan bruke sine egne marger og skalering, så det kan hende du må prøve og feile før alt er riktig. Test det på et stykke vanlig papir før du skriver ut på selve etikettene.",
             "horizontalSpacing": "Horisontal avstand",
             "marginLeft": "Venstre marg",
-            "showBorder": "Vis side"
+            "showBorder": "Vis side",
+            "defaultSettings": "Standard",
+            "newSetting": "Ny",
+            "addSettings": "Legg til ny mal",
+            "duplicateSettings": "Dupliser",
+            "deleteSettings": "Slett gjeldende mal",
+            "deleteSettingsConfirm": "Er du sikker på at du vil slette denne malen?",
+            "settingsName": "Navn på mal",
+            "saveSetting": "Lagre mal",
+            "settings": "Maler",
+            "saveAsImage": "Lagre som bilde"
         },
         "qrcode": {
             "showTemperatures": "Temperaturer",
-            "button": "Skriv ut QR-koder",
+            "button": "Skriv ut etiketter",
             "showVendorComment": "Leverandørkommentar",
             "spoolWeight": "Spolevekt: {{weight}}",
             "showVendor": "Leverandør",
             "showSpoolComment": "Spolekommentar",
-            "title": "QR-kodeutskrift",
+            "title": "Etikettprinting",
             "extruderTemp": "ET: {{temp}}",
             "showSpoolWeight": "Spolevekt",
             "showContent": "Skriv ut etikett",
-            "textSize": "Tekststørrelse på innhold",
+            "textSize": "Tekststørrelse på etikett",
             "showSpoolmanIcon": "Vis Spoolman ikon",
             "showLotNr": "Batch Nr",
             "bedTemp": "BT: {{temp}}",
             "lotNr": "Batch Nr: {{lot}}",
-            "showFilamentComment": "Filament kommentar"
+            "showFilamentComment": "Filament kommentar",
+            "template": "Etikett mal",
+            "showQRCodeMode": {
+                "simple": "Simpel",
+                "no": "Nei",
+                "withIcon": "Med ikon"
+            },
+            "showQRCode": "Print QR-kode"
         },
         "spoolSelect": {
             "showArchived": "Vis arkiverte",
@@ -121,7 +139,7 @@
             "noSpoolsSelected": "Du har ikke valgt noen spoler.",
             "selectedTotal_one": "{{count}} spole valgt",
             "selectedTotal_other": "{{count}} spoler valgt",
-            "description": "Velg spoler å printe ut QR-koder for.",
+            "description": "Velg spoler å printe ut etiketter for.",
             "selectAll": "Velg/fjern merking av alle"
         }
     },
@@ -146,7 +164,11 @@
             "filament_name": "Filament",
             "filament": "Filament",
             "location": "Lokasjon",
-            "price": ""
+            "price": "Pris",
+            "filament_internal": "Internt",
+            "filament_external": "Eksternt",
+            "initial_weight": "Startvekt",
+            "spool_weight": "Tom vekt"
         },
         "titles": {
             "archive": "Arkiver spole",
@@ -168,7 +190,10 @@
             "lot_nr": "Produsentens batch nummer. Kan bli benyttet or å verifiserer at print har en konsistent farge dersom flere spoler benyttes.",
             "remaining_weight": "Hvor mye filament gjenstår på spolen. Ved en ny spole burde dette stemme med spolevekt.",
             "location": "Hvor spolen er plassert hvis du har flere lokasjoner hvor du oppbevarer spoler.",
-            "price": ""
+            "price": "Pris på en full spole. Hvis ikke satt, vil prisen på filamentet bli antatt i stedet.",
+            "spool_weight": "Vekten av spolen når den er tom. La stå tomt for å bruke verdien fra filamentet eller produsenten.",
+            "initial_weight": "Startvekten av filament på spolen (nettovekt). Vil bruke vekten fra filament hvis ikke satt.",
+            "external_filament": "Du har valgt et filament fra den eksterne databasen. Et filamentobjekt (og muligens et produsentobjekt) opprettes automatisk når du oppretter denne spolen. Dette kan lage dupliserte filamentobjekter hvis du allerede har opprettet et filamentobjekt for denne filamentet."
         },
         "form": {
             "new_location_prompt": "Skriv inn en ny lokasjon",
@@ -229,7 +254,9 @@
         "createError": "Kunne ikke opprette {{resource}} (statuskode: {{statusCode}})",
         "editSuccess": "{{resource}} redigert",
         "deleteError": "Kunne ikke slette {{resource}} (statuskode: {{statusCode}})",
-        "createSuccess": "Opprettet {{resource}}"
+        "createSuccess": "Opprettet {{resource}}",
+        "saveSuccessful": "Lagring vellykket!",
+        "validationError": "Valideringsfeil: {{error}}"
     },
     "loading": "Laster",
     "documentTitle": {
@@ -270,7 +297,7 @@
     "dashboard": {
         "title": "Oversikt"
     },
-    "kofi": "",
+    "kofi": "Gi meg tips på Ko-fi",
     "home": {
         "home": ""
     },
