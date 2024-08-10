@@ -1,6 +1,6 @@
 [project]
 name = "spoolman"
-version = "0.19.2"
+version = "0.19.3"
 description = "A web service that keeps track of 3D printing spools."
 authors = [
     { name = "Donkie", email = "daniel.cf.hultgren@gmail.com" },
