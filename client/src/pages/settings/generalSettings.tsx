@@ -30,10 +30,7 @@ export function GeneralSettings() {
   const onFinish = (values: { currency: string }) => {
     // Check if the currency has changed
     if (settings.data?.currency.value !== JSON.stringify(values.currency)) {
-      setCurrency.mutate({
-        key: "currency",
-        value: JSON.stringify(values.currency),
-      });
+      setCurrency.mutate(values.currency);
     }
   };
 
