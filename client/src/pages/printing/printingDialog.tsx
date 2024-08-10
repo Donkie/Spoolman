@@ -352,7 +352,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
                 <Col span={12}>
                   <Slider
                     min={0.1}
-                    max={1}
+                    max={3}
                     step={0.01}
                     value={previewScale}
                     onChange={(value) => {
@@ -363,7 +363,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
                 <Col span={12}>
                   <InputNumber
                     min={0.1}
-                    max={1}
+                    max={3}
                     step={0.01}
                     style={{ margin: "0 16px" }}
                     value={previewScale}
