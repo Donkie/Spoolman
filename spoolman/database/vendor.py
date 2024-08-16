@@ -33,8 +33,8 @@ async def create(
         extra=[models.VendorField(key=k, value=v) for k, v in (extra or {}).items()],
     )
     db.add(vendor)
-    await db.commit()
     await vendor_changed(vendor, EventType.ADDED)
+    await db.commit()
     return vendor
 
 
@@ -101,8 +101,8 @@ async def update(
             vendor.extra = [models.VendorField(key=k, value=v) for k, v in v.items()]
         else:
             setattr(vendor, k, v)
-    await db.commit()
     await vendor_changed(vendor, EventType.UPDATED)
+    await db.commit()
     return vendor
 
 

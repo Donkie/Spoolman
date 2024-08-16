@@ -76,8 +76,8 @@ async def create(
         extra=[models.FilamentField(key=k, value=v) for k, v in (extra or {}).items()],
     )
     db.add(filament)
-    await db.commit()
     await filament_changed(filament, EventType.ADDED)
+    await db.commit()
     return filament
 
 
@@ -172,8 +172,8 @@ async def update(
             filament.multi_color_direction = v.value if v is not None else None
         else:
             setattr(filament, k, v)
-    await db.commit()
     await filament_changed(filament, EventType.UPDATED)
+    await db.commit()
     return filament
 
 
@@ -182,8 +182,8 @@ async def delete(db: AsyncSession, filament_id: int) -> None:
     filament = await get_by_id(db, filament_id)
     await db.delete(filament)
     try:
-        await db.commit()  # Flush immediately so any errors are propagated in this request.
         await filament_changed(filament, EventType.DELETED)
+        await db.commit()  # Flush immediately so any errors are propagated in this request.
     except IntegrityError as exc:
         await db.rollback()
         raise ItemDeleteError("Failed to delete filament.") from exc
