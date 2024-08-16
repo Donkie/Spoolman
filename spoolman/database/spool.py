@@ -1,5 +1,6 @@
 """Helper functions for interacting with spool database objects."""
 
+import logging
 from collections.abc import Sequence
 from datetime import datetime, timezone
 from typing import Optional, Union
@@ -24,6 +25,8 @@ from spoolman.database.utils import (
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError, SpoolMeasureError
 from spoolman.math import weight_from_length
 from spoolman.ws import websocket_manager
+
+logger = logging.getLogger(__name__)
 
 
 def utc_timezone_naive(dt: datetime) -> datetime:
@@ -92,8 +95,8 @@ async def create(
         extra=[models.SpoolField(key=k, value=v) for k, v in (extra or {}).items()],
     )
     db.add(spool)
-    await spool_changed(spool, EventType.ADDED)
     await db.commit()
+    await spool_changed(spool, EventType.ADDED)
     return spool
 
 
@@ -228,8 +231,8 @@ async def update(
             spool.extra = [models.SpoolField(key=k, value=v) for k, v in v.items()]
         else:
             setattr(spool, k, v)
-    await spool_changed(spool, EventType.UPDATED)
     await db.commit()
+    await spool_changed(spool, EventType.UPDATED)
     return spool
 
 
@@ -291,8 +294,8 @@ async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.S
         spool.first_used = datetime.utcnow().replace(microsecond=0)
     spool.last_used = datetime.utcnow().replace(microsecond=0)
 
-    await spool_changed(spool, EventType.UPDATED)
     await db.commit()
+    await spool_changed(spool, EventType.UPDATED)
     return spool
 
 
@@ -337,12 +340,8 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
         spool.first_used = datetime.utcnow().replace(microsecond=0)
     spool.last_used = datetime.utcnow().replace(microsecond=0)
 
-    await spool_changed(spool, EventType.UPDATED)
-
-    # Commit should be the last action, everything after that must never fail
-    # Otherwise you can end up in a non-atomic thing where the http use request fails
-    # but the data still has been committed.
     await db.commit()
+    await spool_changed(spool, EventType.UPDATED)
     return spool
 
 
@@ -436,15 +435,19 @@ async def find_lot_numbers(
 
 async def spool_changed(spool: models.Spool, typ: EventType) -> None:
     """Notify websocket clients that a spool has changed."""
-    await websocket_manager.send(
-        ("spool", str(spool.id)),
-        SpoolEvent(
-            type=typ,
-            resource="spool",
-            date=datetime.utcnow(),
-            payload=Spool.from_db(spool),
-        ),
-    )
+    try:
+        await websocket_manager.send(
+            ("spool", str(spool.id)),
+            SpoolEvent(
+                type=typ,
+                resource="spool",
+                date=datetime.utcnow(),
+                payload=Spool.from_db(spool),
+            ),
+        )
+    except Exception:
+        # Important to have a catch-all here since we don't want to stop the call if this fails.
+        logger.exception("Failed to send websocket message")
 
 
 async def reset_initial_weight(db: AsyncSession, spool_id: int, weight: float) -> models.Spool:
@@ -453,6 +456,6 @@ async def reset_initial_weight(db: AsyncSession, spool_id: int, weight: float) -
 
     spool.initial_weight = weight
     spool.used_weight = 0
-    await spool_changed(spool, EventType.UPDATED)
     await db.commit()
+    await spool_changed(spool, EventType.UPDATED)
     return spool

@@ -1,5 +1,6 @@
 """Helper functions for interacting with vendor database objects."""
 
+import logging
 from datetime import datetime
 from typing import Optional
 
@@ -12,6 +13,8 @@ from spoolman.database import models
 from spoolman.database.utils import SortOrder, add_where_clause_str, add_where_clause_str_opt
 from spoolman.exceptions import ItemNotFoundError
 from spoolman.ws import websocket_manager
+
+logger = logging.getLogger(__name__)
 
 
 async def create(
@@ -33,8 +36,8 @@ async def create(
         extra=[models.VendorField(key=k, value=v) for k, v in (extra or {}).items()],
     )
     db.add(vendor)
-    await vendor_changed(vendor, EventType.ADDED)
     await db.commit()
+    await vendor_changed(vendor, EventType.ADDED)
     return vendor
 
 
@@ -101,8 +104,8 @@ async def update(
             vendor.extra = [models.VendorField(key=k, value=v) for k, v in v.items()]
         else:
             setattr(vendor, k, v)
-    await vendor_changed(vendor, EventType.UPDATED)
     await db.commit()
+    await vendor_changed(vendor, EventType.UPDATED)
     return vendor
 
 
@@ -122,12 +125,16 @@ async def clear_extra_field(db: AsyncSession, key: str) -> None:
 
 async def vendor_changed(vendor: models.Vendor, typ: EventType) -> None:
     """Notify websocket clients that a vendor has changed."""
-    await websocket_manager.send(
-        ("vendor", str(vendor.id)),
-        VendorEvent(
-            type=typ,
-            resource="vendor",
-            date=datetime.utcnow(),
-            payload=Vendor.from_db(vendor),
-        ),
-    )
+    try:
+        await websocket_manager.send(
+            ("vendor", str(vendor.id)),
+            VendorEvent(
+                type=typ,
+                resource="vendor",
+                date=datetime.utcnow(),
+                payload=Vendor.from_db(vendor),
+            ),
+        )
+    except Exception:
+        # Important to have a catch-all here since we don't want to stop the call if this fails.
+        logger.exception("Failed to send websocket message")
