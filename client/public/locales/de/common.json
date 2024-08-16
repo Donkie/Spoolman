@@ -28,7 +28,8 @@
         "archive": "Archiv",
         "hideArchived": "Archivierte verstecken",
         "unArchive": "Archivieren rückgängig machen",
-        "saveAndAdd": "Speichern und hinzufügen"
+        "saveAndAdd": "Speichern und hinzufügen",
+        "continue": "Weiter"
     },
     "warnWhenUnsavedChanges": "Bist du sicher, dass du die Seite verlassen willst? Du hast ungespeicherte Änderungen.",
     "notifications": {
@@ -45,7 +46,7 @@
         "saveSuccessful": "Erfolgreich gespeichert!",
         "validationError": "Validierungsfehler: {{error}}"
     },
-    "loading": "Laden",
+    "loading": "Läd",
     "version": "Version",
     "unknown": "Unbekannt",
     "yes": "Ja",
@@ -87,11 +88,22 @@
                 "none": "Keine",
                 "border": "Ränder",
                 "grid": "Gitter"
-            }
+            },
+            "saveAsImage": "Als Bild speichern",
+            "settings": "Vorlage",
+            "defaultSettings": "Standard",
+            "addSettings": "Neue Vorlage hinzufügen",
+            "newSetting": "Neu",
+            "deleteSettings": "Aktuelle Vorlage löschen",
+            "deleteSettingsConfirm": "Bist du dir sicher, dass du diese Vorlage löschen willst?",
+            "settingsName": "Vorlagenname",
+            "itemCopies": "Anzahl der Kopien",
+            "duplicateSettings": "Kopie erstellen",
+            "saveSetting": "Vorlage speichern"
         },
         "qrcode": {
-            "button": "QR-Codes drucken",
-            "title": "QR Codes drucken",
+            "button": "Beschriftung drucken",
+            "title": "Beschriftung drucken",
             "spoolWeight": "Gewicht Spule: {{weight}}",
             "lotNr": "Lot. Nr: {{lot}}",
             "bedTemp": "BT: {{temp}}",
@@ -105,7 +117,15 @@
             "showTemperatures": "Temperaturen",
             "showSpoolComment": "Kommentar: Spule",
             "showFilamentComment": "Kommentar: Filament",
-            "showVendorComment": "Kommentar: Hersteller"
+            "showVendorComment": "Kommentar: Hersteller",
+            "showQRCodeMode": {
+                "no": "Nein",
+                "simple": "Einfach",
+                "withIcon": "Mit Icon"
+            },
+            "template": "Beschriftung Vorlagen",
+            "templateHelp": "Benutze {} um Texte der Spule dynamisch zu übernehmen. Zum Beispiel wird {id} durch die ID der Spule ersetzt, {filament.material} wird durch das Material der Spule ersetzt. Texte zwischen zwei Sternen ** werden fett dargestellt. Drücke auf den Knopf um alle verfügbaren Variablen zu sehen.",
+            "showQRCode": "Drucke QR Code"
         },
         "spoolSelect": {
             "title": "Spulenauswahl",
@@ -156,7 +176,7 @@
             "filament_external": "Extern"
         },
         "fields_help": {
-            "weight_to_use": "Auswählen, welches Gewicht verwendet werden soll. Das gemessenes Gewicht ist nur verfügbar, wenn das Gewicht der Spule für das Filament hinterlegt ist",
+            "weight_to_use": "Auswählen, welches Gewicht verwendet werden soll. Das gemessenes Gewicht ist nur verfügbar, wenn das Gewicht der Spule für das Filament hinterlegt ist.",
             "used_weight": "Wie viel Gewicht bereits verbraucht wurde z.B. 0g für eine neue Spule.",
             "remaining_weight": "Wie viel Filament noch auf der Spule ist. Entspricht dem auf der Spule angegeben Nettogewicht, wenn die Spule neu ist.",
             "measured_weight": "Gesamtgewicht von Spule und Filament.",
@@ -174,22 +194,29 @@
             "list": "Spulen",
             "show": "Spule anzeigen",
             "archive": "Spule archivieren",
-            "show_title": "[Spule #{{id}}] {{name}}"
+            "show_title": "[Spule #{{id}}] {{name}}",
+            "adjust": "Filamentspulen Anpassung"
         },
         "messages": {
             "archive": "Sicher das die Spule archiviert werden soll?"
         },
         "form": {
             "spool_updated": "Diese Spule wurde, seit dem die Seite geöffnet wurde, von jemand anderem/etwas anderem bearbeitet. Speichern wird diese Änderungen überschreiben!",
-            "new_location_prompt": "Neue Position eingeben"
+            "new_location_prompt": "Neue Position eingeben",
+            "adjust_filament_help": "Hier kannst du direkt Filament von der Spule hinzufügen oder entfernen. Eine positive Eingabe wird Filament als verbraucht markieren, eine negative wird es der Spule hinzufügen.",
+            "measurement_type": {
+                "length": "Länge",
+                "weight": "Gewicht"
+            },
+            "adjust_filament_value": "Verbrauchte Menge"
         }
     },
     "filament": {
         "filament": "Filamente",
         "fields": {
             "id": "ID",
-            "vendor_name": "Marke",
-            "vendor": "Marke",
+            "vendor_name": "Hersteller",
+            "vendor": "Hersteller",
             "name": "Name",
             "material": "Material",
             "price": "Preis",
@@ -204,7 +231,9 @@
             "settings_bed_temp": "Betttemperatur",
             "color_hex": "Farbe",
             "spools": "Zeige Spulen",
-            "external_id": "Externe ID"
+            "external_id": "Externe ID",
+            "single_color": "Einfarbig",
+            "multi_color": "Mehrfarbig"
         },
         "fields_help": {
             "name": "Name des Filaments um es von anderen Typen des gleichen Herstellers zu unterscheiden. Sollte z.B. die Farbe enthalten.",
@@ -232,7 +261,7 @@
         }
     },
     "vendor": {
-        "vendor": "Marke",
+        "vendor": "Hersteller",
         "fields": {
             "id": "ID",
             "name": "Name",
@@ -245,7 +274,7 @@
             "create": "Hersteller erstellen",
             "clone": "Hersteller duplizieren",
             "edit": "Hersteller bearbeiten",
-            "list": "Marke",
+            "list": "Herstellerliste",
             "show": "Hersteller anzeigen",
             "show_title": "[Hersteller #{{id}}] {{name}}"
         },
