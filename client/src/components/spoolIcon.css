@@ -18,6 +18,7 @@
 .spool-icon * {
   flex: 1 1 0px;
   border-radius: 2px;
+  border: #44444430 solid 2px;
 }
 
 .spool-icon.vertical *:first-child {
