@@ -5,6 +5,7 @@ import { useGetSettings, useSetSetting } from "../../utils/querySettings";
 
 export function GeneralSettings() {
   const settings = useGetSettings();
+  const setQrCodeUrl = useSetSetting("qr_code_url");
   const setCurrency = useSetSetting("currency");
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
@@ -28,17 +29,14 @@ export function GeneralSettings() {
   }, [setCurrency.isSuccess, messageApi, t]);
 
   // Handle form submit
-  const onFinish = (values: { currency: string, qr_code_url: string }) => {
+  const onFinish = (values: { currency: string; qr_code_url: string }) => {
     // Check if the currency has changed
     if (settings.data?.currency.value !== JSON.stringify(values.currency)) {
       setCurrency.mutate(values.currency);
     }
     // Check if the QR code URL has changed
     if (settings.data?.qr_code_url.value !== JSON.stringify(values.qr_code_url)) {
-      setSetting.mutate({
-        key: "qr_code_url",
-        value: JSON.stringify(values.qr_code_url),
-      });
+      setQrCodeUrl.mutate(values.qr_code_url);
     }
   };
 
@@ -85,9 +83,7 @@ export function GeneralSettings() {
             },
           ]}
         >
-          <Input
-            placeholder="https://example.com:8000/"
-          />
+          <Input placeholder="https://example.com:8000/" />
         </Form.Item>
 
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
