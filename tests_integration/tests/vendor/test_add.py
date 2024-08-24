@@ -12,9 +12,14 @@ def test_add_vendor():
     # Execute
     name = "John"
     comment = "abcdefghåäö"
+    external_id = "external_id1"
     result = httpx.post(
         f"{URL}/api/v1/vendor",
-        json={"name": name, "comment": comment},
+        json={
+            "name": name,
+            "external_id": external_id,
+            "comment": comment,
+        },
     )
     result.raise_for_status()
 
@@ -27,6 +32,7 @@ def test_add_vendor():
             "registered": vendor["registered"],
             "name": name,
             "comment": comment,
+            "external_id": external_id,
         },
     )
 

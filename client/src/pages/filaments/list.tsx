@@ -1,33 +1,33 @@
-import React from "react";
-import { IResourceComponentsProps, useTranslate, useInvalidate, useNavigation } from "@refinedev/core";
-import { useTable, List } from "@refinedev/antd";
-import { Table, Button, Dropdown } from "antd";
+import { EditOutlined, EyeOutlined, FileOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
+import { List, useTable } from "@refinedev/antd";
+import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
+import { Button, Dropdown, Table } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { IFilament } from "./model";
-import { EditOutlined, EyeOutlined, FileOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
-import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
+  ActionsColumn,
+  CustomFieldColumn,
   DateColumn,
   FilteredQueryColumn,
   NumberColumn,
   RichColumn,
   SortedColumn,
   SpoolIconColumn,
-  ActionsColumn,
-  CustomFieldColumn,
 } from "../../components/column";
+import { useLiveify } from "../../components/liveify";
 import {
   useSpoolmanArticleNumbers,
   useSpoolmanFilamentNames,
   useSpoolmanMaterials,
   useSpoolmanVendors,
 } from "../../components/otherModels";
-import { useLiveify } from "../../components/liveify";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
-import { useNavigate } from "react-router-dom";
+import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
 import { useCurrency } from "../../utils/settings";
+import { IFilament } from "./model";
 
 dayjs.extend(utc);
 
@@ -125,7 +125,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
     });
 
   // Create state for the columns to show
-  const [showColumns, setShowColumns] = React.useState<string[]>(initialState.showColumns ?? defaultColumns);
+  const [showColumns, setShowColumns] = useState<string[]>(initialState.showColumns ?? defaultColumns);
 
   // Store state in local storage
   const tableState: TableState = {
@@ -137,7 +137,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   useStoreInitialState(namespace, tableState);
 
   // Collapse the dataSource to a mutable list
-  const queryDataSource: IFilamentCollapsed[] = React.useMemo(
+  const queryDataSource: IFilamentCollapsed[] = useMemo(
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource]
   );
@@ -240,7 +240,13 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             ...commonProps,
             id: "name",
             i18ncat: "filament",
-            color: (record: IFilamentCollapsed) => record.color_hex,
+            color: (record: IFilamentCollapsed) =>
+              record.multi_color_hexes
+                ? {
+                    colors: record.multi_color_hexes.split(","),
+                    vertical: record.multi_color_direction === "longitudinal",
+                  }
+                : record.color_hex,
             filterValueQuery: useSpoolmanFilamentNames(),
           }),
           FilteredQueryColumn({
@@ -254,6 +260,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             ...commonProps,
             id: "price",
             i18ncat: "filament",
+            align: "right",
             width: 80,
             render: (_, obj: IFilamentCollapsed) => {
               return obj.price?.toLocaleString(undefined, {
@@ -285,7 +292,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             id: "weight",
             i18ncat: "filament",
             unit: "g",
-            maxDecimals: 1,
+            maxDecimals: 0,
             width: 100,
           }),
           NumberColumn({
@@ -293,7 +300,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             id: "spool_weight",
             i18ncat: "filament",
             unit: "g",
-            maxDecimals: 1,
+            maxDecimals: 0,
             width: 100,
           }),
           FilteredQueryColumn({
@@ -336,7 +343,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             i18ncat: "filament",
             width: 150,
           }),
-          ActionsColumn(actions),
+          ActionsColumn(t("table.actions"), actions),
         ])}
       />
     </List>

@@ -28,6 +28,7 @@ class DatabaseType(Enum):
 
         Returns:
             str: The drivername.
+
         """
         if self is DatabaseType.POSTGRES:
             return "postgresql+asyncpg"
@@ -47,6 +48,7 @@ def get_database_type() -> Optional[DatabaseType]:
 
     Returns:
         Optional[DatabaseType]: The database type.
+
     """
     database_type = os.getenv("SPOOLMAN_DB_TYPE")
     if database_type is None:
@@ -69,6 +71,7 @@ def get_host() -> Optional[str]:
 
     Returns:
         Optional[str]: The host.
+
     """
     return os.getenv("SPOOLMAN_DB_HOST")
 
@@ -80,6 +83,7 @@ def get_port() -> Optional[int]:
 
     Returns:
         Optional[str]: The port.
+
     """
     port = os.getenv("SPOOLMAN_DB_PORT")
     if port is None:
@@ -97,6 +101,7 @@ def get_database() -> Optional[str]:
 
     Returns:
         Optional[str]: The name.
+
     """
     return os.getenv("SPOOLMAN_DB_NAME")
 
@@ -108,6 +113,7 @@ def get_query() -> Optional[dict[str, str]]:
 
     Returns:
         Optional[dict]: The query.
+
     """
     query = os.getenv("SPOOLMAN_DB_QUERY")
     if query is None:
@@ -126,6 +132,7 @@ def get_username() -> Optional[str]:
 
     Returns:
         Optional[str]: The username.
+
     """
     return os.getenv("SPOOLMAN_DB_USERNAME")
 
@@ -140,6 +147,7 @@ def get_password() -> Optional[str]:
 
     Returns:
         Optional[str]: The password.
+
     """
     # First attempt: grab password from a file. This is the most secure way of storing passwords.
     file_path = os.getenv("SPOOLMAN_DB_PASSWORD_FILE")
@@ -170,6 +178,7 @@ def get_logging_level() -> int:
 
     Returns:
         str: The logging level.
+
     """
     log_level_str = os.getenv("SPOOLMAN_LOGGING_LEVEL", "INFO").upper()
     if log_level_str == "DEBUG":
@@ -192,6 +201,7 @@ def is_debug_mode() -> bool:
 
     Returns:
         bool: Whether debug mode is enabled.
+
     """
     debug_mode = os.getenv("SPOOLMAN_DEBUG_MODE", "FALSE").upper()
     if debug_mode in {"FALSE", "0"}:
@@ -208,6 +218,7 @@ def is_automatic_backup_enabled() -> bool:
 
     Returns:
         bool: Whether automatic backup is enabled.
+
     """
     automatic_backup = os.getenv("SPOOLMAN_AUTOMATIC_BACKUP", "TRUE").upper()
     if automatic_backup in {"FALSE", "0"}:
@@ -224,6 +235,7 @@ def get_data_dir() -> Path:
 
     Returns:
         Path: The data directory.
+
     """
     env_data_dir = os.getenv("SPOOLMAN_DIR_DATA")
     if env_data_dir is not None:
@@ -239,6 +251,7 @@ def get_logs_dir() -> Path:
 
     Returns:
         Path: The logs directory.
+
     """
     env_logs_dir = os.getenv("SPOOLMAN_DIR_LOGS")
     if env_logs_dir is not None:
@@ -254,6 +267,7 @@ def get_backups_dir() -> Path:
 
     Returns:
         Path: The backups directory.
+
     """
     env_backups_dir = os.getenv("SPOOLMAN_DIR_BACKUPS")
     if env_backups_dir is not None:
@@ -264,11 +278,17 @@ def get_backups_dir() -> Path:
     return backups_dir
 
 
+def get_cache_dir() -> Path:
+    """Get the cache directory."""
+    return get_data_dir() / "cache"
+
+
 def get_version() -> str:
     """Get the version of the package.
 
     Returns:
         str: The version.
+
     """
     # Read version from pyproject.toml, don't use pkg_resources because it requires the package to be installed
     with Path("pyproject.toml").open(encoding="utf-8") as f:
@@ -285,6 +305,7 @@ def get_commit_hash() -> Optional[str]:
 
     Returns:
         Optional[str]: The commit hash.
+
     """
     # Read commit has from build.txt
     # commit is written as GIT_COMMIT=<hash> in build.txt
@@ -303,6 +324,7 @@ def get_build_date() -> Optional[datetime]:
 
     Returns:
         Optional[datetime.datetime]: The build date.
+
     """
     # Read build date has from build.txt
     # build date is written as BUILD_DATE=<hash> in build.txt
@@ -354,7 +376,7 @@ def check_write_permissions() -> None:
 
         # Try fixing it by chowning the directory to the current user
         logger.warning("Data directory is not writable, trying to fix it...")
-        if not chown_dir(get_data_dir()) or not can_write_to_data_dir():
+        if not chown_dir(str(get_data_dir())) or not can_write_to_data_dir():
             uid = os.getuid()
             gid = os.getgid()
 
@@ -380,3 +402,39 @@ def is_data_dir_mounted() -> bool:
     mounts = subprocess.run("mount", check=True, stdout=subprocess.PIPE, text=True)  # noqa: S603, S607
     data_dir = str(get_data_dir().resolve())
     return any(data_dir in line for line in mounts.stdout.splitlines())
+
+
+def is_metrics_enabled() -> bool:
+    """Get whether collect prometheus metrics at database is enabled.
+
+        Returns False if no environment variable was set for collect metrics.
+
+    Returns:
+        bool: Whether collect metrics is enabled.
+
+    """
+    metrics_enabled = os.getenv("SPOOLMAN_METRICS_ENABLED", "FALSE").upper()
+    if metrics_enabled in {"FALSE", "0"}:
+        return False
+    if metrics_enabled in {"TRUE", "1"}:
+        return True
+    raise ValueError(
+        f"Failed to parse SPOOLMAN_METRICS_ENABLED variable: Unknown metrics enabled '{metrics_enabled}'.",
+    )
+
+
+def get_base_path() -> str:
+    """Get the base path.
+
+    This is formated so that it always starts with a /, and does not end with a /
+
+    Returns:
+        str: The base path.
+
+    """
+    path = os.getenv("SPOOLMAN_BASE_PATH", "")
+    if len(path) == 0:
+        return ""
+
+    # Ensure it starts with / and does not end with /
+    return "/" + path.strip("/")

@@ -1,16 +1,17 @@
-import React from "react";
+import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
 import { IResourceComponentsProps, useShow, useTranslate } from "@refinedev/core";
-import { Show, NumberField, DateField, TextField } from "@refinedev/antd";
 import { Button, Typography } from "antd";
-import { NumberFieldUnit } from "../../components/numberField";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { IFilament } from "./model";
-import { enrichText } from "../../utils/parsing";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { EntityType, useGetFields } from "../../utils/queryFields";
 import { ExtraFieldDisplay } from "../../components/extraFields";
+import { NumberFieldUnit } from "../../components/numberField";
+import SpoolIcon from "../../components/spoolIcon";
+import { enrichText } from "../../utils/parsing";
+import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useCurrency } from "../../utils/settings";
+import { IFilament } from "./model";
 dayjs.extend(utc);
 
 const { Title } = Typography;
@@ -49,6 +50,13 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
     navigate(URL);
   };
 
+  const colorObj = record?.multi_color_hexes
+    ? {
+        colors: record.multi_color_hexes.split(","),
+        vertical: record.multi_color_direction === "longitudinal",
+      }
+    : record?.color_hex;
+
   return (
     <Show
       isLoading={isLoading}
@@ -80,7 +88,7 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       <Title level={5}>{t("filament.fields.name")}</Title>
       <TextField value={record?.name} />
       <Title level={5}>{t("filament.fields.color_hex")}</Title>
-      <TextField value={record?.color_hex} />
+      {colorObj && <SpoolIcon color={colorObj} size="large" />}
       <Title level={5}>{t("filament.fields.material")}</Title>
       <TextField value={record?.material} />
       <Title level={5}>{t("filament.fields.price")}</Title>
@@ -143,6 +151,8 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       )}
       <Title level={5}>{t("filament.fields.article_number")}</Title>
       <TextField value={record?.article_number} />
+      <Title level={5}>{t("filament.fields.external_id")}</Title>
+      <TextField value={record?.external_id} />
       <Title level={5}>{t("filament.fields.comment")}</Title>
       <TextField value={enrichText(record?.comment)} />
       <Title level={4}>{t("settings.extra_fields.tab")}</Title>

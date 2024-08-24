@@ -41,7 +41,9 @@
         "deleteError": "删除 {{resource}} 时出现错误 (状态码：{{statusCode}})",
         "editSuccess": "成功修改 {{resource}}",
         "editError": "修改 {{resource}} 时出现错误 (状态码：{{statusCode}})",
-        "importProgress": "导入中： {{processed}}/{{total}}"
+        "importProgress": "导入中： {{processed}}/{{total}}",
+        "saveSuccessful": "保存成功！",
+        "validationError": "校验错误：{{error}}"
     },
     "loading": "加载中",
     "version": "版本",
@@ -96,14 +98,14 @@
             "extruderTemp": "挤出温度：{{temp}}",
             "textSize": "内容文本大小",
             "showSpoolmanIcon": "显示Spoolman图标",
-            "showVendor": "供应商",
+            "showVendor": "制造商",
             "showContent": "打印标签",
             "showLotNr": "批号",
             "showSpoolWeight": "料盘重量",
             "showTemperatures": "温度",
             "showSpoolComment": "料盘备注",
             "showFilamentComment": "耗材备注",
-            "showVendorComment": "供应商备注"
+            "showVendorComment": "制造商备注"
         },
         "spoolSelect": {
             "title": "选择料盘",
@@ -146,7 +148,11 @@
             "registered": "登记时间",
             "comment": "备注",
             "archived": "存档",
-            "price": "价格"
+            "price": "价格",
+            "spool_weight": "空料盘重量",
+            "initial_weight": "初始重量",
+            "filament_internal": "内部",
+            "filament_external": "外部"
         },
         "fields_help": {
             "weight_to_use": "请选择要输入的重量值。净重只在所选的耗材设置了料盘重量时可用。",
@@ -155,7 +161,10 @@
             "measured_weight": "耗材和料盘的重量分别是多少。",
             "location": "如果您有多个存放料盘的地方，请填写料盘所在的位置。",
             "lot_nr": "制造商的批号。如果使用多个料盘可以使用批号进行控制，以确保打印颜色一致。",
-            "price": "以系统配置的货币计价的整卷料盘的价格。如果未设置，则默认使用该耗材的价格。"
+            "price": "整卷料盘的价格。如果未设置，则默认使用该耗材的价格。",
+            "spool_weight": "料盘没料时的重量。留空时使用耗材或者制造商的相关参数。",
+            "external_filament": "您已从外部数据库中选择了一种耗材。在创建这个料盘时，将自动创建一个耗材对象（可能还包括一个制造商对象）。如果您已经为这种耗材创建了一个耗材对象，这可能会导致耗材对象重复。",
+            "initial_weight": "料盘上耗材的初始重量（净重）。如果未设置将使用耗材的相关参数。"
         },
         "titles": {
             "create": "创建料盘",
@@ -178,8 +187,8 @@
         "filament": "耗材",
         "fields": {
             "id": "编号",
-            "vendor_name": "供应商",
-            "vendor": "供应商",
+            "vendor_name": "制造商",
+            "vendor": "制造商",
             "name": "名称",
             "material": "材料",
             "price": "价格",
@@ -193,10 +202,11 @@
             "settings_extruder_temp": "挤出头温度",
             "settings_bed_temp": "热床温度",
             "color_hex": "颜色",
-            "spools": "显示料盘"
+            "spools": "显示料盘",
+            "external_id": "外部ID"
         },
         "fields_help": {
-            "name": "耗材名称，用于区分来自同一供应商的不同耗材类型。例如包含颜色信息。",
+            "name": "耗材名称，用于区分来自同一制造商的不同耗材类型。例如在耗材名称中包含颜色信息。",
             "material": "例如PLA、ABS、PETG等。",
             "price": "一整卷耗材的价格。",
             "weight": "一整卷耗材的重量（净重）。不应包括料盘本身的重量，仅计算耗材的重量。通常在包装上注明。",
@@ -212,27 +222,37 @@
             "show_title": "[耗材 #{{id}}] {{name}}"
         },
         "form": {
-            "filament_updated": "自您打开此页面以来，此耗材已被其他人/事物更新。保存将覆盖这些更改！"
+            "filament_updated": "自您打开此页面以来，此耗材已被其他人/事物更新。保存将覆盖这些更改！",
+            "import_external_description": "在列表中选择一种耗材以自动填充耗材创建表单中的详细信息。这将覆盖您在表单中输入的任何数据。<br><br>如果有必要，在您点击“确定”时将自动创建一个制造商对象。",
+            "import_external": "从外部导入"
+        },
+        "buttons": {
+            "add_spool": "添加料盘"
         }
     },
     "vendor": {
-        "vendor": "供应商",
+        "vendor": "制造商",
         "fields": {
             "id": "编号",
             "name": "名称",
             "registered": "登记时间",
-            "comment": "备注"
+            "comment": "备注",
+            "external_id": "外部ID",
+            "empty_spool_weight": "空料盘重量"
         },
         "titles": {
-            "create": "创建供应商",
-            "clone": "克隆供应商",
-            "edit": "编辑供应商",
-            "list": "供应商列表",
-            "show": "查看供应商",
-            "show_title": "[供应商 #{{id}}] {{name}}"
+            "create": "创建制造商",
+            "clone": "克隆制造商",
+            "edit": "编辑制造商",
+            "list": "制造商列表",
+            "show": "查看制造商",
+            "show_title": "[制造商 #{{id}}] {{name}}"
         },
         "form": {
-            "vendor_updated": "自您打开此页面以来，此供应商已被其他人/事物更新。保存将覆盖这些更改！"
+            "vendor_updated": "自您打开此页面以来，此制造商已被其他人/事物更新。保存将覆盖这些更改！"
+        },
+        "fields_help": {
+            "empty_spool_weight": "来自此制造商的空料盘重量。"
         }
     },
     "table": {
@@ -256,11 +276,11 @@
             "clone": "#{{id}} 克隆料盘 | Spoolman"
         },
         "vendor": {
-            "list": "供应商 | Spoolman",
-            "show": "#{{id}} 查看供应商 | Spoolman",
-            "edit": "#{{id}} 编辑供应商 | Spoolman",
-            "create": "创建供应商 | Spoolman",
-            "clone": "#{{id}} 克隆供应商 | Spoolman"
+            "list": "制造商 | Spoolman",
+            "show": "#{{id}} 查看制造商 | Spoolman",
+            "edit": "#{{id}} 编辑制造商 | Spoolman",
+            "create": "创建制造商 | Spoolman",
+            "clone": "#{{id}} 克隆制造商 | Spoolman"
         },
         "home": {
             "list": "主页 | Spoolman"
@@ -280,6 +300,47 @@
             "vendor": "制造耗材的公司。",
             "spool": "特定耗材的单个物理卷轴。"
         },
-        "description": "<title>帮助</title><p>以下是一些入门提示。</p><p>Spoolman保存了3种不同类型的数据：</p><itemsHelp/><p>要向数据库添加新的料盘，请先创建一个 <filamentCreateLink>耗材</filamentCreateLink> 对象。完成后，继续为该特定耗材创建一个 <spoolCreateLink>料盘</spoolCreateLink> 对象。如果以后获取相同耗材的其他料盘，只需生成其他的料盘对象并重复使用同一个耗材对象。</p><p>同时，如果您希望跟踪该信息，还可以为制造耗材的公司生成一个 <vendorCreateLink>供应商</vendorCreateLink> 对象。</p><p>您可以选择将其他3D打印机服务链接到 Spoolman，例如 Moonraker，它可以自动监视耗材使用情况并为您更新料盘对象。请参阅 <readmeLink>Spoolman README</readmeLink> 获取有关如何设置的指导。</p>"
+        "description": "<title>帮助</title><p>以下是一些入门提示。</p><p>Spoolman保存了3种不同类型的数据：</p><itemsHelp/><p>要向数据库添加新的料盘，请先创建一个 <filamentCreateLink>耗材</filamentCreateLink> 对象。完成后，继续为该特定耗材创建一个 <spoolCreateLink>料盘</spoolCreateLink> 对象。如果以后获取相同耗材的其他料盘，只需生成其他的料盘对象并重复使用同一个耗材对象。</p><p>同时，如果您希望跟踪该信息，还可以为制造耗材的公司生成一个 <vendorCreateLink>制造商</vendorCreateLink> 对象。</p><p>您可以选择将其他3D打印机服务链接到 Spoolman，例如 Moonraker，它可以自动监视耗材使用情况并为您更新料盘对象。请参阅 <readmeLink>Spoolman README</readmeLink> 获取有关如何设置的指导。</p>"
+    },
+    "settings": {
+        "settings": "设置",
+        "extra_fields": {
+            "tab": "额外字段",
+            "field_type": {
+                "integer_range": "整数范围",
+                "float": "浮点数",
+                "float_range": "浮点数范围",
+                "boolean": "布尔类型",
+                "datetime": "日期时间",
+                "text": "文本",
+                "integer": "整数",
+                "choice": "选项"
+            },
+            "delete_confirm_description": "这将删除该字段以及所有实体的关联数据。",
+            "description": "<p>这里你可以为你的实体添加额外的自定义字段。</p><p>一旦添加了字段，就无法更改其键或类型；对于选择类型字段，无法删除选项或更改多选状态。如果删除字段，则所有实体的相关数据将被删除。</p><p>键是其他程序读取/写入数据的标识，因此，如果你的自定义字段需要与第三方程序集成，请确保设置正确。默认值仅适用于新项目。</p><p>额外字段在表视图中无法进行排序或过滤。</p>",
+            "params": {
+                "name": "名称",
+                "field_type": "类型",
+                "order": "顺序",
+                "default_value": "默认值",
+                "multi_choice": "多选",
+                "choices": "选择项",
+                "key": "键",
+                "unit": "单位"
+            },
+            "boolean_true": "是",
+            "boolean_false": "否",
+            "choices_missing_error": "您无法删除选择。以下选项丢失：{{choices}}",
+            "non_unique_key_error": "键必须是唯一的。",
+            "key_not_changed": "请将键改成其他的。",
+            "delete_confirm": "删除字段 {{name}}？"
+        },
+        "header": "设置",
+        "general": {
+            "tab": "常规",
+            "currency": {
+                "label": "货币"
+            }
+        }
     }
 }

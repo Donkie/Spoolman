@@ -15,6 +15,7 @@
         "edit": "Edit",
         "cancel": "Cancel",
         "confirm": "Are you sure?",
+        "continue": "Continue",
         "filter": "Filter",
         "clear": "Clear",
         "refresh": "Refresh",
@@ -72,6 +73,7 @@
             "showBorder": "Show Border",
             "previewScale": "Preview Scale",
             "skipItems": "Skip Items",
+            "itemCopies": "Item Copies",
             "contentSettings": "Content Settings",
             "layoutSettings": "Layout Settings",
             "horizontalSpacing": "Horizontal Spacing",
@@ -88,18 +90,24 @@
                 "none": "None",
                 "border": "Border",
                 "grid": "Grid"
-            }
+            },
+            "settings": "Presets",
+            "defaultSettings": "Default",
+            "addSettings": "Add New Preset",
+            "newSetting": "New",
+            "duplicateSettings": "Duplicate",
+            "deleteSettings": "Delete Current Preset",
+            "deleteSettingsConfirm": "Are you sure you want to delete this preset?",
+            "settingsName": "Preset Name",
+            "saveSetting": "Save Presets",
+            "saveAsImage": "Save as Image"
         },
         "qrcode": {
-            "button": "Print QR Codes",
-            "title": "QR Code Printing",
-            "spoolWeight": "Spool Weight: {{weight}}",
-            "lotNr": "Lot Nr: {{lot}}",
-            "bedTemp": "BT: {{temp}}",
-            "extruderTemp": "ET: {{temp}}",
-            "textSize": "Content Text Size",
-            "showSpoolmanIcon": "Show Spoolman Icon",
-            "showVendor": "Vendor",
+            "button": "Print Labels",
+            "title": "Label Printing",
+            "template": "Label Template",
+            "templateHelp": "Use {} to insert values of the spool object as text. For example {id} will be replaced with the spool id, or {filament.material} will be replaced with the material of the spool. Enclose text with double asterix ** to make it bold. Click the button to view a list of all available tags.",
+            "textSize": "Label Text Size",
             "showContent": "Print Label",
             "showLotNr": "Lot Nr",
             "showSpoolWeight": "Spool Weight",
@@ -110,11 +118,17 @@
             "useHTTPUrl": {
                 "label": "Use HTTP(S) link in QR code",
                 "tooltip": "Uses either the base URL specified in settings, or the current page URL if not set. If disabled will use proprietary link that will work only if scanned from Spoolman's scanning feature."
+            },
+            "showQRCode": "Print QR Code",
+            "showQRCodeMode": {
+                "no": "No",
+                "simple": "Simple",
+                "withIcon": "With Icon"
             }
         },
         "spoolSelect": {
             "title": "Select Spools",
-            "description": "Select spools to print QR codes for.",
+            "description": "Select spools to print labels for.",
             "showArchived": "Show Archived",
             "noSpoolsSelected": "You have not selected any spools.",
             "selectAll": "Select/Unselect All",
@@ -140,6 +154,8 @@
             "id": "ID",
             "filament_name": "Filament",
             "filament": "Filament",
+            "filament_internal": "Internal",
+            "filament_external": "External",
             "price": "Price",
             "material": "Material",
             "weight_to_use": "Weight",
@@ -148,6 +164,8 @@
             "measured_weight": "Measured Weight",
             "used_length": "Used Length",
             "remaining_length": "Remaining Length",
+            "initial_weight": "Initial Weight",
+            "spool_weight": "Empty Weight",
             "location": "Location",
             "lot_nr": "Lot Nr",
             "first_used": "First Used",
@@ -162,8 +180,11 @@
             "used_weight": "How much filament has been used from the spool. A new spool should have 0g used.",
             "remaining_weight": "How much filament is left on the spool. For a new spool this should match the spool weight.",
             "measured_weight": "How much the filament and spool weigh.",
+            "initial_weight": "The initial weight of filament on the spool (net weight). Will use the weight from the filament object if not set.",
+            "spool_weight": "The weight of the spool when it is empty. Leave empty to use the value from the filament or the manufacturer.",
             "location": "Where the spool is located if you have multiple locations where you store your spools.",
-            "lot_nr": "Manufacturer's lot number. Can be used to ensure a print has consistent color if multiple spools are used."
+            "lot_nr": "Manufacturer's lot number. Can be used to ensure a print has consistent color if multiple spools are used.",
+            "external_filament": "You have selected a filament from the external database. A filament object (and possibly a manufacturer object) will be created automatically when you create this spool. This can create duplicate filament objects if you have already created a filament object for this filament."
         },
         "titles": {
             "create": "Create Spool",
@@ -172,9 +193,17 @@
             "list": "Spools",
             "show": "Show Spool",
             "show_title": "[Spool #{{id}}] {{name}}",
-            "archive": "Archive Spool"
+            "archive": "Archive Spool",
+            "adjust": "Adjust Spool Filament"
         },
         "form": {
+            "measurement_type": {
+                "length": "Length",
+                "weight": "Weight"
+            },
+            "measurement_type_label": "Measurement Type",
+            "adjust_filament_help": "Here you can directly add or subtract filament from the spool. A positive value will consume filament, a negative value will add it.",
+            "adjust_filament_value": "Consume Amount",
             "new_location_prompt": "Enter a new location",
             "spool_updated": "This spool has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
         },
@@ -186,8 +215,8 @@
         "filament": "Filaments",
         "fields": {
             "id": "ID",
-            "vendor_name": "Vendor",
-            "vendor": "Vendor",
+            "vendor_name": "Manufacturer",
+            "vendor": "Manufacturer",
             "name": "Name",
             "material": "Material",
             "price": "Price",
@@ -201,15 +230,21 @@
             "settings_extruder_temp": "Extruder Temp",
             "settings_bed_temp": "Bed Temp",
             "color_hex": "Color",
+            "single_color": "Single",
+            "multi_color": "Multi",
+            "coaxial": "Coextruded",
+            "longitudinal": "Longitudinal",
+            "external_id": "External ID",
             "spools": "Show Spools"
         },
         "fields_help": {
-            "name": "Filament name, to distinguish this filament type among others from the same vendor. Should contain the color for example.",
+            "name": "Filament name, to distinguish this filament type among others from the same manufacturer. Should contain the color for example.",
             "material": "E.g. PLA, ABS, PETG, etc.",
             "price": "Price of a full spool.",
             "weight": "The filament weight of a full spool (net weight). This should not include the weight of the spool itself, only the filament. It is what is usually written on the packaging.",
             "spool_weight": "The weight of an empty spool. Used to determine measured weight of a spool.",
-            "article_number": "E.g. EAN, UPC, etc."
+            "article_number": "E.g. EAN, UPC, etc.",
+            "multi_color_direction": "Filaments can have multiple colors in two ways: either through coextrusion, like dual-color filaments with consistent multi-colors, or through longitudinal color changes, like gradient filaments that shift colors along the spool."
         },
         "titles": {
             "create": "Create Filament",
@@ -220,30 +255,37 @@
             "show_title": "[Filament #{{id}}] {{name}}"
         },
         "form": {
-            "filament_updated": "This filament has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
+            "filament_updated": "This filament has been updated by someone/something else since you opened this page. Saving will overwrite those changes!",
+            "import_external": "Import from External",
+            "import_external_description": "Select a filament in the list to automatically populate its details in the filament creation form. This will overwrite any data you have entered in the form.<br><br>A Manufacturer object will be created automatically when you click Ok, if necessary."
         },
         "buttons": {
             "add_spool": "Add Spool"
         }
     },
     "vendor": {
-        "vendor": "Vendors",
+        "vendor": "Manufacturers",
         "fields": {
             "id": "ID",
             "name": "Name",
+            "empty_spool_weight": "Empty Spool Weight",
+            "external_id": "External ID",
             "registered": "Registered",
             "comment": "Comment"
         },
+        "fields_help": {
+            "empty_spool_weight": "The weight of an empty spool from this manufacturer."
+        },
         "titles": {
-            "create": "Create Vendor",
-            "clone": "Clone Vendor",
-            "edit": "Edit Vendor",
-            "list": "Vendors",
-            "show": "Show Vendor",
-            "show_title": "[Vendor #{{id}}] {{name}}"
+            "create": "Create Manufacturer",
+            "clone": "Clone Manufacturer",
+            "edit": "Edit Manufacturer",
+            "list": "Manufacturers",
+            "show": "Show Manufacturer",
+            "show_title": "[Manufacturer #{{id}}] {{name}}"
         },
         "form": {
-            "vendor_updated": "This vendor has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
+            "vendor_updated": "This manufacturer has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
         }
     },
     "home": {
@@ -256,7 +298,7 @@
             "spool": "Individual physical spools of a specific filament.",
             "vendor": "The companies that make the filament."
         },
-        "description": "<title>Help</title><p>Here are some tips to get you started.</p><p>Spoolman holds 3 different types of data:</p><itemsHelp/><p>To add a new spool to the database, start by creating a <filamentCreateLink>Filament</filamentCreateLink> object. Once that's done, proceed to create a <spoolCreateLink>Spool</spoolCreateLink> object for that specific spool. If you acquire additional spools of the same filament later on, simply generate additional Spool objects and reuse the same Filament object.</p><p>Optionally, you can also generate a <vendorCreateLink>Vendor</vendorCreateLink> object for the company manufacturing the filament if you wish to track that information.</p><p>You have the option to link other 3D printer services to Spoolman, like Moonraker, which can automatically monitor filament usage and update the Spool objects for you. Refer to the <readmeLink>Spoolman README</readmeLink> for guidance on how to set that up.</p>"
+        "description": "<title>Help</title><p>Here are some tips to get you started.</p><p>Spoolman holds 3 different types of data:</p><itemsHelp/><p>To add a new spool to the database, start by creating a <filamentCreateLink>Filament</filamentCreateLink> object. Once that's done, proceed to create a <spoolCreateLink>Spool</spoolCreateLink> object for that specific spool. If you acquire additional spools of the same filament later on, simply generate additional Spool objects and reuse the same Filament object.</p><p>Optionally, you can also generate a <vendorCreateLink>Manufacturer</vendorCreateLink> object for the company manufacturing the filament if you wish to track that information.</p><p>You have the option to link other 3D printer services to Spoolman, like Moonraker, which can automatically monitor filament usage and update the Spool objects for you. Refer to the <readmeLink>Spoolman README</readmeLink> for guidance on how to set that up.</p>"
     },
     "table": {
         "actions": "Actions"
@@ -330,11 +372,11 @@
             "clone": "#{{id}} Clone Spool | Spoolman"
         },
         "vendor": {
-            "list": "Vendors | Spoolman",
-            "show": "#{{id}} Show Vendor | Spoolman",
-            "edit": "#{{id}} Edit Vendor | Spoolman",
-            "create": "Create Vendor | Spoolman",
-            "clone": "#{{id}} Clone Vendor | Spoolman"
+            "list": "Manufacturers | Spoolman",
+            "show": "#{{id}} Show Manufacturer | Spoolman",
+            "edit": "#{{id}} Edit Manufacturer | Spoolman",
+            "create": "Create Manufacturer | Spoolman",
+            "clone": "#{{id}} Clone Manufacturer | Spoolman"
         }
     }
 }

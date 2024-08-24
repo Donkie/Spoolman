@@ -9,19 +9,20 @@
         "showArchived": "Gearchiveerd tonen",
         "archive": "Archiveren",
         "hideColumns": "Kolommen verbergen",
-        "confirm": "Weet je het zeker?",
+        "confirm": "Weet u het zeker?",
         "delete": "Verwijderen",
         "undo": "Ongedaan maken",
         "import": "Importeren",
         "logout": "Uitloggen",
         "refresh": "Vernieuwen",
-        "notAccessTitle": "Je hebt geen toegang tot",
+        "notAccessTitle": "U heeft geen toegang tot",
         "hideArchived": "Gearchiveerd verbergen",
         "clearFilters": "Filters leegmaken",
-        "unArchive": "Dearchiveren",
+        "unArchive": "Terugzetten",
         "clone": "Klonen",
         "clear": "Wissen",
-        "saveAndAdd": "Opslaan en Toevoegen"
+        "saveAndAdd": "Opslaan en Toevoegen",
+        "continue": "Doorgaan"
     },
     "actions": {
         "create": "Aanmaken",
@@ -39,10 +40,10 @@
             "helpPrinterMargin": "Safe-Zone moet worden ingesteld op hoe dicht bij de papierrand uw printer kan afdrukken. Als u deze wijzigt, heeft dit geen invloed op het hele raster.",
             "previewScale": "Voorbeeldschaal",
             "helpMargin": "Marges moeten worden geconfigureerd zodat ze overeenkomen met je labelpapier en printer. Als u deze wijzigt, heeft dit invloed op de grootte van het hele raster.",
-            "skipItems": "Items overlaan",
+            "skipItems": "Items overslaan",
             "paperSize": "Papierformaat",
             "columns": "Kolommen",
-            "description": "Stem de onderstaande instellingen af om de gewenste printlay-out te krijgen. Houd er rekening mee dat printers en je besturingssysteem hun eigen marges en schaling kunnen toepassen, dus het kan zijn dat je met wat instellingen moet spelen voordat alles correct is. Test het op een stuk gewoon papier voordat u op de daadwerkelijke etiketten afdrukt.",
+            "description": "Stem de onderstaande instellingen af om de gewenste print lay-out te krijgen. Houd er rekening mee dat printers en je besturingssysteem hun eigen marges en schaling kunnen toepassen, dus het kan zijn dat je met wat instellingen moet spelen voordat alles correct is. Test het op een stuk gewoon papier voordat u op de daadwerkelijke etiketten afdrukt.",
             "showBorder": "Rand tonen",
             "dimensions": "Afmetingen",
             "print": "Printen",
@@ -61,7 +62,18 @@
             "marginBottom": "Onderste marge",
             "horizontalSpacing": "Horizontale afstand",
             "marginLeft": "Linker marge",
-            "printerMarginLeft": "Linker Safe-Zone"
+            "printerMarginLeft": "Linker Safe-Zone",
+            "settings": "Voorinstellingen",
+            "defaultSettings": "Standaard",
+            "addSettings": "Nieuwe voorinstelling toevoegen",
+            "newSetting": "Nieuw",
+            "deleteSettings": "Huidige voorinstelling wissen",
+            "deleteSettingsConfirm": "Weet je zeker dat je deze voorinstelling wilt verwijderen?",
+            "settingsName": "Voorinstellingsnaam",
+            "itemCopies": "Itemkopieën",
+            "duplicateSettings": "Dupliceren",
+            "saveSetting": "Voorinstelling opslaan",
+            "saveAsImage": "Opslaan als afbeelding"
         },
         "qrcode": {
             "extruderTemp": "ET: {{temp}}",
@@ -72,30 +84,38 @@
             "showTemperatures": "Temperaturen",
             "showVendor": "Fabrikant",
             "showSpoolComment": "Opmerking spoel",
-            "textSize": "Inhoud tekstgrootte",
-            "title": "QR-Code afdrukken",
+            "textSize": "Label tekstgrootte",
+            "title": "Label afdrukken",
             "showSpoolmanIcon": "Spoolman icoon tonen",
-            "showLotNr": "Lotnr",
+            "showLotNr": "Lotnummer",
             "bedTemp": "BT: {{temp}}",
-            "lotNr": "Lotnr: {{lot}}",
+            "lotNr": "Lotnummer: {{lot}}",
             "showFilamentComment": "Opmerking filament",
-            "button": "QR-Codes afdrukken"
+            "button": "Labels afdrukken",
+            "template": "Label Sjabloon",
+            "templateHelp": "Gebruik {} om waarden van het spoelobject als tekst in te voegen. Bijvoorbeeld {id} wordt vervangen door het id van de spoel, of {filament.material} wordt vervangen door het materiaal van de spoel. Voeg een dubbel sterretje (**) toe voor en achter de tekst om het vet te maken. Klik op de knop om een lijst met alle beschikbare tags te bekijken.",
+            "showQRCodeMode": {
+                "no": "Nee",
+                "simple": "Simpel",
+                "withIcon": "Met Icoon"
+            },
+            "showQRCode": "Print QR-Code"
         },
         "spoolSelect": {
             "selectedTotal_one": "{{count}} spoel geselecteerd",
             "selectedTotal_other": "{{count}} spoelen geselecteerd",
-            "description": "Selecteer spoelen waarvoor je QR-codes wilt afdrukken.",
+            "description": "Selecteer spoelen waarvoor je labels wilt afdrukken.",
             "showArchived": "Gearchiveerde tonen",
             "title": "Spoelen selecteren",
-            "selectAll": "Alles selecteren/deselecteren",
-            "noSpoolsSelected": "Je hebt geen spoelen geselecteerd."
+            "selectAll": "Alles (de)selecteren",
+            "noSpoolsSelected": "U heeft geen spoelen geselecteerd."
         }
     },
     "notifications": {
         "deleteSuccess": "{{resource}} succesvol verwijderd",
         "error": "Fout (fout code {{statusCode}})",
         "editError": "Fout opgetreden bij het bewerken van {{resource}} (status code {{statusCode}})",
-        "undoable": "Je hebt {{seconds}} seconden om ongedaan te maken.",
+        "undoable": "U heeft {{seconds}} seconden om ongedaan te maken.",
         "importProgress": "Importeren: {{processed}}/{{total}}",
         "createError": "Er is een fout opgetreden bij het aanmaken van {{resource}} (status code {{statusCode}})",
         "success": "Succesvol",
@@ -109,7 +129,7 @@
     "unknown": "Onbekend",
     "yes": "Ja",
     "version": "Versie",
-    "warnWhenUnsavedChanges": "Weet je zeker dat je wil vertrekken? Er zijn niet-opgeslagen wijzigingen.",
+    "warnWhenUnsavedChanges": "Weet u zeker dat u deze pagina wilt verlaten? Er zijn niet-opgeslagen wijzigingen.",
     "loading": "Laden",
     "dashboard": {
         "title": "Dashboard"
@@ -120,7 +140,7 @@
     "documentTitle": {
         "vendor": {
             "create": "Fabrikant maken | Spoolman",
-            "clone": "#{{id}} Leverancier klonen | Spoolman",
+            "clone": "#{{id}} Fabrikant klonen | Spoolman",
             "edit": "#{{id}} Fabrikant bewerken | Spoolman",
             "list": "Fabrikanten | Spoolman",
             "show": "#{{id}} Fabrikant tonen | Spoolman"
@@ -154,7 +174,7 @@
             "last_used": "Laatst gebruikt",
             "material": "Materiaal",
             "weight_to_use": "Gewicht",
-            "lot_nr": "Lotnr",
+            "lot_nr": "Lotnummer",
             "filament_name": "Filament",
             "comment": "Opmerking",
             "filament": "Filament",
@@ -167,7 +187,11 @@
             "used_weight": "Gebruikt gewicht",
             "id": "ID",
             "remaining_weight": "Overgebleven gewicht",
-            "price": "Prijs"
+            "price": "Prijs",
+            "initial_weight": "Initieel gewicht",
+            "spool_weight": "Leeg gewicht",
+            "filament_internal": "Intern",
+            "filament_external": "Extern"
         },
         "titles": {
             "archive": "Spoel archiveren",
@@ -176,34 +200,46 @@
             "create": "Spoel maken",
             "clone": "Spoel klonen",
             "list": "Spoelen",
-            "show_title": "[Spoel #{{id}}] {{name}}"
+            "show_title": "[Spoel #{{id}}] {{name}}",
+            "adjust": "Spoel Filament aanpassen"
         },
         "fields_help": {
             "used_weight": "Hoeveel filament er van de spoel is gebruikt. Op een nieuwe spoel zal 0g gebruikt zijn.",
-            "weight_to_use": "Selecteer welke gewichtswaarde je wilt invoeren. Het gemeten gewicht is alleen beschikbaar als het spoelgewicht is ingesteld voor het geselecteerde filament.",
+            "weight_to_use": "Selecteer welke gewichtswaarde u wilt invoeren. Het gemeten gewicht is alleen beschikbaar als het spoelgewicht is ingesteld voor het geselecteerde filament.",
             "measured_weight": "Hoeveel het filament en de spoel wegen.",
             "lot_nr": "Lotnummer van de fabrikant. Kan worden gebruikt om ervoor te zorgen dat een afdruk een consistente kleur heeft als er meerdere spoelen worden gebruikt.",
             "remaining_weight": "Hoeveel filament zit er nog op de spoel. Bij een nieuwe spoel zal dit overeenkomen met het spoelgewicht.",
-            "location": "Waar de spoel zich bevindt als je meerdere locaties hebt waar je jouw spoelen opslaat.",
-            "price": "Prijs van een volledige spoel in de door het systeem geconfigureerde valuta. Als dit niet wordt ingevuld, wordt in plaats daarvan uitgegaan van de prijs van het filament."
+            "location": "Waar de spoel zich bevindt, wanneer er meerdere opslag locaties zijn.",
+            "price": "Prijs van een volledige spoel. Als dit niet wordt ingevuld, wordt in plaats daarvan uitgegaan van de prijs van het filament.",
+            "initial_weight": "Het initiële gewicht van het filament op de spoel (nettogewicht). Als dit niet is opgegeven, wordt het gewicht van het filament-object gebruikt.",
+            "spool_weight": "Het gewicht van de spoel als deze leeg is. Laat dit leeg om de waarde van het filament of de fabrikant te gebruiken.",
+            "external_filament": "U heeft een filament uit de externe database geselecteerd. Er wordt automatisch een filament-object (en mogelijk een fabrikant-object) gemaakt wanneer u deze spoel maakt. Hierdoor kunnen dubbele filament-objecten ontstaan als u al een filament-object voor dit filament hebt gemaakt."
         },
         "spool": "Spoelen",
         "messages": {
-            "archive": "Weet je zeker dat je deze spoel wil archiveren?"
+            "archive": "Weet u zeker dat u deze spoel wil archiveren?"
         },
         "form": {
             "new_location_prompt": "Voer een nieuwe locatie in",
-            "spool_updated": "Deze spoel is bijgewerkt door iemand/iets anders sinds je deze pagina hebt geopend. Opslaan zal die wijzigingen overschrijven!"
+            "spool_updated": "Deze spoel is bijgewerkt door iemand/iets anders sinds je deze pagina hebt geopend. Opslaan zal die wijzigingen overschrijven!",
+            "adjust_filament_help": "Hier kunt u direct filament toevoegen of verwijderen van de spoel. Een positieve waarde zal filament verbruiken, een negatieve waarde zal het toevoegen.",
+            "measurement_type": {
+                "length": "Lengte",
+                "weight": "Gewicht"
+            },
+            "measurement_type_label": "Meettype",
+            "adjust_filament_value": "Verbruikte hoeveelheid"
         }
     },
     "filament": {
         "fields_help": {
-            "name": "Filamentnaam, om dit filamenttype onder andere van dezelfde fabrikant te onderscheiden. Kan bijvoorbeeld de kleur bevatten.",
+            "name": "Filamentnaam, om dit filamenttype onder andere van dezelfde fabrikant te onderscheiden. Moet bijvoorbeeld de kleur bevatten.",
             "article_number": "Bv. EAN. UPC, enz.",
             "spool_weight": "Het gewicht van een lege spoel. Wordt gebruikt om het gemeten gewicht van een spoel te bepalen.",
-            "price": "Prijs van een volledige spoel in de door het systeem geconfigureerde valuta.",
+            "price": "Prijs van een volledige spoel.",
             "weight": "Het filamentgewicht van een volle spoel (nettogewicht). Dit mag niet het gewicht van de spoel zelf omvatten, alleen het filament. Dit staat meestal op de verpakking.",
-            "material": "Bv. PLA, ABS, PETG, enz."
+            "material": "Bv. PLA, ABS, PETG, enz.",
+            "multi_color_direction": "Filamenten kunnen op twee manieren meerdere kleuren hebben: door coëxtrusie, zoals tweekleurige filamenten met consistente meerkleuren, of door kleurveranderingen in de lengterichting, zoals verloopfilamenten die van kleur veranderen langs de spoel."
         },
         "fields": {
             "material": "Materiaal",
@@ -221,20 +257,27 @@
             "density": "Dichtheid",
             "id": "ID",
             "color_hex": "Kleur",
-            "article_number": "Artiekelnummer",
-            "spools": "Spoelen tonen"
+            "article_number": "Artikel nummer",
+            "spools": "Spoelen tonen",
+            "external_id": "Extern ID",
+            "single_color": "Enkel",
+            "multi_color": "Meervoudig",
+            "coaxial": "Gecoëxtrudeerde",
+            "longitudinal": "Longitudinaal"
         },
         "titles": {
-            "clone": "Flimanent klonen",
+            "clone": "Filament klonen",
             "show": "Filament tonen",
-            "create": "Flimament maken",
+            "create": "Filament maken",
             "edit": "Filament bewerken",
             "list": "Filamenten",
             "show_title": "[Filament #{{id}}] {{name}}"
         },
         "filament": "Filamenten",
         "form": {
-            "filament_updated": "Dit filament is bijgewerkt door iemand/iets anders sinds je deze pagina geopend hebt. Deze veranderingen worden overschreven als je op slaat!"
+            "filament_updated": "Dit filament is bijgewerkt door iemand/iets anders sinds je deze pagina geopend hebt. Deze veranderingen worden overschreven als je op slaat!",
+            "import_external_description": "Selecteer een filament in de lijst om de details ervan automatisch in te vullen in het formulier voor het maken van filamenten. Hierdoor worden alle gegevens die u in het formulier hebt ingevoerd, overschreven.<br><br>Er wordt indien nodig automatisch een Fabrikant-object gemaakt als u op OK klikt.",
+            "import_external": "Importeren van extern"
         },
         "buttons": {
             "add_spool": "Spoel toevoegen"
@@ -265,15 +308,20 @@
             "registered": "Geregistreerd",
             "comment": "Opmerking",
             "name": "Naam",
-            "id": "ID"
+            "id": "ID",
+            "empty_spool_weight": "Gewicht lege spoel",
+            "external_id": "Extern ID"
         },
         "vendor": "Fabrikanten",
         "form": {
-            "vendor_updated": "Deze leverancier is bijgewerkt dor iemand/iets anders sinds je deze pagina geopend hebt. De veranderingen worden overschreven als je opslaat!"
+            "vendor_updated": "Deze fabrikant is bijgewerkt door iemand/iets anders sinds je deze pagina geopend hebt. De veranderingen worden overschreven als je opslaat!"
+        },
+        "fields_help": {
+            "empty_spool_weight": "Het gewicht van een lege spoel van deze fabrikant."
         }
     },
     "table": {
-        "actions": "Akties"
+        "actions": "Acties"
     },
     "help": {
         "resources": {
@@ -281,7 +329,7 @@
             "filament": "Merken filament. Ze hebben eigenschappen zoals naam, materiaal, kleur, diameter en meer.",
             "spool": "Individuele fysieke spoelen van een specifiek filament."
         },
-        "description": "<title>Help</title><p>Hier zijn enkele tips om u op weg te helpen.</p><p>Spoolman bewaart 3 verschillende soorten gegevens:</p><itemsHelp/><p>Om een nieuwe toe spoel toe te voegen in de database, begin dan met het maken van een <filamentCreateLink>Filament</filamentCreateLink> object. Zodra dat is gebeurd, gaat u verder met het maken van een <spoolCreateLink>Spoel</spoolCreateLink>-object voor die specifieke spoel. Als u later extra spoelen van hetzelfde filament aanschaft, genereert u eenvoudigweg extra Spoel-objecten en hergebruikt u hetzelfde Filament-object.</p><p>Optioneel kunt u ook een <vendorCreateLink>Vendor</vendorCreateLink>-object voor het bedrijf genereren als u die informatie wilt bijhouden.</p><p>U heeft de mogelijkheid om andere 3D-printerservices aan Spoolman te koppelen, zoals Moonraker, die automatisch het filament gebruik kan monitoren en de Spoel-objecten voor u kan bijwerken. Raadpleeg de <readmeLink>Spoolman README</readmeLink> voor richtlijnen over hoe u dat kunt instellen.</p>",
+        "description": "<title>Help</title><p>Hier zijn enkele tips om u op weg te helpen.</p><p>Spoolman bewaart 3 verschillende soorten gegevens:</p><itemsHelp/><p>Om een nieuwe toe spoel toe te voegen in de database, begin dan met het maken van een <filamentCreateLink>Filament</filamentCreateLink> object. Zodra dat is gebeurd, gaat u verder met het maken van een <spoolCreateLink>Spoel</spoolCreateLink>-object voor die specifieke spoel. Als u later extra spoelen van hetzelfde filament aanschaft, genereert u eenvoudigweg extra Spoel-objecten en hergebruikt u hetzelfde Filament-object.</p><p>Optioneel kunt u ook een <vendorCreateLink>Fabrikant</vendorCreateLink>-object voor het bedrijf genereren als u die informatie wilt bijhouden.</p><p>U heeft de mogelijkheid om andere 3D-printerservices aan Spoolman te koppelen, zoals Moonraker, die automatisch het filament gebruik kan monitoren en de Spoel-objecten voor u kan bijwerken. Raadpleeg de <readmeLink>Spoolman README</readmeLink> voor richtlijnen over hoe u dat kunt instellen.</p>",
         "help": "Help"
     },
     "kofi": "Tip mij op Ko-fi",
@@ -322,10 +370,11 @@
             "boolean_false": "Nee",
             "choices_missing_error": "U kunt geen keuzes verwijderen. De volgende keuzes ontbreken: {{choices}}",
             "non_unique_key_error": "De key moet uniek zijn.",
-            "key_not_changed": "Verander de key in iets anders.",
+            "key_not_changed": "Key niet gewijzigd.",
             "delete_confirm": "Veld {{name}} verwijderen?",
             "delete_confirm_description": "Hierdoor worden het veld en alle bijbehorende gegevens voor alle entiteiten verwijderd.",
             "description": "<p>Hier kunt u extra aangepaste velden toevoegen aan uw entiteiten.</p><p>Zodra een veld is toegevoegd, kunt u de key of het type ervan niet wijzigen, en voor velden met keuzetypes kunt u geen keuzes verwijderen of de meervoudige velden wijzigen. Als u een veld verwijdert, worden de bijbehorende gegevens voor alle entiteiten verwijderd.</p><p>De key is hoe andere programma's de gegevens lezen/schrijven, dus of uw aangepaste veld moet worden geïntegreerd met een derde partij programma, zorg ervoor dat u het correct instelt. De standaardwaarde wordt alleen toegepast op nieuwe items.</p><p>Extra velden kunnen niet worden gesorteerd of gefilterd in de tabelweergaven.</p>"
-        }
+        },
+        "settings": "Instellingen"
     }
 }

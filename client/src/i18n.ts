@@ -1,7 +1,8 @@
 import i18n from "i18next";
 import detector from "i18next-browser-languagedetector";
-import Backend from "i18next-xhr-backend";
+import Backend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
+import { getBasePath } from "./utils/url";
 
 interface Language {
   name: string;
@@ -97,6 +98,11 @@ export const languages: { [key: string]: Language } = {
     countryCode: "dk",
     fullCode: "da-DK",
   },
+  ["pt"]: {
+    name: "Português",
+    countryCode: "pt",
+    fullCode: "pt-PT",
+  },
 };
 
 i18n
@@ -106,8 +112,9 @@ i18n
   .init({
     supportedLngs: Object.keys(languages),
     backend: {
-      loadPath: "/locales/{{lng}}/{{ns}}.json",
+      loadPath: getBasePath() + "/locales/{{lng}}/{{ns}}.json",
     },
+    ns: "common",
     defaultNS: "common",
     fallbackLng: "en",
   });

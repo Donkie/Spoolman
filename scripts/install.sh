@@ -7,6 +7,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Warn with a prompt if we're running as root
+SUDO=sudo
 if [ "$EUID" -eq 0 ]; then
     echo -e "${ORANGE}WARNING: You are running this script as root. It is recommended to run this script as a non-root user.${NC}"
     echo -e "${ORANGE}Do you want to continue? (y/n)${NC}"
@@ -16,6 +17,8 @@ if [ "$EUID" -eq 0 ]; then
         echo -e "${ORANGE}Aborting installation.${NC}"
         exit 1
     fi
+
+    SUDO=
 fi
 
 # CD to project root if we're in the scripts dir
@@ -51,38 +54,65 @@ else
     echo -e "${ORANGE}Please look up how to install Python 3.9 or later for your specific operating system.${NC}"
     exit 1
 fi
-
 #
-# Install needed system packages
+# Get os package manager
 #
-# Run apt-get update
-echo -e "${GREEN}Updating apt-get cache...${NC}"
-sudo apt-get update || exit 1
+if [[ -f /etc/os-release ]]; then
+    source /etc/os-release
+    if [[ "$ID_LIKE" == *"debian"* || "$ID" == *"debian"* ]]; then
+        pkg_manager="apt-get"
+        update_cmd="$SUDO $pkg_manager update"
+        install_cmd="$SUDO $pkg_manager install -y"
+        echo -e "${GREEN}Detected Debian-based system. Using apt-get package manager.${NC}"
+    elif [[ "$ID_LIKE" == *"arch"* || "$ID" == *"arch"* ]]; then
+        pkg_manager="pacman"
+        update_cmd="$SUDO $pkg_manager -Sy"
+        install_cmd="$SUDO $pkg_manager -S --noconfirm"
+        echo -e "${GREEN}Detected Arch-based system. Using pacman package manager.${NC}"
+    else
+        echo -e "${ORANGE}Your operating system is not supported. Either try to install manually or reach out to spoolman github for support.${NC}"
+        exit 1
+    fi
+fi
 
-install_packages=0
+# Run pkg manager update
+echo -e "${GREEN}Updating $pkg_manager cache...${NC}"
+$update_cmd || exit 1
+packages=""
 if ! python3 -c 'import venv, ensurepip' &>/dev/null; then
     echo -e "${ORANGE}Python venv module is not accessible. Installing venv...${NC}"
-    install_packages=1
+    if [[ "$pkg_manager" == "apt-get" ]]; then
+        packages+=" python3-venv"
+    elif [[ "$pkg_manager" == "pacman" ]]; then
+        packages+=" python-virtualenv"
+    fi
 fi
 
 if ! command -v pip3 &>/dev/null; then
     echo -e "${ORANGE}Python pip is not installed. Installing pip...${NC}"
-    install_packages=1
+    if [[ "$pkg_manager" == "apt-get" ]]; then
+        packages+=" python3-pip"
+    elif [[ "$pkg_manager" == "pacman" ]]; then
+        packages+=" python-pip"
+    fi
 fi
 
 if ! command -v pg_config &>/dev/null; then
     echo -e "${ORANGE}pg_config is not available. Installing libpq-dev...${NC}"
-    install_packages=1
+    if [[ "$pkg_manager" == "apt-get" ]]; then
+        packages+=" libpq-dev"
+    elif [[ "$pkg_manager" == "pacman" ]]; then
+        packages+=" postgresql-libs"
+    fi
 fi
 
 if ! command -v unzip &>/dev/null; then
     echo -e "${ORANGE}unzip is not available. Installing unzip...${NC}"
-    install_packages=1
+    packages+=" unzip"
 fi
 
-if [ "$install_packages" -eq 1 ]; then
-    # sudo apt-get update
-    sudo apt-get install -y python3-pip python3-venv libpq-dev unzip || exit 1
+if [[ -n "$packages" ]]; then
+    $install_cmd $packages || exit 1
 fi
 
 #
@@ -114,11 +144,15 @@ fi
 echo -e "${GREEN}Installing system-wide pip packages needed for Spoolman...${NC}"
 if [[ $is_externally_managed_env ]]; then
     echo -e "${GREEN}Installing the packages using apt-get instead of pip since pip is externally managed...${NC}"
-    apt_packages=("python3-setuptools" "python3-wheel")
-    sudo apt-get install -y "${apt_packages[@]}" || exit 1
+    if [[ "$pkg_manager" == "apt-get" ]]; then
+        packages="python3-setuptools python3-wheel"
+    elif [[ "$pkg_manager" == "pacman" ]]; then
+        packages="python-setuptools python-wheel"
+    fi
+    $install_cmd $packages || exit 1
 else
-    packages=("setuptools" "wheel")
-    for package in "${packages[@]}"; do
+    packages="setuptools wheel"
+    for package in $packages; do
         if ! pip3 show "$package" &>/dev/null; then
             echo -e "${GREEN}Installing $package...${NC}"
             pip3 install --user "$package" || exit 1
@@ -138,9 +172,8 @@ fi
 # Install Spoolman
 #
 
-# Install PDM dependencies
+# Install dependencies
 echo -e "${GREEN}Installing Spoolman backend and its dependencies...${NC}"
-
 # Create venv if it doesn't exist
 if [ ! -d ".venv" ]; then
     python3 -m venv .venv || exit 1
@@ -219,14 +252,14 @@ WantedBy=default.target
 
     # Create the systemd service unit file
     service_file="/etc/systemd/system/$service_name.service"
-    echo "$service_unit" | sudo tee "$service_file" > /dev/null
+    echo "$service_unit" | $SUDO tee "$service_file" > /dev/null
 
     # Reload the systemd user service manager
-    sudo systemctl daemon-reload
+    $SUDO systemctl daemon-reload
 
     # Enable and start the service
-    sudo systemctl enable "$service_name"
-    sudo systemctl start "$service_name"
+    $SUDO systemctl enable "$service_name"
+    $SUDO systemctl start "$service_name"
 
     # Load .env file now
     set -o allexport

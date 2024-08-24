@@ -1,43 +1,44 @@
-import React from "react";
-import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
-import { useTable, List } from "@refinedev/antd";
-import { Table, Button, Dropdown, Modal } from "antd";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import { ISpool } from "./model";
-import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
 import {
   EditOutlined,
   EyeOutlined,
   FilterOutlined,
   InboxOutlined,
   PlusSquareOutlined,
+  PrinterOutlined,
+  ToolOutlined,
   ToTopOutlined,
 } from "@ant-design/icons";
+import { List, useTable } from "@refinedev/antd";
+import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
+import { Button, Dropdown, Modal, Table } from "antd";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { useCallback, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
+  Action,
+  ActionsColumn,
+  CustomFieldColumn,
   DateColumn,
   FilteredQueryColumn,
   NumberColumn,
   RichColumn,
   SortedColumn,
   SpoolIconColumn,
-  Action,
-  ActionsColumn,
-  CustomFieldColumn,
 } from "../../components/column";
-import { setSpoolArchived } from "./functions";
-import SelectAndPrint from "../../components/selectAndPrintDialog";
+import { useLiveify } from "../../components/liveify";
 import {
   useSpoolmanFilamentFilter,
   useSpoolmanLocations,
   useSpoolmanLotNumbers,
   useSpoolmanMaterials,
 } from "../../components/otherModels";
-import { useLiveify } from "../../components/liveify";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
-import { useNavigate } from "react-router-dom";
+import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
 import { useCurrency } from "../../utils/settings";
+import { setSpoolArchived, useSpoolAdjustModal } from "./functions";
+import { ISpool } from "./model";
 
 dayjs.extend(utc);
 
@@ -56,7 +57,7 @@ function collapseSpool(element: ISpool): ISpoolCollapsed {
   } else {
     filament_name = element.filament.name ?? element.filament.id.toString();
   }
-  if (!element.price) {
+  if (element.price === undefined) {
     element.price = element.filament.price;
   }
   return {
@@ -102,6 +103,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const navigate = useNavigate();
   const extraFields = useGetFields(EntityType.spool);
   const currency = useCurrency();
+  const { openSpoolAdjustModal, spoolAdjustModal } = useSpoolAdjustModal();
 
   const allColumnsWithExtraFields = [...allColumns, ...(extraFields.data?.map((field) => "extra." + field.key) ?? [])];
 
@@ -157,7 +159,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     });
 
   // Create state for the columns to show
-  const [showColumns, setShowColumns] = React.useState<string[]>(initialState.showColumns ?? defaultColumns);
+  const [showColumns, setShowColumns] = useState<string[]>(initialState.showColumns ?? defaultColumns);
 
   // Store state in local storage
   const tableState: TableState = {
@@ -169,7 +171,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   useStoreInitialState(namespace, tableState);
 
   // Collapse the dataSource to a mutable list
-  const queryDataSource: ISpoolCollapsed[] = React.useMemo(
+  const queryDataSource: ISpoolCollapsed[] = useMemo(
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource]
   );
@@ -208,23 +210,27 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   }
 
   const { editUrl, showUrl, cloneUrl } = useNavigation();
-  const actions = (record: ISpoolCollapsed) => {
-    const actions: Action[] = [
-      { name: t("buttons.show"), icon: <EyeOutlined />, link: showUrl("spool", record.id) },
-      { name: t("buttons.edit"), icon: <EditOutlined />, link: editUrl("spool", record.id) },
-      { name: t("buttons.clone"), icon: <PlusSquareOutlined />, link: cloneUrl("spool", record.id) },
-    ];
-    if (record.archived) {
-      actions.push({
-        name: t("buttons.unArchive"),
-        icon: <ToTopOutlined />,
-        onClick: () => archiveSpool(record, false),
-      });
-    } else {
-      actions.push({ name: t("buttons.archive"), icon: <InboxOutlined />, onClick: () => archiveSpoolPopup(record) });
-    }
-    return actions;
-  };
+  const actions = useCallback(
+    (record: ISpoolCollapsed) => {
+      const actions: Action[] = [
+        { name: t("buttons.show"), icon: <EyeOutlined />, link: showUrl("spool", record.id) },
+        { name: t("buttons.edit"), icon: <EditOutlined />, link: editUrl("spool", record.id) },
+        { name: t("buttons.clone"), icon: <PlusSquareOutlined />, link: cloneUrl("spool", record.id) },
+        { name: t("spool.titles.adjust"), icon: <ToolOutlined />, onClick: () => openSpoolAdjustModal(record) },
+      ];
+      if (record.archived) {
+        actions.push({
+          name: t("buttons.unArchive"),
+          icon: <ToTopOutlined />,
+          onClick: () => archiveSpool(record, false),
+        });
+      } else {
+        actions.push({ name: t("buttons.archive"), icon: <InboxOutlined />, onClick: () => archiveSpoolPopup(record) });
+      }
+      return actions;
+    },
+    [t, editUrl, showUrl, cloneUrl, openSpoolAdjustModal, archiveSpool, archiveSpoolPopup]
+  );
 
   const originalOnChange = tableProps.onChange;
   tableProps.onChange = (pagination, filters, sorter, extra) => {
@@ -254,7 +260,15 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
     <List
       headerButtons={({ defaultButtons }) => (
         <>
-          <SelectAndPrint />
+          <Button
+            type="primary"
+            icon={<PrinterOutlined />}
+            onClick={() => {
+              navigate("print");
+            }}
+          >
+            {t("printing.qrcode.button")}
+          </Button>
           <Button
             type="primary"
             icon={<InboxOutlined />}
@@ -311,6 +325,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
         </>
       )}
     >
+      {spoolAdjustModal}
       <Table
         {...tableProps}
         sticky
@@ -342,7 +357,13 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             ...commonProps,
             id: "filament.combined_name",
             i18nkey: "spool.fields.filament_name",
-            color: (record: ISpoolCollapsed) => record.filament.color_hex,
+            color: (record: ISpoolCollapsed) =>
+              record.filament.multi_color_hexes
+                ? {
+                    colors: record.filament.multi_color_hexes.split(","),
+                    vertical: record.filament.multi_color_direction === "longitudinal",
+                  }
+                : record.filament.color_hex,
             dataId: "filament.combined_name",
             filterValueQuery: useSpoolmanFilamentFilter(),
           }),
@@ -357,6 +378,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             ...commonProps,
             id: "price",
             i18ncat: "spool",
+            align: "right",
             width: 80,
             render: (_, obj: ISpoolCollapsed) => {
               return obj.price?.toLocaleString(undefined, {
@@ -371,8 +393,9 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             ...commonProps,
             id: "used_weight",
             i18ncat: "spool",
+            align: "right",
             unit: "g",
-            maxDecimals: 1,
+            maxDecimals: 0,
             width: 110,
           }),
           NumberColumn({
@@ -380,7 +403,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             id: "remaining_weight",
             i18ncat: "spool",
             unit: "g",
-            maxDecimals: 1,
+            maxDecimals: 0,
             defaultText: t("unknown"),
             width: 110,
           }),
@@ -389,7 +412,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             id: "used_length",
             i18ncat: "spool",
             unit: "mm",
-            maxDecimals: 1,
+            maxDecimals: 0,
             width: 120,
           }),
           NumberColumn({
@@ -397,7 +420,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             id: "remaining_length",
             i18ncat: "spool",
             unit: "mm",
-            maxDecimals: 1,
+            maxDecimals: 0,
             defaultText: t("unknown"),
             width: 120,
           }),
@@ -442,7 +465,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             i18ncat: "spool",
             width: 150,
           }),
-          ActionsColumn(actions),
+          ActionsColumn(t("table.actions"), actions),
         ])}
       />
     </List>

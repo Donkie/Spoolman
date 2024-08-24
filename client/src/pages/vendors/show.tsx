@@ -1,13 +1,13 @@
-import React from "react";
+import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
 import { IResourceComponentsProps, useShow, useTranslate } from "@refinedev/core";
-import { Show, NumberField, DateField, TextField } from "@refinedev/antd";
 import { Typography } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { IVendor } from "./model";
+import React from "react";
+import { ExtraFieldDisplay } from "../../components/extraFields";
 import { enrichText } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
-import { ExtraFieldDisplay } from "../../components/extraFields";
+import { IVendor } from "./model";
 
 dayjs.extend(utc);
 
@@ -42,6 +42,10 @@ export const VendorShow: React.FC<IResourceComponentsProps> = () => {
       <TextField value={record?.name} />
       <Title level={5}>{t("vendor.fields.comment")}</Title>
       <TextField value={enrichText(record?.comment)} />
+      <Title level={5}>{t("vendor.fields.empty_spool_weight")}</Title>
+      <TextField value={record?.empty_spool_weight} />
+      <Title level={5}>{t("vendor.fields.external_id")}</Title>
+      <TextField value={record?.external_id} />
       <Title level={4}>{t("settings.extra_fields.tab")}</Title>
       {extraFields?.data?.map((field, index) => (
         <ExtraFieldDisplay key={index} field={field} value={record?.extra[field.key]} />

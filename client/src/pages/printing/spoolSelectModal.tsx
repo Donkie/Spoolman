@@ -1,18 +1,17 @@
-import React, { useState } from "react";
-import { Modal, Table, Checkbox, Space, Row, Col, message } from "antd";
-import { ISpool } from "../pages/spools/model";
-import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "./column";
-import { TableState } from "../utils/saveload";
+import { RightOutlined } from "@ant-design/icons";
 import { useTable } from "@refinedev/antd";
+import { Button, Checkbox, Col, message, Row, Space, Table } from "antd";
 import { t } from "i18next";
-import { useSpoolmanFilamentFilter, useSpoolmanMaterials } from "./otherModels";
-import { removeUndefined } from "../utils/filtering";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
+import { useSpoolmanFilamentFilter, useSpoolmanMaterials } from "../../components/otherModels";
+import { removeUndefined } from "../../utils/filtering";
+import { TableState } from "../../utils/saveload";
+import { ISpool } from "../spools/model";
 
 interface Props {
-  visible: boolean;
   description?: string;
-  onCancel: () => void;
   onContinue: (selectedSpools: ISpool[]) => void;
 }
 
@@ -37,13 +36,14 @@ function collapseSpool(element: ISpool): ISpoolCollapsed {
   };
 }
 
-const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onContinue }) => {
+const SpoolSelectModal: React.FC<Props> = ({ description, onContinue }) => {
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
 
   const { tableProps, sorters, filters, current, pageSize } = useTable<ISpoolCollapsed>({
+    resource: "spool",
     meta: {
       queryParams: {
         ["allow_archived"]: showArchived,
@@ -79,7 +79,7 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
   };
 
   // Collapse the dataSource to a mutable list and add a filament_name field
-  const dataSource: ISpoolCollapsed[] = React.useMemo(
+  const dataSource: ISpoolCollapsed[] = useMemo(
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource]
   );
@@ -116,22 +116,7 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
   };
 
   return (
-    <Modal
-      title={t("printing.spoolSelect.title")}
-      open={visible}
-      onCancel={onCancel}
-      onOk={() => {
-        if (selectedItems.length === 0) {
-          messageApi.open({
-            type: "error",
-            content: t("printing.spoolSelect.noSpoolsSelected"),
-          });
-          return;
-        }
-        onContinue(dataSource.filter((spool) => selectedItems.includes(spool.id)));
-      }}
-      width={600}
-    >
+    <>
       {contextHolder}
       <Space direction="vertical" style={{ width: "100%" }}>
         {description && <div>{description}</div>}
@@ -171,7 +156,7 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
             }),
           ])}
         />
-        <Row>
+        <Row gutter={[10, 10]}>
           <Col span={12}>
             <Checkbox
               checked={isAllFilteredSelected}
@@ -208,9 +193,28 @@ const SpoolSelectModal: React.FC<Props> = ({ visible, description, onCancel, onC
               {t("printing.spoolSelect.showArchived")}
             </Checkbox>
           </Col>
+          <Col span={24}>
+            <Button
+              type="primary"
+              icon={<RightOutlined />}
+              iconPosition="end"
+              onClick={() => {
+                if (selectedItems.length === 0) {
+                  messageApi.open({
+                    type: "error",
+                    content: t("printing.spoolSelect.noSpoolsSelected"),
+                  });
+                  return;
+                }
+                onContinue(dataSource.filter((spool) => selectedItems.includes(spool.id)));
+              }}
+            >
+              {t("buttons.continue")}
+            </Button>
+          </Col>
         </Row>
       </Space>
-    </Modal>
+    </>
   );
 };
 

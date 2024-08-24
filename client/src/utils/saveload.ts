@@ -1,5 +1,5 @@
-import React from "react";
 import { CrudFilter, CrudSort } from "@refinedev/core";
+import { useEffect, useState } from "react";
 import { isLocalStorageAvailable } from "./support";
 interface Pagination {
   current: number;
@@ -14,7 +14,7 @@ export interface TableState {
 }
 
 export function useInitialTableState(tableId: string): TableState {
-  const [initialState] = React.useState(() => {
+  const [initialState] = useState(() => {
     const savedSorters = hasHashProperty("sorters")
       ? getHashProperty("sorters")
       : isLocalStorageAvailable
@@ -42,7 +42,7 @@ export function useInitialTableState(tableId: string): TableState {
 }
 
 export function useStoreInitialState(tableId: string, state: TableState) {
-  React.useEffect(() => {
+  useEffect(() => {
     if (state.sorters.length > 0 && JSON.stringify(state.sorters) != JSON.stringify([{ field: "id", order: "asc" }])) {
       if (isLocalStorageAvailable) {
         localStorage.setItem(`${tableId}-sorters`, JSON.stringify(state.sorters));
@@ -54,7 +54,7 @@ export function useStoreInitialState(tableId: string, state: TableState) {
     }
   }, [tableId, state.sorters]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const filters = state.filters.filter((f) => f.value.length != 0);
     if (filters.length > 0) {
       if (isLocalStorageAvailable) {
@@ -67,7 +67,7 @@ export function useStoreInitialState(tableId: string, state: TableState) {
     }
   }, [tableId, state.filters]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (JSON.stringify(state.pagination) != JSON.stringify({ current: 1, pageSize: 20 })) {
       if (isLocalStorageAvailable) {
         localStorage.setItem(`${tableId}-pagination`, JSON.stringify(state.pagination));
@@ -79,7 +79,7 @@ export function useStoreInitialState(tableId: string, state: TableState) {
     }
   }, [tableId, state.pagination]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isLocalStorageAvailable) {
       if (state.showColumns === undefined) {
         localStorage.removeItem(`${tableId}-showColumns`);
@@ -91,12 +91,12 @@ export function useStoreInitialState(tableId: string, state: TableState) {
 }
 
 export function useSavedState<T>(id: string, defaultValue: T) {
-  const [state, setState] = React.useState<T>(() => {
+  const [state, setState] = useState<T>(() => {
     const savedState = isLocalStorageAvailable ? localStorage.getItem(`savedStates-${id}`) : null;
     return savedState ? JSON.parse(savedState) : defaultValue;
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isLocalStorageAvailable) {
       localStorage.setItem(`savedStates-${id}`, JSON.stringify(state));
     }

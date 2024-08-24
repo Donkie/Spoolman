@@ -1,23 +1,30 @@
-import React from "react";
-import { IResourceComponentsProps, useTranslate, useInvalidate, useNavigation } from "@refinedev/core";
-import { useTable, List } from "@refinedev/antd";
-import { Table, Button, Dropdown } from "antd";
+import { EditOutlined, EyeOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
+import { List, useTable } from "@refinedev/antd";
+import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
+import { Button, Dropdown, Table } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { IVendor } from "./model";
-import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
-import { EditOutlined, EyeOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
-import { DateColumn, RichColumn, SortedColumn, ActionsColumn, CustomFieldColumn } from "../../components/column";
+import { useCallback, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  ActionsColumn,
+  CustomFieldColumn,
+  DateColumn,
+  NumberColumn,
+  RichColumn,
+  SortedColumn,
+} from "../../components/column";
 import { useLiveify } from "../../components/liveify";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
-import { useNavigate } from "react-router-dom";
+import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
+import { IVendor } from "./model";
 
 dayjs.extend(utc);
 
 const namespace = "vendorList-v2";
 
-const allColumns: (keyof IVendor & string)[] = ["id", "name", "registered", "comment"];
+const allColumns: (keyof IVendor & string)[] = ["id", "name", "registered", "comment", "empty_spool_weight"];
 
 export const VendorList: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
@@ -59,7 +66,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
   });
 
   // Create state for the columns to show
-  const [showColumns, setShowColumns] = React.useState<string[]>(initialState.showColumns ?? allColumns);
+  const [showColumns, setShowColumns] = useState<string[]>(initialState.showColumns ?? allColumns);
 
   // Store state in local storage
   const tableState: TableState = {
@@ -71,11 +78,14 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
   useStoreInitialState(namespace, tableState);
 
   // Collapse the dataSource to a mutable list
-  const queryDataSource: IVendor[] = React.useMemo(
-    () => (tableProps.dataSource || []).map((record) => ({ ...record })),
-    [tableProps.dataSource]
+  const queryDataSource: IVendor[] = useMemo(() => {
+    return (tableProps.dataSource || []).map((record) => ({ ...record }));
+  }, [tableProps.dataSource]);
+  const dataSource = useLiveify(
+    "vendor",
+    queryDataSource,
+    useCallback((record: IVendor) => record, [])
   );
-  const dataSource = useLiveify("vendor", queryDataSource, (record: IVendor) => record);
 
   if (tableProps.pagination) {
     tableProps.pagination.showSizeChanger = true;
@@ -171,6 +181,15 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
             ...commonProps,
             id: "registered",
             i18ncat: "vendor",
+            width: 200,
+          }),
+          NumberColumn({
+            ...commonProps,
+            id: "empty_spool_weight",
+            i18ncat: "vendor",
+            unit: "g",
+            maxDecimals: 0,
+            width: 200,
           }),
           ...(extraFields.data?.map((field) => {
             return CustomFieldColumn({
@@ -183,7 +202,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
             id: "comment",
             i18ncat: "vendor",
           }),
-          ActionsColumn<IVendor>(actions),
+          ActionsColumn<IVendor>(t("table.actions"), actions),
         ])}
       />
     </List>

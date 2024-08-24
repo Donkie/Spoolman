@@ -35,3 +35,12 @@ export function getFiltersForField<Obj, Field extends keyof Obj>(
 export function removeUndefined<T>(array: (T | undefined)[]): T[] {
   return array.filter((value) => value !== undefined) as T[];
 }
+
+/**
+ * Performs a case-insensitive search for the given query in the given string.
+ * The query is broken down into words and the search is performed on each word.
+ */
+export function searchMatches(query: string, test: string): boolean {
+  const words = query.toLowerCase().split(" ");
+  return words.every((word) => test.toLowerCase().includes(word));
+}

@@ -7,17 +7,15 @@ from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-from pydantic.error_wrappers import ErrorWrapper
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import Message, Spool, SpoolEvent
 from spoolman.database import spool
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
-from spoolman.exceptions import ItemCreateError
+from spoolman.exceptions import ItemCreateError, SpoolMeasureError
 from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
 from spoolman.ws import websocket_manager
 
@@ -32,32 +30,58 @@ router = APIRouter(
 
 
 class SpoolParameters(BaseModel):
-    first_used: Optional[datetime] = Field(description="First logged occurence of spool usage.")
-    last_used: Optional[datetime] = Field(description="Last logged occurence of spool usage.")
+    first_used: Optional[datetime] = Field(None, description="First logged occurence of spool usage.")
+    last_used: Optional[datetime] = Field(None, description="Last logged occurence of spool usage.")
     filament_id: int = Field(description="The ID of the filament type of this spool.")
     price: Optional[float] = Field(
+        None,
         ge=0,
         description="The price of this filament in the system configured currency.",
-        example=20.0,
+        examples=[20.0],
+    )
+    initial_weight: Optional[float] = Field(
+        None,
+        ge=0,
+        description="The initial weight of the filament on the spool, in grams. (net weight)",
+        examples=[200],
+    )
+    spool_weight: Optional[float] = Field(
+        None,
+        ge=0,
+        description="The weight of an empty spool, in grams. (tare weight)",
+        examples=[200],
     )
     remaining_weight: Optional[float] = Field(
+        None,
         ge=0,
         description=(
             "Remaining weight of filament on the spool. Can only be used if the filament type has a weight set."
         ),
-        example=800,
+        examples=[800],
     )
-    used_weight: Optional[float] = Field(ge=0, description="Used weight of filament on the spool.", example=200)
-    location: Optional[str] = Field(max_length=64, description="Where this spool can be found.", example="Shelf A")
+    used_weight: Optional[float] = Field(
+        None,
+        ge=0,
+        description="Used weight of filament on the spool.",
+        examples=[200],
+    )
+    location: Optional[str] = Field(
+        None,
+        max_length=64,
+        description="Where this spool can be found.",
+        examples=["Shelf A"],
+    )
     lot_nr: Optional[str] = Field(
+        None,
         max_length=64,
         description="Vendor manufacturing lot/batch number of the spool.",
-        example="52342",
+        examples=["52342"],
     )
     comment: Optional[str] = Field(
+        None,
         max_length=1024,
         description="Free text comment about this specific spool.",
-        example="",
+        examples=[""],
     )
     archived: bool = Field(default=False, description="Whether this spool is archived and should not be used anymore.")
     extra: Optional[dict[str, str]] = Field(
@@ -67,12 +91,24 @@ class SpoolParameters(BaseModel):
 
 
 class SpoolUpdateParameters(SpoolParameters):
-    filament_id: Optional[int] = Field(description="The ID of the filament type of this spool.")
+    filament_id: Optional[int] = Field(None, description="The ID of the filament type of this spool.")
+
+    @field_validator("filament_id")
+    @classmethod
+    def prevent_none(cls: type["SpoolUpdateParameters"], v: Optional[int]) -> Optional[int]:
+        """Prevent filament_id from being None."""
+        if v is None:
+            raise ValueError("Value must not be None.")
+        return v
 
 
 class SpoolUseParameters(BaseModel):
-    use_length: Optional[float] = Field(description="Length of filament to reduce by, in mm.", example=2.2)
-    use_weight: Optional[float] = Field(description="Filament weight to reduce by, in g.", example=5.3)
+    use_length: Optional[float] = Field(None, description="Length of filament to reduce by, in mm.", examples=[2.2])
+    use_weight: Optional[float] = Field(None, description="Filament weight to reduce by, in g.", examples=[5.3])
+
+
+class SpoolMeasureParameters(BaseModel):
+    weight: float = Field(description="Current gross weight of the spool, in g.", examples=[200])
 
 
 @router.get(
@@ -86,7 +122,6 @@ class SpoolUseParameters(BaseModel):
     response_model_exclude_none=True,
     responses={
         200: {"model": list[Spool]},
-        404: {"model": Message},
         299: {"model": SpoolEvent, "description": "Websocket message"},
     },
 )
@@ -106,6 +141,7 @@ async def find(
         title="Filament ID",
         description="See filament.id.",
         deprecated=True,
+        pattern=r"^-?\d+(,-?\d+)*$",
     ),
     filament_material_old: Optional[str] = Query(
         alias="filament_material",
@@ -127,14 +163,16 @@ async def find(
         title="Vendor ID",
         description="See filament.vendor.id.",
         deprecated=True,
+        pattern=r"^-?\d+(,-?\d+)*$",
     ),
     filament_name: Optional[str] = Query(
         alias="filament.name",
         default=None,
         title="Filament Name",
         description=(
-            "Partial case-insensitive search term for the filament name. Separate multiple terms with a comma."
-            " Specify an empty string to match spools with no filament name."
+            "Partial case-insensitive search term for the filament name. Separate multiple terms with a comma. "
+            "Specify an empty string to match spools with no filament name. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     filament_id: Optional[str] = Query(
@@ -143,6 +181,7 @@ async def find(
         title="Filament ID",
         description="Match an exact filament ID. Separate multiple IDs with a comma.",
         examples=["1", "1,2"],
+        pattern=r"^-?\d+(,-?\d+)*$",
     ),
     filament_material: Optional[str] = Query(
         alias="filament.material",
@@ -150,7 +189,8 @@ async def find(
         title="Filament Material",
         description=(
             "Partial case-insensitive search term for the filament material. Separate multiple terms with a comma. "
-            "Specify an empty string to match spools with no filament material."
+            "Specify an empty string to match spools with no filament material. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     filament_vendor_name: Optional[str] = Query(
@@ -159,7 +199,8 @@ async def find(
         title="Vendor Name",
         description=(
             "Partial case-insensitive search term for the filament vendor name. Separate multiple terms with a comma. "
-            "Specify an empty string to match spools with no vendor name."
+            "Specify an empty string to match spools with no vendor name. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     filament_vendor_id: Optional[str] = Query(
@@ -171,13 +212,15 @@ async def find(
             "Set it to -1 to match spools with filaments with no vendor."
         ),
         examples=["1", "1,2"],
+        pattern=r"^-?\d+(,-?\d+)*$",
     ),
     location: Optional[str] = Query(
         default=None,
         title="Location",
         description=(
             "Partial case-insensitive search term for the spool location. Separate multiple terms with a comma. "
-            "Specify an empty string to match spools with no location."
+            "Specify an empty string to match spools with no location. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     lot_nr: Optional[str] = Query(
@@ -185,7 +228,8 @@ async def find(
         title="Lot/Batch Number",
         description=(
             "Partial case-insensitive search term for the spool lot number. Separate multiple terms with a comma. "
-            "Specify an empty string to match spools with no lot nr."
+            "Specify an empty string to match spools with no lot nr. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     allow_archived: bool = Query(
@@ -220,21 +264,13 @@ async def find(
 
     filament_id = filament_id if filament_id is not None else filament_id_old
     if filament_id is not None:
-        try:
-            filament_ids = [int(filament_id_item) for filament_id_item in filament_id.split(",")]
-        except ValueError as e:
-            raise RequestValidationError(
-                [ErrorWrapper(ValueError("Invalid filament_id"), ("query", "filament_id"))],
-            ) from e
+        filament_ids = [int(filament_id_item) for filament_id_item in filament_id.split(",")]
     else:
         filament_ids = None
 
     filament_vendor_id = filament_vendor_id if filament_vendor_id is not None else vendor_id_old
     if filament_vendor_id is not None:
-        try:
-            filament_vendor_ids = [int(vendor_id_item) for vendor_id_item in filament_vendor_id.split(",")]
-        except ValueError as e:
-            raise RequestValidationError([ErrorWrapper(ValueError("Invalid vendor_id"), ("query", "vendor_id"))]) from e
+        filament_vendor_ids = [int(vendor_id_item) for vendor_id_item in filament_vendor_id.split(",")]
     else:
         filament_vendor_ids = None
 
@@ -354,6 +390,8 @@ async def create(  # noqa: ANN201
             db=db,
             filament_id=body.filament_id,
             price=body.price,
+            initial_weight=body.initial_weight,
+            spool_weight=body.spool_weight,
             remaining_weight=body.remaining_weight,
             used_weight=body.used_weight,
             first_used=body.first_used,
@@ -394,7 +432,7 @@ async def update(  # noqa: ANN201
     spool_id: int,
     body: SpoolUpdateParameters,
 ):
-    patch_data = body.dict(exclude_unset=True)
+    patch_data = body.model_dump(exclude_unset=True)
 
     if body.remaining_weight is not None and body.used_weight is not None:
         return JSONResponse(
@@ -408,11 +446,6 @@ async def update(  # noqa: ANN201
             validate_extra_field_dict(all_fields, body.extra)
         except ValueError as e:
             return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
-
-    if "filament_id" in patch_data and body.filament_id is None:
-        raise RequestValidationError(
-            [ErrorWrapper(ValueError("filament_id cannot be unset"), ("query", "filament_id"))],
-        )
 
     try:
         db_item = await spool.update(
@@ -480,3 +513,30 @@ async def use(  # noqa: ANN201
         status_code=400,
         content={"message": "Either use_weight or use_length must be specified."},
     )
+
+
+@router.put(
+    "/{spool_id}/measure",
+    name="Use spool filament based on the current weight measurement",
+    description=("Use some weight of filament from the spool. Specify the current gross weight of the spool."),
+    response_model_exclude_none=True,
+    response_model=Spool,
+    responses={
+        400: {"model": Message},
+        404: {"model": Message},
+    },
+)
+async def measure(  # noqa: ANN201
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    spool_id: int,
+    body: SpoolMeasureParameters,
+):
+    try:
+        db_item = await spool.measure(db, spool_id, body.weight)
+        return Spool.from_db(db_item)
+    except SpoolMeasureError as e:
+        logger.exception("Failed to update spool measurement.")
+        return JSONResponse(
+            status_code=400,
+            content={"message": e.args[0]},
+        )

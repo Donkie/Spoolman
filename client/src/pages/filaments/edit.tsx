@@ -1,16 +1,16 @@
-import React, { useState } from "react";
-import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, InputNumber, ColorPicker, message, Alert, Typography } from "antd";
-import dayjs from "dayjs";
+import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
+import { Alert, ColorPicker, DatePicker, Form, Input, InputNumber, message, Radio, Select, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
+import dayjs from "dayjs";
+import { useEffect, useState } from "react";
+import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
+import { MultiColorPicker } from "../../components/multiColorPicker";
 import { numberFormatter, numberParser } from "../../utils/parsing";
+import { EntityType, useGetFields } from "../../utils/queryFields";
+import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { IVendor } from "../vendors/model";
 import { IFilament, IFilamentParsedExtras } from "./model";
-import { EntityType, useGetFields } from "../../utils/queryFields";
-import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
-import { ParsedExtras } from "../../components/extraFields";
-import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 
 /*
 The API returns the extra fields as JSON values, but we need to parse them into their real types
@@ -25,6 +25,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
   const [hasChanged, setHasChanged] = useState(false);
   const extraFields = useGetFields(EntityType.filament);
   const currency = useCurrency();
+  const [colorType, setColorType] = useState<"single" | "multi">("single");
 
   const { formProps, saveButtonProps } = useForm<IFilament, HttpError, IFilament, IFilament>({
     liveMode: "manual",
@@ -48,6 +49,16 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
     // Parse the extra fields from string values into real types
     formProps.initialValues = ParsedExtras(formProps.initialValues);
   }
+
+  // Update colorType state
+  useEffect(() => {
+    console.log(formProps.initialValues?.multi_color_hexes);
+    if (formProps.initialValues?.multi_color_hexes) {
+      setColorType("multi");
+    } else {
+      setColorType("single");
+    }
+  }, [formProps.initialValues?.multi_color_hexes]);
 
   // Override the form's onFinish method to stringify the extra fields
   const originalOnFinish = formProps.onFinish;
@@ -132,20 +143,62 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
             }
           />
         </Form.Item>
-        <Form.Item
-          label={t("filament.fields.color_hex")}
-          name={["color_hex"]}
-          rules={[
-            {
-              required: false,
-            },
-          ]}
-          getValueFromEvent={(e) => {
-            return e?.toHex();
-          }}
-        >
-          <ColorPicker format="hex" />
+        <Form.Item label={t("filament.fields.color_hex")}>
+          <Radio.Group
+            onChange={(value) => {
+              setColorType(value.target.value);
+            }}
+            defaultValue={colorType}
+            value={colorType}
+          >
+            <Radio.Button value={"single"}>{t("filament.fields.single_color")}</Radio.Button>
+            <Radio.Button value={"multi"}>{t("filament.fields.multi_color")}</Radio.Button>
+          </Radio.Group>
         </Form.Item>
+        {colorType == "single" && (
+          <Form.Item
+            name={"color_hex"}
+            rules={[
+              {
+                required: false,
+              },
+            ]}
+            getValueFromEvent={(e) => {
+              return e?.toHex();
+            }}
+          >
+            <ColorPicker format="hex" />
+          </Form.Item>
+        )}
+        {colorType == "multi" && (
+          <Form.Item
+            name={"multi_color_direction"}
+            help={t("filament.fields_help.multi_color_direction")}
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+            initialValue={"coaxial"}
+          >
+            <Radio.Group>
+              <Radio.Button value={"coaxial"}>{t("filament.fields.coaxial")}</Radio.Button>
+              <Radio.Button value={"longitudinal"}>{t("filament.fields.longitudinal")}</Radio.Button>
+            </Radio.Group>
+          </Form.Item>
+        )}
+        {colorType == "multi" && (
+          <Form.Item
+            name={"multi_color_hexes"}
+            rules={[
+              {
+                required: false,
+              },
+            ]}
+          >
+            <MultiColorPicker min={2} max={14} />
+          </Form.Item>
+        )}
         <Form.Item
           label={t("filament.fields.material")}
           help={t("filament.fields_help.material")}

@@ -47,7 +47,7 @@
             "filament": "Filament",
             "material": "Materiał",
             "remaining_weight": "Pozostała waga",
-            "used_length": "Użyta długość",
+            "used_length": "Zużyta długość",
             "remaining_length": "Pozostała długość",
             "location": "Lokalizacja",
             "lot_nr": "Numer partii (LOT)",
@@ -55,11 +55,13 @@
             "last_used": "Ostatnie użycie",
             "comment": "Komentarz",
             "archived": "Zarchiwizowano",
-            "used_weight": "Użyta waga",
+            "used_weight": "Zużyta waga",
             "registered": "Zarejestrowano",
             "measured_weight": "Zmierzona waga",
             "weight_to_use": "Waga",
-            "price": ""
+            "price": "Cena",
+            "initial_weight": "Waga początkowa",
+            "spool_weight": "Waga pusta"
         },
         "fields_help": {
             "location": "Wpisz gdzie znajduje się szpula, jeśli masz wiele lokalizacji, w których przechowujesz szpule.",
@@ -68,7 +70,9 @@
             "remaining_weight": "Ile filamentu pozostało na szpuli. W przypadku nowej szpuli powinno to odpowiadać wadze szpuli.",
             "measured_weight": "Waga filamentu i szpuli.",
             "weight_to_use": "Wybierz jaką wagę wprowadzić. Zmierzona waga jest dostępna tylko wtedy, gdy waga szpuli jest ustawiona dla wybranego filamentu.",
-            "price": ""
+            "price": "Cena pełnej szpuli. Jeśli nie ustawiona, cena filamentu będzie domyślna.",
+            "initial_weight": "Masa początkowa filamentu(netto). Może być podana przez producenta, ale możesz ustawić dla każdej szpuli, aby uwzględnić ewentualne niedokładności.",
+            "spool_weight": "Waga pustej szpuli. Może być podana przez producenta, ale możesz ją ustawić osobno dla każdej szpuli, aby uwzględnić niedokładności."
         },
         "messages": {
             "archive": "Czy na pewno chcesz zarchiwizować tę szpulę?"
@@ -91,7 +95,9 @@
         "editError": "Błąd podczas edycji {{resource}} (kod statusu: {{statusCode}})",
         "importProgress": "Importowanie: {{processed}}/{{total}}",
         "error": "Błąd (kod statusu: {{statusCode}})",
-        "createError": "Wystąpił błąd podczas tworzenia {{resource}} (kod statusu: {{statusCode}})"
+        "createError": "Wystąpił błąd podczas tworzenia {{resource}} (kod statusu: {{statusCode}})",
+        "saveSuccessful": "Zapisano pomyślnie!",
+        "validationError": "Błąd walidacji: {{error}}"
     },
     "loading": "Wczytywanie",
     "version": "Wersja",
@@ -124,7 +130,7 @@
             "marginBottom": "Dolny margines",
             "printerMarginLeft": "Bezpieczna strefa po lewej",
             "printerMarginRight": "Bezpieczna strefa po prawej",
-            "printerMarginTop": "Bezpieczna strefa u góry",
+            "printerMarginTop": "Bezpieczna strefa od góry",
             "borders": {
                 "none": "Brak",
                 "border": "Obwódka",
@@ -132,7 +138,7 @@
             },
             "description": "Dostosuj poniższe ustawienia, aby uzyskać pożądany układ wydruku. Należy pamiętać, że drukarki i system operacyjny mogą stosować własne marginesy i skalowanie, więc może być konieczne wykonanie kilku prób i błędów, zanim wszystko będzie prawidłowe. Przed wydrukowaniem etykiet przetestuj je na zwykłym papierze.",
             "horizontalSpacing": "Poziomy odstęp",
-            "printerMarginBottom": "Bezpieczna strefa u dołu"
+            "printerMarginBottom": "Bezpieczna strefa od dołu"
         },
         "qrcode": {
             "button": "Drukuj kody QR",
@@ -198,7 +204,7 @@
         },
         "fields_help": {
             "material": "Np. PLA, ABS, PETG itp.",
-            "price": "Cena pełnej szpuli w walucie skonfigurowanej przez system.",
+            "price": "Cena pełnej szpuli.",
             "spool_weight": "Waga pustej szpuli. Używana do określenia ciężaru szpuli.",
             "article_number": "Np. EAN, UPC itp.",
             "name": "Nazwa filamentu, aby odróżnić ten typ filamentu od innych pochodzących od tego samego producenta. Powinna zawierać np. kolor.",
@@ -214,6 +220,9 @@
         },
         "form": {
             "filament_updated": "Ten filament został zaktualizowany przez kogoś/coś innego od czasu otwarcia tej strony. Zapisanie nadpisze te zmiany!"
+        },
+        "buttons": {
+            "add_spool": "Dodaj Szpulę"
         }
     },
     "vendor": {
@@ -222,7 +231,8 @@
             "id": "ID",
             "name": "Nazwa",
             "registered": "Zarejestrowano",
-            "comment": "Komentarz"
+            "comment": "Komentarz",
+            "empty_spool_weight": "Waga pustej szpuli"
         },
         "titles": {
             "create": "Tworzenie producenta",
@@ -234,6 +244,9 @@
         },
         "form": {
             "vendor_updated": "Ten producent został zaktualizowany przez kogoś/coś innego od czasu otwarcia tej strony. Zapisanie spowoduje nadpisanie tych zmian!"
+        },
+        "fields_help": {
+            "empty_spool_weight": "Waga pustej szpuli od tego producenta."
         }
     },
     "table": {
@@ -277,10 +290,52 @@
             "filament": "Producenci filamentów. Mają takie właściwości, jak nazwa, materiał, kolor, średnica i inne.",
             "spool": "Indywidualne fizyczne szpule określonego filamentu."
         },
-        "help": "Pomoc"
+        "help": "Pomoc",
+        "description": "<title>Pomoc</title><p>Oto kilka wskazówek na początek.</p><p>Spoolman przechowuje 3 różne typy danych:</p><itemsHelp/><p>Aby dodać nową szpulę do bazy danych, zacznij od utworzenia obiektu <filamentCreateLink>Filament</filamentCreateLink>. Gdy już to zrobisz, przejdź do utworzenia obiektu <spoolCreateLink>Szpula</spoolCreateLink> dla tej konkretnej szpuli. Jeśli później zdobędziesz dodatkowe szpule tego samego filamentu, po prostu wygeneruj dodatkowe obiekty Szpula i ponownie użyj tego samego obiektu Filament.</p><p>Opcjonalnie możesz także wygenerować obiekt <vendorCreateLink>Producent</vendorCreateLink> dla firmy produkującej filament, jeśli chcesz śledzić te informacje.</p><p>Masz możliwość połączenia innych usług drukarek 3D ze Spoolmanem, takich jak Moonraker, który może automatycznie monitorować zużycie filamentu i aktualizować obiekty Szpula. Wskazówki dotyczące konfiguracji można znaleźć w <readmeLink>Spoolman README</readmeLink>.</p>"
     },
     "kofi": "Daj napiwek na Ko-fi",
     "home": {
         "home": "Strona główna"
+    },
+    "settings": {
+        "settings": "Ustawienia",
+        "general": {
+            "currency": {
+                "label": "Waluta"
+            },
+            "tab": "Ogólne"
+        },
+        "extra_fields": {
+            "tab": "Dodatkowe Parametry",
+            "boolean_true": "Tak",
+            "boolean_false": "Nie",
+            "params": {
+                "name": "Nazwa",
+                "field_type": "Typ",
+                "unit": "Jednostka",
+                "order": "Kolejność",
+                "default_value": "Domyślna Wartość",
+                "key": "Klucz",
+                "choices": "Wybory",
+                "multi_choice": "Wielokrotny wybór"
+            },
+            "field_type": {
+                "integer": "Liczba całkowita",
+                "integer_range": "Zakres liczb",
+                "float": "Liczba (ułamek)",
+                "choice": "Wybór",
+                "text": "Tekst",
+                "float_range": "Zakres",
+                "datetime": "Data i Czas",
+                "boolean": "Wartość logiczna"
+            },
+            "non_unique_key_error": "Klucz musi być unikalny.",
+            "description": "<p>Tutaj możesz dodać dodatkowe komórki do zapisu danych.</p><p>Kiedy dodasz komórkę, nie można już zmienić typu danych ani klucza, a dla komurek wyboru, nie możesz zmienić możliwych wyborów ani multi-wybierania. Jeśli usuniesz komórkę, wszystkie informacje ze wszystkich obiektów z tej komórki zostaną usunięte.</p><p>Klucz jest po to, aby umożliwić innym programom odczytywać/zapisywac swoje dane,więc jeśli twoje nowa customowa komórka ma służyć do integracji z third-party programami, upewnij się że jest dobrze skonfigurowane. Domyślna wartość jest dodawana tylko do nowych komórek.</p><p>Dodatkowe komórki nie moga być sortowane ani filtrowane.</p>",
+            "choices_missing_error": "Nie możesz usunąc możliwośći wyboru. Ten wybór nie istnieje: {{choices}}",
+            "key_not_changed": "Zmień klucz na inny.",
+            "delete_confirm": "Usunąć pole {{name}}?",
+            "delete_confirm_description": "Ta akcja usunie wszystkie pola i powiązane z nimi dane dla wszystkich obiektów."
+        },
+        "header": "Ustawienia"
     }
 }

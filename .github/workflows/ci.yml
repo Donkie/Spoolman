@@ -57,7 +57,7 @@ jobs:
       - name: Export requirements
         run: |
           pip install pdm
-          pdm export -o requirements.txt --without-hashes > requirements.txt
+          pdm export -o requirements.txt --without-hashes
     
       - name: Install client dependencies
         run: |
@@ -219,7 +219,7 @@ jobs:
           docker load --input /tmp/spoolman-tester-image/spoolman-tester.tar
 
       - name: Perform integration tests
-        uses: isbang/compose-action@v1.4.1
+        uses: hoverkraft-tech/compose-action@v2.0.1
         with:
           compose-file: "./tests_integration/docker-compose-${{ matrix.dbtype }}.yml"
           up-flags: "--abort-on-container-exit"

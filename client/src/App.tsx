@@ -5,11 +5,6 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ErrorComponent } from "@refinedev/antd";
 import "@refinedev/antd/dist/reset.css";
 
-import routerBindings, { DocumentTitleHandler, UnsavedChangesNotifier } from "@refinedev/react-router-v6";
-import dataProvider from "./components/dataProvider";
-import { useTranslation } from "react-i18next";
-import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
-import { ColorModeContextProvider } from "./contexts/color-mode";
 import {
   FileOutlined,
   HighlightOutlined,
@@ -18,14 +13,21 @@ import {
   ToolOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { ConfigProvider } from "antd";
-import React from "react";
-import { Locale } from "antd/es/locale";
-import { languages } from "./i18n";
 import loadable from "@loadable/component";
-import SpoolmanNotificationProvider from "./components/notificationProvider";
+import routerBindings, { DocumentTitleHandler, UnsavedChangesNotifier } from "@refinedev/react-router-v6";
+import { ConfigProvider } from "antd";
+import { Locale } from "antd/es/locale";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
+import dataProvider from "./components/dataProvider";
+import { Favicon } from "./components/favicon";
 import { SpoolmanLayout } from "./components/layout";
 import liveProvider from "./components/liveProvider";
+import SpoolmanNotificationProvider from "./components/notificationProvider";
+import { ColorModeContextProvider } from "./contexts/color-mode";
+import { languages } from "./i18n";
+import { getAPIURL, getBasePath } from "./utils/url";
 
 interface ResourcePageProps {
   resource: "spools" | "filaments" | "vendors";
@@ -60,8 +62,8 @@ function App() {
   };
 
   // Fetch the antd locale using dynamic imports
-  const [antdLocale, setAntdLocale] = React.useState<Locale | undefined>();
-  React.useEffect(() => {
+  const [antdLocale, setAntdLocale] = useState<Locale | undefined>();
+  useEffect(() => {
     const fetchLocale = async () => {
       const locale = await import(
         `./../node_modules/antd/es/locale/${languages[i18n.language].fullCode.replace("-", "_")}.js`
@@ -84,7 +86,7 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={getBasePath() + "/"}>
       <RefineKbarProvider>
         <ColorModeContextProvider>
           <ConfigProvider
@@ -96,11 +98,11 @@ function App() {
             }}
           >
             <Refine
-              dataProvider={dataProvider(import.meta.env.VITE_APIURL)}
+              dataProvider={dataProvider(getAPIURL())}
               notificationProvider={SpoolmanNotificationProvider}
               i18nProvider={i18nProvider}
               routerProvider={routerBindings}
-              liveProvider={liveProvider(import.meta.env.VITE_APIURL)}
+              liveProvider={liveProvider(getAPIURL())}
               resources={[
                 {
                   name: "home",
@@ -190,6 +192,7 @@ function App() {
                     />
                     <Route path="edit/:id" element={<LoadableResourcePage resource="spools" page="edit" />} />
                     <Route path="show/:id" element={<LoadableResourcePage resource="spools" page="show" />} />
+                    <Route path="print" element={<LoadablePage name="printing" />} />
                   </Route>
                   <Route path="/filament">
                     <Route index element={<LoadableResourcePage resource="filaments" page="list" />} />
@@ -227,6 +230,7 @@ function App() {
               <UnsavedChangesNotifier />
               <DocumentTitleHandler />
               <ReactQueryDevtools />
+              <Favicon url={getBasePath() + "/favicon.svg"} />
             </Refine>
           </ConfigProvider>
         </ColorModeContextProvider>

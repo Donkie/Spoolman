@@ -1,13 +1,13 @@
 import { DateField, TextField } from "@refinedev/antd";
-import { Field, FieldType } from "../utils/queryFields";
-import { NumberFieldUnit, NumberFieldUnitRange } from "./numberField";
-import { enrichText } from "../utils/parsing";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import { Checkbox, Form, Input, InputNumber, Select, Typography } from "antd";
 import { FormItemProps, Rule } from "antd/es/form";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { enrichText } from "../utils/parsing";
+import { Field, FieldType } from "../utils/queryFields";
 import { DateTimePicker } from "./dateTimePicker";
 import { InputNumberRange } from "./inputNumberRange";
+import { NumberFieldUnit, NumberFieldUnitRange } from "./numberField";
 
 dayjs.extend(utc);
 

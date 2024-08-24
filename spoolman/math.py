@@ -15,6 +15,7 @@ def weight_from_length(*, length: float, diameter: float, density: float) -> flo
 
     Returns:
         float: Weight in g
+
     """
     volume_mm3 = length * math.pi * (diameter / 2) ** 2
     volume_cm3 = volume_mm3 / 1000
@@ -31,6 +32,7 @@ def length_from_weight(*, weight: float, diameter: float, density: float) -> flo
 
     Returns:
         float: Length in mm
+
     """
     volume_cm3 = weight / density
     volume_mm3 = volume_cm3 * 1000

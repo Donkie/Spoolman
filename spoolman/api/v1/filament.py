@@ -6,13 +6,11 @@ from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field, validator
-from pydantic.error_wrappers import ErrorWrapper
+from pydantic import BaseModel, Field, field_validator, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman.api.v1.models import Filament, FilamentEvent, Message
+from spoolman.api.v1.models import Filament, FilamentEvent, Message, MultiColorDirection
 from spoolman.database import filament
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
@@ -32,84 +30,161 @@ router = APIRouter(
 
 class FilamentParameters(BaseModel):
     name: Optional[str] = Field(
+        None,
         max_length=64,
         description=(
             "Filament name, to distinguish this filament type among others from the same vendor."
             "Should contain its color for example."
         ),
-        example="PolyTerra™ Charcoal Black",
+        examples=["PolyTerra™ Charcoal Black"],
     )
-    vendor_id: Optional[int] = Field(description="The ID of the vendor of this filament type.")
+    vendor_id: Optional[int] = Field(None, description="The ID of the vendor of this filament type.")
     material: Optional[str] = Field(
+        None,
         max_length=64,
         description="The material of this filament, e.g. PLA.",
-        example="PLA",
+        examples=["PLA"],
     )
     price: Optional[float] = Field(
+        None,
         ge=0,
         description="The price of this filament in the system configured currency.",
-        example=20.0,
+        examples=[20.0],
     )
-    density: float = Field(gt=0, description="The density of this filament in g/cm3.", example=1.24)
-    diameter: float = Field(gt=0, description="The diameter of this filament in mm.", example=1.75)
+    density: float = Field(gt=0, description="The density of this filament in g/cm3.", examples=[1.24])
+    diameter: float = Field(gt=0, description="The diameter of this filament in mm.", examples=[1.75])
     weight: Optional[float] = Field(
+        None,
         gt=0,
         description="The weight of the filament in a full spool, in grams. (net weight)",
-        example=1000,
+        examples=[1000],
     )
-    spool_weight: Optional[float] = Field(gt=0, description="The empty spool weight, in grams.", example=140)
+    spool_weight: Optional[float] = Field(None, ge=0, description="The empty spool weight, in grams.", examples=[140])
     article_number: Optional[str] = Field(
+        None,
         max_length=64,
         description="Vendor article number, e.g. EAN, QR code, etc.",
-        example="PM70820",
+        examples=["PM70820"],
     )
     comment: Optional[str] = Field(
+        None,
         max_length=1024,
         description="Free text comment about this filament type.",
-        example="",
+        examples=[""],
     )
     settings_extruder_temp: Optional[int] = Field(
+        None,
         ge=0,
         description="Overridden extruder temperature, in °C.",
-        example=210,
+        examples=[210],
     )
     settings_bed_temp: Optional[int] = Field(
+        None,
         ge=0,
         description="Overridden bed temperature, in °C.",
-        example=60,
+        examples=[60],
     )
     color_hex: Optional[str] = Field(
-        description="Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end.",
-        example="FF0000",
+        None,
+        description=(
+            "Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end. "
+            "If it's a multi-color filament, the multi_color_hexes field is used instead."
+        ),
+        examples=["FF0000"],
+    )
+    multi_color_hexes: Optional[str] = Field(
+        None,
+        description=(
+            "Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end. "
+            "Specifying multiple colors separated by commas. "
+            "Also set the multi_color_direction field if you specify multiple colors."
+        ),
+        examples=["FF0000,00FF00,0000FF"],
+    )
+    multi_color_direction: Optional[MultiColorDirection] = Field(
+        None,
+        description=("Type of multi-color filament. Only set if the color_hex field contains multiple colors. "),
+        examples=["coaxial", "longitudinal"],
+    )
+    external_id: Optional[str] = Field(
+        None,
+        max_length=256,
+        description=(
+            "Set if this filament comes from an external database. This contains the ID in the external database."
+        ),
+        examples=["polymaker_pla_polysonicblack_1000_175"],
     )
     extra: Optional[dict[str, str]] = Field(
         None,
         description="Extra fields for this filament.",
     )
 
-    @validator("color_hex")
+    @field_validator("color_hex")
     @classmethod
     def color_hex_validator(cls, v: Optional[str]) -> Optional[str]:  # noqa: ANN102
         """Validate the color_hex field."""
         if not v:
             return None
-        if v.startswith("#"):
-            v = v[1:]
-        v = v.upper()
 
-        for c in v:
+        clr = v.upper()
+        if clr.startswith("#"):
+            clr = clr[1:]
+
+        for c in clr:
             if c not in "0123456789ABCDEF":
                 raise ValueError("Invalid character in color code.")
 
-        if len(v) not in (6, 8):
+        if len(clr) not in (6, 8):
             raise ValueError("Color code must be 6 or 8 characters long.")
 
         return v
 
+    @field_validator("multi_color_hexes")
+    @classmethod
+    def multi_color_hexes_validator(cls, v: Optional[str]) -> Optional[str]:  # noqa: ANN102
+        """Validate the multi_color_hexes field."""
+        if not v:
+            return None
+        for clr_raw in v.split(","):
+            clr = clr_raw.upper()
+            if clr.startswith("#"):
+                clr = clr[1:]
+
+            for c in clr:
+                if c not in "0123456789ABCDEF":
+                    raise ValueError("Invalid character in color code.")
+
+            if len(clr) not in (6, 8):
+                raise ValueError("Color code must be 6 or 8 characters long.")
+
+        return v
+
+    @model_validator(mode="after")  # type: ignore[]
+    def validate(self) -> "FilamentParameters":
+        """Validate the model."""
+        if self.color_hex and self.multi_color_hexes:
+            raise ValueError("Cannot specify both color_hex and multi_color_hexes.")
+        if self.multi_color_hexes and len(self.multi_color_hexes.split(",")) < 2:  # noqa: PLR2004
+            raise ValueError("Must specify at least two colors in multi_color_hexes.")
+        if self.multi_color_hexes and not self.multi_color_direction:
+            raise ValueError("Multi-color filament must have multi_color_direction set.")
+        if not self.multi_color_hexes and self.multi_color_direction:
+            raise ValueError("Single-color filament must not have multi_color_direction set.")
+
+        return self
+
 
 class FilamentUpdateParameters(FilamentParameters):
-    density: Optional[float] = Field(gt=0, description="The density of this filament in g/cm3.", example=1.24)
-    diameter: Optional[float] = Field(gt=0, description="The diameter of this filament in mm.", example=1.75)
+    density: Optional[float] = Field(None, gt=0, description="The density of this filament in g/cm3.", examples=[1.24])
+    diameter: Optional[float] = Field(None, gt=0, description="The diameter of this filament in mm.", examples=[1.75])
+
+    @field_validator("density", "diameter")
+    @classmethod
+    def prevent_none(cls: type["FilamentUpdateParameters"], v: Optional[float]) -> Optional[float]:
+        """Prevent density and diameter from being None."""
+        if v is None:
+            raise ValueError("Value must not be None.")
+        return v
 
 
 @router.get(
@@ -123,7 +198,6 @@ class FilamentUpdateParameters(FilamentParameters):
     response_model_exclude_none=True,
     responses={
         200: {"model": list[Filament]},
-        404: {"model": Message},
         299: {"model": FilamentEvent, "description": "Websocket message"},
     },
 )
@@ -143,6 +217,7 @@ async def find(
         title="Vendor ID",
         description="See vendor.id.",
         deprecated=True,
+        pattern=r"^-?\d+(,-?\d+)*$",
     ),
     vendor_name: Optional[str] = Query(
         alias="vendor.name",
@@ -150,7 +225,8 @@ async def find(
         title="Vendor Name",
         description=(
             "Partial case-insensitive search term for the filament vendor name. "
-            "Separate multiple terms with a comma. Specify an empty string to match filaments with no vendor name."
+            "Separate multiple terms with a comma. Specify an empty string to match filaments with no vendor name. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     vendor_id: Optional[str] = Query(
@@ -161,6 +237,7 @@ async def find(
             "Match an exact vendor ID. Separate multiple IDs with a comma. "
             "Specify -1 to match filaments with no vendor."
         ),
+        pattern=r"^-?\d+(,-?\d+)*$",
         examples=["1", "1,2"],
     ),
     name: Optional[str] = Query(
@@ -168,7 +245,8 @@ async def find(
         title="Filament Name",
         description=(
             "Partial case-insensitive search term for the filament name. Separate multiple terms with a comma. "
-            "Specify an empty string to match filaments with no name."
+            "Specify an empty string to match filaments with no name. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     material: Optional[str] = Query(
@@ -176,7 +254,8 @@ async def find(
         title="Filament Material",
         description=(
             "Partial case-insensitive search term for the filament material. Separate multiple terms with a comma. "
-            "Specify an empty string to match filaments with no material."
+            "Specify an empty string to match filaments with no material. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     article_number: Optional[str] = Query(
@@ -185,7 +264,8 @@ async def find(
         description=(
             "Partial case-insensitive search term for the filament article number. "
             "Separate multiple terms with a comma. "
-            "Specify an empty string to match filaments with no article number."
+            "Specify an empty string to match filaments with no article number. "
+            "Surround a term with quotes to search for the exact term."
         ),
     ),
     color_hex: Optional[str] = Query(
@@ -200,6 +280,16 @@ async def find(
             "A value between 0.0-100.0, where 0 means match only exactly the same color."
         ),
         example=20.0,
+    ),
+    external_id: Optional[str] = Query(
+        default=None,
+        description=(
+            "Find filaments imported by the given external ID. "
+            "Separate multiple IDs with a comma. "
+            "Specify empty string to match filaments with no external ID. "
+            "Surround a term with quotes to search for the exact term."
+        ),
+        example="polymaker_pla_polysonicblack_1000_175",
     ),
     sort: Optional[str] = Query(
         default=None,
@@ -228,10 +318,7 @@ async def find(
 
     vendor_id = vendor_id if vendor_id is not None else vendor_id_old
     if vendor_id is not None:
-        try:
-            vendor_ids = [int(vendor_id_item) for vendor_id_item in vendor_id.split(",")]
-        except ValueError as e:
-            raise RequestValidationError([ErrorWrapper(ValueError("Invalid vendor_id"), ("query", "vendor_id"))]) from e
+        vendor_ids = [int(vendor_id_item) for vendor_id_item in vendor_id.split(",")]
     else:
         vendor_ids = None
 
@@ -253,6 +340,7 @@ async def find(
         name=name,
         material=material,
         article_number=article_number,
+        external_id=external_id,
         sort_by=sort_by,
         limit=limit,
         offset=offset,
@@ -357,6 +445,9 @@ async def create(  # noqa: ANN201
         settings_extruder_temp=body.settings_extruder_temp,
         settings_bed_temp=body.settings_bed_temp,
         color_hex=body.color_hex,
+        multi_color_hexes=body.multi_color_hexes,
+        multi_color_direction=body.multi_color_direction,
+        external_id=body.external_id,
         extra=body.extra,
     )
 
@@ -382,12 +473,7 @@ async def update(  # noqa: ANN201
     filament_id: int,
     body: FilamentUpdateParameters,
 ):
-    patch_data = body.dict(exclude_unset=True)
-
-    if "density" in patch_data and body.density is None:
-        raise RequestValidationError([ErrorWrapper(ValueError("density cannot be unset"), ("query", "density"))])
-    if "diameter" in patch_data and body.diameter is None:
-        raise RequestValidationError([ErrorWrapper(ValueError("diameter cannot be unset"), ("query", "diameter"))])
+    patch_data = body.model_dump(exclude_unset=True)
 
     if body.extra:
         all_fields = await get_extra_fields(db, EntityType.filament)

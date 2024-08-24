@@ -18,8 +18,10 @@ class Vendor(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     registered: Mapped[datetime] = mapped_column()
     name: Mapped[str] = mapped_column(String(64))
+    empty_spool_weight: Mapped[Optional[float]] = mapped_column(comment="The weight of an empty spool.")
     comment: Mapped[Optional[str]] = mapped_column(String(1024))
     filaments: Mapped[list["Filament"]] = relationship(back_populates="vendor")
+    external_id: Mapped[Optional[str]] = mapped_column(String(256))
     extra: Mapped[list["VendorField"]] = relationship(
         back_populates="vendor",
         cascade="save-update, merge, delete, delete-orphan",
@@ -47,6 +49,9 @@ class Filament(Base):
     settings_extruder_temp: Mapped[Optional[int]] = mapped_column(comment="Overridden extruder temperature.")
     settings_bed_temp: Mapped[Optional[int]] = mapped_column(comment="Overridden bed temperature.")
     color_hex: Mapped[Optional[str]] = mapped_column(String(8))
+    multi_color_hexes: Mapped[Optional[str]] = mapped_column(String(128))
+    multi_color_direction: Mapped[Optional[str]] = mapped_column(String(16))
+    external_id: Mapped[Optional[str]] = mapped_column(String(256))
     extra: Mapped[list["FilamentField"]] = relationship(
         back_populates="filament",
         cascade="save-update, merge, delete, delete-orphan",
@@ -64,6 +69,8 @@ class Spool(Base):
     price: Mapped[Optional[float]] = mapped_column()
     filament_id: Mapped[int] = mapped_column(ForeignKey("filament.id"))
     filament: Mapped["Filament"] = relationship(back_populates="spools")
+    initial_weight: Mapped[Optional[float]] = mapped_column()
+    spool_weight: Mapped[Optional[float]] = mapped_column()
     used_weight: Mapped[float] = mapped_column()
     location: Mapped[Optional[str]] = mapped_column(String(64))
     lot_nr: Mapped[Optional[str]] = mapped_column(String(64))

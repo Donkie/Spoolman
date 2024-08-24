@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 
-from spoolman.api.v1.models import EventType, Filament, FilamentEvent
+from spoolman.api.v1.models import EventType, Filament, FilamentEvent, MultiColorDirection
 from spoolman.database import models, vendor
 from spoolman.database.utils import (
     SortOrder,
@@ -42,12 +42,18 @@ async def create(
     settings_extruder_temp: Optional[int] = None,
     settings_bed_temp: Optional[int] = None,
     color_hex: Optional[str] = None,
+    multi_color_hexes: Optional[str] = None,
+    multi_color_direction: Optional[MultiColorDirection] = None,
+    external_id: Optional[str] = None,
     extra: Optional[dict[str, str]] = None,
 ) -> models.Filament:
     """Add a new filament to the database."""
     vendor_item: Optional[models.Vendor] = None
     if vendor_id is not None:
         vendor_item = await vendor.get_by_id(db, vendor_id)
+        # default spool weight from vendor
+        if spool_weight is None and vendor_item.empty_spool_weight is not None:
+            spool_weight = vendor_item.empty_spool_weight
 
     filament = models.Filament(
         name=name,
@@ -64,6 +70,9 @@ async def create(
         settings_extruder_temp=settings_extruder_temp,
         settings_bed_temp=settings_bed_temp,
         color_hex=color_hex,
+        multi_color_hexes=multi_color_hexes,
+        multi_color_direction=multi_color_direction.value if multi_color_direction is not None else None,
+        external_id=external_id,
         extra=[models.FilamentField(key=k, value=v) for k, v in (extra or {}).items()],
     )
     db.add(filament)
@@ -93,6 +102,7 @@ async def find(
     name: Optional[str] = None,
     material: Optional[str] = None,
     article_number: Optional[str] = None,
+    external_id: Optional[str] = None,
     sort_by: Optional[dict[str, SortOrder]] = None,
     limit: Optional[int] = None,
     offset: int = 0,
@@ -116,6 +126,7 @@ async def find(
     stmt = add_where_clause_str_opt(stmt, models.Filament.name, name)
     stmt = add_where_clause_str_opt(stmt, models.Filament.material, material)
     stmt = add_where_clause_str_opt(stmt, models.Filament.article_number, article_number)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.external_id, external_id)
 
     total_count = None
 
@@ -157,6 +168,8 @@ async def update(
                 filament.vendor = await vendor.get_by_id(db, v)
         elif k == "extra":
             filament.extra = [models.FilamentField(key=k, value=v) for k, v in v.items()]
+        elif k == "multi_color_direction":
+            filament.multi_color_direction = v.value if v is not None else None
         else:
             setattr(filament, k, v)
     await db.commit()
@@ -224,23 +237,34 @@ async def find_by_color(
 
     found_filaments: list[models.Filament] = []
     for filament in filaments:
-        if filament.color_hex is None:
+        if filament.color_hex is not None:
+            colors = [filament.color_hex]
+        elif filament.multi_color_hexes is not None:
+            colors = filament.multi_color_hexes.split(",")
+        else:
             continue
-        color_lab = rgb_to_lab(hex_to_rgb(filament.color_hex))
-        if delta_e(color_query_lab, color_lab) <= similarity_threshold:
-            found_filaments.append(filament)
+
+        for color in colors:
+            color_lab = rgb_to_lab(hex_to_rgb(color))
+            if delta_e(color_query_lab, color_lab) <= similarity_threshold:
+                found_filaments.append(filament)
+                break
 
     return found_filaments
 
 
 async def filament_changed(filament: models.Filament, typ: EventType) -> None:
     """Notify websocket clients that a filament has changed."""
-    await websocket_manager.send(
-        ("filament", str(filament.id)),
-        FilamentEvent(
-            type=typ,
-            resource="filament",
-            date=datetime.utcnow(),
-            payload=Filament.from_db(filament),
-        ),
-    )
+    try:
+        await websocket_manager.send(
+            ("filament", str(filament.id)),
+            FilamentEvent(
+                type=typ,
+                resource="filament",
+                date=datetime.utcnow(),
+                payload=Filament.from_db(filament),
+            ),
+        )
+    except Exception:
+        # Important to have a catch-all here since we don't want to stop the call if this fails.
+        logger.exception("Failed to send websocket message")

@@ -59,7 +59,10 @@ async def update(
     key: Annotated[str, Path(min_length=1, max_length=64, regex="^[a-z0-9_]+$")],
     body: ExtraFieldParameters,
 ) -> Union[list[ExtraField], JSONResponse]:
-    body_with_key = ExtraField.parse_obj(body.copy(update={"key": key, "entity_type": entity_type}))
+    dict_body = body.model_dump()
+    dict_body["key"] = key
+    dict_body["entity_type"] = entity_type
+    body_with_key = ExtraField.model_validate(dict_body)
 
     try:
         await add_or_update_extra_field(db, entity_type, body_with_key)

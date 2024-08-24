@@ -30,18 +30,20 @@
         "show": "arata",
         "edit": "editeaza"
     },
-    "warnWhenUnsavedChanges": "Esti sigur? Modificarile ne-salvate vor fi pierdurte",
+    "warnWhenUnsavedChanges": "Esti sigur? Modificarile ne-salvate vor fi pierdute.",
     "notifications": {
         "success": "succes",
-        "error": "eroare",
-        "undoable": "Ai inca {{seconds}} secunde sa corectezi",
+        "error": "Eroare (Cod: {{statusCode}})",
+        "undoable": "Ai inca {{seconds}} secunde sa corectezi.",
         "createSuccess": "{{resource}} creata cu succes",
-        "createError": "Eroare la crearea  {{resource}} (status code: {{statusCode}})",
+        "createError": "Eroare la crearea {{resource}} (status code: {{statusCode}})",
         "deleteSuccess": "{{resource}} stearsa cu succes",
-        "deleteError": "Eroare la stergerea  {{resource}} (status code: {{statusCode}})",
+        "deleteError": "Eroare la stergerea {{resource}} (status code: {{statusCode}})",
         "editSuccess": "{{resource}} editata cu succes",
-        "editError": "eroare la editarea  {{resource}} (status code: {{statusCode}})",
-        "importProgress": "Importare: {{processed}}/{{total}}"
+        "editError": "eroare la editarea {{resource}} (status code: {{statusCode}})",
+        "importProgress": "Importare: {{processed}}/{{total}}",
+        "saveSuccessful": "Salvare reusita!",
+        "validationError": "Eroare de validare: {{error}}"
     },
     "kofi": "Doneaza pe Ko-fi",
     "loading": "Incarca",
@@ -62,56 +64,56 @@
             },
             "previewScale": "Scala de previzualizare",
             "contentSettings": "Setări de conținut",
-            "helpMargin": "",
-            "description": "",
+            "helpMargin": "Marginile trebuie configurate pentru a se potrivi cu hârtia de etichetă și imprimanta dvs., modificarea acestora va afecta dimensiunea întregii grile.",
+            "description": "Modificati setările de mai jos pentru a obține aspectul dorit al etichetelor. Rețineți că imprimantele și sistemul dvs. de operare pot aplica propriile setări, așa că poate fi necesar să incercati mai multe opțiuni înainte ca totul să fie corect. Testați-l pe o bucată de hârtie obișnuită înainte de a imprima pe etichetele reale.",
             "marginRight": "Marja dreaptă",
             "rows": "Rânduri",
             "marginBottom": "Marja de jos",
             "marginTop": "Marja superioară",
             "print": "Imprimare",
-            "printerMarginRight": "",
+            "printerMarginRight": "Safe-Zone dreapta",
             "columns": "Coloane",
-            "helpPrinterMargin": "",
+            "helpPrinterMargin": "Safe-Zone ar trebui să fie setată la cât de aproape de marginea hârtiei poate imprima imprimanta dvs., modificarea acestora nu va afecta întreaga grilă.",
             "layoutSettings": "Setări Layout",
             "dimensions": "Dimensiuni",
             "skipItems": "Treci peste articole",
             "paperSize": "Dimensiunea hârtiei",
-            "printerMarginTop": "",
+            "printerMarginTop": "Safe-Zone sus",
             "horizontalSpacing": "Spațiere orizontală",
             "customSize": "Personalizat",
             "marginLeft": "Margine stângă",
-            "printerMarginLeft": "",
+            "printerMarginLeft": "Safe-Zone stanga",
             "showBorder": "Arată marginea",
-            "printerMarginBottom": "",
+            "printerMarginBottom": "Safe-Zone jos",
             "title": "Imprimare"
         },
         "spoolSelect": {
-            "showArchived": "",
+            "showArchived": "Arata arhivate",
             "title": "Selectați bobine",
-            "description": "",
-            "selectedTotal_one": "",
-            "selectedTotal_few": "",
-            "selectedTotal_other": "",
-            "selectAll": "",
-            "noSpoolsSelected": ""
+            "description": "Selectati bobinele pentru care trebuie printate etichete.",
+            "selectedTotal_one": "{{count}} bobina selectata",
+            "selectedTotal_few": "{{count}} bobine selectate",
+            "selectedTotal_other": "{{count}} bobine selectate",
+            "selectAll": "Selecteaza/deselecteaza tot",
+            "noSpoolsSelected": "Nu ati selectat nicio bobina."
         },
         "qrcode": {
-            "bedTemp": "",
-            "title": "",
-            "button": "",
+            "bedTemp": "BT: {{temp}}",
+            "title": "Printati codurile QR",
+            "button": "Imprimati codurile QR",
             "showTemperatures": "Temperaturi",
-            "spoolWeight": "",
+            "spoolWeight": "Greutatea rolei de filament: {{weight}}",
             "showFilamentComment": "Filament Comentariu",
-            "showLotNr": "",
+            "showLotNr": "Lot Nr",
             "showContent": "Imprimă eticheta",
             "showSpoolWeight": "Greutate bobină",
-            "textSize": "",
+            "textSize": "Marimea textului",
             "showVendorComment": "Comentariul furnizorului",
-            "showSpoolmanIcon": "",
+            "showSpoolmanIcon": "Arata iconul Spoolman",
             "showSpoolComment": "Bobină Comentariu",
-            "extruderTemp": "",
+            "extruderTemp": "ET: {{temp}}",
             "showVendor": "Furnizor",
-            "lotNr": ""
+            "lotNr": "Lot Nr: {{lot}}"
         }
     },
     "documentTitle": {
@@ -158,54 +160,54 @@
         "fields": {
             "weight_to_use": "Greutate",
             "registered": "Înregistrat",
-            "used_weight": "",
-            "first_used": "",
+            "used_weight": "Greutate folosita",
+            "first_used": "Prima utilizare",
             "location": "Locație",
             "material": "Material",
-            "last_used": "",
+            "last_used": "Ultima utilizare",
             "archived": "Arhivat",
             "price": "Preț",
-            "used_length": "",
-            "measured_weight": "",
-            "lot_nr": "",
+            "used_length": "Lungime folosita",
+            "measured_weight": "Greutate masurata",
+            "lot_nr": "Lot Nr",
             "comment": "Comentariu",
             "id": "ID",
             "filament": "Filament",
             "filament_name": "Filament",
-            "remaining_length": "",
-            "remaining_weight": ""
+            "remaining_length": "Lungime ramasa",
+            "remaining_weight": "Greutate ramasa"
         },
         "fields_help": {
-            "location": "",
-            "weight_to_use": "",
-            "used_weight": "",
-            "price": "",
-            "lot_nr": "",
-            "remaining_weight": "",
-            "measured_weight": ""
+            "location": "Locatia in care bobina este stocata.",
+            "weight_to_use": "Selectati greutatea care trebuie folosita. Greutatea masurata e disponibila numai daca greutatea bobinei goale este setata pentru filamentul respectiv.",
+            "used_weight": "Cat filament a fost folosit de pe bobina respectiva. O bobina noua ar trebui sa aiba 0 grame folosite.",
+            "price": "Pretul unei bobine. Daca nu e definit, pretul filamentului va fi folosit.",
+            "lot_nr": "Numarul de productie al lotului. Poate fi folosit pentru a garanta consistenta culorii, in caz ca mai multe bobine sunt folosite la acelasi print.",
+            "remaining_weight": "Cat filament a ramas pe bobina. Aceasta valoare reprezinta greutatea filamentului de pe bobina respectiva.",
+            "measured_weight": "Greutatea totala a bobinei si filamentului."
         },
         "titles": {
             "list": "Bobine",
-            "archive": "",
-            "show_title": "",
+            "archive": "Archiveaza bobina",
+            "show_title": "[Bobina #{{id}}] {{name}}",
             "create": "Creați bobină",
-            "show": "",
-            "edit": "",
-            "clone": ""
+            "show": "Arata bobina",
+            "edit": "Editeaza bobina",
+            "clone": "Cloneaza bobina"
         },
         "messages": {
-            "archive": ""
+            "archive": "Esti sigur ca vrei sa arhivezi aceasta bobina?"
         },
         "form": {
-            "spool_updated": "",
-            "new_location_prompt": ""
+            "spool_updated": "Aceasta bobina a fost modificata de altcineva in timpul scurs de la deschiderea acestei pagini, Salvarea va suprascrie aceste schimbari!",
+            "new_location_prompt": "Introduceti o locatie noua"
         },
         "spool": "Bobine"
     },
     "filament": {
         "fields": {
             "registered": "Înregistrat",
-            "article_number": "",
+            "article_number": "Numarul articolului",
             "id": "ID",
             "vendor": "Furnizor",
             "settings_bed_temp": "Temperatura patului",
@@ -213,22 +215,22 @@
             "price": "Preț",
             "name": "Nume",
             "color_hex": "Culoare",
-            "settings_extruder_temp": "",
+            "settings_extruder_temp": "Temperatura extruderului",
             "vendor_name": "Furnizor",
             "diameter": "Diametru",
             "density": "Densitate",
             "weight": "Greutate",
-            "spools": "",
+            "spools": "Arata bobinele",
             "comment": "Comentariu",
-            "spool_weight": ""
+            "spool_weight": "Greutatea bobinei"
         },
         "fields_help": {
-            "price": "",
-            "material": "",
-            "name": "",
-            "spool_weight": "",
+            "price": "Pretului unei bobine noi.",
+            "material": "Ex. PLA, ABS, PETG, etc.",
+            "name": "Numele filamentului, pentru a-l putea distinge de altele ale aceluiasi producator. Recomandabil sa contina culoarea de exemplu.",
+            "spool_weight": "Greutatea unei bobine goale (fara filament). Este folosita pentru a calcula greutatea unei bobine cu filament.",
             "article_number": "",
-            "weight": ""
+            "weight": "Greutatea neta a filamentului de pe o bobina. Nu trebuie sa includa greutatea bobinei, ci doar cea a filamentului. De obicei greutatea filementului este cea inscrisa pe ambalaj."
         },
         "titles": {
             "edit": "Modifica del filamento",
@@ -271,15 +273,15 @@
     },
     "scanner": {
         "error": {
-            "notFound": "",
-            "unknown": "",
-            "notAllowed": "",
-            "streamApiNotSupported": "",
-            "insecureContext": "",
-            "notReadable": ""
+            "notFound": "Nicio camera nu a fost gasita.",
+            "unknown": "Eroare necunoscuta. ({{error}})",
+            "notAllowed": "Accesul la camera nu a fost permis.",
+            "streamApiNotSupported": "Browserul nu suporta MediaStream API.",
+            "insecureContext": "Aceasta pagina nu este servita peste HTTPS.",
+            "notReadable": "Accesul la camera nu este posibil."
         },
-        "title": "",
-        "description": ""
+        "title": "Scanner QR code",
+        "description": "Scanati QR code-ul Spoolman pentru detalii."
     },
     "table": {
         "actions": "Acțiuni"

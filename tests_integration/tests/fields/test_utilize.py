@@ -4,7 +4,7 @@ import json
 
 import httpx
 
-from ..conftest import URL, assert_httpx_success
+from ..conftest import URL, assert_httpx_code, assert_httpx_success
 
 
 def test_add_vendor_with_extra_field():
@@ -56,8 +56,7 @@ def test_add_vendor_with_invalid_extra_field():
             },
         },
     )
-    assert result.status_code == 400
-    assert "somefield" in result.json()["message"].lower()
+    assert_httpx_code(result, 422)
 
 
 def test_add_vendor_with_extra_field_then_delete():

@@ -1,25 +1,31 @@
-import React, { useState } from "react";
-import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
-import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, InputNumber, Radio, Divider, Button, Typography } from "antd";
-import dayjs from "dayjs";
-import TextArea from "antd/es/input/TextArea";
-import { IFilament } from "../filaments/model";
-import { ISpool, ISpoolParsedExtras } from "./model";
-import { numberFormatter, numberParser } from "../../utils/parsing";
-import { useSpoolmanLocations } from "../../components/otherModels";
 import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
-import "../../utils/overrides.css";
-import { EntityType, useGetFields } from "../../utils/queryFields";
-import { ExtraFieldFormItem, StringifiedExtras } from "../../components/extraFields";
+import { Create, useForm } from "@refinedev/antd";
+import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
+import { Alert, Button, DatePicker, Divider, Form, Input, InputNumber, Radio, Select, Typography } from "antd";
+import TextArea from "antd/es/input/TextArea";
+import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { useEffect, useMemo, useState } from "react";
+import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
+import { useSpoolmanLocations } from "../../components/otherModels";
+import { searchMatches } from "../../utils/filtering";
+import "../../utils/overrides.css";
+import { numberFormatter, numberParser } from "../../utils/parsing";
+import { EntityType, useGetFields } from "../../utils/queryFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
+import { createFilamentFromExternal } from "../filaments/functions";
+import { useGetFilamentSelectOptions } from "./functions";
+import { ISpool, ISpoolParsedExtras, WeightToEnter } from "./model";
 
 dayjs.extend(utc);
 
 interface CreateOrCloneProps {
   mode: "create" | "clone";
 }
+
+type ISpoolRequest = Omit<ISpoolParsedExtras, "id" | "registered"> & {
+  filament_id: number | string;
+};
 
 export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
   const t = useTranslate();
@@ -29,7 +35,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   const { form, formProps, formLoading, onFinish, redirect } = useForm<
     ISpool,
     HttpError,
-    ISpoolParsedExtras,
+    ISpoolRequest,
     ISpoolParsedExtras
   >({
     redirect: false,
@@ -39,6 +45,9 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     formProps.initialValues = {};
   }
 
+  const initialWeightValue = Form.useWatch("initial_weight", form);
+  const spoolWeightValue = Form.useWatch("spool_weight", form);
+
   if (props.mode === "clone") {
     // Clear out the values that we don't want to clone
     formProps.initialValues.first_used = null;
@@ -46,7 +55,12 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     formProps.initialValues.used_weight = 0;
 
     // Fix the filament_id
-    formProps.initialValues.filament_id = formProps.initialValues.filament.id;
+    if (formProps.initialValues.filament) {
+      formProps.initialValues.filament_id = formProps.initialValues.filament.id;
+    }
+
+    // Parse the extra fields from string values into real types
+    formProps.initialValues = ParsedExtras(formProps.initialValues);
   }
 
   // If the query variable filament_id is set, set the filament_id field to that value
@@ -56,8 +70,53 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     formProps.initialValues.filament_id = parseInt(filament_id);
   }
 
+  //
+  // Set up the filament selection options
+  //
+  const {
+    options: filamentOptions,
+    internalSelectOptions,
+    externalSelectOptions,
+    allExternalFilaments,
+  } = useGetFilamentSelectOptions();
+
+  const selectedFilamentID = Form.useWatch("filament_id", form);
+  const selectedFilament = useMemo(() => {
+    // id is a number of it's an internal filament, and a string of it's an external filament.
+    if (typeof selectedFilamentID === "number") {
+      return (
+        internalSelectOptions?.find((obj) => {
+          return obj.value === selectedFilamentID;
+        }) ?? null
+      );
+    } else if (typeof selectedFilamentID === "string") {
+      return (
+        externalSelectOptions?.find((obj) => {
+          return obj.value === selectedFilamentID;
+        }) ?? null
+      );
+    } else {
+      return null;
+    }
+  }, [selectedFilamentID, internalSelectOptions, externalSelectOptions]);
+
+  //
+  // Submit handler
+  //
+
   const handleSubmit = async (redirectTo: "list" | "edit" | "create") => {
     const values = StringifiedExtras(await form.validateFields());
+    if (selectedFilament?.is_internal === false) {
+      // Filament ID being a string indicates its an external filament.
+      // If so, we should first create the internal filament version, then create the spool(s)
+      const externalFilament = allExternalFilaments?.find((f) => f.id === values.filament_id);
+      if (!externalFilament) {
+        throw new Error("Unknown external filament");
+      }
+      const internalFilament = await createFilamentFromExternal(externalFilament);
+      values.filament_id = internalFilament.id;
+    }
+
     if (quantity > 1) {
       const submit = Array(quantity).fill(values);
       // queue multiple creates this way for now Refine doesn't seem to map Arrays to createMany or multiple creates like it says it does
@@ -65,16 +124,13 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     } else {
       await onFinish(values);
     }
-    redirect(redirectTo, (values as ISpool).id);
-  };
 
-  const { queryResult } = useSelect<IFilament>({
-    resource: "filament",
-  });
+    redirect(redirectTo);
+  };
 
   // Use useEffect to update the form's initialValues when the extra fields are loaded
   // This is necessary because the form is rendered before the extra fields are loaded
-  React.useEffect(() => {
+  useEffect(() => {
     extraFields.data?.forEach((field) => {
       if (formProps.initialValues && field.default_value) {
         const parsedValue = JSON.parse(field.default_value as string);
@@ -83,58 +139,23 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
     });
   }, [form, extraFields.data, formProps.initialValues]);
 
-  const filamentOptions = queryResult.data?.data.map((item) => {
-    let vendorPrefix = "";
-    if (item.vendor) {
-      vendorPrefix = `${item.vendor.name} - `;
-    }
-    let name = item.name;
-    if (!name) {
-      name = `ID: ${item.id}`;
-    }
-    let material = "";
-    if (item.material) {
-      material = ` - ${item.material}`;
-    }
-    const label = `${vendorPrefix}${name}${material}`;
-
-    return {
-      label: label,
-      value: item.id,
-      weight: item.weight,
-      spool_weight: item.spool_weight,
-    };
-  });
-  filamentOptions?.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+  //
+  // Weight calculations
+  //
 
   const [weightToEnter, setWeightToEnter] = useState(1);
   const [usedWeight, setUsedWeight] = useState(0);
 
-  const selectedFilamentID = Form.useWatch("filament_id", form);
-  const selectedFilament = filamentOptions?.find((obj) => {
-    return obj.value === selectedFilamentID;
-  });
-  const filamentWeight = selectedFilament?.weight || 0;
-  const spoolWeight = selectedFilament?.spool_weight || 0;
-
-  const filamentChange = (newID: number) => {
-    const newSelectedFilament = filamentOptions?.find((obj) => {
-      return obj.value === newID;
-    });
-    const newFilamentWeight = newSelectedFilament?.weight || 0;
-    const newSpoolWeight = newSelectedFilament?.spool_weight || 0;
-
-    if (weightToEnter >= 3) {
-      if (!(newFilamentWeight && newSpoolWeight)) {
-        setWeightToEnter(2);
-      }
+  useEffect(() => {
+    const newFilamentWeight = selectedFilament?.weight || 0;
+    const newSpoolWeight = selectedFilament?.spool_weight || 0;
+    if (newFilamentWeight > 0) {
+      form.setFieldValue("initial_weight", newFilamentWeight);
     }
-    if (weightToEnter >= 2) {
-      if (!newFilamentWeight) {
-        setWeightToEnter(1);
-      }
+    if (newSpoolWeight > 0) {
+      form.setFieldValue("spool_weight", newSpoolWeight);
     }
-  };
+  }, [selectedFilament]);
 
   const weightChange = (weight: number) => {
     setUsedWeight(weight);
@@ -159,6 +180,67 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
   const decrementQty = () => {
     setQuantity(quantity - 1);
   };
+
+  const getSpoolWeight = (): number => {
+    return spoolWeightValue ?? selectedFilament?.spool_weight ?? 0;
+  };
+
+  const getFilamentWeight = (): number => {
+    return initialWeightValue ?? selectedFilament?.weight ?? 0;
+  };
+
+  const getGrossWeight = (): number => {
+    const net_weight = getFilamentWeight();
+    const spool_weight = getSpoolWeight();
+    return net_weight + spool_weight;
+  };
+
+  const getMeasuredWeight = (): number => {
+    const grossWeight = getGrossWeight();
+
+    return grossWeight - usedWeight;
+  };
+
+  const getRemainingWeight = (): number => {
+    const initial_weight = getFilamentWeight();
+
+    return initial_weight - usedWeight;
+  };
+
+  const isMeasuredWeightEnabled = (): boolean => {
+    if (!isRemainingWeightEnabled()) {
+      return false;
+    }
+
+    const spool_weight = spoolWeightValue;
+
+    return spool_weight || selectedFilament?.spool_weight ? true : false;
+  };
+
+  const isRemainingWeightEnabled = (): boolean => {
+    const initial_weight = initialWeightValue;
+
+    if (initial_weight) {
+      return true;
+    }
+
+    return selectedFilament?.weight ? true : false;
+  };
+
+  useEffect(() => {
+    if (weightToEnter >= WeightToEnter.measured_weight) {
+      if (!isMeasuredWeightEnabled()) {
+        setWeightToEnter(WeightToEnter.remaining_weight);
+        return;
+      }
+    }
+    if (weightToEnter >= WeightToEnter.remaining_weight) {
+      if (!isRemainingWeightEnabled()) {
+        setWeightToEnter(WeightToEnter.used_weight);
+        return;
+      }
+    }
+  }, [selectedFilament]);
 
   return (
     <Create
@@ -227,17 +309,15 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
           <Select
             options={filamentOptions}
             showSearch
-            filterOption={(input, option) =>
-              typeof option?.label === "string" && option?.label.toLowerCase().includes(input.toLowerCase())
-            }
-            onChange={(value) => {
-              filamentChange(value);
-            }}
+            filterOption={(input, option) => typeof option?.label === "string" && searchMatches(input, option?.label)}
           />
         </Form.Item>
+        {selectedFilament?.is_internal === false && (
+          <Alert message={t("spool.fields_help.external_filament")} type="info" />
+        )}
         <Form.Item
-          label={t("filament.fields.price")}
-          help={t("filament.fields_help.price")}
+          label={t("spool.fields.price")}
+          help={t("spool.fields_help.price")}
           name={["price"]}
           rules={[
             {
@@ -254,6 +334,36 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             parser={numberParser}
           />
         </Form.Item>
+        <Form.Item
+          label={t("spool.fields.initial_weight")}
+          help={t("spool.fields_help.initial_weight")}
+          name={["initial_weight"]}
+          rules={[
+            {
+              required: false,
+              type: "number",
+              min: 0,
+            },
+          ]}
+        >
+          <InputNumber addonAfter="g" precision={1} />
+        </Form.Item>
+
+        <Form.Item
+          label={t("spool.fields.spool_weight")}
+          help={t("spool.fields_help.spool_weight")}
+          name={["spool_weight"]}
+          rules={[
+            {
+              required: false,
+              type: "number",
+              min: 0,
+            },
+          ]}
+        >
+          <InputNumber addonAfter="g" precision={1} />
+        </Form.Item>
+
         <Form.Item hidden={true} name={["used_weight"]} initialValue={0}>
           <InputNumber value={usedWeight} />
         </Form.Item>
@@ -263,14 +373,14 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             onChange={(value) => {
               setWeightToEnter(value.target.value);
             }}
-            defaultValue={1}
+            defaultValue={WeightToEnter.used_weight}
             value={weightToEnter}
           >
-            <Radio.Button value={1}>{t("spool.fields.used_weight")}</Radio.Button>
-            <Radio.Button value={2} disabled={!filamentWeight}>
+            <Radio.Button value={WeightToEnter.used_weight}>{t("spool.fields.used_weight")}</Radio.Button>
+            <Radio.Button value={WeightToEnter.remaining_weight} disabled={!isRemainingWeightEnabled()}>
               {t("spool.fields.remaining_weight")}
             </Radio.Button>
-            <Radio.Button value={3} disabled={!(filamentWeight && spoolWeight)}>
+            <Radio.Button value={WeightToEnter.measured_weight} disabled={!isMeasuredWeightEnabled()}>
               {t("spool.fields.measured_weight")}
             </Radio.Button>
           </Radio.Group>
@@ -283,7 +393,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             precision={1}
             formatter={numberFormatter}
             parser={numberParser}
-            disabled={weightToEnter != 1}
+            disabled={weightToEnter != WeightToEnter.used_weight}
             value={usedWeight}
             onChange={(value) => {
               weightChange(value ?? 0);
@@ -301,10 +411,10 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             precision={1}
             formatter={numberFormatter}
             parser={numberParser}
-            disabled={weightToEnter != 2}
-            value={filamentWeight ? filamentWeight - usedWeight : 0}
+            disabled={weightToEnter != WeightToEnter.remaining_weight}
+            value={getRemainingWeight()}
             onChange={(value) => {
-              weightChange(filamentWeight - (value ?? 0));
+              weightChange(getFilamentWeight() - (value ?? 0));
             }}
           />
         </Form.Item>
@@ -319,10 +429,11 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             precision={1}
             formatter={numberFormatter}
             parser={numberParser}
-            disabled={weightToEnter != 3}
-            value={filamentWeight && spoolWeight ? filamentWeight - usedWeight + spoolWeight : 0}
+            disabled={weightToEnter != WeightToEnter.measured_weight}
+            value={getMeasuredWeight()}
             onChange={(value) => {
-              weightChange(filamentWeight - ((value ?? 0) - spoolWeight));
+              const totalWeight = getGrossWeight();
+              weightChange(totalWeight - (value ?? 0));
             }}
           />
         </Form.Item>

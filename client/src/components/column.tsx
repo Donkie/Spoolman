@@ -1,19 +1,18 @@
+import { DateField, TextField } from "@refinedev/antd";
+import { UseQueryResult } from "@tanstack/react-query";
 import { Button, Col, Dropdown, Row, Space, Spin } from "antd";
 import { ColumnFilterItem, ColumnType } from "antd/es/table/interface";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { AlignType } from "rc-table/lib/interface";
+import { Link } from "react-router-dom";
 import { getFiltersForField, typeFilters } from "../utils/filtering";
+import { enrichText } from "../utils/parsing";
+import { Field, FieldType } from "../utils/queryFields";
 import { TableState } from "../utils/saveload";
 import { getSortOrderForField, typeSorters } from "../utils/sorting";
 import { NumberFieldUnit, NumberFieldUnitRange } from "./numberField";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import { DateField, TextField } from "@refinedev/antd";
-import Icon from "@ant-design/icons";
-import SpoolIcon from "../icon_spool.svg?react";
-import { useTranslate } from "@refinedev/core";
-import { enrichText } from "../utils/parsing";
-import { UseQueryResult } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
-import { Field, FieldType } from "../utils/queryFields";
+import SpoolIcon from "./spoolIcon";
 
 dayjs.extend(utc);
 
@@ -45,6 +44,7 @@ interface BaseColumnProps<Obj extends Entity> {
   i18ncat?: string;
   i18nkey?: string;
   title?: string;
+  align?: AlignType;
   sorter?: boolean;
   t: (key: string) => string;
   navigate: (link: string) => void;
@@ -88,6 +88,7 @@ function Column<Obj extends Entity>(
 
   const columnProps: ColumnType<Obj> = {
     dataIndex: props.id,
+    align: props.align,
     title: props.title ?? t(props.i18nkey ?? `${props.i18ncat}.fields.${props.id}`),
     filterMultiple: props.allowMultipleFilters ?? true,
     width: props.width ?? undefined,
@@ -196,7 +197,7 @@ export function FilteredQueryColumn<Obj extends Entity>(props: FilteredQueryColu
       if (typeof item === "string") {
         return {
           text: item,
-          value: item,
+          value: '"' + item + '"',
         };
       }
       return item;
@@ -227,6 +228,7 @@ interface NumberColumnProps<Obj extends Entity> extends BaseColumnProps<Obj> {
 export function NumberColumn<Obj extends Entity>(props: NumberColumnProps<Obj>) {
   return Column({
     ...props,
+    align: "right",
     render: (rawValue) => {
       const value = props.transform ? props.transform(rawValue) : rawValue;
       if (value === null || value === undefined) {
@@ -256,18 +258,19 @@ export function DateColumn<Obj extends Entity>(props: BaseColumnProps<Obj>) {
           hidden={!value}
           value={dayjs.utc(value).local()}
           title={dayjs.utc(value).local().format()}
-          format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm"
         />
       );
     },
   });
 }
 
-export function ActionsColumn<Obj extends Entity>(actionsFn: (record: Obj) => Action[]): ColumnType<Obj> | undefined {
-  const t = useTranslate();
-
+export function ActionsColumn<Obj extends Entity>(
+  title: string,
+  actionsFn: (record: Obj) => Action[]
+): ColumnType<Obj> | undefined {
   return {
-    title: t("table.actions"),
+    title,
     responsive: ["lg"],
     render: (_, record) => {
       const buttons = actionsFn(record).map((action) => {
@@ -296,7 +299,7 @@ export function ActionsColumn<Obj extends Entity>(actionsFn: (record: Obj) => Ac
 }
 
 interface SpoolIconColumnProps<Obj extends Entity> extends FilteredQueryColumnProps<Obj> {
-  color: (record: Obj) => string | undefined;
+  color: (record: Obj) => string | { colors: string[]; vertical: boolean } | undefined;
 }
 
 export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<Obj>) {
@@ -308,7 +311,7 @@ export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<
       if (typeof item === "string") {
         return {
           text: item,
-          value: item,
+          value: '"' + item + '"',
         };
       }
       return item;
@@ -343,19 +346,12 @@ export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<
     },
     render: (rawValue, record: Obj) => {
       const value = props.transform ? props.transform(rawValue) : rawValue;
-      const colorStr = props.color(record);
+      const colorObj = props.color(record);
       return (
         <Row wrap={false} justify="space-around" align="middle">
-          {colorStr && (
+          {colorObj && (
             <Col flex="none">
-              <Icon
-                component={SpoolIcon}
-                style={{
-                  color: "#" + colorStr,
-                  fontSize: 42,
-                  marginRight: 0,
-                }}
-              />
+              <SpoolIcon color={colorObj} />
             </Col>
           )}
           <Col flex="auto">{value}</Col>

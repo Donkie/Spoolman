@@ -23,6 +23,7 @@ def generate_openapi(app: FastAPI) -> dict[str, Any]:
 
     Returns:
         dict[str, Any]: The OpenAPI document.
+
     """
     return get_openapi(
         title=app.title,

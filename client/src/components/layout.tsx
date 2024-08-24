@@ -1,10 +1,11 @@
 import { ThemedLayoutV2, ThemedSiderV2, ThemedTitleV2 } from "@refinedev/antd";
-import { Header } from "./header";
-import { Footer } from "antd/es/layout/layout";
-import { Version } from "./version";
-import { Button } from "antd";
-import Logo from "../icon.svg?react";
 import { useTranslate } from "@refinedev/core";
+import { Button } from "antd";
+import { Footer } from "antd/es/layout/layout";
+import Logo from "../icon.svg?react";
+import { getBasePath } from "../utils/url";
+import { Header } from "./header";
+import { Version } from "./version";
 
 const SpoolmanFooter: React.FC = () => {
   const t = useTranslate();
@@ -27,7 +28,7 @@ const SpoolmanFooter: React.FC = () => {
           <Button
             icon={
               <img
-                src="/kofi_s_logo_nolabel.png"
+                src={getBasePath() + "/kofi_s_logo_nolabel.png"}
                 style={{
                   height: "1.6em",
                 }}
