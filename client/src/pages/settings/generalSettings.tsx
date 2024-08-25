@@ -5,7 +5,7 @@ import { useGetSettings, useSetSetting } from "../../utils/querySettings";
 
 export function GeneralSettings() {
   const settings = useGetSettings();
-  const setQrCodeUrl = useSetSetting("qr_code_url");
+  const setBaseUrl = useSetSetting("base_url");
   const setCurrency = useSetSetting("currency");
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
@@ -16,7 +16,7 @@ export function GeneralSettings() {
     if (settings.data) {
       form.setFieldsValue({
         currency: JSON.parse(settings.data.currency.value),
-        qr_code_url: JSON.parse(settings.data.qr_code_url.value),
+        base_url: JSON.parse(settings.data.base_url.value),
       });
     }
   }, [settings.data, form]);
@@ -29,14 +29,14 @@ export function GeneralSettings() {
   }, [setCurrency.isSuccess, messageApi, t]);
 
   // Handle form submit
-  const onFinish = (values: { currency: string; qr_code_url: string }) => {
+  const onFinish = (values: { currency: string; base_url: string }) => {
     // Check if the currency has changed
     if (settings.data?.currency.value !== JSON.stringify(values.currency)) {
       setCurrency.mutate(values.currency);
     }
-    // Check if the QR code URL has changed
-    if (settings.data?.qr_code_url.value !== JSON.stringify(values.qr_code_url)) {
-      setQrCodeUrl.mutate(values.qr_code_url);
+    // Check if the base URL has changed
+    if (settings.data?.base_url.value !== JSON.stringify(values.base_url)) {
+      setBaseUrl.mutate(values.base_url);
     }
   };
 

@@ -25,7 +25,7 @@ interface SpoolQRCodePrintingDialog {
 
 const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ spoolIds }) => {
   const t = useTranslate();
-  const baseUrlSetting = useGetSetting("qr_code_url");
+  const baseUrlSetting = useGetSetting("base_url");
   const baseUrlRoot =
     baseUrlSetting.data?.value !== undefined && JSON.parse(baseUrlSetting.data?.value) !== ""
       ? JSON.parse(baseUrlSetting.data?.value)
