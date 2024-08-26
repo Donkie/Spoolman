@@ -1,7 +1,7 @@
 import { CopyOutlined, DeleteOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
 import { useGetSetting } from "../../utils/querySettings";
 import { useTranslate } from "@refinedev/core";
-import { Button, Flex, Form, Input, Modal, Popconfirm, Select, Table, Typography, message, Switch } from "antd";
+import { Button, Flex, Form, Input, Modal, Popconfirm, Select, Table, Typography, message } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -238,6 +238,9 @@ Lot Nr: {lot_nr}
           curPreset.labelSettings = newSettings;
           updateCurrentPreset(curPreset);
         }}
+        baseUrlRoot={baseUrlRoot}
+        useHTTPUrl={useHTTPUrl}
+        setUseHTTPUrl={setUseHTTPUrl}
         extraSettingsStart={
           <>
             <Form.Item label={t("printing.generic.settings")}>
@@ -322,9 +325,6 @@ Lot Nr: {lot_nr}
                   updateCurrentPreset(curPreset);
                 }}
               />
-            </Form.Item>
-            <Form.Item label={t("printing.qrcode.useHTTPUrl.label")} tooltip={t("printing.qrcode.useHTTPUrl.tooltip")}>
-              <Switch checked={useHTTPUrl} onChange={(checked) => setUseHTTPUrl(checked)} />
             </Form.Item>
             <Modal open={templateHelpOpen} footer={null} onCancel={() => setTemplateHelpOpen(false)}>
               <Table

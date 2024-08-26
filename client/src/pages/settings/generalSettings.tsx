@@ -71,19 +71,19 @@ export function GeneralSettings() {
         </Form.Item>
 
         <Form.Item
-          label={t("settings.general.qr_code_url.label")}
-          tooltip={t("settings.general.qr_code_url.tooltip")}
-          name="qr_code_url"
+          label={t("settings.general.base_url.label")}
+          tooltip={t("settings.general.base_url.tooltip")}
+          name="base_url"
           rules={[
             {
               required: false,
             },
             {
-              pattern: /^https?:\/\/.*/,
+              pattern: /^https?:\/\/.+(?<!\/)$/,
             },
           ]}
         >
-          <Input placeholder="https://example.com:8000/" />
+          <Input placeholder="https://example.com:8000" />
         </Form.Item>
 
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>

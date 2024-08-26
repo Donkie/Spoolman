@@ -116,8 +116,13 @@
             "showFilamentComment": "Filament Comment",
             "showVendorComment": "Vendor Comment",
             "useHTTPUrl": {
-                "label": "Use HTTP(S) link in QR code",
-                "tooltip": "Uses either the base URL specified in settings, or the current page URL if not set. If disabled will use proprietary link that will work only if scanned from Spoolman's scanning feature."
+                "label": "QR code link",
+                "tooltip": "Will use proprietary link that will work only if scanned from Spoolman's scanning feature (default). URL uses either the base URL specified in settings, or the current page URL if not set.",
+                "options": {
+                    "default": "Default",
+                    "url": "URL"
+                },
+                "preview": "Preview:"
             },
             "showQRCode": "Print QR Code",
             "showQRCodeMode": {
@@ -311,9 +316,9 @@
             "currency": {
                 "label": "Currency"
             },
-            "qr_code_url": {
-                "label": "URL for QR codes",
-                "tooltip": "The base URL to use when generating QR codes. If you can access your Spoolman via multiple URLs, set this to the 'canonical' URL of your Spoolman instance."
+            "base_url": {
+                "label": "Base URL",
+                "tooltip": "The base URL to use when generating features such as QR codes."
             }
         },
         "extra_fields": {
