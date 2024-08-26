@@ -109,12 +109,6 @@
             "templateHelp": "Use {} to insert values of the spool object as text. For example {id} will be replaced with the spool id, or {filament.material} will be replaced with the material of the spool. Enclose text with double asterix ** to make it bold. Click the button to view a list of all available tags.",
             "textSize": "Label Text Size",
             "showContent": "Print Label",
-            "showLotNr": "Lot Nr",
-            "showSpoolWeight": "Spool Weight",
-            "showTemperatures": "Temperatures",
-            "showSpoolComment": "Spool Comment",
-            "showFilamentComment": "Filament Comment",
-            "showVendorComment": "Vendor Comment",
             "useHTTPUrl": {
                 "label": "QR code link",
                 "tooltip": "Will use proprietary link that will work only if scanned from Spoolman's scanning feature (default). URL uses either the base URL specified in settings, or the current page URL if not set.",

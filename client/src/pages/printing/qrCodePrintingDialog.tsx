@@ -153,6 +153,7 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
               </Col>
             </Row>
           </Form.Item>
+
           {extraSettings}
         </>
       }
