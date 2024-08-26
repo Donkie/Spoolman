@@ -1,7 +1,9 @@
 import { useTranslate } from "@refinedev/core";
-import { Col, Form, InputNumber, QRCode, Radio, RadioChangeEvent, Row, Slider, Switch } from "antd";
+import { Col, Form, InputNumber, QRCode, Radio, RadioChangeEvent, Row, Slider, Switch, Typography } from "antd";
 import { QRCodePrintSettings } from "./printing";
 import PrintingDialog from "./printingDialog";
+
+const { Text } = Typography;
 
 interface QRCodeData {
   value: string;
@@ -16,6 +18,9 @@ interface QRCodePrintingDialogProps {
   extraSettings?: JSX.Element;
   extraSettingsStart?: JSX.Element;
   extraButtons?: JSX.Element;
+  baseUrlRoot: string;
+  useHTTPUrl: boolean;
+  setUseHTTPUrl: (value: boolean) => void;
 }
 
 const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
@@ -25,6 +30,9 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
   extraSettings,
   extraSettingsStart,
   extraButtons,
+  baseUrlRoot,
+  useHTTPUrl,
+  setUseHTTPUrl,
 }) => {
   const t = useTranslate();
 
@@ -87,6 +95,23 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
               buttonStyle="solid"
             />
           </Form.Item>
+          {showQRCodeMode !== "no" && (
+            <>
+              <Form.Item
+                label={t("printing.qrcode.useHTTPUrl.label")}
+                tooltip={t("printing.qrcode.useHTTPUrl.tooltip")}
+                style={{ marginBottom: 0 }}
+              >
+                <Radio.Group onChange={(e) => setUseHTTPUrl(e.target.value)} value={useHTTPUrl}>
+                  <Radio value={false}>{t("printing.qrcode.useHTTPUrl.options.default")}</Radio>
+                  <Radio value={true}>{t("printing.qrcode.useHTTPUrl.options.url")}</Radio>
+                </Radio.Group>
+              </Form.Item>
+              <Form.Item label={t("printing.qrcode.useHTTPUrl.preview")}>
+                <Text> {useHTTPUrl ? `${baseUrlRoot}/spool/show/{id}` : `web+spoolman:s-{id}`}</Text>
+              </Form.Item>
+            </>
+          )}
           <Form.Item label={t("printing.qrcode.showContent")}>
             <Switch
               checked={showContent}

@@ -118,6 +118,15 @@
             "showSpoolComment": "Poznámka k cívce",
             "showFilamentComment": "Poznámka k filamentu",
             "showVendorComment": "Poznámka k výrobci",
+            "useHTTPUrl": {
+                "label": "Odkaz na QR kód",
+                "tooltip": "Použije proprietární odkaz, který bude fungovat pouze v případě, že bude skenován pomocí funkce skenování Spoolman (výchozí). Adresa URL používá buď základní adresu URL zadanou v nastavení, nebo adresu URL aktuální stránky, pokud není nastavena.",
+                "options": {
+                    "default": "Výchozí",
+                    "url": "URL"
+                },
+                "preview": "Náhled:"
+            },
             "template": "Šablona štítku",
             "templateHelp": "Pomocí {} vložíte hodnoty objektu cívky jako text. Například {id} bude nahrazeno ID cívky nebo {filament.material} bude nahrazeno materiálem cívky. Text uzavřete dvojitou hvězdičkou **, aby byl tučný. Kliknutím na tlačítko zobrazíte seznam všech dostupných značek.",
             "showQRCode": "Tisk QR kódu",
@@ -374,6 +383,10 @@
             "tab": "Obecné",
             "currency": {
                 "label": "Měna"
+            },
+            "base_url": {
+                "label": "Základní URL",
+                "tooltip": "Základní adresa URL, která se má použít při generování funkcí, jako jsou QR kódy"
             }
         },
         "settings": "Nastavení"

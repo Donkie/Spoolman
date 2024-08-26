@@ -109,6 +109,15 @@
             "templateHelp": "Use {} to insert values of the spool object as text. For example {id} will be replaced with the spool id, or {filament.material} will be replaced with the material of the spool. Enclose text with double asterix ** to make it bold. Click the button to view a list of all available tags.",
             "textSize": "Label Text Size",
             "showContent": "Print Label",
+            "useHTTPUrl": {
+                "label": "QR code link",
+                "tooltip": "Will use proprietary link that will work only if scanned from Spoolman's scanning feature (default). URL uses either the base URL specified in settings, or the current page URL if not set.",
+                "options": {
+                    "default": "Default",
+                    "url": "URL"
+                },
+                "preview": "Preview:"
+            },
             "showQRCode": "Print QR Code",
             "showQRCodeMode": {
                 "no": "No",
@@ -300,6 +309,10 @@
             "tab": "General",
             "currency": {
                 "label": "Currency"
+            },
+            "base_url": {
+                "label": "Base URL",
+                "tooltip": "The base URL to use when generating features such as QR codes."
             }
         },
         "extra_fields": {

@@ -1,4 +1,5 @@
 import { CopyOutlined, DeleteOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
+import { useGetSetting } from "../../utils/querySettings";
 import { useTranslate } from "@refinedev/core";
 import { Button, Flex, Form, Input, Modal, Popconfirm, Select, Table, Typography, message } from "antd";
 import TextArea from "antd/es/input/TextArea";
@@ -24,7 +25,13 @@ interface SpoolQRCodePrintingDialog {
 
 const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ spoolIds }) => {
   const t = useTranslate();
+  const baseUrlSetting = useGetSetting("base_url");
+  const baseUrlRoot =
+    baseUrlSetting.data?.value !== undefined && JSON.parse(baseUrlSetting.data?.value) !== ""
+      ? JSON.parse(baseUrlSetting.data?.value)
+      : window.location.origin;
   const [messageApi, contextHolder] = message.useMessage();
+  const [useHTTPUrl, setUseHTTPUrl] = useSavedState("print-useHTTPUrl", false);
 
   const itemQueries = useGetSpoolsByIds(spoolIds);
   const items = itemQueries
@@ -231,6 +238,9 @@ Lot Nr: {lot_nr}
           curPreset.labelSettings = newSettings;
           updateCurrentPreset(curPreset);
         }}
+        baseUrlRoot={baseUrlRoot}
+        useHTTPUrl={useHTTPUrl}
+        setUseHTTPUrl={setUseHTTPUrl}
         extraSettingsStart={
           <>
             <Form.Item label={t("printing.generic.settings")}>
@@ -290,7 +300,7 @@ Lot Nr: {lot_nr}
           </>
         }
         items={items.map((spool) => ({
-          value: `web+spoolman:s-${spool.id}`,
+          value: useHTTPUrl ? `${baseUrlRoot}/spool/show/${spool.id}` : `web+spoolman:s-${spool.id}`,
           label: (
             <p
               style={{
