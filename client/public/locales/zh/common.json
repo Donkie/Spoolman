@@ -28,7 +28,8 @@
         "notAccessTitle": "您没有访问权限",
         "hideColumns": "隐藏列",
         "clearFilters": "清除筛选器",
-        "saveAndAdd": "保存并添加"
+        "saveAndAdd": "保存并添加",
+        "continue": "继续"
     },
     "warnWhenUnsavedChanges": "您确定要离开吗？您有未保存的更改。",
     "notifications": {
@@ -87,7 +88,14 @@
                 "none": "无",
                 "border": "外边框",
                 "grid": "格子"
-            }
+            },
+            "defaultSettings": "默认",
+            "settings": "预设",
+            "saveSetting": "保存预设",
+            "settingsName": "预设名称",
+            "addSettings": "添加新预设",
+            "deleteSettingsConfirm": "确定删除此预设吗？",
+            "saveAsImage": "保存为图片"
         },
         "qrcode": {
             "button": "打印二维码",
@@ -105,7 +113,13 @@
             "showTemperatures": "温度",
             "showSpoolComment": "料盘备注",
             "showFilamentComment": "耗材备注",
-            "showVendorComment": "制造商备注"
+            "showVendorComment": "制造商备注",
+            "template": "标签模版",
+            "showQRCode": "打印二维码",
+            "showQRCodeMode": {
+                "no": "否",
+                "withIcon": "含图标"
+            }
         },
         "spoolSelect": {
             "title": "选择料盘",
@@ -173,14 +187,22 @@
             "list": "料盘列表",
             "show": "查看料盘",
             "archive": "料盘存档",
-            "show_title": "[料盘 #{{id}}] {{name}}"
+            "show_title": "[料盘 #{{id}}] {{name}}",
+            "adjust": "调整线盘耗材"
         },
         "messages": {
             "archive": "您确定要存档此料盘吗？"
         },
         "form": {
             "new_location_prompt": "输入一个新位置",
-            "spool_updated": "自您打开此页面以来，此料盘已被其他人/事物更新。保存将覆盖这些更改！"
+            "spool_updated": "自您打开此页面以来，此料盘已被其他人/事物更新。保存将覆盖这些更改！",
+            "measurement_type": {
+                "length": "长度",
+                "weight": "重量"
+            },
+            "measurement_type_label": "测量类型",
+            "adjust_filament_help": "在这里你可以直接增加或减少线盘中的耗材。正数是减少耗材数量，负数是增加耗材数量。",
+            "adjust_filament_value": "消耗量"
         }
     },
     "filament": {
@@ -203,7 +225,11 @@
             "settings_bed_temp": "热床温度",
             "color_hex": "颜色",
             "spools": "显示料盘",
-            "external_id": "外部ID"
+            "external_id": "外部ID",
+            "multi_color": "多色",
+            "longitudinal": "纵向",
+            "coaxial": "共挤出",
+            "single_color": "单色"
         },
         "fields_help": {
             "name": "耗材名称，用于区分来自同一制造商的不同耗材类型。例如在耗材名称中包含颜色信息。",
@@ -211,7 +237,8 @@
             "price": "一整卷耗材的价格。",
             "weight": "一整卷耗材的重量（净重）。不应包括料盘本身的重量，仅计算耗材的重量。通常在包装上注明。",
             "spool_weight": "空料盘的重量。使用它来计算耗材的重量。",
-            "article_number": "例如EAN、UPC等。"
+            "article_number": "例如EAN、UPC等。",
+            "multi_color_direction": "耗材有2种方式实现多色：如通过共挤出，比如多色种类一致的双色耗材，如顺着耗材渐变的耗材"
         },
         "titles": {
             "create": "创建耗材",
