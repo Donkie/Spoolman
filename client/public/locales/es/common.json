@@ -20,7 +20,7 @@
         "show": "Mostrar",
         "undo": "Deshacer",
         "import": "Importar",
-        "clone": "Duplicar",
+        "clone": "Clonar",
         "archive": "Archivar",
         "unArchive": "Desarchivar",
         "hideArchived": "Ocultar Archivados",
@@ -52,7 +52,7 @@
     "yes": "Si",
     "no": "No",
     "tags": {
-        "clone": "Duplicar"
+        "clone": "Clonar"
     },
     "dashboard": {
         "title": "Dashboard"
@@ -256,6 +256,15 @@
                 "no": "No",
                 "simple": "Sencilla",
                 "withIcon": "Con un icono"
+            },
+            "useHTTPUrl": {
+                "label": "Enlace al código QR",
+                "options": {
+                    "default": "Por defecto",
+                    "url": "URL"
+                },
+                "preview": "Vista previa:",
+                "tooltip": "Se utilizará un enlace propietario que funcionará solo si se escanea desde la función de escaneo de Spoolman (predeterminado). La URL utiliza la URL base especificada en la configuración o la URL de la página actual si no está configurada."
             }
         },
         "generic": {
@@ -343,6 +352,10 @@
             "tab": "General",
             "currency": {
                 "label": "Moneda"
+            },
+            "base_url": {
+                "label": "URL base",
+                "tooltip": "La URL base que se utilizará al generar funciones como códigos QR."
             }
         },
         "extra_fields": {

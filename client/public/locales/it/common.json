@@ -9,16 +9,22 @@
             "showTemperatures": "Temperature",
             "showVendor": "Produttore",
             "showSpoolComment": "Note aggiuntive Bobina",
-            "textSize": "Dimensioni testo del contenuto",
-            "title": "Stampando QR-Codes",
+            "textSize": "Dimensioni testo dell'etichetta",
+            "title": "Stampando etichetta",
             "showSpoolmanIcon": "Mostra Icona Spoolman",
             "showLotNr": "Lotto Nr",
             "bedTemp": "BT: {{temp}}",
             "lotNr": "Lotto Nr: {{lot}}",
             "showFilamentComment": "Note Aggiuntive Filamento",
-            "button": "Stampa QR-Codes",
-            "template": "Modello",
-            "templateHelp": "Utilizza {} per inserire i valori della bobina nel testo. Ad esempio, {id} verrà sostituito con l'id della bobina, oppure {filament.material} verrà sostituito con il materiale della bobina. Racchiudi il testo con un doppio asterisco ** per renderlo in grassetto. Fai clic sul pulsante per visualizzare un elenco di tutte le etichette disponibili."
+            "button": "Stampa etichette",
+            "template": "Modello di etichetta",
+            "templateHelp": "Utilizza {} per inserire i valori della bobina nel testo. Ad esempio, {id} verrà sostituito con l'id della bobina, oppure {filament.material} verrà sostituito con il materiale della bobina. Racchiudi il testo con un doppio asterisco ** per renderlo in grassetto. Fai clic sul pulsante per visualizzare un elenco di tutte le etichette disponibili.",
+            "showQRCodeMode": {
+                "no": "No",
+                "simple": "Semplice",
+                "withIcon": "Con icona"
+            },
+            "showQRCode": "Stampa QR Code"
         },
         "generic": {
             "printerMarginBottom": "Safe-Zone Inferiore",
@@ -58,13 +64,16 @@
             "deleteSettings": "Elimina impostazione corrente",
             "deleteSettingsConfirm": "Sei sicuro di voler eliminare questa impostazione?",
             "settingsName": "Nome impostazione",
-            "itemCopies": "Copie dell'elemento"
+            "itemCopies": "Copie dell'elemento",
+            "saveAsImage": "Salva come immagine",
+            "duplicateSettings": "Duplica",
+            "saveSetting": "Salva impostazione"
         },
         "spoolSelect": {
             "selectedTotal_one": "{{count}} bobina selezionata",
             "selectedTotal_many": "{{count}} bobine selezionate",
             "selectedTotal_other": "{{count}} bobine selezionate",
-            "description": "Seleziona le bobine per le quali stampare i QR-Codes.",
+            "description": "Seleziona le bobine per le quali stampare le etichette.",
             "showArchived": "Mostra Archiviati",
             "title": "Seleziona Bobina",
             "selectAll": "Seleziona/Deseleziona Tutti",
@@ -134,7 +143,8 @@
             "create": "Crea Bobina",
             "clone": "Clona Bobina",
             "show_title": "[Bobina #{{id}}] {{name}}",
-            "list": "Bobine"
+            "list": "Bobine",
+            "adjust": "Regola il filamento della bobina"
         },
         "fields_help": {
             "used_weight": "Quanto filamento è stato utilizzato dalla bobina. Una nuova bobina dovrebbe avere 0 gr utilizzati.",
@@ -150,7 +160,14 @@
         },
         "form": {
             "new_location_prompt": "Inserisci nuova posizione",
-            "spool_updated": "Ci sono stati degli aggiornamenti per questa bobina da quando è stata aperta questa pagina. Il salvataggio sovrascriverà le modifiche!"
+            "spool_updated": "Ci sono stati degli aggiornamenti per questa bobina da quando è stata aperta questa pagina. Il salvataggio sovrascriverà le modifiche!",
+            "measurement_type": {
+                "length": "Lunghezza",
+                "weight": "Peso"
+            },
+            "adjust_filament_value": "Quantità di consumo",
+            "measurement_type_label": "Tipo di misurazione",
+            "adjust_filament_help": "Qui puoi aggiungere o sottrarre direttamente filamento dalla bobina. Un valore positivo consumerà filamento, un valore negativo lo aggiungerà."
         },
         "spool": "Bobine",
         "messages": {
@@ -179,7 +196,8 @@
         "unArchive": "Ripristina",
         "clone": "Clona",
         "clear": "Pulisci",
-        "saveAndAdd": "Salva e aggiungi"
+        "saveAndAdd": "Salva e aggiungi",
+        "continue": "Continua"
     },
     "filament": {
         "fields_help": {

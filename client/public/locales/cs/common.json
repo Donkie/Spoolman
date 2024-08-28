@@ -386,7 +386,7 @@
             },
             "base_url": {
                 "label": "Základní URL",
-                "tooltip": "Základní adresa URL, která se má použít při generování funkcí, jako jsou QR kódy"
+                "tooltip": "Základní adresa URL, která se má použít při generování funkcí, jako jsou QR kódy."
             }
         },
         "settings": "Nastavení"
