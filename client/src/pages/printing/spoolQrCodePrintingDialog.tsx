@@ -150,10 +150,10 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ spoolI
     `**{filament.vendor.name} - {filament.name}
 #{id} - {filament.material}**
 Spool Weight: {filament.spool_weight} g
-ET: {filament.settings_extruder_temp} °C
-BT: {filament.settings_bed_temp} °C
-Lot Nr: {lot_nr}
-{comment}
+{ET: {filament.settings_extruder_temp} °C}
+{BT: {filament.settings_bed_temp} °C}
+{Lot Nr: {lot_nr}}
+{{comment}}
 {filament.comment}
 {filament.vendor.comment}`;
 
