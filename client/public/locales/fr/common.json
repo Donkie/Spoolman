@@ -24,6 +24,14 @@
                 "no": "Non",
                 "simple": "Simple",
                 "withIcon": "Avec icône"
+            },
+            "useHTTPUrl": {
+                "tooltip": "Utilise un lien privé qui ne marchera que si il est scanné depuis Spoolman (défaut). URL utilises soit l'URL spécifiée dans les options soit l'URL de la page actuelle si ce n'est pas défini.",
+                "options": {
+                    "default": "Défaut",
+                    "url": "URL"
+                },
+                "preview": "Prévisualisation :"
             }
         },
         "generic": {
@@ -184,7 +192,7 @@
         "showArchived": "Voir les archives",
         "archive": "Archiver",
         "hideColumns": "Masquer les colonnes",
-        "confirm": "êtes-vous sur ?",
+        "confirm": "Êtes-vous sur ?",
         "delete": "Supprimer",
         "undo": "Annuler",
         "import": "Importer",
