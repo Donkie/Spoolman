@@ -99,7 +99,16 @@
                 "simple": "Simpel",
                 "withIcon": "Met Icoon"
             },
-            "showQRCode": "Print QR-Code"
+            "showQRCode": "Print QR-Code",
+            "useHTTPUrl": {
+                "options": {
+                    "url": "URL",
+                    "default": "Standaard"
+                },
+                "label": "QR-codelink",
+                "tooltip": "Er wordt een speciale link gebruikt die alleen werkt als deze wordt gescand via de scanfunctie van Spoolman (standaard). De URL gebruikt de basis-URL die is opgegeven in de instellingen of de URL van de huidige pagina als deze niet is ingesteld.",
+                "preview": "Voorbeeld:"
+            }
         },
         "spoolSelect": {
             "selectedTotal_one": "{{count}} spoel geselecteerd",
@@ -342,6 +351,10 @@
             "tab": "Algemeen",
             "currency": {
                 "label": "Valuta"
+            },
+            "base_url": {
+                "label": "Basis-URL",
+                "tooltip": "De basis-URL die moet worden gebruikt bij het genereren van functies zoals QR-codes."
             }
         },
         "extra_fields": {
