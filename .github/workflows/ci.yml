@@ -90,13 +90,13 @@ jobs:
           chmod +x scripts/*.sh
       
       - name: Upload client Spoolman artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: client
           path: client/dist
 
       - name: Upload full Spoolman artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: spoolman
           path: .
@@ -111,7 +111,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download client
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: client
           path: client/dist
@@ -147,7 +147,7 @@ jobs:
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-amd64
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: spoolman-image
           path: /tmp/spoolman.tar
@@ -191,7 +191,7 @@ jobs:
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-tester
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: spoolman-tester-image
           path: /tmp/spoolman-tester.tar
@@ -209,7 +209,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download built images
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           path: /tmp
 
@@ -238,7 +238,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download client
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: client
           path: client/dist
@@ -277,7 +277,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download client
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: client
           path: client/dist
@@ -315,7 +315,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download client
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: client
           path: client/dist
@@ -374,7 +374,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download built spoolman
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: spoolman
           path: /tmp/spoolman
