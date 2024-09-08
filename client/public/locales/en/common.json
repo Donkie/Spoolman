@@ -106,7 +106,7 @@
             "button": "Print Labels",
             "title": "Label Printing",
             "template": "Label Template",
-            "templateHelp": "Use {} to insert values of the spool object as text. For example {id} will be replaced with the spool id, or {filament.material} will be replaced with the material of the spool. Enclose text with double asterix ** to make it bold. Click the button to view a list of all available tags.",
+            "templateHelp": "Use {} to insert values of the spool object as text. For example, {id} will be replaced with the spool id, or {filament.material} will be replaced with the material of the spool. if a value is missing it will be replaced with \"?\". A second set of {} can be used to remove this. In addition, any text between the sets of {} will be removed if the value is missing. For example, {Lot Nr: {lot_nr}} will only show the label if the spool has a lot number. Enclose text with double asterix ** to make it bold. Click the button to view a list of all available tags.",
             "textSize": "Label Text Size",
             "showContent": "Print Label",
             "useHTTPUrl": {
