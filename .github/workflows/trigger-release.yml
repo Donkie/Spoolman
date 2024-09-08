@@ -23,12 +23,12 @@ jobs:
           token: ${{ secrets.PAT }}
       
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5.2.0
         with:
           python-version: "3.9"
       
       - name: Install node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.3
         with:
           node-version: '20'
   
