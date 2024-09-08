@@ -125,11 +125,20 @@
             },
             "template": "Beschriftung Vorlagen",
             "templateHelp": "Benutze {} um Texte der Spule dynamisch zu übernehmen. Zum Beispiel wird {id} durch die ID der Spule ersetzt, {filament.material} wird durch das Material der Spule ersetzt. Texte zwischen zwei Sternen ** werden fett dargestellt. Drücke auf den Knopf um alle verfügbaren Variablen zu sehen.",
-            "showQRCode": "Drucke QR Code"
+            "showQRCode": "Drucke QR Code",
+            "useHTTPUrl": {
+                "label": "QR Code Link",
+                "tooltip": "Verwendet einen proprietären Link, der nur funktioniert, wenn er mit der (standart) Scanfunktion von Spoolman gescannt wird. Die URL verwendet entweder die in den Einstellungen angegebene Basis-URL oder die aktuelle Seiten-URL, wenn diese nicht festgelegt ist.",
+                "options": {
+                    "default": "Standart",
+                    "url": "URL"
+                },
+                "preview": "Vorschau:"
+            }
         },
         "spoolSelect": {
             "title": "Spulenauswahl",
-            "description": "Spulen auswählen, für die ein QR-Code gedruckt werden soll.",
+            "description": "Spulen auswählen, für die ein Label gedruckt werden soll.",
             "showArchived": "Archivierte anzeigen",
             "noSpoolsSelected": "Du hast keine Spulen ausgewählt.",
             "selectAll": "Alle aus-/abwählen",
@@ -208,7 +217,8 @@
                 "length": "Länge",
                 "weight": "Gewicht"
             },
-            "adjust_filament_value": "Verbrauchte Menge"
+            "adjust_filament_value": "Verbrauchte Menge",
+            "measurement_type_label": "Messungstyp"
         }
     },
     "filament": {
@@ -233,7 +243,9 @@
             "spools": "Zeige Spulen",
             "external_id": "Externe ID",
             "single_color": "Einfarbig",
-            "multi_color": "Mehrfarbig"
+            "multi_color": "Mehrfarbig",
+            "coaxial": "Coextrudiert",
+            "longitudinal": "Längs"
         },
         "fields_help": {
             "name": "Name des Filaments um es von anderen Typen des gleichen Herstellers zu unterscheiden. Sollte z.B. die Farbe enthalten.",
@@ -241,7 +253,8 @@
             "price": "Preis einer vollen Spule in der im System konfigurierten Währung.",
             "weight": "Das Gewicht einer vollen Spule (Nettogewicht). Sollte nicht das Gewicht der Spule, sondern nur dass des Filaments auf der Spule enthalten. Entspricht normalerweise dem Gewicht, das auf der Spule aufgedruckt ist.",
             "spool_weight": "Das Gewicht der leeren Spule. Wird verwendet, um das gemessene Gewicht der Spule zu berechnen.",
-            "article_number": "z.B. EAN, UPC o.Ä."
+            "article_number": "z.B. EAN, UPC o.Ä.",
+            "multi_color_direction": "Filamente können auf zwei Arten mehrere Farben haben: entweder durch Koextrusion, wie bei zweifarbigen Filamenten mit konsistenten Mehrfarben, oder durch Farbveränderungen in Längsrichtung, wie bei Gradient-Filamenten, die die Farben entlang der Spule verschieben."
         },
         "titles": {
             "create": "Filament erstellen",
@@ -338,6 +351,10 @@
             "tab": "Allgemein",
             "currency": {
                 "label": "Währung"
+            },
+            "base_url": {
+                "label": "Basis URL",
+                "tooltip": "Die basis URL für die Generierung von Funktionen wie QR Codes."
             }
         },
         "extra_fields": {
