@@ -24,7 +24,16 @@
                 "simple": "Semplice",
                 "withIcon": "Con icona"
             },
-            "showQRCode": "Stampa QR Code"
+            "showQRCode": "Stampa QR Code",
+            "useHTTPUrl": {
+                "label": "Link codice QR",
+                "tooltip": "Verrà utilizzato un link che funzionerà solo se scansionato dalla funzione di scansione di Spoolman (impostazione predefinita). L'URL utilizza l'URL di base specificato nelle impostazioni o l'URL della pagina corrente, se non impostato.",
+                "options": {
+                    "default": "Preimpostato",
+                    "url": "URL"
+                },
+                "preview": "Anteprima:"
+            }
         },
         "generic": {
             "printerMarginBottom": "Safe-Zone Inferiore",
@@ -375,6 +384,10 @@
             "tab": "Generale",
             "currency": {
                 "label": "Valuta"
+            },
+            "base_url": {
+                "label": "URL di base",
+                "tooltip": "L'URL di base da utilizzare quando si generano funzioni come i codici QR."
             }
         }
     }
