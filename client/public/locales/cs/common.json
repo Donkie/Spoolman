@@ -128,7 +128,7 @@
                 "preview": "Náhled:"
             },
             "template": "Šablona štítku",
-            "templateHelp": "Pomocí {} vložíte hodnoty objektu cívky jako text. Například {id} bude nahrazeno ID cívky nebo {filament.material} bude nahrazeno materiálem cívky. Text uzavřete dvojitou hvězdičkou **, aby byl tučný. Kliknutím na tlačítko zobrazíte seznam všech dostupných značek.",
+            "templateHelp": "Pomocí {} vložíte hodnoty objektu cívky jako text. Například, {id} bude nahrazeno ID cívky nebo {filament.material} bude nahrazeno materiálem cívky. Pokud hodnota chybí, bude nahrazena znakem „?“. K odstranění této hodnoty lze použít druhou sadu {}. Kromě toho bude odstraněn jakýkoli text mezi sadami {}, pokud hodnota chybí. Například {Lot Nr: {lot_nr}} zobrazí popisek pouze v případě, že cívka má číslo šarže. Text uzavřete dvojitou hvězdičkou **, aby byl tučný. Kliknutím na tlačítko zobrazíte seznam všech dostupných značek.",
             "showQRCode": "Tisk QR kódu",
             "showQRCodeMode": {
                 "no": "Ne",
