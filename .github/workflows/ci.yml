@@ -98,6 +98,7 @@ jobs:
       - name: Upload full Spoolman artifact
         uses: actions/upload-artifact@v4.4.0
         with:
+          include-hidden-files: true
           name: spoolman
           path: .
   #
