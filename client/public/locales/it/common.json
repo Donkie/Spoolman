@@ -347,7 +347,7 @@
         "home": "Home"
     },
     "settings": {
-        "settings": "Impostazioni",
+        "settings": "Configurazione",
         "extra_fields": {
             "params": {
                 "order": "Ordine",
@@ -379,7 +379,7 @@
             "tab": "Campi extra",
             "description": "<p>Qui è possibile aggiungere campi personalizzati.</p><p>Una volta aggiunto un campo, non è possibile modificarne la chiave o il tipo, e per i campi di tipo scelta non è possibile rimuovere le scelte o modificare lo stato di scelta multipla. Se si rimuove un campo, tutti i dati associati saranno cancellati.</p><p>La chiave è il modo in cui gli altri programmi leggono/scrivono i dati, quindi se il campo personalizzato deve integrarsi con un programma di terze parti, assicurarsi di impostarla correttamente. Il valore predefinito viene applicato solo ai nuovi elementi.</p><p>I campi extra non possono essere ordinati o filtrati nelle viste tabella.</p>"
         },
-        "header": "Impostazioni",
+        "header": "Configurazione",
         "general": {
             "tab": "Generale",
             "currency": {

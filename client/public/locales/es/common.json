@@ -250,7 +250,7 @@
             "showFilamentComment": "Comentario de Filamento",
             "button": "Imprimir las etiquetas",
             "template": "Plantilla para la etiqueta",
-            "templateHelp": "Utiliza {} para insertar valores del objeto spool como texto. Por ejemplo {id} será reemplazado por el id del spool, o {filament.material} será reemplazado por el material del spool. Encierra el texto con un doble asterisco ** para ponerlo en negrita. Haz clic en el botón para ver una lista de todas las etiquetas disponibles.",
+            "templateHelp": "Utiliza {} para insertar valores del objeto spool como texto. Por ejemplo, {id} se sustituirá por el id del carrete, o {filament.material} se sustituirá por el material del carrete. si falta un valor, se sustituirá por \"?\". Se puede utilizar un segundo conjunto de {} para eliminarlo. Además, cualquier texto entre los {} se eliminará si falta el valor. Por ejemplo, {Lot Nr: {lot_nr}} solo mostrará la etiqueta si la bobina tiene un número de lote. Encierra el texto con doble asterisco ** para ponerlo en negrita. Haz clic en el botón para ver una lista de todas las etiquetas disponibles.",
             "showQRCode": "Imprimir un código qr",
             "showQRCodeMode": {
                 "no": "No",

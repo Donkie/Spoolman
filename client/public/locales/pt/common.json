@@ -102,10 +102,10 @@
             "saveAsImage": "Guardar como Imagem"
         },
         "spoolSelect": {
-            "selectedTotal_one": "{{count}} carretel selecionado",
-            "selectedTotal_many": "{{count}} carretéis selecionados",
-            "selectedTotal_other": "{{count}} carretéis selecionados",
-            "noSpoolsSelected": "Você não selecionou nenhum carretel.",
+            "selectedTotal_one": "{{count}} bobine selecionado",
+            "selectedTotal_many": "{{count}} bobines selecionados",
+            "selectedTotal_other": "{{count}} bobines selecionados",
+            "noSpoolsSelected": "Não selecionou nenhuma bobine.",
             "title": "Selecionar Carretéis",
             "description": "Selecione os carretéis para imprimir as etiquetas.",
             "showArchived": "Mostrar Arquivado",
@@ -135,6 +135,15 @@
                 "no": "Não",
                 "simple": "Simples",
                 "withIcon": "Com Ícone"
+            },
+            "useHTTPUrl": {
+                "label": "Endereço do Código QR",
+                "options": {
+                    "url": "Endereço",
+                    "default": "Por omissão"
+                },
+                "preview": "Pré-visualização:",
+                "tooltip": "Irá usar um endereço proprietário que funcionará apenas se for lido pela funcionalidade do Spoolman. O endereço usará o endereço base definido nas configurações ou, caso não esteja definido, o endereço da página actual."
             }
         }
     },
@@ -164,40 +173,40 @@
             "filament_external": "Externo"
         },
         "fields_help": {
-            "weight_to_use": "Selecione qual valor de peso inserir. O peso medido só estará disponível se o peso do carretel estiver definido para o filamento selecionado.",
+            "weight_to_use": "Selecione qual o valor de peso a inserir. O peso medido só estará disponível se o peso da bobine estiver definido para o filamento selecionado.",
             "lot_nr": "Número de lote do fabricante. Pode ser usado para garantir que uma impressão tenha cores consistentes se vários carretéis forem usados.",
-            "used_weight": "Quanto filamento foi usado do carretel. Um novo carretel deve ter 0gr usado.",
-            "remaining_weight": "Quanto filamento resta no carretel. Para um carretel novo, isso deve corresponder ao peso do carretel.",
-            "measured_weight": "Quanto pesa o filamento e o carretel.",
-            "location": "Onde o carretel está localizado se você tiver vários locais onde armazena seus carretéis.",
-            "price": "Preço de um carretel completo na moeda definida no sistema. Se não for definido, o preço do filamento será presumido.",
-            "initial_weight": "O peso inicial do filamento sem o peso do carretel (peso liquido). Se nada for indicado, será usado o peso da definição do filamento.",
-            "spool_weight": "O peso do carretel quando vazio. Deixe em branco para usar o valor do filamento ou do fabricante.",
-            "external_filament": "Escolheu um filamento de uma base de dados externa. O filamento (e possivelmente o fabricante) será criado automaticamente quando for criado o carretel. Isto poderá criar filamentos duplicados caso já tenha criado um filamento para este filamento específico."
+            "used_weight": "Quanto filamento foi usado da bobine. Uma nova bobine deve ter usado 0g.",
+            "remaining_weight": "Quanto filamento resta na bobine. Para uma bobine nova, deve corresponder ao peso da bobine.",
+            "measured_weight": "Quanto pesa o filamento e a bobine.",
+            "location": "Onde a bobine está localizado se tiver vários locais onde armazena as suas bobines.",
+            "price": "Preço de uma bobine completa na moeda definida no sistema. Se não for definido, o preço do filamento será presumido.",
+            "initial_weight": "O peso inicial do filamento sem o peso da bobine (peso liquido). Se nada for indicado, será usado o peso da definição do filamento.",
+            "spool_weight": "O peso da bobine vazia. Deixe em branco para usar o valor do filamento ou do fabricante.",
+            "external_filament": "Escolheu um filamento de uma base de dados externa. O filamento (e possivelmente o fabricante) será criado automaticamente quando for criada a bobine. Isto poderá criar filamentos duplicados caso já tenha criado um filamento para este filamento específico."
         },
         "titles": {
-            "create": "Criar Carretel",
-            "clone": "Clonar Carretel",
-            "edit": "Editar Carretel",
+            "create": "Criar Bobine",
+            "clone": "Clonar Bobine",
+            "edit": "Editar Bobine",
             "list": "Carretéis",
-            "show": "Mostrar Carretel",
-            "show_title": "[Carretel #{{id}}] {{name}}",
-            "archive": "Arquivar Carretel",
+            "show": "Mostrar Bobine",
+            "show_title": "[Bobine #{{id}}] {{name}}",
+            "archive": "Arquivar Bobine",
             "adjust": "Ajustar Filamento"
         },
         "form": {
             "new_location_prompt": "Insira um novo local",
-            "spool_updated": "Este carretel foi atualizado por alguém desde que abriu esta página. Guardar substituirá essas alterações!",
+            "spool_updated": "Esta bobine foi atualizada por alguém desde que abriu esta página. Guardar substituirá essas alterações!",
             "measurement_type": {
                 "length": "Comprimento",
                 "weight": "Peso"
             },
             "measurement_type_label": "Tipo de Medida",
-            "adjust_filament_help": "Aqui pode adicionar ou subtrair filamento do carretel. Um valor positivo consome filamento, um valor negativo adiciona filamento.",
+            "adjust_filament_help": "Aqui pode adicionar ou subtrair filamento da bobine. Um valor positivo consome filamento, um valor negativo adiciona filamento.",
             "adjust_filament_value": "Consumir Montante"
         },
         "messages": {
-            "archive": "Tem certeza de que deseja arquivar este carretel?"
+            "archive": "Tem certeza de que deseja arquivar esta bobine?"
         },
         "spool": "Carretéis"
     },
@@ -210,7 +219,7 @@
             "price": "Preço",
             "diameter": "Diâmetro",
             "weight": "Peso",
-            "spool_weight": "Peso do Carretel",
+            "spool_weight": "Peso da Bobine",
             "article_number": "Número do Artigo",
             "registered": "Registrado",
             "vendor": "Fabricante",
@@ -229,11 +238,11 @@
         },
         "fields_help": {
             "article_number": "Por exemplo EAN, UPC, etc.",
-            "price": "Preço de um carretel completo.",
+            "price": "Preço de uma bobine completa.",
             "name": "Nome do filamento, para distinguir este tipo de filamento entre outros do mesmo fabricante. Deve conter a cor, por exemplo.",
             "material": "Por exemplo PLA, ABS, PETG, etc.",
-            "weight": "O peso do filamento de um carretel cheio (peso líquido). Isso não deve incluir o peso do carretel em si, apenas o filamento. É o que normalmente está escrito na embalagem.",
-            "spool_weight": "O peso de um carretel vazio. Usado para determinar o peso medido de um carretel.",
+            "weight": "O peso do filamento de uma bobine cheia (peso líquido). Isso não deve incluir o peso da bobine em si, apenas o filamento. É o que normalmente está escrito na embalagem.",
+            "spool_weight": "O peso de uma bobine vazia. Usado para determinar o peso medido de uma bobine.",
             "multi_color_direction": "Os filamentos podem ter múltiplas cores de duas formas: por coextrusão, como os filamentos de duas cores com estas consistentes ao longo do filamento, or através de mudança de cor longitudinal, como os filamentos que contêm gradientes de cores que vão mudando ao longo da bobine."
         },
         "titles": {
@@ -250,7 +259,7 @@
             "import_external_description": "Escolha um filamento da lista para preencher automaticamente os detalhes do filamento no formulário de criação. Isto irá substituir quaisquer dados que já tenha introduzido no formulário.<br><br>Será criado o fabricante automaticamente caso seja necessário."
         },
         "buttons": {
-            "add_spool": "Adicionar Carretel"
+            "add_spool": "Adicionar Bobine"
         }
     },
     "vendor": {
@@ -260,7 +269,7 @@
             "name": "Nome",
             "registered": "Registrado",
             "comment": "Comentário",
-            "empty_spool_weight": "Peso do Carretel Vazio",
+            "empty_spool_weight": "Peso da Bobine Vazia",
             "external_id": "ID Externo"
         },
         "titles": {
@@ -275,7 +284,7 @@
             "vendor_updated": "Este fabricante foi atualizado por alguém desde que abriu esta página. Guardar substituirá essas alterações!"
         },
         "fields_help": {
-            "empty_spool_weight": "O peso do carretel vazio do fabricante."
+            "empty_spool_weight": "O peso da bobine vazia do fabricante."
         }
     },
     "home": {
@@ -288,7 +297,7 @@
             "spool": "Carretéis físicos individuais de um filamento específico.",
             "vendor": "As empresas que fabricam o filamento."
         },
-        "description": "<title>Ajuda</title><p>Aqui estão algumas dicas para começar.</p><p>O Spoolman contém três tipos diferentes de dados:</p><itemsHelp/><p>Para adicionar um novo carretel para o banco de dados, comece criando um <filamentCreateLink>Filamento</filamentCreateLink>. Feito isso, prossiga para criar um <spoolCreateLink>Carretel</spoolCreateLink> para esse carretel específico. Se você adquirir carretéis adicionais do mesmo filamento posteriormente, simplesmente gere Carretéis adicionais e reutilize o mesmo objeto Filamento.</p><p>Opcionalmente, você também pode criar um <vendorCreateLink>Fabricante</vendorCreateLink> para a empresa que fabrica o filamento, se desejar rastrear essas informações.</p><p>Você tem a opção de vincular outros serviços de impressora 3D ao Spoolman, como o Moonraker, que pode monitorar automaticamente o uso do filamento e atualizar os carretéis para você. Consulte o <readmeLink>README do Spoolman</readmeLink> para obter orientação sobre como configurar isso.</p>"
+        "description": "<title>Ajuda</title><p>Aqui estão algumas dicas para começar.</p><p>O Spoolman contém três tipos diferentes de dados:</p><itemsHelp/><p>Para adicionar uma nova bobine para a base de dados, comece por criar um <filamentCreateLink>Filamento</filamentCreateLink>. Feito isso, prossiga para criar uma <spoolCreateLink>Bobine</spoolCreateLink> para esse filamento específico. Se posteriormente adquirir bobines adicionais do mesmo filamento, simplesmente gere Bobines adicionais e reutilize o mesmo objeto Filamento.</p><p>Opcionalmente, também pode criar um <vendorCreateLink>Fabricante</vendorCreateLink> para a empresa que fabrica o filamento, se desejar rastrear essas informações.</p><p>Tem a opção de vincular outros serviços de impressora 3D ao Spoolman, como o Moonraker, que pode monitorizar automaticamente o uso do filamento e atualizar as bobines. Consulte o <readmeLink>README do Spoolman</readmeLink> para obter orientação sobre como configurar.</p>"
     },
     "documentTitle": {
         "suffix": " | Spoolman",
@@ -307,10 +316,10 @@
         },
         "spool": {
             "list": "Carretéis | Spoolman",
-            "show": "#{{id}} Mostrar Carretel | Spoolman",
-            "edit": "#{{id}} Editar Carretel | Spoolman",
-            "create": "Criar Carretel | Spoolman",
-            "clone": "#{{id}} Clonar Carretel | Spoolman"
+            "show": "#{{id}} Mostrar Bobine | Spoolman",
+            "edit": "#{{id}} Editar Bobine | Spoolman",
+            "create": "Criar Bobine | Spoolman",
+            "clone": "#{{id}} Clonar Bobine | Spoolman"
         },
         "vendor": {
             "show": "#{{id}} Mostrar Fabricante | Spoolman",
@@ -324,7 +333,7 @@
     "no": "Não",
     "scanner": {
         "title": "Leitor de Código QR",
-        "description": "Digitalize um código QR do Spoolman para ver detalhes sobre o carretel.",
+        "description": "Digitalize um código QR do Spoolman para ver detalhes sobre a bobine.",
         "error": {
             "notAllowed": "Você não deu permissão de acesso à câmera.",
             "insecureContext": "A página não é protegida por HTTPS.",
@@ -375,6 +384,10 @@
             "tab": "Geral",
             "currency": {
                 "label": "Moeda"
+            },
+            "base_url": {
+                "label": "Endereço Base",
+                "tooltip": "O endereço base a utilizar em funcionalidades tais como os códigos QR."
             }
         }
     }

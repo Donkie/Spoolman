@@ -93,7 +93,7 @@
             "showFilamentComment": "Opmerking filament",
             "button": "Labels afdrukken",
             "template": "Label Sjabloon",
-            "templateHelp": "Gebruik {} om waarden van het spoelobject als tekst in te voegen. Bijvoorbeeld {id} wordt vervangen door het id van de spoel, of {filament.material} wordt vervangen door het materiaal van de spoel. Voeg een dubbel sterretje (**) toe voor en achter de tekst om het vet te maken. Klik op de knop om een lijst met alle beschikbare tags te bekijken.",
+            "templateHelp": "Gebruik {} om waarden van het spool-object als tekst in te voegen. Bijvoorbeeld, {id} wordt vervangen door de spool-id, of {filament.material} wordt vervangen door het materiaal van de spool. Als een waarde ontbreekt, wordt deze vervangen door \"?\". Een tweede set {} kan worden gebruikt om dit te verwijderen. Bovendien wordt alle tekst tussen de sets {} verwijderd als de waarde ontbreekt. Bijvoorbeeld, {Lot Nr: {lot_nr}} toont alleen het label als de spool een lotnummer heeft. Sluit tekst in met dubbele asterisk ** om deze vet te maken. Klik op de knop om een lijst met alle beschikbare tags te bekijken.",
             "showQRCodeMode": {
                 "no": "Nee",
                 "simple": "Simpel",
