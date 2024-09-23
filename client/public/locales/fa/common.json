@@ -1,0 +1,49 @@
+{
+    "actions": {
+        "show": "نمایش",
+        "clone": "تکثیر",
+        "create": "اضافه کردن",
+        "list": "لیست",
+        "edit": "ویرایش"
+    },
+    "buttons": {
+        "save": "ذخیره",
+        "saveAndAdd": "ذخیره و اضافه کردن",
+        "cancel": "انصراف",
+        "refresh": "تازه سازی",
+        "show": "نمایش",
+        "showArchived": "نمایش آرشیو",
+        "notAccessTitle": "شما مجوز های لازم برای انجام این کار را ندارید",
+        "hideColumns": "مخفی کردن ستون",
+        "create": "اضافه کردن",
+        "logout": "خروج",
+        "edit": "ویرایش",
+        "delete": "حذف",
+        "confirm": "آیا از انجام این عمل اطمینان دارید؟",
+        "filter": "فیلتر",
+        "continue": "ادامه",
+        "clear": "پاک کردن",
+        "undo": "بازگشت به حالت قبلی",
+        "clone": "تکثیر",
+        "import": "وارد کردن",
+        "archive": "آرشیو کردن",
+        "unArchive": "درآوردن از آرشیو",
+        "hideArchived": "آرشیو مخفی",
+        "clearFilters": "حذف فیلتر ها"
+    },
+    "notifications": {
+        "success": "ثبت موفق",
+        "error": "خطای {{statusCode}} رخ داد",
+        "createSuccess": "{{resource}} با موفقیت ایجاد شد",
+        "deleteSuccess": "{{resource}} حذف شد",
+        "editError": "در زمان ویرایش {{resource}} خطای {{statusCode}} رخ داد",
+        "validationError": "خطای تایید اطلاعات {{error}}",
+        "undoable": "برای برگشت به حالت قبل {{seconds}} ثانیه فرصت دارید...",
+        "createError": "در زمان ساخت {{resource}} مشکل {{statusCode}} رخ داد",
+        "deleteError": "حذف {{resource}} با خطای {{statusCode}} مواجه شد",
+        "editSuccess": "{{resource}} با موفقیت ویرایش شد",
+        "importProgress": "در حال وارد کردن {{processed}} از مجموع {{total}}",
+        "saveSuccessful": "با موفقیت ثبت شد!"
+    },
+    "warnWhenUnsavedChanges": "از خارج شدن خود مطمئن هستید؟ موارد ذخیره نشده نادیده گرفته خواهند شد."
+}
