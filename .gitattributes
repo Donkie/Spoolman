@@ -4,3 +4,4 @@
 
 # Never modify line endings of our bash scripts
 *.sh -crlf
+.env.example text eol=lf
