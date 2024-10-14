@@ -143,8 +143,8 @@
             "noSpoolsSelected": "Nevybrali jste žádné cívky.",
             "selectAll": "Vybrat/odebrat vše",
             "selectedTotal_one": "{{count}} vybraná cívka",
-            "selectedTotal_few": "{{count}} vybraných cívek",
-            "selectedTotal_other": "{{count}} vybrané cívky"
+            "selectedTotal_few": "{{count}} vybrané cívky",
+            "selectedTotal_other": "{{count}} vybraných cívek"
         }
     },
     "scanner": {
