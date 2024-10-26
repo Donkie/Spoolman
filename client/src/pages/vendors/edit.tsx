@@ -113,6 +113,17 @@ export const VendorEdit: React.FC<IResourceComponentsProps> = () => {
         >
           <InputNumber addonAfter="g" precision={1} />
         </Form.Item>
+        <Form.Item
+            label={t("vendor.fields.external_id")}
+            name={["external_id"]}
+            rules={[
+              {
+                required: false,
+              },
+            ]}
+        >
+          <Input maxLength={64} />
+        </Form.Item>
         <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
         {extraFields.data?.map((field, index) => (
           <ExtraFieldFormItem key={index} field={field} />

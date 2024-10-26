@@ -3,7 +3,7 @@ import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/co
 import { Alert, ColorPicker, DatePicker, Form, Input, InputNumber, message, Radio, Select, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import { MultiColorPicker } from "../../components/multiColorPicker";
 import { numberFormatter, numberParser } from "../../utils/parsing";
@@ -321,6 +321,17 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
               required: false,
             },
           ]}
+        >
+          <Input maxLength={64} />
+        </Form.Item>
+        <Form.Item
+            label={t("filament.fields.external_id")}
+            name={["external_id"]}
+            rules={[
+              {
+                required: false,
+              },
+            ]}
         >
           <Input maxLength={64} />
         </Form.Item>
