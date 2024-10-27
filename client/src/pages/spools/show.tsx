@@ -57,7 +57,7 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       return
     }
     // If the spool has no remaining weight, archive it immediately since it's likely not a mistake
-    if (spool.remaining_weight && spool.remaining_weight == 0) {
+    if (spool.remaining_weight != undefined && spool.remaining_weight <= 0) {
       await archiveSpool(spool, true);
     } else {
       confirm({
