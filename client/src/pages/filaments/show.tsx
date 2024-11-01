@@ -89,6 +89,7 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       <TextField value={record?.name} />
       <Title level={5}>{t("filament.fields.color_hex")}</Title>
       {colorObj && <SpoolIcon color={colorObj} size="large" />}
+      {record?.color_hex && <TextField value={`#${record?.color_hex}`} />}
       <Title level={5}>{t("filament.fields.material")}</Title>
       <TextField value={record?.material} />
       <Title level={5}>{t("filament.fields.price")}</Title>
