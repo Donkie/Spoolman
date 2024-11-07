@@ -17,6 +17,7 @@ Spoolman is a self-hosted web service designed to help you efficiently manage yo
 * **Filament Management**: Keep comprehensive records of filament types, manufacturers, and individual spools.
 * **API Integration**: The [REST API](https://donkie.github.io/Spoolman/) allows easy integration with other software, facilitating automated workflows and data exchange.
 * **Real-Time Updates**: Stay informed with live spool updates through Websockets, providing immediate feedback during printing operations.
+* **Central Filament Database**: A community-supported database of manufacturers and filaments simplify adding new spools to your inventory. Contribute by heading to [SpoolmanDB](https://github.com/Donkie/SpoolmanDB).
 * **Web-Based Client**: Spoolman includes a built-in web client that lets you manage data effortlessly:
   * View, create, edit, and delete filament data.
   * Add custom fields to tailor information to your specific needs.
