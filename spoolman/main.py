@@ -14,6 +14,8 @@ from prometheus_client import generate_latest
 from scheduler.asyncio.scheduler import Scheduler
 
 from spoolman import env, externaldb
+from spoolman.config import Config
+from spoolman import env, externaldb
 from spoolman.api.v1.router import app as v1_app
 from spoolman.client import SinglePageApplication
 from spoolman.database import database
@@ -37,7 +39,19 @@ app = FastAPI(
     debug=env.is_debug_mode(),
     title="Spoolman",
     version=env.get_version(),
+    docs_url=None,
+    redoc_url=None
+    debug=env.is_debug_mode(),
+    title="Spoolman",
+    version=env.get_version(),
 )
+app.add_middleware(GZipMiddleware)
+
+# Disable FastAPI's default console logging for requests if configured
+if Config.DISABLE_REQUEST_LOGGING:
+    import logging
+    uvicorn_logger = logging.getLogger("uvicorn.access")
+    uvicorn_logger.handlers = []
 app.add_middleware(GZipMiddleware)
 app.mount(env.get_base_path() + "/api/v1", v1_app)
 
@@ -126,6 +140,15 @@ async def startup() -> None:
         env.get_build_date(),
     )
 
+    if Config.DISABLE_REQUEST_LOGGING:
+        logger.info("Request logging is disabled")
+    logger.info(
+        "Starting Spoolman v%s (commit: %s) (built: %s)",
+        app.version,
+        env.get_commit_hash(),
+        env.get_build_date(),
+    )
+
     logger.info("Using data directory: %s", env.get_data_dir().resolve())
     logger.info("Using logs directory: %s", env.get_logs_dir().resolve())
     logger.info("Using backups directory: %s", env.get_backups_dir().resolve())
@@ -164,5 +187,7 @@ async def startup() -> None:
         logger.warning("!!!! WARNING !!!!")
 
 
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_config=None if Config.DISABLE_REQUEST_LOGGING else uvicorn.config.LOGGING_CONFIG)
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
