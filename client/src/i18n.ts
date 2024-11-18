@@ -43,6 +43,11 @@ export const languages: { [key: string]: Language } = {
     countryCode: "cn",
     fullCode: "zh-CN",
   },
+  ["zh-Hant"]: {
+    name: "繁體中文",
+    countryCode: "cn",
+    fullCode: "zh-TW",
+  },
   ["pl"]: {
     name: "Polski",
     countryCode: "pl",
@@ -102,6 +107,16 @@ export const languages: { [key: string]: Language } = {
     name: "Português",
     countryCode: "pt",
     fullCode: "pt-PT",
+  },
+  ["fa"]: {
+    name: "فارسی",
+    countryCode: "ir",
+    fullCode: "fa-IR",
+  },
+  ["ro"]: {
+    name: "Român",
+    countryCode: "ro",
+    fullCode: "ro-RO",
   },
 };
 
