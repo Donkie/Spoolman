@@ -28,7 +28,8 @@
         "notAccessTitle": "Nie masz zezwolenia na dostęp",
         "hideColumns": "Edytuj kolumny",
         "clearFilters": "Wyczyść filtry",
-        "saveAndAdd": "Zapisz i dodaj"
+        "saveAndAdd": "Zapisz i dodaj",
+        "continue": "Kontynuuj"
     },
     "spool": {
         "titles": {
@@ -79,7 +80,13 @@
         },
         "form": {
             "new_location_prompt": "Wprowadź nową lokalizację",
-            "spool_updated": "Szpula została zaktualizowana od czasu otwarcia tej strony. Zapisanie nadpisze te zmiany!"
+            "spool_updated": "Szpula została zaktualizowana od czasu otwarcia tej strony. Zapisanie nadpisze te zmiany!",
+            "measurement_type": {
+                "length": "Długość",
+                "weight": "Waga"
+            },
+            "measurement_type_label": "Typ pomiaru",
+            "adjust_filament_help": "Tutaj możesz bezpośrednio dodać lub usunąć filament z szpuli. Dodatnia wartość spowoduje odjęcie filamentu, ujemna wartość spowoduje jego dodanie."
         }
     },
     "dashboard": {
@@ -138,14 +145,22 @@
             },
             "description": "Dostosuj poniższe ustawienia, aby uzyskać pożądany układ wydruku. Należy pamiętać, że drukarki i system operacyjny mogą stosować własne marginesy i skalowanie, więc może być konieczne wykonanie kilku prób i błędów, zanim wszystko będzie prawidłowe. Przed wydrukowaniem etykiet przetestuj je na zwykłym papierze.",
             "horizontalSpacing": "Poziomy odstęp",
-            "printerMarginBottom": "Bezpieczna strefa od dołu"
+            "printerMarginBottom": "Bezpieczna strefa od dołu",
+            "newSetting": "Nowe",
+            "defaultSettings": "Domyślne",
+            "itemCopies": "Skopiuj element",
+            "settings": "Ustawienia wstępne",
+            "saveAsImage": "Zapisz jako obraz",
+            "duplicateSettings": "Zduplikuj",
+            "deleteSettingsConfirm": "Czy jesteś pewny, że chcesz usunąć to ustawienie?",
+            "addSettings": "Dodaj nowe ustawienie wstępne"
         },
         "qrcode": {
             "button": "Drukuj kody QR",
             "title": "Drukowanie kodów QR",
             "bedTemp": "TS: {{temp}}",
             "extruderTemp": "TE: {{temp}}",
-            "textSize": "Rozmiar tekstu",
+            "textSize": "Rozmiar tekstu etykiety",
             "showSpoolmanIcon": "Pokaż ikonę Spoolman",
             "showVendor": "Producent",
             "showContent": "Etykieta",
@@ -156,7 +171,21 @@
             "showVendorComment": "Komentarz producenta",
             "spoolWeight": "Waga szpuli: {{weight}}",
             "lotNr": "LOT: {{lot}}",
-            "showSpoolComment": "Komentarz szpuli"
+            "showSpoolComment": "Komentarz szpuli",
+            "template": "Wzór etykiety",
+            "useHTTPUrl": {
+                "preview": "Podgląd:",
+                "label": "Link kodu QR",
+                "options": {
+                    "default": "Domyślne",
+                    "url": "URL"
+                }
+            },
+            "showQRCode": "Drukuj kod QR",
+            "showQRCodeMode": {
+                "no": "Nie",
+                "withIcon": "Z ikoną"
+            }
         },
         "spoolSelect": {
             "title": "Wybierz szpule",
@@ -200,7 +229,8 @@
             "settings_bed_temp": "Temperatura stołu",
             "color_hex": "Kolor",
             "article_number": "Numer artykułu",
-            "spools": "Zobacz szpule"
+            "spools": "Zobacz szpule",
+            "external_id": "Zewnętrzne ID"
         },
         "fields_help": {
             "material": "Np. PLA, ABS, PETG itp.",
@@ -208,7 +238,8 @@
             "spool_weight": "Waga pustej szpuli. Używana do określenia ciężaru szpuli.",
             "article_number": "Np. EAN, UPC itp.",
             "name": "Nazwa filamentu, aby odróżnić ten typ filamentu od innych pochodzących od tego samego producenta. Powinna zawierać np. kolor.",
-            "weight": "Waga filamentu na pełnej szpuli (waga netto). Nie powinno to obejmować wagi samej szpuli, a jedynie filamentu. Jest to zwykle napisane na opakowaniu."
+            "weight": "Waga filamentu na pełnej szpuli (waga netto). Nie powinno to obejmować wagi samej szpuli, a jedynie filamentu. Jest to zwykle napisane na opakowaniu.",
+            "multi_color_direction": "Filamenty mogą mieć wiele kolorów na dwa sposoby: Kolory mogą się ciągnąć równolegle na całej długości filamentu lub kolory filamentu mogą się zmieniać na długości filamentu."
         },
         "titles": {
             "create": "Tworzenie filamentu",
@@ -219,7 +250,8 @@
             "show_title": "[Filament #{{id}}] {{name}}"
         },
         "form": {
-            "filament_updated": "Ten filament został zaktualizowany przez kogoś/coś innego od czasu otwarcia tej strony. Zapisanie nadpisze te zmiany!"
+            "filament_updated": "Ten filament został zaktualizowany przez kogoś/coś innego od czasu otwarcia tej strony. Zapisanie nadpisze te zmiany!",
+            "import_external": "Importuj z zewnątrz"
         },
         "buttons": {
             "add_spool": "Dodaj Szpulę"
@@ -232,7 +264,8 @@
             "name": "Nazwa",
             "registered": "Zarejestrowano",
             "comment": "Komentarz",
-            "empty_spool_weight": "Waga pustej szpuli"
+            "empty_spool_weight": "Waga pustej szpuli",
+            "external_id": "Zewnętrzne ID"
         },
         "titles": {
             "create": "Tworzenie producenta",
@@ -303,7 +336,11 @@
             "currency": {
                 "label": "Waluta"
             },
-            "tab": "Ogólne"
+            "tab": "Ogólne",
+            "base_url": {
+                "tooltip": "Bazowy URL zostanie użyty podczas generowania QR code oraz w innych funkcjonalnościach.",
+                "label": "Bazowy URL"
+            }
         },
         "extra_fields": {
             "tab": "Dodatkowe Parametry",
