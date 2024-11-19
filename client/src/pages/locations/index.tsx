@@ -2,13 +2,14 @@ import { IResourceComponentsProps, useInvalidate, useList, useNavigation, useTra
 import { Button, theme } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import React from "react";
+import React, { useEffect, useMemo } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
 import { EditOutlined, EyeOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import SpoolIcon from "../../components/spoolIcon";
+import { useGetSetting, useSetSetting } from "../../utils/querySettings";
 import { ISpool } from "../spools/model";
 import { setSpoolLocation } from "./functions";
 import "./locations.css";
@@ -115,8 +116,26 @@ function LocationContainer({ title, spools }: { title: string; spools: ISpool[] 
   );
 }
 
+function useLocations(): string[] {
+  const query = useGetSetting("locations");
+
+  return useMemo(() => {
+    if (!query.data) return [];
+
+    try {
+      return JSON.parse(query.data.value) as string[];
+    } catch {
+      console.warn("Failed to parse locations", query.data.value);
+      return [];
+    }
+  }, [query.data]);
+}
+
 export const Locations: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
+
+  const settingsLocations = useLocations();
+  const setLocationsSetting = useSetSetting<string[]>("locations");
 
   const { data, isLoading, isError } = useList<ISpool>({
     resource: "spool",
@@ -130,6 +149,54 @@ export const Locations: React.FC<IResourceComponentsProps> = () => {
     },
   });
 
+  // Grab spools and sort by ID
+  const spools = data?.data ?? [];
+  spools.sort((a, b) => a.id - b.id);
+
+  // Group spools by location
+  const spoolLocations = useMemo(() => {
+    const grouped: Record<string, ISpool[]> = {};
+    spools.forEach((spool) => {
+      const loc = spool.location ?? t("spool.no_location");
+      if (!grouped[loc]) {
+        grouped[loc] = [];
+      }
+      grouped[loc].push(spool);
+    });
+    return grouped;
+  }, [spools]);
+
+  // Create list of locations that's sorted
+  const locationsList = useMemo(() => {
+    // Start with the locations from the spools
+    let allLocs = [...Object.keys(spoolLocations), ...settingsLocations];
+
+    // Remove duplicates
+    allLocs = [...new Set(allLocs)];
+
+    allLocs.sort((a, b) => {
+      // Sort alphabetically
+      return a.localeCompare(b);
+    });
+
+    return allLocs;
+  }, [spoolLocations, settingsLocations]);
+
+  // Create containers
+  const containers = locationsList.map((loc) => {
+    return <LocationContainer key={loc} title={loc} spools={spoolLocations[loc] ?? []} />;
+  });
+
+  // Update locations settings so it always includes all spool locations
+  useEffect(() => {
+    // Check if they're not the same
+    if (JSON.stringify(locationsList.sort()) !== JSON.stringify(settingsLocations.sort())) {
+      console.log("Updating locations settings", locationsList, settingsLocations);
+      // Update settings
+      setLocationsSetting.mutate(locationsList);
+    }
+  }, [spoolLocations]);
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -137,28 +204,6 @@ export const Locations: React.FC<IResourceComponentsProps> = () => {
   if (isError) {
     return <div>Failed to load spools</div>;
   }
-
-  const spools = data?.data ?? [];
-  spools.sort((a, b) => a.id - b.id);
-
-  // Locations is all the unique locations of the spools
-  const spoolLocations: Record<string, ISpool[]> = {};
-  spools.forEach((spool) => {
-    const loc = spool.location ?? t("spool.no_location");
-    if (!spoolLocations[loc]) {
-      spoolLocations[loc] = [];
-    }
-    spoolLocations[loc].push(spool);
-  });
-
-  const locationsList = Object.keys(spoolLocations);
-  locationsList.sort((a, b) => {
-    return a.localeCompare(b);
-  });
-
-  const containers = locationsList.map((loc) => {
-    return <LocationContainer key={loc} title={loc} spools={spoolLocations[loc]} />;
-  });
 
   return (
     <DndProvider backend={HTML5Backend}>

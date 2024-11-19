@@ -68,3 +68,5 @@ register_setting("extra_fields_vendor", SettingType.ARRAY, json.dumps([]))
 register_setting("extra_fields_filament", SettingType.ARRAY, json.dumps([]))
 register_setting("extra_fields_spool", SettingType.ARRAY, json.dumps([]))
 register_setting("base_url", SettingType.STRING, json.dumps(""))
+
+register_setting("locations", SettingType.ARRAY, json.dumps([]))
