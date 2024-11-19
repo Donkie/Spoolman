@@ -1,0 +1,40 @@
+.loc-metacontainer {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.loc-container {
+  padding: 1em;
+  width: 20em;
+}
+
+.loc-container .loc-spools {
+  padding: 0.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  max-height: 100em;
+  overflow-y: scroll;
+}
+
+.loc-container .spool {
+  padding: 0.5em 0.5em 0.5em 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  border-radius: 0.5em;
+}
+
+.loc-container .spool .info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.loc-container .spool .info .title {
+  font-size: 1em;
+}
+
+.loc-container .spool .info .subtitle {
+  font-size: 0.8em;
+}
