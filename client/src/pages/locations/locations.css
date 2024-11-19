@@ -5,7 +5,7 @@
 
 .loc-container {
   padding: 1em;
-  width: 20em;
+  width: 24em;
 }
 
 .loc-container .loc-spools {
@@ -28,11 +28,15 @@
 .loc-container .spool .info {
   display: flex;
   flex-direction: column;
-  gap: 0.5em;
+  width: 100%;
 }
 
 .loc-container .spool .info .title {
   font-size: 1em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .loc-container .spool .info .subtitle {

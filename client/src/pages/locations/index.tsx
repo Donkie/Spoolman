@@ -1,11 +1,13 @@
-import { IResourceComponentsProps, useInvalidate, useList, useTranslate } from "@refinedev/core";
-import { theme } from "antd";
+import { IResourceComponentsProps, useInvalidate, useList, useNavigation, useTranslate } from "@refinedev/core";
+import { Button, theme } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import React from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
+import { EditOutlined, EyeOutlined } from "@ant-design/icons";
+import { Link } from "react-router-dom";
 import SpoolIcon from "../../components/spoolIcon";
 import { ISpool } from "../spools/model";
 import { setSpoolLocation } from "./functions";
@@ -17,6 +19,7 @@ const { useToken } = theme;
 
 function SpoolCard({ spool }: { spool: ISpool }) {
   const { token } = useToken();
+  const t = useTranslate();
   const [{ opacity }, dragRef] = useDrag(
     () => ({
       type: "spool",
@@ -27,6 +30,7 @@ function SpoolCard({ spool }: { spool: ISpool }) {
     }),
     []
   );
+  const { editUrl, showUrl } = useNavigation();
 
   const colorObj = spool.filament.multi_color_hexes
     ? {
@@ -52,9 +56,24 @@ function SpoolCard({ spool }: { spool: ISpool }) {
       <SpoolIcon color={colorObj} />
       <div className="info">
         <div className="title">
-          #{spool.id} {filament_name}
+          <span>
+            #{spool.id} {filament_name}
+          </span>
+          <div>
+            <Link to={editUrl("spool", spool.id)}>
+              <Button icon={<EditOutlined />} title={t("buttons.edit")} size="small" type="text" />
+            </Link>
+            <Link to={showUrl("spool", spool.id)}>
+              <Button icon={<EyeOutlined />} title={t("buttons.show")} size="small" type="text" />
+            </Link>
+          </div>
         </div>
-        <div className="subtitle">
+        <div
+          className="subtitle"
+          style={{
+            color: token.colorTextSecondary,
+          }}
+        >
           {spool.remaining_weight} / {spool.filament.weight} g
         </div>
       </div>
