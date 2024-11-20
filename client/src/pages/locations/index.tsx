@@ -6,7 +6,7 @@ import React, { useEffect, useMemo } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
-import { EditOutlined, EyeOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, EyeOutlined, PlusOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import SpoolIcon from "../../components/spoolIcon";
 import { useGetSetting, useSetSetting } from "../../utils/querySettings";
@@ -82,7 +82,17 @@ function SpoolCard({ spool }: { spool: ISpool }) {
   );
 }
 
-function LocationContainer({ title, spools }: { title: string; spools: ISpool[] }) {
+function LocationContainer({
+  title,
+  spools,
+  showDelete,
+  onDelete,
+}: {
+  title: string;
+  spools: ISpool[];
+  showDelete?: boolean;
+  onDelete?: () => void;
+}) {
   const { token } = useToken();
   const invalidate = useInvalidate();
 
@@ -106,7 +116,10 @@ function LocationContainer({ title, spools }: { title: string; spools: ISpool[] 
 
   return (
     <div className="loc-container">
-      <h3>{title}</h3>
+      <h3>
+        <span>{title}</span>
+        {showDelete && <Button icon={<DeleteOutlined />} size="small" type="text" onClick={onDelete} />}
+      </h3>
       <div className="loc-spools" ref={drop} style={style}>
         {spools.map((spool) => (
           <SpoolCard key={spool.id} spool={spool} />
@@ -168,31 +181,41 @@ export const Locations: React.FC<IResourceComponentsProps> = () => {
 
   // Create list of locations that's sorted
   const locationsList = useMemo(() => {
-    // Start with the locations from the spools
-    let allLocs = [...Object.keys(spoolLocations), ...settingsLocations];
+    // Start with the locations setting
+    let allLocs = settingsLocations;
+    console.log("settingsLocations", settingsLocations);
 
-    // Remove duplicates
-    allLocs = [...new Set(allLocs)];
-
-    allLocs.sort((a, b) => {
-      // Sort alphabetically
-      return a.localeCompare(b);
-    });
+    // Add any missing locations from the spools
+    for (const loc of Object.keys(spoolLocations)) {
+      if (!allLocs.includes(loc)) {
+        allLocs.push(loc);
+      }
+    }
 
     return allLocs;
   }, [spoolLocations, settingsLocations]);
 
   // Create containers
   const containers = locationsList.map((loc) => {
-    return <LocationContainer key={loc} title={loc} spools={spoolLocations[loc] ?? []} />;
+    const spools = spoolLocations[loc] ?? [];
+    return (
+      <LocationContainer
+        key={loc}
+        title={loc}
+        spools={spools}
+        showDelete={spools.length == 0}
+        onDelete={() => {
+          setLocationsSetting.mutate(locationsList.filter((l) => l !== loc));
+        }}
+      />
+    );
   });
 
   // Update locations settings so it always includes all spool locations
   useEffect(() => {
     // Check if they're not the same
-    if (JSON.stringify(locationsList.sort()) !== JSON.stringify(settingsLocations.sort())) {
+    if (JSON.stringify(locationsList) !== JSON.stringify(settingsLocations)) {
       console.log("Updating locations settings", locationsList, settingsLocations);
-      // Update settings
       setLocationsSetting.mutate(locationsList);
     }
   }, [spoolLocations]);
@@ -207,7 +230,21 @@ export const Locations: React.FC<IResourceComponentsProps> = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="loc-metacontainer">{containers}</div>
+      <div className="loc-metacontainer">
+        {containers}
+        <div className="newLocContainer">
+          <Button
+            type="dashed"
+            shape="circle"
+            icon={<PlusOutlined />}
+            size="large"
+            style={{
+              margin: "1em",
+            }}
+            onClick={() => setLocationsSetting.mutate([...settingsLocations, "New Location"])}
+          />
+        </div>
+      </div>
     </DndProvider>
   );
 };

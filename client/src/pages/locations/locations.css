@@ -8,6 +8,13 @@
   width: 24em;
 }
 
+.loc-container h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
 .loc-container .loc-spools {
   padding: 0.2em;
   display: flex;
