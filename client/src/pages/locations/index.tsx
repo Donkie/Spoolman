@@ -2,19 +2,25 @@ import { IResourceComponentsProps, useInvalidate, useList, useNavigation, useTra
 import { Button, theme } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import React, { useEffect, useMemo } from "react";
+import type { Identifier, XYCoord } from "dnd-core";
+import React, { useEffect, useMemo, useRef } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
 import { DeleteOutlined, EditOutlined, EyeOutlined, PlusOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import SpoolIcon from "../../components/spoolIcon";
-import { useGetSetting, useSetSetting } from "../../utils/querySettings";
+import { useSetSetting } from "../../utils/querySettings";
 import { ISpool } from "../spools/model";
-import { setSpoolLocation } from "./functions";
+import { setSpoolLocation, useLocations } from "./functions";
 import "./locations.css";
 
 dayjs.extend(utc);
+
+const ItemTypes = {
+  SPOOL: "spool",
+  CONTAINER: "spool-container",
+};
 
 const { useToken } = theme;
 
@@ -23,7 +29,7 @@ function SpoolCard({ spool }: { spool: ISpool }) {
   const t = useTranslate();
   const [{ opacity }, dragRef] = useDrag(
     () => ({
-      type: "spool",
+      type: ItemTypes.SPOOL,
       item: spool,
       collect: (monitor) => ({
         opacity: monitor.isDragging() ? 0.5 : 1,
@@ -82,24 +88,13 @@ function SpoolCard({ spool }: { spool: ISpool }) {
   );
 }
 
-function LocationContainer({
-  title,
-  spools,
-  showDelete,
-  onDelete,
-}: {
-  title: string;
-  spools: ISpool[];
-  showDelete?: boolean;
-  onDelete?: () => void;
-}) {
+function SpoolList({ location, spools }: { location: string; spools: ISpool[] }) {
   const { token } = useToken();
   const invalidate = useInvalidate();
-
-  const [, drop] = useDrop(() => ({
-    accept: "spool",
+  const [, spoolDrop] = useDrop(() => ({
+    accept: ItemTypes.SPOOL,
     drop: (item: ISpool) => {
-      setSpoolLocation(item.id, title).then(() => {
+      setSpoolLocation(item.id, location).then(() => {
         invalidate({
           resource: "spool",
           id: item.id,
@@ -115,36 +110,108 @@ function LocationContainer({
   };
 
   return (
-    <div className="loc-container">
-      <h3>
-        <span>{title}</span>
-        {showDelete && <Button icon={<DeleteOutlined />} size="small" type="text" onClick={onDelete} />}
-      </h3>
-      <div className="loc-spools" ref={drop} style={style}>
-        {spools.map((spool) => (
-          <SpoolCard key={spool.id} spool={spool} />
-        ))}
-      </div>
+    <div className="loc-spools" ref={spoolDrop} style={style}>
+      {spools.map((spool) => (
+        <SpoolCard key={spool.id} spool={spool} />
+      ))}
     </div>
   );
 }
 
-function useLocations(): string[] {
-  const query = useGetSetting("locations");
-
-  return useMemo(() => {
-    if (!query.data) return [];
-
-    try {
-      return JSON.parse(query.data.value) as string[];
-    } catch {
-      console.warn("Failed to parse locations", query.data.value);
-      return [];
-    }
-  }, [query.data]);
+interface DragItem {
+  index: number;
+  title: string;
 }
 
-export const Locations: React.FC<IResourceComponentsProps> = () => {
+function LocationContainer({
+  index,
+  title,
+  spools,
+  showDelete,
+  onDelete,
+  moveLocation,
+}: {
+  index: number;
+  title: string;
+  spools: ISpool[];
+  showDelete?: boolean;
+  onDelete?: () => void;
+  moveLocation: (dragIndex: number, hoverIndex: number) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [{ handlerId }, drop] = useDrop<DragItem, void, { handlerId: Identifier | null }>({
+    accept: ItemTypes.CONTAINER,
+    collect(monitor) {
+      return {
+        handlerId: monitor.getHandlerId(),
+      };
+    },
+    hover(item, monitor) {
+      if (!ref.current) {
+        return null;
+      }
+      const dragIndex = item.index;
+      const hoverIndex = index;
+
+      // Don't replace items with themselves
+      if (dragIndex === hoverIndex) {
+        return;
+      }
+
+      // Determine rectangle on screen
+      const hoverBoundingRect = ref.current?.getBoundingClientRect();
+
+      // Get horizontal middle
+      const hoverMiddleX = (hoverBoundingRect.right - hoverBoundingRect.left) / 2;
+
+      // Determine mouse position
+      const clientOffset = monitor.getClientOffset();
+
+      // Get pixels to the left
+      const hoverClientX = (clientOffset as XYCoord).x - hoverBoundingRect.left;
+
+      // Dragging downwards
+      if (dragIndex < hoverIndex && hoverClientX < hoverMiddleX) {
+        return;
+      }
+
+      // Dragging upwards
+      if (dragIndex > hoverIndex && hoverClientX > hoverMiddleX) {
+        return;
+      }
+
+      // Time to actually perform the action
+      moveLocation(dragIndex, hoverIndex);
+
+      item.index = hoverIndex;
+    },
+  });
+
+  const [{ isDragging }, drag] = useDrag({
+    type: ItemTypes.CONTAINER,
+    item: () => {
+      return { title, index };
+    },
+    collect: (monitor: any) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  const opacity = isDragging ? 0 : 1;
+  drag(drop(ref));
+
+  return (
+    <div className="loc-container" ref={ref} style={{ opacity }} data-handler-id={handlerId}>
+      <h3>
+        <span>{title}</span>
+        {showDelete && <Button icon={<DeleteOutlined />} size="small" type="text" onClick={onDelete} />}
+      </h3>
+      <SpoolList location={title} spools={spools} />
+    </div>
+  );
+}
+
+function LocationMetaContainer() {
   const t = useTranslate();
 
   const settingsLocations = useLocations();
@@ -195,18 +262,28 @@ export const Locations: React.FC<IResourceComponentsProps> = () => {
     return allLocs;
   }, [spoolLocations, settingsLocations]);
 
+  const moveLocation = (dragIndex: number, hoverIndex: number) => {
+    const newLocs = [...locationsList];
+    newLocs.splice(dragIndex, 1);
+    newLocs.splice(hoverIndex, 0, locationsList[dragIndex]);
+    console.log("newLocs", newLocs);
+    setLocationsSetting.mutate(newLocs);
+  };
+
   // Create containers
-  const containers = locationsList.map((loc) => {
+  const containers = locationsList.map((loc, idx) => {
     const spools = spoolLocations[loc] ?? [];
     return (
       <LocationContainer
         key={loc}
+        index={idx}
         title={loc}
         spools={spools}
         showDelete={spools.length == 0}
         onDelete={() => {
           setLocationsSetting.mutate(locationsList.filter((l) => l !== loc));
         }}
+        moveLocation={moveLocation}
       />
     );
   });
@@ -229,22 +306,28 @@ export const Locations: React.FC<IResourceComponentsProps> = () => {
   }
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="loc-metacontainer">
-        {containers}
-        <div className="newLocContainer">
-          <Button
-            type="dashed"
-            shape="circle"
-            icon={<PlusOutlined />}
-            size="large"
-            style={{
-              margin: "1em",
-            }}
-            onClick={() => setLocationsSetting.mutate([...settingsLocations, "New Location"])}
-          />
-        </div>
+    <div className="loc-metacontainer">
+      {containers}
+      <div className="newLocContainer">
+        <Button
+          type="dashed"
+          shape="circle"
+          icon={<PlusOutlined />}
+          size="large"
+          style={{
+            margin: "1em",
+          }}
+          onClick={() => setLocationsSetting.mutate([...settingsLocations, "New Location"])}
+        />
       </div>
+    </div>
+  );
+}
+
+export const Locations: React.FC<IResourceComponentsProps> = () => {
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <LocationMetaContainer />
     </DndProvider>
   );
 };
