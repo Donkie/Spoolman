@@ -305,6 +305,20 @@ function LocationMetaContainer() {
     return <div>Failed to load spools</div>;
   }
 
+  const addNewLocation = () => {
+    let newLocationName = "New Location";
+
+    const newLocs = [...locationsList];
+    let i = 1;
+    while (newLocs.includes(newLocationName)) {
+      newLocationName = "New Location " + i;
+      i++;
+    }
+    newLocs.push(newLocationName);
+
+    setLocationsSetting.mutate(newLocs);
+  };
+
   return (
     <div className="loc-metacontainer">
       {containers}
@@ -317,7 +331,7 @@ function LocationMetaContainer() {
           style={{
             margin: "1em",
           }}
-          onClick={() => setLocationsSetting.mutate([...settingsLocations, "New Location"])}
+          onClick={addNewLocation}
         />
       </div>
     </div>
