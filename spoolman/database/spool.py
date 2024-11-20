@@ -462,3 +462,15 @@ async def reset_initial_weight(db: AsyncSession, spool_id: int, weight: float) -
     await db.commit()
     await spool_changed(spool, EventType.UPDATED)
     return spool
+
+
+async def rename_location(
+    *,
+    db: AsyncSession,
+    current_name: str,
+    new_name: str,
+) -> None:
+    """Rename all spools with the current location name to the new name."""
+    await db.execute(
+        sqlalchemy.update(models.Spool).where(models.Spool.location == current_name).values(location=new_name),
+    )

@@ -1,9 +1,9 @@
 import { IResourceComponentsProps, useInvalidate, useList, useNavigation, useTranslate } from "@refinedev/core";
-import { Button, theme } from "antd";
+import { Button, Input, theme } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import type { Identifier, XYCoord } from "dnd-core";
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 import SpoolIcon from "../../components/spoolIcon";
 import { useSetSetting } from "../../utils/querySettings";
 import { ISpool } from "../spools/model";
-import { setSpoolLocation, useLocations } from "./functions";
+import { renameSpoolLocation, setSpoolLocation, useLocations } from "./functions";
 import "./locations.css";
 
 dayjs.extend(utc);
@@ -130,6 +130,7 @@ function LocationContainer({
   showDelete,
   onDelete,
   moveLocation,
+  onEditTitle,
 }: {
   index: number;
   title: string;
@@ -137,7 +138,11 @@ function LocationContainer({
   showDelete?: boolean;
   onDelete?: () => void;
   moveLocation: (dragIndex: number, hoverIndex: number) => void;
+  onEditTitle: (newTitle: string) => void;
 }) {
+  const [editTitle, setEditTitle] = useState(false);
+  const [newTitle, setNewTitle] = useState(title);
+
   const ref = useRef<HTMLDivElement>(null);
   const [{ handlerId }, drop] = useDrop<DragItem, void, { handlerId: Identifier | null }>({
     accept: ItemTypes.CONTAINER,
@@ -189,6 +194,7 @@ function LocationContainer({
 
   const [{ isDragging }, drag] = useDrag({
     type: ItemTypes.CONTAINER,
+    canDrag: !editTitle,
     item: () => {
       return { title, index };
     },
@@ -203,7 +209,28 @@ function LocationContainer({
   return (
     <div className="loc-container" ref={ref} style={{ opacity }} data-handler-id={handlerId}>
       <h3>
-        <span>{title}</span>
+        {editTitle ? (
+          <Input
+            autoFocus
+            variant="borderless"
+            value={newTitle}
+            onBlur={() => setEditTitle(false)}
+            onChange={(e) => setNewTitle(e.target.value)}
+            onPressEnter={() => {
+              setEditTitle(false);
+              return onEditTitle(newTitle);
+            }}
+          />
+        ) : (
+          <span
+            onClick={() => {
+              setNewTitle(title);
+              setEditTitle(true);
+            }}
+          >
+            {title}
+          </span>
+        )}
         {showDelete && <Button icon={<DeleteOutlined />} size="small" type="text" onClick={onDelete} />}
       </h3>
       <SpoolList location={title} spools={spools} />
@@ -213,6 +240,7 @@ function LocationContainer({
 
 function LocationMetaContainer() {
   const t = useTranslate();
+  const invalidate = useInvalidate();
 
   const settingsLocations = useLocations();
   const setLocationsSetting = useSetSetting<string[]>("locations");
@@ -266,7 +294,23 @@ function LocationMetaContainer() {
     const newLocs = [...locationsList];
     newLocs.splice(dragIndex, 1);
     newLocs.splice(hoverIndex, 0, locationsList[dragIndex]);
-    console.log("newLocs", newLocs);
+    setLocationsSetting.mutate(newLocs);
+  };
+
+  const onEditTitle = async (location: string, newTitle: string) => {
+    if (newTitle == location) return;
+    if (newTitle == "") return;
+    if (locationsList.includes(newTitle)) return;
+
+    // Update all spool locations in the database
+    if (spoolLocations[location] && spoolLocations[location].length > 0) {
+      await renameSpoolLocation(location, newTitle);
+      await invalidate({ resource: "spool", invalidates: ["list", "detail"] });
+    }
+
+    // Update the value in the settings
+    const newLocs = [...locationsList];
+    newLocs[locationsList.indexOf(location)] = newTitle;
     setLocationsSetting.mutate(newLocs);
   };
 
@@ -284,6 +328,7 @@ function LocationMetaContainer() {
           setLocationsSetting.mutate(locationsList.filter((l) => l !== loc));
         }}
         moveLocation={moveLocation}
+        onEditTitle={(newTitle: string) => onEditTitle(loc, newTitle)}
       />
     );
   });

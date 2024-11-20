@@ -6,6 +6,7 @@
 .loc-container {
   padding: 1em;
   width: 24em;
+  cursor: pointer;
 }
 
 .loc-container h3 {
@@ -13,6 +14,7 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  cursor: text;
 }
 
 .loc-container .loc-spools {
