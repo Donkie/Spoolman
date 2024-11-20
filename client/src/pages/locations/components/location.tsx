@@ -21,6 +21,8 @@ export function Location({
   onDelete,
   moveLocation,
   onEditTitle,
+  locationSpoolOrder,
+  setLocationSpoolOrder,
 }: {
   index: number;
   title: string;
@@ -29,6 +31,8 @@ export function Location({
   onDelete?: () => void;
   moveLocation: (dragIndex: number, hoverIndex: number) => void;
   onEditTitle: (newTitle: string) => void;
+  locationSpoolOrder: number[];
+  setLocationSpoolOrder: (spoolOrder: number[]) => void;
 }) {
   const [editTitle, setEditTitle] = useState(false);
   const [newTitle, setNewTitle] = useState(title);
@@ -123,7 +127,12 @@ export function Location({
         )}
         {showDelete && <Button icon={<DeleteOutlined />} size="small" type="text" onClick={onDelete} />}
       </h3>
-      <SpoolList location={title} spools={spools} />
+      <SpoolList
+        location={title}
+        spools={spools}
+        spoolOrder={locationSpoolOrder}
+        setSpoolOrder={setLocationSpoolOrder}
+      />
     </div>
   );
 }

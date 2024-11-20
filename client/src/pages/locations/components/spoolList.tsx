@@ -9,21 +9,40 @@ import { SpoolCard } from "./spoolCard";
 
 const { useToken } = theme;
 
-export function SpoolList({ location, spools }: { location: string; spools: ISpool[] }) {
+export function SpoolList({
+  location,
+  spools,
+  spoolOrder,
+  setSpoolOrder,
+}: {
+  location: string;
+  spools: ISpool[];
+  spoolOrder: number[];
+  setSpoolOrder: (spoolOrder: number[]) => void;
+}) {
   const { token } = useToken();
   const invalidate = useInvalidate();
   const [, spoolDrop] = useDrop(() => ({
     accept: ItemTypes.SPOOL,
-    drop: (item: ISpool) => {
-      setSpoolLocation(item.id, location).then(() => {
-        invalidate({
-          resource: "spool",
-          id: item.id,
-          invalidates: ["list", "detail"],
-        });
+    drop: async (item: ISpool) => {
+      if (item.location === location) return;
+      await setSpoolLocation(item.id, location);
+      await invalidate({
+        resource: "spool",
+        id: item.id,
+        invalidates: ["list", "detail"],
       });
     },
   }));
+
+  // Make sure all spools are in the spoolOrders array
+  const finalSpoolOrder = [...spoolOrder].filter((id) => spools.find((spool) => spool.id === id)); // Remove any spools that are not in the spools array
+  spools.forEach((spool) => {
+    if (!finalSpoolOrder.includes(spool.id)) finalSpoolOrder.push(spool.id);
+  });
+
+  // Reorder the spools based on the spoolOrder array
+  const reorderedSpools = finalSpoolOrder.map((id) => spools.find((spool) => spool.id === id)!);
 
   const style = {
     backgroundColor: token.colorBgContainer,
@@ -32,7 +51,7 @@ export function SpoolList({ location, spools }: { location: string; spools: ISpo
 
   return (
     <div className="loc-spools" ref={spoolDrop} style={style}>
-      {spools.map((spool) => (
+      {reorderedSpools.map((spool) => (
         <SpoolCard key={spool.id} spool={spool} />
       ))}
     </div>

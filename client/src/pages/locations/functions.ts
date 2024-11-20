@@ -19,6 +19,22 @@ export async function setSpoolLocation(spool_id: number, location: string | null
   return response.json();
 }
 
+export async function renameSpoolLocation(location: string, newName: string): Promise<string> {
+  const response = await fetch(getAPIURL() + "/location/" + location, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: newName,
+    }),
+  });
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+  return await response.text();
+}
+
 export function useLocations(): string[] {
   const query = useGetSetting("locations");
 
@@ -34,18 +50,17 @@ export function useLocations(): string[] {
   }, [query.data]);
 }
 
-export async function renameSpoolLocation(location: string, newName: string): Promise<string> {
-  const response = await fetch(getAPIURL() + "/location/" + location, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      name: newName,
-    }),
-  });
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
-  }
-  return await response.text();
+export function useLocationsSpoolOrders(): Record<string, number[]> {
+  const query = useGetSetting("locations_spoolorders");
+
+  return useMemo(() => {
+    if (!query.data) return {};
+
+    try {
+      return JSON.parse(query.data.value) as Record<string, number[]>;
+    } catch {
+      console.warn("Failed to parse locations spool orders", query.data.value);
+      return {};
+    }
+  }, [query.data]);
 }

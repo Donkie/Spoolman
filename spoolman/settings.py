@@ -70,3 +70,4 @@ register_setting("extra_fields_spool", SettingType.ARRAY, json.dumps([]))
 register_setting("base_url", SettingType.STRING, json.dumps(""))
 
 register_setting("locations", SettingType.ARRAY, json.dumps([]))
+register_setting("locations_spoolorders", SettingType.OBJECT, json.dumps({}))

@@ -4,7 +4,7 @@ import { Button } from "antd";
 import { useEffect, useMemo } from "react";
 import { useSetSetting } from "../../../utils/querySettings";
 import { ISpool } from "../../spools/model";
-import { renameSpoolLocation, useLocations } from "../functions";
+import { renameSpoolLocation, useLocations, useLocationsSpoolOrders } from "../functions";
 import { Location } from "./location";
 
 export function LocationContainer() {
@@ -13,6 +13,10 @@ export function LocationContainer() {
 
   const settingsLocations = useLocations();
   const setLocationsSetting = useSetSetting<string[]>("locations");
+
+  const locationsSpoolOrders = useLocationsSpoolOrders();
+  console.log("locationsSpoolOrders", locationsSpoolOrders);
+  const setLocationsSpoolOrders = useSetSetting<Record<string, number[]>>("locations_spoolorders");
 
   const { data, isLoading, isError } = useList<ISpool>({
     resource: "spool",
@@ -83,9 +87,18 @@ export function LocationContainer() {
     setLocationsSetting.mutate(newLocs);
   };
 
+  const setLocationSpoolOrder = (location: string, spoolOrder: number[]) => {
+    setLocationsSpoolOrders.mutate({
+      ...locationsSpoolOrders,
+      [location]: spoolOrder,
+    });
+  };
+
   // Create containers
   const containers = locationsList.map((loc, idx) => {
     const spools = spoolLocations[loc] ?? [];
+    const spoolOrder = locationsSpoolOrders[loc] ?? [];
+
     return (
       <Location
         key={loc}
@@ -98,6 +111,8 @@ export function LocationContainer() {
         }}
         moveLocation={moveLocation}
         onEditTitle={(newTitle: string) => onEditTitle(loc, newTitle)}
+        locationSpoolOrder={spoolOrder}
+        setLocationSpoolOrder={(spoolOrder: number[]) => setLocationSpoolOrder(loc, spoolOrder)}
       />
     );
   });
