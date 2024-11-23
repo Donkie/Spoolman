@@ -95,16 +95,20 @@
             "settingsName": "预设名称",
             "addSettings": "添加新预设",
             "deleteSettingsConfirm": "确定删除此预设吗？",
-            "saveAsImage": "保存为图片"
+            "saveAsImage": "保存为图片",
+            "newSetting": "新增",
+            "itemCopies": "复制项目",
+            "duplicateSettings": "复制",
+            "deleteSettings": "删除当前预设"
         },
         "qrcode": {
-            "button": "打印二维码",
-            "title": "打印二维码",
+            "button": "打印标签",
+            "title": "打印标签",
             "spoolWeight": "料盘重量：{{weight}}",
             "lotNr": "批号：{{lot}}",
             "bedTemp": "热床温度：{{temp}}",
             "extruderTemp": "挤出温度：{{temp}}",
-            "textSize": "内容文本大小",
+            "textSize": "标签文本大小",
             "showSpoolmanIcon": "显示Spoolman图标",
             "showVendor": "制造商",
             "showContent": "打印标签",
@@ -118,12 +122,23 @@
             "showQRCode": "打印二维码",
             "showQRCodeMode": {
                 "no": "否",
-                "withIcon": "含图标"
+                "withIcon": "含图标",
+                "simple": "简单"
+            },
+            "templateHelp": "使用 {} 将料盘的值插入为文本。例如，{id} 将被替换为料盘的ID，或者 {filament.material} 将被替换为料盘的材质。如果某个值缺失，将用 \"?\" 替代。可以使用第二组 {} 来删除缺失值相关的内容。此外，任意位于两组 {} 之间的文本，如果值缺失，将被一同删除。例如，{Lot Nr: {lot_nr}} 只有在料盘存在批号时才会显示标签内容。用双星号 ** 包裹文本可以将其加粗。点击按钮查看所有可用的标签列表。",
+            "useHTTPUrl": {
+                "tooltip": "将使用专有链接（默认情况下，仅能通过 **Spoolman** 的扫描功能访问）。URL 将使用设置中指定的基础 URL；如果未设置基础 URL，则使用当前页面的 URL。",
+                "label": "二维码链接",
+                "options": {
+                    "default": "默认",
+                    "url": "URL"
+                },
+                "preview": "预览："
             }
         },
         "spoolSelect": {
             "title": "选择料盘",
-            "description": "选择要打印二维码的料盘。",
+            "description": "选择要打印标签的料盘。",
             "showArchived": "显示存档",
             "noSpoolsSelected": "您尚未选择任何料盘。",
             "selectAll": "选择/取消选择全部",
@@ -238,7 +253,7 @@
             "weight": "一整卷耗材的重量（净重）。不应包括料盘本身的重量，仅计算耗材的重量。通常在包装上注明。",
             "spool_weight": "空料盘的重量。使用它来计算耗材的重量。",
             "article_number": "例如EAN、UPC等。",
-            "multi_color_direction": "耗材有2种方式实现多色：如通过共挤出，比如多色种类一致的双色耗材，如顺着耗材渐变的耗材"
+            "multi_color_direction": "耗材可以通过两种方式实现多种颜色：共挤出：例如双色耗材，具有稳定的多色组合。纵向颜色变化：例如渐变色耗材，颜色沿着料盘逐渐变化。"
         },
         "titles": {
             "create": "创建耗材",
@@ -367,6 +382,10 @@
             "tab": "常规",
             "currency": {
                 "label": "货币"
+            },
+            "base_url": {
+                "label": "基础URL",
+                "tooltip": "生成功能（例如二维码）时使用的基础 URL。"
             }
         }
     }
