@@ -1,39 +1,19 @@
-import { useInvalidate } from "@refinedev/core";
-import { useDrop } from "react-dnd";
-
 import { theme } from "antd";
 import { ISpool } from "../../spools/model";
-import { ItemTypes } from "../itemTypes";
-import { setSpoolLocation } from "./../functions";
 import { SpoolCard } from "./spoolCard";
 
 const { useToken } = theme;
 
 export function SpoolList({
-  location,
   spools,
   spoolOrder,
   setSpoolOrder,
 }: {
-  location: string;
   spools: ISpool[];
   spoolOrder: number[];
   setSpoolOrder: (spoolOrder: number[]) => void;
 }) {
   const { token } = useToken();
-  const invalidate = useInvalidate();
-  const [, spoolDrop] = useDrop(() => ({
-    accept: ItemTypes.SPOOL,
-    drop: async (item: ISpool) => {
-      if (item.location === location) return;
-      await setSpoolLocation(item.id, location);
-      await invalidate({
-        resource: "spool",
-        id: item.id,
-        invalidates: ["list", "detail"],
-      });
-    },
-  }));
 
   // Make sure all spools are in the spoolOrders array
   const finalSpoolOrder = [...spoolOrder].filter((id) => spools.find((spool) => spool.id === id)); // Remove any spools that are not in the spools array
@@ -41,8 +21,23 @@ export function SpoolList({
     if (!finalSpoolOrder.includes(spool.id)) finalSpoolOrder.push(spool.id);
   });
 
-  // Reorder the spools based on the spoolOrder array
-  const reorderedSpools = finalSpoolOrder.map((id) => spools.find((spool) => spool.id === id)!);
+  const moveSpoolOrder = (spool_id: number, hoverIndex: number) => {
+    // Move spool spool_id to position hoverIndex
+    let curIdx = finalSpoolOrder.indexOf(spool_id);
+    if (curIdx === -1) {
+      // Spool is missing from spool order array, add it to the end of the array
+      finalSpoolOrder.push(spool_id);
+      curIdx = finalSpoolOrder.length - 1;
+    } else if (curIdx === hoverIndex) {
+      // Spool is already in the right position
+      return;
+    }
+
+    const newSpoolOrder = [...finalSpoolOrder];
+    newSpoolOrder.splice(curIdx, 1);
+    newSpoolOrder.splice(hoverIndex, 0, finalSpoolOrder[curIdx]);
+    setSpoolOrder(newSpoolOrder);
+  };
 
   const style = {
     backgroundColor: token.colorBgContainer,
@@ -50,9 +45,9 @@ export function SpoolList({
   };
 
   return (
-    <div className="loc-spools" ref={spoolDrop} style={style}>
-      {reorderedSpools.map((spool) => (
-        <SpoolCard key={spool.id} spool={spool} />
+    <div className="loc-spools" style={style}>
+      {spools.map((spool, idx) => (
+        <SpoolCard key={spool.id} index={idx} spool={spool} moveSpoolOrder={moveSpoolOrder} />
       ))}
     </div>
   );

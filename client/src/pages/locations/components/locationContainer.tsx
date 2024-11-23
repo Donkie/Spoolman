@@ -4,21 +4,25 @@ import { Button } from "antd";
 import { useEffect, useMemo } from "react";
 import { useSetSetting } from "../../../utils/querySettings";
 import { ISpool } from "../../spools/model";
-import { renameSpoolLocation, useLocations, useLocationsSpoolOrders } from "../functions";
+import { useLocations, useLocationsSpoolOrders, useRenameSpoolLocation } from "../functions";
 import { Location } from "./location";
 
 export function LocationContainer() {
   const t = useTranslate();
   const invalidate = useInvalidate();
+  const renameSpoolLocation = useRenameSpoolLocation();
 
   const settingsLocations = useLocations();
   const setLocationsSetting = useSetSetting<string[]>("locations");
 
   const locationsSpoolOrders = useLocationsSpoolOrders();
-  console.log("locationsSpoolOrders", locationsSpoolOrders);
   const setLocationsSpoolOrders = useSetSetting<Record<string, number[]>>("locations_spoolorders");
 
-  const { data, isLoading, isError } = useList<ISpool>({
+  const {
+    data: spoolData,
+    isLoading,
+    isError,
+  } = useList<ISpool>({
     resource: "spool",
     meta: {
       queryParams: {
@@ -30,12 +34,11 @@ export function LocationContainer() {
     },
   });
 
-  // Grab spools and sort by ID
-  const spools = data?.data ?? [];
-  spools.sort((a, b) => a.id - b.id);
-
   // Group spools by location
-  const spoolLocations = useMemo(() => {
+  const spoolLocations = (() => {
+    const spools = spoolData?.data ?? [];
+    spools.sort((a, b) => a.id - b.id);
+
     const grouped: Record<string, ISpool[]> = {};
     spools.forEach((spool) => {
       const loc = spool.location ?? t("spool.no_location");
@@ -44,14 +47,32 @@ export function LocationContainer() {
       }
       grouped[loc].push(spool);
     });
+
+    // Sort spools in the locations by the spool order
+    for (const loc of Object.keys(grouped)) {
+      if (!locationsSpoolOrders[loc]) {
+        continue;
+      }
+      grouped[loc].sort((a, b) => {
+        let aidx = locationsSpoolOrders[loc].indexOf(a.id);
+        if (aidx === -1) {
+          aidx = 999999;
+        }
+        let bidx = locationsSpoolOrders[loc].indexOf(b.id);
+        if (bidx === -1) {
+          bidx = 999999;
+        }
+        return aidx - bidx;
+      });
+    }
+
     return grouped;
-  }, [spools]);
+  })();
 
   // Create list of locations that's sorted
   const locationsList = useMemo(() => {
     // Start with the locations setting
     let allLocs = settingsLocations;
-    console.log("settingsLocations", settingsLocations);
 
     // Add any missing locations from the spools
     for (const loc of Object.keys(spoolLocations)) {
@@ -77,8 +98,7 @@ export function LocationContainer() {
 
     // Update all spool locations in the database
     if (spoolLocations[location] && spoolLocations[location].length > 0) {
-      await renameSpoolLocation(location, newTitle);
-      await invalidate({ resource: "spool", invalidates: ["list", "detail"] });
+      renameSpoolLocation.mutate({ old: location, new: newTitle });
     }
 
     // Update the value in the settings

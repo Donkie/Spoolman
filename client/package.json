@@ -36,10 +36,12 @@
     "react-router-dom": "^6.28.0",
     "react-to-print": "^2.15.1",
     "uuid": "^11.0.3",
-    "vite-plugin-svgr": "^4.3.0"
+    "vite-plugin-svgr": "^4.3.0",
+    "zustand": "^5.0.1"
   },
   "devDependencies": {
     "@refinedev/cli": "^2.16.39",
+    "@simbathesailor/use-what-changed": "^2.0.0",
     "@types/node": "^22.9.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",

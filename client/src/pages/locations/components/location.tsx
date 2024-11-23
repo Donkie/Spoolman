@@ -4,14 +4,10 @@ import { useRef, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
 
 import { DeleteOutlined } from "@ant-design/icons";
+import { useUpdate } from "@refinedev/core";
 import { ISpool } from "../../spools/model";
-import { ItemTypes } from "../itemTypes";
+import { DragItem, ItemTypes, SpoolDragItem } from "../dnd";
 import { SpoolList } from "./spoolList";
-
-interface DragItem {
-  index: number;
-  title: string;
-}
 
 export function Location({
   index,
@@ -36,10 +32,24 @@ export function Location({
 }) {
   const [editTitle, setEditTitle] = useState(false);
   const [newTitle, setNewTitle] = useState(title);
+  const { mutate: updateSpool } = useUpdate({
+    resource: "spool",
+    mutationMode: "optimistic",
+    successNotification: false,
+  });
+
+  const moveSpoolLocation = (spool_id: number, location: string) => {
+    updateSpool({
+      id: spool_id,
+      values: {
+        location: location,
+      },
+    });
+  };
 
   const ref = useRef<HTMLDivElement>(null);
   const [{ handlerId }, drop] = useDrop<DragItem, void, { handlerId: Identifier | null }>({
-    accept: ItemTypes.CONTAINER,
+    accept: [ItemTypes.CONTAINER, ItemTypes.SPOOL],
     collect(monitor) {
       return {
         handlerId: monitor.getHandlerId(),
@@ -49,6 +59,21 @@ export function Location({
       if (!ref.current) {
         return null;
       }
+
+      if ("spool" in item) {
+        // Only allow dropping spools on the container if it's empty.
+        if (spools.length > 0) {
+          return null;
+        }
+
+        const spoolitem = item as SpoolDragItem;
+        if (spoolitem.spool.location !== title) {
+          moveSpoolLocation(spoolitem.spool.id, title);
+          spoolitem.spool.location = title;
+        }
+        return null;
+      }
+
       const dragIndex = item.index;
       const hoverIndex = index;
 
@@ -127,12 +152,7 @@ export function Location({
         )}
         {showDelete && <Button icon={<DeleteOutlined />} size="small" type="text" onClick={onDelete} />}
       </h3>
-      <SpoolList
-        location={title}
-        spools={spools}
-        spoolOrder={locationSpoolOrder}
-        setSpoolOrder={setLocationSpoolOrder}
-      />
+      <SpoolList spools={spools} spoolOrder={locationSpoolOrder} setSpoolOrder={setLocationSpoolOrder} />
     </div>
   );
 }
