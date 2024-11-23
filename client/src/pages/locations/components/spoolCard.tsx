@@ -4,11 +4,17 @@ import type { Identifier, XYCoord } from "dnd-core";
 import { useDrag, useDrop } from "react-dnd";
 
 import { EditOutlined, EyeOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import utc from "dayjs/plugin/utc";
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import SpoolIcon from "../../../components/spoolIcon";
 import { ISpool } from "../../spools/model";
 import { ItemTypes, SpoolDragItem, useCurrentDraggedSpool } from "../dnd";
+
+dayjs.extend(utc);
+dayjs.extend(relativeTime);
 
 const { useToken } = theme;
 
@@ -134,6 +140,21 @@ export function SpoolCard({
   };
   drag(drop(ref));
 
+  function formatSubtitle(spool: ISpool) {
+    let str = "";
+    if (spool.filament.material) str += spool.filament.material + " - ";
+    if (spool.filament.weight) {
+      const remaining_weight = spool.remaining_weight ?? spool.filament.weight;
+      str += `${remaining_weight} / ${spool.filament.weight} g`;
+    }
+    if (spool.last_used) {
+      // Format like "last used X time ago"
+      const dt = dayjs(spool.last_used);
+      str += ` - ${t("spool.formats.last_used", { date: dt.fromNow() })}`;
+    }
+    return str;
+  }
+
   return (
     <div className="spool" ref={ref} style={style} data-handler-id={handlerId}>
       <SpoolIcon color={colorObj} />
@@ -157,7 +178,7 @@ export function SpoolCard({
             color: token.colorTextSecondary,
           }}
         >
-          {spool.remaining_weight} / {spool.filament.weight} g
+          {formatSubtitle(spool)}
         </div>
       </div>
     </div>

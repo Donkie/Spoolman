@@ -41,7 +41,7 @@ export function LocationContainer() {
 
     const grouped: Record<string, ISpool[]> = {};
     spools.forEach((spool) => {
-      const loc = spool.location ?? t("spool.no_location");
+      const loc = spool.location ?? t("locations.no_location");
       if (!grouped[loc]) {
         grouped[loc] = [];
       }
@@ -155,12 +155,13 @@ export function LocationContainer() {
   }
 
   const addNewLocation = () => {
-    let newLocationName = "New Location";
+    const baseLocationName = t("locations.new_location");
+    let newLocationName = baseLocationName;
 
     const newLocs = [...locationsList];
     let i = 1;
     while (newLocs.includes(newLocationName)) {
-      newLocationName = "New Location " + i;
+      newLocationName = baseLocationName + " " + i;
       i++;
     }
     newLocs.push(newLocationName);

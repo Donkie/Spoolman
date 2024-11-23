@@ -208,6 +208,9 @@
         },
         "messages": {
             "archive": "Are you sure you want to archive this spool?"
+        },
+        "formats": {
+            "last_used": "Last used {{date}}"
         }
     },
     "filament": {
@@ -377,5 +380,9 @@
             "create": "Create Manufacturer | Spoolman",
             "clone": "#{{id}} Clone Manufacturer | Spoolman"
         }
+    },
+    "locations": {
+        "new_location": "New Location",
+        "no_location": "No Location"
     }
 }

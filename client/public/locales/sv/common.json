@@ -210,6 +210,9 @@
             "measurement_type_label": "Mättyp",
             "adjust_filament_value": "Mängd att konsumera",
             "adjust_filament_help": "Här kan du direkt lägga till eller subtrahera filament från spolen. Ett positivt värde kommer att konsumera filament, ett negativt värde kommer att lägga till det."
+        },
+        "formats": {
+            "last_used": "Senast använd {{date}}"
         }
     },
     "filament": {
@@ -376,5 +379,9 @@
         "description": "<title>Hjälp</title><p>Här är några tips för att komma igång.</p><p>Spoolman innehåller 3 olika typer av data:</p><itemsHelp/><p>För att lägga till en ny spole i databasen måste du först skapa ett <filamentCreateLink>Filament</filamentCreateLink>-objekt för den. När det är klart kan du sedan skapa ett <spoolCreateLink>Spol</spoolCreateLink>-objekt för den individuella spolen. Om du sedan köper ytterligare spolar av samma filament kan du bara skapa ytterligare Spol-objekt och återanvända samma Filament-objekt.</p><p>Du kan valfritt också skapa ett <vendorCreateLink>Tillverkar</vendorCreateLink>-objekt för företaget som tillverkar filamentet om du vill spåra den informationen.</p><p>Du kan koppla andra 3D-skrivartjänster till Spoolman, som Moonraker, som sedan automatiskt kan spåra filamentanvändning och uppdatera Spol-objekten åt dig. Se <readmeLink>Spoolman README</readmeLink> för hur du gör det.</p>",
         "help": "Hjälp"
     },
-    "kofi": "Dricksa mig på Ko-fi"
+    "kofi": "Dricksa mig på Ko-fi",
+    "locations": {
+        "new_location": "Ny plats",
+        "no_location": "Ingen plats"
+    }
 }
