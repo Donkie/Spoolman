@@ -1,4 +1,4 @@
-import { Button, Input } from "antd";
+import { Button, Input, theme } from "antd";
 import type { Identifier, XYCoord } from "dnd-core";
 import { useRef, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
@@ -9,6 +9,8 @@ import { ISpool } from "../../spools/model";
 import { DragItem, ItemTypes, SpoolDragItem } from "../dnd";
 import { EMPTYLOC } from "../functions";
 import { SpoolList } from "./spoolList";
+
+const { useToken } = theme;
 
 export function Location({
   index,
@@ -31,6 +33,7 @@ export function Location({
   locationSpoolOrder: number[];
   setLocationSpoolOrder: (spoolOrder: number[]) => void;
 }) {
+  const { token } = useToken();
   const t = useTranslate();
   const [editTitle, setEditTitle] = useState(false);
   const [newTitle, setNewTitle] = useState(title);
@@ -133,6 +136,10 @@ export function Location({
 
   const canEditTitle = title != EMPTYLOC;
 
+  const titleStyle = {
+    color: canEditTitle ? undefined : token.colorTextTertiary,
+  };
+
   return (
     <div
       className={"loc-container " + (title != EMPTYLOC ? "grabable" : "")}
@@ -161,6 +168,7 @@ export function Location({
               setNewTitle(title);
               setEditTitle(true);
             }}
+            style={titleStyle}
           >
             {displayTitle}
           </span>

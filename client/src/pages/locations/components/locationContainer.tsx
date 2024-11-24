@@ -176,19 +176,24 @@ export function LocationContainer() {
   };
 
   return (
-    <div className="loc-metacontainer">
-      {containers}
-      <div className="newLocContainer">
-        <Button
-          type="dashed"
-          shape="circle"
-          icon={<PlusOutlined />}
-          size="large"
-          style={{
-            margin: "1em",
-          }}
-          onClick={addNewLocation}
-        />
+    <div>
+      {!isLoading && spoolData.data.length == 0 && (
+        <div className="no-locations">{t("locations.no_locations_help")}</div>
+      )}
+      <div className="loc-metacontainer">
+        {containers}
+        <div className="newLocContainer">
+          <Button
+            type="dashed"
+            shape="circle"
+            icon={<PlusOutlined />}
+            size="large"
+            style={{
+              margin: "1em",
+            }}
+            onClick={addNewLocation}
+          />
+        </div>
       </div>
     </div>
   );

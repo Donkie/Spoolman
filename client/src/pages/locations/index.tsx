@@ -1,4 +1,4 @@
-import { IResourceComponentsProps } from "@refinedev/core";
+import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import React from "react";
@@ -11,10 +11,14 @@ import "./locations.css";
 dayjs.extend(utc);
 
 export const Locations: React.FC<IResourceComponentsProps> = () => {
+  const t = useTranslate();
   return (
-    <DndProvider backend={HTML5Backend}>
-      <LocationContainer />
-    </DndProvider>
+    <div>
+      <h1>{t("locations.locations")}</h1>
+      <DndProvider backend={HTML5Backend}>
+        <LocationContainer />
+      </DndProvider>
+    </div>
   );
 };
 

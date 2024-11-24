@@ -359,6 +359,9 @@
         "help": {
             "list": "Help | Spoolman"
         },
+        "locations": {
+            "list": "Locations | Spoolman"
+        },
         "filament": {
             "list": "Filaments | Spoolman",
             "show": "#{{id}} Show Filament | Spoolman",
@@ -382,7 +385,9 @@
         }
     },
     "locations": {
+        "locations": "Locations",
         "new_location": "New Location",
-        "no_location": "No Location"
+        "no_location": "No Location",
+        "no_locations_help": "This page lets you organize your spools in locations, add some spools to get started!"
     }
 }
