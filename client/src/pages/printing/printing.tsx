@@ -100,17 +100,13 @@ export function renderLabelContents(template: string, spool: ISpool): JSX.Elemen
   // Find all {tags} in the template string and loop over them
   // let matches = [...template.matchAll(/(?:{(.*?))?{(.*?)}(.*?)(?:}(.*?))?/gs)];
   let matches = [...template.matchAll(/{(?:[^}{]|{[^}{]*})*}/gs)];
-// console.log(matches){(?:[^}{]|{[^}{]*})*}
   let label_text = template;
   matches.forEach((match) => {
-    // console.log(match)
-    if ((match[0].match(/{/g)||[]).length == 1) {
+    if ((match[0].match(/{/g) || []).length == 1) {
       let tag = match[0].replace(/[{}]/g, "");
-      // console.log(tag)
-      let tagValue = getTagValue(tag, spool)
+      let tagValue = getTagValue(tag, spool);
       label_text = label_text.replace(match[0], tagValue);
-    }
-    else if ((match[0].match(/{/g)||[]).length == 2) {
+    } else if ((match[0].match(/{/g) || []).length == 2) {
       let structure = match[0].match(/{(.*?){(.*?)}(.*?)}/);
       if (structure != null) {
         const tag = structure[2];

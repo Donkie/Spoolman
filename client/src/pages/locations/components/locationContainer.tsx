@@ -141,7 +141,6 @@ export function LocationContainer() {
   useEffect(() => {
     // Check if they're not the same
     if (JSON.stringify(locationsList) !== JSON.stringify(settingsLocations)) {
-      console.log("Updating locations settings", locationsList, settingsLocations);
       setLocationsSetting.mutate(locationsList);
     }
   }, [spoolLocations]);

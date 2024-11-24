@@ -61,8 +61,6 @@ const dataProvider = (
       params: queryParams,
     });
 
-    // console.log(url, requestMethod, queryParams, data, headers)
-
     return {
       data,
       total: parseInt(headers["x-total-count"]) ?? 100,

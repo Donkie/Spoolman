@@ -52,7 +52,6 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
 
   // Update colorType state
   useEffect(() => {
-    console.log(formProps.initialValues?.multi_color_hexes);
     if (formProps.initialValues?.multi_color_hexes) {
       setColorType("multi");
     } else {
@@ -325,13 +324,13 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           <Input maxLength={64} />
         </Form.Item>
         <Form.Item
-            label={t("filament.fields.external_id")}
-            name={["external_id"]}
-            rules={[
-              {
-                required: false,
-              },
-            ]}
+          label={t("filament.fields.external_id")}
+          name={["external_id"]}
+          rules={[
+            {
+              required: false,
+            },
+          ]}
         >
           <Input maxLength={64} />
         </Form.Item>

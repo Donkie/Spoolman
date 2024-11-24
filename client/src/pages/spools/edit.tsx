@@ -5,6 +5,7 @@ import TextArea from "antd/es/input/TextArea";
 import { message } from "antd/lib";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import { useSpoolmanLocations } from "../../components/otherModels";
 import { searchMatches } from "../../utils/filtering";
@@ -32,6 +33,8 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   const [hasChanged, setHasChanged] = useState(false);
   const extraFields = useGetFields(EntityType.spool);
   const currency = useCurrency();
+  const [searchParams, _] = useSearchParams();
+  const navigate = useNavigate();
 
   const { form, formProps, saveButtonProps } = useForm<ISpool, HttpError, ISpoolRequest, ISpool>({
     liveMode: "manual",
@@ -39,6 +42,17 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
       // Warn the user if the spool has been updated since the form was opened
       messageApi.warning(t("spool.form.spool_updated"));
       setHasChanged(true);
+    },
+
+    // Custom redirect logic
+    redirect: false,
+    onMutationSuccess: () => {
+      const returnUrl = searchParams.get("return");
+      if (returnUrl) {
+        navigate(returnUrl, { relative: "path" });
+      } else {
+        navigate("/spool");
+      }
     },
   });
 
@@ -118,7 +132,6 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   useEffect(() => {
     const newFilamentWeight = selectedFilament?.weight || 0;
     const newSpoolWeight = selectedFilament?.spool_weight || 0;
-    console.log("selectedFilament", selectedFilament, newFilamentWeight, newSpoolWeight);
     if (newFilamentWeight > 0) {
       form.setFieldValue("initial_weight", newFilamentWeight);
     }

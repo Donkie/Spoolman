@@ -164,7 +164,7 @@ export function SpoolCard({
             #{spool.id} {filament_name}
           </span>
           <div>
-            <Link to={editUrl("spool", spool.id)}>
+            <Link to={`/spool/edit/${spool.id}?return=` + encodeURIComponent(window.location.pathname)}>
               <Button icon={<EditOutlined />} title={t("buttons.edit")} size="small" type="text" />
             </Link>
             <Link to={showUrl("spool", spool.id)}>
