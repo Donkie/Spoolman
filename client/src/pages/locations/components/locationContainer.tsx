@@ -1,15 +1,14 @@
 import { PlusOutlined } from "@ant-design/icons";
-import { useInvalidate, useList, useTranslate } from "@refinedev/core";
+import { useList, useTranslate } from "@refinedev/core";
 import { Button } from "antd";
 import { useEffect, useMemo } from "react";
 import { useSetSetting } from "../../../utils/querySettings";
 import { ISpool } from "../../spools/model";
-import { useLocations, useLocationsSpoolOrders, useRenameSpoolLocation } from "../functions";
+import { EMPTYLOC, useLocations, useLocationsSpoolOrders, useRenameSpoolLocation } from "../functions";
 import { Location } from "./location";
 
 export function LocationContainer() {
   const t = useTranslate();
-  const invalidate = useInvalidate();
   const renameSpoolLocation = useRenameSpoolLocation();
 
   const settingsLocations = useLocations();
@@ -41,7 +40,7 @@ export function LocationContainer() {
 
     const grouped: Record<string, ISpool[]> = {};
     spools.forEach((spool) => {
-      const loc = spool.location ?? t("locations.no_location");
+      const loc = spool.location ?? EMPTYLOC;
       if (!grouped[loc]) {
         grouped[loc] = [];
       }
@@ -71,12 +70,18 @@ export function LocationContainer() {
 
   // Create list of locations that's sorted
   const locationsList = useMemo(() => {
-    // Start with the locations setting
-    let allLocs = settingsLocations;
+    // Start with the default loc
+    let allLocs = [];
+    if (EMPTYLOC in spoolLocations) {
+      allLocs.push(EMPTYLOC);
+    }
+
+    // Add from the locations setting
+    if (settingsLocations) allLocs.push(...settingsLocations);
 
     // Add any missing locations from the spools
     for (const loc of Object.keys(spoolLocations)) {
-      if (!allLocs.includes(loc)) {
+      if (loc != EMPTYLOC && !allLocs.includes(loc)) {
         allLocs.push(loc);
       }
     }
@@ -88,13 +93,14 @@ export function LocationContainer() {
     const newLocs = [...locationsList];
     newLocs.splice(dragIndex, 1);
     newLocs.splice(hoverIndex, 0, locationsList[dragIndex]);
-    setLocationsSetting.mutate(newLocs);
+    setLocationsSetting.mutate(newLocs.filter((loc) => loc != EMPTYLOC));
   };
 
   const onEditTitle = async (location: string, newTitle: string) => {
-    if (newTitle == location) return;
-    if (newTitle == "") return;
-    if (locationsList.includes(newTitle)) return;
+    if (location == "") return; // Can't edit the default location
+    if (newTitle == location) return; // No change
+    if (newTitle == "") return; // Can't have an empty location
+    if (locationsList.includes(newTitle)) return; // Location already exists
 
     // Update all spool locations in the database
     if (spoolLocations[location] && spoolLocations[location].length > 0) {
@@ -102,7 +108,7 @@ export function LocationContainer() {
     }
 
     // Update the value in the settings
-    const newLocs = [...locationsList];
+    const newLocs = [...locationsList].filter((loc) => loc != EMPTYLOC);
     newLocs[locationsList.indexOf(location)] = newTitle;
     setLocationsSetting.mutate(newLocs);
   };
@@ -140,10 +146,11 @@ export function LocationContainer() {
   // Update locations settings so it always includes all spool locations
   useEffect(() => {
     // Check if they're not the same
-    if (JSON.stringify(locationsList) !== JSON.stringify(settingsLocations)) {
-      setLocationsSetting.mutate(locationsList);
+    const curLocList = locationsList.filter((l) => l != EMPTYLOC);
+    if (settingsLocations != null && JSON.stringify(curLocList) !== JSON.stringify(settingsLocations)) {
+      setLocationsSetting.mutate(curLocList);
     }
-  }, [spoolLocations]);
+  }, [locationsList, settingsLocations, setLocationsSetting]);
 
   if (isLoading) {
     return <div>Loading...</div>;

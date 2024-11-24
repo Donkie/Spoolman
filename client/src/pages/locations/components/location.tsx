@@ -4,9 +4,10 @@ import { useRef, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
 
 import { DeleteOutlined } from "@ant-design/icons";
-import { useUpdate } from "@refinedev/core";
+import { useTranslate, useUpdate } from "@refinedev/core";
 import { ISpool } from "../../spools/model";
 import { DragItem, ItemTypes, SpoolDragItem } from "../dnd";
+import { EMPTYLOC } from "../functions";
 import { SpoolList } from "./spoolList";
 
 export function Location({
@@ -30,6 +31,7 @@ export function Location({
   locationSpoolOrder: number[];
   setLocationSpoolOrder: (spoolOrder: number[]) => void;
 }) {
+  const t = useTranslate();
   const [editTitle, setEditTitle] = useState(false);
   const [newTitle, setNewTitle] = useState(title);
   const { mutate: updateSpool } = useUpdate({
@@ -47,9 +49,11 @@ export function Location({
     });
   };
 
+  const dropTypes = title == EMPTYLOC ? [ItemTypes.SPOOL] : [ItemTypes.CONTAINER, ItemTypes.SPOOL];
+
   const ref = useRef<HTMLDivElement>(null);
   const [{ handlerId }, drop] = useDrop<DragItem, void, { handlerId: Identifier | null }>({
-    accept: [ItemTypes.CONTAINER, ItemTypes.SPOOL],
+    accept: dropTypes,
     collect(monitor) {
       return {
         handlerId: monitor.getHandlerId(),
@@ -113,7 +117,7 @@ export function Location({
 
   const [{ isDragging }, drag] = useDrag({
     type: ItemTypes.CONTAINER,
-    canDrag: !editTitle,
+    canDrag: !editTitle && title != EMPTYLOC,
     item: () => {
       return { title, index };
     },
@@ -122,11 +126,20 @@ export function Location({
     }),
   });
 
+  const displayTitle = title == EMPTYLOC ? t("locations.no_location") : title;
+
   const opacity = isDragging ? 0 : 1;
   drag(drop(ref));
 
+  const canEditTitle = title != EMPTYLOC;
+
   return (
-    <div className="loc-container" ref={ref} style={{ opacity }} data-handler-id={handlerId}>
+    <div
+      className={"loc-container " + (title != EMPTYLOC ? "grabable" : "")}
+      ref={ref}
+      style={{ opacity }}
+      data-handler-id={handlerId}
+    >
       <h3>
         {editTitle ? (
           <Input
@@ -142,12 +155,14 @@ export function Location({
           />
         ) : (
           <span
+            className={canEditTitle ? "editable" : ""}
             onClick={() => {
+              if (!canEditTitle) return;
               setNewTitle(title);
               setEditTitle(true);
             }}
           >
-            {title}
+            {displayTitle}
           </span>
         )}
         {showDelete && <Button icon={<DeleteOutlined />} size="small" type="text" onClick={onDelete} />}

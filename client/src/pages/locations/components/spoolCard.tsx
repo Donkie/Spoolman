@@ -29,7 +29,7 @@ export function SpoolCard({
 }) {
   const { token } = useToken();
   const t = useTranslate();
-  const { editUrl, showUrl } = useNavigation();
+  const { showUrl } = useNavigation();
 
   // Using a global state for this, because the drag handlers are reset when the spool changes location
   const { draggedSpoolId, setDraggedSpoolId } = useCurrentDraggedSpool();

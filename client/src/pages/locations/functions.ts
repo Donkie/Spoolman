@@ -5,6 +5,8 @@ import { useGetSetting } from "../../utils/querySettings";
 import { getAPIURL } from "../../utils/url";
 import { ISpool } from "../spools/model";
 
+export const EMPTYLOC = "";
+
 interface LocationRename {
   old: string;
   new: string;
@@ -74,11 +76,11 @@ export function useRenameSpoolLocation() {
   });
 }
 
-export function useLocations(): string[] {
+export function useLocations(): string[] | null {
   const query = useGetSetting("locations");
 
   return useMemo(() => {
-    if (!query.data) return [];
+    if (!query.data) return null;
 
     try {
       let data = (JSON.parse(query.data.value) ?? []) as string[];
@@ -86,7 +88,7 @@ export function useLocations(): string[] {
       return data;
     } catch {
       console.warn("Failed to parse locations", query.data.value);
-      return [];
+      return null;
     }
   }, [query.data]);
 }
