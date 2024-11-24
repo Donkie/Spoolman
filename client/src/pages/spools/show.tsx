@@ -1,7 +1,7 @@
-import {InboxOutlined, PrinterOutlined, ToTopOutlined} from "@ant-design/icons";
+import { InboxOutlined, PrinterOutlined, ToTopOutlined } from "@ant-design/icons";
 import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
-import {IResourceComponentsProps, useInvalidate, useShow, useTranslate} from "@refinedev/core";
-import {Button, Modal, Typography} from "antd";
+import { IResourceComponentsProps, useInvalidate, useShow, useTranslate } from "@refinedev/core";
+import { Button, Modal, Typography } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import React from "react";
@@ -12,8 +12,8 @@ import { enrichText } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useCurrency } from "../../utils/settings";
 import { IFilament } from "../filaments/model";
+import { setSpoolArchived } from "./functions";
 import { ISpool } from "./model";
-import {setSpoolArchived} from "./functions";
 
 dayjs.extend(utc);
 
@@ -52,9 +52,9 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
     });
   };
 
-  const archiveSpoolPopup = async (spool: ISpool|undefined) => {
+  const archiveSpoolPopup = async (spool: ISpool | undefined) => {
     if (spool === undefined) {
-      return
+      return;
     }
     // If the spool has no remaining weight, archive it immediately since it's likely not a mistake
     if (spool.remaining_weight != undefined && spool.remaining_weight <= 0) {
@@ -116,27 +116,20 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       headerButtons={({ defaultButtons }) => (
         <>
           <Button
-              type="primary"
-              icon={<PrinterOutlined />}
-              href={"/spool/print?spools=" + record?.id + "&return=" + encodeURIComponent(window.location.pathname)}
+            type="primary"
+            icon={<PrinterOutlined />}
+            href={"/spool/print?spools=" + record?.id + "&return=" + encodeURIComponent(window.location.pathname)}
           >
             {t("printing.qrcode.button")}
           </Button>
           {record?.archived ? (
-              <Button
-                  icon={<ToTopOutlined />}
-                  onClick={() => archiveSpool(record, false)}
-              >
-                {t("buttons.unArchive")}
-              </Button>
+            <Button icon={<ToTopOutlined />} onClick={() => archiveSpool(record, false)}>
+              {t("buttons.unArchive")}
+            </Button>
           ) : (
-              <Button
-                  danger
-                  icon={<InboxOutlined />}
-                  onClick={() => archiveSpoolPopup(record)}
-              >
-                {t("buttons.archive")}
-              </Button>
+            <Button danger icon={<InboxOutlined />} onClick={() => archiveSpoolPopup(record)}>
+              {t("buttons.archive")}
+            </Button>
           )}
 
           {defaultButtons}

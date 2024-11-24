@@ -1,0 +1,75 @@
+.loc-metacontainer {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.loc-container {
+  padding: 1em;
+  width: 24em;
+}
+
+.loc-container.grabable,
+.loc-container .spool {
+  cursor: move;
+  cursor: grab;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+}
+
+.loc-container h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 21px;
+  width: 100%;
+}
+
+.loc-container h3 span {
+  cursor: default;
+}
+
+.loc-container h3 span.editable {
+  cursor: text;
+}
+
+.loc-container h3 input {
+  font-size: 21px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.loc-container .loc-spools {
+  padding: 0.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  min-height: 3em;
+  max-height: 50em;
+  overflow-y: scroll;
+}
+
+.loc-container .spool {
+  padding: 0.5em 0.5em 0.5em 0;
+  display: flex;
+  align-items: center;
+  border-radius: 0.5em;
+}
+
+.loc-container .spool .info {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.loc-container .spool .info .title {
+  font-size: 1em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.loc-container .spool .info .subtitle {
+  font-size: 0.8em;
+}
