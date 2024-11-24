@@ -13,6 +13,7 @@ import { numberFormatter, numberParser } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { createFilamentFromExternal } from "../filaments/functions";
+import { useLocations } from "../locations/functions";
 import { useGetFilamentSelectOptions } from "./functions";
 import { ISpool, ISpoolParsedExtras, WeightToEnter } from "./model";
 
@@ -148,9 +149,15 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   };
 
   const locations = useSpoolmanLocations(true);
+  const settingsLocation = useLocations();
   const [newLocation, setNewLocation] = useState("");
 
-  const allLocations = [...(locations.data || [])];
+  const allLocations = [...(settingsLocation || [])];
+  locations?.data?.forEach((loc) => {
+    if (!allLocations.includes(loc)) {
+      allLocations.push(loc);
+    }
+  });
   if (newLocation.trim() && !allLocations.includes(newLocation)) {
     allLocations.push(newLocation.trim());
   }
