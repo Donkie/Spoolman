@@ -103,7 +103,7 @@
         "importProgress": "Importowanie: {{processed}}/{{total}}",
         "error": "Błąd (kod statusu: {{statusCode}})",
         "createError": "Wystąpił błąd podczas tworzenia {{resource}} (kod statusu: {{statusCode}})",
-        "saveSuccessful": "Zapisano pomyślnie!",
+        "saveSuccessful": "Pomyślnie zapisano!",
         "validationError": "Błąd walidacji: {{error}}"
     },
     "loading": "Wczytywanie",
