@@ -10,6 +10,7 @@ import utc from "dayjs/plugin/utc";
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import SpoolIcon from "../../../components/spoolIcon";
+import { formatWeight } from "../../../utils/parsing";
 import { ISpool } from "../../spools/model";
 import { ItemTypes, SpoolDragItem, useCurrentDraggedSpool } from "../dnd";
 
@@ -145,7 +146,7 @@ export function SpoolCard({
     if (spool.filament.material) str += spool.filament.material + " - ";
     if (spool.filament.weight) {
       const remaining_weight = spool.remaining_weight ?? spool.filament.weight;
-      str += `${remaining_weight} / ${spool.filament.weight} g`;
+      str += `${formatWeight(remaining_weight, 0)} / ${formatWeight(spool.filament.weight, 0)}`;
     }
     if (spool.last_used) {
       // Format like "last used X time ago"

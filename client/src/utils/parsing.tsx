@@ -97,7 +97,8 @@ export function formatWeight(weightInGrams: number, precision: number = 2): stri
     const kilograms = (weightInGrams / 1000).toFixed(precision).replace(/\.?0+$/, ""); // Remove trailing zeros
     return `${kilograms} kg`;
   } else {
-    return `${weightInGrams} g`;
+    const grams = weightInGrams.toFixed(precision).replace(/\.?0+$/, ""); // Remove trailing zeros
+    return `${grams} g`;
   }
 }
 
