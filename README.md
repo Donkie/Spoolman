@@ -25,7 +25,7 @@ Spoolman is a self-hosted web service designed to help you efficiently manage yo
   * Contribute to its translation into 18 languages via [Weblate](https://hosted.weblate.org/projects/spoolman/).
 * **Database Support**: SQLite, PostgreSQL, MySQL, and CockroachDB.
 * **Multi-Printer Management**: Handles spool updates from several printers simultaneously.
-* **Advanced Monitoring**: Integrate with [Prometheus](https://prometheus.io/) for detailed historical analysis of filament usage, helping you track and optimize your printing processes.
+* **Advanced Monitoring**: Integrate with [Prometheus](https://prometheus.io/) for detailed historical analysis of filament usage, helping you track and optimize your printing processes. See the [Wiki](https://github.com/Donkie/Spoolman/wiki/Filament-Usage-History) for instructions on how to set it up.
 
 **Spoolman integrates with:**
   * [Moonraker](https://moonraker.readthedocs.io/en/latest/configuration/#spoolman) and most front-ends (Fluidd, KlipperScreen, Mainsail, ...)
