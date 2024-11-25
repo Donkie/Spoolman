@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import { FilamentImportModal } from "../../components/filamentImportModal";
 import { MultiColorPicker } from "../../components/multiColorPicker";
-import { numberFormatter, numberParser } from "../../utils/parsing";
+import { numberFormatter, numberParser, numberParserAllowEmpty } from "../../utils/parsing";
 import { ExternalFilament } from "../../utils/queryExternalDB";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
@@ -73,7 +73,7 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
       invalidates: ["list", "detail"],
     });
 
-    setColorType(filament.color_hexes ? "multi" : "single")
+    setColorType(filament.color_hexes ? "multi" : "single");
 
     form.setFieldsValue({
       name: filament.name,
@@ -251,7 +251,7 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
             addonAfter={getCurrencySymbol(undefined, currency)}
             precision={2}
             formatter={numberFormatter}
-            parser={numberParser}
+            parser={numberParserAllowEmpty}
           />
         </Form.Item>
         <Form.Item

@@ -30,7 +30,8 @@ export function formatNumberWithSpaceSeparator(input: string): string {
  * @param value
  * @returns
  */
-export function numberFormatter(value: number | undefined): string {
+export function numberFormatter(value: number | string | undefined): string {
+  console.log("numberformatter input: ", value);
   const formattedValue = value
     ? Number(value).toLocaleString(undefined, {
         useGrouping: false, // Disable thousands separator and do it manually instead so it's always spaces
@@ -45,7 +46,7 @@ export function numberFormatter(value: number | undefined): string {
  * @param value
  * @returns
  */
-export function numberParser(value: string | undefined) {
+export function numberParser(value: string | undefined): number {
   // Convert comma to dot
   value = value?.replace(",", ".");
 
@@ -54,6 +55,28 @@ export function numberParser(value: string | undefined) {
 
   // Parse as float
   return parseFloat(value || "0");
+}
+
+/**
+ * Number parser that supports both comma and dot as decimal separator
+ * Same as numberParser but allows empty values. numberParser will always return a valid number
+ * this one returns an empty string if the value is empty
+ * @param value
+ * @returns
+ */
+export function numberParserAllowEmpty(value: string | undefined): number | string {
+  // Convert comma to dot
+  value = value?.replace(",", ".");
+
+  // Remove all non-digit characters
+  value = value?.replace(/[^\d.-]/g, "");
+
+  if (value === "" || value === undefined) {
+    return "";
+  }
+
+  // Parse as float
+  return parseFloat(value);
 }
 
 /**
