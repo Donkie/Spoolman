@@ -60,7 +60,7 @@ class Vendor(BaseModel):
     )
     empty_spool_weight: Optional[float] = Field(
         None,
-        gt=0,
+        ge=0,
         description="The empty spool weight, in grams.",
         examples=[140],
     )
