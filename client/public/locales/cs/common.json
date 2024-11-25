@@ -220,6 +220,9 @@
             "measurement_type_label": "Typ měření",
             "adjust_filament_help": "Zde můžete přímo přidávat nebo odebírat filament z cívky. Kladná hodnota filament odebere, záporná hodnota ho přidá.",
             "adjust_filament_value": "Spotřebované množství"
+        },
+        "formats": {
+            "last_used": "Naposledy použitý {{date}}"
         }
     },
     "filament": {
@@ -331,6 +334,9 @@
         },
         "help": {
             "list": "Nápověda | Spoolman"
+        },
+        "locations": {
+            "list": "Umístění | Spoolman"
         }
     },
     "help": {
@@ -390,5 +396,11 @@
             }
         },
         "settings": "Nastavení"
+    },
+    "locations": {
+        "locations": "Umístění",
+        "no_locations_help": "Na této stránce můžete uspořádat své cívky podle umístění, přidejte několik cívek a začněte!",
+        "new_location": "Nové umístění",
+        "no_location": "Žádné umístění"
     }
 }
