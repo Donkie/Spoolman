@@ -85,7 +85,7 @@
         },
         "fields_help": {
             "used_weight": "Cuanto filamento ha sido usado de la bobina. Una bobina nueva debería tener 0g usados.",
-            "location": "Donde se encuentra la bobina si tiene varias ubicaciones donde almacenar sus bobinas.",
+            "location": "Dónde se encuentra el carrete si tiene varias ubicaciones donde almacena sus carretes.",
             "lot_nr": "Número de lote del fabricante. Puede ser usado si el modelo a imprimir necesita color homogéneo y varias bobinas son necesarias.",
             "weight_to_use": "Elegir el peso a usar. El peso medido solo está disponible si existe el valor de peso del carrete seleccionado.",
             "measured_weight": "Cuanto pesa el filamento y la bobina.",
@@ -118,6 +118,9 @@
             "measurement_type_label": "Tipo de medición",
             "adjust_filament_value": "Cantidad consumida",
             "adjust_filament_help": "Aquí puedes añadir o restar directamente filamento de la bobina. Un valor positivo consumirá filamento, un valor negativo lo añadirá."
+        },
+        "formats": {
+            "last_used": "Utilizado por última vez {{date}}"
         }
     },
     "filament": {
@@ -229,6 +232,9 @@
         },
         "help": {
             "list": "Ayuda | Spoolman"
+        },
+        "locations": {
+            "list": "Ubicaciones | Spoolman"
         }
     },
     "printing": {
@@ -390,5 +396,11 @@
             "description": "<p> Aquí puede agregar más campos personalizados a los asuntos.</p><p> Una vez que se agrega un campo, no puede cambiar su clave o tipo, y no puede eliminar opciones ni cambiar el estado de múltiples opciones para campos seleccionados. Si elimina un campo, se eliminarán los datos asociados a todos los sujetos.</p><p> La forma en que otros programas leen/escriben los datos es clave, por lo que si su campo personalizado se va a integrar con un programa de terceros, asegúrese de que esté configurado correctamente. El valor predeterminado solo se utilizará para elementos nuevos.</p><p> Los campos de salida no se pueden ordenar ni filtrar en las vistas de tabla.</p>"
         },
         "settings": "Ajustes"
+    },
+    "locations": {
+        "locations": "Ubicaciones",
+        "new_location": "Nueva ubicación",
+        "no_location": "Sin ubicación",
+        "no_locations_help": "Esta página te permite organizar tus carretes en ubicaciones, ¡añade algunos carretes para empezar!"
     }
 }
