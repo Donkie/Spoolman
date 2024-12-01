@@ -14,16 +14,21 @@ registry = REGISTRY
 
 PREFIX = "spoolman"
 
-SPOOL_PRICE = Gauge(f"{PREFIX}_spool_price", "Total Spool price", ["spool_id", "filament_id"])
-SPOOL_USED_WEIGHT = Gauge(f"{PREFIX}_spool_weight_used", "Spool Used Weight", ["spool_id", "filament_id"])
+SPOOL_PRICE = Gauge(f"{PREFIX}_spool_price_total", "Total Spool price", ["spool_id", "filament_id"])
+SPOOL_INITIAL_WEIGHT = Gauge(
+    f"{PREFIX}_spool_initial_weight_grams",
+    "Spool Net weight in gram",
+    ["spool_id", "filament_id"],
+)
+SPOOL_USED_WEIGHT = Gauge(f"{PREFIX}_spool_weight_used_grams", "Spool Used weight in gram", ["spool_id", "filament_id"])
 FILAMENT_INFO = Gauge(
     f"{PREFIX}_filament_info",
     "Filament information",
     ["filament_id", "vendor", "name", "material", "color"],
 )
-FILAMENT_DENSITY = Gauge(f"{PREFIX}_filament_density", "Density of filament", ["filament_id"])
-FILAMENT_DIAMETER = Gauge(f"{PREFIX}_filament_diameter", "Diameter of filament", ["filament_id"])
-FILAMENT_WEIGHT = Gauge(f"{PREFIX}_filament_weight", "Net weight of filament", ["filament_id"])
+FILAMENT_DENSITY = Gauge(f"{PREFIX}_filament_density", "Density of filament gram/cm3", ["filament_id"])
+FILAMENT_DIAMETER = Gauge(f"{PREFIX}_filament_diameter_meters", "Diameter of filament", ["filament_id"])
+FILAMENT_WEIGHT = Gauge(f"{PREFIX}_filament_weight_grams", "Net weight of filament", ["filament_id"])
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +60,8 @@ async def spool_metrics(db: AsyncSession) -> None:
     for row in result:
         if row.price is not None:
             SPOOL_PRICE.labels(str(row.id), str(row.filament_id)).set(row.price)
+        if row.initial_weight is not None:
+            SPOOL_INITIAL_WEIGHT.labels(str(row.id), str(row.filament_id)).set(row.initial_weight)
         SPOOL_USED_WEIGHT.labels(str(row.id), str(row.filament_id)).set(row.used_weight)
 
 
@@ -84,6 +91,6 @@ async def filament_metrics(db: AsyncSession) -> None:
             row.color_hex,
         ).set(1)
         FILAMENT_DENSITY.labels(str(row.id)).set(row.density)
-        FILAMENT_DIAMETER.labels(str(row.id)).set(row.diameter)
+        FILAMENT_DIAMETER.labels(str(row.id)).set(row.diameter / 1000)
         if row.weight is not None:
             FILAMENT_WEIGHT.labels(str(row.id)).set(row.weight)
