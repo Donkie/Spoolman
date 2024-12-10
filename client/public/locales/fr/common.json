@@ -118,6 +118,9 @@
         },
         "help": {
             "list": "Aide | Spoolman"
+        },
+        "locations": {
+            "list": "Emplacements | Spoolman"
         }
     },
     "spool": {
@@ -181,6 +184,9 @@
             "measurement_type_label": "Type de mesure",
             "adjust_filament_help": "Ici, vous pouvez directement ajouter ou soustraire du filament à la bobine. Une valeur positive consommera du filament, une valeur négative en ajoutera.",
             "adjust_filament_value": "Quantité consommée"
+        },
+        "formats": {
+            "last_used": "Dernière utilisation {{date}}"
         }
     },
     "buttons": {
@@ -390,5 +396,10 @@
                 "tooltip": "La base de l'URL à utiliser lors de la génération de QR codes."
             }
         }
+    },
+    "locations": {
+        "locations": "Emplacements",
+        "new_location": "Créer un emplacement",
+        "no_location": "Pas de localisation"
     }
 }
