@@ -91,6 +91,5 @@ async def filament_metrics(db: AsyncSession) -> None:
             row.color_hex,
         ).set(1)
         FILAMENT_DENSITY.labels(str(row.id)).set(row.density)
-        FILAMENT_DIAMETER.labels(str(row.id)).set(row.diameter)
         if row.weight is not None:
             FILAMENT_WEIGHT.labels(str(row.id)).set(row.weight)
