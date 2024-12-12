@@ -4,6 +4,7 @@ import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel, Field, RootModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.database import filament, spool
@@ -123,3 +124,25 @@ async def find_locations(
     db: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> list[str]:
     return await spool.find_locations(db=db)
+
+
+class RenameLocationBody(BaseModel):
+    name: str = Field(description="The new name of the location.", min_length=1)
+
+
+@router.patch(
+    "/location/{location}",
+    name="Rename location",
+    description="Rename a spool location. All spools in this location will be moved to the new location.",
+    response_model_exclude_none=True,
+    response_model=RootModel[str],
+)
+async def rename_location(
+    location: str,
+    *,
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    body: RenameLocationBody,
+) -> str:
+    logger.info("Renaming location %s to %s", location, body.name)
+    await spool.rename_location(db=db, current_name=location, new_name=body.name)
+    return body.name

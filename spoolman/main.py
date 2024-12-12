@@ -24,9 +24,22 @@ console_handler = logging.StreamHandler()
 console_handler.setFormatter(logging.Formatter("%(name)-26s %(levelname)-8s %(message)s"))
 
 # Setup the spoolman logger, which all spoolman modules will use
+log_level = env.get_logging_level()
 root_logger = logging.getLogger()
-root_logger.setLevel(env.get_logging_level())
+root_logger.setLevel(log_level)
 root_logger.addHandler(console_handler)
+
+# Fix uvicorn logging
+logging.getLogger("uvicorn").setLevel(log_level)
+logging.getLogger("uvicorn").removeHandler(logging.getLogger("uvicorn").handlers[0])
+logging.getLogger("uvicorn").addHandler(console_handler)
+
+logging.getLogger("uvicorn.error").setLevel(log_level)
+logging.getLogger("uvicorn.error").addHandler(console_handler)
+
+logging.getLogger("uvicorn.access").setLevel(log_level)
+logging.getLogger("uvicorn.access").removeHandler(logging.getLogger("uvicorn.access").handlers[0])
+logging.getLogger("uvicorn.access").addHandler(console_handler)
 
 # Get logger instance for this module
 logger = logging.getLogger(__name__)

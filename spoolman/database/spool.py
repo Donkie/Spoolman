@@ -198,7 +198,10 @@ async def find(  # noqa: C901, PLR0912
             elif order == SortOrder.DESC:
                 stmt = stmt.order_by(*(f.desc() for f in sorts))
 
-    rows = await db.execute(stmt)
+    rows = await db.execute(
+        stmt,
+        execution_options={"populate_existing": True},
+    )
     result = list(rows.unique().scalars().all())
     if total_count is None:
         total_count = len(result)
@@ -459,3 +462,15 @@ async def reset_initial_weight(db: AsyncSession, spool_id: int, weight: float) -
     await db.commit()
     await spool_changed(spool, EventType.UPDATED)
     return spool
+
+
+async def rename_location(
+    *,
+    db: AsyncSession,
+    current_name: str,
+    new_name: str,
+) -> None:
+    """Rename all spools with the current location name to the new name."""
+    await db.execute(
+        sqlalchemy.update(models.Spool).where(models.Spool.location == current_name).values(location=new_name),
+    )

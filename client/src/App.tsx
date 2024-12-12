@@ -10,6 +10,7 @@ import {
   HighlightOutlined,
   HomeOutlined,
   QuestionOutlined,
+  TableOutlined,
   ToolOutlined,
   UserOutlined,
 } from "@ant-design/icons";
@@ -149,6 +150,14 @@ function App() {
                   },
                 },
                 {
+                  name: "locations",
+                  list: "/locations",
+                  meta: {
+                    canDelete: false,
+                    icon: <TableOutlined />,
+                  },
+                },
+                {
                   name: "settings",
                   list: "/settings",
                   meta: {
@@ -222,6 +231,7 @@ function App() {
                   </Route>
                   <Route path="/settings/*" element={<LoadablePage name="settings" />} />
                   <Route path="/help" element={<LoadablePage name="help" />} />
+                  <Route path="/locations" element={<LoadablePage name="locations" />} />
                   <Route path="*" element={<ErrorComponent />} />
                 </Route>
               </Routes>

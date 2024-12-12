@@ -1,7 +1,7 @@
-import { PrinterOutlined } from "@ant-design/icons";
+import { InboxOutlined, PrinterOutlined, ToTopOutlined } from "@ant-design/icons";
 import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
-import { IResourceComponentsProps, useShow, useTranslate } from "@refinedev/core";
-import { Button, Typography } from "antd";
+import { IResourceComponentsProps, useInvalidate, useShow, useTranslate } from "@refinedev/core";
+import { Button, Modal, Typography } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import React from "react";
@@ -12,16 +12,19 @@ import { enrichText } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useCurrency } from "../../utils/settings";
 import { IFilament } from "../filaments/model";
+import { setSpoolArchived } from "./functions";
 import { ISpool } from "./model";
 
 dayjs.extend(utc);
 
 const { Title } = Typography;
+const { confirm } = Modal;
 
 export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.spool);
   const currency = useCurrency();
+  const invalidate = useInvalidate();
 
   const { queryResult } = useShow<ISpool>({
     liveMode: "auto",
@@ -37,6 +40,37 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       return spoolPrice;
     }
     return item.price;
+  };
+
+  // Function for opening an ant design modal that asks for confirmation for archiving a spool
+  const archiveSpool = async (spool: ISpool, archive: boolean) => {
+    await setSpoolArchived(spool, archive);
+    invalidate({
+      resource: "spool",
+      id: spool.id,
+      invalidates: ["list", "detail"],
+    });
+  };
+
+  const archiveSpoolPopup = async (spool: ISpool | undefined) => {
+    if (spool === undefined) {
+      return;
+    }
+    // If the spool has no remaining weight, archive it immediately since it's likely not a mistake
+    if (spool.remaining_weight != undefined && spool.remaining_weight <= 0) {
+      await archiveSpool(spool, true);
+    } else {
+      confirm({
+        title: t("spool.titles.archive"),
+        content: t("spool.messages.archive"),
+        okText: t("buttons.archive"),
+        okType: "primary",
+        cancelText: t("buttons.cancel"),
+        onOk() {
+          return archiveSpool(spool, true);
+        },
+      });
+    }
   };
 
   const formatFilament = (item: IFilament) => {
@@ -88,6 +122,16 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
           >
             {t("printing.qrcode.button")}
           </Button>
+          {record?.archived ? (
+            <Button icon={<ToTopOutlined />} onClick={() => archiveSpool(record, false)}>
+              {t("buttons.unArchive")}
+            </Button>
+          ) : (
+            <Button danger icon={<InboxOutlined />} onClick={() => archiveSpoolPopup(record)}>
+              {t("buttons.archive")}
+            </Button>
+          )}
+
           {defaultButtons}
         </>
       )}

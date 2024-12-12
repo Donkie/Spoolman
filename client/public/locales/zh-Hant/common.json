@@ -1,0 +1,380 @@
+{
+    "actions": {
+        "clone": "複製",
+        "show": "檢視",
+        "list": "列表",
+        "create": "建立",
+        "edit": "編輯"
+    },
+    "buttons": {
+        "create": "建立",
+        "save": "儲存",
+        "saveAndAdd": "儲存並新增",
+        "logout": "登出",
+        "delete": "刪除",
+        "edit": "編輯",
+        "cancel": "取消",
+        "confirm": "您確定嗎？",
+        "continue": "繼續",
+        "filter": "過濾器",
+        "clear": "清除",
+        "refresh": "重新整理",
+        "show": "檢視",
+        "undo": "復原",
+        "import": "匯入",
+        "clone": "複製",
+        "archive": "封存",
+        "unArchive": "取消封存",
+        "hideArchived": "隱藏已封存",
+        "showArchived": "檢視已封存",
+        "notAccessTitle": "您沒有存取的權限",
+        "hideColumns": "隱藏欄",
+        "clearFilters": "清除篩選"
+    },
+    "warnWhenUnsavedChanges": "您確定要離開嗎？您尚有未儲存的變更。",
+    "notifications": {
+        "success": "成功",
+        "error": "錯誤 ( 狀態碼：{{statusCode}} )",
+        "undoable": "您有 {{seconds}} 秒可以還原。",
+        "createSuccess": "成功建立 {{resource}}",
+        "createError": "建立 {{resource}} 時發生錯誤（狀態碼：{{statusCode}}）",
+        "deleteSuccess": "成功刪除 {{resource}}",
+        "deleteError": "刪除 {{resource}} 時發生錯誤（狀態碼：{{statusCode}}）",
+        "editSuccess": "成功編輯{{resource}}",
+        "editError": "編輯 {{resource}} 時發生錯誤（狀態碼：{{statusCode}}）",
+        "importProgress": "匯入中：{{processed}}/{{total}}",
+        "saveSuccessful": "儲存成功！",
+        "validationError": "驗證錯誤： {{error}}"
+    },
+    "kofi": "在Ko-fi上打賞我",
+    "loading": "讀取中",
+    "version": "版本",
+    "unknown": "未知",
+    "yes": "是",
+    "no": "否",
+    "tags": {
+        "clone": "複製"
+    },
+    "dashboard": {
+        "title": "儀表板"
+    },
+    "printing": {
+        "generic": {
+            "title": "列印中",
+            "description": "調整以下設定以獲得所需的列印佈局。請注意，列表機和您的操作系統可能會套用自己的邊距和縮放比例，因此可能需要進行一些反覆測試才能達到理想效果。在實際標籤上列印之前，先在普通紙上測試。",
+            "helpMargin": "邊距應配置為與您的標籤紙和列表機相符，調整這些將影響整個網格的大小。",
+            "rows": "列",
+            "paperSize": "紙張大小",
+            "customSize": "自訂",
+            "dimensions": "尺寸",
+            "showBorder": "顯示外框",
+            "previewScale": "預覽縮放比例",
+            "skipItems": "跳過項目",
+            "itemCopies": "項目複製",
+            "contentSettings": "內容設定",
+            "layoutSettings": "佈局設定",
+            "horizontalSpacing": "水平間距",
+            "marginLeft": "左邊界",
+            "marginRight": "右邊界",
+            "marginBottom": "下邊界",
+            "printerMarginLeft": "安全區域左側",
+            "printerMarginRight": "安全區域右側",
+            "printerMarginTop": "安全區域上側",
+            "printerMarginBottom": "安全區域下側",
+            "borders": {
+                "border": "邊框",
+                "grid": "格線",
+                "none": "無"
+            },
+            "defaultSettings": "預設",
+            "addSettings": "新增預設定",
+            "newSetting": "新增",
+            "settings": "預設集",
+            "settingsName": "預設集名稱",
+            "duplicateSettings": "複製",
+            "deleteSettings": "刪除目前預設定",
+            "deleteSettingsConfirm": "確定要刪除此預設集嗎？",
+            "saveSetting": "儲存預設集",
+            "saveAsImage": "另存為圖片",
+            "print": "列印",
+            "columns": "欄",
+            "verticalSpacing": "垂直間距",
+            "marginTop": "上邊界",
+            "helpPrinterMargin": "安全區域應設定為列表機能列印的距離紙張的邊界，更改此選項不影響整個網格。"
+        },
+        "qrcode": {
+            "title": "標籤列印中",
+            "template": "標籤範本",
+            "button": "列印標籤",
+            "templateHelp": "使用 {} 插入料盤物件的值作為內容。例如，{id} 會顯示料盤的 ID，或者 {filament.material} 會顯示料盤的材料。如果缺少值，將以 \"?\" 代替。可以使用第二組 {} 來移除這個顯示。此外，任何夾在 {} 之間的文字若該值缺失也會被移除。例如，{Lot Nr: {lot_nr}} 僅在料盤有批號時顯示標籤。用雙星號 ** 圍繞文字使其加粗。點選此按鈕以查看所有可用標籤列表。",
+            "textSize": "標籤文字大小",
+            "showContent": "列印標籤",
+            "useHTTPUrl": {
+                "label": "QR碼連結",
+                "preview": "預覽：",
+                "options": {
+                    "default": "預設",
+                    "url": "URL"
+                },
+                "tooltip": "將使用專屬連結，僅在使用 Spoolman 的掃描功能掃描時有效（預設）。URL 使用設定中指定的基礎 URL，若未設置則使用目前頁面的 URL。"
+            },
+            "showQRCodeMode": {
+                "no": "否",
+                "withIcon": "包含圖示",
+                "simple": "簡易"
+            },
+            "showQRCode": "列印QR碼"
+        },
+        "spoolSelect": {
+            "title": "選擇料盤",
+            "description": "選擇要列印標籤的料盤。",
+            "showArchived": "檢視已封存",
+            "noSpoolsSelected": "您尚未選擇任何料盤。",
+            "selectAll": "選擇/取消全選",
+            "selectedTotal_other": "已選擇 {{count}} 個料盤"
+        }
+    },
+    "scanner": {
+        "description": "掃描Spoolman的QR碼以檢視關於料盤的詳細資料。",
+        "error": {
+            "notAllowed": "您未被允許存取攝影機。",
+            "streamApiNotSupported": "瀏覽器不支援MediaStream API。",
+            "notReadable": "攝影機不可讀取。",
+            "notFound": "未找到攝影機。",
+            "insecureContext": "此頁面未通過 HTTPS 提供服務。",
+            "unknown": "發生未知的錯誤。({{error}})"
+        },
+        "title": "掃描QR碼"
+    },
+    "spool": {
+        "spool": "料盤",
+        "fields": {
+            "id": "ID",
+            "filament": "線材",
+            "filament_internal": "內部",
+            "used_weight": "已用重量",
+            "remaining_weight": "剩餘重量",
+            "measured_weight": "實測重量",
+            "used_length": "已用長度",
+            "remaining_length": "剩餘長度",
+            "initial_weight": "初始重量",
+            "spool_weight": "空料盤重量",
+            "location": "位置",
+            "lot_nr": "批號",
+            "first_used": "首次使用",
+            "last_used": "上次使用",
+            "registered": "已註冊",
+            "filament_name": "線材",
+            "filament_external": "外部",
+            "price": "價格",
+            "weight_to_use": "重量",
+            "comment": "註解",
+            "archived": "封存",
+            "material": "材料"
+        },
+        "fields_help": {
+            "price": "完整線盤的價格。如果未設定，則會假設為線材的價格。",
+            "used_weight": "料盤所使用的線材重量。一個新料盤應該為0克。",
+            "measured_weight": "線材和料盤的重量為多少。",
+            "initial_weight": "料盤上線材的初始重量（淨重）。如果未設置，將使用線材物件中的重量。",
+            "spool_weight": "線盤的空盤重量。留空時將使用線材或製造商提供的數值。",
+            "location": "如果您的料盤存於多個位置，請填寫料盤所在位置。",
+            "lot_nr": "製造商的批號。如果使用多個線盤，可用於確保列印的顏色一致。",
+            "weight_to_use": "選擇要輸入的重量值。只有在選擇的線材設置了料盤重量時，才會顯示測量重量。",
+            "remaining_weight": "料盤所剩餘的線材。對於新的料盤來說應等於料盤重量。",
+            "external_filament": "您已從外部資料庫選擇了一種線材。在建立此線盤時，系統將自動建立一個線材（以及可能的製造商）。如果您之前已為該線材建立過資料，這可能會產生重複的線材。"
+        },
+        "titles": {
+            "create": "建立線盤",
+            "clone": "複製線盤",
+            "edit": "編輯線盤",
+            "list": "線盤",
+            "show": "檢視線盤",
+            "adjust": "調整料盤線材",
+            "show_title": "[線盤 #{{id}}] {{name}}",
+            "archive": "封存線盤"
+        },
+        "form": {
+            "measurement_type_label": "測量類型",
+            "adjust_filament_help": "此處您可直接增加或減少料盤上的線材，正數為減少線材數量，負數為增加線材數量。",
+            "adjust_filament_value": "消耗量",
+            "measurement_type": {
+                "length": "長度",
+                "weight": "重量"
+            },
+            "new_location_prompt": "輸入一個新位置",
+            "spool_updated": "此線盤已被其他人/程式更新過。若儲存將覆蓋這些變更！"
+        },
+        "messages": {
+            "archive": "您確定要封存此線盤嗎？"
+        }
+    },
+    "filament": {
+        "fields": {
+            "vendor": "製造商",
+            "name": "名稱",
+            "material": "材料",
+            "price": "價格",
+            "density": "密度",
+            "diameter": "線徑",
+            "weight": "重量",
+            "spool_weight": "料盤重量",
+            "article_number": "產品編號",
+            "comment": "註解",
+            "color_hex": "顏色",
+            "multi_color": "多色",
+            "coaxial": "混色",
+            "settings_extruder_temp": "擠出機溫度",
+            "settings_bed_temp": "床台溫度",
+            "external_id": "內部ID",
+            "spools": "檢視料盤",
+            "longitudinal": "縱向",
+            "single_color": "單色",
+            "id": "ID",
+            "vendor_name": "製造商",
+            "registered": "已登記"
+        },
+        "fields_help": {
+            "material": "例如：PLA、ABS、PETG等。",
+            "name": "線材名稱，用來區分相同製造商的不同線材類型。例如應該包含顏色資訊。",
+            "article_number": "例如EAN、UPC等。",
+            "price": "全新料盤價格。",
+            "spool_weight": "空線盤的重量，用於計算整捲線的實際重量。",
+            "multi_color_direction": "線材的顏色可通過兩種方式呈現多樣性：一種是共擠技術，例如雙色線材，具有穩定的多色效果；另一種是沿線材長度的顏色變化，例如漸變線材，顏色會隨著線材捲的長度逐漸轉變。",
+            "weight": "整捲線材的重量（淨重）。此重量不應包含線盤本身的重量，僅限於線材的重量，通常會標示在包裝上。"
+        },
+        "titles": {
+            "create": "建立線材",
+            "clone": "複製線材",
+            "edit": "編輯線材",
+            "list": "線材",
+            "show": "檢視線材",
+            "show_title": "[線材 #{{id}}] {{name}}"
+        },
+        "form": {
+            "import_external": "從外部匯入",
+            "filament_updated": "自您開啟此頁面以後，此線材已被其他人/事物更新。儲存將覆蓋這些變更！",
+            "import_external_description": "在列表中選擇一種線材，即可自動填入線材建立表單中的相關詳細資訊。此操作將覆蓋您已輸入的所有資料。<br><br>如果需要，當您點擊“確定”時，將自動建立一個製造商對象。"
+        },
+        "buttons": {
+            "add_spool": "增加料盤"
+        },
+        "filament": "線材"
+    },
+    "vendor": {
+        "vendor": "製造商",
+        "fields": {
+            "name": "名稱",
+            "empty_spool_weight": "空料盤重量",
+            "external_id": "外部ID",
+            "comment": "註解",
+            "id": "ID",
+            "registered": "已登記"
+        },
+        "fields_help": {
+            "empty_spool_weight": "此製造商空線盤的重量。"
+        },
+        "titles": {
+            "create": "建立製造商",
+            "edit": "編輯製造商",
+            "show_title": "[製造商 #{{id}}] {{name}}",
+            "show": "檢視製造商",
+            "clone": "複製製造商",
+            "list": "製造商"
+        },
+        "form": {
+            "vendor_updated": "此製造商已被其他人/程式更新過。若儲存將覆蓋這些變更！"
+        }
+    },
+    "documentTitle": {
+        "vendor": {
+            "create": "建立製造商 | Spoolman",
+            "clone": "#{{id}} 複製製造商 | Spoolman",
+            "list": "製造商 | Spoolman",
+            "edit": "#{{id}} 編輯製造商 | Spoolman",
+            "show": "#{{id}} 檢視製造商 | Spoolman"
+        },
+        "default": "Spoolman",
+        "suffix": " | Spoolman",
+        "home": {
+            "list": "主頁 | Spoolman"
+        },
+        "help": {
+            "list": "說明 | Spoolman"
+        },
+        "filament": {
+            "list": "線材 | Spoolman",
+            "edit": "#{{id}} 編輯線材 | Spoolman",
+            "show": "#{{id}} 檢視線材 | Spoolman",
+            "create": "建立線材 | Spoolman",
+            "clone": "#{{id}} 複製線材 | Spoolman"
+        },
+        "spool": {
+            "create": "建立線盤 | Spoolman",
+            "clone": "#{{id}} 複製線盤 | Spoolman",
+            "show": "#{{id}} 檢視線盤 | Spoolman",
+            "edit": "#{{id}} 編輯線盤 | Spoolman",
+            "list": "線盤 | Spoolman"
+        }
+    },
+    "home": {
+        "home": "主頁"
+    },
+    "help": {
+        "help": "說明",
+        "resources": {
+            "filament": "線材的品牌。它們具有名稱、材料、顏色、線徑等屬性。",
+            "spool": "特定線材的單個實體線盤。",
+            "vendor": "製造線材的公司。"
+        },
+        "description": "<title>幫助</title><p>這裡是一些入門提示。</p><p>Spoolman 儲存三種類型的資料：</p><itemsHelp/><p>要將新線材加入資料庫，首先需要建立一個 <filamentCreateLink>線材</filamentCreateLink> 物件。完成後，接著為該特定線材建立一個 <spoolCreateLink>線盤</spoolCreateLink> 物件。如果之後您再獲得相同線材的其他線盤，只需生成更多的線盤物件，並重複使用相同的線材物件。</p><p>如果您希望追蹤製造商資訊，也可以選擇建立一個 <vendorCreateLink>製造商</vendorCreateLink> 物件。</p><p>您還可以將其他3D列印服務與Spoolman連接，例如Moonraker，它可以自動監控線材使用情況並為您更新線盤物件。請參閱 <readmeLink>Spoolman README</readmeLink> 以獲取設置指南。</p>"
+    },
+    "table": {
+        "actions": "操作"
+    },
+    "settings": {
+        "settings": "設定",
+        "header": "設定",
+        "general": {
+            "tab": "一般",
+            "currency": {
+                "label": "貨幣設定標籤"
+            },
+            "base_url": {
+                "tooltip": "生成 QR 碼等功能時使用的基本 URL。",
+                "label": "基本URL"
+            }
+        },
+        "extra_fields": {
+            "tab": "額外欄位",
+            "params": {
+                "key": "鍵值",
+                "name": "名稱",
+                "field_type": "類型",
+                "unit": "單位",
+                "order": "順序",
+                "default_value": "預設值",
+                "multi_choice": "多選項",
+                "choices": "選項"
+            },
+            "field_type": {
+                "text": "文字",
+                "float_range": "小數範圍",
+                "datetime": "日期時間",
+                "boolean": "布林",
+                "choice": "選項",
+                "float": "小數",
+                "integer": "整數",
+                "integer_range": "整數範圍"
+            },
+            "boolean_true": "是",
+            "boolean_false": "否",
+            "choices_missing_error": "您無法刪除選項。以下選項缺失：{{choices}}",
+            "key_not_changed": "請將鍵值更改為其他名稱。",
+            "delete_confirm": "刪除欄位 {{name}}？",
+            "description": "<p>在此，您可以為您的實體加入額外的自訂欄位。</p><p>一旦加入欄位，您將無法更改其鍵值或類型，對於選擇類型欄位，您也無法刪除選項或更改多選狀態。如果刪除欄位，所有實體的相關資料將被刪除。</p><p>鍵值是其他程式讀取/寫入資料的方式，因此如果您的自訂欄位需要與第三方程式整合，請確保正確設置。預設值僅適用於新品項。</p><p>額外的欄位無法在表格視圖中排序或過濾。</p>",
+            "non_unique_key_error": "鍵值必須為唯一。",
+            "delete_confirm_description": "這將刪除該欄位及所有與之關聯的所有實體資料。"
+        }
+    }
+}

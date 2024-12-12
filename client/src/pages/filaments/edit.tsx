@@ -3,10 +3,10 @@ import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/co
 import { Alert, ColorPicker, DatePicker, Form, Input, InputNumber, message, Radio, Select, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import { MultiColorPicker } from "../../components/multiColorPicker";
-import { numberFormatter, numberParser } from "../../utils/parsing";
+import { numberFormatter, numberParser, numberParserAllowEmpty } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { IVendor } from "../vendors/model";
@@ -52,7 +52,6 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
 
   // Update colorType state
   useEffect(() => {
-    console.log(formProps.initialValues?.multi_color_hexes);
     if (formProps.initialValues?.multi_color_hexes) {
       setColorType("multi");
     } else {
@@ -227,7 +226,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
             addonAfter={getCurrencySymbol(undefined, currency)}
             precision={2}
             formatter={numberFormatter}
-            parser={numberParser}
+            parser={numberParserAllowEmpty}
           />
         </Form.Item>
         <Form.Item
@@ -316,6 +315,17 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           label={t("filament.fields.article_number")}
           help={t("filament.fields_help.article_number")}
           name={["article_number"]}
+          rules={[
+            {
+              required: false,
+            },
+          ]}
+        >
+          <Input maxLength={64} />
+        </Form.Item>
+        <Form.Item
+          label={t("filament.fields.external_id")}
+          name={["external_id"]}
           rules={[
             {
               required: false,

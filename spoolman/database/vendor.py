@@ -83,7 +83,10 @@ async def find(
             elif order == SortOrder.DESC:
                 stmt = stmt.order_by(field.desc())
 
-    rows = await db.execute(stmt)
+    rows = await db.execute(
+        stmt,
+        execution_options={"populate_existing": True},
+    )
     result = list(rows.unique().scalars().all())
     if total_count is None:
         total_count = len(result)

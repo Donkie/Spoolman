@@ -10,7 +10,7 @@ import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../compo
 import { useSpoolmanLocations } from "../../components/otherModels";
 import { searchMatches } from "../../utils/filtering";
 import "../../utils/overrides.css";
-import { numberFormatter, numberParser } from "../../utils/parsing";
+import { numberFormatter, numberParser, numberParserAllowEmpty } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { createFilamentFromExternal } from "../filaments/functions";
@@ -331,7 +331,7 @@ export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps
             addonAfter={getCurrencySymbol(undefined, currency)}
             precision={2}
             formatter={numberFormatter}
-            parser={numberParser}
+            parser={numberParserAllowEmpty}
           />
         </Form.Item>
         <Form.Item

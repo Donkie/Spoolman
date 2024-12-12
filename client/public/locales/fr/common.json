@@ -18,7 +18,7 @@
             "showFilamentComment": "Commentaire sur le filament",
             "button": "Imprimer des étiquettes",
             "showQRCode": "Imprimer le QR Code",
-            "templateHelp": "Utilisez {} pour insérer les valeurs de l'objet bobine sous forme de texte. Par exemple, {id} sera remplacé par l'identifiant de la bobine ou {filament.material} sera remplacé par le matériau de la bobine. Entourez le texte d'un double astérisque ** pour le mettre en gras. Cliquez sur le bouton pour afficher une liste de toutes les balises disponibles.",
+            "templateHelp": "Utilisez {} pour insérer les valeurs de l'objet bobine sous forme de texte. Par exemple, {id} sera remplacé par l'identifiant de la bobine ou {filament.material} sera remplacé par le matériau de la bobine. Si une variable n'existe pas elle sera remplacée par \"?\". Un deuxième jeu d'accolade peut empêcher cet affichage. De plus si une accolade est utilisée dans une autre tout le texte présenta dans la première accolade sera retiré si la variable est manquante. Par exemple {N° lot : {lot_nr}} sera affiché uniquement si la bobine a un numéro de lot. Entourez le texte d'un double astérisque ** pour le mettre en gras. Cliquez sur le bouton pour afficher une liste de toutes les balises disponibles.",
             "template": "Modèle d'étiquette",
             "showQRCodeMode": {
                 "no": "Non",
@@ -31,15 +31,16 @@
                     "default": "Défaut",
                     "url": "URL"
                 },
-                "preview": "Prévisualisation :"
+                "preview": "Prévisualisation :",
+                "label": "Lien du QR code"
             }
         },
         "generic": {
             "printerMarginBottom": "Zone de sécurité en bas",
             "verticalSpacing": "Espacement vertical",
-            "rows": "Rangs",
+            "rows": "Lignes",
             "borders": {
-                "none": "Aucun",
+                "none": "Aucune",
                 "grid": "Grille",
                 "border": "Bordure"
             },
@@ -51,13 +52,13 @@
             "printerMarginRight": "Zone de sécurité à droite",
             "helpPrinterMargin": "La zone de sécurité doit être définie en fonction de la proximité du bord du papier que votre imprimante peut imprimer, la modification de ces paramètres n'affectera pas l'ensemble de la grille.",
             "previewScale": "Échelle de prévisualisation",
-            "helpMargin": "Les marges doivent être configurées en fonction de votre papier à étiquettes et de votre imprimante, car leur modification aura une incidence sur la taille de l'ensemble de la grille.",
+            "helpMargin": "Les marges doivent être configurées en fonction de votre papier à étiquettes et de votre imprimante, leur modification aura une incidence sur la taille de l'ensemble de la grille.",
             "marginTop": "Marge supérieure",
             "skipItems": "Articles ignorés",
             "layoutSettings": "Paramètres de mise en page",
             "paperSize": "Format du papier",
             "columns": "Colonnes",
-            "description": "Ajustez les paramètres ci-dessous pour obtenir la mise en page d'impression souhaitée. Gardez à l'esprit que les imprimantes et votre système d'exploitation peuvent appliquer leurs propres marges et mises à l'échelle, il se peut donc que vous deviez faire quelques essais et erreurs avant que tout soit correct. Testez-le sur une feuille de papier ordinaire avant d'imprimer les étiquettes proprement dites.",
+            "description": "Ajustez les paramètres ci-dessous pour obtenir la mise en page d'impression souhaitée. Gardez à l'esprit que les imprimantes et votre système d'exploitation peuvent appliquer leurs propres marges et mises à l'échelle, il se peut donc que vous deviez faire quelques essais avant que tout soit correct. Testez-le sur une feuille de papier ordinaire avant d'imprimer les étiquettes en elles mêmes.",
             "marginBottom": "Marge inférieure",
             "horizontalSpacing": "Espacement horizontal",
             "marginLeft": "Marge gauche",
@@ -189,7 +190,7 @@
         "filter": "Filtre",
         "cancel": "Abandonner",
         "edit": "Editer",
-        "showArchived": "Voir les archives",
+        "showArchived": "Afficher les archives",
         "archive": "Archiver",
         "hideColumns": "Masquer les colonnes",
         "confirm": "Êtes-vous sur ?",
@@ -198,8 +199,8 @@
         "import": "Importer",
         "logout": "Déconnexion",
         "refresh": "Rafraichir",
-        "notAccessTitle": "Vous n'avez pas l'autorisation d'accéder",
-        "hideArchived": "Cacher les archives",
+        "notAccessTitle": "Vous n'avez pas l'autorisation d'accès",
+        "hideArchived": "Masquer les archives",
         "clearFilters": "Effacer les filtres",
         "unArchive": "Désarchiver",
         "clone": "Cloner",
@@ -209,7 +210,7 @@
     },
     "filament": {
         "fields_help": {
-            "name": "Nom du filament, pour distinguer ce type de filament parmi d'autres du même fabricant. Doit contenir la couleur par exemple.",
+            "name": "Nom du filament, pour distinguer ce type de filament parmi d'autres du même fabricant. Devrait contenir la couleur par exemple.",
             "article_number": "Exemple EAN, UPC, etc.",
             "spool_weight": "Le poids d'une bobine vide. Utilisé pour déterminer le poids d'une bobine.",
             "price": "Prix d'une bobine complète.",
@@ -284,7 +285,7 @@
         "editError": "Erreur lors de l'édition {{resource}} (status code : {{statusCode}})",
         "undoable": "Vous avez {{seconds}} secondes pour annuler.",
         "importProgress": "Importation : {{processed}}/{{total}}",
-        "createError": "Une erreur s'est produite lors de la création de {{resource}}(status code : {{statusCode}})",
+        "createError": "Une erreur s'est produite lors de la création de {{resource}} (status code : {{statusCode}})",
         "success": "Réussite",
         "editSuccess": "Édité avec succès {{resource}}",
         "deleteError": "Erreur lors de la suppression de {{resource}} (status code : {{statusCode}})",
@@ -324,7 +325,7 @@
     "table": {
         "actions": "Actions"
     },
-    "warnWhenUnsavedChanges": "Êtes-vous sûr de vouloir quitter ? Vous avez des changements non sauvés.",
+    "warnWhenUnsavedChanges": "Êtes-vous sûr de vouloir quitter ? Vous avez des changements non sauvegardés.",
     "loading": "Chargement",
     "dashboard": {
         "title": "Tableau de bord"
@@ -383,7 +384,11 @@
             "currency": {
                 "label": "Devise"
             },
-            "tab": "Général"
+            "tab": "Général",
+            "base_url": {
+                "label": "Base de l'URL",
+                "tooltip": "La base de l'URL à utiliser lors de la génération de QR codes."
+            }
         }
     }
 }
