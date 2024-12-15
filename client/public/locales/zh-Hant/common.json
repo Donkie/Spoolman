@@ -106,7 +106,7 @@
             "title": "標籤列印中",
             "template": "標籤範本",
             "button": "列印標籤",
-            "templateHelp": "使用 {} 插入料盤物件的值作為內容。例如，{id} 會顯示料盤的 ID，或者 {filament.material} 會顯示料盤的材料。如果缺少值，將以 \"?\" 代替。可以使用第二組 {} 來移除這個顯示。此外，任何夾在 {} 之間的文字若該值缺失也會被移除。例如，{Lot Nr: {lot_nr}} 僅在料盤有批號時顯示標籤。用雙星號 ** 圍繞文字使其加粗。點選此按鈕以查看所有可用標籤列表。",
+            "templateHelp": "使用 {} 插入料盤物件的值作為內容。例如，{id} 會顯示料盤的 ID，或者 {filament.material} 會以該料盤的材料取代。如果缺少值，將以 \"?\" 代替。可以使用第二組 {} 來移除這個顯示。此外，任何夾在 {} 之間的文字若該值缺失也會被移除。例如，{Lot Nr: {lot_nr}} 僅在料盤有批號時顯示標籤。用雙星號 ** 圍繞文字使其加粗。點選此按鈕以查看所有可用標籤列表。",
             "textSize": "標籤文字大小",
             "showContent": "列印標籤",
             "useHTTPUrl": {
@@ -163,12 +163,12 @@
             "lot_nr": "批號",
             "first_used": "首次使用",
             "last_used": "上次使用",
-            "registered": "已註冊",
+            "registered": "登記於",
             "filament_name": "線材",
             "filament_external": "外部",
             "price": "價格",
             "weight_to_use": "重量",
-            "comment": "註解",
+            "comment": "備註",
             "archived": "封存",
             "material": "材料"
         },
@@ -207,6 +207,9 @@
         },
         "messages": {
             "archive": "您確定要封存此線盤嗎？"
+        },
+        "formats": {
+            "last_used": "上次使用{{date}}"
         }
     },
     "filament": {
@@ -220,7 +223,7 @@
             "weight": "重量",
             "spool_weight": "料盤重量",
             "article_number": "產品編號",
-            "comment": "註解",
+            "comment": "備註",
             "color_hex": "顏色",
             "multi_color": "多色",
             "coaxial": "混色",
@@ -267,7 +270,7 @@
             "name": "名稱",
             "empty_spool_weight": "空料盤重量",
             "external_id": "外部ID",
-            "comment": "註解",
+            "comment": "備註",
             "id": "ID",
             "registered": "已登記"
         },
@@ -315,6 +318,9 @@
             "show": "#{{id}} 檢視線盤 | Spoolman",
             "edit": "#{{id}} 編輯線盤 | Spoolman",
             "list": "線盤 | Spoolman"
+        },
+        "locations": {
+            "list": "位置| Spoolman"
         }
     },
     "home": {
@@ -327,7 +333,7 @@
             "spool": "特定線材的單個實體線盤。",
             "vendor": "製造線材的公司。"
         },
-        "description": "<title>幫助</title><p>這裡是一些入門提示。</p><p>Spoolman 儲存三種類型的資料：</p><itemsHelp/><p>要將新線材加入資料庫，首先需要建立一個 <filamentCreateLink>線材</filamentCreateLink> 物件。完成後，接著為該特定線材建立一個 <spoolCreateLink>線盤</spoolCreateLink> 物件。如果之後您再獲得相同線材的其他線盤，只需生成更多的線盤物件，並重複使用相同的線材物件。</p><p>如果您希望追蹤製造商資訊，也可以選擇建立一個 <vendorCreateLink>製造商</vendorCreateLink> 物件。</p><p>您還可以將其他3D列印服務與Spoolman連接，例如Moonraker，它可以自動監控線材使用情況並為您更新線盤物件。請參閱 <readmeLink>Spoolman README</readmeLink> 以獲取設置指南。</p>"
+        "description": "<title>說明</title><p>這裡是一些入門提示。</p><p>Spoolman 儲存三種類型的資料：</p><itemsHelp/><p>要將新線材加入資料庫，首先需要建立一個 <filamentCreateLink>線材</filamentCreateLink> 物件。完成後，接著為該特定線材建立一個 <spoolCreateLink>線盤</spoolCreateLink> 物件。如果之後您再獲得相同線材的其他線盤，只需生成更多的線盤物件，並重複使用相同的線材物件。</p><p>如果您希望追蹤製造商資訊，也可以選擇建立一個 <vendorCreateLink>製造商</vendorCreateLink> 物件。</p><p>您還可以將其他3D列印服務與Spoolman連接，例如Moonraker，它可以自動監控線材使用情況並為您更新線盤物件。請參閱 <readmeLink>Spoolman README</readmeLink> 以獲取設置指南。</p>"
     },
     "table": {
         "actions": "操作"
@@ -376,5 +382,11 @@
             "non_unique_key_error": "鍵值必須為唯一。",
             "delete_confirm_description": "這將刪除該欄位及所有與之關聯的所有實體資料。"
         }
+    },
+    "locations": {
+        "locations": "位置",
+        "no_location": "未設定位置",
+        "no_locations_help": "這個頁面讓您將料盤按位置進行整理，請從增加一些線盤來開始！",
+        "new_location": "新增位置"
     }
 }
