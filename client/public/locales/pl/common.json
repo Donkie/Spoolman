@@ -62,7 +62,9 @@
             "weight_to_use": "Waga",
             "price": "Cena",
             "initial_weight": "Waga początkowa",
-            "spool_weight": "Waga pusta"
+            "spool_weight": "Waga pusta",
+            "filament_internal": "Wewnętrzne",
+            "filament_external": "Zewnętrzne"
         },
         "fields_help": {
             "location": "Wpisz gdzie znajduje się szpula, jeśli masz wiele lokalizacji, w których przechowujesz szpule.",
@@ -73,7 +75,8 @@
             "weight_to_use": "Wybierz jaką wagę wprowadzić. Zmierzona waga jest dostępna tylko wtedy, gdy waga szpuli jest ustawiona dla wybranego filamentu.",
             "price": "Cena pełnej szpuli. Jeśli nie ustawiona, cena filamentu będzie domyślna.",
             "initial_weight": "Masa początkowa filamentu(netto). Może być podana przez producenta, ale możesz ustawić dla każdej szpuli, aby uwzględnić ewentualne niedokładności.",
-            "spool_weight": "Waga pustej szpuli. Może być podana przez producenta, ale możesz ją ustawić osobno dla każdej szpuli, aby uwzględnić niedokładności."
+            "spool_weight": "Waga pustej szpuli. Pozostaw puste, aby użyć wartości z filamentu lub od producenta.",
+            "external_filament": "Wybrałeś filament z zewnętrznej bazy. Element filamentu (możliwe też że element producenta) zostanie stworzony automatycznie gdy stworzysz szpulę. Może to spowodować utworzenie się duplikatów elementów filamentu jeżeli już stworzyłeś element filamentu dla tego filamentu."
         },
         "messages": {
             "archive": "Czy na pewno chcesz zarchiwizować tę szpulę?"
@@ -87,6 +90,9 @@
             },
             "measurement_type_label": "Typ pomiaru",
             "adjust_filament_help": "Tutaj możesz bezpośrednio dodać lub usunąć filament z szpuli. Dodatnia wartość spowoduje odjęcie filamentu, ujemna wartość spowoduje jego dodanie."
+        },
+        "formats": {
+            "last_used": "Ostatnio użyty {{date}}"
         }
     },
     "dashboard": {
@@ -153,11 +159,14 @@
             "saveAsImage": "Zapisz jako obraz",
             "duplicateSettings": "Zduplikuj",
             "deleteSettingsConfirm": "Czy jesteś pewny, że chcesz usunąć to ustawienie?",
-            "addSettings": "Dodaj nowe ustawienie wstępne"
+            "addSettings": "Dodaj nowe ustawienie wstępne",
+            "deleteSettings": "Usuń aktualne ustawienie",
+            "settingsName": "Nazwa ustawienia",
+            "saveSetting": "Zapisz ustawienie"
         },
         "qrcode": {
-            "button": "Drukuj kody QR",
-            "title": "Drukowanie kodów QR",
+            "button": "Drukuj etykiety",
+            "title": "Drukowanie etykiet",
             "bedTemp": "TS: {{temp}}",
             "extruderTemp": "TE: {{temp}}",
             "textSize": "Rozmiar tekstu etykiety",
@@ -179,17 +188,20 @@
                 "options": {
                     "default": "Domyślne",
                     "url": "URL"
-                }
+                },
+                "tooltip": "Zostanie użyty link który będzie działał tylko gdy zostanie zeskanowany przez funkcję skanowania Spoolmana (Domyślna opcja). Link URL używa bazowego URL ustawionego w ustawieniach lub aktualnego URL strony jeżeli nie jest ustawiony w ustawieniach."
             },
             "showQRCode": "Drukuj kod QR",
             "showQRCodeMode": {
                 "no": "Nie",
-                "withIcon": "Z ikoną"
-            }
+                "withIcon": "Z ikoną",
+                "simple": "Proste"
+            },
+            "templateHelp": "Użyj {}, aby wstawić wartości obiektu szpuli jako tekst. Na przykład {id} zostanie zastąpione identyfikatorem szpuli lub {filament.material} zostanie zastąpione materiałem szpuli. jeśli brakuje wartości, zostanie ona zastąpiona „?”. Drugi zestaw {} może być użyty do usunięcia tego. Ponadto każdy tekst między zestawami {} zostanie usunięty, jeśli brakuje wartości. Na przykład {Lot Nr: {lot_nr}} pokaże etykietę tylko wtedy, gdy szpula ma numer partii. Otocz tekst podwójną gwiazdką **, aby go pogrubić. Kliknij przycisk, aby wyświetlić listę wszystkich dostępnych tagów."
         },
         "spoolSelect": {
             "title": "Wybierz szpule",
-            "description": "Wybierz szpule dla których mają być drukowane kody QR.",
+            "description": "Wybierz szpule dla których mają być drukowane etykiety.",
             "showArchived": "Pokaż zarchiwizowane",
             "selectAll": "Wybierz/Odznacz wszystko",
             "selectedTotal_one": "Wybrano {{count}} szpulę",
@@ -230,7 +242,11 @@
             "color_hex": "Kolor",
             "article_number": "Numer artykułu",
             "spools": "Zobacz szpule",
-            "external_id": "Zewnętrzne ID"
+            "external_id": "Zewnętrzne ID",
+            "single_color": "Pojedynczy",
+            "multi_color": "Wielo",
+            "longitudinal": "Wzdłużny",
+            "coaxial": "Koekstrudowany"
         },
         "fields_help": {
             "material": "Np. PLA, ABS, PETG itp.",
@@ -251,7 +267,8 @@
         },
         "form": {
             "filament_updated": "Ten filament został zaktualizowany przez kogoś/coś innego od czasu otwarcia tej strony. Zapisanie nadpisze te zmiany!",
-            "import_external": "Importuj z zewnątrz"
+            "import_external": "Importuj z zewnątrz",
+            "import_external_description": "Wybierz filament z listy by automatycznie zpopulować jego informacje w formularzu tworzenia filamentu. Spowoduje to nadpisanie danych które wpisałeś już w formularzu. Producent zostanie automatycznie stworzony jeżeli klikniesz Ok, jeżeli będzie to wymagane."
         },
         "buttons": {
             "add_spool": "Dodaj Szpulę"
@@ -268,9 +285,9 @@
             "external_id": "Zewnętrzne ID"
         },
         "titles": {
-            "create": "Tworzenie producenta",
-            "clone": "Klonowanie producenta",
-            "edit": "Edycja producenta",
+            "create": "Stwórz producenta",
+            "clone": "Sklonuj producenta",
+            "edit": "Edytuj producenta",
             "list": "Producenci",
             "show": "Pokaż producenta",
             "show_title": "[Producent #{{id}}] {{name}}"
@@ -290,7 +307,7 @@
         "suffix": " | Spoolman",
         "filament": {
             "list": "Filamenty | Spoolman",
-            "edit": "#{{id}} Edycja filamentu | Spoolman",
+            "edit": "#{{id}} Edytuj filament | Spoolman",
             "create": "Tworzenie filamentu | Spoolman",
             "clone": "#{{id}} Klonowanie filamentu | Spoolman",
             "show": "#{{id}} Filament | Spoolman"
@@ -298,22 +315,25 @@
         "spool": {
             "list": "Szpule | Spoolman",
             "show": "#{{id}} Szpula | Spoolman",
-            "edit": "#{{id}} Edycja szpuli | Spoolman",
+            "edit": "#{{id}} Edytuj szpulę | Spoolman",
             "create": "Tworzenie szpuli | Spoolman",
             "clone": "#{{id}} Klonowanie szpuli | Spoolman"
         },
         "vendor": {
-            "show": "#{{id}} Producent | Spoolman",
+            "show": "#{{id}} Pokaż producenta | Spoolman",
             "list": "Producenci | Spoolman",
-            "edit": "#{{id}} Edycja producenta | Spoolman",
-            "create": "Tworzenie producenta | Spoolman",
-            "clone": "#{{id}} Klonowanie producenta | Spoolman"
+            "edit": "#{{id}} Edytuj producenta | Spoolman",
+            "create": "Stwórz producenta | Spoolman",
+            "clone": "#{{id}} Sklonuj producenta | Spoolman"
         },
         "home": {
             "list": "Strona główna | Spoolman"
         },
         "help": {
             "list": "Pomoc | Spoolman"
+        },
+        "locations": {
+            "list": "Lokalizacje | Spoolman"
         }
     },
     "warnWhenUnsavedChanges": "Czy na pewno chcesz wyjść? Masz niezapisane zmiany.",
@@ -359,7 +379,7 @@
             "field_type": {
                 "integer": "Liczba całkowita",
                 "integer_range": "Zakres liczb",
-                "float": "Liczba (ułamek)",
+                "float": "Liczba zmiennoprzecinkowa",
                 "choice": "Wybór",
                 "text": "Tekst",
                 "float_range": "Zakres",
@@ -367,12 +387,18 @@
                 "boolean": "Wartość logiczna"
             },
             "non_unique_key_error": "Klucz musi być unikalny.",
-            "description": "<p>Tutaj możesz dodać dodatkowe komórki do zapisu danych.</p><p>Kiedy dodasz komórkę, nie można już zmienić typu danych ani klucza, a dla komurek wyboru, nie możesz zmienić możliwych wyborów ani multi-wybierania. Jeśli usuniesz komórkę, wszystkie informacje ze wszystkich obiektów z tej komórki zostaną usunięte.</p><p>Klucz jest po to, aby umożliwić innym programom odczytywać/zapisywac swoje dane,więc jeśli twoje nowa customowa komórka ma służyć do integracji z third-party programami, upewnij się że jest dobrze skonfigurowane. Domyślna wartość jest dodawana tylko do nowych komórek.</p><p>Dodatkowe komórki nie moga być sortowane ani filtrowane.</p>",
+            "description": "<p>Tutaj możesz dodać dodatkowe pola niestandardowe do swoich podmiotów.</p><p>Po dodaniu pola nie można zmienić jego klucza ani typu, a w przypadku pól typu wyboru nie można usunąć wyborów ani zmienić stanu wielokrotnego wyboru. Jeśli usuniesz pole, powiązane dane dla wszystkich podmiotów zostaną usunięte.</p><p>Klucz jest tym, co inne programy odczytują/zapisują jako dane, więc jeśli twoje niestandardowe pole ma być zintegrowane z programem innej firmy, upewnij się, że ustawiłeś je poprawnie. Wartość domyślna jest stosowana tylko do nowych elementów.</p><p>Dodatkowych pól nie można sortować ani filtrować w widokach tabeli.</p>",
             "choices_missing_error": "Nie możesz usunąc możliwośći wyboru. Ten wybór nie istnieje: {{choices}}",
             "key_not_changed": "Zmień klucz na inny.",
             "delete_confirm": "Usunąć pole {{name}}?",
             "delete_confirm_description": "Ta akcja usunie wszystkie pola i powiązane z nimi dane dla wszystkich obiektów."
         },
         "header": "Ustawienia"
+    },
+    "locations": {
+        "locations": "Lokalizacje",
+        "new_location": "Nowa lokalizacja",
+        "no_location": "Brak lokalizacji",
+        "no_locations_help": "Ta strona pozwala uporządkować szpule w lokalizacjach, dodaj kilka szpul aby rozpocząć!"
     }
 }
