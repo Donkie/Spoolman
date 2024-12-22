@@ -3,6 +3,7 @@
   width: 1.5em;
   height: 2.5em;
   gap: 2px;
+  margin: 0 0.5em;
 }
 
 .spool-icon.vertical {
@@ -12,6 +13,10 @@
 .spool-icon.large {
   width: 4em;
   height: 4em;
+}
+
+.spool-icon.no-margin {
+  margin: 0;
 }
 
 .spool-icon * {
