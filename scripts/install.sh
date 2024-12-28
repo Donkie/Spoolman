@@ -202,8 +202,15 @@ chmod +x scripts/*.sh
 #
 # Install systemd service
 #
-echo -e "${CYAN}Do you want to install Spoolman as a systemd service? This will automatically start Spoolman when your server starts. (y/n)${NC}"
-read choice
+systemd_option=$1
+if [ "$systemd_option" == "-systemd=no" ]; then
+   choice="n"
+elif [ "$systemd_option" == "-systemd=yes" ]; then
+   choice="y"
+else
+   echo -e "${CYAN}Do you want to install Spoolman as a systemd service? This will automatically start Spoolman when your server starts. (y/n)${NC}"
+   read choice
+fi
 
 if [ "$choice" == "y" ] || [ "$choice" == "Y" ]; then
     systemd_user_dir="$HOME/.config/systemd/user"
