@@ -208,7 +208,10 @@
         "messages": {
             "archive": "Tem certeza de que deseja arquivar esta bobine?"
         },
-        "spool": "Carretéis"
+        "spool": "Carretéis",
+        "formats": {
+            "last_used": "Última utilização {{date}}"
+        }
     },
     "filament": {
         "filament": "Filamentos",
@@ -328,7 +331,10 @@
             "edit": "#{{id}} Editar Fabricante | Spoolman",
             "clone": "#{{id}} Clonar Fabricante | Spoolman"
         },
-        "default": "Spoolman"
+        "default": "Spoolman",
+        "locations": {
+            "list": "Locais | Spoolman"
+        }
     },
     "no": "Não",
     "scanner": {
@@ -390,5 +396,11 @@
                 "tooltip": "O endereço base a utilizar em funcionalidades tais como os códigos QR."
             }
         }
+    },
+    "locations": {
+        "locations": "Locais",
+        "new_location": "Novo Local",
+        "no_location": "Sem Local",
+        "no_locations_help": "Esta página permite organizar as suas bobines em locais, adicione algumas bobines para começar!"
     }
 }
