@@ -1,3 +1,4 @@
+import { getBasePath } from "../../utils/url";
 import { useTranslate } from "@refinedev/core";
 import { Col, Form, InputNumber, QRCode, Radio, RadioChangeEvent, Row, Slider, Switch, Typography } from "antd";
 import { QRCodePrintSettings } from "./printing";
@@ -47,7 +48,7 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
           <div className="print-qrcode-container">
             <QRCode
               className="print-qrcode"
-              icon={showQRCodeMode === "withIcon" ? "/favicon.svg" : undefined}
+              icon={showQRCodeMode === "withIcon" ? getBasePath() + "/favicon.svg" : undefined}
               value={item.value}
               errorLevel={item.errorLevel}
               type="svg"
