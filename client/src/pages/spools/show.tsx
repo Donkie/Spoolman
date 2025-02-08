@@ -1,3 +1,4 @@
+import { getBasePath } from "../../utils/url";
 import { InboxOutlined, PrinterOutlined, ToTopOutlined } from "@ant-design/icons";
 import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
 import { IResourceComponentsProps, useInvalidate, useShow, useTranslate } from "@refinedev/core";
@@ -118,7 +119,7 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
           <Button
             type="primary"
             icon={<PrinterOutlined />}
-            href={"/spool/print?spools=" + record?.id + "&return=" + encodeURIComponent(window.location.pathname)}
+            href={getBasePath() + "/spool/print?spools=" + record?.id + "&return=" + encodeURIComponent(window.location.pathname)}
           >
             {t("printing.qrcode.button")}
           </Button>
