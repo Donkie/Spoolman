@@ -128,9 +128,9 @@
             "showQRCode": "Drucke QR Code",
             "useHTTPUrl": {
                 "label": "QR Code Link",
-                "tooltip": "Verwendet einen proprietären Link, der nur funktioniert, wenn er mit der (standart) Scanfunktion von Spoolman gescannt wird. Die URL verwendet entweder die in den Einstellungen angegebene Basis-URL oder die aktuelle Seiten-URL, wenn diese nicht festgelegt ist.",
+                "tooltip": "Die Standardeinstellung verwendet einen proprietären Link, der nur funktioniert, wenn er mit der Scanfunktion von Spoolman gescannt wird. URL verwendet entweder die in den Einstellungen angegebene Basis-URL oder wenn diese nicht festgelegt ist die aktuelle Seiten-URL.",
                 "options": {
-                    "default": "Standart",
+                    "default": "Standard",
                     "url": "URL"
                 },
                 "preview": "Vorschau:"
@@ -185,7 +185,7 @@
             "filament_external": "Extern"
         },
         "fields_help": {
-            "weight_to_use": "Auswählen, welches Gewicht verwendet werden soll. Das gemessene Gewicht ist nur verfügbar, wenn das Gewicht der Spule für das Filament hinterlegt ist",
+            "weight_to_use": "Auswählen, welches Gewicht verwendet werden soll. Das gemessene Gewicht ist nur verfügbar, wenn das Gewicht der Spule für das Filament hinterlegt ist.",
             "used_weight": "Wie viel Gewicht bereits verbraucht wurde z.B. 0g für eine neue Spule.",
             "remaining_weight": "Wie viel Filament noch auf der Spule ist. Entspricht dem auf der Spule angegeben Nettogewicht, wenn die Spule neu ist.",
             "measured_weight": "Gesamtgewicht von Spule und Filament.",
@@ -371,7 +371,7 @@
                 "unit": "Einheit",
                 "default_value": "Standardwert",
                 "order": "Reihenfolge",
-                "multi_choice": "Mehrfach Auswahl",
+                "multi_choice": "Mehrfachauswahl",
                 "key": "Schlüssel",
                 "choices": "Auswahlmöglichkeiten"
             },
