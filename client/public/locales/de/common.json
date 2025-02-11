@@ -185,7 +185,7 @@
             "filament_external": "Extern"
         },
         "fields_help": {
-            "weight_to_use": "Auswählen, welches Gewicht verwendet werden soll. Das gemessenes Gewicht ist nur verfügbar, wenn das Gewicht der Spule für das Filament hinterlegt ist.",
+            "weight_to_use": "Auswählen, welches Gewicht verwendet werden soll. Das gemessene Gewicht ist nur verfügbar, wenn das Gewicht der Spule für das Filament hinterlegt ist",
             "used_weight": "Wie viel Gewicht bereits verbraucht wurde z.B. 0g für eine neue Spule.",
             "remaining_weight": "Wie viel Filament noch auf der Spule ist. Entspricht dem auf der Spule angegeben Nettogewicht, wenn die Spule neu ist.",
             "measured_weight": "Gesamtgewicht von Spule und Filament.",
@@ -371,7 +371,7 @@
                 "unit": "Einheit",
                 "default_value": "Standardwert",
                 "order": "Reihenfolge",
-                "multi_choice": "mehrfach Auswahl",
+                "multi_choice": "Mehrfach Auswahl",
                 "key": "Schlüssel",
                 "choices": "Auswahlmöglichkeiten"
             },
