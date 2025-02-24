@@ -231,7 +231,7 @@ async def update(
         elif isinstance(v, datetime):
             setattr(spool, k, utc_timezone_naive(v))
         elif k == "extra":
-            spool.extra = [ f for f in spool.extra if f.key not in v.keys()]
+            spool.extra = [ f for f in spool.extra if f.key not in v]
             spool.extra.extend([models.SpoolField(key=k, value=v) for k, v in v.items()])
         else:
             setattr(spool, k, v)
