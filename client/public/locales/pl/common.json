@@ -39,7 +39,8 @@
             "create": "Tworzenie szpuli",
             "clone": "Klonowanie szpuli",
             "archive": "Zarchiwizuj szpulę",
-            "show_title": "[Szpula #{{id}}] {{name}}"
+            "show_title": "[Szpula #{{id}}] {{name}}",
+            "adjust": "Dostosuj szpulę filamentu"
         },
         "spool": "Szpule",
         "fields": {
@@ -89,7 +90,8 @@
                 "weight": "Waga"
             },
             "measurement_type_label": "Typ pomiaru",
-            "adjust_filament_help": "Tutaj możesz bezpośrednio dodać lub usunąć filament z szpuli. Dodatnia wartość spowoduje odjęcie filamentu, ujemna wartość spowoduje jego dodanie."
+            "adjust_filament_help": "Tutaj możesz bezpośrednio dodać lub usunąć filament z szpuli. Dodatnia wartość spowoduje odjęcie filamentu, ujemna wartość spowoduje jego dodanie.",
+            "adjust_filament_value": "Ilość zużycia"
         },
         "formats": {
             "last_used": "Ostatnio użyty {{date}}"
@@ -155,18 +157,18 @@
             "newSetting": "Nowe",
             "defaultSettings": "Domyślne",
             "itemCopies": "Skopiuj element",
-            "settings": "Ustawienia wstępne",
+            "settings": "Presety",
             "saveAsImage": "Zapisz jako obraz",
             "duplicateSettings": "Zduplikuj",
             "deleteSettingsConfirm": "Czy jesteś pewny, że chcesz usunąć to ustawienie?",
-            "addSettings": "Dodaj nowe ustawienie wstępne",
+            "addSettings": "Dodaj nowe ustawienia",
             "deleteSettings": "Usuń aktualne ustawienie",
             "settingsName": "Nazwa ustawienia",
             "saveSetting": "Zapisz ustawienie"
         },
         "qrcode": {
             "button": "Drukuj etykiety",
-            "title": "Drukowanie etykiet",
+            "title": "Drukowanie etykiety",
             "bedTemp": "TS: {{temp}}",
             "extruderTemp": "TE: {{temp}}",
             "textSize": "Rozmiar tekstu etykiety",
@@ -363,7 +365,7 @@
             }
         },
         "extra_fields": {
-            "tab": "Dodatkowe Parametry",
+            "tab": "Dodatkowe parametry",
             "boolean_true": "Tak",
             "boolean_false": "Nie",
             "params": {
@@ -371,7 +373,7 @@
                 "field_type": "Typ",
                 "unit": "Jednostka",
                 "order": "Kolejność",
-                "default_value": "Domyślna Wartość",
+                "default_value": "Domyślna wartość",
                 "key": "Klucz",
                 "choices": "Wybory",
                 "multi_choice": "Wielokrotny wybór"
