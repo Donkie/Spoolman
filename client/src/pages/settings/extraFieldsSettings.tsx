@@ -1,18 +1,18 @@
 import { PlusOutlined } from "@ant-design/icons";
 import { useTranslate } from "@refinedev/core";
 import {
-  Button,
-  Checkbox,
-  Flex,
-  Form,
-  FormInstance,
-  Input,
-  InputNumber,
-  Popconfirm,
-  Select,
-  Space,
-  Table,
-  message,
+    Button,
+    Checkbox,
+    Flex,
+    Form,
+    FormInstance,
+    Input,
+    InputNumber,
+    Popconfirm,
+    Select,
+    Space,
+    Table,
+    message,
 } from "antd";
 import { FormItemProps, Rule } from "antd/es/form";
 import { ColumnType } from "antd/es/table";
@@ -22,7 +22,7 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { useState } from "react";
 import { Trans } from "react-i18next";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import { DateTimePicker } from "../../components/dateTimePicker";
 import { InputNumberRange } from "../../components/inputNumberRange";
 import { EntityType, Field, FieldType, useDeleteField, useGetFields, useSetField } from "../../utils/queryFields";

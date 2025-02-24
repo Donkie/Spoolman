@@ -47,69 +47,67 @@ export function GeneralSettings() {
     }
   };
 
-  return (
-    <>
-      <Form
-        form={form}
-        labelCol={{ span: 8 }}
-        wrapperCol={{ span: 16 }}
-        initialValues={{
-          currency: settings.data?.currency.value,
-          round_prices: settings.data?.round_prices.value,
-        }}
-        onFinish={onFinish}
-        style={{
-          maxWidth: "600px",
-          margin: "0 auto",
-        }}
+  return (<>
+    <Form
+      form={form}
+      labelCol={{ span: 8 }}
+      wrapperCol={{ span: 16 }}
+      initialValues={{
+        currency: settings.data?.currency.value,
+        round_prices: settings.data?.round_prices.value,
+      }}
+      onFinish={onFinish}
+      style={{
+        maxWidth: "600px",
+        margin: "0 auto",
+      }}
+    >
+      <Form.Item
+        label={t("settings.general.currency.label")}
+        name="currency"
+        rules={[
+          {
+            required: true,
+          },
+          {
+            pattern: /^[A-Z]{3}$/,
+          },
+        ]}
       >
-        <Form.Item
-          label={t("settings.general.currency.label")}
-          name="currency"
-          rules={[
-            {
-              required: true,
-            },
-            {
-              pattern: /^[A-Z]{3}$/,
-            },
-          ]}
-        >
-          <Input />
-        </Form.Item>
+        <Input />
+      </Form.Item>
 
-        <Form.Item
-          label={t("settings.general.base_url.label")}
-          tooltip={t("settings.general.base_url.tooltip")}
-          name="base_url"
-          rules={[
-            {
-              required: false,
-            },
-            {
-              pattern: /^https?:\/\/.+(?<!\/)$/,
-            },
-          ]}
-        >
-          <Input placeholder="https://example.com:8000" />
-        </Form.Item>
+      <Form.Item
+        label={t("settings.general.base_url.label")}
+        tooltip={t("settings.general.base_url.tooltip")}
+        name="base_url"
+        rules={[
+          {
+            required: false,
+          },
+          {
+            pattern: /^https?:\/\/.+(?<!\/)$/,
+          },
+        ]}
+      >
+        <Input placeholder="https://example.com:8000" />
+      </Form.Item>
 
-        <Form.Item
-          label={t("settings.general.round_prices.label")}
-          tooltip={t("settings.general.round_prices.tooltip")}
-          name="round_prices"
-          valuePropName="checked"
-        >
-          <Checkbox />
-        </Form.Item>
+      <Form.Item
+        label={t("settings.general.round_prices.label")}
+        tooltip={t("settings.general.round_prices.tooltip")}
+        name="round_prices"
+        valuePropName="checked"
+      >
+        <Checkbox />
+      </Form.Item>
 
-        <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-          <Button type="primary" htmlType="submit" loading={settings.isFetching || setCurrency.isLoading}>
-            {t("buttons.save")}
-          </Button>
-        </Form.Item>
-      </Form>
-      {contextHolder}
-    </>
-  );
+      <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
+        <Button type="primary" htmlType="submit" loading={settings.isFetching || setCurrency.isLoading}>
+          {t("buttons.save")}
+        </Button>
+      </Form.Item>
+    </Form>
+    {contextHolder}
+  </>);
 }

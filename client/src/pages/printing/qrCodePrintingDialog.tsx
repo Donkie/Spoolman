@@ -1,6 +1,7 @@
-import { getBasePath } from "../../utils/url";
 import { useTranslate } from "@refinedev/core";
 import { Col, Form, InputNumber, QRCode, Radio, RadioChangeEvent, Row, Slider, Switch, Typography } from "antd";
+import { ReactElement } from "react";
+import { getBasePath } from "../../utils/url";
 import { QRCodePrintSettings } from "./printing";
 import PrintingDialog from "./printingDialog";
 
@@ -8,7 +9,7 @@ const { Text } = Typography;
 
 interface QRCodeData {
   value: string;
-  label?: JSX.Element;
+  label?: ReactElement;
   errorLevel?: "L" | "M" | "Q" | "H";
 }
 
@@ -16,9 +17,9 @@ interface QRCodePrintingDialogProps {
   items: QRCodeData[];
   printSettings: QRCodePrintSettings;
   setPrintSettings: (setPrintSettings: QRCodePrintSettings) => void;
-  extraSettings?: JSX.Element;
-  extraSettingsStart?: JSX.Element;
-  extraButtons?: JSX.Element;
+  extraSettings?: ReactElement;
+  extraSettingsStart?: ReactElement;
+  extraButtons?: ReactElement;
   baseUrlRoot: string;
   useHTTPUrl: boolean;
   setUseHTTPUrl: (value: boolean) => void;

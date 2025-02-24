@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import utc from "dayjs/plugin/utc";
 import { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import SpoolIcon from "../../../components/spoolIcon";
 import { formatWeight } from "../../../utils/parsing";
 import { ISpool } from "../../spools/model";

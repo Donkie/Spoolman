@@ -5,23 +5,23 @@ import { Button, Dropdown, Table } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import {
-  ActionsColumn,
-  CustomFieldColumn,
-  DateColumn,
-  FilteredQueryColumn,
-  NumberColumn,
-  RichColumn,
-  SortedColumn,
-  SpoolIconColumn,
+    ActionsColumn,
+    CustomFieldColumn,
+    DateColumn,
+    FilteredQueryColumn,
+    NumberColumn,
+    RichColumn,
+    SortedColumn,
+    SpoolIconColumn,
 } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
 import {
-  useSpoolmanArticleNumbers,
-  useSpoolmanFilamentNames,
-  useSpoolmanMaterials,
-  useSpoolmanVendors,
+    useSpoolmanArticleNumbers,
+    useSpoolmanFilamentNames,
+    useSpoolmanMaterials,
+    useSpoolmanVendors,
 } from "../../components/otherModels";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";

@@ -15,19 +15,19 @@ import {
   Space,
 } from "antd";
 import * as htmlToImage from "html-to-image";
-import React, { useRef } from "react";
-import ReactToPrint from "react-to-print";
+import React, { ReactElement, useRef } from "react";
+import { useReactToPrint } from "react-to-print";
 import { useSavedState } from "../../utils/saveload";
 import { PrintSettings } from "./printing";
 
 interface PrintingDialogProps {
-  items: JSX.Element[];
+  items: ReactElement[];
   printSettings: PrintSettings;
   setPrintSettings: (setPrintSettings: PrintSettings) => void;
   style?: string;
-  extraSettings?: JSX.Element;
-  extraSettingsStart?: JSX.Element;
-  extraButtons?: JSX.Element;
+  extraSettings?: ReactElement;
+  extraSettingsStart?: ReactElement;
+  extraButtons?: ReactElement;
 }
 
 interface PaperDimensions {
@@ -90,7 +90,8 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
   const paperWidth = paperSize === "custom" ? customPaperSize.width : paperDimensions[paperSize].width;
   const paperHeight = paperSize === "custom" ? customPaperSize.height : paperDimensions[paperSize].height;
 
-  const printRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const reactToPrintFn = useReactToPrint({ contentRef });
 
   const itemWidth = (paperWidth - margin.left - margin.right - spacing.horizontal) / paperColumns - spacing.horizontal;
   const itemHeight = (paperHeight - margin.top - margin.bottom - spacing.vertical) / paperRows - spacing.vertical;
@@ -223,7 +224,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
           >
             <div
               className="print-container"
-              ref={printRef}
+              ref={contentRef}
               style={{
                 transform: `scale(${previewScale})`,
                 transformOrigin: "top left",
@@ -817,15 +818,9 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
             <Button type="primary" icon={<FileImageOutlined />} size="large" onClick={saveAsImage}>
               {t("printing.generic.saveAsImage")}
             </Button>
-            <ReactToPrint
-              key="print-button"
-              trigger={() => (
-                <Button type="primary" icon={<PrinterOutlined />} size="large">
-                  {t("printing.generic.print")}
-                </Button>
-              )}
-              content={() => printRef.current}
-            />
+            <Button type="primary" icon={<PrinterOutlined />} size="large" onClick={() => reactToPrintFn()}>
+              {t("printing.generic.print")}
+            </Button>
           </Space>
         </Col>
       </Row>
