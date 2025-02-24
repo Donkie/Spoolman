@@ -7,11 +7,11 @@ from collections.abc import Iterator
 from enum import Enum
 from pathlib import Path
 from typing import Optional
+from urllib.parse import urljoin
 
 import hishel
 from pydantic import BaseModel, Field, RootModel
 from scheduler.asyncio.scheduler import Scheduler
-from urllib.parse import urljoin
 
 from spoolman import filecache
 from spoolman.env import get_cache_dir
