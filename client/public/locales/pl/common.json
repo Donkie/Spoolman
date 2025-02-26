@@ -362,6 +362,10 @@
             "base_url": {
                 "tooltip": "Bazowy URL zostanie użyty podczas generowania QR code oraz w innych funkcjonalnościach.",
                 "label": "Bazowy URL"
+            },
+            "round_prices": {
+                "tooltip": "Zaokrąglij ceny do najbliższej liczby całkowitej.",
+                "label": "Zaokrąglone ceny"
             }
         },
         "extra_fields": {
