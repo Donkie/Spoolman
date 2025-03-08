@@ -361,6 +361,10 @@
             "base_url": {
                 "label": "Basis-URL",
                 "tooltip": "De basis-URL die moet worden gebruikt bij het genereren van functies zoals QR-codes."
+            },
+            "round_prices": {
+                "label": "Afgeronde prijzen",
+                "tooltip": "Rond prijzen af op het dichtstbijzijnde gehele getal."
             }
         },
         "extra_fields": {
