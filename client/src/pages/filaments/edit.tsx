@@ -63,6 +63,9 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
   const originalOnFinish = formProps.onFinish;
   formProps.onFinish = (allValues: IFilamentParsedExtras) => {
     if (allValues !== undefined && allValues !== null) {
+      if (colorType == "single") {
+        allValues.multi_color_hexes = '';
+      }
       // Lot of stupidity here to make types work
       const stringifiedAllValues = StringifiedExtras<IFilamentParsedExtras>(allValues);
       originalOnFinish?.({
