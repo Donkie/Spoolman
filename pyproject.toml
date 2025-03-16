@@ -60,7 +60,6 @@ select = [
     "ALL",
 ]
 ignore = [
-    "ANN101",
     "A003",
     "D101",
     "D104",
@@ -85,6 +84,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests*/*" = [
     "ANN201",
+    "ASYNC210",
     "S101",
     "PLR2004",
     "D103",

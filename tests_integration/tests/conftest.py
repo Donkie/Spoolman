@@ -162,35 +162,35 @@ def random_empty_filament_empty_vendor_impl():
         httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()
 
 
-@pytest.fixture()
+@pytest.fixture
 def random_vendor():
     """Return a random vendor."""
     with random_vendor_impl() as random_vendor:
         yield random_vendor
 
 
-@pytest.fixture()
+@pytest.fixture
 def random_empty_vendor():
     """Return a random vendor with only required fields specified."""
     with random_empty_vendor_impl() as random_empty_vendor:
         yield random_empty_vendor
 
 
-@pytest.fixture()
+@pytest.fixture
 def random_filament():
     """Return a random filament."""
     with random_filament_impl() as random_filament:
         yield random_filament
 
 
-@pytest.fixture()
+@pytest.fixture
 def random_empty_filament():
     """Return a random filament with only required fields specified."""
     with random_empty_filament_impl() as random_empty_filament:
         yield random_empty_filament
 
 
-@pytest.fixture()
+@pytest.fixture
 def random_empty_filament_empty_vendor():
     """Return a random filament with only required fields specified and a vendor with only required fields specified."""
     with random_empty_filament_empty_vendor_impl() as random_empty_filament_empty_vendor:

@@ -80,42 +80,43 @@ class VendorUpdateParameters(VendorParameters):
 )
 async def find(
     db: Annotated[AsyncSession, Depends(get_db_session)],
-    name: Optional[str] = Query(
-        default=None,
-        title="Vendor Name",
-        description=(
-            "Partial case-insensitive search term for the vendor name. Separate multiple terms with a comma. "
-            "Surround a term with quotes to search for the exact term."
+    name: Annotated[
+        Optional[str],
+        Query(
+            title="Vendor Name",
+            description=(
+                "Partial case-insensitive search term for the vendor name. Separate multiple terms with a comma. "
+                "Surround a term with quotes to search for the exact term."
+            ),
         ),
-    ),
-    external_id: Optional[str] = Query(
-        default=None,
-        title="Vendor External ID",
-        description=(
-            "Exact match for the vendor external ID. "
-            "Separate multiple IDs with a comma. "
-            "Specify empty string to match filaments with no external ID. "
-            "Surround a term with quotes to search for the exact term."
+    ] = None,
+    external_id: Annotated[
+        Optional[str],
+        Query(
+            title="Vendor External ID",
+            description=(
+                "Exact match for the vendor external ID. "
+                "Separate multiple IDs with a comma. "
+                "Specify empty string to match filaments with no external ID. "
+                "Surround a term with quotes to search for the exact term."
+            ),
         ),
-    ),
-    sort: Optional[str] = Query(
-        default=None,
-        title="Sort",
-        description=(
-            'Sort the results by the given field. Should be a comma-separate string with "field:direction" items.'
+    ] = None,
+    sort: Annotated[
+        Optional[str],
+        Query(
+            title="Sort",
+            description=(
+                'Sort the results by the given field. Should be a comma-separate string with "field:direction" items.'
+            ),
+            example="name:asc,id:desc",
         ),
-        example="name:asc,id:desc",
-    ),
-    limit: Optional[int] = Query(
-        default=None,
-        title="Limit",
-        description="Maximum number of items in the response.",
-    ),
-    offset: int = Query(
-        default=0,
-        title="Offset",
-        description="Offset in the full result set if a limit is set.",
-    ),
+    ] = None,
+    limit: Annotated[
+        Optional[int],
+        Query(title="Limit", description="Maximum number of items in the response."),
+    ] = None,
+    offset: Annotated[int, Query(title="Offset", description="Offset in the full result set if a limit is set.")] = 0,
 ) -> JSONResponse:
     sort_by: dict[str, SortOrder] = {}
     if sort is not None:
