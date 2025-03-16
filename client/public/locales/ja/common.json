@@ -1,0 +1,396 @@
+{
+    "notifications": {
+        "undoable": "取り消しまで残り{{seconds}}秒",
+        "editSuccess": "{{resource}}の編集が完了",
+        "success": "完了",
+        "error": "エラー (status code: {{statusCode}})",
+        "createSuccess": "{{resource}}の作成が完了",
+        "deleteSuccess": "{{resource}}の削除が完了",
+        "editError": "{{resource}}の編集中にエラーが発生しました (status code: {{statusCode}})",
+        "importProgress": "インポート中: {{processed}}/{{total}}",
+        "saveSuccessful": "保存完了!",
+        "createError": "{{resource}}を作成中にエラーが発生しました。 (status code: {{statusCode}})",
+        "validationError": "検証エラー: {{error}}",
+        "deleteError": "{{resource}}を削除中にエラーが発生しました (status code: {{statusCode}})"
+    },
+    "actions": {
+        "create": "作成",
+        "edit": "編集",
+        "clone": "複製",
+        "list": "リスト",
+        "show": "表示"
+    },
+    "buttons": {
+        "archive": "アーカイブ",
+        "saveAndAdd": "保存して追加",
+        "create": "作成",
+        "edit": "編集",
+        "cancel": "キャンセル",
+        "confirm": "本当によろしいですか?",
+        "continue": "続ける",
+        "filter": "フィルター",
+        "clear": "クリア",
+        "refresh": "再読込",
+        "show": "表示",
+        "undo": "元に戻す",
+        "hideArchived": "アーカイブを隠す",
+        "showArchived": "アーカイブを表示",
+        "unArchive": "非アーカイブ",
+        "hideColumns": "コラムを隠す",
+        "notAccessTitle": "アクセス権限がありません",
+        "save": "保存",
+        "logout": "ログアウト",
+        "delete": "削除",
+        "clone": "複製",
+        "clearFilters": "フィルタをクリア",
+        "import": "インポート"
+    },
+    "printing": {
+        "generic": {
+            "verticalSpacing": "垂直方向の余白",
+            "printerMarginTop": "上側のセーフゾーン",
+            "deleteSettings": "現在のプリセットを削除",
+            "itemCopies": "複製",
+            "print": "印刷",
+            "paperSize": "用紙サイズ",
+            "customSize": "カスタム",
+            "showBorder": "線を表示",
+            "previewScale": "スケールを表示",
+            "skipItems": "スキップ",
+            "horizontalSpacing": "水平方向の余白",
+            "marginLeft": "左側の余白",
+            "marginBottom": "下側の余白",
+            "printerMarginBottom": "下側のセーフゾーン",
+            "borders": {
+                "none": "なし",
+                "grid": "グリッド",
+                "border": "線"
+            },
+            "settingsName": "プリセット名",
+            "saveSetting": "プリセットを保存",
+            "saveAsImage": "画像として保存",
+            "columns": "列",
+            "marginRight": "右側の余白",
+            "defaultSettings": "デフォルト",
+            "title": "プリント中",
+            "description": "以下の設定を調整して、希望する印刷レイアウトを得てください。プリンターやOSが独自のマージンや拡大縮小を適用する場合があるため、すべてが正確になるまでには試行錯誤が必要かもしれません。実際のラベルに印刷する前に、普通の紙でテストしてください。",
+            "helpMargin": "マージンはラベル用紙とプリンターに合わせて設定する必要があります。これらを変更すると、グリッド全体のサイズに影響します。",
+            "settings": "プリセット",
+            "helpPrinterMargin": "セーフゾーンは、プリンターが用紙の端にどれだけ近づけて印刷できるかの設定です。これらを変更しても、グリッド全体には影響しません。",
+            "dimensions": "寸法",
+            "duplicateSettings": "複製",
+            "contentSettings": "コンテンツ設定",
+            "marginTop": "上側の余白",
+            "printerMarginRight": "右側のセーフゾーン",
+            "layoutSettings": "レイアウト設定",
+            "addSettings": "新しいプリセットを追加",
+            "deleteSettingsConfirm": "本当にこのプリセットを削除しますか?",
+            "newSetting": "新規",
+            "rows": "行",
+            "printerMarginLeft": "左側のセーフゾーン"
+        },
+        "qrcode": {
+            "button": "ラベルを印刷",
+            "title": "ラベル印刷",
+            "template": "ラベルテンプレート",
+            "textSize": "ラベルのテキストサイズ",
+            "useHTTPUrl": {
+                "options": {
+                    "default": "デフォルト",
+                    "url": "URL"
+                },
+                "preview": "プレビュー:",
+                "label": "QRコードリンク",
+                "tooltip": "Spoolmanのスキャン機能からスキャンした場合にのみ機能する独自リンクを使用します（デフォルト）。URLは設定で指定されたベースURLを使用するか、設定されていない場合は現在のページURLを使用します。"
+            },
+            "showQRCode": "QRコード印刷",
+            "showContent": "ラベル印刷",
+            "templateHelp": "値をテキストとして挿入するには{}を使用します。例えば、{id}はスプールIDに置き換えられ、{filament.material}はスプールの材質に置き換えられます。値が欠けている場合は「?」に置き換えられます。二重の{}を使用して、この置換を削除することができます。{}のセット間のテキストは、値が欠けている場合に削除されます。例えば、{Lot Nr: {lot_nr}}は、スプールにロット番号がある場合にのみラベルを表示します。テキストを太字にするには、二重のアスタリスク**で囲みます。利用可能なすべてのタグのリストを表示するには、ボタンをクリックしてください。",
+            "showQRCodeMode": {
+                "no": "いいえ",
+                "withIcon": "アイコン付き",
+                "simple": "シンプル"
+            }
+        },
+        "spoolSelect": {
+            "description": "スプールのラベル印刷対象を選択してください。",
+            "showArchived": "アーカイブを表示",
+            "selectAll": "すべてを選択 / 選択解除",
+            "title": "スプールを選択",
+            "selectedTotal_other": "{{count}}本のスプールを選択",
+            "noSpoolsSelected": "スプールが選択されていません。"
+        }
+    },
+    "warnWhenUnsavedChanges": "本当に離れますか? 編集が保存されていません。",
+    "kofi": "Ko-fiでチップをください",
+    "unknown": "未知",
+    "version": "バージョン",
+    "loading": "読み込み中",
+    "no": "いいえ",
+    "dashboard": {
+        "title": "ダッシュボード"
+    },
+    "yes": "はい",
+    "tags": {
+        "clone": "複製"
+    },
+    "scanner": {
+        "description": "スプールの詳細を表示するには、SpoolmanのQRコードをスキャンしてください。",
+        "error": {
+            "notReadable": "カメラを読み込むことができません。",
+            "notFound": "カメラが見つかりません。",
+            "unknown": "未知のエラーが発生しました。({{error}})",
+            "insecureContext": "このページはHTTPSで接続されていません。",
+            "streamApiNotSupported": "ブラウザがMediaStream APIに対応していません。",
+            "notAllowed": "カメラへのアクセスが許可されていません。"
+        },
+        "title": "QRコードスキャナ"
+    },
+    "spool": {
+        "fields": {
+            "filament_internal": "内部",
+            "filament_external": "外部",
+            "price": "価格",
+            "remaining_weight": "残りの重さ",
+            "measured_weight": "計測した重さ",
+            "lot_nr": "ロットナンバー",
+            "first_used": "最初の使用",
+            "last_used": "最後の使用",
+            "comment": "コメント",
+            "material": "マテリアル",
+            "weight_to_use": "重さ",
+            "registered": "登録",
+            "archived": "アーカイブ",
+            "used_length": "使用した長さ",
+            "initial_weight": "最初の重さ",
+            "spool_weight": "空の重さ",
+            "location": "場所",
+            "filament": "フィラメント",
+            "used_weight": "使用した重さ",
+            "remaining_length": "残りの長さ",
+            "id": "ID",
+            "filament_name": "フィラメント"
+        },
+        "fields_help": {
+            "price": "スプール全体の価格。設定されていない場合は、フィラメントの価格が代わりに使用されます。",
+            "measured_weight": "フィラメントとスプールの重量。",
+            "location": "スプールを複数の場所に保管している場合、そのスプールの保管場所。",
+            "used_weight": "スプールからどれだけのフィラメントが使用されたか。新しいスプールは0gとなるはずです。",
+            "weight_to_use": "入力する重さを選択してください。測定重量は、選択したフィラメントにスプール重量が設定されている場合のみ利用可能です。",
+            "remaining_weight": "スプールに残っているフィラメントの量。新しいスプールの場合、これはスプールの重量と一致するはずです。",
+            "initial_weight": "スプール上のフィラメントの初期重量（正味重量）。設定されていない場合は、フィラメントオブジェクトからの重量が使用されます。",
+            "lot_nr": "メーカーのロット番号。複数のスプールを使用する場合、印刷の色が一定であることを確認するために使用できます。",
+            "external_filament": "外部データベースからフィラメントを選択しました。このスプールを作成する際に、フィラメントオブジェクト（場合によってはメーカーオブジェクトも）が自動的に作成されます。すでにこのフィラメントのフィラメントオブジェクトを作成している場合、重複したフィラメントオブジェクトが作成される可能性があります。",
+            "spool_weight": "空の時のスプールの重量。フィラメントまたはメーカーの値を使用する場合は空のままにしてください。"
+        },
+        "titles": {
+            "create": "スプールを作成",
+            "clone": "スプールを複製",
+            "show_title": "[スプール #{{id}}] {{name}}",
+            "adjust": "スプールフィラメントの調整",
+            "edit": "スプールを編集",
+            "archive": "アーカイブしたスプール",
+            "list": "スプール",
+            "show": "スプールを表示"
+        },
+        "form": {
+            "measurement_type_label": "計測タイプ",
+            "new_location_prompt": "新しい場所を入力",
+            "measurement_type": {
+                "length": "長さ",
+                "weight": "重さ"
+            },
+            "adjust_filament_help": "ここではスプールに直接フィラメントを追加したり差し引いたりすることができます。正の値はフィラメントを消費し、負の値はフィラメントを追加します。",
+            "spool_updated": "このスプールは、このページを開いてから他の誰か/何かによって更新されています。保存すると、それらの変更が上書きされます!",
+            "adjust_filament_value": "消費量"
+        },
+        "messages": {
+            "archive": "本当にこのスプールをアーカイブしますか?"
+        },
+        "formats": {
+            "last_used": "最終使用日: {{date}}"
+        },
+        "spool": "スプール"
+    },
+    "filament": {
+        "fields": {
+            "id": "ID",
+            "name": "名称",
+            "material": "マテリアル",
+            "price": "価格",
+            "density": "密度",
+            "spool_weight": "スプールの重さ",
+            "registered": "登録",
+            "comment": "コメント",
+            "color_hex": "色",
+            "single_color": "単色",
+            "multi_color": "複数色",
+            "longitudinal": "縦方向",
+            "article_number": "製品番号",
+            "coaxial": "断面",
+            "external_id": "外部ID",
+            "vendor": "製造者",
+            "diameter": "直径",
+            "settings_extruder_temp": "エクストルーダー温度",
+            "settings_bed_temp": "ベッド温度",
+            "weight": "重さ",
+            "vendor_name": "製造者",
+            "spools": "スプールを表示"
+        },
+        "filament": "フィラメント",
+        "fields_help": {
+            "name": "フィラメント名: 同じメーカーの他のフィラメントと区別するための名称です。例えば色を含めると良いでしょう。",
+            "article_number": "例: EAN, UPC, etc.",
+            "spool_weight": "空のスプールの重量。スプールの測定重量を決定するために使用されます。",
+            "material": "例: PLA, ABS, PETG, etc.",
+            "multi_color_direction": "フィラメントは2つの方法で複数の色を持つことができます。断面: 押出し時に円の断面に複数色を持つ二色フィラメントのような形態です。縦方向: 長手方向の色変化によるもので、スプールに沿って色が変化するグラデーションフィラメントのような形態です。",
+            "price": "スプール全体の価格。",
+            "weight": "フィラメントの正味重量（フルスプール時）。スプール自体の重量は含まず、フィラメントのみの重量です。通常、パッケージに記載されている重量です。"
+        },
+        "titles": {
+            "create": "フィラメントを作成",
+            "clone": "フィラメントを複製",
+            "list": "フィラメント",
+            "edit": "フィラメントを編集",
+            "show_title": "[フィラメント #{{id}}] {{name}}",
+            "show": "フィラメントを表示"
+        },
+        "form": {
+            "filament_updated": "このフィラメントは、このページを開いてから他の誰か/何かによって更新されています。保存すると、それらの変更が上書きされます!",
+            "import_external": "外部からインポート",
+            "import_external_description": "リストからフィラメントを選択すると、フィラメント作成フォームに詳細情報が自動的に入力されます。これにより、フォームに入力したデータは上書きされます。<br><br>「OK」をクリックすると、メーカーオブジェクトが自動的に作成されます。"
+        },
+        "buttons": {
+            "add_spool": "スプールを追加"
+        }
+    },
+    "vendor": {
+        "fields": {
+            "id": "ID",
+            "registered": "登録",
+            "external_id": "外部ID",
+            "name": "名称",
+            "empty_spool_weight": "空スプールの重さ",
+            "comment": "コメント"
+        },
+        "fields_help": {
+            "empty_spool_weight": "この製造者の空スプールの重量。"
+        },
+        "titles": {
+            "create": "製造者を作成",
+            "list": "製造者",
+            "show": "製造者を表示",
+            "clone": "製造者を複製",
+            "edit": "製造者を編集",
+            "show_title": "[製造者 #{{id}}] {{name}}"
+        },
+        "form": {
+            "vendor_updated": "この製造者は、このページを開いてから他の誰か/何かによって更新されています。保存すると、それらの変更が上書きされます!"
+        },
+        "vendor": "製造者"
+    },
+    "help": {
+        "help": "ヘルプ",
+        "resources": {
+            "filament": "フィラメントのブランド。名前、素材、色、直径などの特性を持っています。",
+            "spool": "特定のフィラメントの個々の物理的なスプール。",
+            "vendor": "フィラメントを製造している会社。"
+        },
+        "description": "<title>ヘルプ</title><p>使い始めるためのヒントをいくつか紹介します。</p><p>Spoolmanは3種類のデータを管理しています：</p><itemsHelp/><p>データベースに新しいスプールを追加するには、まず<filamentCreateLink>フィラメント</filamentCreateLink>を作成することから始めます。それが完了したら、<spoolCreateLink>スプール</spoolCreateLink>を作成します。後日、同じフィラメントの追加スプールを入手した場合は、追加のスプールを生成し、同じフィラメントを再利用するだけです。</p><p>必要に応じて、フィラメントを製造している<vendorCreateLink>製造者</vendorCreateLink>を作成して、その情報を追跡することもできます。</p><p>Moonrakerなどの他の3DプリンターサービスをSpoolmanにリンクすることもでき、フィラメントの使用状況を自動的に監視し、スプールを更新することができます。設定方法については<readmeLink>Spoolman README</readmeLink>を参照してください。</p>"
+    },
+    "table": {
+        "actions": "アクション"
+    },
+    "settings": {
+        "settings": "設定",
+        "header": "設定",
+        "general": {
+            "tab": "一般",
+            "currency": {
+                "label": "通過"
+            },
+            "base_url": {
+                "label": "ベースURL",
+                "tooltip": "QRコードなどの機能を生成する際に使用する基本URL。"
+            },
+            "round_prices": {
+                "label": "価格の端数処理",
+                "tooltip": "価格の小数点以下を四捨五入する。"
+            }
+        },
+        "extra_fields": {
+            "tab": "追加項目",
+            "params": {
+                "unit": "単位",
+                "order": "数量",
+                "default_value": "デフォルト値",
+                "choices": "選択肢",
+                "multi_choice": "複数選択",
+                "name": "名称",
+                "key": "キー",
+                "field_type": "タイプ"
+            },
+            "field_type": {
+                "float": "小数点型",
+                "float_range": "小数点型の範囲",
+                "datetime": "日時",
+                "boolean": "真偽値",
+                "choice": "選択肢",
+                "integer_range": "数値範囲",
+                "text": "テキスト",
+                "integer": "整数"
+            },
+            "boolean_true": "はい",
+            "key_not_changed": "別のキーに変更してください。",
+            "boolean_false": "いいえ",
+            "delete_confirm": "{{name}}のフィールドを削除しますか?",
+            "delete_confirm_description": "フィールドとすべてのエンティティの関連データがすべて削除されます。",
+            "description": "<p>ここで追加のカスタムフィールドを追加できます。</p><p>フィールドを追加すると、そのキーやタイプを変更することはできません。また、選択肢タイプのフィールドでは、選択肢の削除や複数選択の状態を変更することはできません。フィールドを削除すると、すべてのエンティティの関連データが削除されます。</p><p>キーは他のプログラムがデータを読み書きする際に使用するものなので、カスタムフィールドがサードパーティのプログラムと連携する予定がある場合は、正しく設定してください。デフォルト値は新しいアイテムにのみ適用されます。</p><p>追加フィールドはテーブルビューで並べ替えやフィルタリングすることはできません。</p>",
+            "choices_missing_error": "選択肢を削除できません。下記の選択肢がありません: {{choices}}",
+            "non_unique_key_error": "キーは一意の値である必要があります。"
+        }
+    },
+    "documentTitle": {
+        "home": {
+            "list": "ホーム | Spoolman"
+        },
+        "help": {
+            "list": "ヘルプ | Spoolman"
+        },
+        "default": "Spoolman",
+        "suffix": " | Spoolman",
+        "filament": {
+            "edit": "フィラメントの編集 #{{id}} | Spoolman",
+            "clone": "フィラメントの複製 #{{id}} | Spoolman",
+            "show": "フィラメント #{{id}} | Spoolman",
+            "create": "フィラメントの作成 | Spoolman",
+            "list": "フィラメント | Spoolman"
+        },
+        "spool": {
+            "list": "スプール | Spoolman",
+            "show": "スプール #{{id}} | Spoolman",
+            "create": "スプールの作成 | Spoolman",
+            "edit": "スプールの編集 #{{id}} | Spoolman",
+            "clone": "スプールの複製 #{{id}} | Spoolman"
+        },
+        "vendor": {
+            "edit": "製造者の編集 #{{id}} | Spoolman",
+            "clone": "製造者の複製 #{{id}} | Spoolman",
+            "show": "製造者 #{{id}} | Spoolman",
+            "create": "製造者の作成 | Spoolman",
+            "list": "製造者 | Spoolman"
+        },
+        "locations": {
+            "list": "場所 | Spoolman"
+        }
+    },
+    "locations": {
+        "locations": "場所",
+        "new_location": "新しい場所",
+        "no_location": "場所なし",
+        "no_locations_help": "このページでは、スプールを場所ごとに整理することができます！"
+    },
+    "home": {
+        "home": "ホーム"
+    }
+}
