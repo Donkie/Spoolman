@@ -129,6 +129,12 @@ export const languages: { [key: string]: Language } = {
     fullCode: "pt-PT",
     djs: () => import("dayjs/locale/pt"),
   },
+  ["pt-br"]: {
+    name: "Português (Brasil)",
+    countryCode: "br",
+    fullCode: "pt-BR",
+    djs: () => import("dayjs/locale/pt-BR"),
+  },
   ["fa"]: {
     name: "فارسی",
     countryCode: "ir",
