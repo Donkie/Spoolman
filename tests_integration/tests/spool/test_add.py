@@ -337,3 +337,39 @@ def test_add_spool_spool_weight(random_filament: dict[str, Any]):
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
+
+
+def test_upload_spool_picture(random_filament: dict[str, Any]):
+    """Test uploading a picture for a spool and getting the URL."""
+    # Execute
+    first_used = "2023-01-01T00:00:00Z"
+    last_used = "2023-01-02T00:00:00Z"
+    used_weight = 250
+    location = "The Pantry"
+    lot_nr = "123456789"
+    comment = "abcdefghåäö"
+    archived = True
+    picture = ("spool_x.jpg", open("tests_integration/tests/spool/spool_x.jpg", "rb"), "image/jpeg")
+    result = httpx.post(
+        f"{URL}/api/v1/spool/upload_picture",
+        files={"picture": picture},
+        data={
+            "first_used": first_used,
+            "last_used": last_used,
+            "filament_id": random_filament["id"],
+            "used_weight": used_weight,
+            "location": location,
+            "lot_nr": lot_nr,
+            "comment": comment,
+            "archived": archived,
+        },
+    )
+    result.raise_for_status()
+
+    # Verify
+    spool = result.json()
+    assert "picture_url" in spool
+    assert spool["picture_url"].startswith("/images/")
+
+    # Clean up
+    httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()

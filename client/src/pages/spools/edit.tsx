@@ -1,6 +1,6 @@
 import { Edit, useForm } from "@refinedev/antd";
 import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
-import { Alert, DatePicker, Divider, Form, Input, InputNumber, Radio, Select, Typography } from "antd";
+import { Alert, DatePicker, Divider, Form, Input, InputNumber, Radio, Select, Typography, Upload, Button } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { message } from "antd/lib";
 import dayjs from "dayjs";
@@ -16,6 +16,8 @@ import { createFilamentFromExternal } from "../filaments/functions";
 import { useLocations } from "../locations/functions";
 import { useGetFilamentSelectOptions } from "./functions";
 import { ISpool, ISpoolParsedExtras, WeightToEnter } from "./model";
+import { UploadOutlined } from "@ant-design/icons";
+import axios from "axios";
 
 /*
 The API returns the extra fields as JSON values, but we need to parse them into their real types
@@ -100,7 +102,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
 
   // Override the form's onFinish method to stringify the extra fields
   const originalOnFinish = formProps.onFinish;
-  formProps.onFinish = (allValues: ISpoolRequest) => {
+  formProps.onFinish = async (allValues: ISpoolRequest) => {
     if (allValues !== undefined && allValues !== null) {
       // Lot of stupidity here to make types work
       const values = StringifiedExtras<ISpoolRequest>(allValues);
@@ -119,6 +121,23 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
           });
         });
       } else {
+        // Handle picture upload
+        if (allValues.picture_url && allValues.picture_url instanceof File) {
+          const formData = new FormData();
+          formData.append("file", allValues.picture_url);
+          try {
+            const response = await axios.post("/api/v1/spool/upload-picture", formData, {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            });
+            values.picture_url = response.data.message;
+          } catch (error) {
+            messageApi.error(t("spool.form.picture_upload_failed"));
+            return;
+          }
+        }
+
         originalOnFinish?.({
           extra: {},
           ...values,
@@ -466,6 +485,26 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
           ]}
         >
           <TextArea maxLength={1024} />
+        </Form.Item>
+        <Form.Item
+          label={t("spool.fields.picture_url")}
+          name={["picture_url"]}
+          valuePropName="file"
+          getValueFromEvent={(e) => {
+            if (Array.isArray(e)) {
+              return e;
+            }
+            return e && e.file;
+          }}
+          rules={[
+            {
+              required: false,
+            },
+          ]}
+        >
+          <Upload name="file" listType="picture" maxCount={1} beforeUpload={() => false}>
+            <Button icon={<UploadOutlined />}>{t("spool.fields.upload_picture")}</Button>
+          </Upload>
         </Form.Item>
         <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
         {extraFields.data?.map((field, index) => (

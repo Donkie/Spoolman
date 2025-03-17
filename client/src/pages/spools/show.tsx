@@ -207,6 +207,8 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       <TextField value={enrichText(record?.comment)} />
       <Title level={5}>{t("spool.fields.archived")}</Title>
       <TextField value={record?.archived ? t("yes") : t("no")} />
+      <Title level={5}>{t("spool.fields.picture_url")}</Title>
+      {record?.picture_url && <img src={record.picture_url} alt="Spool" style={{ maxWidth: "100%" }} />}
       <Title level={4}>{t("settings.extra_fields.tab")}</Title>
       {extraFields?.data?.map((field, index) => (
         <ExtraFieldDisplay key={index} field={field} value={record?.extra[field.key]} />

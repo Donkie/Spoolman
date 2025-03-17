@@ -4,7 +4,7 @@ import asyncio
 import logging
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Query, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -117,6 +117,12 @@ class FilamentParameters(BaseModel):
     extra: Optional[dict[str, str]] = Field(
         None,
         description="Extra fields for this filament.",
+    )
+    picture_url: Optional[str] = Field(
+        None,
+        max_length=1024,
+        description="URL of the picture of the filament.",
+        examples=["https://example.com/picture.jpg"],
     )
 
     @field_validator("color_hex")
@@ -459,6 +465,7 @@ async def create(  # noqa: ANN201
         multi_color_direction=body.multi_color_direction,
         external_id=body.external_id,
         extra=body.extra,
+        picture_url=body.picture_url,
     )
 
     return Filament.from_db(db_item)
@@ -524,3 +531,19 @@ async def delete(  # noqa: ANN201
             content={"message": "Failed to delete filament, see server logs for more information."},
         )
     return Message(message="Success!")
+
+
+@router.post(
+    "/upload-picture",
+    name="Upload filament picture",
+    description="Upload a picture for a filament and get the URL.",
+    response_model_exclude_none=True,
+    response_model=Message,
+    responses={400: {"model": Message}},
+)
+async def upload_picture(  # noqa: ANN201
+    file: UploadFile,
+):
+    # Placeholder for actual file upload logic
+    picture_url = f"https://example.com/uploads/{file.filename}"
+    return Message(message=picture_url)

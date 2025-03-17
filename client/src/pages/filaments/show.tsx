@@ -148,6 +148,8 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       <TextField value={record?.external_id} />
       <Title level={5}>{t("filament.fields.comment")}</Title>
       <TextField value={enrichText(record?.comment)} />
+      <Title level={5}>{t("filament.fields.picture_url")}</Title>
+      {record?.picture_url && <img src={record.picture_url} alt="Filament" style={{ maxWidth: "100%" }} />}
       <Title level={4}>{t("settings.extra_fields.tab")}</Title>
       {extraFields?.data?.map((field, index) => (
         <ExtraFieldDisplay key={index} field={field} value={record?.extra[field.key]} />

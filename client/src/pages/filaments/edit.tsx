@@ -1,6 +1,6 @@
 import { Edit, useForm, useSelect } from "@refinedev/antd";
 import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
-import { Alert, ColorPicker, DatePicker, Form, Input, InputNumber, message, Radio, Select, Typography } from "antd";
+import { Alert, ColorPicker, DatePicker, Form, Input, InputNumber, message, Radio, Select, Typography, Upload, Button } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
@@ -11,6 +11,8 @@ import { EntityType, useGetFields } from "../../utils/queryFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { IVendor } from "../vendors/model";
 import { IFilament, IFilamentParsedExtras } from "./model";
+import { UploadOutlined } from "@ant-design/icons";
+import axios from "axios";
 
 /*
 The API returns the extra fields as JSON values, but we need to parse them into their real types
@@ -61,13 +63,31 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
 
   // Override the form's onFinish method to stringify the extra fields
   const originalOnFinish = formProps.onFinish;
-  formProps.onFinish = (allValues: IFilamentParsedExtras) => {
+  formProps.onFinish = async (allValues: IFilamentParsedExtras) => {
     if (allValues !== undefined && allValues !== null) {
       if (colorType == "single") {
         allValues.multi_color_hexes = '';
       }
       // Lot of stupidity here to make types work
       const stringifiedAllValues = StringifiedExtras<IFilamentParsedExtras>(allValues);
+
+      // Handle picture upload
+      if (allValues.picture_url && allValues.picture_url instanceof File) {
+        const formData = new FormData();
+        formData.append("file", allValues.picture_url);
+        try {
+          const response = await axios.post("/api/v1/filament/upload-picture", formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          });
+          stringifiedAllValues.picture_url = response.data.message;
+        } catch (error) {
+          messageApi.error(t("filament.form.picture_upload_failed"));
+          return;
+        }
+      }
+
       originalOnFinish?.({
         extra: {},
         ...stringifiedAllValues,
@@ -347,6 +367,26 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
           ]}
         >
           <TextArea maxLength={1024} />
+        </Form.Item>
+        <Form.Item
+          label={t("filament.fields.picture_url")}
+          name={["picture_url"]}
+          valuePropName="file"
+          getValueFromEvent={(e) => {
+            if (Array.isArray(e)) {
+              return e;
+            }
+            return e && e.file;
+          }}
+          rules={[
+            {
+              required: false,
+            },
+          ]}
+        >
+          <Upload name="file" listType="picture" maxCount={1} beforeUpload={() => false}>
+            <Button icon={<UploadOutlined />}>{t("filament.fields.upload_picture")}</Button>
+          </Upload>
         </Form.Item>
         <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
         {extraFields.data?.map((field, index) => (

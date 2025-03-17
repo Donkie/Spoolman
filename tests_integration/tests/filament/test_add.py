@@ -24,6 +24,7 @@ def test_add_filament(random_vendor: dict[str, Any]):
     settings_bed_temp = 60
     color_hex = "FF0000"
     external_id = "polymaker_pla_polysonicblack_1000_175"
+    picture_url = "/images/filament_x.jpg"
     result = httpx.post(
         f"{URL}/api/v1/filament",
         json={
@@ -41,6 +42,7 @@ def test_add_filament(random_vendor: dict[str, Any]):
             "settings_bed_temp": settings_bed_temp,
             "color_hex": color_hex,
             "external_id": external_id,
+            "picture_url": picture_url,
         },
     )
     result.raise_for_status()
@@ -66,6 +68,7 @@ def test_add_filament(random_vendor: dict[str, Any]):
             "settings_bed_temp": settings_bed_temp,
             "color_hex": color_hex,
             "external_id": external_id,
+            "picture_url": picture_url,
         },
     )
 
@@ -231,3 +234,51 @@ def test_add_filament_multi_color_errors():
 
     # Verify
     assert result.status_code == 422
+
+
+def test_upload_filament_picture(random_vendor: dict[str, Any]):
+    """Test uploading a picture for a filament and getting the URL."""
+    # Execute
+    name = "Filament X"
+    material = "PLA"
+    price = 100
+    density = 1.25
+    diameter = 1.75
+    weight = 1000
+    spool_weight = 250
+    article_number = "123456789"
+    comment = "abcdefghåäö"
+    settings_extruder_temp = 200
+    settings_bed_temp = 60
+    color_hex = "FF0000"
+    external_id = "polymaker_pla_polysonicblack_1000_175"
+    picture = ("filament_x.jpg", open("tests_integration/tests/filament/filament_x.jpg", "rb"), "image/jpeg")
+    result = httpx.post(
+        f"{URL}/api/v1/filament/upload_picture",
+        files={"picture": picture},
+        data={
+            "name": name,
+            "vendor_id": random_vendor["id"],
+            "material": material,
+            "price": price,
+            "density": density,
+            "diameter": diameter,
+            "weight": weight,
+            "spool_weight": spool_weight,
+            "article_number": article_number,
+            "comment": comment,
+            "settings_extruder_temp": settings_extruder_temp,
+            "settings_bed_temp": settings_bed_temp,
+            "color_hex": color_hex,
+            "external_id": external_id,
+        },
+    )
+    result.raise_for_status()
+
+    # Verify
+    filament = result.json()
+    assert "picture_url" in filament
+    assert filament["picture_url"].startswith("/images/")
+
+    # Clean up
+    httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()

@@ -197,6 +197,12 @@ class Filament(BaseModel):
             "Query the /fields endpoint for more details about the fields."
         ),
     )
+    picture_url: Optional[str] = Field(
+        None,
+        max_length=1024,
+        description="URL of the picture of the filament.",
+        examples=["https://example.com/picture.jpg"],
+    )
 
     @staticmethod
     def from_db(item: models.Filament) -> "Filament":
@@ -223,6 +229,7 @@ class Filament(BaseModel):
             ),
             external_id=item.external_id,
             extra={field.key: field.value for field in item.extra},
+            picture_url=item.picture_url,
         )
 
 

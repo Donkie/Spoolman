@@ -5,7 +5,7 @@ import logging
 from datetime import datetime
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect, UploadFile
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
@@ -87,6 +87,12 @@ class SpoolParameters(BaseModel):
     extra: Optional[dict[str, str]] = Field(
         None,
         description="Extra fields for this spool.",
+    )
+    picture_url: Optional[str] = Field(
+        None,
+        max_length=1024,
+        description="URL of the picture of the spool.",
+        examples=["https://example.com/picture.jpg"],
     )
 
 
@@ -412,6 +418,7 @@ async def create(  # noqa: ANN201
             comment=body.comment,
             archived=body.archived,
             extra=body.extra,
+            picture_url=body.picture_url,
         )
         return Spool.from_db(db_item)
     except ItemCreateError:
@@ -551,3 +558,19 @@ async def measure(  # noqa: ANN201
             status_code=400,
             content={"message": e.args[0]},
         )
+
+
+@router.post(
+    "/upload-picture",
+    name="Upload spool picture",
+    description="Upload a picture for a spool and get the URL.",
+    response_model_exclude_none=True,
+    response_model=Message,
+    responses={400: {"model": Message}},
+)
+async def upload_picture(  # noqa: ANN201
+    file: UploadFile,
+):
+    # Placeholder for actual file upload logic
+    picture_url = f"https://example.com/uploads/{file.filename}"
+    return Message(message=picture_url)
