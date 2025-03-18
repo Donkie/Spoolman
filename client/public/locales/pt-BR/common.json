@@ -22,7 +22,7 @@
         "notAccessTitle": "Você não tem permissão para acessar",
         "hideColumns": "Ocultar Colunas",
         "clearFilters": "Limpar Filtros",
-        "confirm": "Tem certeza?"
+        "confirm": "Você tem certeza?"
     },
     "tags": {
         "clone": "Clonar"
@@ -42,14 +42,14 @@
             "customSize": "Personalizado",
             "title": "Imprimindo",
             "description": "Ajuste as configurações abaixo para obter o layout de impressão desejado. Tenha em mente que as impressoras e o seu sistema operacional podem aplicar suas próprias margens e dimensionamento, portanto, pode ser necessário realizar algumas tentativas e erros antes que tudo esteja correto. Teste em um papel comum antes de imprimir nas etiquetas reais.",
-            "helpMargin": "As margens devem ser configuradas para sua etiqueta e impressora. Alterá-las afetará o tamanho de toda a grade.",
-            "helpPrinterMargin": "A zona de segurança deve ser definida para o quão próximo da borda do papel sua impressora pode imprimir, alterá-la não afetará toda a grade.",
+            "helpMargin": "As margens devem ser configuradas para corresponder às suas etiqueta e impressora. Alterá-las afetará o tamanho de toda a grade.",
+            "helpPrinterMargin": "A Zona de Segurança deve ser definida para o quão próximo da borda do papel sua impressora pode imprimir. Alterá-la não afetará toda a grade.",
             "print": "Imprimir",
             "itemCopies": "Cópias do Item",
             "contentSettings": "Configurações de Conteúdo",
             "layoutSettings": "Configurações de Layout",
             "horizontalSpacing": "Espaçamento Horizontal",
-            "verticalSpacing": "Espaçamento vertical",
+            "verticalSpacing": "Espaçamento Vertical",
             "marginLeft": "Margem Esquerda",
             "marginRight": "Margem Direita",
             "marginTop": "Margem Superior",
@@ -69,7 +69,7 @@
             "saveSetting": "Salvar Predefinições",
             "saveAsImage": "Salvar como Imagem",
             "dimensions": "Dimensões",
-            "previewScale": "Visualizar Escala"
+            "previewScale": "Escala da pré-visualização"
         },
         "spoolSelect": {
             "selectedTotal_one": "{{count}} carretel selecionado",
@@ -78,8 +78,8 @@
             "title": "Selecionar Carretéis",
             "description": "Selecione os carretéis para imprimir suas etiquetas.",
             "showArchived": "Mostrar Arquivado",
-            "noSpoolsSelected": "Você não selecionou nenhum carretel.",
-            "selectAll": "Selecionar/Desmarcar tudo"
+            "noSpoolsSelected": "Você não selecionou algum dos carretéis.",
+            "selectAll": "Selecionar/Desselecionar Tudo"
         },
         "qrcode": {
             "button": "Imprimir Etiquetas",
@@ -89,12 +89,12 @@
             "showContent": "Imprimir Etiqueta",
             "useHTTPUrl": {
                 "label": "Endereço do código QR",
-                "tooltip": "Irá usar um endereço proprietário que funcionará somente se digitalizado a partir do recurso de digitalização do Spoolman (padrão). A URL usará a URL base especificada nas configurações ou na URL da página atual, se não estiver definida.",
+                "tooltip": "Usará um endereço proprietário que funcionará somente se digitalizado a partir do recurso de digitalização do Spoolman (padrão). O URL usa o URL Base, especificada nas Configurações, ou o URL da página atual se nenhuma estiver definida.",
                 "options": {
                     "default": "Padrão",
-                    "url": "endereço"
+                    "url": "URL"
                 },
-                "preview": "Previsualização:"
+                "preview": "Pré-visualização:"
             },
             "showQRCode": "Imprimir Código QR",
             "showQRCodeMode": {
@@ -102,7 +102,7 @@
                 "simple": "Simples",
                 "withIcon": "Com Ícone"
             },
-            "templateHelp": "Use {} para inserir valores do objeto carretel como texto. Por exemplo, {id} será substituído pelo id do carretel ou {filament.material} será substituído pelo material do carretel. Se faltar um valor, ele será substituído por \"?\". Um segundo conjunto de {} pode ser usado para remover isso. Qualquer texto entre os conjuntos de {} será removido se o valor não existir. Por exemplo, {Lot Nr: {lot_nr}} só mostrará o rótulo se o carretel tiver um número de lote. Coloque o texto com asterisco duplo ** para colocar em negrito. Clique no botão para ver uma lista de todas as tags disponíveis."
+            "templateHelp": "Use \"{tag}\" para inserir valores do objeto carretel como texto. Por exemplo, {id} será substituído pelo valor do \"id\" do carretel ou {filament.material} será substituído pelo material do carretel. Se um valor estiver faltando, ele será substituído por \"?\". Um segundo conjunto de chaves, exemplo \"{{tag}}\", pode ser usado para remover isso. Além disso, qualquer texto entre os conjuntos de chaves será removido se o valor não existir. Por exemplo, {Lote Nº: {lot_nr}} só mostrará o rótulo se o carretel tiver um número de lote. Coloque o texto com asterisco duplo ** para colocar em negrito. Clique no botão ao lado para ver uma lista de todas as tags disponíveis."
         }
     },
     "spool": {
@@ -125,18 +125,18 @@
             "location": "Localização",
             "lot_nr": "Número do Lote",
             "first_used": "Primeiro Uso",
-            "last_used": "Último uso",
+            "last_used": "Último Uso",
             "registered": "Registrado",
             "comment": "Comentário",
             "archived": "Arquivado",
-            "remaining_length": "Comprimento Remanescente",
-            "remaining_weight": "Peso Remanescente",
+            "remaining_length": "Comprimento Restante",
+            "remaining_weight": "Peso Restante",
             "filament_name": "Filamento"
         },
         "fields_help": {
-            "price": "Preço de um carretel completo. Se não for definido, o preço do filamento será assumido.",
-            "weight_to_use": "Selecione qual valor do peso a inserir. O peso medido só estará disponível se o peso do carretel estiver definido para o filamento selecionado.",
-            "used_weight": "Quanto filamento foi usado do carretel. Um novo carretel deve ter usado 0g.",
+            "price": "Preço de um carretel cheio. Se não for definido, o preço do filamento será assumido.",
+            "weight_to_use": "Selecione que tipo de valor de peso inserir. O \"Peso Medido\" só estará disponível se o peso do carretel estiver definido para o filamento selecionado.",
+            "used_weight": "Quanto filamento foi usado do carretel. Um novo carretel deve ter 0g usado.",
             "remaining_weight": "Quanto filamento resta no carretel. Para um carretel novo, isso deve corresponder ao peso do carretel.",
             "measured_weight": "Quanto pesa o filamento e o carretel.",
             "initial_weight": "O peso inicial do filamento no carretel (peso líquido). Caso não seja especificado, será usado o peso da definição do filamento.",
@@ -153,7 +153,7 @@
             "show": "Mostrar Carretel",
             "show_title": "[Carretel #{{id}}] {{name}}",
             "archive": "Arquivar Carretel",
-            "adjust": "Ajustar Filamento"
+            "adjust": "Ajustar Filamento no Carretel"
         },
         "form": {
             "measurement_type": {
@@ -161,10 +161,10 @@
                 "weight": "Peso"
             },
             "measurement_type_label": "Tipo de Medida",
-            "adjust_filament_help": "Aqui você pode adicionar ou subtrair filamento diretamente do carretel. Um valor positivo consome, um valor negativo adiciona filamento.",
-            "adjust_filament_value": "Quantidade consumida",
+            "adjust_filament_help": "Aqui você pode adicionar ou subtrair filamento diretamente do carretel. Um valor positivo consumirá filamento, um valor negativo adicionará filamento.",
+            "adjust_filament_value": "Quantidade Consumida",
             "new_location_prompt": "Insira um novo local",
-            "spool_updated": "Este spool foi atualizado por alguém/alguma coisa desde que você abriu esta página. Salvar ira sobrescrever essas alterações!"
+            "spool_updated": "Este carretel foi atualizado por alguém/outra coisa desde que você abriu esta página. Salvar irá sobrescrever essas alterações!"
         },
         "messages": {
             "archive": "Tem certeza de que deseja arquivar este carretel?"
@@ -184,8 +184,8 @@
             "settings_extruder_temp": "Temperatura da Extrusora",
             "settings_bed_temp": "Temperatura da Mesa",
             "single_color": "Única",
-            "multi_color": "Múltiplo",
-            "coaxial": "Coextrusado",
+            "multi_color": "Múltiplas",
+            "coaxial": "Coextrusada",
             "external_id": "ID Externo",
             "spools": "Mostrar Carretéis",
             "id": "ID",
@@ -197,12 +197,12 @@
             "longitudinal": "Longitudinal"
         },
         "fields_help": {
-            "name": "Nome do filamento, para distinguir este tipo de filamento entre outros do mesmo fabricante. Pode conter a cor, por exemplo.",
+            "name": "Nome do filamento, para distinguir este tipo de filamento entre outros do mesmo fabricante. Deve conter a cor, por exemplo.",
             "material": "Por exemplo: PLA, ABS, PETG, etc.",
-            "price": "Preço de um carretel completo.",
+            "price": "Preço de um carretel cheio.",
             "article_number": "Por exemplo: EAN, UPC, etc.",
             "spool_weight": "O peso de um carretel vazio. Usado para determinar o peso medido de um carretel.",
-            "multi_color_direction": "Os filamentos podem ter múltiplas cores de duas maneiras: por meio de coextrusão, como filamentos de duas cores com multicores consistentes, ou por meio de mudanças longitudinais de cores, como filamentos gradientes que mudam de cor ao longo do carretel.",
+            "multi_color_direction": "Os filamentos podem ter múltiplas cores de duas maneiras: por meio de coextrusão, como os filamentos bicolores com as cores consistentes ao longo do carretel, ou por meio de mudanças longitudinais de cor, como os filamentos gradientes que mudam as cores ao longo do carretel.",
             "weight": "O peso do filamento de um carretel cheio (peso líquido). Isso não deve incluir o peso do carretel em si, apenas o filamento. É o que normalmente está escrito na embalagem."
         },
         "titles": {
@@ -215,8 +215,8 @@
         },
         "form": {
             "import_external": "Importar do Exterior",
-            "import_external_description": "Selecione um filamento na lista para preencher automaticamente seus detalhes no formulário de criação de filamento. Isso substituirá todos os dados inseridos no formulário.<br><br>Um objeto Fabricante será criado automaticamente quando você clicar em OK caso seja necessário.",
-            "filament_updated": "Este filamento foi atualizado por alguém/alguma coisa desde que você abriu esta página. Salvar sobrescreverá essas alterações!"
+            "import_external_description": "Selecione um filamento na lista para preencher automaticamente seus detalhes no formulário de criação de filamento. Isso substituirá quaisquer dados que você inseriu no formulário.<br><br>Um objeto Fabricante será criado automaticamente quando você clicar em OK, se necessário.",
+            "filament_updated": "Este filamento foi atualizado por alguém/outra coisa desde que você abriu esta página. Salvar irá sobrescrever essas alterações!"
         },
         "buttons": {
             "add_spool": "Adicionar Carretel"
@@ -252,10 +252,10 @@
         "resources": {
             "spool": "Carretéis físicos individuais de um filamento específico.",
             "vendor": "As empresas que fabricam o filamento.",
-            "filament": "Marcas de filamento. Eles têm propriedades como nome, material, cor, diâmetro e muito mais."
+            "filament": "Marcas de filamento. Elas têm propriedades como nome, material, cor, diâmetro e mais."
         },
         "help": "Ajuda",
-        "description": "<title>Ajuda</title><p>Aqui estão algumas dicas para você começar.</p><p>O Spoolman contém três tipos diferentes de dados:</p><itemsHelp/><p>Para adicionar um novo spool para o banco de dados, comece criando um objeto <filamentCreateLink>Filament</filamentCreateLink>. Feito isso, prossiga para criar um objeto <spoolCreateLink>Carretel</spoolCreateLink> para esse carretel específico. Se você adquirir carretéis adicionais do mesmo filamento posteriormente, simplesmente gere objetos Carretel adicionais e reutilize o mesmo objeto Filament.</p><p>Opcionalmente, você também pode gerar um objeto <vendorCreateLink>Fabricante</vendorCreateLink> para a empresa fabricando o filamento se desejar rastrear essas informações.</p><p>Você tem a opção de vincular outros serviços de impressora 3D ao Spoolman, como o Moonraker, que pode monitorar automaticamente o uso do filamento e atualizar os Carretéis para você. Consulte o <readmeLink>README do Spoolman</readmeLink> para obter orientação sobre como configurar isso.</p>"
+        "description": "<title>Ajuda</title><p>Aqui estão algumas dicas para você começar.</p><p>O Spoolman contém três tipos diferentes de dados:</p><itemsHelp/><p>Para adicionar um novo carretel para o banco de dados, comece criando um objeto <filamentCreateLink>Filamento</filamentCreateLink>. Feito isso, prossiga para criar um objeto <spoolCreateLink>Carretel</spoolCreateLink> para esse carretel específico. Se você adquirir carretéis adicionais do mesmo filamento posteriormente, simplesmente crie carretéis adicionais e reutilize o mesmo objeto Filamento.</p><p>Opcionalmente, você também pode gerar um objeto <vendorCreateLink>Fabricante</vendorCreateLink> para a empresa que fabrica o filamento, se você desejar rastrear essas informações.</p><p>Você tem a opção de vincular outros serviços de impressora 3D ao Spoolman, como o Moonraker, o qual pode automaticamente monitorar o uso do filamento e atualizar os carretéis para você. Consulte o <readmeLink>LEIA-ME do Spoolman</readmeLink> para obter orientação sobre como configurar isso.</p>"
     },
     "settings": {
         "header": "Configurações",
@@ -267,7 +267,11 @@
                 "label": "URL Base",
                 "tooltip": "A URL base a ser usada ao gerar recursos como códigos QR."
             },
-            "tab": "Geral"
+            "tab": "Geral",
+            "round_prices": {
+                "label": "Arredondar preços",
+                "tooltip": "Arredonda os preços para o número inteiro mais próximo."
+            }
         },
         "extra_fields": {
             "tab": "Campos Extras",
@@ -284,7 +288,7 @@
             "field_type": {
                 "text": "Texto",
                 "integer": "Inteiro",
-                "integer_range": "Intervalo Inteiro",
+                "integer_range": "Intervalo de Inteiros",
                 "float": "Decimal",
                 "float_range": "Intervalo Decimal",
                 "datetime": "Data e Hora",
@@ -294,11 +298,11 @@
             "boolean_false": "Não",
             "choices_missing_error": "Você não pode remover as opções. As seguintes opções estão faltando: {{choices}}",
             "non_unique_key_error": "A chave deve ser única.",
-            "delete_confirm_description": "Isso excluirá o campo e todos os dados associados de todas as entidades.",
+            "delete_confirm_description": "Isso excluirá o campo e todos os dados associados em todas as entidades.",
             "key_not_changed": "Por favor, escolha outra chave.",
             "delete_confirm": "Apagar o campo {{name}}?",
             "boolean_true": "Sim",
-            "description": "<p>Aqui você pode adicionar campos personalizados extras às suas entidades.</p><p>Depois que um campo é adicionado, você não pode alterar sua chave ou tipo, e para campos de tipo de escolha você não pode remover opções ou alterar o multi estado de escolha. Se você remover um campo, os dados associados a todas as entidades serão excluídos.</p><p>A chave é como outros programas leem/gravam os dados, portanto, se o seu campo personalizado deve ser integrado a um terceiro programa, certifique-se de configurá-lo corretamente. O valor padrão só é aplicado a novos itens.</p><p>Campos extras não podem ser classificados ou filtrados nas visualizações de tabela.</p>"
+            "description": "<p>Aqui você pode adicionar campos personalizados extras às suas entidades.</p><p>Depois que um campo é adicionado, você não pode alterar sua chave ou tipo, e para campos do tipo \"escolha\" você não pode remover as opções ou alterar o estado de \"múltipla de escolha\". Se você remover um campo, os dados associados à ela em todas as entidades serão excluídos.</p><p>A chave é como outros programas leem/gravam os dados, portanto, se o seu campo personalizado for para uma integração com um programa de terceiros, certifique-se de configurá-lo corretamente. O valor padrão é aplicado somente a novos itens.</p><p>Campos extras não podem ser ordenados ou filtrados nas visualizações de tabela.</p>"
         },
         "settings": "Configurações"
     },
@@ -311,25 +315,25 @@
             "list": "Ajuda | Spoolman"
         },
         "filament": {
-            "edit": "#{{id}} Editar Filamento | Spoolman",
+            "edit": "Editar Filamento #{{id}} | Spoolman",
             "create": "Criar Filamento | Spoolman",
-            "clone": "#{{id}} Clonar Filamento | Spoolman",
-            "show": "#{{id}} Mostrar Filamento | Spoolman",
+            "clone": "Clonar Filamento #{{id}} | Spoolman",
+            "show": "Mostrar Filamento #{{id}} | Spoolman",
             "list": "Filamentos | Spoolman"
         },
         "spool": {
             "list": "Carretéis | Spoolman",
-            "show": "#{{id}} Mostrar Carretel | Spoolman",
-            "edit": "#{{id}} Editar Carretel | Spoolman",
-            "clone": "#{{id}} Clonar Carretel | Spoolman",
+            "show": "Mostrar Carretel #{{id}} | Spoolman",
+            "edit": "Editar Carretel #{{id}} | Spoolman",
+            "clone": "Clonar Carretel #{{id}} | Spoolman",
             "create": "Criar Carretel | Spoolman"
         },
         "vendor": {
             "list": "Fabricantes | Spoolman",
             "create": "Criar Fabricante | Spoolman",
-            "clone": "#{{id}} Clonar Fabricante | Spoolman",
-            "show": "#{{id}} Mostrar Fabricante | Spoolman",
-            "edit": "#{{id}} Editar Fabricante | Spoolman"
+            "clone": "Clonar Fabricante #{{id}} | Spoolman",
+            "show": "Mostrar Fabricante #{{id}} | Spoolman",
+            "edit": "Editar Fabricante #{{id}} | Spoolman"
         },
         "suffix": " | Spoolman",
         "locations": {
@@ -375,12 +379,12 @@
     },
     "scanner": {
         "title": "Leitor de Código QR",
-        "description": "Scaneie um código QR do Spoolman para ver detalhes sobre o carretel.",
+        "description": "Escaneie um código QR do Spoolman para ver detalhes sobre o carretel.",
         "error": {
             "notAllowed": "Você não deu permissão de acesso à câmera.",
             "insecureContext": "A página não é servida por HTTPS.",
             "streamApiNotSupported": "O navegador não oferece suporte à API MediaStream.",
-            "notReadable": "A câmera não está acessível.",
+            "notReadable": "A câmera não está legível.",
             "unknown": "Ocorreu um erro desconhecido. ({{error}})",
             "notFound": "Nenhuma câmera foi encontrada."
         }
