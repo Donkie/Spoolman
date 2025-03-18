@@ -117,10 +117,10 @@ export function enrichText(text: string | undefined) {
  */
 export function formatWeight(weightInGrams: number, precision: number = 2): string {
   if (weightInGrams >= 1000) {
-    const kilograms = (weightInGrams / 1000).toFixed(precision).replace(/\.?0+$/, ""); // Remove trailing zeros
+    const kilograms = removeTrailingZeros((weightInGrams / 1000).toFixed(precision))
     return `${kilograms} kg`;
   } else {
-    const grams = weightInGrams.toFixed(precision).replace(/\.?0+$/, ""); // Remove trailing zeros
+    const grams = removeTrailingZeros(weightInGrams.toFixed(precision))
     return `${grams} g`;
   }
 }
@@ -134,9 +134,30 @@ export function formatWeight(weightInGrams: number, precision: number = 2): stri
  */
 export function formatLength(lengthInMillimeter: number, precision: number = 2): string {
   if (lengthInMillimeter >= 1000) {
-    const meters = (lengthInMillimeter / 1000).toFixed(precision).replace(/\.?0+$/, ""); // Remove trailing zeros
+    const meters = removeTrailingZeros((lengthInMillimeter / 1000).toFixed(precision))
     return `${meters} m`;
   } else {
     return `${lengthInMillimeter} mm`;
   }
+}
+
+/**
+ * Removes trailing zeros from a numeric string, including unnecessary decimal points.
+ *
+ * This function takes a string representation of a number and removes any trailing zeros
+ * after the decimal point. If the number ends with a decimal point followed by only zeros,
+ * the entire decimal portion is removed.
+ *
+ * @param num - The numeric string to process.
+ * @returns The numeric string with trailing zeros removed.
+ *
+ * @example
+ * ```typescript
+ * removeTrailingZeros("123.45000"); // Returns "123.45"
+ * removeTrailingZeros("100.000");   // Returns "100"
+ * removeTrailingZeros("0.0000");    // Returns "0"
+ * ```
+ */
+function removeTrailingZeros(num: string): string {
+  return num.replace(/(\.\d*?[1-9])0+|\.0*$/, '$1');
 }
