@@ -22,7 +22,6 @@
     "@yudiel/react-qr-scanner": "^1.2.10",
     "antd": "^5.24.3",
     "axios": "^1.8.3",
-    "flag-icons": "^7.3.2",
     "html-to-image": "^1.11.13",
     "i18next": "^24.2.3",
     "i18next-browser-languagedetector": "^8.0.4",
