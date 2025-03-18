@@ -59,7 +59,8 @@
     "build": "tsc && refine build",
     "build.zip": "cd ./dist && zip -r spoolman-client.zip ./ ./ && cd ..",
     "preview": "refine start",
-    "refine": "refine"
+    "refine": "refine",
+    "check-i18n": "node scripts/check-i18n.js"
   },
   "browserslist": {
     "production": [
