@@ -31,7 +31,6 @@ export function formatNumberWithSpaceSeparator(input: string): string {
  * @returns
  */
 export function numberFormatter(value: number | string | undefined): string {
-  console.log("numberformatter input: ", value);
   const formattedValue = value
     ? Number(value).toLocaleString(undefined, {
         useGrouping: false, // Disable thousands separator and do it manually instead so it's always spaces
