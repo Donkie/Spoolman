@@ -31,7 +31,8 @@ root_logger.addHandler(console_handler)
 
 # Fix uvicorn logging
 logging.getLogger("uvicorn").setLevel(log_level)
-logging.getLogger("uvicorn").removeHandler(logging.getLogger("uvicorn").handlers[0])
+if logging.getLogger("uvicorn").handlers:
+    logging.getLogger("uvicorn").removeHandler(logging.getLogger("uvicorn").handlers[0])
 logging.getLogger("uvicorn").addHandler(console_handler)
 
 logging.getLogger("uvicorn.error").setLevel(log_level)
