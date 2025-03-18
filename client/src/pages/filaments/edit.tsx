@@ -169,7 +169,7 @@ export const FilamentEdit: React.FC<IResourceComponentsProps> = () => {
               return e?.toHex();
             }}
           >
-            <ColorPicker format="hex" />
+            <ColorPicker />
           </Form.Item>
         )}
         {colorType == "multi" && (
