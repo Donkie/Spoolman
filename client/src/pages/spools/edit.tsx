@@ -9,7 +9,7 @@ import { useNavigate, useSearchParams } from "react-router";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import { useSpoolmanLocations } from "../../components/otherModels";
 import { searchMatches } from "../../utils/filtering";
-import { numberFormatter, numberParser, numberParserAllowEmpty } from "../../utils/parsing";
+import { formatNumberOnUserInput, numberParser, numberParserAllowEmpty } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { createFilamentFromExternal } from "../filaments/functions";
@@ -320,7 +320,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
           <InputNumber
             addonAfter={getCurrencySymbol(undefined, currency)}
             precision={2}
-            formatter={numberFormatter}
+            formatter={formatNumberOnUserInput}
             parser={numberParserAllowEmpty}
           />
         </Form.Item>
@@ -380,7 +380,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
             min={0}
             addonAfter="g"
             precision={1}
-            formatter={numberFormatter}
+            formatter={formatNumberOnUserInput}
             parser={numberParser}
             disabled={weightToEnter != WeightToEnter.used_weight}
             value={usedWeight}
@@ -394,7 +394,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
             min={0}
             addonAfter="g"
             precision={1}
-            formatter={numberFormatter}
+            formatter={formatNumberOnUserInput}
             parser={numberParser}
             disabled={weightToEnter != WeightToEnter.remaining_weight}
             value={getRemainingWeight()}
@@ -408,7 +408,7 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
             min={0}
             addonAfter="g"
             precision={1}
-            formatter={numberFormatter}
+            formatter={formatNumberOnUserInput}
             parser={numberParser}
             disabled={weightToEnter != WeightToEnter.measured_weight}
             value={getMeasuredWeight()}

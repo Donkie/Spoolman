@@ -25,6 +25,22 @@ export function formatNumberWithSpaceSeparator(input: string): string {
 }
 
 /**
+ * Number formatter compatible with Ant Design's InputNumber component, handling UX properly.
+ * @param value
+ * @param info
+ * @returns
+ */
+export function formatNumberOnUserInput(
+  value: number | string | undefined,
+  info: { userTyping: boolean; input: string }
+): string {
+  if (info.userTyping) {
+    return info.input;
+  }
+  return numberFormatter(value);
+}
+
+/**
  * Number formatter that nicely formats numbers with correct decimal separator based on locale
  * Always uses blank space as thousands separator to prevent confusion with the decimal separator
  * @param value
@@ -116,10 +132,10 @@ export function enrichText(text: string | undefined) {
  */
 export function formatWeight(weightInGrams: number, precision: number = 2): string {
   if (weightInGrams >= 1000) {
-    const kilograms = removeTrailingZeros((weightInGrams / 1000).toFixed(precision))
+    const kilograms = removeTrailingZeros((weightInGrams / 1000).toFixed(precision));
     return `${kilograms} kg`;
   } else {
-    const grams = removeTrailingZeros(weightInGrams.toFixed(precision))
+    const grams = removeTrailingZeros(weightInGrams.toFixed(precision));
     return `${grams} g`;
   }
 }
@@ -133,7 +149,7 @@ export function formatWeight(weightInGrams: number, precision: number = 2): stri
  */
 export function formatLength(lengthInMillimeter: number, precision: number = 2): string {
   if (lengthInMillimeter >= 1000) {
-    const meters = removeTrailingZeros((lengthInMillimeter / 1000).toFixed(precision))
+    const meters = removeTrailingZeros((lengthInMillimeter / 1000).toFixed(precision));
     return `${meters} m`;
   } else {
     return `${lengthInMillimeter} mm`;
@@ -158,5 +174,5 @@ export function formatLength(lengthInMillimeter: number, precision: number = 2):
  * ```
  */
 function removeTrailingZeros(num: string): string {
-  return num.replace(/(\.\d*?[1-9])0+|\.0*$/, '$1');
+  return num.replace(/(\.\d*?[1-9])0+|\.0*$/, "$1");
 }
