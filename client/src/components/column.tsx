@@ -111,11 +111,13 @@ function Column<Obj extends Entity>(
     if (props.loadingFilters) {
       columnProps.filterDropdown = <FilterDropdownLoading />;
     }
-    columnProps.onFilterDropdownOpenChange = (open) => {
-      if (open && props.onFilterDropdownOpen) {
-        props.onFilterDropdownOpen();
+    columnProps.filterDropdownProps = {
+      onOpenChange: (open) => {
+        if (open && props.onFilterDropdownOpen) {
+          props.onFilterDropdownOpen();
+        }
       }
-    };
+    }
     if (props.dataId) {
       columnProps.key = props.dataId;
     }
