@@ -119,6 +119,26 @@ export const languages: { [key: string]: Language } = {
     fullCode: "ro-RO",
     djs: () => import("dayjs/locale/ro"),
   },
+  ["ja"]: {
+    name: "日本語",
+    fullCode: "ja-JP",
+    djs: () => import("dayjs/locale/ja"),
+  },
+  ["pt-BR"]: {
+    name: "Português (Brasil)",
+    fullCode: "pt-BR",
+    djs: () => import("dayjs/locale/pt-br"),
+  },
+  ["ta"]: {
+    name: "தமிழ்",
+    fullCode: "ta-IN",
+    djs: () => import("dayjs/locale/ta"),
+  },
+  ["th"]: {
+    name: "ไทย",
+    fullCode: "th-TH",
+    djs: () => import("dayjs/locale/th"),
+  },
 };
 
 i18n
