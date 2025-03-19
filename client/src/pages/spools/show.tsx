@@ -1,5 +1,5 @@
 import { getBasePath } from "../../utils/url";
-import { InboxOutlined, PrinterOutlined, ToTopOutlined } from "@ant-design/icons";
+import { InboxOutlined, PrinterOutlined, ToTopOutlined, ToolOutlined } from "@ant-design/icons";
 import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
 import { IResourceComponentsProps, useInvalidate, useShow, useTranslate } from "@refinedev/core";
 import { Button, Modal, Typography } from "antd";
@@ -13,7 +13,7 @@ import { enrichText } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useCurrencyFormatter } from "../../utils/settings";
 import { IFilament } from "../filaments/model";
-import { setSpoolArchived } from "./functions";
+import { setSpoolArchived, useSpoolAdjustModal } from "./functions";
 import { ISpool } from "./model";
 
 dayjs.extend(utc);
@@ -41,6 +41,9 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
     }
     return currencyFormatter.format(price);
   };
+
+  // Provides the function to open the spool adjustment modal and the modal component itself
+  const { openSpoolAdjustModal, spoolAdjustModal } = useSpoolAdjustModal();
 
   // Function for opening an ant design modal that asks for confirmation for archiving a spool
   const archiveSpool = async (spool: ISpool, archive: boolean) => {
@@ -104,9 +107,9 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
 
   const colorObj = record?.filament.multi_color_hexes
     ? {
-        colors: record.filament.multi_color_hexes.split(","),
-        vertical: record.filament.multi_color_direction === "longitudinal",
-      }
+      colors: record.filament.multi_color_hexes.split(","),
+      vertical: record.filament.multi_color_direction === "longitudinal",
+    }
     : record?.filament.color_hex;
 
   return (
@@ -115,6 +118,13 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       title={record ? formatTitle(record) : ""}
       headerButtons={({ defaultButtons }) => (
         <>
+          <Button
+            type="primary"
+            icon={<ToolOutlined />}
+            onClick={() => record && openSpoolAdjustModal(record)}
+          >
+            {t("spool.titles.adjust")}
+          </Button>
           <Button
             type="primary"
             icon={<PrinterOutlined />}
@@ -133,6 +143,7 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
           )}
 
           {defaultButtons}
+          {spoolAdjustModal}
         </>
       )}
     >
