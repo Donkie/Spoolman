@@ -138,12 +138,12 @@ def test_use_spool_not_found():
     assert "123456789" in message
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_use_spool_concurrent(random_filament: dict[str, Any]):
     """Test using a spool with many concurrent requests."""
     # Setup
     start_weight = 1000
-    result = httpx.post(  # noqa: ASYNC100
+    result = httpx.post(
         f"{URL}/api/v1/spool",
         json={
             "filament_id": random_filament["id"],
@@ -171,10 +171,10 @@ async def test_use_spool_concurrent(random_filament: dict[str, Any]):
         )
 
     # Verify
-    result = httpx.get(f"{URL}/api/v1/spool/{spool['id']}")  # noqa: ASYNC100
+    result = httpx.get(f"{URL}/api/v1/spool/{spool['id']}")
     result.raise_for_status()
     spool = result.json()
     assert spool["remaining_weight"] == pytest.approx(start_weight - (used_weight * requests))
 
     # Clean up
-    httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()  # noqa: ASYNC100
+    httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()

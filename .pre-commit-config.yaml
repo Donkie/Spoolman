@@ -2,23 +2,23 @@ default_language_version:
   python: python3.9
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v5.0.0
     hooks:
       - id: check-yaml
       - id: check-added-large-files
       - id: check-case-conflict
       - id: check-merge-conflict
   - repo: https://github.com/psf/black
-    rev: 24.4.2
+    rev: 25.1.0
     hooks:
       - id: black
         args: ["--check"]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.4
+    rev: v0.11.0
     hooks:
       - id: ruff
         args: ["--target-version", "py39"]
   - repo: https://github.com/pdm-project/pdm
-    rev: 2.17.3
+    rev: 2.22.4
     hooks:
       - id: pdm-lock-check

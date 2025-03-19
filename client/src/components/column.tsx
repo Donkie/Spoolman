@@ -5,7 +5,7 @@ import { ColumnFilterItem, ColumnType } from "antd/es/table/interface";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { AlignType } from "rc-table/lib/interface";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { getFiltersForField, typeFilters } from "../utils/filtering";
 import { enrichText } from "../utils/parsing";
 import { Field, FieldType } from "../utils/queryFields";
@@ -111,11 +111,13 @@ function Column<Obj extends Entity>(
     if (props.loadingFilters) {
       columnProps.filterDropdown = <FilterDropdownLoading />;
     }
-    columnProps.onFilterDropdownOpenChange = (open) => {
-      if (open && props.onFilterDropdownOpen) {
-        props.onFilterDropdownOpen();
+    columnProps.filterDropdownProps = {
+      onOpenChange: (open) => {
+        if (open && props.onFilterDropdownOpen) {
+          props.onFilterDropdownOpen();
+        }
       }
-    };
+    }
     if (props.dataId) {
       columnProps.key = props.dataId;
     }

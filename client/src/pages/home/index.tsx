@@ -6,7 +6,7 @@ import Title from "antd/es/typography/Title";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import React, { ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import Logo from "../../icon.svg?react";
 import { ISpool } from "../spools/model";
 

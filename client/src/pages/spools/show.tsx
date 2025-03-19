@@ -1,3 +1,4 @@
+import { getBasePath } from "../../utils/url";
 import { InboxOutlined, PrinterOutlined, ToTopOutlined, ToolOutlined } from "@ant-design/icons";
 import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
 import { IResourceComponentsProps, useInvalidate, useShow, useTranslate } from "@refinedev/core";
@@ -10,7 +11,7 @@ import { NumberFieldUnit } from "../../components/numberField";
 import SpoolIcon from "../../components/spoolIcon";
 import { enrichText } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
-import { useCurrency } from "../../utils/settings";
+import { useCurrencyFormatter } from "../../utils/settings";
 import { IFilament } from "../filaments/model";
 import { setSpoolArchived, useSpoolAdjustModal } from "./functions";
 import { ISpool } from "./model";
@@ -23,7 +24,7 @@ const { confirm } = Modal;
 export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.spool);
-  const currency = useCurrency();
+  const currencyFormatter = useCurrencyFormatter();
   const invalidate = useInvalidate();
 
   const { queryResult } = useShow<ISpool>({
@@ -33,13 +34,12 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
 
   const record = data?.data;
 
-  const spoolPrice = (item: ISpool) => {
-    let spoolPrice = "";
-    if (item.price === undefined) {
-      spoolPrice = `${item.filament.price}`;
-      return spoolPrice;
+  const spoolPrice = (item?: ISpool) => {
+    const price = item?.price ?? item?.filament.price;
+    if (price === undefined) {
+      return "";
     }
-    return item.price;
+    return currencyFormatter.format(price);
   };
 
   // Provides the function to open the spool adjustment modal and the modal component itself
@@ -128,7 +128,7 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
           <Button
             type="primary"
             icon={<PrinterOutlined />}
-            href={"/spool/print?spools=" + record?.id + "&return=" + encodeURIComponent(window.location.pathname)}
+            href={getBasePath() + "/spool/print?spools=" + record?.id + "&return=" + encodeURIComponent(window.location.pathname)}
           >
             {t("printing.qrcode.button")}
           </Button>
@@ -150,17 +150,10 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       <Title level={5}>{t("spool.fields.id")}</Title>
       <NumberField value={record?.id ?? ""} />
       <Title level={5}>{t("spool.fields.filament")}</Title>
-      {colorObj && <SpoolIcon color={colorObj} />} <TextField value={record ? filamentURL(record?.filament) : ""} />
+      {colorObj && <SpoolIcon color={colorObj} size="large" no_margin />}
+      <TextField value={record ? filamentURL(record?.filament) : ""} />
       <Title level={5}>{t("spool.fields.price")}</Title>
-      <NumberField
-        value={record ? spoolPrice(record) : ""}
-        options={{
-          style: "currency",
-          currency: currency,
-          currencyDisplay: "narrowSymbol",
-          notation: "compact",
-        }}
-      />
+      <TextField value={spoolPrice(record)} />
       <Title level={5}>{t("spool.fields.registered")}</Title>
       <DateField
         value={dayjs.utc(record?.registered).local()}

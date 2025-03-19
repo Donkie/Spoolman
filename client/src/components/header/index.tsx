@@ -7,7 +7,6 @@ import { ColorModeContext } from "../../contexts/color-mode";
 
 import { languages } from "../../i18n";
 import QRCodeScannerModal from "../qrCodeScanner";
-import "/node_modules/flag-icons/css/flag-icons.min.css";
 
 const { useToken } = theme;
 
@@ -22,7 +21,6 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({ sticky }) =>
   const menuItems: MenuProps["items"] = [...(Object.keys(languages) || [])].sort().map((lang: string) => ({
     key: lang,
     onClick: () => changeLanguage(lang),
-    icon: <span className={"fi fi-" + languages[lang].countryCode} style={{ marginRight: 8 }} />,
     label: languages[lang].name,
   }));
 
@@ -52,7 +50,6 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({ sticky }) =>
         >
           <Button type="text">
             <Space>
-              <span className={"fi fi-" + languages[currentLocale ?? "en"].countryCode} />
               {languages[currentLocale ?? "en"].name}
               <DownOutlined />
             </Space>

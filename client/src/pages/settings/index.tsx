@@ -5,7 +5,7 @@ import { Content } from "antd/es/layout/layout";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import React from "react";
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router";
 import { ExtraFieldsSettings } from "./extraFieldsSettings";
 import { GeneralSettings } from "./generalSettings";
 

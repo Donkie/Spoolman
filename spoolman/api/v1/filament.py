@@ -121,14 +121,13 @@ class FilamentParameters(BaseModel):
 
     @field_validator("color_hex")
     @classmethod
-    def color_hex_validator(cls, v: Optional[str]) -> Optional[str]:  # noqa: ANN102
+    def color_hex_validator(cls, v: Optional[str]) -> Optional[str]:
         """Validate the color_hex field."""
         if not v:
             return None
 
         clr = v.upper()
-        if clr.startswith("#"):
-            clr = clr[1:]
+        clr = clr.removeprefix("#")
 
         for c in clr:
             if c not in "0123456789ABCDEF":
@@ -141,14 +140,13 @@ class FilamentParameters(BaseModel):
 
     @field_validator("multi_color_hexes")
     @classmethod
-    def multi_color_hexes_validator(cls, v: Optional[str]) -> Optional[str]:  # noqa: ANN102
+    def multi_color_hexes_validator(cls, v: Optional[str]) -> Optional[str]:
         """Validate the multi_color_hexes field."""
         if not v:
             return None
         for clr_raw in v.split(","):
             clr = clr_raw.upper()
-            if clr.startswith("#"):
-                clr = clr[1:]
+            clr = clr.removeprefix("#")
 
             for c in clr:
                 if c not in "0123456789ABCDEF":
@@ -204,111 +202,123 @@ class FilamentUpdateParameters(FilamentParameters):
 async def find(
     *,
     db: Annotated[AsyncSession, Depends(get_db_session)],
-    vendor_name_old: Optional[str] = Query(
-        alias="vendor_name",
-        default=None,
-        title="Vendor Name",
-        description="See vendor.name.",
-        deprecated=True,
-    ),
-    vendor_id_old: Optional[str] = Query(
-        alias="vendor_id",
-        default=None,
-        title="Vendor ID",
-        description="See vendor.id.",
-        deprecated=True,
-        pattern=r"^-?\d+(,-?\d+)*$",
-    ),
-    vendor_name: Optional[str] = Query(
-        alias="vendor.name",
-        default=None,
-        title="Vendor Name",
-        description=(
-            "Partial case-insensitive search term for the filament vendor name. "
-            "Separate multiple terms with a comma. Specify an empty string to match filaments with no vendor name. "
-            "Surround a term with quotes to search for the exact term."
+    vendor_name_old: Annotated[
+        Optional[str],
+        Query(alias="vendor_name", title="Vendor Name", description="See vendor.name.", deprecated=True),
+    ] = None,
+    vendor_id_old: Annotated[
+        Optional[str],
+        Query(
+            alias="vendor_id",
+            title="Vendor ID",
+            description="See vendor.id.",
+            deprecated=True,
+            pattern=r"^-?\d+(,-?\d+)*$",
         ),
-    ),
-    vendor_id: Optional[str] = Query(
-        alias="vendor.id",
-        default=None,
-        title="Vendor ID",
-        description=(
-            "Match an exact vendor ID. Separate multiple IDs with a comma. "
-            "Specify -1 to match filaments with no vendor."
+    ] = None,
+    vendor_name: Annotated[
+        Optional[str],
+        Query(
+            alias="vendor.name",
+            title="Vendor Name",
+            description=(
+                "Partial case-insensitive search term for the filament vendor name. "
+                "Separate multiple terms with a comma. Specify an empty string to match filaments with no vendor name. "
+                "Surround a term with quotes to search for the exact term."
+            ),
         ),
-        pattern=r"^-?\d+(,-?\d+)*$",
-        examples=["1", "1,2"],
-    ),
-    name: Optional[str] = Query(
-        default=None,
-        title="Filament Name",
-        description=(
-            "Partial case-insensitive search term for the filament name. Separate multiple terms with a comma. "
-            "Specify an empty string to match filaments with no name. "
-            "Surround a term with quotes to search for the exact term."
+    ] = None,
+    vendor_id: Annotated[
+        Optional[str],
+        Query(
+            alias="vendor.id",
+            title="Vendor ID",
+            description=(
+                "Match an exact vendor ID. Separate multiple IDs with a comma. "
+                "Specify -1 to match filaments with no vendor."
+            ),
+            pattern=r"^-?\d+(,-?\d+)*$",
+            examples=["1", "1,2"],
         ),
-    ),
-    material: Optional[str] = Query(
-        default=None,
-        title="Filament Material",
-        description=(
-            "Partial case-insensitive search term for the filament material. Separate multiple terms with a comma. "
-            "Specify an empty string to match filaments with no material. "
-            "Surround a term with quotes to search for the exact term."
+    ] = None,
+    name: Annotated[
+        Optional[str],
+        Query(
+            title="Filament Name",
+            description=(
+                "Partial case-insensitive search term for the filament name. Separate multiple terms with a comma. "
+                "Specify an empty string to match filaments with no name. "
+                "Surround a term with quotes to search for the exact term."
+            ),
         ),
-    ),
-    article_number: Optional[str] = Query(
-        default=None,
-        title="Filament Article Number",
-        description=(
-            "Partial case-insensitive search term for the filament article number. "
-            "Separate multiple terms with a comma. "
-            "Specify an empty string to match filaments with no article number. "
-            "Surround a term with quotes to search for the exact term."
+    ] = None,
+    material: Annotated[
+        Optional[str],
+        Query(
+            title="Filament Material",
+            description=(
+                "Partial case-insensitive search term for the filament material. Separate multiple terms with a comma. "
+                "Specify an empty string to match filaments with no material. "
+                "Surround a term with quotes to search for the exact term."
+            ),
         ),
-    ),
-    color_hex: Optional[str] = Query(
-        default=None,
-        title="Filament Color",
-        description="Match filament by similar color. Slow operation!",
-    ),
-    color_similarity_threshold: float = Query(
-        default=20.0,
-        description=(
-            "The similarity threshold for color matching. "
-            "A value between 0.0-100.0, where 0 means match only exactly the same color."
+    ] = None,
+    article_number: Annotated[
+        Optional[str],
+        Query(
+            title="Filament Article Number",
+            description=(
+                "Partial case-insensitive search term for the filament article number. "
+                "Separate multiple terms with a comma. "
+                "Specify an empty string to match filaments with no article number. "
+                "Surround a term with quotes to search for the exact term."
+            ),
         ),
-        example=20.0,
-    ),
-    external_id: Optional[str] = Query(
-        default=None,
-        description=(
-            "Find filaments imported by the given external ID. "
-            "Separate multiple IDs with a comma. "
-            "Specify empty string to match filaments with no external ID. "
-            "Surround a term with quotes to search for the exact term."
+    ] = None,
+    color_hex: Annotated[
+        Optional[str],
+        Query(
+            title="Filament Color",
+            description="Match filament by similar color. Slow operation!",
         ),
-        example="polymaker_pla_polysonicblack_1000_175",
-    ),
-    sort: Optional[str] = Query(
-        default=None,
-        title="Sort",
-        description=(
-            'Sort the results by the given field. Should be a comma-separate string with "field:direction" items.'
+    ] = None,
+    color_similarity_threshold: Annotated[
+        float,
+        Query(
+            description=(
+                "The similarity threshold for color matching. "
+                "A value between 0.0-100.0, where 0 means match only exactly the same color."
+            ),
+            example=20.0,
         ),
-        example="vendor.name:asc,spool_weight:desc",
-    ),
-    limit: Optional[int] = Query(
-        default=None,
-        title="Limit",
-        description="Maximum number of items in the response.",
-    ),
-    offset: int = Query(
-        default=0,
-        title="Offset",
-        description="Offset in the full result set if a limit is set.",
-    ),
+    ] = 20.0,
+    external_id: Annotated[
+        Optional[str],
+        Query(
+            description=(
+                "Find filaments imported by the given external ID. "
+                "Separate multiple IDs with a comma. "
+                "Specify empty string to match filaments with no external ID. "
+                "Surround a term with quotes to search for the exact term."
+            ),
+            example="polymaker_pla_polysonicblack_1000_175",
+        ),
+    ] = None,
+    sort: Annotated[
+        Optional[str],
+        Query(
+            title="Sort",
+            description=(
+                'Sort the results by the given field. Should be a comma-separate string with "field:direction" items.'
+            ),
+            example="vendor.name:asc,spool_weight:desc",
+        ),
+    ] = None,
+    limit: Annotated[
+        Optional[int],
+        Query(title="Limit", description="Maximum number of items in the response."),
+    ] = None,
+    offset: Annotated[int, Query(title="Offset", description="Offset in the full result set if a limit is set.")] = 0,
 ) -> JSONResponse:
     sort_by: dict[str, SortOrder] = {}
     if sort is not None:

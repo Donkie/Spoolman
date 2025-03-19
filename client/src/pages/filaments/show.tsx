@@ -4,13 +4,13 @@ import { Button, Typography } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { ExtraFieldDisplay } from "../../components/extraFields";
 import { NumberFieldUnit } from "../../components/numberField";
 import SpoolIcon from "../../components/spoolIcon";
 import { enrichText } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
-import { useCurrency } from "../../utils/settings";
+import { useCurrencyFormatter } from "../../utils/settings";
 import { IFilament } from "./model";
 dayjs.extend(utc);
 
@@ -20,7 +20,7 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
   const navigate = useNavigate();
   const extraFields = useGetFields(EntityType.filament);
-  const currency = useCurrency();
+  const currencyFormatter = useCurrencyFormatter();
   const { queryResult } = useShow<IFilament>({
     liveMode: "auto",
   });
@@ -88,19 +88,12 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
       <Title level={5}>{t("filament.fields.name")}</Title>
       <TextField value={record?.name} />
       <Title level={5}>{t("filament.fields.color_hex")}</Title>
-      {colorObj && <SpoolIcon color={colorObj} size="large" />}
+      {colorObj && <SpoolIcon color={colorObj} size="large" no_margin />}
+      {record?.color_hex && <TextField value={`#${record?.color_hex}`} />}
       <Title level={5}>{t("filament.fields.material")}</Title>
       <TextField value={record?.material} />
       <Title level={5}>{t("filament.fields.price")}</Title>
-      <NumberField
-        value={record?.price ?? ""}
-        options={{
-          style: "currency",
-          currency: currency,
-          currencyDisplay: "narrowSymbol",
-          notation: "compact",
-        }}
-      />
+      <TextField value={record?.price ? currencyFormatter.format(record.price) : ""} />
       <Title level={5}>{t("filament.fields.density")}</Title>
       <NumberFieldUnit
         value={record?.density ?? ""}

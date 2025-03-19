@@ -3,7 +3,7 @@ import { useTable } from "@refinedev/antd";
 import { Button, Checkbox, Col, message, Row, Space, Table } from "antd";
 import { t } from "i18next";
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
 import { useSpoolmanFilamentFilter, useSpoolmanMaterials } from "../../components/otherModels";
 import { removeUndefined } from "../../utils/filtering";
