@@ -79,11 +79,14 @@ class Database:
         connect_args = {}
         if self.connection_url.drivername == "sqlite+aiosqlite":
             connect_args["timeout"] = 60
-
+        connection_options = {}
+        if self.connection_url.drivername == "mysql+aiomysql":
+            connection_options["pool_recycle"] = 3600
         self.engine = create_async_engine(
             self.connection_url,
             connect_args=connect_args,
             pool_pre_ping=True,
+            **connection_options,
         )
         self.session_maker = async_sessionmaker(self.engine, autocommit=False, autoflush=True, expire_on_commit=False)
 
