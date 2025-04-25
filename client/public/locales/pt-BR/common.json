@@ -342,9 +342,9 @@
     },
     "locations": {
         "no_locations_help": "Esta página permite que você organize seus carretéis em locais, adicione alguns carretéis para começar!",
-        "locations": "Localidades",
-        "new_location": "Nova Localidade",
-        "no_location": "Sem Localidade"
+        "locations": "Locais",
+        "new_location": "Novo Local",
+        "no_location": "Sem Local"
     },
     "version": "Versão",
     "no": "Não",
