@@ -392,6 +392,10 @@
             "base_url": {
                 "label": "基础URL",
                 "tooltip": "生成功能（例如二维码）时使用的基础 URL。"
+            },
+            "round_prices": {
+                "label": "取整",
+                "tooltip": "将价格四舍五入到最接近的整数。"
             }
         }
     },
