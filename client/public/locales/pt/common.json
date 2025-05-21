@@ -23,19 +23,19 @@
         "archive": "Arquivar",
         "unArchive": "Desarquivar",
         "hideArchived": "Ocultar Arquivados",
-        "showArchived": "Mostrar Arquivado",
-        "notAccessTitle": "Você não tem permissão para acessar",
+        "showArchived": "Mostrar Arquivados",
+        "notAccessTitle": "Não tem permissão para aceder",
         "hideColumns": "Ocultar Colunas",
         "clearFilters": "Limpar Filtros",
         "create": "Criar",
         "saveAndAdd": "Guardar e Adicionar",
         "continue": "Continuar"
     },
-    "warnWhenUnsavedChanges": "Você tem certeza de que quer sair? Você tem alterações não salvas.",
+    "warnWhenUnsavedChanges": "Tem certeza de que quer sair? Tem alterações não guardadas.",
     "notifications": {
         "success": "Sucesso",
         "error": "Erro (código de status: {{statusCode}})",
-        "undoable": "Você tem {{seconds}} segundos para desfazer.",
+        "undoable": "Tem {{seconds}} segundos para desfazer.",
         "createSuccess": "{{resource}} criado com sucesso",
         "createError": "Ocorreu um erro ao criar {{resource}} (código de status: {{statusCode}})",
         "deleteSuccess": "{{resource}} excluído com sucesso",
@@ -43,7 +43,7 @@
         "editSuccess": "{{resource}} editado com sucesso",
         "editError": "Erro ao editar {{resource}} (código de status: {{statusCode}})",
         "importProgress": "Importando: {{processed}}/{{total}}",
-        "saveSuccessful": "Salvo com sucesso!",
+        "saveSuccessful": "Guardado com sucesso!",
         "validationError": "Erro de validação: {{error}}"
     },
     "kofi": "Doe no Ko-fi",
@@ -106,8 +106,8 @@
             "selectedTotal_many": "{{count}} bobines selecionados",
             "selectedTotal_other": "{{count}} bobines selecionados",
             "noSpoolsSelected": "Não selecionou nenhuma bobine.",
-            "title": "Selecionar Carretéis",
-            "description": "Selecione os carretéis para imprimir as etiquetas.",
+            "title": "Selecionar Bobines",
+            "description": "Selecione as bobines para imprimir as etiquetas.",
             "showArchived": "Mostrar Arquivado",
             "selectAll": "Selecionar/Desmarcar Tudo"
         },
@@ -174,7 +174,7 @@
         },
         "fields_help": {
             "weight_to_use": "Selecione qual o valor de peso a inserir. O peso medido só estará disponível se o peso da bobine estiver definido para o filamento selecionado.",
-            "lot_nr": "Número de lote do fabricante. Pode ser usado para garantir que uma impressão tenha cores consistentes se vários carretéis forem usados.",
+            "lot_nr": "Número de lote do fabricante. Pode ser usado para garantir que uma impressão tenha cores consistentes se várias bobines forem usadas.",
             "used_weight": "Quanto filamento foi usado da bobine. Uma nova bobine deve ter usado 0g.",
             "remaining_weight": "Quanto filamento resta na bobine. Para uma bobine nova, deve corresponder ao peso da bobine.",
             "measured_weight": "Quanto pesa o filamento e a bobine.",
@@ -188,7 +188,7 @@
             "create": "Criar Bobine",
             "clone": "Clonar Bobine",
             "edit": "Editar Bobine",
-            "list": "Carretéis",
+            "list": "Bobines",
             "show": "Mostrar Bobine",
             "show_title": "[Bobine #{{id}}] {{name}}",
             "archive": "Arquivar Bobine",
@@ -208,7 +208,7 @@
         "messages": {
             "archive": "Tem certeza de que deseja arquivar esta bobine?"
         },
-        "spool": "Carretéis",
+        "spool": "Bobines",
         "formats": {
             "last_used": "Última utilização {{date}}"
         }
@@ -232,7 +232,7 @@
             "settings_extruder_temp": "Temperatura do Bico",
             "settings_bed_temp": "Temperatura da Mesa",
             "color_hex": "Cor",
-            "spools": "Mostrar Carretéis",
+            "spools": "Mostrar Bobines",
             "external_id": "ID Externo",
             "single_color": "Único",
             "multi_color": "Múltiplo",
@@ -246,7 +246,7 @@
             "material": "Por exemplo PLA, ABS, PETG, etc.",
             "weight": "O peso do filamento de uma bobine cheia (peso líquido). Isso não deve incluir o peso da bobine em si, apenas o filamento. É o que normalmente está escrito na embalagem.",
             "spool_weight": "O peso de uma bobine vazia. Usado para determinar o peso medido de uma bobine.",
-            "multi_color_direction": "Os filamentos podem ter múltiplas cores de duas formas: por coextrusão, como os filamentos de duas cores com estas consistentes ao longo do filamento, or através de mudança de cor longitudinal, como os filamentos que contêm gradientes de cores que vão mudando ao longo da bobine."
+            "multi_color_direction": "Os filamentos podem ter múltiplas cores de duas formas: por coextrusão, como os filamentos de duas cores com estas consistentes ao longo do filamento, ou através de mudança de cor longitudinal, como os filamentos que contêm gradientes de cores que vão mudando ao longo da bobine."
         },
         "titles": {
             "create": "Criar Filamento",
@@ -297,7 +297,7 @@
         "help": "Ajuda",
         "resources": {
             "filament": "Marcas de filamento. Eles têm propriedades como nome, material, cor, diâmetro e muito mais.",
-            "spool": "Carretéis físicos individuais de um filamento específico.",
+            "spool": "Bobines físicas individuais de um filamento específico.",
             "vendor": "As empresas que fabricam o filamento."
         },
         "description": "<title>Ajuda</title><p>Aqui estão algumas dicas para começar.</p><p>O Spoolman contém três tipos diferentes de dados:</p><itemsHelp/><p>Para adicionar uma nova bobine para a base de dados, comece por criar um <filamentCreateLink>Filamento</filamentCreateLink>. Feito isso, prossiga para criar uma <spoolCreateLink>Bobine</spoolCreateLink> para esse filamento específico. Se posteriormente adquirir bobines adicionais do mesmo filamento, simplesmente gere Bobines adicionais e reutilize o mesmo objeto Filamento.</p><p>Opcionalmente, também pode criar um <vendorCreateLink>Fabricante</vendorCreateLink> para a empresa que fabrica o filamento, se desejar rastrear essas informações.</p><p>Tem a opção de vincular outros serviços de impressora 3D ao Spoolman, como o Moonraker, que pode monitorizar automaticamente o uso do filamento e atualizar as bobines. Consulte o <readmeLink>README do Spoolman</readmeLink> para obter orientação sobre como configurar.</p>"
@@ -318,7 +318,7 @@
             "clone": "#{{id}} Clonar filamento | Spoolman"
         },
         "spool": {
-            "list": "Carretéis | Spoolman",
+            "list": "Bobines | Spoolman",
             "show": "#{{id}} Mostrar Bobine | Spoolman",
             "edit": "#{{id}} Editar Bobine | Spoolman",
             "create": "Criar Bobine | Spoolman",
@@ -341,12 +341,12 @@
         "title": "Leitor de Código QR",
         "description": "Digitalize um código QR do Spoolman para ver detalhes sobre a bobine.",
         "error": {
-            "notAllowed": "Você não deu permissão de acesso à câmera.",
+            "notAllowed": "Não deu permissão de acesso à câmara.",
             "insecureContext": "A página não é protegida por HTTPS.",
             "streamApiNotSupported": "O navegador não oferece suporte à API MediaStream.",
             "unknown": "Ocorreu um erro desconhecido. ({{error}})",
-            "notReadable": "A câmera não está acessível.",
-            "notFound": "Nenhuma câmera foi encontrada."
+            "notReadable": "A câmara não está acessível.",
+            "notFound": "Nenhuma câmara foi encontrada."
         }
     },
     "table": {
@@ -377,8 +377,8 @@
             "key_not_changed": "Por favor, mude a chave por outra.",
             "delete_confirm": "Apagar o campo {{name}}?",
             "delete_confirm_description": "Isto irá apagar o campo e todos os dados associados em todas as entidades.",
-            "description": "<p>Aqui você pode adicionar campos personalizados extras às suas entidades.</p><p>Uma vez que um campo é adicionado, você não pode alterar sua chave ou tipo, e para campos do tipo \"opção\" você não pode remover as opções ou alterar o estado de múltipla opção. Se você remover um campo, os dados associados para todas as entidades serão excluídos.</p><p>A chave é como outros programas leem/gravam os dados, portanto, se seu campo personalizado se destina a se integrar com um programa de terceiros, certifique-se de defini-lo corretamente. O valor padrão só é aplicado a novos itens.</p><p>Campos extras não podem ser ordenados ou filtrados nas visualizações de tabela.</p>",
-            "choices_missing_error": "Você não pode remover as opções. As seguintes opções serão perdidas: {{choices}}",
+            "description": "<p>Aqui pode adicionar campos personalizados extras às suas entidades.</p><p>Uma vez que um campo é adicionado, não se pode alterar sua chave ou tipo, e para campos do tipo \"opção\" não se pode remover as opções ou alterar o estado da múltipla opção. Se remover um campo, os dados associados para todas as entidades serão excluídos.</p><p>A chave é como outros programas leem/gravam os dados, portanto, se o seu campo personalizado se destina a integrar com um programa de terceiros, certifique-se de defini-lo corretamente. O valor padrão só é aplicado a novos itens.</p><p>Campos extras não podem ser ordenados ou filtrados nas visualizações de tabela.</p>",
+            "choices_missing_error": "Não pode remover as opções. As seguintes opções serão perdidas: {{choices}}",
             "tab": "Campos Extras",
             "boolean_true": "Sim",
             "boolean_false": "Não",
@@ -394,6 +394,10 @@
             "base_url": {
                 "label": "Endereço Base",
                 "tooltip": "O endereço base a utilizar em funcionalidades tais como os códigos QR."
+            },
+            "round_prices": {
+                "tooltip": "Arredonda os preços para o número inteiro mais próximo.",
+                "label": "Arredondar preços"
             }
         }
     },
