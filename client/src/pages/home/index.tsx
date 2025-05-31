@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import React, { ReactNode } from "react";
 import { Link } from "react-router";
+import { Trans } from "react-i18next";
 import Logo from "../../icon.svg?react";
 import { ISpool } from "../spools/model";
 
@@ -107,10 +108,14 @@ export const Home: React.FC<IResourceComponentsProps> = () => {
       </Row>
       {!hasSpools && (
         <>
-          <p style={{ marginTop: 32 }}>Welcome to your Spoolman instance!</p>
+          <p style={{ marginTop: 32 }}>{t("home.welcome")}</p>
           <p>
-            It looks like you haven't added any spools yet. See the <Link to="/help">Help page</Link> for help getting
-            started.
+            <Trans
+              i18nKey="home.description"
+              components={{
+                helpPageLink: <Link to="/help" />,
+              }}
+            />
           </p>
         </>
       )}
