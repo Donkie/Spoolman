@@ -45,6 +45,26 @@ export async function useSpoolFilament(spool: ISpool, length?: number, weight?: 
 }
 
 /**
+ * Adjust usage based on the spool's current gross weight
+ * @param spool The spool
+ * @param weight The weight of the spool, in g
+ */
+export async function useSpoolFilamentMeasure(spool: ISpool, weight: number) {
+  const init: RequestInit = {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      weight: weight,
+    }),
+  };
+  const request = new Request(`${getAPIURL()}/spool/${spool.id}/measure`);
+  await fetch(request, init);
+}
+
+
+/**
  * Returns an array of queries using the useQueries hook from @tanstack/react-query.
  * Each query fetches a spool by its ID from the server.
  *
@@ -173,7 +193,7 @@ export function useGetFilamentSelectOptions() {
   };
 }
 
-type MeasurementType = "length" | "weight";
+type MeasurementType = "length" | "weight" | "measured_weight";
 
 export function useSpoolAdjustModal() {
   const t = useTranslate();
@@ -207,8 +227,10 @@ export function useSpoolAdjustModal() {
 
       if (measurementType === "length") {
         await useSpoolFilament(curSpool, value, undefined);
-      } else {
+      } else if (measurementType === "weight") {
         await useSpoolFilament(curSpool, undefined, value);
+      } else {
+        await useSpoolFilamentMeasure(curSpool, value);
       }
 
       setCurSpool(null);
@@ -225,6 +247,7 @@ export function useSpoolAdjustModal() {
             >
               <Radio.Button value="length">{t("spool.form.measurement_type.length")}</Radio.Button>
               <Radio.Button value="weight">{t("spool.form.measurement_type.weight")}</Radio.Button>
+              <Radio.Button value="measured_weight">{t("spool.fields.measured_weight")}</Radio.Button>
             </Radio.Group>
           </Form.Item>
           <Form.Item label={t("spool.form.adjust_filament_value")} name="filament_value">
