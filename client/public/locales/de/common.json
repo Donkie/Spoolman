@@ -361,6 +361,10 @@
             "base_url": {
                 "label": "Basis URL",
                 "tooltip": "Die basis URL für die Generierung von Funktionen wie QR Codes."
+            },
+            "round_prices": {
+                "label": "Gerundeter Preis",
+                "tooltip": "Rundet die Preise auf die nächsthöhere ganze Zahl."
             }
         },
         "extra_fields": {
