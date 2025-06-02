@@ -59,7 +59,7 @@
     },
     "printing": {
         "generic": {
-            "title": "druckt",
+            "title": "Drucke",
             "description": "Passe die Einstellungen unten an, um das gewünschte Drucklayout zu bekommen. Denk daran, dass Drucker und dein OS eigene Abstände und Skalierungen anwenden könnte, also musst du vielleicht ein bisschen ausprobieren, bis alles passt. Teste es auf einem normalen Blatt Papier, bevor du auf die richtigen Labels druckst.",
             "helpMargin": "Abstände sollten so konfiguriert werden, dass sie zum Papier und Drucker passen. Änderungen beeinflussen die Abmessungen des gesamten Gitters.",
             "helpPrinterMargin": "Der Sicherheitsabstand sollte so eingestellt werden, wie dicht der Drucker am Rand des Papiers drucken kann. Änderungen beeinflussen nicht die Abmessungen des Gitters.",
