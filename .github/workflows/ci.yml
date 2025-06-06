@@ -11,8 +11,7 @@ on:
       - master
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: donkie/spoolman
+  GHCR_IMAGE: donkie/spoolman
 
 jobs:
   #
@@ -123,7 +122,7 @@ jobs:
       - name: Log in to the Github Container registry
         uses: docker/login-action@v3.3.0
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -132,10 +131,10 @@ jobs:
         uses: docker/build-push-action@v6.7.0
         with:
           context: .
-          tags: ${{ env.IMAGE_NAME }}:test
+          tags: ${{ env.GHCR_IMAGE }}:test
           outputs: type=docker,dest=/tmp/spoolman.tar
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-amd64
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-amd64,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-amd64
+          cache-to: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-amd64,mode=max
 
       # Separate build for pull requests since PRs dont have access to store cache
       - name: Build Spoolman (PR)
@@ -143,9 +142,9 @@ jobs:
         uses: docker/build-push-action@v6.7.0
         with:
           context: .
-          tags: ${{ env.IMAGE_NAME }}:test
+          tags: ${{ env.GHCR_IMAGE }}:test
           outputs: type=docker,dest=/tmp/spoolman.tar
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-amd64
+          cache-from: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-amd64
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4.4.0
@@ -167,7 +166,7 @@ jobs:
       - name: Log in to the Github Container registry
         uses: docker/login-action@v3.3.0
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -176,10 +175,10 @@ jobs:
         uses: docker/build-push-action@v6.7.0
         with:
           context: ./tests_integration
-          tags: ${{ env.IMAGE_NAME }}-tester:latest
+          tags: ${{ env.GHCR_IMAGE }}-tester:latest
           outputs: type=docker,dest=/tmp/spoolman-tester.tar
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-tester
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-tester,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-tester
+          cache-to: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-tester,mode=max
 
       # Separate build for pull requests since PRs dont have access to store cache
       - name: Build Spoolman Tester (PR)
@@ -187,9 +186,9 @@ jobs:
         uses: docker/build-push-action@v6.7.0
         with:
           context: ./tests_integration
-          tags: ${{ env.IMAGE_NAME }}-tester:latest
+          tags: ${{ env.GHCR_IMAGE }}-tester:latest
           outputs: type=docker,dest=/tmp/spoolman-tester.tar
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-tester
+          cache-from: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-tester
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4.4.0
@@ -254,7 +253,7 @@ jobs:
       - name: Log in to the Github Container registry
         uses: docker/login-action@v3.3.0
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -263,8 +262,8 @@ jobs:
         with:
           context: .
           platforms: linux/arm64
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-arm64
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-arm64,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-arm64
+          cache-to: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-arm64,mode=max
   #
   # Build arm/v7 image
   # Don't run this for pull requests
@@ -293,7 +292,7 @@ jobs:
       - name: Log in to the Github Container registry
         uses: docker/login-action@v3.3.0
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -302,10 +301,10 @@ jobs:
         with:
           context: .
           platforms: linux/arm/v7
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-armv7
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-armv7,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-armv7
+          cache-to: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-armv7,mode=max
   #
-  # Release image if tests pass
+  # Release images GHCR and Docker Hub if tests pass
   # Don't run this for pull requests
   #
   publish-images:
@@ -331,22 +330,41 @@ jobs:
       - name: Log in to the Github Container registry
         uses: docker/login-action@v3.3.0
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
+      - name: Extract metadata (tags, labels) for GHCR
+        id: meta-ghcr
         uses: docker/metadata-action@v5.5.1
         with:
           images: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            ghcr.io/${{ env.GHCR_IMAGE }}
           tags: |
             type=edge
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
 
+      - name: Extract metadata (tags, labels) for Docker Hub
+        id: meta-dh
+        uses: docker/metadata-action@v5.5.1
+        with:
+          images: |
+            ${{ vars.REMOTE_REGISTRY_URL }}/${{ vars.REMOTE_REGISTRY_NAMESPACE }}/${{ vars.REMOTE_REGISTRY_REPOSITORY }}
+          tags: |
+            type=edge
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3.3.0
+        with:
+          registry: ${{ vars.REMOTE_REGISTRY_URL }}
+          username: ${{ secrets.REMOTE_REGISTRY_USERNAME }}
+          password: ${{ secrets.REMOTE_REGISTRY_PASSWORD }}
+    
       - name: Store git commit and build date
         run: |
           echo "GIT_COMMIT=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
@@ -358,15 +376,17 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ${{ steps.meta-ghcr.outputs.tags }}
+            ${{ steps.meta-dh.outputs.tags }}
+          labels: ${{ steps.meta-ghcr.outputs.labels }}
           build-args: |
             GIT_COMMIT
             BUILD_DATE
           cache-from: |
-            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-amd64
-            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-arm64
-            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-armv7
+            type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-amd64
+            type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-arm64
+            type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-armv7
   #
   # Create Github Release if CI was triggered by a tag
   #

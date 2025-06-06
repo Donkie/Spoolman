@@ -15,12 +15,12 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import loadable from "@loadable/component";
-import routerBindings, { DocumentTitleHandler, UnsavedChangesNotifier } from "@refinedev/react-router-v6";
+import routerBindings, { DocumentTitleHandler, UnsavedChangesNotifier } from "@refinedev/react-router";
 import { ConfigProvider } from "antd";
 import { Locale } from "antd/es/locale";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import dataProvider from "./components/dataProvider";
 import { Favicon } from "./components/favicon";
 import { SpoolmanLayout } from "./components/layout";

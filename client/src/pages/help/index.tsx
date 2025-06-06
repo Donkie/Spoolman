@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import React from "react";
 import { Trans } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 dayjs.extend(utc);
 

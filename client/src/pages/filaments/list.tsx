@@ -5,28 +5,28 @@ import { Button, Dropdown, Table } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import {
-  ActionsColumn,
-  CustomFieldColumn,
-  DateColumn,
-  FilteredQueryColumn,
-  NumberColumn,
-  RichColumn,
-  SortedColumn,
-  SpoolIconColumn,
+    ActionsColumn,
+    CustomFieldColumn,
+    DateColumn,
+    FilteredQueryColumn,
+    NumberColumn,
+    RichColumn,
+    SortedColumn,
+    SpoolIconColumn,
 } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
 import {
-  useSpoolmanArticleNumbers,
-  useSpoolmanFilamentNames,
-  useSpoolmanMaterials,
-  useSpoolmanVendors,
+    useSpoolmanArticleNumbers,
+    useSpoolmanFilamentNames,
+    useSpoolmanMaterials,
+    useSpoolmanVendors,
 } from "../../components/otherModels";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
-import { useCurrency } from "../../utils/settings";
+import { useCurrencyFormatter } from "../../utils/settings";
 import { IFilament } from "./model";
 
 dayjs.extend(utc);
@@ -77,7 +77,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   const invalidate = useInvalidate();
   const navigate = useNavigate();
   const extraFields = useGetFields(EntityType.filament);
-  const currency = useCurrency();
+  const currencyFormatter = useCurrencyFormatter();
 
   const allColumnsWithExtraFields = [...allColumns, ...(extraFields.data?.map((field) => "extra." + field.key) ?? [])];
 
@@ -263,12 +263,10 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
             align: "right",
             width: 80,
             render: (_, obj: IFilamentCollapsed) => {
-              return obj.price?.toLocaleString(undefined, {
-                style: "currency",
-                currencyDisplay: "narrowSymbol",
-                currency: currency,
-                notation: "compact",
-              });
+              if (obj.price === undefined) {
+                return "";
+              }
+              return currencyFormatter.format(obj.price);
             },
           }),
           NumberColumn({

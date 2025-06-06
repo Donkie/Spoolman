@@ -5,7 +5,7 @@ import { Content } from "antd/es/layout/layout";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import React from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router";
 import SpoolQRCodePrintingDialog from "./spoolQrCodePrintingDialog";
 import SpoolSelectModal from "./spoolSelectModal";
 

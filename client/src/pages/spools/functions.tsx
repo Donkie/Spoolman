@@ -2,7 +2,7 @@ import { useSelect, useTranslate } from "@refinedev/core";
 import { useQueries } from "@tanstack/react-query";
 import { Form, InputNumber, Modal, Radio } from "antd";
 import { useForm } from "antd/es/form/Form";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { formatLength, formatWeight } from "../../utils/parsing";
 import { SpoolType, useGetExternalDBFilaments } from "../../utils/queryExternalDB";
 import { getAPIURL } from "../../utils/url";
@@ -43,6 +43,26 @@ export async function useSpoolFilament(spool: ISpool, length?: number, weight?: 
   const request = new Request(`${getAPIURL()}/spool/${spool.id}/use`);
   await fetch(request, init);
 }
+
+/**
+ * Adjust usage based on the spool's current gross weight
+ * @param spool The spool
+ * @param weight The weight of the spool, in g
+ */
+export async function useSpoolFilamentMeasure(spool: ISpool, weight: number) {
+  const init: RequestInit = {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      weight: weight,
+    }),
+  };
+  const request = new Request(`${getAPIURL()}/spool/${spool.id}/measure`);
+  await fetch(request, init);
+}
+
 
 /**
  * Returns an array of queries using the useQueries hook from @tanstack/react-query.
@@ -173,7 +193,7 @@ export function useGetFilamentSelectOptions() {
   };
 }
 
-type MeasurementType = "length" | "weight";
+type MeasurementType = "length" | "weight" | "measured_weight";
 
 export function useSpoolAdjustModal() {
   const t = useTranslate();
@@ -181,9 +201,13 @@ export function useSpoolAdjustModal() {
 
   const [curSpool, setCurSpool] = useState<ISpool | null>(null);
   const [measurementType, setMeasurementType] = useState<MeasurementType>("length");
+  const inputNumberRef = useRef<HTMLInputElement | null>(null);
 
   const openSpoolAdjustModal = useCallback((spool: ISpool) => {
     setCurSpool(spool);
+    setTimeout(() => {
+      inputNumberRef.current?.focus();
+    }, 0);
   }, []);
 
   const spoolAdjustModal = useMemo(() => {
@@ -203,8 +227,10 @@ export function useSpoolAdjustModal() {
 
       if (measurementType === "length") {
         await useSpoolFilament(curSpool, value, undefined);
-      } else {
+      } else if (measurementType === "weight") {
         await useSpoolFilament(curSpool, undefined, value);
+      } else {
+        await useSpoolFilamentMeasure(curSpool, value);
       }
 
       setCurSpool(null);
@@ -221,10 +247,11 @@ export function useSpoolAdjustModal() {
             >
               <Radio.Button value="length">{t("spool.form.measurement_type.length")}</Radio.Button>
               <Radio.Button value="weight">{t("spool.form.measurement_type.weight")}</Radio.Button>
+              <Radio.Button value="measured_weight">{t("spool.fields.measured_weight")}</Radio.Button>
             </Radio.Group>
           </Form.Item>
           <Form.Item label={t("spool.form.adjust_filament_value")} name="filament_value">
-            <InputNumber precision={1} addonAfter={measurementType === "length" ? "mm" : "g"} />
+            <InputNumber ref={inputNumberRef} precision={1} addonAfter={measurementType === "length" ? "mm" : "g"} />
           </Form.Item>
         </Form>
       </Modal>

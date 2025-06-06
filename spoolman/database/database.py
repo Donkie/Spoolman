@@ -59,11 +59,11 @@ class Database:
     engine: Optional[AsyncEngine]
     session_maker: Optional[async_sessionmaker[AsyncSession]]
 
-    def __init__(self: "Database", connection_url: URL) -> None:
+    def __init__(self, connection_url: URL) -> None:
         """Construct the Database wrapper and set config parameters."""
         self.connection_url = connection_url
 
-    def is_file_based_sqlite(self: "Database") -> bool:
+    def is_file_based_sqlite(self) -> bool:
         """Return True if the database is file based."""
         return (
             self.connection_url.drivername[:6] == "sqlite"
@@ -71,7 +71,7 @@ class Database:
             and self.connection_url.database != ":memory:"
         )
 
-    def connect(self: "Database") -> None:
+    def connect(self) -> None:
         """Connect to the database."""
         if env.get_logging_level() == logging.DEBUG:
             logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
@@ -79,15 +79,18 @@ class Database:
         connect_args = {}
         if self.connection_url.drivername == "sqlite+aiosqlite":
             connect_args["timeout"] = 60
-
+        connection_options = {}
+        if self.connection_url.drivername == "mysql+aiomysql":
+            connection_options["pool_recycle"] = 3600
         self.engine = create_async_engine(
             self.connection_url,
             connect_args=connect_args,
             pool_pre_ping=True,
+            **connection_options,
         )
         self.session_maker = async_sessionmaker(self.engine, autocommit=False, autoflush=True, expire_on_commit=False)
 
-    def backup(self: "Database", target_path: Union[str, PathLike[str]]) -> None:
+    def backup(self, target_path: Union[str, PathLike[str]]) -> None:
         """Backup the database."""
         if not self.is_file_based_sqlite() or self.connection_url.database is None:
             return
@@ -108,7 +111,7 @@ class Database:
         logger.info("Backup complete.")
 
     def backup_and_rotate(
-        self: "Database",
+        self,
         backup_folder: Union[str, PathLike[str]],
         num_backups: int = 5,
     ) -> Optional[Path]:

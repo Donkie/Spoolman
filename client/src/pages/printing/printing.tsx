@@ -1,3 +1,4 @@
+import { ReactElement } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useGetSetting, useSetSetting } from "../../utils/querySettings";
 import { ISpool } from "../spools/model";
@@ -75,7 +76,7 @@ function getTagValue(tag: string, obj: GenericObject): any {
   return value;
 }
 
-function applyNewline(text: string): JSX.Element[] {
+function applyNewline(text: string): ReactElement[] {
   return text.split("\n").map((line, idx, arr) => (
     <span key={idx}>
       {line}
@@ -84,7 +85,7 @@ function applyNewline(text: string): JSX.Element[] {
   ));
 }
 
-function applyTextFormatting(text: string): JSX.Element[] {
+function applyTextFormatting(text: string): ReactElement[] {
   const regex = /\*\*([\w\W]*?)\*\*/g;
   const parts = text.split(regex);
   // Map over the parts and wrap matched text with <b> tags
@@ -96,7 +97,7 @@ function applyTextFormatting(text: string): JSX.Element[] {
   return elements;
 }
 
-export function renderLabelContents(template: string, spool: ISpool): JSX.Element {
+export function renderLabelContents(template: string, spool: ISpool): ReactElement {
   // Find all {tags} in the template string and loop over them
   // let matches = [...template.matchAll(/(?:{(.*?))?{(.*?)}(.*?)(?:}(.*?))?/gs)];
   let matches = [...template.matchAll(/{(?:[^}{]|{[^}{]*})*}/gs)];

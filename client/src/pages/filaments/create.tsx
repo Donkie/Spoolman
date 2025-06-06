@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import { FilamentImportModal } from "../../components/filamentImportModal";
 import { MultiColorPicker } from "../../components/multiColorPicker";
-import { numberFormatter, numberParser, numberParserAllowEmpty } from "../../utils/parsing";
+import { formatNumberOnUserInput, numberParser, numberParserAllowEmpty } from "../../utils/parsing";
 import { ExternalFilament } from "../../utils/queryExternalDB";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
@@ -250,7 +250,7 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
           <InputNumber
             addonAfter={getCurrencySymbol(undefined, currency)}
             precision={2}
-            formatter={numberFormatter}
+            formatter={formatNumberOnUserInput}
             parser={numberParserAllowEmpty}
           />
         </Form.Item>
@@ -266,7 +266,7 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
             },
           ]}
         >
-          <InputNumber addonAfter="g/cm³" precision={2} formatter={numberFormatter} parser={numberParser} />
+          <InputNumber addonAfter="g/cm³" precision={2} formatter={formatNumberOnUserInput} parser={numberParser} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.diameter")}
@@ -280,7 +280,7 @@ export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrClonePr
             },
           ]}
         >
-          <InputNumber addonAfter="mm" precision={2} formatter={numberFormatter} parser={numberParser} />
+          <InputNumber addonAfter="mm" precision={2} formatter={formatNumberOnUserInput} parser={numberParser} />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.weight")}

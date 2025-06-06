@@ -23,7 +23,7 @@ class DatabaseType(Enum):
     SQLITE = "sqlite"
     COCKROACHDB = "cockroachdb"
 
-    def to_drivername(self: "DatabaseType") -> str:
+    def to_drivername(self) -> str:
         """Get the drivername for the database type.
 
         Returns:

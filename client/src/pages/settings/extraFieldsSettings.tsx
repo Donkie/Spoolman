@@ -22,7 +22,7 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { useState } from "react";
 import { Trans } from "react-i18next";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import { DateTimePicker } from "../../components/dateTimePicker";
 import { InputNumberRange } from "../../components/inputNumberRange";
 import { EntityType, Field, FieldType, useDeleteField, useGetFields, useSetField } from "../../utils/queryFields";
@@ -488,10 +488,16 @@ export function ExtraFieldsSettings() {
         } else if (Array.isArray(val) && record.field.field_type === FieldType.choice) {
           return val.join(", ");
         } else if (
-          (Array.isArray(val) && record.field.field_type === FieldType.integer_range) ||
-          record.field.field_type === FieldType.float_range
+          Array.isArray(val) && (
+            record.field.field_type === FieldType.integer_range || record.field.field_type === FieldType.float_range
+          )
         ) {
-          return `${val[0]} \u2013 ${val[1]}`;
+          let lower = val[0] ?? "";
+          let upper = val[1] ?? "";
+          if (lower === "" && upper === "") {
+            return null;
+          }
+          return `${lower} \u2013 ${upper}`;
         } else {
           return null;
         }

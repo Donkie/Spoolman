@@ -3,7 +3,7 @@ import { useTranslate } from "@refinedev/core";
 import { QrScanner } from "@yudiel/react-qr-scanner";
 import { FloatButton, Modal, Space } from "antd";
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 const QRCodeScannerModal: React.FC = () => {
   const [visible, setVisible] = useState(false);
