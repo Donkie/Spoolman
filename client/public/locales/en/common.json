@@ -291,7 +291,9 @@
         }
     },
     "home": {
-        "home": "Home"
+        "home": "Home",
+        "welcome": "Welcome to your Spoolman instance!".
+        "description": "It looks like you haven't added any spools yet. See the <helpPageLink>Help page</helpPageLink> for help getting started."
     },
     "help": {
         "help": "Help",
