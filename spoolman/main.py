@@ -103,13 +103,23 @@ window.SPOOLMAN_BASE_PATH = "{base_path}";
 # Mount the client side app
 app.mount(base_path, app=SinglePageApplication(directory="client/dist", base_path=env.get_base_path()))
 
-# Allow all origins if in debug mode
-if env.is_debug_mode() or env.is_cors_defined():
-    if(env.is_cors_defined()):
-        origins = env.get_cors_origin()
-    else:
-        origins = ["*"]
+
+def add_cors_middleware() -> None:
+    """Add CORS middleware to the FastAPI app based on environment settings."""
+    origins = []
+    if env.is_debug_mode():
         logger.warning("Running in debug mode, allowing all origins.")
+        origins = ["*"]
+    elif env.is_cors_defined():
+        cors_origins = env.get_cors_origin()
+        if cors_origins:
+            logger.info("CORS origins defined: %s", cors_origins)
+            origins = cors_origins
+        else:
+            logger.warning("CORS origins are not defined, no CORS will be applied.")
+
+    if not origins:
+        return
 
     app.add_middleware(
         CORSMiddleware,
@@ -119,6 +129,9 @@ if env.is_debug_mode() or env.is_cors_defined():
         allow_headers=["*"],
         expose_headers=["X-Total-Count"],
     )
+
+
+add_cors_middleware()
 
 
 def add_file_logging() -> None:
