@@ -10,6 +10,10 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+  packages: read
+
 env:
   GHCR_IMAGE: donkie/spoolman
 
@@ -106,6 +110,8 @@ jobs:
   build-amd64:
     needs: [build-client]
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.7
@@ -156,6 +162,8 @@ jobs:
   #
   build-tester:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.7
@@ -234,6 +242,8 @@ jobs:
     if: ${{ github.event_name != 'pull_request' }}
     needs: [build-client]
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.7
@@ -273,6 +283,8 @@ jobs:
     if: ${{ github.event_name != 'pull_request' }}
     needs: [build-client]
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.7
@@ -311,6 +323,8 @@ jobs:
     if: ${{ github.event_name != 'pull_request' }}
     needs: [test, build-amd64, build-arm64, build-armv7, style, build-client]
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.7
@@ -394,6 +408,8 @@ jobs:
     if: ${{ (github.event_name != 'pull_request') && startsWith(github.event.ref, 'refs/tags/v') }}
     needs: [publish-images]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Download built spoolman
         uses: actions/download-artifact@v4.1.7
@@ -425,4 +441,4 @@ jobs:
           files: /tmp/spoolman/spoolman.zip
           token: ${{ secrets.GITHUB_TOKEN }}
           body: "⚠️ TODO ⚠️"
-          
+

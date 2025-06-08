@@ -13,6 +13,9 @@ on:
           - minor
           - major
 
+permissions:
+  contents: write
+
 jobs:
   bump-version:
     runs-on: ubuntu-latest
