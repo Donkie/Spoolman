@@ -185,7 +185,7 @@
             "lot_nr": "Número de lote do fabricante. Pode ser usado para garantir que uma impressão tenha cores consistentes se vários carretéis forem usados.",
             "external_filament": "Você selecionou um filamento do banco de dados externo. Um objeto de filamento (e possivelmente um objeto de fabricante) será criado automaticamente quando você criar este carretel. Isso pode criar objetos de filamento duplicados se você já tiver criado um objeto de filamento para esse filamento."
         },
- |       "titles": {
+        "titles": {
             "create": "Criar Carretel",
             "clone": "Clonar Carretel",
             "edit": "Editar Carretel",
