@@ -303,6 +303,16 @@ class Spool(BaseModel):
         examples=[""],
     )
     archived: bool = Field(description="Whether this spool is archived and should not be used anymore.")
+    dried: list[str] = Field(
+        default_factory=list,
+        description="List of ISO8601 datetime strings when this spool was dried.",
+        examples=[["2024-06-01T12:00:00Z", "2024-06-10T15:30:00Z"]],
+    )
+    last_dried: Optional[SpoolmanDateTime] = Field(
+        default=None,
+        description="The most recent drying event (ISO8601 datetime string), or None if never dried.",
+        examples=["2024-06-10T15:30:00Z"],
+    )
     extra: dict[str, str] = Field(
         description=(
             "Extra fields for this spool. All values are JSON-encoded data. "
@@ -339,6 +349,9 @@ class Spool(BaseModel):
             diameter=filament.diameter,
         )
 
+        dried_list = item.dried if item.dried is not None else []
+        last_dried = item.last_dried if item.last_dried is not None else (max(dried_list) if dried_list else None)
+
         return Spool(
             id=item.id,
             registered=item.registered,
@@ -356,6 +369,8 @@ class Spool(BaseModel):
             lot_nr=item.lot_nr,
             comment=item.comment,
             archived=item.archived if item.archived is not None else False,
+            dried=dried_list,
+            last_dried=last_dried,
             extra={field.key: field.value for field in item.extra},
         )
 
