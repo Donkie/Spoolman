@@ -5,6 +5,7 @@ from typing import Optional
 
 from sqlalchemy import JSON, ForeignKey, Integer, String, Text
 from sqlalchemy.ext.asyncio import AsyncAttrs
+from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -77,7 +78,7 @@ class Spool(Base):
     comment: Mapped[Optional[str]] = mapped_column(String(1024))
     archived: Mapped[Optional[bool]] = mapped_column()
     dried: Mapped[list[str]] = mapped_column(
-        JSON,
+        MutableList.as_mutable(JSON),
         comment="List of ISO8601 datetime strings when this spool was dried.",
         nullable=False,
     )
