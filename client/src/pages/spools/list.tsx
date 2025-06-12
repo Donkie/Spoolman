@@ -91,6 +91,7 @@ const allColumns: (keyof ISpoolCollapsed & string)[] = [
   "first_used",
   "last_used",
   "registered",
+  "last_dried",
   "comment",
 ];
 const defaultColumns = allColumns.filter(
@@ -449,6 +450,11 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           DateColumn({
             ...commonProps,
             id: "registered",
+            i18ncat: "spool",
+          }),
+          DateColumn({
+            ...commonProps,
+            id: "last_dried",
             i18ncat: "spool",
           }),
           ...(extraFields.data?.map((field) => {
