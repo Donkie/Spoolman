@@ -218,6 +218,32 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       <TextField value={enrichText(record?.comment)} />
       <Title level={5}>{t("spool.fields.archived")}</Title>
       <TextField value={record?.archived ? t("yes") : t("no")} />
+      <Title level={5}>{t("spool.fields.dried")}</Title>
+      {Array.isArray(record?.dried) && record.dried.length > 0 ? (
+        <ul style={{ marginBottom: 0, paddingLeft: 20 }}>
+          {record.dried.map((driedDate, idx) => (
+            <li key={idx}>
+              <DateField
+                value={dayjs.utc(driedDate).local()}
+                title={dayjs.utc(driedDate).local().format()}
+                format="YYYY-MM-DD HH:mm:ss"
+              />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <TextField value="-" />
+      )}
+      <Title level={5}>{t("spool.fields.last_dried")}</Title>
+      {record?.last_dried ? (
+        <DateField
+          value={dayjs.utc(record.last_dried).local()}
+          title={dayjs.utc(record.last_dried).local().format()}
+          format="YYYY-MM-DD HH:mm:ss"
+        />
+      ) : (
+        <TextField value="-" />
+      )}
       <Title level={4}>{t("settings.extra_fields.tab")}</Title>
       {extraFields?.data?.map((field, index) => (
         <ExtraFieldDisplay key={index} field={field} value={record?.extra[field.key]} />

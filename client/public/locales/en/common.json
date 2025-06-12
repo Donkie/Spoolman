@@ -171,7 +171,9 @@
             "last_used": "Last Used",
             "registered": "Registered",
             "comment": "Comment",
-            "archived": "Archived"
+            "archived": "Archived",
+            "dried": "Dried",
+            "last_dried": "Last Dried"
         },
         "fields_help": {
             "price": "Price of a full spool. If not set, the price of the filament will be assumed instead.",

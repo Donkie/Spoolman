@@ -23,6 +23,8 @@ export interface ISpool {
   lot_nr?: string;
   comment?: string;
   archived: boolean;
+  dried?: string[];
+  last_dried?: string;
   extra: { [key: string]: string };
 }
 
