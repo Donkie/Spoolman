@@ -350,7 +350,9 @@
     },
     "kofi": "Příspěvek autorovi na Ko-fi",
     "home": {
-        "home": "Domů"
+        "home": "Domů",
+        "description": "Vypadá to, že jste ještě nepřidali žádné cívky. Úvodní nápovědu najdete na stránce <helpPageLink>Help page</helpPageLink> .",
+        "welcome": "Vítejte ve vaší instanci Spoolman!"
     },
     "settings": {
         "extra_fields": {
