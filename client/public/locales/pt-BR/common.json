@@ -132,6 +132,7 @@
             "noSpoolsSelected": "Você não selecionou algum dos carretéis.",
             "selectAll": "Selecionar/Desselecionar Tudo",
             "selectedTotal_one": "{{count}} carretel selecionado",
+            "selectedTotal_many": "{{count}} carretéis selecionados",
             "selectedTotal_other": "{{count}} carretéis selecionados"
         }
     },
