@@ -49,6 +49,7 @@ async def create(
     lot_nr: Optional[str] = None,
     comment: Optional[str] = None,
     archived: bool = False,
+    dried: Optional[list[str]] = None,
     extra: Optional[dict[str, str]] = None,
 ) -> models.Spool:
     """Add a new spool to the database. Leave weight empty to assume full spool."""
@@ -92,6 +93,7 @@ async def create(
         lot_nr=lot_nr,
         comment=comment,
         archived=archived,
+        dried=dried,
         extra=[models.SpoolField(key=k, value=v) for k, v in (extra or {}).items()],
     )
     db.add(spool)
@@ -460,6 +462,26 @@ async def reset_initial_weight(db: AsyncSession, spool_id: int, weight: float) -
 
     spool.initial_weight = weight
     spool.used_weight = 0
+    await db.commit()
+    await spool_changed(spool, EventType.UPDATED)
+    return spool
+
+
+async def add_drying_event(
+    db: AsyncSession,
+    spool_id: int,
+    dried_at: Optional[datetime] = None,
+) -> models.Spool:
+    """Append a new drying event to the spool's dried list and update last_dried."""
+    spool = await get_by_id(db, spool_id)
+    if dried_at is None:
+        dried_at = datetime.utcnow()
+    # Convert to ISO8601 string (UTC, no microseconds)
+    dried_str = dried_at.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    if spool.dried is None:
+        spool.dried = []
+    spool.dried.append(dried_str)
+    spool.last_dried = dried_at.astimezone(timezone.utc).replace(microsecond=0)
     await db.commit()
     await spool_changed(spool, EventType.UPDATED)
     return spool
