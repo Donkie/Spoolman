@@ -118,18 +118,19 @@ export function formatFilamentLabel(
 interface SelectOption {
   label: string;
   value: string | number;
+  price?: number;
   weight?: number;
   spool_weight?: number;
   is_internal: boolean;
 }
 
-export function useGetFilamentSelectOptions() {
+export function useGetFilamentSelectOptions(currency: string) {
   // Setup hooks
   const t = useTranslate();
   const { queryResult: internalFilaments } = useSelect<IFilament>({
     resource: "filament",
   });
-  const externalFilaments = useGetExternalDBFilaments();
+  const externalFilaments = useGetExternalDBFilaments(currency);
 
   // Format and sort internal filament options
   const filamentSelectInternal: SelectOption[] = useMemo(() => {
@@ -168,6 +169,7 @@ export function useGetFilamentSelectOptions() {
           ),
           value: item.id,
           weight: item.weight,
+          price: item.price,
           spool_weight: item.spool_weight || undefined,
           is_internal: false,
         };
