@@ -294,7 +294,7 @@
     "home": {
         "home": "Início",
         "welcome": "Bem-vindo à sua instância do Spoolman!",
-        "description": "Parece que você ainda não adicionou nenhum carretel. Veja a <helpPageLink>Página de Ajuda</helpPageLink> para obter ajuda para começar."
+        "description": "Parece que você ainda não adicionou nenhum carretel. Veja a <helpPageLink>Página de Ajuda</helpPageLink> para obter ajuda sobre como começar."
     },
     "help": {
         "help": "Ajuda",
