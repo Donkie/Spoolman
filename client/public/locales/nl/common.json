@@ -365,7 +365,12 @@
             "round_prices": {
                 "label": "Afgeronde prijzen",
                 "tooltip": "Rond prijzen af op het dichtstbijzijnde gehele getal."
+            },
+            "show_spool_count": {
+                "label": "Spoelaantal weergeven",
+                "tooltip": "Toon het aantal spoelen per locatie."
             }
+
         },
         "extra_fields": {
             "tab": "Extra velden",

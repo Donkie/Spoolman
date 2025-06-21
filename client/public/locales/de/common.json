@@ -365,6 +365,10 @@
             "round_prices": {
                 "label": "Gerundeter Preis",
                 "tooltip": "Rundet die Preise auf die nächsthöhere ganze Zahl."
+            },
+            "show_spool_count": {
+                "label": "Spulenanzahl anzeigen",
+                "tooltip": "Zeigt die Anzahl der Spulen am jeweiligen Ort an."
             }
         },
         "extra_fields": {
