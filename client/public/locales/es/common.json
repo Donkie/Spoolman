@@ -362,6 +362,10 @@
             "base_url": {
                 "label": "URL base",
                 "tooltip": "La URL base que se utilizará al generar funciones como códigos QR."
+            },
+            "show_spool_count": {
+                "label": "Mostrar cantidad de bobinas",
+                "tooltip": "Mostrar el número de bobinas para cada ubicación."
             }
         },
         "extra_fields": {
