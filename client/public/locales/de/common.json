@@ -31,7 +31,7 @@
         "saveAndAdd": "Speichern und hinzufügen",
         "continue": "Weiter"
     },
-    "warnWhenUnsavedChanges": "Bist du sicher, dass du die Seite verlassen willst? Du hast ungespeicherte Änderungen.",
+    "warnWhenUnsavedChanges": "Sicher? Es sind nicht gespeicherte Änderungen vorhanden.",
     "notifications": {
         "success": "Erfolgreich",
         "error": "Fehler (status code: {{statusCode}})",
