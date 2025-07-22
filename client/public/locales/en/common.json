@@ -322,6 +322,10 @@
             "round_prices": {
                 "label": "Round prices",
                 "tooltip": "Round prices to the nearest whole number."
+            },
+            "show_spool_count": {
+                "label": "Show Spool Count",
+                "tooltip": "Show the number of spools for each location."
             }
         },
         "extra_fields": {
