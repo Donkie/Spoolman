@@ -1,4 +1,4 @@
-FROM python:3.12-bookworm AS python-builder
+FROM python:3.12-slim-bookworm AS python-builder
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
@@ -32,7 +32,11 @@ COPY --chown=app:app spoolman /home/app/spoolman/spoolman
 COPY --chown=app:app alembic.ini /home/app/spoolman/
 COPY --chown=app:app README.md /home/app/spoolman/
 
-FROM python:3.12-bookworm AS python-runner
+FROM python:3.12-slim-bookworm AS python-runner
+
+RUN apt-get update && apt-get install -y \
+    curl \
+    uvicorn
 
 LABEL org.opencontainers.image.source=https://github.com/Donkie/Spoolman
 LABEL org.opencontainers.image.description="Keep track of your inventory of 3D-printer filament spools."
