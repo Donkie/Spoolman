@@ -35,8 +35,8 @@ COPY --chown=app:app README.md /home/app/spoolman/
 FROM python:3.12-slim-bookworm AS python-runner
 
 RUN apt-get update && apt-get install -y \
-    curl \
-    uvicorn
+    curl uvicorn \
+    && apt-get clean
 
 LABEL org.opencontainers.image.source=https://github.com/Donkie/Spoolman
 LABEL org.opencontainers.image.description="Keep track of your inventory of 3D-printer filament spools."
