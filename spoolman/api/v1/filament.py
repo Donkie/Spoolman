@@ -4,7 +4,7 @@ import asyncio
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -201,6 +201,7 @@ class FilamentUpdateParameters(FilamentParameters):
 )
 async def find(
     *,
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db_session)],
     vendor_name_old: Annotated[
         str | None,
@@ -342,6 +343,14 @@ async def find(
     else:
         filter_by_ids = None
 
+    # Extract custom field filters from query parameters
+    extra_field_filters = {}
+    query_params = request.query_params
+    for key, value in query_params.items():
+        if key.startswith("extra."):
+            field_key = key[6:]  # Remove "extra." prefix
+            extra_field_filters[field_key] = value
+
     db_items, total_count = await filament.find(
         db=db,
         ids=filter_by_ids,
@@ -351,6 +360,7 @@ async def find(
         material=material,
         article_number=article_number,
         external_id=external_id,
+        extra_field_filters=extra_field_filters if extra_field_filters else None,
         sort_by=sort_by,
         limit=limit,
         offset=offset,
