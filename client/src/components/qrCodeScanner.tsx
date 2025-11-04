@@ -13,12 +13,12 @@ const QRCodeScannerModal: React.FC = () => {
 
   const onScan = (result: string) => {
     // Check for the spoolman ID format
-    const match = result.match(/^web\+spoolman:s-(?<id>[0-9]+)$/);
+    const match = result.match(/^web\+spoolman:s-(?<id>[0-9]+)$/i);
     if (match && match.groups) {
       setVisible(false);
       navigate(`/spool/show/${match.groups.id}`);
     }
-    const fullURLmatch = result.match(/^https?:\/\/[^/]+\/spool\/show\/(?<id>[0-9]+)$/);
+    const fullURLmatch = result.match(/^https?:\/\/[^/]+\/spool\/show\/(?<id>[0-9]+)$/i);
     if (fullURLmatch && fullURLmatch.groups) {
       setVisible(false);
       navigate(`/spool/show/${fullURLmatch.groups.id}`);
