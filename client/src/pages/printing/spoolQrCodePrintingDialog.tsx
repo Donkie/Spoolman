@@ -300,7 +300,7 @@ Spool Weight: {filament.spool_weight} g
           </>
         }
         items={items.map((spool) => ({
-          value: useHTTPUrl ? `${baseUrlRoot}/spool/show/${spool.id}` : `web+spoolman:s-${spool.id}`,
+          value: useHTTPUrl ? `${baseUrlRoot}/spool/show/${spool.id}` : `WEB+SPOOLMAN:S-${spool.id}`,
           label: (
             <p
               style={{
