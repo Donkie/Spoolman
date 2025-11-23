@@ -350,7 +350,9 @@
     },
     "kofi": "Donar en Ko-fi",
     "home": {
-        "home": "Inicio"
+        "home": "Inicio",
+        "welcome": "¡Bienvenido a tu instancia de Spoolman!",
+        "description": "Parece que aún no has añadido ninguna bobina aún. Visita la <helpPageLink>página de ayuda</helpPageLink> para comenzar."
     },
     "settings": {
         "header": "Ajustes",
@@ -362,6 +364,10 @@
             "base_url": {
                 "label": "URL base",
                 "tooltip": "La URL base que se utilizará al generar funciones como códigos QR."
+            },
+            "round_prices": {
+                "label": "Redondear precios",
+                "tooltip": "Redondear precios al número entero más cercano."
             }
         },
         "extra_fields": {
