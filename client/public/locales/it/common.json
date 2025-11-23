@@ -118,6 +118,9 @@
         },
         "help": {
             "list": "Aiuto | Spoolman"
+        },
+        "locations": {
+            "list": "Posizione | Spoolman"
         }
     },
     "spool": {
@@ -181,6 +184,9 @@
         "spool": "Bobine",
         "messages": {
             "archive": "Sei sicuro di voler archiviare questa bobina?"
+        },
+        "formats": {
+            "last_used": "Ultimo utilizzo {{date}}"
         }
     },
     "buttons": {
@@ -344,7 +350,9 @@
     },
     "kofi": "Donazione su Ko-fi",
     "home": {
-        "home": "Home"
+        "home": "Home",
+        "welcome": "Benvenuto nella tua istanza Spoolman!",
+        "description": "Sembra che tu non abbia ancora aggiunto alcuna bobina. Vai su <helpPageLink>Help page</helpPageLink> per ricevere assistenza su come iniziare."
     },
     "settings": {
         "settings": "Configurazione",
@@ -388,7 +396,17 @@
             "base_url": {
                 "label": "URL di base",
                 "tooltip": "L'URL di base da utilizzare quando si generano funzioni come i codici QR."
+            },
+            "round_prices": {
+                "label": "Prezzi arrotondati",
+                "tooltip": "Prezzi arrotondati al numero intero più vicino."
             }
         }
+    },
+    "locations": {
+        "locations": "Posizioni",
+        "new_location": "Nuova Posizione",
+        "no_location": "Nessuna Posizione",
+        "no_locations_help": "Questa pagina ti consente di organizzare le bobine in base alla posizione. Aggiungi alcune bobine per iniziare!"
     }
 }
