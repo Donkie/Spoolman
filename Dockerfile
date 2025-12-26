@@ -56,7 +56,7 @@ RUN set -ex; \
     apt-get purge -y --auto-remove $fetch_deps
 
 # Add local user so we don't run as root
-RUN groupmod -g 1000 users \
+RUN groupmod -g 1001 users \
     && useradd -u 1000 -U app \
     && usermod -G users app \
     && mkdir -p /home/app/.local/share/spoolman \
