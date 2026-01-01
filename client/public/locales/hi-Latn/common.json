@@ -1,0 +1,17 @@
+{
+    "actions": {
+        "list": "Suchi",
+        "create": "Banaye",
+        "edit": "Sampadan Karen",
+        "show": "Dikhayen",
+        "clone": "Clone"
+    },
+    "buttons": {
+        "create": "Banaye",
+        "save": "Sahejen",
+        "edit": "Sampadan Karen",
+        "confirm": "Kya aapko pakka hai?",
+        "continue": "Aage badhen",
+        "show": "Dikhayen"
+    }
+}
