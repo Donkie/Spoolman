@@ -31,7 +31,7 @@
         "saveAndAdd": "Speichern und hinzufügen",
         "continue": "Weiter"
     },
-    "warnWhenUnsavedChanges": "Bist du sicher, dass du die Seite verlassen willst? Du hast ungespeicherte Änderungen.",
+    "warnWhenUnsavedChanges": "Sicher? Es sind nicht gespeicherte Änderungen vorhanden.",
     "notifications": {
         "success": "Erfolgreich",
         "error": "Fehler (status code: {{statusCode}})",
@@ -349,7 +349,9 @@
     },
     "kofi": "Schick mir ein Trinkgeld über Ko-fi",
     "home": {
-        "home": "Home"
+        "home": "Home",
+        "welcome": "Willkommen auf deiner Spoolman Instanz!",
+        "description": "Es sieht so aus, als hättest du noch keine Spulen hinzugefügt. Schau auf unsere <helpPageLink>Hilfeseite</helpPageLink>, falls du Hilfe beim Start benötigst."
     },
     "settings": {
         "header": "Einstellungen",
