@@ -1,13 +1,17 @@
 import { useSelect, useTranslate } from "@refinedev/core";
 import { useQueries } from "@tanstack/react-query";
-import { Form, InputNumber, Modal, Radio } from "antd";
+import { Form, InputNumber, Modal, Radio, DatePicker } from "antd";
 import { useForm } from "antd/es/form/Form";
 import { useCallback, useMemo, useRef, useState } from "react";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 import { formatLength, formatWeight } from "../../utils/parsing";
 import { SpoolType, useGetExternalDBFilaments } from "../../utils/queryExternalDB";
 import { getAPIURL } from "../../utils/url";
 import { IFilament } from "../filaments/model";
 import { ISpool } from "./model";
+
+dayjs.extend(utc);
 
 export async function setSpoolArchived(spool: ISpool, archived: boolean) {
   const init: RequestInit = {
@@ -261,5 +265,75 @@ export function useSpoolAdjustModal() {
   return {
     openSpoolAdjustModal,
     spoolAdjustModal,
+  };
+}
+
+/**
+ * Hook to provide a modal for drying a spool with a date/time input.
+ * On submit, POSTs to /api/v1/spool/dry with {"dried_at": "<ISO string>"}.
+ */
+export function useSpoolDryModal() {
+  const t = useTranslate();
+  const [form] = useForm();
+
+  const [curSpool, setCurSpool] = useState<ISpool | null>(null);
+
+  const openSpoolDryModal = useCallback((spool: ISpool) => {
+    setCurSpool(spool);
+    // Set initial form value to now
+    form.setFieldsValue({ dried_at: dayjs() });
+  }, [form]);
+
+  const spoolDryModal = useMemo(() => {
+    if (curSpool === null) {
+      return null;
+    }
+
+    const onSubmit = async () => {
+      if (curSpool === null) {
+        return;
+      }
+
+      const driedAt = form.getFieldValue("dried_at");
+      if (!driedAt) {
+        return;
+      }
+
+      const driedAtISO = driedAt.toISOString();
+
+      const init: RequestInit = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          dried_at: driedAtISO,
+        }),
+      };
+      const request = new Request(`${getAPIURL()}/spool/${curSpool.id}/dry`);
+      await fetch(request, init);
+
+      setCurSpool(null);
+    };
+
+    return (
+      <Modal title={t("spool.titles.dry")} open onCancel={() => setCurSpool(null)} onOk={form.submit}>
+        <p>{t("spool.form.dry_help")}</p>
+        <Form form={form} initialValues={{ dried_at: dayjs() }} onFinish={onSubmit}>
+          <Form.Item
+            label={t("spool.form.dried_at")}
+            name="dried_at"
+            rules={[{ required: true, message: t("spool.form.dried_at_required") }]}
+          >
+            <DatePicker showTime allowClear={false} />
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
+  }, [curSpool, form, t]);
+
+  return {
+    openSpoolDryModal,
+    spoolDryModal,
   };
 }

@@ -21,6 +21,13 @@ from spoolman.ws import websocket_manager
 
 logger = logging.getLogger(__name__)
 
+class SpoolDryEventParameters(BaseModel):
+    dried_at: Optional[datetime] = Field(
+        None,
+        description="Datetime when the spool was dried. If not provided, uses the current UTC time.",
+        examples=["2024-06-10T15:30:00Z"],
+    )
+
 router = APIRouter(
     prefix="/spool",
     tags=["spool"],
@@ -84,6 +91,14 @@ class SpoolParameters(BaseModel):
         examples=[""],
     )
     archived: bool = Field(default=False, description="Whether this spool is archived and should not be used anymore.")
+    dried: Optional[list[str]] = Field(
+        default_factory=list,
+        description=(
+            "List of ISO8601 datetime strings when this spool was dried. "
+            "This is used to track the drying history of the spool."
+        ),
+        examples=[datetime.utcnow().isoformat()],
+    )
     extra: Optional[dict[str, str]] = Field(
         None,
         description="Extra fields for this spool.",
@@ -411,6 +426,7 @@ async def create(  # noqa: ANN201
             lot_nr=body.lot_nr,
             comment=body.comment,
             archived=body.archived,
+            dried=body.dried,
             extra=body.extra,
         )
         return Spool.from_db(db_item)
@@ -550,4 +566,33 @@ async def measure(  # noqa: ANN201
         return JSONResponse(
             status_code=400,
             content={"message": e.args[0]},
+        )
+
+@router.post(
+    "/{spool_id}/dry",
+    name="Record drying event for spool",
+    description="Record a new drying event for the specified spool. Appends a new datetime to the dried list and updates last_dried.",
+    response_model_exclude_none=True,
+    response_model=Spool,
+    responses={
+        404: {"model": Message},
+    },
+)
+async def dry_spool(
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    spool_id: int,
+    body: SpoolDryEventParameters,
+):
+    try:
+        db_item = await spool.add_drying_event(
+            db=db,
+            spool_id=spool_id,
+            dried_at=body.dried_at,
+        )
+        return Spool.from_db(db_item)
+    except Exception as e:
+        logger.exception("Failed to record drying event.")
+        return JSONResponse(
+            status_code=400,
+            content={"message": f"Failed to record drying event: {e}"},
         )
