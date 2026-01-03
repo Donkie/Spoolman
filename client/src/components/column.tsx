@@ -40,7 +40,7 @@ export interface Action {
 
 interface BaseColumnProps<Obj extends Entity> {
   id: string | string[];
-  dataId?: keyof Obj & string;
+  dataId?: keyof Obj & string | string; // Allow string values for custom fields
   i18ncat?: string;
   i18nkey?: string;
   title?: string;
@@ -389,13 +389,56 @@ export function NumberRangeColumn<Obj extends Entity>(props: NumberColumnProps<O
   });
 }
 
+// Helper function to create filter items for custom fields
+function createCustomFieldFilters(field: Field): ColumnFilterItem[] {
+  const filters: ColumnFilterItem[] = [];
+  
+  // For choice fields, add each choice as a filter option
+  if (field.field_type === FieldType.choice && field.choices) {
+    field.choices.forEach(choice => {
+      filters.push({
+        text: choice,
+        value: `"${choice}"`, // Exact match
+      });
+    });
+  }
+  
+  // For boolean fields, add true/false options
+  if (field.field_type === FieldType.boolean) {
+    filters.push(
+      { text: "Yes", value: "true" },
+      { text: "No", value: "false" }
+    );
+  }
+  
+  // Add empty option for all field types
+  filters.push({
+    text: "<empty>",
+    value: "<empty>",
+  });
+  
+  return filters;
+}
+
 export function CustomFieldColumn<Obj extends Entity>(props: Omit<BaseColumnProps<Obj>, "id"> & { field: Field }) {
   const field = props.field;
+  const fieldId = `extra.${field.key}`;
+  
+  // Get filtered values for this field
+  const typedFilters = typeFilters<Obj>(props.tableState.filters);
+  const filteredValue = getFiltersForField(typedFilters, fieldId);
+  
+  // Create filters based on field type
+  const filters = createCustomFieldFilters(field);
+  
   const commonProps = {
     ...props,
     id: ["extra", field.key],
     title: field.name,
-    sorter: false,
+    sorter: true, // Enable sorting for custom fields
+    dataId: fieldId, // Set the dataId for sorting
+    filters: filters, // Add filters
+    filteredValue: filteredValue, // Set filtered values
     transform: (value: unknown) => {
       if (value === null || value === undefined) {
         return undefined;
