@@ -131,8 +131,8 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   const [usedWeight, setUsedWeight] = useState(0);
 
   useEffect(() => {
-    const newFilamentWeight = selectedFilament?.weight || 0;
-    const newSpoolWeight = selectedFilament?.spool_weight || 0;
+    const newFilamentWeight = getFilamentWeight();
+    const newSpoolWeight = getSpoolWeight();
     if (newFilamentWeight > 0) {
       form.setFieldValue("initial_weight", newFilamentWeight);
     }
