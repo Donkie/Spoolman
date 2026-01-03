@@ -140,7 +140,6 @@ export function Location({
   const titleStyle = {
     color: canEditTitle ? undefined : token.colorTextTertiary,
   };
-  const showSpoolCount = JSON.parse(useGetSetting("show_spool_count").data?.value ?? "false");
   const spoolCountStyle = {
     color: token.colorTextQuaternary,
   };
@@ -174,11 +173,9 @@ export function Location({
               setEditTitle(true);
             }}
             style={titleStyle}
-            >
+          >
             {displayTitle}
-            {showSpoolCount && (
-              <span style={spoolCountStyle}>{" "}({spools.length})</span>
-            )}
+            {<span style={spoolCountStyle}> ({spools.length})</span>}
           </span>
         )}
         {showDelete && <Button icon={<DeleteOutlined />} size="small" type="text" onClick={onDelete} />}

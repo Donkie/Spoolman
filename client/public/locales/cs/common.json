@@ -399,10 +399,6 @@
             "round_prices": {
                 "label": "Zaokrouhlené ceny",
                 "tooltip": "Zaokrouhlete ceny na nejbližší celé číslo."
-            },
-            "show_spool_count": {
-                "label": "Zobrazit počet cívek",
-                "tooltip": "Zobrazit počet cívek pro každé umístění."
             }
         },
         "settings": "Nastavení"
