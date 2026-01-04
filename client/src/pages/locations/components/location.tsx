@@ -9,6 +9,7 @@ import { ISpool } from "../../spools/model";
 import { DragItem, ItemTypes, SpoolDragItem } from "../dnd";
 import { EMPTYLOC } from "../functions";
 import { SpoolList } from "./spoolList";
+import { useGetSetting } from "../../../utils/querySettings";
 
 const { useToken } = theme;
 
@@ -139,6 +140,9 @@ export function Location({
   const titleStyle = {
     color: canEditTitle ? undefined : token.colorTextTertiary,
   };
+  const spoolCountStyle = {
+    color: token.colorTextQuaternary,
+  };
 
   return (
     <div
@@ -171,6 +175,7 @@ export function Location({
             style={titleStyle}
           >
             {displayTitle}
+            {<span style={spoolCountStyle}> ({spools.length})</span>}
           </span>
         )}
         {showDelete && <Button icon={<DeleteOutlined />} size="small" type="text" onClick={onDelete} />}
