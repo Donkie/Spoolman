@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:4bd60f905c3a76c3818c8d812784be141f10cedb41534379bb2ea40723ee9469"
+content_hash = "sha256:6f14f971b1a5dd3a5a1c02b64c467d1ab5060c7614aef64807f5ce5ee8415fd5"
 
 [[metadata.targets]]
 requires_python = ">=3.9,<=3.12"
@@ -1177,7 +1177,7 @@ version = "0.21.0"
 requires_python = ">=3.8.0"
 summary = "Fast implementation of asyncio event loop on top of libuv"
 groups = ["default"]
-marker = "platform_machine != \"armv7l\" and (sys_platform != \"win32\" and sys_platform != \"cygwin\") and platform_python_implementation != \"PyPy\""
+marker = "(sys_platform != \"win32\" and sys_platform != \"cygwin\") and platform_machine != \"armv7l\" and platform_python_implementation != \"PyPy\""
 files = [
     {file = "uvloop-0.21.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:ec7e6b09a6fdded42403182ab6b832b71f4edaf7f37a9a0e371a01db5f0cb45f"},
     {file = "uvloop-0.21.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:196274f2adb9689a289ad7d65700d37df0c0930fd8e4e743fa4834e850d7719d"},
