@@ -52,9 +52,9 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "typescript": "^5.8.3",
-    "vite": "^6.3.5",
+    "vite": "^6.4.1",
     "vite-plugin-mkcert": "^1.17.8",
-    "vite-plugin-pwa": "^1.0.3"
+    "vite-plugin-pwa": "^1.2.0"
   },
   "scripts": {
     "dev": "refine dev",

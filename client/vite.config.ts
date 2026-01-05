@@ -1,6 +1,6 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import { VitePWA } from 'vite-plugin-pwa'
+import { VitePWA } from 'vite-plugin-pwa';
 import svgr from "vite-plugin-svgr";
 
 export default defineConfig({
@@ -11,7 +11,7 @@ export default defineConfig({
     devOptions: {
       enabled: true,
     },
-    includeAssets: ['favicon.ico', 'robots.txt'],
+    includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png'],
     manifest: {
       name: "Spoolman",
       short_name: "Spoolman",
@@ -27,6 +27,12 @@ export default defineConfig({
           "purpose": "any",
           "sizes": "512x512",
           "src": "icon512_rounded.png",
+          "type": "image/png"
+        },
+        {
+          "purpose": "any",
+          "sizes": "192x192",
+          "src": "icon192_rounded.png",
           "type": "image/png"
         }
       ],
