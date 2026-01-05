@@ -14,4 +14,4 @@ echo User GID: $(id -g app)
 echo "Starting uvicorn..."
 
 # Execute the uvicorn command with any additional arguments
-exec su-exec "app" uvicorn spoolman.main:app --host $SPOOLMAN_HOST --port $SPOOLMAN_PORT "$@"
+exec gosu "app" uvicorn spoolman.main:app --host $SPOOLMAN_HOST --port $SPOOLMAN_PORT "$@"

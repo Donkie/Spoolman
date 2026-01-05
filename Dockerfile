@@ -1,4 +1,4 @@
-FROM python:3.12-bookworm AS python-builder
+FROM python:3.12-slim-bookworm AS python-builder
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
@@ -32,28 +32,17 @@ COPY --chown=app:app spoolman /home/app/spoolman/spoolman
 COPY --chown=app:app alembic.ini /home/app/spoolman/
 COPY --chown=app:app README.md /home/app/spoolman/
 
-FROM python:3.12-bookworm AS python-runner
+FROM python:3.12-slim-bookworm AS python-runner
 
 LABEL org.opencontainers.image.source=https://github.com/Donkie/Spoolman
 LABEL org.opencontainers.image.description="Keep track of your inventory of 3D-printer filament spools."
 LABEL org.opencontainers.image.licenses=MIT
 
-# Install latest su-exec
-RUN set -ex; \
-    \
-    curl -o /usr/local/bin/su-exec.c https://raw.githubusercontent.com/ncopa/su-exec/master/su-exec.c; \
-    \
-    fetch_deps='gcc libc-dev'; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends $fetch_deps; \
-    rm -rf /var/lib/apt/lists/*; \
-    gcc -Wall \
-    /usr/local/bin/su-exec.c -o/usr/local/bin/su-exec; \
-    chown root:root /usr/local/bin/su-exec; \
-    chmod 0755 /usr/local/bin/su-exec; \
-    rm /usr/local/bin/su-exec.c; \
-    \
-    apt-get purge -y --auto-remove $fetch_deps
+# Install gosu for privilege dropping
+RUN apt-get update && apt-get install -y \
+    gosu \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Add local user so we don't run as root
 RUN groupmod -g 1000 users \
