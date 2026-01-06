@@ -3,8 +3,9 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, ForeignKey, Integer, String, Text
 from sqlalchemy.ext.asyncio import AsyncAttrs
+from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -76,6 +77,12 @@ class Spool(Base):
     lot_nr: Mapped[Optional[str]] = mapped_column(String(64))
     comment: Mapped[Optional[str]] = mapped_column(String(1024))
     archived: Mapped[Optional[bool]] = mapped_column()
+    dried: Mapped[list[str]] = mapped_column(
+        MutableList.as_mutable(JSON),
+        comment="List of ISO8601 datetime strings when this spool was dried.",
+        nullable=False,
+    )
+    last_dried: Mapped[Optional[datetime]] = mapped_column(comment="The most recent drying event (UTC).", nullable=True)
     extra: Mapped[list["SpoolField"]] = relationship(
         back_populates="spool",
         cascade="save-update, merge, delete, delete-orphan",

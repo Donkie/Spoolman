@@ -1,12 +1,13 @@
 import {
-    EditOutlined,
-    EyeOutlined,
-    FilterOutlined,
-    InboxOutlined,
-    PlusSquareOutlined,
-    PrinterOutlined,
-    ToolOutlined,
-    ToTopOutlined,
+  EditOutlined,
+  EyeOutlined,
+  FilterOutlined,
+  InboxOutlined,
+  PlusSquareOutlined,
+  PrinterOutlined,
+  ToolOutlined,
+  ToTopOutlined,
+  FireOutlined,
 } from "@ant-design/icons";
 import { List, useTable } from "@refinedev/antd";
 import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
@@ -16,28 +17,28 @@ import utc from "dayjs/plugin/utc";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-    Action,
-    ActionsColumn,
-    CustomFieldColumn,
-    DateColumn,
-    FilteredQueryColumn,
-    NumberColumn,
-    RichColumn,
-    SortedColumn,
-    SpoolIconColumn,
+  Action,
+  ActionsColumn,
+  CustomFieldColumn,
+  DateColumn,
+  FilteredQueryColumn,
+  NumberColumn,
+  RichColumn,
+  SortedColumn,
+  SpoolIconColumn,
 } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
 import {
-    useSpoolmanFilamentFilter,
-    useSpoolmanLocations,
-    useSpoolmanLotNumbers,
-    useSpoolmanMaterials,
+  useSpoolmanFilamentFilter,
+  useSpoolmanLocations,
+  useSpoolmanLotNumbers,
+  useSpoolmanMaterials,
 } from "../../components/otherModels";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
 import { useCurrencyFormatter } from "../../utils/settings";
-import { setSpoolArchived, useSpoolAdjustModal } from "./functions";
+import { setSpoolArchived, useSpoolAdjustModal, useSpoolDryModal } from "./functions";
 import { ISpool } from "./model";
 
 dayjs.extend(utc);
@@ -91,6 +92,7 @@ const allColumns: (keyof ISpoolCollapsed & string)[] = [
   "first_used",
   "last_used",
   "registered",
+  "last_dried",
   "comment",
 ];
 const defaultColumns = allColumns.filter(
@@ -104,6 +106,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const extraFields = useGetFields(EntityType.spool);
   const currencyFormatter = useCurrencyFormatter();
   const { openSpoolAdjustModal, spoolAdjustModal } = useSpoolAdjustModal();
+  const { openSpoolDryModal, spoolDryModal } = useSpoolDryModal();
 
   const allColumnsWithExtraFields = [...allColumns, ...(extraFields.data?.map((field) => "extra." + field.key) ?? [])];
 
@@ -217,6 +220,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
         { name: t("buttons.edit"), icon: <EditOutlined />, link: editUrl("spool", record.id) },
         { name: t("buttons.clone"), icon: <PlusSquareOutlined />, link: cloneUrl("spool", record.id) },
         { name: t("spool.titles.adjust"), icon: <ToolOutlined />, onClick: () => openSpoolAdjustModal(record) },
+        { name: t("spool.titles.dry"), icon: <FireOutlined />, onClick: () => openSpoolDryModal(record) },
       ];
       if (record.archived) {
         actions.push({
@@ -229,7 +233,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
       }
       return actions;
     },
-    [t, editUrl, showUrl, cloneUrl, openSpoolAdjustModal, archiveSpool, archiveSpoolPopup]
+    [t, editUrl, showUrl, cloneUrl, openSpoolAdjustModal, openSpoolDryModal, archiveSpool, archiveSpoolPopup]
   );
 
   const originalOnChange = tableProps.onChange;
@@ -326,6 +330,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
       )}
     >
       {spoolAdjustModal}
+      {spoolDryModal}
       <Table
         {...tableProps}
         sticky
@@ -449,6 +454,11 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
           DateColumn({
             ...commonProps,
             id: "registered",
+            i18ncat: "spool",
+          }),
+          DateColumn({
+            ...commonProps,
+            id: "last_dried",
             i18ncat: "spool",
           }),
           ...(extraFields.data?.map((field) => {

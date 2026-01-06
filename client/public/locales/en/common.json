@@ -171,7 +171,9 @@
             "last_used": "Last Used",
             "registered": "Registered",
             "comment": "Comment",
-            "archived": "Archived"
+            "archived": "Archived",
+            "dried": "Dried",
+            "last_dried": "Last Dried"
         },
         "fields_help": {
             "price": "Price of a full spool. If not set, the price of the filament will be assumed instead.",
@@ -193,7 +195,8 @@
             "show": "Show Spool",
             "show_title": "[Spool #{{id}}] {{name}}",
             "archive": "Archive Spool",
-            "adjust": "Adjust Spool Filament"
+            "adjust": "Adjust Spool Filament",
+            "dry": "Dry Spool"
         },
         "form": {
             "measurement_type": {
@@ -204,7 +207,9 @@
             "adjust_filament_help": "Here you can directly add or subtract filament from the spool. A positive value will consume filament, a negative value will add it.",
             "adjust_filament_value": "Consume Amount",
             "new_location_prompt": "Enter a new location",
-            "spool_updated": "This spool has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
+            "spool_updated": "This spool has been updated by someone/something else since you opened this page. Saving will overwrite those changes!",
+            "dry_help": "Here you can set the last dried date for the spool.",
+            "dried_at": "Dried at"
         },
         "messages": {
             "archive": "Are you sure you want to archive this spool?"
