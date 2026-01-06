@@ -44,8 +44,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Add local user so we don't run as root
-RUN groupmod -g 1000 users \
-    && useradd -u 1000 -U app \
+RUN useradd -u 1000 -U app \
     && usermod -G users app \
     && mkdir -p /home/app/.local/share/spoolman \
     && chown -R app:app /home/app/.local/share/spoolman
