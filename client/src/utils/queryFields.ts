@@ -66,7 +66,9 @@ export function useSetField(entity_type: EntityType) {
     },
     onMutate: async ({ key, params }) => {
       // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
-      await queryClient.cancelQueries(["fields", entity_type]);
+      await queryClient.cancelQueries({
+        queryKey: ["fields", entity_type]
+      });
 
       // Snapshot the previous value
       const previousFields = queryClient.getQueryData<Field[]>(["fields", entity_type]);
@@ -101,7 +103,9 @@ export function useSetField(entity_type: EntityType) {
     },
     onSettled: () => {
       // Invalidate and refetch
-      queryClient.invalidateQueries(["fields", entity_type]);
+      queryClient.invalidateQueries({
+        queryKey: ["fields", entity_type]
+      });
     },
   });
 }
@@ -124,7 +128,9 @@ export function useDeleteField(entity_type: EntityType) {
     },
     onSuccess: () => {
       // Invalidate and refetch
-      queryClient.invalidateQueries(["fields", entity_type]);
+      queryClient.invalidateQueries({
+        queryKey: ["fields", entity_type]
+      });
     },
   });
 }

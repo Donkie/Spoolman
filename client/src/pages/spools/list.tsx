@@ -1,12 +1,12 @@
 import {
-    EditOutlined,
-    EyeOutlined,
-    FilterOutlined,
-    InboxOutlined,
-    PlusSquareOutlined,
-    PrinterOutlined,
-    ToolOutlined,
-    ToTopOutlined,
+  EditOutlined,
+  EyeOutlined,
+  FilterOutlined,
+  InboxOutlined,
+  PlusSquareOutlined,
+  PrinterOutlined,
+  ToolOutlined,
+  ToTopOutlined,
 } from "@ant-design/icons";
 import { List, useTable } from "@refinedev/antd";
 import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
@@ -16,22 +16,22 @@ import utc from "dayjs/plugin/utc";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-    Action,
-    ActionsColumn,
-    CustomFieldColumn,
-    DateColumn,
-    FilteredQueryColumn,
-    NumberColumn,
-    RichColumn,
-    SortedColumn,
-    SpoolIconColumn,
+  Action,
+  ActionsColumn,
+  CustomFieldColumn,
+  DateColumn,
+  FilteredQueryColumn,
+  NumberColumn,
+  RichColumn,
+  SortedColumn,
+  SpoolIconColumn,
 } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
 import {
-    useSpoolmanFilamentFilter,
-    useSpoolmanLocations,
-    useSpoolmanLotNumbers,
-    useSpoolmanMaterials,
+  useSpoolmanFilamentFilter,
+  useSpoolmanLocations,
+  useSpoolmanLotNumbers,
+  useSpoolmanMaterials,
 } from "../../components/otherModels";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
@@ -117,7 +117,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   // To provide the live updates, we use a custom solution (useLiveify) instead of the built-in refine "liveMode" feature.
   // This is because the built-in feature does not call the liveProvider subscriber with a list of IDs, but instead
   // calls it with a list of filters, sorters, etc. This means the server-side has to support this, which is quite hard.
-  const { tableProps, sorters, setSorters, filters, setFilters, current, pageSize, setCurrent } =
+  const { tableProps, sorters, setSorters, filters, setFilters, currentPage, pageSize, setCurrentPage } =
     useTable<ISpoolCollapsed>({
       meta: {
         queryParams: {
@@ -127,7 +127,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
       syncWithLocation: false,
       pagination: {
         mode: "server",
-        current: initialState.pagination.current,
+        currentPage: initialState.pagination.currentPage,
         pageSize: initialState.pagination.pageSize,
       },
       sorters: {
@@ -165,7 +165,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   const tableState: TableState = {
     sorters,
     filters,
-    pagination: { current, pageSize },
+    pagination: { currentPage: currentPage, pageSize },
     showColumns,
   };
   useStoreInitialState(namespace, tableState);
@@ -284,7 +284,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
             onClick={() => {
               setFilters([], "replace");
               setSorters([{ field: "id", order: "asc" }]);
-              setCurrent(1);
+              setCurrentPage(1);
             }}
           >
             {t("buttons.clearFilters")}

@@ -17,12 +17,12 @@ type Props = NumberFieldProps & {
  *
  * @see {@link https://refine.dev/docs/ui-frameworks/antd/components/fields/number} for more details.
  */
-export const NumberFieldUnit: React.FC<Props> = ({ value, locale, options, ...rest }) => {
+export const NumberFieldUnit: React.FC<Props> = ({ value, locale, options, unit }) => {
   const number = Number(value);
 
   return (
-    <Text {...rest}>
-      {toLocaleStringSupportsOptions() ? number.toLocaleString(locale, options) : number} {rest.unit}
+    <Text>
+      {toLocaleStringSupportsOptions() ? number.toLocaleString(locale, options) : number} {unit}
     </Text>
   );
 };

@@ -2,7 +2,7 @@ import { CrudFilter, CrudSort } from "@refinedev/core";
 import { useEffect, useState } from "react";
 import { isLocalStorageAvailable } from "./support";
 interface Pagination {
-  current: number;
+  currentPage: number;
   pageSize: number;
 }
 

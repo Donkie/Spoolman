@@ -116,8 +116,8 @@ function Column<Obj extends Entity>(
         if (open && props.onFilterDropdownOpen) {
           props.onFilterDropdownOpen();
         }
-      }
-    }
+      },
+    };
     if (props.dataId) {
       columnProps.key = props.dataId;
     }
@@ -186,7 +186,7 @@ export function RichColumn<Obj extends Entity>(
 }
 
 interface FilteredQueryColumnProps<Obj extends Entity> extends BaseColumnProps<Obj> {
-  filterValueQuery: UseQueryResult<string[] | ColumnFilterItem[]>;
+  filterValueQuery: UseQueryResult<string[] | ColumnFilterItem[], unknown>;
   allowMultipleFilters?: boolean;
 }
 

@@ -1,5 +1,5 @@
 import { DownOutlined } from "@ant-design/icons";
-import type { RefineThemedLayoutV2HeaderProps } from "@refinedev/antd";
+import type { RefineThemedLayoutHeaderProps } from "@refinedev/antd";
 import { useGetLocale, useSetLocale } from "@refinedev/core";
 import { Layout as AntdLayout, Button, Dropdown, MenuProps, Space, Switch, theme } from "antd";
 import React, { useContext } from "react";
@@ -10,7 +10,7 @@ import QRCodeScannerModal from "../qrCodeScanner";
 
 const { useToken } = theme;
 
-export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({ sticky }) => {
+export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky }) => {
   const { token } = useToken();
   const locale = useGetLocale();
   const changeLanguage = useSetLocale();

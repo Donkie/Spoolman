@@ -19,7 +19,7 @@ const dataProvider = (
 
     if (pagination && pagination.mode == "server") {
       const pageSize = pagination.pageSize ?? 10;
-      const offset = ((pagination.current ?? 1) - 1) * pageSize;
+      const offset = ((pagination.currentPage ?? 1) - 1) * pageSize;
       queryParams["limit"] = pageSize;
       queryParams["offset"] = offset;
     }

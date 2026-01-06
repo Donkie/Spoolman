@@ -90,14 +90,7 @@ function App() {
     <BrowserRouter basename={getBasePath() + "/"}>
       <RefineKbarProvider>
         <ColorModeContextProvider>
-          <ConfigProvider
-            locale={antdLocale}
-            theme={{
-              token: {
-                colorPrimary: "#dc7734",
-              },
-            }}
-          >
+          <ConfigProvider locale={antdLocale}>
             <Refine
               dataProvider={dataProvider(getAPIURL())}
               notificationProvider={SpoolmanNotificationProvider}

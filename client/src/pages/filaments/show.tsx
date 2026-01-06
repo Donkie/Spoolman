@@ -21,10 +21,10 @@ export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
   const navigate = useNavigate();
   const extraFields = useGetFields(EntityType.filament);
   const currencyFormatter = useCurrencyFormatter();
-  const { queryResult } = useShow<IFilament>({
+  const { query } = useShow<IFilament>({
     liveMode: "auto",
   });
-  const { data, isLoading } = queryResult;
+  const { data, isLoading } = query;
 
   const record = data?.data;
 

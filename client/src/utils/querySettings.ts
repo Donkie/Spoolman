@@ -52,7 +52,9 @@ export function useSetSetting<T>(key: string) {
       return response.json();
     },
     onMutate: async (value) => {
-      await queryClient.cancelQueries(["settings", key]);
+      await queryClient.cancelQueries({
+        queryKey: ["settings", key]
+      });
       const previousValue = queryClient.getQueryData<SettingResponseValue>(["settings", key]);
       queryClient.setQueryData<SettingResponseValue>(["settings", key], (old) =>
         old ? { ...old, value: JSON.stringify(value) } : undefined
@@ -64,7 +66,9 @@ export function useSetSetting<T>(key: string) {
     },
     onSuccess: (_data, _value) => {
       // Invalidate and refetch
-      queryClient.invalidateQueries(["settings", key]);
+      queryClient.invalidateQueries({
+        queryKey: ["settings", key]
+      });
     },
   });
 }

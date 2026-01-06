@@ -17,10 +17,10 @@ export const VendorShow: React.FC<IResourceComponentsProps> = () => {
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.vendor);
 
-  const { queryResult } = useShow<IVendor>({
+  const { query } = useShow<IVendor>({
     liveMode: "auto",
   });
-  const { data, isLoading } = queryResult;
+  const { data, isLoading } = query;
 
   const record = data?.data;
 

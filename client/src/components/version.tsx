@@ -31,7 +31,7 @@ export const Version: React.FC = () => {
     return <Spin />;
   }
 
-  if (infoResult.isError) {
+  if (infoResult.isError || !infoResult.data) {
     return <span>Unknown</span>;
   }
 

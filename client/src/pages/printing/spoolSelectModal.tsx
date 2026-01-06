@@ -42,7 +42,7 @@ const SpoolSelectModal: React.FC<Props> = ({ description, onContinue }) => {
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
 
-  const { tableProps, sorters, filters, current, pageSize } = useTable<ISpoolCollapsed>({
+  const { tableProps, sorters, filters, currentPage, pageSize } = useTable<ISpoolCollapsed>({
     resource: "spool",
     meta: {
       queryParams: {
@@ -52,7 +52,7 @@ const SpoolSelectModal: React.FC<Props> = ({ description, onContinue }) => {
     syncWithLocation: false,
     pagination: {
       mode: "off",
-      current: 1,
+      currentPage: 1,
       pageSize: 10,
     },
     sorters: {
@@ -75,7 +75,7 @@ const SpoolSelectModal: React.FC<Props> = ({ description, onContinue }) => {
   const tableState: TableState = {
     sorters,
     filters,
-    pagination: { current, pageSize },
+    pagination: { currentPage: currentPage, pageSize },
   };
 
   // Collapse the dataSource to a mutable list and add a filament_name field
