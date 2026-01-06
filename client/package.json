@@ -19,7 +19,7 @@
     "@types/loadable__component": "^5.13.10",
     "@types/lodash": "^4.17.21",
     "@types/uuid": "^10.0.0",
-    "@yudiel/react-qr-scanner": "^1.2.10",
+    "@yudiel/react-qr-scanner": "^2.5.0",
     "axios": "^1.13.2",
     "html-to-image": "^1.11.13",
     "i18next": "^25.7.3",

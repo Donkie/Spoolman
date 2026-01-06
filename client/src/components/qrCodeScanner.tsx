@@ -1,6 +1,6 @@
 import { CameraOutlined } from "@ant-design/icons";
 import { useTranslate } from "@refinedev/core";
-import { QrScanner } from "@yudiel/react-qr-scanner";
+import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
 import { FloatButton, Modal, Space } from "antd";
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
@@ -11,7 +11,12 @@ const QRCodeScannerModal: React.FC = () => {
   const t = useTranslate();
   const navigate = useNavigate();
 
-  const onScan = (result: string) => {
+  const onScan = (detectedCodes: IDetectedBarcode[]) => {
+    if (detectedCodes.length === 0) {
+      return;
+    }
+    const result = detectedCodes[0].rawValue;
+
     // Check for the spoolman ID format
     const match = result.match(/^web\+spoolman:s-(?<id>[0-9]+)$/);
     if (match && match.groups) {
@@ -28,31 +33,17 @@ const QRCodeScannerModal: React.FC = () => {
   return (
     <>
       <FloatButton type="primary" onClick={() => setVisible(true)} icon={<CameraOutlined />} shape="circle" />
-      <Modal open={visible} destroyOnClose onCancel={() => setVisible(false)} footer={null} title={t("scanner.title")}>
+      <Modal open={visible} destroyOnHidden onCancel={() => setVisible(false)} footer={null} title={t("scanner.title")}>
         <Space direction="vertical" style={{ width: "100%" }}>
           <p>{t("scanner.description")}</p>
-          <QrScanner
+          <Scanner
             constraints={{
               facingMode: "environment",
             }}
-            viewFinder={
-              lastError
-                ? () => (
-                    <div
-                      style={{
-                        position: "absolute",
-                        textAlign: "center",
-                        width: "100%",
-                        top: "50%",
-                      }}
-                    >
-                      <p>{lastError}</p>
-                    </div>
-                  )
-                : undefined
-            }
-            onDecode={onScan}
-            onError={(error: Error) => {
+            onScan={onScan}
+            formats={["qr_code"]}
+            onError={(err: unknown) => {
+              const error = err as Error;
               console.error(error);
               if (error.name === "NotAllowedError") {
                 setLastError(t("scanner.error.notAllowed"));
@@ -71,7 +62,20 @@ const QRCodeScannerModal: React.FC = () => {
                 setLastError(t("scanner.error.unknown", { error: error.name }));
               }
             }}
-          />
+          >
+            {lastError && (
+              <div
+                style={{
+                  position: "absolute",
+                  textAlign: "center",
+                  width: "100%",
+                  top: "50%",
+                }}
+              >
+                <p>{lastError}</p>
+              </div>
+            )}
+          </Scanner>
         </Space>
       </Modal>
     </>
