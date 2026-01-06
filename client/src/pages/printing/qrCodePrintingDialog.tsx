@@ -110,7 +110,7 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
                 </Radio.Group>
               </Form.Item>
               <Form.Item label={t("printing.qrcode.useHTTPUrl.preview")}>
-                <Text> {useHTTPUrl ? `${baseUrlRoot}/spool/show/{id}` : `web+spoolman:s-{id}`}</Text>
+                <Text> {useHTTPUrl ? `${baseUrlRoot}/spool/show/{id}` : `WEB+SPOOLMAN:S-{id}`}</Text>
               </Form.Item>
             </>
           )}
