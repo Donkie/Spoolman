@@ -1,7 +1,7 @@
 """Prometheus metrics collectors."""
 
 import logging
-from typing import Callable
+from collections.abc import Callable
 
 import sqlalchemy
 from prometheus_client import REGISTRY, Gauge, make_asgi_app

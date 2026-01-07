@@ -1,6 +1,6 @@
 """A python script that bumps the version number of a project."""
 
-# ruff: noqa: PLR2004, T201, S603, S607
+# ruff: noqa: PLR2004, T201, S607
 
 import json
 import os

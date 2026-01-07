@@ -171,7 +171,7 @@ async def startup() -> None:
     # There is some issue with the uvicorn worker that causes the process to hang when running alembic directly.
     # See: https://github.com/sqlalchemy/alembic/discussions/1155
     project_root = Path(__file__).parent.parent
-    subprocess.run(["alembic", "upgrade", "head"], check=True, cwd=project_root)  # noqa: S603, S607, ASYNC221
+    subprocess.run(["alembic", "upgrade", "head"], check=True, cwd=project_root)  # noqa: ASYNC221, S607
 
     # Setup scheduler
     schedule = Scheduler()
