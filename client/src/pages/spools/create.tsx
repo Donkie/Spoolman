@@ -27,7 +27,7 @@ type ISpoolRequest = Omit<ISpoolParsedExtras, "id" | "registered"> & {
   filament_id: number | string;
 };
 
-export const SpoolCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
+export const SpoolCreate = (props: IResourceComponentsProps & CreateOrCloneProps) => {
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.spool);
   const currency = useCurrency();

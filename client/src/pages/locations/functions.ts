@@ -35,7 +35,7 @@ export function useRenameSpoolLocation() {
     },
     onMutate: async (value) => {
       await queryClient.cancelQueries({
-        queryKey: queryKeyList
+        queryKey: queryKeyList,
       });
 
       // Optimistically update all spools with matching location to the new one
@@ -54,7 +54,7 @@ export function useRenameSpoolLocation() {
         return old;
       });
     },
-    onError: (_error, value, _context) => {
+    onError: (_error, value) => {
       // Mutation failed, reset spools with matching location to the old one
       queryClient.setQueriesData<GetListResponse<ISpool>>({ queryKey: queryKeyList }, (old) => {
         if (old) {
@@ -71,10 +71,10 @@ export function useRenameSpoolLocation() {
         return old;
       });
     },
-    onSuccess: (_data, _value) => {
+    onSuccess: () => {
       // Mutation succeeded, refetch
       queryClient.invalidateQueries({
-        queryKey: queryKey
+        queryKey: queryKey,
       });
     },
   });

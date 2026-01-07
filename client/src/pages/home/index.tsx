@@ -1,11 +1,11 @@
 import { FileOutlined, HighlightOutlined, PlusOutlined, UnorderedListOutlined, UserOutlined } from "@ant-design/icons";
-import { IResourceComponentsProps, useList, useTranslate } from "@refinedev/core";
+import { useList, useTranslate } from "@refinedev/core";
 import { Card, Col, Row, Statistic, theme } from "antd";
 import { Content } from "antd/es/layout/layout";
 import Title from "antd/es/typography/Title";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
 import { Trans } from "react-i18next";
 import { Link } from "react-router";
 import Logo from "../../icon.svg?react";
@@ -15,7 +15,7 @@ dayjs.extend(utc);
 
 const { useToken } = theme;
 
-export const Home: React.FC<IResourceComponentsProps> = () => {
+export const Home = () => {
   const { token } = useToken();
   const t = useTranslate();
 
@@ -39,10 +39,10 @@ export const Home: React.FC<IResourceComponentsProps> = () => {
       <Card
         loading={props.loading}
         actions={[
-          <Link to={`/${props.resource}`}>
+          <Link to={`/${props.resource}`} key="resource">
             <UnorderedListOutlined />
           </Link>,
-          <Link to={`/${props.resource}/create`}>
+          <Link to={`/${props.resource}/create`} key="create">
             <PlusOutlined />
           </Link>,
         ]}

@@ -1,6 +1,5 @@
 """Functions for providing the client interface."""
 
-
 import logging
 import os
 from collections.abc import MutableMapping

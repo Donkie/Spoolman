@@ -2,10 +2,10 @@ import { CameraOutlined } from "@ant-design/icons";
 import { useTranslate } from "@refinedev/core";
 import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
 import { FloatButton, Modal, Space } from "antd";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 
-const QRCodeScannerModal: React.FC = () => {
+const QRCodeScannerModal = () => {
   const [visible, setVisible] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
   const t = useTranslate();
