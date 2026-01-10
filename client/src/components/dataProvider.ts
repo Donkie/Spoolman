@@ -2,6 +2,9 @@ import { DataProvider } from "@refinedev/core";
 import { axiosInstance } from "@refinedev/simple-rest";
 import { AxiosInstance } from "axios";
 import { stringify } from "query-string";
+import { getCustomFieldFilters } from "../utils/filtering";
+import { isCustomField } from "../utils/queryFields";
+import { getCustomFieldSorters, isCustomFieldSorter } from "../utils/sorting";
 
 type MethodTypes = "get" | "delete" | "head" | "options";
 type MethodTypesWithBody = "post" | "put" | "patch";
@@ -25,20 +28,30 @@ const dataProvider = (
     }
 
     if (sorters && sorters.length > 0) {
+      // Map all sorters, including custom field sorters
       queryParams["sort"] = sorters
         .map((sort) => {
           const field = sort.field;
+          // Custom field sorters are already in the correct format (extra.field_key)
           return `${field}:${sort.order}`;
         })
         .join(",");
     }
 
     if (filters && filters.length > 0) {
+      // Process regular filters
       filters.forEach((filter) => {
         if (!("field" in filter)) {
           throw Error("Filter must be a LogicalFilter.");
         }
+        
         const field = filter.field;
+        
+        // Skip custom fields, they'll be handled separately
+        if (typeof field === 'string' && isCustomField(field)) {
+          return;
+        }
+        
         if (filter.value.length > 0) {
           const filterValueArray = Array.isArray(filter.value) ? filter.value : [filter.value];
 
@@ -52,6 +65,14 @@ const dataProvider = (
             .join(",");
 
           queryParams[field] = filterValue;
+        }
+      });
+      
+      // Process custom field filters
+      const customFieldFilters = getCustomFieldFilters(filters);
+      Object.entries(customFieldFilters).forEach(([key, values]) => {
+        if (values.length > 0) {
+          queryParams[`extra.${key}`] = values.join(",");
         }
       });
     }
