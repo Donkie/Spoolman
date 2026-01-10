@@ -9,7 +9,7 @@ import {
   ToTopOutlined,
 } from "@ant-design/icons";
 import { List, useTable } from "@refinedev/antd";
-import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
+import { useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Modal, Table } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -94,10 +94,10 @@ const allColumns: (keyof ISpoolCollapsed & string)[] = [
   "comment",
 ];
 const defaultColumns = allColumns.filter(
-  (column_id) => ["registered", "used_length", "remaining_length", "lot_nr"].indexOf(column_id) === -1
+  (column_id) => ["registered", "used_length", "remaining_length", "lot_nr"].indexOf(column_id) === -1,
 );
 
-export const SpoolList: React.FC<IResourceComponentsProps> = () => {
+export const SpoolList = () => {
   const t = useTranslate();
   const invalidate = useInvalidate();
   const navigate = useNavigate();
@@ -173,7 +173,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
   // Collapse the dataSource to a mutable list
   const queryDataSource: ISpoolCollapsed[] = useMemo(
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
-    [tableProps.dataSource]
+    [tableProps.dataSource],
   );
   const dataSource = useLiveify("spool", queryDataSource, collapseSpool);
 
@@ -229,7 +229,7 @@ export const SpoolList: React.FC<IResourceComponentsProps> = () => {
       }
       return actions;
     },
-    [t, editUrl, showUrl, cloneUrl, openSpoolAdjustModal, archiveSpool, archiveSpoolPopup]
+    [t, editUrl, showUrl, cloneUrl, openSpoolAdjustModal, archiveSpool, archiveSpoolPopup],
   );
 
   const originalOnChange = tableProps.onChange;

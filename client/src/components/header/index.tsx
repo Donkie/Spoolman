@@ -10,7 +10,7 @@ import QRCodeScannerModal from "../qrCodeScanner";
 
 const { useToken } = theme;
 
-export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky }) => {
+export const Header = ({ sticky }: RefineThemedLayoutHeaderProps) => {
   const { token } = useToken();
   const locale = useGetLocale();
   const changeLanguage = useSetLocale();

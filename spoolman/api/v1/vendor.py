@@ -1,7 +1,7 @@
 """Vendor related endpoints."""
 
 import asyncio
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
@@ -21,24 +21,24 @@ router = APIRouter(
     tags=["vendor"],
 )
 
-# ruff: noqa: D103,B008
+# ruff: noqa: D103
 
 
 class VendorParameters(BaseModel):
     name: str = Field(max_length=64, description="Vendor name.", examples=["Polymaker"])
-    comment: Optional[str] = Field(
+    comment: str | None = Field(
         None,
         max_length=1024,
         description="Free text comment about this vendor.",
         examples=[""],
     )
-    empty_spool_weight: Optional[float] = Field(
+    empty_spool_weight: float | None = Field(
         None,
         ge=0,
         description="The weight of an empty spool, in grams.",
         examples=[200],
     )
-    external_id: Optional[str] = Field(
+    external_id: str | None = Field(
         None,
         max_length=256,
         description=(
@@ -46,18 +46,18 @@ class VendorParameters(BaseModel):
         ),
         examples=["eSun"],
     )
-    extra: Optional[dict[str, str]] = Field(
+    extra: dict[str, str] | None = Field(
         None,
         description="Extra fields for this vendor.",
     )
 
 
 class VendorUpdateParameters(VendorParameters):
-    name: Optional[str] = Field(None, max_length=64, description="Vendor name.", examples=["Polymaker"])
+    name: str | None = Field(None, max_length=64, description="Vendor name.", examples=["Polymaker"])
 
     @field_validator("name")
     @classmethod
-    def prevent_none(cls: type["VendorUpdateParameters"], v: Optional[str]) -> Optional[str]:
+    def prevent_none(cls: type["VendorUpdateParameters"], v: str | None) -> str | None:
         """Prevent name from being None."""
         if v is None:
             raise ValueError("Value must not be None.")
@@ -81,7 +81,7 @@ class VendorUpdateParameters(VendorParameters):
 async def find(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     name: Annotated[
-        Optional[str],
+        str | None,
         Query(
             title="Vendor Name",
             description=(
@@ -91,7 +91,7 @@ async def find(
         ),
     ] = None,
     external_id: Annotated[
-        Optional[str],
+        str | None,
         Query(
             title="Vendor External ID",
             description=(
@@ -103,7 +103,7 @@ async def find(
         ),
     ] = None,
     sort: Annotated[
-        Optional[str],
+        str | None,
         Query(
             title="Sort",
             description=(
@@ -113,7 +113,7 @@ async def find(
         ),
     ] = None,
     limit: Annotated[
-        Optional[int],
+        int | None,
         Query(title="Limit", description="Maximum number of items in the response."),
     ] = None,
     offset: Annotated[int, Query(title="Offset", description="Offset in the full result set if a limit is set.")] = 0,

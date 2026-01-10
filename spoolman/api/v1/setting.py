@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from typing import Annotated, Union
+from typing import Annotated
 
 from fastapi import APIRouter, Body, Depends, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
@@ -20,7 +20,7 @@ router = APIRouter(
     tags=["setting"],
 )
 
-# ruff: noqa: D103,B008
+# ruff: noqa: D103
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ async def notify_any(
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     key: str,
-) -> Union[SettingResponse, JSONResponse]:
+) -> SettingResponse | JSONResponse:
     try:
         definition = parse_setting(key)
     except ValueError as e:
@@ -88,7 +88,7 @@ async def get(
 )
 async def find(
     db: Annotated[AsyncSession, Depends(get_db_session)],
-) -> Union[dict[str, SettingResponse], JSONResponse]:
+) -> dict[str, SettingResponse] | JSONResponse:
     settings: dict[str, SettingResponse] = {}
 
     # First get all settings that have been set.
@@ -158,7 +158,7 @@ async def update(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     key: str,
     body: Annotated[str, Body()],
-) -> Union[SettingResponse, JSONResponse]:
+) -> SettingResponse | JSONResponse:
     try:
         definition = parse_setting(key)
     except ValueError as e:

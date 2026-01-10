@@ -6,7 +6,6 @@ import os
 from collections.abc import Iterator
 from enum import Enum
 from pathlib import Path
-from typing import Optional
 from urllib.parse import urljoin
 
 import hishel
@@ -63,28 +62,28 @@ class ExternalFilament(BaseModel):
     material: str = Field(description="Filament material.", examples=["PLA"])
     density: float = Field(description="Density in g/cm3.", examples=[1.23])
     weight: float = Field(description="Net weight of a single spool.", examples=[1000])
-    spool_weight: Optional[float] = Field(default=None, description="Weight of an empty spool.", examples=[140])
-    spool_type: Optional[SpoolType] = Field(None, description="Type of spool.", examples=[SpoolType.PLASTIC])
+    spool_weight: float | None = Field(default=None, description="Weight of an empty spool.", examples=[140])
+    spool_type: SpoolType | None = Field(None, description="Type of spool.", examples=[SpoolType.PLASTIC])
     diameter: float = Field(description="Filament in mm.", examples=[1.75])
-    color_hex: Optional[str] = Field(
+    color_hex: str | None = Field(
         default=None,
         description="Filament color code in hex format, for single-color filaments.",
         examples=["2c3232"],
     )
-    color_hexes: Optional[list[str]] = Field(
+    color_hexes: list[str] | None = Field(
         default=None,
         description="For multi-color filaments. List of hex color codes in hex format.",
         examples=[["2c3232", "5f5f5f"]],
     )
-    extruder_temp: Optional[int] = Field(default=None, description="Extruder/nozzle temperature in °C.", examples=[210])
-    bed_temp: Optional[int] = Field(default=None, description="Bed temperature in °C.", examples=[50])
-    finish: Optional[Finish] = Field(default=None, description="Finish of the filament.", examples=[Finish.MATTE])
-    multi_color_direction: Optional[MultiColorDirection] = Field(
+    extruder_temp: int | None = Field(default=None, description="Extruder/nozzle temperature in °C.", examples=[210])
+    bed_temp: int | None = Field(default=None, description="Bed temperature in °C.", examples=[50])
+    finish: Finish | None = Field(default=None, description="Finish of the filament.", examples=[Finish.MATTE])
+    multi_color_direction: MultiColorDirection | None = Field(
         default=None,
         description="Direction of multi-color filaments.",
         examples=[MultiColorDirection.COAXIAL],
     )
-    pattern: Optional[Pattern] = Field(default=None, description="Pattern of the filament.", examples=[Pattern.MARBLE])
+    pattern: Pattern | None = Field(default=None, description="Pattern of the filament.", examples=[Pattern.MARBLE])
     translucent: bool = Field(default=False, description="Whether the filament is translucent.")
     glow: bool = Field(default=False, description="Whether the filament is glow-in-the-dark.")
 
@@ -104,8 +103,8 @@ class ExternalFilamentsFile(RootModel):
 class ExternalMaterial(BaseModel):
     material: str = Field(examples=["PLA"])
     density: float = Field(examples=[1.24])
-    extruder_temp: Optional[int] = Field(default=None, description="Extruder/nozzle temperature in °C.", examples=[210])
-    bed_temp: Optional[int] = Field(default=None, description="Bed temperature in °C.", examples=[50])
+    extruder_temp: int | None = Field(default=None, description="Extruder/nozzle temperature in °C.", examples=[210])
+    bed_temp: int | None = Field(default=None, description="Bed temperature in °C.", examples=[50])
 
 
 class ExternalMaterialsFile(RootModel):

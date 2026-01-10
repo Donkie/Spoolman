@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
@@ -26,32 +26,32 @@ router = APIRouter(
     tags=["spool"],
 )
 
-# ruff: noqa: D103,B008
+# ruff: noqa: D103
 
 
 class SpoolParameters(BaseModel):
-    first_used: Optional[datetime] = Field(None, description="First logged occurence of spool usage.")
-    last_used: Optional[datetime] = Field(None, description="Last logged occurence of spool usage.")
+    first_used: datetime | None = Field(None, description="First logged occurence of spool usage.")
+    last_used: datetime | None = Field(None, description="Last logged occurence of spool usage.")
     filament_id: int = Field(description="The ID of the filament type of this spool.")
-    price: Optional[float] = Field(
+    price: float | None = Field(
         None,
         ge=0,
         description="The price of this filament in the system configured currency.",
         examples=[20.0],
     )
-    initial_weight: Optional[float] = Field(
+    initial_weight: float | None = Field(
         None,
         ge=0,
         description="The initial weight of the filament on the spool, in grams. (net weight)",
         examples=[200],
     )
-    spool_weight: Optional[float] = Field(
+    spool_weight: float | None = Field(
         None,
         ge=0,
         description="The weight of an empty spool, in grams. (tare weight)",
         examples=[200],
     )
-    remaining_weight: Optional[float] = Field(
+    remaining_weight: float | None = Field(
         None,
         ge=0,
         description=(
@@ -59,43 +59,43 @@ class SpoolParameters(BaseModel):
         ),
         examples=[800],
     )
-    used_weight: Optional[float] = Field(
+    used_weight: float | None = Field(
         None,
         ge=0,
         description="Used weight of filament on the spool.",
         examples=[200],
     )
-    location: Optional[str] = Field(
+    location: str | None = Field(
         None,
         max_length=64,
         description="Where this spool can be found.",
         examples=["Shelf A"],
     )
-    lot_nr: Optional[str] = Field(
+    lot_nr: str | None = Field(
         None,
         max_length=64,
         description="Vendor manufacturing lot/batch number of the spool.",
         examples=["52342"],
     )
-    comment: Optional[str] = Field(
+    comment: str | None = Field(
         None,
         max_length=1024,
         description="Free text comment about this specific spool.",
         examples=[""],
     )
     archived: bool = Field(default=False, description="Whether this spool is archived and should not be used anymore.")
-    extra: Optional[dict[str, str]] = Field(
+    extra: dict[str, str] | None = Field(
         None,
         description="Extra fields for this spool.",
     )
 
 
 class SpoolUpdateParameters(SpoolParameters):
-    filament_id: Optional[int] = Field(None, description="The ID of the filament type of this spool.")
+    filament_id: int | None = Field(None, description="The ID of the filament type of this spool.")
 
     @field_validator("filament_id")
     @classmethod
-    def prevent_none(cls: type["SpoolUpdateParameters"], v: Optional[int]) -> Optional[int]:
+    def prevent_none(cls: type["SpoolUpdateParameters"], v: int | None) -> int | None:
         """Prevent filament_id from being None."""
         if v is None:
             raise ValueError("Value must not be None.")
@@ -103,8 +103,8 @@ class SpoolUpdateParameters(SpoolParameters):
 
 
 class SpoolUseParameters(BaseModel):
-    use_length: Optional[float] = Field(None, description="Length of filament to reduce by, in mm.", examples=[2.2])
-    use_weight: Optional[float] = Field(None, description="Filament weight to reduce by, in g.", examples=[5.3])
+    use_length: float | None = Field(None, description="Length of filament to reduce by, in mm.", examples=[2.2])
+    use_weight: float | None = Field(None, description="Filament weight to reduce by, in g.", examples=[5.3])
 
 
 class SpoolMeasureParameters(BaseModel):
@@ -129,11 +129,11 @@ async def find(
     *,
     db: Annotated[AsyncSession, Depends(get_db_session)],
     filament_name_old: Annotated[
-        Optional[str],
+        str | None,
         Query(alias="filament_name", title="Filament Name", description="See filament.name.", deprecated=True),
     ] = None,
     filament_id_old: Annotated[
-        Optional[str],
+        str | None,
         Query(
             alias="filament_id",
             title="Filament ID",
@@ -143,7 +143,7 @@ async def find(
         ),
     ] = None,
     filament_material_old: Annotated[
-        Optional[str],
+        str | None,
         Query(
             alias="filament_material",
             title="Filament Material",
@@ -152,11 +152,11 @@ async def find(
         ),
     ] = None,
     vendor_name_old: Annotated[
-        Optional[str],
+        str | None,
         Query(alias="vendor_name", title="Vendor Name", description="See filament.vendor.name.", deprecated=True),
     ] = None,
     vendor_id_old: Annotated[
-        Optional[str],
+        str | None,
         Query(
             alias="vendor_id",
             title="Vendor ID",
@@ -166,7 +166,7 @@ async def find(
         ),
     ] = None,
     filament_name: Annotated[
-        Optional[str],
+        str | None,
         Query(
             alias="filament.name",
             title="Filament Name",
@@ -178,7 +178,7 @@ async def find(
         ),
     ] = None,
     filament_id: Annotated[
-        Optional[str],
+        str | None,
         Query(
             alias="filament.id",
             title="Filament ID",
@@ -188,7 +188,7 @@ async def find(
         ),
     ] = None,
     filament_material: Annotated[
-        Optional[str],
+        str | None,
         Query(
             alias="filament.material",
             title="Filament Material",
@@ -200,7 +200,7 @@ async def find(
         ),
     ] = None,
     filament_vendor_name: Annotated[
-        Optional[str],
+        str | None,
         Query(
             alias="filament.vendor.name",
             title="Vendor Name",
@@ -213,7 +213,7 @@ async def find(
         ),
     ] = None,
     filament_vendor_id: Annotated[
-        Optional[str],
+        str | None,
         Query(
             alias="filament.vendor.id",
             title="Vendor ID",
@@ -226,7 +226,7 @@ async def find(
         ),
     ] = None,
     location: Annotated[
-        Optional[str],
+        str | None,
         Query(
             title="Location",
             description=(
@@ -237,7 +237,7 @@ async def find(
         ),
     ] = None,
     lot_nr: Annotated[
-        Optional[str],
+        str | None,
         Query(
             title="Lot/Batch Number",
             description=(
@@ -252,7 +252,7 @@ async def find(
         Query(title="Allow Archived", description="Whether to include archived spools in the search results."),
     ] = False,
     sort: Annotated[
-        Optional[str],
+        str | None,
         Query(
             title="Sort",
             description=(
@@ -262,7 +262,7 @@ async def find(
         ),
     ] = None,
     limit: Annotated[
-        Optional[int],
+        int | None,
         Query(title="Limit", description="Maximum number of items in the response."),
     ] = None,
     offset: Annotated[int, Query(title="Offset", description="Offset in the full result set if a limit is set.")] = 0,

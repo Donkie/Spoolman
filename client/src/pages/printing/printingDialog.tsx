@@ -15,7 +15,7 @@ import {
   Space,
 } from "antd";
 import * as htmlToImage from "html-to-image";
-import React, { ReactElement, useRef } from "react";
+import { ReactElement, useRef } from "react";
 import { useReactToPrint } from "react-to-print";
 import { useSavedState } from "../../utils/saveload";
 import { PrintSettings } from "./printing";
@@ -62,7 +62,7 @@ const paperDimensions: { [key: string]: PaperDimensions } = {
   },
 };
 
-const PrintingDialog: React.FC<PrintingDialogProps> = ({
+const PrintingDialog = ({
   items,
   printSettings,
   setPrintSettings,
@@ -70,7 +70,7 @@ const PrintingDialog: React.FC<PrintingDialogProps> = ({
   extraSettings,
   extraSettingsStart,
   extraButtons,
-}) => {
+}: PrintingDialogProps) => {
   const t = useTranslate();
 
   const [collapseState, setCollapseState] = useSavedState<string[]>("print-collapseState", []);

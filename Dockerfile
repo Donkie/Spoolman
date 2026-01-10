@@ -1,4 +1,9 @@
-FROM python:3.12-slim-bookworm AS python-builder
+FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS python-builder
+
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
+ENV UV_NO_DEV=1
+ENV UV_PYTHON_DOWNLOADS=0
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
@@ -6,33 +11,31 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     libpq-dev \
     libffi-dev \
-    python3-pip \
-    python3-setuptools \
-    python3-wheel \
-    python3-pdm \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Add local user so we don't run as root
-RUN groupmod -g 1000 users \
-    && useradd -u 911 -U app \
-    && usermod -G users app
+# RUN groupmod -g 1000 users \
+#     && useradd -u 911 -U app \
+#     && usermod -G users app
 
-ENV PATH="/home/app/.local/bin:${PATH}"
+# ENV PATH="/home/app/.local/bin:${PATH}"
 
-# Copy and install dependencies
-COPY --chown=app:app pyproject.toml /home/app/spoolman/
-COPY --chown=app:app pdm.lock /home/app/spoolman/
+# Install dependencies
 WORKDIR /home/app/spoolman
-RUN pdm sync --prod --no-editable
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project
 
 # Copy and install app
 COPY --chown=app:app migrations /home/app/spoolman/migrations
 COPY --chown=app:app spoolman /home/app/spoolman/spoolman
-COPY --chown=app:app alembic.ini /home/app/spoolman/
-COPY --chown=app:app README.md /home/app/spoolman/
+COPY --chown=app:app alembic.ini README.md uv.lock pyproject.toml /home/app/spoolman/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked
 
-FROM python:3.12-slim-bookworm AS python-runner
+FROM python:3.14-slim-bookworm AS python-runner
 
 LABEL org.opencontainers.image.source=https://github.com/Donkie/Spoolman
 LABEL org.opencontainers.image.description="Keep track of your inventory of 3D-printer filament spools."

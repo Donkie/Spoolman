@@ -3,7 +3,6 @@
 import logging
 from collections.abc import Sequence
 from datetime import datetime
-from typing import Optional, Union
 
 import sqlalchemy
 from sqlalchemy import func, select
@@ -31,24 +30,24 @@ async def create(
     db: AsyncSession,
     density: float,
     diameter: float,
-    name: Optional[str] = None,
-    vendor_id: Optional[int] = None,
-    material: Optional[str] = None,
-    price: Optional[float] = None,
-    weight: Optional[float] = None,
-    spool_weight: Optional[float] = None,
-    article_number: Optional[str] = None,
-    comment: Optional[str] = None,
-    settings_extruder_temp: Optional[int] = None,
-    settings_bed_temp: Optional[int] = None,
-    color_hex: Optional[str] = None,
-    multi_color_hexes: Optional[str] = None,
-    multi_color_direction: Optional[MultiColorDirection] = None,
-    external_id: Optional[str] = None,
-    extra: Optional[dict[str, str]] = None,
+    name: str | None = None,
+    vendor_id: int | None = None,
+    material: str | None = None,
+    price: float | None = None,
+    weight: float | None = None,
+    spool_weight: float | None = None,
+    article_number: str | None = None,
+    comment: str | None = None,
+    settings_extruder_temp: int | None = None,
+    settings_bed_temp: int | None = None,
+    color_hex: str | None = None,
+    multi_color_hexes: str | None = None,
+    multi_color_direction: MultiColorDirection | None = None,
+    external_id: str | None = None,
+    extra: dict[str, str] | None = None,
 ) -> models.Filament:
     """Add a new filament to the database."""
-    vendor_item: Optional[models.Vendor] = None
+    vendor_item: models.Vendor | None = None
     if vendor_id is not None:
         vendor_item = await vendor.get_by_id(db, vendor_id)
         # default spool weight from vendor
@@ -96,15 +95,15 @@ async def get_by_id(db: AsyncSession, filament_id: int) -> models.Filament:
 async def find(
     *,
     db: AsyncSession,
-    ids: Optional[list[int]] = None,
-    vendor_name: Optional[str] = None,
-    vendor_id: Optional[Union[int, Sequence[int]]] = None,
-    name: Optional[str] = None,
-    material: Optional[str] = None,
-    article_number: Optional[str] = None,
-    external_id: Optional[str] = None,
-    sort_by: Optional[dict[str, SortOrder]] = None,
-    limit: Optional[int] = None,
+    ids: list[int] | None = None,
+    vendor_name: str | None = None,
+    vendor_id: int | Sequence[int] | None = None,
+    name: str | None = None,
+    material: str | None = None,
+    article_number: str | None = None,
+    external_id: str | None = None,
+    sort_by: dict[str, SortOrder] | None = None,
+    limit: int | None = None,
     offset: int = 0,
 ) -> tuple[list[models.Filament], int]:
     """Find a list of filament objects by search criteria.

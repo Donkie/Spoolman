@@ -26,7 +26,7 @@ type IFilamentRequest = Omit<IFilamentParsedExtras, "id" | "registered"> & {
   vendor_id: number;
 };
 
-export const FilamentCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
+export const FilamentCreate = (props: IResourceComponentsProps & CreateOrCloneProps) => {
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.filament);
   const currency = useCurrency();

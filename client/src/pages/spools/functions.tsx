@@ -94,7 +94,7 @@ export function formatFilamentLabel(
   vendorName?: string,
   material?: string,
   weight?: number,
-  spoolType?: SpoolType
+  spoolType?: SpoolType,
 ): string {
   const portions = [];
   if (vendorName) {
@@ -141,7 +141,7 @@ export function useGetFilamentSelectOptions() {
             item.diameter,
             item.vendor?.name,
             item.material,
-            item.weight
+            item.weight,
           ),
           value: item.id,
           weight: item.weight,
@@ -164,7 +164,7 @@ export function useGetFilamentSelectOptions() {
             item.manufacturer,
             item.material,
             item.weight,
-            item.spool_type
+            item.spool_type,
           ),
           value: item.id,
           weight: item.weight,

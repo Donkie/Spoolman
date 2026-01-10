@@ -7,7 +7,6 @@ import sqlite3
 from collections.abc import AsyncGenerator
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Union
 
 from scheduler.asyncio.scheduler import Scheduler
 from sqlalchemy import URL
@@ -56,8 +55,8 @@ def get_connection_url() -> URL:
 
 class Database:
     connection_url: URL
-    engine: Optional[AsyncEngine]
-    session_maker: Optional[async_sessionmaker[AsyncSession]]
+    engine: AsyncEngine | None
+    session_maker: async_sessionmaker[AsyncSession] | None
 
     def __init__(self, connection_url: URL) -> None:
         """Construct the Database wrapper and set config parameters."""
@@ -90,7 +89,7 @@ class Database:
         )
         self.session_maker = async_sessionmaker(self.engine, autocommit=False, autoflush=True, expire_on_commit=False)
 
-    def backup(self, target_path: Union[str, PathLike[str]]) -> None:
+    def backup(self, target_path: str | PathLike[str]) -> None:
         """Backup the database."""
         if not self.is_file_based_sqlite() or self.connection_url.database is None:
             return
@@ -112,9 +111,9 @@ class Database:
 
     def backup_and_rotate(
         self,
-        backup_folder: Union[str, PathLike[str]],
+        backup_folder: str | PathLike[str],
         num_backups: int = 5,
-    ) -> Optional[Path]:
+    ) -> Path | None:
         """Backup the database and rotate existing backups.
 
         Args:
@@ -155,7 +154,7 @@ class Database:
         return backup_path
 
 
-__db: Optional[Database] = None
+__db: Database | None = None
 
 
 def setup_db(connection_url: URL) -> None:
@@ -170,7 +169,7 @@ def setup_db(connection_url: URL) -> None:
     __db.connect()
 
 
-async def backup_global_db(num_backups: int = 5) -> Optional[Path]:
+async def backup_global_db(num_backups: int = 5) -> Path | None:
     """Backup the database and rotate existing backups.
 
     Returns:
@@ -182,7 +181,7 @@ async def backup_global_db(num_backups: int = 5) -> Optional[Path]:
     return __db.backup_and_rotate(env.get_backups_dir(), num_backups=num_backups)
 
 
-async def _backup_task() -> Optional[Path]:
+async def _backup_task() -> Path | None:
     """Perform scheduled backup of the database."""
     logger.info("Performing scheduled database backup.")
     if __db is None:

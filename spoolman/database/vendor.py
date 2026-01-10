@@ -2,7 +2,6 @@
 
 import logging
 from datetime import datetime
-from typing import Optional
 
 import sqlalchemy
 from sqlalchemy import func, select
@@ -20,11 +19,11 @@ logger = logging.getLogger(__name__)
 async def create(
     *,
     db: AsyncSession,
-    name: Optional[str] = None,
-    comment: Optional[str] = None,
-    empty_spool_weight: Optional[float] = None,
-    external_id: Optional[str] = None,
-    extra: Optional[dict[str, str]] = None,
+    name: str | None = None,
+    comment: str | None = None,
+    empty_spool_weight: float | None = None,
+    external_id: str | None = None,
+    extra: dict[str, str] | None = None,
 ) -> models.Vendor:
     """Add a new vendor to the database."""
     vendor = models.Vendor(
@@ -52,10 +51,10 @@ async def get_by_id(db: AsyncSession, vendor_id: int) -> models.Vendor:
 async def find(
     *,
     db: AsyncSession,
-    name: Optional[str] = None,
-    external_id: Optional[str] = None,
-    sort_by: Optional[dict[str, SortOrder]] = None,
-    limit: Optional[int] = None,
+    name: str | None = None,
+    external_id: str | None = None,
+    sort_by: dict[str, SortOrder] | None = None,
+    limit: int | None = None,
     offset: int = 0,
 ) -> tuple[list[models.Vendor], int]:
     """Find a list of vendor objects by search criteria.

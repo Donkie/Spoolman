@@ -1,7 +1,6 @@
 """Helper functions for interacting with vendor database objects."""
 
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -56,7 +55,7 @@ async def delete(db: AsyncSession, definition: SettingDefinition) -> None:
     await setting_changed(definition, None, EventType.DELETED)
 
 
-async def setting_changed(definition: SettingDefinition, set_value: Optional[str], typ: EventType) -> None:
+async def setting_changed(definition: SettingDefinition, set_value: str | None, typ: EventType) -> None:
     """Notify websocket clients that a setting has changed."""
     await websocket_manager.send(
         ("setting", str(definition.key)),

@@ -1,6 +1,6 @@
 import { EditOutlined, EyeOutlined, FileOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
 import { List, useTable } from "@refinedev/antd";
-import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
+import { useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Table } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -69,10 +69,10 @@ const allColumns: (keyof IFilamentCollapsed & string)[] = [
   "comment",
 ];
 const defaultColumns = allColumns.filter(
-  (column_id) => ["registered", "density", "diameter", "spool_weight"].indexOf(column_id) === -1
+  (column_id) => ["registered", "density", "diameter", "spool_weight"].indexOf(column_id) === -1,
 );
 
-export const FilamentList: React.FC<IResourceComponentsProps> = () => {
+export const FilamentList = () => {
   const t = useTranslate();
   const invalidate = useInvalidate();
   const navigate = useNavigate();
@@ -139,7 +139,7 @@ export const FilamentList: React.FC<IResourceComponentsProps> = () => {
   // Collapse the dataSource to a mutable list
   const queryDataSource: IFilamentCollapsed[] = useMemo(
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
-    [tableProps.dataSource]
+    [tableProps.dataSource],
   );
   const dataSource = useLiveify("filament", queryDataSource, collapseFilament);
 

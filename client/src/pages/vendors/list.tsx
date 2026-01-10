@@ -1,6 +1,6 @@
 import { EditOutlined, EyeOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
 import { List, useTable } from "@refinedev/antd";
-import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
+import { useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Table } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -26,7 +26,7 @@ const namespace = "vendorList-v2";
 
 const allColumns: (keyof IVendor & string)[] = ["id", "name", "registered", "comment", "empty_spool_weight"];
 
-export const VendorList: React.FC<IResourceComponentsProps> = () => {
+export const VendorList = () => {
   const t = useTranslate();
   const invalidate = useInvalidate();
   const navigate = useNavigate();
@@ -85,7 +85,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
   const dataSource = useLiveify(
     "vendor",
     queryDataSource,
-    useCallback((record: IVendor) => record, [])
+    useCallback((record: IVendor) => record, []),
   );
 
   if (tableProps.pagination) {

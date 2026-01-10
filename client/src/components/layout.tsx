@@ -7,7 +7,7 @@ import { getBasePath } from "../utils/url";
 import { Header } from "./header";
 import { Version } from "./version";
 
-const SpoolmanFooter: React.FC = () => {
+const SpoolmanFooter = () => {
   const t = useTranslate();
 
   return (
@@ -46,11 +46,7 @@ const SpoolmanFooter: React.FC = () => {
   );
 };
 
-interface SpoolmanLayoutProps {
-  children: React.ReactNode;
-}
-
-export const SpoolmanLayout: React.FC<SpoolmanLayoutProps> = ({ children }) => (
+export const SpoolmanLayout = ({ children }: { children: React.ReactNode }) => (
   <ThemedLayout
     Header={() => <Header sticky />}
     Sider={() => (

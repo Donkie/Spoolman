@@ -25,7 +25,7 @@ interface QRCodePrintingDialogProps {
   setUseHTTPUrl: (value: boolean) => void;
 }
 
-const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
+const QRCodePrintingDialog = ({
   items,
   printSettings,
   setPrintSettings,
@@ -35,16 +35,16 @@ const QRCodePrintingDialog: React.FC<QRCodePrintingDialogProps> = ({
   baseUrlRoot,
   useHTTPUrl,
   setUseHTTPUrl,
-}) => {
+}: QRCodePrintingDialogProps) => {
   const t = useTranslate();
 
   const showContent = printSettings?.showContent === undefined ? true : printSettings?.showContent;
   const showQRCodeMode = printSettings?.showQRCodeMode || "withIcon";
   const textSize = printSettings?.textSize || 3;
 
-  const elements = items.map((item) => {
+  const elements = items.map((item, idx) => {
     return (
-      <div className="print-qrcode-item">
+      <div className="print-qrcode-item" key={idx}>
         {showQRCodeMode !== "no" && (
           <div className="print-qrcode-container">
             <QRCode

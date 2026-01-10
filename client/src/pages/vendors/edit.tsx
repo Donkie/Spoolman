@@ -1,9 +1,9 @@
 import { Edit, useForm } from "@refinedev/antd";
-import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
+import { HttpError, useTranslate } from "@refinedev/core";
 import { Alert, DatePicker, Form, Input, InputNumber, message, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
-import React, { useState } from "react";
+import { useState } from "react";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { IVendor, IVendorParsedExtras } from "./model";
@@ -15,7 +15,7 @@ We also need to stringify them again before sending them back to the API, which 
 the form's onFinish method. Form.Item's normalize should do this, but it doesn't seem to work.
 */
 
-export const VendorEdit: React.FC<IResourceComponentsProps> = () => {
+export const VendorEdit = () => {
   const t = useTranslate();
   const [messageApi, contextHolder] = message.useMessage();
   const [hasChanged, setHasChanged] = useState(false);
@@ -114,13 +114,13 @@ export const VendorEdit: React.FC<IResourceComponentsProps> = () => {
           <InputNumber addonAfter="g" precision={1} />
         </Form.Item>
         <Form.Item
-            label={t("vendor.fields.external_id")}
-            name={["external_id"]}
-            rules={[
-              {
-                required: false,
-              },
-            ]}
+          label={t("vendor.fields.external_id")}
+          name={["external_id"]}
+          rules={[
+            {
+              required: false,
+            },
+          ]}
         >
           <Input maxLength={64} />
         </Form.Item>

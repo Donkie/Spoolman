@@ -1,10 +1,9 @@
 import { FileOutlined, HighlightOutlined, SolutionOutlined, ToolOutlined, UserOutlined } from "@ant-design/icons";
-import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
+import { useTranslate } from "@refinedev/core";
 import { Menu, theme } from "antd";
 import { Content } from "antd/es/layout/layout";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import React from "react";
 import { Route, Routes, useNavigate } from "react-router";
 import { ExtraFieldsSettings } from "./extraFieldsSettings";
 import { GeneralSettings } from "./generalSettings";
@@ -13,7 +12,7 @@ dayjs.extend(utc);
 
 const { useToken } = theme;
 
-export const Settings: React.FC<IResourceComponentsProps> = () => {
+export const Settings = () => {
   const { token } = useToken();
   const t = useTranslate();
   const navigate = useNavigate();

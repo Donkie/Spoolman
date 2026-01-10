@@ -36,7 +36,7 @@ function collapseSpool(element: ISpool): ISpoolCollapsed {
   };
 }
 
-const SpoolSelectModal: React.FC<Props> = ({ description, onContinue }) => {
+const SpoolSelectModal = ({ description, onContinue }: Props) => {
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
@@ -81,7 +81,7 @@ const SpoolSelectModal: React.FC<Props> = ({ description, onContinue }) => {
   // Collapse the dataSource to a mutable list and add a filament_name field
   const dataSource: ISpoolCollapsed[] = useMemo(
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
-    [tableProps.dataSource]
+    [tableProps.dataSource],
   );
 
   // Function to add/remove all filtered items from selected items
@@ -95,7 +95,7 @@ const SpoolSelectModal: React.FC<Props> = ({ description, onContinue }) => {
   // Handler for selecting/unselecting individual items
   const handleSelectItem = (item: number) => {
     setSelectedItems((prevSelected) =>
-      prevSelected.includes(item) ? prevSelected.filter((selected) => selected !== item) : [...prevSelected, item]
+      prevSelected.includes(item) ? prevSelected.filter((selected) => selected !== item) : [...prevSelected, item],
     );
   };
 
@@ -184,8 +184,8 @@ const SpoolSelectModal: React.FC<Props> = ({ description, onContinue }) => {
                   // Remove archived spools from selected items
                   setSelectedItems((prevSelected) =>
                     prevSelected.filter(
-                      (selected) => dataSource.find((spool) => spool.id === selected)?.archived !== true
-                    )
+                      (selected) => dataSource.find((spool) => spool.id === selected)?.archived !== true,
+                    ),
                   );
                 }
               }}

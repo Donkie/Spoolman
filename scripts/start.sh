@@ -20,17 +20,6 @@ if [ ! -d ".venv" ]; then
 fi
 
 #
-# Add python bin dir to PATH if needed
-#
-user_python_bin_dir=$(python3 -m site --user-base)/bin
-if [[ ! "$PATH" =~ "$user_python_bin_dir" ]]; then
-    echo -e "${ORANGE}WARNING: $user_python_bin_dir is not in PATH, this will make it difficult to run PDM commands. Temporarily adding $user_python_bin_dir to PATH...${NC}"
-    echo -e "${ORANGE}To make this permanent, add the following line to your .bashrc or .zshrc file:${NC}"
-    echo -e "${ORANGE}export PATH=$user_python_bin_dir:\$PATH${NC}"
-    export PATH=$user_python_bin_dir:$PATH
-fi
-
-#
 # Activate .venv
 #
 echo -e "${GREEN}Activating .venv...${NC}"

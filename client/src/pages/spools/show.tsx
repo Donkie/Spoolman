@@ -1,10 +1,9 @@
 import { InboxOutlined, PrinterOutlined, ToTopOutlined, ToolOutlined } from "@ant-design/icons";
 import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
-import { IResourceComponentsProps, useInvalidate, useShow, useTranslate } from "@refinedev/core";
+import { useInvalidate, useShow, useTranslate } from "@refinedev/core";
 import { Button, Modal, Typography } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import React from "react";
 import { ExtraFieldDisplay } from "../../components/extraFields";
 import { NumberFieldUnit } from "../../components/numberField";
 import SpoolIcon from "../../components/spoolIcon";
@@ -21,7 +20,7 @@ dayjs.extend(utc);
 const { Title } = Typography;
 const { confirm } = Modal;
 
-export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
+export const SpoolShow = () => {
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.spool);
   const currencyFormatter = useCurrencyFormatter();

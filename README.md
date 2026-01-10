@@ -31,7 +31,7 @@ Spoolman is a self-hosted web service designed to help you efficiently manage yo
   * [Moonraker](https://moonraker.readthedocs.io/en/latest/configuration/#spoolman) and most front-ends (Fluidd, KlipperScreen, Mainsail, ...)
   * [OctoPrint](https://github.com/mdziekon/octoprint-spoolman)
   * [OctoEverywhere](https://octoeverywhere.com/spoolman?source=github_spoolman)
-  * [Homeassistant](https://github.com/Disane87/spoolman-homeassistant)
+  * [Home Assistant](https://github.com/Disane87/spoolman-homeassistant)
 
 **Web client preview:**
 ![image](https://github.com/Donkie/Spoolman/assets/2332094/33928d5e-440f-4445-aca9-456c4370ad0d)

@@ -1,11 +1,11 @@
 import { CopyOutlined, DeleteOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
-import { useGetSetting } from "../../utils/querySettings";
 import { useTranslate } from "@refinedev/core";
 import { Button, Flex, Form, Input, Modal, Popconfirm, Select, Table, Typography, message } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { EntityType, useGetFields } from "../../utils/queryFields";
+import { useGetSetting } from "../../utils/querySettings";
 import { useSavedState } from "../../utils/saveload";
 import { useGetSpoolsByIds } from "../spools/functions";
 import { ISpool } from "../spools/model";
@@ -23,7 +23,7 @@ interface SpoolQRCodePrintingDialog {
   spoolIds: number[];
 }
 
-const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ spoolIds }) => {
+const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
   const t = useTranslate();
   const baseUrlSetting = useGetSetting("base_url");
   const baseUrlRoot =
@@ -86,14 +86,14 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ spoolI
     if (!localOrRemotePresets) return;
     setLocalPresets(
       localOrRemotePresets.map((presets) =>
-        presets.labelSettings.printSettings.id === newSettings.labelSettings.printSettings.id ? newSettings : presets
-      )
+        presets.labelSettings.printSettings.id === newSettings.labelSettings.printSettings.id ? newSettings : presets,
+      ),
     );
   };
   const deleteCurrentPreset = () => {
     if (!localOrRemotePresets) return;
     setLocalPresets(
-      localOrRemotePresets.filter((qPreset) => qPreset.labelSettings.printSettings.id !== selectedPresetState)
+      localOrRemotePresets.filter((qPreset) => qPreset.labelSettings.printSettings.id !== selectedPresetState),
     );
     setSelectedPresetState(undefined);
   };
@@ -132,7 +132,7 @@ const SpoolQRCodePrintingDialog: React.FC<SpoolQRCodePrintingDialog> = ({ spoolI
       } else {
         // A setting has been selected, find it
         const foundSetting = localOrRemotePresets.find(
-          (settings) => settings.labelSettings.printSettings.id === selectedPresetState
+          (settings) => settings.labelSettings.printSettings.id === selectedPresetState,
         );
         if (foundSetting) {
           curPreset = foundSetting;

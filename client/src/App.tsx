@@ -41,7 +41,7 @@ const LoadableResourcePage = loadable(
   {
     fallback: <div>Page is Loading...</div>,
     cacheKey: (props: ResourcePageProps) => `${props.resource}-${props.page}-${props.mode ?? ""}`,
-  }
+  },
 );
 
 interface LoadablePageProps {
