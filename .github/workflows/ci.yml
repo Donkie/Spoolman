@@ -482,13 +482,9 @@ jobs:
             "project_owner": "Donkie",
             "version": "${{ github.sha }}"
           }' > release_info.json
-      - name: Zip
-        run: |
-          cd spoolman
-          zip -r spoolman.zip .
       - name: Upload spoolman package artifact
         uses: actions/upload-artifact@v4.4.0
         with:
-          name: spoolman-package
-          path: spoolman/spoolman.zip
+          name: spoolman
+          path: spoolman
 
