@@ -69,7 +69,7 @@ export function LocationContainer() {
   // Create list of locations that's sorted
   const locationsList = useMemo(() => {
     // Start with the default loc
-    let allLocs = [];
+    const allLocs = [];
     if (EMPTYLOC in spoolLocations) {
       allLocs.push(EMPTYLOC);
     }

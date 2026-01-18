@@ -9,7 +9,7 @@ type UndoableNotificationProps = {
   undoableTimeout: OpenNotificationParams["undoableTimeout"];
 };
 
-const UndoableNotification: React.FC<UndoableNotificationProps> = ({ message, cancelMutation, undoableTimeout }) => (
+const UndoableNotification = ({ message, cancelMutation, undoableTimeout }: UndoableNotificationProps) => (
   <div
     style={{
       display: "flex",

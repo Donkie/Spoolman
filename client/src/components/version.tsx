@@ -15,7 +15,7 @@ interface IInfo {
   build_date?: string;
 }
 
-export const Version: React.FC = () => {
+export const Version = () => {
   const infoResult = useQuery<IInfo>({
     queryKey: ["info"],
     queryFn: async () => {

@@ -3,7 +3,6 @@
 import json
 import logging
 from enum import Enum
-from typing import Optional
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field
@@ -39,15 +38,15 @@ class ExtraFieldType(Enum):
 class ExtraFieldParameters(BaseModel):
     name: str = Field(description="Nice name", min_length=1, max_length=128)
     order: int = Field(0, description="Order of the field")
-    unit: Optional[str] = Field(None, description="Unit of the value", min_length=1, max_length=16)
+    unit: str | None = Field(None, description="Unit of the value", min_length=1, max_length=16)
     field_type: ExtraFieldType = Field(description="Type of the field")
-    default_value: Optional[str] = Field(None, description="Default value of the field")
-    choices: Optional[list[str]] = Field(
+    default_value: str | None = Field(None, description="Default value of the field")
+    choices: list[str] | None = Field(
         None,
         description="Choices for the field, only for field type choice",
         min_length=1,
     )
-    multi_choice: Optional[bool] = Field(None, description="Whether multiple choices can be selected")
+    multi_choice: bool | None = Field(None, description="Whether multiple choices can be selected")
 
 
 class ExtraField(ExtraFieldParameters):

@@ -1,7 +1,7 @@
 """Vendor related endpoints."""
 
 import logging
-from typing import Annotated, Union
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path
 from fastapi.responses import JSONResponse
@@ -24,7 +24,7 @@ router = APIRouter(
     tags=["field"],
 )
 
-# ruff: noqa: D103,B008
+# ruff: noqa: D103
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ async def update(
     entity_type: Annotated[EntityType, Path(description="Entity type this field is for")],
     key: Annotated[str, Path(min_length=1, max_length=64, regex="^[a-z0-9_]+$")],
     body: ExtraFieldParameters,
-) -> Union[list[ExtraField], JSONResponse]:
+) -> list[ExtraField] | JSONResponse:
     dict_body = body.model_dump()
     dict_body["key"] = key
     dict_body["entity_type"] = entity_type
@@ -76,8 +76,7 @@ async def update(
     "/{entity_type}/{key}",
     name="Delete extra field",
     description=(
-        "Delete an extra field for a specific entity type. "
-        "Returns the full list of extra fields for the entity type."
+        "Delete an extra field for a specific entity type. Returns the full list of extra fields for the entity type."
     ),
     response_model_exclude_none=True,
     response_model=list[ExtraField],
@@ -87,7 +86,7 @@ async def delete(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     entity_type: Annotated[EntityType, Path(description="Entity type this field is for")],
     key: Annotated[str, Path(min_length=1, max_length=64, regex="^[a-z0-9_]+$")],
-) -> Union[list[ExtraField], JSONResponse]:
+) -> list[ExtraField] | JSONResponse:
     try:
         await delete_extra_field(db, entity_type, key)
     except ItemNotFoundError:

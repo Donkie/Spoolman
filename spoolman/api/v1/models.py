@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Annotated, Literal, Optional
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, PlainSerializer
 
@@ -36,7 +36,7 @@ class SettingKV(BaseModel):
     setting: SettingResponse = Field(description="Setting value.")
 
     @staticmethod
-    def from_db(definition: SettingDefinition, set_value: Optional[str]) -> "SettingKV":
+    def from_db(definition: SettingDefinition, set_value: str | None) -> "SettingKV":
         """Create a new Pydantic vendor object from a database vendor object."""
         return SettingKV(
             key=definition.key,
@@ -52,19 +52,19 @@ class Vendor(BaseModel):
     id: int = Field(description="Unique internal ID of this vendor.")
     registered: SpoolmanDateTime = Field(description="When the vendor was registered in the database. UTC Timezone.")
     name: str = Field(max_length=64, description="Vendor name.", examples=["Polymaker"])
-    comment: Optional[str] = Field(
+    comment: str | None = Field(
         None,
         max_length=1024,
         description="Free text comment about this vendor.",
         examples=[""],
     )
-    empty_spool_weight: Optional[float] = Field(
+    empty_spool_weight: float | None = Field(
         None,
         ge=0,
         description="The empty spool weight, in grams.",
         examples=[140],
     )
-    external_id: Optional[str] = Field(
+    external_id: str | None = Field(
         None,
         max_length=256,
         description=(
@@ -103,7 +103,7 @@ class MultiColorDirection(Enum):
 class Filament(BaseModel):
     id: int = Field(description="Unique internal ID of this filament type.")
     registered: SpoolmanDateTime = Field(description="When the filament was registered in the database. UTC Timezone.")
-    name: Optional[str] = Field(
+    name: str | None = Field(
         None,
         max_length=64,
         description=(
@@ -112,14 +112,14 @@ class Filament(BaseModel):
         ),
         examples=["PolyTerra™ Charcoal Black"],
     )
-    vendor: Optional[Vendor] = Field(None, description="The vendor of this filament type.")
-    material: Optional[str] = Field(
+    vendor: Vendor | None = Field(None, description="The vendor of this filament type.")
+    material: str | None = Field(
         None,
         max_length=64,
         description="The material of this filament, e.g. PLA.",
         examples=["PLA"],
     )
-    price: Optional[float] = Field(
+    price: float | None = Field(
         None,
         ge=0,
         description="The price of this filament in the system configured currency.",
@@ -127,38 +127,38 @@ class Filament(BaseModel):
     )
     density: float = Field(gt=0, description="The density of this filament in g/cm3.", examples=[1.24])
     diameter: float = Field(gt=0, description="The diameter of this filament in mm.", examples=[1.75])
-    weight: Optional[float] = Field(
+    weight: float | None = Field(
         None,
         gt=0,
         description="The weight of the filament in a full spool, in grams.",
         examples=[1000],
     )
-    spool_weight: Optional[float] = Field(None, ge=0, description="The empty spool weight, in grams.", examples=[140])
-    article_number: Optional[str] = Field(
+    spool_weight: float | None = Field(None, ge=0, description="The empty spool weight, in grams.", examples=[140])
+    article_number: str | None = Field(
         None,
         max_length=64,
         description="Vendor article number, e.g. EAN, QR code, etc.",
         examples=["PM70820"],
     )
-    comment: Optional[str] = Field(
+    comment: str | None = Field(
         None,
         max_length=1024,
         description="Free text comment about this filament type.",
         examples=[""],
     )
-    settings_extruder_temp: Optional[int] = Field(
+    settings_extruder_temp: int | None = Field(
         None,
         ge=0,
         description="Overridden extruder temperature, in °C.",
         examples=[210],
     )
-    settings_bed_temp: Optional[int] = Field(
+    settings_bed_temp: int | None = Field(
         None,
         ge=0,
         description="Overridden bed temperature, in °C.",
         examples=[60],
     )
-    color_hex: Optional[str] = Field(
+    color_hex: str | None = Field(
         None,
         min_length=6,
         max_length=8,
@@ -168,7 +168,7 @@ class Filament(BaseModel):
         ),
         examples=["FF0000"],
     )
-    multi_color_hexes: Optional[str] = Field(
+    multi_color_hexes: str | None = Field(
         None,
         min_length=6,
         description=(
@@ -178,12 +178,12 @@ class Filament(BaseModel):
         ),
         examples=["FF0000,00FF00,0000FF"],
     )
-    multi_color_direction: Optional[MultiColorDirection] = Field(
+    multi_color_direction: MultiColorDirection | None = Field(
         None,
         description=("Type of multi-color filament. Only set if the multi_color_hexes field is set."),
         examples=["coaxial", "longitudinal"],
     )
-    external_id: Optional[str] = Field(
+    external_id: str | None = Field(
         None,
         max_length=256,
         description=(
@@ -229,22 +229,22 @@ class Filament(BaseModel):
 class Spool(BaseModel):
     id: int = Field(description="Unique internal ID of this spool of filament.")
     registered: SpoolmanDateTime = Field(description="When the spool was registered in the database. UTC Timezone.")
-    first_used: Optional[SpoolmanDateTime] = Field(
+    first_used: SpoolmanDateTime | None = Field(
         None,
         description="First logged occurence of spool usage. UTC Timezone.",
     )
-    last_used: Optional[SpoolmanDateTime] = Field(
+    last_used: SpoolmanDateTime | None = Field(
         None,
         description="Last logged occurence of spool usage. UTC Timezone.",
     )
     filament: Filament = Field(description="The filament type of this spool.")
-    price: Optional[float] = Field(
+    price: float | None = Field(
         None,
         ge=0,
         description="The price of this spool in the system configured currency.",
         examples=[20.0],
     )
-    remaining_weight: Optional[float] = Field(
+    remaining_weight: float | None = Field(
         default=None,
         ge=0,
         description=(
@@ -253,13 +253,13 @@ class Spool(BaseModel):
         ),
         examples=[500.6],
     )
-    initial_weight: Optional[float] = Field(
+    initial_weight: float | None = Field(
         default=None,
         ge=0,
         description=("The initial weight, in grams, of the filament on the spool (net weight)."),
         examples=[1246],
     )
-    spool_weight: Optional[float] = Field(
+    spool_weight: float | None = Field(
         default=None,
         ge=0,
         description=("Weight of an empty spool (tare weight)."),
@@ -270,7 +270,7 @@ class Spool(BaseModel):
         description="Consumed weight of filament from the spool in grams.",
         examples=[500.3],
     )
-    remaining_length: Optional[float] = Field(
+    remaining_length: float | None = Field(
         default=None,
         ge=0,
         description=(
@@ -284,19 +284,19 @@ class Spool(BaseModel):
         description="Consumed length of filament from the spool in millimeters.",
         examples=[50.7],
     )
-    location: Optional[str] = Field(
+    location: str | None = Field(
         None,
         max_length=64,
         description="Where this spool can be found.",
         examples=["Shelf A"],
     )
-    lot_nr: Optional[str] = Field(
+    lot_nr: str | None = Field(
         None,
         max_length=64,
         description="Vendor manufacturing lot/batch number of the spool.",
         examples=["52342"],
     )
-    comment: Optional[str] = Field(
+    comment: str | None = Field(
         None,
         max_length=1024,
         description="Free text comment about this specific spool.",
@@ -315,8 +315,8 @@ class Spool(BaseModel):
         """Create a new Pydantic spool object from a database spool object."""
         filament = Filament.from_db(item.filament)
 
-        remaining_weight: Optional[float] = None
-        remaining_length: Optional[float] = None
+        remaining_weight: float | None = None
+        remaining_length: float | None = None
 
         if item.initial_weight is not None:
             remaining_weight = max(item.initial_weight - item.used_weight, 0)
@@ -368,8 +368,8 @@ class Info(BaseModel):
     logs_dir: str = Field(examples=["/home/app/.local/share/spoolman"])
     backups_dir: str = Field(examples=["/home/app/.local/share/spoolman/backups"])
     db_type: str = Field(examples=["sqlite"])
-    git_commit: Optional[str] = Field(None, examples=["a1b2c3d"])
-    build_date: Optional[SpoolmanDateTime] = Field(None, examples=["2021-01-01T00:00:00Z"])
+    git_commit: str | None = Field(None, examples=["a1b2c3d"])
+    build_date: SpoolmanDateTime | None = Field(None, examples=["2021-01-01T00:00:00Z"])
 
 
 class HealthCheck(BaseModel):

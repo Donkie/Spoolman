@@ -1,10 +1,9 @@
 import { PageHeader } from "@refinedev/antd";
-import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
+import { useTranslate } from "@refinedev/core";
 import { theme } from "antd";
 import { Content } from "antd/es/layout/layout";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import React from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import SpoolQRCodePrintingDialog from "./spoolQrCodePrintingDialog";
 import SpoolSelectModal from "./spoolSelectModal";
@@ -13,7 +12,7 @@ dayjs.extend(utc);
 
 const { useToken } = theme;
 
-export const Printing: React.FC<IResourceComponentsProps> = () => {
+export const Printing = () => {
   const { token } = useToken();
   const t = useTranslate();
   const [searchParams, setSearchParams] = useSearchParams();
