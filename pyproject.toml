@@ -35,6 +35,7 @@ dev = [
     "pytest-asyncio~=0.25.3",
     "httpx~=0.28.1",
     "poethepoet>=0.40.0",
+    "bump2version>=1.0.1",
 ]
 
 [tool.poe.tasks.generate-docs]
@@ -52,6 +53,17 @@ help = "Start Spoolman."
 [tool.poe.tasks.itest]
 cmd = "python tests_integration/run.py"
 help = "Builds Spoolman and runs integration tests on the backend against all supported databases."
+
+[tool.bumpversion]
+current_version = "0.22.1"
+parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
+serialize = ["{major}.{minor}.{patch}"]
+allow_dirty = false
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
 
 [tool.ruff]
 line-length = 120

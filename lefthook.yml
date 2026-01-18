@@ -23,3 +23,27 @@ pre-commit:
             root: "client/"
             run: ./node_modules/.bin/prettier --write .
             stage_fixed: true
+
+# Same as pre-commit but no fixes
+ci:
+  parallel: true
+  jobs:
+    - group: # Backend checks
+        parallel: false
+        jobs:
+          - name: Run lint check on backend files
+            run: uv run ruff check .
+          - name: Run format check on backend files
+            run: uv run ruff format --check .
+          - name: Check UV lockfile consistency
+            run: uv lock --check
+    - group: # Client checks
+        parallel: false
+        jobs:
+          - name: Run lint check on client files
+            root: "client/"
+            run: ./node_modules/.bin/eslint . # Hardcoded path because Windows messes up if we use npx
+          - name: Run format check on client files
+            root: "client/"
+            run: ./node_modules/.bin/prettier --check .
+

@@ -19,31 +19,32 @@ permissions:
 jobs:
   bump-version:
     runs-on: ubuntu-latest
-    steps:
+    steps:      
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           token: ${{ secrets.PAT }}
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5.2.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.9"
+          version: "0.9.26"
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "pyproject.toml"
       
       - name: Install node
         uses: actions/setup-node@v4.0.3
         with:
           node-version: '20'
   
-      - name: Setup PDM
-        run: |
-          pip install pdm pdm-bump
-      
       - name: Bump version
         run: |
           git config --global user.name "${GITHUB_ACTOR}"
           git config --global user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
-          pdm run bump ${{ github.event.inputs.bump }}
+          uv run bump2version ${{ github.event.inputs.bump }}
       
       - name: Push
         run: |
