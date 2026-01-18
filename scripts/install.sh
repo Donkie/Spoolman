@@ -67,6 +67,11 @@ if [[ -f /etc/os-release ]]; then
         update_cmd="$SUDO $pkg_manager -Sy"
         install_cmd="$SUDO $pkg_manager -S --noconfirm"
         echo -e "${GREEN}Detected Arch-based system. Using pacman package manager.${NC}"
+    elif [[ "$ID_LIKE" == *"fedora"* || "$ID" == *"fedora"* ]]; then
+        pkg_manager="dnf"
+        update_cmd="$SUDO $pkg_manager update"
+        install_cmd="$SUDO $pkg_manager install -y"
+        echo -e "${GREEN}Detected Fedora-based system. Using dnf package manager.${NC}"
     else
         echo -e "${ORANGE}Unsupported Linux distribution. Please install the required dependencies manually.${NC}"
     fi
