@@ -107,7 +107,7 @@ export function LocationContainer() {
 
     // Update the value in the settings
     const newLocs = [...locationsList].filter((loc) => loc != EMPTYLOC);
-    newLocs[locationsList.indexOf(location)] = newTitle;
+    newLocs[newLocs.indexOf(location)] = newTitle;
     setLocationsSetting.mutate(newLocs);
   };
 

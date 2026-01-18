@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import { useSpoolmanLocations } from "../../components/otherModels";
 import { searchMatches } from "../../utils/filtering";
+import { useLocations } from "../locations/functions";
 import "../../utils/overrides.css";
 import { formatNumberOnUserInput, numberParser, numberParserAllowEmpty } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
@@ -165,9 +166,15 @@ export const SpoolCreate = (props: IResourceComponentsProps & CreateOrCloneProps
   };
 
   const locations = useSpoolmanLocations(true);
+  const settingsLocation = useLocations();
   const [newLocation, setNewLocation] = useState("");
 
-  const allLocations = [...(locations.data || [])];
+  const allLocations = [...(settingsLocation || [])];
+  locations?.data?.forEach((loc) => {
+    if (!allLocations.includes(loc)) {
+      allLocations.push(loc);
+    }
+  });
   if (newLocation.trim() && !allLocations.includes(newLocation)) {
     allLocations.push(newLocation.trim());
   }
