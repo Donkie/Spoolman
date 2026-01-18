@@ -1,18 +1,18 @@
 import { EditOutlined, EyeOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
 import { List, useTable } from "@refinedev/antd";
-import { IResourceComponentsProps, useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
+import { useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Table } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-    ActionsColumn,
-    CustomFieldColumn,
-    DateColumn,
-    NumberColumn,
-    RichColumn,
-    SortedColumn,
+  ActionsColumn,
+  CustomFieldColumn,
+  DateColumn,
+  NumberColumn,
+  RichColumn,
+  SortedColumn,
 } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
 import { removeUndefined } from "../../utils/filtering";
@@ -26,7 +26,7 @@ const namespace = "vendorList-v2";
 
 const allColumns: (keyof IVendor & string)[] = ["id", "name", "registered", "comment", "empty_spool_weight"];
 
-export const VendorList: React.FC<IResourceComponentsProps> = () => {
+export const VendorList = () => {
   const t = useTranslate();
   const invalidate = useInvalidate();
   const navigate = useNavigate();
@@ -38,32 +38,33 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
   const initialState = useInitialTableState(namespace);
 
   // Fetch data from the API
-  const { tableProps, sorters, setSorters, filters, setFilters, current, pageSize, setCurrent } = useTable<IVendor>({
-    syncWithLocation: false,
-    pagination: {
-      mode: "server",
-      current: initialState.pagination.current,
-      pageSize: initialState.pagination.pageSize,
-    },
-    sorters: {
-      mode: "server",
-      initial: initialState.sorters,
-    },
-    filters: {
-      mode: "server",
-      initial: initialState.filters,
-    },
-    liveMode: "manual",
-    onLiveEvent(event) {
-      if (event.type === "created" || event.type === "deleted") {
-        // updated is handled by the liveify
-        invalidate({
-          resource: "vendor",
-          invalidates: ["list"],
-        });
-      }
-    },
-  });
+  const { tableProps, sorters, setSorters, filters, setFilters, currentPage, pageSize, setCurrentPage } =
+    useTable<IVendor>({
+      syncWithLocation: false,
+      pagination: {
+        mode: "server",
+        currentPage: initialState.pagination.currentPage,
+        pageSize: initialState.pagination.pageSize,
+      },
+      sorters: {
+        mode: "server",
+        initial: initialState.sorters,
+      },
+      filters: {
+        mode: "server",
+        initial: initialState.filters,
+      },
+      liveMode: "manual",
+      onLiveEvent(event) {
+        if (event.type === "created" || event.type === "deleted") {
+          // updated is handled by the liveify
+          invalidate({
+            resource: "vendor",
+            invalidates: ["list"],
+          });
+        }
+      },
+    });
 
   // Create state for the columns to show
   const [showColumns, setShowColumns] = useState<string[]>(initialState.showColumns ?? allColumns);
@@ -72,7 +73,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
   const tableState: TableState = {
     sorters,
     filters,
-    pagination: { current, pageSize },
+    pagination: { currentPage, pageSize },
     showColumns,
   };
   useStoreInitialState(namespace, tableState);
@@ -84,7 +85,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
   const dataSource = useLiveify(
     "vendor",
     queryDataSource,
-    useCallback((record: IVendor) => record, [])
+    useCallback((record: IVendor) => record, []),
   );
 
   if (tableProps.pagination) {
@@ -117,7 +118,7 @@ export const VendorList: React.FC<IResourceComponentsProps> = () => {
             onClick={() => {
               setFilters([], "replace");
               setSorters([{ field: "id", order: "asc" }]);
-              setCurrent(1);
+              setCurrentPage(1);
             }}
           >
             {t("buttons.clearFilters")}

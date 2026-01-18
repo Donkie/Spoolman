@@ -69,13 +69,13 @@ interface CustomColumnProps<Obj> {
   render?: (value: any, record: Obj, index: number) => React.ReactNode;
   onCell?: (
     data: Obj,
-    index?: number
+    index?: number,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ) => React.HTMLAttributes<any> | React.TdHTMLAttributes<any>;
 }
 
 function Column<Obj extends Entity>(
-  props: BaseColumnProps<Obj> & FilteredColumnProps & CustomColumnProps<Obj>
+  props: BaseColumnProps<Obj> & FilteredColumnProps & CustomColumnProps<Obj>,
 ): ColumnType<Obj> | undefined {
   const t = props.t;
   const navigate = props.navigate;
@@ -100,7 +100,7 @@ function Column<Obj extends Entity>(
     columnProps.sorter = true;
     columnProps.sortOrder = getSortOrderForField(
       typeSorters<Obj>(props.tableState.sorters),
-      props.dataId ?? (props.id as keyof Obj)
+      props.dataId ?? (props.id as keyof Obj),
     );
   }
 
@@ -116,8 +116,8 @@ function Column<Obj extends Entity>(
         if (open && props.onFilterDropdownOpen) {
           props.onFilterDropdownOpen();
         }
-      }
-    }
+      },
+    };
     if (props.dataId) {
       columnProps.key = props.dataId;
     }
@@ -174,7 +174,7 @@ export function SortedColumn<Obj extends Entity>(props: BaseColumnProps<Obj>) {
 }
 
 export function RichColumn<Obj extends Entity>(
-  props: Omit<BaseColumnProps<Obj>, "transform"> & { transform?: (value: unknown) => string }
+  props: Omit<BaseColumnProps<Obj>, "transform"> & { transform?: (value: unknown) => string },
 ) {
   return Column({
     ...props,
@@ -186,7 +186,7 @@ export function RichColumn<Obj extends Entity>(
 }
 
 interface FilteredQueryColumnProps<Obj extends Entity> extends BaseColumnProps<Obj> {
-  filterValueQuery: UseQueryResult<string[] | ColumnFilterItem[]>;
+  filterValueQuery: UseQueryResult<string[] | ColumnFilterItem[], unknown>;
   allowMultipleFilters?: boolean;
 }
 
@@ -269,7 +269,7 @@ export function DateColumn<Obj extends Entity>(props: BaseColumnProps<Obj>) {
 
 export function ActionsColumn<Obj extends Entity>(
   title: string,
-  actionsFn: (record: Obj) => Action[]
+  actionsFn: (record: Obj) => Action[],
 ): ColumnType<Obj> | undefined {
   return {
     title,

@@ -25,18 +25,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v6
 
-      - name: Set up Python
-        uses: actions/setup-python@v5.2.0
+      - name: Install node
+        uses: actions/setup-node@v4.0.3
         with:
-          python-version: "3.9"
+          node-version: '20'
 
-      - name: Install pre-commit
-        run: pip install pre-commit==3.3.3
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.26"
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install lefthook
+        run: uv add --dev lefthook
+      
+      - name: Install client dependencies
+        run: |
+          cd client
+          npm ci
 
       - name: Run pre-commit
-        run: pre-commit run --all-files
+        run: uv run lefthook run ci
   #
   # Build the Spoolman client for baking into the docker images
   # This is done on native hardware to speed things up, vite is very slow on emulated hardware
@@ -45,22 +60,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v6
 
       - name: Install node
         uses: actions/setup-node@v4.0.3
         with:
           node-version: '20'
 
-      - name: Set up Python
-        uses: actions/setup-python@v5.2.0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.9"
-    
-      - name: Export requirements
-        run: |
-          pip install pdm
-          pdm export -o requirements.txt --without-hashes
+          version: "0.9.26"
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "pyproject.toml"
     
       - name: Install client dependencies
         run: |
@@ -114,7 +129,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v6
 
       - name: Download client
         uses: actions/download-artifact@v4.1.7
@@ -166,7 +181,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.6.1
@@ -214,7 +229,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v6
 
       - name: Download built images
         uses: actions/download-artifact@v4.1.7
@@ -246,7 +261,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v6
 
       - name: Download client
         uses: actions/download-artifact@v4.1.7
@@ -287,7 +302,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v6
 
       - name: Download client
         uses: actions/download-artifact@v4.1.7
@@ -327,7 +342,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v6
 
       - name: Download client
         uses: actions/download-artifact@v4.1.7
@@ -441,4 +456,3 @@ jobs:
           files: /tmp/spoolman/spoolman.zip
           token: ${{ secrets.GITHUB_TOKEN }}
           body: "⚠️ TODO ⚠️"
-

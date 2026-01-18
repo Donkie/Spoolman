@@ -8,7 +8,7 @@ type MethodTypesWithBody = "post" | "put" | "patch";
 
 const dataProvider = (
   apiUrl: string,
-  httpClient: AxiosInstance = axiosInstance
+  httpClient: AxiosInstance = axiosInstance,
 ): Omit<Required<DataProvider>, "createMany" | "updateMany" | "deleteMany"> => ({
   getList: async ({ resource, meta, pagination, sorters, filters }) => {
     const url = `${apiUrl}/${resource}`;
@@ -19,7 +19,7 @@ const dataProvider = (
 
     if (pagination && pagination.mode == "server") {
       const pageSize = pagination.pageSize ?? 10;
-      const offset = ((pagination.current ?? 1) - 1) * pageSize;
+      const offset = ((pagination.currentPage ?? 1) - 1) * pageSize;
       queryParams["limit"] = pageSize;
       queryParams["offset"] = offset;
     }

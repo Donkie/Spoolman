@@ -1,7 +1,7 @@
 import { Button, Input, theme } from "antd";
 import type { Identifier, XYCoord } from "dnd-core";
 import { useRef, useState } from "react";
-import { useDrag, useDrop } from "react-dnd";
+import { DragSourceMonitor, useDrag, useDrop } from "react-dnd";
 
 import { DeleteOutlined } from "@ant-design/icons";
 import { useTranslate, useUpdate } from "@refinedev/core";
@@ -9,7 +9,6 @@ import { ISpool } from "../../spools/model";
 import { DragItem, ItemTypes, SpoolDragItem } from "../dnd";
 import { EMPTYLOC } from "../functions";
 import { SpoolList } from "./spoolList";
-import { useGetSetting } from "../../../utils/querySettings";
 
 const { useToken } = theme;
 
@@ -125,7 +124,7 @@ export function Location({
     item: () => {
       return { title, index };
     },
-    collect: (monitor: any) => ({
+    collect: (monitor: DragSourceMonitor<{ title: string; index: number }>) => ({
       isDragging: monitor.isDragging(),
     }),
   });

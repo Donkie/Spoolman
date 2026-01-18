@@ -105,7 +105,7 @@ export function GeneralSettings() {
         </Form.Item>
 
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-          <Button type="primary" htmlType="submit" loading={settings.isFetching || setCurrency.isLoading}>
+          <Button type="primary" htmlType="submit" loading={settings.isFetching || setCurrency.isPending}>
             {t("buttons.save")}
           </Button>
         </Form.Item>

@@ -2,6 +2,7 @@ import { useSelect, useTranslate } from "@refinedev/core";
 import { useQueries } from "@tanstack/react-query";
 import { Form, InputNumber, Modal, Radio } from "antd";
 import { useForm } from "antd/es/form/Form";
+import type { InputNumberRef } from "rc-input-number";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { formatLength, formatWeight } from "../../utils/parsing";
 import { SpoolType, useGetExternalDBFilaments } from "../../utils/queryExternalDB";
@@ -63,7 +64,6 @@ export async function useSpoolFilamentMeasure(spool: ISpool, weight: number) {
   await fetch(request, init);
 }
 
-
 /**
  * Returns an array of queries using the useQueries hook from @tanstack/react-query.
  * Each query fetches a spool by its ID from the server.
@@ -94,7 +94,7 @@ export function formatFilamentLabel(
   vendorName?: string,
   material?: string,
   weight?: number,
-  spoolType?: SpoolType
+  spoolType?: SpoolType,
 ): string {
   const portions = [];
   if (vendorName) {
@@ -126,7 +126,7 @@ interface SelectOption {
 export function useGetFilamentSelectOptions() {
   // Setup hooks
   const t = useTranslate();
-  const { queryResult: internalFilaments } = useSelect<IFilament>({
+  const { query: internalFilaments } = useSelect<IFilament>({
     resource: "filament",
   });
   const externalFilaments = useGetExternalDBFilaments();
@@ -141,7 +141,7 @@ export function useGetFilamentSelectOptions() {
             item.diameter,
             item.vendor?.name,
             item.material,
-            item.weight
+            item.weight,
           ),
           value: item.id,
           weight: item.weight,
@@ -164,7 +164,7 @@ export function useGetFilamentSelectOptions() {
             item.manufacturer,
             item.material,
             item.weight,
-            item.spool_type
+            item.spool_type,
           ),
           value: item.id,
           weight: item.weight,
@@ -201,7 +201,7 @@ export function useSpoolAdjustModal() {
 
   const [curSpool, setCurSpool] = useState<ISpool | null>(null);
   const [measurementType, setMeasurementType] = useState<MeasurementType>("length");
-  const inputNumberRef = useRef<HTMLInputElement | null>(null);
+  const inputNumberRef = useRef<InputNumberRef | null>(null);
 
   const openSpoolAdjustModal = useCallback((spool: ISpool) => {
     setCurSpool(spool);

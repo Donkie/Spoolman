@@ -2,7 +2,7 @@
 
 from collections.abc import Sequence
 from enum import Enum
-from typing import Any, Optional, TypeVar, Union
+from typing import Any, TypeVar
 
 import sqlalchemy
 from sqlalchemy import Select
@@ -40,8 +40,8 @@ def parse_nested_field(base_obj: type[models.Base], field: str) -> attributes.In
 
 def add_where_clause_str_opt(
     stmt: Select,
-    field: attributes.InstrumentedAttribute[Optional[str]],
-    value: Optional[str],
+    field: attributes.InstrumentedAttribute[str | None],
+    value: str | None,
 ) -> Select:
     """Add a where clause to a select statement for an optional string field."""
     if value is not None:
@@ -65,7 +65,7 @@ def add_where_clause_str_opt(
 def add_where_clause_str(
     stmt: Select,
     field: attributes.InstrumentedAttribute[str],
-    value: Optional[str],
+    value: str | None,
 ) -> Select:
     """Add a where clause to a select statement for a string field."""
     if value is not None:
@@ -88,7 +88,7 @@ def add_where_clause_str(
 def add_where_clause_int(
     stmt: Select,
     field: attributes.InstrumentedAttribute[int],
-    value: Optional[Union[int, Sequence[int]]],
+    value: int | Sequence[int] | None,
 ) -> Select:
     """Add a where clause to a select statement for a field."""
     if value is not None:
@@ -100,8 +100,8 @@ def add_where_clause_int(
 
 def add_where_clause_int_opt(
     stmt: Select,
-    field: attributes.InstrumentedAttribute[Optional[int]],
-    value: Optional[Union[int, Sequence[int]]],
+    field: attributes.InstrumentedAttribute[int | None],
+    value: int | Sequence[int] | None,
 ) -> Select:
     """Add a where clause to a select statement for a field."""
     if value is not None:
@@ -123,7 +123,7 @@ T = TypeVar("T")
 def add_where_clause_int_in(
     stmt: Select,
     field: attributes.InstrumentedAttribute[T],
-    value: Optional[Sequence[T]],
+    value: Sequence[T] | None,
 ) -> Select:
     """Add a where clause to a select statement for a field."""
     if value is not None:

@@ -1,7 +1,5 @@
 """Functions for providing the client interface."""
 
-# ruff: noqa: PTH118
-
 import logging
 import os
 from collections.abc import MutableMapping
@@ -66,7 +64,7 @@ class SinglePageApplication(StaticFiles):
             return NotModifiedResponse(response.headers)
         return response
 
-    def lookup_path(self, path: str) -> tuple[str, Union[os.stat_result, None]]:
+    def lookup_path(self, path: str) -> tuple[str, os.stat_result | None]:
         """Return index.html if the requested file cannot be found."""
         path = path.removeprefix(self.base_path).removeprefix("/")
 

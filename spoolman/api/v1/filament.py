@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
@@ -25,11 +25,11 @@ router = APIRouter(
     tags=["filament"],
 )
 
-# ruff: noqa: D103, B008
+# ruff: noqa: D103
 
 
 class FilamentParameters(BaseModel):
-    name: Optional[str] = Field(
+    name: str | None = Field(
         None,
         max_length=64,
         description=(
@@ -38,14 +38,14 @@ class FilamentParameters(BaseModel):
         ),
         examples=["PolyTerra™ Charcoal Black"],
     )
-    vendor_id: Optional[int] = Field(None, description="The ID of the vendor of this filament type.")
-    material: Optional[str] = Field(
+    vendor_id: int | None = Field(None, description="The ID of the vendor of this filament type.")
+    material: str | None = Field(
         None,
         max_length=64,
         description="The material of this filament, e.g. PLA.",
         examples=["PLA"],
     )
-    price: Optional[float] = Field(
+    price: float | None = Field(
         None,
         ge=0,
         description="The price of this filament in the system configured currency.",
@@ -53,38 +53,38 @@ class FilamentParameters(BaseModel):
     )
     density: float = Field(gt=0, description="The density of this filament in g/cm3.", examples=[1.24])
     diameter: float = Field(gt=0, description="The diameter of this filament in mm.", examples=[1.75])
-    weight: Optional[float] = Field(
+    weight: float | None = Field(
         None,
         gt=0,
         description="The weight of the filament in a full spool, in grams. (net weight)",
         examples=[1000],
     )
-    spool_weight: Optional[float] = Field(None, ge=0, description="The empty spool weight, in grams.", examples=[140])
-    article_number: Optional[str] = Field(
+    spool_weight: float | None = Field(None, ge=0, description="The empty spool weight, in grams.", examples=[140])
+    article_number: str | None = Field(
         None,
         max_length=64,
         description="Vendor article number, e.g. EAN, QR code, etc.",
         examples=["PM70820"],
     )
-    comment: Optional[str] = Field(
+    comment: str | None = Field(
         None,
         max_length=1024,
         description="Free text comment about this filament type.",
         examples=[""],
     )
-    settings_extruder_temp: Optional[int] = Field(
+    settings_extruder_temp: int | None = Field(
         None,
         ge=0,
         description="Overridden extruder temperature, in °C.",
         examples=[210],
     )
-    settings_bed_temp: Optional[int] = Field(
+    settings_bed_temp: int | None = Field(
         None,
         ge=0,
         description="Overridden bed temperature, in °C.",
         examples=[60],
     )
-    color_hex: Optional[str] = Field(
+    color_hex: str | None = Field(
         None,
         description=(
             "Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end. "
@@ -92,7 +92,7 @@ class FilamentParameters(BaseModel):
         ),
         examples=["FF0000"],
     )
-    multi_color_hexes: Optional[str] = Field(
+    multi_color_hexes: str | None = Field(
         None,
         description=(
             "Hexadecimal color code of the filament, e.g. FF0000 for red. Supports alpha channel at the end. "
@@ -101,12 +101,12 @@ class FilamentParameters(BaseModel):
         ),
         examples=["FF0000,00FF00,0000FF"],
     )
-    multi_color_direction: Optional[MultiColorDirection] = Field(
+    multi_color_direction: MultiColorDirection | None = Field(
         None,
         description=("Type of multi-color filament. Only set if the color_hex field contains multiple colors. "),
         examples=["coaxial", "longitudinal"],
     )
-    external_id: Optional[str] = Field(
+    external_id: str | None = Field(
         None,
         max_length=256,
         description=(
@@ -114,14 +114,14 @@ class FilamentParameters(BaseModel):
         ),
         examples=["polymaker_pla_polysonicblack_1000_175"],
     )
-    extra: Optional[dict[str, str]] = Field(
+    extra: dict[str, str] | None = Field(
         None,
         description="Extra fields for this filament.",
     )
 
     @field_validator("color_hex")
     @classmethod
-    def color_hex_validator(cls, v: Optional[str]) -> Optional[str]:
+    def color_hex_validator(cls, v: str | None) -> str | None:
         """Validate the color_hex field."""
         if not v:
             return None
@@ -140,7 +140,7 @@ class FilamentParameters(BaseModel):
 
     @field_validator("multi_color_hexes")
     @classmethod
-    def multi_color_hexes_validator(cls, v: Optional[str]) -> Optional[str]:
+    def multi_color_hexes_validator(cls, v: str | None) -> str | None:
         """Validate the multi_color_hexes field."""
         if not v:
             return None
@@ -173,12 +173,12 @@ class FilamentParameters(BaseModel):
 
 
 class FilamentUpdateParameters(FilamentParameters):
-    density: Optional[float] = Field(None, gt=0, description="The density of this filament in g/cm3.", examples=[1.24])
-    diameter: Optional[float] = Field(None, gt=0, description="The diameter of this filament in mm.", examples=[1.75])
+    density: float | None = Field(None, gt=0, description="The density of this filament in g/cm3.", examples=[1.24])
+    diameter: float | None = Field(None, gt=0, description="The diameter of this filament in mm.", examples=[1.75])
 
     @field_validator("density", "diameter")
     @classmethod
-    def prevent_none(cls: type["FilamentUpdateParameters"], v: Optional[float]) -> Optional[float]:
+    def prevent_none(cls: type["FilamentUpdateParameters"], v: float | None) -> float | None:
         """Prevent density and diameter from being None."""
         if v is None:
             raise ValueError("Value must not be None.")
@@ -203,11 +203,11 @@ async def find(
     *,
     db: Annotated[AsyncSession, Depends(get_db_session)],
     vendor_name_old: Annotated[
-        Optional[str],
+        str | None,
         Query(alias="vendor_name", title="Vendor Name", description="See vendor.name.", deprecated=True),
     ] = None,
     vendor_id_old: Annotated[
-        Optional[str],
+        str | None,
         Query(
             alias="vendor_id",
             title="Vendor ID",
@@ -217,7 +217,7 @@ async def find(
         ),
     ] = None,
     vendor_name: Annotated[
-        Optional[str],
+        str | None,
         Query(
             alias="vendor.name",
             title="Vendor Name",
@@ -229,7 +229,7 @@ async def find(
         ),
     ] = None,
     vendor_id: Annotated[
-        Optional[str],
+        str | None,
         Query(
             alias="vendor.id",
             title="Vendor ID",
@@ -242,7 +242,7 @@ async def find(
         ),
     ] = None,
     name: Annotated[
-        Optional[str],
+        str | None,
         Query(
             title="Filament Name",
             description=(
@@ -253,7 +253,7 @@ async def find(
         ),
     ] = None,
     material: Annotated[
-        Optional[str],
+        str | None,
         Query(
             title="Filament Material",
             description=(
@@ -264,7 +264,7 @@ async def find(
         ),
     ] = None,
     article_number: Annotated[
-        Optional[str],
+        str | None,
         Query(
             title="Filament Article Number",
             description=(
@@ -276,7 +276,7 @@ async def find(
         ),
     ] = None,
     color_hex: Annotated[
-        Optional[str],
+        str | None,
         Query(
             title="Filament Color",
             description="Match filament by similar color. Slow operation!",
@@ -293,7 +293,7 @@ async def find(
         ),
     ] = 20.0,
     external_id: Annotated[
-        Optional[str],
+        str | None,
         Query(
             description=(
                 "Find filaments imported by the given external ID. "
@@ -305,7 +305,7 @@ async def find(
         ),
     ] = None,
     sort: Annotated[
-        Optional[str],
+        str | None,
         Query(
             title="Sort",
             description=(
@@ -315,7 +315,7 @@ async def find(
         ),
     ] = None,
     limit: Annotated[
-        Optional[int],
+        int | None,
         Query(title="Limit", description="Maximum number of items in the response."),
     ] = None,
     offset: Annotated[int, Query(title="Offset", description="Offset in the full result set if a limit is set.")] = 0,
