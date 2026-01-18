@@ -460,4 +460,35 @@ jobs:
           files: /tmp/spoolman/spoolman.zip
           token: ${{ secrets.GITHUB_TOKEN }}
           body: "⚠️ TODO ⚠️"
+  #
+  # Create a fake-release as an artifact if CI was not triggered by a tag
+  # This release does not have pushed images, it's only the zip file for standalone installs
+  #
+  publish-artifact-package:
+    needs: [test, style, build-client]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download built spoolman
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: spoolman
+      - name: Generate release info
+        run: |
+          cd spoolman
+          echo '{
+            "project_name": "Spoolman",
+            "project_owner": "Donkie",
+            "version": "${{ github.sha }}"
+          }' > release_info.json
+      - name: Zip
+        run: |
+          cd spoolman
+          zip -r spoolman.zip .
+      - name: Upload spoolman package artifact
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: spoolman-package
+          path: spoolman/spoolman.zip
 
