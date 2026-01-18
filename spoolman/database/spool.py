@@ -3,7 +3,6 @@
 import logging
 from collections.abc import Sequence
 from datetime import datetime, timezone
-from typing import Optional, Union
 
 import sqlalchemy
 from sqlalchemy import case, func
@@ -38,18 +37,18 @@ async def create(
     *,
     db: AsyncSession,
     filament_id: int,
-    remaining_weight: Optional[float] = None,
-    initial_weight: Optional[float] = None,
-    spool_weight: Optional[float] = None,
-    used_weight: Optional[float] = None,
-    first_used: Optional[datetime] = None,
-    last_used: Optional[datetime] = None,
-    price: Optional[float] = None,
-    location: Optional[str] = None,
-    lot_nr: Optional[str] = None,
-    comment: Optional[str] = None,
+    remaining_weight: float | None = None,
+    initial_weight: float | None = None,
+    spool_weight: float | None = None,
+    used_weight: float | None = None,
+    first_used: datetime | None = None,
+    last_used: datetime | None = None,
+    price: float | None = None,
+    location: str | None = None,
+    lot_nr: str | None = None,
+    comment: str | None = None,
     archived: bool = False,
-    extra: Optional[dict[str, str]] = None,
+    extra: dict[str, str] | None = None,
 ) -> models.Spool:
     """Add a new spool to the database. Leave weight empty to assume full spool."""
     filament_item = await filament.get_by_id(db, filament_id)
@@ -115,16 +114,16 @@ async def get_by_id(db: AsyncSession, spool_id: int) -> models.Spool:
 async def find(  # noqa: C901, PLR0912
     *,
     db: AsyncSession,
-    filament_name: Optional[str] = None,
-    filament_id: Optional[Union[int, Sequence[int]]] = None,
-    filament_material: Optional[str] = None,
-    vendor_name: Optional[str] = None,
-    vendor_id: Optional[Union[int, Sequence[int]]] = None,
-    location: Optional[str] = None,
-    lot_nr: Optional[str] = None,
+    filament_name: str | None = None,
+    filament_id: int | Sequence[int] | None = None,
+    filament_material: str | None = None,
+    vendor_name: str | None = None,
+    vendor_id: int | Sequence[int] | None = None,
+    location: str | None = None,
+    lot_nr: str | None = None,
     allow_archived: bool = False,
-    sort_by: Optional[dict[str, SortOrder]] = None,
-    limit: Optional[int] = None,
+    sort_by: dict[str, SortOrder] | None = None,
+    limit: int | None = None,
     offset: int = 0,
 ) -> tuple[list[models.Spool], int]:
     """Find a list of spool objects by search criteria.

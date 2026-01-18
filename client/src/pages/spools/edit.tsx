@@ -1,5 +1,5 @@
 import { Edit, useForm } from "@refinedev/antd";
-import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
+import { HttpError, useTranslate } from "@refinedev/core";
 import { Alert, DatePicker, Divider, Form, Input, InputNumber, Radio, Select, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { message } from "antd/lib";
@@ -28,13 +28,13 @@ type ISpoolRequest = ISpoolParsedExtras & {
   filament_id: number | string;
 };
 
-export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
+export const SpoolEdit = () => {
   const t = useTranslate();
   const [messageApi, contextHolder] = message.useMessage();
   const [hasChanged, setHasChanged] = useState(false);
   const extraFields = useGetFields(EntityType.spool);
   const currency = useCurrency();
-  const [searchParams, _] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const { form, formProps, saveButtonProps } = useForm<ISpool, HttpError, ISpoolRequest, ISpool>({
@@ -131,8 +131,8 @@ export const SpoolEdit: React.FC<IResourceComponentsProps> = () => {
   const [usedWeight, setUsedWeight] = useState(0);
 
   useEffect(() => {
-    const newFilamentWeight = selectedFilament?.weight || 0;
-    const newSpoolWeight = selectedFilament?.spool_weight || 0;
+    const newFilamentWeight = getFilamentWeight();
+    const newSpoolWeight = getSpoolWeight();
     if (newFilamentWeight > 0) {
       form.setFieldValue("initial_weight", newFilamentWeight);
     }

@@ -15,7 +15,7 @@ interface IInfo {
   build_date?: string;
 }
 
-export const Version: React.FC = () => {
+export const Version = () => {
   const infoResult = useQuery<IInfo>({
     queryKey: ["info"],
     queryFn: async () => {
@@ -31,7 +31,7 @@ export const Version: React.FC = () => {
     return <Spin />;
   }
 
-  if (infoResult.isError) {
+  if (infoResult.isError || !infoResult.data) {
     return <span>Unknown</span>;
   }
 

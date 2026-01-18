@@ -1,4 +1,3 @@
-import { RefineThemes } from "@refinedev/antd";
 import { ConfigProvider, theme } from "antd";
 import { createContext, PropsWithChildren, useEffect, useState } from "react";
 
@@ -9,7 +8,7 @@ type ColorModeContextType = {
 
 export const ColorModeContext = createContext<ColorModeContextType>({} as ColorModeContextType);
 
-export const ColorModeContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
+export const ColorModeContextProvider = ({ children }: PropsWithChildren) => {
   const colorModeFromLocalStorage = localStorage.getItem("colorMode");
   const isSystemPreferenceDark = window?.matchMedia("(prefers-color-scheme: dark)").matches;
 
@@ -40,8 +39,10 @@ export const ColorModeContextProvider: React.FC<PropsWithChildren> = ({ children
       <ConfigProvider
         // you can change the theme colors here. example: ...RefineThemes.Magenta,
         theme={{
-          ...RefineThemes.Yellow,
           algorithm: mode === "light" ? defaultAlgorithm : darkAlgorithm,
+          token: {
+            colorPrimary: "#dc7734",
+          },
         }}
       >
         {children}

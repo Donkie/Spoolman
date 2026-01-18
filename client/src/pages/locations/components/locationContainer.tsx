@@ -17,11 +17,7 @@ export function LocationContainer() {
   const locationsSpoolOrders = useLocationsSpoolOrders();
   const setLocationsSpoolOrders = useSetSetting<Record<string, number[]>>("locations_spoolorders");
 
-  const {
-    data: spoolData,
-    isLoading,
-    isError,
-  } = useList<ISpool>({
+  const { result: spoolData, query } = useList<ISpool>({
     resource: "spool",
     meta: {
       queryParams: {
@@ -32,6 +28,8 @@ export function LocationContainer() {
       mode: "off",
     },
   });
+  const isLoading = query.isLoading;
+  const isError = query.isError;
 
   // Group spools by location
   const spoolLocations = (() => {
@@ -71,7 +69,7 @@ export function LocationContainer() {
   // Create list of locations that's sorted
   const locationsList = useMemo(() => {
     // Start with the default loc
-    let allLocs = [];
+    const allLocs = [];
     if (EMPTYLOC in spoolLocations) {
       allLocs.push(EMPTYLOC);
     }

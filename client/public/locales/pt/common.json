@@ -291,7 +291,9 @@
         }
     },
     "home": {
-        "home": "Início"
+        "home": "Início",
+        "welcome": "Bem vindo à sua instância do Spoolman!",
+        "description": "Parece que ainda não adicionou nenhuma bobine. Veja a <helpPageLink>Página de Ajuda</helpPageLink> para obter ajuda a começar."
     },
     "help": {
         "help": "Ajuda",

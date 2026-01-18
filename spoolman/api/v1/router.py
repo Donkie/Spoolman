@@ -36,7 +36,7 @@ app = FastAPI(
 
 @app.exception_handler(ItemNotFoundError)
 async def itemnotfounderror_exception_handler(_request: Request, exc: ItemNotFoundError) -> Response:
-    logger.debug(exc, exc_info=True)
+    logger.debug(exc)
     return JSONResponse(
         status_code=404,
         content={"message": exc.args[0]},

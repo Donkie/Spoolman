@@ -2,6 +2,8 @@
 name = "spoolman"
 version = "0.22.1"
 description = "A web service that keeps track of 3D printing spools."
+license = "MIT"
+readme = "README.md"
 authors = [
     { name = "Donkie", email = "daniel.cf.hultgren@gmail.com" },
 ]
@@ -24,36 +26,48 @@ dependencies = [
     "httpx~=0.28",
     "hishel~=0.1",
 ]
-requires-python = ">=3.9,<=3.12"
+requires-python = ">=3.10"
 
-[project.license]
-text = "MIT"
-
-[tool.pdm.dev-dependencies]
+[dependency-groups]
 dev = [
-    "ruff==0.11.0",
-    "black~=25.1.0",
-    "pre-commit~=4.1.0",
+    "ruff==0.14.10",
     "pytest~=8.3.5",
     "pytest-asyncio~=0.25.3",
     "httpx~=0.28.1",
+    "poethepoet>=0.40.0",
+    "bump2version>=1.0.1",
 ]
 
-[tool.pdm.scripts.docs]
-call = "spoolman.docs:generate_docs"
+[tool.poe.tasks.generate-docs]
+script = "spoolman.docs:generate_docs"
+help = "Generate API documentation for Spoolman."
 
-[tool.pdm.scripts.bump]
-call = "spoolman.bump:bump"
+[tool.poe.tasks.bump]
+script = "spoolman.bump:bump"
+help = "Bump Spoolman version."
 
-[tool.pdm.scripts.app]
+[tool.poe.tasks.run]
 cmd = "uvicorn spoolman.main:app"
+help = "Start Spoolman."
 
-[tool.pdm.scripts.itest]
+[tool.poe.tasks.itest]
 cmd = "python tests_integration/run.py"
+help = "Builds Spoolman and runs integration tests on the backend against all supported databases."
+
+[tool.bumpversion]
+current_version = "0.22.1"
+parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
+serialize = ["{major}.{minor}.{patch}"]
+allow_dirty = false
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
 
 [tool.ruff]
 line-length = 120
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = [
@@ -61,24 +75,26 @@ select = [
 ]
 ignore = [
     "A003",
+    "COM812",
     "D101",
     "D104",
     "D203",
     "D213",
     "D406",
     "D407",
-    "FA100",
-    "FIX002",
-    "S104",
-    "TRY201",
-    "TRY003",
+    "DTZ003",
     "EM101",
     "EM102",
-    "DTZ003",
+    "FA100",
+    "FIX002",
     "PLR0913",
+    "S104",
+    "S603",
     "SIM108",
     "TD002",
     "TD003",
+    "TRY003",
+    "TRY201",
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -94,14 +110,3 @@ ignore = [
     "N999",
 ]
 
-[tool.black]
-line-length = 120
-target-version = [
-    "py39",
-]
-
-[build-system]
-requires = [
-    "pdm-backend",
-]
-build-backend = "pdm.backend"

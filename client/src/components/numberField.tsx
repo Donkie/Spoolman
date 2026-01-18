@@ -1,6 +1,5 @@
 import { NumberFieldProps } from "@refinedev/antd/dist/components/fields/types";
 import { Typography } from "antd";
-import React from "react";
 
 const { Text } = Typography;
 
@@ -17,12 +16,12 @@ type Props = NumberFieldProps & {
  *
  * @see {@link https://refine.dev/docs/ui-frameworks/antd/components/fields/number} for more details.
  */
-export const NumberFieldUnit: React.FC<Props> = ({ value, locale, options, ...rest }) => {
+export const NumberFieldUnit = ({ value, locale, options, unit }: Props) => {
   const number = Number(value);
 
   return (
-    <Text {...rest}>
-      {toLocaleStringSupportsOptions() ? number.toLocaleString(locale, options) : number} {rest.unit}
+    <Text>
+      {toLocaleStringSupportsOptions() ? number.toLocaleString(locale, options) : number} {unit}
     </Text>
   );
 };
