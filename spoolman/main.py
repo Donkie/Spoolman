@@ -36,7 +36,6 @@ if logging.getLogger("uvicorn").handlers:
 logging.getLogger("uvicorn").addHandler(console_handler)
 
 logging.getLogger("uvicorn.error").setLevel(log_level)
-logging.getLogger("uvicorn.error").addHandler(console_handler)
 
 access_handlers = logging.getLogger("uvicorn.access").handlers
 if access_handlers:
@@ -141,6 +140,11 @@ def add_file_logging() -> None:
     file_handler = TimedRotatingFileHandler(log_file, when="midnight", backupCount=5)
     file_handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(message)s", "%Y-%m-%d %H:%M:%S"))
     root_logger.addHandler(file_handler)
+
+    logging.getLogger("uvicorn").addHandler(file_handler)
+    access_handlers = logging.getLogger("uvicorn.access").handlers
+    if access_handlers:
+        logging.getLogger("uvicorn.access").addHandler(file_handler)
 
 
 @app.on_event("startup")
