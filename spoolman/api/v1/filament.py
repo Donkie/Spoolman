@@ -289,7 +289,7 @@ async def find(
                 "The similarity threshold for color matching. "
                 "A value between 0.0-100.0, where 0 means match only exactly the same color."
             ),
-            example=20.0,
+            examples=[20.0],
         ),
     ] = 20.0,
     external_id: Annotated[
@@ -301,7 +301,7 @@ async def find(
                 "Specify empty string to match filaments with no external ID. "
                 "Surround a term with quotes to search for the exact term."
             ),
-            example="polymaker_pla_polysonicblack_1000_175",
+            examples=["polymaker_pla_polysonicblack_1000_175"],
         ),
     ] = None,
     sort: Annotated[
@@ -311,7 +311,7 @@ async def find(
             description=(
                 'Sort the results by the given field. Should be a comma-separate string with "field:direction" items.'
             ),
-            example="vendor.name:asc,spool_weight:desc",
+            examples=["vendor.name:asc,spool_weight:desc"],
         ),
     ] = None,
     limit: Annotated[
