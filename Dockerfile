@@ -1,11 +1,11 @@
-FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS python-builder
+FROM python:3.14-slim-bookworm AS python-builder
 
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
 ENV UV_NO_DEV=1
 ENV UV_PYTHON_DOWNLOADS=0
 
-# Install dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     g++ \
     python3-dev \
@@ -14,12 +14,8 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Add local user so we don't run as root
-# RUN groupmod -g 1000 users \
-#     && useradd -u 911 -U app \
-#     && usermod -G users app
-
-# ENV PATH="/home/app/.local/bin:${PATH}"
+# Install UV
+RUN pip install --no-cache-dir uv
 
 # Install dependencies
 WORKDIR /home/app/spoolman
