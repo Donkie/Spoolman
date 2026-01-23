@@ -44,7 +44,7 @@ jobs:
         run: |
           git config --global user.name "${GITHUB_ACTOR}"
           git config --global user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
-          uv run bump2version ${{ github.event.inputs.bump }}
+          uv run poe ${{ github.event.inputs.bump }}
       
       - name: Push
         run: |

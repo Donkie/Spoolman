@@ -4,9 +4,7 @@ version = "0.22.1"
 description = "A web service that keeps track of 3D printing spools."
 license = "MIT"
 readme = "README.md"
-authors = [
-    { name = "Donkie", email = "daniel.cf.hultgren@gmail.com" },
-]
+authors = [{ name = "Donkie", email = "daniel.cf.hultgren@gmail.com" }]
 dependencies = [
     "uvicorn~=0.34",
     "httptools>=0.6.4; platform_machine != \"armv7l\"",
@@ -35,7 +33,6 @@ dev = [
     "pytest-asyncio~=0.25.3",
     "httpx~=0.28.1",
     "poethepoet>=0.40.0",
-    "bump2version>=1.0.1",
 ]
 
 [tool.poe.tasks.generate-docs]
@@ -70,9 +67,7 @@ line-length = 120
 target-version = "py310"
 
 [tool.ruff.lint]
-select = [
-    "ALL",
-]
+select = ["ALL"]
 ignore = [
     "A003",
     "COM812",
@@ -98,15 +93,5 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests*/*" = [
-    "ANN201",
-    "ASYNC210",
-    "S101",
-    "PLR2004",
-    "D103",
-    "TID252",
-]
-"migrations/versions/*" = [
-    "N999",
-]
-
+"tests*/*" = ["ANN201", "ASYNC210", "S101", "PLR2004", "D103", "TID252"]
+"migrations/versions/*" = ["N999"]
