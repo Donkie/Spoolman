@@ -60,6 +60,7 @@ def _update_node_pkg_version(project_root: Path, new_version: str) -> None:
     node_package["version"] = new_version
     with Path("client", "package.json").open("w") as f:
         json.dump(node_package, f, indent=2)
+        f.write("\n")  # Ensure file ends with a newline, needed by prettier
 
     # Run npm install to update the lock file with new version
     # On windows, shell=True is required for npm to be found
