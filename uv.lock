@@ -940,7 +940,7 @@ wheels = [
 
 [[package]]
 name = "spoolman"
-version = "0.22.1"
+version = "0.23.0"
 source = { virtual = "." }
 dependencies = [
     { name = "alembic" },

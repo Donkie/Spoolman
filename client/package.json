@@ -1,6 +1,6 @@
 {
   "name": "spoolman-ui",
-  "version": "0.22.1",
+  "version": "0.23.0",
   "engines": {
     "node": "20.x"
   },

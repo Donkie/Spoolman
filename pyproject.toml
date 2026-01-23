@@ -1,6 +1,6 @@
 [project]
 name = "spoolman"
-version = "0.22.1"
+version = "0.23.0"
 description = "A web service that keeps track of 3D printing spools."
 license = "MIT"
 readme = "README.md"
