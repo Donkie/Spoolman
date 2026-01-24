@@ -23,6 +23,7 @@ dependencies = [
     "prometheus-client~=0.21",
     "httpx~=0.28",
     "hishel~=0.1",
+    "aiomysql[rsa]~=0.3",
 ]
 requires-python = ">=3.10"
 
