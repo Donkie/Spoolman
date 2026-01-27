@@ -128,6 +128,7 @@ export function useGetFilamentSelectOptions() {
   const t = useTranslate();
   const { query: internalFilaments } = useSelect<IFilament>({
     resource: "filament",
+    pagination: { mode: "off" },
   });
   const externalFilaments = useGetExternalDBFilaments();
 
