@@ -64,6 +64,7 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
   const { selectProps: vendorSelect } = useSelect<IVendor>({
     resource: "vendor",
     optionLabel: "name",
+    pagination: { mode: "off" },
   });
 
   const importFilament = async (filament: ExternalFilament) => {

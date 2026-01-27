@@ -40,6 +40,7 @@ export const FilamentEdit = () => {
   const { selectProps } = useSelect<IVendor>({
     resource: "vendor",
     optionLabel: "name",
+    pagination: { mode: "off" },
   });
 
   // Add the vendor_id field to the form
