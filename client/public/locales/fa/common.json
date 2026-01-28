@@ -208,6 +208,9 @@
         },
         "messages": {
             "archive": "آیا مطمئن هستید که می‌خواهید این قرقره را بایگانی کنید؟"
+        },
+        "formats": {
+            "last_used": ""
         }
     },
     "filament": {
@@ -288,7 +291,9 @@
         }
     },
     "home": {
-        "home": "صفحه اصلی"
+        "home": "صفحه اصلی",
+        "welcome": "",
+        "description": ""
     },
     "help": {
         "help": "راهنما",
@@ -313,6 +318,10 @@
             "base_url": {
                 "tooltip": "آدرس پایگاه داده Spoolman که باید هنگام ایجاد ویژگی‌هایی مانند کدهای QR استفاده شود.",
                 "label": "لینک Spoolman"
+            },
+            "round_prices": {
+                "label": "",
+                "tooltip": ""
             }
         },
         "extra_fields": {
@@ -376,6 +385,15 @@
             "show": "نمایش تولید کننده فیلامنت شماره {{id}} | اسپول من",
             "create": "تعریف کردن تولید کننده فیلامنت جدید | اسپول من",
             "clone": "تکثیر تولید کننده فیلامنت شماره {{id}} | اسپول من"
+        },
+        "locations": {
+            "list": ""
         }
+    },
+    "locations": {
+        "new_location": "",
+        "no_location": "",
+        "locations": "",
+        "no_locations_help": ""
     }
 }

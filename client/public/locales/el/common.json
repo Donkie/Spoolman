@@ -16,7 +16,24 @@
             "bedTemp": "Θερμοκρασία κρεβατιού: {{temp}}",
             "lotNr": "Αριθμός παρτίδας: {{lot}}",
             "showFilamentComment": "Σχόλια Νήματος",
-            "button": "Tύπωση Κωδικών QR"
+            "button": "Tύπωση Κωδικών QR",
+            "useHTTPUrl": {
+                "options": {
+                    "default": "",
+                    "url": ""
+                },
+                "preview": "",
+                "tooltip": "",
+                "label": ""
+            },
+            "showQRCodeMode": {
+                "withIcon": "",
+                "no": "",
+                "simple": ""
+            },
+            "templateHelp": "",
+            "showQRCode": "",
+            "template": ""
         },
         "generic": {
             "printerMarginBottom": "Ασφαλές Περιθώριο Κάτω",
@@ -48,7 +65,18 @@
             "showBorder": "Εμφάνιση Περιθωρίου",
             "printerMarginLeft": "Ασφαλές Περιθώριο Αριστερά",
             "dimensions": "Διαστάσεις",
-            "print": "Τύπωσε"
+            "print": "Τύπωσε",
+            "deleteSettingsConfirm": "",
+            "deleteSettings": "",
+            "itemCopies": "",
+            "settingsName": "",
+            "newSetting": "",
+            "addSettings": "",
+            "duplicateSettings": "",
+            "settings": "",
+            "saveSetting": "",
+            "saveAsImage": "",
+            "defaultSettings": ""
         },
         "spoolSelect": {
             "selectedTotal_one": "{{count}} καρούλι έχει επιλεγεί",
@@ -89,6 +117,9 @@
         },
         "help": {
             "list": "Βοήθεια | Spoolman"
+        },
+        "locations": {
+            "list": ""
         }
     },
     "spool": {
@@ -112,7 +143,9 @@
             "remaining_weight": "Υπολειπόμενο Βάρος",
             "price": "Τιμή",
             "spool_weight": "Βάρος Κενού Καρουλιού",
-            "initial_weight": "Αρχικό Βάρος"
+            "initial_weight": "Αρχικό Βάρος",
+            "filament_internal": "",
+            "filament_external": ""
         },
         "titles": {
             "archive": "Αρχειοθέτηση Καρουλιού",
@@ -121,11 +154,19 @@
             "create": "Δημιουργία Καρουλιού",
             "clone": "Αντιγραφή Καρουλιού",
             "show_title": "[Καρούλι #{{id}}] {{name}}",
-            "list": "Καρούλια"
+            "list": "Καρούλια",
+            "adjust": ""
         },
         "form": {
             "spool_updated": "Αυτό το καρούλι έχει ενημερωθεί από κάποιον/κάτι άλλο από τότε που ανοίξατε αυτήν τη σελίδα. Η αποθήκευση θα αντικαταστήσει αυτές τις αλλαγές!",
-            "new_location_prompt": "Προσθήκη νέας τοποθεσίας αποθήκευσης"
+            "new_location_prompt": "Προσθήκη νέας τοποθεσίας αποθήκευσης",
+            "measurement_type_label": "",
+            "adjust_filament_value": "",
+            "measurement_type": {
+                "weight": "",
+                "length": ""
+            },
+            "adjust_filament_help": ""
         },
         "fields_help": {
             "used_weight": "Πόσο νήμα έχει χρησιμοποιηθεί από το καρούλι. Σε ένα καινούργιο καρούλι θα πρέπει να έχουν χρησιμοποιηθεί 0g.",
@@ -134,11 +175,15 @@
             "lot_nr": "Αριθμός παρτίδας κατασκευαστή. Μπορεί να χρησιμοποιηθεί για να διασφαλιστεί ότι μια εκτύπωση έχει σταθερό χρώμα εάν χρησιμοποιούνται πολλαπλά καρούλια.",
             "remaining_weight": "Πόσο νήμα έχει απομείνει στο καρούλι. Για ένα καινούργιο καρούλι αυτό πρέπει να συμπίπτει με το βάρος του καρουλιού.",
             "location": "Που βρίσκεται το καρούλι, εάν υπάρχουν πολλαπλά σημεία αποθήκευσης για τα καρούλια.",
-            "price": "Τιμή πλήρους καρουλιού. Εάν δεν οριστεί, η τιμή του νήματος θα θεωρηθεί αντ' αυτού."
+            "price": "Τιμή πλήρους καρουλιού. Εάν δεν οριστεί, η τιμή του νήματος θα θεωρηθεί αντ' αυτού.",
+            "external_filament": ""
         },
         "spool": "Καρούλια",
         "messages": {
             "archive": "Είστε σίγουρος ότι θέλετε να αρχειοθετήσετε αυτό το καρούλι;"
+        },
+        "formats": {
+            "last_used": ""
         }
     },
     "buttons": {
@@ -163,7 +208,8 @@
         "unArchive": "Επαναφορά Αρχειοθετημένου",
         "clone": "Αντιγραφή",
         "clear": "Εκκαθάριση",
-        "saveAndAdd": "Αποθήκευση και Προσθήκη"
+        "saveAndAdd": "Αποθήκευση και Προσθήκη",
+        "continue": ""
     },
     "filament": {
         "fields_help": {
@@ -172,7 +218,8 @@
             "spool_weight": "Το βάρος ενός άδειου καρουλιού. Χρησιμοποιείται για τον προσδιορισμό του μετρημένου βάρους ενός καρουλιού.",
             "price": "Τιμή ενός πλήρους καρουλιού.",
             "weight": "Το βάρος του νήματος ενός πλήρους καρουλιού (καθαρό βάρος). Αυτό δεν πρέπει να περιλαμβάνει το βάρος του ίδιου του καρουλιού, μόνο το βάρος του νήματος. Είναι αυτό που συνήθως αναγράφεται στη συσκευασία.",
-            "material": "Π.χ. PLA, ABS, PETG, κλπ."
+            "material": "Π.χ. PLA, ABS, PETG, κλπ.",
+            "multi_color_direction": ""
         },
         "fields": {
             "material": "Υλικό",
@@ -191,7 +238,12 @@
             "id": "Α/Α",
             "color_hex": "Χρώμα",
             "article_number": "Κωδικός Προϊόντος",
-            "spools": "Προβολή Καρουλιών"
+            "spools": "Προβολή Καρουλιών",
+            "multi_color": "",
+            "external_id": "",
+            "single_color": "",
+            "longitudinal": "",
+            "coaxial": ""
         },
         "titles": {
             "clone": "Αντιγραφή Νήματος",
@@ -202,7 +254,9 @@
             "list": "Νήματα"
         },
         "form": {
-            "filament_updated": "Αυτό το νήμα έχει ενημερωθεί από κάποιον/κάτι άλλο από τότε που ανοίξατε αυτήν τη σελίδα. Η αποθήκευση θα αντικαταστήσει αυτές τις αλλαγές!"
+            "filament_updated": "Αυτό το νήμα έχει ενημερωθεί από κάποιον/κάτι άλλο από τότε που ανοίξατε αυτήν τη σελίδα. Η αποθήκευση θα αντικαταστήσει αυτές τις αλλαγές!",
+            "import_external": "",
+            "import_external_description": ""
         },
         "filament": "Νήματα",
         "buttons": {
@@ -232,7 +286,9 @@
             "registered": "Ημερομηνία Εγγραφής",
             "comment": "Σχόλια",
             "name": "Όνομα",
-            "id": "Α/Α"
+            "id": "Α/Α",
+            "external_id": "",
+            "empty_spool_weight": ""
         },
         "vendor": "Προμηθευτές"
     },
@@ -288,7 +344,9 @@
     },
     "kofi": "Φιλοδώρημα στο Ko-fi",
     "home": {
-        "home": "Αρχική"
+        "home": "Αρχική",
+        "welcome": "",
+        "description": ""
     },
     "settings": {
         "extra_fields": {
@@ -326,9 +384,23 @@
             "tab": "Γενικές",
             "currency": {
                 "label": "Ετικέτα για τη ρύθμιση του νομίσματος"
+            },
+            "base_url": {
+                "tooltip": "",
+                "label": ""
+            },
+            "round_prices": {
+                "label": "",
+                "tooltip": ""
             }
         },
         "header": "Ρυθμίσεις",
         "settings": "Ρυθμίσεις"
+    },
+    "locations": {
+        "new_location": "",
+        "no_location": "",
+        "locations": "",
+        "no_locations_help": ""
     }
 }

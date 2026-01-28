@@ -16,7 +16,24 @@
             "bedTemp": "BT: {{temp}}",
             "lotNr": "Tételszám: {{lot}}",
             "showFilamentComment": "Filament Komment",
-            "button": "QR kódok nyomtatása"
+            "button": "QR kódok nyomtatása",
+            "useHTTPUrl": {
+                "options": {
+                    "default": "",
+                    "url": ""
+                },
+                "preview": "",
+                "tooltip": "",
+                "label": ""
+            },
+            "showQRCodeMode": {
+                "withIcon": "",
+                "no": "",
+                "simple": ""
+            },
+            "templateHelp": "",
+            "showQRCode": "",
+            "template": ""
         },
         "generic": {
             "printerMarginBottom": "Biztonságos zóna alja",
@@ -48,7 +65,18 @@
             "showBorder": "Szélek megjelenítése",
             "printerMarginLeft": "Biztonságos zóna balra",
             "dimensions": "Dimenziók",
-            "print": "Nyomtat"
+            "print": "Nyomtat",
+            "deleteSettingsConfirm": "",
+            "deleteSettings": "",
+            "itemCopies": "",
+            "settingsName": "",
+            "newSetting": "",
+            "addSettings": "",
+            "duplicateSettings": "",
+            "settings": "",
+            "saveSetting": "",
+            "saveAsImage": "",
+            "defaultSettings": ""
         },
         "spoolSelect": {
             "selectedTotal_one": "{{count}} tekercs kiválasztva",
@@ -89,6 +117,9 @@
         },
         "help": {
             "list": "Segítség | Spoolman"
+        },
+        "locations": {
+            "list": ""
         }
     },
     "spool": {
@@ -110,7 +141,11 @@
             "used_weight": "Felhasznált súly",
             "id": "ID",
             "remaining_weight": "Hátralévő súly",
-            "price": "Ár"
+            "price": "Ár",
+            "filament_internal": "",
+            "spool_weight": "",
+            "initial_weight": "",
+            "filament_external": ""
         },
         "titles": {
             "archive": "Arhivált tekercs",
@@ -119,7 +154,8 @@
             "create": "Tekercs létrehozása",
             "clone": "Tekercs másolása",
             "show_title": "[Tekercs #{{id}}] {{name}}",
-            "list": "Tekercs"
+            "list": "Tekercs",
+            "adjust": ""
         },
         "fields_help": {
             "used_weight": "Mennyi filament használódott el a tekercsről. Egy új tekercsnek 0 gramm használt mennyiséggel kell rendelkeznie.",
@@ -128,15 +164,26 @@
             "lot_nr": "Gyártói tételszám. A szín egységesség ellenőrzésére használható, ha több tekercset használsz egy nyomtatáshoz.",
             "remaining_weight": "Mennyi filament van még a tekercsen. Egy új tekercsnél ez a tekercs súlyával kell megegyeznie.",
             "location": "Hol található a tekercs, ha több helyen tárolod a tekercseidet.",
-            "price": "Egy teljes tekercs ára. Ha nincs beállítva, a rendszer az filament árát veszi fel helyette."
+            "price": "Egy teljes tekercs ára. Ha nincs beállítva, a rendszer az filament árát veszi fel helyette.",
+            "external_filament": ""
         },
         "form": {
             "new_location_prompt": "Add meg az új helyet",
-            "spool_updated": "Ez a tekercs azóta frissült valaki/valami más által, mióta megnyitottad ezt az oldalt. A mentés felül fogja írni ezeket a változásokat!"
+            "spool_updated": "Ez a tekercs azóta frissült valaki/valami más által, mióta megnyitottad ezt az oldalt. A mentés felül fogja írni ezeket a változásokat!",
+            "measurement_type_label": "",
+            "adjust_filament_value": "",
+            "measurement_type": {
+                "weight": "",
+                "length": ""
+            },
+            "adjust_filament_help": ""
         },
         "spool": "Tekercs",
         "messages": {
             "archive": "Biztosan archiválni szeretné ezt a tekercset?"
+        },
+        "formats": {
+            "last_used": ""
         }
     },
     "buttons": {
@@ -161,7 +208,8 @@
         "unArchive": "Arhiválás visszavonása",
         "clone": "Másolás",
         "clear": "Törlés",
-        "saveAndAdd": "Mentés és hozzáadás"
+        "saveAndAdd": "Mentés és hozzáadás",
+        "continue": ""
     },
     "filament": {
         "fields_help": {
@@ -170,7 +218,8 @@
             "spool_weight": "Az üres tekercs súlya. Ezt használják a tekercs mért súlyának meghatározásához.",
             "price": "A teljes tekercs ára.",
             "weight": "A teljes tekercs súlya (nettó súly), amely nem tartalmazza a tekercs saját súlyát, csak a filament súlyát. Általában ez szerepel a csomagoláson.",
-            "material": "Például. PLA, ABS, PETG stb."
+            "material": "Például. PLA, ABS, PETG stb.",
+            "multi_color_direction": ""
         },
         "fields": {
             "material": "Anyag",
@@ -189,7 +238,12 @@
             "id": "ID",
             "color_hex": "Szín",
             "article_number": "Cikkszám",
-            "spools": "Tekercsek megjelenítése"
+            "spools": "Tekercsek megjelenítése",
+            "multi_color": "",
+            "external_id": "",
+            "single_color": "",
+            "longitudinal": "",
+            "coaxial": ""
         },
         "titles": {
             "clone": "Filament másolása",
@@ -201,7 +255,9 @@
         },
         "filament": "Filamentek",
         "form": {
-            "filament_updated": "Ez a szál anyag azóta frissült valaki/valami más által, mióta megnyitottad ezt az oldalt. A mentés felül fogja írni ezeket a változásokat!"
+            "filament_updated": "Ez a szál anyag azóta frissült valaki/valami más által, mióta megnyitottad ezt az oldalt. A mentés felül fogja írni ezeket a változásokat!",
+            "import_external": "",
+            "import_external_description": ""
         },
         "buttons": {
             "add_spool": "Tekercs hozzáadása"
@@ -227,7 +283,9 @@
             "registered": "Nyilvántartott",
             "comment": "Megjegyzés",
             "name": "Név",
-            "id": "ID"
+            "id": "ID",
+            "external_id": "",
+            "empty_spool_weight": ""
         },
         "vendor": "Gyártók",
         "form": {
@@ -277,7 +335,9 @@
     },
     "kofi": "Tipp a Ko-fi-ra",
     "home": {
-        "home": "Kezdő lap"
+        "home": "Kezdő lap",
+        "welcome": "",
+        "description": ""
     },
     "help": {
         "resources": {
@@ -326,7 +386,21 @@
             "currency": {
                 "label": "Pénznem"
             },
-            "tab": "Általános"
+            "tab": "Általános",
+            "base_url": {
+                "tooltip": "",
+                "label": ""
+            },
+            "round_prices": {
+                "label": "",
+                "tooltip": ""
+            }
         }
+    },
+    "locations": {
+        "new_location": "",
+        "no_location": "",
+        "locations": "",
+        "no_locations_help": ""
     }
 }
