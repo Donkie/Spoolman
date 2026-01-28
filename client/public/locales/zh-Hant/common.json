@@ -324,7 +324,9 @@
         }
     },
     "home": {
-        "home": "主頁"
+        "home": "主頁",
+        "welcome": "",
+        "description": ""
     },
     "help": {
         "help": "說明",
@@ -349,6 +351,10 @@
             "base_url": {
                 "tooltip": "生成 QR 碼等功能時使用的基本 URL。",
                 "label": "基本URL"
+            },
+            "round_prices": {
+                "label": "",
+                "tooltip": ""
             }
         },
         "extra_fields": {
