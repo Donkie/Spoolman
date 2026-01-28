@@ -339,7 +339,9 @@
     },
     "kofi": "在Ko-fi上给我打赏一点小费",
     "home": {
-        "home": "主页"
+        "home": "主页",
+        "welcome": "",
+        "description": ""
     },
     "help": {
         "help": "帮助",
