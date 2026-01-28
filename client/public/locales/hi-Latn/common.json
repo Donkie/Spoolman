@@ -12,6 +12,388 @@
         "edit": "Sampadan Karen",
         "confirm": "Kya aapko pakka hai?",
         "continue": "Aage badhen",
-        "show": "Dikhayen"
+        "show": "Dikhayen",
+        "filter": "",
+        "cancel": "",
+        "showArchived": "",
+        "archive": "",
+        "hideColumns": "",
+        "delete": "",
+        "undo": "",
+        "import": "",
+        "logout": "",
+        "refresh": "",
+        "notAccessTitle": "",
+        "saveAndAdd": "",
+        "hideArchived": "",
+        "clearFilters": "",
+        "unArchive": "",
+        "clone": "",
+        "clear": ""
+    },
+    "vendor": {
+        "fields": {
+            "external_id": "",
+            "registered": "",
+            "comment": "",
+            "name": "",
+            "empty_spool_weight": "",
+            "id": ""
+        },
+        "fields_help": {
+            "empty_spool_weight": ""
+        },
+        "titles": {
+            "show_title": "",
+            "show": "",
+            "edit": "",
+            "clone": "",
+            "create": "",
+            "list": ""
+        },
+        "form": {
+            "vendor_updated": ""
+        },
+        "vendor": ""
+    },
+    "documentTitle": {
+        "vendor": {
+            "create": "",
+            "clone": "",
+            "edit": "",
+            "list": "",
+            "show": ""
+        },
+        "default": "",
+        "home": {
+            "list": ""
+        },
+        "spool": {
+            "edit": "",
+            "list": "",
+            "create": "",
+            "show": "",
+            "clone": ""
+        },
+        "filament": {
+            "list": "",
+            "show": "",
+            "clone": "",
+            "create": "",
+            "edit": ""
+        },
+        "suffix": "",
+        "locations": {
+            "list": ""
+        },
+        "help": {
+            "list": ""
+        }
+    },
+    "spool": {
+        "fields": {
+            "measured_weight": "",
+            "last_used": "",
+            "filament_internal": "",
+            "material": "",
+            "spool_weight": "",
+            "weight_to_use": "",
+            "lot_nr": "",
+            "filament_name": "",
+            "price": "",
+            "comment": "",
+            "filament": "",
+            "location": "",
+            "used_length": "",
+            "archived": "",
+            "remaining_length": "",
+            "registered": "",
+            "first_used": "",
+            "used_weight": "",
+            "id": "",
+            "remaining_weight": "",
+            "initial_weight": "",
+            "filament_external": ""
+        },
+        "titles": {
+            "archive": "",
+            "adjust": "",
+            "show": "",
+            "edit": "",
+            "create": "",
+            "clone": "",
+            "show_title": "",
+            "list": ""
+        },
+        "fields_help": {
+            "external_filament": "",
+            "used_weight": "",
+            "weight_to_use": "",
+            "measured_weight": "",
+            "price": "",
+            "spool_weight": "",
+            "lot_nr": "",
+            "remaining_weight": "",
+            "location": "",
+            "initial_weight": ""
+        },
+        "form": {
+            "spool_updated": "",
+            "measurement_type_label": "",
+            "adjust_filament_value": "",
+            "new_location_prompt": "",
+            "measurement_type": {
+                "weight": "",
+                "length": ""
+            },
+            "adjust_filament_help": ""
+        },
+        "spool": "",
+        "formats": {
+            "last_used": ""
+        },
+        "messages": {
+            "archive": ""
+        }
+    },
+    "filament": {
+        "form": {
+            "import_external": "",
+            "filament_updated": "",
+            "import_external_description": ""
+        },
+        "fields_help": {
+            "name": "",
+            "article_number": "",
+            "spool_weight": "",
+            "price": "",
+            "weight": "",
+            "multi_color_direction": "",
+            "material": ""
+        },
+        "fields": {
+            "material": "",
+            "vendor_name": "",
+            "settings_extruder_temp": "",
+            "comment": "",
+            "multi_color": "",
+            "diameter": "",
+            "weight": "",
+            "spool_weight": "",
+            "external_id": "",
+            "single_color": "",
+            "registered": "",
+            "spools": "",
+            "name": "",
+            "price": "",
+            "settings_bed_temp": "",
+            "vendor": "",
+            "density": "",
+            "longitudinal": "",
+            "id": "",
+            "color_hex": "",
+            "article_number": "",
+            "coaxial": ""
+        },
+        "titles": {
+            "clone": "",
+            "show_title": "",
+            "show": "",
+            "create": "",
+            "edit": "",
+            "list": ""
+        },
+        "buttons": {
+            "add_spool": ""
+        },
+        "filament": ""
+    },
+    "printing": {
+        "generic": {
+            "printerMarginBottom": "",
+            "verticalSpacing": "",
+            "rows": "",
+            "borders": {
+                "none": "",
+                "grid": "",
+                "border": ""
+            },
+            "printerMarginTop": "",
+            "deleteSettingsConfirm": "",
+            "deleteSettings": "",
+            "customSize": "",
+            "title": "",
+            "contentSettings": "",
+            "marginRight": "",
+            "printerMarginRight": "",
+            "itemCopies": "",
+            "helpPrinterMargin": "",
+            "settingsName": "",
+            "previewScale": "",
+            "helpMargin": "",
+            "marginTop": "",
+            "skipItems": "",
+            "newSetting": "",
+            "addSettings": "",
+            "layoutSettings": "",
+            "paperSize": "",
+            "columns": "",
+            "description": "",
+            "marginBottom": "",
+            "horizontalSpacing": "",
+            "duplicateSettings": "",
+            "settings": "",
+            "saveSetting": "",
+            "marginLeft": "",
+            "showBorder": "",
+            "saveAsImage": "",
+            "printerMarginLeft": "",
+            "dimensions": "",
+            "defaultSettings": "",
+            "print": ""
+        },
+        "qrcode": {
+            "useHTTPUrl": {
+                "options": {
+                    "default": "",
+                    "url": ""
+                },
+                "preview": "",
+                "tooltip": "",
+                "label": ""
+            },
+            "showContent": "",
+            "showQRCodeMode": {
+                "withIcon": "",
+                "no": "",
+                "simple": ""
+            },
+            "templateHelp": "",
+            "textSize": "",
+            "showQRCode": "",
+            "template": "",
+            "title": "",
+            "button": ""
+        },
+        "spoolSelect": {
+            "selectedTotal_one": "",
+            "selectedTotal_other": "",
+            "description": "",
+            "showArchived": "",
+            "title": "",
+            "selectAll": "",
+            "noSpoolsSelected": ""
+        }
+    },
+    "settings": {
+        "extra_fields": {
+            "non_unique_key_error": "",
+            "params": {
+                "unit": "",
+                "choices": "",
+                "default_value": "",
+                "field_type": "",
+                "multi_choice": "",
+                "order": "",
+                "name": "",
+                "key": ""
+            },
+            "boolean_true": "",
+            "choices_missing_error": "",
+            "boolean_false": "",
+            "delete_confirm_description": "",
+            "field_type": {
+                "boolean": "",
+                "float": "",
+                "choice": "",
+                "float_range": "",
+                "datetime": "",
+                "integer": "",
+                "integer_range": "",
+                "text": ""
+            },
+            "tab": "",
+            "description": "",
+            "delete_confirm": "",
+            "key_not_changed": ""
+        },
+        "general": {
+            "tab": "",
+            "base_url": {
+                "tooltip": "",
+                "label": ""
+            },
+            "round_prices": {
+                "label": "",
+                "tooltip": ""
+            },
+            "currency": {
+                "label": ""
+            }
+        },
+        "header": "",
+        "settings": ""
+    },
+    "home": {
+        "welcome": "",
+        "home": "",
+        "description": ""
+    },
+    "scanner": {
+        "title": "",
+        "error": {
+            "insecureContext": "",
+            "notReadable": "",
+            "notAllowed": "",
+            "unknown": "",
+            "notFound": "",
+            "streamApiNotSupported": ""
+        },
+        "description": ""
+    },
+    "help": {
+        "resources": {
+            "vendor": "",
+            "filament": "",
+            "spool": ""
+        },
+        "description": "",
+        "help": ""
+    },
+    "notifications": {
+        "deleteSuccess": "",
+        "error": "",
+        "editError": "",
+        "saveSuccessful": "",
+        "undoable": "",
+        "importProgress": "",
+        "createError": "",
+        "validationError": "",
+        "success": "",
+        "editSuccess": "",
+        "deleteError": "",
+        "createSuccess": ""
+    },
+    "no": "",
+    "unknown": "",
+    "yes": "",
+    "locations": {
+        "new_location": "",
+        "no_location": "",
+        "locations": "",
+        "no_locations_help": ""
+    },
+    "version": "",
+    "kofi": "",
+    "table": {
+        "actions": ""
+    },
+    "warnWhenUnsavedChanges": "",
+    "loading": "",
+    "dashboard": {
+        "title": ""
+    },
+    "tags": {
+        "clone": ""
     }
 }
