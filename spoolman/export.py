@@ -20,12 +20,31 @@ async def flatten_sqlalchemy_object(obj: models.Base, parent_key: str = "", sep:
     for attr in dir(obj):
         # Check if the attribute is a column or a relationship
         if not attr.startswith("_") and attr not in banned_attrs:
-            value = await getattr(obj.awaitable_attrs, attr)
+            try:
+                value = await getattr(obj.awaitable_attrs, attr)
+            except Exception:
+                # Fallback for plain objects (e.g., SimpleNamespace) or other non-SQLAlchemy objects
+                try:
+                    value = getattr(obj, attr)
+                except Exception:
+                    continue
 
             if attr == "extra":
                 # Handle extra fields
-                for v in value:
-                    fields[f"{parent_key}extra.{v.key}"] = v.value
+                # Support several types: list of objects with key/value, dicts and lists of dicts
+                if isinstance(value, dict):
+                    for k, v in value.items():
+                        fields[f"{parent_key}extra.{k}"] = v
+                else:
+                    try:
+                        for v in value:
+                            k = getattr(v, "key", None)
+                            val = getattr(v, "value", None)
+                            if k is not None:
+                                fields[f"{parent_key}extra.{k}"] = val
+                    except Exception:
+                        # Not iterable or unexpected format, skip
+                        pass
                 continue
 
             # Handle nested SQLAlchemy objects
@@ -34,6 +53,9 @@ async def flatten_sqlalchemy_object(obj: models.Base, parent_key: str = "", sep:
                 fields.update(nested_fields)
             else:
                 # Use only columns and simple data types
+                # Skip callables and complex objects
+                if callable(value):
+                    continue
                 fields[f"{parent_key}{attr}"] = value
     return fields
 

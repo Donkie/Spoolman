@@ -126,7 +126,9 @@ const SpoolSelectModal = ({ description, onContinue }: Props) => {
           tableLayout="auto"
           dataSource={dataSource}
           pagination={false}
-          scroll={{ y: 200 }}
+          // Use a viewport-based height so the table scales with the browser window
+          scroll={{ y: "60vh" }}
+          style={{ maxHeight: "70vh" }}
           columns={removeUndefined([
             {
               width: 50,

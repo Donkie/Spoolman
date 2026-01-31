@@ -38,3 +38,5 @@ Spoolman is a self-hosted web service designed to help you efficiently manage yo
 
 ## Installation
 Please see the [Installation page on the Wiki](https://github.com/Donkie/Spoolman/wiki/Installation) for details how to install Spoolman.
+
+**Running tests:** See `TESTING.md` for instructions on running unit and integration tests.
