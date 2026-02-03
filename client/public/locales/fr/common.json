@@ -351,7 +351,8 @@
     "kofi": "Me donner un pourboire sur Ko-fi",
     "home": {
         "home": "Accueil",
-        "welcome": "Bienvenue sur votre instance Spoolman !"
+        "welcome": "Bienvenue sur votre instance Spoolman !",
+        "description": ""
     },
     "settings": {
         "settings": "Paramètres",
@@ -395,6 +396,10 @@
             "base_url": {
                 "label": "Base de l'URL",
                 "tooltip": "La base de l'URL à utiliser lors de la génération de QR codes."
+            },
+            "round_prices": {
+                "label": "",
+                "tooltip": ""
             }
         }
     },
