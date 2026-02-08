@@ -261,9 +261,9 @@ def add_where_clause_extra_field(
                 converter = int if field_type == ExtraFieldType.integer_range else float
                 try:
                     if min_val_str:
-                        conditions.append(func.json_extract(field_table.value, "$[0]") >= converter(min_val_str))
+                        conditions.append(field_table.value[0].as_integer() >= converter(min_val_str))
                     if max_val_str:
-                        conditions.append(func.json_extract(field_table.value, "$[1]") <= converter(max_val_str))
+                        conditions.append(field_table.value[1].as_integer() <= converter(min_val_str))
                 except (ValueError, TypeError):
                     pass
 
@@ -321,10 +321,10 @@ def add_order_by_extra_field(
     # Create a sort expression based on the field type
     if field_type == ExtraFieldType.integer:
         # Cast the JSON value to an integer for sorting
-        sort_expr = func.cast(func.json_extract(value_subq, '$'), sqlalchemy.Integer)
+        sort_expr = func.cast(value_subq, sqlalchemy.Integer)
     elif field_type == ExtraFieldType.float:
         # Cast the JSON value to a float for sorting
-        sort_expr = func.cast(func.json_extract(value_subq, '$'), sqlalchemy.Float)
+        sort_expr = func.cast(value_subq, sqlalchemy.Float)
     elif field_type == ExtraFieldType.datetime:
         # For datetime fields, we can sort by the ISO string
         sort_expr = value_subq
@@ -333,7 +333,7 @@ def add_order_by_extra_field(
         sort_expr = value_subq
     elif field_type in (ExtraFieldType.integer_range, ExtraFieldType.float_range):
         # For range fields, sort by the first value in the range
-        sort_expr = func.json_extract(value_subq, '$[0]')
+        sort_expr = value_subq[0]
     else:
         # For text and choice fields, sort by the string value
         sort_expr = value_subq
