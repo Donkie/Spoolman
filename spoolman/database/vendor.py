@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import EventType, Vendor, VendorEvent
 from spoolman.database import models
-from spoolman.database.utils import SortOrder, add_where_clause_str, add_where_clause_str_opt
+from spoolman.database.utils import SortOrder
 from spoolman.exceptions import ItemNotFoundError
 from spoolman.ws import websocket_manager
 
@@ -53,6 +53,7 @@ async def find(
     db: AsyncSession,
     name: str | None = None,
     external_id: str | None = None,
+    extra_field_filters: dict[str, str] | None = None,
     sort_by: dict[str, SortOrder] | None = None,
     limit: int | None = None,
     offset: int = 0,
@@ -61,6 +62,14 @@ async def find(
 
     Returns a tuple containing the list of items and the total count of matching items.
     """
+    # Import here to avoid circular imports
+    from spoolman.database.utils import (
+        add_where_clause_str,
+        add_where_clause_str_opt,
+        add_where_clause_extra_field,
+        add_order_by_extra_field
+    )
+    
     stmt = select(models.Vendor)
 
     stmt = add_where_clause_str(stmt, models.Vendor.name, name)
@@ -74,13 +83,54 @@ async def find(
 
         stmt = stmt.offset(offset).limit(limit)
 
+    # Apply extra field filters if provided
+    if extra_field_filters:
+        # Get all extra fields for vendors
+        from spoolman.extra_fields import EntityType, get_extra_fields
+        
+        extra_fields = await get_extra_fields(db, EntityType.vendor)
+        extra_fields_dict = {field.key: field for field in extra_fields}
+        
+        for field_key, value in extra_field_filters.items():
+            if field_key in extra_fields_dict:
+                field = extra_fields_dict[field_key]
+                stmt = add_where_clause_extra_field(
+                    stmt,
+                    models.Vendor,
+                    EntityType.vendor,
+                    field_key,
+                    field.field_type,
+                    value,
+                    field.multi_choice if field.field_type == "choice" else None
+                )
+
     if sort_by is not None:
         for fieldstr, order in sort_by.items():
-            field = getattr(models.Vendor, fieldstr)
-            if order == SortOrder.ASC:
-                stmt = stmt.order_by(field.asc())
-            elif order == SortOrder.DESC:
-                stmt = stmt.order_by(field.desc())
+            # Check if this is a custom field sort
+            if fieldstr.startswith("extra."):
+                field_key = fieldstr[6:]  # Remove "extra." prefix
+                
+                # Get the field definition
+                from spoolman.extra_fields import EntityType, get_extra_fields
+                
+                extra_fields = await get_extra_fields(db, EntityType.vendor)
+                extra_field = next((f for f in extra_fields if f.key == field_key), None)
+                
+                if extra_field:
+                    stmt = add_order_by_extra_field(
+                        stmt,
+                        models.Vendor,
+                        EntityType.vendor,
+                        field_key,
+                        extra_field.field_type,
+                        order
+                    )
+            else:
+                field = getattr(models.Vendor, fieldstr)
+                if order == SortOrder.ASC:
+                    stmt = stmt.order_by(field.asc())
+                elif order == SortOrder.DESC:
+                    stmt = stmt.order_by(field.desc())
 
     rows = await db.execute(
         stmt,
