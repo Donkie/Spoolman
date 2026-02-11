@@ -1,4 +1,11 @@
-import { EditOutlined, EyeOutlined, FileOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
+import {
+  EditOutlined,
+  EyeOutlined,
+  FileOutlined,
+  FilterOutlined,
+  PlusSquareOutlined,
+  PrinterOutlined,
+} from "@ant-design/icons";
 import { List, useTable } from "@refinedev/antd";
 import { useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Table } from "antd";
@@ -169,6 +176,15 @@ export const FilamentList = () => {
     <List
       headerButtons={({ defaultButtons }) => (
         <>
+          <Button
+            type="primary"
+            icon={<PrinterOutlined />}
+            onClick={() => {
+              navigate("print");
+            }}
+          >
+            {t("printing.qrcode.button")}
+          </Button>
           <Button
             type="primary"
             icon={<FilterOutlined />}

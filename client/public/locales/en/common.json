@@ -70,6 +70,7 @@
             "paperSize": "Paper Size",
             "customSize": "Custom",
             "dimensions": "Dimensions",
+            "amlLabelSize": "AML Label Size",
             "showBorder": "Show Border",
             "previewScale": "Preview Scale",
             "skipItems": "Skip Items",
@@ -100,13 +101,16 @@
             "deleteSettingsConfirm": "Are you sure you want to delete this preset?",
             "settingsName": "Preset Name",
             "saveSetting": "Save Presets",
-            "saveAsImage": "Save as Image"
+            "saveAsImage": "Save as Image",
+            "saveAsAmlLabels": "Save as AML (Labels)",
+            "saveAsAmlPages": "Save as AML (Pages)"
         },
         "qrcode": {
             "button": "Print Labels",
             "title": "Label Printing",
             "template": "Label Template",
             "templateHelp": "Use {} to insert values of the spool object as text. For example, {id} will be replaced with the spool id, or {filament.material} will be replaced with the material of the spool. if a value is missing it will be replaced with \"?\". A second set of {} can be used to remove this. In addition, any text between the sets of {} will be removed if the value is missing. For example, {Lot Nr: {lot_nr}} will only show the label if the spool has a lot number. Enclose text with double asterix ** to make it bold. Click the button to view a list of all available tags.",
+            "templateHelpFilament": "Use {} to insert values of the filament object as text. For example, {id} will be replaced with the filament id, or {vendor.name} will be replaced with the vendor name. If a value is missing it will be replaced with \"?\". A second set of {} can be used to remove this. In addition, any text between the sets of {} will be removed if the value is missing. For example, {Article: {article_number}} will only show the label if a filament has an article number. Enclose text with double asterix ** to make it bold. Click the button to view a list of all available tags.",
             "textSize": "Label Text Size",
             "showContent": "Print Label",
             "useHTTPUrl": {
@@ -133,6 +137,14 @@
             "selectAll": "Select/Unselect All",
             "selectedTotal_one": "{{count}} spool selected",
             "selectedTotal_other": "{{count}} spools selected"
+        },
+        "filamentSelect": {
+            "title": "Select Filaments",
+            "description": "Select filaments to print labels for.",
+            "noFilamentsSelected": "You have not selected any filaments.",
+            "selectAll": "Select/Unselect All",
+            "selectedTotal_one": "{{count}} filament selected",
+            "selectedTotal_other": "{{count}} filaments selected"
         }
     },
     "scanner": {

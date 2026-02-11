@@ -18,15 +18,28 @@ const QRCodeScannerModal = () => {
     const result = detectedCodes[0].rawValue;
 
     // Check for the spoolman ID format
-    const match = result.match(/^web\+spoolman:s-(?<id>[0-9]+)$/i);
-    if (match && match.groups) {
+    const spoolMatch = result.match(/^web\+spoolman:s-(?<id>[0-9]+)$/i);
+    if (spoolMatch && spoolMatch.groups) {
       setVisible(false);
-      navigate(`/spool/show/${match.groups.id}`);
+      navigate(`/spool/show/${spoolMatch.groups.id}`);
+      return;
     }
-    const fullURLmatch = result.match(/^https?:\/\/[^/]+\/spool\/show\/(?<id>[0-9]+)$/i);
-    if (fullURLmatch && fullURLmatch.groups) {
+    const filamentMatch = result.match(/^web\+spoolman:f-(?<id>[0-9]+)$/i);
+    if (filamentMatch && filamentMatch.groups) {
       setVisible(false);
-      navigate(`/spool/show/${fullURLmatch.groups.id}`);
+      navigate(`/filament/show/${filamentMatch.groups.id}`);
+      return;
+    }
+    const spoolURLmatch = result.match(/^https?:\/\/[^/]+(?:\/[^/]+)*\/spool\/show\/(?<id>[0-9]+)$/i);
+    if (spoolURLmatch && spoolURLmatch.groups) {
+      setVisible(false);
+      navigate(`/spool/show/${spoolURLmatch.groups.id}`);
+      return;
+    }
+    const filamentURLmatch = result.match(/^https?:\/\/[^/]+(?:\/[^/]+)*\/filament\/show\/(?<id>[0-9]+)$/i);
+    if (filamentURLmatch && filamentURLmatch.groups) {
+      setVisible(false);
+      navigate(`/filament/show/${filamentURLmatch.groups.id}`);
     }
   };
 

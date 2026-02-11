@@ -1,4 +1,4 @@
-import { FileImageOutlined, PrinterOutlined } from "@ant-design/icons";
+import { FileImageOutlined, FileTextOutlined, PrinterOutlined } from "@ant-design/icons";
 import { useTranslate } from "@refinedev/core";
 import {
   Button,
@@ -86,6 +86,7 @@ const PrintingDialog = ({
   const paperSize = printSettings?.paperSize || "A4";
   const customPaperSize = printSettings?.customPaperSize || { width: 210, height: 297 };
   const borderShowMode = printSettings?.borderShowMode || "grid";
+  const amlLabelSize = printSettings?.amlLabelSize || { width: 40, height: 30 };
 
   const paperWidth = paperSize === "custom" ? customPaperSize.width : paperDimensions[paperSize].width;
   const paperHeight = paperSize === "custom" ? customPaperSize.height : paperDimensions[paperSize].height;
@@ -178,13 +179,114 @@ const PrintingDialog = ({
     );
   });
 
-  const saveAsImage = () => {
-    const hasPrinted: Element[] = [];
+  const getPrintItems = () => {
+    const root = contentRef.current ?? document;
+    return Array.from(root.getElementsByClassName("print-qrcode-item"));
+  };
 
-    Array.from(document.getElementsByClassName("print-qrcode-item")).forEach(async (item) => {
+  const getPrintPages = () => {
+    const root = contentRef.current ?? document;
+    return Array.from(root.getElementsByClassName("print-page"));
+  };
+
+  const downloadTextFile = (filename: string, content: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const buildAmlXml = (name: string, widthMm: number, heightMm: number, base64Png: string) => {
+    const width = Number.isFinite(widthMm) ? widthMm : 0;
+    const height = Number.isFinite(heightMm) ? heightMm : 0;
+    const validBoundsWidth = Math.max(width - 2, 0);
+    const validBoundsHeight = Math.max(height - 2, 0);
+    const widthIn = width / 25.4;
+    const heightIn = height / 25.4;
+    const id = Math.floor(Math.random() * 2 ** 31);
+    const objectId = Math.floor(Math.random() * 2 ** 31);
+
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<LPAPI version="1.6">
+      <labelName>${name}</labelName>
+      <paperName>Custom Label</paperName>
+      <isPrintHorizontal>0</isPrintHorizontal>
+      <labelHeight>${height.toFixed(3)}</labelHeight>
+      <labelWidth>${width.toFixed(3)}</labelWidth>
+      <validBoundsX>1</validBoundsX>
+      <validBoundsY>1</validBoundsY>
+      <validBoundsWidth>${validBoundsWidth.toFixed(0)}</validBoundsWidth>
+      <validBoundsHeight>${validBoundsHeight.toFixed(0)}</validBoundsHeight>
+      <paperType>0</paperType>
+      <paperBackground>#ffffff</paperBackground>
+      <paperForeground>#000000</paperForeground>
+      <DisplaySize_mm>${width.toFixed(2)}mm * ${height.toFixed(2)}mm</DisplaySize_mm>
+      <DisplaySize_in>${widthIn.toFixed(3)}inch * ${heightIn.toFixed(3)}inch</DisplaySize_in>
+      <isRotate180>0</isRotate180>
+      <isBannerMode>0</isBannerMode>
+      <isCustomSize>0</isCustomSize>
+      <leftBlank>0</leftBlank>
+      <rightBlank>0</rightBlank>
+      <upBlank>0</upBlank>
+      <downBlank>0</downBlank>
+      <typeName>Custom</typeName>
+      <showDisplayMm>${width.toFixed(1)} * ${height.toFixed(1)} mm</showDisplayMm>
+      <showDisplayIn>${widthIn.toFixed(2)} * ${heightIn.toFixed(2)} in</showDisplayIn>
+      <contents>
+          <WdPage>
+              <masksToBoundsType>0</masksToBoundsType>
+              <borderDisplay>0</borderDisplay>
+              <isAutoHeight>0</isAutoHeight>
+              <lineType>0</lineType>
+              <borderWidth>1</borderWidth>
+              <borderColor>#000000</borderColor>
+              <lockMovement>0</lockMovement>
+              <contents><Image>
+                    <lineType>0</lineType>
+                    <content>${base64Png}</content>
+                    <height>${height.toFixed(3)}</height>
+                    <width>${width.toFixed(3)}</width>
+                    <y>0.000</y>
+                    <x>0.000</x>
+                    <orientation>0.000000</orientation>
+                    <lockMovement>0</lockMovement>
+                    <borderDisplay>0</borderDisplay>
+                    <borderHeight>0.7055555449591742</borderHeight>
+                    <borderColor>#000000</borderColor>
+                    <id>${id}</id>
+                    <objectId>${objectId}</objectId>
+                    <imageEffect>0</imageEffect>
+                    <antiColor>0</antiColor>
+                    <isRatioScale>1</isRatioScale>
+                    <imageType>0</imageType>
+                    <isMirror>0</isMirror>
+                    <isRedBlack>0</isRedBlack>
+                </Image></contents>
+              <columnCount>0</columnCount>
+                            <isRibbonLabel>0</isRibbonLabel>
+          </WdPage>
+    </contents>
+  </LPAPI>
+`;
+  };
+
+  const saveAsImage = async () => {
+    const hasPrinted: Element[] = [];
+    const items = getPrintItems();
+
+    for (const item of items) {
       // Prevent printing copies
+      let isDuplicate = false;
       for (let i = 0; i < hasPrinted.length; i += 1) {
-        if (item.isEqualNode(hasPrinted[i])) return;
+        if (item.isEqualNode(hasPrinted[i])) {
+          isDuplicate = true;
+          break;
+        }
+      }
+      if (isDuplicate) {
+        continue;
       }
       hasPrinted.push(item);
 
@@ -199,7 +301,62 @@ const PrintingDialog = ({
       link.href = url;
       link.download = "spoolmanlabel.png";
       link.click();
-    });
+    }
+  };
+
+  const saveAsAmlLabels = async () => {
+    const hasPrinted: Element[] = [];
+    const items = getPrintItems();
+    const usedNames = new Set<string>();
+    let idx = 1;
+
+    for (const item of items) {
+      // Prevent printing copies
+      let isDuplicate = false;
+      for (let i = 0; i < hasPrinted.length; i += 1) {
+        if (item.isEqualNode(hasPrinted[i])) {
+          isDuplicate = true;
+          break;
+        }
+      }
+      if (isDuplicate) {
+        continue;
+      }
+      hasPrinted.push(item);
+
+      const rawName = (item as HTMLElement).dataset.amlName || `label-${idx}`;
+      const safeName = rawName.replace(/[^a-zA-Z0-9-_]+/g, "-");
+      if (usedNames.has(safeName)) {
+        continue;
+      }
+      usedNames.add(safeName);
+
+      const url = await htmlToImage.toPng(item as HTMLElement, {
+        backgroundColor: "#FFF",
+        cacheBust: true,
+      });
+      const base64 = url.split(",")[1] ?? "";
+      const aml = buildAmlXml(safeName, amlLabelSize.width, amlLabelSize.height, base64);
+      downloadTextFile(`${safeName}.aml`, aml, "application/xml");
+      idx += 1;
+    }
+  };
+
+  const saveAsAmlPages = async () => {
+    const pages = getPrintPages();
+    let pageIdx = 1;
+
+    for (const page of pages) {
+      const url = await htmlToImage.toPng(page as HTMLElement, {
+        backgroundColor: "#FFF",
+        cacheBust: true,
+      });
+      const base64 = url.split(",")[1] ?? "";
+      const name = `labels-page-${pageIdx}`;
+      const aml = buildAmlXml(name, paperWidth, paperHeight, base64);
+      downloadTextFile(`${name}.aml`, aml, "application/xml");
+      pageIdx += 1;
+    }
   };
 
   return (
@@ -433,6 +590,37 @@ const PrintingDialog = ({
                         onChange={(value) => {
                           customPaperSize.height = value ?? 0;
                           printSettings.customPaperSize = customPaperSize;
+                          setPrintSettings(printSettings);
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                </Form.Item>
+                <Form.Item label={t("printing.generic.amlLabelSize")}>
+                  <Row align="middle">
+                    <Col span={11}>
+                      <InputNumber
+                        value={amlLabelSize.width}
+                        min={1}
+                        addonAfter="mm"
+                        onChange={(value) => {
+                          amlLabelSize.width = value ?? 0;
+                          printSettings.amlLabelSize = amlLabelSize;
+                          setPrintSettings(printSettings);
+                        }}
+                      />
+                    </Col>
+                    <Col span={2} style={{ textAlign: "center" }}>
+                      x
+                    </Col>
+                    <Col span={11}>
+                      <InputNumber
+                        value={amlLabelSize.height}
+                        min={1}
+                        addonAfter="mm"
+                        onChange={(value) => {
+                          amlLabelSize.height = value ?? 0;
+                          printSettings.amlLabelSize = amlLabelSize;
                           setPrintSettings(printSettings);
                         }}
                       />
@@ -815,6 +1003,12 @@ const PrintingDialog = ({
         <Col>
           <Space>
             {extraButtons}
+            <Button type="primary" icon={<FileTextOutlined />} size="large" onClick={saveAsAmlLabels}>
+              {t("printing.generic.saveAsAmlLabels")}
+            </Button>
+            <Button type="primary" icon={<FileTextOutlined />} size="large" onClick={saveAsAmlPages}>
+              {t("printing.generic.saveAsAmlPages")}
+            </Button>
             <Button type="primary" icon={<FileImageOutlined />} size="large" onClick={saveAsImage}>
               {t("printing.generic.saveAsImage")}
             </Button>
