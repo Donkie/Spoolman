@@ -72,13 +72,13 @@ export const FilamentShow = () => {
             icon={<PrinterOutlined />}
             href={
               getBasePath() +
-              "/filament/print?filaments=" +
+              "/filament/labels?filaments=" +
               record?.id +
               "&return=" +
               encodeURIComponent(window.location.pathname)
             }
           >
-            {t("printing.qrcode.button")}
+            {t("printing.qrcode.selectButton")}
           </Button>
           {defaultButtons}
         </>

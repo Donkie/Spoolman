@@ -194,7 +194,9 @@ function App() {
                     />
                     <Route path="edit/:id" element={<LoadableResourcePage resource="spools" page="edit" />} />
                     <Route path="show/:id" element={<LoadableResourcePage resource="spools" page="show" />} />
+                    <Route path="labels" element={<LoadablePage name="spoolLabels" />} />
                     <Route path="print" element={<LoadablePage name="printing" />} />
+                    <Route path="export" element={<LoadablePage name="printingExport" />} />
                   </Route>
                   <Route path="/filament">
                     <Route index element={<LoadableResourcePage resource="filaments" page="list" />} />
@@ -208,7 +210,9 @@ function App() {
                     />
                     <Route path="edit/:id" element={<LoadableResourcePage resource="filaments" page="edit" />} />
                     <Route path="show/:id" element={<LoadableResourcePage resource="filaments" page="show" />} />
+                    <Route path="labels" element={<LoadablePage name="filamentLabels" />} />
                     <Route path="print" element={<LoadablePage name="filamentPrinting" />} />
+                    <Route path="export" element={<LoadablePage name="filamentExport" />} />
                   </Route>
                   <Route path="/vendor">
                     <Route index element={<LoadableResourcePage resource="vendors" page="list" />} />

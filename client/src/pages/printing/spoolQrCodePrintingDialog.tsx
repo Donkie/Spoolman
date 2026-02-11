@@ -247,7 +247,7 @@ Spool Weight: {filament.spool_weight} g
         }}
         extraSettingsStart={
           <>
-            <Form.Item label={t("printing.generic.settings")}>
+            <Form.Item label={t("printing.generic.spoolPrintPresets")}>
               <Flex gap={8}>
                 <Select
                   value={selectedPresetState}

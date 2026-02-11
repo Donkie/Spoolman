@@ -16,6 +16,9 @@ export interface PrintSettings {
   customPaperSize?: { width: number; height: number };
   borderShowMode?: "none" | "border" | "grid";
   amlLabelSize?: { width: number; height: number };
+  exportDpi?: number;
+  exportFormat?: "png" | "aml";
+  exportAmlAsPages?: boolean;
 }
 
 export interface QRCodePrintSettings {

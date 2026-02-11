@@ -210,6 +210,8 @@ def is_debug_mode() -> bool:
     raise ValueError(f"Failed to parse SPOOLMAN_DEBUG_MODE variable: Unknown debug mode '{debug_mode}'.")
 
 
+
+
 def is_cors_defined() -> bool:
     """Get whether CORS is enabled from environment variables.
 

@@ -1,18 +1,25 @@
-import { RightOutlined } from "@ant-design/icons";
 import { useTable } from "@refinedev/antd";
-import { Button, Checkbox, Col, message, Row, Space, Table } from "antd";
+import { CrudFilter } from "@refinedev/core";
+import { Button, Checkbox, Col, Input, message, Pagination, Row, Space, Table } from "antd";
 import { t } from "i18next";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
-import { useSpoolmanFilamentFilter, useSpoolmanMaterials } from "../../components/otherModels";
+import {
+  useSpoolmanFilamentFilter,
+  useSpoolmanLocations,
+  useSpoolmanLotNumbers,
+  useSpoolmanMaterials,
+} from "../../components/otherModels";
 import { removeUndefined } from "../../utils/filtering";
 import { TableState } from "../../utils/saveload";
 import { ISpool } from "../spools/model";
 
 interface Props {
   description?: string;
-  onContinue: (selectedSpools: ISpool[]) => void;
+  initialSelectedIds?: number[];
+  onExport?: (selectedIds: number[]) => void;
+  onPrint?: (selectedIds: number[]) => void;
 }
 
 interface ISpoolCollapsed extends ISpool {
@@ -36,13 +43,15 @@ function collapseSpool(element: ISpool): ISpoolCollapsed {
   };
 }
 
-const SpoolSelectModal = ({ description, onContinue }: Props) => {
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }: Props) => {
+  const [selectedItems, setSelectedItems] = useState<number[]>(initialSelectedIds ?? []);
   const [showArchived, setShowArchived] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
+  const [searchValue, setSearchValue] = useState("");
 
-  const { tableProps, sorters, filters, currentPage, pageSize } = useTable<ISpoolCollapsed>({
+  const { tableProps, sorters, filters, setFilters, currentPage, pageSize, setCurrentPage, setPageSize } =
+    useTable<ISpoolCollapsed>({
     resource: "spool",
     meta: {
       queryParams: {
@@ -51,9 +60,9 @@ const SpoolSelectModal = ({ description, onContinue }: Props) => {
     },
     syncWithLocation: false,
     pagination: {
-      mode: "off",
+      mode: "server",
       currentPage: 1,
-      pageSize: 10,
+      pageSize: 50,
     },
     sorters: {
       mode: "server",
@@ -83,12 +92,51 @@ const SpoolSelectModal = ({ description, onContinue }: Props) => {
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource],
   );
+  const selectedSet = useMemo(() => new Set(selectedItems), [selectedItems]);
+
+  const paginationTotal = tableProps.pagination ? tableProps.pagination.total ?? 0 : 0;
+  const handlePageChange = (page: number, nextPageSize?: number) => {
+    if (typeof nextPageSize === "number" && nextPageSize !== pageSize) {
+      setPageSize(nextPageSize);
+    }
+    setCurrentPage(page);
+  };
+  const handlePageSizeChange = (_current: number, size: number) => {
+    setPageSize(size);
+    setCurrentPage(1);
+  };
+
+  const applySearchFilter = (nextSearch: string) => {
+    const trimmedSearch = nextSearch.trim();
+    const nextFilters: CrudFilter[] = [];
+    (filters ?? []).forEach((filter) => {
+      if ("field" in filter && filter.field !== "search") {
+        nextFilters.push(filter);
+      }
+    });
+    if (trimmedSearch.length > 0) {
+      nextFilters.push({
+        field: "search",
+        operator: "contains",
+        value: [trimmedSearch],
+      });
+    }
+    setFilters(nextFilters, "replace");
+    setCurrentPage(1);
+  };
 
   // Function to add/remove all filtered items from selected items
   const selectUnselectFiltered = (select: boolean) => {
     setSelectedItems((prevSelected) => {
-      const filtered = dataSource.map((spool) => spool.id).filter((spool) => !prevSelected.includes(spool));
-      return select ? [...prevSelected, ...filtered] : filtered;
+      const nextSelected = new Set(prevSelected);
+      dataSource.forEach((spool) => {
+        if (select) {
+          nextSelected.add(spool.id);
+        } else {
+          nextSelected.delete(spool.id);
+        }
+      });
+      return Array.from(nextSelected);
     });
   };
 
@@ -100,9 +148,9 @@ const SpoolSelectModal = ({ description, onContinue }: Props) => {
   };
 
   // State for the select/unselect all checkbox
-  const isAllFilteredSelected = dataSource.every((spool) => selectedItems.includes(spool.id));
+  const isAllFilteredSelected = dataSource.every((spool) => selectedSet.has(spool.id));
   const isSomeButNotAllFilteredSelected =
-    dataSource.some((spool) => selectedItems.includes(spool.id)) && !isAllFilteredSelected;
+    dataSource.some((spool) => selectedSet.has(spool.id)) && !isAllFilteredSelected;
 
   const commonProps = {
     t,
@@ -118,102 +166,204 @@ const SpoolSelectModal = ({ description, onContinue }: Props) => {
   return (
     <>
       {contextHolder}
-      <Space direction="vertical" style={{ width: "100%" }}>
-        {description && <div>{description}</div>}
-        <Table
-          {...tableProps}
-          rowKey="id"
-          tableLayout="auto"
-          dataSource={dataSource}
-          pagination={false}
-          scroll={{ y: 200 }}
-          columns={removeUndefined([
-            {
-              width: 50,
-              render: (_, item: ISpool) => (
-                <Checkbox checked={selectedItems.includes(item.id)} onChange={() => handleSelectItem(item.id)} />
-              ),
-            },
-            SortedColumn({
-              ...commonProps,
-              id: "id",
-              i18ncat: "spool",
-              width: 80,
-            }),
-            SpoolIconColumn({
-              ...commonProps,
-              id: "filament.combined_name",
-              dataId: "filament.combined_name",
-              i18nkey: "spool.fields.filament_name",
-              color: (record: ISpoolCollapsed) => record.filament.color_hex,
-              filterValueQuery: useSpoolmanFilamentFilter(),
-            }),
-            FilteredQueryColumn({
-              ...commonProps,
-              id: "filament.material",
-              i18nkey: "spool.fields.material",
-              filterValueQuery: useSpoolmanMaterials(),
-            }),
-          ])}
-        />
-        <Row gutter={[10, 10]}>
-          <Col span={12}>
-            <Checkbox
-              checked={isAllFilteredSelected}
-              indeterminate={isSomeButNotAllFilteredSelected}
-              onChange={(e) => {
-                selectUnselectFiltered(e.target.checked);
-              }}
-            >
-              {t("printing.spoolSelect.selectAll")}
-            </Checkbox>
-          </Col>
-          <Col span={12}>
-            <div style={{ float: "right" }}>
-              {t("printing.spoolSelect.selectedTotal", {
-                count: selectedItems.length,
-              })}
-            </div>
-          </Col>
-          <Col span={12}>
-            <Checkbox
-              checked={showArchived}
-              onChange={(e) => {
-                setShowArchived(e.target.checked);
-                if (!e.target.checked) {
-                  // Remove archived spools from selected items
-                  setSelectedItems((prevSelected) =>
-                    prevSelected.filter(
-                      (selected) => dataSource.find((spool) => spool.id === selected)?.archived !== true,
-                    ),
-                  );
+      <div style={{ width: "100%", display: "flex", flexDirection: "column", height: "100%" }}>
+        {(description || tableProps.pagination) && (
+          <Row gutter={[12, 8]} align="middle" style={{ marginBottom: 8 }}>
+            <Col flex="auto">{description && <div style={{ margin: 0 }}>{description}</div>}</Col>
+            {tableProps.pagination && (
+              <Col flex="none">
+                <Pagination
+                  size="small"
+                  current={currentPage}
+                  pageSize={pageSize}
+                  total={paginationTotal}
+                  showSizeChanger
+                  pageSizeOptions={["25", "50", "100", "200"]}
+                  showQuickJumper
+                  onChange={handlePageChange}
+                  onShowSizeChange={handlePageSizeChange}
+                />
+              </Col>
+            )}
+          </Row>
+        )}
+        <Row gutter={[12, 8]} style={{ marginBottom: 8 }}>
+          <Col xs={24} md={12}>
+            <Input.Search
+              placeholder={t("printing.spoolSelect.searchPlaceholder")}
+              value={searchValue}
+              allowClear
+              enterButton
+              onChange={(event) => {
+                const value = event.target.value;
+                setSearchValue(value);
+                if (value === "") {
+                  applySearchFilter("");
                 }
               }}
-            >
-              {t("printing.spoolSelect.showArchived")}
-            </Checkbox>
-          </Col>
-          <Col span={24}>
-            <Button
-              type="primary"
-              icon={<RightOutlined />}
-              iconPosition="end"
-              onClick={() => {
-                if (selectedItems.length === 0) {
-                  messageApi.open({
-                    type: "error",
-                    content: t("printing.spoolSelect.noSpoolsSelected"),
-                  });
-                  return;
-                }
-                onContinue(dataSource.filter((spool) => selectedItems.includes(spool.id)));
+              onSearch={(value) => {
+                setSearchValue(value);
+                applySearchFilter(value);
               }}
-            >
-              {t("buttons.continue")}
-            </Button>
+            />
           </Col>
         </Row>
-      </Space>
+        <Row gutter={[12, 12]} align="middle" style={{ marginBottom: 8 }}>
+          <Col flex="none">
+            <Button
+              onClick={() => {
+                setSearchValue("");
+                setFilters([], "replace");
+                setCurrentPage(1);
+              }}
+            >
+              {t("buttons.clearFilters")}
+            </Button>
+          </Col>
+          <Col flex="auto">
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                alignItems: "center",
+                gap: 12,
+                flexWrap: "wrap",
+              }}
+            >
+              <Checkbox
+                checked={isAllFilteredSelected}
+                indeterminate={isSomeButNotAllFilteredSelected}
+                onChange={(e) => {
+                  selectUnselectFiltered(e.target.checked);
+                }}
+              >
+                {t("printing.spoolSelect.selectAll")}
+              </Checkbox>
+              <Checkbox
+                checked={showArchived}
+                onChange={(e) => {
+                  setShowArchived(e.target.checked);
+                  if (!e.target.checked) {
+                    // Remove archived spools from selected items
+                    setSelectedItems((prevSelected) =>
+                      prevSelected.filter(
+                        (selected) => dataSource.find((spool) => spool.id === selected)?.archived !== true,
+                      ),
+                    );
+                  }
+                }}
+              >
+                {t("printing.spoolSelect.showArchived")}
+              </Checkbox>
+              <div style={{ minWidth: 140, textAlign: "right" }}>
+                {t("printing.spoolSelect.selectedTotal", {
+                  count: selectedItems.length,
+                })}
+              </div>
+              <Space>
+                {onPrint && (
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      if (selectedItems.length === 0) {
+                        messageApi.open({
+                          type: "error",
+                          content: t("printing.spoolSelect.noSpoolsSelected"),
+                        });
+                        return;
+                      }
+                      onPrint(selectedItems);
+                    }}
+                  >
+                    {t("printing.qrcode.button")}
+                  </Button>
+                )}
+                {onExport && (
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      if (selectedItems.length === 0) {
+                        messageApi.open({
+                          type: "error",
+                          content: t("printing.spoolSelect.noSpoolsSelected"),
+                        });
+                        return;
+                      }
+                      onExport(selectedItems);
+                    }}
+                  >
+                    {t("printing.qrcode.exportButton")}
+                  </Button>
+                )}
+              </Space>
+            </div>
+          </Col>
+        </Row>
+        <div style={{ flex: 1, minHeight: 0 }}>
+          <Table
+            {...tableProps}
+            rowKey="id"
+            tableLayout="fixed"
+            pagination={false}
+            dataSource={dataSource}
+            scroll={{ y: "calc(100vh - 360px)", x: "max-content" }}
+            columns={removeUndefined([
+              {
+                width: 48,
+                render: (_, item: ISpool) => (
+                  <Checkbox checked={selectedSet.has(item.id)} onChange={() => handleSelectItem(item.id)} />
+                ),
+              },
+              SortedColumn({
+                ...commonProps,
+                id: "id",
+                i18ncat: "spool",
+                width: 70,
+              }),
+              SpoolIconColumn({
+                ...commonProps,
+                id: "filament.combined_name",
+                dataId: "filament.combined_name",
+                i18nkey: "spool.fields.filament_name",
+                width: 360,
+                ellipsis: true,
+                color: (record: ISpoolCollapsed) =>
+                  record.filament.multi_color_hexes
+                    ? {
+                        colors: record.filament.multi_color_hexes.split(","),
+                        vertical: record.filament.multi_color_direction === "longitudinal",
+                      }
+                    : record.filament.color_hex,
+                filterValueQuery: useSpoolmanFilamentFilter(),
+              }),
+              FilteredQueryColumn({
+                ...commonProps,
+                id: "filament.material",
+                i18nkey: "spool.fields.material",
+                filterValueQuery: useSpoolmanMaterials(),
+                width: 140,
+                ellipsis: true,
+              }),
+              FilteredQueryColumn({
+                ...commonProps,
+                id: "location",
+                i18ncat: "spool",
+                filterValueQuery: useSpoolmanLocations(),
+                width: 160,
+                ellipsis: true,
+              }),
+              FilteredQueryColumn({
+                ...commonProps,
+                id: "lot_nr",
+                i18ncat: "spool",
+                filterValueQuery: useSpoolmanLotNumbers(),
+                width: 160,
+                ellipsis: true,
+              }),
+            ])}
+          />
+        </div>
+      </div>
     </>
   );
 };

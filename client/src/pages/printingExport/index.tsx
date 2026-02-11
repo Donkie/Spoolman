@@ -4,17 +4,17 @@ import { theme } from "antd";
 import { Content } from "antd/es/layout/layout";
 import { useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import FilamentQRCodePrintingDialog from "../printing/filamentQrCodePrintingDialog";
+import SpoolQRCodeExportDialog from "../printing/spoolQrCodeExportDialog";
 
 const { useToken } = theme;
 
-export const FilamentPrinting = () => {
+export const PrintingExport = () => {
   const { token } = useToken();
   const t = useTranslate();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const filamentIds = searchParams.getAll("filaments").map(Number);
+  const spoolIds = searchParams.getAll("spools").map(Number);
   const returnUrl = searchParams.get("return");
   const selectionPath = useMemo(() => {
     const params = new URLSearchParams();
@@ -22,25 +22,25 @@ export const FilamentPrinting = () => {
       params.set("return", returnUrl);
     }
     const query = params.toString();
-    return `/filament/labels${query ? `?${query}` : ""}`;
+    return `/spool/labels${query ? `?${query}` : ""}`;
   }, [returnUrl]);
 
   useEffect(() => {
-    if (filamentIds.length === 0) {
+    if (spoolIds.length === 0) {
       navigate(selectionPath, { replace: true });
     }
-  }, [filamentIds.length, navigate, selectionPath]);
+  }, [navigate, selectionPath, spoolIds.length]);
 
   return (
     <>
       <PageHeader
-        title={t("printing.qrcode.button")}
+        title={t("printing.qrcode.exportButton")}
         onBack={() => {
           const returnUrl = searchParams.get("return");
           if (returnUrl) {
             navigate(returnUrl, { relative: "path" });
           } else {
-            navigate("/filament");
+            navigate("/spool");
           }
         }}
       >
@@ -57,11 +57,11 @@ export const FilamentPrinting = () => {
             lineHeight: 1.5,
           }}
         >
-          {filamentIds.length > 0 && <FilamentQRCodePrintingDialog filamentIds={filamentIds} />}
+          {spoolIds.length > 0 && <SpoolQRCodeExportDialog spoolIds={spoolIds} />}
         </Content>
       </PageHeader>
     </>
   );
 };
 
-export default FilamentPrinting;
+export default PrintingExport;

@@ -86,29 +86,18 @@ export function useSpoolmanFilamentFilter(enabled: boolean = false) {
 }
 
 export function useSpoolmanFilamentNames(enabled: boolean = false) {
-  return useQuery<IFilament[], unknown, string[]>({
+  return useQuery<string[]>({
     enabled: enabled,
-    queryKey: ["filaments"],
+    queryKey: ["filamentNames"],
     queryFn: async () => {
-      const response = await fetch(getAPIURL() + "/filament");
+      const response = await fetch(getAPIURL() + "/filament-name");
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
       return response.json();
     },
     select: (data) => {
-      // Concatenate vendor name and filament name
-      let names = data
-        .filter((filament) => {
-          return filament.name !== null && filament.name !== undefined && filament.name !== "";
-        })
-        .map((filament) => {
-          return filament.name ?? "<unknown>";
-        })
-        .sort();
-      // Remove duplicates
-      names = [...new Set(names)];
-      return names;
+      return data.sort();
     },
   });
 }

@@ -125,13 +125,13 @@ export const SpoolShow = () => {
             icon={<PrinterOutlined />}
             href={
               getBasePath() +
-              "/spool/print?spools=" +
+              "/spool/labels?spools=" +
               record?.id +
               "&return=" +
               encodeURIComponent(window.location.pathname)
             }
           >
-            {t("printing.qrcode.button")}
+            {t("printing.qrcode.selectButton")}
           </Button>
           {record?.archived ? (
             <Button icon={<ToTopOutlined />} onClick={() => archiveSpool(record, false)}>

@@ -4,11 +4,11 @@ import { theme } from "antd";
 import { Content } from "antd/es/layout/layout";
 import { useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import FilamentQRCodePrintingDialog from "../printing/filamentQrCodePrintingDialog";
+import FilamentQRCodeExportDialog from "../printing/filamentQrCodeExportDialog";
 
 const { useToken } = theme;
 
-export const FilamentPrinting = () => {
+export const FilamentExport = () => {
   const { token } = useToken();
   const t = useTranslate();
   const [searchParams] = useSearchParams();
@@ -34,7 +34,7 @@ export const FilamentPrinting = () => {
   return (
     <>
       <PageHeader
-        title={t("printing.qrcode.button")}
+        title={t("printing.qrcode.exportButton")}
         onBack={() => {
           const returnUrl = searchParams.get("return");
           if (returnUrl) {
@@ -47,7 +47,8 @@ export const FilamentPrinting = () => {
         <Content
           style={{
             padding: 20,
-            minHeight: 280,
+            minHeight: "70vh",
+            height: "calc(100vh - 200px)",
             margin: "0 auto",
             backgroundColor: token.colorBgContainer,
             borderRadius: token.borderRadiusLG,
@@ -55,13 +56,14 @@ export const FilamentPrinting = () => {
             fontFamily: token.fontFamily,
             fontSize: token.fontSizeLG,
             lineHeight: 1.5,
+            overflow: "auto",
           }}
         >
-          {filamentIds.length > 0 && <FilamentQRCodePrintingDialog filamentIds={filamentIds} />}
+          {filamentIds.length > 0 && <FilamentQRCodeExportDialog filamentIds={filamentIds} />}
         </Content>
       </PageHeader>
     </>
   );
 };
 
-export default FilamentPrinting;
+export default FilamentExport;
