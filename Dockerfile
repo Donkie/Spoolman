@@ -5,6 +5,7 @@ WORKDIR /app/client
 COPY client/package*.json ./
 RUN npm ci
 COPY client/ ./
+ENV VITE_APIURL=/api/v1
 RUN npm run build
 
 FROM python:3.14-slim-bookworm AS python-builder
