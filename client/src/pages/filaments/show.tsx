@@ -11,7 +11,7 @@ import SpoolIcon from "../../components/spoolIcon";
 import { enrichText } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useCurrencyFormatter } from "../../utils/settings";
-import { getBasePath } from "../../utils/url";
+import { getBasePath, stripBasePath } from "../../utils/url";
 import { IFilament } from "./model";
 dayjs.extend(utc);
 
@@ -75,7 +75,7 @@ export const FilamentShow = () => {
               "/filament/labels?filaments=" +
               record?.id +
               "&return=" +
-              encodeURIComponent(window.location.pathname)
+              encodeURIComponent(stripBasePath(window.location.pathname))
             }
           >
             {t("printing.qrcode.selectButton")}

@@ -2,7 +2,7 @@ import { useTable } from "@refinedev/antd";
 import { CrudFilter } from "@refinedev/core";
 import { Button, Checkbox, Col, Input, message, Pagination, Row, Space, Table } from "antd";
 import { t } from "i18next";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
 import {
@@ -49,6 +49,7 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState("");
+  const [selectedArchivedMap, setSelectedArchivedMap] = useState<Record<number, boolean>>({});
 
   const { tableProps, sorters, filters, setFilters, currentPage, pageSize, setCurrentPage, setPageSize } =
     useTable<ISpoolCollapsed>({
@@ -93,6 +94,19 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }
     [tableProps.dataSource],
   );
   const selectedSet = useMemo(() => new Set(selectedItems), [selectedItems]);
+
+  useEffect(() => {
+    if (dataSource.length === 0) {
+      return;
+    }
+    setSelectedArchivedMap((prev) => {
+      const next = { ...prev };
+      dataSource.forEach((spool) => {
+        next[spool.id] = spool.archived === true;
+      });
+      return next;
+    });
+  }, [dataSource]);
 
   const paginationTotal = tableProps.pagination ? tableProps.pagination.total ?? 0 : 0;
   const handlePageChange = (page: number, nextPageSize?: number) => {
@@ -246,9 +260,7 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }
                   if (!e.target.checked) {
                     // Remove archived spools from selected items
                     setSelectedItems((prevSelected) =>
-                      prevSelected.filter(
-                        (selected) => dataSource.find((spool) => spool.id === selected)?.archived !== true,
-                      ),
+                      prevSelected.filter((selected) => selectedArchivedMap[selected] !== true),
                     );
                   }
                 }}
