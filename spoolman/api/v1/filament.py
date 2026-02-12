@@ -241,6 +241,16 @@ async def find(
             examples=["1", "1,2"],
         ),
     ] = None,
+    search: Annotated[
+        str | None,
+        Query(
+            title="Search",
+            description=(
+                "General search across vendor name, filament name, material, article number, and external ID. "
+                "Separate multiple terms with a comma. Surround a term with quotes for an exact match."
+            ),
+        ),
+    ] = None,
     name: Annotated[
         str | None,
         Query(
@@ -347,6 +357,7 @@ async def find(
         ids=filter_by_ids,
         vendor_name=vendor_name if vendor_name is not None else vendor_name_old,
         vendor_id=vendor_ids,
+        search=search,
         name=name,
         material=material,
         article_number=article_number,

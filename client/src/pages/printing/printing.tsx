@@ -1,7 +1,6 @@
 import { ReactElement } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useGetSetting, useSetSetting } from "../../utils/querySettings";
-import { ISpool } from "../spools/model";
 
 export interface PrintSettings {
   id: string;
@@ -16,6 +15,10 @@ export interface PrintSettings {
   paperSize?: string;
   customPaperSize?: { width: number; height: number };
   borderShowMode?: "none" | "border" | "grid";
+  amlLabelSize?: { width: number; height: number };
+  exportDpi?: number;
+  exportFormat?: "png" | "aml";
+  exportAmlAsPages?: boolean;
 }
 
 export interface QRCodePrintSettings {
@@ -30,8 +33,8 @@ export interface SpoolQRCodePrintSettings {
   labelSettings: QRCodePrintSettings;
 }
 
-export function useGetPrintSettings(): SpoolQRCodePrintSettings[] | undefined {
-  const { data } = useGetSetting("print_presets");
+export function useGetPrintSettings(settingKey = "print_presets"): SpoolQRCodePrintSettings[] | undefined {
+  const { data } = useGetSetting(settingKey);
   if (!data) return;
   const parsed: SpoolQRCodePrintSettings[] =
     data && data.value ? JSON.parse(data.value) : ([] as SpoolQRCodePrintSettings[]);
@@ -44,8 +47,10 @@ export function useGetPrintSettings(): SpoolQRCodePrintSettings[] | undefined {
   });
 }
 
-export function useSetPrintSettings(): (spoolQRCodePrintSettings: SpoolQRCodePrintSettings[]) => void {
-  const mut = useSetSetting("print_presets");
+export function useSetPrintSettings(
+  settingKey = "print_presets",
+): (spoolQRCodePrintSettings: SpoolQRCodePrintSettings[]) => void {
+  const mut = useSetSetting(settingKey);
 
   return (spoolQRCodePrintSettings: SpoolQRCodePrintSettings[]) => {
     mut.mutate(spoolQRCodePrintSettings);
@@ -99,20 +104,20 @@ function applyTextFormatting(text: string): ReactElement[] {
   return elements;
 }
 
-export function renderLabelContents(template: string, spool: ISpool): ReactElement {
+export function renderLabelContents(template: string, obj: GenericObject): ReactElement {
   // Find all {tags} in the template string and loop over them
   const matches = [...template.matchAll(/{(?:[^}{]|{[^}{]*})*}/gs)];
   let label_text = template;
   matches.forEach((match) => {
     if ((match[0].match(/{/g) || []).length == 1) {
       const tag = match[0].replace(/[{}]/g, "");
-      const tagValue = getTagValue(tag, spool);
+      const tagValue = getTagValue(tag, obj);
       label_text = label_text.replace(match[0], tagValue);
     } else if ((match[0].match(/{/g) || []).length == 2) {
       const structure = match[0].match(/{(.*?){(.*?)}(.*?)}/);
       if (structure != null) {
         const tag = structure[2];
-        const tagValue = getTagValue(tag, spool);
+        const tagValue = getTagValue(tag, obj);
         if (tagValue == "?") {
           label_text = label_text.replace(match[0], "");
         } else {

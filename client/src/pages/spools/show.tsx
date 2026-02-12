@@ -10,7 +10,7 @@ import SpoolIcon from "../../components/spoolIcon";
 import { enrichText } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useCurrencyFormatter } from "../../utils/settings";
-import { getBasePath } from "../../utils/url";
+import { getBasePath, stripBasePath } from "../../utils/url";
 import { IFilament } from "../filaments/model";
 import { setSpoolArchived, useSpoolAdjustModal } from "./functions";
 import { ISpool } from "./model";
@@ -125,13 +125,13 @@ export const SpoolShow = () => {
             icon={<PrinterOutlined />}
             href={
               getBasePath() +
-              "/spool/print?spools=" +
+              "/spool/labels?spools=" +
               record?.id +
               "&return=" +
-              encodeURIComponent(window.location.pathname)
+              encodeURIComponent(stripBasePath(window.location.pathname))
             }
           >
-            {t("printing.qrcode.button")}
+            {t("printing.qrcode.selectButton")}
           </Button>
           {record?.archived ? (
             <Button icon={<ToTopOutlined />} onClick={() => archiveSpool(record, false)}>

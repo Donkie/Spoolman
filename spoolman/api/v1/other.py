@@ -74,6 +74,32 @@ async def find_article_numbers(
 
 
 @router.get(
+    "/filament-name",
+    name="Find filament names",
+    description="Get a list of all filament names.",
+    response_model_exclude_none=True,
+    responses={
+        200: {
+            "description": "A list of all filament names.",
+            "content": {
+                "application/json": {
+                    "example": [
+                        "PLA Basic Black",
+                        "PETG Orange",
+                    ],
+                },
+            },
+        },
+    },
+)
+async def find_filament_names(
+    *,
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+) -> list[str]:
+    return await filament.find_names(db=db)
+
+
+@router.get(
     "/lot-number",
     name="Find lot numbers",
     description="Get a list of all lot numbers.",

@@ -3,7 +3,7 @@ import { Col, Form, InputNumber, QRCode, Radio, RadioChangeEvent, Row, Slider, S
 import { ReactElement } from "react";
 import { getBasePath } from "../../utils/url";
 import { QRCodePrintSettings } from "./printing";
-import PrintingDialog from "./printingDialog";
+import ExportDialog from "./exportDialog";
 
 const { Text } = Typography;
 
@@ -14,7 +14,7 @@ interface QRCodeData {
   amlName?: string;
 }
 
-interface QRCodePrintingDialogProps {
+interface QRCodeExportDialogProps {
   items: QRCodeData[];
   printSettings: QRCodePrintSettings;
   setPrintSettings: (setPrintSettings: QRCodePrintSettings) => void;
@@ -27,7 +27,7 @@ interface QRCodePrintingDialogProps {
   previewValues?: { default: string; url: string };
 }
 
-const QRCodePrintingDialog = ({
+const QRCodeExportDialog = ({
   items,
   printSettings,
   setPrintSettings,
@@ -38,7 +38,7 @@ const QRCodePrintingDialog = ({
   useHTTPUrl,
   setUseHTTPUrl,
   previewValues,
-}: QRCodePrintingDialogProps) => {
+}: QRCodeExportDialogProps) => {
   const t = useTranslate();
 
   const showContent = printSettings?.showContent === undefined ? true : printSettings?.showContent;
@@ -72,7 +72,7 @@ const QRCodePrintingDialog = ({
   });
 
   return (
-    <PrintingDialog
+    <ExportDialog
       items={elements}
       printSettings={printSettings.printSettings}
       setPrintSettings={(newSettings) => {
@@ -191,7 +191,6 @@ const QRCodePrintingDialog = ({
             }
 
             .print-page canvas, .print-page svg {
-              /* display: block; */
               object-fit: contain;
               height: 100% !important;
               width: 100% !important;
@@ -203,4 +202,4 @@ const QRCodePrintingDialog = ({
   );
 };
 
-export default QRCodePrintingDialog;
+export default QRCodeExportDialog;

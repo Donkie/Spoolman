@@ -17,6 +17,7 @@ from spoolman.database.utils import (
     SortOrder,
     add_where_clause_int,
     add_where_clause_int_opt,
+    add_where_clause_search,
     add_where_clause_str,
     add_where_clause_str_opt,
     parse_nested_field,
@@ -119,6 +120,7 @@ async def find(  # noqa: C901, PLR0912
     filament_material: str | None = None,
     vendor_name: str | None = None,
     vendor_id: int | Sequence[int] | None = None,
+    search: str | None = None,
     location: str | None = None,
     lot_nr: str | None = None,
     allow_archived: bool = False,
@@ -143,6 +145,17 @@ async def find(  # noqa: C901, PLR0912
     stmt = add_where_clause_int(stmt, models.Spool.filament_id, filament_id)
     stmt = add_where_clause_int_opt(stmt, models.Filament.vendor_id, vendor_id)
     stmt = add_where_clause_str(stmt, models.Vendor.name, vendor_name)
+    stmt = add_where_clause_search(
+        stmt,
+        [
+            models.Vendor.name,
+            models.Filament.name,
+            models.Filament.material,
+            models.Spool.location,
+            models.Spool.lot_nr,
+        ],
+        search,
+    )
     stmt = add_where_clause_str_opt(stmt, models.Filament.name, filament_name)
     stmt = add_where_clause_str_opt(stmt, models.Filament.material, filament_material)
     stmt = add_where_clause_str_opt(stmt, models.Spool.location, location)

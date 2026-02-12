@@ -1,4 +1,4 @@
-import { FileImageOutlined, PrinterOutlined } from "@ant-design/icons";
+import { PrinterOutlined } from "@ant-design/icons";
 import { useTranslate } from "@refinedev/core";
 import {
   Button,
@@ -14,7 +14,6 @@ import {
   Slider,
   Space,
 } from "antd";
-import * as htmlToImage from "html-to-image";
 import { ReactElement, useRef } from "react";
 import { useReactToPrint } from "react-to-print";
 import { useSavedState } from "../../utils/saveload";
@@ -177,30 +176,6 @@ const PrintingDialog = ({
       </div>
     );
   });
-
-  const saveAsImage = () => {
-    const hasPrinted: Element[] = [];
-
-    Array.from(document.getElementsByClassName("print-qrcode-item")).forEach(async (item) => {
-      // Prevent printing copies
-      for (let i = 0; i < hasPrinted.length; i += 1) {
-        if (item.isEqualNode(hasPrinted[i])) return;
-      }
-      hasPrinted.push(item);
-
-      // Generate png image
-      const url = await htmlToImage.toPng(item as HTMLElement, {
-        backgroundColor: "#FFF",
-        cacheBust: true,
-      });
-
-      // Download image
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "spoolmanlabel.png";
-      link.click();
-    });
-  };
 
   return (
     <>
@@ -815,9 +790,6 @@ const PrintingDialog = ({
         <Col>
           <Space>
             {extraButtons}
-            <Button type="primary" icon={<FileImageOutlined />} size="large" onClick={saveAsImage}>
-              {t("printing.generic.saveAsImage")}
-            </Button>
             <Button type="primary" icon={<PrinterOutlined />} size="large" onClick={() => reactToPrintFn()}>
               {t("printing.generic.print")}
             </Button>

@@ -4,17 +4,17 @@ import { theme } from "antd";
 import { Content } from "antd/es/layout/layout";
 import { useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import SpoolQRCodePrintingDialog from "./spoolQrCodePrintingDialog";
+import FilamentQRCodeExportDialog from "../printing/filamentQrCodeExportDialog";
 
 const { useToken } = theme;
 
-export const Printing = () => {
+export const FilamentExport = () => {
   const { token } = useToken();
   const t = useTranslate();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const spoolIds = searchParams.getAll("spools").map(Number);
+  const filamentIds = searchParams.getAll("filaments").map(Number);
   const returnUrl = searchParams.get("return");
   const selectionPath = useMemo(() => {
     const params = new URLSearchParams();
@@ -22,32 +22,33 @@ export const Printing = () => {
       params.set("return", returnUrl);
     }
     const query = params.toString();
-    return `/spool/labels${query ? `?${query}` : ""}`;
+    return `/filament/labels${query ? `?${query}` : ""}`;
   }, [returnUrl]);
 
   useEffect(() => {
-    if (spoolIds.length === 0) {
+    if (filamentIds.length === 0) {
       navigate(selectionPath, { replace: true });
     }
-  }, [navigate, selectionPath, spoolIds.length]);
+  }, [filamentIds.length, navigate, selectionPath]);
 
   return (
     <>
       <PageHeader
-        title={t("printing.qrcode.button")}
+        title={t("printing.qrcode.exportButton")}
         onBack={() => {
           const returnUrl = searchParams.get("return");
           if (returnUrl) {
             navigate(returnUrl, { relative: "path" });
           } else {
-            navigate("/spool");
+            navigate("/filament");
           }
         }}
       >
         <Content
           style={{
             padding: 20,
-            minHeight: 280,
+            minHeight: "70vh",
+            height: "calc(100vh - 200px)",
             margin: "0 auto",
             backgroundColor: token.colorBgContainer,
             borderRadius: token.borderRadiusLG,
@@ -55,13 +56,14 @@ export const Printing = () => {
             fontFamily: token.fontFamily,
             fontSize: token.fontSizeLG,
             lineHeight: 1.5,
+            overflow: "auto",
           }}
         >
-          {spoolIds.length > 0 && <SpoolQRCodePrintingDialog spoolIds={spoolIds} />}
+          {filamentIds.length > 0 && <FilamentQRCodeExportDialog filamentIds={filamentIds} />}
         </Content>
       </PageHeader>
     </>
   );
 };
 
-export default Printing;
+export default FilamentExport;

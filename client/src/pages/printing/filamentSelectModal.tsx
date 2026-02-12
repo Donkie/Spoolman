@@ -2,18 +2,13 @@ import { useTable } from "@refinedev/antd";
 import { CrudFilter } from "@refinedev/core";
 import { Button, Checkbox, Col, Input, message, Pagination, Row, Space, Table } from "antd";
 import { t } from "i18next";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
-import {
-  useSpoolmanFilamentFilter,
-  useSpoolmanLocations,
-  useSpoolmanLotNumbers,
-  useSpoolmanMaterials,
-} from "../../components/otherModels";
+import { useSpoolmanFilamentNames, useSpoolmanMaterials, useSpoolmanVendors } from "../../components/otherModels";
 import { removeUndefined } from "../../utils/filtering";
 import { TableState } from "../../utils/saveload";
-import { ISpool } from "../spools/model";
+import { IFilament } from "../filaments/model";
 
 interface Props {
   description?: string;
@@ -22,43 +17,23 @@ interface Props {
   onPrint?: (selectedIds: number[]) => void;
 }
 
-interface ISpoolCollapsed extends ISpool {
-  "filament.combined_name": string;
-  "filament.id": number;
-  "filament.material"?: string;
+interface IFilamentCollapsed extends IFilament {
+  "vendor.name": string | null;
 }
 
-function collapseSpool(element: ISpool): ISpoolCollapsed {
-  let filament_name: string;
-  if (element.filament.vendor && "name" in element.filament.vendor) {
-    filament_name = `${element.filament.vendor.name} - ${element.filament.name}`;
-  } else {
-    filament_name = element.filament.name ?? element.filament.id.toString();
-  }
-  return {
-    ...element,
-    "filament.combined_name": filament_name,
-    "filament.id": element.filament.id,
-    "filament.material": element.filament.material,
-  };
+function collapseFilament(element: IFilament): IFilamentCollapsed {
+  return { ...element, "vendor.name": element.vendor?.name ?? null };
 }
 
-const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }: Props) => {
+const FilamentSelectModal = ({ description, initialSelectedIds, onExport, onPrint }: Props) => {
   const [selectedItems, setSelectedItems] = useState<number[]>(initialSelectedIds ?? []);
-  const [showArchived, setShowArchived] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState("");
-  const [selectedArchivedMap, setSelectedArchivedMap] = useState<Record<number, boolean>>({});
 
   const { tableProps, sorters, filters, setFilters, currentPage, pageSize, setCurrentPage, setPageSize } =
-    useTable<ISpoolCollapsed>({
-    resource: "spool",
-    meta: {
-      queryParams: {
-        ["allow_archived"]: showArchived,
-      },
-    },
+    useTable<IFilamentCollapsed>({
+    resource: "filament",
     syncWithLocation: false,
     pagination: {
       mode: "server",
@@ -75,38 +50,23 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }
       select(data) {
         return {
           total: data.total,
-          data: data.data.map(collapseSpool),
+          data: data.data.map(collapseFilament),
         };
       },
     },
   });
 
-  // Store state in local storage
   const tableState: TableState = {
     sorters,
     filters,
     pagination: { currentPage: currentPage, pageSize },
   };
 
-  // Collapse the dataSource to a mutable list and add a filament_name field
-  const dataSource: ISpoolCollapsed[] = useMemo(
+  const dataSource: IFilamentCollapsed[] = useMemo(
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource],
   );
   const selectedSet = useMemo(() => new Set(selectedItems), [selectedItems]);
-
-  useEffect(() => {
-    if (dataSource.length === 0) {
-      return;
-    }
-    setSelectedArchivedMap((prev) => {
-      const next = { ...prev };
-      dataSource.forEach((spool) => {
-        next[spool.id] = spool.archived === true;
-      });
-      return next;
-    });
-  }, [dataSource]);
 
   const paginationTotal = tableProps.pagination ? tableProps.pagination.total ?? 0 : 0;
   const handlePageChange = (page: number, nextPageSize?: number) => {
@@ -139,39 +99,33 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }
     setCurrentPage(1);
   };
 
-  // Function to add/remove all filtered items from selected items
   const selectUnselectFiltered = (select: boolean) => {
     setSelectedItems((prevSelected) => {
       const nextSelected = new Set(prevSelected);
-      dataSource.forEach((spool) => {
+      dataSource.forEach((filament) => {
         if (select) {
-          nextSelected.add(spool.id);
+          nextSelected.add(filament.id);
         } else {
-          nextSelected.delete(spool.id);
+          nextSelected.delete(filament.id);
         }
       });
       return Array.from(nextSelected);
     });
   };
 
-  // Handler for selecting/unselecting individual items
   const handleSelectItem = (item: number) => {
     setSelectedItems((prevSelected) =>
       prevSelected.includes(item) ? prevSelected.filter((selected) => selected !== item) : [...prevSelected, item],
     );
   };
 
-  // State for the select/unselect all checkbox
-  const isAllFilteredSelected = dataSource.every((spool) => selectedSet.has(spool.id));
+  const isAllFilteredSelected = dataSource.every((filament) => selectedSet.has(filament.id));
   const isSomeButNotAllFilteredSelected =
-    dataSource.some((spool) => selectedSet.has(spool.id)) && !isAllFilteredSelected;
+    dataSource.some((filament) => selectedSet.has(filament.id)) && !isAllFilteredSelected;
 
   const commonProps = {
     t,
     navigate,
-    actions: () => {
-      return [];
-    },
     dataSource,
     tableState,
     sorter: true,
@@ -202,9 +156,9 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }
           </Row>
         )}
         <Row gutter={[12, 8]} style={{ marginBottom: 8 }}>
-          <Col xs={24} md={12}>
+          <Col span={24}>
             <Input.Search
-              placeholder={t("printing.spoolSelect.searchPlaceholder")}
+              placeholder={t("printing.filamentSelect.searchPlaceholder")}
               value={searchValue}
               allowClear
               enterButton
@@ -251,24 +205,10 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }
                   selectUnselectFiltered(e.target.checked);
                 }}
               >
-                {t("printing.spoolSelect.selectAll")}
-              </Checkbox>
-              <Checkbox
-                checked={showArchived}
-                onChange={(e) => {
-                  setShowArchived(e.target.checked);
-                  if (!e.target.checked) {
-                    // Remove archived spools from selected items
-                    setSelectedItems((prevSelected) =>
-                      prevSelected.filter((selected) => selectedArchivedMap[selected] !== true),
-                    );
-                  }
-                }}
-              >
-                {t("printing.spoolSelect.showArchived")}
+                {t("printing.filamentSelect.selectAll")}
               </Checkbox>
               <div style={{ minWidth: 140, textAlign: "right" }}>
-                {t("printing.spoolSelect.selectedTotal", {
+                {t("printing.filamentSelect.selectedTotal", {
                   count: selectedItems.length,
                 })}
               </div>
@@ -280,7 +220,7 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }
                       if (selectedItems.length === 0) {
                         messageApi.open({
                           type: "error",
-                          content: t("printing.spoolSelect.noSpoolsSelected"),
+                          content: t("printing.filamentSelect.noFilamentsSelected"),
                         });
                         return;
                       }
@@ -297,7 +237,7 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }
                       if (selectedItems.length === 0) {
                         messageApi.open({
                           type: "error",
-                          content: t("printing.spoolSelect.noSpoolsSelected"),
+                          content: t("printing.filamentSelect.noFilamentsSelected"),
                         });
                         return;
                       }
@@ -322,55 +262,46 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }
             columns={removeUndefined([
               {
                 width: 48,
-                render: (_, item: ISpool) => (
+                render: (_, item: IFilament) => (
                   <Checkbox checked={selectedSet.has(item.id)} onChange={() => handleSelectItem(item.id)} />
                 ),
               },
               SortedColumn({
                 ...commonProps,
                 id: "id",
-                i18ncat: "spool",
+                i18ncat: "filament",
                 width: 70,
+              }),
+              FilteredQueryColumn({
+                ...commonProps,
+                id: "vendor.name",
+                i18nkey: "filament.fields.vendor_name",
+                width: 200,
+                ellipsis: true,
+                filterValueQuery: useSpoolmanVendors(),
               }),
               SpoolIconColumn({
                 ...commonProps,
-                id: "filament.combined_name",
-                dataId: "filament.combined_name",
-                i18nkey: "spool.fields.filament_name",
+                id: "name",
+                i18ncat: "filament",
                 width: 360,
                 ellipsis: true,
-                color: (record: ISpoolCollapsed) =>
-                  record.filament.multi_color_hexes
+                color: (record: IFilamentCollapsed) =>
+                  record.multi_color_hexes
                     ? {
-                        colors: record.filament.multi_color_hexes.split(","),
-                        vertical: record.filament.multi_color_direction === "longitudinal",
+                        colors: record.multi_color_hexes.split(","),
+                        vertical: record.multi_color_direction === "longitudinal",
                       }
-                    : record.filament.color_hex,
-                filterValueQuery: useSpoolmanFilamentFilter(),
+                    : record.color_hex,
+                filterValueQuery: useSpoolmanFilamentNames(),
               }),
               FilteredQueryColumn({
                 ...commonProps,
-                id: "filament.material",
-                i18nkey: "spool.fields.material",
-                filterValueQuery: useSpoolmanMaterials(),
+                id: "material",
+                i18ncat: "filament",
                 width: 140,
                 ellipsis: true,
-              }),
-              FilteredQueryColumn({
-                ...commonProps,
-                id: "location",
-                i18ncat: "spool",
-                filterValueQuery: useSpoolmanLocations(),
-                width: 160,
-                ellipsis: true,
-              }),
-              FilteredQueryColumn({
-                ...commonProps,
-                id: "lot_nr",
-                i18ncat: "spool",
-                filterValueQuery: useSpoolmanLotNumbers(),
-                width: 160,
-                ellipsis: true,
+                filterValueQuery: useSpoolmanMaterials(),
               }),
             ])}
           />
@@ -380,4 +311,4 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }
   );
 };
 
-export default SpoolSelectModal;
+export default FilamentSelectModal;

@@ -4,17 +4,17 @@ import { theme } from "antd";
 import { Content } from "antd/es/layout/layout";
 import { useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import SpoolQRCodePrintingDialog from "./spoolQrCodePrintingDialog";
+import FilamentQRCodePrintingDialog from "../printing/filamentQrCodePrintingDialog";
 
 const { useToken } = theme;
 
-export const Printing = () => {
+export const FilamentPrinting = () => {
   const { token } = useToken();
   const t = useTranslate();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const spoolIds = searchParams.getAll("spools").map(Number);
+  const filamentIds = searchParams.getAll("filaments").map(Number);
   const returnUrl = searchParams.get("return");
   const selectionPath = useMemo(() => {
     const params = new URLSearchParams();
@@ -22,14 +22,14 @@ export const Printing = () => {
       params.set("return", returnUrl);
     }
     const query = params.toString();
-    return `/spool/labels${query ? `?${query}` : ""}`;
+    return `/filament/labels${query ? `?${query}` : ""}`;
   }, [returnUrl]);
 
   useEffect(() => {
-    if (spoolIds.length === 0) {
+    if (filamentIds.length === 0) {
       navigate(selectionPath, { replace: true });
     }
-  }, [navigate, selectionPath, spoolIds.length]);
+  }, [filamentIds.length, navigate, selectionPath]);
 
   return (
     <>
@@ -40,7 +40,7 @@ export const Printing = () => {
           if (returnUrl) {
             navigate(returnUrl, { relative: "path" });
           } else {
-            navigate("/spool");
+            navigate("/filament");
           }
         }}
       >
@@ -57,11 +57,11 @@ export const Printing = () => {
             lineHeight: 1.5,
           }}
         >
-          {spoolIds.length > 0 && <SpoolQRCodePrintingDialog spoolIds={spoolIds} />}
+          {filamentIds.length > 0 && <FilamentQRCodePrintingDialog filamentIds={filamentIds} />}
         </Content>
       </PageHeader>
     </>
   );
 };
 
-export default Printing;
+export default FilamentPrinting;
