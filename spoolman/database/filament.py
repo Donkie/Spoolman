@@ -143,11 +143,11 @@ async def find(
     # Apply extra field filters if provided
     if extra_field_filters:
         # Get all extra fields for filaments
-        from spoolman.extra_fields import EntityType, get_extra_fields
-        
+        from spoolman.extra_fields import EntityType, ExtraFieldType, get_extra_fields
+
         extra_fields = await get_extra_fields(db, EntityType.filament)
         extra_fields_dict = {field.key: field for field in extra_fields}
-        
+
         for field_key, value in extra_field_filters.items():
             if field_key in extra_fields_dict:
                 field = extra_fields_dict[field_key]
@@ -158,7 +158,7 @@ async def find(
                     field_key,
                     field.field_type,
                     value,
-                    field.multi_choice if field.field_type == "choice" else None
+                    field.multi_choice if field.field_type == ExtraFieldType.choice else None,
                 )
 
     if sort_by is not None:

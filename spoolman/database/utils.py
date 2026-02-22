@@ -3,18 +3,13 @@
 from collections.abc import Sequence
 import json
 from enum import Enum
-from typing import Any, Dict, Tuple, Type, TypeVar
+from typing import Any, Type, TypeVar
 
 import sqlalchemy
-from sqlalchemy import Select, and_, cast, func, or_, text
-from sqlalchemy.orm import attributes, aliased
-from sqlalchemy.sql import expression
+from sqlalchemy import Select
+from sqlalchemy.orm import attributes
 
 from spoolman.database import models
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from spoolman.extra_fields import EntityType, ExtraField, ExtraFieldType
 
 
 class SortOrder(Enum):
@@ -263,7 +258,7 @@ def add_where_clause_extra_field(
                     if min_val_str:
                         conditions.append(field_table.value[0].as_integer() >= converter(min_val_str))
                     if max_val_str:
-                        conditions.append(field_table.value[1].as_integer() <= converter(min_val_str))
+                        conditions.append(field_table.value[1].as_integer() <= converter(max_val_str))
                 except (ValueError, TypeError):
                     pass
 
@@ -321,10 +316,10 @@ def add_order_by_extra_field(
     # Create a sort expression based on the field type
     if field_type == ExtraFieldType.integer:
         # Cast the JSON value to an integer for sorting
-        sort_expr = func.cast(value_subq, sqlalchemy.Integer)
+        sort_expr = sqlalchemy.cast(value_subq, sqlalchemy.Integer)
     elif field_type == ExtraFieldType.float:
         # Cast the JSON value to a float for sorting
-        sort_expr = func.cast(value_subq, sqlalchemy.Float)
+        sort_expr = sqlalchemy.cast(value_subq, sqlalchemy.Float)
     elif field_type == ExtraFieldType.datetime:
         # For datetime fields, we can sort by the ISO string
         sort_expr = value_subq
