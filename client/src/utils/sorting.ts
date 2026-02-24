@@ -1,6 +1,6 @@
 import { CrudSort } from "@refinedev/core";
 import { SortOrder } from "antd/es/table/interface";
-import { getCustomFieldKey, isCustomField } from "./queryFields";
+import { Field, getCustomFieldKey, isCustomField } from "./queryFields";
 
 interface TypedCrudSort<Obj> {
   field: keyof Obj | string;

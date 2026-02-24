@@ -13,7 +13,15 @@ from sqlalchemy.sql.functions import coalesce
 
 from spoolman.api.v1.models import EventType, Spool, SpoolEvent
 from spoolman.database import filament, models
-from spoolman.database.utils import SortOrder
+from spoolman.database.extra_field_query import add_order_by_extra_field, add_where_clause_extra_field
+from spoolman.database.utils import (
+    SortOrder,
+    add_where_clause_int,
+    add_where_clause_int_opt,
+    add_where_clause_str,
+    add_where_clause_str_opt,
+    parse_nested_field,
+)
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError, SpoolMeasureError
 from spoolman.math import weight_from_length
 from spoolman.ws import websocket_manager
@@ -127,17 +135,6 @@ async def find(  # noqa: C901, PLR0912
 
     Returns a tuple containing the list of items and the total count of matching items.
     """
-    # Import here to avoid circular imports
-    from spoolman.database.utils import (
-        add_where_clause_int,
-        add_where_clause_int_opt,
-        add_where_clause_str,
-        add_where_clause_str_opt,
-        add_where_clause_extra_field,
-        add_order_by_extra_field,
-        parse_nested_field,
-    )
-    
     stmt = (
         sqlalchemy.select(models.Spool)
         .join(models.Spool.filament, isouter=True)

@@ -98,9 +98,10 @@ function Column<Obj extends Entity>(
   // Sorting
   if (props.sorter) {
     columnProps.sorter = true;
+    const sortField = props.dataId ?? (Array.isArray(props.id) ? props.id.join(".") : props.id);
     columnProps.sortOrder = getSortOrderForField(
       typeSorters<Obj>(props.tableState.sorters),
-      props.dataId ?? (props.id as keyof Obj),
+      sortField,
     );
   }
 
@@ -211,7 +212,8 @@ export function FilteredQueryColumn<Obj extends Entity>(props: FilteredQueryColu
   });
 
   const typedFilters = typeFilters<Obj>(props.tableState.filters);
-  const filteredValue = getFiltersForField(typedFilters, props.dataId ?? (props.id as keyof Obj));
+  const filterField = props.dataId ?? (Array.isArray(props.id) ? props.id.join(".") : props.id);
+  const filteredValue = getFiltersForField(typedFilters, filterField);
 
   const onFilterDropdownOpen = () => {
     query.refetch();
@@ -325,7 +327,8 @@ export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<
   });
 
   const typedFilters = typeFilters<Obj>(props.tableState.filters);
-  const filteredValue = getFiltersForField(typedFilters, props.dataId ?? (props.id as keyof Obj));
+  const filterField = props.dataId ?? (Array.isArray(props.id) ? props.id.join(".") : props.id);
+  const filteredValue = getFiltersForField(typedFilters, filterField);
 
   const onFilterDropdownOpen = () => {
     query.refetch();

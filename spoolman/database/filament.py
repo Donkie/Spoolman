@@ -12,7 +12,15 @@ from sqlalchemy.orm import contains_eager, joinedload
 
 from spoolman.api.v1.models import EventType, Filament, FilamentEvent, MultiColorDirection
 from spoolman.database import models, vendor
-from spoolman.database.utils import SortOrder
+from spoolman.database.extra_field_query import add_order_by_extra_field, add_where_clause_extra_field
+from spoolman.database.utils import (
+    SortOrder,
+    add_where_clause_int_in,
+    add_where_clause_int_opt,
+    add_where_clause_str,
+    add_where_clause_str_opt,
+    parse_nested_field,
+)
 from spoolman.exceptions import ItemDeleteError, ItemNotFoundError
 from spoolman.math import delta_e, hex_to_rgb, rgb_to_lab
 from spoolman.ws import websocket_manager
@@ -107,17 +115,6 @@ async def find(
 
     Returns a tuple containing the list of items and the total count of matching items.
     """
-    # Import here to avoid circular imports
-    from spoolman.database.utils import (
-        add_where_clause_int_in,
-        add_where_clause_int_opt,
-        add_where_clause_str,
-        add_where_clause_str_opt,
-        add_where_clause_extra_field,
-        add_order_by_extra_field,
-        parse_nested_field,
-    )
-    
     stmt = (
         select(models.Filament)
         .options(contains_eager(models.Filament.vendor))

@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import EventType, Vendor, VendorEvent
 from spoolman.database import models
+from spoolman.database.extra_field_query import add_order_by_extra_field, add_where_clause_extra_field
 from spoolman.database.utils import SortOrder
 from spoolman.exceptions import ItemNotFoundError
 from spoolman.ws import websocket_manager
@@ -63,12 +64,7 @@ async def find(
     Returns a tuple containing the list of items and the total count of matching items.
     """
     # Import here to avoid circular imports
-    from spoolman.database.utils import (
-        add_where_clause_str,
-        add_where_clause_str_opt,
-        add_where_clause_extra_field,
-        add_order_by_extra_field
-    )
+    from spoolman.database.utils import add_where_clause_str, add_where_clause_str_opt
     
     stmt = select(models.Vendor)
 
