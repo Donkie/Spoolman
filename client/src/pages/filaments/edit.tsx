@@ -42,6 +42,8 @@ export const FilamentEdit = () => {
     optionLabel: "name",
     pagination: { mode: "off" },
   });
+  const watchedColorHex = Form.useWatch(["color_hex"], formProps.form);
+  const watchedMultiColorDirection = Form.useWatch(["multi_color_direction"], formProps.form);
 
   // Add the vendor_id field to the form
   if (formProps.initialValues) {
@@ -170,8 +172,23 @@ export const FilamentEdit = () => {
               return e?.toHex();
             }}
           >
-            <ColorPicker />
+            <ColorPicker>
+              <div
+                style={{
+                  width: 74,
+                  height: 74,
+                  borderRadius: 10,
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  backgroundColor: `#${(watchedColorHex ?? "000000").replace("#", "")}`,
+                }}
+              />
+            </ColorPicker>
           </Form.Item>
+        )}
+        {colorType == "single" && watchedColorHex && (
+          <Typography.Text type="secondary" style={{ display: "block", marginTop: -12, marginBottom: 12 }}>
+            #{`${watchedColorHex}`.replace("#", "").toUpperCase()}
+          </Typography.Text>
         )}
         {colorType == "multi" && (
           <Form.Item
@@ -199,7 +216,15 @@ export const FilamentEdit = () => {
               },
             ]}
           >
-            <MultiColorPicker min={2} max={14} />
+            <MultiColorPicker
+              min={2}
+              max={14}
+              layout={watchedMultiColorDirection === "longitudinal" ? "vertical" : "horizontal"}
+              showHex
+              hexPosition={watchedMultiColorDirection === "longitudinal" ? "right" : "bottom"}
+              swatchWidth={watchedMultiColorDirection === "longitudinal" ? 66 : 74}
+              swatchHeight={watchedMultiColorDirection === "longitudinal" ? 24 : 74}
+            />
           </Form.Item>
         )}
         <Form.Item
