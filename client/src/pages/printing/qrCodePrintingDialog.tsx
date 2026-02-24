@@ -23,6 +23,7 @@ interface QRCodePrintingDialogProps {
   baseUrlRoot: string;
   useHTTPUrl: boolean;
   setUseHTTPUrl: (value: boolean) => void;
+  previewValues?: { default: string; url: string };
 }
 
 const QRCodePrintingDialog = ({
@@ -35,12 +36,15 @@ const QRCodePrintingDialog = ({
   baseUrlRoot,
   useHTTPUrl,
   setUseHTTPUrl,
+  previewValues,
 }: QRCodePrintingDialogProps) => {
   const t = useTranslate();
 
   const showContent = printSettings?.showContent === undefined ? true : printSettings?.showContent;
   const showQRCodeMode = printSettings?.showQRCodeMode || "withIcon";
   const textSize = printSettings?.textSize || 3;
+  const preview =
+    previewValues ?? ({ default: `WEB+SPOOLMAN:S-{id}`, url: `${baseUrlRoot}/spool/show/{id}` } as const);
 
   const elements = items.map((item, idx) => {
     return (
@@ -110,7 +114,7 @@ const QRCodePrintingDialog = ({
                 </Radio.Group>
               </Form.Item>
               <Form.Item label={t("printing.qrcode.useHTTPUrl.preview")}>
-                <Text> {useHTTPUrl ? `${baseUrlRoot}/spool/show/{id}` : `WEB+SPOOLMAN:S-{id}`}</Text>
+                <Text> {useHTTPUrl ? preview.url : preview.default}</Text>
               </Form.Item>
             </>
           )}
