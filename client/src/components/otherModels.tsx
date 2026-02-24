@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { Tooltip } from "antd";
 import { ColumnFilterItem } from "antd/es/table/interface";
 import { IFilament } from "../pages/filaments/model";
 import { IVendor } from "../pages/vendors/model";
@@ -25,55 +24,23 @@ export function useSpoolmanFilamentFilter(enabled: boolean = false) {
         })
         // Transform to ColumnFilterItem
         .map((filament) => {
-          let name = "";
-          if (filament.vendor?.name) {
-            name = `${filament.vendor.name} - ${filament.name ?? "<unknown>"}`;
-          } else {
-            name = `${filament.name ?? "<unknown>"}`;
-          }
+          const name = filament.vendor?.name
+            ? `${filament.vendor.name} - ${filament.name ?? "<unknown>"}`
+            : `${filament.name ?? "<unknown>"}`;
 
-          const tooltipParts: React.ReactNode[] = [];
-          if (filament.color_hex) {
-            tooltipParts.push(
-              <div
-                key="color"
-                style={{
-                  borderRadius: ".4em",
-                  width: "1.4em",
-                  height: "1.4em",
-                  backgroundColor: "#" + filament.color_hex,
-                }}
-              ></div>,
-            );
-          }
-          if (filament.material) {
-            tooltipParts.push(<div key="material">{filament.material}</div>);
-          }
-          if (filament.weight) {
-            tooltipParts.push(<div key="weight">{filament.weight}g</div>);
-          }
+          const searchTerms = [
+            name,
+            filament.material ?? "",
+            filament.color_hex ? `#${filament.color_hex}` : "",
+            filament.weight ? `${filament.weight}g` : "",
+          ]
+            .filter((term) => term !== "")
+            .join(" ");
 
           return {
-            text: (
-              <Tooltip
-                title={
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      gap: ".5em",
-                      alignContent: "center",
-                    }}
-                  >
-                    {tooltipParts}
-                  </div>
-                }
-              >
-                {name}
-              </Tooltip>
-            ),
+            text: name,
             value: filament.id,
-            sortId: name,
+            sortId: searchTerms,
           };
         })
         // Remove duplicates
