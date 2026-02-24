@@ -46,6 +46,7 @@ interface BaseColumnProps<Obj extends Entity> {
   title?: string;
   align?: AlignType;
   sorter?: boolean;
+  ellipsis?: boolean;
   t: (key: string) => string;
   navigate: (link: string) => void;
   dataSource: Obj[];
@@ -62,6 +63,7 @@ interface FilteredColumnProps {
   allowMultipleFilters?: boolean;
   onFilterDropdownOpen?: () => void;
   loadingFilters?: boolean;
+  filterSearch?: boolean | ((input: string, record: ColumnFilterItem) => boolean);
 }
 
 interface CustomColumnProps<Obj> {
@@ -90,6 +92,7 @@ function Column<Obj extends Entity>(
     dataIndex: props.id,
     align: props.align,
     title: props.title ?? t(props.i18nkey ?? `${props.i18ncat}.fields.${props.id}`),
+    ellipsis: props.ellipsis,
     filterMultiple: props.allowMultipleFilters ?? true,
     width: props.width ?? undefined,
     onCell: props.onCell ?? undefined,
@@ -108,6 +111,7 @@ function Column<Obj extends Entity>(
   if (props.filters && props.filteredValue) {
     columnProps.filters = props.filters;
     columnProps.filteredValue = props.filteredValue;
+    columnProps.filterSearch = props.filterSearch ?? true;
     if (props.loadingFilters) {
       columnProps.filterDropdown = <FilterDropdownLoading />;
     }
@@ -356,7 +360,9 @@ export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<
               <SpoolIcon color={colorObj} />
             </Col>
           )}
-          <Col flex="auto">{value}</Col>
+          <Col flex="auto" style={{ minWidth: 0 }}>
+            {value}
+          </Col>
         </Row>
       );
     },

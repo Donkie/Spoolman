@@ -16,6 +16,7 @@ from spoolman.database.utils import (
     SortOrder,
     add_where_clause_int_in,
     add_where_clause_int_opt,
+    add_where_clause_search,
     add_where_clause_str,
     add_where_clause_str_opt,
     parse_nested_field,
@@ -98,6 +99,7 @@ async def find(
     ids: list[int] | None = None,
     vendor_name: str | None = None,
     vendor_id: int | Sequence[int] | None = None,
+    search: str | None = None,
     name: str | None = None,
     material: str | None = None,
     article_number: str | None = None,
@@ -122,6 +124,17 @@ async def find(
     stmt = add_where_clause_int_in(stmt, models.Filament.id, ids)
     stmt = add_where_clause_int_opt(stmt, models.Filament.vendor_id, vendor_id)
     stmt = add_where_clause_str(stmt, models.Vendor.name, vendor_name)
+    stmt = add_where_clause_search(
+        stmt,
+        [
+            models.Vendor.name,
+            models.Filament.name,
+            models.Filament.material,
+            models.Filament.article_number,
+            models.Filament.external_id,
+        ],
+        search,
+    )
     stmt = add_where_clause_str_opt(stmt, models.Filament.name, name)
     stmt = add_where_clause_str_opt(stmt, models.Filament.material, material)
     stmt = add_where_clause_str_opt(stmt, models.Filament.article_number, article_number)
@@ -209,6 +222,16 @@ async def find_materials(
     stmt = select(models.Filament.material).distinct()
     rows = await db.execute(stmt)
     return [row[0] for row in rows.all() if row[0] is not None]
+
+
+async def find_names(
+    *,
+    db: AsyncSession,
+) -> list[str]:
+    """Find a list of filament names by searching for distinct values in the filament table."""
+    stmt = select(models.Filament.name).distinct()
+    rows = await db.execute(stmt)
+    return sorted([row[0] for row in rows.all() if row[0] is not None and row[0] != ""])
 
 
 async def find_article_numbers(

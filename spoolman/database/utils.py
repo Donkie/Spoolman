@@ -85,6 +85,32 @@ def add_where_clause_str(
     return stmt
 
 
+def add_where_clause_search(
+    stmt: Select,
+    fields: Sequence[attributes.InstrumentedAttribute[str | None]],
+    value: str | None,
+) -> Select:
+    """Add a where clause for a general search across multiple string fields."""
+    if value is not None:
+        conditions = []
+        for value_part in value.split(","):
+            value_part = value_part.strip()
+            if len(value_part) == 0:
+                continue
+            # Do exact match if value_part is surrounded by quotes
+            if value_part[0] == '"' and value_part[-1] == '"':
+                term = value_part[1:-1]
+                conditions.append(sqlalchemy.or_(*[field == term for field in fields]))
+            # Do prefix match for better index usage
+            else:
+                pattern = f"{value_part}%"
+                conditions.append(sqlalchemy.or_(*[field.ilike(pattern) for field in fields]))
+
+        if conditions:
+            stmt = stmt.where(sqlalchemy.or_(*conditions))
+    return stmt
+
+
 def add_where_clause_int(
     stmt: Select,
     field: attributes.InstrumentedAttribute[int],

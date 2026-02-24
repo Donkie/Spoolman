@@ -225,6 +225,16 @@ async def find(
             pattern=r"^-?\d+(,-?\d+)*$",
         ),
     ] = None,
+    search: Annotated[
+        str | None,
+        Query(
+            title="Search",
+            description=(
+                "General search across vendor name, filament name, material, location, and lot number. "
+                "Separate multiple terms with a comma. Surround a term with quotes for an exact match."
+            ),
+        ),
+    ] = None,
     location: Annotated[
         str | None,
         Query(
@@ -292,6 +302,7 @@ async def find(
         filament_material=filament_material if filament_material is not None else filament_material_old,
         vendor_name=filament_vendor_name if filament_vendor_name is not None else vendor_name_old,
         vendor_id=filament_vendor_ids,
+        search=search,
         location=location,
         lot_nr=lot_nr,
         allow_archived=allow_archived,
