@@ -273,7 +273,10 @@ export function ActionsColumn<Obj extends Entity>(
 ): ColumnType<Obj> | undefined {
   return {
     title,
+    key: "actions",
     responsive: ["lg"],
+    fixed: "right",
+    width: 190,
     render: (_, record) => {
       const buttons = actionsFn(record).map((action) => {
         if (action.link) {

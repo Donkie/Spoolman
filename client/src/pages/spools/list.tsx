@@ -10,7 +10,7 @@ import {
 } from "@ant-design/icons";
 import { List, useTable } from "@refinedev/antd";
 import { useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
-import { Button, Dropdown, Modal, Table } from "antd";
+import { Button, Dropdown, Modal } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useCallback, useMemo, useState } from "react";
@@ -27,6 +27,7 @@ import {
   SpoolIconColumn,
 } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
+import ResizableTable from "../../components/resizableTable";
 import {
   useSpoolmanFilamentFilter,
   useSpoolmanLocations,
@@ -326,7 +327,8 @@ export const SpoolList = () => {
       )}
     >
       {spoolAdjustModal}
-      <Table
+      <ResizableTable
+        columnResizeKey="spool-list-table"
         {...tableProps}
         sticky
         tableLayout="auto"
