@@ -44,12 +44,8 @@ export function useGetPrintSettings(): SpoolQRCodePrintSettings[] | undefined {
   });
 }
 
-export function useSetPrintSettings(): (spoolQRCodePrintSettings: SpoolQRCodePrintSettings[]) => void {
-  const mut = useSetSetting("print_presets");
-
-  return (spoolQRCodePrintSettings: SpoolQRCodePrintSettings[]) => {
-    mut.mutate(spoolQRCodePrintSettings);
-  };
+export function useSetPrintSettings() {
+  return useSetSetting<SpoolQRCodePrintSettings[]>("print_presets");
 }
 
 interface GenericObject {

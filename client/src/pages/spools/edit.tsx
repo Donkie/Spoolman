@@ -97,6 +97,7 @@ export const SpoolEdit = () => {
       return null;
     }
   }, [selectedFilamentID, internalSelectOptions, externalSelectOptions]);
+  const watchedAllValues = Form.useWatch([], form);
 
   // Override the form's onFinish method to stringify the extra fields
   const originalOnFinish = formProps.onFinish;
@@ -230,8 +231,65 @@ export const SpoolEdit = () => {
     }
   }, [initialUsedWeight]);
 
+  const normalizeForCompare = (value: unknown): unknown => {
+    if (dayjs.isDayjs(value)) {
+      return value.toISOString();
+    }
+    if (Array.isArray(value)) {
+      return value.map(normalizeForCompare);
+    }
+    if (value && typeof value === "object") {
+      const objectValue = value as Record<string, unknown>;
+      return Object.keys(objectValue)
+        .sort()
+        .reduce<Record<string, unknown>>((acc, key) => {
+          const normalizedValue = normalizeForCompare(objectValue[key]);
+          if (normalizedValue !== undefined) {
+            acc[key] = normalizedValue;
+          }
+          return acc;
+        }, {});
+    }
+    return value;
+  };
+
+  const toComparableState = (value: unknown): string => {
+    const normalized = normalizeForCompare(value) as Record<string, unknown> | undefined;
+    const normalizedExtra = { ...(normalized?.extra as Record<string, unknown> | undefined) };
+
+    return JSON.stringify({
+      first_used: normalized?.first_used ?? null,
+      last_used: normalized?.last_used ?? null,
+      filament_id: normalized?.filament_id ?? null,
+      price: normalized?.price ?? null,
+      initial_weight: normalized?.initial_weight ?? null,
+      spool_weight: normalized?.spool_weight ?? null,
+      used_weight: normalized?.used_weight ?? null,
+      location: normalized?.location ?? "",
+      lot_nr: normalized?.lot_nr ?? "",
+      comment: normalized?.comment ?? "",
+      extra: normalizedExtra,
+    });
+  };
+
+  const initialComparableState = useMemo(
+    () => (formProps.initialValues ? toComparableState(formProps.initialValues) : null),
+    [formProps.initialValues],
+  );
+  const watchedComparableState = useMemo(
+    () => (watchedAllValues ? toComparableState(watchedAllValues) : null),
+    [watchedAllValues],
+  );
+  const hasFormChanges =
+    initialComparableState !== null && watchedComparableState !== null && initialComparableState !== watchedComparableState;
+  const saveButtonState = {
+    ...saveButtonProps,
+    type: hasFormChanges ? ("primary" as const) : ("default" as const),
+    disabled: saveButtonProps.disabled || !hasFormChanges,
+  };
+
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit saveButtonProps={saveButtonState}>
       {contextHolder}
       <Form {...formProps} layout="vertical">
         <Form.Item

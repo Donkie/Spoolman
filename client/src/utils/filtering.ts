@@ -44,3 +44,46 @@ export function searchMatches(query: string, test: string): boolean {
   const words = query.toLowerCase().split(" ");
   return words.every((word) => test.toLowerCase().includes(word));
 }
+
+function hasMeaningfulFilterValue(value: unknown): boolean {
+  if (value === null || value === undefined) {
+    return false;
+  }
+
+  if (typeof value === "string") {
+    return value.trim().length > 0;
+  }
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return false;
+    }
+    return value.some((entry) => hasMeaningfulFilterValue(entry));
+  }
+
+  return true;
+}
+
+/**
+ * Returns true when at least one filter has a meaningful value.
+ * This ignores empty array/string values that can appear in filter state.
+ */
+export function hasMeaningfulFilters(filters?: CrudFilter[]): boolean {
+  if (!filters || filters.length === 0) {
+    return false;
+  }
+
+  return filters.some((filter) => {
+    if ("operator" in filter && (filter.operator === "or" || filter.operator === "and")) {
+      // Refine nests grouped filters, so recurse until we find a real leaf value
+      // instead of treating the wrapper object itself as "active".
+      return hasMeaningfulFilters(filter.value);
+    }
+
+    if ("value" in filter) {
+      return hasMeaningfulFilterValue(filter.value);
+    }
+
+    return false;
+  });
+}

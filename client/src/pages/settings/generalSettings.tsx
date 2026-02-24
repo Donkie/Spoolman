@@ -1,6 +1,6 @@
 import { useTranslate } from "@refinedev/core";
 import { Button, Checkbox, Form, Input, message } from "antd";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useGetSettings, useSetSetting } from "../../utils/querySettings";
 
 export function GeneralSettings() {
@@ -9,6 +9,7 @@ export function GeneralSettings() {
   const setCurrency = useSetSetting("currency");
   const setRoundPrices = useSetSetting("round_prices");
   const [form] = Form.useForm();
+  const watchedAllValues = Form.useWatch([], form);
   const [messageApi, contextHolder] = message.useMessage();
   const t = useTranslate();
 
@@ -46,6 +47,32 @@ export function GeneralSettings() {
       setRoundPrices.mutate(values.round_prices);
     }
   };
+
+  const initialComparableState = useMemo(() => {
+    if (!settings.data) {
+      return null;
+    }
+    return JSON.stringify({
+      currency: JSON.parse(settings.data.currency.value),
+      base_url: JSON.parse(settings.data.base_url.value),
+      round_prices: JSON.parse(settings.data.round_prices.value),
+    });
+  }, [settings.data]);
+
+  const watchedComparableState = useMemo(() => {
+    if (!watchedAllValues) {
+      return null;
+    }
+    return JSON.stringify({
+      currency: watchedAllValues.currency ?? "",
+      base_url: watchedAllValues.base_url ?? "",
+      round_prices: watchedAllValues.round_prices ?? false,
+    });
+  }, [watchedAllValues]);
+
+  const hasFormChanges =
+    initialComparableState !== null && watchedComparableState !== null && initialComparableState !== watchedComparableState;
+  const isSaving = settings.isFetching || setCurrency.isPending || setBaseUrl.isPending || setRoundPrices.isPending;
 
   return (
     <>
@@ -105,7 +132,12 @@ export function GeneralSettings() {
         </Form.Item>
 
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-          <Button type="primary" htmlType="submit" loading={settings.isFetching || setCurrency.isPending}>
+          <Button
+            type={hasFormChanges ? "primary" : "default"}
+            htmlType="submit"
+            loading={isSaving}
+            disabled={isSaving || !hasFormChanges}
+          >
             {t("buttons.save")}
           </Button>
         </Form.Item>

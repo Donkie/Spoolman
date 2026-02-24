@@ -23,7 +23,7 @@ import {
   useSpoolmanMaterials,
   useSpoolmanVendors,
 } from "../../components/otherModels";
-import { removeUndefined } from "../../utils/filtering";
+import { hasMeaningfulFilters, removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
 import { useCurrencyFormatter } from "../../utils/settings";
@@ -164,13 +164,14 @@ export const FilamentList = () => {
     tableState,
     sorter: true,
   };
+  const hasActiveFilters = hasMeaningfulFilters(filters);
 
   return (
     <List
       headerButtons={({ defaultButtons }) => (
         <>
           <Button
-            type="primary"
+            type={hasActiveFilters ? "primary" : "default"}
             icon={<FilterOutlined />}
             onClick={() => {
               setFilters([], "replace");

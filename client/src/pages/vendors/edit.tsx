@@ -3,7 +3,7 @@ import { HttpError, useTranslate } from "@refinedev/core";
 import { Alert, DatePicker, Form, Input, InputNumber, message, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { IVendor, IVendorParsedExtras } from "./model";
@@ -29,6 +29,7 @@ export const VendorEdit = () => {
       setHasChanged(true);
     },
   });
+  const watchedAllValues = Form.useWatch([], formProps.form);
 
   // Parse the extra fields from string values into real types
   if (formProps.initialValues) {
@@ -48,8 +49,61 @@ export const VendorEdit = () => {
     }
   };
 
+  const normalizeForCompare = (value: unknown): unknown => {
+    if (dayjs.isDayjs(value)) {
+      return value.toISOString();
+    }
+    if (Array.isArray(value)) {
+      return value.map(normalizeForCompare);
+    }
+    if (value && typeof value === "object") {
+      const objectValue = value as Record<string, unknown>;
+      return Object.keys(objectValue)
+        .sort()
+        .reduce<Record<string, unknown>>((acc, key) => {
+          const normalizedValue = normalizeForCompare(objectValue[key]);
+          if (normalizedValue !== undefined) {
+            acc[key] = normalizedValue;
+          }
+          return acc;
+        }, {});
+    }
+    return value;
+  };
+
+  const toComparableState = (value: unknown): string => {
+    const normalized = normalizeForCompare(value) as Record<string, unknown> | undefined;
+    const normalizedExtra = { ...(normalized?.extra as Record<string, unknown> | undefined) };
+
+    // Compare only the fields this form actually edits so live metadata and nested
+    // objects do not keep the Save button permanently "dirty".
+    return JSON.stringify({
+      name: normalized?.name ?? "",
+      comment: normalized?.comment ?? "",
+      empty_spool_weight: normalized?.empty_spool_weight ?? null,
+      external_id: normalized?.external_id ?? "",
+      extra: normalizedExtra,
+    });
+  };
+
+  const initialComparableState = useMemo(
+    () => (formProps.initialValues ? toComparableState(formProps.initialValues) : null),
+    [formProps.initialValues],
+  );
+  const watchedComparableState = useMemo(
+    () => (watchedAllValues ? toComparableState(watchedAllValues) : null),
+    [watchedAllValues],
+  );
+  const hasFormChanges =
+    initialComparableState !== null && watchedComparableState !== null && initialComparableState !== watchedComparableState;
+  const saveButtonState = {
+    ...saveButtonProps,
+    type: hasFormChanges ? ("primary" as const) : ("default" as const),
+    disabled: saveButtonProps.disabled || !hasFormChanges,
+  };
+
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit saveButtonProps={saveButtonState}>
       {contextHolder}
       <Form {...formProps} layout="vertical">
         <Form.Item

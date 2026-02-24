@@ -3,7 +3,7 @@ import { HttpError, useTranslate } from "@refinedev/core";
 import { Alert, ColorPicker, DatePicker, Form, Input, InputNumber, message, Radio, Select, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import { MultiColorPicker } from "../../components/multiColorPicker";
 import { formatNumberOnUserInput, numberParser, numberParserAllowEmpty } from "../../utils/parsing";
@@ -42,6 +42,7 @@ export const FilamentEdit = () => {
     optionLabel: "name",
     pagination: { mode: "off" },
   });
+  const watchedAllValues = Form.useWatch([], formProps.form);
 
   // Add the vendor_id field to the form
   if (formProps.initialValues) {
@@ -76,8 +77,71 @@ export const FilamentEdit = () => {
     }
   };
 
+  const normalizeForCompare = (value: unknown): unknown => {
+    if (dayjs.isDayjs(value)) {
+      return value.toISOString();
+    }
+    if (Array.isArray(value)) {
+      return value.map(normalizeForCompare);
+    }
+    if (value && typeof value === "object") {
+      const objectValue = value as Record<string, unknown>;
+      return Object.keys(objectValue)
+        .sort()
+        .reduce<Record<string, unknown>>((acc, key) => {
+          const normalizedValue = normalizeForCompare(objectValue[key]);
+          if (normalizedValue !== undefined) {
+            acc[key] = normalizedValue;
+          }
+          return acc;
+        }, {});
+    }
+    return value;
+  };
+
+  const toComparableState = (value: unknown): string => {
+    const normalized = normalizeForCompare(value) as Record<string, unknown> | undefined;
+    const normalizedExtra = { ...(normalized?.extra as Record<string, unknown> | undefined) };
+
+    return JSON.stringify({
+      name: normalized?.name ?? "",
+      vendor_id: normalized?.vendor_id ?? null,
+      material: normalized?.material ?? "",
+      price: normalized?.price ?? null,
+      density: normalized?.density ?? null,
+      diameter: normalized?.diameter ?? null,
+      weight: normalized?.weight ?? null,
+      spool_weight: normalized?.spool_weight ?? null,
+      settings_extruder_temp: normalized?.settings_extruder_temp ?? null,
+      settings_bed_temp: normalized?.settings_bed_temp ?? null,
+      article_number: normalized?.article_number ?? "",
+      external_id: normalized?.external_id ?? "",
+      comment: normalized?.comment ?? "",
+      color_hex: normalized?.color_hex ?? "",
+      multi_color_direction: normalized?.multi_color_direction ?? "",
+      multi_color_hexes: colorType === "single" ? "" : (normalized?.multi_color_hexes ?? ""),
+      extra: normalizedExtra,
+    });
+  };
+
+  const initialComparableState = useMemo(
+    () => (formProps.initialValues ? toComparableState(formProps.initialValues) : null),
+    [formProps.initialValues, colorType],
+  );
+  const watchedComparableState = useMemo(
+    () => (watchedAllValues ? toComparableState(watchedAllValues) : null),
+    [watchedAllValues, colorType],
+  );
+  const hasFormChanges =
+    initialComparableState !== null && watchedComparableState !== null && initialComparableState !== watchedComparableState;
+  const saveButtonState = {
+    ...saveButtonProps,
+    type: hasFormChanges ? ("primary" as const) : ("default" as const),
+    disabled: saveButtonProps.disabled || !hasFormChanges,
+  };
+
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit saveButtonProps={saveButtonState}>
       {contextHolder}
       <Form {...formProps} layout="vertical">
         <Form.Item

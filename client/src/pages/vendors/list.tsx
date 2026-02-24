@@ -15,7 +15,7 @@ import {
   SortedColumn,
 } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
-import { removeUndefined } from "../../utils/filtering";
+import { hasMeaningfulFilters, removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
 import { IVendor } from "./model";
@@ -107,13 +107,14 @@ export const VendorList = () => {
     tableState,
     sorter: true,
   };
+  const hasActiveFilters = hasMeaningfulFilters(filters);
 
   return (
     <List
       headerButtons={({ defaultButtons }) => (
         <>
           <Button
-            type="primary"
+            type={hasActiveFilters ? "primary" : "default"}
             icon={<FilterOutlined />}
             onClick={() => {
               setFilters([], "replace");

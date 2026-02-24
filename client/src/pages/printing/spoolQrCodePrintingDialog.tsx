@@ -2,7 +2,7 @@ import { CopyOutlined, DeleteOutlined, PlusOutlined, SaveOutlined } from "@ant-d
 import { useTranslate } from "@refinedev/core";
 import { Button, Flex, Form, Input, Modal, Popconfirm, Select, Table, Typography, message } from "antd";
 import TextArea from "antd/es/input/TextArea";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useGetSetting } from "../../utils/querySettings";
@@ -51,9 +51,21 @@ const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
 
   const localOrRemotePresets = localPresets ?? remotePresets;
 
-  const savePresetsRemote = () => {
-    if (!localPresets) return;
-    setRemotePresets(localPresets);
+  const remotePresetsComparable = useMemo(() => JSON.stringify(remotePresets ?? []), [remotePresets]);
+  const localPresetsComparable = useMemo(
+    () => JSON.stringify((localPresets ?? remotePresets) ?? []),
+    [localPresets, remotePresets],
+  );
+  const hasUnsavedPresetChanges =
+    localPresets !== undefined && localPresetsComparable !== remotePresetsComparable;
+
+  const savePresetsRemote = async (): Promise<boolean> => {
+    if (!localPresets || !hasUnsavedPresetChanges) return false;
+    // Only persist when the local working copy diverges from the remote source; this
+    // keeps the Save Preset button as a true "needs action" indicator.
+    await setRemotePresets.mutateAsync(localPresets);
+    setLocalPresets(undefined);
+    return true;
   };
 
   // Functions to update settings
@@ -347,12 +359,21 @@ Spool Weight: {filament.spool_weight} g
         extraButtons={
           <>
             <Button
-              type="primary"
+              type={hasUnsavedPresetChanges ? "primary" : "default"}
               size="large"
               icon={<SaveOutlined />}
-              onClick={() => {
-                savePresetsRemote();
-                messageApi.success(t("notifications.saveSuccessful"));
+              loading={setRemotePresets.isPending}
+              disabled={!hasUnsavedPresetChanges || setRemotePresets.isPending}
+              onClick={async () => {
+                try {
+                  const wasSaved = await savePresetsRemote();
+                  if (wasSaved) {
+                    messageApi.success(t("notifications.saveSuccessful"));
+                  }
+                } catch (error) {
+                  const fallback = t("notifications.error", { statusCode: "unknown" });
+                  messageApi.error(error instanceof Error ? error.message : fallback);
+                }
               }}
             >
               {t("printing.generic.saveSetting")}
