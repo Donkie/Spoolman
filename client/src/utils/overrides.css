@@ -1,3 +1,38 @@
+:root {
+  --camera-button-right: 24px;
+  --camera-button-bottom: 24px;
+  --camera-button-size: 56px;
+  --camera-button-gap: 12px;
+  --floating-actions-baseline-nudge: 5px;
+  --floating-actions-padding-y: 8px;
+  --floating-actions-padding-x: 10px;
+  --floating-actions-right: calc(var(--camera-button-right) + var(--camera-button-size) + var(--camera-button-gap));
+  --floating-actions-bottom: calc(var(--camera-button-bottom) + var(--floating-actions-baseline-nudge) - var(--floating-actions-padding-y));
+}
+
 #qty-input {
   text-align: center !important;
+}
+
+.floating-form-actions {
+  position: fixed;
+  right: var(--floating-actions-right);
+  bottom: var(--floating-actions-bottom);
+  z-index: 1200;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: var(--floating-actions-padding-y) var(--floating-actions-padding-x);
+  border-radius: 10px;
+  background: rgba(17, 17, 17, 0.88);
+  backdrop-filter: blur(4px);
+}
+
+@media (max-width: 768px) {
+  .floating-form-actions {
+    right: var(--floating-actions-right);
+    bottom: var(--floating-actions-bottom);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
 }

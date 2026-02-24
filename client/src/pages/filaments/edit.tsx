@@ -77,7 +77,14 @@ export const FilamentEdit = () => {
   };
 
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit
+      saveButtonProps={saveButtonProps}
+      footerButtons={({ defaultButtons }) => (
+        <div className="floating-form-actions">
+          {defaultButtons}
+        </div>
+      )}
+    >
       {contextHolder}
       <Form {...formProps} layout="vertical">
         <Form.Item
