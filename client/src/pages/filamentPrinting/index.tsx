@@ -24,7 +24,7 @@ export const FilamentPrinting = () => {
   return (
     <>
       <PageHeader
-        title={`${t("printing.qrcode.button")} (${t("filament.filament")})`}
+        title={t("printing.qrcode.printFilamentTitle")}
         onBack={() => {
           const returnUrl = searchParams.get("return");
           if (returnUrl) {

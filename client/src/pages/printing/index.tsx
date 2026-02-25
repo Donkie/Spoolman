@@ -24,7 +24,7 @@ export const Printing = () => {
   return (
     <>
       <PageHeader
-        title={`${t("printing.qrcode.button")} (${t("spool.spool")})`}
+        title={t("printing.qrcode.printSpoolTitle")}
         onBack={() => {
           const returnUrl = searchParams.get("return");
           if (returnUrl) {
