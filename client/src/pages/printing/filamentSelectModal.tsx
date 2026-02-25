@@ -12,7 +12,7 @@ import { IFilament } from "../filaments/model";
 
 interface Props {
   description?: string;
-  onContinue: (selectedFilaments: IFilament[]) => void;
+  onContinue: (selectedFilamentIds: number[]) => void;
 }
 
 interface IFilamentCollapsed extends IFilament {
@@ -32,9 +32,9 @@ const FilamentSelectModal = ({ description, onContinue }: Props) => {
     resource: "filament",
     syncWithLocation: false,
     pagination: {
-      mode: "off",
+      mode: "server",
       currentPage: 1,
-      pageSize: 10,
+      pageSize: 50,
     },
     sorters: {
       mode: "server",
@@ -62,11 +62,24 @@ const FilamentSelectModal = ({ description, onContinue }: Props) => {
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource],
   );
+  const selectedSet = useMemo(() => new Set(selectedItems), [selectedItems]);
+
+  if (tableProps.pagination) {
+    tableProps.pagination.showSizeChanger = true;
+    tableProps.pagination.pageSizeOptions = ["25", "50", "100", "200"];
+  }
 
   const selectUnselectFiltered = (select: boolean) => {
     setSelectedItems((prevSelected) => {
-      const filtered = dataSource.map((filament) => filament.id).filter((id) => !prevSelected.includes(id));
-      return select ? [...prevSelected, ...filtered] : filtered;
+      const nextSelected = new Set(prevSelected);
+      dataSource.forEach((filament) => {
+        if (select) {
+          nextSelected.add(filament.id);
+        } else {
+          nextSelected.delete(filament.id);
+        }
+      });
+      return Array.from(nextSelected);
     });
   };
 
@@ -76,9 +89,9 @@ const FilamentSelectModal = ({ description, onContinue }: Props) => {
     );
   };
 
-  const isAllFilteredSelected = dataSource.every((filament) => selectedItems.includes(filament.id));
+  const isAllFilteredSelected = dataSource.every((filament) => selectedSet.has(filament.id));
   const isSomeButNotAllFilteredSelected =
-    dataSource.some((filament) => selectedItems.includes(filament.id)) && !isAllFilteredSelected;
+    dataSource.some((filament) => selectedSet.has(filament.id)) && !isAllFilteredSelected;
 
   const commonProps = {
     t,
@@ -99,13 +112,12 @@ const FilamentSelectModal = ({ description, onContinue }: Props) => {
           rowKey="id"
           tableLayout="auto"
           dataSource={dataSource}
-          pagination={false}
           scroll={{ y: 200 }}
           columns={removeUndefined([
             {
               width: 50,
               render: (_, item: IFilament) => (
-                <Checkbox checked={selectedItems.includes(item.id)} onChange={() => handleSelectItem(item.id)} />
+                <Checkbox checked={selectedSet.has(item.id)} onChange={() => handleSelectItem(item.id)} />
               ),
             },
             SortedColumn({
@@ -172,7 +184,7 @@ const FilamentSelectModal = ({ description, onContinue }: Props) => {
                   });
                   return;
                 }
-                onContinue(dataSource.filter((filament) => selectedItems.includes(filament.id)));
+                onContinue(selectedItems);
               }}
             >
               {t("buttons.continue")}

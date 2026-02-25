@@ -24,7 +24,7 @@ export const FilamentPrinting = () => {
   return (
     <>
       <PageHeader
-        title={t("printing.qrcode.button")}
+        title={`${t("printing.qrcode.button")} (${t("filament.filament")})`}
         onBack={() => {
           const returnUrl = searchParams.get("return");
           if (returnUrl) {
@@ -50,11 +50,11 @@ export const FilamentPrinting = () => {
           {step === 0 && (
             <FilamentSelectModal
               description={t("printing.filamentSelect.description")}
-              onContinue={(filaments) => {
+              onContinue={(selectedFilamentIds) => {
                 setSearchParams((prev) => {
                   const newParams = new URLSearchParams(prev);
                   newParams.delete("filaments");
-                  filaments.forEach((filament) => newParams.append("filaments", filament.id.toString()));
+                  selectedFilamentIds.forEach((id) => newParams.append("filaments", id.toString()));
                   newParams.set("return", "/filament/print");
                   return newParams;
                 });
