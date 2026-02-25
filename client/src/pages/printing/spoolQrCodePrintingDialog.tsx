@@ -26,10 +26,15 @@ interface SpoolQRCodePrintingDialog {
 const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
   const t = useTranslate();
   const baseUrlSetting = useGetSetting("base_url");
-  const baseUrlRoot =
-    baseUrlSetting.data?.value !== undefined && JSON.parse(baseUrlSetting.data?.value) !== ""
-      ? JSON.parse(baseUrlSetting.data?.value)
-      : window.location.origin;
+  let parsedBaseUrl = "";
+  if (baseUrlSetting.data?.value !== undefined) {
+    try {
+      parsedBaseUrl = JSON.parse(baseUrlSetting.data.value) ?? "";
+    } catch {
+      parsedBaseUrl = baseUrlSetting.data.value;
+    }
+  }
+  const baseUrlRoot = parsedBaseUrl !== "" ? parsedBaseUrl : window.location.origin;
   const [messageApi, contextHolder] = message.useMessage();
   const [useHTTPUrl, setUseHTTPUrl] = useSavedState("print-useHTTPUrl", false);
 
