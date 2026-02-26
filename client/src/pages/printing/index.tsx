@@ -50,6 +50,7 @@ export const Printing = () => {
           {step === 0 && (
             <SpoolSelectModal
               description={t("printing.spoolSelect.description")}
+              searchPlaceholder={t("printing.spoolSelect.searchPlaceholder")}
               onContinue={(spools) => {
                 setSearchParams((prev) => {
                   const newParams = new URLSearchParams(prev);

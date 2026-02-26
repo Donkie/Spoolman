@@ -127,12 +127,17 @@
         },
         "spoolSelect": {
             "title": "Select Spools",
-            "description": "Select spools to print labels for.",
+            "description": "Search for and select spool labels to print:",
+            "searchPlaceholder": "Search by spool ID, filament, material, location, or lot number",
             "showArchived": "Show Archived",
             "noSpoolsSelected": "You have not selected any spools.",
             "selectAll": "Select/Unselect All",
             "selectedTotal_one": "{{count}} spool selected",
             "selectedTotal_other": "{{count}} spools selected"
+        },
+        "filamentSelect": {
+            "description": "Search for and select filament labels to print:",
+            "searchPlaceholder": "Search by filament ID, vendor, name, material, or color"
         }
     },
     "scanner": {
