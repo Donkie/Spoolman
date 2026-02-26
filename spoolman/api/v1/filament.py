@@ -304,6 +304,15 @@ async def find(
             examples=["polymaker_pla_polysonicblack_1000_175"],
         ),
     ] = None,
+    spool_count: Annotated[
+        str | None,
+        Query(
+            title="Spool Count",
+            description="Match filaments with an exact spool count. Separate multiple counts with a comma.",
+            pattern=r"^\d+(,\d+)*$",
+            examples=["0", "1,2,3"],
+        ),
+    ] = None,
     sort: Annotated[
         str | None,
         Query(
@@ -331,6 +340,10 @@ async def find(
         vendor_ids = [int(vendor_id_item) for vendor_id_item in vendor_id.split(",")]
     else:
         vendor_ids = None
+    if spool_count is not None:
+        spool_counts = [int(spool_count_item) for spool_count_item in spool_count.split(",")]
+    else:
+        spool_counts = None
 
     if color_hex is not None:
         matched_filaments = await filament.find_by_color(
@@ -354,6 +367,7 @@ async def find(
         sort_by=sort_by,
         limit=limit,
         offset=offset,
+        spool_count=spool_counts,
     )
 
     # Set x-total-count header for pagination
@@ -364,6 +378,19 @@ async def find(
         ),
         headers={"x-total-count": str(total_count)},
     )
+
+
+@router.get(
+    "/spool-count",
+    name="Find filament spool counts",
+    description="Get distinct spool-count values across filaments.",
+    response_model_exclude_none=True,
+)
+async def find_spool_counts(
+    *,
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+) -> list[int]:
+    return await filament.find_spool_counts(db=db)
 
 
 @router.websocket(

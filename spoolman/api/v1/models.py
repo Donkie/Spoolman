@@ -134,6 +134,12 @@ class Filament(BaseModel):
         examples=[1000],
     )
     spool_weight: float | None = Field(None, ge=0, description="The empty spool weight, in grams.", examples=[140])
+    spool_count: int | None = Field(
+        None,
+        ge=0,
+        description="Number of spools associated with this filament.",
+        examples=[3],
+    )
     article_number: str | None = Field(
         None,
         max_length=64,
@@ -212,6 +218,7 @@ class Filament(BaseModel):
             diameter=item.diameter,
             weight=item.weight,
             spool_weight=item.spool_weight,
+            spool_count=getattr(item, "spool_count", None),
             article_number=item.article_number,
             comment=item.comment,
             settings_extruder_temp=item.settings_extruder_temp,
