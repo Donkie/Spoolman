@@ -446,7 +446,7 @@ function Column<Obj extends Entity>(
       columnProps.key = props.dataId;
     }
   } else if (props.searchable) {
-    const filterField = props.dataId ?? (Array.isArray(props.id) ? undefined : (props.id as keyof Obj));
+    const filterField = props.dataId ?? (Array.isArray(props.id) || typeof props.id !== "string" ? undefined : props.id);
     if (filterField) {
       const typedFilters = typeFilters<Obj>(props.tableState.filters);
       const filteredValue = getFiltersForField(typedFilters, filterField);

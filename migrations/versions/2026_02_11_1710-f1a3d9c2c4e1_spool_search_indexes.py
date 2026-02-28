@@ -17,11 +17,23 @@ depends_on = None
 
 def upgrade() -> None:
     """Perform the upgrade."""
-    op.create_index("ix_spool_location", "spool", ["location"], unique=False)
-    op.create_index("ix_spool_lot_nr", "spool", ["lot_nr"], unique=False)
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    spool_indexes = {index["name"] for index in inspector.get_indexes("spool")}
+
+    if "ix_spool_location" not in spool_indexes:
+        op.create_index("ix_spool_location", "spool", ["location"], unique=False)
+    if "ix_spool_lot_nr" not in spool_indexes:
+        op.create_index("ix_spool_lot_nr", "spool", ["lot_nr"], unique=False)
 
 
 def downgrade() -> None:
     """Perform the downgrade."""
-    op.drop_index("ix_spool_lot_nr", table_name="spool")
-    op.drop_index("ix_spool_location", table_name="spool")
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    spool_indexes = {index["name"] for index in inspector.get_indexes("spool")}
+
+    if "ix_spool_lot_nr" in spool_indexes:
+        op.drop_index("ix_spool_lot_nr", table_name="spool")
+    if "ix_spool_location" in spool_indexes:
+        op.drop_index("ix_spool_location", table_name="spool")

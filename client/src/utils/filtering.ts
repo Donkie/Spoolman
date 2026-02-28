@@ -1,7 +1,7 @@
 import { CrudFilter, CrudOperators } from "@refinedev/core";
 
 interface TypedCrudFilter<Obj> {
-  field: keyof Obj;
+  field: keyof Obj | string;
   operator: Exclude<CrudOperators, "or" | "and">;
   value: string[];
 }
@@ -16,9 +16,9 @@ export function typeFilters<Obj>(filters: CrudFilter[]): TypedCrudFilter<Obj>[] 
  * @param field The field to get the filter values for.
  * @returns An array of filter values for the given field.
  */
-export function getFiltersForField<Obj, Field extends keyof Obj>(
+export function getFiltersForField<Obj>(
   filters: TypedCrudFilter<Obj>[],
-  field: Field,
+  field: keyof Obj | string,
 ): string[] {
   const filterValues: string[] = [];
   filters.forEach((filter) => {
