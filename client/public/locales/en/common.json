@@ -354,6 +354,29 @@
             "key_not_changed": "Please change the key to something else.",
             "delete_confirm": "Delete field {{name}}?",
             "delete_confirm_description": "This will delete the field and all associated data for all entities."
+        },
+        "complex_fields": {
+            "tab": "Complex Fields",
+            "description": "<p>Complex fields add optional, pre-defined behaviors beyond standard extra fields.</p><p>Enabling one can add specialized display, actions, calculated values, or list columns for the selected entity. Disabled features remain hidden so the standard UI stays simpler.</p><p>Each entry below states exactly what enabling it adds. This framework can stay empty until a specific advanced feature is installed.</p>",
+            "empty": "No complex fields are currently registered for this entity.",
+            "columns": {
+                "name": "Name",
+                "description": "Feature",
+                "enable_description": "What Enabling Adds",
+                "surfaces": "Surfaces",
+                "enabled": "Enabled"
+            },
+            "surfaces": {
+                "show": "Show",
+                "edit": "Edit",
+                "list": "List",
+                "action": "Action",
+                "derived": "Derived"
+            },
+            "messages": {
+                "enabled": "Enabled {{name}}.",
+                "disabled": "Disabled {{name}}."
+            }
         }
     },
     "documentTitle": {

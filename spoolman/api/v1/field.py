@@ -8,6 +8,12 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import Message
+from spoolman.complex_fields import (
+    ComplexFieldState,
+    ComplexFieldToggleRequest,
+    get_complex_fields,
+    set_complex_field_enabled,
+)
 from spoolman.database.database import get_db_session
 from spoolman.exceptions import ItemNotFoundError
 from spoolman.extra_fields import (
@@ -27,6 +33,49 @@ router = APIRouter(
 # ruff: noqa: D103
 
 logger = logging.getLogger(__name__)
+
+
+@router.get(
+    "/complex/{entity_type}",
+    name="Get complex fields",
+    description="Get all registered complex fields for a specific entity type, including enabled state.",
+    response_model_exclude_none=True,
+)
+async def get_complex(
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    entity_type: Annotated[EntityType, Path(description="Entity type this complex field is for")],
+) -> list[ComplexFieldState]:
+    return await get_complex_fields(db, entity_type)
+
+
+@router.post(
+    "/complex/{entity_type}/{key}",
+    name="Enable or disable complex field",
+    description=(
+        "Enable or disable a registered complex field for a specific entity type. "
+        "Returns the full list of registered complex fields for the entity type."
+    ),
+    response_model_exclude_none=True,
+    response_model=list[ComplexFieldState],
+    responses={404: {"model": Message}},
+)
+async def set_complex(
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    entity_type: Annotated[EntityType, Path(description="Entity type this complex field is for")],
+    key: Annotated[str, Path(min_length=1, max_length=64, pattern="^[a-z0-9_]+$")],
+    body: ComplexFieldToggleRequest,
+) -> list[ComplexFieldState] | JSONResponse:
+    try:
+        await set_complex_field_enabled(db, entity_type, key, body.enabled)
+    except ItemNotFoundError:
+        return JSONResponse(
+            status_code=404,
+            content=Message(
+                message=f"Complex field with key {key} does not exist for entity type {entity_type.name}",
+            ).dict(),
+        )
+
+    return await get_complex_fields(db, entity_type)
 
 
 @router.get(

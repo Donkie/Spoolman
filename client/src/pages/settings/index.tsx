@@ -5,6 +5,7 @@ import { Content } from "antd/es/layout/layout";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { Route, Routes, useNavigate } from "react-router";
+import { ComplexFieldsSettings } from "./complexFieldsSettings";
 import { ExtraFieldsSettings } from "./extraFieldsSettings";
 import { GeneralSettings } from "./generalSettings";
 
@@ -79,6 +80,28 @@ export const Settings = () => {
                 },
               ],
             },
+            {
+              key: "complex",
+              label: t("settings.complex_fields.tab"),
+              icon: <SolutionOutlined />,
+              children: [
+                {
+                  label: t("spool.spool"),
+                  key: "complex/spool",
+                  icon: <FileOutlined />,
+                },
+                {
+                  label: t("filament.filament"),
+                  key: "complex/filament",
+                  icon: <HighlightOutlined />,
+                },
+                {
+                  label: t("vendor.vendor"),
+                  key: "complex/vendor",
+                  icon: <UserOutlined />,
+                },
+              ],
+            },
           ]}
           style={{
             marginBottom: "1em",
@@ -88,6 +111,7 @@ export const Settings = () => {
           <Routes>
             <Route index element={<GeneralSettings />} />
             <Route path="/extra/:entityType" element={<ExtraFieldsSettings />} />
+            <Route path="/complex/:entityType" element={<ComplexFieldsSettings />} />
           </Routes>
         </main>
       </Content>

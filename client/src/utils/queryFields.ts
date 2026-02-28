@@ -19,6 +19,14 @@ export enum EntityType {
   spool = "spool",
 }
 
+export enum ComplexFieldSurface {
+  show = "show",
+  edit = "edit",
+  list = "list",
+  action = "action",
+  derived = "derived",
+}
+
 export interface FieldParameters {
   name: string;
   order: number;
@@ -32,6 +40,19 @@ export interface FieldParameters {
 export interface Field extends FieldParameters {
   key: string;
   entity_type: EntityType;
+}
+
+export interface ComplexFieldDefinition {
+  key: string;
+  entity_type: EntityType;
+  name: string;
+  description: string;
+  enable_description: string;
+  surfaces: ComplexFieldSurface[];
+}
+
+export interface ComplexFieldState extends ComplexFieldDefinition {
+  enabled: boolean;
 }
 
 export function useGetFields(entity_type: EntityType) {
@@ -130,6 +151,74 @@ export function useDeleteField(entity_type: EntityType) {
       // Invalidate and refetch
       queryClient.invalidateQueries({
         queryKey: ["fields", entity_type],
+      });
+    },
+  });
+}
+
+export function useGetComplexFields(entity_type: EntityType) {
+  return useQuery<ComplexFieldState[]>({
+    queryKey: ["complexFields", entity_type],
+    queryFn: async () => {
+      const response = await fetch(`${getAPIURL()}/field/complex/${entity_type}`);
+      return response.json();
+    },
+  });
+}
+
+export function useSetComplexFieldEnabled(entity_type: EntityType) {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    ComplexFieldState[],
+    unknown,
+    { key: string; enabled: boolean },
+    { previousFields?: ComplexFieldState[] }
+  >({
+    mutationFn: async ({ key, enabled }) => {
+      const response = await fetch(`${getAPIURL()}/field/complex/${entity_type}/${key}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ enabled }),
+      });
+
+      if (!response.ok) {
+        throw new Error((await response.json()).message);
+      }
+
+      return response.json();
+    },
+    onMutate: async ({ key, enabled }) => {
+      await queryClient.cancelQueries({
+        queryKey: ["complexFields", entity_type],
+      });
+
+      const previousFields = queryClient.getQueryData<ComplexFieldState[]>(["complexFields", entity_type]);
+
+      queryClient.setQueryData<ComplexFieldState[]>(["complexFields", entity_type], (old) =>
+        old?.map((field) => {
+          if (field.key !== key) {
+            return field;
+          }
+          return {
+            ...field,
+            enabled,
+          };
+        }) || old,
+      );
+
+      return { previousFields };
+    },
+    onError: (_err, _newFields, context) => {
+      if (context?.previousFields) {
+        queryClient.setQueryData(["complexFields", entity_type], context.previousFields);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["complexFields", entity_type],
       });
     },
   });
