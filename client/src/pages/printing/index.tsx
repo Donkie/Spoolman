@@ -51,11 +51,11 @@ export const Printing = () => {
             <SpoolSelectModal
               description={t("printing.spoolSelect.description")}
               searchPlaceholder={t("printing.spoolSelect.searchPlaceholder")}
-              onContinue={(spools) => {
+              onPrint={(selectedIds) => {
                 setSearchParams((prev) => {
                   const newParams = new URLSearchParams(prev);
                   newParams.delete("spools");
-                  spools.forEach((spool) => newParams.append("spools", spool.id.toString()));
+                  selectedIds.forEach((id) => newParams.append("spools", id.toString()));
                   newParams.set("return", "/spool/print");
                   return newParams;
                 });

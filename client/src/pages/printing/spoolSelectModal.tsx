@@ -1,4 +1,3 @@
-import { RightOutlined } from "@ant-design/icons";
 import { useTable } from "@refinedev/antd";
 import { Button, Checkbox, Col, Input, message, Pagination, Row, Space, Table } from "antd";
 import { t } from "i18next";
@@ -17,8 +16,10 @@ import { ISpool } from "../spools/model";
 
 interface Props {
   description?: string;
+  initialSelectedIds?: number[];
+  onExport?: (selectedIds: number[]) => void;
+  onPrint?: (selectedIds: number[]) => void;
   searchPlaceholder?: string;
-  onContinue: (selectedSpools: ISpool[]) => void;
 }
 
 interface ISpoolCollapsed extends ISpool {
@@ -59,10 +60,10 @@ function matchesSearch(spool: ISpoolCollapsed, searchTerm: string): boolean {
   return haystacks.some((value) => value.toLowerCase().includes(needle));
 }
 
-const SpoolSelectModal = ({ description, searchPlaceholder, onContinue }: Props) => {
+const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint, searchPlaceholder }: Props) => {
   const MIN_TABLE_SCROLL_Y = 180;
   const TABLE_BOTTOM_GAP = 16;
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [selectedItems, setSelectedItems] = useState<number[]>(initialSelectedIds ?? []);
   const [showArchived, setShowArchived] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
@@ -326,23 +327,40 @@ const SpoolSelectModal = ({ description, searchPlaceholder, onContinue }: Props)
                 })}
               </div>
               <Space>
-                <Button
-                  type="primary"
-                  icon={<RightOutlined />}
-                  iconPosition="end"
-                  onClick={() => {
-                    if (selectedItems.length === 0) {
-                      messageApi.open({
-                        type: "error",
-                        content: t("printing.spoolSelect.noSpoolsSelected"),
-                      });
-                      return;
-                    }
-                    onContinue(selectedItems.map((id) => ({ id }) as ISpool));
-                  }}
-                >
-                  {t("buttons.continue")}
-                </Button>
+                {onPrint && (
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      if (selectedItems.length === 0) {
+                        messageApi.open({
+                          type: "error",
+                          content: t("printing.spoolSelect.noSpoolsSelected"),
+                        });
+                        return;
+                      }
+                      onPrint(selectedItems);
+                    }}
+                  >
+                    {t("printing.qrcode.button")}
+                  </Button>
+                )}
+                {onExport && (
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      if (selectedItems.length === 0) {
+                        messageApi.open({
+                          type: "error",
+                          content: t("printing.spoolSelect.noSpoolsSelected"),
+                        });
+                        return;
+                      }
+                      onExport(selectedItems);
+                    }}
+                  >
+                    {t("printing.qrcode.exportButton")}
+                  </Button>
+                )}
               </Space>
             </div>
           </Col>
