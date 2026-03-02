@@ -246,7 +246,7 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint, 
                   pageSize={pageSize}
                   total={paginationTotal}
                   showSizeChanger
-                  pageSizeOptions={["25", "50", "100", "200"]}
+                  pageSizeOptions={["10", "20", "50", "100"]}
                   showQuickJumper
                   onChange={handlePageChange}
                   onShowSizeChange={handlePageSizeChange}
