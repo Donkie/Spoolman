@@ -28,6 +28,34 @@ export const ColorModeContextProvider = ({ children }: PropsWithChildren) => {
   };
 
   const { darkAlgorithm, defaultAlgorithm } = theme;
+  const darkScrollbarCss = `
+    body, body * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.22) rgba(255, 255, 255, 0.06);
+    }
+
+    body *::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    body *::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 999px;
+    }
+
+    body *::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      border: 2px solid rgba(0, 0, 0, 0);
+      background-clip: padding-box;
+    }
+
+    body *::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+      background-clip: padding-box;
+    }
+  `;
 
   return (
     <ColorModeContext.Provider
@@ -36,6 +64,7 @@ export const ColorModeContextProvider = ({ children }: PropsWithChildren) => {
         mode,
       }}
     >
+      {mode === "dark" && <style>{darkScrollbarCss}</style>}
       <ConfigProvider
         // you can change the theme colors here. example: ...RefineThemes.Magenta,
         theme={{
