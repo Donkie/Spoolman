@@ -188,6 +188,7 @@ export function RichColumn<Obj extends Entity>(
 interface FilteredQueryColumnProps<Obj extends Entity> extends BaseColumnProps<Obj> {
   filterValueQuery: UseQueryResult<string[] | ColumnFilterItem[], unknown>;
   allowMultipleFilters?: boolean;
+  includeEmptyOption?: boolean;
 }
 
 export function FilteredQueryColumn<Obj extends Entity>(props: FilteredQueryColumnProps<Obj>) {
@@ -205,10 +206,12 @@ export function FilteredQueryColumn<Obj extends Entity>(props: FilteredQueryColu
       return item;
     });
   }
-  filters.push({
-    text: "<empty>",
-    value: "<empty>",
-  });
+  if (props.includeEmptyOption ?? true) {
+    filters.push({
+      text: "<empty>",
+      value: "<empty>",
+    });
+  }
 
   const typedFilters = typeFilters<Obj>(props.tableState.filters);
   const filteredValue = getFiltersForField(typedFilters, props.dataId ?? (props.id as keyof Obj));

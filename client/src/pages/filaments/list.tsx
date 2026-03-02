@@ -271,6 +271,7 @@ export const FilamentList = () => {
             dataId: "spool_count",
             title: "Spool Count",
             filterValueQuery: querySpoolCounts,
+            includeEmptyOption: false,
             width: 120,
             transform: (value) => value ?? 0,
           }),
