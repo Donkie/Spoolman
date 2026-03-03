@@ -53,12 +53,16 @@ function serializeDataIndex(dataIndex: unknown): string | undefined {
 function columnIdentifier<RecordType extends AnyObject>(column: ColumnType<RecordType>, index: number, parentId: string): string {
   const key = column.key != null ? String(column.key) : undefined;
   const dataIndex = serializeDataIndex(column.dataIndex);
+  // Widths are persisted, so the identifier must stay stable across renders even when
+  // the table reorders or re-renders its column objects.
   return key ?? dataIndex ?? `${parentId}-${index}`;
 }
 
 function measureIntrinsicElementWidth(element: HTMLElement): number {
   const clone = element.cloneNode(true) as HTMLElement;
   clone.querySelectorAll(".resizable-table-header-handle").forEach((handle) => handle.remove());
+  // Measure a detached clone so auto-fit can use the content's natural width instead
+  // of the already-constrained width inside the current table cell.
   clone.style.position = "fixed";
   clone.style.left = "-99999px";
   clone.style.top = "-99999px";
@@ -238,6 +242,8 @@ function ResizableTable<RecordType extends AnyObject>(props: ResizableTableProps
               let hasOverflow = hasCellOverflow(currentHeaderCell);
 
               if (tableContainer) {
+                // Auto-fit should account for the widest visible body cell so a header
+                // label alone does not produce a column that still truncates row data.
                 const bodyRows = Array.from(tableContainer.querySelectorAll("tbody tr"));
                 bodyRows.forEach((row) => {
                   if (!(row instanceof HTMLTableRowElement)) {
@@ -288,6 +294,8 @@ function ResizableTable<RecordType extends AnyObject>(props: ResizableTableProps
 
   const resolvedScroll = useMemo(() => {
     const nextScroll = { ...(scroll ?? {}) };
+    // Keep horizontal scrolling enabled once the sum of leaf-column minimums exceeds the
+    // available width, otherwise resized columns would collapse unpredictably.
     if (nextScroll.x === undefined) {
       nextScroll.x = requiredMinWidth;
     } else if (typeof nextScroll.x === "number") {
