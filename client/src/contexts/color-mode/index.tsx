@@ -28,22 +28,31 @@ export const ColorModeContextProvider = ({ children }: PropsWithChildren) => {
   };
 
   const { darkAlgorithm, defaultAlgorithm } = theme;
+  // Apply the scrollbar theme globally in dark mode because many scroll containers come from
+  // nested Ant components/popup portals, so local component-level overrides miss large parts of
+  // the UI. The light theme keeps native scrollbars unchanged.
   const darkScrollbarCss = `
-    body, body * {
+    html, body, body * {
       scrollbar-width: thin;
       scrollbar-color: rgba(255, 255, 255, 0.22) rgba(255, 255, 255, 0.06);
     }
 
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar,
     body *::-webkit-scrollbar {
       width: 10px;
       height: 10px;
     }
 
+    html::-webkit-scrollbar-track,
+    body::-webkit-scrollbar-track,
     body *::-webkit-scrollbar-track {
       background: rgba(255, 255, 255, 0.06);
       border-radius: 999px;
     }
 
+    html::-webkit-scrollbar-thumb,
+    body::-webkit-scrollbar-thumb,
     body *::-webkit-scrollbar-thumb {
       background: rgba(255, 255, 255, 0.22);
       border-radius: 999px;
@@ -51,6 +60,8 @@ export const ColorModeContextProvider = ({ children }: PropsWithChildren) => {
       background-clip: padding-box;
     }
 
+    html::-webkit-scrollbar-thumb:hover,
+    body::-webkit-scrollbar-thumb:hover,
     body *::-webkit-scrollbar-thumb:hover {
       background: rgba(255, 255, 255, 0.3);
       background-clip: padding-box;
