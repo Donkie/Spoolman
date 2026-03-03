@@ -453,6 +453,8 @@ function Column<Obj extends Entity>(
       const searchableValues = new Map<string, string>();
       const searchValueDataIndex = props.dataId ?? props.id;
 
+      // Searchable dropdown values are built from the loaded rows so the filter stays
+      // instant and works even when the backend only supports normal field filters.
       props.dataSource.forEach((record) => {
         const rawValue = getRecordValue(record, searchValueDataIndex);
         const displayValue = props.searchValueFormatter

@@ -19,6 +19,8 @@ def upgrade() -> None:
     """Perform the upgrade."""
     conn = op.get_bind()
     inspector = sa.inspect(conn)
+    # These guards let local PR/test databases be reused safely even when a branch
+    # is rebuilt against a file that already picked up some of the same indexes.
     vendor_indexes = {index["name"] for index in inspector.get_indexes("vendor")}
     filament_indexes = {index["name"] for index in inspector.get_indexes("filament")}
 

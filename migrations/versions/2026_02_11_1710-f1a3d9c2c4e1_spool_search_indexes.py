@@ -19,6 +19,8 @@ def upgrade() -> None:
     """Perform the upgrade."""
     conn = op.get_bind()
     inspector = sa.inspect(conn)
+    # Match the filament-index migration's idempotent behavior so rebuilding a PR
+    # against an already-used SQLite file does not fail on duplicate indexes.
     spool_indexes = {index["name"] for index in inspector.get_indexes("spool")}
 
     if "ix_spool_location" not in spool_indexes:

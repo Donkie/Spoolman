@@ -103,6 +103,8 @@ def add_where_clause_search(
                 conditions.append(sqlalchemy.or_(*[field == term for field in fields]))
             # Do prefix match for better index usage
             else:
+                # Keep the general search index-friendly so the selector/search UX can
+                # scale on larger datasets without forcing full substring scans.
                 pattern = f"{value_part}%"
                 conditions.append(sqlalchemy.or_(*[field.ilike(pattern) for field in fields]))
 
