@@ -217,6 +217,8 @@ export const FilamentEdit = () => {
             ]}
           >
             <MultiColorPicker
+              // Match the editor layout to the final preview so the user is editing
+              // colors in the same visual orientation they will later see on show pages.
               min={2}
               max={14}
               layout={watchedMultiColorDirection === "longitudinal" ? "vertical" : "horizontal"}

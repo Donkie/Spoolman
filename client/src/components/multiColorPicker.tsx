@@ -34,7 +34,8 @@ export function MultiColorPicker(props: {
 }) {
   const values = props.value ? props.value.split(",") : generateInitialColors(props.min ?? 0);
   if (!props.value && props.onChange) {
-    // Update value immediately
+    // Seed the form value immediately so a newly toggled multi-color field persists a
+    // valid minimum color set instead of rendering transient placeholder swatches only.
     props.onChange(values.join(","));
   }
   const layout = props.layout ?? "horizontal";
@@ -107,6 +108,8 @@ export function MultiColorPicker(props: {
   if (isVerticalWithRightHex) {
     const canRemove = values.length > (props.min ?? 0);
     const canAdd = values.length < (props.max ?? Infinity);
+    // Longitudinal filaments read more naturally as stacked rows with the swatch and
+    // hex side by side, so switch to explicit row controls instead of the generic Badge layout.
     const actionSize = Math.max(20, Math.min(28, swatchHeight));
     const rowGap = 12;
     return (

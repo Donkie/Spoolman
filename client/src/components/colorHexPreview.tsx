@@ -13,6 +13,8 @@ const SMALL_TEXT_STYLE = {
   lineHeight: 1.2,
 };
 
+// Stored color values omit the hash, but every preview path in the UI should render a
+// canonical uppercase #RRGGBB string so chips and labels stay visually consistent.
 const normalizeHex = (value: string) => `#${value.replace("#", "").toUpperCase()}`;
 
 export default function ColorHexPreview({ colorHex, multiColorHexes, multiColorDirection }: Readonly<ColorHexPreviewProps>) {
@@ -36,6 +38,8 @@ export default function ColorHexPreview({ colorHex, multiColorHexes, multiColorD
 
   const isLongitudinal = multiColorDirection === "longitudinal";
   if (isLongitudinal) {
+    // Longitudinal multi-color spools are shown as separate swatches because the
+    // stripe order matters more than the combined spool silhouette.
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         {colors.map((hex, index) => (
