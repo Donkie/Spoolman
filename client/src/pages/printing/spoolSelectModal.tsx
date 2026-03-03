@@ -115,6 +115,8 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint, 
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource],
   );
+  // Keep the UI responsive even without backend search support by letting the text box
+  // instantly narrow whatever page of rows is already loaded.
   const visibleDataSource = useMemo(
     () => dataSource.filter((spool) => matchesSearch(spool, searchValue)),
     [dataSource, searchValue],
@@ -181,11 +183,15 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint, 
   };
 
   const applySearchFilter = (nextSearch: string) => {
+    // The server-side search hook is optional; on plain master this still resets paging
+    // while the local narrowed view continues to work on the current page.
     setServerSearchValue(nextSearch.trim());
     setCurrentPage(1);
   };
 
   const selectUnselectFiltered = (select: boolean) => {
+    // Bulk selection intentionally follows the visible narrowed rows so "Select All"
+    // acts on what the user can currently see, not on hidden rows on other pages.
     setSelectedItems((prevSelected) => {
       const nextSelected = new Set(prevSelected);
       visibleDataSource.forEach((spool) => {

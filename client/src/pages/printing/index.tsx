@@ -56,6 +56,8 @@ export const Printing = () => {
                   const newParams = new URLSearchParams(prev);
                   newParams.delete("spools");
                   selectedIds.forEach((id) => newParams.append("spools", id.toString()));
+                  // Keep the selector route as the explicit return target so back/cancel
+                  // returns to the selection step instead of the originating show page.
                   newParams.set("return", "/spool/print");
                   return newParams;
                 });
