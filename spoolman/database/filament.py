@@ -120,6 +120,8 @@ async def find(
         .scalar_subquery(),
         0,
     )
+    # Reuse the same scalar count expression for filtering and sorting so the list can
+    # stay server-driven without materializing every filament first.
 
     stmt = (
         select(models.Filament)

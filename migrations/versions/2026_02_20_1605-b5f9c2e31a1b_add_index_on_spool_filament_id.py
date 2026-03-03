@@ -19,6 +19,8 @@ def upgrade() -> None:
     """Perform the upgrade."""
     conn = op.get_bind()
     inspector = sa.inspect(conn)
+    # Keep the migration idempotent so local PR containers can be rebuilt against the
+    # same SQLite file without failing on an index that already exists.
     index_names = {index["name"] for index in inspector.get_indexes("spool")}
     if "ix_spool_filament_id" not in index_names:
         op.create_index("ix_spool_filament_id", "spool", ["filament_id"], unique=False)

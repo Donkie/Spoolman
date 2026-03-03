@@ -271,6 +271,8 @@ export const FilamentList = () => {
             dataId: "spool_count",
             title: "Spool Count",
             filterValueQuery: querySpoolCounts,
+            // Spool count is always a computed number, so an <empty> bucket would be
+            // misleading noise rather than a real "missing value" state.
             includeEmptyOption: false,
             width: 120,
             transform: (value) => value ?? 0,
