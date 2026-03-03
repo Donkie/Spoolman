@@ -31,6 +31,8 @@ const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
     try {
       parsedBaseUrl = JSON.parse(baseUrlSetting.data.value) ?? "";
     } catch {
+      // Older or manually edited settings may already be stored as a raw string, so
+      // accept that form instead of treating it as a fatal parse error.
       parsedBaseUrl = baseUrlSetting.data.value;
     }
   }

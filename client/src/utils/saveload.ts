@@ -13,6 +13,8 @@ function parseSavedJSON<T>(value: string | null, fallback: T): T {
   try {
     return JSON.parse(value) as T;
   } catch {
+    // Persisted UI state can outlive schema changes or manual URL edits; fall back
+    // silently so one bad value does not blank the whole page.
     return fallback;
   }
 }
