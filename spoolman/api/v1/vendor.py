@@ -125,7 +125,8 @@ async def find(
             field, direction = sort_item.split(":")
             sort_by[field] = SortOrder[direction.upper()]
 
-    # Extract custom field filters from query parameters
+    # Custom field filters arrive as dynamic "extra.<key>" params, so they have to be
+    # collected from the raw query string instead of the static endpoint signature.
     extra_field_filters = {}
     query_params = request.query_params
     for key, value in query_params.items():

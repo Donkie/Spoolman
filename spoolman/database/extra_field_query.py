@@ -160,7 +160,8 @@ def add_order_by_extra_field(
     elif field_type == ExtraFieldType.float:
         sort_expr = sqlalchemy.cast(value_subq, sqlalchemy.Float)
     elif field_type in (ExtraFieldType.integer_range, ExtraFieldType.float_range):
-        # Sort ranges by low-end value.
+        # Range columns need a stable scalar sort key; using the low-end keeps similar
+        # ranges grouped predictably without inventing a second synthetic value.
         sort_expr = value_subq[0]
     else:
         sort_expr = value_subq

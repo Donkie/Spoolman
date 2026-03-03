@@ -199,6 +199,8 @@ export function FilteredQueryColumn<Obj extends Entity>(props: FilteredQueryColu
     filters = query.data.map((item) => {
       if (typeof item === "string") {
         return {
+          // Wrap plain strings so the backend can distinguish exact-value picks from the
+          // loose text-match syntax used by custom text fields.
           text: item,
           value: '"' + item + '"',
         };
@@ -212,6 +214,8 @@ export function FilteredQueryColumn<Obj extends Entity>(props: FilteredQueryColu
   });
 
   const typedFilters = typeFilters<Obj>(props.tableState.filters);
+  // Custom columns often render through a synthetic id array, so prefer dataId when present
+  // to keep the table state key aligned with the API field name (for example "extra.foo").
   const filterField = props.dataId ?? (Array.isArray(props.id) ? props.id.join(".") : props.id);
   const filteredValue = getFiltersForField(typedFilters, filterField);
 
