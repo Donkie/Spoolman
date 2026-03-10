@@ -19,7 +19,8 @@ export enum EntityType {
   spool = "spool",
 }
 
-export enum ComplexFieldSurface {
+// Shared surface identifiers for formula fields across settings, list/show pages, and templates.
+export enum FormulaFieldSurface {
   show = "show",
   edit = "edit",
   list = "list",

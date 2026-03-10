@@ -72,10 +72,11 @@ const BUILT_IN_FIELD_DEFINITIONS: Record<BuiltInEntity, BuiltInFieldDefinition[]
     { key: "comment", type: "text", intent: "Free-form notes about this manufacturer profile." },
   ],
 };
+// Keep help operator groups aligned with the interactive token panel in formula settings.
 const JSON_OPERATOR_GROUPS: Array<{ label: string; operators: string[] }> = [
   { label: "Logical / Conditional", operators: ["if", "and", "or", "!"] },
   { label: "Comparison", operators: ["==", "!=", "<", "<=", ">", ">="] },
-  { label: "Arithmetic", operators: ["+", "-", "*", "/", "%"] },
+  { label: "Arithmetic", operators: ["+", "-", "*", "/", "%", "floor"] },
 ];
 
 export const Help = () => {
@@ -306,13 +307,21 @@ export const Help = () => {
         <Paragraph type="secondary" style={{ ...sectionBodyStyle, ...nestedLevel5Style }}>
           Configure them in <Link to="/settings/extra/spool">Settings → Extra Fields</Link> for Spools, Filaments, or
           Manufacturers. In <Text strong>Formula Extra Fields</Text>, click <Text code>+</Text>, build your JSON
-          expression, then validate with <Text code>Sample Values (JSON)</Text> and <Text code>Preview Expression</Text>{" "}
-          before saving.
+          expression, then validate with <Text code>Sample Values (JSON)</Text> and <Text code>Refresh</Text> before
+          saving.
         </Paragraph>
         <Paragraph type="secondary" style={{ ...sectionBodyStyle, ...nestedLevel5Style }}>
-          In each formula field editor, use <Text strong>Include in API</Text> to mark that field as eligible for API
-          output. Entity responses include only those field-level opt-ins under a <Text code>derived</Text> object
-          whenever <Text code>include_derived=true</Text> is requested. Each field key is exposed as{" "}
+          In each formula field editor, <Text strong>Display In</Text> uses visible checkboxes for{" "}
+          <Text code>Show Pages</Text>, <Text code>Template Selections</Text>, and <Text code>Tables</Text>, with{" "}
+          <Text code>API</Text> in the same row for payload exposure.
+        </Paragraph>
+        <Paragraph type="secondary" style={{ ...sectionBodyStyle, ...nestedLevel5Style }}>
+          <Text code>Show Pages</Text> and <Text code>Tables</Text> display the field <Text strong>Name</Text> in UI.
+          Template/API integrations use the key path <Text code>{`derived.<key>`}</Text>.
+        </Paragraph>
+        <Paragraph type="secondary" style={{ ...sectionBodyStyle, ...nestedLevel5Style }}>
+          Entity responses include only field-level API opt-ins under a <Text code>derived</Text> object when
+          derived output is requested by the endpoint. Each field key is exposed as{" "}
           <Text code>{`derived.<key>`}</Text>.
         </Paragraph>
         <Paragraph type="secondary" style={{ ...sectionBodyStyle, ...nestedLevel5Style }}>
@@ -406,7 +415,7 @@ export const Help = () => {
                         padding: 8,
                       }}
                     >
-                      <Text strong>{t(`settings.complex_fields.formula.token_categories.${group.key}`)}</Text>
+                      <Text strong>{t(`settings.formula_fields.formula.token_categories.${group.key}`)}</Text>
                       <div style={{ marginTop: 6 }}>
                         <Space size={[4, 4]} wrap>
                           {group.helpers.map((helper) => (
@@ -459,7 +468,7 @@ export const Help = () => {
                   padding: 10,
                 }}
               >
-                <Text strong>Example 2: Difference between two datetimes</Text>
+                <Text strong>Example 2: Completed days between two datetimes (integer)</Text>
                 <Paragraph type="secondary" style={{ ...sectionBodyStyle, marginTop: 8, marginBottom: 6 }}>
                   Variable definitions:
                 </Paragraph>
@@ -467,9 +476,9 @@ export const Help = () => {
                 <Paragraph type="secondary" style={{ ...sectionBodyStyle, marginTop: 8, marginBottom: 6 }}>
                   Expression JSON:
                 </Paragraph>
-                <Text code>{`{"days_between":[{"var":"first_used"},{"var":"last_used"}]}`}</Text>
+                <Text code>{`{"floor":[{"days_between":[{"var":"first_used"},{"var":"last_used"}]}]}`}</Text>
                 <Paragraph type="secondary" style={{ ...sectionBodyStyle, marginTop: 8, marginBottom: 0 }}>
-                  Result: <Text code>{`8.25`}</Text>
+                  Result: <Text code>{`8`}</Text>
                 </Paragraph>
               </div>
               <div
@@ -500,13 +509,17 @@ export const Help = () => {
         </Title>
         <Paragraph type="secondary" style={{ ...sectionBodyStyle, ...nestedLevel6Style }}>
           The expression editor uses a JSON code editor (CodeMirror). Use <Text code>Format JSON</Text> to
-          auto-pretty-print your JSON Logic object. Keep <Text code>Preview Expression</Text> +{" "}
+          auto-pretty-print your JSON Logic object. Keep <Text code>Refresh</Text> +{" "}
           <Text code>Sample Values (JSON)</Text> as your first validation pass.
         </Paragraph>
         <Paragraph type="secondary" style={{ ...sectionBodyStyle, ...nestedLevel6Style }}>
           <Text code>Sample Values (JSON)</Text> must be a valid JSON object used only for preview/testing. Use plain
           keys without braces, and match keys to your <Text code>{`{"var":"..."}`}</Text> references. Example:{" "}
           <Text code>{`{"weight": 1000, "remaining_weight": 225, "created_at": "2026-02-28T10:15:00Z", "color_hex": "#FF00FF"}`}</Text>.
+        </Paragraph>
+        <Paragraph type="secondary" style={{ ...sectionBodyStyle, ...nestedLevel6Style }}>
+          The editor also shows detected references from your expression and auto-scaffolds missing sample-value keys
+          without overwriting existing sample data. Use <Text code>Refresh</Text> to force a re-sync and preview run.
         </Paragraph>
         <Paragraph type="secondary" style={{ ...sectionBodyStyle, ...nestedLevel6Style }}>
           Reference docs:{" "}
@@ -523,16 +536,16 @@ export const Help = () => {
           </a>
         </Paragraph>
         <Paragraph type="secondary" style={{ ...sectionBodyStyle, ...nestedLevel6Style }}>
-          Choose where each formula appears: <Text code>Show</Text> (record details), <Text code>List</Text>{" "}
-          (table/list pages), and <Text code>Template</Text> (label/title/filename templates).
+          Choose where each formula appears: <Text code>Show Pages</Text> (record details),{" "}
+          <Text code>Tables</Text> (table/list pages), and <Text code>Template Selections</Text>{" "}
+          (label/title/filename templates).
         </Paragraph>
         <ul style={{ margin: "0 0 16px 56px", color: token.colorTextSecondary, lineHeight: 1.7, fontSize: token.fontSize }}>
           <li>
-            If a formula includes <Text code>List</Text>, you can enable column toggling so it can be hidden or shown
-            through <Text code>Hide Columns</Text> on list pages.
+            <Text code>Tables</Text> controls whether the formula appears in list/table pages at all.
           </li>
           <li>
-            If a formula includes <Text code>Template</Text>, it can be referenced in templates as{" "}
+            If a formula includes <Text code>Template Selections</Text>, it can be referenced in templates as{" "}
             <Text code>{`{derived.your_key}`}</Text> (for example, <Text code>{`{derived.days_between_events}`}</Text>).
           </li>
         </ul>

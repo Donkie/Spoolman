@@ -81,15 +81,18 @@ _derived_field_cache: dict[EntityType, list[DerivedFieldDefinition]] = {}
 
 
 def _as_datetime(value: Any) -> datetime:
+    # Normalize all datetime operands to timezone-aware UTC so interval helpers
+    # (days_between/hours_between) can safely compare mixed user inputs (with/without timezone).
     if isinstance(value, datetime):
-        return value
+        return value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
     if isinstance(value, date):
-        return datetime.combine(value, time.min)
+        return datetime.combine(value, time.min, tzinfo=timezone.utc)
     if isinstance(value, str):
         normalized = value.strip()
         if normalized.endswith("Z"):
             normalized = f"{normalized[:-1]}+00:00"
-        return datetime.fromisoformat(normalized)
+        parsed = datetime.fromisoformat(normalized)
+        return parsed if parsed.tzinfo is not None else parsed.replace(tzinfo=timezone.utc)
     raise ValueError(f"Value {value!r} is not a datetime-compatible input.")
 
 
@@ -438,6 +441,8 @@ def _validate_expression_payload(expression_json: dict[str, Any]) -> None:
 
 
 def _parse_extra_field_value(value: Any) -> Any:
+    # Extra-field values are persisted as JSON strings; parse when possible so
+    # formula operators evaluate real typed values instead of quoted text.
     if not isinstance(value, str):
         return value
     try:
@@ -447,6 +452,8 @@ def _parse_extra_field_value(value: Any) -> Any:
 
 
 def _normalize_formula_scope(value: Any) -> Any:
+    # Normalize nested payloads recursively so derived evaluation sees stable types
+    # and compatibility aliases regardless of API/UI serialization differences.
     if isinstance(value, dict):
         normalized: dict[str, Any] = {}
         for key, nested in value.items():
@@ -457,6 +464,13 @@ def _normalize_formula_scope(value: Any) -> Any:
                 }
                 continue
             normalized[key] = _normalize_formula_scope(nested)
+
+        # Preserve both naming conventions so existing formulas written against either
+        # "registered" or "created_at" keep evaluating across API/UI payloads.
+        if "registered" in normalized and "created_at" not in normalized:
+            normalized["created_at"] = normalized["registered"]
+        if "created_at" in normalized and "registered" not in normalized:
+            normalized["registered"] = normalized["created_at"]
         return normalized
     if isinstance(value, list):
         return [_normalize_formula_scope(item) for item in value]

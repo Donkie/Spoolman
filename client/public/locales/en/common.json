@@ -362,47 +362,26 @@
             "delete_confirm": "Delete field {{name}}?",
             "delete_confirm_description": "This will delete the field and all associated data for all entities.",
             "delete_dependency_warning_intro": "Deleting this custom field will make dependent fields inoperable:",
-            "delete_dependency_warning_complex": "Complex extra fields: {{dependencies}}",
             "delete_dependency_warning_formula": "Formula extra fields: {{dependencies}}",
             "delete_dependency_warning_footer": "These entries remain saved, but behavior depending on this field will fail until references are updated."
         },
-        "complex_fields": {
-            "tab": "Complex Extra Fields",
-            "intro": "Complex extra fields are optional app-provided feature modules that extend built-in and custom fields for this entity. They are enabled here when available.",
-            "table_note": "Complex extra field definitions are provided by installed feature modules and are not created from this page.",
-            "missing_references_intro": "Some complex extra fields reference custom fields that are no longer available.",
-            "missing_references": "Missing custom extra field references: {{references}}",
-            "description": "<p>Complex fields add optional, pre-defined behaviors beyond custom extra fields.</p><p>Enabling one can add specialized display, actions, calculated values, or list columns for the selected entity. Disabled features remain hidden so the standard UI stays simpler.</p><p>Each entry below states exactly what enabling it adds. This framework can stay empty until a specific advanced feature is installed.</p>",
-            "tooltip": "Complex extra fields are app-provided feature modules. Enabling one can add specialized display, actions, calculated values, or list columns for this entity.",
+        "formula_fields": {
             "help_links": {
-                "complex": "Help: Complex Extra Fields",
                 "formula": "Help: Formula Extra Fields",
                 "formula_json": "Help: JSON Logic",
                 "formula_tokens": "Help: Token Groups"
             },
-            "empty": "No complex extra field feature modules are currently registered for this entity.",
             "available_functions": {
                 "label": "Token categories:",
                 "value": "Operators, helper functions, and field references are grouped in the editor."
             },
-            "columns": {
-                "name": "Name",
-                "description": "Feature",
-                "enable_description": "What Enabling Adds",
-                "surfaces": "Display In",
-                "enabled": "Enabled"
-            },
             "surfaces": {
-                "show": "Show",
+                "show": "Show Pages",
                 "edit": "Edit",
-                "list": "List",
-                "template": "Template",
+                "list": "Tables",
+                "template": "Template Selections",
                 "action": "Action",
                 "derived": "Derived"
-            },
-            "messages": {
-                "enabled": "Enabled {{name}}.",
-                "disabled": "Disabled {{name}}."
             },
             "formula": {
                 "header": "Formula Extra Fields",
@@ -413,39 +392,46 @@
                 "empty": "No formula fields are currently defined for this entity.",
                 "columns": {
                     "key": "Key",
+                    "path": "Template & API Path",
                     "name": "Name",
                     "description": "Description",
-                    "result_type": "Result Type",
                     "expression": "Expression",
-                    "expression_json": "Expression JSON (JSON Logic)",
+                    "expression_json": "Formula Extra Field Expression (JSON Logic)",
                     "surfaces": "Display In",
-                    "allow_list_column_toggle": "Hide Columns Toggle",
                     "include_in_api": "Include in API"
+                },
+                "display_targets": {
+                    "show_pages": "Show Pages",
+                    "template_selections": "Template Selections",
+                    "tables": "Tables",
+                    "api": "API"
                 },
                 "types": {
                     "number": "Number",
                     "text": "Text"
                 },
-                "result_type_mismatch_hint": "Expression JSON appears to return {{inferred}}. You can keep the current type or auto-set it.",
-                "result_type_autoset": "Auto-set",
                 "tooltips": {
-                    "key": "Stable machine key for this formula field. It must be unique, uses lowercase letters/numbers/underscores, and is what later integrations will refer to.",
-                    "name": "Human-friendly label shown in the UI for this formula field.",
-                    "display_in": "Choose where this formula field is intended to appear later. Show means detail pages. List means table or list views. Template means label, title, or filename template variables.",
-                    "allow_list_column_toggle": "If enabled, list-display formula fields can be hidden or shown from the Hide Columns menu. If disabled, they stay visible whenever the field is shown in lists.",
-                    "include_in_api": "When enabled, this field can be included in API responses under payload.derived whenever include_derived is enabled for the request.",
-                    "expression_json": "JSON Logic object used to compute this formula field.",
-                    "sample_values": "Variable definition examples and formatting: {\"weight\": 1000, \"remaining_weight\": 225, \"created_at\": \"2026-02-28T10:15:00Z\", \"color_hex\": \"#FF00FF\"}"
+                    "key": "Unique identifier for this formula field. Uses lowercase letters, numbers, and underscores. Later integrations will reference it as 'derived.<key>'.",
+                    "name": "Human-friendly display label for this field in the UI.",
+                    "display_in": "Choose where this calculated field appears: in show/edit pages, tables, templates, or API responses.",
+                    "include_in_api": "When enabled, include this field in API responses under the derived object.",
+                    "expression_json": "JSON Logic expression that computes this field. Combine operators, helper functions, and field references below.",
+                    "sample_values": "Test data object to preview results. Provide sample values for all references used in your expression."
                 },
-                "allow_list_column_toggle_help": "Only applies when List display is selected. This keeps optional formula columns discoverable in the existing Hide Columns picker.",
-                "allow_list_column_toggle_inline": "Enable column visibility in {{entity}} view.",
+                "expression_json_copy_tooltip": "Copy expression JSON to clipboard",
+                "expression_json_copied": "Expression copied!",
                 "sample_values": "Sample Values (JSON)",
-                "sample_values_help": "Define JSON variables for preview/testing of this expression.",
-                "expression_json_help": "Enter a JSON Logic object manually or using helper/reference tokens and operators to insert snippets.",
+                "sample_values_help": "Enter a JSON object with key-value pairs matching your expression references",
+                "sample_values_detected_references": "Detected references:",
+                "sample_values_detected_references_empty": "No references detected yet",
+                "sample_values_reference_invalid": "Variable undefined or incorrectly defined in Sample Values JSON.",
+                "expression_json_help": "Enter a JSON Logic expression. Type manually or use the operator/helper/reference tokens below to build it step-by-step.",
                 "expression_json_example": "Example: {\"-\": [{\"var\": \"weight\"}, {\"var\": \"remaining_weight\"}]}",
                 "expression_json_required": "Expression JSON (JSON Logic) is required.",
-                "key_usage_help": "API/template path",
-                "key_reserved_hint": "This key matches a formula token name ({{key}}). It still works, but choosing a distinct key can reduce confusion.",
+                "expression_json_invalid": "Expression JSON must be valid JSON format (an object like {...}).",
+                "sample_values_invalid": "Sample Values must be valid JSON format (an object like {...}).",
+                "key_usage_help": "Template & API Path",
+                "key_reserved_hint": "This key matches a built-in operator or helper ({{key}}). It works, but a different name will be clearer for users.",
                 "operator_groups": {
                     "logical": "Logical / Conditional",
                     "comparison": "Comparison",
@@ -469,20 +455,27 @@
                 },
                 "reference_picker": {
                     "label": "Field References",
-                    "placeholder": "Pick a field to insert into the expression",
-                    "help": "Tokens are clickable inserts. Helper Functions are functional tokens, and Field References insert {var} references for built-in or configured extra fields."
+                    "placeholder": "Pick a field to insert as a reference",
+                    "help": "Click field references to insert them directly. Helper functions require you to select compatible references first. Both built-in fields and custom extra fields are available."
                 },
                 "json_builder": {
                     "operators_title": "Insert Tokens",
-                    "click_to_insert_help": "Select a helper, then select compatible field references. Field references insert JSON snippets immediately. Use Helper only to insert placeholder arguments.",
+                    "click_to_insert_help": "Click field references to insert them immediately. For helpers, select compatible references first, or use the 'Helper only' button to insert with placeholder arguments.",
                     "pending_helper": "Pending reference for helper {{helper}} ({{selected}}/{{total}})",
                     "pending_helper_prefix": "Pending reference for helper",
                     "pending_helper_count": "({{selected}}/{{total}})",
+                    "if_step_condition_operator": "Next: select IF condition operator",
+                    "if_step_condition_left": "Next: select IF condition left operand",
+                    "if_step_condition_right": "Next: select IF condition right operand",
+                    "if_step_then": "Next: select IF Then value",
+                    "if_step_else": "Next: select IF Else value",
                     "helper_unavailable_reason": "Helper {{helper}} has no compatible references for this entity yet.",
                     "helper_incompatible_reason": "Helper {{helper}} is incompatible with the currently selected pending reference type.",
                     "reference_incompatible_reason": "Selected reference is incompatible with helper {{helper}}.",
                     "show_operators": "Show operators",
                     "hide_operators": "Hide operators",
+                    "show_tokens": "Show tokens",
+                    "hide_tokens": "Hide tokens",
                     "operator_compact": {
                         "logical_top": "Logical",
                         "logical_bottom": "Conditional",
@@ -509,10 +502,12 @@
                 "missing_references_intro": "Some formula fields reference custom fields that are no longer available.",
                 "missing_references": "Missing custom field references: {{references}}",
                 "preview": {
-                    "button": "Preview Expression",
-                    "result_label": "Preview:",
-                    "references_used": "References used: {{references}}",
-                    "no_references": "No field references are used in this expression."
+                    "button": "Refresh",
+                    "loading": "Computing preview...",
+                    "panel_title": "Preview",
+                    "empty": "Waiting for valid expression/sample values.",
+                    "error_fallback": "Preview failed.",
+                    "refresh_tooltip": "Re-sync missing sample keys and immediately re-run preview."
                 }
             }
         }

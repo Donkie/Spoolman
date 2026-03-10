@@ -18,7 +18,7 @@ import {
 import { useLiveify } from "../../components/liveify";
 import { buildFormulaValues, formatFormulaValue, getFormulaFieldsForSurface } from "../../utils/formulaFields";
 import { removeUndefined } from "../../utils/filtering";
-import { ComplexFieldSurface, EntityType, useGetDerivedFields, useGetFields } from "../../utils/queryFields";
+import { FormulaFieldSurface, EntityType, useGetDerivedFields, useGetFields } from "../../utils/queryFields";
 import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
 import { IVendor } from "./model";
 
@@ -91,16 +91,14 @@ export const VendorList = () => {
     useCallback((record: IVendor) => record, []),
   );
   const listFormulaFields = useMemo(
-    () => getFormulaFieldsForSurface(formulaFields.data, ComplexFieldSurface.list),
+    () => getFormulaFieldsForSurface(formulaFields.data, FormulaFieldSurface.list),
     [formulaFields.data],
   );
-  const toggleableListFormulaFields = useMemo(
-    () => listFormulaFields.filter((field) => field.allow_list_column_toggle),
-    [listFormulaFields],
-  );
+  // All list-surface formula fields are eligible for hide/show in the column picker,
+  // so we map every list formula to its derived column key here.
   const toggleableDerivedColumnKeys = useMemo(
-    () => toggleableListFormulaFields.map((field) => `derived.${field.key}`),
-    [toggleableListFormulaFields],
+    () => listFormulaFields.map((field) => `derived.${field.key}`),
+    [listFormulaFields],
   );
   const allColumnsWithExtraFields = useMemo(
     () => [
@@ -146,6 +144,8 @@ export const VendorList = () => {
   };
 
   const updateColumnSelections = (selectedKeys: string[]) => {
+    // Persist core column visibility separately from derived-column visibility so
+    // derived keys can be toggled without rewriting the base showColumns state.
     setShowColumns(selectedKeys.filter((key) => !toggleableDerivedColumnKeys.includes(key)));
     setHiddenDerivedColumns(toggleableDerivedColumnKeys.filter((key) => !selectedKeys.includes(key)));
   };
@@ -177,7 +177,7 @@ export const VendorList = () => {
                   };
                 }
                 if (column_id.indexOf("derived.") === 0) {
-                  const formulaField = toggleableListFormulaFields.find((field) => `derived.${field.key}` === column_id);
+                  const formulaField = listFormulaFields.find((field) => `derived.${field.key}` === column_id);
                   return {
                     key: column_id,
                     label: formulaField?.name ?? column_id,
@@ -250,7 +250,7 @@ export const VendorList = () => {
           ...listFormulaFields.map(
             (field) => {
               const derivedColumnKey = `derived.${field.key}`;
-              if (field.allow_list_column_toggle && hiddenDerivedColumns.includes(derivedColumnKey)) {
+              if (hiddenDerivedColumns.includes(derivedColumnKey)) {
                 return undefined;
               }
 

@@ -1,4 +1,4 @@
-import { ComplexFieldSurface, DerivedField } from "./queryFields";
+import { FormulaFieldSurface, DerivedField } from "./queryFields";
 
 type FormulaScope = object;
 
@@ -174,6 +174,8 @@ function asNumber(value: unknown, operator: string): number {
 }
 
 function parseExtraValue(value: unknown): unknown {
+  // Extra fields are serialized in API payloads; parse opportunistically so formula
+  // evaluation can treat numbers/booleans/dates as values instead of raw strings.
   if (typeof value !== "string") {
     return value;
   }
@@ -182,6 +184,44 @@ function parseExtraValue(value: unknown): unknown {
   } catch {
     return value;
   }
+}
+
+function normalizeFormulaScopeValue(value: unknown): unknown {
+  // Normalize recursively so formula evaluation sees a stable shape for nested data,
+  // including parsed `extra.*` payloads and dual datetime aliases.
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeFormulaScopeValue(item));
+  }
+
+  if (isRecord(value)) {
+    const normalized: Record<string, unknown> = {};
+    Object.entries(value).forEach(([key, nested]) => {
+      if (key === "extra" && isRecord(nested)) {
+        normalized[key] = Object.fromEntries(
+          Object.entries(nested).map(([extraKey, extraValue]) => [extraKey, parseExtraValue(extraValue)]),
+        );
+        return;
+      }
+      normalized[key] = normalizeFormulaScopeValue(nested);
+    });
+
+    // Preserve both keys for compatibility with existing formulas authored with either naming.
+    if ("registered" in normalized && !("created_at" in normalized)) {
+      normalized.created_at = normalized.registered;
+    }
+    if ("created_at" in normalized && !("registered" in normalized)) {
+      normalized.registered = normalized.created_at;
+    }
+    return normalized;
+  }
+
+  return value;
+}
+
+function normalizeFormulaScope(scope: FormulaScope): Record<string, unknown> {
+  // Ensure the evaluator always receives an object root even if caller input is malformed.
+  const normalized = normalizeFormulaScopeValue(scope);
+  return isRecord(normalized) ? normalized : {};
 }
 
 function getReferenceValue(reference: string, scope: FormulaScope): unknown {
@@ -210,12 +250,20 @@ function getReferenceValue(reference: string, scope: FormulaScope): unknown {
   return current;
 }
 
-function collectFormulaReferencesFromJsonLogic(node: unknown, references: Set<string>): void {
+// Defensive recursion with depth limit to prevent stack overflow on malformed expressions.
+// Most real JSON Logic expressions are 3-4 levels deep; 20 provides ample margin for complex nesting.
+const MAX_JSON_LOGIC_RECURSION_DEPTH = 20;
+
+function collectFormulaReferencesFromJsonLogic(node: unknown, references: Set<string>, depth = 0): void {
+  if (depth > MAX_JSON_LOGIC_RECURSION_DEPTH) {
+    // Silently stop traversal at max depth to prevent stack overflow.
+    return;
+  }
   if (node === null || typeof node === "string" || typeof node === "number" || typeof node === "boolean") {
     return;
   }
   if (Array.isArray(node)) {
-    node.forEach((value) => collectFormulaReferencesFromJsonLogic(value, references));
+    node.forEach((value) => collectFormulaReferencesFromJsonLogic(value, references, depth + 1));
     return;
   }
   if (!isRecord(node)) {
@@ -235,12 +283,12 @@ function collectFormulaReferencesFromJsonLogic(node: unknown, references: Set<st
       references.add(reference);
     }
     if (args.length > 1) {
-      collectFormulaReferencesFromJsonLogic(args[1], references);
+      collectFormulaReferencesFromJsonLogic(args[1], references, depth + 1);
     }
     return;
   }
 
-  args.forEach((arg) => collectFormulaReferencesFromJsonLogic(arg, references));
+  args.forEach((arg) => collectFormulaReferencesFromJsonLogic(arg, references, depth + 1));
 }
 
 export function getFormulaReferencesFromJsonLogic(expressionJson: Record<string, unknown>): string[] {
@@ -500,22 +548,25 @@ export function evaluateFormulaJsonLogic(expressionJson: Record<string, unknown>
 }
 
 export function getTemplateFormulaFields(fields: DerivedField[] | undefined): DerivedField[] {
-  return (fields || []).filter((field) => field.surfaces.includes(ComplexFieldSurface.template));
+  return (fields || []).filter((field) => field.surfaces.includes(FormulaFieldSurface.template));
 }
 
 export function getFormulaFieldsForSurface(
   fields: DerivedField[] | undefined,
-  surface: ComplexFieldSurface,
+  surface: FormulaFieldSurface,
 ): DerivedField[] {
   return (fields || []).filter((field) => field.surfaces.includes(surface));
 }
 
 export function buildFormulaValues(scope: FormulaScope, fields: DerivedField[]): Record<string, unknown> {
   const values: Record<string, unknown> = {};
+  // Evaluate against the normalized scope once per row so each field sees identical
+  // compatibility aliases (registered/created_at) and parsed extra values.
+  const normalizedScope = normalizeFormulaScope(scope);
   fields.forEach((field) => {
     try {
       if (field.expression_json) {
-        values[field.key] = evaluateFormulaJsonLogic(field.expression_json, scope);
+        values[field.key] = evaluateFormulaJsonLogic(field.expression_json, normalizedScope);
       }
     } catch {
       // Failed evaluations stay hidden so one invalid formula does not break show/list/template
