@@ -40,6 +40,7 @@ import {
   FORMULA_HELPERS,
   FormulaHelperDefinition,
   getExtraFieldReferences,
+  getFormulaReferencesFromJsonLogic,
 } from "../../utils/formulaFields";
 import {
   FormulaFieldSurface,
@@ -219,6 +220,57 @@ function parseExpressionJson(raw: string | undefined): Record<string, unknown> |
     throw new Error("Expression JSON must be a JSON object.");
   }
   return parsed as Record<string, unknown>;
+}
+
+function hasReferencePath(sampleValues: Record<string, unknown>, reference: string): boolean {
+  const parts = reference.split(".").filter((part) => part.length > 0);
+  if (parts.length === 0) {
+    return false;
+  }
+
+  let current: unknown = sampleValues;
+  for (let index = 0; index < parts.length; index += 1) {
+    const part = parts[index];
+    if (current === null || typeof current !== "object" || Array.isArray(current)) {
+      return false;
+    }
+    const record = current as Record<string, unknown>;
+    if (!(part in record)) {
+      return false;
+    }
+    current = record[part];
+  }
+
+  return true;
+}
+
+function insertReferencePathIfMissing(sampleValues: Record<string, unknown>, reference: string): boolean {
+  const parts = reference.split(".").filter((part) => part.length > 0);
+  if (parts.length === 0) {
+    return false;
+  }
+
+  let current: Record<string, unknown> = sampleValues;
+  for (let index = 0; index < parts.length - 1; index += 1) {
+    const part = parts[index];
+    const existing = current[part];
+    if (existing === undefined) {
+      current[part] = {};
+      current = current[part] as Record<string, unknown>;
+      continue;
+    }
+    if (existing === null || typeof existing !== "object" || Array.isArray(existing)) {
+      return false;
+    }
+    current = existing as Record<string, unknown>;
+  }
+
+  const leaf = parts[parts.length - 1];
+  if (leaf in current) {
+    return false;
+  }
+  current[leaf] = null;
+  return true;
 }
 
 function mergeTypeHints(typeHints: FormulaResultTypeHint[]): FormulaResultTypeHint {
@@ -520,6 +572,7 @@ export function FormulaFieldsSettings() {
   const deleteDerivedField = useDeleteDerivedField(selectedEntityType);
   const previewDerivedField = usePreviewDerivedField(selectedEntityType);
   const expressionJsonValue = Form.useWatch("expression_json", derivedForm) as string | undefined;
+  const sampleValuesValue = Form.useWatch("sample_values", derivedForm) as string | undefined;
   const derivedKeyValue = ((Form.useWatch("key", derivedForm) as string | undefined) || "").trim();
   // Show the concrete API/template path for the currently typed key to remove
   // ambiguity between formula operator names and field output identifiers.
@@ -557,6 +610,32 @@ export function FormulaFieldsSettings() {
       })),
     [referenceOptions],
   );
+  // Parse the current expression JSON in-place to keep sample-value guidance synchronized with
+  // whatever references the author is actively building in the editor.
+  const detectedExpressionReferences = useMemo(() => {
+    try {
+      const expressionJson = parseExpressionJson(expressionJsonValue);
+      if (!expressionJson) {
+        return [] as string[];
+      }
+      return getFormulaReferencesFromJsonLogic(expressionJson).filter((reference) => reference.trim().length > 0);
+    } catch {
+      return [] as string[];
+    }
+  }, [expressionJsonValue]);
+  const parsedSampleValues = useMemo(() => {
+    try {
+      return parseSampleValues(sampleValuesValue);
+    } catch {
+      return null;
+    }
+  }, [sampleValuesValue]);
+  const missingSampleValueReferences = useMemo(() => {
+    if (!parsedSampleValues) {
+      return [] as string[];
+    }
+    return detectedExpressionReferences.filter((reference) => !hasReferencePath(parsedSampleValues, reference));
+  }, [detectedExpressionReferences, parsedSampleValues]);
   const helperByName = useMemo(
     () => Object.fromEntries(FORMULA_HELPERS.map((helper) => [helper.name, helper] as const)),
     [],
@@ -1131,6 +1210,39 @@ export function FormulaFieldsSettings() {
         messageApi.error(errInfo.message);
       }
     }
+  };
+
+  const insertMissingSampleValueKeys = () => {
+    let currentSampleValues: Record<string, unknown>;
+    try {
+      currentSampleValues = parseSampleValues((derivedForm.getFieldValue("sample_values") as string | undefined) || "{}");
+    } catch (errInfo) {
+      if (errInfo instanceof Error) {
+        messageApi.warning(errInfo.message);
+      }
+      return;
+    }
+
+    // Build missing reference paths into sample values without overwriting existing entries.
+    const mergedSampleValues = JSON.parse(JSON.stringify(currentSampleValues)) as Record<string, unknown>;
+    const insertedReferences: string[] = [];
+    detectedExpressionReferences.forEach((reference) => {
+      if (insertReferencePathIfMissing(mergedSampleValues, reference)) {
+        insertedReferences.push(reference);
+      }
+    });
+
+    if (insertedReferences.length === 0) {
+      messageApi.info(t("settings.formula_fields.formula.sample_values_no_missing"));
+      return;
+    }
+
+    derivedForm.setFieldValue("sample_values", JSON.stringify(mergedSampleValues, null, 2));
+    messageApi.success(
+      t("settings.formula_fields.formula.sample_values_inserted_missing", {
+        count: insertedReferences.length,
+      }),
+    );
   };
 
   const removeDerived = async (record: DerivedField) => {
@@ -1802,11 +1914,40 @@ export function FormulaFieldsSettings() {
               },
             ]}
           >
-            <Input.TextArea
-              autoSize={{ minRows: 3, maxRows: 6 }}
-              placeholder={sampleValuesPlaceholder}
-              style={{ fontFamily: token.fontFamilyCode || "monospace" }}
-            />
+            <Space direction="vertical" size={8} style={{ width: "100%" }}>
+              <Input.TextArea
+                autoSize={{ minRows: 3, maxRows: 6 }}
+                placeholder={sampleValuesPlaceholder}
+                style={{ fontFamily: token.fontFamilyCode || "monospace" }}
+              />
+              {/* Keep sample-value authoring lightweight: show detected refs and let users insert
+                  only missing paths so existing preview fixtures are never overwritten. */}
+              <Flex justify="space-between" align="center" gap={8} wrap="wrap">
+                <Space size={[6, 6]} wrap>
+                  <Typography.Text type="secondary">
+                    <strong>{t("settings.formula_fields.formula.sample_values_detected_references")}</strong>
+                  </Typography.Text>
+                  {detectedExpressionReferences.length > 0 ? (
+                    detectedExpressionReferences.map((reference) => (
+                      <Typography.Text key={`sample-ref-${reference}`} code>
+                        {reference}
+                      </Typography.Text>
+                    ))
+                  ) : (
+                    <Typography.Text type="secondary">
+                      {t("settings.formula_fields.formula.sample_values_detected_references_empty")}
+                    </Typography.Text>
+                  )}
+                </Space>
+                <Button
+                  size="small"
+                  onClick={() => insertMissingSampleValueKeys()}
+                  disabled={detectedExpressionReferences.length === 0 || parsedSampleValues === null || missingSampleValueReferences.length === 0}
+                >
+                  {t("settings.formula_fields.formula.sample_values_insert_missing")}
+                </Button>
+              </Flex>
+            </Space>
           </Form.Item>
           <Space
             direction="vertical"

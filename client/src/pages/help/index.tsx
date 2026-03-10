@@ -509,6 +509,10 @@ export const Help = () => {
           <Text code>{`{"weight": 1000, "remaining_weight": 225, "created_at": "2026-02-28T10:15:00Z", "color_hex": "#FF00FF"}`}</Text>.
         </Paragraph>
         <Paragraph type="secondary" style={{ ...sectionBodyStyle, ...nestedLevel6Style }}>
+          The editor also shows detected references from your expression and provides <Text code>Insert missing keys</Text>{" "}
+          to scaffold missing sample-value paths without overwriting existing sample data.
+        </Paragraph>
+        <Paragraph type="secondary" style={{ ...sectionBodyStyle, ...nestedLevel6Style }}>
           Reference docs:{" "}
           <a href="https://jsonlogic.com/" target="_blank" rel="noreferrer">
             jsonlogic.com
