@@ -42,7 +42,7 @@ import {
   getExtraFieldReferences,
 } from "../../utils/formulaFields";
 import {
-  ComplexFieldSurface,
+  FormulaFieldSurface,
   DerivedField,
   DerivedFieldType,
   EntityType,
@@ -54,7 +54,7 @@ import {
   useSetDerivedField,
 } from "../../utils/queryFields";
 
-const DERIVED_SURFACE_OPTIONS = [ComplexFieldSurface.show, ComplexFieldSurface.list, ComplexFieldSurface.template];
+const DERIVED_SURFACE_OPTIONS = [FormulaFieldSurface.show, FormulaFieldSurface.list, FormulaFieldSurface.template];
 const BUILTIN_REFERENCE_SUGGESTIONS: Record<EntityType, string[]> = {
   vendor: ["id", "name", "registered", "comment"],
   filament: ["id", "name", "material", "price", "density", "weight", "color_hex", "comment"],
@@ -72,6 +72,7 @@ const JSON_LOGIC_OPERATOR_GROUPS: Array<{ key: string; operators: string[] }> = 
 ];
 const OPERATOR_PANEL_WIDTH = 244;
 const INLINE_OPERATOR_PANEL_HEIGHT = 264;
+// Keep helper groups dense on desktop by pairing short groups under larger ones.
 const HELPER_DESKTOP_COLUMN_LAYOUT: Array<{ top: string; bottom?: string }> = [
   { top: "math", bottom: "color" },
   { top: "text" },
@@ -564,7 +565,7 @@ export function FormulaFieldsSettings() {
     () =>
       JSON_LOGIC_OPERATOR_GROUPS.map((group) => ({
         ...group,
-        label: t(`settings.complex_fields.formula.token_categories.${group.key}`),
+        label: t(`settings.formula_fields.formula.token_categories.${group.key}`),
       })),
     [t],
   );
@@ -572,7 +573,7 @@ export function FormulaFieldsSettings() {
     () =>
       FORMULA_HELPER_GROUPS.map((group) => ({
         ...group,
-        label: t(`settings.complex_fields.formula.token_categories.${group.key}`),
+        label: t(`settings.formula_fields.formula.token_categories.${group.key}`),
       })),
     [t],
   );
@@ -639,7 +640,7 @@ export function FormulaFieldsSettings() {
       helperAllowsReferenceKind(helper, referenceKindByName[reference] || "unknown"),
     );
     if (compatibleReferences.length < requiredRefCount) {
-      return t("settings.complex_fields.formula.json_builder.helper_unavailable_reason", { helper: helper.name });
+      return t("settings.formula_fields.formula.json_builder.helper_unavailable_reason", { helper: helper.name });
     }
 
     // When the user already picked reference #1 for a pending helper, temporarily disable helper
@@ -648,7 +649,7 @@ export function FormulaFieldsSettings() {
     if (pendingJsonHelperInsert?.selectedReferences.length) {
       const selectedKind = referenceKindByName[pendingJsonHelperInsert.selectedReferences[0]] || "unknown";
       if (!helperAllowsReferenceKind(helper, selectedKind)) {
-        return t("settings.complex_fields.formula.json_builder.helper_incompatible_reason", { helper: helper.name });
+        return t("settings.formula_fields.formula.json_builder.helper_incompatible_reason", { helper: helper.name });
       }
     }
 
@@ -677,7 +678,7 @@ export function FormulaFieldsSettings() {
   const helperTokenGridStyle = useMemo<CSSProperties>(
     () => ({
       display: "grid",
-      // Desktop uses a dedicated stacked helper layout; this fallback handles narrower widths.
+      // Desktop uses a custom stacked layout; this fallback keeps helper groups readable on smaller screens.
       gridTemplateColumns: screens.md || screens.sm ? "repeat(2, minmax(0, 1fr))" : "repeat(1, minmax(0, 1fr))",
       gap: 8,
       alignItems: "start",
@@ -699,20 +700,21 @@ export function FormulaFieldsSettings() {
     </div>
   );
   const renderOperatorTokenGroups = (interactive: boolean) => (
+    // Compact two-column operator cells keep JSON editor width while preserving quick-click operator insertion.
     <div style={{ display: "grid", gap: 6 }}>
       {operatorGroups.map((group) => {
         const compactTitle =
           group.key === "logical"
             ? (
               <>
-                {t("settings.complex_fields.formula.json_builder.operator_compact.logical_top")}
+                {t("settings.formula_fields.formula.json_builder.operator_compact.logical_top")}
                 <br />
-                {t("settings.complex_fields.formula.json_builder.operator_compact.logical_bottom")}
+                {t("settings.formula_fields.formula.json_builder.operator_compact.logical_bottom")}
               </>
             )
             : group.key === "comparison"
-              ? t("settings.complex_fields.formula.json_builder.operator_compact.comparison")
-              : t("settings.complex_fields.formula.json_builder.operator_compact.math");
+              ? t("settings.formula_fields.formula.json_builder.operator_compact.comparison")
+              : t("settings.formula_fields.formula.json_builder.operator_compact.math");
         const operatorGridColumns = group.key === "logical" ? "repeat(2, max-content)" : "repeat(3, max-content)";
         const labelColumnWidth = group.key === "logical" ? 90 : 78;
         return (
@@ -884,7 +886,7 @@ export function FormulaFieldsSettings() {
       name: "",
       description: "",
       result_type: DerivedFieldType.number,
-      surfaces: [ComplexFieldSurface.show],
+      surfaces: [FormulaFieldSurface.show],
       allow_list_column_toggle: false,
       include_in_api: false,
       expression_json: "",
@@ -960,7 +962,7 @@ export function FormulaFieldsSettings() {
 
     if (!isReferenceCompatibleWithPendingHelper(reference)) {
       messageApi.warning(
-        t("settings.complex_fields.formula.json_builder.reference_incompatible_reason", {
+        t("settings.formula_fields.formula.json_builder.reference_incompatible_reason", {
           helper: pendingHelperDefinition.name,
         }),
       );
@@ -1007,7 +1009,7 @@ export function FormulaFieldsSettings() {
     // multiple reference operands (for example days_between/hours_between) can be assembled safely.
     setPendingJsonHelperInsert({ helperName: helper.name, selectedReferences: [] });
     messageApi.info(
-      t("settings.complex_fields.formula.json_builder.pending_helper", {
+      t("settings.formula_fields.formula.json_builder.pending_helper", {
         helper: helper.name,
         selected: 0,
         total: getHelperReferenceCount(helper),
@@ -1054,7 +1056,7 @@ export function FormulaFieldsSettings() {
         setResultTypeMismatchHint(null);
       }
       derivedForm.setFieldValue("expression_json", JSON.stringify(parsed, null, 2));
-      messageApi.success(t("settings.complex_fields.formula.json_builder.formatted"));
+      messageApi.success(t("settings.formula_fields.formula.json_builder.formatted"));
     } catch (errInfo) {
       if (errInfo instanceof Error) {
         messageApi.error(errInfo.message);
@@ -1068,7 +1070,7 @@ export function FormulaFieldsSettings() {
       const key = editingDerivedKey || values.key;
       const expressionJson = parseExpressionJson(values.expression_json);
       if (!expressionJson) {
-        throw new Error(t("settings.complex_fields.formula.expression_json_required"));
+        throw new Error(t("settings.formula_fields.formula.expression_json_required"));
       }
       if (expressionJson) {
         const inferredType = toDerivedFieldType(inferExpressionJsonType(expressionJson));
@@ -1095,7 +1097,7 @@ export function FormulaFieldsSettings() {
       });
 
       messageApi.success(
-        t(editingDerivedKey ? "settings.complex_fields.formula.messages.updated" : "settings.complex_fields.formula.messages.created", {
+        t(editingDerivedKey ? "settings.formula_fields.formula.messages.updated" : "settings.formula_fields.formula.messages.created", {
           name: values.name,
         }),
       );
@@ -1113,7 +1115,7 @@ export function FormulaFieldsSettings() {
       const sampleValues = parseSampleValues(values.sample_values);
       const expressionJson = parseExpressionJson(values.expression_json);
       if (!expressionJson) {
-        throw new Error(t("settings.complex_fields.formula.expression_json_required"));
+        throw new Error(t("settings.formula_fields.formula.expression_json_required"));
       }
       // Preview uses sample JSON only as a sandbox for validating formulas before they are exposed
       // on show/list/template surfaces.
@@ -1134,7 +1136,7 @@ export function FormulaFieldsSettings() {
   const removeDerived = async (record: DerivedField) => {
     try {
       await deleteDerivedField.mutateAsync(record.key);
-      messageApi.success(t("settings.complex_fields.formula.messages.deleted", { name: record.name }));
+      messageApi.success(t("settings.formula_fields.formula.messages.deleted", { name: record.name }));
     } catch (errInfo) {
       if (errInfo instanceof Error) {
         messageApi.error(errInfo.message);
@@ -1144,26 +1146,26 @@ export function FormulaFieldsSettings() {
 
   const derivedColumns: ColumnType<DerivedField>[] = [
     {
-      title: t("settings.complex_fields.formula.columns.key"),
+      title: t("settings.formula_fields.formula.columns.key"),
       dataIndex: "key",
       key: "key",
       width: "12%",
     },
     {
-      title: t("settings.complex_fields.formula.columns.name"),
+      title: t("settings.formula_fields.formula.columns.name"),
       dataIndex: "name",
       key: "name",
       width: "16%",
     },
     {
-      title: t("settings.complex_fields.formula.columns.result_type"),
+      title: t("settings.formula_fields.formula.columns.result_type"),
       dataIndex: "result_type",
       key: "result_type",
       width: "10%",
-      render: (value: DerivedFieldType) => t(`settings.complex_fields.formula.types.${value}`),
+      render: (value: DerivedFieldType) => t(`settings.formula_fields.formula.types.${value}`),
     },
     {
-      title: t("settings.complex_fields.formula.columns.expression"),
+      title: t("settings.formula_fields.formula.columns.expression"),
       dataIndex: "expression_json",
       key: "expression",
       width: "30%",
@@ -1177,7 +1179,7 @@ export function FormulaFieldsSettings() {
             </Typography.Text>
             {missingReferences.length > 0 && (
               <Typography.Text type="danger">
-                {t("settings.complex_fields.formula.missing_references", {
+                {t("settings.formula_fields.formula.missing_references", {
                   references: missingReferences.join(", "),
                 })}
               </Typography.Text>
@@ -1187,20 +1189,20 @@ export function FormulaFieldsSettings() {
       },
     },
     {
-      title: t("settings.complex_fields.formula.columns.surfaces"),
+      title: t("settings.formula_fields.formula.columns.surfaces"),
       dataIndex: "surfaces",
       key: "surfaces",
       width: "16%",
       render: (surfaces: string[]) => (
         <Space size={[4, 4]} wrap>
           {surfaces.map((surface) => (
-            <Tag key={surface}>{t(`settings.complex_fields.surfaces.${surface}`)}</Tag>
+            <Tag key={surface}>{t(`settings.formula_fields.surfaces.${surface}`)}</Tag>
           ))}
         </Space>
       ),
     },
     {
-      title: t("settings.complex_fields.formula.columns.include_in_api"),
+      title: t("settings.formula_fields.formula.columns.include_in_api"),
       dataIndex: "include_in_api",
       key: "include_in_api",
       width: "10%",
@@ -1216,7 +1218,7 @@ export function FormulaFieldsSettings() {
             {t("buttons.edit")}
           </Button>
           <Popconfirm
-            title={t("settings.complex_fields.formula.delete_confirm", { name: record.name })}
+            title={t("settings.formula_fields.formula.delete_confirm", { name: record.name })}
             onConfirm={() => removeDerived(record)}
             okText={t("buttons.delete")}
             cancelText={t("buttons.cancel")}
@@ -1237,10 +1239,10 @@ export function FormulaFieldsSettings() {
 
     const referencesText =
       previewReferences.length > 0
-        ? t("settings.complex_fields.formula.preview.references_used", {
+        ? t("settings.formula_fields.formula.preview.references_used", {
             references: previewReferences.join(", "),
           })
-        : t("settings.complex_fields.formula.preview.no_references");
+        : t("settings.formula_fields.formula.preview.no_references");
 
     return (
       <Typography.Paragraph
@@ -1248,7 +1250,7 @@ export function FormulaFieldsSettings() {
           marginBottom: 0,
         }}
       >
-        <strong>{t("settings.complex_fields.formula.preview.result_label")}</strong> {previewText}
+        <strong>{t("settings.formula_fields.formula.preview.result_label")}</strong> {previewText}
         <br />
         {referencesText}
       </Typography.Paragraph>
@@ -1271,9 +1273,9 @@ export function FormulaFieldsSettings() {
       <Divider orientation="left" plain>
         <Space size={8}>
           <span>
-            {t("settings.complex_fields.formula.header")}: {niceName}
+            {t("settings.formula_fields.formula.header")}: {niceName}
           </span>
-          <Tooltip title={t("settings.complex_fields.formula.tooltip")}>
+          <Tooltip title={t("settings.formula_fields.formula.tooltip")}>
             <QuestionCircleOutlined />
           </Tooltip>
           <Link
@@ -1282,23 +1284,23 @@ export function FormulaFieldsSettings() {
             }}
             to="/help#formula-fields"
           >
-            {t("settings.complex_fields.help_links.formula")}
+            {t("settings.formula_fields.help_links.formula")}
           </Link>
         </Space>
       </Divider>
       <Typography.Paragraph type="secondary" style={sectionBodyStyle}>
-        {t("settings.complex_fields.formula.intro")}
+        {t("settings.formula_fields.formula.intro")}
       </Typography.Paragraph>
       <Typography.Paragraph type="secondary" style={{ ...sectionBodyStyle, marginTop: -8 }}>
-        {t("settings.complex_fields.formula.evaluation_model_help")}
+        {t("settings.formula_fields.formula.evaluation_model_help")}
       </Typography.Paragraph>
       {hasBrokenFormulaDependencies && (
         <Typography.Paragraph type="danger" style={{ marginTop: 0 }}>
-          {t("settings.complex_fields.formula.missing_references_intro")}
+          {t("settings.formula_fields.formula.missing_references_intro")}
         </Typography.Paragraph>
       )}
       <Typography.Paragraph type="secondary" style={{ ...sectionBodyStyle, marginBottom: 12 }}>
-        {t("settings.complex_fields.available_functions.value")}
+        {t("settings.formula_fields.available_functions.value")}
       </Typography.Paragraph>
       <Table
         columns={derivedColumns}
@@ -1308,7 +1310,7 @@ export function FormulaFieldsSettings() {
         locale={{
           emptyText: (
             <Empty
-              description={t("settings.complex_fields.formula.empty")}
+              description={t("settings.formula_fields.formula.empty")}
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             />
           ),
@@ -1348,8 +1350,8 @@ export function FormulaFieldsSettings() {
         cancelText={t("buttons.cancel")}
         title={`${t(
           editingDerivedKey
-            ? "settings.complex_fields.formula.modal.edit_title"
-            : "settings.complex_fields.formula.modal.create_title",
+            ? "settings.formula_fields.formula.modal.edit_title"
+            : "settings.formula_fields.formula.modal.create_title",
         )}: ${niceName}`}
         width={820}
       >
@@ -1358,7 +1360,7 @@ export function FormulaFieldsSettings() {
           layout="vertical"
           initialValues={{
             result_type: DerivedFieldType.number,
-            surfaces: [ComplexFieldSurface.show],
+            surfaces: [FormulaFieldSurface.show],
             allow_list_column_toggle: false,
             include_in_api: false,
             expression_json: "",
@@ -1370,19 +1372,19 @@ export function FormulaFieldsSettings() {
             <Col xs={24} md={12}>
               <Form.Item
                 label={labeledField(
-                  "settings.complex_fields.formula.columns.key",
-                  "settings.complex_fields.formula.tooltips.key",
+                  "settings.formula_fields.formula.columns.key",
+                  "settings.formula_fields.formula.tooltips.key",
                 )}
                 name="key"
                 extra={(
                   <Space direction="vertical" size={2} style={{ width: "100%" }}>
                     <Typography.Text type="secondary">
-                      {t("settings.complex_fields.formula.key_usage_help")}: <Typography.Text code>{derivedKeyPath}</Typography.Text>
+                      {t("settings.formula_fields.formula.key_usage_help")}: <Typography.Text code>{derivedKeyPath}</Typography.Text>
                     </Typography.Text>
                     {keyLooksLikeReservedToken && (
                       <Typography.Text type="warning">
                         <WarningOutlined style={{ marginRight: 6 }} />
-                        {t("settings.complex_fields.formula.key_reserved_hint", { key: derivedKeyValue })}
+                        {t("settings.formula_fields.formula.key_reserved_hint", { key: derivedKeyValue })}
                       </Typography.Text>
                     )}
                   </Space>
@@ -1404,8 +1406,8 @@ export function FormulaFieldsSettings() {
             <Col xs={24} md={12}>
               <Form.Item
                 label={labeledField(
-                  "settings.complex_fields.formula.columns.name",
-                  "settings.complex_fields.formula.tooltips.name",
+                  "settings.formula_fields.formula.columns.name",
+                  "settings.formula_fields.formula.tooltips.name",
                 )}
                 name="name"
                 rules={[{ required: true, min: 1, max: 128 }]}
@@ -1414,7 +1416,7 @@ export function FormulaFieldsSettings() {
               </Form.Item>
             </Col>
           </Row>
-          <Form.Item label={t("settings.complex_fields.formula.columns.description")} name="description" rules={[{ max: 512 }]}>
+          <Form.Item label={t("settings.formula_fields.formula.columns.description")} name="description" rules={[{ max: 512 }]}>
             <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
           </Form.Item>
           {/* Keep Display In aligned with Result Type on desktop while preserving form order when stacked. */}
@@ -1423,12 +1425,12 @@ export function FormulaFieldsSettings() {
               <Form.Item
                 label={(
                   <Space size={6}>
-                    <span>{t("settings.complex_fields.formula.columns.result_type")}</span>
+                    <span>{t("settings.formula_fields.formula.columns.result_type")}</span>
                     {resultTypeMismatchHint && (
                       <>
                         <Tooltip
-                          title={t("settings.complex_fields.formula.result_type_mismatch_hint", {
-                            inferred: t(`settings.complex_fields.formula.types.${resultTypeMismatchHint}`),
+                          title={t("settings.formula_fields.formula.result_type_mismatch_hint", {
+                            inferred: t(`settings.formula_fields.formula.types.${resultTypeMismatchHint}`),
                           })}
                         >
                           <WarningOutlined style={{ color: token.colorWarning }} />
@@ -1442,7 +1444,7 @@ export function FormulaFieldsSettings() {
                             setResultTypeMismatchHint(null);
                           }}
                         >
-                          {t("settings.complex_fields.formula.result_type_autoset")}
+                          {t("settings.formula_fields.formula.result_type_autoset")}
                         </Button>
                       </>
                     )}
@@ -1453,8 +1455,8 @@ export function FormulaFieldsSettings() {
               >
                 <Select
                   options={[
-                    { label: t("settings.complex_fields.formula.types.number"), value: DerivedFieldType.number },
-                    { label: t("settings.complex_fields.formula.types.text"), value: DerivedFieldType.text },
+                    { label: t("settings.formula_fields.formula.types.number"), value: DerivedFieldType.number },
+                    { label: t("settings.formula_fields.formula.types.text"), value: DerivedFieldType.text },
                   ]}
                 />
               </Form.Item>
@@ -1462,8 +1464,8 @@ export function FormulaFieldsSettings() {
             <Col xs={24} md={12}>
               <Form.Item
                 label={labeledField(
-                  "settings.complex_fields.formula.columns.surfaces",
-                  "settings.complex_fields.formula.tooltips.display_in",
+                  "settings.formula_fields.formula.columns.surfaces",
+                  "settings.formula_fields.formula.tooltips.display_in",
                 )}
                 required
               >
@@ -1473,11 +1475,11 @@ export function FormulaFieldsSettings() {
                       mode="multiple"
                       style={{ width: "100%" }}
                       options={DERIVED_SURFACE_OPTIONS.map((surface) => ({
-                        label: t(`settings.complex_fields.surfaces.${surface}`),
+                        label: t(`settings.formula_fields.surfaces.${surface}`),
                         value: surface,
                       }))}
                       onChange={(selected: string[]) => {
-                        if (!selected.includes(ComplexFieldSurface.list)) {
+                        if (!selected.includes(FormulaFieldSurface.list)) {
                           derivedForm.setFieldValue("allow_list_column_toggle", false);
                         }
                       }}
@@ -1486,7 +1488,7 @@ export function FormulaFieldsSettings() {
                   <Form.Item shouldUpdate noStyle>
                     {({ getFieldValue }) => {
                       const selectedSurfaces = (getFieldValue("surfaces") as string[] | undefined) || [];
-                      const listEnabled = selectedSurfaces.includes(ComplexFieldSurface.list);
+                      const listEnabled = selectedSurfaces.includes(FormulaFieldSurface.list);
                       if (!listEnabled) {
                         return null;
                       }
@@ -1497,7 +1499,7 @@ export function FormulaFieldsSettings() {
                             <Switch />
                           </Form.Item>
                           <Typography.Text type="secondary" style={{ whiteSpace: "nowrap" }}>
-                            {t("settings.complex_fields.formula.allow_list_column_toggle_inline", { entity: niceName })}
+                            {t("settings.formula_fields.formula.allow_list_column_toggle_inline", { entity: niceName })}
                           </Typography.Text>
                         </Space>
                       );
@@ -1514,19 +1516,19 @@ export function FormulaFieldsSettings() {
                 <Flex justify="space-between" align="center" gap={8} wrap={false}>
                   <Space size={8} align="center" wrap>
                     {labeledField(
-                      "settings.complex_fields.formula.columns.expression_json",
-                      "settings.complex_fields.formula.tooltips.expression_json",
+                      "settings.formula_fields.formula.columns.expression_json",
+                      "settings.formula_fields.formula.tooltips.expression_json",
                     )}
                     <Link style={{ fontSize: "0.85em" }} to="/help#formula-json-logic">
-                      {t("settings.complex_fields.help_links.formula_json")}
+                      {t("settings.formula_fields.help_links.formula_json")}
                     </Link>
                   </Space>
                 </Flex>
                 <Typography.Text type="secondary" style={{ minWidth: 0 }}>
-                  {t("settings.complex_fields.formula.expression_json_help")}
+                  {t("settings.formula_fields.formula.expression_json_help")}
                 </Typography.Text>
                 <Typography.Text type="secondary" style={{ minWidth: 0 }}>
-                  {t("settings.complex_fields.formula.expression_json_example")}
+                  {t("settings.formula_fields.formula.expression_json_example")}
                 </Typography.Text>
               </Space>
             }
@@ -1538,20 +1540,21 @@ export function FormulaFieldsSettings() {
                 validator: async (_, value) => {
                   const parsed = parseExpressionJson(value);
                   if (!parsed) {
-                    throw new Error(t("settings.complex_fields.formula.expression_json_required"));
+                    throw new Error(t("settings.formula_fields.formula.expression_json_required"));
                   }
                 },
               },
             ]}
           >
             <div>
+              {/* Desktop keeps a dedicated operator panel; narrow layouts rely on typed JSON operators. */}
               {isDesktopOperatorPanel && (
                 <Flex justify="flex-end" style={{ marginBottom: 2 }}>
                   <Tooltip
                     title={
                       showInlineOperatorPanel
-                        ? t("settings.complex_fields.formula.json_builder.hide_operators")
-                        : t("settings.complex_fields.formula.json_builder.show_operators")
+                        ? t("settings.formula_fields.formula.json_builder.hide_operators")
+                        : t("settings.formula_fields.formula.json_builder.show_operators")
                     }
                   >
                     <Button
@@ -1561,8 +1564,8 @@ export function FormulaFieldsSettings() {
                       onClick={() => setOperatorPanelCollapsed((current) => !current)}
                       aria-label={
                         showInlineOperatorPanel
-                          ? t("settings.complex_fields.formula.json_builder.hide_operators")
-                          : t("settings.complex_fields.formula.json_builder.show_operators")
+                          ? t("settings.formula_fields.formula.json_builder.hide_operators")
+                          : t("settings.formula_fields.formula.json_builder.show_operators")
                       }
                     />
                   </Tooltip>
@@ -1615,13 +1618,14 @@ export function FormulaFieldsSettings() {
                     />
                   </div>
                   <Flex justify="flex-end" style={{ marginTop: 4, marginRight: 18 }}>
-                    <Tooltip title={t("settings.complex_fields.formula.json_builder.format_tooltip")}>
+                    <Tooltip title={t("settings.formula_fields.formula.json_builder.format_tooltip")}>
                       <Button size="small" onClick={() => formatExpressionJson()}>
-                        {t("settings.complex_fields.formula.json_builder.format")}
+                        {t("settings.formula_fields.formula.json_builder.format")}
                       </Button>
                     </Tooltip>
                   </Flex>
                 </div>
+                {/* Operator panel stays beside the editor so token insertion does not push helper/reference sections down. */}
                 {showInlineOperatorPanel && (
                   <div
                     style={{
@@ -1635,7 +1639,7 @@ export function FormulaFieldsSettings() {
                     }}
                   >
                     <Typography.Text type="secondary" style={{ display: "block", textAlign: "right" }}>
-                      <strong>{t("settings.complex_fields.formula.token_sections.operators")}</strong>
+                      <strong>{t("settings.formula_fields.formula.token_sections.operators")}</strong>
                     </Typography.Text>
                     <div style={{ marginTop: 8 }}>{renderOperatorTokenGroups(true)}</div>
                   </div>
@@ -1655,13 +1659,13 @@ export function FormulaFieldsSettings() {
             <Flex justify="space-between" align="center">
               <Space size={8} align="center">
                 <Typography.Text type="secondary">
-                  <strong>{t("settings.complex_fields.formula.json_builder.operators_title")}</strong>
+                  <strong>{t("settings.formula_fields.formula.json_builder.operators_title")}</strong>
                 </Typography.Text>
                 <Link
                   style={{ fontSize: "0.85em" }}
                   to="/help#formula-token-groups"
                 >
-                  {t("settings.complex_fields.help_links.formula_tokens")}
+                  {t("settings.formula_fields.help_links.formula_tokens")}
                 </Link>
               </Space>
             </Flex>
@@ -1670,40 +1674,41 @@ export function FormulaFieldsSettings() {
                 <div>
                   <Flex justify="space-between" align="center" gap={8} wrap={false} style={{ height: 34 }}>
                     <Typography.Text type="secondary">
-                      <strong>{t("settings.complex_fields.formula.token_sections.helper_functions")}</strong>
+                      <strong>{t("settings.formula_fields.formula.token_sections.helper_functions")}</strong>
                     </Typography.Text>
+                    {/* Pending helper status + actions are placed in the header to keep insertion flow visible. */}
                     {pendingHelperHint ? (
                       <Space size={6} style={{ minWidth: 0, flexShrink: 0 }}>
                         <Typography.Text type="warning" style={{ whiteSpace: "nowrap" }}>
-                          {t("settings.complex_fields.formula.json_builder.pending_helper_prefix")}
+                          {t("settings.formula_fields.formula.json_builder.pending_helper_prefix")}
                         </Typography.Text>
                         <Typography.Text code style={{ color: token.colorWarningText }}>
                           {pendingHelperHint.helper}
                         </Typography.Text>
                         <Typography.Text type="warning" style={{ whiteSpace: "nowrap" }}>
-                          {t("settings.complex_fields.formula.json_builder.pending_helper_count", {
+                          {t("settings.formula_fields.formula.json_builder.pending_helper_count", {
                             selected: pendingHelperHint.selected,
                             total: pendingHelperHint.total,
                           })}
                         </Typography.Text>
-                        <Tooltip title={t("settings.complex_fields.formula.json_builder.cancel_pending_tooltip")}>
+                        <Tooltip title={t("settings.formula_fields.formula.json_builder.cancel_pending_tooltip")}>
                           <Button
                             danger
                             size="small"
                             type="text"
                             icon={<CloseCircleOutlined />}
                             onClick={() => cancelPendingHelperInsert()}
-                            aria-label={t("settings.complex_fields.formula.json_builder.cancel_pending_tooltip")}
+                            aria-label={t("settings.formula_fields.formula.json_builder.cancel_pending_tooltip")}
                           />
                         </Tooltip>
-                        <Tooltip title={t("settings.complex_fields.formula.json_builder.insert_without_reference_tooltip")}>
+                        <Tooltip title={t("settings.formula_fields.formula.json_builder.insert_without_reference_tooltip")}>
                           <Button
                             size="small"
                             type="primary"
                             onClick={() => insertPendingHelperWithoutReferences()}
-                            aria-label={t("settings.complex_fields.formula.json_builder.insert_without_reference_tooltip")}
+                            aria-label={t("settings.formula_fields.formula.json_builder.insert_without_reference_tooltip")}
                           >
-                            {t("settings.complex_fields.formula.json_builder.helper_only")}
+                            {t("settings.formula_fields.formula.json_builder.helper_only")}
                           </Button>
                         </Tooltip>
                       </Space>
@@ -1713,7 +1718,7 @@ export function FormulaFieldsSettings() {
                 </div>
                 <div style={{ paddingTop: 4 }}>
                   <Typography.Text type="secondary">
-                    <strong>{t("settings.complex_fields.formula.reference_picker.label")}</strong>
+                    <strong>{t("settings.formula_fields.formula.reference_picker.label")}</strong>
                   </Typography.Text>
                   <div style={{ ...tokenCategoryStyle, marginTop: 6 }}>
                     <div style={referenceGridStyle}>
@@ -1724,7 +1729,7 @@ export function FormulaFieldsSettings() {
                         );
                         const disabledReason =
                           !referenceCompatible && pendingHelperDefinition
-                            ? t("settings.complex_fields.formula.json_builder.reference_incompatible_reason", {
+                            ? t("settings.formula_fields.formula.json_builder.reference_incompatible_reason", {
                                 helper: pendingHelperDefinition.name,
                               })
                             : null;
@@ -1779,16 +1784,16 @@ export function FormulaFieldsSettings() {
               </Space>
             </div>
             <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
-              {t("settings.complex_fields.formula.json_builder.click_to_insert_help")}
+              {t("settings.formula_fields.formula.json_builder.click_to_insert_help")}
             </Typography.Paragraph>
           </Space>
           <Form.Item
             label={labeledField(
-              "settings.complex_fields.formula.sample_values",
-              "settings.complex_fields.formula.tooltips.sample_values",
+              "settings.formula_fields.formula.sample_values",
+              "settings.formula_fields.formula.tooltips.sample_values",
             )}
             name="sample_values"
-            extra={t("settings.complex_fields.formula.sample_values_help")}
+            extra={t("settings.formula_fields.formula.sample_values_help")}
             rules={[
               {
                 validator: async (_, value) => {
@@ -1812,12 +1817,12 @@ export function FormulaFieldsSettings() {
           >
             <Flex justify="space-between" align="center" wrap="wrap" gap={12}>
               <Button onClick={() => previewDerived()} loading={previewDerivedField.isPending}>
-                {t("settings.complex_fields.formula.preview.button")}
+                {t("settings.formula_fields.formula.preview.button")}
               </Button>
               <Flex align="center" gap={8} style={{ marginLeft: "auto" }}>
                 {labeledField(
-                  "settings.complex_fields.formula.columns.include_in_api",
-                  "settings.complex_fields.formula.tooltips.include_in_api",
+                  "settings.formula_fields.formula.columns.include_in_api",
+                  "settings.formula_fields.formula.tooltips.include_in_api",
                 )}
                 <Form.Item name="include_in_api" valuePropName="checked" style={{ marginBottom: 0 }}>
                   <Switch />

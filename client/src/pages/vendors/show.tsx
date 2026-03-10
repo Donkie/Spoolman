@@ -7,7 +7,7 @@ import utc from "dayjs/plugin/utc";
 import { ExtraFieldDisplay } from "../../components/extraFields";
 import { buildFormulaValues, formatFormulaValue, getFormulaFieldsForSurface } from "../../utils/formulaFields";
 import { enrichText } from "../../utils/parsing";
-import { ComplexFieldSurface, EntityType, useGetDerivedFields, useGetFields } from "../../utils/queryFields";
+import { FormulaFieldSurface, EntityType, useGetDerivedFields, useGetFields } from "../../utils/queryFields";
 import { IVendor } from "./model";
 
 dayjs.extend(utc);
@@ -26,7 +26,7 @@ export const VendorShow = () => {
 
   const record = data?.data;
   const showFormulaFields = useMemo(
-    () => getFormulaFieldsForSurface(formulaFields.data, ComplexFieldSurface.show),
+    () => getFormulaFieldsForSurface(formulaFields.data, FormulaFieldSurface.show),
     [formulaFields.data],
   );
   const derivedValues = useMemo(
@@ -60,7 +60,7 @@ export const VendorShow = () => {
       {extraFields?.data?.map((field, index) => (
         <ExtraFieldDisplay key={index} field={field} value={record?.extra[field.key]} />
       ))}
-      {showFormulaFields.length > 0 && <Title level={4}>{t("settings.complex_fields.formula.header")}</Title>}
+      {showFormulaFields.length > 0 && <Title level={4}>{t("settings.formula_fields.formula.header")}</Title>}
       {showFormulaFields.map((field) => (
         <Fragment key={field.key}>
           <Title level={5}>{field.name}</Title>

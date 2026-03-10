@@ -18,7 +18,7 @@ import {
 import { useLiveify } from "../../components/liveify";
 import { buildFormulaValues, formatFormulaValue, getFormulaFieldsForSurface } from "../../utils/formulaFields";
 import { removeUndefined } from "../../utils/filtering";
-import { ComplexFieldSurface, EntityType, useGetDerivedFields, useGetFields } from "../../utils/queryFields";
+import { FormulaFieldSurface, EntityType, useGetDerivedFields, useGetFields } from "../../utils/queryFields";
 import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
 import { IVendor } from "./model";
 
@@ -91,7 +91,7 @@ export const VendorList = () => {
     useCallback((record: IVendor) => record, []),
   );
   const listFormulaFields = useMemo(
-    () => getFormulaFieldsForSurface(formulaFields.data, ComplexFieldSurface.list),
+    () => getFormulaFieldsForSurface(formulaFields.data, FormulaFieldSurface.list),
     [formulaFields.data],
   );
   const toggleableListFormulaFields = useMemo(

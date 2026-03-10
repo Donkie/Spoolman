@@ -26,7 +26,7 @@ import {
   useSpoolmanVendors,
 } from "../../components/otherModels";
 import { removeUndefined } from "../../utils/filtering";
-import { ComplexFieldSurface, EntityType, useGetDerivedFields, useGetFields } from "../../utils/queryFields";
+import { FormulaFieldSurface, EntityType, useGetDerivedFields, useGetFields } from "../../utils/queryFields";
 import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
 import { useCurrencyFormatter } from "../../utils/settings";
 import { IFilament } from "./model";
@@ -147,7 +147,7 @@ export const FilamentList = () => {
   );
   const liveDataSource = useLiveify("filament", queryDataSource, collapseFilament);
   const listFormulaFields = useMemo(
-    () => getFormulaFieldsForSurface(formulaFields.data, ComplexFieldSurface.list),
+    () => getFormulaFieldsForSurface(formulaFields.data, FormulaFieldSurface.list),
     [formulaFields.data],
   );
   const toggleableListFormulaFields = useMemo(

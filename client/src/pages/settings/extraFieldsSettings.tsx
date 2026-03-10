@@ -28,7 +28,7 @@ import { useParams } from "react-router";
 import { DateTimePicker } from "../../components/dateTimePicker";
 import { InputNumberRange } from "../../components/inputNumberRange";
 import { getExtraFieldReferences } from "../../utils/formulaFields";
-import { FormulaFieldsSettings } from "./complexFieldsSettings";
+import { FormulaFieldsSettings } from "./formulaFieldsSettings";
 import {
   EntityType,
   Field,

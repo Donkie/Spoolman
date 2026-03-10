@@ -362,35 +362,18 @@
             "delete_confirm": "Delete field {{name}}?",
             "delete_confirm_description": "This will delete the field and all associated data for all entities.",
             "delete_dependency_warning_intro": "Deleting this custom field will make dependent fields inoperable:",
-            "delete_dependency_warning_complex": "Complex extra fields: {{dependencies}}",
             "delete_dependency_warning_formula": "Formula extra fields: {{dependencies}}",
             "delete_dependency_warning_footer": "These entries remain saved, but behavior depending on this field will fail until references are updated."
         },
-        "complex_fields": {
-            "tab": "Complex Extra Fields",
-            "intro": "Complex extra fields are optional app-provided feature modules that extend built-in and custom fields for this entity. They are enabled here when available.",
-            "table_note": "Complex extra field definitions are provided by installed feature modules and are not created from this page.",
-            "missing_references_intro": "Some complex extra fields reference custom fields that are no longer available.",
-            "missing_references": "Missing custom extra field references: {{references}}",
-            "description": "<p>Complex fields add optional, pre-defined behaviors beyond custom extra fields.</p><p>Enabling one can add specialized display, actions, calculated values, or list columns for the selected entity. Disabled features remain hidden so the standard UI stays simpler.</p><p>Each entry below states exactly what enabling it adds. This framework can stay empty until a specific advanced feature is installed.</p>",
-            "tooltip": "Complex extra fields are app-provided feature modules. Enabling one can add specialized display, actions, calculated values, or list columns for this entity.",
+        "formula_fields": {
             "help_links": {
-                "complex": "Help: Complex Extra Fields",
                 "formula": "Help: Formula Extra Fields",
                 "formula_json": "Help: JSON Logic",
                 "formula_tokens": "Help: Token Groups"
             },
-            "empty": "No complex extra field feature modules are currently registered for this entity.",
             "available_functions": {
                 "label": "Token categories:",
                 "value": "Operators, helper functions, and field references are grouped in the editor."
-            },
-            "columns": {
-                "name": "Name",
-                "description": "Feature",
-                "enable_description": "What Enabling Adds",
-                "surfaces": "Display In",
-                "enabled": "Enabled"
             },
             "surfaces": {
                 "show": "Show",
@@ -399,10 +382,6 @@
                 "template": "Template",
                 "action": "Action",
                 "derived": "Derived"
-            },
-            "messages": {
-                "enabled": "Enabled {{name}}.",
-                "disabled": "Disabled {{name}}."
             },
             "formula": {
                 "header": "Formula Extra Fields",

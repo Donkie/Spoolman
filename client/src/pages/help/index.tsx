@@ -406,7 +406,7 @@ export const Help = () => {
                         padding: 8,
                       }}
                     >
-                      <Text strong>{t(`settings.complex_fields.formula.token_categories.${group.key}`)}</Text>
+                      <Text strong>{t(`settings.formula_fields.formula.token_categories.${group.key}`)}</Text>
                       <div style={{ marginTop: 6 }}>
                         <Space size={[4, 4]} wrap>
                           {group.helpers.map((helper) => (

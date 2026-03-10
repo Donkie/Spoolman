@@ -1,4 +1,4 @@
-import { ComplexFieldSurface, DerivedField } from "./queryFields";
+import { FormulaFieldSurface, DerivedField } from "./queryFields";
 
 type FormulaScope = object;
 
@@ -500,12 +500,12 @@ export function evaluateFormulaJsonLogic(expressionJson: Record<string, unknown>
 }
 
 export function getTemplateFormulaFields(fields: DerivedField[] | undefined): DerivedField[] {
-  return (fields || []).filter((field) => field.surfaces.includes(ComplexFieldSurface.template));
+  return (fields || []).filter((field) => field.surfaces.includes(FormulaFieldSurface.template));
 }
 
 export function getFormulaFieldsForSurface(
   fields: DerivedField[] | undefined,
-  surface: ComplexFieldSurface,
+  surface: FormulaFieldSurface,
 ): DerivedField[] {
   return (fields || []).filter((field) => field.surfaces.includes(surface));
 }
