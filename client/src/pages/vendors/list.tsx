@@ -2,6 +2,7 @@ import { EditOutlined, EyeOutlined, FilterOutlined, PlusSquareOutlined } from "@
 import { List, useTable } from "@refinedev/antd";
 import { useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Table } from "antd";
+import { ColumnType } from "antd/es/table";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useCallback, useMemo, useState } from "react";
@@ -15,9 +16,10 @@ import {
   SortedColumn,
 } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
+import { buildFormulaValues, formatFormulaValue, getFormulaFieldsForSurface } from "../../utils/formulaFields";
 import { removeUndefined } from "../../utils/filtering";
-import { EntityType, useGetFields } from "../../utils/queryFields";
-import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
+import { ComplexFieldSurface, EntityType, useGetDerivedFields, useGetFields } from "../../utils/queryFields";
+import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
 import { IVendor } from "./model";
 
 dayjs.extend(utc);
@@ -31,11 +33,12 @@ export const VendorList = () => {
   const invalidate = useInvalidate();
   const navigate = useNavigate();
   const extraFields = useGetFields(EntityType.vendor);
-
-  const allColumnsWithExtraFields = [...allColumns, ...(extraFields.data?.map((field) => "extra." + field.key) ?? [])];
+  const formulaFields = useGetDerivedFields(EntityType.vendor);
 
   // Load initial state
   const initialState = useInitialTableState(namespace);
+  // Track formula-column hides separately so newly enabled toggleable fields still default to visible.
+  const [hiddenDerivedColumns, setHiddenDerivedColumns] = useSavedState<string[]>(`${namespace}-hiddenDerivedColumns`, []);
 
   // Fetch data from the API
   const { tableProps, sorters, setSorters, filters, setFilters, currentPage, pageSize, setCurrentPage } =
@@ -82,10 +85,44 @@ export const VendorList = () => {
   const queryDataSource: IVendor[] = useMemo(() => {
     return (tableProps.dataSource || []).map((record) => ({ ...record }));
   }, [tableProps.dataSource]);
-  const dataSource = useLiveify(
+  const liveDataSource = useLiveify(
     "vendor",
     queryDataSource,
     useCallback((record: IVendor) => record, []),
+  );
+  const listFormulaFields = useMemo(
+    () => getFormulaFieldsForSurface(formulaFields.data, ComplexFieldSurface.list),
+    [formulaFields.data],
+  );
+  const toggleableListFormulaFields = useMemo(
+    () => listFormulaFields.filter((field) => field.allow_list_column_toggle),
+    [listFormulaFields],
+  );
+  const toggleableDerivedColumnKeys = useMemo(
+    () => toggleableListFormulaFields.map((field) => `derived.${field.key}`),
+    [toggleableListFormulaFields],
+  );
+  const allColumnsWithExtraFields = useMemo(
+    () => [
+      ...allColumns,
+      ...(extraFields.data?.map((field) => `extra.${field.key}`) ?? []),
+      ...toggleableDerivedColumnKeys,
+    ],
+    [extraFields.data, toggleableDerivedColumnKeys],
+  );
+  const selectedColumnKeys = useMemo(
+    () => [...showColumns, ...toggleableDerivedColumnKeys.filter((key) => !hiddenDerivedColumns.includes(key))],
+    [hiddenDerivedColumns, showColumns, toggleableDerivedColumnKeys],
+  );
+  const dataSource = useMemo<IVendor[]>(
+    () =>
+      liveDataSource.map((record) => ({
+        ...record,
+        // Formula values are computed client-side from the fetched row and are not persisted
+        // server-side fields, so they update on reload/live row updates and remain display-only.
+        derived: buildFormulaValues(record, listFormulaFields),
+      })),
+    [liveDataSource, listFormulaFields],
   );
 
   if (tableProps.pagination) {
@@ -106,6 +143,11 @@ export const VendorList = () => {
     dataSource,
     tableState,
     sorter: true,
+  };
+
+  const updateColumnSelections = (selectedKeys: string[]) => {
+    setShowColumns(selectedKeys.filter((key) => !toggleableDerivedColumnKeys.includes(key)));
+    setHiddenDerivedColumns(toggleableDerivedColumnKeys.filter((key) => !selectedKeys.includes(key)));
   };
 
   return (
@@ -134,20 +176,27 @@ export const VendorList = () => {
                     label: extraField?.name ?? column_id,
                   };
                 }
+                if (column_id.indexOf("derived.") === 0) {
+                  const formulaField = toggleableListFormulaFields.find((field) => `derived.${field.key}` === column_id);
+                  return {
+                    key: column_id,
+                    label: formulaField?.name ?? column_id,
+                  };
+                }
 
                 return {
                   key: column_id,
                   label: t(`vendor.fields.${column_id}`),
                 };
               }),
-              selectedKeys: showColumns,
+              selectedKeys: selectedColumnKeys,
               selectable: true,
               multiple: true,
               onDeselect: (keys) => {
-                setShowColumns(keys.selectedKeys);
+                updateColumnSelections(keys.selectedKeys.map(String));
               },
               onSelect: (keys) => {
-                setShowColumns(keys.selectedKeys);
+                updateColumnSelections(keys.selectedKeys.map(String));
               },
             }}
           >
@@ -198,6 +247,22 @@ export const VendorList = () => {
               field,
             });
           }) ?? []),
+          ...listFormulaFields.map(
+            (field) => {
+              const derivedColumnKey = `derived.${field.key}`;
+              if (field.allow_list_column_toggle && hiddenDerivedColumns.includes(derivedColumnKey)) {
+                return undefined;
+              }
+
+              return {
+                key: derivedColumnKey,
+                title: field.name,
+                width: 140,
+                render: (_: unknown, record: IVendor) =>
+                  formatFormulaValue((record as IVendor & { derived?: Record<string, unknown> }).derived?.[field.key]),
+              } as ColumnType<IVendor>;
+            },
+          ),
           RichColumn({
             ...commonProps,
             id: "comment",

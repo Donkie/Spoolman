@@ -11,6 +11,7 @@ import {
 import { List, useTable } from "@refinedev/antd";
 import { useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Modal, Table } from "antd";
+import { ColumnType } from "antd/es/table";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useCallback, useMemo, useState } from "react";
@@ -27,6 +28,7 @@ import {
   SpoolIconColumn,
 } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
+import { buildFormulaValues, formatFormulaValue, getFormulaFieldsForSurface } from "../../utils/formulaFields";
 import {
   useSpoolmanFilamentFilter,
   useSpoolmanLocations,
@@ -34,7 +36,7 @@ import {
   useSpoolmanMaterials,
 } from "../../components/otherModels";
 import { removeUndefined } from "../../utils/filtering";
-import { EntityType, useGetFields } from "../../utils/queryFields";
+import { ComplexFieldSurface, EntityType, useGetDerivedFields, useGetFields } from "../../utils/queryFields";
 import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
 import { useCurrencyFormatter } from "../../utils/settings";
 import { setSpoolArchived, useSpoolAdjustModal } from "./functions";
@@ -48,6 +50,7 @@ interface ISpoolCollapsed extends ISpool {
   "filament.combined_name": string; // Eg. "Prusa - PLA Red"
   "filament.id": number;
   "filament.material"?: string;
+  derived?: Record<string, unknown>;
 }
 
 function collapseSpool(element: ISpool): ISpoolCollapsed {
@@ -102,16 +105,17 @@ export const SpoolList = () => {
   const invalidate = useInvalidate();
   const navigate = useNavigate();
   const extraFields = useGetFields(EntityType.spool);
+  const formulaFields = useGetDerivedFields(EntityType.spool);
   const currencyFormatter = useCurrencyFormatter();
   const { openSpoolAdjustModal, spoolAdjustModal } = useSpoolAdjustModal();
-
-  const allColumnsWithExtraFields = [...allColumns, ...(extraFields.data?.map((field) => "extra." + field.key) ?? [])];
 
   // Load initial state
   const initialState = useInitialTableState(namespace);
 
   // State for the switch to show archived spools
   const [showArchived, setShowArchived] = useSavedState("spoolList-showArchived", false);
+  // Track formula-column hides separately so newly enabled toggleable fields still default to visible.
+  const [hiddenDerivedColumns, setHiddenDerivedColumns] = useSavedState<string[]>(`${namespace}-hiddenDerivedColumns`, []);
 
   // Fetch data from the API
   // To provide the live updates, we use a custom solution (useLiveify) instead of the built-in refine "liveMode" feature.
@@ -175,7 +179,41 @@ export const SpoolList = () => {
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource],
   );
-  const dataSource = useLiveify("spool", queryDataSource, collapseSpool);
+  const liveDataSource = useLiveify("spool", queryDataSource, collapseSpool);
+  const listFormulaFields = useMemo(
+    () => getFormulaFieldsForSurface(formulaFields.data, ComplexFieldSurface.list),
+    [formulaFields.data],
+  );
+  const toggleableListFormulaFields = useMemo(
+    () => listFormulaFields.filter((field) => field.allow_list_column_toggle),
+    [listFormulaFields],
+  );
+  const toggleableDerivedColumnKeys = useMemo(
+    () => toggleableListFormulaFields.map((field) => `derived.${field.key}`),
+    [toggleableListFormulaFields],
+  );
+  const allColumnsWithExtraFields = useMemo(
+    () => [
+      ...allColumns,
+      ...(extraFields.data?.map((field) => `extra.${field.key}`) ?? []),
+      ...toggleableDerivedColumnKeys,
+    ],
+    [extraFields.data, toggleableDerivedColumnKeys],
+  );
+  const selectedColumnKeys = useMemo(
+    () => [...showColumns, ...toggleableDerivedColumnKeys.filter((key) => !hiddenDerivedColumns.includes(key))],
+    [hiddenDerivedColumns, showColumns, toggleableDerivedColumnKeys],
+  );
+  const dataSource = useMemo<ISpoolCollapsed[]>(
+    () =>
+      liveDataSource.map((record) => ({
+        ...record,
+        // Formula values are computed client-side from the fetched row and are not persisted
+        // server-side fields, so they update on reload/live row updates and remain display-only.
+        derived: buildFormulaValues(record, listFormulaFields),
+      })),
+    [liveDataSource, listFormulaFields],
+  );
 
   // Function for opening an ant design modal that asks for confirmation for archiving a spool
   const archiveSpool = async (spool: ISpoolCollapsed, archive: boolean) => {
@@ -256,6 +294,11 @@ export const SpoolList = () => {
     sorter: true,
   };
 
+  const updateColumnSelections = (selectedKeys: string[]) => {
+    setShowColumns(selectedKeys.filter((key) => !toggleableDerivedColumnKeys.includes(key)));
+    setHiddenDerivedColumns(toggleableDerivedColumnKeys.filter((key) => !selectedKeys.includes(key)));
+  };
+
   return (
     <List
       headerButtons={({ defaultButtons }) => (
@@ -300,20 +343,27 @@ export const SpoolList = () => {
                     label: extraField?.name ?? column_id,
                   };
                 }
+                if (column_id.indexOf("derived.") === 0) {
+                  const formulaField = toggleableListFormulaFields.find((field) => `derived.${field.key}` === column_id);
+                  return {
+                    key: column_id,
+                    label: formulaField?.name ?? column_id,
+                  };
+                }
 
                 return {
                   key: column_id,
                   label: t(translateColumnI18nKey(column_id)),
                 };
               }),
-              selectedKeys: showColumns,
+              selectedKeys: selectedColumnKeys,
               selectable: true,
               multiple: true,
               onDeselect: (keys) => {
-                setShowColumns(keys.selectedKeys);
+                updateColumnSelections(keys.selectedKeys.map(String));
               },
               onSelect: (keys) => {
-                setShowColumns(keys.selectedKeys);
+                updateColumnSelections(keys.selectedKeys.map(String));
               },
             }}
           >
@@ -457,6 +507,21 @@ export const SpoolList = () => {
               field,
             });
           }) ?? []),
+          ...listFormulaFields.map(
+            (field) => {
+              const derivedColumnKey = `derived.${field.key}`;
+              if (field.allow_list_column_toggle && hiddenDerivedColumns.includes(derivedColumnKey)) {
+                return undefined;
+              }
+
+              return {
+                key: derivedColumnKey,
+                title: field.name,
+                width: 140,
+                render: (_: unknown, record: ISpoolCollapsed) => formatFormulaValue(record.derived?.[field.key]),
+              } as ColumnType<ISpoolCollapsed>;
+            },
+          ),
           RichColumn({
             ...commonProps,
             id: "comment",

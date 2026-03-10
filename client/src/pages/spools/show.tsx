@@ -1,3 +1,4 @@
+import { Fragment, useMemo } from "react";
 import { InboxOutlined, PrinterOutlined, ToTopOutlined, ToolOutlined } from "@ant-design/icons";
 import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
 import { useInvalidate, useShow, useTranslate } from "@refinedev/core";
@@ -7,8 +8,9 @@ import utc from "dayjs/plugin/utc";
 import { ExtraFieldDisplay } from "../../components/extraFields";
 import { NumberFieldUnit } from "../../components/numberField";
 import SpoolIcon from "../../components/spoolIcon";
+import { buildFormulaValues, formatFormulaValue, getFormulaFieldsForSurface } from "../../utils/formulaFields";
 import { enrichText } from "../../utils/parsing";
-import { EntityType, useGetFields } from "../../utils/queryFields";
+import { ComplexFieldSurface, EntityType, useGetDerivedFields, useGetFields } from "../../utils/queryFields";
 import { useCurrencyFormatter } from "../../utils/settings";
 import { getBasePath } from "../../utils/url";
 import { IFilament } from "../filaments/model";
@@ -23,6 +25,7 @@ const { confirm } = Modal;
 export const SpoolShow = () => {
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.spool);
+  const formulaFields = useGetDerivedFields(EntityType.spool);
   const currencyFormatter = useCurrencyFormatter();
   const invalidate = useInvalidate();
 
@@ -32,6 +35,14 @@ export const SpoolShow = () => {
   const { data, isLoading } = query;
 
   const record = data?.data;
+  const showFormulaFields = useMemo(
+    () => getFormulaFieldsForSurface(formulaFields.data, ComplexFieldSurface.show),
+    [formulaFields.data],
+  );
+  const derivedValues = useMemo(
+    () => (record ? buildFormulaValues(record, showFormulaFields) : {}),
+    [record, showFormulaFields],
+  );
 
   const spoolPrice = (item?: ISpool) => {
     const price = item?.price ?? item?.filament.price;
@@ -222,6 +233,13 @@ export const SpoolShow = () => {
       <Title level={4}>{t("settings.extra_fields.tab")}</Title>
       {extraFields?.data?.map((field, index) => (
         <ExtraFieldDisplay key={index} field={field} value={record?.extra[field.key]} />
+      ))}
+      {showFormulaFields.length > 0 && <Title level={4}>{t("settings.complex_fields.formula.header")}</Title>}
+      {showFormulaFields.map((field) => (
+        <Fragment key={field.key}>
+          <Title level={5}>{field.name}</Title>
+          <TextField value={formatFormulaValue(derivedValues[field.key])} />
+        </Fragment>
       ))}
     </Show>
   );

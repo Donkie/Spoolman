@@ -19,7 +19,6 @@ export const Settings = () => {
 
   const getCurrentKey = () => {
     const path = window.location.pathname.replace("/settings", "");
-    // Remove starting slash and ending slash if exists and return
     return path.replace(/^\/|\/$/g, "");
   };
 

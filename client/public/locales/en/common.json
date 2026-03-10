@@ -44,6 +44,7 @@
         "editError": "Error when editing {{resource}} (status code: {{statusCode}})",
         "importProgress": "Importing: {{processed}}/{{total}}",
         "saveSuccessful": "Save successful!",
+        "saveFailed": "Save failed.",
         "validationError": "Validation error: {{error}}"
     },
     "kofi": "Tip me on Ko-fi",
@@ -326,7 +327,13 @@
         },
         "extra_fields": {
             "tab": "Extra Fields",
-            "description": "<p>Here you can add extra custom fields to your entities.</p><p>Once a field is added, you can not change its key or type, and for choice type fields you can not remove choices or change the multi choice state. If you remove a field, the associated data for all entities will be deleted.</p><p>The key is what other programs read/write the data as, so if your custom field is supposed to integrate with a third-party program, make sure to set it correctly. Default value is only applied to new items.</p><p>Extra fields can not be sorted or filtered in the table views.</p>",
+            "top_guidance": "In all extra field types, the key is an integration identifier used by APIs and external tools, so choose stable names. Default values apply only to newly created items.",
+            "custom": {
+                "header": "Custom Extra Fields",
+                "description": "Custom extra fields are fields you define directly (text, number, datetime, choice, and ranges). In custom extra fields, key and type are immutable after creation. For choice fields, existing choices and the multi-choice mode are also immutable to protect stored data. Deleting a field removes its data from all records.",
+                "description_intro": "Custom extra fields are fields you define directly",
+                "description_immutability": "In custom extra fields, key and type are immutable after creation. For choice fields, existing choices and the multi-choice mode are also immutable to protect stored data. Deleting a field removes its data from all records."
+            },
             "params": {
                 "key": "Key",
                 "name": "Name",
@@ -353,7 +360,161 @@
             "non_unique_key_error": "The key must be unique.",
             "key_not_changed": "Please change the key to something else.",
             "delete_confirm": "Delete field {{name}}?",
-            "delete_confirm_description": "This will delete the field and all associated data for all entities."
+            "delete_confirm_description": "This will delete the field and all associated data for all entities.",
+            "delete_dependency_warning_intro": "Deleting this custom field will make dependent fields inoperable:",
+            "delete_dependency_warning_complex": "Complex extra fields: {{dependencies}}",
+            "delete_dependency_warning_formula": "Formula extra fields: {{dependencies}}",
+            "delete_dependency_warning_footer": "These entries remain saved, but behavior depending on this field will fail until references are updated."
+        },
+        "complex_fields": {
+            "tab": "Complex Extra Fields",
+            "intro": "Complex extra fields are optional app-provided feature modules that extend built-in and custom fields for this entity. They are enabled here when available.",
+            "table_note": "Complex extra field definitions are provided by installed feature modules and are not created from this page.",
+            "missing_references_intro": "Some complex extra fields reference custom fields that are no longer available.",
+            "missing_references": "Missing custom extra field references: {{references}}",
+            "description": "<p>Complex fields add optional, pre-defined behaviors beyond custom extra fields.</p><p>Enabling one can add specialized display, actions, calculated values, or list columns for the selected entity. Disabled features remain hidden so the standard UI stays simpler.</p><p>Each entry below states exactly what enabling it adds. This framework can stay empty until a specific advanced feature is installed.</p>",
+            "tooltip": "Complex extra fields are app-provided feature modules. Enabling one can add specialized display, actions, calculated values, or list columns for this entity.",
+            "help_links": {
+                "complex": "Help: Complex Extra Fields",
+                "formula": "Help: Formula Extra Fields",
+                "formula_json": "Help: JSON Logic",
+                "formula_tokens": "Help: Token Groups"
+            },
+            "empty": "No complex extra field feature modules are currently registered for this entity.",
+            "available_functions": {
+                "label": "Token categories:",
+                "value": "Operators, helper functions, and field references are grouped in the editor."
+            },
+            "columns": {
+                "name": "Name",
+                "description": "Feature",
+                "enable_description": "What Enabling Adds",
+                "surfaces": "Display In",
+                "enabled": "Enabled"
+            },
+            "surfaces": {
+                "show": "Show",
+                "edit": "Edit",
+                "list": "List",
+                "template": "Template",
+                "action": "Action",
+                "derived": "Derived"
+            },
+            "messages": {
+                "enabled": "Enabled {{name}}.",
+                "disabled": "Disabled {{name}}."
+            },
+            "formula": {
+                "header": "Formula Extra Fields",
+                "intro": "Formula extra fields are read-only derived values computed from expressions that reference existing fields.",
+                "evaluation_model_help": "Formula values are computed when records are loaded and are not stored as database columns. Dynamic helpers like today() refresh when data is reloaded.",
+                "description": "<p>Formula fields let you define your own calculated values for this entity.</p><p>Use references like <code>{weight}</code> or <code>{created_at}</code>, then combine them with math and helper functions. Formula fields are read-only and can be shown in list or show views.</p><p>This is where you can build calculations such as date parts, intervals, or specialized helpers like <code>hue_from_hex(...)</code>.</p>",
+                "tooltip": "Formula extra fields are user-defined calculated values. Use field references with the available formula functions to build read-only values for the selected display areas.",
+                "empty": "No formula fields are currently defined for this entity.",
+                "columns": {
+                    "key": "Key",
+                    "name": "Name",
+                    "description": "Description",
+                    "result_type": "Result Type",
+                    "expression": "Expression",
+                    "expression_json": "Expression JSON (JSON Logic)",
+                    "surfaces": "Display In",
+                    "allow_list_column_toggle": "Hide Columns Toggle",
+                    "include_in_api": "Include in API"
+                },
+                "types": {
+                    "number": "Number",
+                    "text": "Text"
+                },
+                "result_type_mismatch_hint": "Expression JSON appears to return {{inferred}}. You can keep the current type or auto-set it.",
+                "result_type_autoset": "Auto-set",
+                "tooltips": {
+                    "key": "Stable machine key for this formula field. It must be unique, uses lowercase letters/numbers/underscores, and is what later integrations will refer to.",
+                    "name": "Human-friendly label shown in the UI for this formula field.",
+                    "display_in": "Choose where this formula field is intended to appear later. Show means detail pages. List means table or list views. Template means label, title, or filename template variables.",
+                    "allow_list_column_toggle": "If enabled, list-display formula fields can be hidden or shown from the Hide Columns menu. If disabled, they stay visible whenever the field is shown in lists.",
+                    "include_in_api": "When enabled, this field can be included in API responses under payload.derived whenever include_derived is enabled for the request.",
+                    "expression_json": "JSON Logic object used to compute this formula field.",
+                    "sample_values": "Variable definition examples and formatting: {\"weight\": 1000, \"remaining_weight\": 225, \"created_at\": \"2026-02-28T10:15:00Z\", \"color_hex\": \"#FF00FF\"}"
+                },
+                "allow_list_column_toggle_help": "Only applies when List display is selected. This keeps optional formula columns discoverable in the existing Hide Columns picker.",
+                "allow_list_column_toggle_inline": "Enable column visibility in {{entity}} view.",
+                "sample_values": "Sample Values (JSON)",
+                "sample_values_help": "Define JSON variables for preview/testing of this expression.",
+                "expression_json_help": "Enter a JSON Logic object manually or using helper/reference tokens and operators to insert snippets.",
+                "expression_json_example": "Example: {\"-\": [{\"var\": \"weight\"}, {\"var\": \"remaining_weight\"}]}",
+                "expression_json_required": "Expression JSON (JSON Logic) is required.",
+                "key_usage_help": "API/template path",
+                "key_reserved_hint": "This key matches a formula token name ({{key}}). It still works, but choosing a distinct key can reduce confusion.",
+                "operator_groups": {
+                    "logical": "Logical / Conditional",
+                    "comparison": "Comparison",
+                    "arithmetic": "Arithmetic",
+                    "helpers": "Helpers"
+                },
+                "token_sections": {
+                    "operators": "Operators",
+                    "helper_functions": "Helper Functions"
+                },
+                "token_categories": {
+                    "logical": "Logical / Conditional",
+                    "comparison": "Comparison",
+                    "arithmetic": "Arithmetic",
+                    "math": "Math",
+                    "text": "Text",
+                    "datetime": "Date / Time",
+                    "dynamic": "Dynamic",
+                    "date_diff": "Date Diff",
+                    "color": "Color"
+                },
+                "reference_picker": {
+                    "label": "Field References",
+                    "placeholder": "Pick a field to insert into the expression",
+                    "help": "Tokens are clickable inserts. Helper Functions are functional tokens, and Field References insert {var} references for built-in or configured extra fields."
+                },
+                "json_builder": {
+                    "operators_title": "Insert Tokens",
+                    "click_to_insert_help": "Select a helper, then select compatible field references. Field references insert JSON snippets immediately. Use Helper only to insert placeholder arguments.",
+                    "pending_helper": "Pending reference for helper {{helper}} ({{selected}}/{{total}})",
+                    "pending_helper_prefix": "Pending reference for helper",
+                    "pending_helper_count": "({{selected}}/{{total}})",
+                    "helper_unavailable_reason": "Helper {{helper}} has no compatible references for this entity yet.",
+                    "helper_incompatible_reason": "Helper {{helper}} is incompatible with the currently selected pending reference type.",
+                    "reference_incompatible_reason": "Selected reference is incompatible with helper {{helper}}.",
+                    "show_operators": "Show operators",
+                    "hide_operators": "Hide operators",
+                    "operator_compact": {
+                        "logical_top": "Logical",
+                        "logical_bottom": "Conditional",
+                        "comparison": "Compare",
+                        "math": "Math"
+                    },
+                    "format": "Format JSON",
+                    "format_tooltip": "Normalizes and pretty-prints the current JSON in the editor.",
+                    "formatted": "Expression JSON formatted.",
+                    "insert_without_reference_tooltip": "Insert helper with placeholder inputs and clear pending selection.",
+                    "cancel_pending_tooltip": "Cancel pending helper selection.",
+                    "helper_only": "Helper only"
+                },
+                "delete_confirm": "Delete formula field {{name}}?",
+                "modal": {
+                    "create_title": "New Formula Extra Field",
+                    "edit_title": "Edit Formula Extra Field"
+                },
+                "messages": {
+                    "created": "Created {{name}}.",
+                    "updated": "Updated {{name}}.",
+                    "deleted": "Deleted {{name}}."
+                },
+                "missing_references_intro": "Some formula fields reference custom fields that are no longer available.",
+                "missing_references": "Missing custom field references: {{references}}",
+                "preview": {
+                    "button": "Preview Expression",
+                    "result_label": "Preview:",
+                    "references_used": "References used: {{references}}",
+                    "no_references": "No field references are used in this expression."
+                }
+            }
         }
     },
     "documentTitle": {

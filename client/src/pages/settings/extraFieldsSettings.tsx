@@ -3,6 +3,7 @@ import { useTranslate } from "@refinedev/core";
 import {
   Button,
   Checkbox,
+  Divider,
   Flex,
   Form,
   FormInstance,
@@ -12,7 +13,9 @@ import {
   Select,
   Space,
   Table,
+  Typography,
   message,
+  theme,
 } from "antd";
 import { FormItemProps, Rule } from "antd/es/form";
 import { ColumnType } from "antd/es/table";
@@ -20,12 +23,21 @@ import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { useState } from "react";
-import { Trans } from "react-i18next";
+import { useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { DateTimePicker } from "../../components/dateTimePicker";
 import { InputNumberRange } from "../../components/inputNumberRange";
-import { EntityType, Field, FieldType, useDeleteField, useGetFields, useSetField } from "../../utils/queryFields";
+import { getExtraFieldReferences } from "../../utils/formulaFields";
+import { FormulaFieldsSettings } from "./complexFieldsSettings";
+import {
+  EntityType,
+  Field,
+  FieldType,
+  useDeleteField,
+  useGetDerivedFields,
+  useGetFields,
+  useSetField,
+} from "../../utils/queryFields";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -286,8 +298,10 @@ const EditableCell = ({ record, editing, dataIndex, children, form, ...restProps
 export function ExtraFieldsSettings() {
   const { entityType } = useParams<{ entityType: EntityType }>();
   const t = useTranslate();
+  const { token } = theme.useToken();
   const [form] = Form.useForm();
   const fields = useGetFields(entityType as EntityType);
+  const derivedFields = useGetDerivedFields(entityType as EntityType);
   const setField = useSetField(entityType as EntityType);
   const deleteField = useDeleteField(entityType as EntityType);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -296,6 +310,7 @@ export function ExtraFieldsSettings() {
   const [messageApi, contextHolder] = message.useMessage();
 
   const [editingKey, setEditingKey] = useState("");
+  const sectionBodyStyle = { fontSize: token.fontSize, lineHeight: 1.7 };
 
   const isEditing = (record: FieldHolder) => record.field.key === editingKey;
 
@@ -443,7 +458,22 @@ export function ExtraFieldsSettings() {
   };
 
   const niceName = t(`${entityType}.${entityType}`);
-
+  const formulaDependenciesByCustomFieldKey = useMemo(() => {
+    const dependencies: Record<string, { key: string; name: string }[]> = {};
+    (derivedFields.data || []).forEach((derivedField) => {
+      const referencedCustomFields = getExtraFieldReferences(derivedField.expression_json || undefined);
+      referencedCustomFields.forEach((customFieldKey) => {
+        if (!dependencies[customFieldKey]) {
+          dependencies[customFieldKey] = [];
+        }
+        dependencies[customFieldKey].push({
+          key: derivedField.key,
+          name: derivedField.name,
+        });
+      });
+    });
+    return dependencies;
+  }, [derivedFields.data]);
   const columns: ColumnType<FieldHolder>[] = [
     {
       title: t("settings.extra_fields.params.key"),
@@ -547,18 +577,44 @@ export function ExtraFieldsSettings() {
               <Button disabled={editingKey !== ""} onClick={() => edit(record.field)} size="small">
                 {t("buttons.edit")}
               </Button>
-              <Popconfirm
-                title={t("settings.extra_fields.delete_confirm", { name: record.field.name })}
-                description={t("settings.extra_fields.delete_confirm_description", { name: record.field.name })}
-                onConfirm={() => del(record.field)}
-                disabled={editingKey !== ""}
-                okText={t("buttons.delete")}
-                cancelText={t("buttons.cancel")}
-              >
-                <Button disabled={editingKey !== ""} danger size="small">
-                  {t("buttons.delete")}
-                </Button>
-              </Popconfirm>
+              {(() => {
+                const formulaDependencies = formulaDependenciesByCustomFieldKey[record.field.key] || [];
+                const hasFormulaDependencies = formulaDependencies.length > 0;
+                const formulaDependencyList = formulaDependencies.map((item) => `${item.name} (${item.key})`).join(", ");
+                const confirmDescription = hasFormulaDependencies ? (
+                  <Space direction="vertical" size={4}>
+                    <Typography.Text>
+                      {t("settings.extra_fields.delete_confirm_description", { name: record.field.name })}
+                    </Typography.Text>
+                    <Typography.Text type="danger">{t("settings.extra_fields.delete_dependency_warning_intro")}</Typography.Text>
+                    {hasFormulaDependencies && (
+                      <Typography.Text code>
+                        {t("settings.extra_fields.delete_dependency_warning_formula", {
+                          dependencies: formulaDependencyList,
+                        })}
+                      </Typography.Text>
+                    )}
+                    <Typography.Text type="danger">{t("settings.extra_fields.delete_dependency_warning_footer")}</Typography.Text>
+                  </Space>
+                ) : (
+                  t("settings.extra_fields.delete_confirm_description", { name: record.field.name })
+                );
+
+                return (
+                  <Popconfirm
+                    title={t("settings.extra_fields.delete_confirm", { name: record.field.name })}
+                    description={confirmDescription}
+                    onConfirm={() => del(record.field)}
+                    disabled={editingKey !== ""}
+                    okText={t("buttons.delete")}
+                    cancelText={t("buttons.cancel")}
+                  >
+                    <Button disabled={editingKey !== ""} danger size="small">
+                      {t("buttons.delete")}
+                    </Button>
+                  </Popconfirm>
+                );
+              })()}
             </Space>
           </>
         );
@@ -601,12 +657,20 @@ export function ExtraFieldsSettings() {
       <h3>
         {t("settings.extra_fields.tab")} - {niceName}
       </h3>
-      <Trans
-        i18nKey={"settings.extra_fields.description"}
-        components={{
-          p: <p />,
-        }}
-      />
+      <Typography.Paragraph type="secondary" style={sectionBodyStyle}>
+        {t("settings.extra_fields.top_guidance")}
+      </Typography.Paragraph>
+      <Divider orientation="left" plain>
+        {t("settings.extra_fields.custom.header")}: {niceName}
+      </Divider>
+      <Typography.Paragraph type="secondary" style={sectionBodyStyle}>
+        {t("settings.extra_fields.custom.description_intro")} (
+        <Typography.Text code>text</Typography.Text>, <Typography.Text code>integer</Typography.Text>,{" "}
+        <Typography.Text code>integer_range</Typography.Text>, <Typography.Text code>float</Typography.Text>,{" "}
+        <Typography.Text code>float_range</Typography.Text>, <Typography.Text code>datetime</Typography.Text>,{" "}
+        <Typography.Text code>boolean</Typography.Text>, <Typography.Text code>choice</Typography.Text>).{" "}
+        {t("settings.extra_fields.custom.description_immutability")}
+      </Typography.Paragraph>
       <Form form={form} component={false} disabled={isSubmitting}>
         <Table
           components={{
@@ -635,6 +699,7 @@ export function ExtraFieldsSettings() {
           />
         </Flex>
       )}
+      <FormulaFieldsSettings />
       {contextHolder}
     </>
   );
