@@ -264,10 +264,10 @@ export const SpoolList = () => {
             type="primary"
             icon={<PrinterOutlined />}
             onClick={() => {
-              navigate("print");
+              navigate("labels");
             }}
           >
-            {t("printing.qrcode.button")}
+            {t("printing.qrcode.selectButton")}
           </Button>
           <Button
             type="primary"

@@ -215,7 +215,7 @@ const FilamentQRCodePrintingDialog = ({ filamentIds }: FilamentQRCodePrintingDia
         }}
         extraSettingsStart={
           <>
-            <Form.Item label={t("printing.generic.settings")}>
+            <Form.Item label={t("printing.generic.filamentPrintPresets")}>
               <Flex gap={8}>
                 <Select
                   value={selectedPresetState}

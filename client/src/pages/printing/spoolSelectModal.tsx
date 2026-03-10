@@ -1,4 +1,3 @@
-import { RightOutlined } from "@ant-design/icons";
 import { useTable } from "@refinedev/antd";
 import { Button, Checkbox, Col, message, Row, Space, Table } from "antd";
 import { t } from "i18next";
@@ -12,7 +11,9 @@ import { ISpool } from "../spools/model";
 
 interface Props {
   description?: string;
-  onContinue: (selectedSpools: ISpool[]) => void;
+  initialSelectedIds?: number[];
+  onExport?: (selectedIds: number[]) => void;
+  onPrint?: (selectedIds: number[]) => void;
 }
 
 interface ISpoolCollapsed extends ISpool {
@@ -36,8 +37,8 @@ function collapseSpool(element: ISpool): ISpoolCollapsed {
   };
 }
 
-const SpoolSelectModal = ({ description, onContinue }: Props) => {
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }: Props) => {
+  const [selectedItems, setSelectedItems] = useState<number[]>(initialSelectedIds ?? []);
   const [showArchived, setShowArchived] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
@@ -87,8 +88,15 @@ const SpoolSelectModal = ({ description, onContinue }: Props) => {
   // Function to add/remove all filtered items from selected items
   const selectUnselectFiltered = (select: boolean) => {
     setSelectedItems((prevSelected) => {
-      const filtered = dataSource.map((spool) => spool.id).filter((spool) => !prevSelected.includes(spool));
-      return select ? [...prevSelected, ...filtered] : filtered;
+      const nextSelected = new Set(prevSelected);
+      dataSource.forEach((spool) => {
+        if (select) {
+          nextSelected.add(spool.id);
+        } else {
+          nextSelected.delete(spool.id);
+        }
+      });
+      return Array.from(nextSelected);
     });
   };
 
@@ -194,23 +202,42 @@ const SpoolSelectModal = ({ description, onContinue }: Props) => {
             </Checkbox>
           </Col>
           <Col span={24}>
-            <Button
-              type="primary"
-              icon={<RightOutlined />}
-              iconPosition="end"
-              onClick={() => {
-                if (selectedItems.length === 0) {
-                  messageApi.open({
-                    type: "error",
-                    content: t("printing.spoolSelect.noSpoolsSelected"),
-                  });
-                  return;
-                }
-                onContinue(dataSource.filter((spool) => selectedItems.includes(spool.id)));
-              }}
-            >
-              {t("buttons.continue")}
-            </Button>
+            <Space>
+              {onPrint && (
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    if (selectedItems.length === 0) {
+                      messageApi.open({
+                        type: "error",
+                        content: t("printing.spoolSelect.noSpoolsSelected"),
+                      });
+                      return;
+                    }
+                    onPrint(selectedItems);
+                  }}
+                >
+                  {t("printing.qrcode.button")}
+                </Button>
+              )}
+              {onExport && (
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    if (selectedItems.length === 0) {
+                      messageApi.open({
+                        type: "error",
+                        content: t("printing.spoolSelect.noSpoolsSelected"),
+                      });
+                      return;
+                    }
+                    onExport(selectedItems);
+                  }}
+                >
+                  {t("printing.qrcode.exportButton")}
+                </Button>
+              )}
+            </Space>
           </Col>
         </Row>
       </Space>
