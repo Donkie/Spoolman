@@ -26,6 +26,8 @@ interface QRCodePrintingDialogProps {
   previewValues?: { default: string; url: string };
 }
 
+// Wrap the generic print-sheet layout with QR-specific controls so spool and filament
+// print flows can share one renderer without forking the label layout logic.
 const QRCodePrintingDialog = ({
   items,
   printSettings,
@@ -46,6 +48,8 @@ const QRCodePrintingDialog = ({
   const preview =
     previewValues ?? ({ default: `WEB+SPOOLMAN:S-{id}`, url: `${baseUrlRoot}/spool/show/{id}` } as const);
 
+  // Build the same per-label structure used by the export flow so print previews and
+  // exported files stay visually aligned.
   const elements = items.map((item, idx) => {
     return (
       <div className="print-qrcode-item" key={idx}>

@@ -22,6 +22,8 @@ interface ISpoolCollapsed extends ISpool {
   "filament.material"?: string;
 }
 
+// Flatten related filament fields onto the row so shared table columns can sort
+// and filter without reaching through nested objects.
 function collapseSpool(element: ISpool): ISpoolCollapsed {
   let filament_name: string;
   if (element.filament.vendor && "name" in element.filament.vendor) {
@@ -72,20 +74,21 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }
     },
   });
 
-  // Store state in local storage
+  // Shared column helpers expect table sort/filter state in this shape.
   const tableState: TableState = {
     sorters,
     filters,
     pagination: { currentPage: currentPage, pageSize },
   };
 
-  // Collapse the dataSource to a mutable list and add a filament_name field
+  // Work on shallow copies so selection helpers can inspect row state without mutating
+  // Refine's cached query data.
   const dataSource: ISpoolCollapsed[] = useMemo(
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource],
   );
 
-  // Function to add/remove all filtered items from selected items
+  // Bulk selection applies only to the rows currently loaded in the modal.
   const selectUnselectFiltered = (select: boolean) => {
     setSelectedItems((prevSelected) => {
       const nextSelected = new Set(prevSelected);
@@ -100,14 +103,12 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }
     });
   };
 
-  // Handler for selecting/unselecting individual items
   const handleSelectItem = (item: number) => {
     setSelectedItems((prevSelected) =>
       prevSelected.includes(item) ? prevSelected.filter((selected) => selected !== item) : [...prevSelected, item],
     );
   };
 
-  // State for the select/unselect all checkbox
   const isAllFilteredSelected = dataSource.every((spool) => selectedItems.includes(spool.id));
   const isSomeButNotAllFilteredSelected =
     dataSource.some((spool) => selectedItems.includes(spool.id)) && !isAllFilteredSelected;
@@ -189,7 +190,8 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }
               onChange={(e) => {
                 setShowArchived(e.target.checked);
                 if (!e.target.checked) {
-                  // Remove archived spools from selected items
+                  // Drop archived selections when that filter is hidden so the badge count
+                  // matches the set of choices the modal is showing.
                   setSelectedItems((prevSelected) =>
                     prevSelected.filter(
                       (selected) => dataSource.find((spool) => spool.id === selected)?.archived !== true,

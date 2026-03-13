@@ -23,9 +23,13 @@ interface FilamentQRCodePrintingDialogProps {
   filamentIds: number[];
 }
 
+// Adapt filament records into the generic QR print dialog and keep filament label
+// presets isolated from the spool-oriented default preset bucket.
 const FilamentQRCodePrintingDialog = ({ filamentIds }: FilamentQRCodePrintingDialogProps) => {
   const t = useTranslate();
   const baseUrlSetting = useGetSetting("base_url");
+  // Fall back to the current origin so QR print previews still work before `base_url`
+  // is configured explicitly.
   const baseUrlRoot =
     baseUrlSetting.data?.value !== undefined && JSON.parse(baseUrlSetting.data?.value) !== ""
       ? JSON.parse(baseUrlSetting.data?.value)
@@ -195,6 +199,8 @@ const FilamentQRCodePrintingDialog = ({ filamentIds }: FilamentQRCodePrintingDia
     });
   }
 
+  // Expose both filament and vendor placeholders because the same tag picker drives
+  // preview text and printed label templates.
   const templateTags = [...filamentTags, ...vendorTags];
 
   return (

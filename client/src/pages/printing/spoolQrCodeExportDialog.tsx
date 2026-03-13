@@ -24,9 +24,13 @@ interface SpoolQRCodeExportDialog {
   spoolIds: number[];
 }
 
+// Adapt spool records into the generic QR export dialog and keep export-only
+// preset fields isolated from the simpler print-only spool presets.
 const SpoolQRCodeExportDialog = ({ spoolIds }: SpoolQRCodeExportDialog) => {
   const t = useTranslate();
   const baseUrlSetting = useGetSetting("base_url");
+  // Fall back to the current origin so QR export previews still work before `base_url`
+  // is configured explicitly.
   const baseUrlRoot =
     baseUrlSetting.data?.value !== undefined && JSON.parse(baseUrlSetting.data?.value) !== ""
       ? JSON.parse(baseUrlSetting.data?.value)
@@ -223,6 +227,8 @@ Spool Weight: {filament.spool_weight} g
     });
   }
 
+  // Expose spool, filament, and vendor placeholders because the same tag picker drives
+  // label text and export filename templates.
   const templateTags = [...spoolTags, ...filamentTags, ...vendorTags];
 
   return (

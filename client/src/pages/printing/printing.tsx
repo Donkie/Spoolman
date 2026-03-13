@@ -39,7 +39,8 @@ export function useGetPrintSettings(settingKey = "print_presets"): SpoolQRCodePr
   if (!data) return;
   const parsed: SpoolQRCodePrintSettings[] =
     data && data.value ? JSON.parse(data.value) : ([] as SpoolQRCodePrintSettings[]);
-  // Loop through all parsed and generate a new ID field if it's not set
+  // Backfill IDs onto older presets so select/update flows keep working after
+  // new print/export settings are introduced.
   return parsed.map((settings) => {
     if (!settings.labelSettings.printSettings.id) {
       settings.labelSettings.printSettings.id = uuidv4();
@@ -66,7 +67,7 @@ interface GenericObject {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getTagValue(tag: string, obj: GenericObject): any {
-  // Split tag by .
+  // Template tags can walk nested relations and JSON-encoded extra fields.
   const tagParts = tag.split(".");
   if (tagParts[0] === "extra") {
     const extraValue = obj.extra[tagParts[1]];
@@ -77,7 +78,7 @@ function getTagValue(tag: string, obj: GenericObject): any {
   }
 
   const value = obj[tagParts[0]] ?? "?";
-  // check if value is itself an object. If so, recursively call this and remove the first part of the tag
+  // Nested tags like `vendor.name` recurse through the related object tree.
   if (typeof value === "object") {
     return getTagValue(tagParts.slice(1).join("."), value);
   }
@@ -106,7 +107,8 @@ function applyTextFormatting(text: string): ReactElement[] {
 }
 
 export function renderTemplateText(template: string, obj: GenericObject): string {
-  // Find all {tags} in the template string and loop over them
+  // Expand plain `{tag}` placeholders and optional wrapper blocks like
+  // `{prefix {tag} suffix}`, dropping the whole wrapper when the tag is missing.
   const matches = [...template.matchAll(/{(?:[^}{]|{[^}{]*})*}/gs)];
   let renderedText = template;
   matches.forEach((match) => {

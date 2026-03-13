@@ -29,6 +29,8 @@ interface QRCodeExportDialogProps {
   zipFileTypeName: string;
 }
 
+// Wrap the generic export layout with QR-specific controls so spool and filament
+// export flows can share one renderer without forking the export pipeline.
 const QRCodeExportDialog = ({
   items,
   printSettings,
@@ -51,6 +53,8 @@ const QRCodeExportDialog = ({
   const preview =
     previewValues ?? ({ default: `WEB+SPOOLMAN:S-{id}`, url: `${baseUrlRoot}/spool/show/{id}` } as const);
 
+  // ExportDialog captures each `.print-qrcode-item` into its own file, so attach the
+  // rendered label body and export filename metadata at this level.
   const elements = items.map((item, idx) => {
     return (
       <div className="print-qrcode-item" key={idx} data-aml-name={item.amlName ?? ""}>

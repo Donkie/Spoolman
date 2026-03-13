@@ -24,9 +24,13 @@ interface FilamentQRCodeExportDialogProps {
   filamentIds: number[];
 }
 
+// Adapt filament records into the generic QR export dialog and keep export-only
+// preset fields isolated from the simpler print-only filament presets.
 const FilamentQRCodeExportDialog = ({ filamentIds }: FilamentQRCodeExportDialogProps) => {
   const t = useTranslate();
   const baseUrlSetting = useGetSetting("base_url");
+  // Fall back to the current origin so QR export previews still work before `base_url`
+  // is configured explicitly.
   const baseUrlRoot =
     baseUrlSetting.data?.value !== undefined && JSON.parse(baseUrlSetting.data?.value) !== ""
       ? JSON.parse(baseUrlSetting.data?.value)
@@ -201,6 +205,8 @@ const FilamentQRCodeExportDialog = ({ filamentIds }: FilamentQRCodeExportDialogP
     });
   }
 
+  // Expose both filament and vendor placeholders because the same tag picker drives
+  // label text and export filename templates.
   const templateTags = [...filamentTags, ...vendorTags];
 
   return (

@@ -20,6 +20,8 @@ interface ExportDialogProps {
   zipFileTypeName: string;
 }
 
+// Render one preview page per exported label and reuse that DOM for PNG/AML generation
+// so the preview stays the source of truth for both single-file and ZIP exports.
 const ExportDialog = ({
   items,
   printSettings,
@@ -92,6 +94,7 @@ const ExportDialog = ({
       if (table !== null) {
         return table;
       }
+      // Cache the CRC table because every rewritten PNG chunk needs the same lookup.
       table = new Uint32Array(256);
       for (let n = 0; n < 256; n += 1) {
         let c = n;
@@ -206,6 +209,8 @@ const ExportDialog = ({
       .replace(/\.+$/g, "");
   };
 
+  // Exports deliberately stay one-label-per-page so preview names, AML payloads,
+  // and downloaded files all map 1:1 to a logical label.
   const pageBlocks: ReactElement[][] = [];
   for (const item of items) {
     pageBlocks.push([item]);
@@ -479,6 +484,8 @@ const ExportDialog = ({
       return;
     }
 
+    // ZIP exports reuse the same per-label rendering path so single-file and batch
+    // downloads stay consistent apart from the outer archive wrapper.
     const zip = new JSZip();
     for (const { item, safeName } of uniqueItems) {
       const url = await htmlToImage.toPng(item as HTMLElement, getExportImageOptions());
