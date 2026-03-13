@@ -80,6 +80,9 @@ function Column<Obj extends Entity>(
   const t = props.t;
   const navigate = props.navigate;
 
+  // Keep the shared table wiring in one place so list pages can opt into sorting,
+  // filtering, saved widths, and custom rendering without duplicating column setup.
+
   // Hide if not in showColumns
   const id = Array.isArray(props.id) ? props.id.join(".") : props.id;
   if (props.tableState.showColumns && !props.tableState.showColumns.includes(id)) {

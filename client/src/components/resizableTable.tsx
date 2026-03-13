@@ -13,6 +13,8 @@ interface ResizableHeaderCellProps extends ThHTMLAttributes<HTMLTableCellElement
   resizable?: boolean;
 }
 
+// Keep resize-handle gestures separate from the header cell itself so resizing
+// does not accidentally trigger the table's built-in sort interactions.
 function ResizableHeaderCell({ className, onResizeStart, onResizeAutoFit, resizable, children, ...restProps }: ResizableHeaderCellProps) {
   return (
     <th {...restProps} className={`${className ?? ""}${resizable ? " resizable-table-header-cell" : ""}`}>
@@ -129,10 +131,13 @@ function hasCellOverflow(cell: HTMLTableCellElement): boolean {
 }
 
 export interface ResizableTableProps<RecordType extends AnyObject> extends TableProps<RecordType> {
+  // Saved widths are keyed per table, so each page keeps its own resize state.
   columnResizeKey: string;
   minColumnWidth?: number;
 }
 
+// Wrap AntD's Table with stable per-column identifiers and persisted widths so
+// resize/autofit behavior stays reusable across list and settings screens.
 function ResizableTable<RecordType extends AnyObject>(props: ResizableTableProps<RecordType>) {
   const { columns, components, columnResizeKey, minColumnWidth = 72, scroll, sticky, ...tableProps } = props;
   const [columnWidths, setColumnWidths] = useSavedState<Record<string, number>>(
