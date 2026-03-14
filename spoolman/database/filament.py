@@ -25,6 +25,27 @@ from spoolman.math import delta_e, hex_to_rgb, rgb_to_lab
 from spoolman.ws import websocket_manager
 
 
+async def set_spool_counts(
+    db: AsyncSession,
+    filaments: Sequence[models.Filament],
+) -> None:
+    """Populate spool_count on filament models."""
+    if not filaments:
+        return
+
+    filament_ids = [item.id for item in filaments]
+    spool_count_stmt = (
+        select(models.Spool.filament_id, func.count(models.Spool.id))
+        .where(models.Spool.filament_id.in_(filament_ids))
+        .group_by(models.Spool.filament_id)
+    )
+    spool_count_rows = await db.execute(spool_count_stmt)
+    spool_count_map = {int(filament_id): int(count) for filament_id, count in spool_count_rows.all()}
+
+    for item in filaments:
+        setattr(item, "spool_count", spool_count_map.get(item.id, 0))
+
+
 async def create(
     *,
     db: AsyncSession,
@@ -76,6 +97,7 @@ async def create(
     )
     db.add(filament)
     await db.commit()
+    await set_spool_counts(db, [filament])
     await filament_changed(filament, EventType.ADDED)
     return filament
 
@@ -89,6 +111,7 @@ async def get_by_id(db: AsyncSession, filament_id: int) -> models.Filament:
     )
     if filament is None:
         raise ItemNotFoundError(f"No filament with ID {filament_id} found.")
+    await set_spool_counts(db, [filament])
     return filament
 
 
@@ -172,18 +195,7 @@ async def find(
         execution_options={"populate_existing": True},
     )
     result = list(rows.unique().scalars().all())
-
-    spool_count_map: dict[int, int] = {}
-    if result:
-        spool_count_stmt = (
-            select(models.Spool.filament_id, func.count(models.Spool.id))
-            .where(models.Spool.filament_id.in_([item.id for item in result]))
-            .group_by(models.Spool.filament_id)
-        )
-        spool_count_rows = await db.execute(spool_count_stmt)
-        spool_count_map = {int(filament_id): int(count) for filament_id, count in spool_count_rows.all()}
-    for item in result:
-        setattr(item, "spool_count", spool_count_map.get(item.id, 0))
+    await set_spool_counts(db, result)
 
     if total_count is None:
         total_count = len(result)
@@ -212,6 +224,7 @@ async def update(
         else:
             setattr(filament, k, v)
     await db.commit()
+    await set_spool_counts(db, [filament])
     await filament_changed(filament, EventType.UPDATED)
     return filament
 
@@ -263,19 +276,14 @@ async def find_spool_counts(
     db: AsyncSession,
 ) -> list[int]:
     """Find distinct spool counts per filament."""
-    spool_counts_stmt = select(func.count(models.Spool.id)).group_by(models.Spool.filament_id)
+    spool_counts_stmt = (
+        select(func.count(models.Spool.id))
+        .select_from(models.Filament)
+        .join(models.Spool, models.Spool.filament_id == models.Filament.id, isouter=True)
+        .group_by(models.Filament.id)
+    )
     spool_count_rows = await db.execute(spool_counts_stmt)
     spool_counts = {int(row[0]) for row in spool_count_rows.all()}
-
-    filament_without_spool_exists_stmt = (
-        select(models.Filament.id)
-        .where(~select(models.Spool.id).where(models.Spool.filament_id == models.Filament.id).exists())
-        .limit(1)
-    )
-    filament_without_spool_exists = (await db.execute(filament_without_spool_exists_stmt)).scalar() is not None
-    if filament_without_spool_exists:
-        spool_counts.add(0)
-
     return sorted(spool_counts)
 
 

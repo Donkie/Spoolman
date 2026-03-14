@@ -60,6 +60,7 @@ interface FilteredColumnProps {
   filters?: ColumnFilterItem[];
   filteredValue?: string[];
   allowMultipleFilters?: boolean;
+  includeEmptyFilter?: boolean;
   onFilterDropdownOpen?: () => void;
   loadingFilters?: boolean;
 }

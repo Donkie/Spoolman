@@ -269,7 +269,7 @@ export const FilamentList = () => {
             ...commonProps,
             id: "spool_count",
             dataId: "spool_count",
-            title: "Spool Count",
+            title: t("filament.fields.spool_count"),
             filterValueQuery: querySpoolCounts,
             // Spool count is always a computed number, so an <empty> bucket would be
             // misleading noise rather than a real "missing value" state.
