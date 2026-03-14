@@ -80,6 +80,8 @@ export const FilamentEdit = () => {
     <Edit
       saveButtonProps={saveButtonProps}
       footerButtons={({ defaultButtons }) => (
+        // Keep the edit actions reachable beside the global scanner button instead
+        // of forcing the user to scroll back to Refine's default footer location.
         <div className="floating-form-actions">
           {defaultButtons}
         </div>

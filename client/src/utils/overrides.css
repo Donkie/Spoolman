@@ -1,6 +1,7 @@
 :root {
-  --camera-button-right: 24px;
-  --camera-button-bottom: 24px;
+  /* Account for mobile safe areas once so both floating controls stay aligned. */
+  --camera-button-right: calc(24px + env(safe-area-inset-right, 0px));
+  --camera-button-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   --camera-button-size: 56px;
   --camera-button-gap: 12px;
   --floating-actions-baseline-nudge: 5px;
@@ -20,10 +21,12 @@
   position: fixed;
   right: var(--floating-actions-right);
   bottom: var(--floating-actions-bottom);
-  z-index: 1200;
+  /* Keep the actions above form content without leaving them on top of modal layers. */
+  z-index: 100;
   display: flex;
   align-items: flex-end;
   gap: 8px;
+  max-width: calc(100vw - var(--floating-actions-right) - 16px);
   padding: var(--floating-actions-padding-y) var(--floating-actions-padding-x);
   border-radius: 10px;
   background: rgba(17, 17, 17, 0.88);
