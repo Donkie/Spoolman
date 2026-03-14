@@ -255,6 +255,7 @@ export const SpoolList = () => {
     tableState,
     sorter: true,
   };
+  // Ignore empty filter shells so the Clear Filters button only lights up for filters that would affect results.
   const hasActiveFilters = hasMeaningfulFilters(filters);
 
   return (

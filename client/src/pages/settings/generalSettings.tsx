@@ -1,7 +1,15 @@
 import { useTranslate } from "@refinedev/core";
 import { Button, Checkbox, Form, Input, message } from "antd";
 import { useEffect, useMemo } from "react";
+import { toComparableState } from "../../utils/formState";
 import { useGetSettings, useSetSetting } from "../../utils/querySettings";
+
+const comparableDefaults = {
+  currency: "",
+  base_url: "",
+  round_prices: false,
+} as const;
+// This list is the source of truth for which inputs participate in the Save-button dirty check.
 
 export function GeneralSettings() {
   const settings = useGetSettings();
@@ -52,26 +60,21 @@ export function GeneralSettings() {
     if (!settings.data) {
       return null;
     }
-    return JSON.stringify({
+    // Compare the parsed values the form actually edits, not the JSON-encoded storage shape from settings rows.
+    return toComparableState({
       currency: JSON.parse(settings.data.currency.value),
       base_url: JSON.parse(settings.data.base_url.value),
       round_prices: JSON.parse(settings.data.round_prices.value),
-    });
+    }, comparableDefaults);
   }, [settings.data]);
 
   const watchedComparableState = useMemo(() => {
-    if (!watchedAllValues) {
-      return null;
-    }
-    return JSON.stringify({
-      currency: watchedAllValues.currency ?? "",
-      base_url: watchedAllValues.base_url ?? "",
-      round_prices: watchedAllValues.round_prices ?? false,
-    });
+    return toComparableState(watchedAllValues, comparableDefaults);
   }, [watchedAllValues]);
 
   const hasFormChanges =
     initialComparableState !== null && watchedComparableState !== null && initialComparableState !== watchedComparableState;
+  // Treat in-flight saves and initial settings fetches the same way so the button never advertises stale availability.
   const isSaving = settings.isFetching || setCurrency.isPending || setBaseUrl.isPending || setRoundPrices.isPending;
 
   return (

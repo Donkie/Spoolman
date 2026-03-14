@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import { MultiColorPicker } from "../../components/multiColorPicker";
+import { toComparableState } from "../../utils/formState";
 import { formatNumberOnUserInput, numberParser, numberParserAllowEmpty } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
@@ -18,6 +19,27 @@ in order for Ant design's form to work properly. ParsedExtras does this for us.
 We also need to stringify them again before sending them back to the API, which is done by overriding
 the form's onFinish method. Form.Item's normalize should do this, but it doesn't seem to work.
 */
+
+const comparableDefaults = {
+  name: "",
+  vendor_id: null,
+  material: "",
+  price: null,
+  density: null,
+  diameter: null,
+  weight: null,
+  spool_weight: null,
+  settings_extruder_temp: null,
+  settings_bed_temp: null,
+  article_number: "",
+  external_id: "",
+  comment: "",
+  color_hex: "",
+  multi_color_direction: "",
+  multi_color_hexes: "",
+  extra: {},
+} as const;
+// This list is the source of truth for which inputs participate in the Save-button dirty check.
 
 export const FilamentEdit = () => {
   const t = useTranslate();
@@ -77,59 +99,21 @@ export const FilamentEdit = () => {
     }
   };
 
-  const normalizeForCompare = (value: unknown): unknown => {
-    if (dayjs.isDayjs(value)) {
-      return value.toISOString();
-    }
-    if (Array.isArray(value)) {
-      return value.map(normalizeForCompare);
-    }
-    if (value && typeof value === "object") {
-      const objectValue = value as Record<string, unknown>;
-      return Object.keys(objectValue)
-        .sort()
-        .reduce<Record<string, unknown>>((acc, key) => {
-          const normalizedValue = normalizeForCompare(objectValue[key]);
-          if (normalizedValue !== undefined) {
-            acc[key] = normalizedValue;
-          }
-          return acc;
-        }, {});
-    }
-    return value;
-  };
-
-  const toComparableState = (value: unknown): string => {
-    const normalized = normalizeForCompare(value) as Record<string, unknown> | undefined;
-    const normalizedExtra = { ...(normalized?.extra as Record<string, unknown> | undefined) };
-
-    return JSON.stringify({
-      name: normalized?.name ?? "",
-      vendor_id: normalized?.vendor_id ?? null,
-      material: normalized?.material ?? "",
-      price: normalized?.price ?? null,
-      density: normalized?.density ?? null,
-      diameter: normalized?.diameter ?? null,
-      weight: normalized?.weight ?? null,
-      spool_weight: normalized?.spool_weight ?? null,
-      settings_extruder_temp: normalized?.settings_extruder_temp ?? null,
-      settings_bed_temp: normalized?.settings_bed_temp ?? null,
-      article_number: normalized?.article_number ?? "",
-      external_id: normalized?.external_id ?? "",
-      comment: normalized?.comment ?? "",
-      color_hex: normalized?.color_hex ?? "",
-      multi_color_direction: normalized?.multi_color_direction ?? "",
-      multi_color_hexes: colorType === "single" ? "" : (normalized?.multi_color_hexes ?? ""),
-      extra: normalizedExtra,
-    });
-  };
-
   const initialComparableState = useMemo(
-    () => (formProps.initialValues ? toComparableState(formProps.initialValues) : null),
+    () =>
+      toComparableState(formProps.initialValues, comparableDefaults, {
+        // Single-color mode should ignore any dormant multi-color payload when deciding whether Save is needed.
+        multi_color_hexes: (normalized: Record<string, unknown>) =>
+          colorType === "single" ? "" : ((normalized.multi_color_hexes as string | undefined) ?? ""),
+      }),
     [formProps.initialValues, colorType],
   );
   const watchedComparableState = useMemo(
-    () => (watchedAllValues ? toComparableState(watchedAllValues) : null),
+    () =>
+      toComparableState(watchedAllValues, comparableDefaults, {
+        multi_color_hexes: (normalized: Record<string, unknown>) =>
+          colorType === "single" ? "" : ((normalized.multi_color_hexes as string | undefined) ?? ""),
+      }),
     [watchedAllValues, colorType],
   );
   const hasFormChanges =

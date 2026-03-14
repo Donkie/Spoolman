@@ -5,6 +5,7 @@ import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
 import { useMemo, useState } from "react";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
+import { toComparableState } from "../../utils/formState";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { IVendor, IVendorParsedExtras } from "./model";
 
@@ -14,6 +15,15 @@ in order for Ant design's form to work properly. ParsedExtras does this for us.
 We also need to stringify them again before sending them back to the API, which is done by overriding
 the form's onFinish method. Form.Item's normalize should do this, but it doesn't seem to work.
 */
+
+const comparableDefaults = {
+  name: "",
+  comment: "",
+  empty_spool_weight: null,
+  external_id: "",
+  extra: {},
+} as const;
+// This list is the source of truth for which inputs participate in the Save-button dirty check.
 
 export const VendorEdit = () => {
   const t = useTranslate();
@@ -49,49 +59,12 @@ export const VendorEdit = () => {
     }
   };
 
-  const normalizeForCompare = (value: unknown): unknown => {
-    if (dayjs.isDayjs(value)) {
-      return value.toISOString();
-    }
-    if (Array.isArray(value)) {
-      return value.map(normalizeForCompare);
-    }
-    if (value && typeof value === "object") {
-      const objectValue = value as Record<string, unknown>;
-      return Object.keys(objectValue)
-        .sort()
-        .reduce<Record<string, unknown>>((acc, key) => {
-          const normalizedValue = normalizeForCompare(objectValue[key]);
-          if (normalizedValue !== undefined) {
-            acc[key] = normalizedValue;
-          }
-          return acc;
-        }, {});
-    }
-    return value;
-  };
-
-  const toComparableState = (value: unknown): string => {
-    const normalized = normalizeForCompare(value) as Record<string, unknown> | undefined;
-    const normalizedExtra = { ...(normalized?.extra as Record<string, unknown> | undefined) };
-
-    // Compare only the fields this form actually edits so live metadata and nested
-    // objects do not keep the Save button permanently "dirty".
-    return JSON.stringify({
-      name: normalized?.name ?? "",
-      comment: normalized?.comment ?? "",
-      empty_spool_weight: normalized?.empty_spool_weight ?? null,
-      external_id: normalized?.external_id ?? "",
-      extra: normalizedExtra,
-    });
-  };
-
   const initialComparableState = useMemo(
-    () => (formProps.initialValues ? toComparableState(formProps.initialValues) : null),
+    () => toComparableState(formProps.initialValues, comparableDefaults),
     [formProps.initialValues],
   );
   const watchedComparableState = useMemo(
-    () => (watchedAllValues ? toComparableState(watchedAllValues) : null),
+    () => toComparableState(watchedAllValues, comparableDefaults),
     [watchedAllValues],
   );
   const hasFormChanges =
