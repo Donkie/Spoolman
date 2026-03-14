@@ -32,6 +32,7 @@ export const SpoolShow = () => {
   const { data, isLoading } = query;
 
   const record = data?.data;
+  // Mirror the filament show-page wording so spool detail pages preserve the same color-direction context.
   const multiColorLabel =
     record?.filament.multi_color_hexes && record.filament.multi_color_direction === "longitudinal"
       ? `${t("filament.fields.longitudinal")} ${t("filament.fields.multi_color")}`

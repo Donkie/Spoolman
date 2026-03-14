@@ -67,6 +67,7 @@ export const FilamentEdit = () => {
   formProps.onFinish = (allValues: IFilamentParsedExtras) => {
     if (allValues !== undefined && allValues !== null) {
       if (colorType == "single") {
+        // Clear the hidden multi-color payload so switching modes does not submit stale comma-separated values.
         allValues.multi_color_hexes = "";
       }
       // Lot of stupidity here to make types work
