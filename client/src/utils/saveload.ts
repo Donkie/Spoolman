@@ -6,6 +6,10 @@ interface Pagination {
   pageSize: number;
 }
 
+const DEFAULT_SORTERS: CrudSort[] = [{ field: "id", order: "asc" }];
+const DEFAULT_FILTERS: CrudFilter[] = [];
+const DEFAULT_PAGINATION: Pagination = { currentPage: 1, pageSize: 20 };
+
 function parseSavedJSON<T>(value: string | null, fallback: T): T {
   if (!value) {
     return fallback;
@@ -17,6 +21,17 @@ function parseSavedJSON<T>(value: string | null, fallback: T): T {
     // silently so one bad value does not blank the whole page.
     return fallback;
   }
+}
+
+function parseSavedPagination(value: string | null): Pagination {
+  const parsed = parseSavedJSON<Partial<Pagination> & { current?: number }>(value, DEFAULT_PAGINATION);
+
+  // Older persisted state used `current`; normalize it so lists keep loading even when
+  // localStorage or URL hash values were saved by an older UI shape.
+  return {
+    currentPage: parsed.currentPage ?? parsed.current ?? DEFAULT_PAGINATION.currentPage,
+    pageSize: parsed.pageSize ?? DEFAULT_PAGINATION.pageSize,
+  };
 }
 
 export interface TableState {
@@ -45,10 +60,12 @@ export function useInitialTableState(tableId: string): TableState {
         : null;
     const savedShowColumns = isLocalStorageAvailable ? localStorage.getItem(`${tableId}-showColumns`) : null;
 
-    const sorters = savedSorters ? JSON.parse(savedSorters) : [{ field: "id", order: "asc" }];
-    const filters = savedFilters ? JSON.parse(savedFilters) : [];
-    const pagination = savedPagination ? JSON.parse(savedPagination) : { page: 1, pageSize: 20 };
-    const showColumns = savedShowColumns ? JSON.parse(savedShowColumns) : undefined;
+    // Guard every persisted table-state read so stale localStorage or hand-edited hash values
+    // cannot throw during initial render and blank the list page.
+    const sorters = parseSavedJSON(savedSorters, DEFAULT_SORTERS);
+    const filters = parseSavedJSON(savedFilters, DEFAULT_FILTERS);
+    const pagination = parseSavedPagination(savedPagination);
+    const showColumns = parseSavedJSON<string[] | undefined>(savedShowColumns, undefined);
     return { sorters, filters, pagination, showColumns };
   });
   return initialState;
@@ -56,7 +73,7 @@ export function useInitialTableState(tableId: string): TableState {
 
 export function useStoreInitialState(tableId: string, state: TableState) {
   useEffect(() => {
-    if (state.sorters.length > 0 && JSON.stringify(state.sorters) != JSON.stringify([{ field: "id", order: "asc" }])) {
+    if (state.sorters.length > 0 && JSON.stringify(state.sorters) != JSON.stringify(DEFAULT_SORTERS)) {
       if (isLocalStorageAvailable) {
         localStorage.setItem(`${tableId}-sorters`, JSON.stringify(state.sorters));
       }
@@ -81,7 +98,7 @@ export function useStoreInitialState(tableId: string, state: TableState) {
   }, [tableId, state.filters]);
 
   useEffect(() => {
-    if (JSON.stringify(state.pagination) != JSON.stringify({ current: 1, pageSize: 20 })) {
+    if (JSON.stringify(state.pagination) != JSON.stringify(DEFAULT_PAGINATION)) {
       if (isLocalStorageAvailable) {
         localStorage.setItem(`${tableId}-pagination`, JSON.stringify(state.pagination));
       }
