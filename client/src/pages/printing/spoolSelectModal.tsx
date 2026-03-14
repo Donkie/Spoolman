@@ -271,9 +271,7 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint, 
               onChange={(event) => {
                 const value = event.target.value;
                 setSearchValue(value);
-                if (value === "") {
-                  applySearchFilter("");
-                }
+                applySearchFilter(value);
               }}
               onSearch={(value) => {
                 setSearchValue(value);
