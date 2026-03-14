@@ -59,27 +59,21 @@ export function useSetPrintSettings(
   };
 }
 
-interface GenericObject {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-  extra: { [key: string]: string };
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getTagValue(tag: string, obj: GenericObject): any {
-  // Template tags can walk nested relations and JSON-encoded extra fields.
+// Resolve dot-path placeholders, including JSON-backed extra fields, for label templates.
+function getTagValue(tag: string, obj: object): unknown {
+  const record = obj as { [key: string]: unknown; extra?: { [key: string]: string } };
   const tagParts = tag.split(".");
   if (tagParts[0] === "extra") {
-    const extraValue = obj.extra[tagParts[1]];
+    const extraValue = record.extra?.[tagParts[1]];
     if (extraValue === undefined) {
       return "?";
     }
     return JSON.parse(extraValue);
   }
 
-  const value = obj[tagParts[0]] ?? "?";
+  const value = record[tagParts[0]] ?? "?";
   // Nested tags like `vendor.name` recurse through the related object tree.
-  if (typeof value === "object") {
+  if (typeof value === "object" && value !== null) {
     return getTagValue(tagParts.slice(1).join("."), value);
   }
   return value;
@@ -106,7 +100,7 @@ function applyTextFormatting(text: string): ReactElement[] {
   return elements;
 }
 
-export function renderTemplateText(template: string, obj: GenericObject): string {
+export function renderTemplateText(template: string, obj: object): string {
   // Expand plain `{tag}` placeholders and optional wrapper blocks like
   // `{prefix {tag} suffix}`, dropping the whole wrapper when the tag is missing.
   const matches = [...template.matchAll(/{(?:[^}{]|{[^}{]*})*}/gs)];
@@ -124,7 +118,7 @@ export function renderTemplateText(template: string, obj: GenericObject): string
         if (tagValue === "?") {
           renderedText = renderedText.replace(match[0], "");
         } else {
-          renderedText = renderedText.replace(match[0], structure[1] + tagValue + structure[3]);
+          renderedText = renderedText.replace(match[0], structure[1] + String(tagValue) + structure[3]);
         }
       }
     }
@@ -132,7 +126,7 @@ export function renderTemplateText(template: string, obj: GenericObject): string
   return renderedText;
 }
 
-export function renderLabelContents(template: string, obj: GenericObject): ReactElement {
+export function renderLabelContents(template: string, obj: object): ReactElement {
   const renderedText = renderTemplateText(template, obj);
   // Split string on \n into individual lines
   return <>{applyTextFormatting(renderedText)}</>;

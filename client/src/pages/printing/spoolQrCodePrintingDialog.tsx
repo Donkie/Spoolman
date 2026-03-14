@@ -28,12 +28,18 @@ interface SpoolQRCodePrintingDialog {
 const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
   const t = useTranslate();
   const baseUrlSetting = useGetSetting("base_url");
+  let parsedBaseUrl = "";
+  if (baseUrlSetting.data?.value !== undefined) {
+    try {
+      parsedBaseUrl = JSON.parse(baseUrlSetting.data.value) ?? "";
+    } catch {
+      // Older or manually edited settings may already be stored as a raw string.
+      parsedBaseUrl = baseUrlSetting.data.value;
+    }
+  }
   // Fall back to the current origin so QR print previews still work before `base_url`
   // is configured explicitly.
-  const baseUrlRoot =
-    baseUrlSetting.data?.value !== undefined && JSON.parse(baseUrlSetting.data?.value) !== ""
-      ? JSON.parse(baseUrlSetting.data?.value)
-      : window.location.origin;
+  const baseUrlRoot = parsedBaseUrl !== "" ? parsedBaseUrl : window.location.origin;
   const [messageApi, contextHolder] = message.useMessage();
   const [useHTTPUrl, setUseHTTPUrl] = useSavedState("print-useHTTPUrl", false);
 
@@ -133,14 +139,9 @@ const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
         if (foundSetting) {
           curPreset = foundSetting;
         } else {
-          curPreset = {
-            labelSettings: {
-              printSettings: {
-                id: "TEMP",
-                name: t("printing.generic.newSetting"),
-              },
-            },
-          };
+          // Recover to the first saved preset when the remembered selection no longer exists.
+          curPreset = localOrRemotePresets[0];
+          setSelectedPresetState(localOrRemotePresets[0].labelSettings.printSettings.id);
         }
       }
     }
