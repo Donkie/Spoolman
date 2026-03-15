@@ -15,7 +15,10 @@ export const FilamentLabels = () => {
   const navigate = useNavigate();
 
   const returnUrl = searchParams.get("return");
-  const initialSelectedIds = searchParams.getAll("filaments").map(Number).filter((id) => !Number.isNaN(id));
+  const initialSelectedIds = searchParams
+    .getAll("filaments")
+    .map(Number)
+    .filter((id) => !Number.isNaN(id));
 
   const selectionPath = useMemo(() => {
     const params = new URLSearchParams();

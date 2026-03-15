@@ -15,7 +15,10 @@ export const SpoolLabels = () => {
   const navigate = useNavigate();
 
   const returnUrl = searchParams.get("return");
-  const initialSelectedIds = searchParams.getAll("spools").map(Number).filter((id) => !Number.isNaN(id));
+  const initialSelectedIds = searchParams
+    .getAll("spools")
+    .map(Number)
+    .filter((id) => !Number.isNaN(id));
 
   const selectionPath = useMemo(() => {
     const params = new URLSearchParams();

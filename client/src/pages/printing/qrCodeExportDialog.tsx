@@ -50,8 +50,7 @@ const QRCodeExportDialog = ({
   const showContent = printSettings?.showContent === undefined ? true : printSettings?.showContent;
   const showQRCodeMode = printSettings?.showQRCodeMode || "withIcon";
   const textSize = printSettings?.textSize || 3;
-  const preview =
-    previewValues ?? ({ default: `WEB+SPOOLMAN:S-{id}`, url: `${baseUrlRoot}/spool/show/{id}` } as const);
+  const preview = previewValues ?? ({ default: `WEB+SPOOLMAN:S-{id}`, url: `${baseUrlRoot}/spool/show/{id}` } as const);
 
   // ExportDialog captures each `.print-qrcode-item` into its own file, so attach the
   // rendered label body and export filename metadata at this level.

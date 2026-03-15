@@ -203,10 +203,13 @@ const ExportDialog = ({
     if (trimmed === "") {
       return "";
     }
-    return trimmed
-      .replace(/[<>:"/\\|?*\x00-\x1F]/g, "-")
-      .replace(/\s+/g, " ")
-      .replace(/\.+$/g, "");
+    return (
+      trimmed
+        // eslint-disable-next-line no-control-regex
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, "-")
+        .replace(/\s+/g, " ")
+        .replace(/\.+$/g, "")
+    );
   };
 
   // Exports deliberately stay one-label-per-page so preview names, AML payloads,

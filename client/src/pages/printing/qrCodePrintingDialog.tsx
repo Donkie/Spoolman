@@ -45,8 +45,7 @@ const QRCodePrintingDialog = ({
   const showContent = printSettings?.showContent === undefined ? true : printSettings?.showContent;
   const showQRCodeMode = printSettings?.showQRCodeMode || "withIcon";
   const textSize = printSettings?.textSize || 3;
-  const preview =
-    previewValues ?? ({ default: `WEB+SPOOLMAN:S-{id}`, url: `${baseUrlRoot}/spool/show/{id}` } as const);
+  const preview = previewValues ?? ({ default: `WEB+SPOOLMAN:S-{id}`, url: `${baseUrlRoot}/spool/show/{id}` } as const);
 
   // Build the same per-label structure used by the export flow so print previews and
   // exported files stay visually aligned.
