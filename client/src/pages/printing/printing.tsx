@@ -34,6 +34,21 @@ export interface SpoolQRCodePrintSettings {
   labelSettings: QRCodePrintSettings;
 }
 
+export function getConfiguredBaseUrl(rawValue: string | undefined, fallback: string): string {
+  if (rawValue === undefined) {
+    return fallback;
+  }
+
+  try {
+    const parsed = JSON.parse(rawValue);
+    return typeof parsed === "string" && parsed.trim() !== "" ? parsed : fallback;
+  } catch {
+    const trimmed = rawValue.trim();
+    return trimmed !== "" ? trimmed : fallback;
+  }
+}
+
+// Load saved print presets and backfill missing ids so older settings remain selectable in the current UI.
 export function useGetPrintSettings(settingKey = "print_presets"): SpoolQRCodePrintSettings[] | undefined {
   const { data } = useGetSetting(settingKey);
   if (!data) return;

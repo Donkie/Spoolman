@@ -10,6 +10,7 @@ import { useSavedState } from "../../utils/saveload";
 import { useGetSpoolsByIds } from "../spools/functions";
 import { ISpool } from "../spools/model";
 import {
+  getConfiguredBaseUrl,
   SpoolQRCodePrintSettings,
   renderLabelContents,
   useGetPrintSettings as useGetPrintPresets,
@@ -28,18 +29,8 @@ interface SpoolQRCodePrintingDialog {
 const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
   const t = useTranslate();
   const baseUrlSetting = useGetSetting("base_url");
-  let parsedBaseUrl = "";
-  if (baseUrlSetting.data?.value !== undefined) {
-    try {
-      parsedBaseUrl = JSON.parse(baseUrlSetting.data.value) ?? "";
-    } catch {
-      // Older or manually edited settings may already be stored as a raw string.
-      parsedBaseUrl = baseUrlSetting.data.value;
-    }
-  }
-  // Fall back to the current origin so QR print previews still work before `base_url`
-  // is configured explicitly.
-  const baseUrlRoot = parsedBaseUrl !== "" ? parsedBaseUrl : window.location.origin;
+  // Accept both JSON-backed settings and legacy plain strings so old `base_url` values do not crash the dialog.
+  const baseUrlRoot = getConfiguredBaseUrl(baseUrlSetting.data?.value, window.location.origin);
   const [messageApi, contextHolder] = message.useMessage();
   const [useHTTPUrl, setUseHTTPUrl] = useSavedState("print-useHTTPUrl", false);
 
