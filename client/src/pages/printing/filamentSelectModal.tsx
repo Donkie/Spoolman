@@ -1,7 +1,7 @@
 import { useTable } from "@refinedev/antd";
 import { Button, Checkbox, Col, Input, message, Pagination, Row, Table } from "antd";
 import { t } from "i18next";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
 import { useSpoolmanFilamentNames, useSpoolmanMaterials, useSpoolmanVendors } from "../../components/otherModels";
@@ -132,41 +132,47 @@ const FilamentSelectModal = ({ description, onPrint, searchPlaceholder }: Props)
   }, []);
 
   const paginationTotal = tableProps.pagination ? (tableProps.pagination.total ?? 0) : 0;
-  const handlePageChange = (page: number, nextPageSize?: number) => {
-    if (typeof nextPageSize === "number" && nextPageSize !== pageSize) {
-      setPageSize(nextPageSize);
-    }
-    setCurrentPage(page);
-  };
-  const handlePageSizeChange = (_current: number, size: number) => {
+  const handlePageChange = useCallback(
+    (page: number, nextPageSize?: number) => {
+      if (typeof nextPageSize === "number" && nextPageSize !== pageSize) {
+        setPageSize(nextPageSize);
+      }
+      setCurrentPage(page);
+    },
+    [pageSize],
+  );
+  const handlePageSizeChange = useCallback((_current: number, size: number) => {
     setPageSize(size);
     setCurrentPage(1);
-  };
-  const applySearchFilter = (nextSearch: string) => {
+  }, []);
+  const applySearchFilter = useCallback((nextSearch: string) => {
     setServerSearchValue(nextSearch.trim());
     setCurrentPage(1);
-  };
+  }, []);
 
   // Bulk toggles only touch the rows currently visible after search and paging.
-  const selectUnselectFiltered = (select: boolean) => {
-    setSelectedItems((prevSelected) => {
-      const nextSelected = new Set(prevSelected);
-      visibleDataSource.forEach((filament) => {
-        if (select) {
-          nextSelected.add(filament.id);
-        } else {
-          nextSelected.delete(filament.id);
-        }
+  const selectUnselectFiltered = useCallback(
+    (select: boolean) => {
+      setSelectedItems((prevSelected) => {
+        const nextSelected = new Set(prevSelected);
+        visibleDataSource.forEach((filament) => {
+          if (select) {
+            nextSelected.add(filament.id);
+          } else {
+            nextSelected.delete(filament.id);
+          }
+        });
+        return Array.from(nextSelected);
       });
-      return Array.from(nextSelected);
-    });
-  };
+    },
+    [visibleDataSource],
+  );
 
-  const handleSelectItem = (item: number) => {
+  const handleSelectItem = useCallback((item: number) => {
     setSelectedItems((prevSelected) =>
       prevSelected.includes(item) ? prevSelected.filter((selected) => selected !== item) : [...prevSelected, item],
     );
-  };
+  }, []);
 
   const isAllFilteredSelected =
     visibleDataSource.length > 0 && visibleDataSource.every((filament) => selectedSet.has(filament.id));

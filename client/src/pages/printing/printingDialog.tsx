@@ -183,7 +183,6 @@ const PrintingDialog = ({
     return Array.from(root.getElementsByClassName("print-qrcode-item"));
   };
 
-
   const saveAsImage = async () => {
     const hasPrinted: Element[] = [];
     const items = getPrintItems();
@@ -215,7 +214,6 @@ const PrintingDialog = ({
       link.click();
     }
   };
-
 
   return (
     <>
