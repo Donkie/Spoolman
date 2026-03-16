@@ -17,7 +17,11 @@ const SMALL_TEXT_STYLE = {
 // canonical uppercase #RRGGBB string so chips and labels stay visually consistent.
 const normalizeHex = (value: string) => `#${value.replace("#", "").toUpperCase()}`;
 
-export default function ColorHexPreview({ colorHex, multiColorHexes, multiColorDirection }: Readonly<ColorHexPreviewProps>) {
+export default function ColorHexPreview({
+  colorHex,
+  multiColorHexes,
+  multiColorDirection,
+}: Readonly<ColorHexPreviewProps>) {
   const colors =
     multiColorHexes
       ?.split(",")
