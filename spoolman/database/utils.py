@@ -94,18 +94,18 @@ def add_where_clause_search(
     if value is not None:
         conditions = []
         for value_part in value.split(","):
-            value_part = value_part.strip()
-            if len(value_part) == 0:
+            stripped_value = value_part.strip()
+            if len(stripped_value) == 0:
                 continue
-            # Do exact match if value_part is surrounded by quotes
-            if value_part[0] == '"' and value_part[-1] == '"':
-                term = value_part[1:-1]
+            # Do exact match if stripped_value is surrounded by quotes
+            if stripped_value[0] == '"' and stripped_value[-1] == '"':
+                term = stripped_value[1:-1]
                 conditions.append(sqlalchemy.or_(*[field == term for field in fields]))
             # Do prefix match for better index usage
             else:
                 # Keep the general search index-friendly so the selector/search UX can
                 # scale on larger datasets without forcing full substring scans.
-                pattern = f"{value_part}%"
+                pattern = f"{stripped_value}%"
                 conditions.append(sqlalchemy.or_(*[field.ilike(pattern) for field in fields]))
 
         if conditions:

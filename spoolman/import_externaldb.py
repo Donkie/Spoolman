@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman import externaldb
 from spoolman.api.v1.models import MultiColorDirection
 from spoolman.database import models
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +21,7 @@ logger = logging.getLogger(__name__)
 def _normalize_hex(value: str | None) -> str | None:
     if not value:
         return None
-    return value[1:] if value.startswith("#") else value
+    return value.removeprefix("#")
 
 
 async def import_external_filaments(
@@ -39,6 +42,7 @@ async def import_external_filaments(
     logger.info("Fetching external filaments for import.")
     filaments = await externaldb.fetch_external_filaments()
 
+    # Reuse one vendor row per external manufacturer across the whole import pass.
     existing_vendor_rows = await db.execute(select(models.Vendor))
     vendors_by_external_id = {
         vendor.external_id: vendor for vendor in existing_vendor_rows.scalars().all() if vendor.external_id
@@ -74,6 +78,7 @@ async def import_external_filaments(
         color_hex = _normalize_hex(filament.color_hex)
         multi_color_hexes = None
         if filament.color_hexes:
+            # Keep single-color and multi-color storage aligned with the regular filament create/update rules.
             normalized = [_normalize_hex(value) for value in filament.color_hexes]
             multi_color_hexes = ",".join([value for value in normalized if value])
 

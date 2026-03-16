@@ -7,6 +7,7 @@ interface TypedCrudFilter<Obj> {
 }
 
 export function typeFilters<Obj>(filters: CrudFilter[]): TypedCrudFilter<Obj>[] {
+  // Refine exposes broader filter shapes than this table state uses, so narrow once at the boundary.
   return filters as TypedCrudFilter<Obj>[]; // <-- Unsafe cast
 }
 
@@ -16,10 +17,7 @@ export function typeFilters<Obj>(filters: CrudFilter[]): TypedCrudFilter<Obj>[] 
  * @param field The field to get the filter values for.
  * @returns An array of filter values for the given field.
  */
-export function getFiltersForField<Obj>(
-  filters: TypedCrudFilter<Obj>[],
-  field: keyof Obj | string,
-): string[] {
+export function getFiltersForField<Obj>(filters: TypedCrudFilter<Obj>[], field: keyof Obj | string): string[] {
   const filterValues: string[] = [];
   filters.forEach((filter) => {
     if (filter.field === field) {
@@ -41,6 +39,7 @@ export function removeUndefined<T>(array: (T | undefined)[]): T[] {
  * The query is broken down into words and the search is performed on each word.
  */
 export function searchMatches(query: string, test: string): boolean {
+  // Require every typed token to match so incremental search keeps narrowing results.
   const words = query.toLowerCase().split(" ");
   return words.every((word) => test.toLowerCase().includes(word));
 }

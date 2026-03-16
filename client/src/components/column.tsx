@@ -34,6 +34,7 @@ const FilterDropdownLoading = () => {
 
 function filterSearchTerm(item: ColumnFilterItem): string {
   const extraSearchTerm = (item as ColumnFilterItem & { sortId?: string }).sortId;
+  // Query-backed filters can attach a richer search key than the visible label alone.
   if (extraSearchTerm) {
     return extraSearchTerm.toLowerCase();
   }
@@ -61,6 +62,7 @@ function normalizeSearchableValue(value: unknown): string {
 }
 
 function getRecordValue(record: unknown, dataIndex: string | string[]): unknown {
+  // Table columns use both AntD array paths and dotted field ids from saved table state.
   if (Array.isArray(dataIndex)) {
     return dataIndex.reduce<unknown>((current, part) => {
       if (current === null || current === undefined || typeof current !== "object") {
@@ -94,14 +96,12 @@ function FilterDropdownContent(props: {
   allowMultipleFilters: boolean;
   t: (key: string) => string;
 }) {
+  // Keep multi-select filter dropdowns responsive even when the backend returns large option sets.
   const { items, selectedKeys, setSelectedKeys, confirm, clearFilters, allowMultipleFilters, t } = props;
   const [searchQuery, setSearchQuery] = useState("");
   const [scrollTop, setScrollTop] = useState(0);
 
-  const indexedItems = useMemo(
-    () => items.map((item) => ({ item, searchTerm: filterSearchTerm(item) })),
-    [items],
-  );
+  const indexedItems = useMemo(() => items.map((item) => ({ item, searchTerm: filterSearchTerm(item) })), [items]);
 
   const filteredItems = useMemo(() => {
     const search = searchQuery.trim().toLowerCase();
@@ -136,6 +136,7 @@ function FilterDropdownContent(props: {
     return Math.min(Math.max(minWidth, estimatedWidth, buttonLabelWidth), maxWidth);
   }, [indexedItems, t]);
 
+  // Virtualize the checkbox list so searching/selecting stays snappy for long filter lists.
   const visibleCount = Math.max(1, Math.ceil(FILTER_DROPDOWN_LIST_HEIGHT / FILTER_DROPDOWN_ROW_HEIGHT));
   const startIndex = Math.max(0, Math.floor(scrollTop / FILTER_DROPDOWN_ROW_HEIGHT) - FILTER_DROPDOWN_OVERSCAN);
   const endIndex = Math.min(filteredItems.length, startIndex + visibleCount + FILTER_DROPDOWN_OVERSCAN * 2);
@@ -205,56 +206,56 @@ function FilterDropdownContent(props: {
         >
           {visibleItems.map((item, offset) => {
             const index = startIndex + offset;
-          const optionValue = item.value;
-          if (optionValue === undefined || optionValue === null || typeof optionValue === "boolean") {
-            return null;
-          }
-          const checked = selectedKeySet.has(valueKey(optionValue));
-          return (
-            <div
-              key={`${valueKey(optionValue)}-${index}`}
-              style={{
-                position: "absolute",
-                top: index * FILTER_DROPDOWN_ROW_HEIGHT,
-                left: 0,
-                right: 0,
-                height: FILTER_DROPDOWN_ROW_HEIGHT,
-                display: "flex",
-                alignItems: "center",
-                padding: "2px 0",
-              }}
-            >
-              <Checkbox
-                checked={checked}
-                onChange={(event) => {
-                  const isChecked = event.target.checked;
-                  if (!allowMultipleFilters) {
-                    setSelectedKeys(isChecked ? [optionValue] : []);
-                    return;
-                  }
-
-                  if (isChecked) {
-                    setSelectedKeys([...selectedKeys, optionValue]);
-                  } else {
-                    setSelectedKeys(selectedKeys.filter((value) => valueKey(value) !== valueKey(optionValue)));
-                  }
+            const optionValue = item.value;
+            if (optionValue === undefined || optionValue === null || typeof optionValue === "boolean") {
+              return null;
+            }
+            const checked = selectedKeySet.has(valueKey(optionValue));
+            return (
+              <div
+                key={`${valueKey(optionValue)}-${index}`}
+                style={{
+                  position: "absolute",
+                  top: index * FILTER_DROPDOWN_ROW_HEIGHT,
+                  left: 0,
+                  right: 0,
+                  height: FILTER_DROPDOWN_ROW_HEIGHT,
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "2px 0",
                 }}
               >
-                <span
-                  style={{
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    display: "inline-block",
-                    maxWidth: dropdownWidth - 56,
-                    verticalAlign: "bottom",
+                <Checkbox
+                  checked={checked}
+                  onChange={(event) => {
+                    const isChecked = event.target.checked;
+                    if (!allowMultipleFilters) {
+                      setSelectedKeys(isChecked ? [optionValue] : []);
+                      return;
+                    }
+
+                    if (isChecked) {
+                      setSelectedKeys([...selectedKeys, optionValue]);
+                    } else {
+                      setSelectedKeys(selectedKeys.filter((value) => valueKey(value) !== valueKey(optionValue)));
+                    }
                   }}
                 >
-                  {item.text}
-                </span>
-              </Checkbox>
-            </div>
-          );
+                  <span
+                    style={{
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      display: "inline-block",
+                      maxWidth: dropdownWidth - 56,
+                      verticalAlign: "bottom",
+                    }}
+                  >
+                    {item.text}
+                  </span>
+                </Checkbox>
+              </div>
+            );
           })}
         </div>
       </div>
@@ -283,7 +284,6 @@ function FilterDropdownContent(props: {
   );
 }
 
-
 function SearchFilterDropdownContent(props: {
   selectedKeys: Key[];
   setSelectedKeys: (keys: Key[]) => void;
@@ -292,6 +292,7 @@ function SearchFilterDropdownContent(props: {
   t: (key: string) => string;
   placeholder: string;
 }) {
+  // Fall back to raw text entry when the table cannot precompute a finite option list.
   const { selectedKeys, setSelectedKeys, confirm, clearFilters, t, placeholder } = props;
   const currentValue = selectedKeys.length > 0 ? String(selectedKeys[0]) : "";
 
@@ -446,7 +447,8 @@ function Column<Obj extends Entity>(
       columnProps.key = props.dataId;
     }
   } else if (props.searchable) {
-    const filterField = props.dataId ?? (Array.isArray(props.id) || typeof props.id !== "string" ? undefined : props.id);
+    const filterField =
+      props.dataId ?? (Array.isArray(props.id) || typeof props.id !== "string" ? undefined : props.id);
     if (filterField) {
       const typedFilters = typeFilters<Obj>(props.tableState.filters);
       const filteredValue = getFiltersForField(typedFilters, filterField);
@@ -609,6 +611,7 @@ export function FilteredQueryColumn<Obj extends Entity>(props: FilteredQueryColu
   const filteredValue = getFiltersForField(typedFilters, props.dataId ?? (props.id as keyof Obj));
 
   const onFilterDropdownOpen = () => {
+    // Defer distinct-value fetches until the user opens the dropdown to avoid eager list-page traffic.
     if (query.data === undefined && !query.isFetching) {
       query.refetch();
     }
@@ -663,7 +666,10 @@ export function DateColumn<Obj extends Entity>(props: BaseColumnProps<Obj>) {
       if (!value) {
         return "";
       }
-      return dayjs.utc(value as string).local().format("YYYY-MM-DD HH:mm");
+      return dayjs
+        .utc(value as string)
+        .local()
+        .format("YYYY-MM-DD HH:mm");
     },
     render: (rawValue) => {
       const value = props.transform ? props.transform(rawValue) : rawValue;
