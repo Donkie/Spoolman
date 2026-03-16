@@ -15,7 +15,11 @@ export function normalizeComparableValue(value: unknown): unknown {
     "toISOString" in (value as Record<string, unknown>)
   ) {
     const maybeDayjs = value as { isValid?: () => boolean; toISOString?: () => string };
-    if (typeof maybeDayjs.isValid === "function" && maybeDayjs.isValid() && typeof maybeDayjs.toISOString === "function") {
+    if (
+      typeof maybeDayjs.isValid === "function" &&
+      maybeDayjs.isValid() &&
+      typeof maybeDayjs.toISOString === "function"
+    ) {
       return maybeDayjs.toISOString();
     }
   }
@@ -50,8 +54,7 @@ export function toComparableState(
   }
 
   const normalized = normalizeComparableValue(value);
-  const normalizedObject =
-    normalized && typeof normalized === "object" ? (normalized as Record<string, unknown>) : {};
+  const normalizedObject = normalized && typeof normalized === "object" ? (normalized as Record<string, unknown>) : {};
 
   // Each form provides the fields it owns plus any UI-specific overrides, so
   // dirty-state checks stay aligned with editable inputs instead of raw API payloads.

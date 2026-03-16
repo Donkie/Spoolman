@@ -61,11 +61,14 @@ export function GeneralSettings() {
       return null;
     }
     // Compare the parsed values the form actually edits, not the JSON-encoded storage shape from settings rows.
-    return toComparableState({
-      currency: JSON.parse(settings.data.currency.value),
-      base_url: JSON.parse(settings.data.base_url.value),
-      round_prices: JSON.parse(settings.data.round_prices.value),
-    }, comparableDefaults);
+    return toComparableState(
+      {
+        currency: JSON.parse(settings.data.currency.value),
+        base_url: JSON.parse(settings.data.base_url.value),
+        round_prices: JSON.parse(settings.data.round_prices.value),
+      },
+      comparableDefaults,
+    );
   }, [settings.data]);
 
   const watchedComparableState = useMemo(() => {
@@ -73,7 +76,9 @@ export function GeneralSettings() {
   }, [watchedAllValues]);
 
   const hasFormChanges =
-    initialComparableState !== null && watchedComparableState !== null && initialComparableState !== watchedComparableState;
+    initialComparableState !== null &&
+    watchedComparableState !== null &&
+    initialComparableState !== watchedComparableState;
   // Treat in-flight saves and initial settings fetches the same way so the button never advertises stale availability.
   const isSaving = settings.isFetching || setCurrency.isPending || setBaseUrl.isPending || setRoundPrices.isPending;
 

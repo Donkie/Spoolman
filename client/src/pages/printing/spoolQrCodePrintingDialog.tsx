@@ -53,11 +53,10 @@ const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
 
   const remotePresetsComparable = useMemo(() => JSON.stringify(remotePresets ?? []), [remotePresets]);
   const localPresetsComparable = useMemo(
-    () => JSON.stringify((localPresets ?? remotePresets) ?? []),
+    () => JSON.stringify(localPresets ?? remotePresets ?? []),
     [localPresets, remotePresets],
   );
-  const hasUnsavedPresetChanges =
-    localPresets !== undefined && localPresetsComparable !== remotePresetsComparable;
+  const hasUnsavedPresetChanges = localPresets !== undefined && localPresetsComparable !== remotePresetsComparable;
 
   const savePresetsRemote = async (): Promise<boolean> => {
     if (!localPresets || !hasUnsavedPresetChanges) return false;

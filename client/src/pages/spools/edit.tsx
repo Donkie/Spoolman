@@ -76,14 +76,6 @@ export const SpoolEdit = () => {
   const initialWeightValue = Form.useWatch("initial_weight", form);
   const spoolWeightValue = Form.useWatch("spool_weight", form);
 
-  // Add the filament_id field to the form
-  if (formProps.initialValues) {
-    formProps.initialValues["filament_id"] = formProps.initialValues["filament"].id;
-
-    // Parse the extra fields from string values into real types
-    formProps.initialValues = ParsedExtras(formProps.initialValues);
-  }
-
   //
   // Set up the filament selection options
   //
@@ -114,6 +106,17 @@ export const SpoolEdit = () => {
     }
   }, [selectedFilamentID, internalSelectOptions, externalSelectOptions]);
   const watchedAllValues = Form.useWatch([], form);
+
+  // Initialize form fields and parse extra fields
+  useEffect(() => {
+    if (formProps.initialValues && form) {
+      const parsed = ParsedExtras(formProps.initialValues);
+      form.setFieldsValue({
+        ...parsed,
+        filament_id: formProps.initialValues.filament?.id,
+      } as unknown as ISpool);
+    }
+  }, [formProps, formProps.initialValues?.id, form]);
 
   // Override the form's onFinish method to stringify the extra fields
   const originalOnFinish = formProps.onFinish;
@@ -256,7 +259,9 @@ export const SpoolEdit = () => {
     [watchedAllValues],
   );
   const hasFormChanges =
-    initialComparableState !== null && watchedComparableState !== null && initialComparableState !== watchedComparableState;
+    initialComparableState !== null &&
+    watchedComparableState !== null &&
+    initialComparableState !== watchedComparableState;
   const saveButtonState = {
     ...saveButtonProps,
     type: hasFormChanges ? ("primary" as const) : ("default" as const),

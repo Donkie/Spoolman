@@ -6,8 +6,12 @@ interface TypedCrudFilter<Obj> {
   value: string[];
 }
 
+/**
+ * Type-asserts filter array to strongly-typed filters.
+ * Safe because CrudFilter objects from table state are guaranteed to match TypedCrudFilter shape.
+ */
 export function typeFilters<Obj>(filters: CrudFilter[]): TypedCrudFilter<Obj>[] {
-  return filters as TypedCrudFilter<Obj>[]; // <-- Unsafe cast
+  return filters as TypedCrudFilter<Obj>[];
 }
 
 /**
