@@ -44,6 +44,7 @@
         "editError": "Error when editing {{resource}} (status code: {{statusCode}})",
         "importProgress": "Importing: {{processed}}/{{total}}",
         "saveSuccessful": "Save successful!",
+        "saveFailed": "Save failed.",
         "validationError": "Validation error: {{error}}"
     },
     "kofi": "Tip me on Ko-fi",
@@ -326,7 +327,13 @@
         },
         "extra_fields": {
             "tab": "Extra Fields",
-            "description": "<p>Here you can add extra custom fields to your entities.</p><p>Once a field is added, you can not change its key or type, and for choice type fields you can not remove choices or change the multi choice state. If you remove a field, the associated data for all entities will be deleted.</p><p>The key is what other programs read/write the data as, so if your custom field is supposed to integrate with a third-party program, make sure to set it correctly. Default value is only applied to new items.</p><p>Extra fields can not be sorted or filtered in the table views.</p>",
+            "top_guidance": "In all extra field types, the key is an integration identifier used by APIs and external tools, so choose stable names. Default values apply only to newly created items.",
+            "custom": {
+                "header": "Custom Extra Fields",
+                "description": "Custom extra fields are fields you define directly (text, number, datetime, choice, and ranges). In custom extra fields, key and type are immutable after creation. For choice fields, existing choices and the multi-choice mode are also immutable to protect stored data. Deleting a field removes its data from all records.",
+                "description_intro": "Custom extra fields are fields you define directly",
+                "description_immutability": "In custom extra fields, key and type are immutable after creation. For choice fields, existing choices and the multi-choice mode are also immutable to protect stored data. Deleting a field removes its data from all records."
+            },
             "params": {
                 "key": "Key",
                 "name": "Name",
@@ -353,7 +360,156 @@
             "non_unique_key_error": "The key must be unique.",
             "key_not_changed": "Please change the key to something else.",
             "delete_confirm": "Delete field {{name}}?",
-            "delete_confirm_description": "This will delete the field and all associated data for all entities."
+            "delete_confirm_description": "This will delete the field and all associated data for all entities.",
+            "delete_dependency_warning_intro": "Deleting this custom field will make dependent fields inoperable:",
+            "delete_dependency_warning_formula": "Formula extra fields: {{dependencies}}",
+            "delete_dependency_warning_footer": "These entries remain saved, but behavior depending on this field will fail until references are updated."
+        },
+        "formula_fields": {
+            "help_links": {
+                "formula": "Help: Formula Extra Fields",
+                "formula_json": "Help: JSON Logic",
+                "formula_tokens": "Help: Token Groups"
+            },
+            "available_functions": {
+                "label": "Token categories:",
+                "value": "Operators, helper functions, and field references are grouped in the editor."
+            },
+            "surfaces": {
+                "show": "Show Pages",
+                "edit": "Edit",
+                "list": "Tables",
+                "template": "Template Selections",
+                "action": "Action",
+                "derived": "Derived"
+            },
+            "formula": {
+                "header": "Formula Extra Fields",
+                "intro": "Formula extra fields are read-only derived values computed from expressions that reference existing fields.",
+                "evaluation_model_help": "Formula values are computed when records are loaded and are not stored as database columns. Dynamic helpers like today() refresh when data is reloaded.",
+                "description": "<p>Formula fields let you define your own calculated values for this entity.</p><p>Use references like <code>{weight}</code> or <code>{created_at}</code>, then combine them with math and helper functions. Formula fields are read-only and can be shown in list or show views.</p><p>This is where you can build calculations such as date parts, intervals, or specialized helpers like <code>hue_from_hex(...)</code>.</p>",
+                "tooltip": "Formula extra fields are user-defined calculated values. Use field references with the available formula functions to build read-only values for the selected display areas.",
+                "empty": "No formula fields are currently defined for this entity.",
+                "columns": {
+                    "key": "Key",
+                    "path": "Template & API Path",
+                    "name": "Name",
+                    "description": "Description",
+                    "expression": "Expression",
+                    "expression_json": "Formula Extra Field Expression (JSON Logic)",
+                    "surfaces": "Display In",
+                    "include_in_api": "Include in API"
+                },
+                "display_targets": {
+                    "show_pages": "Show Pages",
+                    "template_selections": "Template Selections",
+                    "tables": "Tables",
+                    "api": "API"
+                },
+                "types": {
+                    "number": "Number",
+                    "text": "Text"
+                },
+                "tooltips": {
+                    "key": "Unique identifier for this formula field. Uses lowercase letters, numbers, and underscores. Later integrations will reference it as 'derived.<key>'.",
+                    "name": "Human-friendly display label for this field in the UI.",
+                    "display_in": "Choose where this calculated field appears: in show/edit pages, tables, templates, or API responses.",
+                    "include_in_api": "When enabled, include this field in API responses under the derived object.",
+                    "expression_json": "JSON Logic expression that computes this field. Combine operators, helper functions, and field references below.",
+                    "sample_values": "Test data object to preview results. Provide sample values for all references used in your expression."
+                },
+                "expression_json_copy_tooltip": "Copy expression JSON to clipboard",
+                "expression_json_copied": "Expression copied!",
+                "sample_values": "Sample Values (JSON)",
+                "sample_values_help": "Enter a JSON object with key-value pairs matching your expression references",
+                "sample_values_detected_references": "Detected references:",
+                "sample_values_detected_references_empty": "No references detected yet",
+                "sample_values_reference_invalid": "Variable undefined or incorrectly defined in Sample Values JSON.",
+                "expression_json_help": "Enter a JSON Logic expression. Type manually or use the operator/helper/reference tokens below to build it step-by-step.",
+                "expression_json_example": "Example: {\"-\": [{\"var\": \"weight\"}, {\"var\": \"remaining_weight\"}]}",
+                "expression_json_required": "Expression JSON (JSON Logic) is required.",
+                "expression_json_invalid": "Expression JSON must be valid JSON format (an object like {...}).",
+                "sample_values_invalid": "Sample Values must be valid JSON format (an object like {...}).",
+                "key_usage_help": "Template & API Path",
+                "key_reserved_hint": "This key matches a built-in operator or helper ({{key}}). It works, but a different name will be clearer for users.",
+                "operator_groups": {
+                    "logical": "Logical / Conditional",
+                    "comparison": "Comparison",
+                    "arithmetic": "Arithmetic",
+                    "helpers": "Helpers"
+                },
+                "token_sections": {
+                    "operators": "Operators",
+                    "helper_functions": "Helper Functions"
+                },
+                "token_categories": {
+                    "logical": "Logical / Conditional",
+                    "comparison": "Comparison",
+                    "arithmetic": "Arithmetic",
+                    "math": "Math",
+                    "text": "Text",
+                    "datetime": "Date / Time",
+                    "dynamic": "Dynamic",
+                    "date_diff": "Date Diff",
+                    "color": "Color"
+                },
+                "reference_picker": {
+                    "label": "Field References",
+                    "placeholder": "Pick a field to insert as a reference",
+                    "help": "Click field references to insert them directly. Helper functions require you to select compatible references first. Both built-in fields and custom extra fields are available."
+                },
+                "json_builder": {
+                    "operators_title": "Insert Tokens",
+                    "click_to_insert_help": "Click field references to insert them immediately. For helpers, select compatible references first, or use the 'Helper only' button to insert with placeholder arguments.",
+                    "pending_helper": "Pending reference for helper {{helper}} ({{selected}}/{{total}})",
+                    "pending_helper_prefix": "Pending reference for helper",
+                    "pending_helper_count": "({{selected}}/{{total}})",
+                    "if_step_condition_operator": "Next: select IF condition operator",
+                    "if_step_condition_left": "Next: select IF condition left operand",
+                    "if_step_condition_right": "Next: select IF condition right operand",
+                    "if_step_then": "Next: select IF Then value",
+                    "if_step_else": "Next: select IF Else value",
+                    "helper_unavailable_reason": "Helper {{helper}} has no compatible references for this entity yet.",
+                    "helper_incompatible_reason": "Helper {{helper}} is incompatible with the currently selected pending reference type.",
+                    "reference_incompatible_reason": "Selected reference is incompatible with helper {{helper}}.",
+                    "show_operators": "Show operators",
+                    "hide_operators": "Hide operators",
+                    "show_tokens": "Show tokens",
+                    "hide_tokens": "Hide tokens",
+                    "operator_compact": {
+                        "logical_top": "Logical",
+                        "logical_bottom": "Conditional",
+                        "comparison": "Compare",
+                        "math": "Math"
+                    },
+                    "format": "Format JSON",
+                    "format_tooltip": "Normalizes and pretty-prints the current JSON in the editor.",
+                    "formatted": "Expression JSON formatted.",
+                    "insert_without_reference_tooltip": "Insert helper with placeholder inputs and clear pending selection.",
+                    "cancel_pending_tooltip": "Cancel pending helper selection.",
+                    "helper_only": "Helper only"
+                },
+                "delete_confirm": "Delete formula field {{name}}?",
+                "modal": {
+                    "create_title": "New Formula Extra Field",
+                    "edit_title": "Edit Formula Extra Field"
+                },
+                "messages": {
+                    "created": "Created {{name}}.",
+                    "updated": "Updated {{name}}.",
+                    "deleted": "Deleted {{name}}."
+                },
+                "missing_references_intro": "Some formula fields reference custom fields that are no longer available.",
+                "missing_references": "Missing custom field references: {{references}}",
+                "preview": {
+                    "button": "Refresh",
+                    "loading": "Computing preview...",
+                    "panel_title": "Preview",
+                    "empty": "Waiting for valid expression/sample values.",
+                    "error_fallback": "Preview failed.",
+                    "refresh_tooltip": "Re-sync missing sample keys and immediately re-run preview."
+                }
+            }
         }
     },
     "documentTitle": {

@@ -4,7 +4,8 @@ import { Button, Flex, Form, Input, Modal, Popconfirm, Select, Table, Typography
 import TextArea from "antd/es/input/TextArea";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { EntityType, useGetFields } from "../../utils/queryFields";
+import { buildFormulaValues, getTemplateFormulaFields } from "../../utils/formulaFields";
+import { EntityType, useGetDerivedFields, useGetFields } from "../../utils/queryFields";
 import { useGetSetting } from "../../utils/querySettings";
 import { useSavedState } from "../../utils/saveload";
 import { useGetSpoolsByIds } from "../spools/functions";
@@ -182,11 +183,15 @@ Spool Weight: {filament.spool_weight} g
     { tag: "archived" },
   ];
   const spoolFields = useGetFields(EntityType.spool);
+  const spoolDerivedFields = useGetDerivedFields(EntityType.spool);
   if (spoolFields.data !== undefined) {
     spoolFields.data.forEach((field) => {
       spoolTags.push({ tag: `extra.${field.key}` });
     });
   }
+  getTemplateFormulaFields(spoolDerivedFields.data).forEach((field) => {
+    spoolTags.push({ tag: `derived.${field.key}` });
+  });
   const filamentTags = [
     { tag: "filament.id" },
     { tag: "filament.registered" },
@@ -207,11 +212,15 @@ Spool Weight: {filament.spool_weight} g
     { tag: "filament.external_id" },
   ];
   const filamentFields = useGetFields(EntityType.filament);
+  const filamentDerivedFields = useGetDerivedFields(EntityType.filament);
   if (filamentFields.data !== undefined) {
     filamentFields.data.forEach((field) => {
       filamentTags.push({ tag: `filament.extra.${field.key}` });
     });
   }
+  getTemplateFormulaFields(filamentDerivedFields.data).forEach((field) => {
+    filamentTags.push({ tag: `filament.derived.${field.key}` });
+  });
   const vendorTags = [
     { tag: "filament.vendor.id" },
     { tag: "filament.vendor.registered" },
@@ -221,13 +230,43 @@ Spool Weight: {filament.spool_weight} g
     { tag: "filament.vendor.external_id" },
   ];
   const vendorFields = useGetFields(EntityType.vendor);
+  const vendorDerivedFields = useGetDerivedFields(EntityType.vendor);
   if (vendorFields.data !== undefined) {
     vendorFields.data.forEach((field) => {
       vendorTags.push({ tag: `filament.vendor.extra.${field.key}` });
     });
   }
+  getTemplateFormulaFields(vendorDerivedFields.data).forEach((field) => {
+    vendorTags.push({ tag: `filament.vendor.derived.${field.key}` });
+  });
 
   const templateTags = [...spoolTags, ...filamentTags, ...vendorTags];
+
+  const templateReadySpools = items.map((spool) => {
+    const filament = spool.filament;
+    const vendor = filament.vendor;
+
+    const spoolDerived = buildFormulaValues(spool, getTemplateFormulaFields(spoolDerivedFields.data));
+    const filamentDerived = buildFormulaValues(filament, getTemplateFormulaFields(filamentDerivedFields.data));
+    const vendorDerived = vendor
+      ? buildFormulaValues(vendor, getTemplateFormulaFields(vendorDerivedFields.data))
+      : {};
+
+    return {
+      ...spool,
+      derived: spoolDerived,
+      filament: {
+        ...filament,
+        derived: filamentDerived,
+        vendor: vendor
+          ? {
+              ...vendor,
+              derived: vendorDerived,
+            }
+          : vendor,
+      },
+    };
+  });
 
   return (
     <>
@@ -299,7 +338,7 @@ Spool Weight: {filament.spool_weight} g
             </Form.Item>
           </>
         }
-        items={items.map((spool) => ({
+        items={templateReadySpools.map((spool) => ({
           value: useHTTPUrl ? `${baseUrlRoot}/spool/show/${spool.id}` : `WEB+SPOOLMAN:S-${spool.id}`,
           label: (
             <p

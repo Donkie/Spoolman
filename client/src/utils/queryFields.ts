@@ -19,6 +19,16 @@ export enum EntityType {
   spool = "spool",
 }
 
+// Shared surface identifiers for formula fields across settings, list/show pages, and templates.
+export enum FormulaFieldSurface {
+  show = "show",
+  edit = "edit",
+  list = "list",
+  template = "template",
+  action = "action",
+  derived = "derived",
+}
+
 export interface FieldParameters {
   name: string;
   order: number;
@@ -32,6 +42,31 @@ export interface FieldParameters {
 export interface Field extends FieldParameters {
   key: string;
   entity_type: EntityType;
+}
+
+export enum DerivedFieldType {
+  number = "number",
+  text = "text",
+}
+
+export interface DerivedFieldParameters {
+  name: string;
+  description?: string;
+  result_type: DerivedFieldType;
+  expression_json: Record<string, unknown>;
+  surfaces: string[];
+  allow_list_column_toggle: boolean;
+  include_in_api: boolean;
+}
+
+export interface DerivedField extends DerivedFieldParameters {
+  key: string;
+  entity_type: EntityType;
+}
+
+export interface DerivedFieldPreview {
+  result: string | number | boolean | null;
+  references: string[];
 }
 
 export function useGetFields(entity_type: EntityType) {
@@ -131,6 +166,93 @@ export function useDeleteField(entity_type: EntityType) {
       queryClient.invalidateQueries({
         queryKey: ["fields", entity_type],
       });
+    },
+  });
+}
+
+export function useGetDerivedFields(entity_type: EntityType) {
+  return useQuery<DerivedField[]>({
+    queryKey: ["derivedFields", entity_type],
+    queryFn: async () => {
+      const response = await fetch(`${getAPIURL()}/field/derived/${entity_type}`);
+      return response.json();
+    },
+  });
+}
+
+export function useSetDerivedField(entity_type: EntityType) {
+  const queryClient = useQueryClient();
+
+  return useMutation<DerivedField[], unknown, { key: string; params: DerivedFieldParameters }>({
+    mutationFn: async ({ key, params }) => {
+      const response = await fetch(`${getAPIURL()}/field/derived/${entity_type}/${key}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(params),
+      });
+
+      if (!response.ok) {
+        throw new Error((await response.json()).message);
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["derivedFields", entity_type],
+      });
+    },
+  });
+}
+
+export function useDeleteDerivedField(entity_type: EntityType) {
+  const queryClient = useQueryClient();
+
+  return useMutation<DerivedField[], unknown, string>({
+    mutationFn: async (key) => {
+      const response = await fetch(`${getAPIURL()}/field/derived/${entity_type}/${key}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error((await response.json()).message);
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["derivedFields", entity_type],
+      });
+    },
+  });
+}
+
+export function usePreviewDerivedField(entity_type: EntityType) {
+  return useMutation<
+    DerivedFieldPreview,
+    unknown,
+    { expression_json: Record<string, unknown>; sample_values: Record<string, unknown> }
+  >({
+    mutationFn: async ({ expression_json, sample_values }) => {
+      const response = await fetch(`${getAPIURL()}/field/derived/${entity_type}/preview`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          expression_json,
+          sample_values,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error((await response.json()).message);
+      }
+
+      return response.json();
     },
   });
 }

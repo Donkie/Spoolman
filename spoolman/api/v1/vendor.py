@@ -13,6 +13,12 @@ from spoolman.api.v1.models import Message, Vendor, VendorEvent
 from spoolman.database import vendor
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
+from spoolman.derived_fields import (
+    build_formula_scope,
+    evaluate_derived_fields_for_scope,
+    get_derived_fields_for_surface,
+    resolve_include_derived_in_api,
+)
 from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
 from spoolman.ws import websocket_manager
 
@@ -116,6 +122,16 @@ async def find(
         int | None,
         Query(title="Limit", description="Maximum number of items in the response."),
     ] = None,
+    include_derived: Annotated[
+        bool | None,
+        Query(
+            title="Include Derived",
+            description=(
+                "Include formula extra fields under payload.derived. "
+                "If omitted, the api_include_derived_fields setting is used."
+            ),
+        ),
+    ] = None,
     offset: Annotated[int, Query(title="Offset", description="Offset in the full result set if a limit is set.")] = 0,
 ) -> JSONResponse:
     sort_by: dict[str, SortOrder] = {}
@@ -132,10 +148,31 @@ async def find(
         limit=limit,
         offset=offset,
     )
+    include_derived_resolved = await resolve_include_derived_in_api(db, include_derived)
+    payload: list[Vendor] = []
+    # List endpoints should only evaluate fields configured for list/table surfaces.
+    derived_fields = (
+        await get_derived_fields_for_surface(db, EntityType.vendor, "list", api_enabled_only=True)
+        if include_derived_resolved
+        else []
+    )
+
+    for db_item in db_items:
+        vendor_payload = Vendor.from_db(db_item)
+        if include_derived_resolved and derived_fields:
+            scope = build_formula_scope(vendor_payload.model_dump(exclude_none=True))
+            derived_values = evaluate_derived_fields_for_scope(
+                derived_fields=derived_fields,
+                scope=scope,
+                entity_type=EntityType.vendor,
+                entity_id=vendor_payload.id,
+            )
+            vendor_payload = vendor_payload.model_copy(update={"derived": derived_values or None})
+        payload.append(vendor_payload)
     # Set x-total-count header for pagination
     return JSONResponse(
         content=jsonable_encoder(
-            (Vendor.from_db(db_item) for db_item in db_items),
+            payload,
             exclude_none=True,
         ),
         headers={"x-total-count": str(total_count)},
@@ -173,9 +210,33 @@ async def notify_any(
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     vendor_id: int,
+    include_derived: Annotated[
+        bool | None,
+        Query(
+            title="Include Derived",
+            description=(
+                "Include formula extra fields under payload.derived. "
+                "If omitted, the api_include_derived_fields setting is used."
+            ),
+        ),
+    ] = None,
 ) -> Vendor:
     db_item = await vendor.get_by_id(db, vendor_id)
-    return Vendor.from_db(db_item)
+    vendor_payload = Vendor.from_db(db_item)
+    include_derived_resolved = await resolve_include_derived_in_api(db, include_derived)
+    if include_derived_resolved:
+        # Detail endpoints should evaluate show-surface formulas only.
+        derived_fields = await get_derived_fields_for_surface(db, EntityType.vendor, "show", api_enabled_only=True)
+        if derived_fields:
+            scope = build_formula_scope(vendor_payload.model_dump(exclude_none=True))
+            derived_values = evaluate_derived_fields_for_scope(
+                derived_fields=derived_fields,
+                scope=scope,
+                entity_type=EntityType.vendor,
+                entity_id=vendor_payload.id,
+            )
+            vendor_payload = vendor_payload.model_copy(update={"derived": derived_values or None})
+    return vendor_payload
 
 
 @router.websocket(

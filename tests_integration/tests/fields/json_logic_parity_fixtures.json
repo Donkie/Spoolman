@@ -1,0 +1,142 @@
+[
+  {
+    "id": "n01_add",
+    "result_type": "number",
+    "expression_json": { "+": [1, 2, 3] },
+    "scope": {},
+    "expected": 6
+  },
+  {
+    "id": "n02_var_subtract",
+    "result_type": "number",
+    "expression_json": { "-": [{ "var": "weight" }, { "var": "remaining_weight" }] },
+    "scope": { "weight": 1000, "remaining_weight": 225 },
+    "expected": 775
+  },
+  {
+    "id": "n03_round_divide",
+    "result_type": "number",
+    "expression_json": { "round": [{ "/": [{ "var": "remaining_weight" }, 1000] }] },
+    "scope": { "remaining_weight": 225 },
+    "expected": 0
+  },
+  {
+    "id": "n04_abs_negative",
+    "result_type": "number",
+    "expression_json": { "abs": [-32] },
+    "scope": {},
+    "expected": 32
+  },
+  {
+    "id": "b01_and_true",
+    "result_type": "boolean",
+    "expression_json": { "and": [{ ">": [{ "var": "remaining_weight" }, 0] }, { "==": [{ "var": "archived" }, false] }] },
+    "scope": { "remaining_weight": 10, "archived": false },
+    "expected": true
+  },
+  {
+    "id": "b02_or_false",
+    "result_type": "boolean",
+    "expression_json": { "or": [{ "==": [{ "var": "material" }, "PLA" ] }, { "==": [{ "var": "material" }, "PETG"] }] },
+    "scope": { "material": "ABS" },
+    "expected": false
+  },
+  {
+    "id": "b03_if_branch",
+    "result_type": "boolean",
+    "expression_json": { "if": [{ ">=": [{ "var": "used_weight" }, 900] }, true, false] },
+    "scope": { "used_weight": 910 },
+    "expected": true
+  },
+  {
+    "id": "t01_concat",
+    "result_type": "text",
+    "expression_json": { "cat": ["Lot ", { "var": "lot_nr" }] },
+    "scope": { "lot_nr": "A123" },
+    "expected": "Lot A123"
+  },
+  {
+    "id": "t02_upper",
+    "result_type": "text",
+    "expression_json": { "upper": [{ "var": "material" }] },
+    "scope": { "material": "pla" },
+    "expected": "PLA"
+  },
+  {
+    "id": "t03_coalesce",
+    "result_type": "text",
+    "expression_json": { "coalesce": [{ "var": "extra.short_name" }, { "var": "name" }, "Unknown"] },
+    "scope": { "name": "Basic PLA" },
+    "expected": "Basic PLA"
+  },
+  {
+    "id": "d01_today",
+    "result_type": "date",
+    "expression_json": { "today": [] },
+    "scope": {},
+    "expected_shape": "yyyy-mm-dd"
+  },
+  {
+    "id": "d02_date_only",
+    "result_type": "date",
+    "expression_json": { "date_only": [{ "var": "created_at" }] },
+    "scope": { "created_at": "2026-02-28T10:15:00Z" },
+    "expected": "2026-02-28"
+  },
+  {
+    "id": "dt01_identity",
+    "result_type": "datetime",
+    "expression_json": { "var": "last_used" },
+    "scope": { "last_used": "2026-03-01T18:42:10Z" },
+    "expected": "2026-03-01T18:42:10Z"
+  },
+  {
+    "id": "tm01_time_only",
+    "result_type": "time",
+    "expression_json": { "time_only": [{ "var": "last_used" }] },
+    "scope": { "last_used": "2026-03-01T18:42:10Z" },
+    "expected": "18:42:10"
+  },
+  {
+    "id": "n05_days_between",
+    "result_type": "number",
+    "expression_json": { "days_between": [{ "var": "first_used" }, { "var": "last_used" }] },
+    "scope": { "first_used": "2026-03-01T00:00:00Z", "last_used": "2026-03-04T12:00:00Z" },
+    "expected": 3.5
+  },
+  {
+    "id": "n06_hours_between",
+    "result_type": "number",
+    "expression_json": { "hours_between": [{ "var": "first_used" }, { "var": "last_used" }] },
+    "scope": { "first_used": "2026-03-01T00:00:00Z", "last_used": "2026-03-01T18:00:00Z" },
+    "expected": 18
+  },
+  {
+    "id": "n07_hue_from_hex",
+    "result_type": "number",
+    "expression_json": { "hue_from_hex": ["#FF0000"] },
+    "scope": {},
+    "expected": 0
+  },
+  {
+    "id": "inv01_unknown_operator",
+    "result_type": "number",
+    "expression_json": { "sqrt": [9] },
+    "scope": {},
+    "expect_error": "operator_not_allowed"
+  },
+  {
+    "id": "inv02_missing_reference",
+    "result_type": "number",
+    "expression_json": { "+": [{ "var": "does_not_exist" }, 1] },
+    "scope": {},
+    "expect_error": "missing_reference"
+  },
+  {
+    "id": "inv03_type_mismatch",
+    "result_type": "number",
+    "expression_json": { "cat": ["a", "b"] },
+    "scope": {},
+    "expect_error": "result_type_mismatch"
+  }
+]
