@@ -26,6 +26,7 @@ interface QRCodePrintingDialogProps {
   previewValues?: { default: string; url: string };
 }
 
+// Layer QR-specific controls on top of the shared sheet-printing dialog used by spool and filament labels.
 const QRCodePrintingDialog = ({
   items,
   printSettings,
@@ -43,9 +44,9 @@ const QRCodePrintingDialog = ({
   const showContent = printSettings?.showContent === undefined ? true : printSettings?.showContent;
   const showQRCodeMode = printSettings?.showQRCodeMode || "withIcon";
   const textSize = printSettings?.textSize || 3;
-  const preview =
-    previewValues ?? ({ default: `WEB+SPOOLMAN:S-{id}`, url: `${baseUrlRoot}/spool/show/{id}` } as const);
+  const preview = previewValues ?? ({ default: `WEB+SPOOLMAN:S-{id}`, url: `${baseUrlRoot}/spool/show/{id}` } as const);
 
+  // Build the printable QR blocks here; the underlying dialog handles page layout and export mechanics.
   const elements = items.map((item, idx) => {
     return (
       <div className="print-qrcode-item" key={idx}>
@@ -114,6 +115,7 @@ const QRCodePrintingDialog = ({
                 </Radio.Group>
               </Form.Item>
               <Form.Item label={t("printing.qrcode.useHTTPUrl.preview")}>
+                {/* Mirror the encoded payload so users can confirm which QR format the preset will emit. */}
                 <Text> {useHTTPUrl ? preview.url : preview.default}</Text>
               </Form.Item>
             </>
