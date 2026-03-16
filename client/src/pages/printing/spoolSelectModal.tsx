@@ -1,7 +1,7 @@
 import { useTable } from "@refinedev/antd";
 import { Button, Checkbox, Col, message, Row, Space, Table } from "antd";
 import { t } from "i18next";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
 import { useSpoolmanFilamentFilter, useSpoolmanMaterials } from "../../components/otherModels";
@@ -89,25 +89,28 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }
   );
 
   // Bulk selection applies only to the rows currently loaded in the modal.
-  const selectUnselectFiltered = (select: boolean) => {
-    setSelectedItems((prevSelected) => {
-      const nextSelected = new Set(prevSelected);
-      dataSource.forEach((spool) => {
-        if (select) {
-          nextSelected.add(spool.id);
-        } else {
-          nextSelected.delete(spool.id);
-        }
+  const selectUnselectFiltered = useCallback(
+    (select: boolean) => {
+      setSelectedItems((prevSelected) => {
+        const nextSelected = new Set(prevSelected);
+        dataSource.forEach((spool) => {
+          if (select) {
+            nextSelected.add(spool.id);
+          } else {
+            nextSelected.delete(spool.id);
+          }
+        });
+        return Array.from(nextSelected);
       });
-      return Array.from(nextSelected);
-    });
-  };
+    },
+    [dataSource],
+  );
 
-  const handleSelectItem = (item: number) => {
+  const handleSelectItem = useCallback((item: number) => {
     setSelectedItems((prevSelected) =>
       prevSelected.includes(item) ? prevSelected.filter((selected) => selected !== item) : [...prevSelected, item],
     );
-  };
+  }, []);
 
   const isAllFilteredSelected = dataSource.every((spool) => selectedItems.includes(spool.id));
   const isSomeButNotAllFilteredSelected =
