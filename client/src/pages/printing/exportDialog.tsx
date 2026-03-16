@@ -3,8 +3,7 @@ import { useTranslate } from "@refinedev/core";
 import { Button, Checkbox, Col, Collapse, Divider, Form, InputNumber, Radio, Row, Slider, Space } from "antd";
 import * as htmlToImage from "html-to-image";
 import JSZip from "jszip";
-import { ReactElement, useContext, useRef } from "react";
-import { ColorModeContext } from "../../contexts/color-mode";
+import { ReactElement, useRef } from "react";
 import { useSavedState } from "../../utils/saveload";
 import { PrintSettings } from "./printing";
 
@@ -20,8 +19,7 @@ interface ExportDialogProps {
   zipFileTypeName: string;
 }
 
-// Render one preview page per exported label and reuse that DOM for PNG/AML generation
-// so the preview stays the source of truth for both single-file and ZIP exports.
+// Render one preview page per exported label and reuse that DOM for PNG/AML generation so preview stays authoritative.
 const ExportDialog = ({
   items,
   printSettings,
@@ -34,7 +32,6 @@ const ExportDialog = ({
   zipFileTypeName,
 }: ExportDialogProps) => {
   const t = useTranslate();
-  const { mode } = useContext(ColorModeContext);
 
   const [collapseState, setCollapseState] = useSavedState<string[]>("export-collapseState", []);
   const [previewScale, setPreviewScale] = useSavedState("export-previewScale", 0.7);
@@ -45,8 +42,6 @@ const ExportDialog = ({
   const exportDpi = printSettings?.exportDpi || 300;
   const exportFormat = printSettings?.exportFormat || "aml";
   const exportAsZip = printSettings?.exportAsZip ?? false;
-  const zipPreviewName = `${exportFormat.toUpperCase()} ${zipFileTypeName} labels.zip`;
-  const previewMetaColor = mode === "dark" ? "#bfbfbf" : "#333";
 
   const paperWidth = customPaperSize.width;
   const paperHeight = customPaperSize.height;
@@ -54,149 +49,6 @@ const ExportDialog = ({
   const itemHeight = Math.max(paperHeight - margin.top - margin.bottom, 0);
 
   const contentRef = useRef<HTMLDivElement>(null);
-  const pngSignature = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
-
-  const readUint32BE = (bytes: Uint8Array, offset: number) => {
-    return (
-      ((bytes[offset] << 24) >>> 0) |
-      ((bytes[offset + 1] << 16) >>> 0) |
-      ((bytes[offset + 2] << 8) >>> 0) |
-      (bytes[offset + 3] >>> 0)
-    );
-  };
-
-  const writeUint32BE = (target: Uint8Array, offset: number, value: number) => {
-    target[offset] = (value >>> 24) & 0xff;
-    target[offset + 1] = (value >>> 16) & 0xff;
-    target[offset + 2] = (value >>> 8) & 0xff;
-    target[offset + 3] = value & 0xff;
-  };
-
-  const isPng = (bytes: Uint8Array) => {
-    if (bytes.length < pngSignature.length) {
-      return false;
-    }
-    for (let i = 0; i < pngSignature.length; i += 1) {
-      if (bytes[i] !== pngSignature[i]) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const getChunkType = (bytes: Uint8Array, offset: number) => {
-    return String.fromCharCode(bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
-  };
-
-  const getCrc32Table = (() => {
-    let table: Uint32Array | null = null;
-    return () => {
-      if (table !== null) {
-        return table;
-      }
-      // Cache the CRC table because every rewritten PNG chunk needs the same lookup.
-      table = new Uint32Array(256);
-      for (let n = 0; n < 256; n += 1) {
-        let c = n;
-        for (let k = 0; k < 8; k += 1) {
-          c = (c & 1) !== 0 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-        }
-        table[n] = c >>> 0;
-      }
-      return table;
-    };
-  })();
-
-  const crc32 = (bytes: Uint8Array) => {
-    const table = getCrc32Table();
-    let crc = 0xffffffff;
-    for (let i = 0; i < bytes.length; i += 1) {
-      crc = table[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
-    }
-    return (crc ^ 0xffffffff) >>> 0;
-  };
-
-  const createPngChunk = (chunkType: string, data: Uint8Array) => {
-    const typeBytes = new Uint8Array([
-      chunkType.charCodeAt(0),
-      chunkType.charCodeAt(1),
-      chunkType.charCodeAt(2),
-      chunkType.charCodeAt(3),
-    ]);
-    const crcInput = new Uint8Array(typeBytes.length + data.length);
-    crcInput.set(typeBytes, 0);
-    crcInput.set(data, typeBytes.length);
-
-    const chunk = new Uint8Array(12 + data.length);
-    writeUint32BE(chunk, 0, data.length);
-    chunk.set(typeBytes, 4);
-    chunk.set(data, 8);
-    writeUint32BE(chunk, 8 + data.length, crc32(crcInput));
-    return chunk;
-  };
-
-  const setPngDpiMetadata = async (pngBlob: Blob, dpi: number) => {
-    const bytes = new Uint8Array(await pngBlob.arrayBuffer());
-    if (!isPng(bytes)) {
-      return pngBlob;
-    }
-
-    // html-to-image gives us correct pixel dimensions, but many image viewers still report
-    // 72 DPI unless we write an explicit pHYs chunk into the final PNG bytes.
-    const pixelsPerMeter = Math.max(1, Math.round(dpi / 0.0254));
-    const physData = new Uint8Array(9);
-    writeUint32BE(physData, 0, pixelsPerMeter);
-    writeUint32BE(physData, 4, pixelsPerMeter);
-    physData[8] = 1;
-    const physChunk = createPngChunk("pHYs", physData);
-
-    const chunks: Uint8Array[] = [bytes.slice(0, 8)];
-    let offset = 8;
-    let insertedPhys = false;
-    let removedExistingPhys = false;
-
-    while (offset + 8 <= bytes.length) {
-      const chunkLength = readUint32BE(bytes, offset);
-      const chunkTotalSize = 12 + chunkLength;
-      if (offset + chunkTotalSize > bytes.length) {
-        return pngBlob;
-      }
-
-      const chunkType = getChunkType(bytes, offset + 4);
-      const fullChunk = bytes.slice(offset, offset + chunkTotalSize);
-
-      if (chunkType === "pHYs") {
-        removedExistingPhys = true;
-        offset += chunkTotalSize;
-        continue;
-      }
-
-      if (!insertedPhys && chunkType === "IHDR") {
-        chunks.push(fullChunk);
-        chunks.push(physChunk);
-        insertedPhys = true;
-      } else if (!insertedPhys && chunkType === "IDAT") {
-        chunks.push(physChunk);
-        chunks.push(fullChunk);
-        insertedPhys = true;
-      } else if (!insertedPhys && chunkType === "IEND") {
-        chunks.push(physChunk);
-        chunks.push(fullChunk);
-        insertedPhys = true;
-      } else {
-        chunks.push(fullChunk);
-      }
-
-      offset += chunkTotalSize;
-    }
-
-    if (!insertedPhys && !removedExistingPhys) {
-      return pngBlob;
-    }
-
-    const blobParts: BlobPart[] = chunks.map((chunk) => chunk as unknown as BlobPart);
-    return new Blob(blobParts, { type: "image/png" });
-  };
 
   const sanitizeFilename = (value: string) => {
     const trimmed = value.trim();
@@ -212,21 +64,16 @@ const ExportDialog = ({
     );
   };
 
-  // Exports deliberately stay one-label-per-page so preview names, AML payloads,
-  // and downloaded files all map 1:1 to a logical label.
+  // Exports deliberately stay one-label-per-page so preview names and downloaded files map 1:1 to a logical label.
   const pageBlocks: ReactElement[][] = [];
   for (const item of items) {
     pageBlocks.push([item]);
   }
 
   const pages = pageBlocks.map(function (pageItems, pageIdx) {
-    const pagePreviewSource = pageItems[0];
-    const pageRawPreviewName =
-      (pagePreviewSource?.props as { "data-aml-name"?: string } | undefined)?.["data-aml-name"] ??
-      `label-${pageIdx + 1}`;
-    const pagePreviewName = sanitizeFilename(pageRawPreviewName) || `label-${pageIdx + 1}`;
-
     const itemDivs = pageItems.map((item, itemIdx) => {
+      const rawPreviewName = (item.props as { "data-aml-name"?: string })["data-aml-name"] ?? `label-${itemIdx + 1}`;
+      const previewName = sanitizeFilename(rawPreviewName) || `label-${itemIdx + 1}`;
       return (
         <div
           key={itemIdx}
@@ -241,47 +88,44 @@ const ExportDialog = ({
             paddingBottom: `${Math.max(printerMargin.bottom - margin.bottom, 0)}mm`,
           }}
         >
+          <div className="print-page-filename">
+            {previewName}.{exportFormat}
+          </div>
           {item}
         </div>
       );
     });
 
     return (
-      <div className="print-preview-page" key={pageIdx}>
+      <div
+        className="print-page"
+        key={pageIdx}
+        style={{
+          width: `${paperWidth}mm`,
+          height: `${paperHeight}mm`,
+          backgroundColor: "#FFF",
+          overflow: "hidden",
+        }}
+      >
         <div
-          className="print-page"
+          className="print-page-area"
           style={{
-            width: `${paperWidth}mm`,
-            height: `${paperHeight}mm`,
-            backgroundColor: "#FFF",
-            overflow: "hidden",
+            height: `${paperHeight - margin.top - margin.bottom}mm`,
+            width: `${paperWidth - margin.left - margin.right}mm`,
+            marginTop: `${margin.top}mm`,
+            marginLeft: `${margin.left}mm`,
+            marginRight: `${margin.right}mm`,
+            marginBottom: `${margin.bottom}mm`,
           }}
         >
           <div
-            className="print-page-area"
             style={{
-              height: `${paperHeight - margin.top - margin.bottom}mm`,
-              width: `${paperWidth - margin.left - margin.right}mm`,
-              marginTop: `${margin.top}mm`,
-              marginLeft: `${margin.left}mm`,
-              marginRight: `${margin.right}mm`,
-              marginBottom: `${margin.bottom}mm`,
+              display: "flex",
+              flexWrap: "wrap",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-              }}
-            >
-              {itemDivs}
-            </div>
+            {itemDivs}
           </div>
-        </div>
-        {/* Keep preview filenames outside the white label canvas so they stay readable in the
-            UI without becoming part of the exported PNG/AML image content. */}
-        <div className="print-preview-filename">
-          {pagePreviewName}.{exportFormat}
         </div>
       </div>
     );
@@ -307,19 +151,6 @@ const ExportDialog = ({
     link.download = filename;
     link.click();
     URL.revokeObjectURL(link.href);
-  };
-
-  const blobToDataUrl = async (blob: Blob) => {
-    return await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        resolve(String(reader.result ?? ""));
-      };
-      reader.onerror = () => {
-        reject(reader.error ?? new Error("Failed to convert blob to data URL"));
-      };
-      reader.readAsDataURL(blob);
-    });
   };
 
   const escapeXml = (value: string) => {
@@ -425,8 +256,9 @@ const ExportDialog = ({
     const uniqueItems: { item: Element; safeName: string }[] = [];
     let idx = 1;
 
+    // Repeated copies share the same DOM shape, but export should still emit one file per unique label design.
     for (const item of itemsToPrint) {
-      // Prevent printing copies
+      // Prevent duplicate exports when the preview contains repeated copies.
       let isDuplicate = false;
       for (let i = 0; i < hasPrinted.length; i += 1) {
         if (item.isEqualNode(hasPrinted[i])) {
@@ -439,8 +271,6 @@ const ExportDialog = ({
       }
       hasPrinted.push(item);
 
-      // Export one file per logical label. Duplicate DOM nodes exist only because the print
-      // preview can render copies on the sheet, but file exports should not clone names/files.
       const rawName = (item as HTMLElement).dataset.amlName || `label-${idx}`;
       const baseName = sanitizeFilename(rawName) || `label-${idx}`;
       let safeName = baseName;
@@ -460,10 +290,10 @@ const ExportDialog = ({
     const uniqueItems = getUniqueExportItems();
     for (const { item, safeName } of uniqueItems) {
       const url = await htmlToImage.toPng(item as HTMLElement, getExportImageOptions());
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const pngBlob = await setPngDpiMetadata(blob, exportDpi);
-      downloadBlobFile(`${safeName}.png`, pngBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${safeName}.png`;
+      link.click();
     }
   };
 
@@ -471,11 +301,7 @@ const ExportDialog = ({
     const uniqueItems = getUniqueExportItems();
     for (const { item, safeName } of uniqueItems) {
       const url = await htmlToImage.toPng(item as HTMLElement, getExportImageOptions());
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const pngBlob = await setPngDpiMetadata(blob, exportDpi);
-      const dataUrl = await blobToDataUrl(pngBlob);
-      const base64 = dataUrl.split(",")[1] ?? "";
+      const base64 = url.split(",")[1] ?? "";
       const aml = buildAmlXml(safeName, paperWidth, paperHeight, [base64]);
       downloadTextFile(`${safeName}.aml`, aml, "application/xml");
     }
@@ -487,29 +313,23 @@ const ExportDialog = ({
       return;
     }
 
-    // ZIP exports reuse the same per-label rendering path so single-file and batch
-    // downloads stay consistent apart from the outer archive wrapper.
+    // ZIP exports reuse the same per-label rendering path so single-file and batch downloads stay consistent.
     const zip = new JSZip();
     for (const { item, safeName } of uniqueItems) {
       const url = await htmlToImage.toPng(item as HTMLElement, getExportImageOptions());
       if (exportFormat === "png") {
         const response = await fetch(url);
         const blob = await response.blob();
-        const pngBlob = await setPngDpiMetadata(blob, exportDpi);
-        zip.file(`${safeName}.png`, pngBlob);
+        zip.file(`${safeName}.png`, blob);
       } else {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        const pngBlob = await setPngDpiMetadata(blob, exportDpi);
-        const dataUrl = await blobToDataUrl(pngBlob);
-        const base64 = dataUrl.split(",")[1] ?? "";
+        const base64 = url.split(",")[1] ?? "";
         const aml = buildAmlXml(safeName, paperWidth, paperHeight, [base64]);
         zip.file(`${safeName}.aml`, aml);
       }
     }
 
     const blob = await zip.generateAsync({ type: "blob" });
-    downloadBlobFile(zipPreviewName, blob);
+    downloadBlobFile(`${exportFormat.toUpperCase()} ${zipFileTypeName} labels.zip`, blob);
   };
 
   const handleExport = async () => {
@@ -563,26 +383,18 @@ const ExportDialog = ({
                   box-sizing: border-box;
                 }
 
-                .print-preview-page {
-                  margin-top: 2mm;
-                }
-
-                .print-preview-zipname {
+                .print-page .print-page-filename {
+                  position: absolute;
+                  top: 0.5mm;
+                  left: 0.5mm;
+                  z-index: 2;
+                  pointer-events: none;
                   font-size: 2mm;
                   line-height: 1.2;
-                  color: ${previewMetaColor};
-                  margin: 0 0 1mm 0.5mm;
-                  max-width: calc(100% - 1mm);
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                  white-space: nowrap;
-                }
-
-                .print-preview-page .print-preview-filename {
-                  font-size: 2mm;
-                  line-height: 1.2;
-                  color: ${previewMetaColor};
-                  margin: 0.5mm 0 0 0.5mm;
+                  color: #333;
+                  background: rgba(255, 255, 255, 0.9);
+                  border-radius: 1mm;
+                  padding: 0 0.8mm;
                   max-width: calc(100% - 1mm);
                   overflow: hidden;
                   text-overflow: ellipsis;
@@ -592,7 +404,6 @@ const ExportDialog = ({
                 ${style ?? ""}
                 `}
               </style>
-              {exportAsZip && <div className="print-preview-zipname">{zipPreviewName}</div>}
               {pages}
             </div>
           </div>

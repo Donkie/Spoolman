@@ -4,16 +4,14 @@ import { getAPIURL } from "../../utils/url";
 import { getOrCreateVendorFromExternal } from "../vendors/functions";
 import { IFilament } from "./model";
 
-/**
- * Create a new internal filament given an external filament object.
- * Returns the created internal filament.
- */
+// Mirror an external catalog filament into the local API while preserving the source color representation.
 export async function createFilamentFromExternal(externalFilament: ExternalFilament): Promise<IFilament> {
   const vendor = await getOrCreateVendorFromExternal(externalFilament.manufacturer);
 
   let color_hex: string | undefined = undefined;
   let multi_color_hexes: string | undefined = undefined;
   let multi_color_direction: string | undefined = undefined;
+  // External catalogs send either a single swatch or a multi-color list; keep the API payload mutually exclusive.
   if (externalFilament.color_hex) {
     color_hex = externalFilament.color_hex;
   } else if (externalFilament.color_hexes && externalFilament.color_hexes.length > 0) {
@@ -50,13 +48,7 @@ export async function createFilamentFromExternal(externalFilament: ExternalFilam
   return response.json();
 }
 
-/**
- * Returns an array of queries using the useQueries hook from @tanstack/react-query.
- * Each query fetches a filament by its ID from the server.
- *
- * @param {number[]} ids - An array of filament IDs to fetch.
- * @return An array of query results, each containing the fetched filament data.
- */
+// Fetch selected filaments in parallel so print/export dialogs can render labels as soon as each item resolves.
 export function useGetFilamentsByIds(ids: number[]) {
   return useQueries({
     queries: ids.map((id) => {
