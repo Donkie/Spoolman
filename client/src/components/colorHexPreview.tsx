@@ -1,4 +1,5 @@
 import { Typography } from "antd";
+import { normalizeHex } from "../utils/colorFormatting";
 import SpoolIcon from "./spoolIcon";
 
 interface ColorHexPreviewProps {
@@ -12,10 +13,6 @@ const SMALL_TEXT_STYLE = {
   color: "rgba(255,255,255,0.45)",
   lineHeight: 1.2,
 };
-
-// Stored color values omit the hash, but every preview path in the UI should render a
-// canonical uppercase #RRGGBB string so chips and labels stay visually consistent.
-const normalizeHex = (value: string) => `#${value.replace("#", "").toUpperCase()}`;
 
 export default function ColorHexPreview({
   colorHex,

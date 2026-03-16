@@ -1,5 +1,6 @@
 import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
 import { Badge, Button, ColorPicker, Space } from "antd";
+import { normalizeHex } from "../utils/colorFormatting";
 
 function generateRandomColor() {
   return "000000".replace(/0/g, function () {
@@ -50,9 +51,13 @@ export function MultiColorPicker(props: {
     textTransform: "uppercase" as const,
     fontFamily: "monospace",
   };
+  const swatchStyle = {
+    borderRadius: 8,
+    border: "1px solid rgba(255,255,255,0.2)",
+  } as const;
 
   const pickers = values.map((value, idx) => {
-    const formattedHex = `#${value.replace("#", "").toUpperCase()}`;
+    const formattedHex = normalizeHex(value);
     return (
       <Badge
         key={idx}
@@ -90,10 +95,9 @@ export function MultiColorPicker(props: {
           >
             <div
               style={{
+                ...swatchStyle,
                 width: swatchWidth,
                 height: swatchHeight,
-                borderRadius: 8,
-                border: "1px solid rgba(255,255,255,0.2)",
                 backgroundColor: `#${value.replace("#", "")}`,
               }}
             />
@@ -188,15 +192,14 @@ export function MultiColorPicker(props: {
               >
                 <div
                   style={{
+                    ...swatchStyle,
                     width: swatchWidth,
                     height: swatchHeight,
-                    borderRadius: 8,
-                    border: "1px solid rgba(255,255,255,0.2)",
                     backgroundColor: `#${value.replace("#", "")}`,
                   }}
                 />
               </ColorPicker>
-              <span style={hexTextStyle}>{`#${value.replace("#", "").toUpperCase()}`}</span>
+              <span style={hexTextStyle}>{normalizeHex(value)}</span>
             </div>
           ))}
         </Space>
