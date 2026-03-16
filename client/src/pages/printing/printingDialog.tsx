@@ -99,8 +99,6 @@ const PrintingDialog = ({
   const itemsPerRow = paperColumns;
   const itemsPerPage = itemsPerRow * paperRows;
 
-  // Model the preview exactly like sheet printing: skipped slots first, then requested
-  // copies, then chunk the flat list into physical pages.
   const itemsIncludingSkipped = [...Array(skipItems).fill(<></>)];
   for (const item of items) {
     for (let i = 0; i < itemCopies; i += 1) {
@@ -128,8 +126,6 @@ const PrintingDialog = ({
             width: `${itemWidth}mm`,
             height: `${itemHeight}mm`,
             border: borderShowMode === "grid" ? "1px solid #000" : "none",
-            // Printer compensation only matters at the sheet edges; inner cells already
-            // align via row/column spacing.
             paddingLeft: isFirstColumn ? `${Math.max(printerMargin.left - margin.left, 0)}mm` : 0,
             paddingRight: isLastColumn ? `${Math.max(printerMargin.right - margin.right, 0)}mm` : 0,
             paddingTop: isFirstRow ? `${Math.max(printerMargin.top - margin.top, 0)}mm` : 0,
@@ -225,8 +221,8 @@ const PrintingDialog = ({
         <Col
           span={14}
           style={{
-            // Stretch the preview column to the same height as the settings column so the
-            // scaled page preview can scroll inside a stable viewport.
+            // This magic makes this column take the height of the sibling column
+            // https://stackoverflow.com/a/49065029/2911165
             display: "flex",
             flexDirection: "column",
           }}

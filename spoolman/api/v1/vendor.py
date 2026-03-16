@@ -14,12 +14,16 @@ from spoolman.database import vendor
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
 from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
+from spoolman.vendor_logos import convert_web_logo_to_print_logo
 from spoolman.ws import websocket_manager
 
 router = APIRouter(
     prefix="/vendor",
     tags=["vendor"],
 )
+
+# Logo fields are stored in vendor.extra, but the logo workflow owns their schema instead of generic extra-field config.
+RESERVED_VENDOR_EXTRA_KEYS = {"logo_url", "print_logo_url"}
 
 # ruff: noqa: D103
 
@@ -64,6 +68,24 @@ class VendorUpdateParameters(VendorParameters):
         return v
 
 
+class VendorLogoConvertRequest(BaseModel):
+    logo_url: str = Field(description="Source web logo URL or local logo path.")
+    vendor_name: str | None = Field(None, max_length=64, description="Optional vendor name for filename slug.")
+
+    @field_validator("logo_url")
+    @classmethod
+    def validate_logo_url(cls: type["VendorLogoConvertRequest"], value: str) -> str:
+        trimmed = value.strip()
+        if trimmed == "":
+            raise ValueError("Logo URL is required.")
+        return trimmed
+
+
+class VendorLogoConvertResult(BaseModel):
+    print_logo_url: str = Field(description="Generated print logo URL.")
+    message: str = Field(description="Result summary.")
+
+
 @router.get(
     "",
     name="Find vendor",
@@ -102,6 +124,13 @@ async def find(
             ),
         ),
     ] = None,
+    logo: Annotated[
+        str | None,
+        Query(
+            title="Logo Filter",
+            description='Use "has-logo" to return vendors with an explicitly saved web logo, or "no-logo" otherwise.',
+        ),
+    ] = None,
     sort: Annotated[
         str | None,
         Query(
@@ -128,6 +157,7 @@ async def find(
         db=db,
         name=name,
         external_id=external_id,
+        logo=logo,
         sort_by=sort_by,
         limit=limit,
         offset=offset,
@@ -158,6 +188,25 @@ async def notify_any(
                 await websocket.send_json({"status": "healthy"})
     except WebSocketDisconnect:
         websocket_manager.disconnect(("vendor",), websocket)
+
+
+@router.post(
+    "/logo-pack/convert-web-to-print",
+    name="Convert vendor web logo to print logo",
+    description="Converts a web logo into a black-and-white print logo stored in runtime vendor logos.",
+    response_model=VendorLogoConvertResult,
+)
+async def convert_web_logo_to_print(body: VendorLogoConvertRequest) -> VendorLogoConvertResult | JSONResponse:
+    try:
+        # Pillow conversion can touch disk and parse image bytes, so run it off the event loop.
+        print_logo_url = await asyncio.to_thread(convert_web_logo_to_print_logo, body.logo_url, body.vendor_name)
+    except (ValueError, RuntimeError, OSError) as exc:
+        return JSONResponse(status_code=400, content=Message(message=str(exc)).model_dump())
+
+    return VendorLogoConvertResult(
+        print_logo_url=print_logo_url,
+        message="Generated print logo from web logo.",
+    )
 
 
 @router.get(
@@ -212,8 +261,10 @@ async def create(  # noqa: ANN201
     # Fetch extra field definitions once at endpoint entry
     all_fields = await get_extra_fields(db, EntityType.vendor) if body.extra else None
     if body.extra and all_fields:
+        # Saved logo paths live alongside extras but bypass generic field validation because they are app-managed.
+        extra_to_validate = {k: v for k, v in body.extra.items() if k not in RESERVED_VENDOR_EXTRA_KEYS}
         try:
-            validate_extra_field_dict(all_fields, body.extra)
+            validate_extra_field_dict(all_fields, extra_to_validate)
         except ValueError as e:
             return JSONResponse(status_code=400, content=Message(message=str(e)).model_dump())
 
@@ -253,8 +304,10 @@ async def update(  # noqa: ANN201
     # Fetch extra field definitions once at endpoint entry
     all_fields = await get_extra_fields(db, EntityType.vendor) if body.extra else None
     if body.extra and all_fields:
+        # Saved logo paths live alongside extras but bypass generic field validation because they are app-managed.
+        extra_to_validate = {k: v for k, v in body.extra.items() if k not in RESERVED_VENDOR_EXTRA_KEYS}
         try:
-            validate_extra_field_dict(all_fields, body.extra)
+            validate_extra_field_dict(all_fields, extra_to_validate)
         except ValueError as e:
             return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 

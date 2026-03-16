@@ -25,13 +25,54 @@ export interface QRCodePrintSettings {
   showContent?: boolean;
   showQRCodeMode?: "no" | "simple" | "withIcon";
   textSize?: number;
+  showManufacturerLogo?: boolean;
+  logoSource?: "print" | "color";
+  logoHeightMm?: number;
+  logoAlign?: "left" | "center" | "right";
+  showTitle?: boolean;
+  titleAreaHeightMm?: number; // Legacy field; no longer used.
+  titleTextSize?: number; // Legacy field; migrated to titleMaxTextSize.
+  titleMaxTextSize?: number;
+  titleFitToWidth?: boolean;
+  titleAlign?: "left" | "center" | "right";
+  qrCodeSizeMm?: number;
+  qrCodePosition?: "left" | "right";
+  qrCodeAlign?: "top" | "center" | "bottom";
+  infoAlign?: "left" | "center" | "right";
+  infoVerticalAlign?: "top" | "center" | "bottom";
   printSettings: PrintSettings;
 }
 
 export interface SpoolQRCodePrintSettings {
   template?: string;
+  titleTemplate?: string;
   filenameTemplate?: string;
   labelSettings: QRCodePrintSettings;
+}
+
+// Merge shared defaults and saved presets without duplicating ids when multiple setting buckets are loaded together.
+export function mergePrintPresets(
+  ...presetLists: Array<SpoolQRCodePrintSettings[] | undefined>
+): SpoolQRCodePrintSettings[] | undefined {
+  const merged: SpoolQRCodePrintSettings[] = [];
+  const seenIds = new Set<string>();
+  const hasUnloadedList = presetLists.some((list) => list === undefined);
+
+  for (const list of presetLists) {
+    if (!list) continue;
+    for (const preset of list) {
+      const id = preset.labelSettings?.printSettings?.id;
+      if (!id || seenIds.has(id)) continue;
+      seenIds.add(id);
+      merged.push(preset);
+    }
+  }
+
+  if (merged.length === 0 && hasUnloadedList) {
+    return undefined;
+  }
+
+  return merged;
 }
 
 export function getConfiguredBaseUrl(rawValue: string | undefined, fallback: string): string {
@@ -54,8 +95,7 @@ export function useGetPrintSettings(settingKey = "print_presets"): SpoolQRCodePr
   if (!data) return;
   const parsed: SpoolQRCodePrintSettings[] =
     data && data.value ? JSON.parse(data.value) : ([] as SpoolQRCodePrintSettings[]);
-  // Backfill IDs onto older presets so select/update flows keep working after
-  // new print/export settings are introduced.
+  // Older presets did not store ids; generate them lazily so the editor can still target each entry.
   return parsed.map((settings) => {
     if (!settings.labelSettings.printSettings.id) {
       settings.labelSettings.printSettings.id = uuidv4();
@@ -74,7 +114,7 @@ export function useSetPrintSettings(
   };
 }
 
-// Resolve dot-path placeholders, including JSON-backed extra fields, for label templates.
+// Resolve dot-path placeholders, including JSON-backed extra fields, for title/label/filename templates.
 function getTagValue(tag: string, obj: object): unknown {
   const record = obj as { [key: string]: unknown; extra?: { [key: string]: string } };
   const tagParts = tag.split(".");
@@ -87,7 +127,7 @@ function getTagValue(tag: string, obj: object): unknown {
   }
 
   const value = record[tagParts[0]] ?? "?";
-  // Nested tags like `vendor.name` recurse through the related object tree.
+  // Nested relations reuse the same lookup rules so templates can walk into vendor and filament fields.
   if (typeof value === "object" && value !== null) {
     return getTagValue(tagParts.slice(1).join("."), value);
   }
@@ -104,20 +144,42 @@ function applyNewline(text: string): ReactElement[] {
 }
 
 function applyTextFormatting(text: string): ReactElement[] {
-  const regex = /\*\*([\w\W]*?)\*\*/g;
+  // Supports **bold** and ==inverted== blocks (can be mixed in one template).
+  const regex = /(\*\*[\w\W]*?\*\*|==[\w\W]*?==)/g;
   const parts = text.split(regex);
-  // Map over the parts and wrap matched text with <b> tags
   const elements = parts.map((part, index) => {
-    // Even index: outside asterisks, odd index: inside asterisks (to be bolded)
+    if (part.startsWith("**") && part.endsWith("**")) {
+      const content = part.slice(2, -2);
+      const node = applyTextFormatting(content);
+      return <b key={index}>{node}</b>;
+    }
+
+    if (part.startsWith("==") && part.endsWith("==")) {
+      const content = part.slice(2, -2);
+      const node = applyTextFormatting(content);
+      return (
+        <span
+          key={index}
+          style={{
+            backgroundColor: "#000",
+            color: "#fff",
+            padding: "0 0.6mm",
+            display: "inline-block",
+          }}
+        >
+          {node}
+        </span>
+      );
+    }
+
     const node = applyNewline(part);
-    return index % 2 === 0 ? <span key={index}>{node}</span> : <b key={index}>{node}</b>;
+    return <span key={index}>{node}</span>;
   });
   return elements;
 }
 
+// Expand optional sections and scalar tags into plain text before the print/export renderers apply styling.
 export function renderTemplateText(template: string, obj: object): string {
-  // Expand plain `{tag}` placeholders and optional wrapper blocks like
-  // `{prefix {tag} suffix}`, dropping the whole wrapper when the tag is missing.
   const matches = [...template.matchAll(/{(?:[^}{]|{[^}{]*})*}/gs)];
   let renderedText = template;
   matches.forEach((match) => {
@@ -143,6 +205,5 @@ export function renderTemplateText(template: string, obj: object): string {
 
 export function renderLabelContents(template: string, obj: object): ReactElement {
   const renderedText = renderTemplateText(template, obj);
-  // Split string on \n into individual lines
   return <>{applyTextFormatting(renderedText)}</>;
 }

@@ -1,11 +1,13 @@
 import { Create, useForm } from "@refinedev/antd";
 import { HttpError, IResourceComponentsProps, useTranslate } from "@refinedev/core";
-import { Button, Form, Input, InputNumber, Typography } from "antd";
+import { AutoComplete, Button, Form, Input, InputNumber, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useEffect } from "react";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
+import { useVendorLogoManifest } from "../../components/otherModels";
+import VendorLogo from "../../components/vendorLogo";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { IVendor, IVendorParsedExtras } from "./model";
 
@@ -18,6 +20,7 @@ interface CreateOrCloneProps {
 export const VendorCreate = (props: IResourceComponentsProps & CreateOrCloneProps) => {
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.vendor);
+  const logoManifest = useVendorLogoManifest();
 
   const { form, formProps, formLoading, onFinish, redirect } = useForm<
     IVendor,
@@ -34,6 +37,20 @@ export const VendorCreate = (props: IResourceComponentsProps & CreateOrCloneProp
     // Parse the extra fields from string values into real types
     formProps.initialValues = ParsedExtras(formProps.initialValues);
   }
+
+  const watchedName = Form.useWatch(["name"], form);
+  const watchedExtra = Form.useWatch(["extra"], form) as { [key: string]: unknown } | undefined;
+  const logoPreviewVendor: IVendor = {
+    id: 0,
+    registered: "",
+    name: watchedName ?? "",
+    extra: {
+      logo_url: typeof watchedExtra?.logo_url === "string" ? watchedExtra.logo_url : "",
+      print_logo_url: typeof watchedExtra?.print_logo_url === "string" ? watchedExtra.print_logo_url : "",
+    },
+  };
+  const webLogoOptions = (logoManifest.data?.web_files ?? []).map((value) => ({ value }));
+  const printLogoOptions = (logoManifest.data?.print_files ?? []).map((value) => ({ value }));
 
   const handleSubmit = async (redirectTo: "list" | "edit" | "create") => {
     const values = StringifiedExtras(await form.validateFields());
@@ -89,6 +106,101 @@ export const VendorCreate = (props: IResourceComponentsProps & CreateOrCloneProp
           ]}
         >
           <TextArea maxLength={1024} />
+        </Form.Item>
+        <Form.Item
+          label={t("vendor.fields.logo_url")}
+          help={t("vendor.fields_help.logo_url")}
+          name={["extra", "logo_url"]}
+          rules={[
+            {
+              required: false,
+              type: "string",
+            },
+          ]}
+        >
+          <AutoComplete options={webLogoOptions} placeholder="/vendor-logos/web/vendor.png" />
+        </Form.Item>
+        <Form.Item
+          label={t("vendor.fields.print_logo_url")}
+          help={t("vendor.fields_help.print_logo_url")}
+          name={["extra", "print_logo_url"]}
+          rules={[
+            {
+              required: false,
+              type: "string",
+            },
+          ]}
+        >
+          <AutoComplete options={printLogoOptions} placeholder="/vendor-logos/print/vendor.png" />
+        </Form.Item>
+        <Form.Item label={t("vendor.fields.logo_preview")}>
+          <div
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 8,
+              padding: 8,
+              border: "1px solid #d9d9d9",
+            }}
+          >
+            <VendorLogo
+              vendor={logoPreviewVendor}
+              showFallbackText
+              imgStyle={{
+                display: "block",
+                width: "100%",
+                maxWidth: "320px",
+                maxHeight: "56px",
+                objectFit: "contain",
+                objectPosition: "left center",
+              }}
+              fallbackStyle={{
+                width: "100%",
+                maxWidth: "320px",
+                fontWeight: 700,
+                fontSize: "20px",
+                lineHeight: 1.1,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                color: "#111",
+              }}
+            />
+          </div>
+        </Form.Item>
+        <Form.Item label={t("vendor.fields.print_logo_preview")}>
+          <div
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 8,
+              padding: 8,
+              border: "1px solid #d9d9d9",
+            }}
+          >
+            <VendorLogo
+              vendor={logoPreviewVendor}
+              usePrintLogo
+              showFallbackText
+              imgStyle={{
+                display: "block",
+                width: "100%",
+                maxWidth: "320px",
+                maxHeight: "56px",
+                objectFit: "contain",
+                objectPosition: "left center",
+              }}
+              fallbackStyle={{
+                width: "100%",
+                maxWidth: "320px",
+                fontWeight: 700,
+                fontSize: "20px",
+                lineHeight: 1.1,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                color: "#111",
+              }}
+            />
+          </div>
         </Form.Item>
         <Form.Item
           label={t("vendor.fields.empty_spool_weight")}
