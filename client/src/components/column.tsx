@@ -5,7 +5,7 @@ import { ColumnFilterItem, ColumnType } from "antd/es/table/interface";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { AlignType } from "rc-table/lib/interface";
-import { Key, useMemo, useState } from "react";
+import { Key, useCallback, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { getFiltersForField, typeFilters } from "../utils/filtering";
 import { enrichText } from "../utils/parsing";
@@ -142,7 +142,7 @@ function FilterDropdownContent(props: {
   const endIndex = Math.min(filteredItems.length, startIndex + visibleCount + FILTER_DROPDOWN_OVERSCAN * 2);
   const visibleItems = filteredItems.slice(startIndex, endIndex);
 
-  const selectAllFiltered = () => {
+  const selectAllFiltered = useCallback(() => {
     if (filteredValues.length === 0) {
       return;
     }
@@ -154,16 +154,16 @@ function FilterDropdownContent(props: {
     const existing = new Map(selectedKeys.map((value) => [valueKey(value), value]));
     filteredValues.forEach((value) => existing.set(valueKey(value), value));
     setSelectedKeys(Array.from(existing.values()));
-  };
+  }, [filteredValues, selectedKeys, allowMultipleFilters]);
 
-  const selectNoneFiltered = () => {
+  const selectNoneFiltered = useCallback(() => {
     if (!allowMultipleFilters) {
       const firstNonFiltered = selectedKeys.find((value) => !filteredValueKeySet.has(valueKey(value)));
       setSelectedKeys(firstNonFiltered ? [firstNonFiltered] : []);
       return;
     }
     setSelectedKeys(selectedKeys.filter((value) => !filteredValueKeySet.has(valueKey(value))));
-  };
+  }, [filteredValueKeySet, selectedKeys, allowMultipleFilters]);
 
   return (
     <div style={{ padding: 8, width: dropdownWidth }}>
