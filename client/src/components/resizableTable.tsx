@@ -15,7 +15,14 @@ interface ResizableHeaderCellProps extends ThHTMLAttributes<HTMLTableCellElement
 
 // Keep resize-handle gestures separate from the header cell itself so resizing
 // does not accidentally trigger the table's built-in sort interactions.
-function ResizableHeaderCell({ className, onResizeStart, onResizeAutoFit, resizable, children, ...restProps }: ResizableHeaderCellProps) {
+function ResizableHeaderCell({
+  className,
+  onResizeStart,
+  onResizeAutoFit,
+  resizable,
+  children,
+  ...restProps
+}: ResizableHeaderCellProps) {
   return (
     <th {...restProps} className={`${className ?? ""}${resizable ? " resizable-table-header-cell" : ""}`}>
       {children}
@@ -52,7 +59,11 @@ function serializeDataIndex(dataIndex: unknown): string | undefined {
   return undefined;
 }
 
-function columnIdentifier<RecordType extends AnyObject>(column: ColumnType<RecordType>, index: number, parentId: string): string {
+function columnIdentifier<RecordType extends AnyObject>(
+  column: ColumnType<RecordType>,
+  index: number,
+  parentId: string,
+): string {
   const key = column.key != null ? String(column.key) : undefined;
   const dataIndex = serializeDataIndex(column.dataIndex);
   // Widths are persisted, so the identifier must stay stable across renders even when
@@ -263,7 +274,9 @@ function ResizableTable<RecordType extends AnyObject>(props: ResizableTableProps
               }
 
               const autoFitWidth = Math.max(minColumnWidth, nextWidth);
-              const finalWidth = hasOverflow ? autoFitWidth : Math.max(minColumnWidth, Math.min(currentWidth, autoFitWidth));
+              const finalWidth = hasOverflow
+                ? autoFitWidth
+                : Math.max(minColumnWidth, Math.min(currentWidth, autoFitWidth));
               setColumnWidths((previous) => {
                 if (previous[id] === finalWidth) {
                   return previous;
