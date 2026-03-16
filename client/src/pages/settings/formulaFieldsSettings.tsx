@@ -10,7 +10,6 @@ import {
   PlusOutlined,
   QuestionCircleOutlined,
   WarningOutlined,
-  CopyOutlined,
 } from "@ant-design/icons";
 import { useTranslate } from "@refinedev/core";
 import {
@@ -215,9 +214,7 @@ function resolveColorLuminance(color: string): number | null {
   if (hexMatch) {
     const hex = hexMatch[1];
     const value =
-      hex.length === 3 || hex.length === 4
-        ? `${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}`
-        : hex.slice(0, 6);
+      hex.length === 3 || hex.length === 4 ? `${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}` : hex.slice(0, 6);
     const r = parseInt(value.slice(0, 2), 16);
     const g = parseInt(value.slice(2, 4), 16);
     const b = parseInt(value.slice(4, 6), 16);
@@ -421,11 +418,22 @@ function randomFloatSampleValue(): number {
 
 // Randomize datetime sample times so date-diff previews surface fractional values by default.
 function randomTwoDigitSampleValue(maxExclusive: number): string {
-  return Math.floor(Math.random() * maxExclusive).toString().padStart(2, "0");
+  return Math.floor(Math.random() * maxExclusive)
+    .toString()
+    .padStart(2, "0");
 }
 
 function randomIsoDatetimeSampleValue(baseDate: string): string {
-  return baseDate + "T" + randomTwoDigitSampleValue(24) + ":" + randomTwoDigitSampleValue(60) + ":" + randomTwoDigitSampleValue(60) + "Z";
+  return (
+    baseDate +
+    "T" +
+    randomTwoDigitSampleValue(24) +
+    ":" +
+    randomTwoDigitSampleValue(60) +
+    ":" +
+    randomTwoDigitSampleValue(60) +
+    "Z"
+  );
 }
 
 function randomOrderedIntegerRangeSampleValue(): [number, number] {
@@ -575,7 +583,11 @@ function inferExpressionJsonType(node: unknown): FormulaResultTypeHint {
     return "number";
   }
 
-  if (["date_only", "time_only", "today", "cat", "concat", "replace", "trim", "upper", "lower", "left", "right"].includes(operator)) {
+  if (
+    ["date_only", "time_only", "today", "cat", "concat", "replace", "trim", "upper", "lower", "left", "right"].includes(
+      operator,
+    )
+  ) {
     return "text";
   }
 
@@ -669,13 +681,14 @@ export function FormulaFieldsSettings() {
     () => ({
       display: "grid",
       // Keep references dense while predictable: 4 columns on desktop, 3/2 on medium widths, 1 on mobile.
-      gridTemplateColumns: screens.lg || screens.xl || screens.xxl
-        ? "repeat(4, minmax(0, 1fr))"
-        : screens.md
-          ? "repeat(3, minmax(0, 1fr))"
-          : screens.sm
-            ? "repeat(2, minmax(0, 1fr))"
-            : "repeat(1, minmax(0, 1fr))",
+      gridTemplateColumns:
+        screens.lg || screens.xl || screens.xxl
+          ? "repeat(4, minmax(0, 1fr))"
+          : screens.md
+            ? "repeat(3, minmax(0, 1fr))"
+            : screens.sm
+              ? "repeat(2, minmax(0, 1fr))"
+              : "repeat(1, minmax(0, 1fr))",
       gap: 6,
     }),
     [screens.lg, screens.md, screens.sm, screens.xl, screens.xxl],
@@ -781,10 +794,11 @@ export function FormulaFieldsSettings() {
           mixBlendMode: "normal",
         },
         // Force one consistent drawn selection color for both focused and blurred states.
-        ".cm-selectionBackground, .cm-selectionLayer .cm-selectionBackground, &.cm-focused .cm-selectionBackground, &.cm-focused .cm-selectionLayer .cm-selectionBackground": {
-          backgroundColor: `${selectionColor} !important`,
-          borderRadius: 2,
-        },
+        ".cm-selectionBackground, .cm-selectionLayer .cm-selectionBackground, &.cm-focused .cm-selectionBackground, &.cm-focused .cm-selectionLayer .cm-selectionBackground":
+          {
+            backgroundColor: `${selectionColor} !important`,
+            borderRadius: 2,
+          },
         // Keep native browser selection transparent so it doesn't override with platform colors.
         ".cm-content ::selection, .cm-line ::selection, .cm-line > span::selection, .cm-content *::selection": {
           backgroundColor: "transparent !important",
@@ -833,10 +847,7 @@ export function FormulaFieldsSettings() {
     ],
     [t],
   );
-  const keyLooksLikeReservedToken = useMemo(
-    () => RESERVED_DERIVED_KEY_NAMES.has(derivedKeyValue),
-    [derivedKeyValue],
-  );
+  const keyLooksLikeReservedToken = useMemo(() => RESERVED_DERIVED_KEY_NAMES.has(derivedKeyValue), [derivedKeyValue]);
 
   const sampleValuesPlaceholder = SAMPLE_VALUE_PLACEHOLDERS[selectedEntityType];
 
@@ -1021,7 +1032,9 @@ export function FormulaFieldsSettings() {
     // tokens that can't accept that selected reference kind. Clearing/completing pending insert
     // resets all helper tokens back to normal.
     if (pendingJsonHelperInsert?.selectedOperands.length) {
-      const selectedReference = pendingJsonHelperInsert.selectedOperands.find((operand) => operand.kind === "reference");
+      const selectedReference = pendingJsonHelperInsert.selectedOperands.find(
+        (operand) => operand.kind === "reference",
+      );
       if (!selectedReference) {
         return null;
       }
@@ -1100,17 +1113,17 @@ export function FormulaFieldsSettings() {
     <div style={{ display: "grid", gap: 6 }}>
       {operatorGroups.map((group) => {
         const compactTitle =
-          group.key === "logical"
-            ? (
-              <>
-                {t("settings.formula_fields.formula.json_builder.operator_compact.logical_top")}
-                <br />
-                {t("settings.formula_fields.formula.json_builder.operator_compact.logical_bottom")}
-              </>
-            )
-            : group.key === "comparison"
-              ? t("settings.formula_fields.formula.json_builder.operator_compact.comparison")
-              : t("settings.formula_fields.formula.json_builder.operator_compact.math");
+          group.key === "logical" ? (
+            <>
+              {t("settings.formula_fields.formula.json_builder.operator_compact.logical_top")}
+              <br />
+              {t("settings.formula_fields.formula.json_builder.operator_compact.logical_bottom")}
+            </>
+          ) : group.key === "comparison" ? (
+            t("settings.formula_fields.formula.json_builder.operator_compact.comparison")
+          ) : (
+            t("settings.formula_fields.formula.json_builder.operator_compact.math")
+          );
         const operatorGridColumns = group.key === "logical" ? "repeat(2, max-content)" : "repeat(3, max-content)";
         const labelColumnWidth = group.key === "logical" ? 90 : 78;
         return (
@@ -1135,7 +1148,7 @@ export function FormulaFieldsSettings() {
                 justifyContent: "start",
               }}
             >
-              {group.operators.map((operator) => (
+              {group.operators.map((operator) =>
                 (() => {
                   const tokenId = `operator-${group.key}-${operator}`;
                   const isHovered = hoveredTokenId === tokenId;
@@ -1158,17 +1171,29 @@ export function FormulaFieldsSettings() {
                         transition: "all 120ms ease-out",
                       }}
                       onMouseEnter={interactive && !disabled ? () => setHoveredTokenId(tokenId) : undefined}
-                      onMouseLeave={interactive && !disabled ? () => setHoveredTokenId((current) => (current === tokenId ? null : current)) : undefined}
+                      onMouseLeave={
+                        interactive && !disabled
+                          ? () => setHoveredTokenId((current) => (current === tokenId ? null : current))
+                          : undefined
+                      }
                       onClick={interactive && !disabled ? () => insertExpressionJsonOperator(operator) : undefined}
                     >
                       {operator}
                     </Typography.Text>
                   );
-                })()
-              ))}
+                })(),
+              )}
             </div>
             <Typography.Text type="secondary">
-              <strong style={{ lineHeight: 1.1, fontSize: "0.92em", whiteSpace: "nowrap", textAlign: "right", display: "block" }}>
+              <strong
+                style={{
+                  lineHeight: 1.1,
+                  fontSize: "0.92em",
+                  whiteSpace: "nowrap",
+                  textAlign: "right",
+                  display: "block",
+                }}
+              >
                 {compactTitle}
               </strong>
             </Typography.Text>
@@ -1184,11 +1209,7 @@ export function FormulaFieldsSettings() {
   // helper snippet with those references. Respects helper constraints: insert_mode (none/single/multiple),
   // reference_count (how many fields the helper needs), value_kind (type checks for compatibility).
   // Disabled helpers show tooltips explaining why (e.g., "no numeric fields available for math helper").
-  const renderHelperTokenCategory = (
-    groupKey: string,
-    interactive: boolean,
-    compact = false,
-  ) => {
+  const renderHelperTokenCategory = (groupKey: string, interactive: boolean, compact = false) => {
     const group = helperGroupByKey[groupKey];
     if (!group || group.helpers.length === 0) {
       return null;
@@ -1216,7 +1237,11 @@ export function FormulaFieldsSettings() {
               transition: "all 120ms ease-out",
             }}
             onMouseEnter={interactive && !disabledReason ? () => setHoveredTokenId(tokenId) : undefined}
-            onMouseLeave={interactive && !disabledReason ? () => setHoveredTokenId((current) => (current === tokenId ? null : current)) : undefined}
+            onMouseLeave={
+              interactive && !disabledReason
+                ? () => setHoveredTokenId((current) => (current === tokenId ? null : current))
+                : undefined
+            }
             onClick={interactive && !disabledReason ? () => insertExpressionJsonHelper(helper) : undefined}
           >
             {helper.name}
@@ -1502,9 +1527,9 @@ export function FormulaFieldsSettings() {
     }
 
     const snippet = {
-      [pendingHelperDefinition.name]: selectedOperands.slice(0, requiredReferenceCount).map((operand) => (
-        operand.kind === "reference" ? { var: operand.value } : { [operand.value]: [] }
-      )),
+      [pendingHelperDefinition.name]: selectedOperands
+        .slice(0, requiredReferenceCount)
+        .map((operand) => (operand.kind === "reference" ? { var: operand.value } : { [operand.value]: [] })),
     };
     // Insert ready-to-parse JSON Logic objects so users can build expressions without memorizing
     // raw AST syntax. Pending helper operands may be refs or helper calls like today().
@@ -1515,7 +1540,12 @@ export function FormulaFieldsSettings() {
   const insertExpressionJsonHelper = (helper: FormulaHelperDefinition) => {
     // Treat today() as a valid date-diff operand while a pending helper is collecting
     // operands, so clicks produce one combined snippet instead of standalone {"today":[]}.
-    if (pendingHelperDefinition && helper.insert_mode === "none" && helper.name === "today" && pendingHelperDefinition.category === "date_diff") {
+    if (
+      pendingHelperDefinition &&
+      helper.insert_mode === "none" &&
+      helper.name === "today" &&
+      pendingHelperDefinition.category === "date_diff"
+    ) {
       const pendingState = pendingJsonHelperInsert;
       if (!pendingState) {
         return;
@@ -1530,9 +1560,9 @@ export function FormulaFieldsSettings() {
         return;
       }
       const snippet = {
-        [pendingHelperDefinition.name]: selectedOperands.slice(0, requiredReferenceCount).map((operand) => (
-          operand.kind === "reference" ? { var: operand.value } : { [operand.value]: [] }
-        )),
+        [pendingHelperDefinition.name]: selectedOperands
+          .slice(0, requiredReferenceCount)
+          .map((operand) => (operand.kind === "reference" ? { var: operand.value } : { [operand.value]: [] })),
       };
       // Allow date-diff helpers to consume dynamic today() as an operand instead of inserting it standalone.
       insertExpressionJsonSnippet(JSON.stringify(snippet, null, 2));
@@ -1706,9 +1736,14 @@ export function FormulaFieldsSettings() {
       });
 
       messageApi.success(
-        t(editingDerivedKey ? "settings.formula_fields.formula.messages.updated" : "settings.formula_fields.formula.messages.created", {
-          name: values.name,
-        }),
+        t(
+          editingDerivedKey
+            ? "settings.formula_fields.formula.messages.updated"
+            : "settings.formula_fields.formula.messages.created",
+          {
+            name: values.name,
+          },
+        ),
       );
       closeDerivedModal();
     } catch (errInfo) {
@@ -1742,11 +1777,7 @@ export function FormulaFieldsSettings() {
       const referenceKind = referenceKindByName[reference] || "unknown";
       // Seed new sample keys with type-aware defaults so previews work immediately
       // and users can adjust values instead of building sample JSON from scratch.
-      const defaultValue = getSampleDefaultValue(
-        referenceKind,
-        reference,
-        configuredFieldByReference[reference],
-      );
+      const defaultValue = getSampleDefaultValue(referenceKind, reference, configuredFieldByReference[reference]);
       if (insertReferencePathIfMissing(mergedSampleValues, reference, defaultValue)) {
         insertedReferences.push(reference);
         trackedAutoReferences.add(reference);
@@ -1762,49 +1793,56 @@ export function FormulaFieldsSettings() {
 
   // Execute preview with request sequencing so stale async responses never overwrite
   // newer editor state while users are typing quickly.
-  const runPreview = useCallback(async (showMessageOnError: boolean) => {
-    const requestId = previewRequestRef.current + 1;
-    previewRequestRef.current = requestId;
-    try {
-      const sampleValues = parseSampleValues((derivedForm.getFieldValue("sample_values") as string | undefined) || "{}");
-      const expressionJson = parseExpressionJson(derivedForm.getFieldValue("expression_json") as string | undefined);
-      if (!expressionJson) {
-        throw new Error(t("settings.formula_fields.formula.expression_json_required"));
-      }
-      // Preview uses sample JSON only as a sandbox for validating formulas before they are exposed
-      // on show/list/template surfaces.
-      const preview = await previewDerivedField.mutateAsync({
-        expression_json: expressionJson,
-        sample_values: sampleValues,
-      });
+  const runPreview = useCallback(
+    async (showMessageOnError: boolean) => {
+      const requestId = previewRequestRef.current + 1;
+      previewRequestRef.current = requestId;
+      try {
+        const sampleValues = parseSampleValues(
+          (derivedForm.getFieldValue("sample_values") as string | undefined) || "{}",
+        );
+        const expressionJson = parseExpressionJson(derivedForm.getFieldValue("expression_json") as string | undefined);
+        if (!expressionJson) {
+          throw new Error(t("settings.formula_fields.formula.expression_json_required"));
+        }
+        // Preview uses sample JSON only as a sandbox for validating formulas before they are exposed
+        // on show/list/template surfaces.
+        const preview = await previewDerivedField.mutateAsync({
+          expression_json: expressionJson,
+          sample_values: sampleValues,
+        });
 
-      if (requestId !== previewRequestRef.current) {
-        return;
+        if (requestId !== previewRequestRef.current) {
+          return;
+        }
+        setPreviewText(formatPreviewValue(preview.result));
+        setPreviewErrorText(null);
+      } catch (errInfo) {
+        if (requestId !== previewRequestRef.current) {
+          return;
+        }
+        setPreviewText(null);
+        if (errInfo instanceof Error) {
+          setPreviewErrorText(errInfo.message);
+        } else {
+          setPreviewErrorText(t("settings.formula_fields.formula.preview.error_fallback"));
+        }
+        if (showMessageOnError && errInfo instanceof Error) {
+          messageApi.error(errInfo.message);
+        }
       }
-      setPreviewText(formatPreviewValue(preview.result));
-      setPreviewErrorText(null);
-    } catch (errInfo) {
-      if (requestId !== previewRequestRef.current) {
-        return;
-      }
-      setPreviewText(null);
-      if (errInfo instanceof Error) {
-        setPreviewErrorText(errInfo.message);
-      } else {
-        setPreviewErrorText(t("settings.formula_fields.formula.preview.error_fallback"));
-      }
-      if (showMessageOnError && errInfo instanceof Error) {
-        messageApi.error(errInfo.message);
-      }
-    }
-  }, [derivedForm, messageApi, previewDerivedField, t]);
+    },
+    [derivedForm, messageApi, previewDerivedField, t],
+  );
 
   // Apply one synchronization pass between expression refs and sample JSON.
   // The pass is non-destructive for user-owned keys while still cleaning stale auto-managed refs.
   const syncMissingSampleValueKeys = (showMessageOnError: boolean) => {
     let currentSampleValues: Record<string, unknown>;
     try {
-      currentSampleValues = parseSampleValues((derivedForm.getFieldValue("sample_values") as string | undefined) || "{}");
+      currentSampleValues = parseSampleValues(
+        (derivedForm.getFieldValue("sample_values") as string | undefined) || "{}",
+      );
     } catch (errInfo) {
       if (showMessageOnError && errInfo instanceof Error) {
         messageApi.warning(errInfo.message);
@@ -1813,7 +1851,8 @@ export function FormulaFieldsSettings() {
     }
 
     // Apply additive scaffolding and dead-key pruning without touching user-owned sample keys.
-    const { mergedSampleValues, insertedReferences, removedReferences } = buildSampleValuesWithMissingReferences(currentSampleValues);
+    const { mergedSampleValues, insertedReferences, removedReferences } =
+      buildSampleValuesWithMissingReferences(currentSampleValues);
 
     if (insertedReferences.length === 0 && removedReferences.length === 0) {
       return true;
@@ -1832,7 +1871,7 @@ export function FormulaFieldsSettings() {
       return;
     }
 
-    if (((expressionJsonValue || "").trim()) === "") {
+    if ((expressionJsonValue || "").trim() === "") {
       autoManagedSampleReferencesRef.current.clear();
       const currentSampleValuesRaw = (derivedForm.getFieldValue("sample_values") as string | undefined) || "";
       if (currentSampleValuesRaw.trim() !== "{}") {
@@ -1865,7 +1904,7 @@ export function FormulaFieldsSettings() {
       return;
     }
 
-    if (((expressionJsonValue || "").trim()) === "") {
+    if ((expressionJsonValue || "").trim() === "") {
       setPreviewText(null);
       setPreviewErrorText(t("settings.formula_fields.formula.expression_json_required"));
       return;
@@ -2086,10 +2125,7 @@ export function FormulaFieldsSettings() {
         pagination={false}
         locale={{
           emptyText: (
-            <Empty
-              description={t("settings.formula_fields.formula.empty")}
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-            />
+            <Empty description={t("settings.formula_fields.formula.empty")} image={Empty.PRESENTED_IMAGE_SIMPLE} />
           ),
         }}
         onRow={(record) => {
@@ -2151,7 +2187,7 @@ export function FormulaFieldsSettings() {
                   "settings.formula_fields.formula.tooltips.key",
                 )}
                 name="key"
-                extra={(
+                extra={
                   <Space direction="vertical" size={2} style={{ width: "100%" }}>
                     <Typography.Text type="secondary">
                       {t("settings.formula_fields.formula.key_usage_help")}:{" "}
@@ -2164,7 +2200,7 @@ export function FormulaFieldsSettings() {
                       </Typography.Text>
                     )}
                   </Space>
-                )}
+                }
                 rules={[
                   { required: true, min: 1, max: 64, pattern: /^[a-z0-9_]+$/ },
                   {
@@ -2199,7 +2235,11 @@ export function FormulaFieldsSettings() {
               </Form.Item>
             </Col>
           </Row>
-          <Form.Item label={t("settings.formula_fields.formula.columns.description")} name="description" rules={[{ max: 512 }]}>
+          <Form.Item
+            label={t("settings.formula_fields.formula.columns.description")}
+            name="description"
+            rules={[{ max: 512 }]}
+          >
             <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
           </Form.Item>
           <Form.Item
@@ -2255,7 +2295,9 @@ export function FormulaFieldsSettings() {
                   // Validate that all referenced custom fields still exist (prevent silent formula failures after field deletion)
                   const referencedCustomFields = getExtraFieldReferences(parsed);
                   const availableCustomFields = new Set((configuredFields.data || []).map((field) => field.key));
-                  const missingFields = referencedCustomFields.filter((fieldKey) => !availableCustomFields.has(fieldKey));
+                  const missingFields = referencedCustomFields.filter(
+                    (fieldKey) => !availableCustomFields.has(fieldKey),
+                  );
                   if (missingFields.length > 0) {
                     throw new Error(
                       t("settings.formula_fields.formula.missing_references", { references: missingFields.join(", ") }),
@@ -2322,7 +2364,8 @@ export function FormulaFieldsSettings() {
                         // Ignore no-op sync events where CodeMirror re-emits the same text that is
                         // already in the form model. This prevents guided IF/operator state from
                         // being canceled before the user clicks the next required token.
-                        const currentExpressionValue = (derivedForm.getFieldValue("expression_json") as string | undefined) || "";
+                        const currentExpressionValue =
+                          (derivedForm.getFieldValue("expression_json") as string | undefined) || "";
                         if (value === currentExpressionValue) {
                           return;
                         }
@@ -2338,12 +2381,7 @@ export function FormulaFieldsSettings() {
                     />
                   </div>
                   {/* Keep editor action controls anchored under the expression editor. */}
-                  <Flex
-                    justify="flex-end"
-                    align="center"
-                    gap={8}
-                    style={{ marginTop: 4 }}
-                  >
+                  <Flex justify="flex-end" align="center" gap={8} style={{ marginTop: 4 }}>
                     <Tooltip title={t("settings.formula_fields.formula.json_builder.format_tooltip")}>
                       <Button size="small" onClick={() => formatExpressionJson()}>
                         {t("settings.formula_fields.formula.json_builder.format")}
@@ -2419,10 +2457,7 @@ export function FormulaFieldsSettings() {
                 <Tooltip title={t("settings.formula_fields.formula.json_builder.click_to_insert_help")}>
                   <QuestionCircleOutlined style={{ fontSize: "0.9em" }} />
                 </Tooltip>
-                <Link
-                  style={{ fontSize: "0.85em" }}
-                  to="/help#formula-token-groups"
-                >
+                <Link style={{ fontSize: "0.85em" }} to="/help#formula-token-groups">
                   {t("settings.formula_fields.help_links.formula_tokens")}
                 </Link>
                 <Tooltip
@@ -2486,12 +2521,18 @@ export function FormulaFieldsSettings() {
                               />
                             </Tooltip>
                             {pendingHelperHint.allowHelperOnly ? (
-                              <Tooltip title={t("settings.formula_fields.formula.json_builder.insert_without_reference_tooltip")}>
+                              <Tooltip
+                                title={t(
+                                  "settings.formula_fields.formula.json_builder.insert_without_reference_tooltip",
+                                )}
+                              >
                                 <Button
                                   size="small"
                                   type="primary"
                                   onClick={() => insertPendingHelperWithoutReferences()}
-                                  aria-label={t("settings.formula_fields.formula.json_builder.insert_without_reference_tooltip")}
+                                  aria-label={t(
+                                    "settings.formula_fields.formula.json_builder.insert_without_reference_tooltip",
+                                  )}
                                 >
                                   {t("settings.formula_fields.formula.json_builder.helper_only")}
                                 </Button>
@@ -2539,18 +2580,33 @@ export function FormulaFieldsSettings() {
                                   fontWeight: 500,
                                   color: isSelectedForPendingHelper
                                     ? token.colorPrimaryText
-                                    : (!disabledReason && hoveredTokenId === `reference-${reference.value}` ? token.colorWarningText : undefined),
+                                    : !disabledReason && hoveredTokenId === `reference-${reference.value}`
+                                      ? token.colorWarningText
+                                      : undefined,
                                   background:
-                                    !disabledReason && hoveredTokenId === `reference-${reference.value}` ? token.colorWarningBg : undefined,
+                                    !disabledReason && hoveredTokenId === `reference-${reference.value}`
+                                      ? token.colorWarningBg
+                                      : undefined,
                                   borderColor:
                                     !disabledReason && hoveredTokenId === `reference-${reference.value}`
                                       ? token.colorWarningBorder
                                       : undefined,
                                   transition: "all 120ms ease-out",
                                 }}
-                                onMouseEnter={!disabledReason ? () => setHoveredTokenId(`reference-${reference.value}`) : undefined}
-                                onMouseLeave={!disabledReason ? () => setHoveredTokenId((current) => (current === `reference-${reference.value}` ? null : current)) : undefined}
-                                onClick={!disabledReason ? () => insertExpressionJsonReference(reference.value) : undefined}
+                                onMouseEnter={
+                                  !disabledReason ? () => setHoveredTokenId(`reference-${reference.value}`) : undefined
+                                }
+                                onMouseLeave={
+                                  !disabledReason
+                                    ? () =>
+                                        setHoveredTokenId((current) =>
+                                          current === `reference-${reference.value}` ? null : current,
+                                        )
+                                    : undefined
+                                }
+                                onClick={
+                                  !disabledReason ? () => insertExpressionJsonReference(reference.value) : undefined
+                                }
                               >
                                 {reference.label}
                               </Typography.Text>
@@ -2559,13 +2615,20 @@ export function FormulaFieldsSettings() {
                             // do not cause reflow when helper compatibility changes.
                             const content = (
                               <Tooltip title={disabledReason || undefined}>
-                                <span style={{ display: "inline-flex", justifyContent: "center" }}>{referenceToken}</span>
+                                <span style={{ display: "inline-flex", justifyContent: "center" }}>
+                                  {referenceToken}
+                                </span>
                               </Tooltip>
                             );
                             return (
                               <div
                                 key={`reference-cell-${reference.value}`}
-                                style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 24 }}
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  minHeight: 24,
+                                }}
                               >
                                 {content}
                               </div>
@@ -2584,10 +2647,7 @@ export function FormulaFieldsSettings() {
             rules={[
               {
                 validator: async (_, value) => {
-                  parseSampleValues(
-                    value,
-                    t("settings.formula_fields.formula.sample_values_invalid"),
-                  );
+                  parseSampleValues(value, t("settings.formula_fields.formula.sample_values_invalid"));
                 },
               },
             ]}
@@ -2597,7 +2657,10 @@ export function FormulaFieldsSettings() {
               <Row gutter={8} align="middle" wrap={!isDesktopLayout}>
                 <Col flex="auto" style={{ minWidth: 0 }}>
                   <Space size={10} wrap>
-                    {labeledField("settings.formula_fields.formula.sample_values", "settings.formula_fields.formula.tooltips.sample_values")}
+                    {labeledField(
+                      "settings.formula_fields.formula.sample_values",
+                      "settings.formula_fields.formula.tooltips.sample_values",
+                    )}
                     <Space size={6}>
                       <Typography.Text type="secondary">Auto-update</Typography.Text>
                       <Switch
@@ -2683,7 +2746,9 @@ export function FormulaFieldsSettings() {
                         <Typography.Text
                           key={`sample-ref-${reference}`}
                           code
-                          style={isDefined ? undefined : { color: token.colorErrorText, borderColor: token.colorErrorBorder }}
+                          style={
+                            isDefined ? undefined : { color: token.colorErrorText, borderColor: token.colorErrorBorder }
+                          }
                         >
                           {reference}
                         </Typography.Text>

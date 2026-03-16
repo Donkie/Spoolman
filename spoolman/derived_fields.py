@@ -18,6 +18,7 @@ from spoolman.settings import parse_setting
 
 logger = logging.getLogger(__name__)
 
+
 class DerivedFieldType(Enum):
     """Supported output types for a derived field."""
 
@@ -459,8 +460,7 @@ def _normalize_formula_scope(value: Any) -> Any:
         for key, nested in value.items():
             if key == "extra" and isinstance(nested, dict):
                 normalized[key] = {
-                    extra_key: _parse_extra_field_value(extra_value)
-                    for extra_key, extra_value in nested.items()
+                    extra_key: _parse_extra_field_value(extra_value) for extra_key, extra_value in nested.items()
                 }
                 continue
             normalized[key] = _normalize_formula_scope(nested)
@@ -593,7 +593,9 @@ async def resolve_include_derived_in_api(db: AsyncSession, include_derived: bool
     return default_value
 
 
-async def add_or_update_derived_field(db: AsyncSession, entity_type: EntityType, derived_field: DerivedFieldDefinition) -> None:
+async def add_or_update_derived_field(
+    db: AsyncSession, entity_type: EntityType, derived_field: DerivedFieldDefinition
+) -> None:
     """Create or update a derived field."""
     _validate_expression_payload(derived_field.expression_json)
 
