@@ -21,7 +21,8 @@ if [ "$(id -g app)" -ne "$PGID" ]; then
 fi
 
 if [ "$(id -u)" -eq 0 ]; then
-    exec gosu "app" uvicorn spoolman.main:app --host $SPOOLMAN_HOST --port $SPOOLMAN_PORT "$@"
-else
-    exec uvicorn spoolman.main:app --host $SPOOLMAN_HOST --port $SPOOLMAN_PORT "$@"
+    exec gosu "app" "$0" "$@"
+    # NOT REACHABLE
 fi
+
+exec uvicorn spoolman.main:app --host $SPOOLMAN_HOST --port $SPOOLMAN_PORT "$@"
