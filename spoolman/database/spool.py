@@ -111,7 +111,7 @@ async def get_by_id(db: AsyncSession, spool_id: int) -> models.Spool:
     return spool
 
 
-async def find(  # noqa: C901, PLR0912
+async def find(  # noqa: C901, PLR0912, PLR0915
     *,
     db: AsyncSession,
     search: str | None = None,

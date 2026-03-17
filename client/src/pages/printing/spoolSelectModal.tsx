@@ -1,7 +1,7 @@
 import { useTable } from "@refinedev/antd";
 import { Button, Checkbox, Col, Input, message, Pagination, Row, Space, Table } from "antd";
 import { t } from "i18next";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
 import {
@@ -43,23 +43,6 @@ function collapseSpool(element: ISpool): ISpoolCollapsed {
   };
 }
 
-function matchesSearch(spool: ISpoolCollapsed, searchTerm: string): boolean {
-  const needle = searchTerm.trim().toLowerCase();
-  if (needle.length === 0) {
-    return true;
-  }
-
-  const haystacks = [
-    String(spool.id),
-    spool["filament.combined_name"] ?? "",
-    spool["filament.material"] ?? "",
-    spool.location ?? "",
-    spool.lot_nr ?? "",
-  ];
-
-  return haystacks.some((value) => value.toLowerCase().includes(needle));
-}
-
 const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint, searchPlaceholder }: Props) => {
   const MIN_TABLE_SCROLL_Y = 180;
   const TABLE_BOTTOM_GAP = 16;
@@ -67,8 +50,8 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint, 
   const [showArchived, setShowArchived] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
-  const [searchValue, setSearchValue] = useState("");
-  const [serverSearchValue, setServerSearchValue] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedArchivedMap, setSelectedArchivedMap] = useState<Record<number, boolean>>({});
   const [tableScrollY, setTableScrollY] = useState<number>(300);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -80,7 +63,7 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint, 
       meta: {
         queryParams: {
           ["allow_archived"]: showArchived,
-          ...(serverSearchValue.trim().length > 0 ? { search: serverSearchValue.trim() } : {}),
+          ...(debouncedSearch.length > 0 ? { search: debouncedSearch } : {}),
         },
       },
       syncWithLocation: false,
@@ -114,12 +97,6 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint, 
   const dataSource: ISpoolCollapsed[] = useMemo(
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource],
-  );
-  // Keep the UI responsive even without backend search support by letting the text box
-  // instantly narrow whatever page of rows is already loaded.
-  const visibleDataSource = useMemo(
-    () => dataSource.filter((spool) => matchesSearch(spool, searchValue)),
-    [dataSource, searchValue],
   );
   const selectedSet = useMemo(() => new Set(selectedItems), [selectedItems]);
 
@@ -170,51 +147,59 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint, 
     };
   }, []);
 
-  const paginationTotal = tableProps.pagination ? tableProps.pagination.total ?? 0 : 0;
-  const handlePageChange = (page: number, nextPageSize?: number) => {
-    if (typeof nextPageSize === "number" && nextPageSize !== pageSize) {
-      setPageSize(nextPageSize);
-    }
-    setCurrentPage(page);
-  };
-  const handlePageSizeChange = (_current: number, size: number) => {
-    setPageSize(size);
-    setCurrentPage(1);
-  };
+  // Debounce search input to avoid excessive API calls while typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm, setCurrentPage]);
 
-  const applySearchFilter = (nextSearch: string) => {
-    // The server-side search hook is optional; on plain master this still resets paging
-    // while the local narrowed view continues to work on the current page.
-    setServerSearchValue(nextSearch.trim());
-    setCurrentPage(1);
-  };
+  const paginationTotal = tableProps.pagination ? (tableProps.pagination.total ?? 0) : 0;
+  const handlePageChange = useCallback(
+    (page: number, nextPageSize?: number) => {
+      if (typeof nextPageSize === "number" && nextPageSize !== pageSize) {
+        setPageSize(nextPageSize);
+      }
+      setCurrentPage(page);
+    },
+    [pageSize, setPageSize, setCurrentPage],
+  );
+  const handlePageSizeChange = useCallback(
+    (_current: number, size: number) => {
+      setPageSize(size);
+      setCurrentPage(1);
+    },
+    [setPageSize, setCurrentPage],
+  );
 
-  const selectUnselectFiltered = (select: boolean) => {
-    // Bulk selection intentionally follows the visible narrowed rows so "Select All"
-    // acts on what the user can currently see, not on hidden rows on other pages.
-    setSelectedItems((prevSelected) => {
-      const nextSelected = new Set(prevSelected);
-      visibleDataSource.forEach((spool) => {
-        if (select) {
-          nextSelected.add(spool.id);
-        } else {
-          nextSelected.delete(spool.id);
-        }
+  const selectUnselectFiltered = useCallback(
+    (select: boolean) => {
+      setSelectedItems((prevSelected) => {
+        const nextSelected = new Set(prevSelected);
+        dataSource.forEach((spool) => {
+          if (select) {
+            nextSelected.add(spool.id);
+          } else {
+            nextSelected.delete(spool.id);
+          }
+        });
+        return Array.from(nextSelected);
       });
-      return Array.from(nextSelected);
-    });
-  };
+    },
+    [dataSource],
+  );
 
-  const handleSelectItem = (item: number) => {
+  const handleSelectItem = useCallback((item: number) => {
     setSelectedItems((prevSelected) =>
       prevSelected.includes(item) ? prevSelected.filter((selected) => selected !== item) : [...prevSelected, item],
     );
-  };
+  }, []);
 
-  const isAllFilteredSelected =
-    visibleDataSource.length > 0 && visibleDataSource.every((spool) => selectedSet.has(spool.id));
+  const isAllFilteredSelected = dataSource.length > 0 && dataSource.every((spool) => selectedSet.has(spool.id));
   const isSomeButNotAllFilteredSelected =
-    visibleDataSource.some((spool) => selectedSet.has(spool.id)) && !isAllFilteredSelected;
+    dataSource.some((spool) => selectedSet.has(spool.id)) && !isAllFilteredSelected;
 
   const commonProps = {
     t,
@@ -265,17 +250,14 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint, 
           <Col xs={24} md={12}>
             <Input.Search
               placeholder={resolvedSearchPlaceholder}
-              value={searchValue}
+              value={searchTerm}
               allowClear
               enterButton
               onChange={(event) => {
-                const value = event.target.value;
-                setSearchValue(value);
-                applySearchFilter(value);
+                setSearchTerm(event.target.value);
               }}
               onSearch={(value) => {
-                setSearchValue(value);
-                applySearchFilter(value);
+                setSearchTerm(value);
               }}
             />
           </Col>
@@ -284,8 +266,8 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint, 
           <Col flex="none">
             <Button
               onClick={() => {
-                setSearchValue("");
-                setServerSearchValue("");
+                setSearchTerm("");
+                setDebouncedSearch("");
                 setFilters([], "replace");
                 setCurrentPage(1);
               }}
@@ -375,7 +357,7 @@ const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint, 
             rowKey="id"
             tableLayout="fixed"
             pagination={false}
-            dataSource={visibleDataSource}
+            dataSource={dataSource}
             scroll={{ y: tableScrollY, x: "max-content" }}
             columns={removeUndefined([
               {
