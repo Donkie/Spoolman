@@ -17,6 +17,8 @@ interface QRCodePrintingDialogProps {
   items: QRCodeData[];
   printSettings: QRCodePrintSettings;
   setPrintSettings: (setPrintSettings: QRCodePrintSettings) => void;
+  extraTitleSettings?: ReactElement;
+  extraInfoSettings?: ReactElement;
   extraSettings?: ReactElement;
   extraSettingsStart?: ReactElement;
   extraButtons?: ReactElement;
@@ -32,6 +34,8 @@ const QRCodePrintingDialog = ({
   items,
   printSettings,
   setPrintSettings,
+  extraTitleSettings,
+  extraInfoSettings,
   extraSettings,
   extraSettingsStart,
   extraButtons,
@@ -163,6 +167,8 @@ const QRCodePrintingDialog = ({
             </Row>
           </Form.Item>
 
+          {extraTitleSettings}
+          {extraInfoSettings}
           {extraSettings}
         </>
       }

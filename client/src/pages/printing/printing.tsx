@@ -64,14 +64,8 @@ export function useGetPrintSettings(settingKey = "print_presets"): SpoolQRCodePr
   });
 }
 
-export function useSetPrintSettings(
-  settingKey = "print_presets",
-): (spoolQRCodePrintSettings: SpoolQRCodePrintSettings[]) => void {
-  const mut = useSetSetting(settingKey);
-
-  return (spoolQRCodePrintSettings: SpoolQRCodePrintSettings[]) => {
-    mut.mutate(spoolQRCodePrintSettings);
-  };
+export function useSetPrintSettings(settingKey = "print_presets") {
+  return useSetSetting<SpoolQRCodePrintSettings[]>(settingKey);
 }
 
 // Resolve dot-path placeholders, including JSON-backed extra fields, for label templates.
