@@ -43,7 +43,7 @@ async def set_spool_counts(
     spool_count_map = {int(filament_id): int(count) for filament_id, count in spool_count_rows.all()}
 
     for item in filaments:
-        setattr(item, "spool_count", spool_count_map.get(item.id, 0))
+        item.spool_count = spool_count_map.get(item.id, 0)
 
 
 async def create(
@@ -115,7 +115,7 @@ async def get_by_id(db: AsyncSession, filament_id: int) -> models.Filament:
     return filament
 
 
-async def find(
+async def find(  # noqa: C901
     *,
     db: AsyncSession,
     ids: list[int] | None = None,
@@ -138,9 +138,7 @@ async def find(
     Returns a tuple containing the list of items and the total count of matching items.
     """
     spool_count_expr = func.coalesce(
-        select(func.count(models.Spool.id))
-        .where(models.Spool.filament_id == models.Filament.id)
-        .scalar_subquery(),
+        select(func.count(models.Spool.id)).where(models.Spool.filament_id == models.Filament.id).scalar_subquery(),
         0,
     )
     # Reuse the same scalar count expression for filtering and sorting so the list can
