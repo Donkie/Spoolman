@@ -92,7 +92,7 @@ async def get_by_id(db: AsyncSession, filament_id: int) -> models.Filament:
     return filament
 
 
-async def find(
+async def find(  # noqa: C901, PLR0912
     *,
     db: AsyncSession,
     ids: list[int] | None = None,

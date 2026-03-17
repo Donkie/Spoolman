@@ -24,17 +24,6 @@ function collapseFilament(element: IFilament): IFilamentCollapsed {
   return { ...element, "vendor.name": element.vendor?.name ?? null };
 }
 
-// Keep the quick search local to the currently loaded page instead of changing the server-side query contract.
-function matchesSearch(filament: IFilamentCollapsed, searchTerm: string): boolean {
-  const needle = searchTerm.trim().toLowerCase();
-  if (needle.length === 0) {
-    return true;
-  }
-
-  const haystacks = [String(filament.id), filament["vendor.name"] ?? "", filament.name ?? "", filament.material ?? ""];
-  return haystacks.some((value) => value.toLowerCase().includes(needle));
-}
-
 const MIN_TABLE_SCROLL_Y = 180;
 const TABLE_BOTTOM_GAP = 16;
 
@@ -43,9 +32,9 @@ const FilamentSelectModal = ({ description, onPrint, searchPlaceholder }: Props)
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
-  const [searchValue, setSearchValue] = useState("");
-  const [serverSearchValue, setServerSearchValue] = useState("");
   const [tableScrollY, setTableScrollY] = useState<number>(300);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const rootRef = useRef<HTMLDivElement | null>(null);
   const tableContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -54,7 +43,7 @@ const FilamentSelectModal = ({ description, onPrint, searchPlaceholder }: Props)
       resource: "filament",
       meta: {
         queryParams: {
-          ...(serverSearchValue.trim().length > 0 ? { search: serverSearchValue.trim() } : {}),
+          ...(debouncedSearch.length > 0 ? { search: debouncedSearch } : {}),
         },
       },
       syncWithLocation: false,
@@ -85,16 +74,9 @@ const FilamentSelectModal = ({ description, onPrint, searchPlaceholder }: Props)
     pagination: { currentPage, pageSize },
   };
 
-  const dataSource: IFilamentCollapsed[] = useMemo(
-    () => (tableProps.dataSource || []).map((record) => ({ ...record })),
-    [tableProps.dataSource],
-  );
-  // Keep typing responsive by narrowing the current page immediately even while the backend query is in flight.
-  const visibleDataSource = useMemo(
-    () => dataSource.filter((filament) => matchesSearch(filament, searchValue)),
-    [dataSource, searchValue],
-  );
+  const dataSource = [...(tableProps.dataSource ?? [])];
   const selectedSet = useMemo(() => new Set(selectedItems), [selectedItems]);
+  const paginationTotal = tableProps.pagination ? (tableProps.pagination.total ?? 0) : 0;
 
   useEffect(() => {
     const computeScrollHeight = () => {
@@ -130,8 +112,6 @@ const FilamentSelectModal = ({ description, onPrint, searchPlaceholder }: Props)
       resizeObserver?.disconnect();
     };
   }, []);
-
-  const paginationTotal = tableProps.pagination ? (tableProps.pagination.total ?? 0) : 0;
   const handlePageChange = useCallback(
     (page: number, nextPageSize?: number) => {
       if (typeof nextPageSize === "number" && nextPageSize !== pageSize) {
@@ -145,17 +125,22 @@ const FilamentSelectModal = ({ description, onPrint, searchPlaceholder }: Props)
     setPageSize(size);
     setCurrentPage(1);
   }, []);
-  const applySearchFilter = useCallback((nextSearch: string) => {
-    setServerSearchValue(nextSearch.trim());
-    setCurrentPage(1);
-  }, []);
 
-  // Bulk toggles only touch the rows currently visible after search and paging.
+  // Debounce search input to avoid excessive API calls while typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm, setCurrentPage]);
+
+  // Bulk toggles only touch the rows currently visible after paging and server-side filtering.
   const selectUnselectFiltered = useCallback(
     (select: boolean) => {
       setSelectedItems((prevSelected) => {
         const nextSelected = new Set(prevSelected);
-        visibleDataSource.forEach((filament) => {
+        dataSource.forEach((filament) => {
           if (select) {
             nextSelected.add(filament.id);
           } else {
@@ -165,7 +150,7 @@ const FilamentSelectModal = ({ description, onPrint, searchPlaceholder }: Props)
         return Array.from(nextSelected);
       });
     },
-    [visibleDataSource],
+    [dataSource],
   );
 
   const handleSelectItem = useCallback((item: number) => {
@@ -174,10 +159,9 @@ const FilamentSelectModal = ({ description, onPrint, searchPlaceholder }: Props)
     );
   }, []);
 
-  const isAllFilteredSelected =
-    visibleDataSource.length > 0 && visibleDataSource.every((filament) => selectedSet.has(filament.id));
+  const isAllFilteredSelected = dataSource.length > 0 && dataSource.every((filament) => selectedSet.has(filament.id));
   const isSomeButNotAllFilteredSelected =
-    visibleDataSource.some((filament) => selectedSet.has(filament.id)) && !isAllFilteredSelected;
+    dataSource.some((filament) => selectedSet.has(filament.id)) && !isAllFilteredSelected;
 
   const commonProps = {
     t,
@@ -227,17 +211,14 @@ const FilamentSelectModal = ({ description, onPrint, searchPlaceholder }: Props)
           <Col xs={24} md={12}>
             <Input.Search
               placeholder={resolvedSearchPlaceholder}
-              value={searchValue}
+              value={searchTerm}
               allowClear
               enterButton
               onChange={(event) => {
-                const value = event.target.value;
-                setSearchValue(value);
-                applySearchFilter(value);
+                setSearchTerm(event.target.value);
               }}
               onSearch={(value) => {
-                setSearchValue(value);
-                applySearchFilter(value);
+                setSearchTerm(value);
               }}
             />
           </Col>
@@ -246,8 +227,7 @@ const FilamentSelectModal = ({ description, onPrint, searchPlaceholder }: Props)
           <Col flex="none">
             <Button
               onClick={() => {
-                setSearchValue("");
-                setServerSearchValue("");
+                setSearchTerm("");
                 setFilters([], "replace");
                 setCurrentPage(1);
               }}
@@ -303,7 +283,7 @@ const FilamentSelectModal = ({ description, onPrint, searchPlaceholder }: Props)
             rowKey="id"
             tableLayout="fixed"
             pagination={false}
-            dataSource={visibleDataSource}
+            dataSource={dataSource}
             scroll={{ y: tableScrollY, x: "max-content" }}
             columns={removeUndefined([
               {

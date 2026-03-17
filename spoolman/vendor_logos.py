@@ -18,12 +18,14 @@ from spoolman import env
 
 
 def get_runtime_vendor_logo_dir() -> Path:
+    """Return the runtime vendor logo directory, creating it if needed."""
     target_dir = env.get_data_dir() / "vendor-logos"
     target_dir.mkdir(parents=True, exist_ok=True)
     return target_dir
 
 
 def get_bundled_vendor_logo_dir() -> Path:
+    """Return the bundled vendor logo directory from the built client assets."""
     project_root = Path(__file__).resolve().parent.parent
     return project_root / "client" / "dist" / "vendor-logos"
 
@@ -95,9 +97,7 @@ def _normalize_logo_asset_path(logo_url: str) -> str:
     if base_path and path.startswith(base_path + "/"):
         path = path[len(base_path) + 1 :]
 
-    normalized = path.lstrip("/")
-    normalized = normalized.removeprefix("vendor-logos/")
-    return normalized
+    return path.lstrip("/").removeprefix("vendor-logos/")
 
 
 def _load_logo_source_bytes(logo_url: str) -> bytes:
@@ -106,7 +106,7 @@ def _load_logo_source_bytes(logo_url: str) -> bytes:
         raise ValueError("Logo URL is required.")
 
     if value.startswith(("http://", "https://")):
-        request = Request(value, headers={"User-Agent": "spoolman-vendor-logo-convert"})
+        request = Request(value, headers={"User-Agent": "spoolman-vendor-logo-convert"})  # noqa: S310
         with urlopen(request, timeout=60) as response:  # noqa: S310
             return response.read()
 
@@ -148,6 +148,9 @@ def _update_runtime_manifest_with_generated_print_logo(print_logo_url: str) -> N
         json.dump(runtime_manifest, file, indent=2)
 
 
+_MONOCHROME_THRESHOLD = 180
+
+
 def convert_web_logo_to_print_logo(logo_url: str, vendor_name: str | None = None) -> str:
     """Convert a web logo to grayscale PNG and store it in runtime print logo directory."""
     source_bytes = _load_logo_source_bytes(logo_url)
@@ -161,13 +164,13 @@ def convert_web_logo_to_print_logo(logo_url: str, vendor_name: str | None = None
     # Preserve transparency from the source asset while forcing the printable pixels to pure black or white.
     alpha = rgba.getchannel("A")
     grayscale = ImageOps.grayscale(rgba.convert("RGB"))
-    monochrome = grayscale.point(lambda value: 0 if value < 180 else 255, mode="L")
+    monochrome = grayscale.point(lambda value: 0 if value < _MONOCHROME_THRESHOLD else 255, mode="L")
     converted = Image.merge("RGBA", (monochrome, monochrome, monochrome, alpha))
 
     parsed_logo_path = urlparse(logo_url).path if logo_url.startswith(("http://", "https://")) else logo_url
     source_stem = Path(parsed_logo_path).stem.replace("-web", "")
     slug = slugify_vendor_name(vendor_name) or slugify_vendor_name(source_stem) or f"vendor-{uuid4().hex[:8]}"
-    source_hash = hashlib.sha1(source_bytes).hexdigest()[:10]
+    source_hash = hashlib.sha1(source_bytes).hexdigest()[:10]  # noqa: S324
 
     runtime_dir = get_runtime_vendor_logo_dir()
     print_dir = runtime_dir / "print"

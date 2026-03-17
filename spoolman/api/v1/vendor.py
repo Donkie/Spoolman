@@ -75,6 +75,7 @@ class VendorLogoConvertRequest(BaseModel):
     @field_validator("logo_url")
     @classmethod
     def validate_logo_url(cls: type["VendorLogoConvertRequest"], value: str) -> str:
+        """Validate and strip the logo URL."""
         trimmed = value.strip()
         if trimmed == "":
             raise ValueError("Logo URL is required.")
