@@ -433,8 +433,9 @@ async def create(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
     body: FilamentParameters,
 ):
-    if body.extra:
-        all_fields = await get_extra_fields(db, EntityType.filament)
+    # Fetch extra field definitions once at endpoint entry
+    all_fields = await get_extra_fields(db, EntityType.filament) if body.extra else None
+    if body.extra and all_fields:
         try:
             validate_extra_field_dict(all_fields, body.extra)
         except ValueError as e:
@@ -485,8 +486,9 @@ async def update(  # noqa: ANN201
 ):
     patch_data = body.model_dump(exclude_unset=True)
 
-    if body.extra:
-        all_fields = await get_extra_fields(db, EntityType.filament)
+    # Fetch extra field definitions once at endpoint entry
+    all_fields = await get_extra_fields(db, EntityType.filament) if body.extra else None
+    if body.extra and all_fields:
         try:
             validate_extra_field_dict(all_fields, body.extra)
         except ValueError as e:
