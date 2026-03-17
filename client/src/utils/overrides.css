@@ -10,7 +10,9 @@
   /* Keep the edit-form actions anchored off the scanner button so the two controls
      stay visually aligned without hard-coding duplicate pixel offsets in each page. */
   --floating-actions-right: calc(var(--camera-button-right) + var(--camera-button-size) + var(--camera-button-gap));
-  --floating-actions-bottom: calc(var(--camera-button-bottom) + var(--floating-actions-baseline-nudge) - var(--floating-actions-padding-y));
+  --floating-actions-bottom: calc(
+    var(--camera-button-bottom) + var(--floating-actions-baseline-nudge) - var(--floating-actions-padding-y)
+  );
 }
 
 #qty-input {

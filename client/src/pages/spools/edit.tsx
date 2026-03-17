@@ -236,9 +236,7 @@ export const SpoolEdit = () => {
       footerButtons={({ defaultButtons }) => (
         // Override Refine's default footer placement so Save/Delete sit beside the
         // scanner control instead of forcing a scroll back to the bottom of the form.
-        <div className="floating-form-actions">
-          {defaultButtons}
-        </div>
+        <div className="floating-form-actions">{defaultButtons}</div>
       )}
     >
       {contextHolder}
