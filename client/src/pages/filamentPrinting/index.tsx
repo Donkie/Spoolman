@@ -50,7 +50,7 @@ export const FilamentPrinting = () => {
           {step === 0 && (
             <FilamentSelectModal
               description={t("printing.filamentSelect.description")}
-              onContinue={(selectedFilamentIds) => {
+              onPrint={(selectedFilamentIds: number[]) => {
                 setSearchParams((prev) => {
                   const newParams = new URLSearchParams(prev);
                   newParams.delete("filaments");
