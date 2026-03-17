@@ -104,6 +104,7 @@
         },
         "qrcode": {
             "button": "Print Labels",
+            "exportButton": "Export Labels",
             "printFilamentTitle": "Print Filament Labels",
             "printSpoolTitle": "Print Spool Labels",
             "title": "Label Printing",

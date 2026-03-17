@@ -1,5 +1,5 @@
 import { useTable } from "@refinedev/antd";
-import { Button, Checkbox, Col, Input, message, Pagination, Row, Table } from "antd";
+import { Button, Checkbox, Col, Input, message, Pagination, Row, Space, Table } from "antd";
 import { t } from "i18next";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
@@ -11,7 +11,9 @@ import { IFilament } from "../filaments/model";
 
 interface Props {
   description?: string;
-  onPrint: (selectedFilamentIds: number[]) => void;
+  onPrint?: (selectedFilamentIds: number[]) => void;
+  onExport?: (selectedFilamentIds: number[]) => void;
+  initialSelectedIds?: number[];
   searchPlaceholder?: string;
 }
 
@@ -28,8 +30,8 @@ const MIN_TABLE_SCROLL_Y = 180;
 const TABLE_BOTTOM_GAP = 16;
 
 // Combine server-side paging with lightweight local selection so the print flow can stay inside one dialog.
-const FilamentSelectModal = ({ description, onPrint, searchPlaceholder }: Props) => {
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+const FilamentSelectModal = ({ description, onPrint, onExport, initialSelectedIds, searchPlaceholder }: Props) => {
+  const [selectedItems, setSelectedItems] = useState<number[]>(initialSelectedIds ?? []);
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
   const [tableScrollY, setTableScrollY] = useState<number>(300);
@@ -259,21 +261,42 @@ const FilamentSelectModal = ({ description, onPrint, searchPlaceholder }: Props)
                   count: selectedItems.length,
                 })}
               </div>
-              <Button
-                type="primary"
-                onClick={() => {
-                  if (selectedItems.length === 0) {
-                    messageApi.open({
-                      type: "error",
-                      content: t("printing.filamentSelect.noFilamentsSelected"),
-                    });
-                    return;
-                  }
-                  onPrint(selectedItems);
-                }}
-              >
-                {t("printing.qrcode.button")}
-              </Button>
+              <Space>
+                {onPrint && (
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      if (selectedItems.length === 0) {
+                        messageApi.open({
+                          type: "error",
+                          content: t("printing.filamentSelect.noFilamentsSelected"),
+                        });
+                        return;
+                      }
+                      onPrint(selectedItems);
+                    }}
+                  >
+                    {t("printing.qrcode.button")}
+                  </Button>
+                )}
+                {onExport && (
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      if (selectedItems.length === 0) {
+                        messageApi.open({
+                          type: "error",
+                          content: t("printing.filamentSelect.noFilamentsSelected"),
+                        });
+                        return;
+                      }
+                      onExport(selectedItems);
+                    }}
+                  >
+                    {t("printing.qrcode.exportButton")}
+                  </Button>
+                )}
+              </Space>
             </div>
           </Col>
         </Row>
