@@ -11,6 +11,8 @@ import { IFilament } from "../filaments/model";
 
 interface Props {
   description?: string;
+  initialSelectedIds?: number[];
+  onExport?: (selectedIds: number[]) => void;
   onPrint: (selectedFilamentIds: number[]) => void;
   searchPlaceholder?: string;
 }
@@ -28,8 +30,8 @@ const MIN_TABLE_SCROLL_Y = 180;
 const TABLE_BOTTOM_GAP = 16;
 
 // Combine server-side paging with lightweight local selection so the print flow can stay inside one dialog.
-const FilamentSelectModal = ({ description, onPrint, searchPlaceholder }: Props) => {
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+const FilamentSelectModal = ({ description, initialSelectedIds, onExport, onPrint, searchPlaceholder }: Props) => {
+  const [selectedItems, setSelectedItems] = useState<number[]>(initialSelectedIds ?? []);
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
   const [tableScrollY, setTableScrollY] = useState<number>(300);
@@ -274,6 +276,23 @@ const FilamentSelectModal = ({ description, onPrint, searchPlaceholder }: Props)
               >
                 {t("printing.qrcode.button")}
               </Button>
+              {onExport && (
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    if (selectedItems.length === 0) {
+                      messageApi.open({
+                        type: "error",
+                        content: t("printing.filamentSelect.noFilamentsSelected"),
+                      });
+                      return;
+                    }
+                    onExport(selectedItems);
+                  }}
+                >
+                  {t("printing.qrcode.exportButton")}
+                </Button>
+              )}
             </div>
           </Col>
         </Row>
