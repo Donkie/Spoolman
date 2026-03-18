@@ -59,6 +59,9 @@ export const VendorEdit = () => {
         extra: {},
         ...stringifiedAllValues,
       });
+      // Clear the live-update warning: user has seen and chosen to save over the conflict.
+      // Dismissed on submit intent (not on server confirm) — useForm handles server errors separately.
+      setHasChanged(false);
     }
   };
 
