@@ -20,8 +20,7 @@ import {
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useVendorLogoManifest } from "../../components/otherModels";
-import { getBasePath } from "../../utils/url";
-import { getAPIURL } from "../../utils/url";
+import { getAPIURL, getBasePath } from "../../utils/url";
 import { parseExtraString, suggestVendorLogoPaths } from "../../utils/vendorLogo";
 import { IVendor } from "../vendors/model";
 
