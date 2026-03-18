@@ -20,6 +20,151 @@ interface ExportDialogProps {
   zipFileTypeName: string;
 }
 
+// PNG binary utilities — module-level so they are not recreated on every render.
+// Used exclusively by setPngDpiMetadata to inject a pHYs DPI chunk into exported PNGs.
+
+// Standard PNG file signature (first 8 bytes of every valid PNG file).
+const pngSignature = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
+
+const readUint32BE = (bytes: Uint8Array, offset: number) => {
+  return (
+    ((bytes[offset] << 24) >>> 0) |
+    ((bytes[offset + 1] << 16) >>> 0) |
+    ((bytes[offset + 2] << 8) >>> 0) |
+    (bytes[offset + 3] >>> 0)
+  );
+};
+
+const writeUint32BE = (target: Uint8Array, offset: number, value: number) => {
+  target[offset] = (value >>> 24) & 0xff;
+  target[offset + 1] = (value >>> 16) & 0xff;
+  target[offset + 2] = (value >>> 8) & 0xff;
+  target[offset + 3] = value & 0xff;
+};
+
+const isPng = (bytes: Uint8Array) => {
+  if (bytes.length < pngSignature.length) {
+    return false;
+  }
+  for (let i = 0; i < pngSignature.length; i += 1) {
+    if (bytes[i] !== pngSignature[i]) {
+      return false;
+    }
+  }
+  return true;
+};
+
+const getChunkType = (bytes: Uint8Array, offset: number) => {
+  return String.fromCharCode(bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
+};
+
+// Standard CRC-32 lookup table (IEEE 802.3 polynomial 0xEDB88320, reflected).
+// Computed once at module scope; each pHYs chunk write reuses this table.
+const CRC32_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n += 1) {
+    let c = n;
+    for (let k = 0; k < 8; k += 1) {
+      c = (c & 1) !== 0 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    }
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
+
+const crc32 = (bytes: Uint8Array) => {
+  let crc = 0xffffffff;
+  for (let i = 0; i < bytes.length; i += 1) {
+    crc = CRC32_TABLE[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+};
+
+const createPngChunk = (chunkType: string, data: Uint8Array) => {
+  const typeBytes = new Uint8Array([
+    chunkType.charCodeAt(0),
+    chunkType.charCodeAt(1),
+    chunkType.charCodeAt(2),
+    chunkType.charCodeAt(3),
+  ]);
+  const crcInput = new Uint8Array(typeBytes.length + data.length);
+  crcInput.set(typeBytes, 0);
+  crcInput.set(data, typeBytes.length);
+
+  const chunk = new Uint8Array(12 + data.length);
+  writeUint32BE(chunk, 0, data.length);
+  chunk.set(typeBytes, 4);
+  chunk.set(data, 8);
+  writeUint32BE(chunk, 8 + data.length, crc32(crcInput));
+  return chunk;
+};
+
+// Rewrites the exported PNG blob to inject a pHYs chunk with the target DPI.
+// html-to-image produces correct pixel dimensions but no DPI metadata; this
+// chunk tells image viewers and print software the intended resolution.
+const setPngDpiMetadata = async (pngBlob: Blob, dpi: number) => {
+  const bytes = new Uint8Array(await pngBlob.arrayBuffer());
+  if (!isPng(bytes)) {
+    return pngBlob;
+  }
+
+  // html-to-image gives us correct pixel dimensions, but many image viewers still report
+  // 72 DPI unless we write an explicit pHYs chunk into the final PNG bytes.
+  const pixelsPerMeter = Math.max(1, Math.round(dpi / 0.0254));
+  const physData = new Uint8Array(9);
+  writeUint32BE(physData, 0, pixelsPerMeter);
+  writeUint32BE(physData, 4, pixelsPerMeter);
+  physData[8] = 1;
+  const physChunk = createPngChunk("pHYs", physData);
+
+  const chunks: Uint8Array[] = [bytes.slice(0, 8)];
+  let offset = 8;
+  let insertedPhys = false;
+  let removedExistingPhys = false;
+
+  while (offset + 8 <= bytes.length) {
+    const chunkLength = readUint32BE(bytes, offset);
+    const chunkTotalSize = 12 + chunkLength;
+    if (offset + chunkTotalSize > bytes.length) {
+      return pngBlob;
+    }
+
+    const chunkType = getChunkType(bytes, offset + 4);
+    const fullChunk = bytes.slice(offset, offset + chunkTotalSize);
+
+    if (chunkType === "pHYs") {
+      removedExistingPhys = true;
+      offset += chunkTotalSize;
+      continue;
+    }
+
+    if (!insertedPhys && chunkType === "IHDR") {
+      chunks.push(fullChunk);
+      chunks.push(physChunk);
+      insertedPhys = true;
+    } else if (!insertedPhys && chunkType === "IDAT") {
+      chunks.push(physChunk);
+      chunks.push(fullChunk);
+      insertedPhys = true;
+    } else if (!insertedPhys && chunkType === "IEND") {
+      chunks.push(physChunk);
+      chunks.push(fullChunk);
+      insertedPhys = true;
+    } else {
+      chunks.push(fullChunk);
+    }
+
+    offset += chunkTotalSize;
+  }
+
+  if (!insertedPhys && !removedExistingPhys) {
+    return pngBlob;
+  }
+
+  const blobParts: BlobPart[] = chunks.map((chunk) => chunk as unknown as BlobPart);
+  return new Blob(blobParts, { type: "image/png" });
+};
+
 // Render one preview page per exported label and reuse that DOM for PNG/AML generation
 // so the preview stays the source of truth for both single-file and ZIP exports.
 const ExportDialog = ({
@@ -54,149 +199,6 @@ const ExportDialog = ({
   const itemHeight = Math.max(paperHeight - margin.top - margin.bottom, 0);
 
   const contentRef = useRef<HTMLDivElement>(null);
-  const pngSignature = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
-
-  const readUint32BE = (bytes: Uint8Array, offset: number) => {
-    return (
-      ((bytes[offset] << 24) >>> 0) |
-      ((bytes[offset + 1] << 16) >>> 0) |
-      ((bytes[offset + 2] << 8) >>> 0) |
-      (bytes[offset + 3] >>> 0)
-    );
-  };
-
-  const writeUint32BE = (target: Uint8Array, offset: number, value: number) => {
-    target[offset] = (value >>> 24) & 0xff;
-    target[offset + 1] = (value >>> 16) & 0xff;
-    target[offset + 2] = (value >>> 8) & 0xff;
-    target[offset + 3] = value & 0xff;
-  };
-
-  const isPng = (bytes: Uint8Array) => {
-    if (bytes.length < pngSignature.length) {
-      return false;
-    }
-    for (let i = 0; i < pngSignature.length; i += 1) {
-      if (bytes[i] !== pngSignature[i]) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const getChunkType = (bytes: Uint8Array, offset: number) => {
-    return String.fromCharCode(bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
-  };
-
-  const getCrc32Table = (() => {
-    let table: Uint32Array | null = null;
-    return () => {
-      if (table !== null) {
-        return table;
-      }
-      // Cache the CRC table because every rewritten PNG chunk needs the same lookup.
-      table = new Uint32Array(256);
-      for (let n = 0; n < 256; n += 1) {
-        let c = n;
-        for (let k = 0; k < 8; k += 1) {
-          c = (c & 1) !== 0 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-        }
-        table[n] = c >>> 0;
-      }
-      return table;
-    };
-  })();
-
-  const crc32 = (bytes: Uint8Array) => {
-    const table = getCrc32Table();
-    let crc = 0xffffffff;
-    for (let i = 0; i < bytes.length; i += 1) {
-      crc = table[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
-    }
-    return (crc ^ 0xffffffff) >>> 0;
-  };
-
-  const createPngChunk = (chunkType: string, data: Uint8Array) => {
-    const typeBytes = new Uint8Array([
-      chunkType.charCodeAt(0),
-      chunkType.charCodeAt(1),
-      chunkType.charCodeAt(2),
-      chunkType.charCodeAt(3),
-    ]);
-    const crcInput = new Uint8Array(typeBytes.length + data.length);
-    crcInput.set(typeBytes, 0);
-    crcInput.set(data, typeBytes.length);
-
-    const chunk = new Uint8Array(12 + data.length);
-    writeUint32BE(chunk, 0, data.length);
-    chunk.set(typeBytes, 4);
-    chunk.set(data, 8);
-    writeUint32BE(chunk, 8 + data.length, crc32(crcInput));
-    return chunk;
-  };
-
-  const setPngDpiMetadata = async (pngBlob: Blob, dpi: number) => {
-    const bytes = new Uint8Array(await pngBlob.arrayBuffer());
-    if (!isPng(bytes)) {
-      return pngBlob;
-    }
-
-    // html-to-image gives us correct pixel dimensions, but many image viewers still report
-    // 72 DPI unless we write an explicit pHYs chunk into the final PNG bytes.
-    const pixelsPerMeter = Math.max(1, Math.round(dpi / 0.0254));
-    const physData = new Uint8Array(9);
-    writeUint32BE(physData, 0, pixelsPerMeter);
-    writeUint32BE(physData, 4, pixelsPerMeter);
-    physData[8] = 1;
-    const physChunk = createPngChunk("pHYs", physData);
-
-    const chunks: Uint8Array[] = [bytes.slice(0, 8)];
-    let offset = 8;
-    let insertedPhys = false;
-    let removedExistingPhys = false;
-
-    while (offset + 8 <= bytes.length) {
-      const chunkLength = readUint32BE(bytes, offset);
-      const chunkTotalSize = 12 + chunkLength;
-      if (offset + chunkTotalSize > bytes.length) {
-        return pngBlob;
-      }
-
-      const chunkType = getChunkType(bytes, offset + 4);
-      const fullChunk = bytes.slice(offset, offset + chunkTotalSize);
-
-      if (chunkType === "pHYs") {
-        removedExistingPhys = true;
-        offset += chunkTotalSize;
-        continue;
-      }
-
-      if (!insertedPhys && chunkType === "IHDR") {
-        chunks.push(fullChunk);
-        chunks.push(physChunk);
-        insertedPhys = true;
-      } else if (!insertedPhys && chunkType === "IDAT") {
-        chunks.push(physChunk);
-        chunks.push(fullChunk);
-        insertedPhys = true;
-      } else if (!insertedPhys && chunkType === "IEND") {
-        chunks.push(physChunk);
-        chunks.push(fullChunk);
-        insertedPhys = true;
-      } else {
-        chunks.push(fullChunk);
-      }
-
-      offset += chunkTotalSize;
-    }
-
-    if (!insertedPhys && !removedExistingPhys) {
-      return pngBlob;
-    }
-
-    const blobParts: BlobPart[] = chunks.map((chunk) => chunk as unknown as BlobPart);
-    return new Blob(blobParts, { type: "image/png" });
-  };
 
   const sanitizeFilename = (value: string) => {
     const trimmed = value.trim();

@@ -83,8 +83,8 @@ const QRCodeExportDialog = ({
       items={elements}
       printSettings={printSettings.printSettings}
       setPrintSettings={(newSettings) => {
-        printSettings.printSettings = newSettings;
-        setPrintSettings(printSettings);
+        // Spread to preserve immutability — printSettings.printSettings is a nested object
+        setPrintSettings({ ...printSettings, printSettings: newSettings });
       }}
       extraButtons={extraButtons}
       extraFormatSettings={extraFormatSettings}
@@ -103,8 +103,7 @@ const QRCodeExportDialog = ({
                 { label: t("printing.qrcode.showQRCodeMode.withIcon"), value: "withIcon" },
               ]}
               onChange={(e: RadioChangeEvent) => {
-                printSettings.showQRCodeMode = e.target.value;
-                setPrintSettings(printSettings);
+                setPrintSettings({ ...printSettings, showQRCodeMode: e.target.value });
               }}
               value={showQRCodeMode}
               optionType="button"
@@ -132,8 +131,7 @@ const QRCodeExportDialog = ({
             <Switch
               checked={showContent}
               onChange={(checked) => {
-                printSettings.showContent = checked;
-                setPrintSettings(printSettings);
+                setPrintSettings({ ...printSettings, showContent: checked });
               }}
             />
           </Form.Item>
@@ -148,8 +146,7 @@ const QRCodeExportDialog = ({
                   value={textSize}
                   step={0.1}
                   onChange={(value) => {
-                    printSettings.textSize = value;
-                    setPrintSettings(printSettings);
+                    setPrintSettings({ ...printSettings, textSize: value });
                   }}
                 />
               </Col>
@@ -162,8 +159,7 @@ const QRCodeExportDialog = ({
                   value={textSize}
                   addonAfter="mm"
                   onChange={(value) => {
-                    printSettings.textSize = value ?? 5;
-                    setPrintSettings(printSettings);
+                    setPrintSettings({ ...printSettings, textSize: value ?? 5 });
                   }}
                 />
               </Col>
