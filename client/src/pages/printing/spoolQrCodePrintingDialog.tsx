@@ -235,8 +235,7 @@ Spool Weight: {filament.spool_weight} g
       <QRCodePrintingDialog
         printSettings={curPreset.labelSettings}
         setPrintSettings={(newSettings) => {
-          curPreset.labelSettings = newSettings;
-          updateCurrentPreset(curPreset);
+          updateCurrentPreset({ ...curPreset, labelSettings: newSettings });
         }}
         baseUrlRoot={baseUrlRoot}
         useHTTPUrl={useHTTPUrl}
@@ -296,8 +295,15 @@ Spool Weight: {filament.spool_weight} g
               <Input
                 value={curPreset.labelSettings.printSettings?.name}
                 onChange={(e) => {
-                  curPreset.labelSettings.printSettings.name = e.target.value;
-                  updateCurrentPreset(curPreset);
+                  // Triple-spread: name is 3 levels deep; each level must be copied to
+                  // avoid mutating the preset array element referenced by curPreset.
+                  updateCurrentPreset({
+                    ...curPreset,
+                    labelSettings: {
+                      ...curPreset.labelSettings,
+                      printSettings: { ...curPreset.labelSettings.printSettings, name: e.target.value },
+                    },
+                  });
                 }}
               />
             </Form.Item>
@@ -325,8 +331,7 @@ Spool Weight: {filament.spool_weight} g
                 value={template}
                 rows={8}
                 onChange={(newValue) => {
-                  curPreset.template = newValue.target.value;
-                  updateCurrentPreset(curPreset);
+                  updateCurrentPreset({ ...curPreset, template: newValue.target.value });
                 }}
               />
             </Form.Item>
