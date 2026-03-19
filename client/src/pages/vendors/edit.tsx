@@ -66,7 +66,13 @@ export const VendorEdit = () => {
   };
 
   const initialComparableState = useMemo(
-    () => toComparableState(formProps.initialValues, comparableDefaults),
+    // ParsedExtras normalizes extra-field values from raw API JSON strings to their actual
+    // types so the initial snapshot matches the form state that setFieldsValue produces.
+    () =>
+      toComparableState(
+        formProps.initialValues ? ParsedExtras(formProps.initialValues) : formProps.initialValues,
+        comparableDefaults,
+      ),
     [formProps.initialValues],
   );
   const watchedComparableState = useMemo(

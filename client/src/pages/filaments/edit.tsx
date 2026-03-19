@@ -103,12 +103,18 @@ export const FilamentEdit = () => {
   };
 
   const initialComparableState = useMemo(
+    // ParsedExtras normalizes extra-field values from raw API JSON strings to their actual
+    // types so the initial snapshot matches the form state that setFieldsValue produces.
     () =>
-      toComparableState(formProps.initialValues, comparableDefaults, {
-        // Single-color mode should ignore any dormant multi-color payload when deciding whether Save is needed.
-        multi_color_hexes: (normalized: Record<string, unknown>) =>
-          colorType === "single" ? "" : ((normalized.multi_color_hexes as string | undefined) ?? ""),
-      }),
+      toComparableState(
+        formProps.initialValues ? ParsedExtras(formProps.initialValues) : formProps.initialValues,
+        comparableDefaults,
+        {
+          // Single-color mode should ignore any dormant multi-color payload when deciding whether Save is needed.
+          multi_color_hexes: (normalized: Record<string, unknown>) =>
+            colorType === "single" ? "" : ((normalized.multi_color_hexes as string | undefined) ?? ""),
+        },
+      ),
     [formProps.initialValues, colorType],
   );
   const watchedComparableState = useMemo(
