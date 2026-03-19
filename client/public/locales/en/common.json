@@ -355,10 +355,11 @@
             "delete_confirm": "Delete field {{name}}?",
             "delete_confirm_description": "This will delete the field and all associated data for all entities."
         },
-        "complex_fields": {
-            "tab": "Complex Fields",
-            "description": "<p>Complex fields add optional, pre-defined behaviors beyond standard extra fields.</p><p>Enabling one can add specialized display, actions, calculated values, or list columns for the selected entity. Disabled features remain hidden so the standard UI stays simpler.</p><p>Each entry below states exactly what enabling it adds. This framework can stay empty until a specific advanced feature is installed.</p>",
-            "empty": "No complex fields are currently registered for this entity.",
+        "applications": {
+            "tab": "Applications",
+            "description": "<p>Applications add optional, pre-defined behaviors to your Spoolman instance.</p><p>Enabling an application can add specialized display, actions, calculated values, or list columns. Disabled applications remain hidden so the standard UI stays simpler.</p>",
+            "empty": "No applications are currently available.",
+            "all": "All",
             "columns": {
                 "name": "Name",
                 "description": "Feature",
@@ -390,6 +391,9 @@
         },
         "locations": {
             "list": "Locations | Spoolman"
+        },
+        "applications": {
+            "list": "Applications | Spoolman"
         },
         "filament": {
             "list": "Filaments | Spoolman",
