@@ -354,30 +354,35 @@
             "key_not_changed": "Please change the key to something else.",
             "delete_confirm": "Delete field {{name}}?",
             "delete_confirm_description": "This will delete the field and all associated data for all entities."
+        }
+    },
+    "applications": {
+        "tab": "Applications",
+        "description": "<p>Applications add optional, pre-defined behaviors to your Spoolman instance.</p><p>Enabling an application can add specialized display, actions, calculated values, or list columns. Disabled applications remain hidden so the standard UI stays simpler.</p>",
+        "empty": "No applications are currently available.",
+        "all": "All",
+        "status": {
+            "active": "Active",
+            "partial": "Partial",
+            "inactive": "Inactive"
         },
-        "applications": {
-            "tab": "Applications",
-            "description": "<p>Applications add optional, pre-defined behaviors to your Spoolman instance.</p><p>Enabling an application can add specialized display, actions, calculated values, or list columns. Disabled applications remain hidden so the standard UI stays simpler.</p>",
-            "empty": "No applications are currently available.",
-            "all": "All",
-            "columns": {
-                "name": "Name",
-                "description": "Feature",
-                "enable_description": "What Enabling Adds",
-                "surfaces": "Surfaces",
-                "enabled": "Enabled"
-            },
-            "surfaces": {
-                "show": "Show",
-                "edit": "Edit",
-                "list": "List",
-                "action": "Action",
-                "derived": "Derived"
-            },
-            "messages": {
-                "enabled": "Enabled {{name}}.",
-                "disabled": "Disabled {{name}}."
-            }
+        "columns": {
+            "name": "Name",
+            "description": "Feature",
+            "enable_description": "What Enabling Adds",
+            "surfaces": "Surfaces",
+            "enabled": "Enabled"
+        },
+        "surfaces": {
+            "show": "Show",
+            "edit": "Edit",
+            "list": "List",
+            "action": "Action",
+            "derived": "Derived"
+        },
+        "messages": {
+            "enabled": "Enabled {{name}}.",
+            "disabled": "Disabled {{name}}."
         }
     },
     "documentTitle": {

@@ -16,14 +16,19 @@ def register_demo_applications() -> None:
     """Register all demo/concept application stubs."""
     register_application(
         ApplicationDefinition(
-            key="spool_count",
-            app_key="spool_count",
-            icon="🔢",
-            entity_type=EntityType.filament,
-            name="Spool Count",
-            description="Shows the number of spools associated with each filament directly in the filament list.",
-            enable_description="Adds a Spools column to the filament list showing total and available spool counts.",
-            surfaces=[ApplicationSurface.list, ApplicationSurface.derived],
+            key="drying_tracker",
+            app_key="drying_tracker",
+            icon="🌡️",
+            entity_type=EntityType.spool,
+            name="Drying Tracker",
+            description=(
+                "Record drying cycles for hygroscopic filaments. "
+                "Tracks temperature, duration, and the date each spool was last dried."
+            ),
+            enable_description=(
+                "Adds drying cycle history to spool detail pages and a drying status badge in the spool list."
+            ),
+            surfaces=[ApplicationSurface.show, ApplicationSurface.edit, ApplicationSurface.list],
         )
     )
 
@@ -38,26 +43,8 @@ def register_demo_applications() -> None:
                 "Warns when a spool's remaining weight drops below a configurable threshold, "
                 "helping you reorder before running out."
             ),
-            enable_description="Adds alert badges to low-stock spool rows and a summary warning on the dashboard.",
+            enable_description=("Adds alert badges to low-stock spool rows and a summary warning on the dashboard."),
             surfaces=[ApplicationSurface.list, ApplicationSurface.action],
-        )
-    )
-
-    register_application(
-        ApplicationDefinition(
-            key="drying_tracker",
-            app_key="drying_tracker",
-            icon="🌡️",
-            entity_type=EntityType.spool,
-            name="Drying Tracker",
-            description=(
-                "Record drying cycles for hygroscopic filaments. "
-                "Tracks temperature, duration, and the date each spool was last dried."
-            ),
-            enable_description=(
-                "Adds drying cycle history to spool detail pages and a drying status badge in the spool list."
-            ),
-            surfaces=[ApplicationSurface.show, ApplicationSurface.edit, ApplicationSurface.list],
         )
     )
 
@@ -89,7 +76,7 @@ def register_demo_applications() -> None:
                 "Maintains a timestamped log of every weight change made to a spool, "
                 "making it easy to track consumption over time."
             ),
-            enable_description="Adds a weight history tab to spool detail pages with a consumption graph.",
+            enable_description=("Adds a weight history tab to spool detail pages with a consumption graph."),
             surfaces=[ApplicationSurface.show, ApplicationSurface.list],
         )
     )
@@ -105,27 +92,8 @@ def register_demo_applications() -> None:
                 "Choose which spool and filament fields are encoded in the label QR code. "
                 "Supports NFC tags and Home Assistant integrations."
             ),
-            enable_description="Adds a QR field configuration panel to spool settings and label printing options.",
+            enable_description=("Adds a QR field configuration panel to spool settings and label printing options."),
             surfaces=[ApplicationSurface.action],
-        )
-    )
-
-    register_application(
-        ApplicationDefinition(
-            key="filament_textures",
-            app_key="filament_textures",
-            icon="🎨",
-            entity_type=EntityType.filament,
-            name="Filament Textures",
-            description=(
-                "Add texture classification to filaments: Matte, Silk, Glossy, Sparkle, Wood-fill, and others. "
-                "Makes it easy to filter and search by surface finish."
-            ),
-            enable_description=(
-                "Adds a Texture field to filament create/edit forms "
-                "and enables texture-based filtering in the filament list."
-            ),
-            surfaces=[ApplicationSurface.show, ApplicationSurface.edit, ApplicationSurface.list],
         )
     )
 
@@ -140,8 +108,49 @@ def register_demo_applications() -> None:
                 "Log where each spool is stored and optionally record ambient humidity "
                 "and temperature readings at the storage location."
             ),
-            enable_description="Adds storage location and conditions fields to spool detail and edit pages.",
+            enable_description=("Adds storage location and conditions fields to spool detail and edit pages."),
             surfaces=[ApplicationSurface.show, ApplicationSurface.edit],
+        )
+    )
+
+    register_application(
+        ApplicationDefinition(
+            key="filament_calibration",
+            app_key="filament_calibration",
+            icon="🎯",
+            entity_type=EntityType.filament,
+            name="Filament Calibration Profiles",
+            description=(
+                "Store per-filament calibration data: flow rate, pressure advance, "
+                "PA smooth time, and temperature tower results. "
+                "Eliminates manual re-tuning when switching between filaments."
+            ),
+            enable_description=(
+                "Adds a Calibration tab to filament detail pages and a calibration status badge in the filament list."
+            ),
+            surfaces=[
+                ApplicationSurface.show,
+                ApplicationSurface.edit,
+                ApplicationSurface.list,
+            ],
+        )
+    )
+
+    register_application(
+        ApplicationDefinition(
+            key="bambu_ams_sync",
+            app_key="bambu_ams_sync",
+            icon="🔄",
+            entity_type=EntityType.spool,
+            name="Bambu AMS Sync",
+            description=(
+                "Automatically sync spool data with a Bambu Lab AMS unit. "
+                "Pulls active spool, updates remaining weight, and maps AMS slot to Spoolman spool."
+            ),
+            enable_description=(
+                "Adds AMS slot assignment to spool detail pages and auto-updates remaining weight after each print."
+            ),
+            surfaces=[ApplicationSurface.show, ApplicationSurface.edit, ApplicationSurface.action],
         )
     )
 

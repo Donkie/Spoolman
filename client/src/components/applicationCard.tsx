@@ -28,10 +28,10 @@ export function ApplicationCard({ appKey, name, description, icon, states, onTog
 
   const badgeStatus = allEnabled ? "success" : anyEnabled ? "warning" : "default";
   const badgeText = allEnabled
-    ? t("applications.columns.enabled")
+    ? t("applications.status.active")
     : anyEnabled
-      ? t("applications.columns.enabled")
-      : t("applications.all");
+      ? t("applications.status.partial")
+      : t("applications.status.inactive");
 
   const avatarContent = icon ?? name.charAt(0).toUpperCase();
 
@@ -42,7 +42,7 @@ export function ApplicationCard({ appKey, name, description, icon, states, onTog
     >
       <Card
         hoverable
-        style={{ height: "100%" }}
+        style={{ height: "100%", width: "100%", display: "flex", flexDirection: "column" }}
         actions={[
           <Button key="configure" type="link" onClick={() => navigate(`/applications/${appKey}`)}>
             Configure

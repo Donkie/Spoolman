@@ -103,7 +103,7 @@ export const Applications = () => {
           {filteredGroups.map(([appKey, states]) => {
             const first = states[0];
             return (
-              <Col key={appKey} xs={24} sm={12} md={8} lg={6}>
+              <Col key={appKey} xs={24} sm={12} md={8} lg={6} style={{ display: "flex" }}>
                 <ApplicationCard
                   appKey={appKey}
                   name={first.name}
