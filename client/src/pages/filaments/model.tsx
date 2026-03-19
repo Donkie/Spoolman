@@ -24,3 +24,11 @@ export interface IFilament {
 
 // IFilamentParsedExtras is the same as IFilament, but with the extra field parsed into its real types
 export type IFilamentParsedExtras = Omit<IFilament, "extra"> & { extra?: { [key: string]: unknown } };
+
+// IFilamentEditForm is the shape of the filament edit form — only user-editable fields.
+// id and registered are system-managed; vendor is replaced by vendor_id.
+// Adding a new editable field to IFilament should also be added here;
+// comparableDefaults in filaments/edit.tsx is typed against this.
+export type IFilamentEditForm = Omit<IFilamentParsedExtras, "id" | "registered" | "vendor"> & {
+  vendor_id: number | null;
+};

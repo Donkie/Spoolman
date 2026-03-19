@@ -16,7 +16,7 @@ import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { createFilamentFromExternal } from "../filaments/functions";
 import { useLocations } from "../locations/functions";
 import { useGetFilamentSelectOptions } from "./functions";
-import { ISpool, ISpoolParsedExtras, WeightToEnter } from "./model";
+import { ISpool, ISpoolEditForm, WeightToEnter } from "./model";
 
 /*
 The API returns the extra fields as JSON values, but we need to parse them into their real types
@@ -25,11 +25,9 @@ We also need to stringify them again before sending them back to the API, which 
 the form's onFinish method. Form.Item's normalize should do this, but it doesn't seem to work.
 */
 
-type ISpoolRequest = ISpoolParsedExtras & {
-  filament_id: number | string;
-};
-
-const comparableDefaults = {
+// comparableDefaults is typed against ISpoolEditForm so TypeScript will report a compile
+// error here if a new editable field is added to the model without updating this list.
+const comparableDefaults: Record<keyof ISpoolEditForm, unknown> = {
   first_used: null,
   last_used: null,
   filament_id: null,
@@ -41,7 +39,7 @@ const comparableDefaults = {
   lot_nr: "",
   comment: "",
   extra: {},
-} as const;
+};
 // This list is the source of truth for which inputs participate in the Save-button dirty check.
 
 export const SpoolEdit = () => {
@@ -53,7 +51,7 @@ export const SpoolEdit = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const { form, formProps, saveButtonProps } = useForm<ISpool, HttpError, ISpoolRequest, ISpool>({
+  const { form, formProps, saveButtonProps } = useForm<ISpool, HttpError, ISpoolEditForm, ISpool>({
     liveMode: "manual",
     onLiveEvent() {
       // Warn the user if the spool has been updated since the form was opened
@@ -120,10 +118,10 @@ export const SpoolEdit = () => {
 
   // Override the form's onFinish method to stringify the extra fields
   const originalOnFinish = formProps.onFinish;
-  formProps.onFinish = (allValues: ISpoolRequest) => {
+  formProps.onFinish = (allValues: ISpoolEditForm) => {
     if (allValues !== undefined && allValues !== null) {
       // Lot of stupidity here to make types work
-      const values = StringifiedExtras<ISpoolRequest>(allValues);
+      const values = StringifiedExtras<ISpoolEditForm>(allValues);
       if (selectedFilament?.is_internal === false) {
         // Filament ID being a string indicates its an external filament.
         // If so, we should first create the internal filament version, then edit the spool

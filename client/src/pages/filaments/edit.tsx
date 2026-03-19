@@ -11,7 +11,7 @@ import { formatNumberOnUserInput, numberParser, numberParserAllowEmpty } from ".
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { IVendor } from "../vendors/model";
-import { IFilament, IFilamentParsedExtras } from "./model";
+import { IFilament, IFilamentEditForm, IFilamentParsedExtras } from "./model";
 
 /*
 The API returns the extra fields as JSON values, but we need to parse them into their real types
@@ -20,7 +20,9 @@ We also need to stringify them again before sending them back to the API, which 
 the form's onFinish method. Form.Item's normalize should do this, but it doesn't seem to work.
 */
 
-const comparableDefaults = {
+// comparableDefaults is typed against IFilamentEditForm so TypeScript will report a compile
+// error here if a new editable field is added to the model without updating this list.
+const comparableDefaults: Record<keyof IFilamentEditForm, unknown> = {
   name: "",
   vendor_id: null,
   material: "",
@@ -38,7 +40,7 @@ const comparableDefaults = {
   multi_color_direction: "",
   multi_color_hexes: "",
   extra: {},
-} as const;
+};
 // This list is the source of truth for which inputs participate in the Save-button dirty check.
 
 export const FilamentEdit = () => {
