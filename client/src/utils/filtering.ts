@@ -17,10 +17,7 @@ export function typeFilters<Obj>(filters: CrudFilter[]): TypedCrudFilter<Obj>[] 
  * @param field The field to get the filter values for.
  * @returns An array of filter values for the given field.
  */
-export function getFiltersForField<Obj>(
-  filters: TypedCrudFilter<Obj>[],
-  field: Field | string,
-): string[] {
+export function getFiltersForField<Obj>(filters: TypedCrudFilter<Obj>[], field: Field | string): string[] {
   const filterValues: string[] = [];
   filters.forEach((filter) => {
     if (filter.field === field) {
@@ -36,7 +33,16 @@ export function getFiltersForField<Obj>(
  * @param value The value to filter by
  * @returns The formatted filter value
  */
-export function formatCustomFieldFilterValue(field: Field, value: any): string {
+type CustomFieldFilterValue =
+  | string
+  | number
+  | boolean
+  | Date
+  | [number | null | undefined, number | null | undefined]
+  | null
+  | undefined;
+
+export function formatCustomFieldFilterValue(field: Field, value: CustomFieldFilterValue): string {
   switch (field.field_type) {
     case FieldType.text:
     case FieldType.choice:
@@ -48,34 +54,34 @@ export function formatCustomFieldFilterValue(field: Field, value: any): string {
           return `"${value}"`;
         }
       }
-      return value;
-      
+      return value == null ? "" : String(value);
+
     case FieldType.integer:
     case FieldType.float:
       // For numeric fields, we can use the value directly
-      return value.toString();
-      
+      return value == null ? "" : value.toString();
+
     case FieldType.boolean:
       // For boolean fields, convert to "true" or "false"
       return value ? "true" : "false";
-      
+
     case FieldType.datetime:
       // For datetime fields, format as ISO string
       if (value instanceof Date) {
         return value.toISOString();
       }
-      return value;
-      
+      return value == null ? "" : String(value);
+
     case FieldType.integer_range:
     case FieldType.float_range:
       // For range fields, format as min:max
       if (Array.isArray(value) && value.length === 2) {
         return `${value[0] ?? ""}:${value[1] ?? ""}`;
       }
-      return value;
-      
+      return value == null ? "" : String(value);
+
     default:
-      return value;
+      return value == null ? "" : String(value);
   }
 }
 
@@ -84,23 +90,23 @@ export function formatCustomFieldFilterValue(field: Field, value: any): string {
  * @param filters The list of filters
  * @returns An object with custom field keys and their filter values
  */
-export function getCustomFieldFilters<Obj = any>(
-  filters: CrudFilter[] | TypedCrudFilter<Obj>[]
+export function getCustomFieldFilters<Obj = unknown>(
+  filters: CrudFilter[] | TypedCrudFilter<Obj>[],
 ): Record<string, string[]> {
   const customFieldFilters: Record<string, string[]> = {};
-  
+
   filters.forEach((filter) => {
     if (!("field" in filter)) {
       return; // Skip non-field filters
     }
-    
+
     const field = filter.field.toString();
     if (isCustomField(field)) {
       const key = getCustomFieldKey(field);
       customFieldFilters[key] = filter.value as string[];
     }
   });
-  
+
   return customFieldFilters;
 }
 
