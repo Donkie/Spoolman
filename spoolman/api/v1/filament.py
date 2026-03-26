@@ -351,20 +351,23 @@ async def find(
             field_key = key[6:]  # Remove "extra." prefix
             extra_field_filters[field_key] = value
 
-    db_items, total_count = await filament.find(
-        db=db,
-        ids=filter_by_ids,
-        vendor_name=vendor_name if vendor_name is not None else vendor_name_old,
-        vendor_id=vendor_ids,
-        name=name,
-        material=material,
-        article_number=article_number,
-        external_id=external_id,
-        extra_field_filters=extra_field_filters if extra_field_filters else None,
-        sort_by=sort_by,
-        limit=limit,
-        offset=offset,
-    )
+    try:
+        db_items, total_count = await filament.find(
+            db=db,
+            ids=filter_by_ids,
+            vendor_name=vendor_name if vendor_name is not None else vendor_name_old,
+            vendor_id=vendor_ids,
+            name=name,
+            material=material,
+            article_number=article_number,
+            external_id=external_id,
+            extra_field_filters=extra_field_filters if extra_field_filters else None,
+            sort_by=sort_by,
+            limit=limit,
+            offset=offset,
+        )
+    except ValueError as e:
+        return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     # Set x-total-count header for pagination
     return JSONResponse(
