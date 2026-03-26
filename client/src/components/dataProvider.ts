@@ -4,7 +4,6 @@ import { AxiosInstance } from "axios";
 import { stringify } from "query-string";
 import { getCustomFieldFilters } from "../utils/filtering";
 import { isCustomField } from "../utils/queryFields";
-import { getCustomFieldSorters, isCustomFieldSorter } from "../utils/sorting";
 
 type MethodTypes = "get" | "delete" | "head" | "options";
 type MethodTypesWithBody = "post" | "put" | "patch";
@@ -44,14 +43,14 @@ const dataProvider = (
         if (!("field" in filter)) {
           throw Error("Filter must be a LogicalFilter.");
         }
-        
+
         const field = filter.field;
-        
+
         // Skip custom fields, they'll be handled separately
-        if (typeof field === 'string' && isCustomField(field)) {
+        if (typeof field === "string" && isCustomField(field)) {
           return;
         }
-        
+
         if (filter.value.length > 0) {
           const filterValueArray = Array.isArray(filter.value) ? filter.value : [filter.value];
 
@@ -67,12 +66,12 @@ const dataProvider = (
           queryParams[field] = filterValue;
         }
       });
-      
+
       // Process custom field filters
       const customFieldFilters = getCustomFieldFilters(filters);
       Object.entries(customFieldFilters).forEach(([key, values]) => {
         if (values.length > 0) {
-          queryParams[`extra.${key}`] = values.join(",");
+          queryParams[`extra.${key}`] = values.map((value) => (value === "<empty>" ? "" : value)).join(",");
         }
       });
     }

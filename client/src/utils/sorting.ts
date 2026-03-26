@@ -1,6 +1,6 @@
 import { CrudSort } from "@refinedev/core";
 import { SortOrder } from "antd/es/table/interface";
-import { getCustomFieldKey, isCustomField } from "./queryFields";
+import { Field, getCustomFieldKey, isCustomField } from "./queryFields";
 
 interface TypedCrudSort<Obj> {
   field: keyof Obj | string;
@@ -13,10 +13,7 @@ interface TypedCrudSort<Obj> {
  * @param field The field to get the sort order for.
  * @returns The sort order for the given field, or undefined if the field is not being sorted.
  */
-export function getSortOrderForField<Obj>(
-  sorters: TypedCrudSort<Obj>[],
-  field: Field | string,
-): SortOrder | undefined {
+export function getSortOrderForField<Obj>(sorters: TypedCrudSort<Obj>[], field: Field | string): SortOrder | undefined {
   const sorter = sorters.find((s) => s.field === field);
   if (sorter) {
     return sorter.order === "asc" ? "ascend" : "descend";
@@ -33,8 +30,8 @@ export function typeSorters<Obj>(sorters: CrudSort[]): TypedCrudSort<Obj>[] {
  * @param sorter The sorter to check
  * @returns True if the sorter is for a custom field
  */
-export function isCustomFieldSorter<Obj = any>(sorter: TypedCrudSort<Obj> | CrudSort): boolean {
-  return typeof sorter.field === 'string' && isCustomField(sorter.field);
+export function isCustomFieldSorter<Obj = unknown>(sorter: TypedCrudSort<Obj> | CrudSort): boolean {
+  return typeof sorter.field === "string" && isCustomField(sorter.field);
 }
 
 /**
@@ -42,11 +39,11 @@ export function isCustomFieldSorter<Obj = any>(sorter: TypedCrudSort<Obj> | Crud
  * @param sorters The list of sorters
  * @returns An object with custom field keys and their sort orders
  */
-export function getCustomFieldSorters<Obj = any>(
-  sorters: TypedCrudSort<Obj>[] | CrudSort[]
+export function getCustomFieldSorters<Obj = unknown>(
+  sorters: TypedCrudSort<Obj>[] | CrudSort[],
 ): Record<string, "asc" | "desc"> {
   const customFieldSorters: Record<string, "asc" | "desc"> = {};
-  
+
   sorters.forEach((sorter) => {
     if (isCustomFieldSorter(sorter)) {
       const field = sorter.field.toString();
@@ -54,6 +51,6 @@ export function getCustomFieldSorters<Obj = any>(
       customFieldSorters[key] = sorter.order;
     }
   });
-  
+
   return customFieldSorters;
 }

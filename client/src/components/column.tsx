@@ -40,7 +40,7 @@ export interface Action {
 
 interface BaseColumnProps<Obj extends Entity> {
   id: string | string[];
-  dataId?: keyof Obj & string | string; // Allow string values for custom fields
+  dataId?: (keyof Obj & string) | string; // Allow string values for custom fields
   i18ncat?: string;
   i18nkey?: string;
   title?: string;
@@ -98,10 +98,8 @@ function Column<Obj extends Entity>(
   // Sorting
   if (props.sorter) {
     columnProps.sorter = true;
-    columnProps.sortOrder = getSortOrderForField(
-      typeSorters<Obj>(props.tableState.sorters),
-      props.dataId ?? (props.id as keyof Obj),
-    );
+    const sortField = props.dataId ?? (Array.isArray(props.id) ? props.id.join(".") : props.id);
+    columnProps.sortOrder = getSortOrderForField(typeSorters<Obj>(props.tableState.sorters), sortField);
   }
 
   // Filter
@@ -207,11 +205,12 @@ export function FilteredQueryColumn<Obj extends Entity>(props: FilteredQueryColu
   }
   filters.push({
     text: "<empty>",
-    value: "<empty>",
+    value: "",
   });
 
   const typedFilters = typeFilters<Obj>(props.tableState.filters);
-  const filteredValue = getFiltersForField(typedFilters, props.dataId ?? (props.id as keyof Obj));
+  const filterField = props.dataId ?? (Array.isArray(props.id) ? props.id.join(".") : props.id);
+  const filteredValue = getFiltersForField(typedFilters, filterField);
 
   const onFilterDropdownOpen = () => {
     query.refetch();
@@ -325,7 +324,8 @@ export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<
   });
 
   const typedFilters = typeFilters<Obj>(props.tableState.filters);
-  const filteredValue = getFiltersForField(typedFilters, props.dataId ?? (props.id as keyof Obj));
+  const filterField = props.dataId ?? (Array.isArray(props.id) ? props.id.join(".") : props.id);
+  const filteredValue = getFiltersForField(typedFilters, filterField);
 
   const onFilterDropdownOpen = () => {
     query.refetch();
@@ -392,45 +392,42 @@ export function NumberRangeColumn<Obj extends Entity>(props: NumberColumnProps<O
 // Helper function to create filter items for custom fields
 function createCustomFieldFilters(field: Field): ColumnFilterItem[] {
   const filters: ColumnFilterItem[] = [];
-  
+
   // For choice fields, add each choice as a filter option
   if (field.field_type === FieldType.choice && field.choices) {
-    field.choices.forEach(choice => {
+    field.choices.forEach((choice) => {
       filters.push({
         text: choice,
         value: `"${choice}"`, // Exact match
       });
     });
   }
-  
+
   // For boolean fields, add true/false options
   if (field.field_type === FieldType.boolean) {
-    filters.push(
-      { text: "Yes", value: "true" },
-      { text: "No", value: "false" }
-    );
+    filters.push({ text: "Yes", value: "true" }, { text: "No", value: "false" });
   }
-  
+
   // Add empty option for all field types
   filters.push({
     text: "<empty>",
-    value: "<empty>",
+    value: "",
   });
-  
+
   return filters;
 }
 
 export function CustomFieldColumn<Obj extends Entity>(props: Omit<BaseColumnProps<Obj>, "id"> & { field: Field }) {
   const field = props.field;
   const fieldId = `extra.${field.key}`;
-  
+
   // Get filtered values for this field
   const typedFilters = typeFilters<Obj>(props.tableState.filters);
   const filteredValue = getFiltersForField(typedFilters, fieldId);
-  
+
   // Create filters based on field type
   const filters = createCustomFieldFilters(field);
-  
+
   const commonProps = {
     ...props,
     id: ["extra", field.key],
