@@ -458,6 +458,10 @@ async def test_invalid_boolean_custom_field_filters_return_400():
     assert result.status_code == 400
     assert "Invalid boolean filter value" in result.json()["message"]
 
+    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.boolean_field": "yes"})
+    assert result.status_code == 400
+    assert "Invalid boolean filter value" in result.json()["message"]
+
     httpx.delete(f"{URL}/api/v1/field/spool/boolean_field").raise_for_status()
 
 

@@ -40,11 +40,11 @@ def _get_entity_id_column(field_table: type[models.Base]) -> InstrumentedAttribu
 
 
 def _parse_boolean_filter(value: str) -> bool:
-    """Parse a boolean filter using the same loose-but-explicit semantics as the API."""
+    """Parse a boolean filter using explicit true/false tokens only."""
     normalized = value.strip().lower()
-    if normalized in {"true", "1", "yes"}:
+    if normalized == "true":
         return True
-    if normalized in {"false", "0", "no"}:
+    if normalized == "false":
         return False
     raise ValueError(f"Invalid boolean filter value: {value}")
 
