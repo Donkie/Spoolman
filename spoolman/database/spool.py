@@ -13,8 +13,17 @@ from sqlalchemy.sql.functions import coalesce
 
 from spoolman.api.v1.models import EventType, Spool, SpoolEvent
 from spoolman.database import filament, models
-from spoolman.database.utils import SortOrder
+from spoolman.database.extra_field_query import apply_extra_field_filters_and_sort
+from spoolman.database.utils import (
+    SortOrder,
+    add_where_clause_int,
+    add_where_clause_int_opt,
+    add_where_clause_str,
+    add_where_clause_str_opt,
+    parse_nested_field,
+)
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError, SpoolMeasureError
+from spoolman.extra_field_registry import EntityType
 from spoolman.math import weight_from_length
 from spoolman.ws import websocket_manager
 
@@ -127,17 +136,6 @@ async def find(  # noqa: C901, PLR0912
 
     Returns a tuple containing the list of items and the total count of matching items.
     """
-    # Import here to avoid circular imports
-    from spoolman.database.utils import (
-        add_where_clause_int,
-        add_where_clause_int_opt,
-        add_where_clause_str,
-        add_where_clause_str_opt,
-        add_where_clause_extra_field,
-        add_order_by_extra_field,
-        parse_nested_field,
-    )
-    
     stmt = (
         sqlalchemy.select(models.Spool)
         .join(models.Spool.filament, isouter=True)
@@ -164,84 +162,57 @@ async def find(  # noqa: C901, PLR0912
 
     total_count = None
 
-    if limit is not None:
-        total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True)
-        total_count = (await db.execute(total_count_stmt)).scalar()
-
-        stmt = stmt.offset(offset).limit(limit)
-
-    # Apply extra field filters if provided
-    if extra_field_filters:
-        # Get all extra fields for spools
-        from spoolman.extra_fields import EntityType, ExtraFieldType, get_extra_fields
-
-        extra_fields = await get_extra_fields(db, EntityType.spool)
-        extra_fields_dict = {field.key: field for field in extra_fields}
-
-        for field_key, value in extra_field_filters.items():
-            if field_key in extra_fields_dict:
-                field = extra_fields_dict[field_key]
-                stmt = add_where_clause_extra_field(
-                    stmt,
-                    models.Spool,
-                    EntityType.spool,
-                    field_key,
-                    field.field_type,
-                    value,
-                    field.multi_choice if field.field_type == ExtraFieldType.choice else None,
-                )
+    stmt = await apply_extra_field_filters_and_sort(
+        db=db,
+        stmt=stmt,
+        base_obj=models.Spool,
+        entity_type=EntityType.spool,
+        extra_field_filters=extra_field_filters,
+        sort_by=sort_by,
+    )
 
     if sort_by is not None:
         for fieldstr, order in sort_by.items():
             # Check if this is a custom field sort
             if fieldstr.startswith("extra."):
-                field_key = fieldstr[6:]  # Remove "extra." prefix
-                
-                # Get the field definition
-                from spoolman.extra_fields import EntityType, get_extra_fields
-                
-                extra_fields = await get_extra_fields(db, EntityType.spool)
-                extra_field = next((f for f in extra_fields if f.key == field_key), None)
-                
-                if extra_field:
-                    stmt = add_order_by_extra_field(
-                        stmt,
-                        models.Spool,
-                        EntityType.spool,
-                        field_key,
-                        extra_field.field_type,
-                        order
-                    )
-            else:
-                sorts = []
-                if fieldstr == "remaining_weight":
-                    sorts.append(coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight)
-                elif fieldstr == "remaining_length":
-                    # Simplified weight -> length formula. Absolute value is not correct but the proportionality is still
-                    # kept, which means the sort order is correct.
-                    sorts.append(
-                        (coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight)
-                        / models.Filament.density
-                        / (models.Filament.diameter * models.Filament.diameter),
-                    )
-                elif fieldstr == "used_length":
-                    sorts.append(
-                        models.Spool.used_weight
-                        / models.Filament.density
-                        / (models.Filament.diameter * models.Filament.diameter),
-                    )
-                elif fieldstr == "filament.combined_name":
-                    sorts.append(models.Vendor.name)
-                    sorts.append(models.Filament.name)
-                elif fieldstr == "price":
-                    sorts.append(coalesce(models.Spool.price, models.Filament.price))
-                else:
-                    sorts.append(parse_nested_field(models.Spool, fieldstr))
+                continue
 
-                if order == SortOrder.ASC:
-                    stmt = stmt.order_by(*(f.asc() for f in sorts))
-                elif order == SortOrder.DESC:
-                    stmt = stmt.order_by(*(f.desc() for f in sorts))
+            sorts = []
+            if fieldstr == "remaining_weight":
+                sorts.append(
+                    coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight,
+                )
+            elif fieldstr == "remaining_length":
+                # Simplified weight -> length formula. Absolute value is not correct but the proportionality
+                # is still kept, which means the sort order is correct.
+                sorts.append(
+                    (coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight)
+                    / models.Filament.density
+                    / (models.Filament.diameter * models.Filament.diameter),
+                )
+            elif fieldstr == "used_length":
+                sorts.append(
+                    models.Spool.used_weight
+                    / models.Filament.density
+                    / (models.Filament.diameter * models.Filament.diameter),
+                )
+            elif fieldstr == "filament.combined_name":
+                sorts.append(models.Vendor.name)
+                sorts.append(models.Filament.name)
+            elif fieldstr == "price":
+                sorts.append(coalesce(models.Spool.price, models.Filament.price))
+            else:
+                sorts.append(parse_nested_field(models.Spool, fieldstr))
+
+            if order == SortOrder.ASC:
+                stmt = stmt.order_by(*(f.asc() for f in sorts))
+            elif order == SortOrder.DESC:
+                stmt = stmt.order_by(*(f.desc() for f in sorts))
+
+    if limit is not None:
+        total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True).order_by(None)
+        total_count = (await db.execute(total_count_stmt)).scalar()
+        stmt = stmt.offset(offset).limit(limit)
 
     rows = await db.execute(
         stmt,

@@ -133,15 +133,19 @@ async def find(
             field_key = key[6:]  # Remove "extra." prefix
             extra_field_filters[field_key] = value
 
-    db_items, total_count = await vendor.find(
-        db=db,
-        name=name,
-        external_id=external_id,
-        extra_field_filters=extra_field_filters if extra_field_filters else None,
-        sort_by=sort_by,
-        limit=limit,
-        offset=offset,
-    )
+    try:
+        db_items, total_count = await vendor.find(
+            db=db,
+            name=name,
+            external_id=external_id,
+            extra_field_filters=extra_field_filters if extra_field_filters else None,
+            sort_by=sort_by,
+            limit=limit,
+            offset=offset,
+        )
+    except ValueError as e:
+        return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
+
     # Set x-total-count header for pagination
     return JSONResponse(
         content=jsonable_encoder(

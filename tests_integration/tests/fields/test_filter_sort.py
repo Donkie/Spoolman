@@ -1,16 +1,17 @@
 """Tests for filtering and sorting by custom fields."""
 
-import httpx
 import json
-import pytest
 from typing import Any
 
-from ..conftest import URL, assert_httpx_success, assert_lists_compatible
+import httpx
+import pytest
+
+from ..conftest import URL, assert_httpx_success
 
 
 @pytest.mark.asyncio
 async def test_filter_by_custom_field(random_filament: dict[str, Any]):
-    """Add a custom text field"""
+    """Add a custom text field."""
     result = httpx.post(
         f"{URL}/api/v1/field/spool/test_field",
         json={
@@ -25,12 +26,7 @@ async def test_filter_by_custom_field(random_filament: dict[str, Any]):
     # Create a spool with a custom field
     result = httpx.post(
         f"{URL}/api/v1/spool",
-        json={
-            "filament_id": random_filament["id"],
-            "extra": {
-                "test_field": json.dumps("test_value")
-            }
-        },
+        json={"filament_id": random_filament["id"], "extra": {"test_field": json.dumps("test_value")}},
     )
     assert_httpx_success(result)
     spool_id1 = result.json()["id"]
@@ -38,12 +34,7 @@ async def test_filter_by_custom_field(random_filament: dict[str, Any]):
     # Create another spool with a different custom field value
     result = httpx.post(
         f"{URL}/api/v1/spool",
-        json={
-            "filament_id": random_filament["id"],
-            "extra": {
-                "test_field": json.dumps("other_value")
-            }
-        },
+        json={"filament_id": random_filament["id"], "extra": {"test_field": json.dumps("other_value")}},
     )
     assert_httpx_success(result)
     spool_id2 = result.json()["id"]
@@ -78,7 +69,7 @@ async def test_filter_by_custom_field(random_filament: dict[str, Any]):
 
 @pytest.mark.asyncio
 async def test_sort_by_custom_field(random_filament: dict[str, Any]):
-    """Add a custom text field"""
+    """Add a custom text field."""
     result = httpx.post(
         f"{URL}/api/v1/field/spool/text_field",
         json={
@@ -93,24 +84,14 @@ async def test_sort_by_custom_field(random_filament: dict[str, Any]):
     # Text field
     result = httpx.post(
         f"{URL}/api/v1/spool",
-        json={
-            "filament_id": random_filament["id"],
-            "extra": {
-                "text_field": json.dumps("B value")
-            }
-        },
+        json={"filament_id": random_filament["id"], "extra": {"text_field": json.dumps("B value")}},
     )
     assert_httpx_success(result)
     spool_id1 = result.json()["id"]
 
     result = httpx.post(
         f"{URL}/api/v1/spool",
-        json={
-            "filament_id": random_filament["id"],
-            "extra": {
-                "text_field": json.dumps("A value")
-            }
-        },
+        json={"filament_id": random_filament["id"], "extra": {"text_field": json.dumps("A value")}},
     )
     assert_httpx_success(result)
     spool_id2 = result.json()["id"]
@@ -146,7 +127,7 @@ async def test_sort_by_custom_field(random_filament: dict[str, Any]):
 
 @pytest.mark.asyncio
 async def test_filter_by_numeric_custom_field(random_filament: dict[str, Any]):
-    """Add a custom numeric field"""
+    """Add a custom numeric field."""
     result = httpx.post(
         f"{URL}/api/v1/field/spool/numeric_field",
         json={
@@ -160,12 +141,7 @@ async def test_filter_by_numeric_custom_field(random_filament: dict[str, Any]):
     # Create a spool with a numeric custom field
     result = httpx.post(
         f"{URL}/api/v1/spool",
-        json={
-            "filament_id": random_filament["id"],
-            "extra": {
-                "numeric_field": json.dumps(100)
-            }
-        },
+        json={"filament_id": random_filament["id"], "extra": {"numeric_field": json.dumps(100)}},
     )
     assert_httpx_success(result)
     spool_id1 = result.json()["id"]
@@ -173,12 +149,7 @@ async def test_filter_by_numeric_custom_field(random_filament: dict[str, Any]):
     # Create another spool with a different numeric value
     result = httpx.post(
         f"{URL}/api/v1/spool",
-        json={
-            "filament_id": random_filament["id"],
-            "extra": {
-                "numeric_field": json.dumps(200)
-            }
-        },
+        json={"filament_id": random_filament["id"], "extra": {"numeric_field": json.dumps(200)}},
     )
     assert_httpx_success(result)
     spool_id2 = result.json()["id"]
@@ -209,7 +180,7 @@ async def test_filter_by_numeric_custom_field(random_filament: dict[str, Any]):
 
 @pytest.mark.asyncio
 async def test_filter_by_boolean_custom_field(random_filament: dict[str, Any]):
-    """Add a custom boolean field"""
+    """Add a custom boolean field."""
     result = httpx.post(
         f"{URL}/api/v1/field/spool/boolean_field",
         json={
@@ -223,12 +194,7 @@ async def test_filter_by_boolean_custom_field(random_filament: dict[str, Any]):
     # Create a spool with a boolean custom field
     result = httpx.post(
         f"{URL}/api/v1/spool",
-        json={
-            "filament_id": random_filament["id"],
-            "extra": {
-                "boolean_field": json.dumps(True)
-            }
-        },
+        json={"filament_id": random_filament["id"], "extra": {"boolean_field": json.dumps(bool(1))}},
     )
     assert_httpx_success(result)
     spool_id1 = result.json()["id"]
@@ -236,12 +202,7 @@ async def test_filter_by_boolean_custom_field(random_filament: dict[str, Any]):
     # Create another spool with a different boolean value
     result = httpx.post(
         f"{URL}/api/v1/spool",
-        json={
-            "filament_id": random_filament["id"],
-            "extra": {
-                "boolean_field": json.dumps(False)
-            }
-        },
+        json={"filament_id": random_filament["id"], "extra": {"boolean_field": json.dumps(bool(0))}},
     )
     assert_httpx_success(result)
     spool_id2 = result.json()["id"]
@@ -419,7 +380,7 @@ async def test_filter_multi_choice_custom_field(random_filament: dict[str, Any])
 
 @pytest.mark.asyncio
 async def test_filter_empty_custom_field(random_filament: dict[str, Any]):
-    """Test the <empty> filter returns items that have no value set for a custom field."""
+    """Test the empty-string filter returns items that have no value set for a custom field."""
     result = httpx.post(
         f"{URL}/api/v1/field/spool/optional_field",
         json={"name": "Optional field", "field_type": "text"},
@@ -442,8 +403,8 @@ async def test_filter_empty_custom_field(random_filament: dict[str, Any]):
     assert_httpx_success(result)
     spool_id2 = result.json()["id"]
 
-    # Filter by <empty> — spool 2 (no field row) should appear, spool 1 should not
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.optional_field": "<empty>"})
+    # Filter by empty string — spool 2 (no field row) should appear, spool 1 should not
+    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.optional_field": ""})
     assert_httpx_success(result)
     ids = {item["id"] for item in result.json()}
     assert spool_id2 in ids
@@ -460,6 +421,44 @@ async def test_filter_empty_custom_field(random_filament: dict[str, Any]):
     httpx.delete(f"{URL}/api/v1/field/spool/optional_field").raise_for_status()
     httpx.delete(f"{URL}/api/v1/spool/{spool_id1}").raise_for_status()
     httpx.delete(f"{URL}/api/v1/spool/{spool_id2}").raise_for_status()
+
+
+@pytest.mark.asyncio
+async def test_invalid_numeric_custom_field_filters_return_400():
+    """Invalid numeric custom-field filters should fail explicitly instead of being ignored."""
+    result = httpx.post(
+        f"{URL}/api/v1/field/spool/numeric_field",
+        json={
+            "name": "Numeric field",
+            "field_type": "integer",
+        },
+    )
+    assert_httpx_success(result)
+
+    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.numeric_field": "abc"})
+    assert result.status_code == 400
+    assert "Invalid integer filter value" in result.json()["message"]
+
+    httpx.delete(f"{URL}/api/v1/field/spool/numeric_field").raise_for_status()
+
+
+@pytest.mark.asyncio
+async def test_invalid_boolean_custom_field_filters_return_400():
+    """Invalid boolean custom-field filters should fail explicitly instead of being coerced."""
+    result = httpx.post(
+        f"{URL}/api/v1/field/spool/boolean_field",
+        json={
+            "name": "Boolean field",
+            "field_type": "boolean",
+        },
+    )
+    assert_httpx_success(result)
+
+    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.boolean_field": "maybe"})
+    assert result.status_code == 400
+    assert "Invalid boolean filter value" in result.json()["message"]
+
+    httpx.delete(f"{URL}/api/v1/field/spool/boolean_field").raise_for_status()
 
 
 @pytest.mark.asyncio
@@ -482,7 +481,12 @@ async def test_filter_sort_filament_custom_field(random_filament: dict[str, Any]
 
     result = httpx.post(
         f"{URL}/api/v1/filament",
-        json={"vendor_id": vendor_id, "density": 1.24, "diameter": 1.75, "extra": {"filament_tag": json.dumps("alpha")}},
+        json={
+            "vendor_id": vendor_id,
+            "density": 1.24,
+            "diameter": 1.75,
+            "extra": {"filament_tag": json.dumps("alpha")},
+        },
     )
     assert_httpx_success(result)
     filament_id2 = result.json()["id"]

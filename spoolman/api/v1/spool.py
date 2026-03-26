@@ -294,21 +294,24 @@ async def find(
             field_key = key[6:]  # Remove "extra." prefix
             extra_field_filters[field_key] = value
 
-    db_items, total_count = await spool.find(
-        db=db,
-        filament_name=filament_name if filament_name is not None else filament_name_old,
-        filament_id=filament_ids,
-        filament_material=filament_material if filament_material is not None else filament_material_old,
-        vendor_name=filament_vendor_name if filament_vendor_name is not None else vendor_name_old,
-        vendor_id=filament_vendor_ids,
-        location=location,
-        lot_nr=lot_nr,
-        allow_archived=allow_archived,
-        extra_field_filters=extra_field_filters if extra_field_filters else None,
-        sort_by=sort_by,
-        limit=limit,
-        offset=offset,
-    )
+    try:
+        db_items, total_count = await spool.find(
+            db=db,
+            filament_name=filament_name if filament_name is not None else filament_name_old,
+            filament_id=filament_ids,
+            filament_material=filament_material if filament_material is not None else filament_material_old,
+            vendor_name=filament_vendor_name if filament_vendor_name is not None else vendor_name_old,
+            vendor_id=filament_vendor_ids,
+            location=location,
+            lot_nr=lot_nr,
+            allow_archived=allow_archived,
+            extra_field_filters=extra_field_filters if extra_field_filters else None,
+            sort_by=sort_by,
+            limit=limit,
+            offset=offset,
+        )
+    except ValueError as e:
+        return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     # Set x-total-count header for pagination
     return JSONResponse(
