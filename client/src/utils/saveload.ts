@@ -93,16 +93,33 @@ export function useStoreInitialState(tableId: string, state: TableState) {
 export function useSavedState<T>(id: string, defaultValue: T) {
   const [state, setState] = useState<T>(() => {
     const savedState = isLocalStorageAvailable ? localStorage.getItem(`savedStates-${id}`) : null;
-    return savedState ? JSON.parse(savedState) : defaultValue;
+    return parseSavedState(savedState, defaultValue);
   });
 
   useEffect(() => {
     if (isLocalStorageAvailable) {
-      localStorage.setItem(`savedStates-${id}`, JSON.stringify(state));
+      const serializedState = JSON.stringify(state);
+      if (serializedState === undefined) {
+        localStorage.removeItem(`savedStates-${id}`);
+      } else {
+        localStorage.setItem(`savedStates-${id}`, serializedState);
+      }
     }
   }, [id, state]);
 
   return [state, setState] as const;
+}
+
+function parseSavedState<T>(savedState: string | null, defaultValue: T) {
+  if (!savedState || savedState === "undefined") {
+    return defaultValue;
+  }
+
+  try {
+    return JSON.parse(savedState) as T;
+  } catch {
+    return defaultValue;
+  }
 }
 
 function setURLHash(Id: string, value: string) {
