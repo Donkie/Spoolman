@@ -142,7 +142,8 @@ const SpoolQRCodeExportDialog = ({ spoolIds }: SpoolQRCodeExportDialog) => {
   }
 
   const [templateHelpOpen, setTemplateHelpOpen] = useState(false);
-  const template =
+  const titleTemplate = curPreset.titleTemplate ?? `==**{filament.name}**== {filament.color_hex}`;
+  const infoTemplate =
     curPreset.template ??
     `**{filament.vendor.name} - {filament.name}
 #{id} - {filament.material}**
@@ -229,8 +230,7 @@ Spool Weight: {filament.spool_weight} g
       <QRCodeExportDialog
         printSettings={curPreset.labelSettings}
         setPrintSettings={(newSettings) => {
-          curPreset.labelSettings = newSettings;
-          updateCurrentPreset(curPreset);
+          updateCurrentPreset({ ...curPreset, labelSettings: newSettings });
         }}
         baseUrlRoot={baseUrlRoot}
         useHTTPUrl={useHTTPUrl}
@@ -291,8 +291,13 @@ Spool Weight: {filament.spool_weight} g
               <Input
                 value={curPreset.labelSettings.printSettings?.name}
                 onChange={(e) => {
-                  curPreset.labelSettings.printSettings.name = e.target.value;
-                  updateCurrentPreset(curPreset);
+                  updateCurrentPreset({
+                    ...curPreset,
+                    labelSettings: {
+                      ...curPreset.labelSettings,
+                      printSettings: { ...curPreset.labelSettings.printSettings, name: e.target.value },
+                    },
+                  });
                 }}
               />
             </Form.Item>
@@ -301,6 +306,8 @@ Spool Weight: {filament.spool_weight} g
         items={items.map((spool) => ({
           value: useHTTPUrl ? `${baseUrlRoot}/spool/show/${spool.id}` : `WEB+SPOOLMAN:S-${spool.id}`,
           amlName: renderTemplateText(filenameTemplate, spool),
+          vendor: spool.filament.vendor,
+          title: <>{renderLabelContents(titleTemplate, spool)}</>,
           label: (
             <p
               style={{
@@ -309,11 +316,25 @@ Spool Weight: {filament.spool_weight} g
                 whiteSpace: "pre-wrap",
               }}
             >
-              {renderLabelContents(template, spool)}
+              {renderLabelContents(infoTemplate, spool)}
             </p>
           ),
           errorLevel: "H",
         }))}
+        extraTitleSettings={
+          <Form.Item
+            label={t("printing.qrcode.titleTemplate")}
+            tooltip={t("printing.qrcode.titleTemplateTooltipSpool")}
+          >
+            <TextArea
+              value={titleTemplate}
+              rows={4}
+              onChange={(newValue) => {
+                updateCurrentPreset({ ...curPreset, titleTemplate: newValue.target.value });
+              }}
+            />
+          </Form.Item>
+        }
         extraFormatSettings={
           <Form.Item
             label={t("printing.qrcode.filenameTemplate")}
@@ -322,21 +343,19 @@ Spool Weight: {filament.spool_weight} g
             <Input
               value={filenameTemplate}
               onChange={(newValue) => {
-                curPreset.filenameTemplate = newValue.target.value;
-                updateCurrentPreset(curPreset);
+                updateCurrentPreset({ ...curPreset, filenameTemplate: newValue.target.value });
               }}
             />
           </Form.Item>
         }
-        extraSettings={
+        extraInfoSettings={
           <>
-            <Form.Item label={t("printing.qrcode.template")}>
+            <Form.Item label={t("printing.qrcode.infoTemplate")}>
               <TextArea
-                value={template}
+                value={infoTemplate}
                 rows={8}
                 onChange={(newValue) => {
-                  curPreset.template = newValue.target.value;
-                  updateCurrentPreset(curPreset);
+                  updateCurrentPreset({ ...curPreset, template: newValue.target.value });
                 }}
               />
             </Form.Item>

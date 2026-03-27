@@ -142,7 +142,8 @@ const FilamentQRCodeExportDialog = ({ filamentIds }: FilamentQRCodeExportDialogP
   }
 
   const [templateHelpOpen, setTemplateHelpOpen] = useState(false);
-  const template =
+  const titleTemplate = curPreset.titleTemplate ?? `==**{name}**== {color_hex}`;
+  const infoTemplate =
     curPreset.template ??
     `**{vendor.name} - {name}
 #{id} - {material}**
@@ -207,8 +208,7 @@ const FilamentQRCodeExportDialog = ({ filamentIds }: FilamentQRCodeExportDialogP
       <QRCodeExportDialog
         printSettings={curPreset.labelSettings}
         setPrintSettings={(newSettings) => {
-          curPreset.labelSettings = newSettings;
-          updateCurrentPreset(curPreset);
+          updateCurrentPreset({ ...curPreset, labelSettings: newSettings });
         }}
         baseUrlRoot={baseUrlRoot}
         useHTTPUrl={useHTTPUrl}
@@ -269,8 +269,13 @@ const FilamentQRCodeExportDialog = ({ filamentIds }: FilamentQRCodeExportDialogP
               <Input
                 value={curPreset.labelSettings.printSettings?.name}
                 onChange={(e) => {
-                  curPreset.labelSettings.printSettings.name = e.target.value;
-                  updateCurrentPreset(curPreset);
+                  updateCurrentPreset({
+                    ...curPreset,
+                    labelSettings: {
+                      ...curPreset.labelSettings,
+                      printSettings: { ...curPreset.labelSettings.printSettings, name: e.target.value },
+                    },
+                  });
                 }}
               />
             </Form.Item>
@@ -279,6 +284,8 @@ const FilamentQRCodeExportDialog = ({ filamentIds }: FilamentQRCodeExportDialogP
         items={items.map((filament) => ({
           value: useHTTPUrl ? `${baseUrlRoot}/filament/show/${filament.id}` : `WEB+SPOOLMAN:F-${filament.id}`,
           amlName: renderTemplateText(filenameTemplate, filament),
+          vendor: filament.vendor,
+          title: <>{renderLabelContents(titleTemplate, filament)}</>,
           label: (
             <p
               style={{
@@ -287,11 +294,25 @@ const FilamentQRCodeExportDialog = ({ filamentIds }: FilamentQRCodeExportDialogP
                 whiteSpace: "pre-wrap",
               }}
             >
-              {renderLabelContents(template, filament)}
+              {renderLabelContents(infoTemplate, filament)}
             </p>
           ),
           errorLevel: "H",
         }))}
+        extraTitleSettings={
+          <Form.Item
+            label={t("printing.qrcode.titleTemplate")}
+            tooltip={t("printing.qrcode.titleTemplateTooltipFilament")}
+          >
+            <TextArea
+              value={titleTemplate}
+              rows={4}
+              onChange={(newValue) => {
+                updateCurrentPreset({ ...curPreset, titleTemplate: newValue.target.value });
+              }}
+            />
+          </Form.Item>
+        }
         extraFormatSettings={
           <Form.Item
             label={t("printing.qrcode.filenameTemplate")}
@@ -300,21 +321,19 @@ const FilamentQRCodeExportDialog = ({ filamentIds }: FilamentQRCodeExportDialogP
             <Input
               value={filenameTemplate}
               onChange={(newValue) => {
-                curPreset.filenameTemplate = newValue.target.value;
-                updateCurrentPreset(curPreset);
+                updateCurrentPreset({ ...curPreset, filenameTemplate: newValue.target.value });
               }}
             />
           </Form.Item>
         }
-        extraSettings={
+        extraInfoSettings={
           <>
-            <Form.Item label={t("printing.qrcode.template")}>
+            <Form.Item label={t("printing.qrcode.infoTemplate")}>
               <TextArea
-                value={template}
+                value={infoTemplate}
                 rows={8}
                 onChange={(newValue) => {
-                  curPreset.template = newValue.target.value;
-                  updateCurrentPreset(curPreset);
+                  updateCurrentPreset({ ...curPreset, template: newValue.target.value });
                 }}
               />
             </Form.Item>
