@@ -11,6 +11,17 @@ interface SettingsResponse {
   [key: string]: SettingResponseValue;
 }
 
+export function parseStringSettingValue(value: string | undefined, fallback = ""): string {
+  if (value === undefined) return fallback;
+
+  try {
+    const parsed = JSON.parse(value);
+    return typeof parsed === "string" ? parsed : fallback;
+  } catch {
+    return value;
+  }
+}
+
 export function useGetSettings() {
   return useQuery<SettingsResponse>({
     queryKey: ["settings"],

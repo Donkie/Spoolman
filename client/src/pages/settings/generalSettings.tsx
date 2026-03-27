@@ -1,7 +1,7 @@
 import { useTranslate } from "@refinedev/core";
 import { Button, Checkbox, Form, Input, message } from "antd";
 import { useEffect } from "react";
-import { useGetSettings, useSetSetting } from "../../utils/querySettings";
+import { parseStringSettingValue, useGetSettings, useSetSetting } from "../../utils/querySettings";
 
 export function GeneralSettings() {
   const settings = useGetSettings();
@@ -17,7 +17,7 @@ export function GeneralSettings() {
     if (settings.data) {
       form.setFieldsValue({
         currency: JSON.parse(settings.data.currency.value),
-        base_url: JSON.parse(settings.data.base_url.value),
+        base_url: parseStringSettingValue(settings.data.base_url.value),
         round_prices: JSON.parse(settings.data.round_prices.value),
       });
     }

@@ -5,7 +5,7 @@ import TextArea from "antd/es/input/TextArea";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { EntityType, useGetFields } from "../../utils/queryFields";
-import { useGetSetting } from "../../utils/querySettings";
+import { parseStringSettingValue, useGetSetting } from "../../utils/querySettings";
 import { useSavedState } from "../../utils/saveload";
 import { useGetSpoolsByIds } from "../spools/functions";
 import { ISpool } from "../spools/model";
@@ -26,10 +26,8 @@ interface SpoolQRCodePrintingDialog {
 const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
   const t = useTranslate();
   const baseUrlSetting = useGetSetting("base_url");
-  const baseUrlRoot =
-    baseUrlSetting.data?.value !== undefined && JSON.parse(baseUrlSetting.data?.value) !== ""
-      ? JSON.parse(baseUrlSetting.data?.value)
-      : window.location.origin;
+  const baseUrl = parseStringSettingValue(baseUrlSetting.data?.value);
+  const baseUrlRoot = baseUrl !== "" ? baseUrl : window.location.origin;
   const [messageApi, contextHolder] = message.useMessage();
   const [useHTTPUrl, setUseHTTPUrl] = useSavedState("print-useHTTPUrl", false);
 
