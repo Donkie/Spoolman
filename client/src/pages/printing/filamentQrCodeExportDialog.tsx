@@ -207,8 +207,7 @@ const FilamentQRCodeExportDialog = ({ filamentIds }: FilamentQRCodeExportDialogP
       <QRCodeExportDialog
         printSettings={curPreset.labelSettings}
         setPrintSettings={(newSettings) => {
-          curPreset.labelSettings = newSettings;
-          updateCurrentPreset(curPreset);
+          updateCurrentPreset({ ...curPreset, labelSettings: newSettings });
         }}
         baseUrlRoot={baseUrlRoot}
         useHTTPUrl={useHTTPUrl}
@@ -269,8 +268,13 @@ const FilamentQRCodeExportDialog = ({ filamentIds }: FilamentQRCodeExportDialogP
               <Input
                 value={curPreset.labelSettings.printSettings?.name}
                 onChange={(e) => {
-                  curPreset.labelSettings.printSettings.name = e.target.value;
-                  updateCurrentPreset(curPreset);
+                  updateCurrentPreset({
+                    ...curPreset,
+                    labelSettings: {
+                      ...curPreset.labelSettings,
+                      printSettings: { ...curPreset.labelSettings.printSettings, name: e.target.value },
+                    },
+                  });
                 }}
               />
             </Form.Item>
@@ -300,8 +304,7 @@ const FilamentQRCodeExportDialog = ({ filamentIds }: FilamentQRCodeExportDialogP
             <Input
               value={filenameTemplate}
               onChange={(newValue) => {
-                curPreset.filenameTemplate = newValue.target.value;
-                updateCurrentPreset(curPreset);
+                updateCurrentPreset({ ...curPreset, filenameTemplate: newValue.target.value });
               }}
             />
           </Form.Item>
@@ -313,8 +316,7 @@ const FilamentQRCodeExportDialog = ({ filamentIds }: FilamentQRCodeExportDialogP
                 value={template}
                 rows={8}
                 onChange={(newValue) => {
-                  curPreset.template = newValue.target.value;
-                  updateCurrentPreset(curPreset);
+                  updateCurrentPreset({ ...curPreset, template: newValue.target.value });
                 }}
               />
             </Form.Item>
