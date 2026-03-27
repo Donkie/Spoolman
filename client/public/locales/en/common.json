@@ -106,7 +106,26 @@
             "button": "Print Labels",
             "title": "Label Printing",
             "template": "Label Template",
-            "templateHelp": "Use {} to insert values of the spool object as text. For example, {id} will be replaced with the spool id, or {filament.material} will be replaced with the material of the spool. if a value is missing it will be replaced with \"?\". A second set of {} can be used to remove this. In addition, any text between the sets of {} will be removed if the value is missing. For example, {Lot Nr: {lot_nr}} will only show the label if the spool has a lot number. Enclose text with double asterix ** to make it bold. Click the button to view a list of all available tags.",
+            "templateHelp": "Use {} to insert spool values and optional |modifiers for datetime or numeric formatting. Use Available Tags... to copy ready-to-paste values, or open Detailed template help for examples. Enclose text with double asterisks ** to make it bold.",
+            "templateTagButton": "Available Tags...",
+            "templateHelpLink": "Detailed template help",
+            "templateTagDialog": {
+                "title": "Template Tags and Modifiers",
+                "copyHint": "Click a tag or modifier to copy a complete template value and close.",
+                "hoverHint": "Hover a tag or modifier to preview the copied value.",
+                "hoverCopyPrefix": "Copy",
+                "hoverCopySuffix": "to clipboard",
+                "copySuccess": "Copied {{value}}",
+                "copyError": "Unable to copy. Copy manually.",
+                "columns": {
+                    "tag": "Tag",
+                    "modifiers": "Available |Modifiers"
+                },
+                "modifiers": {
+                    "none": "None",
+                    "dateOrderPrefix": "Date-order suffixes:"
+                }
+            },
             "textSize": "Label Text Size",
             "showContent": "Print Label",
             "useHTTPUrl": {
@@ -302,7 +321,44 @@
             "spool": "Individual physical spools of a specific filament.",
             "vendor": "The companies that make the filament."
         },
-        "description": "<title>Help</title><p>Here are some tips to get you started.</p><p>Spoolman holds 3 different types of data:</p><itemsHelp/><p>To add a new spool to the database, start by creating a <filamentCreateLink>Filament</filamentCreateLink> object. Once that's done, proceed to create a <spoolCreateLink>Spool</spoolCreateLink> object for that specific spool. If you acquire additional spools of the same filament later on, simply generate additional Spool objects and reuse the same Filament object.</p><p>Optionally, you can also generate a <vendorCreateLink>Manufacturer</vendorCreateLink> object for the company manufacturing the filament if you wish to track that information.</p><p>You have the option to link other 3D printer services to Spoolman, like Moonraker, which can automatically monitor filament usage and update the Spool objects for you. Refer to the <readmeLink>Spoolman README</readmeLink> for guidance on how to set that up.</p>"
+        "description": "<title>Help</title><p>Here are some tips to get you started.</p><p>Spoolman holds 3 different types of data:</p><itemsHelp/><p>To add a new spool to the database, start by creating a <filamentCreateLink>Filament</filamentCreateLink> object. Once that's done, proceed to create a <spoolCreateLink>Spool</spoolCreateLink> object for that specific spool. If you acquire additional spools of the same filament later on, simply generate additional Spool objects and reuse the same Filament object.</p><p>Optionally, you can also generate a <vendorCreateLink>Manufacturer</vendorCreateLink> object for the company manufacturing the filament if you wish to track that information.</p><p>You have the option to link other 3D printer services to Spoolman, like Moonraker, which can automatically monitor filament usage and update the Spool objects for you. Refer to the <readmeLink>Spoolman README</readmeLink> for guidance on how to set that up.</p>",
+        "templateSyntax": {
+            "title": "Template Syntax",
+            "intro": "Template syntax is used for label text today and is intended to be reusable anywhere Spoolman accepts tag-based templates.",
+            "basicsHeading": "Basics",
+            "basicsInsertBefore": "Wrap a tag in {} to insert a value, such as",
+            "basicsInsertMiddle": "or",
+            "basicsInsertAfter": "Missing values resolve to",
+            "basicsCopyBefore": "In spool label printing, use the",
+            "basicsCopyAfter": "to copy ready-to-paste values like",
+            "basicsMissingBefore": "Use a second set of braces to hide missing values. For example,",
+            "basicsMissingAfter": "removes the placeholder entirely if the value does not exist.",
+            "basicsConditionalBefore": "You can also make surrounding text conditional. For example,",
+            "basicsConditionalAfter": "only renders when the inner tag has a value.",
+            "basicsBoldBefore": "Wrap text in",
+            "basicsBoldAfter": "to render it in bold on the label.",
+            "datetimeHeading": "Datetime Modifiers",
+            "datetimeSupportedBefore": "Datetime tags can be formatted by appending a modifier after |. Supported modifiers are",
+            "datetimeSupportedAfter": ".",
+            "datetimeOrderBefore": "Date-based modifiers can also define output order with",
+            "datetimeOrderAfter": ". Use",
+            "datetimeLocal": "variants when you want the rendered value converted to the browser's local time zone.",
+            "numberHeading": "Number Modifiers",
+            "numberSupportedBefore": "Numeric tags can also be formatted by appending a modifier after |. Supported modifiers are",
+            "numberSupportedAfter": ".",
+            "numberPurpose": "Use these when a raw value has more precision than you want on a label, such as weight fields that need to fit in limited space.",
+            "examplesHeading": "Examples",
+            "examplesDatetimeBefore": "If the stored datetime is 2026-03-04T18:27:53Z, then",
+            "examplesDatetimeDate": "renders as",
+            "examplesDatetimeDmy": "renders as",
+            "examplesDatetimeTime": "renders as",
+            "examplesDatetimeLocal": "renders in the browser's local time zone.",
+            "examplesNumberBefore": "If a numeric value is 1234.56789, then",
+            "examplesNumberRound": "renders as",
+            "examplesNumberFixed1": "renders as",
+            "examplesNumberFixed2": "renders as",
+            "and": "and"
+        }
     },
     "table": {
         "actions": "Actions"
