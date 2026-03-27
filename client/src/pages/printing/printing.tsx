@@ -1,6 +1,6 @@
 import { ReactElement } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { useGetSetting, useSetSetting } from "../../utils/querySettings";
+import { parseStringSettingValue, useGetSetting, useSetSetting } from "../../utils/querySettings";
 
 export interface PrintSettings {
   id: string;
@@ -35,17 +35,8 @@ export interface SpoolQRCodePrintSettings {
 }
 
 export function getConfiguredBaseUrl(rawValue: string | undefined, fallback: string): string {
-  if (rawValue === undefined) {
-    return fallback;
-  }
-
-  try {
-    const parsed = JSON.parse(rawValue);
-    return typeof parsed === "string" && parsed.trim() !== "" ? parsed : fallback;
-  } catch {
-    const trimmed = rawValue.trim();
-    return trimmed !== "" ? trimmed : fallback;
-  }
+  const parsed = parseStringSettingValue(rawValue, fallback);
+  return parsed.trim() !== "" ? parsed : fallback;
 }
 
 // Load saved print presets and backfill missing ids so older settings remain selectable in the current UI.
