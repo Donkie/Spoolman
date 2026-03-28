@@ -706,23 +706,24 @@ def import_logo_pack_zip(
                     f"print:{print_filename}:{hashlib.sha1(converted_bytes).hexdigest()}"  # noqa: S324
                 )
 
-        if len(imported_web_files) == 0:
+        if len(imported_web_files) == 0 and len(imported_print_files) == 0:
             raise RuntimeError("ZIP archive did not contain any supported logo image files.")
 
-        source_repo = (
+        manifest_source_repo = (
             local_manifest.get("source_repo") if isinstance(local_manifest.get("source_repo"), str) else "uploaded-zip"
         )
-        source_ref = (
+        manifest_source_ref = (
             local_manifest.get("source_ref")
             if isinstance(local_manifest.get("source_ref"), str)
             else "manual-upload.zip"
         )
-        source_url = (
+        manifest_source_url = (
             local_manifest.get("source_url") if isinstance(local_manifest.get("source_url"), str) else "local upload"
         )
-        if source_repo == "uploaded-zip":
-            source_ref = Path(upload_name).name if upload_name else "manual-upload.zip"
-            source_url = "local upload"
+        upload_source_ref = Path(upload_name).name if upload_name else "manual-upload.zip"
+        if manifest_source_repo == "uploaded-zip":
+            manifest_source_ref = upload_source_ref
+            manifest_source_url = "local upload"
         # Keep the last synced remote signature when appending local ZIP assets on top of a GitHub-synced pack.
         # That lets later refresh checks compare the remote pack cheaply without treating local additions as drift.
         signature = (
@@ -739,17 +740,25 @@ def import_logo_pack_zip(
         existing_custom_print_files = [
             value for value in local_manifest.get("custom_print_files", []) if isinstance(value, str)
         ]
-        if len(existing_web_files) > 0 and len(existing_custom_web_files) == 0 and source_repo == "uploaded-zip":
+        if (
+            len(existing_web_files) > 0
+            and len(existing_custom_web_files) == 0
+            and manifest_source_repo == "uploaded-zip"
+        ):
             existing_custom_web_files = list(existing_web_files)
-        if len(existing_print_files) > 0 and len(existing_custom_print_files) == 0 and source_repo == "uploaded-zip":
+        if (
+            len(existing_print_files) > 0
+            and len(existing_custom_print_files) == 0
+            and manifest_source_repo == "uploaded-zip"
+        ):
             existing_custom_print_files = list(existing_print_files)
 
         # ZIP imports append into the local operator-managed library, so imported files join the custom preservation lists.
         manifest = _write_manifest(
             target_dir=staged_target_dir,
-            source_repo=source_repo,
-            source_ref=source_ref,
-            source_url=source_url,
+            source_repo=manifest_source_repo,
+            source_ref=manifest_source_ref,
+            source_url=manifest_source_url,
             signature=signature,
             web_files=web_files,
             print_files=print_files,
@@ -762,7 +771,7 @@ def import_logo_pack_zip(
         synced_at = manifest.get("synced_at_utc")
         return VendorLogoImportResult(
             source_repo="uploaded-zip",
-            source_ref=source_ref,
+            source_ref=upload_source_ref,
             source_url="local upload",
             message="Imported logo pack from ZIP archive.",
             web_logo_count=int(manifest.get("web_logo_count", 0)),

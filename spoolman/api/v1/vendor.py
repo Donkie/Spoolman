@@ -236,8 +236,12 @@ async def notify_any(
         "Checks for updates to the vendor logo source repository and downloads files only when there are changes."
     ),
 )
-async def sync_logo_pack_from_github() -> VendorLogoPackSyncResult:
-    result = await asyncio.to_thread(sync_logo_pack_from_github_if_needed)
+async def sync_logo_pack_from_github() -> VendorLogoPackSyncResult | JSONResponse:
+    try:
+        result = await asyncio.to_thread(sync_logo_pack_from_github_if_needed)
+    except (RuntimeError, OSError, ValueError) as exc:
+        return JSONResponse(status_code=400, content=Message(message=str(exc)).model_dump())
+
     return VendorLogoPackSyncResult(
         updated=result.updated,
         message=result.message,
