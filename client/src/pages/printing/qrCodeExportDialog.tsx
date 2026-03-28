@@ -50,6 +50,12 @@ const QRCodeExportDialog = ({
   zipFileTypeName,
 }: QRCodeExportDialogProps) => {
   const t = useTranslate();
+  const updateQRCodeSettings = (updates: Partial<QRCodePrintSettings>) => {
+    setPrintSettings({
+      ...printSettings,
+      ...updates,
+    });
+  };
 
   const showContent = printSettings?.showContent === undefined ? true : printSettings?.showContent;
   const showQRCodeMode = printSettings?.showQRCodeMode || "withIcon";
@@ -87,8 +93,7 @@ const QRCodeExportDialog = ({
       items={elements}
       printSettings={printSettings.printSettings}
       setPrintSettings={(newSettings) => {
-        printSettings.printSettings = newSettings;
-        setPrintSettings(printSettings);
+        updateQRCodeSettings({ printSettings: newSettings });
       }}
       extraButtons={extraButtons}
       extraFormatSettings={extraExportSettings}
@@ -107,8 +112,7 @@ const QRCodeExportDialog = ({
                 { label: t("printing.qrcode.showQRCodeMode.withIcon"), value: "withIcon" },
               ]}
               onChange={(e: RadioChangeEvent) => {
-                printSettings.showQRCodeMode = e.target.value;
-                setPrintSettings(printSettings);
+                updateQRCodeSettings({ showQRCodeMode: e.target.value });
               }}
               value={showQRCodeMode}
               optionType="button"
@@ -136,8 +140,7 @@ const QRCodeExportDialog = ({
             <Switch
               checked={showContent}
               onChange={(checked) => {
-                printSettings.showContent = checked;
-                setPrintSettings(printSettings);
+                updateQRCodeSettings({ showContent: checked });
               }}
             />
           </Form.Item>
@@ -152,8 +155,7 @@ const QRCodeExportDialog = ({
                   value={textSize}
                   step={0.1}
                   onChange={(value) => {
-                    printSettings.textSize = value;
-                    setPrintSettings(printSettings);
+                    updateQRCodeSettings({ textSize: value });
                   }}
                 />
               </Col>
@@ -166,8 +168,7 @@ const QRCodeExportDialog = ({
                   value={textSize}
                   addonAfter="mm"
                   onChange={(value) => {
-                    printSettings.textSize = value ?? 5;
-                    setPrintSettings(printSettings);
+                    updateQRCodeSettings({ textSize: value ?? 5 });
                   }}
                 />
               </Col>

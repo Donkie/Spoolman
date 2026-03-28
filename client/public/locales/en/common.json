@@ -379,6 +379,10 @@
         "buttons": {
             "sync_logos": "Sync Logos",
             "clear_logo_url": "Clear URL",
+            "upload_web_logo": "Upload Web Logo",
+            "upload_print_logo": "Upload Print Logo",
+            "sync_this_vendor_from_github": "Refresh Pack + Sync This Manufacturer",
+            "sync_this_vendor_from_github_help": "Refreshes the shared logo pack from GitHub, then applies matched logo paths to this manufacturer only when its logo fields are blank and a local filename match is found (case/punctuation-insensitive, with singular/plural tolerance). The database is not updated until you click Save.",
             "convert_logo_to_print": "Convert Logo to Print",
             "convert_logo_to_print_help": "Creates a black-and-white print logo from the current Logo URL and stores it as a separate local print logo file.",
             "convert_logo_to_print_help_locked": "A Print Logo URL is already set. Clear Print Logo URL to enable creating a new print logo from the current Logo URL."
@@ -389,14 +393,19 @@
         },
         "form": {
             "vendor_updated": "This manufacturer has been updated by someone/something else since you opened this page. Saving will overwrite those changes!",
+            "logo_sync_requires_name": "Set a manufacturer name first.",
             "logo_sync_no_match": "No matching logos found for this manufacturer name.",
             "logo_sync_applied": "Suggested logo paths applied.",
+            "logo_sync_applied_pending_save": "Applied {{count}} suggested logo field(s) in this form. Click Save to keep these changes, or leave the page to discard them.",
+            "logo_sync_skipped_existing": "Matching logos were found, but existing logo URL fields are already set and were not overwritten.",
             "logo_preview_auto_notice": "using auto-matched logo from available logo files",
             "logo_preview_default_notice": "no logo defined, using default generated text logo",
             "logo_convert_requires_web_logo": "Set a Logo URL first.",
             "logo_convert_requires_empty_print_logo": "Clear Print Logo URL first to generate a new print logo.",
             "logo_convert_success": "Generated print logo from web logo.",
-            "logo_convert_error": "Could not generate a print logo from this Logo URL."
+            "logo_convert_error": "Could not generate a print logo from this Logo URL.",
+            "logo_upload_success": "Uploaded logo file and set {{field}}.",
+            "logo_upload_error": "Could not upload this logo file."
         }
     },
     "home": {

@@ -1,6 +1,6 @@
 import { Edit, useForm } from "@refinedev/antd";
 import { HttpError, useTranslate } from "@refinedev/core";
-import { CloseCircleOutlined, QuestionCircleOutlined } from "@ant-design/icons";
+import { CloseCircleOutlined, QuestionCircleOutlined, UploadOutlined } from "@ant-design/icons";
 import {
   Alert,
   AutoComplete,
@@ -39,8 +39,13 @@ export const VendorEdit = () => {
   const t = useTranslate();
   const [messageApi, contextHolder] = message.useMessage();
   const [hasChanged, setHasChanged] = useState(false);
+  const [isSyncingLogoPack, setIsSyncingLogoPack] = useState(false);
   const [isConvertingPrintLogo, setIsConvertingPrintLogo] = useState(false);
+  const [isUploadingWebLogo, setIsUploadingWebLogo] = useState(false);
+  const [isUploadingPrintLogo, setIsUploadingPrintLogo] = useState(false);
   const suppressLiveWarningUntilRef = useRef(0);
+  const webLogoUploadInputRef = useRef<HTMLInputElement>(null);
+  const printLogoUploadInputRef = useRef<HTMLInputElement>(null);
   const extraFields = useGetFields(EntityType.vendor);
   const logoManifest = useVendorLogoManifest();
 
@@ -220,6 +225,109 @@ export const VendorEdit = () => {
       : t("vendor.buttons.convert_logo_to_print_help_locked")
     : t("vendor.buttons.convert_logo_to_print_help");
 
+  const syncLogoPackAndApplyThisManufacturer = async () => {
+    const vendorName = watchedName?.trim() ?? "";
+    if (vendorName === "") {
+      messageApi.warning(t("vendor.form.logo_sync_requires_name"));
+      return;
+    }
+
+    setIsSyncingLogoPack(true);
+    try {
+      // This runs the same global pack refresh as settings, then only fills blank logo fields on this unsaved form.
+      const response = await fetch(getAPIURL() + "/vendor/logo-pack/sync-from-github", {
+        method: "POST",
+      });
+      const body = (await response.json()) as {
+        updated?: boolean;
+        web_logo_count?: number;
+        print_logo_count?: number;
+        message?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(body.message ?? t("settings.general.logo_sync.github_load_error"));
+      }
+
+      const refreshedManifest = (await logoManifest.refetch()).data ?? logoManifest.data;
+      if (!refreshedManifest) {
+        throw new Error(t("settings.general.logo_sync.github_load_error"));
+      }
+
+      const suggested = suggestVendorLogoPaths(vendorName, refreshedManifest);
+      const currentWebValue = String(formProps.form?.getFieldValue(["extra", "logo_url"]) ?? "").trim();
+      const currentPrintValue = String(formProps.form?.getFieldValue(["extra", "print_logo_url"]) ?? "").trim();
+
+      let appliedCount = 0;
+      // This mirrors the bulk sync contract: only fill missing logo fields, never overwrite explicit form values.
+      if (currentWebValue === "" && suggested.webPath) {
+        formProps.form?.setFieldValue(["extra", "logo_url"], suggested.webPath);
+        appliedCount += 1;
+      }
+      if (currentPrintValue === "" && suggested.printPath) {
+        formProps.form?.setFieldValue(["extra", "print_logo_url"], suggested.printPath);
+        appliedCount += 1;
+      }
+
+      if (appliedCount > 0) {
+        messageApi.success(t("vendor.form.logo_sync_applied_pending_save", { count: appliedCount }));
+      } else if (!suggested.webPath && !suggested.printPath) {
+        messageApi.warning(t("vendor.form.logo_sync_no_match"));
+      } else {
+        messageApi.info(t("vendor.form.logo_sync_skipped_existing"));
+      }
+    } catch (error) {
+      messageApi.error(error instanceof Error ? error.message : t("settings.general.logo_sync.github_load_error"));
+    } finally {
+      setIsSyncingLogoPack(false);
+    }
+  };
+
+  const uploadLogoFile = async (target: "web" | "print", file: File) => {
+    if (target === "web") {
+      setIsUploadingWebLogo(true);
+    } else {
+      setIsUploadingPrintLogo(true);
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("target", target);
+
+      const response = await fetch(getAPIURL() + "/vendor/logo-pack/upload-file", {
+        method: "POST",
+        body: formData,
+      });
+      const body = (await response.json()) as {
+        logo_url?: string;
+        message?: string;
+      };
+
+      if (!response.ok || !body.logo_url) {
+        throw new Error(body.message ?? t("vendor.form.logo_upload_error"));
+      }
+
+      const targetField = target === "web" ? "logo_url" : "print_logo_url";
+      formProps.form?.setFieldValue(["extra", targetField], body.logo_url);
+      await logoManifest.refetch();
+      messageApi.success(
+        body.message ??
+          t("vendor.form.logo_upload_success", {
+            field: target === "web" ? t("vendor.fields.logo_url") : t("vendor.fields.print_logo_url"),
+          }),
+      );
+    } catch (error) {
+      messageApi.error(error instanceof Error ? error.message : t("vendor.form.logo_upload_error"));
+    } finally {
+      if (target === "web") {
+        setIsUploadingWebLogo(false);
+      } else {
+        setIsUploadingPrintLogo(false);
+      }
+    }
+  };
+
   const registeredDisplay = formProps.initialValues?.registered
     ? dayjs(formProps.initialValues.registered).format("YYYY-MM-DD HH:mm:ss")
     : "-";
@@ -312,6 +420,29 @@ export const VendorEdit = () => {
                 </Tooltip>
               </Space.Compact>
             </Form.Item>
+            <Form.Item style={{ marginTop: -8, marginBottom: 12 }}>
+              <input
+                ref={webLogoUploadInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif,image/bmp"
+                style={{ display: "none" }}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) {
+                    void uploadLogoFile("web", file);
+                  }
+                  event.target.value = "";
+                }}
+              />
+              <Button
+                htmlType="button"
+                icon={<UploadOutlined />}
+                loading={isUploadingWebLogo}
+                onClick={() => webLogoUploadInputRef.current?.click()}
+              >
+                {t("vendor.buttons.upload_web_logo")}
+              </Button>
+            </Form.Item>
             <Form.Item label={logoSuggestionsLabel} style={{ marginTop: -8 }}>
               <Select
                 value={undefined}
@@ -400,6 +531,29 @@ export const VendorEdit = () => {
                 </Tooltip>
               </Space.Compact>
             </Form.Item>
+            <Form.Item style={{ marginTop: -8, marginBottom: 12 }}>
+              <input
+                ref={printLogoUploadInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif,image/bmp"
+                style={{ display: "none" }}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) {
+                    void uploadLogoFile("print", file);
+                  }
+                  event.target.value = "";
+                }}
+              />
+              <Button
+                htmlType="button"
+                icon={<UploadOutlined />}
+                loading={isUploadingPrintLogo}
+                onClick={() => printLogoUploadInputRef.current?.click()}
+              >
+                {t("vendor.buttons.upload_print_logo")}
+              </Button>
+            </Form.Item>
             <Form.Item label={printLogoSuggestionsLabel} style={{ marginTop: -8 }}>
               <Select
                 value={undefined}
@@ -471,6 +625,13 @@ export const VendorEdit = () => {
                   type={canConvertPrintLogo ? "primary" : "default"}
                 >
                   {t("vendor.buttons.convert_logo_to_print")}
+                </Button>
+              </Tooltip>
+            </Form.Item>
+            <Form.Item>
+              <Tooltip title={t("vendor.buttons.sync_this_vendor_from_github_help")}>
+                <Button onClick={() => void syncLogoPackAndApplyThisManufacturer()} loading={isSyncingLogoPack}>
+                  {t("vendor.buttons.sync_this_vendor_from_github")}
                 </Button>
               </Tooltip>
             </Form.Item>

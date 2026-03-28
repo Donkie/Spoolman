@@ -1,9 +1,9 @@
 """Vendor related endpoints."""
 
 import asyncio
-from typing import Annotated
+from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
@@ -14,7 +14,12 @@ from spoolman.database import vendor
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
 from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
-from spoolman.vendor_logos import convert_web_logo_to_print_logo
+from spoolman.vendor_logos import (
+    convert_web_logo_to_print_logo,
+    import_logo_pack_zip,
+    store_uploaded_logo_file,
+    sync_logo_pack_from_github_if_needed,
+)
 from spoolman.ws import websocket_manager
 
 router = APIRouter(
@@ -22,10 +27,10 @@ router = APIRouter(
     tags=["vendor"],
 )
 
-# Logo fields are stored in vendor.extra, but the logo workflow owns their schema instead of generic extra-field config.
+# Logo fields live in vendor.extra, but the logo workflow owns their schema instead of generic extra-field config.
 RESERVED_VENDOR_EXTRA_KEYS = {"logo_url", "print_logo_url"}
 
-# ruff: noqa: D103
+# ruff: noqa: D103, FBT002
 
 
 class VendorParameters(BaseModel):
@@ -68,6 +73,19 @@ class VendorUpdateParameters(VendorParameters):
         return v
 
 
+class VendorLogoPackSyncResult(BaseModel):
+    updated: bool = Field(description="Whether a newer logo pack was downloaded.")
+    message: str = Field(description="Result summary.")
+    source_repo: str = Field(description="GitHub repository used as source.")
+    source_ref: str = Field(description="Git branch/ref used as source.")
+    source_url: str = Field(description="Source URL shown to users.")
+    web_logo_count: int = Field(description="Number of web logos currently available.")
+    print_logo_count: int = Field(description="Number of print logos currently available.")
+    local_signature: str | None = Field(None, description="Previous local pack signature before check.")
+    remote_signature: str = Field(description="Latest signature detected from GitHub.")
+    synced_at_utc: str | None = Field(None, description="UTC timestamp of last successful pack sync.")
+
+
 class VendorLogoConvertRequest(BaseModel):
     logo_url: str = Field(description="Source web logo URL or local logo path.")
     vendor_name: str | None = Field(None, max_length=64, description="Optional vendor name for filename slug.")
@@ -85,6 +103,26 @@ class VendorLogoConvertRequest(BaseModel):
 class VendorLogoConvertResult(BaseModel):
     print_logo_url: str = Field(description="Generated print logo URL.")
     message: str = Field(description="Result summary.")
+
+
+class VendorLogoImportResultModel(BaseModel):
+    message: str = Field(description="Result summary.")
+    source_repo: str = Field(description="Source marker for the imported pack.")
+    source_ref: str = Field(description="Uploaded ZIP filename or source marker.")
+    source_url: str = Field(description='Source shown to users, e.g. "local upload".')
+    web_logo_count: int = Field(description="Number of imported web/color logos now available.")
+    print_logo_count: int = Field(description="Number of print logos now available after import.")
+    generated_print_logo_count: int = Field(description="Number of print logos generated during import.")
+    synced_at_utc: str | None = Field(None, description="UTC timestamp of the import.")
+
+
+class VendorLogoUploadResultModel(BaseModel):
+    logo_url: str = Field(description="Local logo URL written to the runtime logo pack.")
+    target: Literal["web", "print"] = Field(description="Destination logo folder kind.")
+    message: str = Field(description="Result summary.")
+    web_logo_count: int = Field(description="Number of web/color logos currently available.")
+    print_logo_count: int = Field(description="Number of print logos currently available.")
+    synced_at_utc: str | None = Field(None, description="UTC timestamp of the upload.")
 
 
 @router.get(
@@ -192,6 +230,94 @@ async def notify_any(
 
 
 @router.post(
+    "/logo-pack/sync-from-github",
+    name="Check and sync vendor logo pack from GitHub",
+    description=(
+        "Checks for updates to the vendor logo source repository and downloads files only when there are changes."
+    ),
+)
+async def sync_logo_pack_from_github() -> VendorLogoPackSyncResult:
+    result = await asyncio.to_thread(sync_logo_pack_from_github_if_needed)
+    return VendorLogoPackSyncResult(
+        updated=result.updated,
+        message=result.message,
+        source_repo=result.source_repo,
+        source_ref=result.source_ref,
+        source_url=result.source_url,
+        web_logo_count=result.web_logo_count,
+        print_logo_count=result.print_logo_count,
+        local_signature=result.local_signature,
+        remote_signature=result.remote_signature,
+        synced_at_utc=result.synced_at_utc,
+    )
+
+
+@router.post(
+    "/logo-pack/import-zip",
+    name="Import vendor logo pack ZIP",
+    description=(
+        "Imports a ZIP archive of logo image files into the local runtime logo pack. "
+        "All supported image files are treated as web/color logos by default. "
+        "Optionally generates print logos for each imported web logo."
+    ),
+    response_model=VendorLogoImportResultModel,
+)
+async def import_logo_pack(
+    file: Annotated[UploadFile, File(description="ZIP archive containing logo image files.")],
+    generate_print_logos: Annotated[
+        bool,
+        Form(description="Whether to generate print logos from each imported web logo."),
+    ] = False,
+) -> VendorLogoImportResultModel | JSONResponse:
+    try:
+        file_bytes = await file.read()
+        result = await asyncio.to_thread(import_logo_pack_zip, file_bytes, file.filename, generate_print_logos)
+    except (RuntimeError, OSError) as exc:
+        return JSONResponse(status_code=400, content=Message(message=str(exc)).model_dump())
+    finally:
+        await file.close()
+
+    return VendorLogoImportResultModel(
+        message=result.message,
+        source_repo=result.source_repo,
+        source_ref=result.source_ref,
+        source_url=result.source_url,
+        web_logo_count=result.web_logo_count,
+        print_logo_count=result.print_logo_count,
+        generated_print_logo_count=result.generated_print_logo_count,
+        synced_at_utc=result.synced_at_utc,
+    )
+
+
+@router.post(
+    "/logo-pack/upload-file",
+    name="Upload vendor logo file",
+    description="Uploads a single image file into the runtime web or print vendor logo folder.",
+    response_model=VendorLogoUploadResultModel,
+)
+async def upload_logo_file(
+    file: Annotated[UploadFile, File(description="Logo image file to upload.")],
+    target: Annotated[Literal["web", "print"], Form(description="Target folder kind for uploaded file.")],
+) -> VendorLogoUploadResultModel | JSONResponse:
+    try:
+        file_bytes = await file.read()
+        result = await asyncio.to_thread(store_uploaded_logo_file, file_bytes, file.filename, target)
+    except (RuntimeError, OSError, ValueError) as exc:
+        return JSONResponse(status_code=400, content=Message(message=str(exc)).model_dump())
+    finally:
+        await file.close()
+
+    return VendorLogoUploadResultModel(
+        logo_url=result.logo_url,
+        target=result.target,
+        message=result.message,
+        web_logo_count=result.web_logo_count,
+        print_logo_count=result.print_logo_count,
+        synced_at_utc=result.synced_at_utc,
+    )
+
+
+@router.post(
     "/logo-pack/convert-web-to-print",
     name="Convert vendor web logo to print logo",
     description="Converts a web logo into a black-and-white print logo stored in runtime vendor logos.",
@@ -259,10 +385,9 @@ async def create(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
     body: VendorParameters,
 ):
-    # Fetch extra field definitions once at endpoint entry
-    all_fields = await get_extra_fields(db, EntityType.vendor) if body.extra else None
-    if body.extra and all_fields:
-        # Saved logo paths live alongside extras but bypass generic field validation because they are app-managed.
+    if body.extra:
+        all_fields = await get_extra_fields(db, EntityType.vendor)
+        # App-managed logo paths share vendor.extra storage but bypass generic field validation.
         extra_to_validate = {k: v for k, v in body.extra.items() if k not in RESERVED_VENDOR_EXTRA_KEYS}
         try:
             validate_extra_field_dict(all_fields, extra_to_validate)
@@ -302,10 +427,9 @@ async def update(  # noqa: ANN201
 ):
     patch_data = body.model_dump(exclude_unset=True)
 
-    # Fetch extra field definitions once at endpoint entry
-    all_fields = await get_extra_fields(db, EntityType.vendor) if body.extra else None
-    if body.extra and all_fields:
-        # Saved logo paths live alongside extras but bypass generic field validation because they are app-managed.
+    if body.extra:
+        all_fields = await get_extra_fields(db, EntityType.vendor)
+        # App-managed logo paths share vendor.extra storage but bypass generic field validation.
         extra_to_validate = {k: v for k, v in body.extra.items() if k not in RESERVED_VENDOR_EXTRA_KEYS}
         try:
             validate_extra_field_dict(all_fields, extra_to_validate)
