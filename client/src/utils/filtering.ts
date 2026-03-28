@@ -55,7 +55,8 @@ function hasMeaningfulFilterValue(value: unknown): boolean {
   }
 
   if (typeof value === "string") {
-    return value.trim().length > 0;
+    // Empty-string filters are an intentional "show empty values" query in this app.
+    return value === "" || value.trim().length > 0;
   }
 
   if (Array.isArray(value)) {
@@ -70,7 +71,8 @@ function hasMeaningfulFilterValue(value: unknown): boolean {
 
 /**
  * Returns true when at least one filter has a meaningful value.
- * This ignores empty array/string values that can appear in filter state.
+ * This ignores empty array values, while preserving the existing empty-string
+ * filter semantics used for "<empty>" options.
  */
 export function hasMeaningfulFilters(filters?: CrudFilter[]): boolean {
   if (!filters || filters.length === 0) {

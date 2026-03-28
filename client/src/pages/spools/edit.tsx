@@ -253,10 +253,15 @@ export const SpoolEdit = () => {
     // types so the initial snapshot matches the form state that setFieldsValue produces.
     () =>
       toComparableState(
-        formProps.initialValues ? ParsedExtras(formProps.initialValues) : formProps.initialValues,
+        formProps.initialValues
+          ? {
+              ...ParsedExtras(formProps.initialValues),
+              filament_id: formProps.initialValues.filament?.id ?? null,
+            }
+          : formProps.initialValues,
         comparableDefaults,
       ),
-    [formProps.initialValues],
+    [formProps.initialValues, formProps.initialValues?.filament?.id],
   );
   const watchedComparableState = useMemo(
     () => toComparableState(watchedAllValues, comparableDefaults),

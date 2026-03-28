@@ -109,7 +109,12 @@ export const FilamentEdit = () => {
     // types so the initial snapshot matches the form state that setFieldsValue produces.
     () =>
       toComparableState(
-        formProps.initialValues ? ParsedExtras(formProps.initialValues) : formProps.initialValues,
+        formProps.initialValues
+          ? {
+              ...ParsedExtras(formProps.initialValues),
+              vendor_id: formProps.initialValues.vendor?.id ?? null,
+            }
+          : formProps.initialValues,
         comparableDefaults,
         {
           // Single-color mode should ignore any dormant multi-color payload when deciding whether Save is needed.
@@ -117,7 +122,7 @@ export const FilamentEdit = () => {
             colorType === "single" ? "" : ((normalized.multi_color_hexes as string | undefined) ?? ""),
         },
       ),
-    [formProps.initialValues, colorType],
+    [formProps.initialValues, formProps.initialValues?.vendor?.id, colorType],
   );
   const watchedComparableState = useMemo(
     () =>

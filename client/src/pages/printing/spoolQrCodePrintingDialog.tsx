@@ -2,7 +2,7 @@ import { CopyOutlined, DeleteOutlined, PlusOutlined, SaveOutlined } from "@ant-d
 import { useTranslate } from "@refinedev/core";
 import { Button, Flex, Form, Input, Modal, Popconfirm, Select, Table, Typography, message } from "antd";
 import TextArea from "antd/es/input/TextArea";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useGetSetting } from "../../utils/querySettings";
@@ -21,6 +21,26 @@ const { Text } = Typography;
 
 interface SpoolQRCodePrintingDialog {
   spoolIds: number[];
+}
+
+function clonePreset(preset: SpoolQRCodePrintSettings): SpoolQRCodePrintSettings {
+  return JSON.parse(JSON.stringify(preset)) as SpoolQRCodePrintSettings;
+}
+
+function clonePresets(presets: SpoolQRCodePrintSettings[]): SpoolQRCodePrintSettings[] {
+  return presets.map(clonePreset);
+}
+
+function buildNewPreset(name: string): SpoolQRCodePrintSettings {
+  const newId = uuidv4();
+  return {
+    labelSettings: {
+      printSettings: {
+        id: newId,
+        name,
+      },
+    },
+  };
 }
 
 const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
@@ -67,100 +87,81 @@ const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
     return true;
   };
 
+  const updatePresetById = (
+    presetId: string,
+    updater: (preset: SpoolQRCodePrintSettings) => SpoolQRCodePrintSettings,
+  ) => {
+    if (!localOrRemotePresets) return;
+    setLocalPresets(
+      localOrRemotePresets.map((preset) =>
+        preset.labelSettings.printSettings.id === presetId ? updater(clonePreset(preset)) : clonePreset(preset),
+      ),
+    );
+  };
+
   // Functions to update settings
   const addNewPreset = () => {
     if (!localOrRemotePresets) return;
-    const newId = uuidv4();
-    const newPreset = {
-      labelSettings: {
-        printSettings: {
-          id: newId,
-          name: t("printing.generic.newSetting"),
-        },
-      },
-    };
-    setLocalPresets([...localOrRemotePresets, newPreset]);
-    setSelectedPresetState(newId);
+    const newPreset = buildNewPreset(t("printing.generic.newSetting"));
+    setLocalPresets([...clonePresets(localOrRemotePresets), newPreset]);
+    setSelectedPresetState(newPreset.labelSettings.printSettings.id);
     return newPreset;
   };
   const duplicateCurrentPreset = () => {
     if (!localOrRemotePresets) return;
-    const newPreset = {
-      ...curPreset,
-      labelSettings: { ...curPreset.labelSettings, printSettings: { ...curPreset.labelSettings.printSettings } },
-    };
+    const newPreset = clonePreset(curPreset);
     newPreset.labelSettings.printSettings.id = uuidv4();
-    setLocalPresets([...localOrRemotePresets, newPreset]);
+    setLocalPresets([...clonePresets(localOrRemotePresets), newPreset]);
     setSelectedPresetState(newPreset.labelSettings.printSettings.id);
-  };
-  const updateCurrentPreset = (newSettings: SpoolQRCodePrintSettings) => {
-    if (!localOrRemotePresets) return;
-    setLocalPresets(
-      localOrRemotePresets.map((presets) =>
-        presets.labelSettings.printSettings.id === newSettings.labelSettings.printSettings.id ? newSettings : presets,
-      ),
-    );
   };
   const deleteCurrentPreset = () => {
     if (!localOrRemotePresets) return;
     setLocalPresets(
-      localOrRemotePresets.filter((qPreset) => qPreset.labelSettings.printSettings.id !== selectedPresetState),
+      clonePresets(localOrRemotePresets).filter(
+        (qPreset) => qPreset.labelSettings.printSettings.id !== selectedPresetState,
+      ),
     );
     setSelectedPresetState(undefined);
   };
 
-  // Initialize presets
-  let curPreset: SpoolQRCodePrintSettings;
-  if (localOrRemotePresets === undefined) {
-    // DB not loaded yet, use a temporary one
-    curPreset = {
-      labelSettings: {
-        printSettings: {
-          id: "TEMP",
-          name: t("printing.generic.newSetting"),
-        },
-      },
-    };
-  } else {
-    // DB is loaded, find the selected setting
-    if (localOrRemotePresets.length === 0) {
-      // DB loaded, but no settings found, add a new one and select it
-      const newSetting = addNewPreset();
-      if (!newSetting) {
-        console.error("Error adding new setting, this should never happen");
-        return;
-      }
-
-      // Mutate the allPrintSettings list so that the rest of the UI will work fine
-      localOrRemotePresets.push(newSetting);
-      curPreset = newSetting;
-    } else {
-      // DB loaded and at least 1 setting exists
-      if (!selectedPresetState) {
-        // No setting has been selected, select the first one
-        curPreset = localOrRemotePresets[0];
-        setSelectedPresetState(localOrRemotePresets[0].labelSettings.printSettings.id);
-      } else {
-        // A setting has been selected, find it
-        const foundSetting = localOrRemotePresets.find(
-          (settings) => settings.labelSettings.printSettings.id === selectedPresetState,
-        );
-        if (foundSetting) {
-          curPreset = foundSetting;
-        } else {
-          // Selected setting not found, select a temp one
-          curPreset = {
-            labelSettings: {
-              printSettings: {
-                id: "TEMP",
-                name: t("printing.generic.newSetting"),
-              },
-            },
-          };
-        }
-      }
+  useEffect(() => {
+    if (localOrRemotePresets === undefined) {
+      return;
     }
-  }
+    if (localOrRemotePresets.length === 0) {
+      const newPreset = buildNewPreset(t("printing.generic.newSetting"));
+      setLocalPresets([newPreset]);
+      setSelectedPresetState(newPreset.labelSettings.printSettings.id);
+      return;
+    }
+    if (
+      !selectedPresetState ||
+      !localOrRemotePresets.some((preset) => preset.labelSettings.printSettings.id === selectedPresetState)
+    ) {
+      setSelectedPresetState(localOrRemotePresets[0].labelSettings.printSettings.id);
+    }
+  }, [localOrRemotePresets, selectedPresetState, t]);
+
+  const curPreset = useMemo(() => {
+    if (!localOrRemotePresets || localOrRemotePresets.length === 0) {
+      return {
+        labelSettings: {
+          printSettings: {
+            id: "TEMP",
+            name: t("printing.generic.newSetting"),
+          },
+        },
+      };
+    }
+    if (!selectedPresetState) {
+      return localOrRemotePresets[0];
+    }
+    return (
+      localOrRemotePresets.find((preset) => preset.labelSettings.printSettings.id === selectedPresetState) ??
+      localOrRemotePresets[0]
+    );
+  }, [localOrRemotePresets, selectedPresetState, t]);
+  const currentLabelSettings = useMemo(() => clonePreset(curPreset).labelSettings, [curPreset]);
 
   const [templateHelpOpen, setTemplateHelpOpen] = useState(false);
   const template =
@@ -244,10 +245,12 @@ Spool Weight: {filament.spool_weight} g
     <>
       {contextHolder}
       <QRCodePrintingDialog
-        printSettings={curPreset.labelSettings}
+        printSettings={currentLabelSettings}
         setPrintSettings={(newSettings) => {
-          curPreset.labelSettings = newSettings;
-          updateCurrentPreset(curPreset);
+          updatePresetById(curPreset.labelSettings.printSettings.id, (preset) => ({
+            ...preset,
+            labelSettings: clonePreset({ labelSettings: newSettings }).labelSettings,
+          }));
         }}
         baseUrlRoot={baseUrlRoot}
         useHTTPUrl={useHTTPUrl}
@@ -303,8 +306,16 @@ Spool Weight: {filament.spool_weight} g
               <Input
                 value={curPreset.labelSettings.printSettings?.name}
                 onChange={(e) => {
-                  curPreset.labelSettings.printSettings.name = e.target.value;
-                  updateCurrentPreset(curPreset);
+                  updatePresetById(curPreset.labelSettings.printSettings.id, (preset) => ({
+                    ...preset,
+                    labelSettings: {
+                      ...preset.labelSettings,
+                      printSettings: {
+                        ...preset.labelSettings.printSettings,
+                        name: e.target.value,
+                      },
+                    },
+                  }));
                 }}
               />
             </Form.Item>
@@ -332,8 +343,10 @@ Spool Weight: {filament.spool_weight} g
                 value={template}
                 rows={8}
                 onChange={(newValue) => {
-                  curPreset.template = newValue.target.value;
-                  updateCurrentPreset(curPreset);
+                  updatePresetById(curPreset.labelSettings.printSettings.id, (preset) => ({
+                    ...preset,
+                    template: newValue.target.value,
+                  }));
                 }}
               />
             </Form.Item>

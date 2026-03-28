@@ -6,6 +6,19 @@ interface Pagination {
   pageSize: number;
 }
 
+function parseSavedJSON<T>(label: string, value: string | null, fallback: T, onError?: () => void): T {
+  if (!value) {
+    return fallback;
+  }
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    console.warn(`Ignoring malformed saved state for ${label}`);
+    onError?.();
+    return fallback;
+  }
+}
+
 export interface TableState {
   sorters: CrudSort[];
   filters: CrudFilter[];
@@ -15,27 +28,63 @@ export interface TableState {
 
 export function useInitialTableState(tableId: string): TableState {
   const [initialState] = useState(() => {
-    const savedSorters = hasHashProperty("sorters")
+    const hasHashSorters = hasHashProperty("sorters");
+    const hasHashFilters = hasHashProperty("filters");
+    const hasHashPagination = hasHashProperty("pagination");
+
+    const savedSorters = hasHashSorters
       ? getHashProperty("sorters")
       : isLocalStorageAvailable
         ? localStorage.getItem(`${tableId}-sorters`)
         : null;
-    const savedFilters = hasHashProperty("filters")
+    const savedFilters = hasHashFilters
       ? getHashProperty("filters")
       : isLocalStorageAvailable
         ? localStorage.getItem(`${tableId}-filters`)
         : null;
-    const savedPagination = hasHashProperty("pagination")
+    const savedPagination = hasHashPagination
       ? getHashProperty("pagination")
       : isLocalStorageAvailable
         ? localStorage.getItem(`${tableId}-pagination`)
         : null;
     const savedShowColumns = isLocalStorageAvailable ? localStorage.getItem(`${tableId}-showColumns`) : null;
 
-    const sorters = savedSorters ? JSON.parse(savedSorters) : [{ field: "id", order: "asc" }];
-    const filters = savedFilters ? JSON.parse(savedFilters) : [];
-    const pagination = savedPagination ? JSON.parse(savedPagination) : { page: 1, pageSize: 20 };
-    const showColumns = savedShowColumns ? JSON.parse(savedShowColumns) : undefined;
+    const sorters = parseSavedJSON<CrudSort[]>(
+      hasHashSorters ? "hash#sorters" : `${tableId}-sorters`,
+      savedSorters,
+      [{ field: "id", order: "asc" }],
+      hasHashSorters
+        ? () => removeURLHash("sorters")
+        : isLocalStorageAvailable
+          ? () => localStorage.removeItem(`${tableId}-sorters`)
+          : undefined,
+    );
+    const filters = parseSavedJSON<CrudFilter[]>(
+      hasHashFilters ? "hash#filters" : `${tableId}-filters`,
+      savedFilters,
+      [],
+      hasHashFilters
+        ? () => removeURLHash("filters")
+        : isLocalStorageAvailable
+          ? () => localStorage.removeItem(`${tableId}-filters`)
+          : undefined,
+    );
+    const pagination = parseSavedJSON<Pagination>(
+      hasHashPagination ? "hash#pagination" : `${tableId}-pagination`,
+      savedPagination,
+      { currentPage: 1, pageSize: 20 },
+      hasHashPagination
+        ? () => removeURLHash("pagination")
+        : isLocalStorageAvailable
+          ? () => localStorage.removeItem(`${tableId}-pagination`)
+          : undefined,
+    );
+    const showColumns = parseSavedJSON<string[] | undefined>(
+      `${tableId}-showColumns`,
+      savedShowColumns,
+      undefined,
+      isLocalStorageAvailable ? () => localStorage.removeItem(`${tableId}-showColumns`) : undefined,
+    );
     return { sorters, filters, pagination, showColumns };
   });
   return initialState;
@@ -92,8 +141,14 @@ export function useStoreInitialState(tableId: string, state: TableState) {
 
 export function useSavedState<T>(id: string, defaultValue: T) {
   const [state, setState] = useState<T>(() => {
-    const savedState = isLocalStorageAvailable ? localStorage.getItem(`savedStates-${id}`) : null;
-    return savedState ? JSON.parse(savedState) : defaultValue;
+    const storageKey = `savedStates-${id}`;
+    const savedState = isLocalStorageAvailable ? localStorage.getItem(storageKey) : null;
+    return parseSavedJSON(
+      storageKey,
+      savedState,
+      defaultValue,
+      isLocalStorageAvailable ? () => localStorage.removeItem(storageKey) : undefined,
+    );
   });
 
   useEffect(() => {
