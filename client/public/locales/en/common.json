@@ -228,7 +228,6 @@
             "diameter": "Diameter",
             "weight": "Weight",
             "spool_weight": "Spool Weight",
-            "spool_count": "Spool Count",
             "article_number": "Article Number",
             "registered": "Registered",
             "comment": "Comment",

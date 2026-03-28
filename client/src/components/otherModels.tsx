@@ -4,14 +4,8 @@ import { IFilament } from "../pages/filaments/model";
 import { IVendor } from "../pages/vendors/model";
 import { getAPIURL } from "../utils/url";
 
-/**
- * Factory function to create a reusable query hook for fetching and sorting string arrays from API endpoints.
- * @param queryKey - Unique cache key for react-query
- * @param endpoint - API endpoint to fetch from
- * @param enabled - Whether the query should be enabled
- */
-function useSimpleSortedArrayQuery<T>(queryKey: string[], endpoint: string, enabled: boolean = false) {
-  return useQuery<T[], unknown, T[]>({
+function useSimpleSortedArrayQuery(queryKey: string[], endpoint: string, enabled: boolean = false) {
+  return useQuery<string[]>({
     enabled,
     queryKey,
     queryFn: async () => {
@@ -21,12 +15,7 @@ function useSimpleSortedArrayQuery<T>(queryKey: string[], endpoint: string, enab
       }
       return response.json();
     },
-    select: (data) => {
-      if (Array.isArray(data)) {
-        return [...data].sort();
-      }
-      return [];
-    },
+    select: (data) => [...data].sort(),
   });
 }
 
@@ -79,7 +68,7 @@ export function useSpoolmanFilamentFilter(enabled: boolean = false) {
 }
 
 export function useSpoolmanFilamentNames(enabled: boolean = false) {
-  return useSimpleSortedArrayQuery<string>(["filamentNames"], "/filament-name", enabled);
+  return useSimpleSortedArrayQuery(["filamentNames"], "/filament-name", enabled);
 }
 
 export function useSpoolmanVendors(enabled: boolean = false) {
@@ -104,17 +93,17 @@ export function useSpoolmanVendors(enabled: boolean = false) {
 }
 
 export function useSpoolmanMaterials(enabled: boolean = false) {
-  return useSimpleSortedArrayQuery<string>(["materials"], "/material", enabled);
+  return useSimpleSortedArrayQuery(["materials"], "/material", enabled);
 }
 
 export function useSpoolmanArticleNumbers(enabled: boolean = false) {
-  return useSimpleSortedArrayQuery<string>(["articleNumbers"], "/article-number", enabled);
+  return useSimpleSortedArrayQuery(["articleNumbers"], "/article-number", enabled);
 }
 
 export function useSpoolmanLotNumbers(enabled: boolean = false) {
-  return useSimpleSortedArrayQuery<string>(["lotNumbers"], "/lot-number", enabled);
+  return useSimpleSortedArrayQuery(["lotNumbers"], "/lot-number", enabled);
 }
 
 export function useSpoolmanLocations(enabled: boolean = false) {
-  return useSimpleSortedArrayQuery<string>(["locations"], "/location", enabled);
+  return useSimpleSortedArrayQuery(["locations"], "/location", enabled);
 }
