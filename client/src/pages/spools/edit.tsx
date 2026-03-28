@@ -114,7 +114,7 @@ export const SpoolEdit = () => {
         filament_id: formProps.initialValues.filament?.id,
       } as unknown as ISpool);
     }
-  }, [formProps, formProps.initialValues?.id, form]);
+  }, [form, formProps.initialValues?.id, formProps.initialValues?.filament?.id]);
 
   // Override the form's onFinish method to stringify the extra fields
   const originalOnFinish = formProps.onFinish;

@@ -49,7 +49,7 @@ export const VendorEdit = () => {
       const parsed = ParsedExtras(formProps.initialValues);
       formProps.form.setFieldsValue(parsed as unknown as IVendor);
     }
-  }, [formProps, formProps.initialValues?.id]);
+  }, [formProps.form, formProps.initialValues?.id]);
 
   // Override the form's onFinish method to stringify the extra fields
   const originalOnFinish = formProps.onFinish;

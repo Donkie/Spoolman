@@ -77,7 +77,7 @@ export const FilamentEdit = () => {
         vendor_id: formProps.initialValues.vendor?.id,
       } as unknown as IFilament);
     }
-  }, [formProps, formProps.initialValues?.id]);
+  }, [formProps.form, formProps.initialValues?.id, formProps.initialValues?.vendor?.id]);
 
   // Update colorType state
   useEffect(() => {

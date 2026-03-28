@@ -66,25 +66,45 @@ const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
   // Keep a local copy of the settings which is what's actually displayed. Use the remote state only for saving.
   // This decouples the debounce stuff from the UI
   const [localPresets, setLocalPresets] = useState<SpoolQRCodePrintSettings[] | undefined>();
+  const [draftPreset, setDraftPreset] = useState<SpoolQRCodePrintSettings | undefined>();
   const remotePresets = useGetPrintPresets();
   const setRemotePresets = useSetPrintPresets();
+  const [emptyPresetBaseline] = useState<SpoolQRCodePrintSettings>(() =>
+    buildNewPreset(t("printing.generic.newSetting")),
+  );
 
   const localOrRemotePresets = localPresets ?? remotePresets;
+  const hasPersistedPresets = (localOrRemotePresets?.length ?? 0) > 0;
 
   const remotePresetsComparable = useMemo(() => JSON.stringify(remotePresets ?? []), [remotePresets]);
   const localPresetsComparable = useMemo(
     () => JSON.stringify(localPresets ?? remotePresets ?? []),
     [localPresets, remotePresets],
   );
-  const hasUnsavedPresetChanges = localPresets !== undefined && localPresetsComparable !== remotePresetsComparable;
+  const draftPresetComparable = useMemo(
+    () => JSON.stringify(draftPreset ?? emptyPresetBaseline),
+    [draftPreset, emptyPresetBaseline],
+  );
+  const emptyPresetBaselineComparable = useMemo(() => JSON.stringify(emptyPresetBaseline), [emptyPresetBaseline]);
+  const hasUnsavedPresetChanges =
+    (localPresets !== undefined && localPresetsComparable !== remotePresetsComparable) ||
+    (!hasPersistedPresets && draftPreset !== undefined && draftPresetComparable !== emptyPresetBaselineComparable);
 
   const savePresetsRemote = async (): Promise<boolean> => {
-    if (!localPresets || !hasUnsavedPresetChanges) return false;
+    if (!hasUnsavedPresetChanges) return false;
     // Only persist when the local working copy diverges from the remote source; this
     // keeps the Save Preset button as a true "needs action" indicator.
-    await setRemotePresets.mutateAsync(localPresets);
-    setLocalPresets(undefined);
-    return true;
+    if (localPresets) {
+      await setRemotePresets.mutateAsync(localPresets);
+      setLocalPresets(undefined);
+      return true;
+    }
+    if (!hasPersistedPresets && draftPreset) {
+      await setRemotePresets.mutateAsync([draftPreset]);
+      setDraftPreset(undefined);
+      return true;
+    }
+    return false;
   };
 
   const updatePresetById = (
@@ -99,19 +119,35 @@ const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
     );
   };
 
+  const updateCurrentPreset = (updater: (preset: SpoolQRCodePrintSettings) => SpoolQRCodePrintSettings) => {
+    if (hasPersistedPresets) {
+      updatePresetById(curPreset.labelSettings.printSettings.id, updater);
+      return;
+    }
+    setDraftPreset((currentDraft) => updater(clonePreset(currentDraft ?? emptyPresetBaseline)));
+  };
+
   // Functions to update settings
   const addNewPreset = () => {
-    if (!localOrRemotePresets) return;
     const newPreset = buildNewPreset(t("printing.generic.newSetting"));
-    setLocalPresets([...clonePresets(localOrRemotePresets), newPreset]);
+    const presets =
+      hasPersistedPresets && localOrRemotePresets
+        ? clonePresets(localOrRemotePresets)
+        : [clonePreset(draftPreset ?? emptyPresetBaseline)];
+    setLocalPresets([...presets, newPreset]);
+    setDraftPreset(undefined);
     setSelectedPresetState(newPreset.labelSettings.printSettings.id);
     return newPreset;
   };
   const duplicateCurrentPreset = () => {
-    if (!localOrRemotePresets) return;
     const newPreset = clonePreset(curPreset);
     newPreset.labelSettings.printSettings.id = uuidv4();
-    setLocalPresets([...clonePresets(localOrRemotePresets), newPreset]);
+    const presets =
+      hasPersistedPresets && localOrRemotePresets
+        ? clonePresets(localOrRemotePresets)
+        : [clonePreset(draftPreset ?? emptyPresetBaseline)];
+    setLocalPresets([...presets, newPreset]);
+    setDraftPreset(undefined);
     setSelectedPresetState(newPreset.labelSettings.printSettings.id);
   };
   const deleteCurrentPreset = () => {
@@ -129,10 +165,14 @@ const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
       return;
     }
     if (localOrRemotePresets.length === 0) {
-      const newPreset = buildNewPreset(t("printing.generic.newSetting"));
-      setLocalPresets([newPreset]);
-      setSelectedPresetState(newPreset.labelSettings.printSettings.id);
+      setDraftPreset((currentDraft) => currentDraft ?? clonePreset(emptyPresetBaseline));
+      if (selectedPresetState !== undefined) {
+        setSelectedPresetState(undefined);
+      }
       return;
+    }
+    if (draftPreset !== undefined) {
+      setDraftPreset(undefined);
     }
     if (
       !selectedPresetState ||
@@ -140,27 +180,20 @@ const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
     ) {
       setSelectedPresetState(localOrRemotePresets[0].labelSettings.printSettings.id);
     }
-  }, [localOrRemotePresets, selectedPresetState, t]);
+  }, [draftPreset, emptyPresetBaseline, localOrRemotePresets, selectedPresetState, setSelectedPresetState]);
 
   const curPreset = useMemo(() => {
-    if (!localOrRemotePresets || localOrRemotePresets.length === 0) {
-      return {
-        labelSettings: {
-          printSettings: {
-            id: "TEMP",
-            name: t("printing.generic.newSetting"),
-          },
-        },
-      };
+    if (!hasPersistedPresets) {
+      return draftPreset ?? emptyPresetBaseline;
     }
     if (!selectedPresetState) {
-      return localOrRemotePresets[0];
+      return localOrRemotePresets![0];
     }
     return (
-      localOrRemotePresets.find((preset) => preset.labelSettings.printSettings.id === selectedPresetState) ??
-      localOrRemotePresets[0]
+      localOrRemotePresets!.find((preset) => preset.labelSettings.printSettings.id === selectedPresetState) ??
+      localOrRemotePresets![0]
     );
-  }, [localOrRemotePresets, selectedPresetState, t]);
+  }, [draftPreset, emptyPresetBaseline, hasPersistedPresets, localOrRemotePresets, selectedPresetState]);
   const currentLabelSettings = useMemo(() => clonePreset(curPreset).labelSettings, [curPreset]);
 
   const [templateHelpOpen, setTemplateHelpOpen] = useState(false);
@@ -247,7 +280,7 @@ Spool Weight: {filament.spool_weight} g
       <QRCodePrintingDialog
         printSettings={currentLabelSettings}
         setPrintSettings={(newSettings) => {
-          updatePresetById(curPreset.labelSettings.printSettings.id, (preset) => ({
+          updateCurrentPreset((preset) => ({
             ...preset,
             labelSettings: clonePreset({ labelSettings: newSettings }).labelSettings,
           }));
@@ -306,7 +339,7 @@ Spool Weight: {filament.spool_weight} g
               <Input
                 value={curPreset.labelSettings.printSettings?.name}
                 onChange={(e) => {
-                  updatePresetById(curPreset.labelSettings.printSettings.id, (preset) => ({
+                  updateCurrentPreset((preset) => ({
                     ...preset,
                     labelSettings: {
                       ...preset.labelSettings,
@@ -343,7 +376,7 @@ Spool Weight: {filament.spool_weight} g
                 value={template}
                 rows={8}
                 onChange={(newValue) => {
-                  updatePresetById(curPreset.labelSettings.printSettings.id, (preset) => ({
+                  updateCurrentPreset((preset) => ({
                     ...preset,
                     template: newValue.target.value,
                   }));
