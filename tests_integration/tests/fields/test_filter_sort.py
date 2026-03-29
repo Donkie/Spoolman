@@ -1,12 +1,280 @@
 """Tests for filtering and sorting by custom fields."""
 
 import json
+import uuid
 from typing import Any
 
 import httpx
 import pytest
 
 from ..conftest import URL, assert_httpx_success
+
+
+def _create_entity(entity_type: str, extra: dict[str, str], random_filament: dict[str, Any]) -> int:
+    """Create a test entity of the given type with the given extra fields. Returns the entity id."""
+    if entity_type == "spool":
+        result = httpx.post(
+            f"{URL}/api/v1/spool",
+            json={"filament_id": random_filament["id"], "extra": extra},
+        )
+    elif entity_type == "filament":
+        result = httpx.post(
+            f"{URL}/api/v1/filament",
+            json={
+                "vendor_id": random_filament["vendor"]["id"],
+                "name": f"Test-{uuid.uuid4().hex[:8]}",
+                "density": 1.24,
+                "diameter": 1.75,
+                "extra": extra,
+            },
+        )
+    elif entity_type == "vendor":
+        result = httpx.post(
+            f"{URL}/api/v1/vendor",
+            json={"name": f"Vendor-{uuid.uuid4().hex[:8]}", "extra": extra},
+        )
+    else:
+        raise ValueError(f"Unknown entity type: {entity_type}")
+    result.raise_for_status()
+    return result.json()["id"]
+
+
+# ---------------------------------------------------------------------------
+# Numeric fields - integer, float, integer_range, float_range (all entity types)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_integer_filter_and_sort(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """Test filter and sort by a custom integer field for all entity types."""
+    field_key = "test_int_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={"name": "Integer field", "field_type": "integer"},
+    ).raise_for_status()
+    id1 = _create_entity(entity_type, {field_key: json.dumps(100)}, random_filament)
+    id2 = _create_entity(entity_type, {field_key: json.dumps(200)}, random_filament)
+    try:
+        # Exact match
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "100"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 in ids
+        assert id2 not in ids
+
+        # Range: min only (>= 150 matches only id2=200)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "150:"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 not in ids
+        assert id2 in ids
+
+        # Range: max only (<= 150 matches only id1=100)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": ":150"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 in ids
+        assert id2 not in ids
+
+        # Range: both bounds (50 <= x <= 150 matches only id1=100)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "50:150"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 in ids
+        assert id2 not in ids
+
+        # Sort ascending (100 before 200)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={"sort": f"extra.{field_key}:asc"})
+        assert_httpx_success(result)
+        ordered = [item for item in result.json() if item["id"] in (id1, id2)]
+        assert len(ordered) == 2
+        assert ordered[0]["id"] == id1
+        assert ordered[1]["id"] == id2
+
+        # Sort descending
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={"sort": f"extra.{field_key}:desc"})
+        assert_httpx_success(result)
+        ordered = [item for item in result.json() if item["id"] in (id1, id2)]
+        assert len(ordered) == 2
+        assert ordered[0]["id"] == id2
+        assert ordered[1]["id"] == id1
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id1}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id2}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_float_filter_and_sort(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """Test filter and sort by a custom float field for all entity types."""
+    field_key = "test_float_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={"name": "Float field", "field_type": "float"},
+    ).raise_for_status()
+    id1 = _create_entity(entity_type, {field_key: json.dumps(1.5)}, random_filament)
+    id2 = _create_entity(entity_type, {field_key: json.dumps(2.5)}, random_filament)
+    try:
+        # Exact match
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "1.5"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 in ids
+        assert id2 not in ids
+
+        # Range: min only (>= 2.0 matches only id2=2.5)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "2.0:"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 not in ids
+        assert id2 in ids
+
+        # Range: max only (<= 2.0 matches only id1=1.5)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": ":2.0"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 in ids
+        assert id2 not in ids
+
+        # Range: both bounds (1.0 <= x <= 2.0 matches only id1=1.5)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "1.0:2.0"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 in ids
+        assert id2 not in ids
+
+        # Sort ascending (1.5 before 2.5)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={"sort": f"extra.{field_key}:asc"})
+        assert_httpx_success(result)
+        ordered = [item for item in result.json() if item["id"] in (id1, id2)]
+        assert len(ordered) == 2
+        assert ordered[0]["id"] == id1
+        assert ordered[1]["id"] == id2
+
+        # Sort descending
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={"sort": f"extra.{field_key}:desc"})
+        assert_httpx_success(result)
+        ordered = [item for item in result.json() if item["id"] in (id1, id2)]
+        assert len(ordered) == 2
+        assert ordered[0]["id"] == id2
+        assert ordered[1]["id"] == id1
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id1}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id2}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_integer_range_filter_and_sort(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """Test filter and sort by a custom integer_range field for all entity types."""
+    field_key = "test_int_range_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={"name": "Integer range field", "field_type": "integer_range"},
+    ).raise_for_status()
+    # id1=[100,200], id2=[300,400]
+    id1 = _create_entity(entity_type, {field_key: json.dumps([100, 200])}, random_filament)
+    id2 = _create_entity(entity_type, {field_key: json.dumps([300, 400])}, random_filament)
+    try:
+        # Both bounds: stored_min>=100 AND stored_max<=200 matches only id1
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "100:200"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 in ids
+        assert id2 not in ids
+
+        # Min only: stored_min>=200 matches only id2 (300>=200; 100<200)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "200:"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 not in ids
+        assert id2 in ids
+
+        # Max only: stored_max<=300 matches only id1 (200<=300; 400>300)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": ":300"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 in ids
+        assert id2 not in ids
+
+        # Sort ascending by stored_min (100 before 300)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={"sort": f"extra.{field_key}:asc"})
+        assert_httpx_success(result)
+        ordered = [item for item in result.json() if item["id"] in (id1, id2)]
+        assert len(ordered) == 2
+        assert ordered[0]["id"] == id1
+        assert ordered[1]["id"] == id2
+
+        # Sort descending
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={"sort": f"extra.{field_key}:desc"})
+        assert_httpx_success(result)
+        ordered = [item for item in result.json() if item["id"] in (id1, id2)]
+        assert len(ordered) == 2
+        assert ordered[0]["id"] == id2
+        assert ordered[1]["id"] == id1
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id1}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id2}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_float_range_filter_and_sort(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """Test filter and sort by a custom float_range field for all entity types."""
+    field_key = "test_float_range_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={"name": "Float range field", "field_type": "float_range"},
+    ).raise_for_status()
+    # id1=[1.5,2.5], id2=[3.5,4.5]
+    id1 = _create_entity(entity_type, {field_key: json.dumps([1.5, 2.5])}, random_filament)
+    id2 = _create_entity(entity_type, {field_key: json.dumps([3.5, 4.5])}, random_filament)
+    try:
+        # Both bounds: stored_min>=1.5 AND stored_max<=2.5 matches only id1
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "1.5:2.5"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 in ids
+        assert id2 not in ids
+
+        # Min only: stored_min>=2.5 matches only id2 (3.5>=2.5; 1.5<2.5)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "2.5:"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 not in ids
+        assert id2 in ids
+
+        # Max only: stored_max<=3.5 matches only id1 (2.5<=3.5; 4.5>3.5)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": ":3.5"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 in ids
+        assert id2 not in ids
+
+        # Sort ascending by stored_min (1.5 before 3.5)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={"sort": f"extra.{field_key}:asc"})
+        assert_httpx_success(result)
+        ordered = [item for item in result.json() if item["id"] in (id1, id2)]
+        assert len(ordered) == 2
+        assert ordered[0]["id"] == id1
+        assert ordered[1]["id"] == id2
+
+        # Sort descending
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={"sort": f"extra.{field_key}:desc"})
+        assert_httpx_success(result)
+        ordered = [item for item in result.json() if item["id"] in (id1, id2)]
+        assert len(ordered) == 2
+        assert ordered[0]["id"] == id2
+        assert ordered[1]["id"] == id1
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id1}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id2}").raise_for_status()
+
 
 # ---------------------------------------------------------------------------
 # Spool - text
@@ -104,154 +372,6 @@ async def test_sort_by_custom_field(random_filament: dict[str, Any]):
     assert test_spools[1]["id"] == spool_id2  # "A value" second
 
     httpx.delete(f"{URL}/api/v1/field/spool/text_field").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/spool/{spool_id1}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/spool/{spool_id2}").raise_for_status()
-
-
-# ---------------------------------------------------------------------------
-# Spool - integer
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_filter_by_numeric_custom_field(random_filament: dict[str, Any]):
-    """Test filtering and sorting by a custom integer field."""
-    result = httpx.post(
-        f"{URL}/api/v1/field/spool/numeric_field",
-        json={"name": "Numeric field", "field_type": "integer"},
-    )
-    assert_httpx_success(result)
-
-    result = httpx.post(
-        f"{URL}/api/v1/spool",
-        json={"filament_id": random_filament["id"], "extra": {"numeric_field": json.dumps(100)}},
-    )
-    assert_httpx_success(result)
-    spool_id1 = result.json()["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/spool",
-        json={"filament_id": random_filament["id"], "extra": {"numeric_field": json.dumps(200)}},
-    )
-    assert_httpx_success(result)
-    spool_id2 = result.json()["id"]
-
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.numeric_field": "100"})
-    assert_httpx_success(result)
-    data = result.json()
-    assert len(data) == 1
-    assert data[0]["id"] == spool_id1
-
-    # Range filter - min only: stored_value >= 150 matches only spool2 (200)
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.numeric_field": "150:"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert spool_id1 not in ids
-    assert spool_id2 in ids
-
-    # Range filter - max only: stored_value <= 150 matches only spool1 (100)
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.numeric_field": ":150"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert spool_id1 in ids
-    assert spool_id2 not in ids
-
-    # Range filter - min and max: 50 <= stored_value <= 150 matches only spool1 (100)
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.numeric_field": "50:150"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert spool_id1 in ids
-    assert spool_id2 not in ids
-
-    result = httpx.get(f"{URL}/api/v1/spool", params={"sort": "extra.numeric_field:asc"})
-    assert_httpx_success(result)
-    test_spools = [item for item in result.json() if item["id"] in (spool_id1, spool_id2)]
-    assert len(test_spools) == 2
-    assert test_spools[0]["id"] == spool_id1  # 100 first
-    assert test_spools[1]["id"] == spool_id2  # 200 second
-
-    result = httpx.get(f"{URL}/api/v1/spool", params={"sort": "extra.numeric_field:desc"})
-    assert_httpx_success(result)
-    test_spools = [item for item in result.json() if item["id"] in (spool_id1, spool_id2)]
-    assert len(test_spools) == 2
-    assert test_spools[0]["id"] == spool_id2  # 200 first
-    assert test_spools[1]["id"] == spool_id1  # 100 second
-
-    httpx.delete(f"{URL}/api/v1/field/spool/numeric_field").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/spool/{spool_id1}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/spool/{spool_id2}").raise_for_status()
-
-
-# ---------------------------------------------------------------------------
-# Spool - float
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_filter_and_sort_float_custom_field(random_filament: dict[str, Any]):
-    """Test filtering and sorting by a float custom field."""
-    result = httpx.post(
-        f"{URL}/api/v1/field/spool/float_field",
-        json={"name": "Float field", "field_type": "float"},
-    )
-    assert_httpx_success(result)
-
-    result = httpx.post(
-        f"{URL}/api/v1/spool",
-        json={"filament_id": random_filament["id"], "extra": {"float_field": json.dumps(1.5)}},
-    )
-    assert_httpx_success(result)
-    spool_id1 = result.json()["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/spool",
-        json={"filament_id": random_filament["id"], "extra": {"float_field": json.dumps(2.5)}},
-    )
-    assert_httpx_success(result)
-    spool_id2 = result.json()["id"]
-
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.float_field": "1.5"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert spool_id1 in ids
-    assert spool_id2 not in ids
-
-    # Range filter - min only: stored_value >= 2.0 matches only spool2 (2.5)
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.float_field": "2.0:"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert spool_id1 not in ids
-    assert spool_id2 in ids
-
-    # Range filter - max only: stored_value <= 2.0 matches only spool1 (1.5)
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.float_field": ":2.0"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert spool_id1 in ids
-    assert spool_id2 not in ids
-
-    # Range filter - both: 1.0 <= stored_value <= 2.0 matches only spool1 (1.5)
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.float_field": "1.0:2.0"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert spool_id1 in ids
-    assert spool_id2 not in ids
-
-    result = httpx.get(f"{URL}/api/v1/spool", params={"sort": "extra.float_field:asc"})
-    assert_httpx_success(result)
-    test_spools = [item for item in result.json() if item["id"] in (spool_id1, spool_id2)]
-    assert len(test_spools) == 2
-    assert test_spools[0]["id"] == spool_id1
-    assert test_spools[1]["id"] == spool_id2
-
-    result = httpx.get(f"{URL}/api/v1/spool", params={"sort": "extra.float_field:desc"})
-    assert_httpx_success(result)
-    test_spools = [item for item in result.json() if item["id"] in (spool_id1, spool_id2)]
-    assert len(test_spools) == 2
-    assert test_spools[0]["id"] == spool_id2
-    assert test_spools[1]["id"] == spool_id1
-
-    httpx.delete(f"{URL}/api/v1/field/spool/float_field").raise_for_status()
     httpx.delete(f"{URL}/api/v1/spool/{spool_id1}").raise_for_status()
     httpx.delete(f"{URL}/api/v1/spool/{spool_id2}").raise_for_status()
 
@@ -506,146 +626,6 @@ async def test_filter_sort_datetime_spool(random_filament: dict[str, Any]):
 
 
 # ---------------------------------------------------------------------------
-# Spool - integer_range
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_filter_sort_integer_range_spool(random_filament: dict[str, Any]):
-    """Test filtering and sorting by a custom integer_range field on spools."""
-    result = httpx.post(
-        f"{URL}/api/v1/field/spool/int_range_field",
-        json={"name": "Integer range field", "field_type": "integer_range"},
-    )
-    assert_httpx_success(result)
-
-    result = httpx.post(
-        f"{URL}/api/v1/spool",
-        json={"filament_id": random_filament["id"], "extra": {"int_range_field": json.dumps([100, 200])}},
-    )
-    assert_httpx_success(result)
-    spool_id1 = result.json()["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/spool",
-        json={"filament_id": random_filament["id"], "extra": {"int_range_field": json.dumps([300, 400])}},
-    )
-    assert_httpx_success(result)
-    spool_id2 = result.json()["id"]
-
-    # Filter by exact min:max
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.int_range_field": "100:200"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert spool_id1 in ids
-    assert spool_id2 not in ids
-
-    # Filter by min only: stored_min >= 200 matches only spool2 ([300,400])
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.int_range_field": "200:"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert spool_id1 not in ids
-    assert spool_id2 in ids
-
-    # Filter by max only: stored_max <= 300 matches only spool1 ([100,200])
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.int_range_field": ":300"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert spool_id1 in ids
-    assert spool_id2 not in ids
-
-    # Sort ascending by min (100 before 300)
-    result = httpx.get(f"{URL}/api/v1/spool", params={"sort": "extra.int_range_field:asc"})
-    assert_httpx_success(result)
-    test_spools = [item for item in result.json() if item["id"] in (spool_id1, spool_id2)]
-    assert len(test_spools) == 2
-    assert test_spools[0]["id"] == spool_id1
-    assert test_spools[1]["id"] == spool_id2
-
-    # Sort descending
-    result = httpx.get(f"{URL}/api/v1/spool", params={"sort": "extra.int_range_field:desc"})
-    assert_httpx_success(result)
-    test_spools = [item for item in result.json() if item["id"] in (spool_id1, spool_id2)]
-    assert len(test_spools) == 2
-    assert test_spools[0]["id"] == spool_id2
-    assert test_spools[1]["id"] == spool_id1
-
-    httpx.delete(f"{URL}/api/v1/field/spool/int_range_field").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/spool/{spool_id1}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/spool/{spool_id2}").raise_for_status()
-
-
-# ---------------------------------------------------------------------------
-# Spool - float_range
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_filter_sort_float_range_spool(random_filament: dict[str, Any]):
-    """Test filtering and sorting by a custom float_range field on spools."""
-    result = httpx.post(
-        f"{URL}/api/v1/field/spool/float_range_field",
-        json={"name": "Float range field", "field_type": "float_range"},
-    )
-    assert_httpx_success(result)
-
-    result = httpx.post(
-        f"{URL}/api/v1/spool",
-        json={"filament_id": random_filament["id"], "extra": {"float_range_field": json.dumps([1.5, 2.5])}},
-    )
-    assert_httpx_success(result)
-    spool_id1 = result.json()["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/spool",
-        json={"filament_id": random_filament["id"], "extra": {"float_range_field": json.dumps([3.5, 4.5])}},
-    )
-    assert_httpx_success(result)
-    spool_id2 = result.json()["id"]
-
-    # Filter by exact min:max
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.float_range_field": "1.5:2.5"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert spool_id1 in ids
-    assert spool_id2 not in ids
-
-    # Filter by min only: stored_min >= 2.5 matches only spool2 ([3.5,4.5])
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.float_range_field": "2.5:"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert spool_id1 not in ids
-    assert spool_id2 in ids
-
-    # Filter by max only: stored_max <= 3.5 matches only spool1 ([1.5,2.5])
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.float_range_field": ":3.5"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert spool_id1 in ids
-    assert spool_id2 not in ids
-
-    # Sort ascending by min (1.5 before 3.5)
-    result = httpx.get(f"{URL}/api/v1/spool", params={"sort": "extra.float_range_field:asc"})
-    assert_httpx_success(result)
-    test_spools = [item for item in result.json() if item["id"] in (spool_id1, spool_id2)]
-    assert len(test_spools) == 2
-    assert test_spools[0]["id"] == spool_id1
-    assert test_spools[1]["id"] == spool_id2
-
-    # Sort descending
-    result = httpx.get(f"{URL}/api/v1/spool", params={"sort": "extra.float_range_field:desc"})
-    assert_httpx_success(result)
-    test_spools = [item for item in result.json() if item["id"] in (spool_id1, spool_id2)]
-    assert len(test_spools) == 2
-    assert test_spools[0]["id"] == spool_id2
-    assert test_spools[1]["id"] == spool_id1
-
-    httpx.delete(f"{URL}/api/v1/field/spool/float_range_field").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/spool/{spool_id1}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/spool/{spool_id2}").raise_for_status()
-
-
-# ---------------------------------------------------------------------------
 # Spool - empty filter
 # ---------------------------------------------------------------------------
 
@@ -748,126 +728,6 @@ async def test_filter_sort_filament_custom_field(random_filament: dict[str, Any]
     assert test_filaments[1]["id"] == filament_id2  # alpha second
 
     httpx.delete(f"{URL}/api/v1/field/filament/filament_tag").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/filament/{filament_id1}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/filament/{filament_id2}").raise_for_status()
-
-
-# ---------------------------------------------------------------------------
-# Filament - integer
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_filter_sort_filament_integer(random_filament: dict[str, Any]):
-    """Test filtering and sorting filaments by a custom integer field."""
-    vendor_id = random_filament["vendor"]["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/field/filament/fil_int_field",
-        json={"name": "Filament integer field", "field_type": "integer"},
-    )
-    assert_httpx_success(result)
-
-    result = httpx.post(
-        f"{URL}/api/v1/filament",
-        json={"vendor_id": vendor_id, "density": 1.24, "diameter": 1.75, "extra": {"fil_int_field": json.dumps(10)}},
-    )
-    assert_httpx_success(result)
-    filament_id1 = result.json()["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/filament",
-        json={"vendor_id": vendor_id, "density": 1.24, "diameter": 1.75, "extra": {"fil_int_field": json.dumps(20)}},
-    )
-    assert_httpx_success(result)
-    filament_id2 = result.json()["id"]
-
-    result = httpx.get(f"{URL}/api/v1/filament", params={"extra.fil_int_field": "10"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert filament_id1 in ids
-    assert filament_id2 not in ids
-
-    result = httpx.get(f"{URL}/api/v1/filament", params={"sort": "extra.fil_int_field:asc"})
-    assert_httpx_success(result)
-    test_filaments = [item for item in result.json() if item["id"] in (filament_id1, filament_id2)]
-    assert len(test_filaments) == 2
-    assert test_filaments[0]["id"] == filament_id1
-    assert test_filaments[1]["id"] == filament_id2
-
-    result = httpx.get(f"{URL}/api/v1/filament", params={"sort": "extra.fil_int_field:desc"})
-    assert_httpx_success(result)
-    test_filaments = [item for item in result.json() if item["id"] in (filament_id1, filament_id2)]
-    assert len(test_filaments) == 2
-    assert test_filaments[0]["id"] == filament_id2
-    assert test_filaments[1]["id"] == filament_id1
-
-    httpx.delete(f"{URL}/api/v1/field/filament/fil_int_field").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/filament/{filament_id1}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/filament/{filament_id2}").raise_for_status()
-
-
-# ---------------------------------------------------------------------------
-# Filament - float
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_filter_sort_filament_float(random_filament: dict[str, Any]):
-    """Test filtering and sorting filaments by a custom float field."""
-    vendor_id = random_filament["vendor"]["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/field/filament/fil_float_field",
-        json={"name": "Filament float field", "field_type": "float"},
-    )
-    assert_httpx_success(result)
-
-    result = httpx.post(
-        f"{URL}/api/v1/filament",
-        json={
-            "vendor_id": vendor_id,
-            "density": 1.24,
-            "diameter": 1.75,
-            "extra": {"fil_float_field": json.dumps(1.1)},
-        },
-    )
-    assert_httpx_success(result)
-    filament_id1 = result.json()["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/filament",
-        json={
-            "vendor_id": vendor_id,
-            "density": 1.24,
-            "diameter": 1.75,
-            "extra": {"fil_float_field": json.dumps(9.9)},
-        },
-    )
-    assert_httpx_success(result)
-    filament_id2 = result.json()["id"]
-
-    result = httpx.get(f"{URL}/api/v1/filament", params={"extra.fil_float_field": "1.1"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert filament_id1 in ids
-    assert filament_id2 not in ids
-
-    result = httpx.get(f"{URL}/api/v1/filament", params={"sort": "extra.fil_float_field:asc"})
-    assert_httpx_success(result)
-    test_filaments = [item for item in result.json() if item["id"] in (filament_id1, filament_id2)]
-    assert len(test_filaments) == 2
-    assert test_filaments[0]["id"] == filament_id1
-    assert test_filaments[1]["id"] == filament_id2
-
-    result = httpx.get(f"{URL}/api/v1/filament", params={"sort": "extra.fil_float_field:desc"})
-    assert_httpx_success(result)
-    test_filaments = [item for item in result.json() if item["id"] in (filament_id1, filament_id2)]
-    assert len(test_filaments) == 2
-    assert test_filaments[0]["id"] == filament_id2
-    assert test_filaments[1]["id"] == filament_id1
-
-    httpx.delete(f"{URL}/api/v1/field/filament/fil_float_field").raise_for_status()
     httpx.delete(f"{URL}/api/v1/filament/{filament_id1}").raise_for_status()
     httpx.delete(f"{URL}/api/v1/filament/{filament_id2}").raise_for_status()
 
@@ -1122,129 +982,6 @@ async def test_filter_sort_filament_datetime(random_filament: dict[str, Any]):
 
 
 # ---------------------------------------------------------------------------
-# Filament - integer_range
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_filter_sort_filament_integer_range(random_filament: dict[str, Any]):
-    """Test filtering and sorting filaments by a custom integer_range field."""
-    vendor_id = random_filament["vendor"]["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/field/filament/fil_int_range",
-        json={"name": "Filament integer range", "field_type": "integer_range"},
-    )
-    assert_httpx_success(result)
-
-    result = httpx.post(
-        f"{URL}/api/v1/filament",
-        json={
-            "vendor_id": vendor_id,
-            "density": 1.24,
-            "diameter": 1.75,
-            "extra": {"fil_int_range": json.dumps([200, 220])},
-        },
-    )
-    assert_httpx_success(result)
-    filament_id1 = result.json()["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/filament",
-        json={
-            "vendor_id": vendor_id,
-            "density": 1.24,
-            "diameter": 1.75,
-            "extra": {"fil_int_range": json.dumps([240, 260])},
-        },
-    )
-    assert_httpx_success(result)
-    filament_id2 = result.json()["id"]
-
-    result = httpx.get(f"{URL}/api/v1/filament", params={"extra.fil_int_range": "200:220"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert filament_id1 in ids
-    assert filament_id2 not in ids
-
-    result = httpx.get(f"{URL}/api/v1/filament", params={"sort": "extra.fil_int_range:asc"})
-    assert_httpx_success(result)
-    test_filaments = [item for item in result.json() if item["id"] in (filament_id1, filament_id2)]
-    assert len(test_filaments) == 2
-    assert test_filaments[0]["id"] == filament_id1
-    assert test_filaments[1]["id"] == filament_id2
-
-    result = httpx.get(f"{URL}/api/v1/filament", params={"sort": "extra.fil_int_range:desc"})
-    assert_httpx_success(result)
-    test_filaments = [item for item in result.json() if item["id"] in (filament_id1, filament_id2)]
-    assert len(test_filaments) == 2
-    assert test_filaments[0]["id"] == filament_id2
-    assert test_filaments[1]["id"] == filament_id1
-
-    httpx.delete(f"{URL}/api/v1/field/filament/fil_int_range").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/filament/{filament_id1}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/filament/{filament_id2}").raise_for_status()
-
-
-# ---------------------------------------------------------------------------
-# Filament - float_range
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_filter_sort_filament_float_range(random_filament: dict[str, Any]):
-    """Test filtering and sorting filaments by a custom float_range field."""
-    vendor_id = random_filament["vendor"]["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/field/filament/fil_float_range",
-        json={"name": "Filament float range", "field_type": "float_range"},
-    )
-    assert_httpx_success(result)
-
-    result = httpx.post(
-        f"{URL}/api/v1/filament",
-        json={
-            "vendor_id": vendor_id,
-            "density": 1.24,
-            "diameter": 1.75,
-            "extra": {"fil_float_range": json.dumps([0.5, 1.0])},
-        },
-    )
-    assert_httpx_success(result)
-    filament_id1 = result.json()["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/filament",
-        json={
-            "vendor_id": vendor_id,
-            "density": 1.24,
-            "diameter": 1.75,
-            "extra": {"fil_float_range": json.dumps([5.0, 7.5])},
-        },
-    )
-    assert_httpx_success(result)
-    filament_id2 = result.json()["id"]
-
-    result = httpx.get(f"{URL}/api/v1/filament", params={"extra.fil_float_range": "0.5:1.0"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert filament_id1 in ids
-    assert filament_id2 not in ids
-
-    result = httpx.get(f"{URL}/api/v1/filament", params={"sort": "extra.fil_float_range:asc"})
-    assert_httpx_success(result)
-    test_filaments = [item for item in result.json() if item["id"] in (filament_id1, filament_id2)]
-    assert len(test_filaments) == 2
-    assert test_filaments[0]["id"] == filament_id1
-    assert test_filaments[1]["id"] == filament_id2
-
-    httpx.delete(f"{URL}/api/v1/field/filament/fil_float_range").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/filament/{filament_id1}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/filament/{filament_id2}").raise_for_status()
-
-
-# ---------------------------------------------------------------------------
 # Filament - empty filter
 # ---------------------------------------------------------------------------
 
@@ -1348,105 +1085,6 @@ async def test_filter_sort_vendor_custom_field():
     httpx.delete(f"{URL}/api/v1/vendor/{vendor_id1}").raise_for_status()
     httpx.delete(f"{URL}/api/v1/vendor/{vendor_id2}").raise_for_status()
 
-
-
-# ---------------------------------------------------------------------------
-# Vendor - integer
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_filter_sort_vendor_integer():
-    """Test filtering and sorting vendors by a custom integer field."""
-    result = httpx.post(
-        f"{URL}/api/v1/field/vendor/ven_int_field",
-        json={"name": "Vendor integer field", "field_type": "integer"},
-    )
-    assert_httpx_success(result)
-
-    result = httpx.post(
-        f"{URL}/api/v1/vendor",
-        json={"name": "Vendor A Int", "extra": {"ven_int_field": json.dumps(5)}},
-    )
-    assert_httpx_success(result)
-    vendor_id1 = result.json()["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/vendor",
-        json={"name": "Vendor B Int", "extra": {"ven_int_field": json.dumps(50)}},
-    )
-    assert_httpx_success(result)
-    vendor_id2 = result.json()["id"]
-
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"extra.ven_int_field": "5"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert vendor_id1 in ids
-    assert vendor_id2 not in ids
-
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"sort": "extra.ven_int_field:asc"})
-    assert_httpx_success(result)
-    test_vendors = [item for item in result.json() if item["id"] in (vendor_id1, vendor_id2)]
-    assert len(test_vendors) == 2
-    assert test_vendors[0]["id"] == vendor_id1
-    assert test_vendors[1]["id"] == vendor_id2
-
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"sort": "extra.ven_int_field:desc"})
-    assert_httpx_success(result)
-    test_vendors = [item for item in result.json() if item["id"] in (vendor_id1, vendor_id2)]
-    assert len(test_vendors) == 2
-    assert test_vendors[0]["id"] == vendor_id2
-    assert test_vendors[1]["id"] == vendor_id1
-
-    httpx.delete(f"{URL}/api/v1/field/vendor/ven_int_field").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/vendor/{vendor_id1}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/vendor/{vendor_id2}").raise_for_status()
-
-
-# ---------------------------------------------------------------------------
-# Vendor - float
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_filter_sort_vendor_float():
-    """Test filtering and sorting vendors by a custom float field."""
-    result = httpx.post(
-        f"{URL}/api/v1/field/vendor/ven_float_field",
-        json={"name": "Vendor float field", "field_type": "float"},
-    )
-    assert_httpx_success(result)
-
-    result = httpx.post(
-        f"{URL}/api/v1/vendor",
-        json={"name": "Vendor A Float", "extra": {"ven_float_field": json.dumps(0.1)}},
-    )
-    assert_httpx_success(result)
-    vendor_id1 = result.json()["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/vendor",
-        json={"name": "Vendor B Float", "extra": {"ven_float_field": json.dumps(9.9)}},
-    )
-    assert_httpx_success(result)
-    vendor_id2 = result.json()["id"]
-
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"extra.ven_float_field": "0.1"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert vendor_id1 in ids
-    assert vendor_id2 not in ids
-
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"sort": "extra.ven_float_field:asc"})
-    assert_httpx_success(result)
-    test_vendors = [item for item in result.json() if item["id"] in (vendor_id1, vendor_id2)]
-    assert len(test_vendors) == 2
-    assert test_vendors[0]["id"] == vendor_id1
-    assert test_vendors[1]["id"] == vendor_id2
-
-    httpx.delete(f"{URL}/api/v1/field/vendor/ven_float_field").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/vendor/{vendor_id1}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/vendor/{vendor_id2}").raise_for_status()
 
 
 # ---------------------------------------------------------------------------
@@ -1660,126 +1298,6 @@ async def test_filter_sort_vendor_datetime():
     assert test_vendors[1]["id"] == vendor_id1
 
     httpx.delete(f"{URL}/api/v1/field/vendor/ven_dt_field").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/vendor/{vendor_id1}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/vendor/{vendor_id2}").raise_for_status()
-
-
-# ---------------------------------------------------------------------------
-# Vendor - integer_range
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_filter_sort_vendor_integer_range():
-    """Test filtering and sorting vendors by a custom integer_range field."""
-    result = httpx.post(
-        f"{URL}/api/v1/field/vendor/ven_int_range",
-        json={"name": "Vendor integer range", "field_type": "integer_range"},
-    )
-    assert_httpx_success(result)
-
-    result = httpx.post(
-        f"{URL}/api/v1/vendor",
-        json={"name": "Vendor Range Low", "extra": {"ven_int_range": json.dumps([10, 20])}},
-    )
-    assert_httpx_success(result)
-    vendor_id1 = result.json()["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/vendor",
-        json={"name": "Vendor Range High", "extra": {"ven_int_range": json.dumps([90, 100])}},
-    )
-    assert_httpx_success(result)
-    vendor_id2 = result.json()["id"]
-
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"extra.ven_int_range": "10:20"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert vendor_id1 in ids
-    assert vendor_id2 not in ids
-
-    # Filter by min only: stored_min >= 50 matches only vendor2 ([90,100])
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"extra.ven_int_range": "50:"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert vendor_id1 not in ids
-    assert vendor_id2 in ids
-
-    # Filter by max only: stored_max <= 50 matches only vendor1 ([10,20])
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"extra.ven_int_range": ":50"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert vendor_id1 in ids
-    assert vendor_id2 not in ids
-
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"sort": "extra.ven_int_range:asc"})
-    assert_httpx_success(result)
-    test_vendors = [item for item in result.json() if item["id"] in (vendor_id1, vendor_id2)]
-    assert len(test_vendors) == 2
-    assert test_vendors[0]["id"] == vendor_id1
-    assert test_vendors[1]["id"] == vendor_id2
-
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"sort": "extra.ven_int_range:desc"})
-    assert_httpx_success(result)
-    test_vendors = [item for item in result.json() if item["id"] in (vendor_id1, vendor_id2)]
-    assert len(test_vendors) == 2
-    assert test_vendors[0]["id"] == vendor_id2
-    assert test_vendors[1]["id"] == vendor_id1
-
-    httpx.delete(f"{URL}/api/v1/field/vendor/ven_int_range").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/vendor/{vendor_id1}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/vendor/{vendor_id2}").raise_for_status()
-
-
-# ---------------------------------------------------------------------------
-# Vendor - float_range
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_filter_sort_vendor_float_range():
-    """Test filtering and sorting vendors by a custom float_range field."""
-    result = httpx.post(
-        f"{URL}/api/v1/field/vendor/ven_float_range",
-        json={"name": "Vendor float range", "field_type": "float_range"},
-    )
-    assert_httpx_success(result)
-
-    result = httpx.post(
-        f"{URL}/api/v1/vendor",
-        json={"name": "Vendor Range Small", "extra": {"ven_float_range": json.dumps([0.1, 0.5])}},
-    )
-    assert_httpx_success(result)
-    vendor_id1 = result.json()["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/vendor",
-        json={"name": "Vendor Range Large", "extra": {"ven_float_range": json.dumps([10.0, 20.0])}},
-    )
-    assert_httpx_success(result)
-    vendor_id2 = result.json()["id"]
-
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"extra.ven_float_range": "0.1:0.5"})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert vendor_id1 in ids
-    assert vendor_id2 not in ids
-
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"sort": "extra.ven_float_range:asc"})
-    assert_httpx_success(result)
-    test_vendors = [item for item in result.json() if item["id"] in (vendor_id1, vendor_id2)]
-    assert len(test_vendors) == 2
-    assert test_vendors[0]["id"] == vendor_id1
-    assert test_vendors[1]["id"] == vendor_id2
-
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"sort": "extra.ven_float_range:desc"})
-    assert_httpx_success(result)
-    test_vendors = [item for item in result.json() if item["id"] in (vendor_id1, vendor_id2)]
-    assert len(test_vendors) == 2
-    assert test_vendors[0]["id"] == vendor_id2
-    assert test_vendors[1]["id"] == vendor_id1
-
-    httpx.delete(f"{URL}/api/v1/field/vendor/ven_float_range").raise_for_status()
     httpx.delete(f"{URL}/api/v1/vendor/{vendor_id1}").raise_for_status()
     httpx.delete(f"{URL}/api/v1/vendor/{vendor_id2}").raise_for_status()
 
