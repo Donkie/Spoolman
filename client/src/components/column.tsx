@@ -102,26 +102,43 @@ function NumberRangeFilterDropdown({
   );
 }
 
-function DateTimeFilterDropdown({ setSelectedKeys, selectedKeys, confirm, clearFilters }: FilterDropdownProps) {
+function DateTimeRangeFilterDropdown({ setSelectedKeys, selectedKeys, confirm, clearFilters }: FilterDropdownProps) {
   const current = selectedKeys[0] as string | undefined;
-  const value = current ? dayjs.utc(current) : null;
+  let fromVal: dayjs.Dayjs | null = null;
+  let toVal: dayjs.Dayjs | null = null;
+  if (current && current.includes("|")) {
+    const parts = current.split("|", 2);
+    fromVal = parts[0] ? dayjs.utc(parts[0]) : null;
+    toVal = parts[1] ? dayjs.utc(parts[1]) : null;
+  }
+
+  const updateKeys = (from: dayjs.Dayjs | null, to: dayjs.Dayjs | null) => {
+    if (from === null && to === null) {
+      setSelectedKeys([]);
+    } else {
+      setSelectedKeys([`${from ? from.utc().toISOString() : ""}|${to ? to.utc().toISOString() : ""}`]);
+    }
+  };
 
   return (
     <div style={{ padding: 8 }}>
-      <DatePicker
-        showTime={{ use12Hours: false }}
-        format="YYYY-MM-DD HH:mm:ss"
-        value={value}
-        onChange={(date) => {
-          if (date) {
-            setSelectedKeys([date.utc().toISOString()]);
-          } else {
-            setSelectedKeys([]);
-          }
-        }}
-        style={{ marginBottom: 8, display: "block" }}
-      />
-      <Space>
+      <Space direction="vertical">
+        <DatePicker
+          showTime={{ use12Hours: false }}
+          format="YYYY-MM-DD HH:mm:ss"
+          placeholder="From..."
+          value={fromVal}
+          onChange={(date) => updateKeys(date, toVal)}
+        />
+        <DatePicker
+          showTime={{ use12Hours: false }}
+          format="YYYY-MM-DD HH:mm:ss"
+          placeholder="To..."
+          value={toVal}
+          onChange={(date) => updateKeys(fromVal, date)}
+        />
+      </Space>
+      <Space style={{ marginTop: 8 }}>
         <Button type="primary" size="small" onClick={() => confirm()}>
           Search
         </Button>
@@ -594,7 +611,7 @@ export function CustomFieldColumn<Obj extends Entity>(props: Omit<BaseColumnProp
   } else if (field.field_type === FieldType.datetime) {
     return DateColumn({
       ...commonProps,
-      filterDropdown: DateTimeFilterDropdown,
+      filterDropdown: DateTimeRangeFilterDropdown,
       filteredValue,
     });
   } else if (field.field_type === FieldType.boolean) {

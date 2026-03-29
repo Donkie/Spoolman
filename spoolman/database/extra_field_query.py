@@ -196,15 +196,45 @@ def add_where_clause_extra_field(  # noqa: C901, PLR0912, PLR0915
                 else field_table.value.ilike(f"%{parsed_value}%")
             )
         elif field_type == ExtraFieldType.integer:
-            try:
-                field_condition = field_table.value == json.dumps(int(parsed_value))
-            except ValueError as exc:
-                raise ValueError(f"Invalid integer filter value for '{field_key}': {parsed_value}") from exc
+            if ":" in parsed_value:
+                min_val_str, max_val_str = parsed_value.split(":", 1)
+                int_conditions = []
+                try:
+                    stored = sqlalchemy.cast(field_table.value, sqlalchemy.Integer)
+                    if min_val_str:
+                        int_conditions.append(stored >= int(min_val_str))
+                    if max_val_str:
+                        int_conditions.append(stored <= int(max_val_str))
+                except (ValueError, TypeError) as exc:
+                    raise ValueError(f"Invalid integer range filter value for '{field_key}': {parsed_value}") from exc
+                if not int_conditions:
+                    raise ValueError(f"Invalid integer range filter value for '{field_key}': {parsed_value}")
+                field_condition = sqlalchemy.and_(*int_conditions)
+            else:
+                try:
+                    field_condition = field_table.value == json.dumps(int(parsed_value))
+                except ValueError as exc:
+                    raise ValueError(f"Invalid integer filter value for '{field_key}': {parsed_value}") from exc
         elif field_type == ExtraFieldType.float:
-            try:
-                field_condition = field_table.value == json.dumps(float(parsed_value))
-            except ValueError as exc:
-                raise ValueError(f"Invalid float filter value for '{field_key}': {parsed_value}") from exc
+            if ":" in parsed_value:
+                min_val_str, max_val_str = parsed_value.split(":", 1)
+                float_conditions = []
+                try:
+                    stored = sqlalchemy.cast(field_table.value, sqlalchemy.Float)
+                    if min_val_str:
+                        float_conditions.append(stored >= float(min_val_str))
+                    if max_val_str:
+                        float_conditions.append(stored <= float(max_val_str))
+                except (ValueError, TypeError) as exc:
+                    raise ValueError(f"Invalid float range filter value for '{field_key}': {parsed_value}") from exc
+                if not float_conditions:
+                    raise ValueError(f"Invalid float range filter value for '{field_key}': {parsed_value}")
+                field_condition = sqlalchemy.and_(*float_conditions)
+            else:
+                try:
+                    field_condition = field_table.value == json.dumps(float(parsed_value))
+                except ValueError as exc:
+                    raise ValueError(f"Invalid float filter value for '{field_key}': {parsed_value}") from exc
         elif field_type == ExtraFieldType.boolean:
             field_condition = field_table.value == json.dumps(_parse_boolean_filter(parsed_value))
         elif field_type == ExtraFieldType.choice:
@@ -213,7 +243,20 @@ def add_where_clause_extra_field(  # noqa: C901, PLR0912, PLR0915
             else:
                 field_condition = field_table.value == json.dumps(parsed_value)
         elif field_type == ExtraFieldType.datetime:
-            field_condition = field_table.value == json.dumps(parsed_value)
+            if "|" in parsed_value:
+                start_str, end_str = parsed_value.split("|", 1)
+                dt_conditions = []
+                if start_str:
+                    dt_conditions.append(field_table.value >= json.dumps(start_str))
+                if end_str:
+                    dt_conditions.append(field_table.value <= json.dumps(end_str))
+                if not dt_conditions:
+                    raise ValueError(
+                        f"Invalid datetime range filter for '{field_key}': {parsed_value}. Expected '<start>|<end>'."
+                    )
+                field_condition = sqlalchemy.and_(*dt_conditions)
+            else:
+                field_condition = field_table.value == json.dumps(parsed_value)
         elif field_type in (ExtraFieldType.integer_range, ExtraFieldType.float_range):
             if ":" not in parsed_value:
                 raise ValueError(
