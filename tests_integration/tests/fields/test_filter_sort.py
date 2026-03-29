@@ -276,6 +276,72 @@ async def test_float_range_filter_and_sort(entity_type: str, random_filament: di
         httpx.delete(f"{URL}/api/v1/{entity_type}/{id2}").raise_for_status()
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_datetime_filter_and_sort(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """Test filter and sort by a custom datetime field for all entity types."""
+    field_key = "test_dt_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={"name": "Datetime field", "field_type": "datetime"},
+    ).raise_for_status()
+    dt_early = "2023-01-01T00:00:00"
+    dt_late = "2024-06-15T12:30:00"
+    id1 = _create_entity(entity_type, {field_key: json.dumps(dt_early)}, random_filament)
+    id2 = _create_entity(entity_type, {field_key: json.dumps(dt_late)}, random_filament)
+    try:
+        # Exact match: only id1
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": dt_early})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 in ids
+        assert id2 not in ids
+
+        # Range: start only (>= 2023-06-01 matches only id2=2024-06-15)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "2023-06-01T00:00:00|"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 not in ids
+        assert id2 in ids
+
+        # Range: end only (<= 2023-06-01 matches only id1=2023-01-01)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "|2023-06-01T00:00:00"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 in ids
+        assert id2 not in ids
+
+        # Range: both bounds (2022-01-01 to 2023-06-01 matches only id1)
+        result = httpx.get(
+            f"{URL}/api/v1/{entity_type}",
+            params={f"extra.{field_key}": "2022-01-01T00:00:00|2023-06-01T00:00:00"},
+        )
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 in ids
+        assert id2 not in ids
+
+        # Sort ascending (early before late)
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={"sort": f"extra.{field_key}:asc"})
+        assert_httpx_success(result)
+        ordered = [item for item in result.json() if item["id"] in (id1, id2)]
+        assert len(ordered) == 2
+        assert ordered[0]["id"] == id1
+        assert ordered[1]["id"] == id2
+
+        # Sort descending
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={"sort": f"extra.{field_key}:desc"})
+        assert_httpx_success(result)
+        ordered = [item for item in result.json() if item["id"] in (id1, id2)]
+        assert len(ordered) == 2
+        assert ordered[0]["id"] == id2
+        assert ordered[1]["id"] == id1
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id1}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id2}").raise_for_status()
+
+
 # ---------------------------------------------------------------------------
 # Spool - text
 # ---------------------------------------------------------------------------
@@ -562,65 +628,6 @@ async def test_filter_multi_choice_custom_field(random_filament: dict[str, Any])
     assert spool_id2 in ids
 
     httpx.delete(f"{URL}/api/v1/field/spool/multi_choice_field").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/spool/{spool_id1}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/spool/{spool_id2}").raise_for_status()
-
-
-# ---------------------------------------------------------------------------
-# Spool - datetime
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_filter_sort_datetime_spool(random_filament: dict[str, Any]):
-    """Test filtering and sorting by a custom datetime field on spools."""
-    result = httpx.post(
-        f"{URL}/api/v1/field/spool/dt_field",
-        json={"name": "Datetime field", "field_type": "datetime"},
-    )
-    assert_httpx_success(result)
-
-    dt_early = "2023-01-01T00:00:00"
-    dt_late = "2024-06-15T12:30:00"
-
-    result = httpx.post(
-        f"{URL}/api/v1/spool",
-        json={"filament_id": random_filament["id"], "extra": {"dt_field": json.dumps(dt_early)}},
-    )
-    assert_httpx_success(result)
-    spool_id1 = result.json()["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/spool",
-        json={"filament_id": random_filament["id"], "extra": {"dt_field": json.dumps(dt_late)}},
-    )
-    assert_httpx_success(result)
-    spool_id2 = result.json()["id"]
-
-    # Exact-match filter
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.dt_field": dt_early})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert spool_id1 in ids
-    assert spool_id2 not in ids
-
-    # Sort ascending: early before late (ISO 8601 sorts lexicographically)
-    result = httpx.get(f"{URL}/api/v1/spool", params={"sort": "extra.dt_field:asc"})
-    assert_httpx_success(result)
-    test_spools = [item for item in result.json() if item["id"] in (spool_id1, spool_id2)]
-    assert len(test_spools) == 2
-    assert test_spools[0]["id"] == spool_id1
-    assert test_spools[1]["id"] == spool_id2
-
-    # Sort descending
-    result = httpx.get(f"{URL}/api/v1/spool", params={"sort": "extra.dt_field:desc"})
-    assert_httpx_success(result)
-    test_spools = [item for item in result.json() if item["id"] in (spool_id1, spool_id2)]
-    assert len(test_spools) == 2
-    assert test_spools[0]["id"] == spool_id2
-    assert test_spools[1]["id"] == spool_id1
-
-    httpx.delete(f"{URL}/api/v1/field/spool/dt_field").raise_for_status()
     httpx.delete(f"{URL}/api/v1/spool/{spool_id1}").raise_for_status()
     httpx.delete(f"{URL}/api/v1/spool/{spool_id2}").raise_for_status()
 
@@ -921,67 +928,6 @@ async def test_filter_filament_multi_choice(random_filament: dict[str, Any]):
 
 
 # ---------------------------------------------------------------------------
-# Filament - datetime
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_filter_sort_filament_datetime(random_filament: dict[str, Any]):
-    """Test filtering and sorting filaments by a custom datetime field."""
-    vendor_id = random_filament["vendor"]["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/field/filament/fil_dt_field",
-        json={"name": "Filament datetime field", "field_type": "datetime"},
-    )
-    assert_httpx_success(result)
-
-    dt_early = "2022-03-01T09:00:00"
-    dt_late = "2025-09-15T18:00:00"
-
-    result = httpx.post(
-        f"{URL}/api/v1/filament",
-        json={
-            "vendor_id": vendor_id,
-            "density": 1.24,
-            "diameter": 1.75,
-            "extra": {"fil_dt_field": json.dumps(dt_early)},
-        },
-    )
-    assert_httpx_success(result)
-    filament_id1 = result.json()["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/filament",
-        json={
-            "vendor_id": vendor_id,
-            "density": 1.24,
-            "diameter": 1.75,
-            "extra": {"fil_dt_field": json.dumps(dt_late)},
-        },
-    )
-    assert_httpx_success(result)
-    filament_id2 = result.json()["id"]
-
-    result = httpx.get(f"{URL}/api/v1/filament", params={"extra.fil_dt_field": dt_early})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert filament_id1 in ids
-    assert filament_id2 not in ids
-
-    result = httpx.get(f"{URL}/api/v1/filament", params={"sort": "extra.fil_dt_field:asc"})
-    assert_httpx_success(result)
-    test_filaments = [item for item in result.json() if item["id"] in (filament_id1, filament_id2)]
-    assert len(test_filaments) == 2
-    assert test_filaments[0]["id"] == filament_id1
-    assert test_filaments[1]["id"] == filament_id2
-
-    httpx.delete(f"{URL}/api/v1/field/filament/fil_dt_field").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/filament/{filament_id1}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/filament/{filament_id2}").raise_for_status()
-
-
-# ---------------------------------------------------------------------------
 # Filament - empty filter
 # ---------------------------------------------------------------------------
 
@@ -1242,62 +1188,6 @@ async def test_filter_vendor_multi_choice():
     assert vendor_id1 not in ids
 
     httpx.delete(f"{URL}/api/v1/field/vendor/ven_multi_field").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/vendor/{vendor_id1}").raise_for_status()
-    httpx.delete(f"{URL}/api/v1/vendor/{vendor_id2}").raise_for_status()
-
-
-# ---------------------------------------------------------------------------
-# Vendor - datetime
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_filter_sort_vendor_datetime():
-    """Test filtering and sorting vendors by a custom datetime field."""
-    result = httpx.post(
-        f"{URL}/api/v1/field/vendor/ven_dt_field",
-        json={"name": "Vendor datetime field", "field_type": "datetime"},
-    )
-    assert_httpx_success(result)
-
-    dt_early = "2020-01-01T00:00:00"
-    dt_late = "2026-12-31T23:59:59"
-
-    result = httpx.post(
-        f"{URL}/api/v1/vendor",
-        json={"name": "Vendor Old", "extra": {"ven_dt_field": json.dumps(dt_early)}},
-    )
-    assert_httpx_success(result)
-    vendor_id1 = result.json()["id"]
-
-    result = httpx.post(
-        f"{URL}/api/v1/vendor",
-        json={"name": "Vendor New", "extra": {"ven_dt_field": json.dumps(dt_late)}},
-    )
-    assert_httpx_success(result)
-    vendor_id2 = result.json()["id"]
-
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"extra.ven_dt_field": dt_early})
-    assert_httpx_success(result)
-    ids = {item["id"] for item in result.json()}
-    assert vendor_id1 in ids
-    assert vendor_id2 not in ids
-
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"sort": "extra.ven_dt_field:asc"})
-    assert_httpx_success(result)
-    test_vendors = [item for item in result.json() if item["id"] in (vendor_id1, vendor_id2)]
-    assert len(test_vendors) == 2
-    assert test_vendors[0]["id"] == vendor_id1
-    assert test_vendors[1]["id"] == vendor_id2
-
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"sort": "extra.ven_dt_field:desc"})
-    assert_httpx_success(result)
-    test_vendors = [item for item in result.json() if item["id"] in (vendor_id1, vendor_id2)]
-    assert len(test_vendors) == 2
-    assert test_vendors[0]["id"] == vendor_id2
-    assert test_vendors[1]["id"] == vendor_id1
-
-    httpx.delete(f"{URL}/api/v1/field/vendor/ven_dt_field").raise_for_status()
     httpx.delete(f"{URL}/api/v1/vendor/{vendor_id1}").raise_for_status()
     httpx.delete(f"{URL}/api/v1/vendor/{vendor_id2}").raise_for_status()
 

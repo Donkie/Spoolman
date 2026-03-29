@@ -108,8 +108,8 @@ function DateTimeRangeFilterDropdown({ setSelectedKeys, selectedKeys, confirm, c
   let toVal: dayjs.Dayjs | null = null;
   if (current && current.includes("|")) {
     const parts = current.split("|", 2);
-    fromVal = parts[0] ? dayjs.utc(parts[0]) : null;
-    toVal = parts[1] ? dayjs.utc(parts[1]) : null;
+    fromVal = parts[0] ? dayjs(parts[0]) : null;
+    toVal = parts[1] ? dayjs(parts[1]) : null;
   }
 
   const updateKeys = (from: dayjs.Dayjs | null, to: dayjs.Dayjs | null) => {
