@@ -28,27 +28,28 @@ const FilterDropdownLoading = () => {
 };
 
 function TextFilterDropdown({ setSelectedKeys, selectedKeys, confirm, clearFilters }: FilterDropdownProps) {
+  const hasValue = selectedKeys.length > 0;
   return (
-    <div style={{ padding: 8 }}>
-      <Input
-        placeholder="Search..."
-        value={selectedKeys[0] as string}
-        onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-        onPressEnter={() => confirm()}
-        style={{ marginBottom: 8, display: "block" }}
-      />
-      <Space>
-        <Button type="primary" size="small" onClick={() => confirm()}>
-          Search
-        </Button>
-        <Button size="small" onClick={() => { clearFilters?.(); confirm(); }}>
+    <>
+      <div style={{ padding: "8px" }}>
+        <Input
+          placeholder="Search..."
+          value={selectedKeys[0] as string}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => confirm()}
+        />
+      </div>
+      <div className="ant-table-filter-dropdown-btns">
+        <Button type="link" size="small" disabled={!hasValue} onClick={() => { clearFilters?.(); confirm(); }}>
           Reset
         </Button>
-      </Space>
-    </div>
+        <Button type="primary" size="small" onClick={() => confirm()}>
+          OK
+        </Button>
+      </div>
+    </>
   );
 }
-
 
 function NumberRangeFilterDropdown({
   setSelectedKeys,
@@ -74,9 +75,10 @@ function NumberRangeFilterDropdown({
     }
   };
 
+  const hasValue = selectedKeys.length > 0;
   return (
-    <div style={{ padding: 8 }}>
-      <Space direction="vertical">
+    <>
+      <div style={{ padding: "8px", display: "flex", flexDirection: "column", gap: 4 }}>
         <InputNumber
           placeholder="Min..."
           value={minVal}
@@ -89,16 +91,16 @@ function NumberRangeFilterDropdown({
           precision={precision ?? 0}
           onChange={(value) => updateKeys(minVal, value)}
         />
-      </Space>
-      <Space style={{ marginTop: 8 }}>
-        <Button type="primary" size="small" onClick={() => confirm()}>
-          Search
-        </Button>
-        <Button size="small" onClick={() => { clearFilters?.(); confirm(); }}>
+      </div>
+      <div className="ant-table-filter-dropdown-btns">
+        <Button type="link" size="small" disabled={!hasValue} onClick={() => { clearFilters?.(); confirm(); }}>
           Reset
         </Button>
-      </Space>
-    </div>
+        <Button type="primary" size="small" onClick={() => confirm()}>
+          OK
+        </Button>
+      </div>
+    </>
   );
 }
 
@@ -120,9 +122,10 @@ function DateTimeRangeFilterDropdown({ setSelectedKeys, selectedKeys, confirm, c
     }
   };
 
+  const hasValue = selectedKeys.length > 0;
   return (
-    <div style={{ padding: 8 }}>
-      <Space direction="vertical">
+    <>
+      <div style={{ padding: "8px", display: "flex", flexDirection: "column", gap: 4 }}>
         <DatePicker
           showTime={{ use12Hours: false }}
           format="YYYY-MM-DD HH:mm:ss"
@@ -137,16 +140,16 @@ function DateTimeRangeFilterDropdown({ setSelectedKeys, selectedKeys, confirm, c
           value={toVal}
           onChange={(date) => updateKeys(fromVal, date)}
         />
-      </Space>
-      <Space style={{ marginTop: 8 }}>
-        <Button type="primary" size="small" onClick={() => confirm()}>
-          Search
-        </Button>
-        <Button size="small" onClick={() => { clearFilters?.(); confirm(); }}>
+      </div>
+      <div className="ant-table-filter-dropdown-btns">
+        <Button type="link" size="small" disabled={!hasValue} onClick={() => { clearFilters?.(); confirm(); }}>
           Reset
         </Button>
-      </Space>
-    </div>
+        <Button type="primary" size="small" onClick={() => confirm()}>
+          OK
+        </Button>
+      </div>
+    </>
   );
 }
 
