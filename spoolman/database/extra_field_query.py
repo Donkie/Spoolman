@@ -42,6 +42,29 @@ def _compile_json_array_first_default(element: _JsonArrayFirstElement, compiler:
     return f"JSON_EXTRACT({col_sql}, '$[0]')"
 
 
+class _JsonArraySecondElement(FunctionElement):
+    """Cross-database helper: return the second element of a JSON array stored as text."""
+
+    name = "json_array_second_element"
+    inherit_cache = True
+
+
+@compiles(_JsonArraySecondElement, "postgresql")
+def _compile_json_array_second_pg(element: _JsonArraySecondElement, compiler: object, **kw: object) -> str:  # type: ignore[misc]
+    """PostgreSQL: CAST(value AS JSON)->>'1' returns the second element as TEXT."""
+    (col_expr,) = element.clauses
+    col_sql = compiler.process(col_expr, **kw)  # type: ignore[union-attr]
+    return f"(CAST({col_sql} AS JSON)->>1)"
+
+
+@compiles(_JsonArraySecondElement)
+def _compile_json_array_second_default(element: _JsonArraySecondElement, compiler: object, **kw: object) -> str:  # type: ignore[misc]
+    """SQLite/MariaDB: json_extract(value, '$[1]') returns the second element as a scalar."""
+    (col_expr,) = element.clauses
+    col_sql = compiler.process(col_expr, **kw)  # type: ignore[union-attr]
+    return f"JSON_EXTRACT({col_sql}, '$[1]')"
+
+
 def _get_field_table_for_entity(entity_type: EntityType) -> type[models.Base]:
     """Map an entity type to its extra-field table."""
     if entity_type == EntityType.spool:
@@ -200,14 +223,15 @@ def add_where_clause_extra_field(  # noqa: C901, PLR0912, PLR0915
             converter = int if field_type == ExtraFieldType.integer_range else float
             range_conditions = []
             try:
+                cast_type = sqlalchemy.Integer if field_type == ExtraFieldType.integer_range else sqlalchemy.Float
                 if min_val_str:
-                    range_field = field_table.value[0]
-                    cast_type = sqlalchemy.Integer if field_type == ExtraFieldType.integer_range else sqlalchemy.Float
-                    range_conditions.append(sqlalchemy.cast(range_field, cast_type) >= converter(min_val_str))
+                    # stored_min >= filter_min: the range starts at or after the requested minimum.
+                    stored_min = sqlalchemy.cast(_JsonArrayFirstElement(field_table.value), cast_type)
+                    range_conditions.append(stored_min >= converter(min_val_str))
                 if max_val_str:
-                    range_field = field_table.value[1]
-                    cast_type = sqlalchemy.Integer if field_type == ExtraFieldType.integer_range else sqlalchemy.Float
-                    range_conditions.append(sqlalchemy.cast(range_field, cast_type) <= converter(max_val_str))
+                    # stored_max <= filter_max: the range ends at or before the requested maximum.
+                    stored_max = sqlalchemy.cast(_JsonArraySecondElement(field_table.value), cast_type)
+                    range_conditions.append(stored_max <= converter(max_val_str))
             except (ValueError, TypeError) as exc:
                 range_kind = "integer" if field_type == ExtraFieldType.integer_range else "float"
                 raise ValueError(f"Invalid {range_kind} range filter value for '{field_key}': {parsed_value}") from exc
