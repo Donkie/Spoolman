@@ -59,7 +59,8 @@ async def delete_extra_field(db: AsyncSession, entity_type: EntityType, key: str
     # Update cache
     extra_field_cache[entity_type] = extra_fields
 
-    # Delete the extra field for all entities
+    logger.info("Deleted extra field %r for entity type %r.", key, entity_type.name)
+
     if entity_type == EntityType.vendor:
         await db_vendor.clear_extra_field(db, key)
     elif entity_type == EntityType.filament:
@@ -68,8 +69,6 @@ async def delete_extra_field(db: AsyncSession, entity_type: EntityType, key: str
         await db_spool.clear_extra_field(db, key)
     else:
         raise ValueError(f"Unknown entity type {entity_type.name}.")
-
-    logger.info("Deleted extra field %s for entity type %s.", key, entity_type.name)
 
 
 async def populate_with_defaults(db: AsyncSession, entity_type: EntityType, existing: dict[str, str]) -> None:

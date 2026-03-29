@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING
 
 import sqlalchemy
 from sqlalchemy import Select
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.sql.expression import FunctionElement
 
 from spoolman.database import models
 from spoolman.database.utils import SortOrder
@@ -15,6 +17,29 @@ from spoolman.extra_field_registry import EntityType, ExtraField, ExtraFieldType
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
     from sqlalchemy.orm.attributes import InstrumentedAttribute
+
+
+class _JsonArrayFirstElement(FunctionElement):
+    """Cross-database helper: return the first element of a JSON array stored as text."""
+
+    name = "json_array_first_element"
+    inherit_cache = True
+
+
+@compiles(_JsonArrayFirstElement, "postgresql")
+def _compile_json_array_first_pg(element: _JsonArrayFirstElement, compiler: object, **kw: object) -> str:  # type: ignore[misc]
+    """PostgreSQL: CAST(value AS JSON)->>'0' returns the first element as TEXT."""
+    (col_expr,) = element.clauses
+    col_sql = compiler.process(col_expr, **kw)  # type: ignore[union-attr]
+    return f"(CAST({col_sql} AS JSON)->>0)"
+
+
+@compiles(_JsonArrayFirstElement)
+def _compile_json_array_first_default(element: _JsonArrayFirstElement, compiler: object, **kw: object) -> str:  # type: ignore[misc]
+    """SQLite/MariaDB: json_extract(value, '$[0]') returns the first element as a scalar."""
+    (col_expr,) = element.clauses
+    col_sql = compiler.process(col_expr, **kw)  # type: ignore[union-attr]
+    return f"JSON_EXTRACT({col_sql}, '$[0]')"
 
 
 def _get_field_table_for_entity(entity_type: EntityType) -> type[models.Base]:
@@ -46,7 +71,7 @@ def _parse_boolean_filter(value: str) -> bool:
         return True
     if normalized == "false":
         return False
-    raise ValueError(f"Invalid boolean filter value: {value}")
+    raise ValueError(f"Invalid boolean filter value: {value!r}")
 
 
 async def apply_extra_field_filters_and_sort(
@@ -234,10 +259,9 @@ def add_order_by_extra_field(
     elif field_type == ExtraFieldType.float:
         sort_expr = sqlalchemy.cast(value_subq, sqlalchemy.Float)
     elif field_type in (ExtraFieldType.integer_range, ExtraFieldType.float_range):
-        sort_expr = sqlalchemy.cast(
-            value_subq[0],
-            sqlalchemy.Integer if field_type == ExtraFieldType.integer_range else sqlalchemy.Float,
-        )
+        cast_type = sqlalchemy.Integer if field_type == ExtraFieldType.integer_range else sqlalchemy.Float
+        # Use dialect-specific JSON first-element extraction, then cast to numeric.
+        sort_expr = sqlalchemy.cast(_JsonArrayFirstElement(value_subq), cast_type)
     else:
         sort_expr = value_subq
 
