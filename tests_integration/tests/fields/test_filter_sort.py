@@ -142,6 +142,27 @@ async def test_filter_by_numeric_custom_field(random_filament: dict[str, Any]):
     assert len(data) == 1
     assert data[0]["id"] == spool_id1
 
+    # Range filter - min only: stored_value >= 150 matches only spool2 (200)
+    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.numeric_field": "150:"})
+    assert_httpx_success(result)
+    ids = {item["id"] for item in result.json()}
+    assert spool_id1 not in ids
+    assert spool_id2 in ids
+
+    # Range filter - max only: stored_value <= 150 matches only spool1 (100)
+    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.numeric_field": ":150"})
+    assert_httpx_success(result)
+    ids = {item["id"] for item in result.json()}
+    assert spool_id1 in ids
+    assert spool_id2 not in ids
+
+    # Range filter - min and max: 50 <= stored_value <= 150 matches only spool1 (100)
+    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.numeric_field": "50:150"})
+    assert_httpx_success(result)
+    ids = {item["id"] for item in result.json()}
+    assert spool_id1 in ids
+    assert spool_id2 not in ids
+
     result = httpx.get(f"{URL}/api/v1/spool", params={"sort": "extra.numeric_field:asc"})
     assert_httpx_success(result)
     test_spools = [item for item in result.json() if item["id"] in (spool_id1, spool_id2)]
@@ -190,6 +211,27 @@ async def test_filter_and_sort_float_custom_field(random_filament: dict[str, Any
     spool_id2 = result.json()["id"]
 
     result = httpx.get(f"{URL}/api/v1/spool", params={"extra.float_field": "1.5"})
+    assert_httpx_success(result)
+    ids = {item["id"] for item in result.json()}
+    assert spool_id1 in ids
+    assert spool_id2 not in ids
+
+    # Range filter - min only: stored_value >= 2.0 matches only spool2 (2.5)
+    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.float_field": "2.0:"})
+    assert_httpx_success(result)
+    ids = {item["id"] for item in result.json()}
+    assert spool_id1 not in ids
+    assert spool_id2 in ids
+
+    # Range filter - max only: stored_value <= 2.0 matches only spool1 (1.5)
+    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.float_field": ":2.0"})
+    assert_httpx_success(result)
+    ids = {item["id"] for item in result.json()}
+    assert spool_id1 in ids
+    assert spool_id2 not in ids
+
+    # Range filter - both: 1.0 <= stored_value <= 2.0 matches only spool1 (1.5)
+    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.float_field": "1.0:2.0"})
     assert_httpx_success(result)
     ids = {item["id"] for item in result.json()}
     assert spool_id1 in ids
@@ -498,15 +540,15 @@ async def test_filter_sort_integer_range_spool(random_filament: dict[str, Any]):
     assert spool_id1 in ids
     assert spool_id2 not in ids
 
-    # Filter by min only
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.int_range_field": "100:"})
+    # Filter by min only: stored_min >= 200 matches only spool2 ([300,400])
+    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.int_range_field": "200:"})
     assert_httpx_success(result)
     ids = {item["id"] for item in result.json()}
-    assert spool_id1 in ids
-    assert spool_id2 not in ids
+    assert spool_id1 not in ids
+    assert spool_id2 in ids
 
-    # Filter by max only
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.int_range_field": ":200"})
+    # Filter by max only: stored_max <= 300 matches only spool1 ([100,200])
+    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.int_range_field": ":300"})
     assert_httpx_success(result)
     ids = {item["id"] for item in result.json()}
     assert spool_id1 in ids
@@ -568,8 +610,15 @@ async def test_filter_sort_float_range_spool(random_filament: dict[str, Any]):
     assert spool_id1 in ids
     assert spool_id2 not in ids
 
-    # Filter by min only
-    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.float_range_field": "1.5:"})
+    # Filter by min only: stored_min >= 2.5 matches only spool2 ([3.5,4.5])
+    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.float_range_field": "2.5:"})
+    assert_httpx_success(result)
+    ids = {item["id"] for item in result.json()}
+    assert spool_id1 not in ids
+    assert spool_id2 in ids
+
+    # Filter by max only: stored_max <= 3.5 matches only spool1 ([1.5,2.5])
+    result = httpx.get(f"{URL}/api/v1/spool", params={"extra.float_range_field": ":3.5"})
     assert_httpx_success(result)
     ids = {item["id"] for item in result.json()}
     assert spool_id1 in ids
@@ -1649,7 +1698,15 @@ async def test_filter_sort_vendor_integer_range():
     assert vendor_id1 in ids
     assert vendor_id2 not in ids
 
-    result = httpx.get(f"{URL}/api/v1/vendor", params={"extra.ven_int_range": "10:"})
+    # Filter by min only: stored_min >= 50 matches only vendor2 ([90,100])
+    result = httpx.get(f"{URL}/api/v1/vendor", params={"extra.ven_int_range": "50:"})
+    assert_httpx_success(result)
+    ids = {item["id"] for item in result.json()}
+    assert vendor_id1 not in ids
+    assert vendor_id2 in ids
+
+    # Filter by max only: stored_max <= 50 matches only vendor1 ([10,20])
+    result = httpx.get(f"{URL}/api/v1/vendor", params={"extra.ven_int_range": ":50"})
     assert_httpx_success(result)
     ids = {item["id"] for item in result.json()}
     assert vendor_id1 in ids
