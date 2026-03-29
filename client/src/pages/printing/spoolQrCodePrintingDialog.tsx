@@ -23,20 +23,23 @@ interface SpoolQRCodePrintingDialog {
   spoolIds: number[];
 }
 
+function getConfiguredBaseUrl(settingValue: string | undefined): string | undefined {
+  if (settingValue === undefined) {
+    return undefined;
+  }
+
+  try {
+    const parsed = JSON.parse(settingValue) as unknown;
+    return typeof parsed === "string" && parsed.trim() !== "" ? parsed.trim() : undefined;
+  } catch {
+    return settingValue.trim() !== "" ? settingValue.trim() : undefined;
+  }
+}
+
 const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
   const t = useTranslate();
   const baseUrlSetting = useGetSetting("base_url");
-  let parsedBaseUrl = "";
-  if (baseUrlSetting.data?.value !== undefined) {
-    try {
-      parsedBaseUrl = JSON.parse(baseUrlSetting.data.value) ?? "";
-    } catch {
-      // Older or manually edited settings may already be stored as a raw string, so
-      // accept that form instead of treating it as a fatal parse error.
-      parsedBaseUrl = baseUrlSetting.data.value;
-    }
-  }
-  const baseUrlRoot = parsedBaseUrl !== "" ? parsedBaseUrl : window.location.origin;
+  const baseUrlRoot = getConfiguredBaseUrl(baseUrlSetting.data?.value) ?? window.location.origin;
   const [messageApi, contextHolder] = message.useMessage();
   const [useHTTPUrl, setUseHTTPUrl] = useSavedState("print-useHTTPUrl", false);
 
@@ -48,7 +51,11 @@ const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
     .filter((item) => item !== null) as ISpool[];
 
   // Selected preset state
-  const [selectedPresetState, setSelectedPresetState] = useSavedState<string | undefined>("selectedPreset", undefined);
+  const [selectedPresetState, setSelectedPresetState] = useSavedState<string | undefined>(
+    "selectedPreset",
+    undefined,
+    (value): value is string | undefined => value === undefined || typeof value === "string",
+  );
 
   // Keep a local copy of the settings which is what's actually displayed. Use the remote state only for saving.
   // This decouples the debounce stuff from the UI
