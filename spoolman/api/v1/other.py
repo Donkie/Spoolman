@@ -17,7 +17,7 @@ router = APIRouter(
     tags=["other"],
 )
 
-# ruff: noqa: D103, B008
+# ruff: noqa: D103
 
 
 @router.get(

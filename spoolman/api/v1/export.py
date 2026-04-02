@@ -13,7 +13,7 @@ from spoolman.database.database import get_db_session
 from spoolman.database.models import Base
 from spoolman.export import dump_as_csv, dump_as_json
 
-# ruff: noqa: D103,B008
+# ruff: noqa: D103
 router = APIRouter(
     prefix="/export",
     tags=["export"],
@@ -35,7 +35,6 @@ async def export_spools(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     fmt: ExportFormat,
 ) -> Response:
-
     all_spools, _ = await spool.find(db=db)
     return await _export(all_spools, fmt)
 

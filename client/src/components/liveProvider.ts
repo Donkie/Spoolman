@@ -59,7 +59,7 @@ function subscribeSingle(
   channel: string,
   resource: string,
   callback: (event: LiveEvent) => void,
-  id?: BaseKey
+  id?: BaseKey,
 ) {
   // Verify that WebSockets are supported
   if (!("WebSocket" in window)) {

@@ -14,7 +14,7 @@ interface TypedCrudSort<Obj> {
  */
 export function getSortOrderForField<Obj, Field extends keyof Obj>(
   sorters: TypedCrudSort<Obj>[],
-  field: Field
+  field: Field,
 ): SortOrder | undefined {
   const sorter = sorters.find((s) => s.field === field);
   if (sorter) {

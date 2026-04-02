@@ -36,7 +36,6 @@ if logging.getLogger("uvicorn").handlers:
 logging.getLogger("uvicorn").addHandler(console_handler)
 
 logging.getLogger("uvicorn.error").setLevel(log_level)
-logging.getLogger("uvicorn.error").addHandler(console_handler)
 
 access_handlers = logging.getLogger("uvicorn.access").handlers
 if access_handlers:
@@ -103,18 +102,35 @@ window.SPOOLMAN_BASE_PATH = "{base_path}";
 # Mount the client side app
 app.mount(base_path, app=SinglePageApplication(directory="client/dist", base_path=env.get_base_path()))
 
-# Allow all origins if in debug mode
-if env.is_debug_mode():
-    logger.warning("Running in debug mode, allowing all origins.")
+
+def add_cors_middleware() -> None:
+    """Add CORS middleware to the FastAPI app based on environment settings."""
+    origins = []
+    if env.is_debug_mode():
+        logger.warning("Running in debug mode, allowing all origins.")
+        origins = ["*"]
+    elif env.is_cors_defined():
+        cors_origins = env.get_cors_origin()
+        if cors_origins:
+            logger.info("CORS origins defined: %s", cors_origins)
+            origins = cors_origins
+        else:
+            logger.warning("CORS origins are not defined, no CORS will be applied.")
+
+    if not origins:
+        return
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
         expose_headers=["X-Total-Count"],
     )
+
+
+add_cors_middleware()
 
 
 def add_file_logging() -> None:
@@ -124,6 +140,11 @@ def add_file_logging() -> None:
     file_handler = TimedRotatingFileHandler(log_file, when="midnight", backupCount=5)
     file_handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(message)s", "%Y-%m-%d %H:%M:%S"))
     root_logger.addHandler(file_handler)
+
+    logging.getLogger("uvicorn").addHandler(file_handler)
+    access_handlers = logging.getLogger("uvicorn.access").handlers
+    if access_handlers:
+        logging.getLogger("uvicorn.access").addHandler(file_handler)
 
 
 @app.on_event("startup")
@@ -154,7 +175,7 @@ async def startup() -> None:
     # There is some issue with the uvicorn worker that causes the process to hang when running alembic directly.
     # See: https://github.com/sqlalchemy/alembic/discussions/1155
     project_root = Path(__file__).parent.parent
-    subprocess.run(["alembic", "upgrade", "head"], check=True, cwd=project_root)  # noqa: S603, S607, ASYNC221
+    subprocess.run(["alembic", "upgrade", "head"], check=True, cwd=project_root)  # noqa: ASYNC221, S607
 
     # Setup scheduler
     schedule = Scheduler()

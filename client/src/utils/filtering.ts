@@ -18,7 +18,7 @@ export function typeFilters<Obj>(filters: CrudFilter[]): TypedCrudFilter<Obj>[] 
  */
 export function getFiltersForField<Obj, Field extends keyof Obj>(
   filters: TypedCrudFilter<Obj>[],
-  field: Field
+  field: Field,
 ): string[] {
   const filterValues: string[] = [];
   filters.forEach((filter) => {

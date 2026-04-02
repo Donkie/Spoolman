@@ -1,7 +1,7 @@
 import { Button, Input, theme } from "antd";
 import type { Identifier, XYCoord } from "dnd-core";
 import { useRef, useState } from "react";
-import { useDrag, useDrop } from "react-dnd";
+import { DragSourceMonitor, useDrag, useDrop } from "react-dnd";
 
 import { DeleteOutlined } from "@ant-design/icons";
 import { useTranslate, useUpdate } from "@refinedev/core";
@@ -124,7 +124,7 @@ export function Location({
     item: () => {
       return { title, index };
     },
-    collect: (monitor: any) => ({
+    collect: (monitor: DragSourceMonitor<{ title: string; index: number }>) => ({
       isDragging: monitor.isDragging(),
     }),
   });
@@ -138,6 +138,9 @@ export function Location({
 
   const titleStyle = {
     color: canEditTitle ? undefined : token.colorTextTertiary,
+  };
+  const spoolCountStyle = {
+    color: token.colorTextQuaternary,
   };
 
   return (
@@ -171,6 +174,7 @@ export function Location({
             style={titleStyle}
           >
             {displayTitle}
+            {<span style={spoolCountStyle}> ({spools.length})</span>}
           </span>
         )}
         {showDelete && <Button icon={<DeleteOutlined />} size="small" type="text" onClick={onDelete} />}

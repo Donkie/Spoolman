@@ -16,8 +16,8 @@ export async function createFilamentFromExternal(externalFilament: ExternalFilam
   if (externalFilament.color_hex) {
     color_hex = externalFilament.color_hex;
   } else if (externalFilament.color_hexes && externalFilament.color_hexes.length > 0) {
-    multi_color_hexes = externalFilament.color_hexes.join(",")
-    multi_color_direction = externalFilament.multi_color_direction
+    multi_color_hexes = externalFilament.color_hexes.join(",");
+    multi_color_direction = externalFilament.multi_color_direction;
   }
 
   const body: Omit<IFilament, "id" | "registered" | "extra"> & { vendor_id: number } = {

@@ -165,14 +165,14 @@ export function ExtraFieldFormItem(props: { field: Field; setDefaultValue?: bool
  * @returns
  */
 export function ParsedExtras<T extends { extra?: { [key: string]: string } }>(
-  obj: T
+  obj: T,
 ): Omit<T, "extra"> & { extra?: { [key: string]: unknown } } {
   if (obj.extra) {
     const newExtra: { [key: string]: unknown } = {};
     Object.entries(obj.extra).forEach(([key, value]) => {
       try {
         newExtra[key] = JSON.parse(value);
-      } catch (e) {
+      } catch {
         newExtra[key] = value;
       }
     });
@@ -191,7 +191,7 @@ export function ParsedExtras<T extends { extra?: { [key: string]: string } }>(
  * @returns
  */
 export function StringifiedExtras<T extends { extra?: { [key: string]: unknown } }>(
-  obj: T
+  obj: T,
 ): Omit<T, "extra"> & { extra?: { [key: string]: string } } {
   if (obj.extra) {
     const newExtra: { [key: string]: string } = {};

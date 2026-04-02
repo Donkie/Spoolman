@@ -12,7 +12,6 @@ router = APIRouter(
     tags=["external"],
 )
 
-# ruff: noqa: D103,B008
 
 logger = logging.getLogger(__name__)
 

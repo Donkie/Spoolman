@@ -55,7 +55,7 @@ const canEditField = (dataIndex: string, isNew: boolean) => {
   return dataIndex !== "key" && dataIndex !== "field_type" && dataIndex !== "multi_choice";
 };
 
-const EditableCell: React.FC<EditableCellProps> = ({ record, editing, dataIndex, children, form, ...restProps }) => {
+const EditableCell = ({ record, editing, dataIndex, children, form, ...restProps }: EditableCellProps) => {
   const t = useTranslate();
 
   if (!editing || !canEditField(dataIndex, record.is_new)) {
@@ -235,7 +235,7 @@ const EditableCell: React.FC<EditableCellProps> = ({ record, editing, dataIndex,
             throw new Error(
               t("settings.extra_fields.choices_missing_error", {
                 choices: missingChoices.join(", "),
-              })
+              }),
             );
           }
         },
@@ -360,7 +360,7 @@ export function ExtraFieldsSettings() {
     let row;
     try {
       row = (await form.validateFields()) as Field;
-    } catch (errInfo) {
+    } catch {
       // Ignore these errors because they are already handled by the form
       return;
     }
@@ -488,12 +488,11 @@ export function ExtraFieldsSettings() {
         } else if (Array.isArray(val) && record.field.field_type === FieldType.choice) {
           return val.join(", ");
         } else if (
-          Array.isArray(val) && (
-            record.field.field_type === FieldType.integer_range || record.field.field_type === FieldType.float_range
-          )
+          Array.isArray(val) &&
+          (record.field.field_type === FieldType.integer_range || record.field.field_type === FieldType.float_range)
         ) {
-          let lower = val[0] ?? "";
-          let upper = val[1] ?? "";
+          const lower = val[0] ?? "";
+          const upper = val[1] ?? "";
           if (lower === "" && upper === "") {
             return null;
           }

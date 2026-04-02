@@ -1,4 +1,4 @@
-import '@ant-design/v5-patch-for-react-19';
+import "@ant-design/v5-patch-for-react-19";
 import React from "react";
 import { createRoot } from "react-dom/client";
 
@@ -13,5 +13,5 @@ root.render(
     <React.Suspense fallback="loading">
       <App />
     </React.Suspense>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

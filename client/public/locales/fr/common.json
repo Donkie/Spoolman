@@ -350,7 +350,8 @@
     },
     "kofi": "Me donner un pourboire sur Ko-fi",
     "home": {
-        "home": "Accueil"
+        "home": "Accueil",
+        "welcome": "Bienvenue sur votre instance Spoolman !"
     },
     "settings": {
         "settings": "Paramètres",

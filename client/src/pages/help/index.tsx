@@ -1,11 +1,10 @@
 import { FileOutlined, HighlightOutlined, UserOutlined } from "@ant-design/icons";
-import { IResourceComponentsProps, useTranslate } from "@refinedev/core";
+import { useTranslate } from "@refinedev/core";
 import { List, theme } from "antd";
 import { Content } from "antd/es/layout/layout";
 import Title from "antd/es/typography/Title";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import React from "react";
 import { Trans } from "react-i18next";
 import { Link } from "react-router";
 
@@ -13,7 +12,7 @@ dayjs.extend(utc);
 
 const { useToken } = theme;
 
-export const Help: React.FC<IResourceComponentsProps> = () => {
+export const Help = () => {
   const { token } = useToken();
   const t = useTranslate();
 

@@ -350,7 +350,9 @@
     },
     "kofi": "Daj napiwek na Ko-fi",
     "home": {
-        "home": "Strona główna"
+        "home": "Strona główna",
+        "welcome": "Witaj w instancji Spoolman!",
+        "description": "Wygląda na to, że nie dodano jeszcze żadnych szpul. Zobacz <helpPageLink>stronę pomocy</helpPageLink>, aby dowiedzieć się jak rozpocząć."
     },
     "settings": {
         "settings": "Ustawienia",

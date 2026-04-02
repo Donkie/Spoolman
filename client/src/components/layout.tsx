@@ -1,4 +1,4 @@
-import { ThemedLayoutV2, ThemedSiderV2, ThemedTitleV2 } from "@refinedev/antd";
+import { ThemedLayout, ThemedSider, ThemedTitle } from "@refinedev/antd";
 import { useTranslate } from "@refinedev/core";
 import { Button } from "antd";
 import { Footer } from "antd/es/layout/layout";
@@ -7,7 +7,7 @@ import { getBasePath } from "../utils/url";
 import { Header } from "./header";
 import { Version } from "./version";
 
-const SpoolmanFooter: React.FC = () => {
+const SpoolmanFooter = () => {
   const t = useTranslate();
 
   return (
@@ -46,21 +46,17 @@ const SpoolmanFooter: React.FC = () => {
   );
 };
 
-interface SpoolmanLayoutProps {
-  children: React.ReactNode;
-}
-
-export const SpoolmanLayout: React.FC<SpoolmanLayoutProps> = ({ children }) => (
-  <ThemedLayoutV2
+export const SpoolmanLayout = ({ children }: { children: React.ReactNode }) => (
+  <ThemedLayout
     Header={() => <Header sticky />}
     Sider={() => (
-      <ThemedSiderV2
+      <ThemedSider
         fixed
-        Title={({ collapsed }) => <ThemedTitleV2 collapsed={collapsed} text="Spoolman" icon={<Logo />} />}
+        Title={({ collapsed }) => <ThemedTitle collapsed={collapsed} text="Spoolman" icon={<Logo />} />}
       />
     )}
     Footer={() => <SpoolmanFooter />}
   >
     {children}
-  </ThemedLayoutV2>
+  </ThemedLayout>
 );

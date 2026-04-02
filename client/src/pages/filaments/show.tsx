@@ -1,9 +1,8 @@
 import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
-import { IResourceComponentsProps, useShow, useTranslate } from "@refinedev/core";
+import { useShow, useTranslate } from "@refinedev/core";
 import { Button, Typography } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import React from "react";
 import { useNavigate } from "react-router";
 import { ExtraFieldDisplay } from "../../components/extraFields";
 import { NumberFieldUnit } from "../../components/numberField";
@@ -16,15 +15,15 @@ dayjs.extend(utc);
 
 const { Title } = Typography;
 
-export const FilamentShow: React.FC<IResourceComponentsProps> = () => {
+export const FilamentShow = () => {
   const t = useTranslate();
   const navigate = useNavigate();
   const extraFields = useGetFields(EntityType.filament);
   const currencyFormatter = useCurrencyFormatter();
-  const { queryResult } = useShow<IFilament>({
+  const { query } = useShow<IFilament>({
     liveMode: "auto",
   });
-  const { data, isLoading } = queryResult;
+  const { data, isLoading } = query;
 
   const record = data?.data;
 

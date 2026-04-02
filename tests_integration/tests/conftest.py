@@ -291,7 +291,7 @@ def assert_lists_compatible(a: Iterable[dict[str, Any]], b: Iterable[dict[str, A
     if len(a_sorted) != len(b_sorted):
         pytest.fail(f"Lists have different lengths: {len(a_sorted)} != {len(b_sorted)}")
 
-    for a_filament, b_filament in zip(a_sorted, b_sorted):
+    for a_filament, b_filament in zip(a_sorted, b_sorted, strict=True):
         assert_dicts_compatible(a_filament, b_filament)
 
 

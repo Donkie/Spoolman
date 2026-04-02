@@ -45,7 +45,6 @@
   flex-direction: column;
   gap: 0.5em;
   min-height: 3em;
-  max-height: 50em;
   overflow-y: scroll;
 }
 

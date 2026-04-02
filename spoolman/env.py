@@ -7,7 +7,6 @@ import sys
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Optional
 from urllib import parse
 
 from platformdirs import user_data_dir
@@ -41,7 +40,7 @@ class DatabaseType(Enum):
         raise ValueError(f"Unknown database type '{self}'.")
 
 
-def get_database_type() -> Optional[DatabaseType]:
+def get_database_type() -> DatabaseType | None:
     """Get the database type from environment variables.
 
     Returns None if no environment variable was set for the database type.
@@ -64,7 +63,7 @@ def get_database_type() -> Optional[DatabaseType]:
     raise ValueError(f"Failed to parse SPOOLMAN_DB_TYPE variable: Unknown database type '{database_type}'.")
 
 
-def get_host() -> Optional[str]:
+def get_host() -> str | None:
     """Get the DB host from environment variables.
 
     Returns None if no environment variable was set for the host.
@@ -76,7 +75,7 @@ def get_host() -> Optional[str]:
     return os.getenv("SPOOLMAN_DB_HOST")
 
 
-def get_port() -> Optional[int]:
+def get_port() -> int | None:
     """Get the DB port from environment variables.
 
     Returns None if no environment variable was set for the port.
@@ -94,7 +93,7 @@ def get_port() -> Optional[int]:
         raise ValueError(f"Failed to parse SPOOLMAN_DB_PORT variable: {exc!s}") from exc
 
 
-def get_database() -> Optional[str]:
+def get_database() -> str | None:
     """Get the DB name from environment variables.
 
     Returns None if no environment variable was set for the name.
@@ -106,7 +105,7 @@ def get_database() -> Optional[str]:
     return os.getenv("SPOOLMAN_DB_NAME")
 
 
-def get_query() -> Optional[dict[str, str]]:
+def get_query() -> dict[str, str] | None:
     """Get the DB query from environment variables.
 
     Returns None if no environment variable was set for the query.
@@ -125,7 +124,7 @@ def get_query() -> Optional[dict[str, str]]:
         raise ValueError(f"Failed to parse SPOOLMAN_DB_QUERY variable: {exc!s}") from exc
 
 
-def get_username() -> Optional[str]:
+def get_username() -> str | None:
     """Get the DB username from environment variables.
 
     Returns None if no environment variable was set for the username.
@@ -137,7 +136,7 @@ def get_username() -> Optional[str]:
     return os.getenv("SPOOLMAN_DB_USERNAME")
 
 
-def get_password() -> Optional[str]:
+def get_password() -> str | None:
     """Get the DB password from environment variables.
 
     Returns None if no environment variables were set for the password.
@@ -209,6 +208,35 @@ def is_debug_mode() -> bool:
     if debug_mode in {"TRUE", "1"}:
         return True
     raise ValueError(f"Failed to parse SPOOLMAN_DEBUG_MODE variable: Unknown debug mode '{debug_mode}'.")
+
+
+def is_cors_defined() -> bool:
+    """Get whether CORS is enabled from environment variables.
+
+    Returns False if no environment variable was set for CORS.
+    Returns True otherwise
+
+    Returns:
+        bool: Whether CORS is enabled.
+
+    """
+    cors = os.getenv("SPOOLMAN_CORS_ORIGIN", "FALSE").upper()
+    return cors not in {"FALSE", "0"}
+
+
+def get_cors_origin() -> list[str] | None:
+    """Get the CORS origin from environment variables.
+
+    Returns None if no environment variable was set for the origin.
+
+    Returns:
+        Optional[str]: The origin.
+
+    """
+    cors = os.getenv("SPOOLMAN_CORS_ORIGIN")
+    if cors is None:
+        return None
+    return cors.split(",")
 
 
 def is_automatic_backup_enabled() -> bool:
@@ -298,7 +326,7 @@ def get_version() -> str:
     return "unknown"
 
 
-def get_commit_hash() -> Optional[str]:
+def get_commit_hash() -> str | None:
     """Get the latest commit hash of the package.
 
     Can end with "-dirty" if there are uncommitted changes.
@@ -319,7 +347,7 @@ def get_commit_hash() -> Optional[str]:
     return None
 
 
-def get_build_date() -> Optional[datetime]:
+def get_build_date() -> datetime | None:
     """Get the build date of the package.
 
     Returns:
@@ -360,7 +388,7 @@ def chown_dir(path: str) -> bool:
     try:
         uid = os.getuid()
         gid = os.getgid()
-        subprocess.run(["chown", "-R", f"{uid}:{gid}", path], check=True)  # noqa: S603, S607
+        subprocess.run(["chown", "-R", f"{uid}:{gid}", path], check=True)  # noqa: S607
     except:  # noqa: E722
         return False
     return True
@@ -399,7 +427,7 @@ def is_docker() -> bool:
 def is_data_dir_mounted() -> bool:
     """Check if the data directory is mounted as a shfs."""
     # "mount" will give us a list of all mounted filesystems
-    mounts = subprocess.run("mount", check=True, stdout=subprocess.PIPE, text=True)  # noqa: S603, S607
+    mounts = subprocess.run("mount", check=True, stdout=subprocess.PIPE, text=True)  # noqa: S607
     data_dir = str(get_data_dir().resolve())
     return any(data_dir in line for line in mounts.stdout.splitlines())
 

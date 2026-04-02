@@ -43,7 +43,7 @@ export function useSpoolmanFilamentFilter(enabled: boolean = false) {
                   height: "1.4em",
                   backgroundColor: "#" + filament.color_hex,
                 }}
-              ></div>
+              ></div>,
             );
           }
           if (filament.material) {

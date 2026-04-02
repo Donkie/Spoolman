@@ -53,10 +53,12 @@ export function useSetPrintSettings(): (spoolQRCodePrintSettings: SpoolQRCodePri
 }
 
 interface GenericObject {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
   extra: { [key: string]: string };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getTagValue(tag: string, obj: GenericObject): any {
   // Split tag by .
   const tagParts = tag.split(".");
@@ -99,19 +101,18 @@ function applyTextFormatting(text: string): ReactElement[] {
 
 export function renderLabelContents(template: string, spool: ISpool): ReactElement {
   // Find all {tags} in the template string and loop over them
-  // let matches = [...template.matchAll(/(?:{(.*?))?{(.*?)}(.*?)(?:}(.*?))?/gs)];
-  let matches = [...template.matchAll(/{(?:[^}{]|{[^}{]*})*}/gs)];
+  const matches = [...template.matchAll(/{(?:[^}{]|{[^}{]*})*}/gs)];
   let label_text = template;
   matches.forEach((match) => {
     if ((match[0].match(/{/g) || []).length == 1) {
-      let tag = match[0].replace(/[{}]/g, "");
-      let tagValue = getTagValue(tag, spool);
+      const tag = match[0].replace(/[{}]/g, "");
+      const tagValue = getTagValue(tag, spool);
       label_text = label_text.replace(match[0], tagValue);
     } else if ((match[0].match(/{/g) || []).length == 2) {
-      let structure = match[0].match(/{(.*?){(.*?)}(.*?)}/);
+      const structure = match[0].match(/{(.*?){(.*?)}(.*?)}/);
       if (structure != null) {
         const tag = structure[2];
-        let tagValue = getTagValue(tag, spool);
+        const tagValue = getTagValue(tag, spool);
         if (tagValue == "?") {
           label_text = label_text.replace(match[0], "");
         } else {

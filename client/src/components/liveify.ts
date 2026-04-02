@@ -14,7 +14,7 @@ export function useLiveify<Data extends { id: number }>(
   resource: string,
   dataSource: Data[],
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transformPayload: (payload: any) => Data
+  transformPayload: (payload: any) => Data,
 ) {
   // New state that holds the dataSource with updated values from the live provider
   const [updatedDataSource, setUpdatedDataSource] = useState<Data[]>(dataSource);
@@ -40,7 +40,7 @@ export function useLiveify<Data extends { id: number }>(
         setUpdatedDataSource((prev) =>
           prev.map((item) => {
             return item.id === event.payload.data.id ? transformPayload(event.payload.data) : item;
-          })
+          }),
         );
       },
     });

@@ -1,17 +1,16 @@
-import { getBasePath } from "../../utils/url";
 import { InboxOutlined, PrinterOutlined, ToTopOutlined, ToolOutlined } from "@ant-design/icons";
 import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
-import { IResourceComponentsProps, useInvalidate, useShow, useTranslate } from "@refinedev/core";
+import { useInvalidate, useShow, useTranslate } from "@refinedev/core";
 import { Button, Modal, Typography } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import React from "react";
 import { ExtraFieldDisplay } from "../../components/extraFields";
 import { NumberFieldUnit } from "../../components/numberField";
 import SpoolIcon from "../../components/spoolIcon";
 import { enrichText } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useCurrencyFormatter } from "../../utils/settings";
+import { getBasePath } from "../../utils/url";
 import { IFilament } from "../filaments/model";
 import { setSpoolArchived, useSpoolAdjustModal } from "./functions";
 import { ISpool } from "./model";
@@ -21,16 +20,16 @@ dayjs.extend(utc);
 const { Title } = Typography;
 const { confirm } = Modal;
 
-export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
+export const SpoolShow = () => {
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.spool);
   const currencyFormatter = useCurrencyFormatter();
   const invalidate = useInvalidate();
 
-  const { queryResult } = useShow<ISpool>({
+  const { query } = useShow<ISpool>({
     liveMode: "auto",
   });
-  const { data, isLoading } = queryResult;
+  const { data, isLoading } = query;
 
   const record = data?.data;
 
@@ -107,9 +106,9 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
 
   const colorObj = record?.filament.multi_color_hexes
     ? {
-      colors: record.filament.multi_color_hexes.split(","),
-      vertical: record.filament.multi_color_direction === "longitudinal",
-    }
+        colors: record.filament.multi_color_hexes.split(","),
+        vertical: record.filament.multi_color_direction === "longitudinal",
+      }
     : record?.filament.color_hex;
 
   return (
@@ -118,17 +117,19 @@ export const SpoolShow: React.FC<IResourceComponentsProps> = () => {
       title={record ? formatTitle(record) : ""}
       headerButtons={({ defaultButtons }) => (
         <>
-          <Button
-            type="primary"
-            icon={<ToolOutlined />}
-            onClick={() => record && openSpoolAdjustModal(record)}
-          >
+          <Button type="primary" icon={<ToolOutlined />} onClick={() => record && openSpoolAdjustModal(record)}>
             {t("spool.titles.adjust")}
           </Button>
           <Button
             type="primary"
             icon={<PrinterOutlined />}
-            href={getBasePath() + "/spool/print?spools=" + record?.id + "&return=" + encodeURIComponent(window.location.pathname)}
+            href={
+              getBasePath() +
+              "/spool/print?spools=" +
+              record?.id +
+              "&return=" +
+              encodeURIComponent(window.location.pathname)
+            }
           >
             {t("printing.qrcode.button")}
           </Button>

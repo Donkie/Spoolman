@@ -2,6 +2,7 @@
 
 import { readdirSync, readFileSync, statSync } from "fs";
 import { dirname, join } from "path";
+import process from "process";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

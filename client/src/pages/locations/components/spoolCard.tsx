@@ -1,7 +1,7 @@
 import { useNavigation, useTranslate, useUpdate } from "@refinedev/core";
 import { Button, theme } from "antd";
 import type { Identifier, XYCoord } from "dnd-core";
-import { useDrag, useDrop } from "react-dnd";
+import { DragSourceMonitor, useDrag, useDrop } from "react-dnd";
 
 import { EditOutlined, EyeOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -106,7 +106,7 @@ export function SpoolCard({
     item: () => {
       return { spool, index };
     },
-    collect: (monitor: any) => ({
+    collect: (monitor: DragSourceMonitor<{ spool: ISpool; index: number }>) => ({
       isDragging: monitor.isDragging(),
     }),
     end() {

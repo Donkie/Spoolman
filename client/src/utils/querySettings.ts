@@ -52,19 +52,23 @@ export function useSetSetting<T>(key: string) {
       return response.json();
     },
     onMutate: async (value) => {
-      await queryClient.cancelQueries(["settings", key]);
+      await queryClient.cancelQueries({
+        queryKey: ["settings", key],
+      });
       const previousValue = queryClient.getQueryData<SettingResponseValue>(["settings", key]);
       queryClient.setQueryData<SettingResponseValue>(["settings", key], (old) =>
-        old ? { ...old, value: JSON.stringify(value) } : undefined
+        old ? { ...old, value: JSON.stringify(value) } : undefined,
       );
       return previousValue;
     },
     onError: (_error, _value, context) => {
       queryClient.setQueryData<SettingResponseValue>(["settings", key], context);
     },
-    onSuccess: (_data, _value) => {
+    onSuccess: () => {
       // Invalidate and refetch
-      queryClient.invalidateQueries(["settings", key]);
+      queryClient.invalidateQueries({
+        queryKey: ["settings", key],
+      });
     },
   });
 }

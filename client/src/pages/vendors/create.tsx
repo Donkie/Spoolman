@@ -15,7 +15,7 @@ interface CreateOrCloneProps {
   mode: "create" | "clone";
 }
 
-export const VendorCreate: React.FC<IResourceComponentsProps & CreateOrCloneProps> = (props) => {
+export const VendorCreate = (props: IResourceComponentsProps & CreateOrCloneProps) => {
   const t = useTranslate();
   const extraFields = useGetFields(EntityType.vendor);
 

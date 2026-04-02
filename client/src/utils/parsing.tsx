@@ -32,7 +32,7 @@ export function formatNumberWithSpaceSeparator(input: string): string {
  */
 export function formatNumberOnUserInput(
   value: number | string | undefined,
-  info: { userTyping: boolean; input: string }
+  info: { userTyping: boolean; input: string },
 ): string {
   if (info.userTyping) {
     return info.input;

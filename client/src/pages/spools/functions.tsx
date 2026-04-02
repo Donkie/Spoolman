@@ -2,6 +2,7 @@ import { useSelect, useTranslate } from "@refinedev/core";
 import { useQueries } from "@tanstack/react-query";
 import { Form, InputNumber, Modal, Radio } from "antd";
 import { useForm } from "antd/es/form/Form";
+import type { InputNumberRef } from "rc-input-number";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { formatLength, formatWeight } from "../../utils/parsing";
 import { SpoolType, useGetExternalDBFilaments } from "../../utils/queryExternalDB";
@@ -45,6 +46,25 @@ export async function useSpoolFilament(spool: ISpool, length?: number, weight?: 
 }
 
 /**
+ * Adjust usage based on the spool's current gross weight
+ * @param spool The spool
+ * @param weight The weight of the spool, in g
+ */
+export async function useSpoolFilamentMeasure(spool: ISpool, weight: number) {
+  const init: RequestInit = {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      weight: weight,
+    }),
+  };
+  const request = new Request(`${getAPIURL()}/spool/${spool.id}/measure`);
+  await fetch(request, init);
+}
+
+/**
  * Returns an array of queries using the useQueries hook from @tanstack/react-query.
  * Each query fetches a spool by its ID from the server.
  *
@@ -74,7 +94,7 @@ export function formatFilamentLabel(
   vendorName?: string,
   material?: string,
   weight?: number,
-  spoolType?: SpoolType
+  spoolType?: SpoolType,
 ): string {
   const portions = [];
   if (vendorName) {
@@ -106,8 +126,9 @@ interface SelectOption {
 export function useGetFilamentSelectOptions() {
   // Setup hooks
   const t = useTranslate();
-  const { queryResult: internalFilaments } = useSelect<IFilament>({
+  const { query: internalFilaments } = useSelect<IFilament>({
     resource: "filament",
+    pagination: { mode: "off" },
   });
   const externalFilaments = useGetExternalDBFilaments();
 
@@ -121,7 +142,7 @@ export function useGetFilamentSelectOptions() {
             item.diameter,
             item.vendor?.name,
             item.material,
-            item.weight
+            item.weight,
           ),
           value: item.id,
           weight: item.weight,
@@ -144,7 +165,7 @@ export function useGetFilamentSelectOptions() {
             item.manufacturer,
             item.material,
             item.weight,
-            item.spool_type
+            item.spool_type,
           ),
           value: item.id,
           weight: item.weight,
@@ -173,7 +194,7 @@ export function useGetFilamentSelectOptions() {
   };
 }
 
-type MeasurementType = "length" | "weight";
+type MeasurementType = "length" | "weight" | "measured_weight";
 
 export function useSpoolAdjustModal() {
   const t = useTranslate();
@@ -181,7 +202,7 @@ export function useSpoolAdjustModal() {
 
   const [curSpool, setCurSpool] = useState<ISpool | null>(null);
   const [measurementType, setMeasurementType] = useState<MeasurementType>("length");
-  const inputNumberRef = useRef<HTMLInputElement | null>(null);
+  const inputNumberRef = useRef<InputNumberRef | null>(null);
 
   const openSpoolAdjustModal = useCallback((spool: ISpool) => {
     setCurSpool(spool);
@@ -207,8 +228,10 @@ export function useSpoolAdjustModal() {
 
       if (measurementType === "length") {
         await useSpoolFilament(curSpool, value, undefined);
-      } else {
+      } else if (measurementType === "weight") {
         await useSpoolFilament(curSpool, undefined, value);
+      } else {
+        await useSpoolFilamentMeasure(curSpool, value);
       }
 
       setCurSpool(null);
@@ -225,6 +248,7 @@ export function useSpoolAdjustModal() {
             >
               <Radio.Button value="length">{t("spool.form.measurement_type.length")}</Radio.Button>
               <Radio.Button value="weight">{t("spool.form.measurement_type.weight")}</Radio.Button>
+              <Radio.Button value="measured_weight">{t("spool.fields.measured_weight")}</Radio.Button>
             </Radio.Group>
           </Form.Item>
           <Form.Item label={t("spool.form.adjust_filament_value")} name="filament_value">

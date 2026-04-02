@@ -23,7 +23,7 @@ export function FilamentImportModal(props: {
           item.manufacturer,
           item.material,
           item.weight,
-          item.spool_type
+          item.spool_type,
         ),
         value: item.id,
         item: item,
