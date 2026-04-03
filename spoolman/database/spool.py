@@ -298,7 +298,7 @@ async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.S
     spool.last_used = datetime.utcnow().replace(microsecond=0)
 
     await db.commit()
-    await spool_changed(spool, EventType.UPDATED, {"weight_decrement": weight})
+    await spool_changed(spool, EventType.UPDATED, {"weight_delta": weight})
     return spool
 
 
@@ -344,7 +344,7 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
     spool.last_used = datetime.utcnow().replace(microsecond=0)
 
     await db.commit()
-    await spool_changed(spool, EventType.UPDATED, {"weight_decrement": weight})
+    await spool_changed(spool, EventType.UPDATED, {"weight_delta": weight})
     return spool
 
 
@@ -440,8 +440,6 @@ async def spool_changed(spool: models.Spool, typ: EventType, delta: Optional[dic
     """Notify websocket clients that a spool has changed."""
     try:
         spool = Spool.from_db(spool)
-        if delta is not None:
-            spool.extra["event_delta"] = delta
         await websocket_manager.send(
             ("spool", str(spool.id)),
             SpoolEvent(
@@ -449,6 +447,7 @@ async def spool_changed(spool: models.Spool, typ: EventType, delta: Optional[dic
                 resource="spool",
                 date=datetime.utcnow(),
                 payload=spool,
+                payload_extras=delta 
             ),
         )
     except Exception:
