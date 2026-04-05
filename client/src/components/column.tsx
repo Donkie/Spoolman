@@ -391,9 +391,11 @@ export function NumberRangeColumn<Obj extends Entity>(props: NumberColumnProps<O
 
 export function CustomFieldColumn<Obj extends Entity>(props: Omit<BaseColumnProps<Obj>, "id"> & { field: Field }) {
   const field = props.field;
+  const dataId = ("extra." + field.key) as keyof Obj & string;
   const commonProps = {
     ...props,
     id: ["extra", field.key],
+    dataId,
     title: field.name,
     sorter: false,
     transform: (value: unknown) => {
@@ -402,6 +404,12 @@ export function CustomFieldColumn<Obj extends Entity>(props: Omit<BaseColumnProp
       }
       return JSON.parse(value as string);
     },
+  };
+
+  const buildFilterProps = (filterItems: ColumnFilterItem[]) => {
+    const typedFilters = typeFilters<Obj>(props.tableState.filters);
+    const filteredValue = getFiltersForField(typedFilters, dataId);
+    return { filters: filterItems, filteredValue };
   };
 
   if (field.field_type === FieldType.integer) {
@@ -439,8 +447,15 @@ export function CustomFieldColumn<Obj extends Entity>(props: Omit<BaseColumnProp
       ...commonProps,
     });
   } else if (field.field_type === FieldType.boolean) {
+    const filterItems: ColumnFilterItem[] = [
+      { text: props.t("yes"), value: '"true"' },
+      { text: props.t("no"), value: '"false"' },
+      { text: "<empty>", value: "<empty>" },
+    ];
     return Column({
       ...commonProps,
+      ...buildFilterProps(filterItems),
+      allowMultipleFilters: false,
       render: (rawValue) => {
         const value = commonProps.transform ? commonProps.transform(rawValue) : rawValue;
         let text;
@@ -455,16 +470,28 @@ export function CustomFieldColumn<Obj extends Entity>(props: Omit<BaseColumnProp
       },
     });
   } else if (field.field_type === FieldType.choice && !field.multi_choice) {
+    const filterItems: ColumnFilterItem[] = (field.choices ?? []).map((choice) => ({
+      text: choice,
+      value: '"' + JSON.stringify(choice) + '"',
+    }));
+    filterItems.push({ text: "<empty>", value: "<empty>" });
     return Column({
       ...commonProps,
+      ...buildFilterProps(filterItems),
       render: (rawValue) => {
         const value = commonProps.transform ? commonProps.transform(rawValue) : rawValue;
         return <TextField value={value} />;
       },
     });
   } else if (field.field_type === FieldType.choice && field.multi_choice) {
+    const filterItems: ColumnFilterItem[] = (field.choices ?? []).map((choice) => ({
+      text: choice,
+      value: choice,
+    }));
+    filterItems.push({ text: "<empty>", value: "<empty>" });
     return Column({
       ...commonProps,
+      ...buildFilterProps(filterItems),
       render: (rawValue) => {
         const value = commonProps.transform ? commonProps.transform(rawValue) : rawValue;
         return <TextField value={(value as string[] | undefined)?.join(", ")} />;
