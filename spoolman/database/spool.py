@@ -12,6 +12,7 @@ from sqlalchemy.orm import contains_eager, joinedload
 from sqlalchemy.sql.functions import coalesce
 
 from spoolman.api.v1.models import EventType, Spool, SpoolEvent
+from spoolman.color_names import hex_to_color_name
 from spoolman.database import filament, models
 from spoolman.database.utils import (
     SortOrder,
@@ -117,6 +118,7 @@ async def find(  # noqa: C901, PLR0912
     filament_name: str | None = None,
     filament_id: int | Sequence[int] | None = None,
     filament_material: str | None = None,
+    filament_color_name: str | None = None,
     vendor_name: str | None = None,
     vendor_id: int | Sequence[int] | None = None,
     location: str | None = None,
@@ -159,11 +161,17 @@ async def find(  # noqa: C901, PLR0912
 
     total_count = None
 
+    # filament.color_name is computed, not a DB column — handle sort and filter separately
+    color_name_sort: SortOrder | None = None
+    if sort_by is not None and "filament.color_name" in sort_by:
+        color_name_sort = sort_by.pop("filament.color_name")
+
     if limit is not None:
         total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True)
         total_count = (await db.execute(total_count_stmt)).scalar()
 
-        stmt = stmt.offset(offset).limit(limit)
+        if color_name_sort is None and filament_color_name is None:
+            stmt = stmt.offset(offset).limit(limit)
 
     if sort_by is not None:
         for fieldstr, order in sort_by.items():
@@ -202,8 +210,23 @@ async def find(  # noqa: C901, PLR0912
         execution_options={"populate_existing": True},
     )
     result = list(rows.unique().scalars().all())
+
+    if filament_color_name is not None:
+        filter_names = {n.strip().strip('"').lower() for n in filament_color_name.split(",")}
+        result = [s for s in result if (hex_to_color_name(s.filament.color_hex) or "").lower() in filter_names]
+        total_count = len(result)
+
     if total_count is None:
         total_count = len(result)
+
+    if color_name_sort is not None:
+        result.sort(
+            key=lambda s: hex_to_color_name(s.filament.color_hex) or "",
+            reverse=(color_name_sort == SortOrder.DESC),
+        )
+        result = result[offset : offset + limit] if limit is not None else result
+    elif filament_color_name is not None and limit is not None:
+        result = result[offset : offset + limit]
 
     return result, total_count
 

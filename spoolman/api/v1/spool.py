@@ -199,6 +199,17 @@ async def find(
             ),
         ),
     ] = None,
+    filament_color_name: Annotated[
+        str | None,
+        Query(
+            alias="filament.color_name",
+            title="Filament Color Name",
+            description=(
+                "Filter by human-readable color name of the filament. Separate multiple names with a comma. "
+                "Use GET /filament/color-names for valid names."
+            ),
+        ),
+    ] = None,
     filament_vendor_name: Annotated[
         str | None,
         Query(
@@ -290,6 +301,7 @@ async def find(
         filament_name=filament_name if filament_name is not None else filament_name_old,
         filament_id=filament_ids,
         filament_material=filament_material if filament_material is not None else filament_material_old,
+        filament_color_name=filament_color_name,
         vendor_name=filament_vendor_name if filament_vendor_name is not None else vendor_name_old,
         vendor_id=filament_vendor_ids,
         location=location,
