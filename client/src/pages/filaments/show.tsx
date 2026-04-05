@@ -89,6 +89,7 @@ export const FilamentShow = () => {
       <Title level={5}>{t("filament.fields.color_hex")}</Title>
       {colorObj && <SpoolIcon color={colorObj} size="large" no_margin />}
       {record?.color_hex && <TextField value={`#${record?.color_hex}`} />}
+      {record?.color_name && <TextField value={record.color_name} />}
       <Title level={5}>{t("filament.fields.material")}</Title>
       <TextField value={record?.material} />
       <Title level={5}>{t("filament.fields.price")}</Title>

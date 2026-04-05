@@ -15,12 +15,14 @@ import {
   RichColumn,
   SortedColumn,
   SpoolIconColumn,
+  TextColumn,
 } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
 import {
   useSpoolmanArticleNumbers,
   useSpoolmanFilamentNames,
   useSpoolmanMaterials,
+  useSpoolmanUsedColorNames,
   useSpoolmanVendors,
 } from "../../components/otherModels";
 import { removeUndefined } from "../../utils/filtering";
@@ -56,6 +58,7 @@ const allColumns: (keyof IFilamentCollapsed & string)[] = [
   "id",
   "vendor.name",
   "name",
+  "color_name",
   "material",
   "price",
   "density",
@@ -240,14 +243,35 @@ export const FilamentList = () => {
             ...commonProps,
             id: "name",
             i18ncat: "filament",
-            color: (record: IFilamentCollapsed) =>
-              record.multi_color_hexes
-                ? {
-                    colors: record.multi_color_hexes.split(","),
-                    vertical: record.multi_color_direction === "longitudinal",
-                  }
-                : record.color_hex,
+            color: () => undefined,
             filterValueQuery: useSpoolmanFilamentNames(),
+          }),
+          FilteredQueryColumn({
+            ...commonProps,
+            id: "color_name",
+            i18ncat: "filament",
+            width: 160,
+            sorter: true,
+            filterValueQuery: useSpoolmanUsedColorNames(),
+            render: (value: string | undefined, record: IFilamentCollapsed) =>
+              value ? (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  {record.color_hex && (
+                    <span
+                      style={{
+                        width: 16,
+                        height: 16,
+                        flexShrink: 0,
+                        display: "inline-block",
+                        backgroundColor: `#${record.color_hex}`,
+                        border: "1px solid rgba(0,0,0,0.15)",
+                        borderRadius: 2,
+                      }}
+                    />
+                  )}
+                  {value}
+                </span>
+              ) : null,
           }),
           FilteredQueryColumn({
             ...commonProps,

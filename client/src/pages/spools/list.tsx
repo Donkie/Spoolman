@@ -32,6 +32,7 @@ import {
   useSpoolmanLocations,
   useSpoolmanLotNumbers,
   useSpoolmanMaterials,
+  useSpoolmanUsedColorNames,
 } from "../../components/otherModels";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
@@ -48,6 +49,7 @@ interface ISpoolCollapsed extends ISpool {
   "filament.combined_name": string; // Eg. "Prusa - PLA Red"
   "filament.id": number;
   "filament.material"?: string;
+  "filament.color_name"?: string;
 }
 
 function collapseSpool(element: ISpool): ISpoolCollapsed {
@@ -65,6 +67,7 @@ function collapseSpool(element: ISpool): ISpoolCollapsed {
     "filament.combined_name": filament_name,
     "filament.id": element.filament.id,
     "filament.material": element.filament.material,
+    "filament.color_name": element.filament.color_name,
   };
 }
 
@@ -80,6 +83,7 @@ const namespace = "spoolList-v2";
 const allColumns: (keyof ISpoolCollapsed & string)[] = [
   "id",
   "filament.combined_name",
+  "filament.color_name",
   "filament.material",
   "price",
   "used_weight",
@@ -357,15 +361,35 @@ export const SpoolList = () => {
             ...commonProps,
             id: "filament.combined_name",
             i18nkey: "spool.fields.filament_name",
-            color: (record: ISpoolCollapsed) =>
-              record.filament.multi_color_hexes
-                ? {
-                    colors: record.filament.multi_color_hexes.split(","),
-                    vertical: record.filament.multi_color_direction === "longitudinal",
-                  }
-                : record.filament.color_hex,
+            color: () => undefined,
             dataId: "filament.combined_name",
             filterValueQuery: useSpoolmanFilamentFilter(),
+          }),
+          FilteredQueryColumn({
+            ...commonProps,
+            id: "filament.color_name",
+            i18nkey: "filament.fields.color_name",
+            width: 160,
+            filterValueQuery: useSpoolmanUsedColorNames(),
+            render: (value: string | undefined, record: ISpoolCollapsed) =>
+              value ? (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  {record.filament.color_hex && (
+                    <span
+                      style={{
+                        width: 16,
+                        height: 16,
+                        flexShrink: 0,
+                        display: "inline-block",
+                        backgroundColor: `#${record.filament.color_hex}`,
+                        border: "1px solid rgba(0,0,0,0.15)",
+                        borderRadius: 2,
+                      }}
+                    />
+                  )}
+                  {value}
+                </span>
+              ) : null,
           }),
           FilteredQueryColumn({
             ...commonProps,
