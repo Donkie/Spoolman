@@ -1,5 +1,6 @@
 """Integration tests for the Filament API endpoint."""
 
+import json
 from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
@@ -507,3 +508,74 @@ def test_find_filaments_by_similar_color_100(filaments: Fixture):
         filaments_result,
         [filaments.filaments[0], filaments.filaments[1], filaments.filaments[2]],
     )
+
+
+@dataclass
+class ExtraFieldFixture:
+    filaments: list[dict[str, Any]]
+
+
+@pytest.fixture(scope="module")
+def filaments_with_extra() -> Iterable[ExtraFieldFixture]:
+    """Add filaments with extra fields to the database."""
+    # Create extra field definition
+    result = httpx.post(
+        f"{URL}/api/v1/field/filament/tag",
+        json={"name": "Tag", "field_type": "text", "order": 0},
+    )
+    result.raise_for_status()
+
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={
+            "name": "ExtraFilament1",
+            "density": 1.25,
+            "diameter": 1.75,
+            "extra": {"tag": json.dumps("production")},
+        },
+    )
+    result.raise_for_status()
+    filament_1 = result.json()
+
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={
+            "name": "ExtraFilament2",
+            "density": 1.25,
+            "diameter": 1.75,
+        },
+    )
+    result.raise_for_status()
+    filament_2 = result.json()
+
+    yield ExtraFieldFixture(filaments=[filament_1, filament_2])
+
+    httpx.delete(f"{URL}/api/v1/filament/{filament_1['id']}").raise_for_status()
+    httpx.delete(f"{URL}/api/v1/filament/{filament_2['id']}").raise_for_status()
+    httpx.delete(f"{URL}/api/v1/field/filament/tag").raise_for_status()
+
+
+def test_find_filaments_by_extra_field(filaments_with_extra: ExtraFieldFixture):
+    """Test filtering filaments by extra field value."""
+    result = httpx.get(
+        f"{URL}/api/v1/filament",
+        params={"extra.tag": "production", "name": "ExtraFilament"},
+    )
+    result.raise_for_status()
+
+    filaments_result = result.json()
+    assert len(filaments_result) == 1
+    assert filaments_result[0]["id"] == filaments_with_extra.filaments[0]["id"]
+
+
+def test_find_filaments_by_extra_field_empty(filaments_with_extra: ExtraFieldFixture):
+    """Test filtering filaments that do not have the extra field set."""
+    result = httpx.get(
+        f"{URL}/api/v1/filament",
+        params={"extra.tag": "", "name": "ExtraFilament"},
+    )
+    result.raise_for_status()
+
+    filaments_result = result.json()
+    assert len(filaments_result) == 1
+    assert filaments_result[0]["id"] == filaments_with_extra.filaments[1]["id"]

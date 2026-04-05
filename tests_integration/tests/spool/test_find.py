@@ -1,5 +1,6 @@
 """Integration tests for the Spool API endpoint."""
 
+import json
 from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
@@ -485,3 +486,72 @@ def test_find_spools_by_empty_lot_nr(spools: Fixture):
     # Verify
     spools_result = result.json()
     assert_lists_compatible(spools_result, (spools.spools[3], spools.spools[4]))
+
+
+@dataclass
+class ExtraFieldFixture:
+    spools: list[dict[str, Any]]
+
+
+@pytest.fixture(scope="module")
+def spools_with_extra(random_filament_mod: dict[str, Any]) -> Iterable[ExtraFieldFixture]:
+    """Add spools with extra fields to the database."""
+    # Create extra field definition
+    result = httpx.post(
+        f"{URL}/api/v1/field/spool/tag",
+        json={"name": "Tag", "field_type": "text", "order": 0},
+    )
+    result.raise_for_status()
+
+    result = httpx.post(
+        f"{URL}/api/v1/spool",
+        json={
+            "filament_id": random_filament_mod["id"],
+            "location": "ExtraSpoolLoc",
+            "extra": {"tag": json.dumps("production")},
+        },
+    )
+    result.raise_for_status()
+    spool_1 = result.json()
+
+    result = httpx.post(
+        f"{URL}/api/v1/spool",
+        json={
+            "filament_id": random_filament_mod["id"],
+            "location": "ExtraSpoolLoc",
+        },
+    )
+    result.raise_for_status()
+    spool_2 = result.json()
+
+    yield ExtraFieldFixture(spools=[spool_1, spool_2])
+
+    httpx.delete(f"{URL}/api/v1/spool/{spool_1['id']}").raise_for_status()
+    httpx.delete(f"{URL}/api/v1/spool/{spool_2['id']}").raise_for_status()
+    httpx.delete(f"{URL}/api/v1/field/spool/tag").raise_for_status()
+
+
+def test_find_spools_by_extra_field(spools_with_extra: ExtraFieldFixture):
+    """Test filtering spools by extra field value."""
+    result = httpx.get(
+        f"{URL}/api/v1/spool",
+        params={"extra.tag": "production", "location": "ExtraSpoolLoc", "allow_archived": True},
+    )
+    result.raise_for_status()
+
+    spools_result = result.json()
+    assert len(spools_result) == 1
+    assert spools_result[0]["id"] == spools_with_extra.spools[0]["id"]
+
+
+def test_find_spools_by_extra_field_empty(spools_with_extra: ExtraFieldFixture):
+    """Test filtering spools that do not have the extra field set."""
+    result = httpx.get(
+        f"{URL}/api/v1/spool",
+        params={"extra.tag": "", "location": "ExtraSpoolLoc", "allow_archived": True},
+    )
+    result.raise_for_status()
+
+    spools_result = result.json()
+    assert len(spools_result) == 1
+    assert spools_result[0]["id"] == spools_with_extra.spools[1]["id"]

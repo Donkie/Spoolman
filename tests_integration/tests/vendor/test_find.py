@@ -1,5 +1,6 @@
 """Integration tests for the Vendor API endpoint."""
 
+import json
 from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
@@ -211,3 +212,103 @@ def test_find_vendors_by_empty_external_id(vendors: Fixture):
     # Verify
     vendors_result = result.json()
     assert_lists_compatible(vendors_result, [vendors.vendors[0], vendors.vendors[2]])
+
+
+@dataclass
+class ExtraFieldFixture:
+    vendors: list[dict[str, Any]]
+
+
+@pytest.fixture(scope="module")
+def vendors_with_extra() -> Iterable[ExtraFieldFixture]:
+    """Add vendors with extra fields to the database."""
+    # Create extra field definition
+    result = httpx.post(
+        f"{URL}/api/v1/field/vendor/tag",
+        json={"name": "Tag", "field_type": "text", "order": 0},
+    )
+    result.raise_for_status()
+
+    # Create vendors with extra field values
+    result = httpx.post(
+        f"{URL}/api/v1/vendor",
+        json={"name": "ExtraVendor1", "extra": {"tag": json.dumps("production")}},
+    )
+    result.raise_for_status()
+    vendor_1 = result.json()
+
+    result = httpx.post(
+        f"{URL}/api/v1/vendor",
+        json={"name": "ExtraVendor2", "extra": {"tag": json.dumps("testing")}},
+    )
+    result.raise_for_status()
+    vendor_2 = result.json()
+
+    result = httpx.post(
+        f"{URL}/api/v1/vendor",
+        json={"name": "ExtraVendor3"},
+    )
+    result.raise_for_status()
+    vendor_3 = result.json()
+
+    yield ExtraFieldFixture(vendors=[vendor_1, vendor_2, vendor_3])
+
+    httpx.delete(f"{URL}/api/v1/vendor/{vendor_1['id']}").raise_for_status()
+    httpx.delete(f"{URL}/api/v1/vendor/{vendor_2['id']}").raise_for_status()
+    httpx.delete(f"{URL}/api/v1/vendor/{vendor_3['id']}").raise_for_status()
+    httpx.delete(f"{URL}/api/v1/field/vendor/tag").raise_for_status()
+
+
+def test_find_vendors_by_extra_field(vendors_with_extra: ExtraFieldFixture):
+    """Test filtering vendors by extra field value (partial match)."""
+    result = httpx.get(
+        f"{URL}/api/v1/vendor",
+        params={"extra.tag": "production", "name": "ExtraVendor"},
+    )
+    result.raise_for_status()
+
+    vendors_result = result.json()
+    assert len(vendors_result) == 1
+    assert vendors_result[0]["id"] == vendors_with_extra.vendors[0]["id"]
+
+
+def test_find_vendors_by_extra_field_exact(vendors_with_extra: ExtraFieldFixture):
+    """Test filtering vendors by extra field value (exact match).
+
+    Extra field values are JSON-encoded, so text "production" is stored as '"production"'.
+    To exact-match, we need to include the JSON quotes in the search term.
+    """
+    result = httpx.get(
+        f"{URL}/api/v1/vendor",
+        params={"extra.tag": '""production""', "name": "ExtraVendor"},
+    )
+    result.raise_for_status()
+
+    vendors_result = result.json()
+    assert len(vendors_result) == 1
+    assert vendors_result[0]["id"] == vendors_with_extra.vendors[0]["id"]
+
+
+def test_find_vendors_by_extra_field_no_match(vendors_with_extra: ExtraFieldFixture):  # noqa: ARG001
+    """Test filtering vendors by extra field value with no match."""
+    result = httpx.get(
+        f"{URL}/api/v1/vendor",
+        params={"extra.tag": "nonexistent", "name": "ExtraVendor"},
+    )
+    result.raise_for_status()
+
+    vendors_result = result.json()
+    assert len(vendors_result) == 0
+
+
+def test_find_vendors_by_extra_field_empty(vendors_with_extra: ExtraFieldFixture):
+    """Test filtering vendors that do not have the extra field set."""
+    result = httpx.get(
+        f"{URL}/api/v1/vendor",
+        params={"extra.tag": "", "name": "ExtraVendor"},
+    )
+    result.raise_for_status()
+
+    vendors_result = result.json()
+    assert len(vendors_result) == 1
+    assert vendors_result[0]["id"] == vendors_with_extra.vendors[2]["id"]

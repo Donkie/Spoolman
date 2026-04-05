@@ -129,3 +129,37 @@ def add_where_clause_int_in(
     if value is not None:
         stmt = stmt.where(field.in_(value))
     return stmt
+
+
+def add_where_clause_extra_field(
+    stmt: Select,
+    field_model: type[models.Base],
+    field_fk_column: attributes.InstrumentedAttribute,
+    entity_pk_column: attributes.InstrumentedAttribute,
+    extra_filters: dict[str, str],
+) -> Select:
+    """Add where clauses to filter by extra field key/value pairs using EXISTS subqueries."""
+    for field_key, search_value in extra_filters.items():
+        value_conditions = []
+        has_empty = False
+
+        for value_part in search_value.split(","):
+            if len(value_part) == 0:
+                has_empty = True
+            elif value_part[0] == '"' and value_part[-1] == '"':
+                value_conditions.append(field_model.value == value_part[1:-1])
+            else:
+                value_conditions.append(field_model.value.ilike(f"%{value_part}%"))
+
+        base_where = sqlalchemy.and_(field_fk_column == entity_pk_column, field_model.key == field_key)
+
+        conditions = []
+        if value_conditions:
+            conditions.append(sqlalchemy.exists().where(sqlalchemy.and_(base_where, sqlalchemy.or_(*value_conditions))))
+        if has_empty:
+            conditions.append(~sqlalchemy.exists().where(base_where))
+
+        if conditions:
+            stmt = stmt.where(sqlalchemy.or_(*conditions))
+
+    return stmt

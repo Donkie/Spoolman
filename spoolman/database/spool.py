@@ -15,6 +15,7 @@ from spoolman.api.v1.models import EventType, Spool, SpoolEvent
 from spoolman.database import filament, models
 from spoolman.database.utils import (
     SortOrder,
+    add_where_clause_extra_field,
     add_where_clause_int,
     add_where_clause_int_opt,
     add_where_clause_str,
@@ -122,6 +123,7 @@ async def find(  # noqa: C901, PLR0912
     location: str | None = None,
     lot_nr: str | None = None,
     allow_archived: bool = False,
+    extra: dict[str, str] | None = None,
     sort_by: dict[str, SortOrder] | None = None,
     limit: int | None = None,
     offset: int = 0,
@@ -147,6 +149,11 @@ async def find(  # noqa: C901, PLR0912
     stmt = add_where_clause_str_opt(stmt, models.Filament.material, filament_material)
     stmt = add_where_clause_str_opt(stmt, models.Spool.location, location)
     stmt = add_where_clause_str_opt(stmt, models.Spool.lot_nr, lot_nr)
+
+    if extra:
+        stmt = add_where_clause_extra_field(
+            stmt, models.SpoolField, models.SpoolField.spool_id, models.Spool.id, extra,
+        )
 
     if not allow_archived:
         # Since the archived field is nullable, and default is false, we need to check for both false or null

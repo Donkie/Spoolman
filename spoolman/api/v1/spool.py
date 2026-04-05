@@ -5,7 +5,7 @@ import logging
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
@@ -127,6 +127,7 @@ class SpoolMeasureParameters(BaseModel):
 )
 async def find(
     *,
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db_session)],
     filament_name_old: Annotated[
         str | None,
@@ -285,6 +286,12 @@ async def find(
     else:
         filament_vendor_ids = None
 
+    extra_filters = {
+        key.removeprefix("extra."): value
+        for key, value in request.query_params.items()
+        if key.startswith("extra.") and key != "extra."
+    }
+
     db_items, total_count = await spool.find(
         db=db,
         filament_name=filament_name if filament_name is not None else filament_name_old,
@@ -295,6 +302,7 @@ async def find(
         location=location,
         lot_nr=lot_nr,
         allow_archived=allow_archived,
+        extra=extra_filters or None,
         sort_by=sort_by,
         limit=limit,
         offset=offset,

@@ -3,7 +3,7 @@
 import asyncio
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
@@ -79,6 +79,7 @@ class VendorUpdateParameters(VendorParameters):
     },
 )
 async def find(
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db_session)],
     name: Annotated[
         str | None,
@@ -124,10 +125,17 @@ async def find(
             field, direction = sort_item.split(":")
             sort_by[field] = SortOrder[direction.upper()]
 
+    extra_filters = {
+        key.removeprefix("extra."): value
+        for key, value in request.query_params.items()
+        if key.startswith("extra.") and key != "extra."
+    }
+
     db_items, total_count = await vendor.find(
         db=db,
         name=name,
         external_id=external_id,
+        extra=extra_filters or None,
         sort_by=sort_by,
         limit=limit,
         offset=offset,

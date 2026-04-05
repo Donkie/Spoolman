@@ -14,6 +14,7 @@ from spoolman.api.v1.models import EventType, Filament, FilamentEvent, MultiColo
 from spoolman.database import models, vendor
 from spoolman.database.utils import (
     SortOrder,
+    add_where_clause_extra_field,
     add_where_clause_int_in,
     add_where_clause_int_opt,
     add_where_clause_str,
@@ -102,6 +103,7 @@ async def find(
     material: str | None = None,
     article_number: str | None = None,
     external_id: str | None = None,
+    extra: dict[str, str] | None = None,
     sort_by: dict[str, SortOrder] | None = None,
     limit: int | None = None,
     offset: int = 0,
@@ -126,6 +128,11 @@ async def find(
     stmt = add_where_clause_str_opt(stmt, models.Filament.material, material)
     stmt = add_where_clause_str_opt(stmt, models.Filament.article_number, article_number)
     stmt = add_where_clause_str_opt(stmt, models.Filament.external_id, external_id)
+
+    if extra:
+        stmt = add_where_clause_extra_field(
+            stmt, models.FilamentField, models.FilamentField.filament_id, models.Filament.id, extra,
+        )
 
     total_count = None
 
