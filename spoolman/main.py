@@ -13,7 +13,7 @@ from fastapi.responses import PlainTextResponse, RedirectResponse, Response
 from prometheus_client import generate_latest
 from scheduler.asyncio.scheduler import Scheduler
 
-from spoolman import env, externaldb
+from spoolman import env, externaldb, tigertagdb
 from spoolman.api.v1.router import app as v1_app
 from spoolman.client import SinglePageApplication
 from spoolman.database import database
@@ -181,6 +181,17 @@ async def startup() -> None:
     schedule = Scheduler()
     database.schedule_tasks(schedule)
     externaldb.schedule_tasks(schedule)
+    tigertagdb.schedule_tasks(schedule)
+
+    # Initialize NFC service if enabled
+    if env.is_nfc_enabled():
+        try:
+            from spoolman.nfc_service import nfc_service
+
+            nfc_service.initialize()
+            logger.info("NFC service initialized: %s", nfc_service.get_status())
+        except Exception:
+            logger.exception("Failed to initialize NFC service")
 
     logger.info("Startup complete.")
 

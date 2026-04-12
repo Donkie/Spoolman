@@ -11,6 +11,11 @@ usermod -o -u "$PUID" app
 echo User UID: $(id -u app)
 echo User GID: $(id -g app)
 
+# Fix USB device permissions for NFC reader access
+if [ -d /dev/bus/usb ]; then
+    chmod -R o+rw /dev/bus/usb/ 2>/dev/null || true
+fi
+
 echo "Starting uvicorn..."
 
 # Execute the uvicorn command with any additional arguments

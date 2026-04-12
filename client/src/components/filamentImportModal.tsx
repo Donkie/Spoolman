@@ -1,5 +1,6 @@
 import { useTranslate } from "@refinedev/core";
-import { Form, Modal, Select } from "antd";
+import { Form, Modal, Select, Tag } from "antd";
+import React from "react";
 import { Trans } from "react-i18next";
 import { formatFilamentLabel } from "../pages/spools/functions";
 import { searchMatches } from "../utils/filtering";
@@ -16,20 +17,32 @@ export function FilamentImportModal(props: {
   const externalFilaments = useGetExternalDBFilaments();
   const filamentOptions =
     externalFilaments.data?.map((item) => {
+      const textLabel = formatFilamentLabel(
+        item.name,
+        item.diameter,
+        item.manufacturer,
+        item.material,
+        item.weight,
+        item.spool_type
+      );
+      const sourceTag =
+        item.source === "tigertag" ? (
+          <Tag color="orange">{t("external.source_tigertag")}</Tag>
+        ) : (
+          <Tag color="blue">{t("external.source_spoolmandb")}</Tag>
+        );
       return {
-        label: formatFilamentLabel(
-          item.name,
-          item.diameter,
-          item.manufacturer,
-          item.material,
-          item.weight,
-          item.spool_type,
+        label: (
+          <span>
+            {sourceTag} {textLabel}
+          </span>
         ),
+        searchText: textLabel,
         value: item.id,
         item: item,
       };
     }) ?? [];
-  filamentOptions.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+  filamentOptions.sort((a, b) => a.searchText.localeCompare(b.searchText, undefined, { sensitivity: "base" }));
 
   return (
     <Modal
@@ -63,7 +76,9 @@ export function FilamentImportModal(props: {
           <Select
             options={filamentOptions}
             showSearch
-            filterOption={(input, option) => typeof option?.label === "string" && searchMatches(input, option?.label)}
+            filterOption={(input, option) =>
+              typeof option?.searchText === "string" && searchMatches(input, option.searchText)
+            }
           />
         </Form.Item>
       </Form>

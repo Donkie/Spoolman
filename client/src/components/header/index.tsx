@@ -6,6 +6,7 @@ import React, { useContext } from "react";
 import { ColorModeContext } from "../../contexts/color-mode";
 
 import { languages } from "../../i18n";
+import NfcScannerModal from "../nfcScannerModal";
 import QRCodeScannerModal from "../qrCodeScanner";
 
 const { useToken } = theme;
@@ -62,6 +63,7 @@ export const Header = ({ sticky }: RefineThemedLayoutHeaderProps) => {
           defaultChecked={mode === "dark"}
         />
         <QRCodeScannerModal />
+        <NfcScannerModal />
       </Space>
     </AntdLayout.Header>
   );

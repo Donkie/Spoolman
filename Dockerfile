@@ -22,14 +22,14 @@ WORKDIR /home/app/spoolman
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked --no-install-project
+    uv sync --locked --no-install-project --extra nfc
 
 # Copy and install app
 COPY --chown=app:app migrations /home/app/spoolman/migrations
 COPY --chown=app:app spoolman /home/app/spoolman/spoolman
 COPY --chown=app:app alembic.ini README.md uv.lock pyproject.toml /home/app/spoolman/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked
+    uv sync --locked --extra nfc
 
 FROM python:3.14-slim-bookworm AS python-runner
 
@@ -37,9 +37,10 @@ LABEL org.opencontainers.image.source=https://github.com/Donkie/Spoolman
 LABEL org.opencontainers.image.description="Keep track of your inventory of 3D-printer filament spools."
 LABEL org.opencontainers.image.licenses=MIT
 
-# Install gosu for privilege dropping
+# Install gosu for privilege dropping and libusb for NFC reader support
 RUN apt-get update && apt-get install -y \
     gosu \
+    libusb-1.0-0 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

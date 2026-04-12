@@ -27,6 +27,9 @@ dependencies = [
 ]
 requires-python = ">=3.10"
 
+[project.optional-dependencies]
+nfc = ["nfcpy>=1.0", "cbor2>=5.4", "ndeflib>=0.3"]
+
 [dependency-groups]
 dev = [
     "ruff==0.14.10",
