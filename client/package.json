@@ -22,7 +22,7 @@
     "html-to-image": "^1.11.13",
     "i18next": "^25.7.3",
     "i18next-browser-languagedetector": "^8.2.0",
-    "i18next-http-backend": "^3.0.2",
+    "i18next-http-backend": "^3.0.5",
     "react": "^19.2.3",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
