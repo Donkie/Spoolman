@@ -24,6 +24,7 @@ dependencies = [
     "httpx~=0.28",
     "hishel~=0.1",
     "aiomysql[rsa]~=0.3",
+    "pyserial>=3.5", 
 ]
 requires-python = ">=3.10"
 
