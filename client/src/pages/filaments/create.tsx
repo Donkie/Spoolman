@@ -1,6 +1,6 @@
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { HttpError, IResourceComponentsProps, useInvalidate, useTranslate } from "@refinedev/core";
-import { Button, ColorPicker, Form, Input, InputNumber, Radio, Select, Typography } from "antd";
+import { HttpError, IResourceComponentsProps, useInvalidate, useTranslate, useApiUrl } from "@refinedev/core";
+import { Button, ColorPicker, Form, Input, InputNumber, Radio, Select, Typography, message, Space } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -33,6 +33,8 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
   const [isImportExtOpen, setIsImportExtOpen] = useState(false);
   const invalidate = useInvalidate();
   const [colorType, setColorType] = useState<"single" | "multi">("single");
+  const [profileId, setProfileId] = useState("");
+  const apiUrl = useApiUrl();
 
   const { form, formProps, formLoading, onFinish, redirect } = useForm<
     IFilament,
@@ -92,6 +94,42 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
     });
   };
 
+  const fetchProfile = async () => {
+    if (!profileId) return;
+    try {
+      const response = await fetch(`${apiUrl}/external/profile/${profileId}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch profile");
+      }
+      const data = await response.json();
+      message.success("Successfully fetched filament from 3dfilamentprofiles.com");
+
+      const filament: ExternalFilament = {
+        id: profileId,
+        manufacturer: data.manufacturer,
+        name: data.name,
+        material: data.material,
+        density: data.density,
+        diameter: data.diameter,
+        weight: data.weight,
+        spool_weight: data.spool_weight,
+        color_hex: data.color_hex,
+        color_hexes: data.color_hexes,
+        multi_color_direction: data.multi_color_direction,
+        extruder_temp: data.extruder_temp,
+        bed_temp: data.bed_temp,
+        translucent: false,
+        glow: false,
+      };
+
+      importFilament(filament);
+    } catch (err) {
+      console.error(err);
+      message.error("Failed to fetch filament data from 3dfilamentprofiles.com");
+    }
+  };
+
+
   // Use useEffect to update the form's initialValues when the extra fields are loaded
   // This is necessary because the form is rendered before the extra fields are loaded
   useEffect(() => {
@@ -134,6 +172,17 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
         onClose={() => setIsImportExtOpen(false)}
       />
       <Form {...formProps} layout="vertical">
+        <Form.Item label="3D Filament Profiles ID" help="Automatically fill information by retrieving from 3dfilamentprofiles.com">
+          <Space.Compact style={{ width: '100%' }}>
+            <Input
+              value={profileId}
+              onChange={(e) => setProfileId(e.target.value)}
+              onPressEnter={(e) => { e.preventDefault(); fetchProfile(); }}
+              placeholder="e.g. 12875"
+            />
+            <Button type="primary" onClick={fetchProfile}>Fetch</Button>
+          </Space.Compact>
+        </Form.Item>
         <Form.Item
           label={t("filament.fields.name")}
           help={t("filament.fields_help.name")}

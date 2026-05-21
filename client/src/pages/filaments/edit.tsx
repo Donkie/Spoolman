@@ -1,6 +1,6 @@
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { HttpError, useTranslate } from "@refinedev/core";
-import { Alert, ColorPicker, DatePicker, Form, Input, InputNumber, message, Radio, Select, Typography } from "antd";
+import { HttpError, useTranslate, useApiUrl, useInvalidate } from "@refinedev/core";
+import { Alert, ColorPicker, DatePicker, Form, Input, InputNumber, message, Radio, Select, Typography, Space, Button } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
@@ -10,6 +10,8 @@ import { formatNumberOnUserInput, numberParser, numberParserAllowEmpty } from ".
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { IVendor } from "../vendors/model";
+import { getOrCreateVendorFromExternal } from "../vendors/functions";
+import { ExternalFilament } from "../../utils/queryExternalDB";
 import { IFilament, IFilamentParsedExtras } from "./model";
 
 /*
@@ -26,6 +28,9 @@ export const FilamentEdit = () => {
   const extraFields = useGetFields(EntityType.filament);
   const currency = useCurrency();
   const [colorType, setColorType] = useState<"single" | "multi">("single");
+  const [profileId, setProfileId] = useState("");
+  const apiUrl = useApiUrl();
+  const invalidate = useInvalidate();
 
   const { formProps, saveButtonProps } = useForm<IFilament, HttpError, IFilament, IFilament>({
     liveMode: "manual",
@@ -76,6 +81,66 @@ export const FilamentEdit = () => {
     }
   };
 
+  const importFilament = async (filament: ExternalFilament) => {
+    const vendor = await getOrCreateVendorFromExternal(filament.manufacturer);
+    await invalidate({
+      resource: "vendor",
+      invalidates: ["list", "detail"],
+    });
+
+    setColorType(filament.color_hexes ? "multi" : "single");
+
+    formProps.form?.setFieldsValue({
+      name: filament.name,
+      vendor_id: vendor.id,
+      material: filament.material,
+      density: filament.density,
+      diameter: filament.diameter,
+      weight: filament.weight,
+      spool_weight: filament.spool_weight || undefined,
+      color_hex: filament.color_hex,
+      multi_color_hexes: filament.color_hexes?.join(",") || undefined,
+      multi_color_direction: filament.multi_color_direction,
+      settings_extruder_temp: filament.extruder_temp || undefined,
+      settings_bed_temp: filament.bed_temp || undefined,
+    } as any);
+  };
+
+  const fetchProfile = async () => {
+    if (!profileId) return;
+    try {
+      const response = await fetch(`${apiUrl}/external/profile/${profileId}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch profile");
+      }
+      const data = await response.json();
+      message.success("Successfully fetched filament from 3dfilamentprofiles.com");
+
+      const filament: ExternalFilament = {
+        id: profileId,
+        manufacturer: data.manufacturer,
+        name: data.name,
+        material: data.material,
+        density: data.density,
+        diameter: data.diameter,
+        weight: data.weight,
+        spool_weight: data.spool_weight,
+        color_hex: data.color_hex,
+        color_hexes: data.color_hexes,
+        multi_color_direction: data.multi_color_direction,
+        extruder_temp: data.extruder_temp,
+        bed_temp: data.bed_temp,
+        translucent: false,
+        glow: false,
+      };
+
+      importFilament(filament);
+    } catch (err) {
+      console.error(err);
+      message.error("Failed to fetch filament data from 3dfilamentprofiles.com");
+    }
+  };
+
   return (
     <Edit saveButtonProps={saveButtonProps}>
       {contextHolder}
@@ -104,6 +169,17 @@ export const FilamentEdit = () => {
           })}
         >
           <DatePicker disabled showTime format="YYYY-MM-DD HH:mm:ss" />
+        </Form.Item>
+        <Form.Item label="3D Filament Profiles ID" help="Automatically fill information by retrieving from 3dfilamentprofiles.com">
+          <Space.Compact style={{ width: '100%' }}>
+            <Input
+              value={profileId}
+              onChange={(e) => setProfileId(e.target.value)}
+              onPressEnter={(e) => { e.preventDefault(); fetchProfile(); }}
+              placeholder="e.g. 12875"
+            />
+            <Button type="primary" onClick={fetchProfile}>Fetch</Button>
+          </Space.Compact>
         </Form.Item>
         <Form.Item
           label={t("filament.fields.name")}
