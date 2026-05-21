@@ -102,7 +102,7 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
         throw new Error("Failed to fetch profile");
       }
       const data = await response.json();
-      message.success("Successfully fetched filament from 3dfilamentprofiles.com");
+      message.success(t("filament.form.import_3dfp_success"));
 
       const filament: ExternalFilament = {
         id: profileId,
@@ -125,7 +125,7 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
       importFilament(filament);
     } catch (err) {
       console.error(err);
-      message.error("Failed to fetch filament data from 3dfilamentprofiles.com");
+      message.error(t("filament.form.import_3dfp_error"));
     }
   };
 
@@ -172,15 +172,15 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
         onClose={() => setIsImportExtOpen(false)}
       />
       <Form {...formProps} layout="vertical">
-        <Form.Item label="3D Filament Profiles ID" help="Automatically fill information by retrieving from 3dfilamentprofiles.com">
+        <Form.Item label={t("filament.form.import_3dfp")} help={t("filament.form.import_3dfp_help")}>
           <Space.Compact style={{ width: '100%' }}>
             <Input
               value={profileId}
               onChange={(e) => setProfileId(e.target.value)}
               onPressEnter={(e) => { e.preventDefault(); fetchProfile(); }}
-              placeholder="e.g. 12875"
+              placeholder={t("filament.form.import_3dfp_placeholder")}
             />
-            <Button type="primary" onClick={fetchProfile}>Fetch</Button>
+            <Button type="primary" onClick={fetchProfile}>{t("filament.buttons.fetch")}</Button>
           </Space.Compact>
         </Form.Item>
         <Form.Item
