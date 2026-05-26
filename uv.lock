@@ -994,6 +994,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pyvips"
+version = "3.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cffi" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2d/6a/282936de9faac6addf6bc8792c18e006489d0023ffd8856b8643f54d0558/pyvips-3.1.1.tar.gz", hash = "sha256:84fe744d023b1084ac2516bb17064cacd41c7f8aabf8e524dd383534941b9301", size = 56951, upload-time = "2025-12-09T18:38:06.355Z" }
+
+[[package]]
 name = "pyyaml"
 version = "6.0.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1120,6 +1129,7 @@ dependencies = [
     { name = "prometheus-client" },
     { name = "psycopg2-binary" },
     { name = "pydantic" },
+    { name = "pyvips" },
     { name = "scheduler" },
     { name = "setuptools" },
     { name = "sqlalchemy", extra = ["aiomysql", "aiosqlite", "asyncio", "postgresql-asyncpg"] },
@@ -1151,6 +1161,7 @@ requires-dist = [
     { name = "prometheus-client", specifier = "~=0.21" },
     { name = "psycopg2-binary", specifier = "~=2.9" },
     { name = "pydantic", specifier = "~=2.10" },
+    { name = "pyvips", specifier = "~=3.0" },
     { name = "scheduler", specifier = "~=0.8" },
     { name = "setuptools", specifier = "~=78.1" },
     { name = "sqlalchemy", extras = ["aiomysql", "aiosqlite", "asyncio", "postgresql-asyncpg"], specifier = "~=2.0" },

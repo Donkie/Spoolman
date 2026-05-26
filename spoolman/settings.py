@@ -70,5 +70,25 @@ register_setting("extra_fields_filament", SettingType.ARRAY, json.dumps([]))
 register_setting("extra_fields_spool", SettingType.ARRAY, json.dumps([]))
 register_setting("base_url", SettingType.STRING, json.dumps(""))
 
+register_setting("photo_max_files_per_field", SettingType.NUMBER, json.dumps(5))
+register_setting("photo_max_upload_size_mb", SettingType.NUMBER, json.dumps(50))
+register_setting(
+    "photo_allowed_content_types",
+    SettingType.ARRAY,
+    json.dumps([
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+        "image/tiff",
+        "image/avif",
+        "image/heic",
+        "image/heif",
+    ]),
+)
+register_setting("photo_orphan_cleanup_enabled", SettingType.BOOLEAN, json.dumps(obj=True))
+register_setting("photo_orphan_cleanup_time", SettingType.STRING, json.dumps("03:30"))
+register_setting("photo_orphan_cleanup_ttl_hours", SettingType.NUMBER, json.dumps(24))
+
 register_setting("locations", SettingType.ARRAY, json.dumps([]))
 register_setting("locations_spoolorders", SettingType.OBJECT, json.dumps({}))

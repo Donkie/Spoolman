@@ -3,6 +3,7 @@
 import json
 import logging
 from enum import Enum
+from urllib.parse import urlparse
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field
@@ -16,6 +17,9 @@ from spoolman.exceptions import ItemNotFoundError
 from spoolman.settings import parse_setting
 
 logger = logging.getLogger(__name__)
+
+MAX_IMAGES_PER_EXTRA_FIELD = 5
+MAX_IMAGE_URL_LENGTH = 2048
 
 
 class EntityType(Enum):
@@ -33,6 +37,8 @@ class ExtraFieldType(Enum):
     datetime = "datetime"
     boolean = "boolean"
     choice = "choice"
+    photo = "photo"
+    photo_url = "photo_url"
 
 
 class ExtraFieldParameters(BaseModel):
@@ -54,7 +60,12 @@ class ExtraField(ExtraFieldParameters):
     entity_type: EntityType = Field(description="Entity type this field is for")
 
 
-def validate_extra_field_value(field: ExtraFieldParameters, value: str) -> None:  # noqa: C901, PLR0912
+def validate_extra_field_value(  # noqa: C901, PLR0912, PLR0915
+    field: ExtraFieldParameters,
+    value: str,
+    *,
+    max_images_per_field: int = MAX_IMAGES_PER_EXTRA_FIELD,
+) -> None:
     """Validate that the value has the correct type."""
     try:
         data = json.loads(value)
@@ -105,11 +116,32 @@ def validate_extra_field_value(field: ExtraFieldParameters, value: str) -> None:
                 raise ValueError("Value is not a string.")
             if field.choices is not None and data not in field.choices:
                 raise ValueError("Value is not a valid choice.")
+    elif field.field_type == ExtraFieldType.photo:
+        if data is not None and not isinstance(data, list):
+            raise ValueError("Photo field value must be null or a list.")
+        if isinstance(data, list) and len(data) > max_images_per_field:
+            raise ValueError("Photo field value list exceeds the configured photo limit.")
+        if isinstance(data, list) and not all(isinstance(value, int) for value in data):
+            raise ValueError("Photo field value list must contain only photo IDs.")
+    elif field.field_type == ExtraFieldType.photo_url:
+        if data is not None and not isinstance(data, list):
+            raise ValueError("Photo URL field value must be null or a list.")
+        if isinstance(data, list):
+            if len(data) > max_images_per_field:
+                raise ValueError("Photo URL field value list exceeds the configured photo limit.")
+            for photo_url in data:
+                if not isinstance(photo_url, str):
+                    raise ValueError("Photo URL field value list must contain only strings.")  # noqa: TRY004
+                parsed_url = urlparse(photo_url)
+                if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
+                    raise ValueError("Photo URL field values must be absolute http(s) URLs.")
+                if len(photo_url) > MAX_IMAGE_URL_LENGTH:
+                    raise ValueError("Photo URL field values must be 2048 characters or shorter.")
     else:
         raise ValueError(f"Unknown field type {field.field_type}.")
 
 
-def validate_extra_field(field: ExtraFieldParameters) -> None:
+def validate_extra_field(field: ExtraFieldParameters) -> None:  # noqa: C901
     """Validate an extra field."""
     # Validate choices exist if field type is choice
     if field.field_type == ExtraFieldType.choice:
@@ -123,6 +155,13 @@ def validate_extra_field(field: ExtraFieldParameters) -> None:
         if field.multi_choice is not None:
             raise ValueError("Multi choice must not be set for field type other than choice.")
 
+    if field.field_type in {ExtraFieldType.photo, ExtraFieldType.photo_url}:
+        if field.default_value is not None:
+            raise ValueError(f"Default value must not be set for field type {field.field_type.value}.")
+        if field.unit is not None:
+            raise ValueError(f"Unit must not be set for field type {field.field_type.value}.")
+        return
+
     # Validate default value data type
     if field.default_value is not None:
         try:
@@ -131,7 +170,12 @@ def validate_extra_field(field: ExtraFieldParameters) -> None:
             raise ValueError(f"Default value is not valid: {e}") from None
 
 
-def validate_extra_field_dict(all_fields: list[ExtraField], fields_input: dict[str, str]) -> None:
+def validate_extra_field_dict(
+    all_fields: list[ExtraField],
+    fields_input: dict[str, str],
+    *,
+    max_images_per_field: int = MAX_IMAGES_PER_EXTRA_FIELD,
+) -> None:
     """Validate a dict of extra fields."""
     all_field_lookup = {field.key: field for field in all_fields}
     for key, value in fields_input.items():
@@ -139,7 +183,7 @@ def validate_extra_field_dict(all_fields: list[ExtraField], fields_input: dict[s
             raise ValueError(f"Unknown extra field {key}.")
         field = all_field_lookup[key]
         try:
-            validate_extra_field_value(field, value)
+            validate_extra_field_value(field, value, max_images_per_field=max_images_per_field)
         except ValueError as e:
             raise ValueError(f"Invalid extra field for key {key}: {e!s}") from None
 
@@ -210,7 +254,8 @@ async def delete_extra_field(db: AsyncSession, entity_type: EntityType, key: str
     extra_fields = await get_extra_fields(db, entity_type)
 
     # Check if the field exists
-    if not any(field.key == key for field in extra_fields):
+    deleted_field = next((field for field in extra_fields if field.key == key), None)
+    if deleted_field is None:
         raise ItemNotFoundError(f"Extra field with key {key} does not exist.")
 
     extra_fields = [field for field in extra_fields if field.key != key]
@@ -230,6 +275,11 @@ async def delete_extra_field(db: AsyncSession, entity_type: EntityType, key: str
         await db_spool.clear_extra_field(db, key)
     else:
         raise ValueError(f"Unknown entity type {entity_type.name}.")
+
+    if deleted_field is not None and deleted_field.field_type == ExtraFieldType.photo:
+        from spoolman.database import photo as db_photo  # noqa: PLC0415
+
+        await db_photo.clear_field(db, entity_type, key)
 
     logger.info("Deleted extra field %s for entity type %s.", key, entity_type.name)
 

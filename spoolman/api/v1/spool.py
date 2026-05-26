@@ -12,11 +12,13 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import Message, Spool, SpoolEvent
+from spoolman.database import photo as db_photo
 from spoolman.database import spool
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
-from spoolman.exceptions import ItemCreateError, SpoolMeasureError
+from spoolman.exceptions import ItemCreateError, ItemNotFoundError, SpoolMeasureError
 from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
+from spoolman.photo_settings import get_photo_storage_settings
 from spoolman.ws import websocket_manager
 
 logger = logging.getLogger(__name__)
@@ -392,8 +394,10 @@ async def create(  # noqa: ANN201
     if body.extra:
         all_fields = await get_extra_fields(db, EntityType.spool)
         try:
-            validate_extra_field_dict(all_fields, body.extra)
-        except ValueError as e:
+            photo_settings = await get_photo_storage_settings(db)
+            validate_extra_field_dict(all_fields, body.extra, max_images_per_field=photo_settings.max_files_per_field)
+            await db_photo.validate_extra_photo_ids(db, EntityType.spool, body.extra)
+        except (ValueError, db_photo.PhotoLinkError, ItemNotFoundError) as e:
             return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     try:
@@ -413,6 +417,10 @@ async def create(  # noqa: ANN201
             archived=body.archived,
             extra=body.extra,
         )
+        try:
+            await db_photo.apply_extra_photo_links(db, EntityType.spool, db_item.id, body.extra)
+        except (db_photo.PhotoLinkError, ItemNotFoundError) as e:
+            return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
         return Spool.from_db(db_item)
     except ItemCreateError:
         logger.exception("Failed to create spool.")
@@ -454,8 +462,10 @@ async def update(  # noqa: ANN201
     if body.extra:
         all_fields = await get_extra_fields(db, EntityType.spool)
         try:
-            validate_extra_field_dict(all_fields, body.extra)
-        except ValueError as e:
+            photo_settings = await get_photo_storage_settings(db)
+            validate_extra_field_dict(all_fields, body.extra, max_images_per_field=photo_settings.max_files_per_field)
+            await db_photo.validate_extra_photo_ids(db, EntityType.spool, body.extra, entity_id=spool_id)
+        except (ValueError, db_photo.PhotoLinkError, ItemNotFoundError) as e:
             return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     try:
@@ -470,6 +480,12 @@ async def update(  # noqa: ANN201
             status_code=400,
             content={"message": "Failed to update spool, see server logs for more information."},
         )
+
+    if body.extra is not None:
+        try:
+            await db_photo.apply_extra_photo_links(db, EntityType.spool, spool_id, body.extra)
+        except (db_photo.PhotoLinkError, ItemNotFoundError) as e:
+            return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     return Spool.from_db(db_item)
 

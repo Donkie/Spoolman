@@ -12,10 +12,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import Filament, FilamentEvent, Message, MultiColorDirection
 from spoolman.database import filament
+from spoolman.database import photo as db_photo
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
-from spoolman.exceptions import ItemDeleteError
+from spoolman.exceptions import ItemDeleteError, ItemNotFoundError
 from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
+from spoolman.photo_settings import get_photo_storage_settings
 from spoolman.ws import websocket_manager
 
 logger = logging.getLogger(__name__)
@@ -436,8 +438,10 @@ async def create(  # noqa: ANN201
     if body.extra:
         all_fields = await get_extra_fields(db, EntityType.filament)
         try:
-            validate_extra_field_dict(all_fields, body.extra)
-        except ValueError as e:
+            photo_settings = await get_photo_storage_settings(db)
+            validate_extra_field_dict(all_fields, body.extra, max_images_per_field=photo_settings.max_files_per_field)
+            await db_photo.validate_extra_photo_ids(db, EntityType.filament, body.extra)
+        except (ValueError, db_photo.PhotoLinkError, ItemNotFoundError) as e:
             return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     db_item = await filament.create(
@@ -460,6 +464,11 @@ async def create(  # noqa: ANN201
         external_id=body.external_id,
         extra=body.extra,
     )
+
+    try:
+        await db_photo.apply_extra_photo_links(db, EntityType.filament, db_item.id, body.extra)
+    except (db_photo.PhotoLinkError, ItemNotFoundError) as e:
+        return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     return Filament.from_db(db_item)
 
@@ -488,8 +497,10 @@ async def update(  # noqa: ANN201
     if body.extra:
         all_fields = await get_extra_fields(db, EntityType.filament)
         try:
-            validate_extra_field_dict(all_fields, body.extra)
-        except ValueError as e:
+            photo_settings = await get_photo_storage_settings(db)
+            validate_extra_field_dict(all_fields, body.extra, max_images_per_field=photo_settings.max_files_per_field)
+            await db_photo.validate_extra_photo_ids(db, EntityType.filament, body.extra, entity_id=filament_id)
+        except (ValueError, db_photo.PhotoLinkError, ItemNotFoundError) as e:
             return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     db_item = await filament.update(
@@ -497,6 +508,12 @@ async def update(  # noqa: ANN201
         filament_id=filament_id,
         data=patch_data,
     )
+
+    if body.extra is not None:
+        try:
+            await db_photo.apply_extra_photo_links(db, EntityType.filament, filament_id, body.extra)
+        except (db_photo.PhotoLinkError, ItemNotFoundError) as e:
+            return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     return Filament.from_db(db_item)
 

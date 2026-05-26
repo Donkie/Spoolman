@@ -13,6 +13,8 @@ from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from spoolman import env
+from spoolman.database import photo as db_photo
+from spoolman.photo_settings import get_photo_storage_settings
 from spoolman.prometheus.metrics import filament_metrics, spool_metrics
 
 logger = logging.getLogger(__name__)
@@ -155,6 +157,7 @@ class Database:
 
 
 __db: Database | None = None
+__last_photo_cleanup_date: datetime.date | None = None
 
 
 def setup_db(connection_url: URL) -> None:
@@ -198,15 +201,43 @@ async def _metrics() -> None:
     logger.debug("End metrics collection")
 
 
+async def _cleanup_orphaned_photos() -> None:
+    """Delete old orphaned photos."""
+    async for session in get_db_session():
+        settings = await get_photo_storage_settings(session)
+        cutoff = datetime.datetime.utcnow() - settings.orphan_cleanup_ttl
+        logger.info("Cleaning orphaned photos older than %s.", cutoff.isoformat(timespec="seconds"))
+        await db_photo.delete_orphaned_older_than(session, cutoff)
+
+
+async def _cleanup_orphaned_photos_if_due() -> None:
+    """Run photo cleanup when the configured daily time is reached."""
+    global __last_photo_cleanup_date  # noqa: PLW0603
+    async for session in get_db_session():
+        settings = await get_photo_storage_settings(session)
+    if not settings.orphan_cleanup_enabled:
+        return
+    now = datetime.datetime.now(datetime.UTC).astimezone()
+    if __last_photo_cleanup_date == now.date():
+        return
+    cleanup_at = now.replace(
+        hour=settings.orphan_cleanup_time.hour,
+        minute=settings.orphan_cleanup_time.minute,
+        second=0,
+        microsecond=0,
+    )
+    if now < cleanup_at:
+        return
+    await _cleanup_orphaned_photos()
+    __last_photo_cleanup_date = now.date()
+
+
 def schedule_tasks(scheduler: Scheduler) -> None:
-    """Schedule tasks to be executed by the provided scheduler.
-
-    Args:
-        scheduler: The scheduler to use for scheduling tasks.
-
-    """
+    """Schedule database tasks."""
     if __db is None:
         raise RuntimeError("DB is not setup.")
+    logger.info("Scheduling orphaned photo cleanup watcher.")
+    scheduler.minutely(datetime.time(second=0), _cleanup_orphaned_photos_if_due)  # type: ignore[arg-type]
     if env.is_metrics_enabled():
         logger.info("Scheduling automatic metric collection.")
         # Run every minute, may be needs specify timer

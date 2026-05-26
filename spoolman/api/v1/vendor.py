@@ -10,10 +10,13 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import Message, Vendor, VendorEvent
+from spoolman.database import photo as db_photo
 from spoolman.database import vendor
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
+from spoolman.exceptions import ItemNotFoundError
 from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
+from spoolman.photo_settings import get_photo_storage_settings
 from spoolman.ws import websocket_manager
 
 router = APIRouter(
@@ -212,9 +215,11 @@ async def create(  # noqa: ANN201
     if body.extra:
         all_fields = await get_extra_fields(db, EntityType.vendor)
         try:
-            validate_extra_field_dict(all_fields, body.extra)
-        except ValueError as e:
-            return JSONResponse(status_code=400, content=Message(message=str(e)).model_dump())
+            photo_settings = await get_photo_storage_settings(db)
+            validate_extra_field_dict(all_fields, body.extra, max_images_per_field=photo_settings.max_files_per_field)
+            await db_photo.validate_extra_photo_ids(db, EntityType.vendor, body.extra)
+        except (ValueError, db_photo.PhotoLinkError, ItemNotFoundError) as e:
+            return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     db_item = await vendor.create(
         db=db,
@@ -224,6 +229,11 @@ async def create(  # noqa: ANN201
         external_id=body.external_id,
         extra=body.extra,
     )
+
+    try:
+        await db_photo.apply_extra_photo_links(db, EntityType.vendor, db_item.id, body.extra)
+    except (db_photo.PhotoLinkError, ItemNotFoundError) as e:
+        return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     return Vendor.from_db(db_item)
 
@@ -252,8 +262,10 @@ async def update(  # noqa: ANN201
     if body.extra:
         all_fields = await get_extra_fields(db, EntityType.vendor)
         try:
-            validate_extra_field_dict(all_fields, body.extra)
-        except ValueError as e:
+            photo_settings = await get_photo_storage_settings(db)
+            validate_extra_field_dict(all_fields, body.extra, max_images_per_field=photo_settings.max_files_per_field)
+            await db_photo.validate_extra_photo_ids(db, EntityType.vendor, body.extra, entity_id=vendor_id)
+        except (ValueError, db_photo.PhotoLinkError, ItemNotFoundError) as e:
             return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     db_item = await vendor.update(
@@ -261,6 +273,12 @@ async def update(  # noqa: ANN201
         vendor_id=vendor_id,
         data=patch_data,
     )
+
+    if body.extra is not None:
+        try:
+            await db_photo.apply_extra_photo_links(db, EntityType.vendor, vendor_id, body.extra)
+        except (db_photo.PhotoLinkError, ItemNotFoundError) as e:
+            return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     return Vendor.from_db(db_item)
 

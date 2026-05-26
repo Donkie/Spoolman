@@ -4,13 +4,18 @@ ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
 ENV UV_NO_DEV=1
 ENV UV_PYTHON_DOWNLOADS=0
+ENV UV_INDEX_URL=https://pypi.org/simple
+ENV UV_DEFAULT_INDEX=https://pypi.org/simple
+ENV PIP_INDEX_URL=https://pypi.org/simple
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     g++ \
     python3-dev \
+    pkg-config \
     libpq-dev \
     libffi-dev \
+    libvips-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -19,13 +24,13 @@ RUN pip install --no-cache-dir uv
 
 # Install dependencies
 WORKDIR /home/app/spoolman
+COPY pyproject.toml uv.lock /home/app/spoolman/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --locked --no-install-project
 
 # Copy and install app
 COPY --chown=app:app migrations /home/app/spoolman/migrations
+COPY --chown=app:app scripts /home/app/spoolman/scripts
 COPY --chown=app:app spoolman /home/app/spoolman/spoolman
 COPY --chown=app:app alembic.ini README.md uv.lock pyproject.toml /home/app/spoolman/
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -40,6 +45,7 @@ LABEL org.opencontainers.image.licenses=MIT
 # Install gosu for privilege dropping
 RUN apt-get update && apt-get install -y \
     gosu \
+    libvips42 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

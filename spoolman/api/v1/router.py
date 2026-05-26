@@ -4,6 +4,7 @@
 
 import asyncio
 import logging
+import traceback
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
@@ -15,7 +16,7 @@ from spoolman.database.database import backup_global_db
 from spoolman.exceptions import ItemNotFoundError
 from spoolman.ws import websocket_manager
 
-from . import export, externaldb, field, filament, models, other, setting, spool, vendor
+from . import export, externaldb, field, filament, models, other, photo, setting, spool, vendor
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,19 @@ async def itemnotfounderror_exception_handler(_request: Request, exc: ItemNotFou
     return JSONResponse(
         status_code=404,
         content={"message": exc.args[0]},
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(_request: Request, exc: Exception) -> Response:
+    logger.exception("Unhandled API error")
+    return JSONResponse(
+        status_code=500,
+        content={
+            "message": str(exc) or exc.__class__.__name__,
+            "exception": exc.__class__.__name__,
+            "traceback": traceback.format_exc(),
+        },
     )
 
 
@@ -109,6 +123,7 @@ app.include_router(spool.router)
 app.include_router(vendor.router)
 app.include_router(setting.router)
 app.include_router(field.router)
+app.include_router(photo.router)
 app.include_router(other.router)
 app.include_router(externaldb.router)
 app.include_router(export.router)

@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy import ForeignKey, Integer, LargeBinary, String, Text
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -26,6 +26,10 @@ class Vendor(Base):
         back_populates="vendor",
         cascade="save-update, merge, delete, delete-orphan",
         lazy="joined",
+    )
+    photos: Mapped[list["VendorPhoto"]] = relationship(
+        back_populates="vendor",
+        cascade="save-update, merge, delete, delete-orphan",
     )
 
 
@@ -57,6 +61,10 @@ class Filament(Base):
         cascade="save-update, merge, delete, delete-orphan",
         lazy="joined",
     )
+    photos: Mapped[list["FilamentPhoto"]] = relationship(
+        back_populates="filament",
+        cascade="save-update, merge, delete, delete-orphan",
+    )
 
 
 class Spool(Base):
@@ -80,6 +88,10 @@ class Spool(Base):
         back_populates="spool",
         cascade="save-update, merge, delete, delete-orphan",
         lazy="joined",
+    )
+    photos: Mapped[list["SpoolPhoto"]] = relationship(
+        back_populates="spool",
+        cascade="save-update, merge, delete, delete-orphan",
     )
 
 
@@ -116,3 +128,66 @@ class SpoolField(Base):
     spool: Mapped["Spool"] = relationship(back_populates="extra")
     key: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
     value: Mapped[str] = mapped_column(Text())
+
+
+class PhotoFile(Base):
+    __tablename__ = "photo_file"
+    __table_args__ = {"sqlite_autoincrement": True}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    registered: Mapped[datetime] = mapped_column()
+    filename: Mapped[str] = mapped_column(String(256))
+    content_type: Mapped[str] = mapped_column(String(64))
+    original_content_type: Mapped[str | None] = mapped_column(String(64))
+    size_bytes: Mapped[int] = mapped_column(Integer)
+    original_size_bytes: Mapped[int] = mapped_column(Integer)
+    width: Mapped[int | None] = mapped_column(Integer)
+    height: Mapped[int | None] = mapped_column(Integer)
+    sha256: Mapped[str] = mapped_column(String(64), index=True)
+    chunks: Mapped[list["PhotoFileChunk"]] = relationship(
+        back_populates="photo_file",
+        cascade="save-update, merge, delete, delete-orphan",
+        order_by="PhotoFileChunk.chunk_index",
+    )
+
+
+class PhotoFileChunk(Base):
+    __tablename__ = "photo_file_chunk"
+
+    photo_file_id: Mapped[int] = mapped_column(ForeignKey("photo_file.id"), primary_key=True, index=True)
+    photo_file: Mapped["PhotoFile"] = relationship(back_populates="chunks")
+    chunk_index: Mapped[int] = mapped_column(Integer, primary_key=True)
+    data: Mapped[bytes] = mapped_column(LargeBinary(length=49152))
+
+
+class VendorPhoto(Base):
+    __tablename__ = "vendor_photo"
+
+    vendor_id: Mapped[int] = mapped_column(ForeignKey("vendor.id"), primary_key=True, index=True)
+    vendor: Mapped["Vendor"] = relationship(back_populates="photos")
+    field_key: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
+    photo_file_id: Mapped[int] = mapped_column(ForeignKey("photo_file.id"), primary_key=True, index=True)
+    photo_file: Mapped["PhotoFile"] = relationship()
+    sort_order: Mapped[int] = mapped_column(Integer)
+
+
+class FilamentPhoto(Base):
+    __tablename__ = "filament_photo"
+
+    filament_id: Mapped[int] = mapped_column(ForeignKey("filament.id"), primary_key=True, index=True)
+    filament: Mapped["Filament"] = relationship(back_populates="photos")
+    field_key: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
+    photo_file_id: Mapped[int] = mapped_column(ForeignKey("photo_file.id"), primary_key=True, index=True)
+    photo_file: Mapped["PhotoFile"] = relationship()
+    sort_order: Mapped[int] = mapped_column(Integer)
+
+
+class SpoolPhoto(Base):
+    __tablename__ = "spool_photo"
+
+    spool_id: Mapped[int] = mapped_column(ForeignKey("spool.id"), primary_key=True, index=True)
+    spool: Mapped["Spool"] = relationship(back_populates="photos")
+    field_key: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
+    photo_file_id: Mapped[int] = mapped_column(ForeignKey("photo_file.id"), primary_key=True, index=True)
+    photo_file: Mapped["PhotoFile"] = relationship()
+    sort_order: Mapped[int] = mapped_column(Integer)
