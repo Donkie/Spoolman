@@ -345,7 +345,9 @@
                 "float_range": "Float Range",
                 "datetime": "Datetime",
                 "boolean": "Boolean",
-                "choice": "Choice"
+                "choice": "Choice",
+                "photo": "Photo",
+                "photo_url": "Photo URL"
             },
             "boolean_true": "Yes",
             "boolean_false": "No",
@@ -354,6 +356,34 @@
             "key_not_changed": "Please change the key to something else.",
             "delete_confirm": "Delete field {{name}}?",
             "delete_confirm_description": "This will delete the field and all associated data for all entities."
+        },
+        "photo": {
+            "tab": "Photos",
+            "hours": "hours",
+            "photo_max_files_per_field": {
+                "label": "Max photos per field",
+                "tooltip": "Maximum number of uploaded photos or photo links allowed in one photo extra field."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Max original photo size",
+                "tooltip": "Maximum original upload size before server-side streaming compression."
+            },
+            "photo_allowed_content_types": {
+                "label": "Allowed photo MIME types",
+                "tooltip": "Image MIME types accepted by the backend and frontend before compression."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Clean up orphaned photos",
+                "tooltip": "Delete uploaded photos that were not linked to a vendor, filament, or spool."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Cleanup time",
+                "tooltip": "Daily server-local time when orphaned photo cleanup may run."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Orphan age before cleanup",
+                "tooltip": "Minimum age of an unlinked photo before it can be deleted."
+            }
         }
     },
     "documentTitle": {
@@ -395,5 +425,20 @@
         "new_location": "New Location",
         "no_location": "No Location",
         "no_locations_help": "This page lets you organize your spools in locations, add some spools to get started!"
+    },
+    "photo_fields": {
+        "empty": "No photos",
+        "upload_text": "Click or drag photos here",
+        "upload_hint": "Up to {{count}} photos, image files only, {{size}} MB before server compression.",
+        "add": "Add",
+        "delete": "Delete photo",
+        "validation": {
+            "only_photo": "Only photo files can be uploaded.",
+            "max_size": "Photo is larger than the configured limit.",
+            "max_count": "No more than {{count}} photos can be attached to one photo field.",
+            "max_url_count": "No more than {{count}} photo links can be attached to one field.",
+            "absolute_url": "Enter an absolute http(s) photo URL.",
+            "unsupported_type": "This photo type is not allowed."
+        }
     }
 }

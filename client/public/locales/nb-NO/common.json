@@ -397,7 +397,9 @@
                 "float_range": "Desimalområde",
                 "datetime": "Dato/Tid",
                 "boolean": "Ja/Nei",
-                "choice": "Valg"
+                "choice": "Valg",
+                "photo": "Foto",
+                "photo_url": "Bilde-URL"
             },
             "boolean_true": "Ja",
             "boolean_false": "Nei",
@@ -406,6 +408,49 @@
             "key_not_changed": "Nøkkelen kan ikke endres.",
             "delete_confirm": "Slette felt {{name}}?",
             "delete_confirm_description": "Dette vil fjerne feltet permanent fra systemet."
+        },
+        "photo": {
+            "tab": "Bilder",
+            "hours": "t",
+            "photo_max_files_per_field": {
+                "label": "Maks bilder per felt",
+                "tooltip": "Maksimalt antall opplastede bilder eller bildelenker i ett bildefelt."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Maks original bildestørrelse",
+                "tooltip": "Maksimal opplastingsstørrelse før strømmende komprimering på serveren."
+            },
+            "photo_allowed_content_types": {
+                "label": "Tillatte bilde-MIME-typer",
+                "tooltip": "Bilde-MIME-typer som frontend og backend godtar før komprimering."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Rydd opp foreldreløse bilder",
+                "tooltip": "Slett bilder som ikke er koblet til produsent, filament eller spole."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Ryddetid",
+                "tooltip": "Daglig servertid for opprydding av foreldreløse bilder."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Alder før opprydding",
+                "tooltip": "Minimumsalder for et ikke-koblet bilde før sletting."
+            }
+        }
+    },
+    "photo_fields": {
+        "empty": "Ingen bilder",
+        "upload_text": "Klikk eller dra bilder hit",
+        "upload_hint": "Opptil {{count}} bilder, bare bildefiler, {{size}} MB før serverkomprimering.",
+        "add": "Legg til",
+        "delete": "Slett bilde",
+        "validation": {
+            "only_photo": "Kun bildefiler kan lastes opp.",
+            "max_size": "Bildet er større enn konfigurert grense.",
+            "max_count": "Det kan ikke legges ved mer enn {{count}} bilder i ett bildefelt.",
+            "max_url_count": "Det kan ikke legges ved mer enn {{count}} bildelenker i ett felt.",
+            "absolute_url": "Angi en absolutt http(s)-URL til bildet.",
+            "unsupported_type": "Denne bildetypen er ikke tillatt."
         }
     }
 }

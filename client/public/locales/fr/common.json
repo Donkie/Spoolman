@@ -374,7 +374,9 @@
                 "datetime": "Date et heure",
                 "boolean": "Booléen",
                 "integer_range": "Plage d'entier",
-                "float": "Décimal"
+                "float": "Décimal",
+                "photo": "Photo",
+                "photo_url": "URL de photo"
             },
             "tab": "Champs additionnel",
             "boolean_true": "Oui",
@@ -396,6 +398,34 @@
                 "label": "Base de l'URL",
                 "tooltip": "La base de l'URL à utiliser lors de la génération de QR codes."
             }
+        },
+        "photo": {
+            "tab": "Photos",
+            "hours": "h",
+            "photo_max_files_per_field": {
+                "label": "Photos max. par champ",
+                "tooltip": "Nombre maximal de photos téléversées ou de liens photo dans un champ photo."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Taille max. de la photo originale",
+                "tooltip": "Taille maximale avant compression en flux côté serveur."
+            },
+            "photo_allowed_content_types": {
+                "label": "Types MIME photo autorisés",
+                "tooltip": "Types MIME image acceptés par le frontend et le backend avant compression."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Nettoyer les photos orphelines",
+                "tooltip": "Supprimer les photos non liées à un fabricant, un filament ou une bobine."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Heure du nettoyage",
+                "tooltip": "Heure quotidienne du serveur pour lancer le nettoyage des photos orphelines."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Âge avant nettoyage",
+                "tooltip": "Âge minimal d’une photo non liée avant suppression."
+            }
         }
     },
     "locations": {
@@ -403,5 +433,20 @@
         "new_location": "Créer un emplacement",
         "no_location": "Pas de localisation",
         "no_locations_help": "Cette page vous permet d'organiser vos bobines par lieu, ajoutez une bobine pour commencer !"
+    },
+    "photo_fields": {
+        "empty": "Aucune photo",
+        "upload_text": "Cliquez ou déposez des photos ici",
+        "upload_hint": "Jusqu’à {{count}} photos, images uniquement, {{size}} Mo avant compression serveur.",
+        "add": "Ajouter",
+        "delete": "Supprimer la photo",
+        "validation": {
+            "only_photo": "Seuls les fichiers photo peuvent être envoyés.",
+            "max_size": "La photo dépasse la limite configurée.",
+            "max_count": "Un champ photo ne peut contenir que {{count}} photos maximum.",
+            "max_url_count": "Un champ ne peut contenir que {{count}} liens photo maximum.",
+            "absolute_url": "Saisissez une URL http(s) absolue vers la photo.",
+            "unsupported_type": "Ce type de photo n’est pas autorisé."
+        }
     }
 }

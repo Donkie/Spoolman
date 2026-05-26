@@ -346,7 +346,9 @@
                 "float_range": "Realūs skaičiai",
                 "datetime": "Data Laikas",
                 "boolean": "Loginis",
-                "choice": "Pasirinkimas"
+                "choice": "Pasirinkimas",
+                "photo": "Nuotrauka",
+                "photo_url": "Nuotraukos URL"
             },
             "boolean_true": "Taip",
             "boolean_false": "Ne",
@@ -355,6 +357,34 @@
             "key_not_changed": "Prašome pakeisti raktą į ką nors kitą.",
             "delete_confirm": "Šalinti lauką {{name}}?",
             "delete_confirm_description": "Tai ištrins lauką ir visus susijusius duomenis visiems objektams."
+        },
+        "photo": {
+            "tab": "Nuotraukos",
+            "hours": "val.",
+            "photo_max_files_per_field": {
+                "label": "Maks. nuotraukų lauke",
+                "tooltip": "Maksimalus įkeltų nuotraukų arba nuotraukų nuorodų skaičius viename nuotraukų lauke."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Maks. pradinės nuotraukos dydis",
+                "tooltip": "Maksimalus įkėlimo dydis prieš srautinį suspaudimą serveryje."
+            },
+            "photo_allowed_content_types": {
+                "label": "Leidžiami nuotraukų MIME tipai",
+                "tooltip": "Vaizdų MIME tipai, kuriuos frontend ir backend priima prieš suspaudimą."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Valyti našlaites nuotraukas",
+                "tooltip": "Trinti nuotraukas, nesusietas su gamintoju, filamentu ar rite."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Valymo laikas",
+                "tooltip": "Kasdienis serverio laikas našlaičių nuotraukų valymui."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Amžius prieš valymą",
+                "tooltip": "Minimalus nesusietos nuotraukos amžius prieš trynimą."
+            }
         }
     },
     "documentTitle": {
@@ -396,5 +426,20 @@
         "new_location": "Nauja vieta",
         "no_location": "Be vietos",
         "no_locations_help": "Šiame puslapyje galite tvarkyti rites pagal vietas, pridėkite keletą ričių, kad pradėtumėte!"
+    },
+    "photo_fields": {
+        "empty": "Nessuna foto",
+        "upload_text": "Fai clic o trascina qui le foto",
+        "upload_hint": "Fino a {{count}} foto, solo immagini, {{size}} MB prima della compressione sul server.",
+        "add": "Aggiungi",
+        "delete": "Elimina foto",
+        "validation": {
+            "only_photo": "È possibile caricare solo file fotografici.",
+            "max_size": "La foto supera il limite configurato.",
+            "max_count": "A un campo foto possono essere allegate al massimo {{count}} foto.",
+            "max_url_count": "A un campo possono essere allegati al massimo {{count}} link a foto.",
+            "absolute_url": "Inserisci un URL assoluto della foto con http(s).",
+            "unsupported_type": "Questo tipo di foto non è consentito."
+        }
     }
 }

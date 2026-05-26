@@ -387,7 +387,9 @@
                 "float_range": "Bereik van kommagetallen",
                 "datetime": "Datum/tijd",
                 "boolean": "Booleaanse waarde",
-                "choice": "Keuze"
+                "choice": "Keuze",
+                "photo": "Foto",
+                "photo_url": "Foto-URL"
             },
             "boolean_true": "Ja",
             "boolean_false": "Nee",
@@ -398,12 +400,55 @@
             "delete_confirm_description": "Hierdoor worden het veld en alle bijbehorende gegevens voor alle entiteiten verwijderd.",
             "description": "<p>Hier kunt u extra aangepaste velden toevoegen aan uw entiteiten.</p><p>Zodra een veld is toegevoegd, kunt u de key of het type ervan niet wijzigen, en voor velden met keuzetypes kunt u geen keuzes verwijderen of de meervoudige velden wijzigen. Als u een veld verwijdert, worden de bijbehorende gegevens voor alle entiteiten verwijderd.</p><p>De key is hoe andere programma's de gegevens lezen/schrijven, dus of uw aangepaste veld moet worden geïntegreerd met een derde partij programma, zorg ervoor dat u het correct instelt. De standaardwaarde wordt alleen toegepast op nieuwe items.</p><p>Extra velden kunnen niet worden gesorteerd of gefilterd in de tabelweergaven.</p>"
         },
-        "settings": "Instellingen"
+        "settings": "Instellingen",
+        "photo": {
+            "tab": "Foto’s",
+            "hours": "uur",
+            "photo_max_files_per_field": {
+                "label": "Max. foto’s per veld",
+                "tooltip": "Maximum aantal geüploade foto’s of fotolinks in één fotoveld."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Max. grootte originele foto",
+                "tooltip": "Maximale uploadgrootte vóór server-side streamingcompressie."
+            },
+            "photo_allowed_content_types": {
+                "label": "Toegestane foto-MIME-types",
+                "tooltip": "Afbeelding-MIME-types die frontend en backend vóór compressie accepteren."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Weesfoto’s opruimen",
+                "tooltip": "Verwijder foto’s die niet aan fabrikant, filament of spoel zijn gekoppeld."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Opruimtijd",
+                "tooltip": "Dagelijkse servertijd voor het opruimen van weesfoto’s."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Leeftijd vóór opruimen",
+                "tooltip": "Minimale leeftijd van een niet-gekoppelde foto vóór verwijdering."
+            }
+        }
     },
     "locations": {
         "no_location": "Geen locatie",
         "no_locations_help": "Op deze pagina kunt u uw spoelen op verschillende locaties ordenen. Voeg spoelen toe om aan de slag te gaan!",
         "locations": "Locaties",
         "new_location": "Nieuwe locatie"
+    },
+    "photo_fields": {
+        "empty": "Geen foto’s",
+        "upload_text": "Klik of sleep foto’s hierheen",
+        "upload_hint": "Tot {{count}} foto’s, alleen afbeeldingen, {{size}} MB vóór servercompressie.",
+        "add": "Toevoegen",
+        "delete": "Foto verwijderen",
+        "validation": {
+            "only_photo": "Alleen fotobestanden kunnen worden geüpload.",
+            "max_size": "De foto is groter dan de ingestelde limiet.",
+            "max_count": "Aan één fotoveld kunnen maximaal {{count}} foto’s worden gekoppeld.",
+            "max_url_count": "Aan één veld kunnen maximaal {{count}} fotolinks worden gekoppeld.",
+            "absolute_url": "Voer een absolute http(s)-foto-URL in.",
+            "unsupported_type": "Dit fototype is niet toegestaan."
+        }
     }
 }

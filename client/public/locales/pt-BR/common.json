@@ -346,7 +346,9 @@
                 "float_range": "Intervalo Decimal",
                 "datetime": "Data e Hora",
                 "boolean": "Booleano",
-                "choice": "Opção"
+                "choice": "Opção",
+                "photo": "Foto",
+                "photo_url": "URL da foto"
             },
             "boolean_true": "Sim",
             "boolean_false": "Não",
@@ -355,6 +357,34 @@
             "key_not_changed": "Por favor, escolha outra chave.",
             "delete_confirm": "Apagar o campo {{name}}?",
             "delete_confirm_description": "Isso excluirá o campo e todos os dados associados em todas as entidades."
+        },
+        "photo": {
+            "tab": "Fotos",
+            "hours": "h",
+            "photo_max_files_per_field": {
+                "label": "Máx. fotos por campo",
+                "tooltip": "Número máximo de fotos enviadas ou links de foto em um campo de foto."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Tamanho máx. da foto original",
+                "tooltip": "Tamanho máximo antes da compressão em fluxo no servidor."
+            },
+            "photo_allowed_content_types": {
+                "label": "Tipos MIME de foto permitidos",
+                "tooltip": "Tipos MIME de imagem aceitos pelo frontend e backend antes da compressão."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Limpar fotos órfãs",
+                "tooltip": "Excluir fotos não vinculadas a fabricante, filamento ou carretel."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Hora da limpeza",
+                "tooltip": "Hora diária do servidor para limpar fotos órfãs."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Idade antes da limpeza",
+                "tooltip": "Idade mínima de uma foto não vinculada antes da exclusão."
+            }
         }
     },
     "documentTitle": {
@@ -396,5 +426,20 @@
         "new_location": "Novo Local",
         "no_location": "Sem Local",
         "no_locations_help": "Esta página permite que você organize seus carretéis em locais, adicione alguns carretéis para começar!"
+    },
+    "photo_fields": {
+        "empty": "Sem fotos",
+        "upload_text": "Clique ou arraste fotos aqui",
+        "upload_hint": "Até {{count}} fotos, apenas imagens, {{size}} MB antes da compressão do servidor.",
+        "add": "Adicionar",
+        "delete": "Excluir foto",
+        "validation": {
+            "only_photo": "Só é possível enviar arquivos de imagem.",
+            "max_size": "A foto excede o limite configurado.",
+            "max_count": "Não é possível anexar mais de {{count}} fotos a um campo de foto.",
+            "max_url_count": "Não é possível anexar mais de {{count}} links de foto a um campo.",
+            "absolute_url": "Informe uma URL absoluta http(s) da foto.",
+            "unsupported_type": "Este tipo de foto não é permitido."
+        }
     }
 }

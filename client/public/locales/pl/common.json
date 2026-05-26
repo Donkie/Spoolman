@@ -392,7 +392,9 @@
                 "text": "Tekst",
                 "float_range": "Zakres",
                 "datetime": "Data i Czas",
-                "boolean": "Wartość logiczna"
+                "boolean": "Wartość logiczna",
+                "photo": "Zdjęcia",
+                "photo_url": "URL zdjęcia"
             },
             "non_unique_key_error": "Klucz musi być unikalny.",
             "description": "<p>Tutaj możesz dodać dodatkowe pola niestandardowe do swoich podmiotów.</p><p>Po dodaniu pola nie można zmienić jego klucza ani typu, a w przypadku pól typu wyboru nie można usunąć wyborów ani zmienić stanu wielokrotnego wyboru. Jeśli usuniesz pole, powiązane dane dla wszystkich podmiotów zostaną usunięte.</p><p>Klucz jest tym, co inne programy odczytują/zapisują jako dane, więc jeśli twoje niestandardowe pole ma być zintegrowane z programem innej firmy, upewnij się, że ustawiłeś je poprawnie. Wartość domyślna jest stosowana tylko do nowych elementów.</p><p>Dodatkowych pól nie można sortować ani filtrować w widokach tabeli.</p>",
@@ -401,12 +403,55 @@
             "delete_confirm": "Usunąć pole {{name}}?",
             "delete_confirm_description": "Ta akcja usunie wszystkie pola i powiązane z nimi dane dla wszystkich obiektów."
         },
-        "header": "Ustawienia"
+        "header": "Ustawienia",
+        "photo": {
+            "tab": "Zdjęcia",
+            "hours": "godz.",
+            "photo_max_files_per_field": {
+                "label": "Maks. zdjęć na pole",
+                "tooltip": "Maksymalna liczba przesłanych zdjęć lub linków do zdjęć w jednym polu zdjęcia."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Maks. rozmiar oryginalnego zdjęcia",
+                "tooltip": "Maksymalny rozmiar przed strumieniową kompresją po stronie serwera."
+            },
+            "photo_allowed_content_types": {
+                "label": "Dozwolone typy MIME zdjęć",
+                "tooltip": "Typy MIME obrazów akceptowane przez frontend i backend przed kompresją."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Czyść osierocone zdjęcia",
+                "tooltip": "Usuwaj zdjęcia niepowiązane z producentem, filamentem lub szpulą."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Godzina czyszczenia",
+                "tooltip": "Codzienny czas serwera dla czyszczenia osieroconych zdjęć."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Wiek przed czyszczeniem",
+                "tooltip": "Minimalny wiek niepowiązanego zdjęcia przed usunięciem."
+            }
+        }
     },
     "locations": {
         "locations": "Lokalizacje",
         "new_location": "Nowa lokalizacja",
         "no_location": "Brak lokalizacji",
         "no_locations_help": "Ta strona pozwala uporządkować szpule w lokalizacjach, dodaj kilka szpul aby rozpocząć!"
+    },
+    "photo_fields": {
+        "empty": "Brak zdjęć",
+        "upload_text": "Kliknij lub przeciągnij zdjęcia tutaj",
+        "upload_hint": "Do {{count}} zdjęć, tylko obrazy, {{size}} MB przed kompresją serwera.",
+        "add": "Dodaj",
+        "delete": "Usuń zdjęcie",
+        "validation": {
+            "only_photo": "Można przesyłać tylko pliki zdjęć.",
+            "max_size": "Zdjęcie przekracza skonfigurowany limit.",
+            "max_count": "Do jednego pola zdjęć można dołączyć maksymalnie {{count}} zdjęć.",
+            "max_url_count": "Do jednego pola można dołączyć maksymalnie {{count}} linków do zdjęć.",
+            "absolute_url": "Podaj bezwzględny adres URL http(s) zdjęcia.",
+            "unsupported_type": "Ten typ zdjęcia nie jest dozwolony."
+        }
     }
 }

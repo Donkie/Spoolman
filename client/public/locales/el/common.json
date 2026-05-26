@@ -310,7 +310,9 @@
                 "boolean": "Πρόσθετο πεδίο τύπου \"Boolean\", Ναι/Όχι",
                 "integer": "\"Integer\" πληκτρολογήστε επιπλέον πεδίο, ακέραιο αριθμό χωρίς δεκαδικούς αριθμούς",
                 "float": "\"Float\" πληκτρολογήστε επιπλέον πεδίο, έναν αριθμό με δεκαδικούς αριθμούς",
-                "integer_range": "\"Integer Range\" πληκτρολογήστε επιπλέον πεδίο, ένα εύρος δύο ακέραιων αριθμών χωρίς δεκαδικoύς αριθμούς"
+                "integer_range": "\"Integer Range\" πληκτρολογήστε επιπλέον πεδίο, ένα εύρος δύο ακέραιων αριθμών χωρίς δεκαδικoύς αριθμούς",
+                "photo": "Φωτογραφία",
+                "photo_url": "URL φωτογραφίας"
             },
             "non_unique_key_error": "Το κλειδί πρέπει να είναι μοναδικό.",
             "key_not_changed": "Παρακαλώ αλλάξτε το κλειδί σε κάποιο άλλο.",
@@ -329,6 +331,49 @@
             }
         },
         "header": "Ρυθμίσεις",
-        "settings": "Ρυθμίσεις"
+        "settings": "Ρυθμίσεις",
+        "photo": {
+            "tab": "Φωτογραφίες",
+            "hours": "ώρες",
+            "photo_max_files_per_field": {
+                "label": "Μέγ. φωτογραφίες ανά πεδίο",
+                "tooltip": "Μέγιστος αριθμός ανεβασμένων φωτογραφιών ή συνδέσμων φωτογραφίας σε ένα πεδίο."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Μέγ. μέγεθος αρχικής φωτογραφίας",
+                "tooltip": "Μέγιστο μέγεθος ανεβάσματος πριν από τη συμπίεση ροής στον server."
+            },
+            "photo_allowed_content_types": {
+                "label": "Επιτρεπόμενοι MIME τύποι φωτογραφίας",
+                "tooltip": "MIME τύποι εικόνων που δέχονται frontend και backend πριν τη συμπίεση."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Καθαρισμός ορφανών φωτογραφιών",
+                "tooltip": "Διαγραφή φωτογραφιών που δεν συνδέονται με κατασκευαστή, filament ή καρούλι."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Ώρα καθαρισμού",
+                "tooltip": "Ημερήσια ώρα server για καθαρισμό ορφανών φωτογραφιών."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Ηλικία πριν τον καθαρισμό",
+                "tooltip": "Ελάχιστη ηλικία μη συνδεδεμένης φωτογραφίας πριν διαγραφεί."
+            }
+        }
+    },
+    "photo_fields": {
+        "empty": "No photos",
+        "upload_text": "Click or drag photos here",
+        "upload_hint": "Έως {{count}} φωτογραφίες, μόνο εικόνες, {{size}} MB πριν τη συμπίεση server.",
+        "add": "Add",
+        "delete": "Delete photo",
+        "validation": {
+            "only_photo": "Only photo files can be uploaded.",
+            "max_size": "Η φωτογραφία υπερβαίνει το ρυθμισμένο όριο.",
+            "max_count": "No more than {{count}} photos can be attached to one photo field.",
+            "max_url_count": "No more than {{count}} photo links can be attached to one field.",
+            "absolute_url": "Enter an absolute http(s) photo URL.",
+            "unsupported_type": "Αυτός ο τύπος φωτογραφίας δεν επιτρέπεται."
+        }
     }
 }

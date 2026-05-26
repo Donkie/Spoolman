@@ -13,5 +13,56 @@
         "confirm": "Kya aapko pakka hai?",
         "continue": "Aage badhen",
         "show": "Dikhayen"
+    },
+    "photo_fields": {
+        "empty": "No photos",
+        "upload_text": "Click or drag photos here",
+        "upload_hint": "{{count}} photos tak, sirf images, server compression se pehle {{size}} MB.",
+        "add": "Add",
+        "delete": "Delete photo",
+        "validation": {
+            "only_photo": "Only photo files can be uploaded.",
+            "max_size": "Photo configured limit se bada hai.",
+            "max_count": "No more than {{count}} photos can be attached to one photo field.",
+            "max_url_count": "No more than {{count}} photo links can be attached to one field.",
+            "absolute_url": "Enter an absolute http(s) photo URL.",
+            "unsupported_type": "Ye photo type allowed nahi hai."
+        }
+    },
+    "settings": {
+        "extra_fields": {
+            "field_type": {
+                "photo_url": "Photo URL"
+            }
+        },
+        "general": {},
+        "photo": {
+            "tab": "Photos",
+            "hours": "ghante",
+            "photo_max_files_per_field": {
+                "label": "Har field me max photos",
+                "tooltip": "Ek photo field me upload photos ya photo links ki maximum sankhya."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Original photo ka max size",
+                "tooltip": "Server-side streaming compression se pehle maximum upload size."
+            },
+            "photo_allowed_content_types": {
+                "label": "Allowed photo MIME types",
+                "tooltip": "Compression se pehle frontend aur backend dwara accepted image MIME types."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Orphan photos clean karein",
+                "tooltip": "Vendor, filament ya spool se linked na hone wale photos delete karein."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Cleanup time",
+                "tooltip": "Orphan photo cleanup ke liye daily server-local time."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Cleanup se pehle age",
+                "tooltip": "Unlinked photo delete hone se pehle minimum age."
+            }
+        }
     }
 }

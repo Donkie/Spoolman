@@ -62,5 +62,56 @@
         "generic": {
             "title": "Trükkib"
         }
+    },
+    "photo_fields": {
+        "empty": "No photos",
+        "upload_text": "Click or drag photos here",
+        "upload_hint": "Kuni {{count}} fotot, ainult pildid, {{size}} MB enne serveri tihendust.",
+        "add": "Add",
+        "delete": "Delete photo",
+        "validation": {
+            "only_photo": "Only photo files can be uploaded.",
+            "max_size": "Foto ületab seadistatud limiidi.",
+            "max_count": "No more than {{count}} photos can be attached to one photo field.",
+            "max_url_count": "No more than {{count}} photo links can be attached to one field.",
+            "absolute_url": "Enter an absolute http(s) photo URL.",
+            "unsupported_type": "See fototüüp pole lubatud."
+        }
+    },
+    "settings": {
+        "extra_fields": {
+            "field_type": {
+                "photo_url": "Foto URL"
+            }
+        },
+        "general": {},
+        "photo": {
+            "tab": "Fotod",
+            "hours": "t",
+            "photo_max_files_per_field": {
+                "label": "Maks. fotosid välja kohta",
+                "tooltip": "Maksimaalne üleslaaditud fotode või fotolinkide arv ühes fotoväljas."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Algse foto maks. suurus",
+                "tooltip": "Maksimaalne üleslaadimise suurus enne serveripoolset voogkompressiooni."
+            },
+            "photo_allowed_content_types": {
+                "label": "Lubatud foto MIME-tüübid",
+                "tooltip": "Pildi MIME-tüübid, mida frontend ja backend enne tihendamist lubavad."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Puhasta sidumata fotod",
+                "tooltip": "Kustuta fotod, mis pole seotud tootja, filamendi või pooliga."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Puhastuse aeg",
+                "tooltip": "Igapäevane serveri aeg sidumata fotode puhastamiseks."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Vanus enne puhastust",
+                "tooltip": "Sidumata foto minimaalne vanus enne kustutamist."
+            }
+        }
     }
 }

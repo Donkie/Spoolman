@@ -338,7 +338,9 @@
                 "choice": "選択肢",
                 "integer_range": "数値範囲",
                 "text": "テキスト",
-                "integer": "整数"
+                "integer": "整数",
+                "photo": "写真",
+                "photo_url": "写真 URL"
             },
             "boolean_true": "はい",
             "key_not_changed": "別のキーに変更してください。",
@@ -348,6 +350,34 @@
             "description": "<p>ここで追加のカスタムフィールドを追加できます。</p><p>フィールドを追加すると、そのキーやタイプを変更することはできません。また、選択肢タイプのフィールドでは、選択肢の削除や複数選択の状態を変更することはできません。フィールドを削除すると、すべてのエンティティの関連データが削除されます。</p><p>キーは他のプログラムがデータを読み書きする際に使用するものなので、カスタムフィールドがサードパーティのプログラムと連携する予定がある場合は、正しく設定してください。デフォルト値は新しいアイテムにのみ適用されます。</p><p>追加フィールドはテーブルビューで並べ替えやフィルタリングすることはできません。</p>",
             "choices_missing_error": "選択肢を削除できません。下記の選択肢がありません: {{choices}}",
             "non_unique_key_error": "キーは一意の値である必要があります。"
+        },
+        "photo": {
+            "tab": "写真",
+            "hours": "時間",
+            "photo_max_files_per_field": {
+                "label": "フィールドごとの最大写真数",
+                "tooltip": "1つの写真フィールドに追加できるアップロード写真または写真リンクの最大数。"
+            },
+            "photo_max_upload_size_mb": {
+                "label": "元写真の最大サイズ",
+                "tooltip": "サーバー側ストリーミング圧縮前の最大アップロードサイズ。"
+            },
+            "photo_allowed_content_types": {
+                "label": "許可する写真 MIME タイプ",
+                "tooltip": "圧縮前にフロントエンドとバックエンドが受け付ける画像 MIME タイプ。"
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "孤立写真を削除",
+                "tooltip": "メーカー、フィラメント、スプールに関連付けられていない写真を削除します。"
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "削除時刻",
+                "tooltip": "孤立写真の削除を実行するサーバーの毎日時刻。"
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "削除までの経過時間",
+                "tooltip": "未関連付け写真を削除できる最小経過時間。"
+            }
         }
     },
     "documentTitle": {
@@ -392,5 +422,20 @@
     },
     "home": {
         "home": "ホーム"
+    },
+    "photo_fields": {
+        "empty": "写真がありません",
+        "upload_text": "写真をクリックまたはドラッグしてください",
+        "upload_hint": "最大 {{count}} 枚、画像のみ、サーバー圧縮前 {{size}} MB。",
+        "add": "追加",
+        "delete": "写真を削除",
+        "validation": {
+            "only_photo": "写真ファイルのみアップロードできます。",
+            "max_size": "写真が設定された上限を超えています。",
+            "max_count": "1つの写真フィールドに添付できる写真は最大{{count}}枚です。",
+            "max_url_count": "1つのフィールドに添付できる写真リンクは最大{{count}}件です。",
+            "absolute_url": "絶対 http(s) 写真URLを入力してください。",
+            "unsupported_type": "この写真タイプは許可されていません。"
+        }
     }
 }

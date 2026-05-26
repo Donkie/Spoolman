@@ -345,7 +345,9 @@
                 "boolean": "Boolean (Ja/Nej)",
                 "choice": "Valg",
                 "text": "Tekst",
-                "integer": "Heltal"
+                "integer": "Heltal",
+                "photo": "Foto",
+                "photo_url": "Foto-URL"
             },
             "choices_missing_error": "Du kan ikke fjerne valg. De følgende valg mangler: {{choices}}",
             "tab": "Ekstra felter",
@@ -357,6 +359,49 @@
             "delete_confirm": "Slet felt: {{name}}?",
             "delete_confirm_description": "Dette vil slette feltet samt alle associerede data for alle poster."
         },
-        "settings": "Indstillinger"
+        "settings": "Indstillinger",
+        "photo": {
+            "tab": "Fotos",
+            "hours": "t",
+            "photo_max_files_per_field": {
+                "label": "Maks. fotos pr. felt",
+                "tooltip": "Maksimalt antal uploadede fotos eller fotolinks i ét fotofelt."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Maks. original fotostørrelse",
+                "tooltip": "Maksimal uploadstørrelse før serverens streamingkomprimering."
+            },
+            "photo_allowed_content_types": {
+                "label": "Tilladte foto-MIME-typer",
+                "tooltip": "Billed-MIME-typer accepteret af frontend og backend før komprimering."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Ryd forældreløse fotos",
+                "tooltip": "Slet fotos, der ikke er knyttet til producent, filament eller spole."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Oprydningstid",
+                "tooltip": "Dagligt servertidspunkt for oprydning af forældreløse fotos."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Alder før oprydning",
+                "tooltip": "Mindste alder for et uknyttet foto før sletning."
+            }
+        }
+    },
+    "photo_fields": {
+        "empty": "Ingen fotos",
+        "upload_text": "Klik eller træk fotos hertil",
+        "upload_hint": "Op til {{count}} fotos, kun billeder, {{size}} MB før serverkomprimering.",
+        "add": "Tilføj",
+        "delete": "Slet foto",
+        "validation": {
+            "only_photo": "Kun fotofiler kan uploades.",
+            "max_size": "Fotoet overstiger den konfigurerede grænse.",
+            "max_count": "Der kan højst vedhæftes {{count}} fotos til ét fotofelt.",
+            "max_url_count": "Der kan højst vedhæftes {{count}} fotolinks til ét felt.",
+            "absolute_url": "Indtast en absolut http(s)-URL til fotoet.",
+            "unsupported_type": "Denne fototype er ikke tilladt."
+        }
     }
 }

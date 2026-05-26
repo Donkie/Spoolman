@@ -362,7 +362,9 @@
                 "datetime": "日期时间",
                 "text": "文本",
                 "integer": "整数",
-                "choice": "选项"
+                "choice": "选项",
+                "photo": "照片",
+                "photo_url": "照片 URL"
             },
             "delete_confirm_description": "这将删除该字段以及所有实体的关联数据。",
             "description": "<p>这里你可以为你的实体添加额外的自定义字段。</p><p>一旦添加了字段，就无法更改其键或类型；对于选择类型字段，无法删除选项或更改多选状态。如果删除字段，则所有实体的相关数据将被删除。</p><p>键是其他程序读取/写入数据的标识，因此，如果你的自定义字段需要与第三方程序集成，请确保设置正确。默认值仅适用于新项目。</p><p>额外字段在表视图中无法进行排序或过滤。</p>",
@@ -397,6 +399,34 @@
                 "label": "取整",
                 "tooltip": "将价格四舍五入到最接近的整数。"
             }
+        },
+        "photo": {
+            "tab": "照片",
+            "hours": "小时",
+            "photo_max_files_per_field": {
+                "label": "每个字段最多照片数",
+                "tooltip": "一个照片字段中允许的上传照片或照片链接最大数量。"
+            },
+            "photo_max_upload_size_mb": {
+                "label": "原始照片最大大小",
+                "tooltip": "服务器端流式压缩前允许的最大上传大小。"
+            },
+            "photo_allowed_content_types": {
+                "label": "允许的照片 MIME 类型",
+                "tooltip": "前端和后端在压缩前接受的图片 MIME 类型。"
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "清理孤立照片",
+                "tooltip": "删除未关联到制造商、耗材或线轴的照片。"
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "清理时间",
+                "tooltip": "每天按服务器本地时间运行孤立照片清理。"
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "清理前保留时长",
+                "tooltip": "未关联照片被删除前的最小年龄。"
+            }
         }
     },
     "locations": {
@@ -404,5 +434,20 @@
         "locations": "位置",
         "new_location": "新位置",
         "no_location": "没有位置"
+    },
+    "photo_fields": {
+        "empty": "没有照片",
+        "upload_text": "点击或拖拽照片到此处",
+        "upload_hint": "最多 {{count}} 张照片，仅图片，服务器压缩前 {{size}} MB。",
+        "add": "添加",
+        "delete": "删除照片",
+        "validation": {
+            "only_photo": "只能上传照片文件。",
+            "max_size": "照片超过配置的限制。",
+            "max_count": "一个照片字段最多可附加 {{count}} 张照片。",
+            "max_url_count": "一个字段最多可附加 {{count}} 个照片链接。",
+            "absolute_url": "请输入绝对 http(s) 照片 URL。",
+            "unsupported_type": "不允许此照片类型。"
+        }
     }
 }

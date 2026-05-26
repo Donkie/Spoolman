@@ -390,7 +390,9 @@
                 "float_range": "Rango Decimal",
                 "datetime": "Fecha y hora",
                 "boolean": "Booleano",
-                "choice": "Opción"
+                "choice": "Opción",
+                "photo": "Foto",
+                "photo_url": "URL de foto"
             },
             "boolean_true": "Sí",
             "boolean_false": "No",
@@ -401,12 +403,55 @@
             "delete_confirm_description": "Esto eliminará el campo y todos los datos asociados para todas las entidades.",
             "description": "<p> Aquí puede agregar más campos personalizados a los asuntos.</p><p> Una vez que se agrega un campo, no puede cambiar su clave o tipo, y no puede eliminar opciones ni cambiar el estado de múltiples opciones para campos seleccionados. Si elimina un campo, se eliminarán los datos asociados a todos los sujetos.</p><p> La forma en que otros programas leen/escriben los datos es clave, por lo que si su campo personalizado se va a integrar con un programa de terceros, asegúrese de que esté configurado correctamente. El valor predeterminado solo se utilizará para elementos nuevos.</p><p> Los campos de salida no se pueden ordenar ni filtrar en las vistas de tabla.</p>"
         },
-        "settings": "Ajustes"
+        "settings": "Ajustes",
+        "photo": {
+            "tab": "Fotos",
+            "hours": "h",
+            "photo_max_files_per_field": {
+                "label": "Fotos máx. por campo",
+                "tooltip": "Número máximo de fotos cargadas o enlaces de foto en un campo de foto."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Tamaño máximo de la foto original",
+                "tooltip": "Tamaño máximo antes de la compresión en streaming del servidor."
+            },
+            "photo_allowed_content_types": {
+                "label": "Tipos MIME de foto permitidos",
+                "tooltip": "Tipos MIME de imagen aceptados por frontend y backend antes de comprimir."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Limpiar fotos huérfanas",
+                "tooltip": "Eliminar fotos que no están vinculadas a fabricante, filamento o bobina."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Hora de limpieza",
+                "tooltip": "Hora diaria del servidor para ejecutar la limpieza de fotos huérfanas."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Edad antes de limpiar",
+                "tooltip": "Edad mínima de una foto no vinculada antes de eliminarla."
+            }
+        }
     },
     "locations": {
         "locations": "Ubicaciones",
         "new_location": "Nueva ubicación",
         "no_location": "Sin ubicación",
         "no_locations_help": "Esta página te permite organizar tus carretes en ubicaciones, ¡añade algunos carretes para empezar!"
+    },
+    "photo_fields": {
+        "empty": "Sin fotos",
+        "upload_text": "Haz clic o arrastra fotos aquí",
+        "upload_hint": "Hasta {{count}} fotos, solo imágenes, {{size}} MB antes de la compresión del servidor.",
+        "add": "Añadir",
+        "delete": "Eliminar foto",
+        "validation": {
+            "only_photo": "Solo se pueden subir archivos de imagen.",
+            "max_size": "La foto supera el límite configurado.",
+            "max_count": "No se pueden adjuntar más de {{count}} fotos a un campo de foto.",
+            "max_url_count": "No se pueden adjuntar más de {{count}} enlaces de foto a un campo.",
+            "absolute_url": "Introduce una URL absoluta http(s) de la foto.",
+            "unsupported_type": "Este tipo de foto no está permitido."
+        }
     }
 }

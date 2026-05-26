@@ -345,7 +345,9 @@
                 "float_range": "Ondalıklı Sayı Aralığı",
                 "datetime": "Tarih+Saat",
                 "boolean": "İkili Değer",
-                "choice": "Seçim Listesi"
+                "choice": "Seçim Listesi",
+                "photo": "Fotoğraf",
+                "photo_url": "Fotoğraf URL’si"
             },
             "boolean_true": "Evet",
             "boolean_false": "Hayır",
@@ -354,6 +356,34 @@
             "key_not_changed": "Lütfen anahtarı başka bir şeyle değiştirin.",
             "delete_confirm": "{{name}} alanı silinsin mi?",
             "delete_confirm_description": "Bu işlem alanı ve ona bağlı tüm varlıkların verilerini silecektir."
+        },
+        "photo": {
+            "tab": "Fotoğraflar",
+            "hours": "saat",
+            "photo_max_files_per_field": {
+                "label": "Alan başına maks. fotoğraf",
+                "tooltip": "Bir fotoğraf alanında izin verilen yüklenmiş fotoğraf veya fotoğraf bağlantısı sayısı."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Maks. özgün fotoğraf boyutu",
+                "tooltip": "Sunucu tarafı akış sıkıştırmasından önceki maksimum yükleme boyutu."
+            },
+            "photo_allowed_content_types": {
+                "label": "İzin verilen fotoğraf MIME türleri",
+                "tooltip": "Sıkıştırmadan önce frontend ve backend tarafından kabul edilen görüntü MIME türleri."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Sahipsiz fotoğrafları temizle",
+                "tooltip": "Üretici, filament veya makaraya bağlı olmayan fotoğrafları sil."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Temizlik zamanı",
+                "tooltip": "Sahipsiz fotoğrafları temizlemek için günlük sunucu saati."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Temizlik öncesi yaş",
+                "tooltip": "Bağlı olmayan bir fotoğrafın silinmeden önceki minimum yaşı."
+            }
         }
     },
     "documentTitle": {
@@ -395,5 +425,20 @@
         "new_location": "Yeni Konum",
         "no_location": "Konum Yok",
         "no_locations_help": "Bu sayfa, makaralarınızı konumlara göre düzenlemenizi sağlar. Başlamak için birkaç makara ekleyin!"
+    },
+    "photo_fields": {
+        "empty": "Fotoğraf yok",
+        "upload_text": "Fotoğrafları buraya tıklayın veya sürükleyin",
+        "upload_hint": "En fazla {{count}} fotoğraf, yalnızca görseller, sunucu sıkıştırmasından önce {{size}} MB.",
+        "add": "Ekle",
+        "delete": "Fotoğrafı sil",
+        "validation": {
+            "only_photo": "Yalnızca fotoğraf dosyaları yüklenebilir.",
+            "max_size": "Fotoğraf yapılandırılan sınırdan büyük.",
+            "max_count": "Bir fotoğraf alanına en fazla {{count}} fotoğraf eklenebilir.",
+            "max_url_count": "Bir alana en fazla {{count}} fotoğraf bağlantısı eklenebilir.",
+            "absolute_url": "Mutlak bir http(s) fotoğraf URL’si girin.",
+            "unsupported_type": "Bu fotoğraf türüne izin verilmiyor."
+        }
     }
 }

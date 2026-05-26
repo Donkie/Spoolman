@@ -309,7 +309,9 @@
                 "integer_range": "Egész szám tartománya",
                 "float_range": "Lebegőpontos szám tartomány",
                 "choice": "Választás",
-                "boolean": "Logikai"
+                "boolean": "Logikai",
+                "photo": "Fotó",
+                "photo_url": "Fotó URL"
             },
             "key_not_changed": "Kérlek változtasd meg a kulcsot valami másra.",
             "boolean_false": "Nem",
@@ -327,6 +329,49 @@
                 "label": "Pénznem"
             },
             "tab": "Általános"
+        },
+        "photo": {
+            "tab": "Fotók",
+            "hours": "óra",
+            "photo_max_files_per_field": {
+                "label": "Max. fotó mezőnként",
+                "tooltip": "Feltöltött fotók vagy fotólinkek maximális száma egy fotó mezőben."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Eredeti fotó max. mérete",
+                "tooltip": "Maximális feltöltési méret a szerveroldali streamelt tömörítés előtt."
+            },
+            "photo_allowed_content_types": {
+                "label": "Engedélyezett fotó MIME-típusok",
+                "tooltip": "A frontend és backend által tömörítés előtt elfogadott kép MIME-típusok."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Árva fotók törlése",
+                "tooltip": "Gyártóhoz, filamenthez vagy tekercshez nem kapcsolt fotók törlése."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Törlés ideje",
+                "tooltip": "Napi szerveridő az árva fotók törléséhez."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Kor törlés előtt",
+                "tooltip": "Nem kapcsolt fotó minimális kora törlés előtt."
+            }
+        }
+    },
+    "photo_fields": {
+        "empty": "Nincsenek fotók",
+        "upload_text": "Kattintson ide, vagy húzza ide a fotókat",
+        "upload_hint": "Legfeljebb {{count}} fotó, csak képek, {{size}} MB szervertömörítés előtt.",
+        "add": "Hozzáadás",
+        "delete": "Fotó törlése",
+        "validation": {
+            "only_photo": "Csak fotófájlok tölthetők fel.",
+            "max_size": "A fotó nagyobb a beállított korlátnál.",
+            "max_count": "Egy fotómezőhöz legfeljebb {{count}} fotó csatolható.",
+            "max_url_count": "Egy mezőhöz legfeljebb {{count}} fotólink csatolható.",
+            "absolute_url": "Adjon meg egy abszolút http(s) fotó-URL-t.",
+            "unsupported_type": "Ez a fotótípus nem engedélyezett."
         }
     }
 }

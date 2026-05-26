@@ -375,7 +375,9 @@
                 "integer_range": "Intervallo di numeri interi",
                 "float_range": "Intervallo decimali",
                 "boolean": "Booleano",
-                "integer": "\"Intero\" per tipo campo extra, numero intero senza decimali"
+                "integer": "\"Intero\" per tipo campo extra, numero intero senza decimali",
+                "photo": "Foto",
+                "photo_url": "URL foto"
             },
             "choices_missing_error": "Non è possibile rimuovere le scelte. Mancano i seguenti elementi: {{choices}}",
             "non_unique_key_error": "La chiave deve essere univoca.",
@@ -401,6 +403,34 @@
                 "label": "Prezzi arrotondati",
                 "tooltip": "Prezzi arrotondati al numero intero più vicino."
             }
+        },
+        "photo": {
+            "tab": "Foto",
+            "hours": "h",
+            "photo_max_files_per_field": {
+                "label": "Foto max per campo",
+                "tooltip": "Numero massimo di foto caricate o link foto in un campo foto."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Dimensione massima foto originale",
+                "tooltip": "Dimensione massima prima della compressione streaming lato server."
+            },
+            "photo_allowed_content_types": {
+                "label": "Tipi MIME foto consentiti",
+                "tooltip": "Tipi MIME immagine accettati da frontend e backend prima della compressione."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Pulisci foto orfane",
+                "tooltip": "Elimina foto non collegate a produttore, filamento o bobina."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Ora pulizia",
+                "tooltip": "Ora giornaliera del server per la pulizia delle foto orfane."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Età prima della pulizia",
+                "tooltip": "Età minima di una foto non collegata prima dell’eliminazione."
+            }
         }
     },
     "locations": {
@@ -408,5 +438,20 @@
         "new_location": "Nuova Posizione",
         "no_location": "Nessuna Posizione",
         "no_locations_help": "Questa pagina ti consente di organizzare le bobine in base alla posizione. Aggiungi alcune bobine per iniziare!"
+    },
+    "photo_fields": {
+        "empty": "Nessuna foto",
+        "upload_text": "Fai clic o trascina le foto qui",
+        "upload_hint": "Fino a {{count}} foto, solo immagini, {{size}} MB prima della compressione server.",
+        "add": "Aggiungi",
+        "delete": "Elimina foto",
+        "validation": {
+            "only_photo": "È possibile caricare solo file immagine.",
+            "max_size": "La foto supera il limite configurato.",
+            "max_count": "A un campo foto si possono allegare al massimo {{count}} foto.",
+            "max_url_count": "A un campo si possono allegare al massimo {{count}} link foto.",
+            "absolute_url": "Inserisci un URL foto http(s) assoluto.",
+            "unsupported_type": "Questo tipo di foto non è consentito."
+        }
     }
 }

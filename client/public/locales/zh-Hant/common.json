@@ -371,7 +371,9 @@
                 "choice": "選項",
                 "float": "小數",
                 "integer": "整數",
-                "integer_range": "整數範圍"
+                "integer_range": "整數範圍",
+                "photo": "Photo",
+                "photo_url": "照片 URL"
             },
             "boolean_true": "是",
             "boolean_false": "否",
@@ -381,6 +383,34 @@
             "description": "<p>在此，您可以為您的實體加入額外的自訂欄位。</p><p>一旦加入欄位，您將無法更改其鍵值或類型，對於選擇類型欄位，您也無法刪除選項或更改多選狀態。如果刪除欄位，所有實體的相關資料將被刪除。</p><p>鍵值是其他程式讀取/寫入資料的方式，因此如果您的自訂欄位需要與第三方程式整合，請確保正確設置。預設值僅適用於新品項。</p><p>額外的欄位無法在表格視圖中排序或過濾。</p>",
             "non_unique_key_error": "鍵值必須為唯一。",
             "delete_confirm_description": "這將刪除該欄位及所有與之關聯的所有實體資料。"
+        },
+        "photo": {
+            "tab": "照片",
+            "hours": "小時",
+            "photo_max_files_per_field": {
+                "label": "每個欄位最多照片數",
+                "tooltip": "一個照片欄位中允許的上傳照片或照片連結最大數量。"
+            },
+            "photo_max_upload_size_mb": {
+                "label": "原始照片最大大小",
+                "tooltip": "伺服器端串流壓縮前允許的最大上傳大小。"
+            },
+            "photo_allowed_content_types": {
+                "label": "允許的照片 MIME 類型",
+                "tooltip": "前端與後端在壓縮前接受的圖片 MIME 類型。"
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "清理孤立照片",
+                "tooltip": "刪除未連結到製造商、耗材或線軸的照片。"
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "清理時間",
+                "tooltip": "每天按伺服器本地時間執行孤立照片清理。"
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "清理前保留時間",
+                "tooltip": "未連結照片被刪除前的最小年齡。"
+            }
         }
     },
     "locations": {
@@ -388,5 +418,20 @@
         "no_location": "未設定位置",
         "no_locations_help": "這個頁面讓您將料盤按位置進行整理，請從增加一些線盤來開始！",
         "new_location": "新增位置"
+    },
+    "photo_fields": {
+        "empty": "沒有照片",
+        "upload_text": "點擊或拖曳照片到此處",
+        "upload_hint": "最多 {{count}} 張照片，僅圖片，伺服器壓縮前 {{size}} MB。",
+        "add": "新增",
+        "delete": "刪除照片",
+        "validation": {
+            "only_photo": "只能上傳照片檔案。",
+            "max_size": "照片超過設定限制。",
+            "max_count": "一個照片欄位最多可附加 {{count}} 張照片。",
+            "max_url_count": "一個欄位最多可附加 {{count}} 個照片連結。",
+            "absolute_url": "請輸入絕對 http(s) 照片 URL。",
+            "unsupported_type": "不允許此照片類型。"
+        }
     }
 }

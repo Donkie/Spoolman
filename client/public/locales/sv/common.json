@@ -328,7 +328,9 @@
                 "boolean": "Booleansk",
                 "choice": "Val",
                 "text": "Text",
-                "integer": "Heltal"
+                "integer": "Heltal",
+                "photo": "Foto",
+                "photo_url": "Foto-URL"
             },
             "boolean_true": "Ja",
             "boolean_false": "Nej",
@@ -337,6 +339,34 @@
             "delete_confirm": "Ta bort fältet {{name}}?",
             "non_unique_key_error": "Nyckeln måste vara unik.",
             "key_not_changed": "Vänligen ändra nyckeln till något annat."
+        },
+        "photo": {
+            "tab": "Foton",
+            "hours": "tim",
+            "photo_max_files_per_field": {
+                "label": "Max foton per fält",
+                "tooltip": "Maximalt antal uppladdade foton eller fotolänkar i ett fotofält."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Max original fotostorlek",
+                "tooltip": "Maximal uppladdningsstorlek före serverns strömmande komprimering."
+            },
+            "photo_allowed_content_types": {
+                "label": "Tillåtna foto-MIME-typer",
+                "tooltip": "Bild-MIME-typer som frontend och backend accepterar före komprimering."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Rensa föräldralösa foton",
+                "tooltip": "Ta bort foton som inte är kopplade till tillverkare, filament eller spole."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Rensningstid",
+                "tooltip": "Daglig servertid för rensning av föräldralösa foton."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Ålder före rensning",
+                "tooltip": "Minsta ålder för ett okopplat foto innan det tas bort."
+            }
         }
     },
     "documentTitle": {
@@ -383,5 +413,20 @@
     "locations": {
         "new_location": "Ny plats",
         "no_location": "Ingen plats"
+    },
+    "photo_fields": {
+        "empty": "Inga foton",
+        "upload_text": "Klicka eller dra foton hit",
+        "upload_hint": "Upp till {{count}} foton, endast bilder, {{size}} MB före serverkomprimering.",
+        "add": "Lägg till",
+        "delete": "Ta bort foto",
+        "validation": {
+            "only_photo": "Endast fotofiler kan laddas upp.",
+            "max_size": "Fotot överskrider den konfigurerade gränsen.",
+            "max_count": "Högst {{count}} foton kan kopplas till ett fotofält.",
+            "max_url_count": "Högst {{count}} fotolänkar kan kopplas till ett fält.",
+            "absolute_url": "Ange en absolut http(s)-URL till fotot.",
+            "unsupported_type": "Den här fototypen är inte tillåten."
+        }
     }
 }

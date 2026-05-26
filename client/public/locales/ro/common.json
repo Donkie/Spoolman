@@ -392,7 +392,9 @@
                 "float_range": "Interval de numere zecimale",
                 "datetime": "Dată/timp",
                 "boolean": "Boolean",
-                "choice": "Selecție"
+                "choice": "Selecție",
+                "photo": "Fotografie",
+                "photo_url": "URL fotografie"
             },
             "boolean_true": "Da",
             "boolean_false": "Nu",
@@ -401,6 +403,34 @@
             "key_not_changed": "Te rog să schimbi cheia.",
             "delete_confirm": "Ștergi câmpul{{name}}?",
             "delete_confirm_description": "Ștergerea câmpului și a tuturor datelor asociate pentru toate entitățile."
+        },
+        "photo": {
+            "tab": "Fotografii",
+            "hours": "ore",
+            "photo_max_files_per_field": {
+                "label": "Max. fotografii per câmp",
+                "tooltip": "Numărul maxim de fotografii încărcate sau linkuri foto într-un câmp foto."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Dimensiune max. fotografie originală",
+                "tooltip": "Dimensiunea maximă înainte de compresia streaming pe server."
+            },
+            "photo_allowed_content_types": {
+                "label": "Tipuri MIME foto permise",
+                "tooltip": "Tipuri MIME de imagine acceptate de frontend și backend înainte de compresie."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Curăță fotografiile orfane",
+                "tooltip": "Șterge fotografiile nelegate de producător, filament sau rolă."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Ora curățării",
+                "tooltip": "Ora zilnică a serverului pentru curățarea fotografiilor orfane."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Vechime înainte de curățare",
+                "tooltip": "Vechimea minimă a unei fotografii nelegate înainte de ștergere."
+            }
         }
     },
     "locations": {
@@ -408,5 +438,20 @@
         "new_location": "Zonă nouă",
         "no_location": "Fără zonă",
         "no_locations_help": "Această pagină îți permite să îți organizezi rolele în zone, adaugă câteva role pentru a începe!"
+    },
+    "photo_fields": {
+        "empty": "Nu există fotografii",
+        "upload_text": "Faceți clic sau trageți fotografiile aici",
+        "upload_hint": "Până la {{count}} fotografii, doar imagini, {{size}} MB înainte de compresia serverului.",
+        "add": "Adăugați",
+        "delete": "Ștergeți fotografia",
+        "validation": {
+            "only_photo": "Pot fi încărcate doar fișiere foto.",
+            "max_size": "Fotografia depășește limita configurată.",
+            "max_count": "La un câmp foto pot fi atașate cel mult {{count}} fotografii.",
+            "max_url_count": "La un câmp pot fi atașate cel mult {{count}} linkuri către fotografii.",
+            "absolute_url": "Introduceți un URL absolut al fotografiei cu http(s).",
+            "unsupported_type": "Acest tip de fotografie nu este permis."
+        }
     }
 }

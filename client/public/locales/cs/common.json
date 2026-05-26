@@ -375,7 +375,9 @@
                 "datetime": "Datumčas",
                 "choice": "Volba",
                 "float_range": "Plovoucí rozsah",
-                "boolean": "Logická hodnota"
+                "boolean": "Logická hodnota",
+                "photo": "Fotografie",
+                "photo_url": "URL fotky"
             },
             "boolean_true": "Ano",
             "boolean_false": "Ne",
@@ -401,12 +403,55 @@
                 "tooltip": "Zaokrouhlete ceny na nejbližší celé číslo."
             }
         },
-        "settings": "Nastavení"
+        "settings": "Nastavení",
+        "photo": {
+            "tab": "Fotky",
+            "hours": "hod",
+            "photo_max_files_per_field": {
+                "label": "Max. fotek na pole",
+                "tooltip": "Maximální počet nahraných fotek nebo odkazů na fotky v jednom poli fotek."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Max. velikost původní fotky",
+                "tooltip": "Maximální velikost nahrání před streamovou kompresí na serveru."
+            },
+            "photo_allowed_content_types": {
+                "label": "Povolené MIME typy fotek",
+                "tooltip": "MIME typy obrázků přijímané frontendem a backendem před kompresí."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Čistit osiřelé fotky",
+                "tooltip": "Odstraňovat fotky, které nejsou připojené k výrobci, filamentu nebo cívce."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Čas čištění",
+                "tooltip": "Denní čas serveru pro spuštění čištění osiřelých fotek."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Stáří před čištěním",
+                "tooltip": "Minimální stáří nepřipojené fotky před odstraněním."
+            }
+        }
     },
     "locations": {
         "locations": "Umístění",
         "no_locations_help": "Na této stránce můžete uspořádat své cívky podle umístění, přidejte několik cívek a začněte!",
         "new_location": "Nové umístění",
         "no_location": "Žádné umístění"
+    },
+    "photo_fields": {
+        "empty": "Žádné fotky",
+        "upload_text": "Klikněte nebo sem přetáhněte fotky",
+        "upload_hint": "Až {{count}} fotek, pouze obrázky, {{size}} MB před kompresí na serveru.",
+        "add": "Přidat",
+        "delete": "Smazat fotku",
+        "validation": {
+            "only_photo": "Nahrávat lze pouze soubory s fotkami.",
+            "max_size": "Fotka překračuje nastavený limit.",
+            "max_count": "K jednomu poli s fotkami lze připojit maximálně {{count}} fotek.",
+            "max_url_count": "K jednomu poli lze připojit maximálně {{count}} odkazů na fotky.",
+            "absolute_url": "Zadejte absolutní URL fotky s http(s).",
+            "unsupported_type": "Tento typ fotky není povolen."
+        }
     }
 }

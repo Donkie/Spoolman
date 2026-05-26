@@ -389,7 +389,9 @@
                 "integer_range": "Ganzzahlbereich",
                 "boolean": "Wahr/Falsch",
                 "float_range": "Float-Bereich",
-                "datetime": "Datum und Uhrzeit"
+                "datetime": "Datum und Uhrzeit",
+                "photo": "Foto",
+                "photo_url": "Foto-URL"
             },
             "boolean_true": "Ja",
             "boolean_false": "Nein",
@@ -400,12 +402,55 @@
             "delete_confirm_description": "Dieses Feld und alle damit verbundenen Einträge werden gelöscht.",
             "non_unique_key_error": "Der Schlüssel muss einzigartig sein."
         },
-        "settings": "Einstellungen"
+        "settings": "Einstellungen",
+        "photo": {
+            "tab": "Fotos",
+            "hours": "Std.",
+            "photo_max_files_per_field": {
+                "label": "Max. Fotos pro Feld",
+                "tooltip": "Maximale Anzahl hochgeladener Fotos oder Fotolinks in einem Foto-Zusatzfeld."
+            },
+            "photo_max_upload_size_mb": {
+                "label": "Max. Originalgröße",
+                "tooltip": "Maximale Uploadgröße vor serverseitiger Streaming-Komprimierung."
+            },
+            "photo_allowed_content_types": {
+                "label": "Erlaubte Foto-MIME-Typen",
+                "tooltip": "Bild-MIME-Typen, die Frontend und Backend vor der Komprimierung akzeptieren."
+            },
+            "photo_orphan_cleanup_enabled": {
+                "label": "Verwaiste Fotos bereinigen",
+                "tooltip": "Hochgeladene Fotos löschen, die keinem Hersteller, Filament oder keiner Spule zugeordnet sind."
+            },
+            "photo_orphan_cleanup_time": {
+                "label": "Bereinigungszeit",
+                "tooltip": "Tägliche Serverzeit für die Bereinigung verwaister Fotos."
+            },
+            "photo_orphan_cleanup_ttl_hours": {
+                "label": "Alter vor Bereinigung",
+                "tooltip": "Mindestalter eines nicht verknüpften Fotos vor dem Löschen."
+            }
+        }
     },
     "locations": {
         "no_location": "Kein Ort",
         "no_locations_help": "Diese Seite lässt Sie Ihre Spulen zu Orten zuweisen, fügen Sie ein paar Spulen hinzu um loszulegen!",
         "locations": "Orte",
         "new_location": "Neuer Ort"
+    },
+    "photo_fields": {
+        "empty": "Keine Fotos",
+        "upload_text": "Fotos anklicken oder hierher ziehen",
+        "upload_hint": "Bis zu {{count}} Fotos, nur Bilddateien, {{size}} MB vor Serverkomprimierung.",
+        "add": "Hinzufügen",
+        "delete": "Foto löschen",
+        "validation": {
+            "only_photo": "Es können nur Fotodateien hochgeladen werden.",
+            "max_size": "Das Foto ist größer als das konfigurierte Limit.",
+            "max_count": "Pro Fotofeld können höchstens {{count}} Fotos angehängt werden.",
+            "max_url_count": "Pro Feld können höchstens {{count}} Foto-Links angehängt werden.",
+            "absolute_url": "Geben Sie eine absolute http(s)-Foto-URL ein.",
+            "unsupported_type": "Dieser Fototyp ist nicht erlaubt."
+        }
     }
 }
