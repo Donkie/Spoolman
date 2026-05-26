@@ -30,7 +30,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Copy and install app
 COPY --chown=app:app migrations /home/app/spoolman/migrations
-COPY --chown=app:app scripts /home/app/spoolman/scripts
 COPY --chown=app:app spoolman /home/app/spoolman/spoolman
 COPY --chown=app:app alembic.ini README.md uv.lock pyproject.toml /home/app/spoolman/
 RUN --mount=type=cache,target=/root/.cache/uv \
