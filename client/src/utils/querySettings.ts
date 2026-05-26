@@ -69,6 +69,9 @@ export function useSetSetting<T>(key: string) {
       queryClient.invalidateQueries({
         queryKey: ["settings", key],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["settings"],
+      });
     },
   });
 }

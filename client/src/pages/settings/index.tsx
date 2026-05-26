@@ -1,4 +1,4 @@
-import { FileOutlined, HighlightOutlined, SolutionOutlined, ToolOutlined, UserOutlined } from "@ant-design/icons";
+import { FileOutlined, HighlightOutlined, PictureOutlined, SolutionOutlined, ToolOutlined, UserOutlined } from "@ant-design/icons";
 import { useTranslate } from "@refinedev/core";
 import { Menu, theme } from "antd";
 import { Content } from "antd/es/layout/layout";
@@ -7,6 +7,7 @@ import utc from "dayjs/plugin/utc";
 import { Route, Routes, useNavigate } from "react-router";
 import { ExtraFieldsSettings } from "./extraFieldsSettings";
 import { GeneralSettings } from "./generalSettings";
+import { PhotoSettings } from "./photoSettings";
 
 dayjs.extend(utc);
 
@@ -57,6 +58,7 @@ export const Settings = () => {
           }}
           items={[
             { key: "", label: t("settings.general.tab"), icon: <ToolOutlined /> },
+            { key: "photo", label: t("settings.photo.tab"), icon: <PictureOutlined /> },
             {
               key: "extra",
               label: t("settings.extra_fields.tab"),
@@ -87,6 +89,7 @@ export const Settings = () => {
         <main>
           <Routes>
             <Route index element={<GeneralSettings />} />
+            <Route path="/photo" element={<PhotoSettings />} />
             <Route path="/extra/:entityType" element={<ExtraFieldsSettings />} />
           </Routes>
         </main>

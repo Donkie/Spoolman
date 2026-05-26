@@ -13,7 +13,7 @@ import { useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Modal, Table } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Action,
@@ -158,8 +158,20 @@ export const SpoolList = () => {
       },
     });
 
+  const defaultPhotoColumns = useMemo(
+    () => extraFields.data?.filter((field) => (field.field_type === "photo" || field.field_type === "photo_url")).map((field) => "extra." + field.key) ?? [],
+    [extraFields.data],
+  );
+
   // Create state for the columns to show
   const [showColumns, setShowColumns] = useState<string[]>(initialState.showColumns ?? defaultColumns);
+
+  useEffect(() => {
+    if (initialState.showColumns !== undefined) {
+      return;
+    }
+    setShowColumns((columns) => Array.from(new Set([...columns, ...defaultPhotoColumns])));
+  }, [defaultPhotoColumns, initialState.showColumns]);
 
   // Store state in local storage
   const tableState: TableState = {

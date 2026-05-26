@@ -106,7 +106,15 @@ export const SpoolCreate = (props: IResourceComponentsProps & CreateOrCloneProps
   //
 
   const handleSubmit = async (redirectTo: "list" | "edit" | "create") => {
-    const values = StringifiedExtras(await form.validateFields());
+    let values;
+    try {
+      values = StringifiedExtras(await form.validateFields());
+    } catch (error) {
+      if (error && typeof error === "object" && "errorFields" in error) {
+        return;
+      }
+      throw error;
+    }
     if (selectedFilament?.is_internal === false) {
       // Filament ID being a string indicates its an external filament.
       // If so, we should first create the internal filament version, then create the spool(s)
@@ -495,7 +503,7 @@ export const SpoolCreate = (props: IResourceComponentsProps & CreateOrCloneProps
         </Form.Item>
         <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
         {extraFields.data?.map((field, index) => (
-          <ExtraFieldFormItem key={index} field={field} />
+          <ExtraFieldFormItem key={index} field={field} entityType={EntityType.spool} />
         ))}
       </Form>
     </Create>

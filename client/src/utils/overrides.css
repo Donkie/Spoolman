@@ -1,3 +1,8 @@
 #qty-input {
   text-align: center !important;
 }
+
+body.spoolman-photo-preview-open .ant-dropdown {
+  display: none !important;
+  pointer-events: none !important;
+}

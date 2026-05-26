@@ -351,7 +351,7 @@ export const FilamentEdit = () => {
         </Form.Item>
         <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
         {extraFields.data?.map((field, index) => (
-          <ExtraFieldFormItem key={index} field={field} />
+          <ExtraFieldFormItem key={index} field={field} entityType={EntityType.filament} entityId={formProps.initialValues?.id} />
         ))}
       </Form>
       {hasChanged && <Alert description={t("filament.form.filament_updated")} type="warning" showIcon />}

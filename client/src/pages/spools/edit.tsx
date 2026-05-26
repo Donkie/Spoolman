@@ -469,7 +469,7 @@ export const SpoolEdit = () => {
         </Form.Item>
         <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
         {extraFields.data?.map((field, index) => (
-          <ExtraFieldFormItem key={index} field={field} />
+          <ExtraFieldFormItem key={index} field={field} entityType={EntityType.spool} entityId={formProps.initialValues?.id} />
         ))}
       </Form>
       {hasChanged && <Alert description={t("spool.form.spool_updated")} type="warning" showIcon />}

@@ -56,7 +56,15 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
   }
 
   const handleSubmit = async (redirectTo: "list" | "create") => {
-    const values = StringifiedExtras(await form.validateFields());
+    let values;
+    try {
+      values = StringifiedExtras(await form.validateFields());
+    } catch (error) {
+      if (error && typeof error === "object" && "errorFields" in error) {
+        return;
+      }
+      throw error;
+    }
     await onFinish(values);
     redirect(redirectTo);
   };
@@ -362,7 +370,7 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
         </Form.Item>
         <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
         {extraFields.data?.map((field, index) => (
-          <ExtraFieldFormItem key={index} field={field} />
+          <ExtraFieldFormItem key={index} field={field} entityType={EntityType.filament} />
         ))}
       </Form>
     </Create>

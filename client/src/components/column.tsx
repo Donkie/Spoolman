@@ -13,6 +13,7 @@ import { TableState } from "../utils/saveload";
 import { getSortOrderForField, typeSorters } from "../utils/sorting";
 import { NumberFieldUnit, NumberFieldUnitRange } from "./numberField";
 import SpoolIcon from "./spoolIcon";
+import { PhotoUrlFieldStack, PhotoFieldStack } from "./photoFields";
 
 dayjs.extend(utc);
 
@@ -404,7 +405,22 @@ export function CustomFieldColumn<Obj extends Entity>(props: Omit<BaseColumnProp
     },
   };
 
-  if (field.field_type === FieldType.integer) {
+  if (field.field_type === FieldType.photo) {
+    return Column({
+      ...commonProps,
+      render: (_rawValue, record: Obj) => {
+        return <PhotoFieldStack entityType={field.entity_type} entityId={record.id as number} fieldKey={field.key} />;
+      },
+    });
+  } else if (field.field_type === FieldType.photo_url) {
+    return Column({
+      ...commonProps,
+      render: (rawValue: unknown) => {
+        const value = commonProps.transform(rawValue);
+        return <PhotoUrlFieldStack urls={value} />;
+      },
+    });
+  } else if (field.field_type === FieldType.integer) {
     return NumberColumn({
       ...commonProps,
       unit: field.unit ?? "",

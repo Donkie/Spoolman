@@ -11,6 +11,8 @@ export enum FieldType {
   datetime = "datetime",
   boolean = "boolean",
   choice = "choice",
+  photo = "photo",
+  photo_url = "photo_url",
 }
 
 export enum EntityType {

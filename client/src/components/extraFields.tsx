@@ -4,10 +4,11 @@ import { FormItemProps, Rule } from "antd/es/form";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { enrichText } from "../utils/parsing";
-import { Field, FieldType } from "../utils/queryFields";
+import { EntityType, Field, FieldType } from "../utils/queryFields";
 import { DateTimePicker } from "./dateTimePicker";
 import { InputNumberRange } from "./inputNumberRange";
 import { NumberFieldUnit, NumberFieldUnitRange } from "./numberField";
+import { PhotoUrlFieldEditor, PhotoUrlFieldGrid, PhotoFieldEditor, PhotoFieldGrid } from "./photoFields";
 
 dayjs.extend(utc);
 
@@ -18,14 +19,25 @@ const { Title } = Typography;
  * @param props
  * @returns
  */
-export function ExtraFieldDisplay(props: { field: Field; value: string | undefined }) {
+export function ExtraFieldDisplay(props: {
+  field: Field;
+  value: string | undefined;
+  entityType?: EntityType;
+  entityId?: number;
+}) {
   const { field, value } = props;
 
   let item;
-  if (value !== undefined) {
+  if (field.field_type === FieldType.photo) {
+    item = props.entityType && props.entityId ? (
+      <PhotoFieldGrid entityType={props.entityType} entityId={props.entityId} fieldKey={field.key} />
+    ) : null;
+  } else if (value !== undefined) {
     const parsedValue = JSON.parse(value);
 
-    if (field.field_type === FieldType.integer) {
+    if (field.field_type === FieldType.photo_url) {
+      item = <PhotoUrlFieldGrid urls={Array.isArray(parsedValue) ? parsedValue : []} />;
+    } else if (field.field_type === FieldType.integer) {
       item = (
         <NumberFieldUnit
           value={parsedValue ?? ""}
@@ -97,8 +109,31 @@ export function ExtraFieldDisplay(props: { field: Field; value: string | undefin
  * @param props
  * @returns
  */
-export function ExtraFieldFormItem(props: { field: Field; setDefaultValue?: boolean }) {
+export function ExtraFieldFormItem(props: {
+  field: Field;
+  setDefaultValue?: boolean;
+  entityType?: EntityType;
+  entityId?: number;
+}) {
   const { field } = props;
+
+  if (field.field_type === FieldType.photo) {
+    return (
+      <Form.Item label={field.name} name={["extra", field.key]} initialValue={[]}>
+        {props.entityType ? (
+          <PhotoFieldEditor entityType={props.entityType} entityId={props.entityId} fieldKey={field.key} />
+        ) : null}
+      </Form.Item>
+    );
+  }
+
+  if (field.field_type === FieldType.photo_url) {
+    return (
+      <Form.Item label={field.name} name={["extra", field.key]} initialValue={[]}>
+        <PhotoUrlFieldEditor />
+      </Form.Item>
+    );
+  }
 
   let inputNode;
   const rules: Rule[] = [
@@ -196,7 +231,9 @@ export function StringifiedExtras<T extends { extra?: { [key: string]: unknown }
   if (obj.extra) {
     const newExtra: { [key: string]: string } = {};
     Object.entries(obj.extra).forEach(([key, value]) => {
-      newExtra[key] = JSON.stringify(value);
+      if (value !== undefined) {
+        newExtra[key] = JSON.stringify(value);
+      }
     });
     return {
       ...obj,

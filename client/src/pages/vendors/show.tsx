@@ -47,7 +47,7 @@ export const VendorShow = () => {
       <TextField value={record?.external_id} />
       <Title level={4}>{t("settings.extra_fields.tab")}</Title>
       {extraFields?.data?.map((field, index) => (
-        <ExtraFieldDisplay key={index} field={field} value={record?.extra[field.key]} />
+        <ExtraFieldDisplay key={index} field={field} value={record?.extra[field.key]} entityType={EntityType.vendor} entityId={record?.id} />
       ))}
     </Show>
   );

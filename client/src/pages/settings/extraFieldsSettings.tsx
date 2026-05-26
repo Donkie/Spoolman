@@ -131,11 +131,22 @@ const EditableCell = ({ record, editing, dataIndex, children, form, ...restProps
             label: t(`settings.extra_fields.field_type.${FieldType.choice}`),
             value: FieldType.choice,
           },
+          {
+            label: t(`settings.extra_fields.field_type.${FieldType.photo}`),
+            value: FieldType.photo,
+          },
+          {
+            label: t(`settings.extra_fields.field_type.${FieldType.photo_url}`),
+            value: FieldType.photo_url,
+          },
         ]}
         onChange={() => {
           // Reset default_value when changing field_type
           form.setFieldsValue({
             default_value: undefined,
+            unit: undefined,
+            choices: undefined,
+            multi_choice: undefined,
           });
         }}
       />
@@ -387,6 +398,11 @@ export function ExtraFieldsSettings() {
       } else {
         // Just stringify all other values
         updatedField.default_value = JSON.stringify(updatedField.default_value);
+      }
+
+      if (updatedField.field_type === FieldType.photo || updatedField.field_type === FieldType.photo_url) {
+        updatedField.default_value = undefined;
+        updatedField.unit = undefined;
       }
 
       // Set multi_choice if it's not set and field_type is choice
