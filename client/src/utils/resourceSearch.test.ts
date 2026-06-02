@@ -56,9 +56,13 @@ describe("filterByResourceSearch", () => {
         id: 3,
         name: "Bambu Blue PLA",
       },
+      {
+        id: 4,
+        filament: { name: "Matte Ash Gray", vendor: { name: "Bambu Lab" } },
+      },
     ];
 
     expect(filterByResourceSearch(resources, "bambu green")).toEqual([resources[0]]);
-    expect(filterByResourceSearch(resources, "bambu")).toEqual([resources[0], resources[2]]);
+    expect(filterByResourceSearch(resources, "bambu")).toEqual([resources[0], resources[2], resources[3]]);
   });
 });
