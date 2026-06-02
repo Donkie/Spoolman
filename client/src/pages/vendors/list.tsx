@@ -1,6 +1,6 @@
 import { EditOutlined, EyeOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
 import { List, useTable } from "@refinedev/antd";
-import { useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
+import { useInvalidate, useList, useNavigation, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Table } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -15,8 +15,10 @@ import {
   SortedColumn,
 } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
+import { ResourceSearchInput } from "../../components/resourceSearchInput";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
+import { filterByResourceSearch } from "../../utils/resourceSearch";
 import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
 import { IVendor } from "./model";
 
@@ -31,6 +33,7 @@ export const VendorList = () => {
   const invalidate = useInvalidate();
   const navigate = useNavigate();
   const extraFields = useGetFields(EntityType.vendor);
+  const [resourceSearch, setResourceSearch] = useState("");
 
   const allColumnsWithExtraFields = [...allColumns, ...(extraFields.data?.map((field) => "extra." + field.key) ?? [])];
 
@@ -66,6 +69,13 @@ export const VendorList = () => {
       },
     });
 
+  const { result: allVendorsData } = useList<IVendor>({
+    resource: "vendor",
+    pagination: {
+      mode: "off",
+    },
+  });
+
   // Create state for the columns to show
   const [showColumns, setShowColumns] = useState<string[]>(initialState.showColumns ?? allColumns);
 
@@ -87,6 +97,10 @@ export const VendorList = () => {
     queryDataSource,
     useCallback((record: IVendor) => record, []),
   );
+  const searchedDataSource = useMemo<IVendor[]>(() => {
+    const source: IVendor[] = resourceSearch.trim() ? (allVendorsData?.data ?? []) : dataSource;
+    return filterByResourceSearch(source, resourceSearch);
+  }, [allVendorsData?.data, dataSource, resourceSearch]);
 
   if (tableProps.pagination) {
     tableProps.pagination.showSizeChanger = true;
@@ -103,7 +117,7 @@ export const VendorList = () => {
     t,
     navigate,
     actions,
-    dataSource,
+    dataSource: searchedDataSource,
     tableState,
     sorter: true,
   };
@@ -112,6 +126,14 @@ export const VendorList = () => {
     <List
       headerButtons={({ defaultButtons }) => (
         <>
+          <ResourceSearchInput
+            value={resourceSearch}
+            onChange={(value) => {
+              setResourceSearch(value);
+              setCurrentPage(1);
+            }}
+            placeholder="Search vendors"
+          />
           <Button
             type="primary"
             icon={<FilterOutlined />}
@@ -164,7 +186,8 @@ export const VendorList = () => {
         sticky
         tableLayout="auto"
         scroll={{ x: "max-content" }}
-        dataSource={dataSource}
+        dataSource={searchedDataSource}
+        pagination={resourceSearch.trim() ? false : tableProps.pagination}
         rowKey="id"
         columns={removeUndefined([
           SortedColumn({

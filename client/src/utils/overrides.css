@@ -41,6 +41,15 @@ body,
   overflow-wrap: anywhere;
 }
 
+.resource-search-input {
+  width: min(100%, 360px);
+  margin-bottom: 16px;
+}
+
+.ant-page-header-heading-extra .resource-search-input {
+  margin-bottom: 0;
+}
+
 .spoolman-page-shell .ant-form,
 .spoolman-page-shell .ant-card,
 .spoolman-page-shell .ant-space,

@@ -1,6 +1,6 @@
 import { EditOutlined, EyeOutlined, FileOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
 import { List, useTable } from "@refinedev/antd";
-import { useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
+import { useInvalidate, useList, useNavigation, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Table } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -17,6 +17,7 @@ import {
   SpoolIconColumn,
 } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
+import { ResourceSearchInput } from "../../components/resourceSearchInput";
 import {
   useSpoolmanArticleNumbers,
   useSpoolmanFilamentNames,
@@ -25,6 +26,7 @@ import {
 } from "../../components/otherModels";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
+import { filterByResourceSearch } from "../../utils/resourceSearch";
 import { TableState, useInitialTableState, useStoreInitialState } from "../../utils/saveload";
 import { useCurrencyFormatter } from "../../utils/settings";
 import { IFilament } from "./model";
@@ -78,6 +80,7 @@ export const FilamentList = () => {
   const navigate = useNavigate();
   const extraFields = useGetFields(EntityType.filament);
   const currencyFormatter = useCurrencyFormatter();
+  const [resourceSearch, setResourceSearch] = useState("");
 
   const allColumnsWithExtraFields = [...allColumns, ...(extraFields.data?.map((field) => "extra." + field.key) ?? [])];
 
@@ -124,6 +127,21 @@ export const FilamentList = () => {
       },
     });
 
+  const { result: allFilamentsData } = useList<IFilamentCollapsed>({
+    resource: "filament",
+    pagination: {
+      mode: "off",
+    },
+    queryOptions: {
+      select(data) {
+        return {
+          total: data.total,
+          data: data.data.map(collapseFilament),
+        };
+      },
+    },
+  });
+
   // Create state for the columns to show
   const [showColumns, setShowColumns] = useState<string[]>(initialState.showColumns ?? defaultColumns);
 
@@ -142,6 +160,10 @@ export const FilamentList = () => {
     [tableProps.dataSource],
   );
   const dataSource = useLiveify("filament", queryDataSource, collapseFilament);
+  const searchedDataSource = useMemo<IFilamentCollapsed[]>(() => {
+    const source: IFilamentCollapsed[] = resourceSearch.trim() ? (allFilamentsData?.data ?? []) : dataSource;
+    return filterByResourceSearch(source, resourceSearch);
+  }, [allFilamentsData?.data, dataSource, resourceSearch]);
 
   if (tableProps.pagination) {
     tableProps.pagination.showSizeChanger = true;
@@ -160,7 +182,7 @@ export const FilamentList = () => {
     t,
     navigate,
     actions,
-    dataSource,
+    dataSource: searchedDataSource,
     tableState,
     sorter: true,
   };
@@ -169,6 +191,14 @@ export const FilamentList = () => {
     <List
       headerButtons={({ defaultButtons }) => (
         <>
+          <ResourceSearchInput
+            value={resourceSearch}
+            onChange={(value) => {
+              setResourceSearch(value);
+              setCurrentPage(1);
+            }}
+            placeholder="Search filaments"
+          />
           <Button
             type="primary"
             icon={<FilterOutlined />}
@@ -221,7 +251,8 @@ export const FilamentList = () => {
         sticky
         tableLayout="auto"
         scroll={{ x: "max-content" }}
-        dataSource={dataSource}
+        dataSource={searchedDataSource}
+        pagination={resourceSearch.trim() ? false : tableProps.pagination}
         rowKey="id"
         columns={removeUndefined([
           SortedColumn({

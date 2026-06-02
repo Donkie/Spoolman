@@ -1,7 +1,9 @@
 import { PlusOutlined } from "@ant-design/icons";
 import { useList, useTranslate } from "@refinedev/core";
 import { Button } from "antd";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ResourceSearchInput } from "../../../components/resourceSearchInput";
+import { resourceSearchMatches } from "../../../utils/resourceSearch";
 import { useSetSetting } from "../../../utils/querySettings";
 import { ISpool } from "../../spools/model";
 import { EMPTYLOC, useLocations, useLocationsSpoolOrders, useRenameSpoolLocation } from "../functions";
@@ -10,6 +12,7 @@ import { Location } from "./location";
 export function LocationContainer() {
   const t = useTranslate();
   const renameSpoolLocation = useRenameSpoolLocation();
+  const [resourceSearch, setResourceSearch] = useState("");
 
   const settingsLocations = useLocations();
   const setLocationsSetting = useSetSetting<string[]>("locations");
@@ -39,6 +42,10 @@ export function LocationContainer() {
     const grouped: Record<string, ISpool[]> = {};
     spools.forEach((spool) => {
       const loc = spool.location ?? EMPTYLOC;
+      const locationMatches = resourceSearchMatches({ location: loc }, resourceSearch);
+      const spoolMatches = resourceSearchMatches({ ...spool, location: loc }, resourceSearch);
+      if (resourceSearch.trim() && !locationMatches && !spoolMatches) return;
+
       if (!grouped[loc]) {
         grouped[loc] = [];
       }
@@ -143,12 +150,14 @@ export function LocationContainer() {
 
   // Update locations settings so it always includes all spool locations
   useEffect(() => {
+    if (resourceSearch.trim()) return;
+
     // Check if they're not the same
     const curLocList = locationsList.filter((l) => l != EMPTYLOC);
     if (settingsLocations != null && JSON.stringify(curLocList) !== JSON.stringify(settingsLocations)) {
       setLocationsSetting.mutate(curLocList);
     }
-  }, [locationsList, settingsLocations, setLocationsSetting]);
+  }, [locationsList, settingsLocations, setLocationsSetting, resourceSearch]);
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -175,6 +184,11 @@ export function LocationContainer() {
 
   return (
     <div>
+      <ResourceSearchInput
+        value={resourceSearch}
+        onChange={setResourceSearch}
+        placeholder="Search locations and spools"
+      />
       {!isLoading && spoolData.data.length == 0 && (
         <div className="no-locations">{t("locations.no_locations_help")}</div>
       )}
