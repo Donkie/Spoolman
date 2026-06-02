@@ -47,8 +47,8 @@ export const Header = ({ sticky }: RefineThemedLayoutHeaderProps) => {
   }
 
   return (
-    <AntdLayout.Header style={headerStyles}>
-      <Space>
+    <AntdLayout.Header className="spoolman-header" style={headerStyles}>
+      <Space className="spoolman-header-actions" wrap>
         <Dropdown
           menu={{
             items: menuItems,
