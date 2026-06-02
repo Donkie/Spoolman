@@ -65,9 +65,10 @@ function fuzzyTokenMatches(token: string, haystack: string, haystackWords: strin
   if (token.length < 4) return false;
 
   return haystackWords.some((word) => {
-    if (word.includes(token) || token.includes(word)) return true;
+    if (word.includes(token)) return true;
 
     if (word.length < 4) return false;
+    if (token.includes(word) && word.length >= token.length - 1) return true;
 
     const maxDistance = token.length <= 5 ? 1 : 2;
     return levenshteinDistance(token, word) <= maxDistance;
