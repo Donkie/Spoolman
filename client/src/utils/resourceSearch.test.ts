@@ -20,10 +20,17 @@ describe("resourceSearchMatches", () => {
     },
   };
 
-  it("matches a keyword anywhere in nested resource metadata", () => {
+  it("matches keywords in user-visible resource fields", () => {
     expect(resourceSearchMatches(greenBambuSpool, "green")).toBe(true);
     expect(resourceSearchMatches(greenBambuSpool, "Bambu")).toBe(true);
     expect(resourceSearchMatches(greenBambuSpool, "AMS")).toBe(true);
+  });
+
+  it("does not search hidden metadata fields or field names", () => {
+    expect(resourceSearchMatches(greenBambuSpool, "purchase")).toBe(false);
+    expect(resourceSearchMatches(greenBambuSpool, "official")).toBe(false);
+    expect(resourceSearchMatches(greenBambuSpool, "color hex")).toBe(false);
+    expect(resourceSearchMatches(greenBambuSpool, "00aa44")).toBe(false);
   });
 
   it("requires every search keyword to match at least one metadata value", () => {
@@ -92,5 +99,7 @@ describe("filterByResourceSearch", () => {
 
     expect(filterByResourceSearch(resources, "gray")).toEqual([resources[3]]);
     expect(filterByResourceSearch(resources, "grey")).toEqual([resources[3]]);
+    expect(filterByResourceSearch(resources, "active tray")).toEqual([]);
+    expect(filterByResourceSearch(resources, "00600A531520425")).toEqual([]);
   });
 });

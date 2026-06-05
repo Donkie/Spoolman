@@ -1,5 +1,17 @@
 type SearchableValue = unknown;
 
+const SEARCHABLE_FIELD_NAMES = new Set([
+  "article_number",
+  "color_name",
+  "comment",
+  "location",
+  "lot_nr",
+  "material",
+  "name",
+]);
+
+const EXCLUDED_FIELD_NAMES = new Set(["extra"]);
+
 function normalizeSearchText(value: string): string {
   return value
     .normalize("NFKD")
@@ -11,19 +23,21 @@ function normalizeSearchText(value: string): string {
     .trim();
 }
 
-function collectSearchValues(value: SearchableValue, seen = new WeakSet<object>()): string[] {
+function collectSearchValues(value: SearchableValue, seen = new WeakSet<object>(), fieldName?: string): string[] {
   if (value == null) return [];
 
+  const isSearchableField = fieldName == null || SEARCHABLE_FIELD_NAMES.has(fieldName);
+
   if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
-    return [String(value)];
+    return isSearchableField ? [String(value)] : [];
   }
 
   if (value instanceof Date) {
-    return [value.toISOString()];
+    return isSearchableField ? [value.toISOString()] : [];
   }
 
   if (Array.isArray(value)) {
-    return value.flatMap((item) => collectSearchValues(item, seen));
+    return value.flatMap((item) => collectSearchValues(item, seen, fieldName));
   }
 
   if (typeof value === "object") {
@@ -31,8 +45,8 @@ function collectSearchValues(value: SearchableValue, seen = new WeakSet<object>(
     seen.add(value);
 
     return Object.entries(value).flatMap(([key, entryValue]) => {
-      // Include field names too so extra-field labels/metadata can be found.
-      return [key, ...collectSearchValues(entryValue, seen)];
+      if (EXCLUDED_FIELD_NAMES.has(key)) return [];
+      return collectSearchValues(entryValue, seen, key);
     });
   }
 
