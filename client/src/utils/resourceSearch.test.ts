@@ -65,4 +65,32 @@ describe("filterByResourceSearch", () => {
     expect(filterByResourceSearch(resources, "bambu green")).toEqual([resources[0]]);
     expect(filterByResourceSearch(resources, "bambu")).toEqual([resources[0], resources[2], resources[3]]);
   });
+
+  it("does not match AMS tray metadata when searching for gray", () => {
+    const resources = [
+      {
+        id: 1,
+        filament: { name: "Black", vendor: { name: "Sunlu" } },
+        extra: { active_tray: { ams: "00600A531520425", tray: 1 } },
+      },
+      {
+        id: 2,
+        filament: { name: "Bambu Green", vendor: { name: "Bambu Lab" } },
+        extra: { active_tray: { ams: "00600A531520425", tray: 2 } },
+      },
+      {
+        id: 3,
+        filament: { name: "Jade White", vendor: { name: "Bambu Lab" } },
+        extra: { active_tray: { ams: "00600A531520425", tray: 4 } },
+      },
+      {
+        id: 4,
+        filament: { name: "Matte Ash Gray", vendor: { name: "Bambu Lab" } },
+        extra: { active_tray: { ams: "00600A531520425", tray: 3 } },
+      },
+    ];
+
+    expect(filterByResourceSearch(resources, "gray")).toEqual([resources[3]]);
+    expect(filterByResourceSearch(resources, "grey")).toEqual([resources[3]]);
+  });
 });
