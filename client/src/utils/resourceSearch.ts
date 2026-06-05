@@ -70,6 +70,11 @@ function fuzzyTokenMatches(token: string, haystack: string, haystackWords: strin
     if (word.length < 4) return false;
     if (token.includes(word) && word.length >= token.length - 1) return true;
 
+    // Avoid broad typo matches between unrelated words like "gray" and AMS "tray" metadata.
+    // Common color spelling variants/typos such as "grey" -> "gray" and "gren" -> "green"
+    // still work because they share the first character.
+    if (token[0] !== word[0]) return false;
+
     const maxDistance = token.length <= 5 ? 1 : 2;
     return levenshteinDistance(token, word) <= maxDistance;
   });
