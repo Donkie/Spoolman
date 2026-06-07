@@ -165,7 +165,9 @@
             "remaining_weight": "Mennyi filament van még a tekercsen. Egy új tekercsnél ez a tekercs súlyával kell megegyeznie.",
             "location": "Hol található a tekercs, ha több helyen tárolod a tekercseidet.",
             "price": "Egy teljes tekercs ára. Ha nincs beállítva, a rendszer az filament árát veszi fel helyette.",
-            "external_filament": ""
+            "external_filament": "",
+            "spool_weight": "",
+            "initial_weight": ""
         },
         "form": {
             "new_location_prompt": "Add meg az új helyet",
@@ -290,6 +292,9 @@
         "vendor": "Gyártók",
         "form": {
             "vendor_updated": "Ez a szállító azóta frissült valaki/valami más által, mióta megnyitottad ezt az oldalt. A mentés felül fogja írni ezeket a változásokat!"
+        },
+        "fields_help": {
+            "empty_spool_weight": ""
         }
     },
     "scanner": {
