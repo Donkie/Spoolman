@@ -349,7 +349,9 @@
     },
     "kofi": "Tip mij op Ko-fi",
     "home": {
-        "home": "Thuis"
+        "home": "Thuis",
+        "welcome": "",
+        "description": ""
     },
     "settings": {
         "header": "Instellingen",

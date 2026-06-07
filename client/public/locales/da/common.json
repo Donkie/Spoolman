@@ -18,7 +18,22 @@
             "showFilamentComment": "Filament kommentarer",
             "button": "Print QR koder",
             "template": "Skabelon",
-            "templateHelp": "Brug {} til at indsætte værdier for spolen som tekst. For eksempen vil {id} blive erstattet med spolens id, eller {filament.material} vil blive erstattet med materialet på spolen. Omgiv teksten med dobbelte asterisk ** for at gøre teksten fed. Klik på knappen for at vise en liste med mulige tags."
+            "templateHelp": "Brug {} til at indsætte værdier for spolen som tekst. For eksempen vil {id} blive erstattet med spolens id, eller {filament.material} vil blive erstattet med materialet på spolen. Omgiv teksten med dobbelte asterisk ** for at gøre teksten fed. Klik på knappen for at vise en liste med mulige tags.",
+            "useHTTPUrl": {
+                "options": {
+                    "default": "",
+                    "url": ""
+                },
+                "preview": "",
+                "tooltip": "",
+                "label": ""
+            },
+            "showQRCodeMode": {
+                "withIcon": "",
+                "no": "",
+                "simple": ""
+            },
+            "showQRCode": ""
         },
         "generic": {
             "printerMarginBottom": "Safe-Zone bund",
@@ -58,7 +73,10 @@
             "deleteSettings": "Slet nuværende indstilling",
             "deleteSettingsConfirm": "Er du sikker på du vil slette denne indstilling?",
             "settingsName": "Indstillingsnavn",
-            "itemCopies": "Kopier"
+            "itemCopies": "Kopier",
+            "duplicateSettings": "",
+            "saveSetting": "",
+            "saveAsImage": ""
         },
         "spoolSelect": {
             "selectedTotal_one": "{{count}} spole valgt",
@@ -99,6 +117,9 @@
         },
         "help": {
             "list": "Hjælp | Spoolman"
+        },
+        "locations": {
+            "list": ""
         }
     },
     "spool": {
@@ -133,11 +154,19 @@
             "create": "Opret spole",
             "clone": "Klon spole",
             "show_title": "[Spole #{{id}}] {{name}}",
-            "list": "Spoler"
+            "list": "Spoler",
+            "adjust": ""
         },
         "form": {
             "spool_updated": "Denne spole er blevet redigeret af nogen/noget andet siden du åbnede denne side. Hvis du gemmer overskrives disse ændringer!",
-            "new_location_prompt": "Indtast ny placering"
+            "new_location_prompt": "Indtast ny placering",
+            "measurement_type_label": "",
+            "adjust_filament_value": "",
+            "measurement_type": {
+                "weight": "",
+                "length": ""
+            },
+            "adjust_filament_help": ""
         },
         "fields_help": {
             "used_weight": "Hvor meget filament er der brugt fra spolen. En ny spole bør have 0g brugt.",
@@ -154,6 +183,9 @@
         "spool": "Spoler",
         "messages": {
             "archive": "Er du sikker på du vil arkivere denne spole?"
+        },
+        "formats": {
+            "last_used": ""
         }
     },
     "buttons": {
@@ -178,7 +210,8 @@
         "unArchive": "Fjern fra arkiv",
         "clone": "Klon",
         "clear": "Ryd",
-        "saveAndAdd": "Gem og Tilføj"
+        "saveAndAdd": "Gem og Tilføj",
+        "continue": ""
     },
     "filament": {
         "fields_help": {
@@ -316,7 +349,9 @@
     },
     "kofi": "Donér på Ko-fi",
     "home": {
-        "home": "Hjem"
+        "home": "Hjem",
+        "welcome": "",
+        "description": ""
     },
     "settings": {
         "header": "Indstillinger",
@@ -324,6 +359,14 @@
             "tab": "Generelt",
             "currency": {
                 "label": "Valuta"
+            },
+            "base_url": {
+                "tooltip": "",
+                "label": ""
+            },
+            "round_prices": {
+                "label": "",
+                "tooltip": ""
             }
         },
         "extra_fields": {
@@ -358,5 +401,11 @@
             "delete_confirm_description": "Dette vil slette feltet samt alle associerede data for alle poster."
         },
         "settings": "Indstillinger"
+    },
+    "locations": {
+        "new_location": "",
+        "no_location": "",
+        "locations": "",
+        "no_locations_help": ""
     }
 }
