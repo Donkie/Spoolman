@@ -26,7 +26,7 @@
                 },
                 "preview": "",
                 "tooltip": "",
-                "label": ""
+                "label": "QR kode link"
             },
             "showQRCodeMode": {
                 "withIcon": "",
@@ -74,9 +74,9 @@
             "deleteSettingsConfirm": "Er du sikker på du vil slette denne indstilling?",
             "settingsName": "Indstillingsnavn",
             "itemCopies": "Kopier",
-            "duplicateSettings": "",
-            "saveSetting": "",
-            "saveAsImage": ""
+            "duplicateSettings": "Duplikér",
+            "saveSetting": "Gem forudindstillinger",
+            "saveAsImage": "Gem som Billede"
         },
         "spoolSelect": {
             "selectedTotal_one": "{{count}} spole valgt",
@@ -211,7 +211,7 @@
         "clone": "Klon",
         "clear": "Ryd",
         "saveAndAdd": "Gem og Tilføj",
-        "continue": ""
+        "continue": "Fortsæt"
     },
     "filament": {
         "fields_help": {
