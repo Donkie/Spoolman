@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useEffect } from "react";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
+import { formatNumberOnUserInput, numberParserAllowEmpty } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { IVendor, IVendorParsedExtras } from "./model";
 
@@ -102,7 +103,12 @@ export const VendorCreate = (props: IResourceComponentsProps & CreateOrCloneProp
             },
           ]}
         >
-          <InputNumber addonAfter="g" precision={1} />
+          <InputNumber
+            addonAfter="g"
+            precision={1}
+            formatter={formatNumberOnUserInput}
+            parser={numberParserAllowEmpty}
+          />
         </Form.Item>
         <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
         {extraFields.data?.map((field, index) => (

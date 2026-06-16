@@ -1,6 +1,7 @@
 import { useTranslate } from "@refinedev/core";
 import { Col, Form, InputNumber, QRCode, Radio, RadioChangeEvent, Row, Slider, Switch, Typography } from "antd";
 import { ReactElement } from "react";
+import { formatNumberOnUserInput, numberParser } from "../../utils/parsing";
 import { getBasePath } from "../../utils/url";
 import { QRCodePrintSettings } from "./printing";
 import PrintingDialog from "./printingDialog";
@@ -147,6 +148,8 @@ const QRCodePrintingDialog = ({
                   style={{ margin: "0 16px" }}
                   value={textSize}
                   addonAfter="mm"
+                  formatter={formatNumberOnUserInput}
+                  parser={numberParser}
                   onChange={(value) => {
                     printSettings.textSize = value ?? 5;
                     setPrintSettings(printSettings);
