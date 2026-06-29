@@ -294,7 +294,16 @@
     "home": {
         "home": "Início",
         "welcome": "Bem-vindo à sua instância do Spoolman!",
-        "description": "Parece que você ainda não adicionou nenhum carretel. Veja a <helpPageLink>Página de Ajuda</helpPageLink> para obter ajuda sobre como começar."
+        "description": "Parece que você ainda não adicionou nenhum carretel. Veja a <helpPageLink>Página de Ajuda</helpPageLink> para obter ajuda sobre como começar.",
+        "total_weight": "Estoque total",
+        "total_value": "Valor",
+        "low_stock": "Estoque baixo",
+        "all_stocked": "Todas as bobinas estão bem abastecidas",
+        "recently_used": "Usadas recentemente",
+        "no_recent": "Nenhuma bobina usada recentemente",
+        "by_material": "Por material",
+        "by_location": "Por localização",
+        "telemetry_subtitle": "Status em tempo real do seu inventário de filamento."
     },
     "help": {
         "help": "Ajuda",
@@ -395,6 +404,8 @@
         "locations": "Locais",
         "new_location": "Novo Local",
         "no_location": "Sem Local",
-        "no_locations_help": "Esta página permite que você organize seus carretéis em locais, adicione alguns carretéis para começar!"
+        "no_locations_help": "Esta página permite que você organize seus carretéis em locais, adicione alguns carretéis para começar!",
+        "error_empty": "O nome não pode estar vazio",
+        "error_exists": "A localização já existe"
     }
 }

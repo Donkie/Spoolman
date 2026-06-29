@@ -342,7 +342,16 @@
     "home": {
         "home": "Hjem",
         "welcome": "Velkommen til Spoolman!",
-        "description": "Det ser ut som du ikke har lagt til noen spoler ennå. Se <helpPageLink>hjelpesiden</helpPageLink> for hjelp til å komme i gang."
+        "description": "Det ser ut som du ikke har lagt til noen spoler ennå. Se <helpPageLink>hjelpesiden</helpPageLink> for hjelp til å komme i gang.",
+        "total_weight": "Totalt lager",
+        "total_value": "Verdi",
+        "low_stock": "Lavt lager",
+        "all_stocked": "Alle spoler er godt fylt opp",
+        "recently_used": "Nylig brukt",
+        "no_recent": "Ingen nylig brukte spoler",
+        "by_material": "Etter materiale",
+        "by_location": "Etter plassering",
+        "telemetry_subtitle": "Sanntidsstatus for filamentlageret ditt."
     },
     "help": {
         "help": "Hjelp",
@@ -357,7 +366,9 @@
         "locations": "Lokasjoner",
         "new_location": "Ny lokasjon",
         "no_location": "Ingen lokasjon",
-        "no_locations_help": "Denne siden mar deg organisere rullene med filament i lokasjoner. Legg til noen ruller for å starte!"
+        "no_locations_help": "Denne siden mar deg organisere rullene med filament i lokasjoner. Legg til noen ruller for å starte!",
+        "error_empty": "Navn kan ikke være tomt",
+        "error_exists": "Plasseringen finnes allerede"
     },
     "settings": {
         "settings": "Innstillinger",

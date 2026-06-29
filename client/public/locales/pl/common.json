@@ -352,7 +352,16 @@
     "home": {
         "home": "Strona główna",
         "welcome": "Witaj w instancji Spoolman!",
-        "description": "Wygląda na to, że nie dodano jeszcze żadnych szpul. Zobacz <helpPageLink>stronę pomocy</helpPageLink>, aby dowiedzieć się jak rozpocząć."
+        "description": "Wygląda na to, że nie dodano jeszcze żadnych szpul. Zobacz <helpPageLink>stronę pomocy</helpPageLink>, aby dowiedzieć się jak rozpocząć.",
+        "total_weight": "Łączny zapas",
+        "total_value": "Wartość",
+        "low_stock": "Niski zapas",
+        "all_stocked": "Wszystkie szpule są dobrze zaopatrzone",
+        "recently_used": "Ostatnio używane",
+        "no_recent": "Brak ostatnio używanych szpul",
+        "by_material": "Wg materiału",
+        "by_location": "Wg lokalizacji",
+        "telemetry_subtitle": "Stan zapasów filamentu w czasie rzeczywistym."
     },
     "settings": {
         "settings": "Ustawienia",
@@ -407,6 +416,8 @@
         "locations": "Lokalizacje",
         "new_location": "Nowa lokalizacja",
         "no_location": "Brak lokalizacji",
-        "no_locations_help": "Ta strona pozwala uporządkować szpule w lokalizacjach, dodaj kilka szpul aby rozpocząć!"
+        "no_locations_help": "Ta strona pozwala uporządkować szpule w lokalizacjach, dodaj kilka szpul aby rozpocząć!",
+        "error_empty": "Nazwa nie może być pusta",
+        "error_exists": "Lokalizacja już istnieje"
     }
 }

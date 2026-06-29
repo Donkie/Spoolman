@@ -1,62 +1,48 @@
 import { ThemedLayout, ThemedSider, ThemedTitle } from "@refinedev/antd";
-import { useTranslate } from "@refinedev/core";
-import { Button } from "antd";
-import { Footer } from "antd/es/layout/layout";
+import { Menu } from "antd";
+import React from "react";
 import Logo from "../icon.svg?react";
-import { getBasePath } from "../utils/url";
 import { Header } from "./header";
-import { Version } from "./version";
 
-const SpoolmanFooter = () => {
-  const t = useTranslate();
-
-  return (
-    <Footer style={{ textAlign: "center" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          flexDirection: "row",
-          gap: "2em",
-        }}
-      >
-        <div>
-          {t("version")} <Version />
-        </div>
-        <div>
-          <Button
-            icon={
-              <img
-                src={getBasePath() + "/kofi_s_logo_nolabel.png"}
-                style={{
-                  height: "1.6em",
-                }}
-              />
-            }
-            type="text"
-            href="https://ko-fi.com/donkie"
-            target="_blank"
-          >
-            {t("kofi")}
-          </Button>
-        </div>
-      </div>
-    </Footer>
-  );
-};
+import "./layout.css";
 
 export const SpoolmanLayout = ({ children }: { children: React.ReactNode }) => (
-  <ThemedLayout
-    Header={() => <Header sticky />}
-    Sider={() => (
-      <ThemedSider
-        fixed
-        Title={({ collapsed }) => <ThemedTitle collapsed={collapsed} text="Spoolman" icon={<Logo />} />}
-      />
-    )}
-    Footer={() => <SpoolmanFooter />}
-  >
-    {children}
-  </ThemedLayout>
+  <div className="spoolman-root">
+    <ThemedLayout
+      Header={() => <Header sticky />}
+      Sider={() => (
+        <ThemedSider
+          fixed
+          Title={({ collapsed }) => <ThemedTitle collapsed={collapsed} text="Spoolman" icon={<Logo />} />}
+          render={({ items, logout }) => {
+            const bottomKeys = ["/settings", "/help"];
+            const mainItems: React.ReactNode[] = [];
+            const bottomItems: React.ReactNode[] = [];
+
+            React.Children.forEach(items as React.ReactNode, (child) => {
+              if (!React.isValidElement(child)) return;
+              const key = String(child.key ?? "");
+              if (bottomKeys.some((k) => key.includes(k))) {
+                bottomItems.push(child);
+              } else {
+                mainItems.push(child);
+              }
+            });
+
+            return (
+              <>
+                {mainItems}
+                <li style={{ flex: 1 }} />
+                <Menu.Divider style={{ margin: "0 16px 4px" }} />
+                {bottomItems}
+                {logout}
+              </>
+            );
+          }}
+        />
+      )}
+    >
+      {children}
+    </ThemedLayout>
+  </div>
 );

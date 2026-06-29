@@ -293,7 +293,18 @@
         }
     },
     "home": {
-        "home": "Hem"
+        "home": "Hem",
+        "welcome": "Välkommen till din Spoolman-instans!",
+        "description": "Det verkar som att du inte har lagt till några spolar ännu. Se <helpPageLink>hjälpsidan</helpPageLink> för att komma igång.",
+        "total_weight": "Totalt lager",
+        "total_value": "Värde",
+        "low_stock": "Lågt lager",
+        "all_stocked": "Alla spolar är välfyllda",
+        "recently_used": "Nyligen använda",
+        "no_recent": "Inga nyligen använda spolar",
+        "by_material": "Per material",
+        "by_location": "Per plats",
+        "telemetry_subtitle": "Realtidsstatus för ditt filamentlager."
     },
     "table": {
         "actions": "Åtgärder"
@@ -382,6 +393,8 @@
     "kofi": "Dricksa mig på Ko-fi",
     "locations": {
         "new_location": "Ny plats",
-        "no_location": "Ingen plats"
+        "no_location": "Ingen plats",
+        "error_empty": "Namnet får inte vara tomt",
+        "error_exists": "Platsen finns redan"
     }
 }

@@ -42,6 +42,14 @@ export const ColorModeContextProvider = ({ children }: PropsWithChildren) => {
           algorithm: mode === "light" ? defaultAlgorithm : darkAlgorithm,
           token: {
             colorPrimary: "#dc7734",
+            ...(mode === "dark"
+              ? {
+                  colorBgBase: "#181818",
+                  colorBgContainer: "#1f1f1f",
+                  colorBgElevated: "#252525",
+                  colorBgLayout: "#141414",
+                }
+              : {}),
           },
         }}
       >

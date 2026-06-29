@@ -277,7 +277,18 @@
     },
     "kofi": "Tipp a Ko-fi-ra",
     "home": {
-        "home": "Kezdő lap"
+        "home": "Kezdő lap",
+        "welcome": "Üdvözöljük a Spoolman példányában!",
+        "description": "Úgy tűnik, még nem adott hozzá orsókat. Nézze meg a <helpPageLink>Súgó oldalt</helpPageLink> az induláshoz.",
+        "total_weight": "Teljes készlet",
+        "total_value": "Érték",
+        "low_stock": "Alacsony készlet",
+        "all_stocked": "Minden orsó jól feltöltve",
+        "recently_used": "Nemrég használt",
+        "no_recent": "Nincsenek nemrég használt orsók",
+        "by_material": "Anyag szerint",
+        "by_location": "Hely szerint",
+        "telemetry_subtitle": "A filament készleted valós idejű állapota."
     },
     "help": {
         "resources": {
@@ -328,5 +339,9 @@
             },
             "tab": "Általános"
         }
+    },
+    "locations": {
+        "error_empty": "A név nem lehet üres",
+        "error_exists": "A hely már létezik"
     }
 }

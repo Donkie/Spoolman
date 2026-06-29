@@ -1,9 +1,11 @@
 import { DownOutlined } from "@ant-design/icons";
 import type { RefineThemedLayoutHeaderProps } from "@refinedev/antd";
-import { useGetLocale, useSetLocale } from "@refinedev/core";
-import { Layout as AntdLayout, Button, Dropdown, MenuProps, Space, Switch, theme } from "antd";
+import { useGetLocale, useSetLocale, useTranslate } from "@refinedev/core";
+import { Grid, Layout as AntdLayout, Button, Dropdown, MenuProps, Space, Switch, theme } from "antd";
 import React, { useContext } from "react";
 import { ColorModeContext } from "../../contexts/color-mode";
+import { getBasePath } from "../../utils/url";
+import { Version } from "../version";
 
 import { languages } from "../../i18n";
 import QRCodeScannerModal from "../qrCodeScanner";
@@ -15,6 +17,9 @@ export const Header = ({ sticky }: RefineThemedLayoutHeaderProps) => {
   const locale = useGetLocale();
   const changeLanguage = useSetLocale();
   const { mode, setMode } = useContext(ColorModeContext);
+  const t = useTranslate();
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
 
   const currentLocale = locale();
 
@@ -41,6 +46,26 @@ export const Header = ({ sticky }: RefineThemedLayoutHeaderProps) => {
 
   return (
     <AntdLayout.Header style={headerStyles}>
+      <Space size="small" style={{ marginRight: "auto", opacity: 0.85, fontSize: 12, marginLeft: isMobile ? 48 : 0 }}>
+        {isMobile ? (
+          <Version />
+        ) : (
+          <span>
+            {t("version")} <Version />
+          </span>
+        )}
+        <Button
+          icon={<img src={getBasePath() + "/kofi_s_logo_nolabel.png"} alt="" aria-hidden style={{ height: "1.4em" }} />}
+          type="text"
+          size="small"
+          href="https://ko-fi.com/donkie"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ fontSize: 12, opacity: 0.7, padding: "0 4px" }}
+        >
+          {!isMobile && t("kofi")}
+        </Button>
+      </Space>
       <Space>
         <Dropdown
           menu={{

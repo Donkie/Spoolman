@@ -293,7 +293,16 @@
     "home": {
         "home": "Ana Sayfa",
         "welcome": "Spoolman sunucunuza hoşgeldiniz!",
-        "description": "Görünüşe göre henüz hiç makara eklememişsiniz. Başlamak için yardım almak isterseniz <helpPageLink>Yardım sayfasına</helpPageLink> göz atabilirsiniz."
+        "description": "Görünüşe göre henüz hiç makara eklememişsiniz. Başlamak için yardım almak isterseniz <helpPageLink>Yardım sayfasına</helpPageLink> göz atabilirsiniz.",
+        "total_weight": "Toplam stok",
+        "total_value": "Değer",
+        "low_stock": "Düşük stok",
+        "all_stocked": "Tüm makaralar iyi stoklanmış",
+        "recently_used": "Son kullanılan",
+        "no_recent": "Son kullanılan makara yok",
+        "by_material": "Malzemeye göre",
+        "by_location": "Konuma göre",
+        "telemetry_subtitle": "Filament envanterinizin gerçek zamanlı durumu."
     },
     "help": {
         "help": "Yardım",
@@ -394,6 +403,8 @@
         "locations": "Konumlar",
         "new_location": "Yeni Konum",
         "no_location": "Konum Yok",
-        "no_locations_help": "Bu sayfa, makaralarınızı konumlara göre düzenlemenizi sağlar. Başlamak için birkaç makara ekleyin!"
+        "no_locations_help": "Bu sayfa, makaralarınızı konumlara göre düzenlemenizi sağlar. Başlamak için birkaç makara ekleyin!",
+        "error_empty": "Ad boş olamaz",
+        "error_exists": "Konum zaten mevcut"
     }
 }

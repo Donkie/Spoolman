@@ -1,97 +1,92 @@
-import { FileOutlined, HighlightOutlined, SolutionOutlined, ToolOutlined, UserOutlined } from "@ant-design/icons";
+import { FileOutlined, HighlightOutlined, ToolOutlined, UserOutlined } from "@ant-design/icons";
+import { List } from "@refinedev/antd";
 import { useTranslate } from "@refinedev/core";
 import { Menu, theme } from "antd";
-import { Content } from "antd/es/layout/layout";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { Route, Routes, useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { ExtraFieldsSettings } from "./extraFieldsSettings";
+import { EntityType } from "../../utils/queryFields";
 import { GeneralSettings } from "./generalSettings";
+import "./settings.css";
 
 dayjs.extend(utc);
 
 const { useToken } = theme;
 
+const panels: Record<string, React.ReactNode> = {
+  general: <GeneralSettings />,
+  "extra-spool": <ExtraFieldsSettings entityType={EntityType.spool} />,
+  "extra-filament": <ExtraFieldsSettings entityType={EntityType.filament} />,
+  "extra-vendor": <ExtraFieldsSettings entityType={EntityType.vendor} />,
+};
+
+// Map between menu keys and the URL path under /settings.
+const keyToPath: Record<string, string> = {
+  general: "/settings",
+  "extra-spool": "/settings/extra/spool",
+  "extra-filament": "/settings/extra/filament",
+  "extra-vendor": "/settings/extra/vendor",
+};
+
+const getActiveKey = (pathname: string): string => {
+  const sub = pathname.replace(/^\/settings\/?/, "").replace(/\/$/, "");
+  if (sub.startsWith("extra/spool")) return "extra-spool";
+  if (sub.startsWith("extra/filament")) return "extra-filament";
+  if (sub.startsWith("extra/vendor")) return "extra-vendor";
+  return "general";
+};
+
 export const Settings = () => {
   const { token } = useToken();
   const t = useTranslate();
   const navigate = useNavigate();
-
-  const getCurrentKey = () => {
-    const path = window.location.pathname.replace("/settings", "");
-    // Remove starting slash and ending slash if exists and return
-    return path.replace(/^\/|\/$/g, "");
-  };
+  const location = useLocation();
+  const activeKey = getActiveKey(location.pathname);
 
   return (
-    <>
-      <h1
+    <List headerButtons={() => null}>
+      <div
+        className="settings-layout"
         style={{
-          color: token.colorText,
-        }}
-      >
-        {t("settings.header")}
-      </h1>
-      <Content
-        style={{
-          padding: "1em",
-          minHeight: 280,
-          margin: "0 auto",
-          backgroundColor: token.colorBgContainer,
+          background: token.colorBgContainer,
           borderRadius: token.borderRadiusLG,
           color: token.colorText,
-          fontFamily: token.fontFamily,
-          fontSize: token.fontSizeLG,
-          lineHeight: 1.5,
         }}
       >
-        <Menu
-          mode="horizontal"
-          selectedKeys={[getCurrentKey()]}
-          onClick={(e) => {
-            if (e.key === "") {
-              return navigate("/settings");
-            } else {
-              return navigate(`/settings/${e.key}`);
-            }
-          }}
-          items={[
-            { key: "", label: t("settings.general.tab"), icon: <ToolOutlined /> },
-            {
-              key: "extra",
-              label: t("settings.extra_fields.tab"),
-              icon: <SolutionOutlined />,
-              children: [
-                {
-                  label: t("spool.spool"),
-                  key: "extra/spool",
-                  icon: <FileOutlined />,
-                },
-                {
-                  label: t("filament.filament"),
-                  key: "extra/filament",
-                  icon: <HighlightOutlined />,
-                },
-                {
-                  label: t("vendor.vendor"),
-                  key: "extra/vendor",
-                  icon: <UserOutlined />,
-                },
-              ],
-            },
-          ]}
-          style={{
-            marginBottom: "1em",
-          }}
-        />
-        <main>
-          <Routes>
-            <Route index element={<GeneralSettings />} />
-            <Route path="/extra/:entityType" element={<ExtraFieldsSettings />} />
-          </Routes>
-        </main>
-      </Content>
-    </>
+        <div className="settings-nav">
+          <Menu
+            mode="inline"
+            selectedKeys={[activeKey]}
+            onClick={(e) => navigate(keyToPath[e.key] ?? "/settings")}
+            items={[
+              {
+                key: "general",
+                icon: <ToolOutlined />,
+                label: t("settings.general.tab"),
+              },
+              { type: "divider" },
+              {
+                key: "extra-spool",
+                icon: <FileOutlined />,
+                label: `${t("settings.extra_fields.tab")} - ${t("spool.spool")}`,
+              },
+              {
+                key: "extra-filament",
+                icon: <HighlightOutlined />,
+                label: `${t("settings.extra_fields.tab")} - ${t("filament.filament")}`,
+              },
+              {
+                key: "extra-vendor",
+                icon: <UserOutlined />,
+                label: `${t("settings.extra_fields.tab")} - ${t("vendor.vendor")}`,
+              },
+            ]}
+          />
+        </div>
+        <div className="settings-content">{panels[activeKey]}</div>
+      </div>
+    </List>
   );
 };
 

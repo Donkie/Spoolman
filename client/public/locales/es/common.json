@@ -352,7 +352,16 @@
     "home": {
         "home": "Inicio",
         "welcome": "¡Bienvenido a tu instancia de Spoolman!",
-        "description": "Parece que aún no has añadido ninguna bobina aún. Visita la <helpPageLink>página de ayuda</helpPageLink> para comenzar."
+        "description": "Parece que aún no has añadido ninguna bobina aún. Visita la <helpPageLink>página de ayuda</helpPageLink> para comenzar.",
+        "total_weight": "Stock total",
+        "total_value": "Valor",
+        "low_stock": "Stock bajo",
+        "all_stocked": "Todas las bobinas están bien abastecidas",
+        "recently_used": "Usadas recientemente",
+        "no_recent": "No hay bobinas usadas recientemente",
+        "by_material": "Por material",
+        "by_location": "Por ubicación",
+        "telemetry_subtitle": "Estado en tiempo real de tu inventario de filamento."
     },
     "settings": {
         "header": "Ajustes",
@@ -407,6 +416,8 @@
         "locations": "Ubicaciones",
         "new_location": "Nueva ubicación",
         "no_location": "Sin ubicación",
-        "no_locations_help": "Esta página te permite organizar tus carretes en ubicaciones, ¡añade algunos carretes para empezar!"
+        "no_locations_help": "Esta página te permite organizar tus carretes en ubicaciones, ¡añade algunos carretes para empezar!",
+        "error_empty": "El nombre no puede estar vacío",
+        "error_exists": "La ubicación ya existe"
     }
 }

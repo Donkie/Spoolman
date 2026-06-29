@@ -337,7 +337,16 @@
     "home": {
         "home": "Acasă",
         "welcome": "Bine ai venit în instanța ta Spoolman!",
-        "description": "Se pare că nu ați adăugat încă nici o rolă. Consultați pagina <helpPageLink>Ajutor</helpPageLink> pentru a începe."
+        "description": "Se pare că nu ați adăugat încă nici o rolă. Consultați pagina <helpPageLink>Ajutor</helpPageLink> pentru a începe.",
+        "total_weight": "Stoc total",
+        "total_value": "Valoare",
+        "low_stock": "Stoc scăzut",
+        "all_stocked": "Toate bobinele sunt bine aprovizionate",
+        "recently_used": "Utilizate recent",
+        "no_recent": "Nicio bobină utilizată recent",
+        "by_material": "După material",
+        "by_location": "După locație",
+        "telemetry_subtitle": "Starea în timp real a inventarului de filament."
     },
     "scanner": {
         "error": {
@@ -407,6 +416,8 @@
         "locations": "Zone",
         "new_location": "Zonă nouă",
         "no_location": "Fără zonă",
-        "no_locations_help": "Această pagină îți permite să îți organizezi rolele în zone, adaugă câteva role pentru a începe!"
+        "no_locations_help": "Această pagină îți permite să îți organizezi rolele în zone, adaugă câteva role pentru a începe!",
+        "error_empty": "Numele nu poate fi gol",
+        "error_exists": "Locația există deja"
     }
 }

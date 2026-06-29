@@ -351,7 +351,16 @@
     "home": {
         "home": "Home",
         "welcome": "Willkommen auf deiner Spoolman Instanz!",
-        "description": "Es sieht so aus, als hättest du noch keine Spulen hinzugefügt. Schau auf unsere <helpPageLink>Hilfeseite</helpPageLink>, falls du Hilfe beim Start benötigst."
+        "description": "Es sieht so aus, als hättest du noch keine Spulen hinzugefügt. Schau auf unsere <helpPageLink>Hilfeseite</helpPageLink>, falls du Hilfe beim Start benötigst.",
+        "total_weight": "Gesamtbestand",
+        "total_value": "Wert",
+        "low_stock": "Niedriger Bestand",
+        "all_stocked": "Alle Spulen sind gut bevorratet",
+        "recently_used": "Zuletzt verwendet",
+        "no_recent": "Keine kürzlich verwendeten Spulen",
+        "by_material": "Nach Material",
+        "by_location": "Nach Standort",
+        "telemetry_subtitle": "Echtzeitstatus deines Filament-Inventars."
     },
     "settings": {
         "header": "Einstellungen",
@@ -406,6 +415,8 @@
         "no_location": "Kein Ort",
         "no_locations_help": "Diese Seite lässt Sie Ihre Spulen zu Orten zuweisen, fügen Sie ein paar Spulen hinzu um loszulegen!",
         "locations": "Orte",
-        "new_location": "Neuer Ort"
+        "new_location": "Neuer Ort",
+        "error_empty": "Name darf nicht leer sein",
+        "error_exists": "Ort existiert bereits"
     }
 }

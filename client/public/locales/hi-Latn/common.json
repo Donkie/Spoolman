@@ -13,5 +13,20 @@
         "confirm": "Kya aapko pakka hai?",
         "continue": "Aage badhen",
         "show": "Dikhayen"
+    },
+    "home": {
+        "total_weight": "Kul stock",
+        "total_value": "Mulya",
+        "low_stock": "Kam stock",
+        "all_stocked": "Sabhi spool achhe se stock hain",
+        "recently_used": "Haal hi mein istemal ki gayi",
+        "no_recent": "Koi haal hi mein istemal ki gayi spool nahi",
+        "by_material": "Material ke anusaar",
+        "by_location": "Jagah ke anusaar",
+        "telemetry_subtitle": "Aapke filament inventory ki real-time sthiti."
+    },
+    "locations": {
+        "error_empty": "Naam khaali nahi ho sakta",
+        "error_exists": "Jagah pehle se maujood hai"
     }
 }
