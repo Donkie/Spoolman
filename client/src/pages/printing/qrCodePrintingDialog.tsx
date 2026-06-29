@@ -24,8 +24,10 @@ interface QRCodePrintingDialogProps {
   baseUrlRoot: string;
   useHTTPUrl: boolean;
   setUseHTTPUrl: (value: boolean) => void;
+  previewValues?: { default: string; url: string };
 }
 
+// Layer QR-specific controls on top of the shared sheet-printing dialog used by spool and filament labels.
 const QRCodePrintingDialog = ({
   items,
   printSettings,
@@ -36,13 +38,16 @@ const QRCodePrintingDialog = ({
   baseUrlRoot,
   useHTTPUrl,
   setUseHTTPUrl,
+  previewValues,
 }: QRCodePrintingDialogProps) => {
   const t = useTranslate();
 
   const showContent = printSettings?.showContent === undefined ? true : printSettings?.showContent;
   const showQRCodeMode = printSettings?.showQRCodeMode || "withIcon";
   const textSize = printSettings?.textSize || 3;
+  const preview = previewValues ?? ({ default: `WEB+SPOOLMAN:S-{id}`, url: `${baseUrlRoot}/spool/show/{id}` } as const);
 
+  // Build the printable QR blocks here; the underlying dialog handles page layout and export mechanics.
   const elements = items.map((item, idx) => {
     return (
       <div className="print-qrcode-item" key={idx}>
@@ -72,8 +77,8 @@ const QRCodePrintingDialog = ({
       items={elements}
       printSettings={printSettings.printSettings}
       setPrintSettings={(newSettings) => {
-        printSettings.printSettings = newSettings;
-        setPrintSettings(printSettings);
+        // Spread to preserve immutability — printSettings.printSettings is a nested object
+        setPrintSettings({ ...printSettings, printSettings: newSettings });
       }}
       extraButtons={extraButtons}
       extraSettingsStart={extraSettingsStart}
@@ -90,8 +95,7 @@ const QRCodePrintingDialog = ({
                 { label: t("printing.qrcode.showQRCodeMode.withIcon"), value: "withIcon" },
               ]}
               onChange={(e: RadioChangeEvent) => {
-                printSettings.showQRCodeMode = e.target.value;
-                setPrintSettings(printSettings);
+                setPrintSettings({ ...printSettings, showQRCodeMode: e.target.value });
               }}
               value={showQRCodeMode}
               optionType="button"
@@ -111,7 +115,8 @@ const QRCodePrintingDialog = ({
                 </Radio.Group>
               </Form.Item>
               <Form.Item label={t("printing.qrcode.useHTTPUrl.preview")}>
-                <Text> {useHTTPUrl ? `${baseUrlRoot}/spool/show/{id}` : `WEB+SPOOLMAN:S-{id}`}</Text>
+                {/* Mirror the encoded payload so users can confirm which QR format the preset will emit. */}
+                <Text> {useHTTPUrl ? preview.url : preview.default}</Text>
               </Form.Item>
             </>
           )}
@@ -119,8 +124,7 @@ const QRCodePrintingDialog = ({
             <Switch
               checked={showContent}
               onChange={(checked) => {
-                printSettings.showContent = checked;
-                setPrintSettings(printSettings);
+                setPrintSettings({ ...printSettings, showContent: checked });
               }}
             />
           </Form.Item>
@@ -135,8 +139,7 @@ const QRCodePrintingDialog = ({
                   value={textSize}
                   step={0.1}
                   onChange={(value) => {
-                    printSettings.textSize = value;
-                    setPrintSettings(printSettings);
+                    setPrintSettings({ ...printSettings, textSize: value });
                   }}
                 />
               </Col>
@@ -151,8 +154,7 @@ const QRCodePrintingDialog = ({
                   formatter={formatNumberOnUserInput}
                   parser={numberParser}
                   onChange={(value) => {
-                    printSettings.textSize = value ?? 5;
-                    setPrintSettings(printSettings);
+                    setPrintSettings({ ...printSettings, textSize: value ?? 5 });
                   }}
                 />
               </Col>

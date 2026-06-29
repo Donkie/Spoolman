@@ -1,5 +1,6 @@
 import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
 import { useShow, useTranslate } from "@refinedev/core";
+import { PrinterOutlined } from "@ant-design/icons";
 import { CalibrationSection } from "../calibration/CalibrationSection";
 import { Button, Typography } from "antd";
 import dayjs from "dayjs";
@@ -11,6 +12,7 @@ import SpoolIcon from "../../components/spoolIcon";
 import { enrichText } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useCurrencyFormatter } from "../../utils/settings";
+import { getBasePath } from "../../utils/url";
 import { IFilament } from "./model";
 dayjs.extend(utc);
 
@@ -65,6 +67,22 @@ export const FilamentShow = () => {
         <>
           <Button type="primary" onClick={gotoSpools}>
             {t("filament.fields.spools")}
+          </Button>
+          <Button
+            type="primary"
+            icon={<PrinterOutlined />}
+            disabled={!record?.id}
+            href={
+              record?.id
+                ? getBasePath() +
+                  "/filament/print?filaments=" +
+                  record.id +
+                  "&return=" +
+                  encodeURIComponent(window.location.pathname)
+                : undefined
+            }
+          >
+            {t("printing.qrcode.button")}
           </Button>
           {defaultButtons}
         </>
