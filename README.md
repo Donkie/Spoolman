@@ -23,6 +23,13 @@ Spoolman is a self-hosted web service designed to help you efficiently manage yo
   * Add custom fields to tailor information to your specific needs.
   * Print labels with QR codes for easy spool identification and tracking.
   * Contribute to its translation into 18 languages via [Weblate](https://hosted.weblate.org/projects/spoolman/).
+* **NFC Spool Identification**: Scan NFC tags to instantly identify and select spools. Supports three tag standards:
+  * [TigerTag](https://tigertag.io/) (ISO 14443A / NTAG213) — binary format with external product database lookup.
+  * [OpenPrintTag](https://openprinttag.org/) (ISO 15693 / NFC-V) — Prusa's NDEF/CBOR standard with per-spool UUIDs.
+  * [Qidi](https://wiki.qidi3d.com/en/QIDIBOX/RFID) (ISO 14443A / MIFARE Classic 1K) — Qidi filament tags with material and color identification.
+  * Browser-based NFC scanning via the Web NFC API, or server-side with a USB reader.
+  * Automatic spool creation from tag data when scanning unrecognized tags.
+  * External integration endpoint (`POST /api/v1/nfc/lookup`) for Klipper NFC daemons and other clients.
 * **Database Support**: SQLite, PostgreSQL, MySQL, and CockroachDB.
 * **Multi-Printer Management**: Handles spool updates from several printers simultaneously.
 * **Advanced Monitoring**: Integrate with [Prometheus](https://prometheus.io/) for detailed historical analysis of filament usage, helping you track and optimize your printing processes. See the [Wiki](https://github.com/Donkie/Spoolman/wiki/Filament-Usage-History) for instructions on how to set it up.

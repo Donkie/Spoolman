@@ -451,6 +451,86 @@ def is_metrics_enabled() -> bool:
     )
 
 
+def is_tigertag_enabled() -> bool:
+    """Get whether TigerTag external database integration is enabled.
+
+    Returns False if no environment variable was set.
+
+    Returns:
+        bool: Whether TigerTag integration is enabled.
+
+    """
+    enabled = os.getenv("SPOOLMAN_TIGERTAG_ENABLED", "FALSE").upper()
+    if enabled in {"FALSE", "0"}:
+        return False
+    if enabled in {"TRUE", "1"}:
+        return True
+    raise ValueError(
+        f"Failed to parse SPOOLMAN_TIGERTAG_ENABLED variable: Unknown value '{enabled}'.",
+    )
+
+
+def get_tigertag_api_url() -> str:
+    """Get the TigerTag API URL from environment variables.
+
+    Returns:
+        str: The TigerTag API URL.
+
+    """
+    return os.getenv("SPOOLMAN_TIGERTAG_API_URL", "https://api.tigertag.io/api:tigertag/")
+
+
+def get_tigertag_sync_interval() -> int:
+    """Get the TigerTag sync interval in seconds from environment variables.
+
+    Returns:
+        int: The sync interval in seconds.
+
+    """
+    return int(os.getenv("SPOOLMAN_TIGERTAG_SYNC_INTERVAL", "3600"))
+
+
+def is_nfc_enabled() -> bool:
+    """Get whether server-side NFC reader support is enabled.
+
+    Returns False if no environment variable was set.
+
+    Returns:
+        bool: Whether NFC support is enabled.
+
+    """
+    enabled = os.getenv("SPOOLMAN_NFC_ENABLED", "FALSE").upper()
+    if enabled in {"FALSE", "0"}:
+        return False
+    if enabled in {"TRUE", "1"}:
+        return True
+    raise ValueError(
+        f"Failed to parse SPOOLMAN_NFC_ENABLED variable: Unknown value '{enabled}'.",
+    )
+
+
+def get_nfc_reader_type() -> str:
+    """Get the NFC reader type from environment variables.
+
+    Returns:
+        str: The NFC reader type (e.g. 'nfcpy').
+
+    """
+    return os.getenv("SPOOLMAN_NFC_READER_TYPE", "nfcpy")
+
+
+def get_nfc_device_path() -> str | None:
+    """Get the NFC device path from environment variables.
+
+    Returns None for auto-detection.
+
+    Returns:
+        Optional[str]: The NFC device path, or None for auto-detect.
+
+    """
+    return os.getenv("SPOOLMAN_NFC_DEVICE")
+
+
 def get_base_path() -> str:
     """Get the base path.
 

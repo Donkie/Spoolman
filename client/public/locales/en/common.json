@@ -514,5 +514,68 @@
       "skip_finish_confirm": "Mark this session as complete without saving this step?",
       "session_complete": "Calibration session marked as complete."
     }
+  },
+  "external": {
+    "source_spoolmandb": "SpoolmanDB",
+    "source_tigertag": "TigerTag"
+  },
+  "nfc": {
+    "scan_title": "NFC Tag Scanner",
+    "scan_description": "Scan an NFC tag to view details about the spool.",
+    "encode_button": "Encode to NFC",
+    "encode_title": "Encode Spool to NFC Tag",
+    "write_success": "Tag written successfully!",
+    "write_error": "Failed to write tag.",
+    "no_match": "No matching spool found for this tag.",
+    "create_from_tag": "Create Spool from Tag",
+    "create_from_tag_description": "No matching spool found. You can create a new spool from the tag data below.",
+    "creating_spool": "Creating spool...",
+    "create_success": "Spool created successfully!",
+    "create_error": "Failed to create spool from tag data.",
+    "tag_color": "Color",
+    "tag_diameter": "Diameter",
+    "tag_weight": "Weight",
+    "tag_nozzle_temp": "Nozzle Temp",
+    "tag_bed_temp": "Bed Temp",
+    "mode_browser": "Browser",
+    "mode_server": "Server",
+    "unsupported": "NFC is not supported in this browser.",
+    "place_tag": "Place tag on reader...",
+    "reading": "Reading tag...",
+    "writing": "Writing tag...",
+    "user_message": "User Message",
+    "user_message_help": "Optional message (max 28 characters)",
+    "preview_title": "Data Preview",
+    "status": {
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "disabled": "Disabled"
+    },
+    "browser_ndef_warning": "Warning: Browser NFC writes use NDEF format. Tags written this way will NOT be recognized by the TigerTag app, which expects raw binary on pages 4-39. Use Server mode for TigerTag-compatible writes, or Download Raw Binary for use with an external NFC tool.",
+    "download_raw_binary": "Download Raw Binary",
+    "download_success": "Binary file downloaded successfully.",
+    "browser_write_success": "TigerTag data written to NFC tag via NDEF.",
+    "error": {
+      "no_reader": "No NFC reader detected.",
+      "read_failed": "Failed to read tag.",
+      "write_failed": "Failed to write tag.",
+      "not_supported": "Web NFC is not supported in this browser. Use the Server mode with a connected reader.",
+      "permission_denied": "NFC permission denied.",
+      "encode_failed": "Failed to encode TigerTag data."
+    },
+    "bind_title": "Link NFC Tag to Spool",
+    "bind_button": "Link NFC Tag",
+    "bind_description": "Scan an existing NFC tag to link it to this spool. Future scans of this tag will automatically select this spool.",
+    "bind_confirm_description": "Tag scanned. Review the tag data below and confirm to link it to this spool.",
+    "bind_binding": "Linking...",
+    "bind_success": "Tag linked to spool successfully!",
+    "bind_error": "Failed to link tag to spool.",
+    "bind_scan_again": "Scan Again",
+    "bind_no_tigertag": "No TigerTag data found on this tag. Only TigerTag format is supported for linking.",
+    "tag_format": "Tag Format",
+    "tag_format_label": "Tag Format",
+    "tag_material": "Material",
+    "tag_material_type": "Material Type",
+    "qidi_write_info": "Qidi tags store only material and color. The tag will be written with the closest matching Qidi material and color codes."
   }
 }

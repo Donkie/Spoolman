@@ -42,6 +42,7 @@ export interface ExternalFilament {
   pattern?: Pattern;
   translucent: boolean;
   glow: boolean;
+  source?: "spoolmandb" | "tigertag";
 }
 
 export interface ExternalMaterial {

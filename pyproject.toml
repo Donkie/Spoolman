@@ -27,6 +27,9 @@ dependencies = [
 ]
 requires-python = ">=3.10"
 
+[project.optional-dependencies]
+nfc = ["nfcpy>=1.0", "cbor2>=5.4", "ndeflib>=0.3"]
+
 [dependency-groups]
 dev = [
     "ruff==0.14.10",
@@ -102,3 +105,16 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests*/*" = ["ANN201", "ASYNC210", "S101", "PLR2004", "D103", "TID252", "PT011"]
 "migrations/versions/*" = ["N999"]
+# NFC support modules are binary-protocol codecs and hardware (USB/NFC) I/O.
+# Magic byte values, branchy decoders/state machines, defensive broad-except
+# around hardware reads, lazy optional-dep imports, and boolean format flags are
+# idiomatic for this domain (cf. the tests* PLR2004 relaxation above).
+"spoolman/tigertag*.py" = ["PLR2004", "C901", "PLR0911", "PLR0912", "PLR0915", "BLE001", "S110", "PERF203", "TRY300", "SIM105", "FBT001", "FBT002", "ARG001", "ARG002", "ARG005", "D107", "PLC0415"]
+"spoolman/qidi*.py" = ["PLR2004", "C901", "PLR0911", "PLR0912", "PLR0915", "BLE001", "S110", "PERF203", "TRY300", "SIM105", "FBT001", "FBT002", "ARG001", "ARG002", "ARG005", "D107", "PLC0415"]
+"spoolman/openprinttag*.py" = ["PLR2004", "C901", "PLR0911", "PLR0912", "PLR0915", "BLE001", "S110", "PERF203", "TRY300", "SIM105", "FBT001", "FBT002", "ARG001", "ARG002", "ARG005", "D107", "PLC0415"]
+"spoolman/nfc_service.py" = ["PLR2004", "C901", "PLR0911", "PLR0912", "PLR0915", "BLE001", "S110", "PERF203", "TRY300", "SIM105", "FBT001", "FBT002", "ARG001", "ARG002", "ARG005", "D107", "PLC0415"]
+# nfc.py is API surface: type hints and response models are kept strict (fixed
+# in code); relax the byte-level/defensive-IO/format-flag rules shared with the
+# codecs, plus the lazy optional-dep imports that keep nfcpy/cbor2/ndeflib out
+# of the base import path.
+"spoolman/api/v1/nfc.py" = ["PLR2004", "BLE001", "S110", "FBT001", "FBT002", "PLC0415"]

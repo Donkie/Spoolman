@@ -86,6 +86,7 @@ class ExternalFilament(BaseModel):
     pattern: Pattern | None = Field(default=None, description="Pattern of the filament.", examples=[Pattern.MARBLE])
     translucent: bool = Field(default=False, description="Whether the filament is translucent.")
     glow: bool = Field(default=False, description="Whether the filament is glow-in-the-dark.")
+    source: str | None = Field(default=None, description="Data source: 'spoolmandb' or 'tigertag'.")
 
 
 class ExternalFilamentsFile(RootModel):
