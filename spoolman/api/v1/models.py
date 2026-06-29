@@ -406,6 +406,9 @@ class SpoolEvent(Event):
 
     payload: Spool = Field(description="Updated spool.")
     resource: Literal["spool"] = Field(description="Resource type.")
+    payload_extras: dict[str, float] | None = Field(
+        default=None, description="Payload extra fields outside of core Spool model"
+    )
 
 
 class FilamentEvent(Event):

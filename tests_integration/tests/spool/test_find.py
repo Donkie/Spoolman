@@ -485,3 +485,10 @@ def test_find_spools_by_empty_lot_nr(spools: Fixture):
     # Verify
     spools_result = result.json()
     assert_lists_compatible(spools_result, (spools.spools[3], spools.spools[4]))
+
+
+@pytest.mark.parametrize("bad_sort", ["name", "registered:upward", "name:"])
+def test_find_spools_malformed_sort_returns_400(bad_sort: str):
+    """A malformed sort parameter must be rejected with 400, not crash with a 500."""
+    result = httpx.get(f"{URL}/api/v1/spool", params={"sort": bad_sort})
+    assert result.status_code == 400

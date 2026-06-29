@@ -32,6 +32,7 @@ Spoolman is a self-hosted web service designed to help you efficiently manage yo
   * [OctoPrint](https://github.com/mdziekon/octoprint-spoolman)
   * [OctoEverywhere](https://octoeverywhere.com/spoolman?source=github_spoolman)
   * [Home Assistant](https://github.com/Disane87/spoolman-homeassistant)
+  * [MCP Server](https://github.com/Disane87/spoolman-mcp) - Manage your filament inventory through AI assistants like Claude using the Model Context Protocol
 
 **Web client preview:**
 ![image](https://github.com/Donkie/Spoolman/assets/2332094/33928d5e-440f-4445-aca9-456c4370ad0d)

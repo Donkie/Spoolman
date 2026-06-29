@@ -6,7 +6,7 @@ ENV UV_NO_DEV=1
 ENV UV_PYTHON_DOWNLOADS=0
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     python3-dev \
     libpq-dev \
@@ -38,7 +38,7 @@ LABEL org.opencontainers.image.description="Keep track of your inventory of 3D-p
 LABEL org.opencontainers.image.licenses=MIT
 
 # Install gosu for privilege dropping
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gosu \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -74,4 +74,13 @@ RUN echo "GIT_COMMIT=${GIT_COMMIT}" > build.txt \
 
 # Run command
 EXPOSE 8000
+
+# Add healthcheck to verify the API is responsive using the internal Python interpreter
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD python3 -c "import os, urllib.request; \
+    port = os.getenv('SPOOLMAN_PORT', '8000'); \
+    base = os.getenv('SPOOLMAN_BASE_PATH', '').strip('/'); \
+    path = f'/{base}/api/v1/health'.replace('//', '/'); \
+    urllib.request.urlopen(f'http://localhost:{port}{path}', timeout=5)" || exit 1
+
 ENTRYPOINT ["/home/app/spoolman/entrypoint.sh"]

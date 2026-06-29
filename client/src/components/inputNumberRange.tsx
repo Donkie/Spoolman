@@ -1,4 +1,5 @@
 import { InputNumber } from "antd";
+import { formatNumberOnUserInput, numberParserAllowEmpty } from "../utils/parsing";
 
 function parseValue(value?: (number | null)[]): [number | null, number | null] {
   if (value === undefined) {
@@ -12,6 +13,16 @@ function parseValue(value?: (number | null)[]): [number | null, number | null] {
   const [min, max] = value;
 
   return [min, max];
+}
+
+function parseInputNumberValue(value: string | number | null): number | null {
+  if (typeof value === "number") return value;
+  // antd typically emits numbers here, but its typings allow strings (e.g. with
+  // stringMode). Parse those rather than dropping them, while still treating an
+  // empty/null value as a deliberate clear.
+  if (value === null || value === "") return null;
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? null : parsed;
 }
 
 /**
@@ -33,10 +44,12 @@ export function InputNumberRange(props: {
         value={min}
         precision={props.precision ?? 0}
         addonAfter={props.unit}
+        formatter={formatNumberOnUserInput}
+        parser={numberParserAllowEmpty}
         style={{ maxWidth: 110 }}
         onChange={(value) => {
           if (props.onChange) {
-            props.onChange([value, max]);
+            props.onChange([parseInputNumberValue(value), max]);
           }
         }}
       />
@@ -45,10 +58,12 @@ export function InputNumberRange(props: {
         value={max}
         precision={props.precision ?? 0}
         addonAfter={props.unit}
+        formatter={formatNumberOnUserInput}
+        parser={numberParserAllowEmpty}
         style={{ maxWidth: 110 }}
         onChange={(value) => {
           if (props.onChange) {
-            props.onChange([min, value]);
+            props.onChange([min, parseInputNumberValue(value)]);
           }
         }}
       />

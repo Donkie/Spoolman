@@ -4,7 +4,7 @@ import asyncio
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -13,9 +13,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from spoolman.api.v1.models import Filament, FilamentEvent, Message, MultiColorDirection
 from spoolman.database import filament
 from spoolman.database.database import get_db_session
-from spoolman.database.utils import SortOrder
+from spoolman.database.utils import parse_sort
 from spoolman.exceptions import ItemDeleteError
-from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
+from spoolman.extra_fields import EXTRA_FIELD_PREFIX, EntityType, get_extra_fields, validate_extra_field_dict
 from spoolman.ws import websocket_manager
 
 logger = logging.getLogger(__name__)
@@ -201,6 +201,7 @@ class FilamentUpdateParameters(FilamentParameters):
 )
 async def find(
     *,
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db_session)],
     vendor_name_old: Annotated[
         str | None,
@@ -320,12 +321,6 @@ async def find(
     ] = None,
     offset: Annotated[int, Query(title="Offset", description="Offset in the full result set if a limit is set.")] = 0,
 ) -> JSONResponse:
-    sort_by: dict[str, SortOrder] = {}
-    if sort is not None:
-        for sort_item in sort.split(","):
-            field, direction = sort_item.split(":")
-            sort_by[field] = SortOrder[direction.upper()]
-
     vendor_id = vendor_id if vendor_id is not None else vendor_id_old
     if vendor_id is not None:
         vendor_ids = [int(vendor_id_item) for vendor_id_item in vendor_id.split(",")]
@@ -342,19 +337,32 @@ async def find(
     else:
         filter_by_ids = None
 
-    db_items, total_count = await filament.find(
-        db=db,
-        ids=filter_by_ids,
-        vendor_name=vendor_name if vendor_name is not None else vendor_name_old,
-        vendor_id=vendor_ids,
-        name=name,
-        material=material,
-        article_number=article_number,
-        external_id=external_id,
-        sort_by=sort_by,
-        limit=limit,
-        offset=offset,
-    )
+    # Extract custom field filters from query parameters
+    extra_field_filters = {}
+    query_params = request.query_params
+    for key, value in query_params.items():
+        if key.startswith(EXTRA_FIELD_PREFIX):
+            field_key = key[len(EXTRA_FIELD_PREFIX) :]  # Remove "extra." prefix
+            extra_field_filters[field_key] = value
+
+    try:
+        sort_by = parse_sort(sort)
+        db_items, total_count = await filament.find(
+            db=db,
+            ids=filter_by_ids,
+            vendor_name=vendor_name if vendor_name is not None else vendor_name_old,
+            vendor_id=vendor_ids,
+            name=name,
+            material=material,
+            article_number=article_number,
+            external_id=external_id,
+            extra_field_filters=extra_field_filters if extra_field_filters else None,
+            sort_by=sort_by,
+            limit=limit,
+            offset=offset,
+        )
+    except ValueError as e:
+        return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     # Set x-total-count header for pagination
     return JSONResponse(

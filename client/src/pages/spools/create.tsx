@@ -353,7 +353,12 @@ export const SpoolCreate = (props: IResourceComponentsProps & CreateOrCloneProps
             },
           ]}
         >
-          <InputNumber addonAfter="g" precision={1} />
+          <InputNumber
+            addonAfter="g"
+            precision={1}
+            formatter={formatNumberOnUserInput}
+            parser={numberParserAllowEmpty}
+          />
         </Form.Item>
 
         <Form.Item
@@ -368,7 +373,12 @@ export const SpoolCreate = (props: IResourceComponentsProps & CreateOrCloneProps
             },
           ]}
         >
-          <InputNumber addonAfter="g" precision={1} />
+          <InputNumber
+            addonAfter="g"
+            precision={1}
+            formatter={formatNumberOnUserInput}
+            parser={numberParserAllowEmpty}
+          />
         </Form.Item>
 
         <Form.Item hidden={true} name={["used_weight"]} initialValue={0}>

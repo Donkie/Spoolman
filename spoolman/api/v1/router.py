@@ -15,7 +15,7 @@ from spoolman.database.database import backup_global_db
 from spoolman.exceptions import ItemNotFoundError
 from spoolman.ws import websocket_manager
 
-from . import export, externaldb, field, filament, models, other, setting, spool, vendor
+from . import calibration, export, externaldb, field, filament, models, other, setting, spool, vendor
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +104,7 @@ async def notify(
 
 
 # Add routers
+app.include_router(calibration.router)
 app.include_router(filament.router)
 app.include_router(spool.router)
 app.include_router(vendor.router)

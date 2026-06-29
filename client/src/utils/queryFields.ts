@@ -110,6 +110,27 @@ export function useSetField(entity_type: EntityType) {
   });
 }
 
+/** Prefix that marks a query/sort field as a custom (extra) field, e.g. "extra.my_field". */
+export const CUSTOM_FIELD_PREFIX = "extra.";
+
+/**
+ * Checks if a field is a custom field (starts with "extra.")
+ * @param field The field to check
+ * @returns True if the field is a custom field
+ */
+export function isCustomField(field: string): boolean {
+  return field.startsWith(CUSTOM_FIELD_PREFIX);
+}
+
+/**
+ * Extracts the key from a custom field (removes the "extra." prefix)
+ * @param field The custom field
+ * @returns The key of the custom field
+ */
+export function getCustomFieldKey(field: string): string {
+  return field.substring(CUSTOM_FIELD_PREFIX.length); // Remove "extra." prefix
+}
+
 export function useDeleteField(entity_type: EntityType) {
   const queryClient = useQueryClient();
 

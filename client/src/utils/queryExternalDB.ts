@@ -1,3 +1,4 @@
+import { axiosInstance } from "@refinedev/simple-rest";
 import { useQuery } from "@tanstack/react-query";
 import { getAPIURL } from "./url";
 
@@ -48,6 +49,37 @@ export interface ExternalMaterial {
   density: number;
   extruder_temp: number | null;
   bed_temp: number | null;
+}
+
+/**
+ * Fetches an external filament profile by its profile ID and maps it onto an ExternalFilament.
+ *
+ * Uses the configured axios instance (the same one used by the data provider) so the request
+ * carries the auth/credentials needed when running behind forward-auth.
+ *
+ * @param profileId The external profile ID to fetch.
+ * @returns The mapped ExternalFilament.
+ */
+export async function fetchExternalProfile(profileId: string): Promise<ExternalFilament> {
+  const { data } = await axiosInstance.get(`${getAPIURL()}/external/profile/${profileId}`);
+
+  return {
+    id: profileId,
+    manufacturer: data.manufacturer,
+    name: data.name,
+    material: data.material,
+    density: data.density,
+    diameter: data.diameter,
+    weight: data.weight,
+    spool_weight: data.spool_weight,
+    color_hex: data.color_hex,
+    color_hexes: data.color_hexes,
+    multi_color_direction: data.multi_color_direction,
+    extruder_temp: data.extruder_temp,
+    bed_temp: data.bed_temp,
+    translucent: false,
+    glow: false,
+  };
 }
 
 export function useGetExternalDBFilaments() {

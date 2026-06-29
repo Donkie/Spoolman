@@ -47,8 +47,12 @@ export function formatNumberOnUserInput(
  * @returns
  */
 export function numberFormatter(value: number | string | undefined): string {
-  const formattedValue = value
-    ? Number(value).toLocaleString(undefined, {
+  // Use an explicit empty check rather than truthiness so a legitimate 0 is
+  // rendered as "0" instead of a blank field (which looks like state loss for
+  // fields where 0 is common, e.g. printing margins/spacing).
+  const numeric = value === undefined || value === "" ? NaN : Number(value);
+  const formattedValue = Number.isFinite(numeric)
+    ? numeric.toLocaleString(undefined, {
         useGrouping: false, // Disable thousands separator and do it manually instead so it's always spaces
       })
     : "";

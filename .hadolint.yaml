@@ -1,0 +1,11 @@
+# hadolint configuration
+#
+# DL3008 (pin apt package versions) and DL3013 (pin pip package versions) are
+# ignored on purpose. The image is built on the rolling `python:3.x-slim-bookworm`
+# base, whose apt package index moves over time; pinning exact apt/pip versions
+# would break the build as soon as those versions are superseded in the index.
+# Real Python dependencies are already locked via uv.lock, so reproducibility is
+# handled there rather than by pinning the build-time toolchain packages.
+ignored:
+  - DL3008
+  - DL3013

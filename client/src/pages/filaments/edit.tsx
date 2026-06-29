@@ -1,6 +1,19 @@
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { HttpError, useTranslate } from "@refinedev/core";
-import { Alert, ColorPicker, DatePicker, Form, Input, InputNumber, message, Radio, Select, Typography } from "antd";
+import { HttpError, useTranslate, useInvalidate } from "@refinedev/core";
+import {
+  Alert,
+  ColorPicker,
+  DatePicker,
+  Form,
+  Input,
+  InputNumber,
+  message,
+  Radio,
+  Select,
+  Typography,
+  Space,
+  Button,
+} from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
@@ -10,6 +23,8 @@ import { formatNumberOnUserInput, numberParser, numberParserAllowEmpty } from ".
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { IVendor } from "../vendors/model";
+import { getOrCreateVendorFromExternal } from "../vendors/functions";
+import { ExternalFilament, fetchExternalProfile } from "../../utils/queryExternalDB";
 import { IFilament, IFilamentParsedExtras } from "./model";
 
 /*
@@ -26,6 +41,8 @@ export const FilamentEdit = () => {
   const extraFields = useGetFields(EntityType.filament);
   const currency = useCurrency();
   const [colorType, setColorType] = useState<"single" | "multi">("single");
+  const [profileId, setProfileId] = useState("");
+  const invalidate = useInvalidate();
 
   const { formProps, saveButtonProps } = useForm<IFilament, HttpError, IFilament, IFilament>({
     liveMode: "manual",
@@ -76,6 +93,43 @@ export const FilamentEdit = () => {
     }
   };
 
+  const importFilament = async (filament: ExternalFilament) => {
+    const vendor = await getOrCreateVendorFromExternal(filament.manufacturer);
+    await invalidate({
+      resource: "vendor",
+      invalidates: ["list", "detail"],
+    });
+
+    setColorType(filament.color_hexes ? "multi" : "single");
+
+    formProps.form?.setFieldsValue({
+      name: filament.name,
+      vendor_id: vendor.id,
+      material: filament.material,
+      density: filament.density,
+      diameter: filament.diameter,
+      weight: filament.weight,
+      spool_weight: filament.spool_weight || undefined,
+      color_hex: filament.color_hex,
+      multi_color_hexes: filament.color_hexes?.join(",") || undefined,
+      multi_color_direction: filament.multi_color_direction,
+      settings_extruder_temp: filament.extruder_temp || undefined,
+      settings_bed_temp: filament.bed_temp || undefined,
+    } as Parameters<NonNullable<typeof formProps.form>["setFieldsValue"]>[0]);
+  };
+
+  const fetchProfile = async () => {
+    if (!profileId) return;
+    try {
+      const filament = await fetchExternalProfile(profileId);
+      await importFilament(filament);
+      message.success(t("filament.form.import_3dfp_success"));
+    } catch (err) {
+      console.error(err);
+      message.error(t("filament.form.import_3dfp_error"));
+    }
+  };
+
   return (
     <Edit saveButtonProps={saveButtonProps}>
       {contextHolder}
@@ -104,6 +158,22 @@ export const FilamentEdit = () => {
           })}
         >
           <DatePicker disabled showTime format="YYYY-MM-DD HH:mm:ss" />
+        </Form.Item>
+        <Form.Item label={t("filament.form.import_3dfp")} help={t("filament.form.import_3dfp_help")}>
+          <Space.Compact style={{ width: "100%" }}>
+            <Input
+              value={profileId}
+              onChange={(e) => setProfileId(e.target.value)}
+              onPressEnter={(e) => {
+                e.preventDefault();
+                fetchProfile();
+              }}
+              placeholder={t("filament.form.import_3dfp_placeholder")}
+            />
+            <Button type="primary" onClick={fetchProfile}>
+              {t("filament.buttons.fetch")}
+            </Button>
+          </Space.Compact>
         </Form.Item>
         <Form.Item
           label={t("filament.fields.name")}
@@ -273,7 +343,12 @@ export const FilamentEdit = () => {
             },
           ]}
         >
-          <InputNumber addonAfter="g" precision={1} />
+          <InputNumber
+            addonAfter="g"
+            precision={1}
+            formatter={formatNumberOnUserInput}
+            parser={numberParserAllowEmpty}
+          />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.spool_weight")}
@@ -287,7 +362,12 @@ export const FilamentEdit = () => {
             },
           ]}
         >
-          <InputNumber addonAfter="g" precision={1} />
+          <InputNumber
+            addonAfter="g"
+            precision={1}
+            formatter={formatNumberOnUserInput}
+            parser={numberParserAllowEmpty}
+          />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.settings_extruder_temp")}

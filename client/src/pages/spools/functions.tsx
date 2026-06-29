@@ -4,7 +4,7 @@ import { Form, InputNumber, Modal, Radio } from "antd";
 import { useForm } from "antd/es/form/Form";
 import type { InputNumberRef } from "rc-input-number";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { formatLength, formatWeight } from "../../utils/parsing";
+import { formatLength, formatNumberOnUserInput, formatWeight, numberParser } from "../../utils/parsing";
 import { SpoolType, useGetExternalDBFilaments } from "../../utils/queryExternalDB";
 import { getAPIURL } from "../../utils/url";
 import { IFilament } from "../filaments/model";
@@ -252,7 +252,13 @@ export function useSpoolAdjustModal() {
             </Radio.Group>
           </Form.Item>
           <Form.Item label={t("spool.form.adjust_filament_value")} name="filament_value">
-            <InputNumber ref={inputNumberRef} precision={1} addonAfter={measurementType === "length" ? "mm" : "g"} />
+            <InputNumber
+              ref={inputNumberRef}
+              precision={1}
+              addonAfter={measurementType === "length" ? "mm" : "g"}
+              formatter={formatNumberOnUserInput}
+              parser={numberParser}
+            />
           </Form.Item>
         </Form>
       </Modal>

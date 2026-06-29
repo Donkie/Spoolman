@@ -5,6 +5,7 @@ import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
 import { useState } from "react";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
+import { formatNumberOnUserInput, numberParserAllowEmpty } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { IVendor, IVendorParsedExtras } from "./model";
 
@@ -111,7 +112,12 @@ export const VendorEdit = () => {
             },
           ]}
         >
-          <InputNumber addonAfter="g" precision={1} />
+          <InputNumber
+            addonAfter="g"
+            precision={1}
+            formatter={formatNumberOnUserInput}
+            parser={numberParserAllowEmpty}
+          />
         </Form.Item>
         <Form.Item
           label={t("vendor.fields.external_id")}

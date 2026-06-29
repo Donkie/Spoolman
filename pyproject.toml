@@ -32,9 +32,15 @@ dev = [
     "ruff==0.14.10",
     "pytest~=8.3.5",
     "pytest-asyncio~=0.25.3",
+    "pytest-cov~=6.0",
     "httpx~=0.28.1",
     "poethepoet>=0.40.0",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
 
 [tool.poe.tasks.generate-docs]
 script = "spoolman.docs:generate_docs"
@@ -94,5 +100,5 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests*/*" = ["ANN201", "ASYNC210", "S101", "PLR2004", "D103", "TID252"]
+"tests*/*" = ["ANN201", "ASYNC210", "S101", "PLR2004", "D103", "TID252", "PT011"]
 "migrations/versions/*" = ["N999"]

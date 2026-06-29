@@ -336,7 +336,12 @@ export const SpoolEdit = () => {
             },
           ]}
         >
-          <InputNumber addonAfter="g" precision={1} />
+          <InputNumber
+            addonAfter="g"
+            precision={1}
+            formatter={formatNumberOnUserInput}
+            parser={numberParserAllowEmpty}
+          />
         </Form.Item>
 
         <Form.Item
@@ -351,7 +356,12 @@ export const SpoolEdit = () => {
             },
           ]}
         >
-          <InputNumber addonAfter="g" precision={1} />
+          <InputNumber
+            addonAfter="g"
+            precision={1}
+            formatter={formatNumberOnUserInput}
+            parser={numberParserAllowEmpty}
+          />
         </Form.Item>
 
         <Form.Item hidden={true} name={["used_weight"]} initialValue={0}>

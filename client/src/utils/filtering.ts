@@ -1,7 +1,8 @@
 import { CrudFilter, CrudOperators } from "@refinedev/core";
+import { Field, getCustomFieldKey, isCustomField } from "./queryFields";
 
 interface TypedCrudFilter<Obj> {
-  field: keyof Obj;
+  field: keyof Obj | string;
   operator: Exclude<CrudOperators, "or" | "and">;
   value: string[];
 }
@@ -16,10 +17,7 @@ export function typeFilters<Obj>(filters: CrudFilter[]): TypedCrudFilter<Obj>[] 
  * @param field The field to get the filter values for.
  * @returns An array of filter values for the given field.
  */
-export function getFiltersForField<Obj, Field extends keyof Obj>(
-  filters: TypedCrudFilter<Obj>[],
-  field: Field,
-): string[] {
+export function getFiltersForField<Obj>(filters: TypedCrudFilter<Obj>[], field: Field | string): string[] {
   const filterValues: string[] = [];
   filters.forEach((filter) => {
     if (filter.field === field) {
@@ -27,6 +25,31 @@ export function getFiltersForField<Obj, Field extends keyof Obj>(
     }
   });
   return filterValues;
+}
+
+/**
+ * Extracts all custom field filters from a list of filters
+ * @param filters The list of filters
+ * @returns An object with custom field keys and their filter values
+ */
+export function getCustomFieldFilters<Obj = unknown>(
+  filters: CrudFilter[] | TypedCrudFilter<Obj>[],
+): Record<string, string[]> {
+  const customFieldFilters: Record<string, string[]> = {};
+
+  filters.forEach((filter) => {
+    if (!("field" in filter)) {
+      return; // Skip non-field filters
+    }
+
+    const field = filter.field.toString();
+    if (isCustomField(field)) {
+      const key = getCustomFieldKey(field);
+      customFieldFilters[key] = filter.value as string[];
+    }
+  });
+
+  return customFieldFilters;
 }
 
 /**

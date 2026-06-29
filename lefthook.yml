@@ -46,4 +46,10 @@ ci:
           - name: Run format check on client files
             root: "client/"
             run: ./node_modules/.bin/prettier --check .
+          - name: Run type check on client files
+            root: "client/"
+            run: npx tsc --noEmit
+          - name: Validate client i18n translations
+            root: "client/"
+            run: npm run check-i18n
 

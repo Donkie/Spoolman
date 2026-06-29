@@ -2,7 +2,7 @@
 
 import logging
 from collections.abc import Sequence
-from datetime import datetime, timezone
+from datetime import datetime
 
 import sqlalchemy
 from sqlalchemy import case, func
@@ -13,6 +13,7 @@ from sqlalchemy.sql.functions import coalesce
 
 from spoolman.api.v1.models import EventType, Spool, SpoolEvent
 from spoolman.database import filament, models
+from spoolman.database.extra_field_query import apply_extra_field_filters_and_sort
 from spoolman.database.utils import (
     SortOrder,
     add_where_clause_int,
@@ -20,17 +21,14 @@ from spoolman.database.utils import (
     add_where_clause_str,
     add_where_clause_str_opt,
     parse_nested_field,
+    utc_timezone_naive,
 )
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError, SpoolMeasureError
+from spoolman.extra_field_registry import EntityType
 from spoolman.math import weight_from_length
 from spoolman.ws import websocket_manager
 
 logger = logging.getLogger(__name__)
-
-
-def utc_timezone_naive(dt: datetime) -> datetime:
-    """Convert a datetime object to UTC and remove timezone info."""
-    return dt.astimezone(tz=timezone.utc).replace(tzinfo=None)
 
 
 async def create(
@@ -122,6 +120,7 @@ async def find(  # noqa: C901, PLR0912
     location: str | None = None,
     lot_nr: str | None = None,
     allow_archived: bool = False,
+    extra_field_filters: dict[str, str] | None = None,
     sort_by: dict[str, SortOrder] | None = None,
     limit: int | None = None,
     offset: int = 0,
@@ -159,20 +158,29 @@ async def find(  # noqa: C901, PLR0912
 
     total_count = None
 
-    if limit is not None:
-        total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True)
-        total_count = (await db.execute(total_count_stmt)).scalar()
-
-        stmt = stmt.offset(offset).limit(limit)
+    stmt = await apply_extra_field_filters_and_sort(
+        db=db,
+        stmt=stmt,
+        base_obj=models.Spool,
+        entity_type=EntityType.spool,
+        extra_field_filters=extra_field_filters,
+        sort_by=sort_by,
+    )
 
     if sort_by is not None:
         for fieldstr, order in sort_by.items():
+            # Check if this is a custom field sort
+            if fieldstr.startswith("extra."):
+                continue
+
             sorts = []
             if fieldstr == "remaining_weight":
-                sorts.append(coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight)
+                sorts.append(
+                    coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight,
+                )
             elif fieldstr == "remaining_length":
-                # Simplified weight -> length formula. Absolute value is not correct but the proportionality is still
-                # kept, which means the sort order is correct.
+                # Simplified weight -> length formula. Absolute value is not correct but the proportionality
+                # is still kept, which means the sort order is correct.
                 sorts.append(
                     (coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight)
                     / models.Filament.density
@@ -196,6 +204,11 @@ async def find(  # noqa: C901, PLR0912
                 stmt = stmt.order_by(*(f.asc() for f in sorts))
             elif order == SortOrder.DESC:
                 stmt = stmt.order_by(*(f.desc() for f in sorts))
+
+    if limit is not None:
+        total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True).order_by(None)
+        total_count = (await db.execute(total_count_stmt)).scalar()
+        stmt = stmt.offset(offset).limit(limit)
 
     rows = await db.execute(
         stmt,
@@ -244,6 +257,7 @@ async def delete(db: AsyncSession, spool_id: int) -> None:
     spool = await get_by_id(db, spool_id)
     await spool_changed(spool, EventType.DELETED)
     await db.delete(spool)
+    await db.commit()  # Flush immediately so the deletion is durable and errors propagate in this request.
 
 
 async def clear_extra_field(db: AsyncSession, key: str) -> None:
@@ -253,7 +267,7 @@ async def clear_extra_field(db: AsyncSession, key: str) -> None:
     )
 
 
-async def use_weight_safe(db: AsyncSession, spool_id: int, weight: float) -> None:
+async def use_weight_safe(db: AsyncSession, spool_id: int, weight: float) -> float:
     """Consume filament from a spool by weight in a way that is safe against race conditions.
 
     Args:
@@ -261,7 +275,29 @@ async def use_weight_safe(db: AsyncSession, spool_id: int, weight: float) -> Non
         spool_id (int): Spool ID
         weight (float): Filament weight to consume, in grams
 
+    Returns:
+        float: The actual change applied to used_weight after clamping at zero. This equals
+            ``weight`` unless the result would have gone negative, in which case used_weight is
+            clamped to 0 and the returned delta is only what was actually consumed.
+
     """
+    # Consumption (weight >= 0) can never trigger the clamp at zero, so the applied delta always
+    # equals the requested weight. Keep this path a single atomic UPDATE with no preceding read:
+    # adding a read-before-write here turns concurrent uses into read/write transactions that
+    # deadlock (MariaDB) or hit serialization retries (CockroachDB SERIALIZABLE), losing updates.
+    if weight >= 0:
+        await db.execute(
+            sqlalchemy.update(models.Spool)
+            .where(models.Spool.id == spool_id)
+            .values(used_weight=models.Spool.used_weight + weight),
+        )
+        return weight
+
+    # Refill (weight < 0) may clamp used_weight at 0, so read the prior value to report the real
+    # applied delta. Refills are not part of the high-concurrency hot path.
+    used_before = (
+        await db.execute(sqlalchemy.select(models.Spool.used_weight).where(models.Spool.id == spool_id))
+    ).scalar_one_or_none()
     await db.execute(
         sqlalchemy.update(models.Spool)
         .where(models.Spool.id == spool_id)
@@ -272,6 +308,9 @@ async def use_weight_safe(db: AsyncSession, spool_id: int, weight: float) -> Non
             ),
         ),
     )
+    if used_before is None:
+        return weight  # Spool not found; caller's get_by_id will raise ItemNotFoundError.
+    return max(0.0, used_before + weight) - used_before
 
 
 async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.Spool:
@@ -289,7 +328,7 @@ async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.S
         models.Spool: Updated spool object
 
     """
-    await use_weight_safe(db, spool_id, weight)
+    weight_delta = await use_weight_safe(db, spool_id, weight)
 
     spool = await get_by_id(db, spool_id)
 
@@ -298,7 +337,7 @@ async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.S
     spool.last_used = datetime.utcnow().replace(microsecond=0)
 
     await db.commit()
-    await spool_changed(spool, EventType.UPDATED)
+    await spool_changed(spool, EventType.UPDATED, {"weight_delta": weight_delta})
     return spool
 
 
@@ -334,7 +373,7 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
         diameter=filament_info[0],
         density=filament_info[1],
     )
-    await use_weight_safe(db, spool_id, weight)
+    weight_delta = await use_weight_safe(db, spool_id, weight)
 
     # Get spool with new weight and update first_used and last_used
     spool = await get_by_id(db, spool_id)
@@ -344,7 +383,7 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
     spool.last_used = datetime.utcnow().replace(microsecond=0)
 
     await db.commit()
-    await spool_changed(spool, EventType.UPDATED)
+    await spool_changed(spool, EventType.UPDATED, {"weight_delta": weight_delta})
     return spool
 
 
@@ -436,17 +475,13 @@ async def find_lot_numbers(
     return [row[0] for row in rows.all() if row[0] is not None]
 
 
-async def spool_changed(spool: models.Spool, typ: EventType) -> None:
+async def spool_changed(spool: models.Spool, typ: EventType, delta: dict | None = None) -> None:
     """Notify websocket clients that a spool has changed."""
     try:
+        spool = Spool.from_db(spool)
         await websocket_manager.send(
             ("spool", str(spool.id)),
-            SpoolEvent(
-                type=typ,
-                resource="spool",
-                date=datetime.utcnow(),
-                payload=Spool.from_db(spool),
-            ),
+            SpoolEvent(type=typ, resource="spool", date=datetime.utcnow(), payload=spool, payload_extras=delta),
         )
     except Exception:
         # Important to have a catch-all here since we don't want to stop the call if this fails.

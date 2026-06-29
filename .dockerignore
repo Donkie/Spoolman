@@ -5,3 +5,19 @@ client/node_modules
 *.pyc
 *.swp
 __pycache__
+
+# Version control and editor/IDE metadata
+.git
+.github
+.vscode
+.idea
+
+# Test artifacts and suites (not needed for the image build)
+.pytest_cache
+tests
+tests_integration
+
+# Environment files (keep the example for reference)
+.env
+.env.*
+!.env.example

@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from enum import Enum
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.database import filament, spool, vendor
@@ -34,8 +34,12 @@ async def export_spools(
     *,
     db: Annotated[AsyncSession, Depends(get_db_session)],
     fmt: ExportFormat,
+    allow_archived: Annotated[
+        bool,
+        Query(description="Whether to include archived spools in the export."),
+    ] = True,
 ) -> Response:
-    all_spools, _ = await spool.find(db=db)
+    all_spools, _ = await spool.find(db=db, allow_archived=allow_archived)
     return await _export(all_spools, fmt)
 
 

@@ -1,6 +1,6 @@
 import { Create, useForm, useSelect } from "@refinedev/antd";
 import { HttpError, IResourceComponentsProps, useInvalidate, useTranslate } from "@refinedev/core";
-import { Button, ColorPicker, Form, Input, InputNumber, Radio, Select, Typography } from "antd";
+import { Button, ColorPicker, Form, Input, InputNumber, Radio, Select, Typography, message, Space } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -9,7 +9,7 @@ import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../compo
 import { FilamentImportModal } from "../../components/filamentImportModal";
 import { MultiColorPicker } from "../../components/multiColorPicker";
 import { formatNumberOnUserInput, numberParser, numberParserAllowEmpty } from "../../utils/parsing";
-import { ExternalFilament } from "../../utils/queryExternalDB";
+import { ExternalFilament, fetchExternalProfile } from "../../utils/queryExternalDB";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { getOrCreateVendorFromExternal } from "../vendors/functions";
@@ -33,6 +33,7 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
   const [isImportExtOpen, setIsImportExtOpen] = useState(false);
   const invalidate = useInvalidate();
   const [colorType, setColorType] = useState<"single" | "multi">("single");
+  const [profileId, setProfileId] = useState("");
 
   const { form, formProps, formLoading, onFinish, redirect } = useForm<
     IFilament,
@@ -92,6 +93,18 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
     });
   };
 
+  const fetchProfile = async () => {
+    if (!profileId) return;
+    try {
+      const filament = await fetchExternalProfile(profileId);
+      await importFilament(filament);
+      message.success(t("filament.form.import_3dfp_success"));
+    } catch (err) {
+      console.error(err);
+      message.error(t("filament.form.import_3dfp_error"));
+    }
+  };
+
   // Use useEffect to update the form's initialValues when the extra fields are loaded
   // This is necessary because the form is rendered before the extra fields are loaded
   useEffect(() => {
@@ -134,6 +147,22 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
         onClose={() => setIsImportExtOpen(false)}
       />
       <Form {...formProps} layout="vertical">
+        <Form.Item label={t("filament.form.import_3dfp")} help={t("filament.form.import_3dfp_help")}>
+          <Space.Compact style={{ width: "100%" }}>
+            <Input
+              value={profileId}
+              onChange={(e) => setProfileId(e.target.value)}
+              onPressEnter={(e) => {
+                e.preventDefault();
+                fetchProfile();
+              }}
+              placeholder={t("filament.form.import_3dfp_placeholder")}
+            />
+            <Button type="primary" onClick={fetchProfile}>
+              {t("filament.buttons.fetch")}
+            </Button>
+          </Space.Compact>
+        </Form.Item>
         <Form.Item
           label={t("filament.fields.name")}
           help={t("filament.fields_help.name")}
@@ -295,7 +324,12 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
             },
           ]}
         >
-          <InputNumber addonAfter="g" precision={1} />
+          <InputNumber
+            addonAfter="g"
+            precision={1}
+            formatter={formatNumberOnUserInput}
+            parser={numberParserAllowEmpty}
+          />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.spool_weight")}
@@ -309,7 +343,12 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
             },
           ]}
         >
-          <InputNumber addonAfter="g" precision={1} />
+          <InputNumber
+            addonAfter="g"
+            precision={1}
+            formatter={formatNumberOnUserInput}
+            parser={numberParserAllowEmpty}
+          />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.settings_extruder_temp")}

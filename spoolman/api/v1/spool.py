@@ -5,7 +5,7 @@ import logging
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
@@ -14,9 +14,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from spoolman.api.v1.models import Message, Spool, SpoolEvent
 from spoolman.database import spool
 from spoolman.database.database import get_db_session
-from spoolman.database.utils import SortOrder
+from spoolman.database.utils import parse_sort
 from spoolman.exceptions import ItemCreateError, SpoolMeasureError
-from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
+from spoolman.extra_fields import EXTRA_FIELD_PREFIX, EntityType, get_extra_fields, validate_extra_field_dict
 from spoolman.ws import websocket_manager
 
 logger = logging.getLogger(__name__)
@@ -127,6 +127,7 @@ class SpoolMeasureParameters(BaseModel):
 )
 async def find(
     *,
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db_session)],
     filament_name_old: Annotated[
         str | None,
@@ -267,12 +268,6 @@ async def find(
     ] = None,
     offset: Annotated[int, Query(title="Offset", description="Offset in the full result set if a limit is set.")] = 0,
 ) -> JSONResponse:
-    sort_by: dict[str, SortOrder] = {}
-    if sort is not None:
-        for sort_item in sort.split(","):
-            field, direction = sort_item.split(":")
-            sort_by[field] = SortOrder[direction.upper()]
-
     filament_id = filament_id if filament_id is not None else filament_id_old
     if filament_id is not None:
         filament_ids = [int(filament_id_item) for filament_id_item in filament_id.split(",")]
@@ -285,20 +280,33 @@ async def find(
     else:
         filament_vendor_ids = None
 
-    db_items, total_count = await spool.find(
-        db=db,
-        filament_name=filament_name if filament_name is not None else filament_name_old,
-        filament_id=filament_ids,
-        filament_material=filament_material if filament_material is not None else filament_material_old,
-        vendor_name=filament_vendor_name if filament_vendor_name is not None else vendor_name_old,
-        vendor_id=filament_vendor_ids,
-        location=location,
-        lot_nr=lot_nr,
-        allow_archived=allow_archived,
-        sort_by=sort_by,
-        limit=limit,
-        offset=offset,
-    )
+    # Extract custom field filters from query parameters
+    extra_field_filters = {}
+    query_params = request.query_params
+    for key, value in query_params.items():
+        if key.startswith(EXTRA_FIELD_PREFIX):
+            field_key = key[len(EXTRA_FIELD_PREFIX) :]  # Remove "extra." prefix
+            extra_field_filters[field_key] = value
+
+    try:
+        sort_by = parse_sort(sort)
+        db_items, total_count = await spool.find(
+            db=db,
+            filament_name=filament_name if filament_name is not None else filament_name_old,
+            filament_id=filament_ids,
+            filament_material=filament_material if filament_material is not None else filament_material_old,
+            vendor_name=filament_vendor_name if filament_vendor_name is not None else vendor_name_old,
+            vendor_id=filament_vendor_ids,
+            location=location,
+            lot_nr=lot_nr,
+            allow_archived=allow_archived,
+            extra_field_filters=extra_field_filters if extra_field_filters else None,
+            sort_by=sort_by,
+            limit=limit,
+            offset=offset,
+        )
+    except ValueError as e:
+        return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     # Set x-total-count header for pagination
     return JSONResponse(

@@ -3,7 +3,7 @@ import { Checkbox, Form, Input, InputNumber, Select, Typography } from "antd";
 import { FormItemProps, Rule } from "antd/es/form";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { enrichText } from "../utils/parsing";
+import { enrichText, formatNumberOnUserInput, numberParserAllowEmpty } from "../utils/parsing";
 import { Field, FieldType } from "../utils/queryFields";
 import { DateTimePicker } from "./dateTimePicker";
 import { InputNumberRange } from "./inputNumberRange";
@@ -113,7 +113,14 @@ export function ExtraFieldFormItem(props: { field: Field; setDefaultValue?: bool
       type: "integer",
     });
   } else if (field.field_type === FieldType.float) {
-    inputNode = <InputNumber addonAfter={field.unit} precision={3} />;
+    inputNode = (
+      <InputNumber
+        addonAfter={field.unit}
+        precision={3}
+        formatter={formatNumberOnUserInput}
+        parser={numberParserAllowEmpty}
+      />
+    );
     rules.push({
       type: "number",
     });
