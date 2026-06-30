@@ -545,7 +545,8 @@ jobs:
           echo '{
             "project_name": "Spoolman NG",
             "project_owner": "${{ github.repository_owner }}",
-            "version": "${{ github.ref_name }}"
+            "version": "${{ github.ref_name }}",
+            "asset_name": "spoolman.zip"
           }' > release_info.json
 
       - name: Zip

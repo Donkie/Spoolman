@@ -56,7 +56,11 @@ Spoolman NG is a self-hosted web service designed to help you efficiently manage
 
 ## Installation
 
-The quickest way to run Spoolman NG is with Docker. A minimal `docker-compose.yml`:
+Spoolman NG runs the same on `amd64`, `arm64`, and `armv7`. Pick whichever fits you.
+
+### Docker (recommended — and the only supported option on Windows/macOS)
+
+A minimal `docker-compose.yml`:
 
 ```yaml
 services:
@@ -78,4 +82,33 @@ Then open `http://localhost:7912`. Image tags:
 * `:edge` — the latest `master` build
 * `:sha-<commit>` — a specific commit
 
-For all other installation methods and configuration options, the original [Spoolman Installation Wiki](https://github.com/Donkie/Spoolman/wiki/Installation) still applies.
+> **Windows & macOS:** use Docker. The native install below is Linux-only (it relies on `bash` + `systemd`).
+
+### Native install (Linux, no Docker)
+
+Best for running Spoolman directly on a host — e.g. on a Raspberry Pi next to Klipper/Moonraker. One line fetches the latest release and runs the installer (it sets up `uv`, the Python dependencies, and an optional `systemd` service):
+
+```bash
+curl -fsSL https://github.com/sherrmann/Spoolman/releases/latest/download/spoolman.zip -o spoolman.zip \
+  && unzip spoolman.zip -d ~/Spoolman && cd ~/Spoolman && ./scripts/install.sh
+```
+
+The UI then runs on `http://<host>:8000` (configurable via `.env`). Your database lives in a separate data directory, so updates never touch it.
+
+> The native install omits the optional **NFC** feature. On `amd64`/`arm64` you can add it with `uv sync --extra nfc`; it is not available on 32-bit ARM (`armv7`).
+
+### One-click updates from Moonraker (Klipper users)
+
+If you run Klipper, you can update Spoolman NG straight from Mainsail/Fluidd. Add this to your `moonraker.conf` (adjust `path` to your install directory):
+
+```ini
+[update_manager spoolman]
+type: web
+channel: stable
+repo: sherrmann/Spoolman
+path: ~/Spoolman
+```
+
+Spoolman NG then shows up in your printer UI's update list and tracks new releases automatically. (The releases ship the `release_info.json` that Moonraker's `web` update type expects.)
+
+For other configuration options, the original [Spoolman Installation Wiki](https://github.com/Donkie/Spoolman/wiki/Installation) also applies.
