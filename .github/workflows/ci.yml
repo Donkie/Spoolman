@@ -543,4 +543,3 @@ jobs:
             Also tagged `:latest` (newest release) and `:edge` (latest `master`). Architectures: `amd64`, `arm64`, and `armv7` (armv7 is built without the optional NFC extra).
 
             ---
-          body: "⚠️ TODO ⚠️"
