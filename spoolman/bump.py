@@ -1,22 +1,19 @@
-"""A python script that bumps the version number of a project."""
+"""A python script that sets the CalVer version number of the project."""
 
-# ruff: noqa: PLR2004, T201, S607
+# ruff: noqa: T201, S607
 
 import json
 import os
 import re
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 
 def bump() -> None:
-    """Bump the version number of the project."""
+    """Set the project version to the current CalVer (YEAR.MONTH.PATCH) and tag it."""
     project_root = Path(__file__).parent.parent
-
-    if len(sys.argv) < 2:
-        print("Please specify a bump type, e.g. major, minor, micro.")
-        sys.exit(1)
 
     if subprocess.run(["git", "diff", "--quiet", "pyproject.toml"], cwd=project_root, check=False).returncode != 0:
         print("The pyproject.toml file is dirty, please commit your changes before bumping the version number.")
@@ -26,10 +23,7 @@ def bump() -> None:
         print("There are staged changes, please commit them before bumping the version number.")
         sys.exit(1)
 
-    # Bump the version number by editing pyproject.toml directly.
-    bump_type = sys.argv[1]
-
-    new_version = _bump_pyproject(project_root, bump_type)
+    new_version = _calver_pyproject(project_root)
 
     # Update the version number in the node project
     _update_node_pkg_version(project_root, new_version)
@@ -70,8 +64,13 @@ def _update_node_pkg_version(project_root: Path, new_version: str) -> None:
         subprocess.run(["npm", "install"], cwd=project_root.joinpath("client"), check=True)
 
 
-def _bump_pyproject(project_root: Path, bump_type: str) -> str:
-    """Bump the version number in pyproject.toml. Returns the new version."""
+def _calver_pyproject(project_root: Path) -> str:
+    """Set the version in pyproject.toml to YEAR.MONTH.PATCH for the current month.
+
+    PATCH starts at 0 and increments for each release within the same calendar
+    month (e.g. 2026.6.0, 2026.6.1, ... then 2026.7.0 in the next month).
+    Returns the new version.
+    """
     pyproject_path = project_root.joinpath("pyproject.toml")
     try:
         pyproject_text = pyproject_path.read_text()
@@ -79,34 +78,24 @@ def _bump_pyproject(project_root: Path, bump_type: str) -> str:
         print("Failed to read pyproject.toml to determine current version.")
         sys.exit(1)
 
-    # Parse current version expecting MAJOR.MINOR.PATCH (digits only)
+    now = datetime.now(tz=timezone.utc)
+    year, month = now.year, now.month
+
+    # Continue the patch counter only when the current version is already in this
+    # year+month; otherwise start the new month at patch 0.
+    patch = 0
     version_match = re.search(
         r'^\s*version\s*=\s*"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"',
         pyproject_text,
         re.MULTILINE,
     )
-    if version_match is None:
-        print("Failed to parse current version from pyproject.toml.")
-        sys.exit(1)
+    if version_match is not None:
+        cur_year = int(version_match.group("major"))
+        cur_month = int(version_match.group("minor"))
+        if cur_year == year and cur_month == month:
+            patch = int(version_match.group("patch")) + 1
 
-    major = int(version_match.group("major"))
-    minor = int(version_match.group("minor"))
-    patch = int(version_match.group("patch"))
-
-    if bump_type == "major":
-        major += 1
-        minor = 0
-        patch = 0
-    elif bump_type == "minor":
-        minor += 1
-        patch = 0
-    elif bump_type in ("micro", "patch"):
-        patch += 1
-    else:
-        print("Unknown bump type. Use 'major', 'minor' or 'micro'.")
-        sys.exit(1)
-
-    new_version = f"{major}.{minor}.{patch}"
+    new_version = f"{year}.{month}.{patch}"
 
     # Replace only the first occurrence of the version line in pyproject.toml
     pattern = re.compile(r"^\s*version\s*=.*$", re.MULTILINE)

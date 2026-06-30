@@ -1,10 +1,11 @@
 [project]
 name = "spoolman"
 version = "0.23.1"
-description = "A web service that keeps track of 3D printing spools."
+description = "Spoolman NG - a self-hosted web service that keeps track of your 3D-printer filament spools."
 license = "MIT"
 readme = "README.md"
 authors = [{ name = "Donkie", email = "daniel.cf.hultgren@gmail.com" }]
+maintainers = [{ name = "sherrmann" }]
 dependencies = [
     "uvicorn~=0.34",
     "httptools>=0.6.4; platform_machine != \"armv7l\"",
@@ -26,6 +27,12 @@ dependencies = [
     "aiomysql[rsa]~=0.3",
 ]
 requires-python = ">=3.10"
+
+[project.urls]
+Homepage = "https://github.com/sherrmann/Spoolman"
+Repository = "https://github.com/sherrmann/Spoolman"
+Issues = "https://github.com/sherrmann/Spoolman/issues"
+Documentation = "https://sherrmann.github.io/Spoolman/"
 
 [project.optional-dependencies]
 nfc = ["nfcpy>=1.0", "cbor2>=5.4", "ndeflib>=0.3"]
@@ -60,17 +67,6 @@ help = "Start Spoolman."
 [tool.poe.tasks.itest]
 cmd = "python tests_integration/run.py"
 help = "Builds Spoolman and runs integration tests on the backend against all supported databases."
-
-[tool.bumpversion]
-current_version = "0.22.1"
-parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
-serialize = ["{major}.{minor}.{patch}"]
-allow_dirty = false
-
-[[tool.bumpversion.files]]
-filename = "pyproject.toml"
-search = 'version = "{current_version}"'
-replace = 'version = "{new_version}"'
 
 [tool.ruff]
 line-length = 120

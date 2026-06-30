@@ -8,14 +8,24 @@
 
 _Keep track of your inventory of 3D-printer filament spools._
 
-Spoolman is a self-hosted web service designed to help you efficiently manage your 3D printer filament spools and monitor their usage. It acts as a centralized database that seamlessly integrates with popular 3D printing software like [OctoPrint](https://octoprint.org/) and [Klipper](https://www.klipper3d.org/)/[Moonraker](https://moonraker.readthedocs.io/en/latest/). When connected, it automatically updates spool weights as printing progresses, giving you real-time insights into filament usage.
+> ### 🚀 Spoolman NG
+> **Spoolman NG** is a community-maintained continuation of the original [Spoolman](https://github.com/Donkie/Spoolman) by Donkie, which is no longer actively maintained. It stays drop-in compatible while adding new features (NFC spool identification, QR-code label printing, a redesigned dashboard, and merged community PRs) and ships under its own Docker images and releases:
+>
+> | | |
+> |---|---|
+> | **GHCR** | `ghcr.io/sherrmann/spoolman` |
+> | **Docker Hub** | `cookiemonster95/spoolman` |
 
-[![Static Badge](https://img.shields.io/badge/Spoolman%20Wiki-blue?link=https%3A%2F%2Fgithub.com%2FDonkie%2FSpoolman%2Fwiki)](https://github.com/Donkie/Spoolman/wiki)
-[![GitHub Release](https://img.shields.io/github/v/release/Donkie/Spoolman)](https://github.com/Donkie/Spoolman/releases)
+Spoolman NG is a self-hosted web service designed to help you efficiently manage your 3D printer filament spools and monitor their usage. It acts as a centralized database that seamlessly integrates with popular 3D printing software like [OctoPrint](https://octoprint.org/) and [Klipper](https://www.klipper3d.org/)/[Moonraker](https://moonraker.readthedocs.io/en/latest/). When connected, it automatically updates spool weights as printing progresses, giving you real-time insights into filament usage.
+
+[![GitHub Release](https://img.shields.io/github/v/release/sherrmann/Spoolman)](https://github.com/sherrmann/Spoolman/releases)
+[![API Docs](https://img.shields.io/badge/API-docs-blue)](https://sherrmann.github.io/Spoolman/)
+[![Fork of Donkie/Spoolman](https://img.shields.io/badge/fork%20of-Donkie%2FSpoolman-lightgrey)](https://github.com/Donkie/Spoolman)
+[![Spoolman Wiki](https://img.shields.io/badge/Spoolman-Wiki-blue)](https://github.com/Donkie/Spoolman/wiki)
 
 ### Features
 * **Filament Management**: Keep comprehensive records of filament types, manufacturers, and individual spools.
-* **API Integration**: The [REST API](https://donkie.github.io/Spoolman/) allows easy integration with other software, facilitating automated workflows and data exchange.
+* **API Integration**: The [REST API](https://sherrmann.github.io/Spoolman/) allows easy integration with other software, facilitating automated workflows and data exchange.
 * **Real-Time Updates**: Stay informed with live spool updates through Websockets, providing immediate feedback during printing operations.
 * **Central Filament Database**: A community-supported database of manufacturers and filaments simplify adding new spools to your inventory. Contribute by heading to [SpoolmanDB](https://github.com/Donkie/SpoolmanDB).
 * **Web-Based Client**: Spoolman includes a built-in web client that lets you manage data effortlessly:
@@ -45,4 +55,27 @@ Spoolman is a self-hosted web service designed to help you efficiently manage yo
 ![image](https://github.com/Donkie/Spoolman/assets/2332094/33928d5e-440f-4445-aca9-456c4370ad0d)
 
 ## Installation
-Please see the [Installation page on the Wiki](https://github.com/Donkie/Spoolman/wiki/Installation) for details how to install Spoolman.
+
+The quickest way to run Spoolman NG is with Docker. A minimal `docker-compose.yml`:
+
+```yaml
+services:
+  spoolman:
+    image: ghcr.io/sherrmann/spoolman:latest # or cookiemonster95/spoolman:latest on Docker Hub
+    restart: unless-stopped
+    volumes:
+      - ./data:/home/app/.local/share/spoolman
+    ports:
+      - "7912:8000"
+    environment:
+      - TZ=Europe/Stockholm
+```
+
+Then open `http://localhost:7912`. Image tags:
+
+* `:latest` — the newest release
+* `:YYYY.M.PATCH` — a pinned release (e.g. `:2026.6.0`)
+* `:edge` — the latest `master` build
+* `:sha-<commit>` — a specific commit
+
+For all other installation methods and configuration options, the original [Spoolman Installation Wiki](https://github.com/Donkie/Spoolman/wiki/Installation) still applies.

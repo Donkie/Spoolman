@@ -1,6 +1,6 @@
 services:
   spoolman:
-    image: ghcr.io/donkie/spoolman:latest # Also available at dockerhub: donkieyo/spoolman:latest
+    image: ghcr.io/sherrmann/spoolman:latest # Also on Docker Hub: cookiemonster95/spoolman:latest
     restart: unless-stopped
     volumes:
       # Mount the host machine's ./data directory into the container's /home/app/.local/share/spoolman directory

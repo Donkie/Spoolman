@@ -2,16 +2,6 @@ name: Release Trigger
 
 on:
   workflow_dispatch:
-    inputs:
-      bump:
-        type: choice
-        description: Version to bump
-        required: true
-        default: minor
-        options: 
-          - micro
-          - minor
-          - major
 
 permissions:
   contents: write
@@ -44,7 +34,7 @@ jobs:
         run: |
           git config --global user.name "${GITHUB_ACTOR}"
           git config --global user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
-          uv run poe bump ${{ github.event.inputs.bump }}
+          uv run poe bump
       
       - name: Push
         run: |

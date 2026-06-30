@@ -49,8 +49,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 FROM python:3.14-slim-bookworm AS python-runner
 
-LABEL org.opencontainers.image.source=https://github.com/Donkie/Spoolman
-LABEL org.opencontainers.image.description="Keep track of your inventory of 3D-printer filament spools."
+LABEL org.opencontainers.image.title="Spoolman NG"
+LABEL org.opencontainers.image.source=https://github.com/sherrmann/Spoolman
+LABEL org.opencontainers.image.description="Spoolman NG - a community-maintained continuation of Spoolman. Keep track of your inventory of 3D-printer filament spools."
 LABEL org.opencontainers.image.licenses=MIT
 
 # Install gosu for privilege dropping and libusb for NFC reader support
