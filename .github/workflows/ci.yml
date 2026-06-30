@@ -348,12 +348,12 @@ jobs:
           up-flags: "--abort-on-container-exit"
           down-flags: "--volumes"
   #
-  # Build arm64 image
-  # Don't run this for pull requests
-  # Only push to buildcache and let release job push to registry
+  # Build the arm64 image, then boot it under QEMU and hit the health endpoint.
+  # Like build-armv7, arm64 is otherwise only built (never run) in CI, so a
+  # dependency bump could break the published image with nothing noticing. Runs
+  # on pull requests too (build only caches/publishes on push).
   #
   build-arm64:
-    if: ${{ github.event_name != 'pull_request' }}
     needs: [build-client]
     runs-on: ubuntu-latest
     permissions:
@@ -382,12 +382,50 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and cache Docker image
+        if: ${{ github.event_name != 'pull_request' }}
         uses: docker/build-push-action@v7.2.0
         with:
           context: .
           platforms: linux/arm64
+          tags: spoolman:arm64
+          load: true
           cache-from: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-arm64
           cache-to: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-arm64,mode=max
+
+      # Pull requests can't write the registry build cache, so build cache-from only.
+      - name: Build Docker image (PR)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: docker/build-push-action@v7.2.0
+        with:
+          context: .
+          platforms: linux/arm64
+          tags: spoolman:arm64
+          load: true
+          cache-from: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-arm64
+
+      # Boot the image under emulation and wait for the API to answer — startup
+      # migrations and native wheels exercised on arm64 against the default SQLite DB.
+      - name: Smoke-test the arm64 image
+        run: |
+          docker run -d --name spoolman-arm64 --platform linux/arm64 -p 8000:8000 spoolman:arm64
+          echo "Waiting for the arm64 container to serve /api/v1/health (QEMU is slow)..."
+          ok=0
+          for i in $(seq 1 72); do
+            if curl -sf http://localhost:8000/api/v1/health >/dev/null 2>&1; then
+              echo "arm64 image is up and serving the API"; ok=1; break
+            fi
+            if [ "$(docker inspect -f '{{.State.Running}}' spoolman-arm64 2>/dev/null)" != "true" ]; then
+              echo "container exited before becoming ready"; break
+            fi
+            sleep 5
+          done
+          echo "----- container logs -----"
+          docker logs spoolman-arm64 || true
+          docker rm -f spoolman-arm64 >/dev/null 2>&1 || true
+          if [ "$ok" != "1" ]; then
+            echo "::error::arm64 smoke test failed: API did not respond on /api/v1/health"
+            exit 1
+          fi
   #
   # Build the arm/v7 (32-bit ARM) image, then boot it under QEMU and hit the
   # health endpoint. armv7 has scarce native wheels and the image carries no Rust

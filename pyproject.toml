@@ -27,8 +27,8 @@ dependencies = [
     "sqlalchemy-cockroachdb~=2.0",
     "asyncpg~=0.30",
     "psycopg2-binary~=2.9",
-    "setuptools~=78.1",
-    "WebSockets~=15.0",
+    "setuptools~=82.0",
+    "WebSockets~=16.0",
     "prometheus-client~=0.21",
     "httpx~=0.28",
     "hishel~=0.1",
@@ -56,9 +56,9 @@ nfc = [
 [dependency-groups]
 dev = [
     "ruff==0.14.10",
-    "pytest~=8.3.5",
-    "pytest-asyncio~=0.25.3",
-    "pytest-cov~=6.0",
+    "pytest~=9.0",
+    "pytest-asyncio~=1.3",
+    "pytest-cov~=7.0",
     "httpx~=0.28.1",
     "poethepoet>=0.40.0",
 ]
