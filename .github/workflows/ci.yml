@@ -22,9 +22,37 @@ env:
 
 jobs:
   #
+  # Detect the redundant CI run that happens when the version bump pushes
+  # `master` and the matching `vX.Y.Z` tag in one atomic push: GitHub fires a
+  # run for the branch ref and a run for the tag ref on the same commit. The tag
+  # run does the full build + publish + release, so the duplicate branch run
+  # skips everything below.
+  #
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      skip_build: ${{ steps.check.outputs.skip_build }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check for a release tag on this commit
+        id: check
+        run: |
+          if [ "$GITHUB_REF_TYPE" = "branch" ] && git tag --points-at HEAD | grep -q '^v'; then
+            echo "skip_build=true" >> "$GITHUB_OUTPUT"
+            echo "Commit is tagged for release; the tag run handles the build. Skipping this duplicate branch run."
+          else
+            echo "skip_build=false" >> "$GITHUB_OUTPUT"
+          fi
+  #
   # Linting
   #
   style:
+    needs: [meta]
+    if: ${{ needs.meta.outputs.skip_build != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -59,6 +87,8 @@ jobs:
   # Fast (non-Docker) Python unit tests + coverage
   #
   unit-tests:
+    needs: [meta]
+    if: ${{ needs.meta.outputs.skip_build != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -80,6 +110,8 @@ jobs:
   # Static analysis with CodeQL
   #
   codeql:
+    needs: [meta]
+    if: ${{ needs.meta.outputs.skip_build != 'true' }}
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -104,6 +136,8 @@ jobs:
   # Lint the Dockerfile with hadolint
   #
   hadolint:
+    needs: [meta]
+    if: ${{ needs.meta.outputs.skip_build != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -118,6 +152,8 @@ jobs:
   # This is done on native hardware to speed things up, vite is very slow on emulated hardware
   #
   build-client:
+    needs: [meta]
+    if: ${{ needs.meta.outputs.skip_build != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -237,6 +273,8 @@ jobs:
   # Build tester image for integration tests
   #
   build-tester:
+    needs: [meta]
+    if: ${{ needs.meta.outputs.skip_build != 'true' }}
     runs-on: ubuntu-latest
     permissions:
       packages: write
