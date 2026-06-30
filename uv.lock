@@ -1343,7 +1343,7 @@ wheels = [
 
 [[package]]
 name = "spoolman"
-version = "2026.6.0"
+version = "2026.6.1"
 source = { virtual = "." }
 dependencies = [
     { name = "aiomysql", extra = ["rsa"] },
