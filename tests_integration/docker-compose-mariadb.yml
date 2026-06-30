@@ -21,7 +21,7 @@ services:
       timeout: 5s
       retries: 30
   spoolman:
-    image: donkie/spoolman:test
+    image: spoolman:test
     environment:
       - SPOOLMAN_DB_TYPE=mysql
       - SPOOLMAN_DB_HOST=db
@@ -35,7 +35,7 @@ services:
       db:
         condition: service_healthy
   tester:
-    image: donkie/spoolman-tester:latest
+    image: spoolman-tester:latest
     volumes:
       - ./tests:/tester/tests
     environment:

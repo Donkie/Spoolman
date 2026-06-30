@@ -1,11 +1,11 @@
 services:
   spoolman:
-    image: donkie/spoolman:test
+    image: spoolman:test
     environment:
       - SPOOLMAN_LOGGING_LEVEL=INFO
       - TZ=Europe/Stockholm
   tester:
-    image: donkie/spoolman-tester:latest
+    image: spoolman-tester:latest
     volumes:
       - ./tests:/tester/tests
     environment:
