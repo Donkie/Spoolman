@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 # Setup FastAPI
 app = FastAPI(
     debug=env.is_debug_mode(),
-    title="Spoolman",
+    title="Spoolman NG",
     version=env.get_version(),
 )
 app.add_middleware(GZipMiddleware)

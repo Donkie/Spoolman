@@ -20,10 +20,10 @@ from . import calibration, export, externaldb, field, filament, models, nfc, oth
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="Spoolman REST API v1",
+    title="Spoolman NG REST API v1",
     version="1.0.0",
     description="""
-    REST API for Spoolman.
+    REST API for Spoolman NG.
 
     The API is served on the path `/api/v1/`.
 

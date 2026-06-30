@@ -90,6 +90,24 @@ if ! command -v pg_config &>/dev/null; then
     fi
 fi
 
+# On 32-bit ARM (armv7/armv6) there are no prebuilt wheels for several
+# dependencies (psycopg2-binary, asyncpg, greenlet, cffi, ...), so they are
+# compiled from source and need a C/C++ toolchain plus dev headers. amd64/arm64
+# install from wheels and skip this. Mirrors the build deps in the Dockerfile.
+arch="$(uname -m)"
+if [[ "$arch" == "armv7l" || "$arch" == "armv6l" || "$arch" == "armhf" ]] && ! command -v gcc &>/dev/null; then
+    echo -e "${ORANGE}32-bit ARM detected; installing build tools for compiling dependencies from source...${NC}"
+    if [[ "$pkg_manager" == "apt-get" ]]; then
+        packages+=" g++ python3-dev libffi-dev"
+    elif [[ "$pkg_manager" == "pacman" ]]; then
+        packages+=" base-devel libffi"
+    elif [[ "$pkg_manager" == "dnf" ]]; then
+        packages+=" gcc-c++ python3-devel libffi-devel"
+    else
+        echo -e "${ORANGE}Could not auto-install build tools. Please install a C/C++ compiler, Python dev headers, and libffi manually.${NC}"
+    fi
+fi
+
 # not needed?
 # if ! command -v unzip &>/dev/null; then
 #     echo -e "${ORANGE}unzip is not available. Installing unzip...${NC}"
