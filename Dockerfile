@@ -17,19 +17,35 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install UV
 RUN pip install --no-cache-dir uv
 
+# TARGETPLATFORM is provided automatically by Docker buildx (e.g. "linux/amd64",
+# "linux/arm64", "linux/arm/v7"). The optional NFC extra pulls in cbor2, which
+# has no prebuilt wheel for 32-bit ARM and can't compile in this image, so we
+# skip it on armv7 — mirroring how pyproject.toml already excludes
+# httptools/uvloop there. NFC endpoints are simply unavailable on armv7 images
+# (the app imports those deps lazily, so it still runs).
+ARG TARGETPLATFORM
+
 # Install dependencies
 WORKDIR /home/app/spoolman
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked --no-install-project --extra nfc
+    if [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then \
+        uv sync --locked --no-install-project; \
+    else \
+        uv sync --locked --no-install-project --extra nfc; \
+    fi
 
 # Copy and install app
 COPY --chown=app:app migrations /home/app/spoolman/migrations
 COPY --chown=app:app spoolman /home/app/spoolman/spoolman
 COPY --chown=app:app alembic.ini README.md uv.lock pyproject.toml /home/app/spoolman/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --extra nfc
+    if [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then \
+        uv sync --locked; \
+    else \
+        uv sync --locked --extra nfc; \
+    fi
 
 FROM python:3.14-slim-bookworm AS python-runner
 
