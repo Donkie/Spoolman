@@ -1,4 +1,4 @@
-FROM python:3.14-slim-bookworm AS python-builder
+FROM python:3.14-slim-trixie AS python-builder
 
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
@@ -38,19 +38,34 @@ COPY --chown=app:app alembic.ini README.md uv.lock pyproject.toml /home/app/spoo
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --extra nfc
 
-FROM python:3.14-slim-bookworm AS python-runner
+FROM python:3.14-slim-trixie AS python-runner
 
 LABEL org.opencontainers.image.title="Spoolman NG"
 LABEL org.opencontainers.image.source=https://github.com/sherrmann/Spoolman
 LABEL org.opencontainers.image.description="Spoolman NG - a community-maintained continuation of Spoolman. Keep track of your inventory of 3D-printer filament spools."
 LABEL org.opencontainers.image.licenses=MIT
 
-# Install gosu for privilege dropping and libusb for NFC reader support
+# Install gosu for privilege dropping and libusb for NFC reader support.
+# libstdc++6 (C++ runtime, see the LD_PRELOAD note below) and libpq5 (libpq for
+# psycopg2/PostgreSQL, which has no armv7 wheel and is compiled from source) are
+# needed by the 32-bit ARM image; on amd64/arm64 they come in via prebuilt wheels.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gosu \
     libusb-1.0-0 \
+    libstdc++6 \
+    libpq5 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# greenlet (required by SQLAlchemy's async engine on every backend) has no armv7
+# wheel, so on 32-bit ARM it is compiled from source — and setuptools links the
+# extension with gcc, leaving libstdc++.so.6 out of the .so's NEEDED list even
+# though it uses libstdc++ C++ ABI symbols. That makes greenlet fail to import
+# with "undefined symbol: _ZTVN10__cxxabiv120__si_class_type_infoE", aborting
+# startup before the API comes up. Preload libstdc++ by SONAME (resolved per-arch
+# via ldconfig) so the symbols are available. No-op on amd64/arm64, where greenlet
+# installs from a correctly linked wheel.
+ENV LD_PRELOAD=libstdc++.so.6
 
 # Add local user so we don't run as root
 RUN groupmod -g 1000 users \

@@ -389,12 +389,13 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-arm64
           cache-to: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-arm64,mode=max
   #
-  # Build arm/v7 image
-  # Don't run this for pull requests
-  # Only push to buildcache and let release job push to registry
+  # Build the arm/v7 (32-bit ARM) image, then boot it under QEMU and hit the
+  # health endpoint. armv7 has scarce native wheels and the image carries no Rust
+  # toolchain, so a dependency bump can break it in ways amd64 never sees. We run
+  # this on pull requests too (build only caches/publishes on push) so 32-bit
+  # regressions are caught before merge, not just "does it compile".
   #
   build-armv7:
-    if: ${{ github.event_name != 'pull_request' }}
     needs: [build-client]
     runs-on: ubuntu-latest
     permissions:
@@ -423,12 +424,51 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and cache Docker image
+        if: ${{ github.event_name != 'pull_request' }}
         uses: docker/build-push-action@v7.2.0
         with:
           context: .
           platforms: linux/arm/v7
+          tags: spoolman:armv7
+          load: true
           cache-from: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-armv7
           cache-to: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-armv7,mode=max
+
+      # Pull requests can't write the registry build cache, so build cache-from only.
+      - name: Build Docker image (PR)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: docker/build-push-action@v7.2.0
+        with:
+          context: .
+          platforms: linux/arm/v7
+          tags: spoolman:armv7
+          load: true
+          cache-from: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-armv7
+
+      # Boot the 32-bit image under emulation and wait for the API to answer. This
+      # runs the startup migrations and exercises the native wheels (pydantic-core,
+      # SQLAlchemy, aiosqlite, ...) on real armv7 against the default SQLite backend.
+      - name: Smoke-test the armv7 image
+        run: |
+          docker run -d --name spoolman-armv7 --platform linux/arm/v7 -p 8000:8000 spoolman:armv7
+          echo "Waiting for the armv7 container to serve /api/v1/health (QEMU is slow)..."
+          ok=0
+          for i in $(seq 1 72); do
+            if curl -sf http://localhost:8000/api/v1/health >/dev/null 2>&1; then
+              echo "armv7 image is up and serving the API"; ok=1; break
+            fi
+            if [ "$(docker inspect -f '{{.State.Running}}' spoolman-armv7 2>/dev/null)" != "true" ]; then
+              echo "container exited before becoming ready"; break
+            fi
+            sleep 5
+          done
+          echo "----- container logs -----"
+          docker logs spoolman-armv7 || true
+          docker rm -f spoolman-armv7 >/dev/null 2>&1 || true
+          if [ "$ok" != "1" ]; then
+            echo "::error::armv7 smoke test failed: API did not respond on /api/v1/health"
+            exit 1
+          fi
   #
   # Release images GHCR and Docker Hub if tests pass
   # Don't run this for pull requests
