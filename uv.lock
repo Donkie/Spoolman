@@ -1,6 +1,10 @@
 version = 1
 revision = 3
 requires-python = ">=3.10"
+resolution-markers = [
+    "platform_machine == 'armv7l'",
+    "platform_machine != 'armv7l'",
+]
 
 [[package]]
 name = "aiomysql"
@@ -157,8 +161,23 @@ wheels = [
 
 [[package]]
 name = "cbor2"
+version = "5.9.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "platform_machine == 'armv7l'",
+]
+sdist = { url = "https://files.pythonhosted.org/packages/bd/cb/09939728be094d155b5d4ac262e39877875f5f7e36eea66beb359f647bd0/cbor2-5.9.0.tar.gz", hash = "sha256:85c7a46279ac8f226e1059275221e6b3d0e370d2bb6bd0500f9780781615bcea", size = 111231, upload-time = "2026-03-22T15:56:50.638Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/42/ff/b83492b096fbef26e9cb62c1a4bf2d3cef579ea7b33138c6c37c4ae66f67/cbor2-5.9.0-py3-none-any.whl", hash = "sha256:27695cbd70c90b8de5c4a284642c2836449b14e2c2e07e3ffe0744cb7669a01b", size = 24627, upload-time = "2026-03-22T15:56:48.847Z" },
+]
+
+[[package]]
+name = "cbor2"
 version = "6.1.2"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "platform_machine != 'armv7l'",
+]
 sdist = { url = "https://files.pythonhosted.org/packages/75/af/473c241e41c142ea06ebef8d1f660fa6ff928fb97210e7bec8ee5974f8cd/cbor2-6.1.2.tar.gz", hash = "sha256:6b43037a66947dee5af0abb1a4c3a13b3abac5a4a3f32f9771efbbcd030fd909", size = 86760, upload-time = "2026-06-02T19:01:29.333Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/52/3f/37771defcae022510d640df8e420b7968c01804c084ff8cd2b9021c8873b/cbor2-6.1.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:8ffda338fe434d8d37e92e0d2e8f66432f0aa983f769dd2417f1eb6dfce634d3", size = 412096, upload-time = "2026-06-02T19:00:21.183Z" },
@@ -1349,7 +1368,8 @@ dependencies = [
 
 [package.optional-dependencies]
 nfc = [
-    { name = "cbor2" },
+    { name = "cbor2", version = "5.9.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'armv7l'" },
+    { name = "cbor2", version = "6.1.2", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'armv7l'" },
     { name = "ndeflib" },
     { name = "nfcpy" },
 ]
@@ -1369,7 +1389,8 @@ requires-dist = [
     { name = "aiomysql", extras = ["rsa"], specifier = "~=0.3" },
     { name = "alembic", specifier = "~=1.15" },
     { name = "asyncpg", specifier = "~=0.30" },
-    { name = "cbor2", marker = "extra == 'nfc'", specifier = ">=5.4" },
+    { name = "cbor2", marker = "platform_machine == 'armv7l' and extra == 'nfc'", specifier = ">=5.4,<6" },
+    { name = "cbor2", marker = "platform_machine != 'armv7l' and extra == 'nfc'", specifier = ">=5.4" },
     { name = "fastapi", specifier = "~=0.115" },
     { name = "hishel", specifier = "~=0.1" },
     { name = "httptools", marker = "platform_machine != 'armv7l'", specifier = ">=0.6.4" },

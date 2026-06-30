@@ -35,7 +35,15 @@ Issues = "https://github.com/sherrmann/Spoolman/issues"
 Documentation = "https://sherrmann.github.io/Spoolman/"
 
 [project.optional-dependencies]
-nfc = ["nfcpy>=1.0", "cbor2>=5.4", "ndeflib>=0.3"]
+# cbor2 6.x is a Rust extension with no 32-bit-ARM wheel, so on armv7 we use the
+# C-based 5.x line (builds from source / pure-Python there). Spoolman only uses
+# cbor2.load/dumps, which are identical across 5.x and 6.x.
+nfc = [
+    "nfcpy>=1.0",
+    "ndeflib>=0.3",
+    "cbor2>=5.4; platform_machine != 'armv7l'",
+    "cbor2>=5.4,<6; platform_machine == 'armv7l'",
+]
 
 [dependency-groups]
 dev = [

@@ -95,7 +95,7 @@ curl -fsSL https://github.com/sherrmann/Spoolman/releases/latest/download/spoolm
 
 The UI then runs on `http://<host>:8000` (configurable via `.env`). Your database lives in a separate data directory, so updates never touch it.
 
-> The native install omits the optional **NFC** feature. On `amd64`/`arm64` you can add it with `uv sync --extra nfc`; it is not available on 32-bit ARM (`armv7`).
+> The native install omits the optional **NFC** feature by default; add it on any platform with `uv sync --extra nfc`.
 
 ### One-click updates from Moonraker (Klipper users)
 

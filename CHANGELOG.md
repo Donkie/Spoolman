@@ -6,7 +6,7 @@
 
 First release of the Spoolman NG fork, built on upstream Spoolman 0.23.1.
 
-- **NFC spool identification** — TigerTag, OpenPrintTag, and QIDI tags. Included in the `amd64`/`arm64` Docker images; not available on `armv7`.
+- **NFC spool identification** — TigerTag, OpenPrintTag, and QIDI tags. Included in the Docker images for all architectures (`amd64`, `arm64`, `armv7`).
 - **Filament label printing** with separate presets, QR codes, and filament QR scanning support.
 - **Redesigned home dashboard** with KPI cards and inventory analytics.
 - Merged upstream community PRs: extra-field filter/sort, 3D Filament Profiles import, weight-delta events, and calibration.
