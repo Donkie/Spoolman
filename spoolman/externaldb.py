@@ -9,6 +9,7 @@ from pathlib import Path
 from urllib.parse import urljoin
 
 import hishel
+from hishel.httpx import AsyncCacheClient
 from pydantic import BaseModel, Field, RootModel
 from scheduler.asyncio.scheduler import Scheduler
 
@@ -21,17 +22,22 @@ logger = logging.getLogger(__name__)
 DEFAULT_EXTERNAL_DB_URL = "https://donkie.github.io/SpoolmanDB/"
 DEFAULT_SYNC_INTERVAL = 3600
 
-controller = hishel.Controller(allow_stale=True)
+policy = hishel.SpecificationPolicy(cache_options=hishel.CacheOptions(allow_stale=True))
 try:
-    cache_path = get_cache_dir() / "hishel"
-    cache_storage = hishel.AsyncFileStorage(base_path=cache_path)
-except PermissionError:
+    cache_dir = get_cache_dir()
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_path = cache_dir / "hishel.sqlite"
+    # AsyncSqliteStorage opens the database lazily, so touch the file now to surface an
+    # unwritable cache directory here and fall back to an in-memory cache instead of
+    # failing on the first sync (the old AsyncFileStorage raised at construction time).
+    cache_path.touch(exist_ok=True)
+    cache_storage = hishel.AsyncSqliteStorage(database_path=cache_path)
+except OSError:
     logger.warning(
-        "Failed to setup disk-based cache due to permission error. Ensure the path %s is writable. "
-        "Using in-memory cache instead as fallback.",
-        str(cache_path.resolve()),
+        "Failed to setup disk-based cache, the path %s may not be writable. Using in-memory cache instead as fallback.",
+        str(get_cache_dir().resolve()),
     )
-    cache_storage = hishel.AsyncInMemoryStorage()
+    cache_storage = hishel.AsyncSqliteStorage(database_path=":memory:")
 
 
 class SpoolType(Enum):
@@ -146,7 +152,7 @@ async def _download_file(url: str) -> bytes:
 
     Uses a file-based cache.
     """
-    async with hishel.AsyncCacheClient(storage=cache_storage, controller=controller) as client:
+    async with AsyncCacheClient(storage=cache_storage, policy=policy) as client:
         response = await client.get(url)
         response.raise_for_status()
         return response.read()
