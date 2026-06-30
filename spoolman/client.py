@@ -52,14 +52,13 @@ class SinglePageApplication(StaticFiles):
         Works the same way, but if the client requests any index.html, we will return our tweaked index.html.
         The tweaked index.html has all asset paths updated with the base path.
         """
-        method = scope["method"]
         request_headers = Headers(scope=scope)
 
         # If full_path points to a index.html, return our tweaked index.html
         if Path(full_path).name == "index.html":
             return Response(self.html, status_code=status_code, media_type="text/html")
 
-        response = FileResponse(full_path, status_code=status_code, stat_result=stat_result, method=method)
+        response = FileResponse(full_path, status_code=status_code, stat_result=stat_result)
         if self.is_not_modified(response.headers, request_headers):
             return NotModifiedResponse(response.headers)
         return response
