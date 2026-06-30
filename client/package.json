@@ -56,6 +56,9 @@
     "vite-plugin-mkcert": "^1.17.9",
     "vite-plugin-pwa": "^1.2.0"
   },
+  "overrides": {
+    "path-to-regexp@>=8.0.0 <8.4.0": "8.4.2"
+  },
   "scripts": {
     "dev": "refine dev",
     "build": "tsc && refine build",
