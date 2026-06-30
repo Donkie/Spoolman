@@ -10,6 +10,7 @@ export default defineConfig({
     svgr(),
     VitePWA({
       registerType: "autoUpdate",
+      injectRegister: false,
       devOptions: {
         enabled: true,
       },
