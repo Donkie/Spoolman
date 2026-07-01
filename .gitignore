@@ -205,3 +205,10 @@ $RECYCLE.BIN/
 data/
 .pdm-python
 .history
+
+# Mutation testing artifacts
+.mutmut-cache
+mutants/
+# Stryker (client) HTML report + working dir
+**/reports/mutation/
+.stryker-tmp/

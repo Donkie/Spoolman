@@ -113,6 +113,35 @@ describe("lowStockSpools", () => {
     expect(lowStockSpools([spool({ initial_weight: 0, remaining_weight: 0 })])).toEqual([]);
   });
 
+  it("falls back to filament.weight for the total when initial_weight is absent", () => {
+    // No initial_weight → the total must come from filament.weight (800g), not the
+    // nominal DEFAULT_TOTAL_WEIGHT. 130/800 = 16.25% is NOT low; if the fallback were
+    // wrong and used 1000, 130/1000 = 13% would (incorrectly) flag it as low stock.
+    const notLow = spool({ remaining_weight: 130, filament: filament({ weight: 800 }) });
+    expect(lowStockSpools([notLow])).toEqual([]);
+    // Below 15% of its own 800g total → genuinely low stock.
+    const low = spool({ remaining_weight: 100, filament: filament({ weight: 800 }) }); // 12.5%
+    expect(lowStockSpools([low])).toEqual([low]);
+  });
+
+  it("ranks by depletion ratio using the per-spool filament.weight fallback denominator", () => {
+    // Neither spool has initial_weight, so each total comes from its own filament.weight.
+    // Ordering must apply that fallback per spool: 5% is more depleted than 10%.
+    const big = spool({ remaining_weight: 100, filament: filament({ weight: 2000 }) }); //  5%
+    const small = spool({ remaining_weight: 100, filament: filament({ weight: 1000 }) }); // 10%
+    expect(lowStockSpools([small, big])).toEqual([big, small]);
+  });
+
+  it("ranks three fallback-total spools strictly by ratio (both comparator operands use the fallback)", () => {
+    // Three spools, all relying on the filament.weight fallback for their total. Fed in
+    // reverse of the expected order so the comparator must recompute *both* operands'
+    // denominators from filament.weight — not just the first one — to sort correctly.
+    const s1 = spool({ remaining_weight: 100, filament: filament({ weight: 4000 }) }); // 2.5%
+    const s2 = spool({ remaining_weight: 100, filament: filament({ weight: 2000 }) }); // 5%
+    const s3 = spool({ remaining_weight: 100, filament: filament({ weight: 1000 }) }); // 10%
+    expect(lowStockSpools([s3, s2, s1])).toEqual([s1, s2, s3]);
+  });
+
   it("returns only spools from the input (subset invariant)", () => {
     const spools = [
       spool({ initial_weight: 1000, remaining_weight: 10 }),
@@ -181,10 +210,19 @@ describe("materialBreakdown", () => {
 
 describe("locationBreakdown", () => {
   it("groups by location, most-populated first, with a fallback bucket for empty", () => {
-    const spools = [spool({ location: "Shelf A" }), spool({ location: "Shelf A" }), spool({ location: "" }), spool({})];
+    // Distinct counts (3/2/1) so the descending sort order is actually exercised.
+    const spools = [
+      spool({ location: "Shelf A" }),
+      spool({ location: "Shelf A" }),
+      spool({ location: "Shelf A" }),
+      spool({ location: "Shelf B" }),
+      spool({ location: "" }),
+      spool({}),
+    ];
     expect(locationBreakdown(spools, "No location")).toEqual([
-      ["Shelf A", 2],
+      ["Shelf A", 3],
       ["No location", 2],
+      ["Shelf B", 1],
     ]);
   });
 
@@ -196,15 +234,21 @@ describe("locationBreakdown", () => {
 });
 
 describe("vendorBreakdown / topVendor", () => {
-  it("groups by vendor name and marks missing vendors with '?'", () => {
+  it("groups by vendor name (missing -> '?'), most-populated first", () => {
+    // Distinct counts (3/2/1) AND an input order that is the reverse of the sorted
+    // order, so simply dropping the sort (or a no-op comparator) is caught.
     const spools = [
-      spool({ filament: filament({ vendor: vendor("Acme") }) }),
-      spool({ filament: filament({ vendor: vendor("Acme") }) }),
+      spool({ filament: filament({ vendor: vendor("Globex") }) }),
       spool({ filament: filament() }),
+      spool({ filament: filament() }),
+      spool({ filament: filament({ vendor: vendor("Acme") }) }),
+      spool({ filament: filament({ vendor: vendor("Acme") }) }),
+      spool({ filament: filament({ vendor: vendor("Acme") }) }),
     ];
     expect(vendorBreakdown(spools)).toEqual([
-      ["Acme", 2],
-      ["?", 1],
+      ["Acme", 3],
+      ["?", 2],
+      ["Globex", 1],
     ]);
   });
 
@@ -258,6 +302,11 @@ describe("presentation helpers", () => {
 
   it("getWeightPct clamps to 0–100 and applies the weight fallback", () => {
     expect(getWeightPct(spool({ initial_weight: 1000, remaining_weight: 500 }))).toBe(50);
+    // initial_weight takes precedence over filament.weight for the total: 500/1000 = 50%,
+    // not 500/500 = 100%. Locks the precedence order of the ?? fallback chain.
+    expect(
+      getWeightPct(spool({ initial_weight: 1000, remaining_weight: 500, filament: filament({ weight: 500 }) })),
+    ).toBe(50);
     expect(getWeightPct(spool({ initial_weight: 1000, remaining_weight: 2000 }))).toBe(100); // clamped
     expect(getWeightPct(spool({ initial_weight: 1000, remaining_weight: 0 }))).toBe(0);
     // No weights → total defaults to DEFAULT_TOTAL_WEIGHT and remaining defaults to total → 100%.

@@ -292,6 +292,15 @@ no refactor needed, only fixtures.
   mutation testing configured (`[tool.mutmut]`, `client/stryker.config.json`) and run by a dedicated
   manual/weekly `mutation.yml` workflow (kept off the per-PR path).
 
+**Bug found by the tests and FIXED:** `_find_ndef_payload` (OpenPrintTag codec) violated its
+"return `None` on malformed input, never raise" contract when `ndeflib` is installed — the
+`ndef.message_decoder` path let `ndef.record.DecodeError` escape on truncated/garbage tag data.
+CI never caught it because CI runs without the `nfc` extra (so the tolerant manual parser is used),
+but production NFC users **must** install that extra, so a malformed tag would crash the decode.
+Fixed by falling back to the manual parser on any `ndeflib` decode error, making the two parser
+paths behaviourally identical; `test_find_payload_malformed_ndef_record_returns_none_without_crashing`
+is the regression guard, and the suite now passes with `ndeflib` present or absent.
+
 **Bugs surfaced by the tests (behavior pinned, source unchanged — flagged for a deliberate fix):**
 `OpenPrintTagData.effective_instance_uuid`/`effective_brand_uuid` pass `bytes` to `uuid.uuid5` and
 raise `TypeError` when a UID/brand is present; the low-stock **sort** comparator in `analytics.ts`
@@ -328,23 +337,45 @@ uses a different weight fallback than the **filter** (dead defensive branches).
 **Also done — Phase 4 mutation baseline (Stryker) established as a hard gate:**
 
 Ran Stryker on the crown-jewel client modules (`stryker.config.json`; `npm run mutation`).
-Baseline mutation score **87.5%** overall:
+Mutation score **90.97%** overall (was 87.5% at first baseline, before `analytics.ts` was
+hardened from 88% → 98%):
 
 | Module | Score |
 |---|---|
 | `spoolCardHelpers.ts` | 100% |
 | `scan.ts` | 98% (was 81% — mutation testing surfaced untested URL-regex edges: http vs https, multi-digit id, leading/trailing anchors) |
-| `analytics.ts` | 88% |
+| `analytics.ts` | 98% (was 88% — mutation surfaced sort-direction mutants that survived because breakdown fixtures used equal counts and inputs already in sorted order, and a low-stock/`getWeightPct` `filament.weight` fallback never exercised without `initial_weight`) |
 | `tigertagCodec.ts` | 82% (was 74% — added truncated-buffer decode + `isTigerTag(false)` cases) |
+
+The two mutants that survive on `analytics.ts` at 98% are `LogicalOperator` twins of the
+**`pctB`** denominator inside the low-stock **sort** comparator; the byte-for-byte identical
+`pctA` expression one line up **is** killed, so the behaviour is tested — the twins survive only
+because of V8's internal comparator call-order (forcing `pctB`'s denominator to a constant still
+yields the correct order for reachable inputs). They are effectively equivalent mutants; chasing
+them would couple a test to V8 sort internals, which §0 forbids.
 
 The break threshold is raised to **80** and the scheduled `mutation.yml` job now enforces it
 (no `|| true`), so a drop below 80% fails the run. This is the direct proof the suite catches
 injected bugs, not just executes lines.
 
+**Also done — Python mutation baseline (`mutmut`) established (advisory):**
+
+`mutmut` (pinned `<3`; 3.x's sandbox can't resolve the non-installed `spoolman` package) mutates
+the three NFC codecs in place, scored against the `tests/nfc` suite. mutmut 2.x ignores the
+`[tool.mutmut]` pyproject section, so `mutation.yml` passes the scope/runner on the CLI (kept in
+sync with that section). This is **advisory, not a gate** (`|| true`): the codecs are dense with
+hardware I/O, defensive broad-except and large lookup tables, where a mutated magic byte in a
+several-hundred-entry material table survives unless every entry is asserted — so a hard mutation
+floor is impractical. It runs on the same weekly/manual `mutation.yml` as Stryker and tracks the
+baseline. As a representative sample, a complete scoped run over `qidi_codec.py` kills **128/326**
+mutants (~39%); the survivors cluster in the material/brand lookup tables (a mutated entry survives
+unless every row is asserted) and the defensive hardware-read branches — exactly the code the
+advisory framing anticipates. Kicking the tests here is also what surfaced the `ndeflib`
+`DecodeError` crash fixed above.
+
 **Remaining (follow-up):**
 
 - Phase 3 (component): print-dialog default-resolution, i18n `<Trans>` rendering (both need
   rendering provider-heavy components; the print-dialog updates are plain immutable spreads now).
-- Phase 4: Playwright e2e for the SW/manifest flows; raise the per-module mutation scores on
-  `analytics.ts`/`tigertagCodec.ts` toward the 90% "high" threshold; baseline `mutmut` for the
-  Python crown-jewel modules the same way.
+- Phase 4: Playwright e2e for the SW/manifest flows; raise `tigertagCodec.ts` (82%) toward the
+  90% "high" threshold (`analytics.ts` is now 98%).

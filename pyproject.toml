@@ -74,17 +74,28 @@ asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 
 [tool.mutmut]
-# Mutation testing over the crown-jewel modules — the highest logic-density code,
+# Mutation testing over the crown-jewel NFC codecs — the highest logic-density code,
 # where a passing suite must actually catch injected bugs (TESTING_STRATEGY.md §4).
-# Run locally with:  uv run --with mutmut mutmut run   (then: ... mutmut results)
-# Not part of the per-PR gate; see .github/workflows/mutation.yml (manual/scheduled).
+# Pinned to mutmut 2.x (mutates in place; 3.x's sandbox breaks the editable install).
+#
+# NOTE: mutmut 2.x does NOT read this [tool.mutmut] section — it is kept as the
+# canonical record of the intended scope/runner. The values are passed on the CLI
+# in .github/workflows/mutation.yml (and locally), which must stay in sync with this:
+#   uv run --with 'mutmut<3' mutmut run \
+#     --paths-to-mutate "spoolman/tigertag_codec.py,spoolman/qidi_codec.py,spoolman/openprinttag_codec.py" \
+#     --runner "python -m pytest -x -q tests/nfc"   (then: ... mutmut results)
+#
+# Advisory only — not a per-PR gate (see mutation.yml). The runner is scoped to the
+# NFC unit tests that cover these modules — fast, and it avoids the DB integration
+# tests. (bump.py is excluded: its pure calver() is unit-tested, but the file is
+# otherwise git/subprocess I/O glue that inflates the mutant count without being
+# unit-testable.)
 paths_to_mutate = [
     "spoolman/tigertag_codec.py",
     "spoolman/qidi_codec.py",
     "spoolman/openprinttag_codec.py",
-    "spoolman/bump.py",
 ]
-tests_dir = "tests/"
+runner = "python -m pytest -x -q tests/nfc"
 
 [tool.poe.tasks.generate-docs]
 script = "spoolman.docs:generate_docs"

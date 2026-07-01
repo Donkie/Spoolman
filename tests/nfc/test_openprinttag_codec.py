@@ -13,10 +13,12 @@ Oracle strategy (see TESTING_STRATEGY.md §0):
     payload finder and the top-level decoder and asserts they never raise
     anything except the documented ``ValueError`` (finder returns ``None``).
 
-Environment note: ``ndeflib`` is an optional dependency and is NOT installed in
-this test environment, so ``_parse_ndef_records`` deterministically falls
-through to the pure ``_parse_ndef_manual`` parser. The NDEF wrappers below are
-therefore exercised against that manual parser.
+Environment note: ``ndeflib`` is an optional dependency. When it is absent,
+``_parse_ndef_records`` falls through to the pure ``_parse_ndef_manual`` parser;
+when it is present, the ndeflib decoder is used. These tests must pass either
+way, so they assert the *contract* both parsers share — in particular that the
+payload finder returns ``None`` (never raises) on truncated/malformed NDEF data,
+regardless of which parser backs it.
 """
 
 import io
@@ -210,6 +212,20 @@ def test_find_payload_truncated_mid_tlv_returns_none_without_crashing():
     # Declared length longer than the remaining buffer: slice is short, but the
     # inner NDEF parser simply finds nothing -> None.
     assert _find_ndef_payload(b"\xe1\x40\x00\x00\x03\x20\x00\x00") is None
+
+
+def test_find_payload_malformed_ndef_record_returns_none_without_crashing():
+    """A well-formed CC + NDEF TLV whose record bytes are undecodable returns None.
+
+    The TLV framing is valid, so the finder hands the inner bytes to the NDEF
+    parser. Those bytes (header 0xFF -> reserved TNF 7) are rejected by ndeflib's
+    decoder; the finder must swallow that decode error and fall back to the manual
+    parser (which also finds nothing here) rather than propagating. Regression
+    guard for the ndeflib-present crash path.
+    """
+    garbage = b"\xff\xff\xff\xff"  # header 0xFF => TNF 7, which ndeflib refuses to decode
+    memory = bytes([0xE1, 0x40, 0x00, 0x00, 0x03, len(garbage)]) + garbage + b"\xfe"
+    assert _find_ndef_payload(memory) is None
 
 
 def test_find_payload_skips_non_ndef_tlv_then_finds_ndef():

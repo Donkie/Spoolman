@@ -2,8 +2,9 @@ name: Mutation Testing
 
 # Mutation testing proves the suite catches injected bugs, not just executes lines
 # (TESTING_STRATEGY.md §4). It is expensive, so it runs on demand and weekly rather
-# than on every PR. Neither job fails the build yet — they establish the baseline
-# score for the crown-jewel modules; tighten to a hard gate once the score settles.
+# than on every PR. The client job (Stryker) enforces a hard break threshold; the
+# python job (mutmut) is an advisory baseline for the codec modules, whose I/O and
+# lookup-table density makes a hard mutation floor impractical.
 on:
   workflow_dispatch:
   schedule:
@@ -29,11 +30,25 @@ jobs:
         with:
           python-version-file: "pyproject.toml"
 
+      # mutmut is pinned to 2.x: it mutates the codec sources in place, which the
+      # tests import directly from the working tree. mutmut 3.x's build-sandbox
+      # cannot resolve the (non-installed) `spoolman` package and aborts. mutmut 2.x
+      # also does not read the `[tool.mutmut]` pyproject section, so the scope and
+      # runner are passed explicitly on the CLI here (kept in sync with that section,
+      # which documents the intent). The runner is the NFC unit suite that covers
+      # these modules — fast, and free of the DB integration tests.
+      # Advisory only (`|| true`): codec code is dense with hardware I/O, defensive
+      # broad-except and large lookup tables, so the score is a tracked baseline, not
+      # a hard gate. The enforced mutation gate lives in client-mutation (Stryker).
       - name: Run mutmut on crown-jewel modules
-        run: uv run --with mutmut mutmut run || true
+        run: >
+          uv run --with 'mutmut<3' mutmut run
+          --paths-to-mutate "spoolman/tigertag_codec.py,spoolman/qidi_codec.py,spoolman/openprinttag_codec.py"
+          --runner "python -m pytest -x -q tests/nfc"
+          || true
 
       - name: Report results
-        run: uv run --with mutmut mutmut results || true
+        run: uv run --with 'mutmut<3' mutmut results || true
 
   client-mutation:
     runs-on: ubuntu-latest

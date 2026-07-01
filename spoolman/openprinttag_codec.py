@@ -261,9 +261,20 @@ def _parse_ndef_records(ndef_data: bytes) -> bytes | None:
         # Fall back to manual NDEF parsing if ndeflib is not available
         return _parse_ndef_manual(ndef_data)
 
-    for record in ndef.message_decoder(io.BytesIO(ndef_data)):
-        if record.type == OPENPRINTTAG_MIME:
-            return bytes(record.data)
+    try:
+        for record in ndef.message_decoder(io.BytesIO(ndef_data)):
+            if record.type == OPENPRINTTAG_MIME:
+                return bytes(record.data)
+    except Exception:
+        # ndeflib raises ndef.record.DecodeError (and related errors) on truncated
+        # or malformed NDEF data read off a real tag. The finder's contract is to
+        # return None on bad input, never propagate — fall back to the tolerant
+        # manual parser, which stops cleanly at the first short field. This keeps
+        # the ndeflib-present and ndeflib-absent paths behaviourally identical.
+        # Logged at debug (with the traceback) so an unexpected library/decoder
+        # issue is still observable without breaking the "never raise" contract.
+        logger.debug("ndeflib failed to decode NDEF message; falling back to manual parser", exc_info=True)
+        return _parse_ndef_manual(ndef_data)
 
     return None
 
