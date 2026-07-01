@@ -6,6 +6,8 @@ goes below zero (remaining never exceeds the initial weight). Uses the real
 PUT /spool/{id}/use endpoint against the temp DB.
 """
 
+import asyncio
+
 import pytest
 from httpx import AsyncClient
 
@@ -58,3 +60,20 @@ async def test_use_rejects_specifying_both_weight_and_length(client: AsyncClient
     spool = await _make_spool(client, initial_weight=1000)
     resp = await client.put(f"{SPOOL}/{spool['id']}/use", json={"use_weight": 1, "use_length": 1})
     assert resp.status_code == 400
+
+
+async def test_concurrent_consumption_does_not_lose_updates(client: AsyncClient):
+    # use_weight_safe applies consumption as a single atomic UPDATE, so racing /use
+    # calls must all land — the total consumed equals the sum, with no lost updates.
+    spool = await _make_spool(client, initial_weight=1000)
+    n, each = 8, 10
+
+    results = await asyncio.gather(*[_use(client, spool["id"], each) for _ in range(n)])
+    # Every call returns 200 (the _use helper asserts it).
+    assert len(results) == n
+
+    final = await client.get(f"{SPOOL}/{spool['id']}")
+    assert final.status_code == 200
+    body = final.json()
+    assert body["used_weight"] == pytest.approx(n * each)  # 80, not less
+    assert body["remaining_weight"] == pytest.approx(1000 - n * each)

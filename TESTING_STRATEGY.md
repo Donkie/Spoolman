@@ -309,10 +309,18 @@ uses a different weight fallback than the **filter** (dead defensive branches).
   `/bind` duplicate-rejection, spool `/use` consumption + refill-clamp (`use_weight_safe`),
   and extra-field filtering incl. the `_escape_like` literal-`%`/`_` regression.
 
+**Also done — Phase 2 tail + first Phase 3 (post-merge follow-up):**
+
+- Phase 2 tail: extra-field **sort** (asc/desc, unknown-key ignored, malformed→400) and
+  `use_weight_safe` **true concurrency** (8 racing `/use` calls, no lost updates). Starlette
+  `FileResponse` asset serving + manifest rewrite landed in the initial PR.
+- Phase 3 (component): a boundary-mock harness for refine components — Home **render-state
+  branches** (loading / error / empty-onboarding / dashboard, incl. the error-vs-empty fix) and
+  the **`authReloadHandler`** 401 auto-reload (idempotent-only, cooldown, SW unregister).
+
 **Remaining (follow-up):**
 
-- Phase 2 tail: extra-field **sort** + range/boolean filters, hishel cache behavior, Starlette
-  `FileResponse` asset serving (needs a built `dist/`), `use_weight_safe` true-concurrency.
-- Phase 3 (component): dashboard render states, print dialog, i18n `<Trans>`, `authReloadHandler`.
+- Phase 2 tail: extra-field range/boolean filters, hishel cache behavior.
+- Phase 3 (component): print-dialog immutability, i18n `<Trans>` rendering.
 - Phase 4: Playwright e2e for the SW/manifest flows; establish the mutation-score baseline and
   promote it to a hard gate.
