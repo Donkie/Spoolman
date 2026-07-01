@@ -93,11 +93,25 @@ export function useStoreInitialState(tableId: string, state: TableState) {
 export function useSavedState<T>(id: string, defaultValue: T) {
   const [state, setState] = useState<T>(() => {
     const savedState = isLocalStorageAvailable ? localStorage.getItem(`savedStates-${id}`) : null;
-    return savedState ? JSON.parse(savedState) : defaultValue;
+    if (!savedState) return defaultValue;
+    try {
+      return JSON.parse(savedState) as T;
+    } catch {
+      // Heal storage poisoned by older builds: an undefined state used to be written
+      // as JSON.stringify(undefined) === undefined, which localStorage coerced to the
+      // string "undefined" and then threw on the next JSON.parse.
+      return defaultValue;
+    }
   });
 
   useEffect(() => {
-    if (isLocalStorageAvailable) {
+    if (!isLocalStorageAvailable) return;
+    // JSON.stringify(undefined) returns undefined, which localStorage.setItem stores as
+    // the literal string "undefined" — poisoning the key so the next read throws. Remove
+    // the key instead (mirrors how table showColumns is persisted above).
+    if (state === undefined) {
+      localStorage.removeItem(`savedStates-${id}`);
+    } else {
       localStorage.setItem(`savedStates-${id}`, JSON.stringify(state));
     }
   }, [id, state]);
