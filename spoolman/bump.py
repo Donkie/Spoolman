@@ -64,13 +64,28 @@ def _update_node_pkg_version(project_root: Path, new_version: str) -> None:
         subprocess.run(["npm", "install"], cwd=project_root.joinpath("client"), check=True)
 
 
-def _calver_pyproject(project_root: Path) -> str:
-    """Set the version in pyproject.toml to YEAR.MONTH.PATCH for the current month.
+def calver(now: datetime, current_version: str | None) -> str:
+    """Derive the next CalVer YEAR.MONTH.PATCH version.
 
-    PATCH starts at 0 and increments for each release within the same calendar
-    month (e.g. 2026.6.0, 2026.6.1, ... then 2026.7.0 in the next month).
-    Returns the new version.
+    PATCH starts at 0 for a new calendar month and increments for each release
+    within the same year+month as ``current_version`` (e.g. 2026.6.0, 2026.6.1,
+    ... then 2026.7.0 in the next month). ``current_version`` may be ``None`` or
+    unparseable (first release / malformed), in which case PATCH starts at 0.
+
+    This is a pure function of its inputs (no clock, no file I/O) so it can be
+    unit-tested directly against a table of (now, current) -> expected.
     """
+    year, month = now.year, now.month
+    patch = 0
+    if current_version is not None:
+        match = re.match(r"^(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)$", current_version.strip())
+        if match is not None and int(match.group("major")) == year and int(match.group("minor")) == month:
+            patch = int(match.group("patch")) + 1
+    return f"{year}.{month}.{patch}"
+
+
+def _calver_pyproject(project_root: Path) -> str:
+    """Set the version in pyproject.toml to the current-month CalVer and return it."""
     pyproject_path = project_root.joinpath("pyproject.toml")
     try:
         pyproject_text = pyproject_path.read_text()
@@ -78,24 +93,18 @@ def _calver_pyproject(project_root: Path) -> str:
         print("Failed to read pyproject.toml to determine current version.")
         sys.exit(1)
 
-    now = datetime.now(tz=timezone.utc)
-    year, month = now.year, now.month
-
-    # Continue the patch counter only when the current version is already in this
-    # year+month; otherwise start the new month at patch 0.
-    patch = 0
     version_match = re.search(
         r'^\s*version\s*=\s*"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"',
         pyproject_text,
         re.MULTILINE,
     )
-    if version_match is not None:
-        cur_year = int(version_match.group("major"))
-        cur_month = int(version_match.group("minor"))
-        if cur_year == year and cur_month == month:
-            patch = int(version_match.group("patch")) + 1
+    current_version = (
+        f"{version_match.group('major')}.{version_match.group('minor')}.{version_match.group('patch')}"
+        if version_match is not None
+        else None
+    )
 
-    new_version = f"{year}.{month}.{patch}"
+    new_version = calver(datetime.now(tz=timezone.utc), current_version)
 
     # Replace only the first occurrence of the version line in pyproject.toml
     pattern = re.compile(r"^\s*version\s*=.*$", re.MULTILINE)

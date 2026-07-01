@@ -13,23 +13,12 @@ import SpoolIcon from "../../../components/spoolIcon";
 import { formatWeight } from "../../../utils/parsing";
 import { ISpool } from "../../spools/model";
 import { ItemTypes, SpoolDragItem, useCurrentDraggedSpool } from "../dnd";
+import { getWeightColor, getWeightPercentage } from "./spoolCardHelpers";
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
 
 const { useToken } = theme;
-
-function getWeightPercentage(spool: ISpool): number {
-  const total = spool.initial_weight ?? spool.filament.weight ?? 1000;
-  const remaining = spool.remaining_weight ?? total;
-  return Math.max(0, Math.min(100, (remaining / total) * 100));
-}
-
-function getWeightColor(percentage: number): string {
-  if (percentage <= 10) return "#ff4d4f";
-  if (percentage <= 25) return "#faad14";
-  return "#52c41a";
-}
 
 export function SpoolCard({
   index,

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/api/schema/stryker-core.json",
+  "_comment": "Mutation testing for the crown-jewel client modules (TESTING_STRATEGY.md §4). Run: npx stryker run. Not part of the per-PR gate; see .github/workflows/mutation.yml.",
+  "packageManager": "npm",
+  "testRunner": "vitest",
+  "vitest": { "configFile": "vitest.config.ts" },
+  "reporters": ["html", "clear-text", "progress"],
+  "coverageAnalysis": "perTest",
+  "mutate": [
+    "src/pages/home/analytics.ts",
+    "src/utils/scan.ts",
+    "src/utils/tigertagCodec.ts",
+    "src/pages/locations/components/spoolCardHelpers.ts"
+  ],
+  "thresholds": { "high": 90, "low": 80, "break": 70 }
+}

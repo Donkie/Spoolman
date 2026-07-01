@@ -329,9 +329,11 @@ export function mapSpoolToTigerTag(spool: ISpool, userMessage: string = ""): Tig
     }
   }
 
-  // Weight
+  // Weight — truncate to match the Python backend's map_spool_to_tigertag
+  // (int(filament.weight)), so Web-NFC-written tags encode identically to
+  // backend-written ones for non-integer weights.
   if (filament.weight) {
-    data.weight = Math.round(filament.weight);
+    data.weight = Math.trunc(filament.weight);
   }
 
   // Temperatures

@@ -61,12 +61,30 @@ dev = [
     "pytest-cov~=7.0",
     "httpx~=0.28.1",
     "poethepoet>=0.40.0",
+    # Behavioral-testing toolkit (see TESTING_STRATEGY.md):
+    "hypothesis~=6.100",   # property-based tests for codecs/parsers
+    "time-machine~=2.14",  # freeze the clock for CalVer / date logic
+    "respx~=0.22",         # mock httpx at the transport boundary (externaldb / 3DFP)
+    "cbor2>=5.4",          # exercise the OpenPrintTag codec in unit tests
 ]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
+
+[tool.mutmut]
+# Mutation testing over the crown-jewel modules — the highest logic-density code,
+# where a passing suite must actually catch injected bugs (TESTING_STRATEGY.md §4).
+# Run locally with:  uv run --with mutmut mutmut run   (then: ... mutmut results)
+# Not part of the per-PR gate; see .github/workflows/mutation.yml (manual/scheduled).
+paths_to_mutate = [
+    "spoolman/tigertag_codec.py",
+    "spoolman/qidi_codec.py",
+    "spoolman/openprinttag_codec.py",
+    "spoolman/bump.py",
+]
+tests_dir = "tests/"
 
 [tool.poe.tasks.generate-docs]
 script = "spoolman.docs:generate_docs"

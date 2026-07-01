@@ -4,6 +4,7 @@ import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
 import { FloatButton, Modal, Space } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { parseScanResult } from "../utils/scan";
 
 const QRCodeScannerModal = () => {
   const [visible, setVisible] = useState(false);
@@ -15,31 +16,10 @@ const QRCodeScannerModal = () => {
     if (detectedCodes.length === 0) {
       return;
     }
-    const result = detectedCodes[0].rawValue;
-
-    // Check for the spoolman ID format
-    const spoolMatch = result.match(/^web\+spoolman:s-(?<id>[0-9]+)$/i);
-    if (spoolMatch && spoolMatch.groups) {
+    const target = parseScanResult(detectedCodes[0].rawValue);
+    if (target) {
       setVisible(false);
-      navigate(`/spool/show/${spoolMatch.groups.id}`);
-      return;
-    }
-    const filamentMatch = result.match(/^web\+spoolman:f-(?<id>[0-9]+)$/i);
-    if (filamentMatch && filamentMatch.groups) {
-      setVisible(false);
-      navigate(`/filament/show/${filamentMatch.groups.id}`);
-      return;
-    }
-    const spoolURLmatch = result.match(/^https?:\/\/[^/]+(?:\/[^/]+)*\/spool\/show\/(?<id>[0-9]+)$/i);
-    if (spoolURLmatch && spoolURLmatch.groups) {
-      setVisible(false);
-      navigate(`/spool/show/${spoolURLmatch.groups.id}`);
-      return;
-    }
-    const filamentURLmatch = result.match(/^https?:\/\/[^/]+(?:\/[^/]+)*\/filament\/show\/(?<id>[0-9]+)$/i);
-    if (filamentURLmatch && filamentURLmatch.groups) {
-      setVisible(false);
-      navigate(`/filament/show/${filamentURLmatch.groups.id}`);
+      navigate(target.path);
     }
   };
 

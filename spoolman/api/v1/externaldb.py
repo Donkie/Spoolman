@@ -79,7 +79,7 @@ async def materials() -> FileResponse:
     name="Get external filament by 3D Filament Profiles ID",
     response_model_exclude_none=True,
 )
-async def profile(profile_id: str) -> dict | None:  # noqa: C901, PLR0912, PLR0915
+async def profile(profile_id: str) -> dict:
     """Fetch filament data from 3dfilamentprofiles.com."""
     if not profile_id.isdigit():
         raise HTTPException(status_code=400, detail="Invalid profile ID; expected a numeric ID.")
@@ -99,7 +99,21 @@ async def profile(profile_id: str) -> dict | None:  # noqa: C901, PLR0912, PLR09
         logger.exception("Failed to fetch filament profile %s", profile_id)
         raise HTTPException(status_code=400, detail="Failed to fetch filament profile") from e
 
-    data = {}
+    data = parse_3dfp_html(html)
+    if data is None:
+        raise HTTPException(status_code=404, detail="Filament profile information not found in HTML")
+    return data
+
+
+def parse_3dfp_html(html: str) -> dict | None:  # noqa: C901, PLR0912, PLR0915
+    r"""Parse a 3dfilamentprofiles.com details page into a filament data dict.
+
+    The page embeds the profile as escaped JSON (``\"brand_name\":\"...\"``).
+    Returns the extracted fields, or ``None`` when no recognisable brand line is
+    present (the caller maps that to a 404). Pure: no network or file I/O, so it
+    can be unit-tested against fixture HTML.
+    """
+    data: dict = {}
 
     for line in html.splitlines():
         if '\\"brand_name\\":\\"' in line:
@@ -175,4 +189,4 @@ async def profile(profile_id: str) -> dict | None:  # noqa: C901, PLR0912, PLR09
 
             return data
 
-    raise HTTPException(status_code=404, detail="Filament profile information not found in HTML")
+    return None

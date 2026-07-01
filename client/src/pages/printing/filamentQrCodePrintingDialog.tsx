@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { parseStringSettingValue, useGetSetting } from "../../utils/querySettings";
 import { useSavedState } from "../../utils/saveload";
+import { buildScanPayload } from "../../utils/scan";
 import { useGetFilamentsByIds } from "../filaments/functions";
 import { IFilament } from "../filaments/model";
 import {
@@ -276,7 +277,7 @@ const FilamentQRCodePrintingDialog = ({ filamentIds }: FilamentQRCodePrintingDia
           </>
         }
         items={items.map((filament) => ({
-          value: useHTTPUrl ? `${baseUrlRoot}/filament/show/${filament.id}` : `WEB+SPOOLMAN:F-${filament.id}`,
+          value: buildScanPayload("filament", filament.id, useHTTPUrl ? baseUrlRoot : undefined),
           label: (
             <p
               style={{

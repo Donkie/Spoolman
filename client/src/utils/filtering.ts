@@ -53,6 +53,14 @@ export function getCustomFieldFilters<Obj = unknown>(
 }
 
 /**
+ * Serialize a list of filter values into the comma-separated query string the
+ * backend expects, mapping the sentinel "<empty>" to a real empty value.
+ */
+export function serializeFilterValues(values: unknown[]): string {
+  return values.map((value) => (value === "<empty>" ? "" : value)).join(",");
+}
+
+/**
  * Function that returns an array with all undefined values removed.
  */
 export function removeUndefined<T>(array: (T | undefined)[]): T[] {

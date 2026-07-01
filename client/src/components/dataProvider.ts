@@ -2,7 +2,7 @@ import { DataProvider } from "@refinedev/core";
 import { axiosInstance } from "@refinedev/simple-rest";
 import { AxiosInstance } from "axios";
 import { stringify } from "query-string";
-import { getCustomFieldFilters } from "../utils/filtering";
+import { getCustomFieldFilters, serializeFilterValues } from "../utils/filtering";
 import { isCustomField } from "../utils/queryFields";
 
 type MethodTypes = "get" | "delete" | "head" | "options";
@@ -53,17 +53,7 @@ const dataProvider = (
 
         if (filter.value.length > 0) {
           const filterValueArray = Array.isArray(filter.value) ? filter.value : [filter.value];
-
-          const filterValue = filterValueArray
-            .map((value) => {
-              if (value === "<empty>") {
-                return "";
-              }
-              return value;
-            })
-            .join(",");
-
-          queryParams[field] = filterValue;
+          queryParams[field] = serializeFilterValues(filterValueArray);
         }
       });
 
@@ -71,7 +61,7 @@ const dataProvider = (
       const customFieldFilters = getCustomFieldFilters(filters);
       Object.entries(customFieldFilters).forEach(([key, values]) => {
         if (values.length > 0) {
-          queryParams[`extra.${key}`] = values.map((value) => (value === "<empty>" ? "" : value)).join(",");
+          queryParams[`extra.${key}`] = serializeFilterValues(values);
         }
       });
     }

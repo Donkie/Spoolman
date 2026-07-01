@@ -1,7 +1,7 @@
 import { InputNumber } from "antd";
 import { formatNumberOnUserInput, numberParserAllowEmpty } from "../utils/parsing";
 
-function parseValue(value?: (number | null)[]): [number | null, number | null] {
+export function parseValue(value?: (number | null)[]): [number | null, number | null] {
   if (value === undefined) {
     return [null, null];
   }
@@ -15,7 +15,7 @@ function parseValue(value?: (number | null)[]): [number | null, number | null] {
   return [min, max];
 }
 
-function parseInputNumberValue(value: string | number | null): number | null {
+export function parseInputNumberValue(value: string | number | null): number | null {
   if (typeof value === "number") return value;
   // antd typically emits numbers here, but its typings allow strings (e.g. with
   // stringMode). Parse those rather than dropping them, while still treating an

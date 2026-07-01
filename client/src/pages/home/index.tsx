@@ -22,6 +22,19 @@ import { useCurrencyFormatter } from "../../utils/settings";
 import { IFilament } from "../filaments/model";
 import { ISpool } from "../spools/model";
 import { IVendor } from "../vendors/model";
+import {
+  getColorHex,
+  getSpoolName,
+  getWeightPct,
+  locationBreakdown,
+  lowStockSpools as computeLowStockSpools,
+  materialBreakdown,
+  recentSpools as computeRecentSpools,
+  registeredWithinDays,
+  totalRemainingWeight as computeTotalRemainingWeight,
+  totalValue as computeTotalValue,
+  vendorBreakdown,
+} from "./analytics";
 import "./home.css";
 
 dayjs.extend(utc);
@@ -62,71 +75,15 @@ export const Home = () => {
   const isLoading = spoolsAll.query.isLoading;
   const isError = spoolsAll.query.isError;
 
-  // --- Calculations ---
-  const totalRemainingWeight = allSpools.reduce(
-    (sum, s) => sum + (s.remaining_weight ?? s.initial_weight ?? s.filament.weight ?? 0),
-    0,
-  );
-  const totalValue = allSpools.reduce((sum, s) => sum + (s.price ?? 0), 0);
-
-  const lowStockSpools = allSpools
-    .filter((s) => {
-      const total = s.initial_weight ?? s.filament.weight ?? 1000;
-      const remaining = s.remaining_weight ?? total;
-      return remaining / total < 0.15;
-    })
-    .sort((a, b) => {
-      const pctA = (a.remaining_weight ?? 0) / (a.initial_weight ?? a.filament.weight ?? 1000);
-      const pctB = (b.remaining_weight ?? 0) / (b.initial_weight ?? b.filament.weight ?? 1000);
-      return pctA - pctB;
-    });
-
-  const recentSpools = [...allSpools]
-    .filter((s) => s.last_used)
-    .sort((a, b) => dayjs(b.last_used).valueOf() - dayjs(a.last_used).valueOf())
-    .slice(0, 5);
-
-  const materialMap: Record<string, { count: number; weight: number }> = {};
-  allSpools.forEach((s) => {
-    const mat = s.filament.material ?? "Unknown";
-    if (!materialMap[mat]) materialMap[mat] = { count: 0, weight: 0 };
-    materialMap[mat].count++;
-    materialMap[mat].weight += s.remaining_weight ?? s.initial_weight ?? s.filament.weight ?? 0;
-  });
-  const materialBreakdown = Object.entries(materialMap).sort((a, b) => b[1].weight - a[1].weight);
-
-  const locationMap: Record<string, number> = {};
-  allSpools.forEach((s) => {
-    const loc = s.location || t("locations.no_location");
-    locationMap[loc] = (locationMap[loc] ?? 0) + 1;
-  });
-  const locationBreakdown = Object.entries(locationMap).sort((a, b) => b[1] - a[1]);
-
-  const vendorCount: Record<string, number> = {};
-  allSpools.forEach((s) => {
-    const name = s.filament.vendor && "name" in s.filament.vendor ? s.filament.vendor.name : "?";
-    vendorCount[name] = (vendorCount[name] ?? 0) + 1;
-  });
-  const vendorBreakdown = Object.entries(vendorCount).sort((a, b) => b[1] - a[1]);
-  const topVendor = vendorBreakdown[0]?.[0] ?? "-";
-
-  // --- Helpers ---
-  function getColorHex(spool: ISpool): string {
-    return "#" + (spool.filament.color_hex ?? "555555").replace("#", "");
-  }
-
-  function getSpoolName(spool: ISpool): string {
-    if (spool.filament.vendor && "name" in spool.filament.vendor) {
-      return `${spool.filament.vendor.name} - ${spool.filament.name}`;
-    }
-    return spool.filament.name ?? spool.filament.id.toString();
-  }
-
-  function getWeightPct(spool: ISpool): number {
-    const total = spool.initial_weight ?? spool.filament.weight ?? 1000;
-    const remaining = spool.remaining_weight ?? total;
-    return Math.max(0, Math.min(100, (remaining / total) * 100));
-  }
+  // --- Calculations (pure logic lives in ./analytics, unit-tested there) ---
+  const totalRemainingWeight = computeTotalRemainingWeight(allSpools);
+  const totalValue = computeTotalValue(allSpools);
+  const lowStockSpools = computeLowStockSpools(allSpools);
+  const recentSpools = computeRecentSpools(allSpools);
+  const materialBreakdownData = materialBreakdown(allSpools);
+  const locationBreakdownData = locationBreakdown(allSpools, t("locations.no_location"));
+  const vendorBreakdownData = vendorBreakdown(allSpools);
+  const topVendor = vendorBreakdownData[0]?.[0] ?? "-";
 
   const matColors: Record<string, string> = isDark
     ? {
@@ -233,8 +190,7 @@ export const Home = () => {
           <div className="kpi-value">{allSpools.length}</div>
           <div className="kpi-footer" style={{ color: isDark ? "#6ded00" : "#16a34a" }}>
             <span>
-              +{allSpools.filter((s) => dayjs(s.registered).isAfter(dayjs().subtract(30, "day"))).length}{" "}
-              {t("home.kpi.this_month", "this month")}
+              +{registeredWithinDays(allSpools, 30)} {t("home.kpi.this_month", "this month")}
             </span>
           </div>
         </div>
@@ -365,8 +321,8 @@ export const Home = () => {
               children: (
                 <div className="dash-section" style={{ background: S.low }}>
                   <div className="material-list">
-                    {materialBreakdown.map(([material, data]) => {
-                      const maxWeight = materialBreakdown[0]?.[1].weight || 1;
+                    {materialBreakdownData.map(([material, data]) => {
+                      const maxWeight = materialBreakdownData[0]?.[1].weight || 1;
                       const pct = (data.weight / maxWeight) * 100;
                       const color = matColors[material] ?? "#81ecff";
                       return (
@@ -402,8 +358,8 @@ export const Home = () => {
               children: (
                 <div className="dash-section" style={{ background: S.low }}>
                   <div className="material-list">
-                    {vendorBreakdown.map(([vendor, count], idx) => {
-                      const maxCount = vendorBreakdown[0]?.[1] || 1;
+                    {vendorBreakdownData.map(([vendor, count], idx) => {
+                      const maxCount = vendorBreakdownData[0]?.[1] || 1;
                       const pct = (count / maxCount) * 100;
                       let barColor: string;
                       if (idx === 0) {
@@ -489,7 +445,7 @@ export const Home = () => {
               </h3>
             </div>
             <div className="location-list">
-              {locationBreakdown.map(([location, count], idx) => {
+              {locationBreakdownData.map(([location, count], idx) => {
                 let badgeBg: string;
                 let badgeColor: string;
                 if (idx === 0) {

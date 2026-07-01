@@ -18,6 +18,22 @@ PathLike = Union[str, "os.PathLike[str]"]
 Scope = MutableMapping[str, Any]
 
 
+def tweak_manifest(base_path: str, manifest: dict[str, Any]) -> dict[str, Any]:
+    """Return a copy of ``manifest`` with ``start_url``/``scope`` set to the base path.
+
+    ``base_path`` is the leading-slash-stripped path ("" or e.g. "spoolman"). The
+    rewritten value is ``"/"`` at the root or ``"/<base>/"`` under a sub-path. Only
+    ``start_url`` and ``scope`` are root-absolute; other fields (icon ``src`` values)
+    are copied through untouched. Building a dict and letting ``json.dumps`` escape it
+    keeps a hostile base path from injecting into the served JSON. Pure — no I/O.
+    """
+    base_url = "/" if len(base_path.strip()) == 0 else f"/{base_path}/"
+    tweaked = dict(manifest)
+    tweaked["start_url"] = base_url
+    tweaked["scope"] = base_url
+    return tweaked
+
+
 class SinglePageApplication(StaticFiles):
     """Serve a single page application."""
 
@@ -69,10 +85,7 @@ class SinglePageApplication(StaticFiles):
             return
 
         data = json.loads(manifest_path.read_text(encoding="utf-8"))
-        base_path = "/" if len(self.base_path.strip()) == 0 else f"/{self.base_path}/"
-        data["start_url"] = base_path
-        data["scope"] = base_path
-        self.manifest = json.dumps(data)
+        self.manifest = json.dumps(tweak_manifest(self.base_path, data))
 
     def file_response(
         self,
