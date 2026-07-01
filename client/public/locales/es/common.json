@@ -1,423 +1,595 @@
 {
-    "actions": {
-        "list": "Listar",
-        "create": "Crear",
-        "edit": "Editar",
-        "show": "Mostrar",
-        "clone": "Clonar"
+  "actions": {
+    "list": "Listar",
+    "create": "Crear",
+    "edit": "Editar",
+    "show": "Mostrar",
+    "clone": "Clonar"
+  },
+  "buttons": {
+    "create": "Crear",
+    "save": "Guardar",
+    "logout": "Cerrar Sesión",
+    "delete": "Borrar",
+    "edit": "Editar",
+    "cancel": "Cancelar",
+    "confirm": "¿Estás seguro?",
+    "filter": "Filtrar",
+    "clear": "Limpiar",
+    "refresh": "Actualizar",
+    "show": "Mostrar",
+    "undo": "Deshacer",
+    "import": "Importar",
+    "clone": "Clonar",
+    "archive": "Archivar",
+    "unArchive": "Desarchivar",
+    "hideArchived": "Ocultar Archivados",
+    "showArchived": "Mostrar Archivados",
+    "notAccessTitle": "No tienes permiso de acceso",
+    "hideColumns": "Ocultar Columnas",
+    "clearFilters": "Borrar filtros",
+    "saveAndAdd": "Guardar y añadir",
+    "continue": "Continuar"
+  },
+  "warnWhenUnsavedChanges": "¿Estás seguro que quieres salir? Hay cambios sin guardar.",
+  "notifications": {
+    "success": "Éxito",
+    "error": "Error (status code: {{statusCode}})",
+    "undoable": "Tienes {{seconds}} segundos para deshacer.",
+    "createSuccess": "Has creado {{resource}} con éxito",
+    "createError": "Hubo un error al crear {{resource}} (status code: {{statusCode}})",
+    "deleteSuccess": "Has borrado {{resource}} con éxito",
+    "deleteError": "Error al borrar {{resource}} (status code: {{statusCode}})",
+    "editSuccess": "Has editado {{resource}} con éxito",
+    "editError": "Error al editar {{resource}} (status code: {{statusCode}})",
+    "importProgress": "Importando: {{processed}}/{{total}}",
+    "saveSuccessful": "¡Se guardo correctamente!",
+    "validationError": "Error de validación: {{error}}"
+  },
+  "loading": "Cargando",
+  "version": "Versión",
+  "unknown": "Desconocido",
+  "yes": "Si",
+  "no": "No",
+  "tags": {
+    "clone": "Clonar"
+  },
+  "dashboard": {
+    "title": "Dashboard"
+  },
+  "spool": {
+    "spool": "Bobinas",
+    "fields": {
+      "id": "ID",
+      "filament_name": "Filamento",
+      "filament": "Filamento",
+      "material": "Material",
+      "used_weight": "Peso Usado",
+      "remaining_weight": "Peso Restante",
+      "used_length": "Longitud usada",
+      "remaining_length": "Longitud restante",
+      "location": "Ubicación",
+      "lot_nr": "No. Lote",
+      "first_used": "Fecha de Primer Uso",
+      "last_used": "Ultimo Uso",
+      "registered": "Registrado",
+      "comment": "Comentarios",
+      "archived": "Archivado",
+      "measured_weight": "Peso Medido",
+      "weight_to_use": "Peso",
+      "price": "Precio",
+      "initial_weight": "Peso inicial",
+      "spool_weight": "Peso vacio",
+      "filament_internal": "Interno",
+      "filament_external": "Externo"
+    },
+    "fields_help": {
+      "used_weight": "Cuanto filamento ha sido usado de la bobina. Una bobina nueva debería tener 0g usados.",
+      "location": "Dónde se encuentra el carrete si tiene varias ubicaciones donde almacena sus carretes.",
+      "lot_nr": "Número de lote del fabricante. Puede ser usado si el modelo a imprimir necesita color homogéneo y varias bobinas son necesarias.",
+      "weight_to_use": "Elegir el peso a usar. El peso medido solo está disponible si existe el valor de peso del carrete seleccionado.",
+      "measured_weight": "Cuanto pesa el filamento y la bobina.",
+      "remaining_weight": "Cuanto filamento resta en la bobina. Para una bobina nueva el peso debe ser igual al peso indicado de fábrica.",
+      "price": "Precio de una bobina completa. Si no se establece, se asumirá en su lugar el precio del filamento.",
+      "initial_weight": "El peso inicial del filamento en el carrete (peso neto). Utilizará el peso del objeto de filamento si no está configurado.",
+      "spool_weight": "El peso de la bobina cuando está vacía. Dejar vacío para usar el valor del filamento o del fabricante.",
+      "external_filament": "Has elegido un filamento desde la base de datos externa. Un objeto filamento (y posiblemente un objeto fabricante) será creado automáticamente cuando crees este carrete. Esto puede crear objetos filamento duplicados si ya has creado un objeto filamento para este filamento."
+    },
+    "titles": {
+      "create": "Crear Bobina",
+      "clone": "Duplicar Bobina",
+      "edit": "Editar Bobina",
+      "list": "Bobinas",
+      "show": "Mostrar Bobina",
+      "archive": "Archivar Bobina",
+      "show_title": "[Bobina #{{id}}] {{name}}",
+      "adjust": "Ajustar la bobina del filamento"
+    },
+    "messages": {
+      "archive": "¿Esta seguro que quiere archivar esta bobina?"
+    },
+    "form": {
+      "new_location_prompt": "Introduce una nueva ubicación",
+      "spool_updated": "Esta bobina ha sido actualizada por alguien/algo desde que abriste esta página. ¡Al guardar, se sobrescribirán los cambios!",
+      "measurement_type": {
+        "length": "Longitud",
+        "weight": "Peso"
+      },
+      "measurement_type_label": "Tipo de medición",
+      "adjust_filament_value": "Cantidad consumida",
+      "adjust_filament_help": "Aquí puedes añadir o restar directamente filamento de la bobina. Un valor positivo consumirá filamento, un valor negativo lo añadirá."
+    },
+    "formats": {
+      "last_used": "Utilizado por última vez {{date}}"
+    }
+  },
+  "filament": {
+    "filament": "Filamentos",
+    "fields": {
+      "id": "ID",
+      "vendor_name": "Fabricante",
+      "vendor": "Fabricante",
+      "name": "Nombre",
+      "material": "Material",
+      "price": "Precio",
+      "density": "Densidad",
+      "diameter": "Diámetro",
+      "weight": "Peso",
+      "spool_weight": "Peso de la Bobina",
+      "article_number": "Numero de Articulo",
+      "registered": "Registrado",
+      "comment": "Comentarios",
+      "settings_extruder_temp": "Temp. del Extrusor",
+      "settings_bed_temp": "Temp. de Cama",
+      "color_hex": "Color",
+      "spools": "Mostrar las Bobinas",
+      "external_id": "ID Externo",
+      "coaxial": "coextruido",
+      "single_color": "Único",
+      "longitudinal": "Longitudinal",
+      "multi_color": "Multiple"
+    },
+    "fields_help": {
+      "name": "Nombre del filamento, para distinguir este tipo de filamento entre otros del mismo fabricante. Debe contener por ejemplo: el color.",
+      "material": "ej. PLA, ABS, PETG, etc.",
+      "price": "Precio de una bobina completa.",
+      "weight": "El peso de una bobina entera (peso neto). Esta cifra no debe incluir el peso de la bobina vacía, solo el filamento. Es, normalmente, el peso escrito en la etiqueta de la bobina.",
+      "spool_weight": "El peso de una bobina vacía. Se utiliza para determinar el peso medido de una bobina.",
+      "article_number": "ej. EAN, UPC, etc.",
+      "multi_color_direction": "Los filamentos pueden tener varios colores de dos formas: mediante coextrusión, como los filamentos bicolor con multicolores consistentes, o mediante cambios de color longitudinales, como los filamentos degradados que cambian de color a lo largo de la bobina."
+    },
+    "titles": {
+      "create": "Crear Filamento",
+      "clone": "Duplicar Filamento",
+      "edit": "Editar Filamento",
+      "list": "Filamentos",
+      "show": "Mostrar Filamentos",
+      "show_title": "[Filamento #{{id}}] {{name}}"
+    },
+    "form": {
+      "filament_updated": "Este filamento ha sido actualizado por alguien/algo más desde que abrió esta página. ¡Al guardar, se sobrescribirán los cambios!",
+      "import_external": "Importado desde un externo",
+      "import_external_description": "Seleccione un filamento en la lista para rellenar sus detalles de manera automática en el formulario de creación del filamento. Esto sobrescribirá cualquier información que hayas escrito en el formulario.<br><br>Un objeto fabricante será creado automáticamente cuando presiones Ok, si es necesario.",
+      "import_3dfp": "ID de 3D Filament Profiles",
+      "import_3dfp_help": "Rellena la información automáticamente obteniéndola de 3dfilamentprofiles.com",
+      "import_3dfp_placeholder": "ej. 12875",
+      "import_3dfp_success": "Filamento obtenido con éxito desde 3dfilamentprofiles.com",
+      "import_3dfp_error": "Error al obtener los datos del filamento desde 3dfilamentprofiles.com"
     },
     "buttons": {
-        "create": "Crear",
-        "save": "Guardar",
-        "logout": "Cerrar Sesión",
-        "delete": "Borrar",
-        "edit": "Editar",
-        "cancel": "Cancelar",
-        "confirm": "¿Estás seguro?",
-        "filter": "Filtrar",
-        "clear": "Limpiar",
-        "refresh": "Actualizar",
-        "show": "Mostrar",
-        "undo": "Deshacer",
-        "import": "Importar",
-        "clone": "Clonar",
-        "archive": "Archivar",
-        "unArchive": "Desarchivar",
-        "hideArchived": "Ocultar Archivados",
-        "showArchived": "Mostrar Archivados",
-        "notAccessTitle": "No tienes permiso de acceso",
-        "hideColumns": "Ocultar Columnas",
-        "clearFilters": "Borrar filtros",
-        "saveAndAdd": "Guardar y añadir",
-        "continue": "Continuar"
+      "add_spool": "Añadir bobina",
+      "fetch": "Obtener"
+    }
+  },
+  "vendor": {
+    "vendor": "Fabricantes",
+    "fields": {
+      "id": "ID",
+      "name": "Nombre",
+      "registered": "Registrado",
+      "comment": "Comentarios",
+      "empty_spool_weight": "Peso de bobina vacía",
+      "external_id": "ID Externa"
     },
-    "warnWhenUnsavedChanges": "¿Estás seguro que quieres salir? Hay cambios sin guardar.",
-    "notifications": {
-        "success": "Éxito",
-        "error": "Error (status code: {{statusCode}})",
-        "undoable": "Tienes {{seconds}} segundos para deshacer.",
-        "createSuccess": "Has creado {{resource}} con éxito",
-        "createError": "Hubo un error al crear {{resource}} (status code: {{statusCode}})",
-        "deleteSuccess": "Has borrado {{resource}} con éxito",
-        "deleteError": "Error al borrar {{resource}} (status code: {{statusCode}})",
-        "editSuccess": "Has editado {{resource}} con éxito",
-        "editError": "Error al editar {{resource}} (status code: {{statusCode}})",
-        "importProgress": "Importando: {{processed}}/{{total}}",
-        "saveSuccessful": "¡Se guardo correctamente!",
-        "validationError": "Error de validación: {{error}}"
+    "titles": {
+      "create": "Crear un fabricante",
+      "clone": "Duplicar un fabricante",
+      "edit": "Editar un fabricante",
+      "list": "Fabricantes",
+      "show": "Mostrar Fabricante",
+      "show_title": "[Fabricante #{{id}}] {{name}}"
     },
-    "loading": "Cargando",
-    "version": "Versión",
-    "unknown": "Desconocido",
-    "yes": "Si",
-    "no": "No",
-    "tags": {
-        "clone": "Clonar"
+    "form": {
+      "vendor_updated": "Este fabricante ha sido actualizado por alguien/algo desde que abrió esta página. ¡Al guardar, se sobrescribirán los cambios!"
     },
-    "dashboard": {
-        "title": "Dashboard"
+    "fields_help": {
+      "empty_spool_weight": "El peso de una bobina vacía de este fabricante."
+    }
+  },
+  "table": {
+    "actions": "Acciones",
+    "filter": {
+      "ok": "OK",
+      "search": "Buscar...",
+      "min": "Mín...",
+      "max": "Máx...",
+      "from": "Desde...",
+      "to": "Hasta..."
+    }
+  },
+  "documentTitle": {
+    "default": "Spoolman",
+    "suffix": " | Spoolman",
+    "filament": {
+      "list": "Filamentos | Spoolman",
+      "show": "#{{id}} Mostrar Filamentos | Spoolman",
+      "edit": "#{{id}} Editar Filamentos | Spoolman",
+      "create": "Crear Filamento | Spoolman",
+      "clone": "#{{id}} Duplicar Filamento | Spoolman"
     },
     "spool": {
-        "spool": "Bobinas",
-        "fields": {
-            "id": "ID",
-            "filament_name": "Filamento",
-            "filament": "Filamento",
-            "material": "Material",
-            "used_weight": "Peso Usado",
-            "remaining_weight": "Peso Restante",
-            "used_length": "Longitud usada",
-            "remaining_length": "Longitud restante",
-            "location": "Ubicación",
-            "lot_nr": "No. Lote",
-            "first_used": "Fecha de Primer Uso",
-            "last_used": "Ultimo Uso",
-            "registered": "Registrado",
-            "comment": "Comentarios",
-            "archived": "Archivado",
-            "measured_weight": "Peso Medido",
-            "weight_to_use": "Peso",
-            "price": "Precio",
-            "initial_weight": "Peso inicial",
-            "spool_weight": "Peso vacio",
-            "filament_internal": "Interno",
-            "filament_external": "Externo"
-        },
-        "fields_help": {
-            "used_weight": "Cuanto filamento ha sido usado de la bobina. Una bobina nueva debería tener 0g usados.",
-            "location": "Dónde se encuentra el carrete si tiene varias ubicaciones donde almacena sus carretes.",
-            "lot_nr": "Número de lote del fabricante. Puede ser usado si el modelo a imprimir necesita color homogéneo y varias bobinas son necesarias.",
-            "weight_to_use": "Elegir el peso a usar. El peso medido solo está disponible si existe el valor de peso del carrete seleccionado.",
-            "measured_weight": "Cuanto pesa el filamento y la bobina.",
-            "remaining_weight": "Cuanto filamento resta en la bobina. Para una bobina nueva el peso debe ser igual al peso indicado de fábrica.",
-            "price": "Precio de una bobina completa. Si no se establece, se asumirá en su lugar el precio del filamento.",
-            "initial_weight": "El peso inicial del filamento en el carrete (peso neto). Utilizará el peso del objeto de filamento si no está configurado.",
-            "spool_weight": "El peso de la bobina cuando está vacía. Dejar vacío para usar el valor del filamento o del fabricante.",
-            "external_filament": "Has elegido un filamento desde la base de datos externa. Un objeto filamento (y posiblemente un objeto fabricante) será creado automáticamente cuando crees este carrete. Esto puede crear objetos filamento duplicados si ya has creado un objeto filamento para este filamento."
-        },
-        "titles": {
-            "create": "Crear Bobina",
-            "clone": "Duplicar Bobina",
-            "edit": "Editar Bobina",
-            "list": "Bobinas",
-            "show": "Mostrar Bobina",
-            "archive": "Archivar Bobina",
-            "show_title": "[Bobina #{{id}}] {{name}}",
-            "adjust": "Ajustar la bobina del filamento"
-        },
-        "messages": {
-            "archive": "¿Esta seguro que quiere archivar esta bobina?"
-        },
-        "form": {
-            "new_location_prompt": "Introduce una nueva ubicación",
-            "spool_updated": "Esta bobina ha sido actualizada por alguien/algo desde que abriste esta página. ¡Al guardar, se sobrescribirán los cambios!",
-            "measurement_type": {
-                "length": "Longitud",
-                "weight": "Peso"
-            },
-            "measurement_type_label": "Tipo de medición",
-            "adjust_filament_value": "Cantidad consumida",
-            "adjust_filament_help": "Aquí puedes añadir o restar directamente filamento de la bobina. Un valor positivo consumirá filamento, un valor negativo lo añadirá."
-        },
-        "formats": {
-            "last_used": "Utilizado por última vez {{date}}"
-        }
-    },
-    "filament": {
-        "filament": "Filamentos",
-        "fields": {
-            "id": "ID",
-            "vendor_name": "Fabricante",
-            "vendor": "Fabricante",
-            "name": "Nombre",
-            "material": "Material",
-            "price": "Precio",
-            "density": "Densidad",
-            "diameter": "Diámetro",
-            "weight": "Peso",
-            "spool_weight": "Peso de la Bobina",
-            "article_number": "Numero de Articulo",
-            "registered": "Registrado",
-            "comment": "Comentarios",
-            "settings_extruder_temp": "Temp. del Extrusor",
-            "settings_bed_temp": "Temp. de Cama",
-            "color_hex": "Color",
-            "spools": "Mostrar las Bobinas",
-            "external_id": "ID Externo",
-            "coaxial": "coextruido",
-            "single_color": "Único",
-            "longitudinal": "Longitudinal",
-            "multi_color": "Multiple"
-        },
-        "fields_help": {
-            "name": "Nombre del filamento, para distinguir este tipo de filamento entre otros del mismo fabricante. Debe contener por ejemplo: el color.",
-            "material": "ej. PLA, ABS, PETG, etc.",
-            "price": "Precio de una bobina completa.",
-            "weight": "El peso de una bobina entera (peso neto). Esta cifra no debe incluir el peso de la bobina vacía, solo el filamento. Es, normalmente, el peso escrito en la etiqueta de la bobina.",
-            "spool_weight": "El peso de una bobina vacía. Se utiliza para determinar el peso medido de una bobina.",
-            "article_number": "ej. EAN, UPC, etc.",
-            "multi_color_direction": "Los filamentos pueden tener varios colores de dos formas: mediante coextrusión, como los filamentos bicolor con multicolores consistentes, o mediante cambios de color longitudinales, como los filamentos degradados que cambian de color a lo largo de la bobina."
-        },
-        "titles": {
-            "create": "Crear Filamento",
-            "clone": "Duplicar Filamento",
-            "edit": "Editar Filamento",
-            "list": "Filamentos",
-            "show": "Mostrar Filamentos",
-            "show_title": "[Filamento #{{id}}] {{name}}"
-        },
-        "form": {
-            "filament_updated": "Este filamento ha sido actualizado por alguien/algo más desde que abrió esta página. ¡Al guardar, se sobrescribirán los cambios!",
-            "import_external": "Importado desde un externo",
-            "import_external_description": "Seleccione un filamento en la lista para rellenar sus detalles de manera automática en el formulario de creación del filamento. Esto sobrescribirá cualquier información que hayas escrito en el formulario.<br><br>Un objeto fabricante será creado automáticamente cuando presiones Ok, si es necesario."
-        },
-        "buttons": {
-            "add_spool": "Añadir bobina"
-        }
+      "list": "Bobinas | Spoolman",
+      "show": "#{{id}} Mostrar Bobina | Spoolman",
+      "edit": "#{{id}} Editar Bobina | Spoolman",
+      "create": "Crear Bobina | Spoolman",
+      "clone": "#{{id}} Duplicar Bobina | Spoolman"
     },
     "vendor": {
-        "vendor": "Fabricantes",
-        "fields": {
-            "id": "ID",
-            "name": "Nombre",
-            "registered": "Registrado",
-            "comment": "Comentarios",
-            "empty_spool_weight": "Peso de bobina vacía",
-            "external_id": "ID Externa"
-        },
-        "titles": {
-            "create": "Crear un fabricante",
-            "clone": "Duplicar un fabricante",
-            "edit": "Editar un fabricante",
-            "list": "Fabricantes",
-            "show": "Mostrar Fabricante",
-            "show_title": "[Fabricante #{{id}}] {{name}}"
-        },
-        "form": {
-            "vendor_updated": "Este fabricante ha sido actualizado por alguien/algo desde que abrió esta página. ¡Al guardar, se sobrescribirán los cambios!"
-        },
-        "fields_help": {
-            "empty_spool_weight": "El peso de una bobina vacía de este fabricante."
-        }
+      "list": "Fabricantes | Spoolman",
+      "show": "#{{id}} Mostrar el fabricante | Spoolman",
+      "edit": "#{{id}} Editar el fabricante | Spoolman",
+      "create": "Crear un fabricante | Spoolman",
+      "clone": "#{{id}} Duplicar un fabricante | Spoolman"
     },
-    "table": {
-        "actions": "Acciones"
-    },
-    "documentTitle": {
-        "default": "Spoolman",
-        "suffix": " | Spoolman",
-        "filament": {
-            "list": "Filamentos | Spoolman",
-            "show": "#{{id}} Mostrar Filamentos | Spoolman",
-            "edit": "#{{id}} Editar Filamentos | Spoolman",
-            "create": "Crear Filamento | Spoolman",
-            "clone": "#{{id}} Duplicar Filamento | Spoolman"
-        },
-        "spool": {
-            "list": "Bobinas | Spoolman",
-            "show": "#{{id}} Mostrar Bobina | Spoolman",
-            "edit": "#{{id}} Editar Bobina | Spoolman",
-            "create": "Crear Bobina | Spoolman",
-            "clone": "#{{id}} Duplicar Bobina | Spoolman"
-        },
-        "vendor": {
-            "list": "Fabricantes | Spoolman",
-            "show": "#{{id}} Mostrar el fabricante | Spoolman",
-            "edit": "#{{id}} Editar el fabricante | Spoolman",
-            "create": "Crear un fabricante | Spoolman",
-            "clone": "#{{id}} Duplicar un fabricante | Spoolman"
-        },
-        "home": {
-            "list": "Inicio | Spoolman"
-        },
-        "help": {
-            "list": "Ayuda | Spoolman"
-        },
-        "locations": {
-            "list": "Ubicaciones | Spoolman"
-        }
-    },
-    "printing": {
-        "qrcode": {
-            "extruderTemp": "TE:{{temp}}",
-            "showSpoolWeight": "Peso de la Bobina",
-            "showContent": "Imprimir Etiqueta",
-            "showVendorComment": "Comentarios del Fabricante",
-            "spoolWeight": "Peso de la Bobina: {{weight}}",
-            "showTemperatures": "Temperaturas",
-            "showVendor": "Fabricante",
-            "showSpoolComment": "Comentario de la Bobina",
-            "textSize": "Tamaño del texto para la etiqueta",
-            "title": "Imprimiendo las etiquetas",
-            "showSpoolmanIcon": "Mostrar Icono de Spoolman",
-            "showLotNr": "No. Lote",
-            "bedTemp": "TC:{{temp}}",
-            "lotNr": "No. Lote:{{lot}}",
-            "showFilamentComment": "Comentario de Filamento",
-            "button": "Imprimir las etiquetas",
-            "template": "Plantilla para la etiqueta",
-            "templateHelp": "Utiliza {} para insertar valores del objeto spool como texto. Por ejemplo, {id} se sustituirá por el id del carrete, o {filament.material} se sustituirá por el material del carrete. si falta un valor, se sustituirá por \"?\". Se puede utilizar un segundo conjunto de {} para eliminarlo. Además, cualquier texto entre los {} se eliminará si falta el valor. Por ejemplo, {Lot Nr: {lot_nr}} solo mostrará la etiqueta si la bobina tiene un número de lote. Encierra el texto con doble asterisco ** para ponerlo en negrita. Haz clic en el botón para ver una lista de todas las etiquetas disponibles.",
-            "showQRCode": "Imprimir un código qr",
-            "showQRCodeMode": {
-                "no": "No",
-                "simple": "Sencilla",
-                "withIcon": "Con un icono"
-            },
-            "useHTTPUrl": {
-                "label": "Enlace al código QR",
-                "options": {
-                    "default": "Por defecto",
-                    "url": "URL"
-                },
-                "preview": "Vista previa:",
-                "tooltip": "Se utilizará un enlace propietario que funcionará solo si se escanea desde la función de escaneo de Spoolman (predeterminado). La URL utiliza la URL base especificada en la configuración o la URL de la página actual si no está configurada."
-            }
-        },
-        "generic": {
-            "printerMarginBottom": "Zona Segura Inferior",
-            "verticalSpacing": "Espacio Vertical",
-            "rows": "Filas",
-            "borders": {
-                "none": "Ninguno",
-                "grid": "Cuadricula",
-                "border": "Borde"
-            },
-            "printerMarginTop": "Zona Segura Superior",
-            "customSize": "Personalizar",
-            "title": "Imprimiendo",
-            "contentSettings": "Ajustes de Contenido",
-            "marginRight": "Margen Derecho",
-            "printerMarginRight": "Zona Segura Derecha",
-            "helpPrinterMargin": "La Zona de Seguridad debe ajustarse lo más cercano posible al borde que tu impresora es capaz de imprimir. Cambiar estos valores no afectaran todas las etiquetas.",
-            "previewScale": "Previsualizar Escala",
-            "helpMargin": "Los márgenes deben ser configurados a ser los mismos que tu papel e impresora. Cambiar los mismos afectaran todas las etiquetas.",
-            "marginTop": "Margen Superior",
-            "skipItems": "Saltar Elementos",
-            "layoutSettings": "Ajustes de Diseño",
-            "paperSize": "Tamaño de Papel",
-            "columns": "Columnas",
-            "description": "Ajuste los parámetros siguientes para obtener el diseño de impresión deseado. Recuerda que impresoras y el sistema operativo aplican sus propios márgenes y escala. Es probable que tengas que probar con valores varias veces hasta que el diseño te parezca correcto. Prueba en papel normal antes de usar etiquetas.",
-            "marginBottom": "Margen Inferior",
-            "horizontalSpacing": "Espacio Horizontal",
-            "marginLeft": "Margen Izquierdo",
-            "showBorder": "Mostrar Borde",
-            "printerMarginLeft": "Zona Segura Izquierda",
-            "dimensions": "Dimensiones",
-            "print": "Imprimir",
-            "itemCopies": "Copias del artículo",
-            "settings": "Ajustes preestablecidos",
-            "defaultSettings": "Por defecto",
-            "addSettings": "Añadir un nuevo ajustes preestablecidos",
-            "newSetting": "Nuevo",
-            "deleteSettings": "Eliminar ajustes preestablecidos",
-            "deleteSettingsConfirm": "¿Estás seguro de que deseas eliminar este ajuste preestablecido?",
-            "settingsName": "Nombre preestablecido",
-            "duplicateSettings": "Duplicar",
-            "saveSetting": "Guardar ajustes preestablecidos",
-            "saveAsImage": "Guardar como una imagen"
-        },
-        "spoolSelect": {
-            "selectedTotal_one": "{{count}} bobina seleccionada",
-            "selectedTotal_many": "{{count}} bobinas seleccionadas",
-            "selectedTotal_other": "{{count}} bobinas seleccionadas",
-            "description": "Selecciona los carretes para los que deseas imprimir las etiquetas.",
-            "showArchived": "Mostrar archivados",
-            "title": "Selección de Bobinas",
-            "selectAll": "Seleccionar/Deseleccionar Todos",
-            "noSpoolsSelected": "No has seleccionado ninguna bobina."
-        }
-    },
-    "scanner": {
-        "title": "Escáner de Código QR",
-        "error": {
-            "insecureContext": "La página no se muestra a través de HTTPS.",
-            "notReadable": "La cámara no es legible.",
-            "notAllowed": "No has dado permiso de acceso a la cámara.",
-            "unknown": "Un error desconocido ocurrió. ({{error}})",
-            "notFound": "La cámara no ha sido detectada.",
-            "streamApiNotSupported": "El navegador no es compatible con la API MediaStream."
-        },
-        "description": "Escanea un código QR de Spoolman para ver detalles de la bobina."
+    "home": {
+      "list": "Inicio | Spoolman"
     },
     "help": {
-        "resources": {
-            "vendor": "Las empresas que fabrican el filamento.",
-            "filament": "Marcas de filamentos. Tienen propiedades como nombre, material, color, diámetro y más.",
-            "spool": "Bobinas físicas individuales de un filamento específico."
-        },
-        "description": "<title> Ayuda </title> <p> A continuación se ofrecen algunos consejos para empezar. </p> <p> Spoolman contiene 3 tipos diferentes de datos: </p> <itemsHelp/> <p> Para agregar una nueva bobina a la base de datos, comience creando un objeto <filamentCreateLink> Filamento </filamentCreateLink> . Una vez hecho esto, proceda a crear un objeto <spoolCreateLink> Bobina</spoolCreateLink> para esa bobina específica. Si adquiere bobinas adicionales del mismo filamento más adelante, simplemente genere objetos Bonina adicionales y reutilice el mismo objeto Filamento. </p> <p> Opcionalmente, también puede generar un objeto <vendorCreateLink> Fabricante</vendorCreateLink> para la empresa que fabrica el filamento si desea realizar un seguimiento de esa información. </p> <p> Tiene la opción de vincular otros servicios de impresora 3D a Spoolman, como Moonraker, que puede monitorear automáticamente el uso del filamento y actualizar los objetos de Bobina por usted. Consulte el <readmeLink> Spoolman README </readmeLink> para obtener orientación sobre cómo configurarlo. </p>",
-        "help": "Ayuda"
-    },
-    "kofi": "Donar en Ko-fi",
-    "home": {
-        "home": "Inicio",
-        "welcome": "¡Bienvenido a tu instancia de Spoolman!",
-        "description": "Parece que aún no has añadido ninguna bobina aún. Visita la <helpPageLink>página de ayuda</helpPageLink> para comenzar.",
-        "total_weight": "Stock total",
-        "total_value": "Valor",
-        "low_stock": "Stock bajo",
-        "all_stocked": "Todas las bobinas están bien abastecidas",
-        "recently_used": "Usadas recientemente",
-        "no_recent": "No hay bobinas usadas recientemente",
-        "by_material": "Por material",
-        "by_location": "Por ubicación",
-        "telemetry_subtitle": "Estado en tiempo real de tu inventario de filamento."
-    },
-    "settings": {
-        "header": "Ajustes",
-        "general": {
-            "tab": "General",
-            "currency": {
-                "label": "Moneda"
-            },
-            "base_url": {
-                "label": "URL base",
-                "tooltip": "La URL base que se utilizará al generar funciones como códigos QR."
-            },
-            "round_prices": {
-                "label": "Redondear precios",
-                "tooltip": "Redondear precios al número entero más cercano."
-            }
-        },
-        "extra_fields": {
-            "tab": "Campos adicionales",
-            "params": {
-                "key": "Clave",
-                "name": "Nombre",
-                "field_type": "Tipo",
-                "unit": "Unidad",
-                "order": "Orden",
-                "default_value": "Valor predeterminado",
-                "choices": "Opciones",
-                "multi_choice": "Múltiples opciones"
-            },
-            "field_type": {
-                "text": "Texto",
-                "integer": "Entero",
-                "integer_range": "Rango de enteros",
-                "float": "Decimal",
-                "float_range": "Rango Decimal",
-                "datetime": "Fecha y hora",
-                "boolean": "Booleano",
-                "choice": "Opción"
-            },
-            "boolean_true": "Sí",
-            "boolean_false": "No",
-            "choices_missing_error": "No se pueden eliminar opciones. Faltan las siguientes opciones: {{choices}}",
-            "non_unique_key_error": "La clave debe ser única.",
-            "key_not_changed": "Por favor, cambie la clave por otra.",
-            "delete_confirm": "¿Borrar campo {{name}}?",
-            "delete_confirm_description": "Esto eliminará el campo y todos los datos asociados para todas las entidades.",
-            "description": "<p> Aquí puede agregar más campos personalizados a los asuntos.</p><p> Una vez que se agrega un campo, no puede cambiar su clave o tipo, y no puede eliminar opciones ni cambiar el estado de múltiples opciones para campos seleccionados. Si elimina un campo, se eliminarán los datos asociados a todos los sujetos.</p><p> La forma en que otros programas leen/escriben los datos es clave, por lo que si su campo personalizado se va a integrar con un programa de terceros, asegúrese de que esté configurado correctamente. El valor predeterminado solo se utilizará para elementos nuevos.</p><p> Los campos de salida no se pueden ordenar ni filtrar en las vistas de tabla.</p>"
-        },
-        "settings": "Ajustes"
+      "list": "Ayuda | Spoolman"
     },
     "locations": {
-        "locations": "Ubicaciones",
-        "new_location": "Nueva ubicación",
-        "no_location": "Sin ubicación",
-        "no_locations_help": "Esta página te permite organizar tus carretes en ubicaciones, ¡añade algunos carretes para empezar!",
-        "error_empty": "El nombre no puede estar vacío",
-        "error_exists": "La ubicación ya existe"
+      "list": "Ubicaciones | Spoolman"
     }
+  },
+  "printing": {
+    "qrcode": {
+      "extruderTemp": "TE:{{temp}}",
+      "showSpoolWeight": "Peso de la Bobina",
+      "showContent": "Imprimir Etiqueta",
+      "showVendorComment": "Comentarios del Fabricante",
+      "spoolWeight": "Peso de la Bobina: {{weight}}",
+      "showTemperatures": "Temperaturas",
+      "showVendor": "Fabricante",
+      "showSpoolComment": "Comentario de la Bobina",
+      "textSize": "Tamaño del texto para la etiqueta",
+      "title": "Imprimiendo las etiquetas",
+      "showSpoolmanIcon": "Mostrar Icono de Spoolman",
+      "showLotNr": "No. Lote",
+      "bedTemp": "TC:{{temp}}",
+      "lotNr": "No. Lote:{{lot}}",
+      "showFilamentComment": "Comentario de Filamento",
+      "button": "Imprimir las etiquetas",
+      "template": "Plantilla para la etiqueta",
+      "templateHelp": "Utiliza {} para insertar valores del objeto spool como texto. Por ejemplo, {id} se sustituirá por el id del carrete, o {filament.material} se sustituirá por el material del carrete. si falta un valor, se sustituirá por \"?\". Se puede utilizar un segundo conjunto de {} para eliminarlo. Además, cualquier texto entre los {} se eliminará si falta el valor. Por ejemplo, {Lot Nr: {lot_nr}} solo mostrará la etiqueta si la bobina tiene un número de lote. Encierra el texto con doble asterisco ** para ponerlo en negrita. Haz clic en el botón para ver una lista de todas las etiquetas disponibles.",
+      "showQRCode": "Imprimir un código qr",
+      "showQRCodeMode": {
+        "no": "No",
+        "simple": "Sencilla",
+        "withIcon": "Con un icono"
+      },
+      "useHTTPUrl": {
+        "label": "Enlace al código QR",
+        "options": {
+          "default": "Por defecto",
+          "url": "URL"
+        },
+        "preview": "Vista previa:",
+        "tooltip": "Se utilizará un enlace propietario que funcionará solo si se escanea desde la función de escaneo de Spoolman (predeterminado). La URL utiliza la URL base especificada en la configuración o la URL de la página actual si no está configurada."
+      },
+      "exportButton": "Exportar Etiquetas",
+      "printFilamentTitle": "Imprimir Etiquetas de Filamento",
+      "printSpoolTitle": "Imprimir Etiquetas de Bobina",
+      "templateHelpFilament": "Utiliza {} para insertar valores del objeto filamento como texto. Por ejemplo, {id} se sustituirá por el id del filamento, o {vendor.name} se sustituirá por el nombre del fabricante. Si falta un valor, se sustituirá por \"?\". Se puede utilizar un segundo conjunto de {} para eliminarlo. Además, cualquier texto entre los conjuntos de {} se eliminará si falta el valor. Por ejemplo, {Article: {article_number}} solo se mostrará en la etiqueta si el filamento tiene un número de artículo. Encierra el texto con doble asterisco ** para ponerlo en negrita. Haz clic en el botón para ver una lista de todas las etiquetas disponibles."
+    },
+    "generic": {
+      "printerMarginBottom": "Zona Segura Inferior",
+      "verticalSpacing": "Espacio Vertical",
+      "rows": "Filas",
+      "borders": {
+        "none": "Ninguno",
+        "grid": "Cuadricula",
+        "border": "Borde"
+      },
+      "printerMarginTop": "Zona Segura Superior",
+      "customSize": "Personalizar",
+      "title": "Imprimiendo",
+      "contentSettings": "Ajustes de Contenido",
+      "marginRight": "Margen Derecho",
+      "printerMarginRight": "Zona Segura Derecha",
+      "helpPrinterMargin": "La Zona de Seguridad debe ajustarse lo más cercano posible al borde que tu impresora es capaz de imprimir. Cambiar estos valores no afectaran todas las etiquetas.",
+      "previewScale": "Previsualizar Escala",
+      "helpMargin": "Los márgenes deben ser configurados a ser los mismos que tu papel e impresora. Cambiar los mismos afectaran todas las etiquetas.",
+      "marginTop": "Margen Superior",
+      "skipItems": "Saltar Elementos",
+      "layoutSettings": "Ajustes de Diseño",
+      "paperSize": "Tamaño de Papel",
+      "columns": "Columnas",
+      "description": "Ajuste los parámetros siguientes para obtener el diseño de impresión deseado. Recuerda que impresoras y el sistema operativo aplican sus propios márgenes y escala. Es probable que tengas que probar con valores varias veces hasta que el diseño te parezca correcto. Prueba en papel normal antes de usar etiquetas.",
+      "marginBottom": "Margen Inferior",
+      "horizontalSpacing": "Espacio Horizontal",
+      "marginLeft": "Margen Izquierdo",
+      "showBorder": "Mostrar Borde",
+      "printerMarginLeft": "Zona Segura Izquierda",
+      "dimensions": "Dimensiones",
+      "print": "Imprimir",
+      "itemCopies": "Copias del artículo",
+      "settings": "Ajustes preestablecidos",
+      "defaultSettings": "Por defecto",
+      "addSettings": "Añadir un nuevo ajustes preestablecidos",
+      "newSetting": "Nuevo",
+      "deleteSettings": "Eliminar ajustes preestablecidos",
+      "deleteSettingsConfirm": "¿Estás seguro de que deseas eliminar este ajuste preestablecido?",
+      "settingsName": "Nombre preestablecido",
+      "duplicateSettings": "Duplicar",
+      "saveSetting": "Guardar ajustes preestablecidos",
+      "saveAsImage": "Guardar como una imagen"
+    },
+    "spoolSelect": {
+      "selectedTotal_one": "{{count}} bobina seleccionada",
+      "selectedTotal_many": "{{count}} bobinas seleccionadas",
+      "selectedTotal_other": "{{count}} bobinas seleccionadas",
+      "description": "Selecciona los carretes para los que deseas imprimir las etiquetas.",
+      "showArchived": "Mostrar archivados",
+      "title": "Selección de Bobinas",
+      "selectAll": "Seleccionar/Deseleccionar Todos",
+      "noSpoolsSelected": "No has seleccionado ninguna bobina."
+    },
+    "filamentSelect": {
+      "title": "Selección de Filamentos",
+      "description": "Selecciona los filamentos para los que deseas imprimir las etiquetas.",
+      "noFilamentsSelected": "No has seleccionado ningún filamento.",
+      "selectAll": "Seleccionar/Deseleccionar Todos",
+      "selectedTotal_one": "{{count}} filamento seleccionado",
+      "selectedTotal_many": "{{count}} filamentos seleccionados",
+      "selectedTotal_other": "{{count}} filamentos seleccionados"
+    }
+  },
+  "scanner": {
+    "title": "Escáner de Código QR",
+    "error": {
+      "insecureContext": "La página no se muestra a través de HTTPS.",
+      "notReadable": "La cámara no es legible.",
+      "notAllowed": "No has dado permiso de acceso a la cámara.",
+      "unknown": "Un error desconocido ocurrió. ({{error}})",
+      "notFound": "La cámara no ha sido detectada.",
+      "streamApiNotSupported": "El navegador no es compatible con la API MediaStream."
+    },
+    "description": "Escanea un código QR de Spoolman para ver detalles de la bobina."
+  },
+  "help": {
+    "resources": {
+      "vendor": "Las empresas que fabrican el filamento.",
+      "filament": "Marcas de filamentos. Tienen propiedades como nombre, material, color, diámetro y más.",
+      "spool": "Bobinas físicas individuales de un filamento específico."
+    },
+    "description": "<title> Ayuda </title> <p> A continuación se ofrecen algunos consejos para empezar. </p> <p> Spoolman contiene 3 tipos diferentes de datos: </p> <itemsHelp/> <p> Para agregar una nueva bobina a la base de datos, comience creando un objeto <filamentCreateLink> Filamento </filamentCreateLink> . Una vez hecho esto, proceda a crear un objeto <spoolCreateLink> Bobina</spoolCreateLink> para esa bobina específica. Si adquiere bobinas adicionales del mismo filamento más adelante, simplemente genere objetos Bonina adicionales y reutilice el mismo objeto Filamento. </p> <p> Opcionalmente, también puede generar un objeto <vendorCreateLink> Fabricante</vendorCreateLink> para la empresa que fabrica el filamento si desea realizar un seguimiento de esa información. </p> <p> Tiene la opción de vincular otros servicios de impresora 3D a Spoolman, como Moonraker, que puede monitorear automáticamente el uso del filamento y actualizar los objetos de Bobina por usted. Consulte el <readmeLink> Spoolman README </readmeLink> para obtener orientación sobre cómo configurarlo. </p>",
+    "help": "Ayuda"
+  },
+  "kofi": "Donar en Ko-fi",
+  "home": {
+    "home": "Inicio",
+    "welcome": "¡Bienvenido a tu instancia de Spoolman!",
+    "description": "Parece que aún no has añadido ninguna bobina aún. Visita la <helpPageLink>página de ayuda</helpPageLink> para comenzar.",
+    "total_weight": "Stock total",
+    "total_value": "Valor",
+    "low_stock": "Stock bajo",
+    "all_stocked": "Todas las bobinas están bien abastecidas",
+    "recently_used": "Usadas recientemente",
+    "no_recent": "No hay bobinas usadas recientemente",
+    "by_material": "Por material",
+    "by_location": "Por ubicación",
+    "telemetry_subtitle": "Estado en tiempo real de tu inventario de filamento.",
+    "by_vendor": "Por fabricante"
+  },
+  "settings": {
+    "header": "Ajustes",
+    "general": {
+      "tab": "General",
+      "currency": {
+        "label": "Moneda"
+      },
+      "base_url": {
+        "label": "URL base",
+        "tooltip": "La URL base que se utilizará al generar funciones como códigos QR."
+      },
+      "round_prices": {
+        "label": "Redondear precios",
+        "tooltip": "Redondear precios al número entero más cercano."
+      }
+    },
+    "extra_fields": {
+      "tab": "Campos adicionales",
+      "params": {
+        "key": "Clave",
+        "name": "Nombre",
+        "field_type": "Tipo",
+        "unit": "Unidad",
+        "order": "Orden",
+        "default_value": "Valor predeterminado",
+        "choices": "Opciones",
+        "multi_choice": "Múltiples opciones"
+      },
+      "field_type": {
+        "text": "Texto",
+        "integer": "Entero",
+        "integer_range": "Rango de enteros",
+        "float": "Decimal",
+        "float_range": "Rango Decimal",
+        "datetime": "Fecha y hora",
+        "boolean": "Booleano",
+        "choice": "Opción"
+      },
+      "boolean_true": "Sí",
+      "boolean_false": "No",
+      "choices_missing_error": "No se pueden eliminar opciones. Faltan las siguientes opciones: {{choices}}",
+      "non_unique_key_error": "La clave debe ser única.",
+      "key_not_changed": "Por favor, cambie la clave por otra.",
+      "delete_confirm": "¿Borrar campo {{name}}?",
+      "delete_confirm_description": "Esto eliminará el campo y todos los datos asociados para todas las entidades.",
+      "description": "<p> Aquí puede agregar más campos personalizados a los asuntos.</p><p> Una vez que se agrega un campo, no puede cambiar su clave o tipo, y no puede eliminar opciones ni cambiar el estado de múltiples opciones para campos seleccionados. Si elimina un campo, se eliminarán los datos asociados a todos los sujetos.</p><p> La forma en que otros programas leen/escriben los datos es clave, por lo que si su campo personalizado se va a integrar con un programa de terceros, asegúrese de que esté configurado correctamente. El valor predeterminado solo se utilizará para elementos nuevos.</p><p> Los campos de salida no se pueden ordenar ni filtrar en las vistas de tabla.</p>"
+    },
+    "settings": "Ajustes"
+  },
+  "locations": {
+    "locations": "Ubicaciones",
+    "new_location": "Nueva ubicación",
+    "no_location": "Sin ubicación",
+    "no_locations_help": "Esta página te permite organizar tus carretes en ubicaciones, ¡añade algunos carretes para empezar!",
+    "error_empty": "El nombre no puede estar vacío",
+    "error_exists": "La ubicación ya existe"
+  },
+  "calibration": {
+    "title": "Calibración",
+    "no_data": "Aún no hay datos de calibración.",
+    "recommended_title": "Ajustes Calibrados",
+    "no_recommended": "Aún no se han establecido valores recomendados.",
+    "buttons": {
+      "start": "Iniciar Calibración",
+      "edit_session": "Editar",
+      "delete_session": "Borrar",
+      "add_step": "Añadir Resultado",
+      "edit_step": "Editar",
+      "delete_step": "Borrar",
+      "save": "Guardar"
+    },
+    "fields": {
+      "last_session": "Última sesión",
+      "history": "Historial de Calibración",
+      "steps_count": "{{count}} paso(s) registrado(s)",
+      "no_steps": "Aún no se han registrado resultados de pasos.",
+      "printer_name": "Nombre de la Impresora",
+      "nozzle_diameter": "Diámetro de la Boquilla (mm)",
+      "notes": "Notas",
+      "status": "Estado",
+      "step_type": "Paso de Calibración",
+      "confidence": "Confianza",
+      "inputs": "Entradas",
+      "outputs_and_recommended": "Resultados y Valores Recomendados"
+    },
+    "session_form": {
+      "create_title": "Iniciar Sesión de Calibración",
+      "edit_title": "Editar Sesión de Calibración"
+    },
+    "step_form": {
+      "add_title": "Añadir Resultado del Paso",
+      "edit_title": "Editar Resultado del Paso",
+      "recommended_hint": "Los valores introducidos aquí aparecerán como ajustes recomendados en la página de la bobina."
+    },
+    "status": {
+      "planned": "Planificada",
+      "in_progress": "En Curso",
+      "complete": "Completada",
+      "archived": "Archivada"
+    },
+    "confidence": {
+      "high": "Alta",
+      "medium": "Media",
+      "low": "Baja"
+    },
+    "step_types": {
+      "temperature": "Temperatura",
+      "volumetric_speed": "Velocidad Volumétrica",
+      "pressure_advance": "Pressure Advance",
+      "flow_rate": "Flujo",
+      "retraction": "Retracción",
+      "tolerance": "Tolerancia",
+      "cornering": "Esquinas",
+      "input_shaping": "Input Shaping",
+      "vfa": "VFA"
+    },
+    "delete_session_confirm": "¿Borrar esta sesión de calibración y todos los resultados de sus pasos?",
+    "delete_step_confirm": "¿Borrar el resultado de este paso?",
+    "wizard": {
+      "title": "Asistente de Calibración",
+      "subtitle": "Sigue la guía de calibración de OrcaSlicer, paso a paso. Puedes saltarte cualquier paso y continuar más tarde.",
+      "start": "Iniciar Asistente",
+      "resume": "Reanudar Asistente",
+      "step_of": "Paso {{current}} de {{total}}",
+      "already_done": "Ya registrado",
+      "buttons": {
+        "back": "Atrás",
+        "skip": "Saltar",
+        "save_continue": "Guardar y Continuar",
+        "save_finish": "Guardar y Finalizar",
+        "skip_finish": "Saltar y Finalizar",
+        "finish": "Finalizar",
+        "cancel": "Cancelar"
+      },
+      "skip_finish_confirm": "¿Marcar esta sesión como completada sin guardar este paso?",
+      "session_complete": "Sesión de calibración marcada como completada."
+    }
+  },
+  "external": {
+    "source_spoolmandb": "SpoolmanDB",
+    "source_tigertag": "TigerTag"
+  },
+  "nfc": {
+    "scan_title": "Escáner de Etiquetas NFC",
+    "scan_description": "Escanea una etiqueta NFC para ver detalles de la bobina.",
+    "encode_button": "Codificar en NFC",
+    "encode_title": "Codificar Bobina en Etiqueta NFC",
+    "write_success": "¡Etiqueta escrita con éxito!",
+    "write_error": "Error al escribir la etiqueta.",
+    "no_match": "No se ha encontrado ninguna bobina que coincida con esta etiqueta.",
+    "create_from_tag": "Crear Bobina desde la Etiqueta",
+    "create_from_tag_description": "No se ha encontrado ninguna bobina coincidente. Puedes crear una nueva bobina a partir de los datos de la etiqueta que se muestran a continuación.",
+    "creating_spool": "Creando bobina...",
+    "create_success": "¡Bobina creada con éxito!",
+    "create_error": "Error al crear la bobina a partir de los datos de la etiqueta.",
+    "tag_color": "Color",
+    "tag_diameter": "Diámetro",
+    "tag_weight": "Peso",
+    "tag_nozzle_temp": "Temp. de Boquilla",
+    "tag_bed_temp": "Temp. de Cama",
+    "mode_browser": "Navegador",
+    "mode_server": "Servidor",
+    "unsupported": "NFC no es compatible con este navegador.",
+    "place_tag": "Coloca la etiqueta sobre el lector...",
+    "reading": "Leyendo etiqueta...",
+    "writing": "Escribiendo etiqueta...",
+    "user_message": "Mensaje del Usuario",
+    "user_message_help": "Mensaje opcional (máx. 28 caracteres)",
+    "preview_title": "Vista Previa de los Datos",
+    "status": {
+      "connected": "Conectado",
+      "disconnected": "Desconectado",
+      "disabled": "Desactivado"
+    },
+    "browser_ndef_warning": "Advertencia: las escrituras NFC desde el navegador usan el formato NDEF. Las etiquetas escritas de esta forma NO serán reconocidas por la app de TigerTag, que espera datos binarios sin procesar en las páginas 4-39. Usa el modo Servidor para escrituras compatibles con TigerTag, o Descargar Binario Sin Procesar para usarlo con una herramienta NFC externa.",
+    "download_raw_binary": "Descargar Binario Sin Procesar",
+    "download_success": "Archivo binario descargado con éxito.",
+    "browser_write_success": "Datos de TigerTag escritos en la etiqueta NFC mediante NDEF.",
+    "error": {
+      "no_reader": "No se ha detectado ningún lector NFC.",
+      "read_failed": "Error al leer la etiqueta.",
+      "write_failed": "Error al escribir la etiqueta.",
+      "not_supported": "Web NFC no es compatible con este navegador. Usa el modo Servidor con un lector conectado.",
+      "permission_denied": "Permiso NFC denegado.",
+      "encode_failed": "Error al codificar los datos de TigerTag."
+    },
+    "bind_title": "Vincular Etiqueta NFC a la Bobina",
+    "bind_button": "Vincular Etiqueta NFC",
+    "bind_description": "Escanea una etiqueta NFC existente para vincularla a esta bobina. Los futuros escaneos de esta etiqueta seleccionarán automáticamente esta bobina.",
+    "bind_confirm_description": "Etiqueta escaneada. Revisa los datos de la etiqueta a continuación y confirma para vincularla a esta bobina.",
+    "bind_binding": "Vinculando...",
+    "bind_success": "¡Etiqueta vinculada a la bobina con éxito!",
+    "bind_error": "Error al vincular la etiqueta a la bobina.",
+    "bind_scan_again": "Escanear de Nuevo",
+    "bind_no_tigertag": "No se han encontrado datos de TigerTag en esta etiqueta. Solo el formato TigerTag es compatible con la vinculación.",
+    "tag_format": "Formato de Etiqueta",
+    "tag_format_label": "Formato de Etiqueta",
+    "tag_material": "Material",
+    "tag_material_type": "Tipo de Material",
+    "qidi_write_info": "Las etiquetas Qidi solo almacenan material y color. La etiqueta se escribirá con los códigos de material y color de Qidi más parecidos."
+  }
 }

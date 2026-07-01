@@ -1,427 +1,591 @@
 {
-    "actions": {
-        "list": "列表",
-        "create": "创建",
-        "edit": "编辑",
-        "show": "查看",
-        "clone": "克隆"
+  "actions": {
+    "list": "列表",
+    "create": "创建",
+    "edit": "编辑",
+    "show": "查看",
+    "clone": "克隆"
+  },
+  "buttons": {
+    "create": "创建",
+    "save": "保存",
+    "logout": "退出",
+    "delete": "删除",
+    "edit": "编辑",
+    "cancel": "取消",
+    "confirm": "您确定吗？",
+    "filter": "筛选",
+    "clear": "清除",
+    "refresh": "刷新",
+    "show": "显示",
+    "undo": "撤销",
+    "import": "导入",
+    "clone": "克隆",
+    "archive": "存档",
+    "unArchive": "取消存档",
+    "hideArchived": "隐藏存档",
+    "showArchived": "显示存档",
+    "notAccessTitle": "您没有访问权限",
+    "hideColumns": "隐藏列",
+    "clearFilters": "清除筛选器",
+    "saveAndAdd": "保存并添加",
+    "continue": "继续"
+  },
+  "warnWhenUnsavedChanges": "您确定要离开吗？您有未保存的更改。",
+  "notifications": {
+    "success": "操作成功",
+    "error": "出现错误 (状态码：{{statusCode}})",
+    "undoable": "您有 {{seconds}} 秒可以撤销。",
+    "createSuccess": "成功创建 {{resource}}",
+    "createError": "创建 {{resource}} 时出现错误 (状态码：{{statusCode}})",
+    "deleteSuccess": "成功删除 {{resource}}",
+    "deleteError": "删除 {{resource}} 时出现错误 (状态码：{{statusCode}})",
+    "editSuccess": "成功修改 {{resource}}",
+    "editError": "修改 {{resource}} 时出现错误 (状态码：{{statusCode}})",
+    "importProgress": "导入中： {{processed}}/{{total}}",
+    "saveSuccessful": "保存成功！",
+    "validationError": "校验错误：{{error}}"
+  },
+  "loading": "加载中",
+  "version": "版本",
+  "unknown": "未知",
+  "yes": "是",
+  "no": "否",
+  "tags": {
+    "clone": "克隆"
+  },
+  "dashboard": {
+    "title": "控制面板"
+  },
+  "printing": {
+    "generic": {
+      "title": "打印中",
+      "description": "调整以下设置以获得所需的打印布局。请记住，打印机和您的操作系统可能会应用自己的边距和缩放，因此您可能需要多次尝试后才能正确打印。在实际标签上打印之前，请在一张普通纸上进行测试。",
+      "helpMargin": "页边距应设置为与您的标签纸和打印机相匹配，更改这些将影响整个网格的大小。",
+      "helpPrinterMargin": "安全区应设置为打印机可以打印的离纸张边缘距离，更改这些不会影响整个网格。",
+      "print": "打印",
+      "columns": "行",
+      "rows": "列",
+      "paperSize": "纸张尺寸",
+      "customSize": "自定义",
+      "dimensions": "尺寸标注",
+      "showBorder": "显示边框",
+      "previewScale": "预览比例",
+      "skipItems": "跳过项目",
+      "contentSettings": "内容设置",
+      "layoutSettings": "布局设置",
+      "horizontalSpacing": "水平间距",
+      "verticalSpacing": "垂直间距",
+      "marginLeft": "左边界",
+      "marginRight": "右边界",
+      "marginTop": "上边界",
+      "marginBottom": "下边界",
+      "printerMarginLeft": "安全区左侧",
+      "printerMarginRight": "安全区右侧",
+      "printerMarginTop": "安全区顶部",
+      "printerMarginBottom": "安全区底部",
+      "borders": {
+        "none": "无",
+        "border": "外边框",
+        "grid": "格子"
+      },
+      "defaultSettings": "默认",
+      "settings": "预设",
+      "saveSetting": "保存预设",
+      "settingsName": "预设名称",
+      "addSettings": "添加新预设",
+      "deleteSettingsConfirm": "确定删除此预设吗？",
+      "saveAsImage": "保存为图片",
+      "newSetting": "新增",
+      "itemCopies": "复制项目",
+      "duplicateSettings": "复制",
+      "deleteSettings": "删除当前预设"
+    },
+    "qrcode": {
+      "button": "打印标签",
+      "title": "打印标签",
+      "spoolWeight": "料盘重量：{{weight}}",
+      "lotNr": "批号：{{lot}}",
+      "bedTemp": "热床温度：{{temp}}",
+      "extruderTemp": "挤出温度：{{temp}}",
+      "textSize": "标签文本大小",
+      "showSpoolmanIcon": "显示Spoolman图标",
+      "showVendor": "制造商",
+      "showContent": "打印标签",
+      "showLotNr": "批号",
+      "showSpoolWeight": "料盘重量",
+      "showTemperatures": "温度",
+      "showSpoolComment": "料盘备注",
+      "showFilamentComment": "耗材备注",
+      "showVendorComment": "制造商备注",
+      "template": "标签模版",
+      "showQRCode": "打印二维码",
+      "showQRCodeMode": {
+        "no": "否",
+        "withIcon": "含图标",
+        "simple": "简单"
+      },
+      "templateHelp": "使用 {} 将料盘的值插入为文本。例如，{id} 将被替换为料盘的ID，或者 {filament.material} 将被替换为料盘的材质。如果某个值缺失，将用 \"?\" 替代。可以使用第二组 {} 来删除缺失值相关的内容。此外，任意位于两组 {} 之间的文本，如果值缺失，将被一同删除。例如，{Lot Nr: {lot_nr}} 只有在料盘存在批号时才会显示标签内容。用双星号 ** 包裹文本可以将其加粗。点击按钮查看所有可用的标签列表。",
+      "useHTTPUrl": {
+        "tooltip": "将使用专有链接（默认情况下，仅能通过 **Spoolman** 的扫描功能访问）。URL 将使用设置中指定的基础 URL；如果未设置基础 URL，则使用当前页面的 URL。",
+        "label": "二维码链接",
+        "options": {
+          "default": "默认",
+          "url": "URL"
+        },
+        "preview": "预览："
+      },
+      "exportButton": "导出标签",
+      "printFilamentTitle": "打印耗材标签",
+      "printSpoolTitle": "打印料盘标签",
+      "templateHelpFilament": "使用 {} 将耗材的值插入为文本。例如，{id} 将被替换为耗材的ID，或者 {vendor.name} 将被替换为制造商名称。如果某个值缺失，将用 \"?\" 替代。可以使用第二组 {} 来删除缺失值相关的内容。此外，任意位于两组 {} 之间的文本，如果值缺失，将被一同删除。例如，{Article: {article_number}} 只有在耗材存在产品编号时才会显示标签内容。用双星号 ** 包裹文本可以将其加粗。点击按钮查看所有可用的标签列表。"
+    },
+    "spoolSelect": {
+      "title": "选择料盘",
+      "description": "选择要打印标签的料盘。",
+      "showArchived": "显示存档",
+      "noSpoolsSelected": "您尚未选择任何料盘。",
+      "selectAll": "选择/取消选择全部",
+      "selectedTotal_other": "已选择{{count}}个料盘"
+    },
+    "filamentSelect": {
+      "title": "选择耗材",
+      "description": "选择要打印标签的耗材。",
+      "noFilamentsSelected": "您尚未选择任何耗材。",
+      "selectAll": "选择/取消选择全部",
+      "selectedTotal_other": "已选择{{count}}个耗材"
+    }
+  },
+  "scanner": {
+    "title": "扫码二维码",
+    "description": "扫描Spoolman二维码，查看有关料盘的详细信息。",
+    "error": {
+      "notAllowed": "您不被允许访问相机。",
+      "insecureContext": "该页面不是通过HTTPS传输。",
+      "streamApiNotSupported": "浏览器不支持MediaStream API。",
+      "notReadable": "相机不可读。",
+      "notFound": "没有找到相机。",
+      "unknown": "发生未知错误。({{error}})"
+    }
+  },
+  "spool": {
+    "spool": "料盘",
+    "fields": {
+      "id": "编号",
+      "filament_name": "耗材",
+      "filament": "耗材",
+      "material": "材料",
+      "weight_to_use": "重量",
+      "used_weight": "已用重量",
+      "remaining_weight": "剩余重量",
+      "measured_weight": "净重",
+      "used_length": "已用长度",
+      "remaining_length": "剩余长度",
+      "location": "位置",
+      "lot_nr": "批号",
+      "first_used": "首次使用",
+      "last_used": "最后使用",
+      "registered": "登记时间",
+      "comment": "备注",
+      "archived": "存档",
+      "price": "价格",
+      "spool_weight": "空料盘重量",
+      "initial_weight": "初始重量",
+      "filament_internal": "内部",
+      "filament_external": "外部"
+    },
+    "fields_help": {
+      "weight_to_use": "请选择要输入的重量值。净重只在所选的耗材设置了料盘重量时可用。",
+      "used_weight": "料盘已使用的耗材重量。一个新的料盘应该是0克。",
+      "remaining_weight": "料盘上剩余多少耗材。对于新的料盘，这个值应该与料盘重量相匹配。",
+      "measured_weight": "耗材和料盘的重量分别是多少。",
+      "location": "如果您有多个存放料盘的地方，请填写料盘所在的位置。",
+      "lot_nr": "制造商的批号。如果使用多个料盘可以使用批号进行控制，以确保打印颜色一致。",
+      "price": "整卷料盘的价格。如果未设置，则默认使用该耗材的价格。",
+      "spool_weight": "料盘没料时的重量。留空时使用耗材或者制造商的相关参数。",
+      "external_filament": "您已从外部数据库中选择了一种耗材。在创建这个料盘时，将自动创建一个耗材对象（可能还包括一个制造商对象）。如果您已经为这种耗材创建了一个耗材对象，这可能会导致耗材对象重复。",
+      "initial_weight": "料盘上耗材的初始重量（净重）。如果未设置将使用耗材的相关参数。"
+    },
+    "titles": {
+      "create": "创建料盘",
+      "clone": "克隆料盘",
+      "edit": "编辑料盘",
+      "list": "料盘列表",
+      "show": "查看料盘",
+      "archive": "料盘存档",
+      "show_title": "[料盘 #{{id}}] {{name}}",
+      "adjust": "调整线盘耗材"
+    },
+    "messages": {
+      "archive": "您确定要存档此料盘吗？"
+    },
+    "form": {
+      "new_location_prompt": "输入一个新位置",
+      "spool_updated": "自您打开此页面以来，此料盘已被其他人/事物更新。保存将覆盖这些更改！",
+      "measurement_type": {
+        "length": "长度",
+        "weight": "重量"
+      },
+      "measurement_type_label": "测量类型",
+      "adjust_filament_help": "在这里你可以直接增加或减少线盘中的耗材。正数是减少耗材数量，负数是增加耗材数量。",
+      "adjust_filament_value": "消耗量"
+    },
+    "formats": {
+      "last_used": "上次使用 {{date}}"
+    }
+  },
+  "filament": {
+    "filament": "耗材",
+    "fields": {
+      "id": "编号",
+      "vendor_name": "制造商",
+      "vendor": "制造商",
+      "name": "名称",
+      "material": "材料",
+      "price": "价格",
+      "density": "密度",
+      "diameter": "直径",
+      "weight": "重量",
+      "spool_weight": "料盘重量",
+      "article_number": "产品编号",
+      "registered": "登记时间",
+      "comment": "备注",
+      "settings_extruder_temp": "挤出头温度",
+      "settings_bed_temp": "热床温度",
+      "color_hex": "颜色",
+      "spools": "显示料盘",
+      "external_id": "外部ID",
+      "multi_color": "多色",
+      "longitudinal": "纵向",
+      "coaxial": "共挤出",
+      "single_color": "单色"
+    },
+    "fields_help": {
+      "name": "耗材名称，用于区分来自同一制造商的不同耗材类型。例如在耗材名称中包含颜色信息。",
+      "material": "例如PLA、ABS、PETG等。",
+      "price": "一整卷耗材的价格。",
+      "weight": "一整卷耗材的重量（净重）。不应包括料盘本身的重量，仅计算耗材的重量。通常在包装上注明。",
+      "spool_weight": "空料盘的重量。使用它来计算耗材的重量。",
+      "article_number": "例如EAN、UPC等。",
+      "multi_color_direction": "耗材可以通过两种方式实现多种颜色：共挤出：例如双色耗材，具有稳定的多色组合。纵向颜色变化：例如渐变色耗材，颜色沿着料盘逐渐变化。"
+    },
+    "titles": {
+      "create": "创建耗材",
+      "clone": "克隆耗材",
+      "edit": "编辑耗材",
+      "list": "耗材列表",
+      "show": "查看耗材",
+      "show_title": "[耗材 #{{id}}] {{name}}"
+    },
+    "form": {
+      "filament_updated": "自您打开此页面以来，此耗材已被其他人/事物更新。保存将覆盖这些更改！",
+      "import_external_description": "在列表中选择一种耗材以自动填充耗材创建表单中的详细信息。这将覆盖您在表单中输入的任何数据。<br><br>如果有必要，在您点击“确定”时将自动创建一个制造商对象。",
+      "import_external": "从外部导入",
+      "import_3dfp": "3D Filament Profiles ID",
+      "import_3dfp_help": "通过从 3dfilamentprofiles.com 获取数据自动填写信息",
+      "import_3dfp_placeholder": "例如 12875",
+      "import_3dfp_success": "成功从 3dfilamentprofiles.com 获取耗材信息",
+      "import_3dfp_error": "从 3dfilamentprofiles.com 获取耗材数据失败"
     },
     "buttons": {
-        "create": "创建",
-        "save": "保存",
-        "logout": "退出",
-        "delete": "删除",
-        "edit": "编辑",
-        "cancel": "取消",
-        "confirm": "您确定吗？",
-        "filter": "筛选",
-        "clear": "清除",
-        "refresh": "刷新",
-        "show": "显示",
-        "undo": "撤销",
-        "import": "导入",
-        "clone": "克隆",
-        "archive": "存档",
-        "unArchive": "取消存档",
-        "hideArchived": "隐藏存档",
-        "showArchived": "显示存档",
-        "notAccessTitle": "您没有访问权限",
-        "hideColumns": "隐藏列",
-        "clearFilters": "清除筛选器",
-        "saveAndAdd": "保存并添加",
-        "continue": "继续"
+      "add_spool": "添加料盘",
+      "fetch": "获取"
+    }
+  },
+  "vendor": {
+    "vendor": "制造商",
+    "fields": {
+      "id": "编号",
+      "name": "名称",
+      "registered": "登记时间",
+      "comment": "备注",
+      "external_id": "外部ID",
+      "empty_spool_weight": "空料盘重量"
     },
-    "warnWhenUnsavedChanges": "您确定要离开吗？您有未保存的更改。",
-    "notifications": {
-        "success": "操作成功",
-        "error": "出现错误 (状态码：{{statusCode}})",
-        "undoable": "您有 {{seconds}} 秒可以撤销。",
-        "createSuccess": "成功创建 {{resource}}",
-        "createError": "创建 {{resource}} 时出现错误 (状态码：{{statusCode}})",
-        "deleteSuccess": "成功删除 {{resource}}",
-        "deleteError": "删除 {{resource}} 时出现错误 (状态码：{{statusCode}})",
-        "editSuccess": "成功修改 {{resource}}",
-        "editError": "修改 {{resource}} 时出现错误 (状态码：{{statusCode}})",
-        "importProgress": "导入中： {{processed}}/{{total}}",
-        "saveSuccessful": "保存成功！",
-        "validationError": "校验错误：{{error}}"
+    "titles": {
+      "create": "创建制造商",
+      "clone": "克隆制造商",
+      "edit": "编辑制造商",
+      "list": "制造商列表",
+      "show": "查看制造商",
+      "show_title": "[制造商 #{{id}}] {{name}}"
     },
-    "loading": "加载中",
-    "version": "版本",
-    "unknown": "未知",
-    "yes": "是",
-    "no": "否",
-    "tags": {
-        "clone": "克隆"
+    "form": {
+      "vendor_updated": "自您打开此页面以来，此制造商已被其他人/事物更新。保存将覆盖这些更改！"
     },
-    "dashboard": {
-        "title": "控制面板"
-    },
-    "printing": {
-        "generic": {
-            "title": "打印中",
-            "description": "调整以下设置以获得所需的打印布局。请记住，打印机和您的操作系统可能会应用自己的边距和缩放，因此您可能需要多次尝试后才能正确打印。在实际标签上打印之前，请在一张普通纸上进行测试。",
-            "helpMargin": "页边距应设置为与您的标签纸和打印机相匹配，更改这些将影响整个网格的大小。",
-            "helpPrinterMargin": "安全区应设置为打印机可以打印的离纸张边缘距离，更改这些不会影响整个网格。",
-            "print": "打印",
-            "columns": "行",
-            "rows": "列",
-            "paperSize": "纸张尺寸",
-            "customSize": "自定义",
-            "dimensions": "尺寸标注",
-            "showBorder": "显示边框",
-            "previewScale": "预览比例",
-            "skipItems": "跳过项目",
-            "contentSettings": "内容设置",
-            "layoutSettings": "布局设置",
-            "horizontalSpacing": "水平间距",
-            "verticalSpacing": "垂直间距",
-            "marginLeft": "左边界",
-            "marginRight": "右边界",
-            "marginTop": "上边界",
-            "marginBottom": "下边界",
-            "printerMarginLeft": "安全区左侧",
-            "printerMarginRight": "安全区右侧",
-            "printerMarginTop": "安全区顶部",
-            "printerMarginBottom": "安全区底部",
-            "borders": {
-                "none": "无",
-                "border": "外边框",
-                "grid": "格子"
-            },
-            "defaultSettings": "默认",
-            "settings": "预设",
-            "saveSetting": "保存预设",
-            "settingsName": "预设名称",
-            "addSettings": "添加新预设",
-            "deleteSettingsConfirm": "确定删除此预设吗？",
-            "saveAsImage": "保存为图片",
-            "newSetting": "新增",
-            "itemCopies": "复制项目",
-            "duplicateSettings": "复制",
-            "deleteSettings": "删除当前预设"
-        },
-        "qrcode": {
-            "button": "打印标签",
-            "title": "打印标签",
-            "spoolWeight": "料盘重量：{{weight}}",
-            "lotNr": "批号：{{lot}}",
-            "bedTemp": "热床温度：{{temp}}",
-            "extruderTemp": "挤出温度：{{temp}}",
-            "textSize": "标签文本大小",
-            "showSpoolmanIcon": "显示Spoolman图标",
-            "showVendor": "制造商",
-            "showContent": "打印标签",
-            "showLotNr": "批号",
-            "showSpoolWeight": "料盘重量",
-            "showTemperatures": "温度",
-            "showSpoolComment": "料盘备注",
-            "showFilamentComment": "耗材备注",
-            "showVendorComment": "制造商备注",
-            "template": "标签模版",
-            "showQRCode": "打印二维码",
-            "showQRCodeMode": {
-                "no": "否",
-                "withIcon": "含图标",
-                "simple": "简单"
-            },
-            "templateHelp": "使用 {} 将料盘的值插入为文本。例如，{id} 将被替换为料盘的ID，或者 {filament.material} 将被替换为料盘的材质。如果某个值缺失，将用 \"?\" 替代。可以使用第二组 {} 来删除缺失值相关的内容。此外，任意位于两组 {} 之间的文本，如果值缺失，将被一同删除。例如，{Lot Nr: {lot_nr}} 只有在料盘存在批号时才会显示标签内容。用双星号 ** 包裹文本可以将其加粗。点击按钮查看所有可用的标签列表。",
-            "useHTTPUrl": {
-                "tooltip": "将使用专有链接（默认情况下，仅能通过 **Spoolman** 的扫描功能访问）。URL 将使用设置中指定的基础 URL；如果未设置基础 URL，则使用当前页面的 URL。",
-                "label": "二维码链接",
-                "options": {
-                    "default": "默认",
-                    "url": "URL"
-                },
-                "preview": "预览："
-            }
-        },
-        "spoolSelect": {
-            "title": "选择料盘",
-            "description": "选择要打印标签的料盘。",
-            "showArchived": "显示存档",
-            "noSpoolsSelected": "您尚未选择任何料盘。",
-            "selectAll": "选择/取消选择全部",
-            "selectedTotal_other": "已选择{{count}}个料盘"
-        }
-    },
-    "scanner": {
-        "title": "扫码二维码",
-        "description": "扫描Spoolman二维码，查看有关料盘的详细信息。",
-        "error": {
-            "notAllowed": "您不被允许访问相机。",
-            "insecureContext": "该页面不是通过HTTPS传输。",
-            "streamApiNotSupported": "浏览器不支持MediaStream API。",
-            "notReadable": "相机不可读。",
-            "notFound": "没有找到相机。",
-            "unknown": "发生未知错误。({{error}})"
-        }
+    "fields_help": {
+      "empty_spool_weight": "来自此制造商的空料盘重量。"
+    }
+  },
+  "table": {
+    "actions": "操作",
+    "filter": {
+      "ok": "确定",
+      "search": "搜索...",
+      "min": "最小值...",
+      "max": "最大值...",
+      "from": "从...",
+      "to": "至..."
+    }
+  },
+  "documentTitle": {
+    "default": "Spoolman",
+    "suffix": " | Spoolman",
+    "filament": {
+      "list": "耗材列表 | Spoolman",
+      "show": "#{{id}} 查看耗材 | Spoolman",
+      "edit": "#{{id}} 编辑耗材 | Spoolman",
+      "create": "创建耗材 | Spoolman",
+      "clone": "#{{id}} 克隆耗材 | Spoolman"
     },
     "spool": {
-        "spool": "料盘",
-        "fields": {
-            "id": "编号",
-            "filament_name": "耗材",
-            "filament": "耗材",
-            "material": "材料",
-            "weight_to_use": "重量",
-            "used_weight": "已用重量",
-            "remaining_weight": "剩余重量",
-            "measured_weight": "净重",
-            "used_length": "已用长度",
-            "remaining_length": "剩余长度",
-            "location": "位置",
-            "lot_nr": "批号",
-            "first_used": "首次使用",
-            "last_used": "最后使用",
-            "registered": "登记时间",
-            "comment": "备注",
-            "archived": "存档",
-            "price": "价格",
-            "spool_weight": "空料盘重量",
-            "initial_weight": "初始重量",
-            "filament_internal": "内部",
-            "filament_external": "外部"
-        },
-        "fields_help": {
-            "weight_to_use": "请选择要输入的重量值。净重只在所选的耗材设置了料盘重量时可用。",
-            "used_weight": "料盘已使用的耗材重量。一个新的料盘应该是0克。",
-            "remaining_weight": "料盘上剩余多少耗材。对于新的料盘，这个值应该与料盘重量相匹配。",
-            "measured_weight": "耗材和料盘的重量分别是多少。",
-            "location": "如果您有多个存放料盘的地方，请填写料盘所在的位置。",
-            "lot_nr": "制造商的批号。如果使用多个料盘可以使用批号进行控制，以确保打印颜色一致。",
-            "price": "整卷料盘的价格。如果未设置，则默认使用该耗材的价格。",
-            "spool_weight": "料盘没料时的重量。留空时使用耗材或者制造商的相关参数。",
-            "external_filament": "您已从外部数据库中选择了一种耗材。在创建这个料盘时，将自动创建一个耗材对象（可能还包括一个制造商对象）。如果您已经为这种耗材创建了一个耗材对象，这可能会导致耗材对象重复。",
-            "initial_weight": "料盘上耗材的初始重量（净重）。如果未设置将使用耗材的相关参数。"
-        },
-        "titles": {
-            "create": "创建料盘",
-            "clone": "克隆料盘",
-            "edit": "编辑料盘",
-            "list": "料盘列表",
-            "show": "查看料盘",
-            "archive": "料盘存档",
-            "show_title": "[料盘 #{{id}}] {{name}}",
-            "adjust": "调整线盘耗材"
-        },
-        "messages": {
-            "archive": "您确定要存档此料盘吗？"
-        },
-        "form": {
-            "new_location_prompt": "输入一个新位置",
-            "spool_updated": "自您打开此页面以来，此料盘已被其他人/事物更新。保存将覆盖这些更改！",
-            "measurement_type": {
-                "length": "长度",
-                "weight": "重量"
-            },
-            "measurement_type_label": "测量类型",
-            "adjust_filament_help": "在这里你可以直接增加或减少线盘中的耗材。正数是减少耗材数量，负数是增加耗材数量。",
-            "adjust_filament_value": "消耗量"
-        },
-        "formats": {
-            "last_used": "上次使用 {{date}}"
-        }
-    },
-    "filament": {
-        "filament": "耗材",
-        "fields": {
-            "id": "编号",
-            "vendor_name": "制造商",
-            "vendor": "制造商",
-            "name": "名称",
-            "material": "材料",
-            "price": "价格",
-            "density": "密度",
-            "diameter": "直径",
-            "weight": "重量",
-            "spool_weight": "料盘重量",
-            "article_number": "产品编号",
-            "registered": "登记时间",
-            "comment": "备注",
-            "settings_extruder_temp": "挤出头温度",
-            "settings_bed_temp": "热床温度",
-            "color_hex": "颜色",
-            "spools": "显示料盘",
-            "external_id": "外部ID",
-            "multi_color": "多色",
-            "longitudinal": "纵向",
-            "coaxial": "共挤出",
-            "single_color": "单色"
-        },
-        "fields_help": {
-            "name": "耗材名称，用于区分来自同一制造商的不同耗材类型。例如在耗材名称中包含颜色信息。",
-            "material": "例如PLA、ABS、PETG等。",
-            "price": "一整卷耗材的价格。",
-            "weight": "一整卷耗材的重量（净重）。不应包括料盘本身的重量，仅计算耗材的重量。通常在包装上注明。",
-            "spool_weight": "空料盘的重量。使用它来计算耗材的重量。",
-            "article_number": "例如EAN、UPC等。",
-            "multi_color_direction": "耗材可以通过两种方式实现多种颜色：共挤出：例如双色耗材，具有稳定的多色组合。纵向颜色变化：例如渐变色耗材，颜色沿着料盘逐渐变化。"
-        },
-        "titles": {
-            "create": "创建耗材",
-            "clone": "克隆耗材",
-            "edit": "编辑耗材",
-            "list": "耗材列表",
-            "show": "查看耗材",
-            "show_title": "[耗材 #{{id}}] {{name}}"
-        },
-        "form": {
-            "filament_updated": "自您打开此页面以来，此耗材已被其他人/事物更新。保存将覆盖这些更改！",
-            "import_external_description": "在列表中选择一种耗材以自动填充耗材创建表单中的详细信息。这将覆盖您在表单中输入的任何数据。<br><br>如果有必要，在您点击“确定”时将自动创建一个制造商对象。",
-            "import_external": "从外部导入",
-            "import_3dfp": "3D Filament Profiles ID",
-            "import_3dfp_help": "通过从 3dfilamentprofiles.com 获取数据自动填写信息",
-            "import_3dfp_placeholder": "例如 12875",
-            "import_3dfp_success": "成功从 3dfilamentprofiles.com 获取耗材信息",
-            "import_3dfp_error": "从 3dfilamentprofiles.com 获取耗材数据失败"
-        },
-        "buttons": {
-            "add_spool": "添加料盘",
-            "fetch": "获取"
-        }
+      "list": "料盘列表 | Spoolman",
+      "show": "#{{id}} 查看料盘 | Spoolman",
+      "edit": "#{{id}} 编辑料盘 | Spoolman",
+      "create": "创建料盘 | Spoolman",
+      "clone": "#{{id}} 克隆料盘 | Spoolman"
     },
     "vendor": {
-        "vendor": "制造商",
-        "fields": {
-            "id": "编号",
-            "name": "名称",
-            "registered": "登记时间",
-            "comment": "备注",
-            "external_id": "外部ID",
-            "empty_spool_weight": "空料盘重量"
-        },
-        "titles": {
-            "create": "创建制造商",
-            "clone": "克隆制造商",
-            "edit": "编辑制造商",
-            "list": "制造商列表",
-            "show": "查看制造商",
-            "show_title": "[制造商 #{{id}}] {{name}}"
-        },
-        "form": {
-            "vendor_updated": "自您打开此页面以来，此制造商已被其他人/事物更新。保存将覆盖这些更改！"
-        },
-        "fields_help": {
-            "empty_spool_weight": "来自此制造商的空料盘重量。"
-        }
+      "list": "制造商 | Spoolman",
+      "show": "#{{id}} 查看制造商 | Spoolman",
+      "edit": "#{{id}} 编辑制造商 | Spoolman",
+      "create": "创建制造商 | Spoolman",
+      "clone": "#{{id}} 克隆制造商 | Spoolman"
     },
-    "table": {
-        "actions": "操作"
-    },
-    "documentTitle": {
-        "default": "Spoolman",
-        "suffix": " | Spoolman",
-        "filament": {
-            "list": "耗材列表 | Spoolman",
-            "show": "#{{id}} 查看耗材 | Spoolman",
-            "edit": "#{{id}} 编辑耗材 | Spoolman",
-            "create": "创建耗材 | Spoolman",
-            "clone": "#{{id}} 克隆耗材 | Spoolman"
-        },
-        "spool": {
-            "list": "料盘列表 | Spoolman",
-            "show": "#{{id}} 查看料盘 | Spoolman",
-            "edit": "#{{id}} 编辑料盘 | Spoolman",
-            "create": "创建料盘 | Spoolman",
-            "clone": "#{{id}} 克隆料盘 | Spoolman"
-        },
-        "vendor": {
-            "list": "制造商 | Spoolman",
-            "show": "#{{id}} 查看制造商 | Spoolman",
-            "edit": "#{{id}} 编辑制造商 | Spoolman",
-            "create": "创建制造商 | Spoolman",
-            "clone": "#{{id}} 克隆制造商 | Spoolman"
-        },
-        "home": {
-            "list": "主页 | Spoolman"
-        },
-        "help": {
-            "list": "帮助 | Spoolman"
-        },
-        "locations": {
-            "list": "位置 | Spoolman"
-        }
-    },
-    "kofi": "在Ko-fi上给我打赏一点小费",
     "home": {
-        "home": "主页",
-        "welcome": "欢迎使用您的 Spoolman！",
-        "description": "看起来您还没有添加任何线轴。请查看<helpPageLink>帮助页面</helpPageLink>以开始使用。",
-        "total_weight": "总库存",
-        "total_value": "总价值",
-        "low_stock": "库存不足",
-        "all_stocked": "所有线轴库存充足",
-        "recently_used": "最近使用",
-        "no_recent": "没有最近使用的线轴",
-        "by_material": "按材料",
-        "by_location": "按位置",
-        "telemetry_subtitle": "耗材库存实时状态。"
+      "list": "主页 | Spoolman"
     },
     "help": {
-        "help": "帮助",
-        "resources": {
-            "filament": "耗材品种。它们具有名称、材料、颜色、直径等属性。",
-            "vendor": "制造耗材的公司。",
-            "spool": "特定耗材的单个物理卷轴。"
-        },
-        "description": "<title>帮助</title><p>以下是一些入门提示。</p><p>Spoolman保存了3种不同类型的数据：</p><itemsHelp/><p>要向数据库添加新的料盘，请先创建一个 <filamentCreateLink>耗材</filamentCreateLink> 对象。完成后，继续为该特定耗材创建一个 <spoolCreateLink>料盘</spoolCreateLink> 对象。如果以后获取相同耗材的其他料盘，只需生成其他的料盘对象并重复使用同一个耗材对象。</p><p>同时，如果您希望跟踪该信息，还可以为制造耗材的公司生成一个 <vendorCreateLink>制造商</vendorCreateLink> 对象。</p><p>您可以选择将其他3D打印机服务链接到 Spoolman，例如 Moonraker，它可以自动监视耗材使用情况并为您更新料盘对象。请参阅 <readmeLink>Spoolman README</readmeLink> 获取有关如何设置的指导。</p>"
-    },
-    "settings": {
-        "settings": "设置",
-        "extra_fields": {
-            "tab": "额外字段",
-            "field_type": {
-                "integer_range": "整数范围",
-                "float": "浮点数",
-                "float_range": "浮点数范围",
-                "boolean": "布尔类型",
-                "datetime": "日期时间",
-                "text": "文本",
-                "integer": "整数",
-                "choice": "选项"
-            },
-            "delete_confirm_description": "这将删除该字段以及所有实体的关联数据。",
-            "description": "<p>这里你可以为你的实体添加额外的自定义字段。</p><p>一旦添加了字段，就无法更改其键或类型；对于选择类型字段，无法删除选项或更改多选状态。如果删除字段，则所有实体的相关数据将被删除。</p><p>键是其他程序读取/写入数据的标识，因此，如果你的自定义字段需要与第三方程序集成，请确保设置正确。默认值仅适用于新项目。</p><p>额外字段在表视图中无法进行排序或过滤。</p>",
-            "params": {
-                "name": "名称",
-                "field_type": "类型",
-                "order": "顺序",
-                "default_value": "默认值",
-                "multi_choice": "多选",
-                "choices": "选择项",
-                "key": "键",
-                "unit": "单位"
-            },
-            "boolean_true": "是",
-            "boolean_false": "否",
-            "choices_missing_error": "您无法删除选择。以下选项丢失：{{choices}}",
-            "non_unique_key_error": "键必须是唯一的。",
-            "key_not_changed": "请将键改成其他的。",
-            "delete_confirm": "删除字段 {{name}}？"
-        },
-        "header": "设置",
-        "general": {
-            "tab": "常规",
-            "currency": {
-                "label": "货币"
-            },
-            "base_url": {
-                "label": "基础URL",
-                "tooltip": "生成功能（例如二维码）时使用的基础 URL。"
-            },
-            "round_prices": {
-                "label": "取整",
-                "tooltip": "将价格四舍五入到最接近的整数。"
-            }
-        }
+      "list": "帮助 | Spoolman"
     },
     "locations": {
-        "no_locations_help": "此页面允许您在不同位置管理料盘，添加一些料盘即可开始！",
-        "locations": "位置",
-        "new_location": "新位置",
-        "no_location": "没有位置",
-        "error_empty": "名称不能为空",
-        "error_exists": "位置已存在"
+      "list": "位置 | Spoolman"
     }
+  },
+  "kofi": "在Ko-fi上给我打赏一点小费",
+  "home": {
+    "home": "主页",
+    "welcome": "欢迎使用您的 Spoolman！",
+    "description": "看起来您还没有添加任何线轴。请查看<helpPageLink>帮助页面</helpPageLink>以开始使用。",
+    "total_weight": "总库存",
+    "total_value": "总价值",
+    "low_stock": "库存不足",
+    "all_stocked": "所有线轴库存充足",
+    "recently_used": "最近使用",
+    "no_recent": "没有最近使用的线轴",
+    "by_material": "按材料",
+    "by_location": "按位置",
+    "telemetry_subtitle": "耗材库存实时状态。",
+    "by_vendor": "按制造商"
+  },
+  "help": {
+    "help": "帮助",
+    "resources": {
+      "filament": "耗材品种。它们具有名称、材料、颜色、直径等属性。",
+      "vendor": "制造耗材的公司。",
+      "spool": "特定耗材的单个物理卷轴。"
+    },
+    "description": "<title>帮助</title><p>以下是一些入门提示。</p><p>Spoolman保存了3种不同类型的数据：</p><itemsHelp/><p>要向数据库添加新的料盘，请先创建一个 <filamentCreateLink>耗材</filamentCreateLink> 对象。完成后，继续为该特定耗材创建一个 <spoolCreateLink>料盘</spoolCreateLink> 对象。如果以后获取相同耗材的其他料盘，只需生成其他的料盘对象并重复使用同一个耗材对象。</p><p>同时，如果您希望跟踪该信息，还可以为制造耗材的公司生成一个 <vendorCreateLink>制造商</vendorCreateLink> 对象。</p><p>您可以选择将其他3D打印机服务链接到 Spoolman，例如 Moonraker，它可以自动监视耗材使用情况并为您更新料盘对象。请参阅 <readmeLink>Spoolman README</readmeLink> 获取有关如何设置的指导。</p>"
+  },
+  "settings": {
+    "settings": "设置",
+    "extra_fields": {
+      "tab": "额外字段",
+      "field_type": {
+        "integer_range": "整数范围",
+        "float": "浮点数",
+        "float_range": "浮点数范围",
+        "boolean": "布尔类型",
+        "datetime": "日期时间",
+        "text": "文本",
+        "integer": "整数",
+        "choice": "选项"
+      },
+      "delete_confirm_description": "这将删除该字段以及所有实体的关联数据。",
+      "description": "<p>这里你可以为你的实体添加额外的自定义字段。</p><p>一旦添加了字段，就无法更改其键或类型；对于选择类型字段，无法删除选项或更改多选状态。如果删除字段，则所有实体的相关数据将被删除。</p><p>键是其他程序读取/写入数据的标识，因此，如果你的自定义字段需要与第三方程序集成，请确保设置正确。默认值仅适用于新项目。</p><p>额外字段在表视图中无法进行排序或过滤。</p>",
+      "params": {
+        "name": "名称",
+        "field_type": "类型",
+        "order": "顺序",
+        "default_value": "默认值",
+        "multi_choice": "多选",
+        "choices": "选择项",
+        "key": "键",
+        "unit": "单位"
+      },
+      "boolean_true": "是",
+      "boolean_false": "否",
+      "choices_missing_error": "您无法删除选择。以下选项丢失：{{choices}}",
+      "non_unique_key_error": "键必须是唯一的。",
+      "key_not_changed": "请将键改成其他的。",
+      "delete_confirm": "删除字段 {{name}}？"
+    },
+    "header": "设置",
+    "general": {
+      "tab": "常规",
+      "currency": {
+        "label": "货币"
+      },
+      "base_url": {
+        "label": "基础URL",
+        "tooltip": "生成功能（例如二维码）时使用的基础 URL。"
+      },
+      "round_prices": {
+        "label": "取整",
+        "tooltip": "将价格四舍五入到最接近的整数。"
+      }
+    }
+  },
+  "locations": {
+    "no_locations_help": "此页面允许您在不同位置管理料盘，添加一些料盘即可开始！",
+    "locations": "位置",
+    "new_location": "新位置",
+    "no_location": "没有位置",
+    "error_empty": "名称不能为空",
+    "error_exists": "位置已存在"
+  },
+  "calibration": {
+    "title": "校准",
+    "no_data": "暂无校准数据。",
+    "recommended_title": "校准后的设置",
+    "no_recommended": "尚未设置推荐值。",
+    "buttons": {
+      "start": "开始校准",
+      "edit_session": "编辑",
+      "delete_session": "删除",
+      "add_step": "添加结果",
+      "edit_step": "编辑",
+      "delete_step": "删除",
+      "save": "保存"
+    },
+    "fields": {
+      "last_session": "上次会话",
+      "history": "校准历史",
+      "steps_count": "已记录{{count}}个步骤",
+      "no_steps": "尚未记录任何步骤结果。",
+      "printer_name": "打印机名称",
+      "nozzle_diameter": "喷嘴直径 (mm)",
+      "notes": "备注",
+      "status": "状态",
+      "step_type": "校准步骤",
+      "confidence": "可信度",
+      "inputs": "输入",
+      "outputs_and_recommended": "输出与推荐值"
+    },
+    "session_form": {
+      "create_title": "开始校准会话",
+      "edit_title": "编辑校准会话"
+    },
+    "step_form": {
+      "add_title": "添加步骤结果",
+      "edit_title": "编辑步骤结果",
+      "recommended_hint": "此处的值将作为推荐设置显示在料盘页面上。"
+    },
+    "status": {
+      "planned": "计划中",
+      "in_progress": "进行中",
+      "complete": "已完成",
+      "archived": "已存档"
+    },
+    "confidence": {
+      "high": "高",
+      "medium": "中",
+      "low": "低"
+    },
+    "step_types": {
+      "temperature": "温度",
+      "volumetric_speed": "体积速度",
+      "pressure_advance": "压力提前",
+      "flow_rate": "流量",
+      "retraction": "回抽",
+      "tolerance": "公差",
+      "cornering": "拐角",
+      "input_shaping": "输入整形",
+      "vfa": "VFA"
+    },
+    "delete_session_confirm": "删除此校准会话及其所有步骤结果？",
+    "delete_step_confirm": "删除此步骤结果？",
+    "wizard": {
+      "title": "校准向导",
+      "subtitle": "按照 OrcaSlicer 校准指南逐步进行。您可以跳过任意步骤并稍后继续。",
+      "start": "启动向导",
+      "resume": "继续向导",
+      "step_of": "第 {{current}} 步，共 {{total}} 步",
+      "already_done": "已记录",
+      "buttons": {
+        "back": "上一步",
+        "skip": "跳过",
+        "save_continue": "保存并继续",
+        "save_finish": "保存并完成",
+        "skip_finish": "跳过并完成",
+        "finish": "完成",
+        "cancel": "取消"
+      },
+      "skip_finish_confirm": "不保存此步骤并将此会话标记为已完成？",
+      "session_complete": "校准会话已标记为完成。"
+    }
+  },
+  "external": {
+    "source_spoolmandb": "SpoolmanDB",
+    "source_tigertag": "TigerTag"
+  },
+  "nfc": {
+    "scan_title": "NFC 标签扫描器",
+    "scan_description": "扫描 NFC 标签以查看料盘的详细信息。",
+    "encode_button": "写入 NFC",
+    "encode_title": "将料盘写入 NFC 标签",
+    "write_success": "标签写入成功！",
+    "write_error": "标签写入失败。",
+    "no_match": "未找到与此标签匹配的料盘。",
+    "create_from_tag": "从标签创建料盘",
+    "create_from_tag_description": "未找到匹配的料盘。您可以根据下方的标签数据创建一个新料盘。",
+    "creating_spool": "正在创建料盘...",
+    "create_success": "料盘创建成功！",
+    "create_error": "根据标签数据创建料盘失败。",
+    "tag_color": "颜色",
+    "tag_diameter": "直径",
+    "tag_weight": "重量",
+    "tag_nozzle_temp": "喷嘴温度",
+    "tag_bed_temp": "热床温度",
+    "mode_browser": "浏览器",
+    "mode_server": "服务器",
+    "unsupported": "此浏览器不支持 NFC。",
+    "place_tag": "请将标签放在读卡器上...",
+    "reading": "正在读取标签...",
+    "writing": "正在写入标签...",
+    "user_message": "用户留言",
+    "user_message_help": "可选留言（最多 28 个字符）",
+    "preview_title": "数据预览",
+    "status": {
+      "connected": "已连接",
+      "disconnected": "已断开",
+      "disabled": "已禁用"
+    },
+    "browser_ndef_warning": "警告：浏览器 NFC 写入使用 NDEF 格式。以此方式写入的标签将无法被 TigerTag 应用识别，该应用要求在第 4-39 页存储原始二进制数据。若需与 TigerTag 兼容，请使用服务器模式写入；或下载原始二进制文件，配合外部 NFC 工具使用。",
+    "download_raw_binary": "下载原始二进制",
+    "download_success": "二进制文件下载成功。",
+    "browser_write_success": "已通过 NDEF 将 TigerTag 数据写入 NFC 标签。",
+    "error": {
+      "no_reader": "未检测到 NFC 读卡器。",
+      "read_failed": "读取标签失败。",
+      "write_failed": "写入标签失败。",
+      "not_supported": "此浏览器不支持 Web NFC。请使用服务器模式并连接读卡器。",
+      "permission_denied": "NFC 权限被拒绝。",
+      "encode_failed": "编码 TigerTag 数据失败。"
+    },
+    "bind_title": "将 NFC 标签关联到料盘",
+    "bind_button": "关联 NFC 标签",
+    "bind_description": "扫描现有 NFC 标签以将其关联到此料盘。之后扫描此标签将自动选中此料盘。",
+    "bind_confirm_description": "标签已扫描。请检查下方的标签数据，并确认将其关联到此料盘。",
+    "bind_binding": "正在关联...",
+    "bind_success": "标签已成功关联到料盘！",
+    "bind_error": "将标签关联到料盘失败。",
+    "bind_scan_again": "重新扫描",
+    "bind_no_tigertag": "此标签上未找到 TigerTag 数据。关联仅支持 TigerTag 格式。",
+    "tag_format": "标签格式",
+    "tag_format_label": "标签格式",
+    "tag_material": "材料",
+    "tag_material_type": "材料类型",
+    "qidi_write_info": "Qidi 标签仅存储材料和颜色。写入时将使用最接近的 Qidi 材料和颜色代码。"
+  }
 }

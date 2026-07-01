@@ -70,9 +70,9 @@ instance/
 # Scrapy stuff:
 .scrapy
 
-# Sphinx documentation
+# Generated API docs (poe generate-docs); the committed guides in docs/*.md are tracked
 docs/_build/
-docs/
+docs/index.html
 
 # PyBuilder
 .pybuilder/

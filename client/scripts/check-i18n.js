@@ -29,9 +29,47 @@ function getDeclaredLanguages() {
   return languageMatches.map((match) => match[1]);
 }
 
+function flattenKeys(obj, prefix = "") {
+  const keys = new Set();
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== null && typeof value === "object") {
+      for (const nested of flattenKeys(value, `${prefix}${key}.`)) {
+        keys.add(nested);
+      }
+    } else {
+      keys.add(`${prefix}${key}`);
+    }
+  }
+  return keys;
+}
+
+function readLocaleKeys(locale) {
+  return flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, locale, "common.json"), "utf8")));
+}
+
+// Advisory only: translations are allowed to lag behind English, but the gap
+// should be visible in every CI run so regressions don't go unnoticed.
+function reportKeyCoverage() {
+  const referenceKeys = readLocaleKeys("en");
+  const locales = readdirSync(LOCALES_DIR)
+    .filter((folder) => folder !== "en" && statSync(join(LOCALES_DIR, folder)).isDirectory())
+    .sort();
+
+  console.log(`\nKey coverage vs en/common.json (${referenceKeys.size} keys):`);
+  for (const locale of locales) {
+    const keys = readLocaleKeys(locale);
+    const translated = [...referenceKeys].filter((key) => keys.has(key)).length;
+    const pct = Math.floor((translated / referenceKeys.size) * 100);
+    console.log(`  ${locale.padEnd(8)} ${String(pct).padStart(3)}% (${translated}/${referenceKeys.size})`);
+  }
+  console.log();
+}
+
 function main() {
   const foundLocales = new Set(getLocaleFolders());
   const declaredLocales = new Set(getDeclaredLanguages());
+
+  reportKeyCoverage();
 
   const missingLocales = [...foundLocales].filter((locale) => !declaredLocales.has(locale));
 

@@ -2,6 +2,7 @@
 
 import asyncio
 import base64
+import hashlib
 import json
 import logging
 from typing import TYPE_CHECKING, Annotated
@@ -449,6 +450,49 @@ def _detect_tag_format(raw_data: bytes, tag_type: str | None) -> str:
     return "tigertag"
 
 
+# Serializes auto-creating lookups: without it, two concurrent scans of the same
+# unknown tag both miss the duplicate check and both create a spool.
+_AUTO_CREATE_LOCK = asyncio.Lock()
+
+
+def _payload_tag_id(tag_format: str, raw_data: bytes) -> str:
+    """Deterministic nfc_tag_id value for a raw payload, used to deduplicate auto-creation.
+
+    Tags without a stable identity (no TigerTag product/timestamp, no OpenPrintTag
+    instance/package UUID, no Qidi UID) can never be re-found by the format-specific
+    matchers, so repeated auto_create scans of the identical payload would create a
+    spool each time. Binding the created spool to a payload hash makes the operation
+    idempotent per payload.
+    """
+    return f"{tag_format}_payload_{hashlib.sha256(raw_data).hexdigest()[:24]}"
+
+
+async def _find_spool_by_nfc_tag_value(db: AsyncSession, value: str) -> "Spool | None":
+    """Find a spool bound (via the nfc_tag_id extra field) to the given tag value."""
+    from spoolman.database.models import Spool, SpoolField
+
+    stmt = (
+        select(Spool).join(Spool.extra).where(SpoolField.key == "nfc_tag_id").where(SpoolField.value == value).limit(1)
+    )
+    result = await db.execute(stmt)
+    return result.unique().scalar_one_or_none()
+
+
+async def _bind_nfc_tag_value_if_unbound(db: AsyncSession, spool: "Spool", value: str) -> None:
+    """Bind a tag value to a spool unless it already has an nfc_tag_id binding.
+
+    (spool_id, key) is the primary key of spool_field, so a spool that got a real
+    tag binding during creation must not receive a second one.
+    """
+    from spoolman.database.models import SpoolField
+
+    stmt = select(SpoolField).where(SpoolField.spool_id == spool.id).where(SpoolField.key == "nfc_tag_id")
+    result = await db.execute(stmt)
+    if result.scalars().first() is None:
+        db.add(SpoolField(spool_id=spool.id, key="nfc_tag_id", value=value))
+        await db.flush()
+
+
 async def _create_spool_from_tigertag(  # noqa: C901
     db: AsyncSession,
     tag_data: "TigerTagData",
@@ -589,6 +633,19 @@ async def nfc_lookup(
 
     tag_format = _detect_tag_format(raw_data, request.tag_type)
 
+    if request.auto_create:
+        async with _AUTO_CREATE_LOCK:
+            return await _dispatch_lookup(db, tag_format, raw_data, request)
+    return await _dispatch_lookup(db, tag_format, raw_data, request)
+
+
+async def _dispatch_lookup(
+    db: AsyncSession,
+    tag_format: str,
+    raw_data: bytes,
+    request: NfcLookupRequest,
+) -> NfcLookupResponse:
+    """Route a decoded-format lookup to the matching handler."""
     if tag_format == "openprinttag":
         return await _lookup_openprinttag(db, raw_data, request.nfc_tag_uid, request.auto_create)
     if tag_format == "qidi":
@@ -611,8 +668,14 @@ async def _lookup_tigertag(
         spool = await find_spool_by_tigertag(db, tag_data)
 
         if spool is None and auto_create:
-            spool = await _create_spool_from_tigertag(db, tag_data, nfc_tag_uid=nfc_tag_uid)
-            msg = f"Spool auto-created with ID {spool.id}."
+            payload_id = _payload_tag_id("tigertag", raw_data)
+            spool = await _find_spool_by_nfc_tag_value(db, payload_id)
+            if spool is None:
+                spool = await _create_spool_from_tigertag(db, tag_data, nfc_tag_uid=nfc_tag_uid)
+                await _bind_nfc_tag_value_if_unbound(db, spool, payload_id)
+                msg = f"Spool auto-created with ID {spool.id}."
+            else:
+                msg = "Spool found."
         elif spool is not None:
             msg = "Spool found."
         else:
@@ -693,8 +756,14 @@ async def _lookup_openprinttag(
         spool = await find_spool_by_openprinttag(db, tag_data)
 
         if spool is None and auto_create:
-            spool = await create_spool_from_openprinttag(db, tag_data)
-            msg = f"Spool auto-created with ID {spool.id}."
+            payload_id = _payload_tag_id("openprinttag", raw_data)
+            spool = await _find_spool_by_nfc_tag_value(db, payload_id)
+            if spool is None:
+                spool = await create_spool_from_openprinttag(db, tag_data)
+                await _bind_nfc_tag_value_if_unbound(db, spool, payload_id)
+                msg = f"Spool auto-created with ID {spool.id}."
+            else:
+                msg = "Spool found."
         elif spool is not None:
             msg = "Spool found."
         else:
@@ -755,8 +824,14 @@ async def _lookup_qidi(
         spool = await find_spool_by_qidi_tag(db, tag_data, tag_uid_hex=nfc_tag_uid_hex)
 
         if spool is None and auto_create:
-            spool = await create_spool_from_qidi_tag(db, tag_data, tag_uid_hex=nfc_tag_uid_hex)
-            msg = f"Spool auto-created with ID {spool.id}."
+            payload_id = _payload_tag_id("qidi", raw_data)
+            spool = await _find_spool_by_nfc_tag_value(db, payload_id)
+            if spool is None:
+                spool = await create_spool_from_qidi_tag(db, tag_data, tag_uid_hex=nfc_tag_uid_hex)
+                await _bind_nfc_tag_value_if_unbound(db, spool, payload_id)
+                msg = f"Spool auto-created with ID {spool.id}."
+            else:
+                msg = "Spool found."
         elif spool is not None:
             msg = "Spool found."
         else:
@@ -1097,6 +1172,19 @@ async def _create_from_tigertag_tag(
     )
     if request.color_hex:
         tag_data.color_hex = request.color_hex
+
+    # Retry/double-submit guard: this tag identity may already be bound to a spool.
+    from spoolman.tigertag_lookup import _make_nfc_tag_id
+
+    stable_id = _make_nfc_tag_id(tag_data)
+    if stable_id:
+        existing = await _find_spool_by_nfc_tag_value(db, stable_id)
+        if existing is not None:
+            return NfcCreateFromTagResponse(
+                success=True,
+                spool_id=existing.id,
+                message=f"Spool {existing.id} is already bound to this tag.",
+            )
 
     db_spool = await _create_spool_from_tigertag(db, tag_data, nfc_tag_uid=request.nfc_tag_uid)
 

@@ -301,10 +301,12 @@ Fixed by falling back to the manual parser on any `ndeflib` decode error, making
 paths behaviourally identical; `test_find_payload_malformed_ndef_record_returns_none_without_crashing`
 is the regression guard, and the suite now passes with `ndeflib` present or absent.
 
-**Bugs surfaced by the tests (behavior pinned, source unchanged — flagged for a deliberate fix):**
-`OpenPrintTagData.effective_instance_uuid`/`effective_brand_uuid` pass `bytes` to `uuid.uuid5` and
-raise `TypeError` when a UID/brand is present; the low-stock **sort** comparator in `analytics.ts`
-uses a different weight fallback than the **filter** (dead defensive branches).
+**Bugs surfaced by the tests (initially pinned, since fixed):**
+`OpenPrintTagData.effective_instance_uuid`/`effective_brand_uuid` passed `bytes` to `uuid.uuid5`,
+which raises `TypeError` on CPython < 3.12 — fixed with an RFC 4122 helper that derives the
+identical UUID on every supported interpreter (tests now assert golden values); the low-stock
+**sort** comparator in `analytics.ts` used a different weight fallback than the **filter** —
+aligned so sort and filter share one fallback chain.
 
 **Also done — Phase 1 tail + first Phase 2 integration:**
 

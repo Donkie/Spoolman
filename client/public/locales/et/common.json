@@ -1,81 +1,581 @@
 {
-    "actions": {
-        "list": "Kuva",
-        "create": "Loo",
-        "edit": "Muuda",
-        "show": "Näita",
-        "clone": "Klooni"
+  "actions": {
+    "list": "Kuva",
+    "create": "Loo",
+    "edit": "Muuda",
+    "show": "Näita",
+    "clone": "Klooni"
+  },
+  "buttons": {
+    "create": "Loo",
+    "save": "Salvesta",
+    "confirm": "Oled kindel?",
+    "clear": "Tühjenda",
+    "refresh": "Uuenda",
+    "show": "Näita",
+    "hideColumns": "Peida tulbad",
+    "clearFilters": "Tühjenda filtrid",
+    "edit": "Muuda",
+    "undo": "Võta tagasi",
+    "clone": "Klooni",
+    "archive": "Arhiveeri",
+    "notAccessTitle": "Sul pole õigusi sisenemiseks",
+    "saveAndAdd": "Salvesta ja Lisa",
+    "logout": "Logi välja",
+    "delete": "Kustuta",
+    "cancel": "Tühista",
+    "import": "Impordi",
+    "filter": "Filtreeri",
+    "unArchive": "Võta arhiivist tagasi",
+    "hideArchived": "Peida arhiveeritud",
+    "showArchived": "Näita arhiveeritud",
+    "continue": "Jätka"
+  },
+  "notifications": {
+    "error": "Viga (kood: {{statusCode}})",
+    "undoable": "Sul on {{seconds}} sekundit, et muudatus tagasi võtta.",
+    "success": "Õnnestunud",
+    "createSuccess": "Loodi {{resource}}",
+    "createError": "Tekkis viga {{resource}} loomisel. (staatuse kood: {{statusCode}})",
+    "deleteSuccess": "Edukalt kustutatud {{resource}}",
+    "deleteError": "Viga {{resource}} kustutamisel. (staatuse kood: {{statusCode}})",
+    "editSuccess": "Edukalt muudetud {{resource}}",
+    "editError": "Viga {{resource}} muutmisel (staatuse kood: {{statusCode}})",
+    "importProgress": "Importimine: {{processed}}/{{total}}",
+    "saveSuccessful": "Salvesta edukalt!",
+    "validationError": "Viga validerimisel: {{error}}"
+  },
+  "warnWhenUnsavedChanges": "Oled sa kindel, et soovid lahkuda? Sul on salvestamata muudatusi.",
+  "kofi": "Anna mulle tippi Ko-fi's",
+  "loading": "Laadimine",
+  "version": "Versioon",
+  "unknown": "Tundmatu",
+  "yes": "Jah",
+  "no": "Ei",
+  "tags": {
+    "clone": "Klooni"
+  },
+  "dashboard": {
+    "title": "Juhtpaneel"
+  },
+  "printing": {
+    "generic": {
+      "title": "Trükkib",
+      "description": "Kohanda allolevaid seadeid, et saavutada soovitud prindipaigutus. Pea meeles, et printerid ja sinu operatsioonisüsteem võivad rakendada oma veeriseid ja mõõtkava, seega võib õige tulemuse saavutamiseks olla vaja veidi katsetada. Testi seda tavalisel paberilehel, enne kui prindid päris siltidele.",
+      "helpMargin": "Veerised tuleks seadistada vastavalt sinu sildipaberile ja printerile; nende muutmine mõjutab kogu ruudustiku suurust.",
+      "helpPrinterMargin": "Turvatsoon tuleks seadistada vastavalt sellele, kui lähedale paberi servale sinu printer printida suudab; nende muutmine ei mõjuta kogu ruudustikku.",
+      "print": "Prindi",
+      "columns": "Veerud",
+      "rows": "Read",
+      "paperSize": "Paberi suurus",
+      "customSize": "Kohandatud",
+      "dimensions": "Mõõtmed",
+      "showBorder": "Näita äärist",
+      "previewScale": "Eelvaate mõõtkava",
+      "skipItems": "Jäta üksusi vahele",
+      "itemCopies": "Üksuse koopiad",
+      "contentSettings": "Sisu seaded",
+      "layoutSettings": "Paigutuse seaded",
+      "horizontalSpacing": "Horisontaalne vahe",
+      "verticalSpacing": "Vertikaalne vahe",
+      "marginLeft": "Vasak veeris",
+      "marginRight": "Parem veeris",
+      "marginTop": "Ülemine veeris",
+      "marginBottom": "Alumine veeris",
+      "printerMarginLeft": "Turvatsoon vasakul",
+      "printerMarginRight": "Turvatsoon paremal",
+      "printerMarginTop": "Turvatsoon üleval",
+      "printerMarginBottom": "Turvatsoon all",
+      "borders": {
+        "none": "Puudub",
+        "border": "Ääris",
+        "grid": "Ruudustik"
+      },
+      "settings": "Eelseadistused",
+      "defaultSettings": "Vaikimisi",
+      "addSettings": "Lisa uus eelseadistus",
+      "newSetting": "Uus",
+      "duplicateSettings": "Duplitseeri",
+      "deleteSettings": "Kustuta praegune eelseadistus",
+      "deleteSettingsConfirm": "Kas oled kindel, et soovid selle eelseadistuse kustutada?",
+      "settingsName": "Eelseadistuse nimi",
+      "saveSetting": "Salvesta eelseadistused",
+      "saveAsImage": "Salvesta pildina"
+    },
+    "qrcode": {
+      "button": "Prindi sildid",
+      "title": "Siltide printimine",
+      "template": "Sildi mall",
+      "templateHelp": "Kasuta {}, et lisada pooli objekti väärtusi tekstina. Näiteks {id} asendatakse pooli ID-ga või {filament.material} pooli materjaliga. Kui väärtus puudub, asendatakse see märgiga \"?\". Selle eemaldamiseks saab kasutada teist {}-paari. Lisaks eemaldatakse kogu {}-paaride vaheline tekst, kui väärtus puudub. Näiteks {Lot Nr: {lot_nr}} kuvatakse sildil ainult siis, kui poolil on partiinumber. Teksti paksuks kirjaks muutmiseks ümbritse see topelttärnidega **. Klõpsa nuppu, et näha kõigi saadaolevate väljade loendit.",
+      "textSize": "Sildi teksti suurus",
+      "showContent": "Prindi silt",
+      "useHTTPUrl": {
+        "label": "QR-koodi link",
+        "tooltip": "Kasutab omanduslikku linki, mis töötab ainult Spoolmani skannimisfunktsiooniga skannides (vaikimisi). URL kasutab kas seadetes määratud baas-URL-i või selle puudumisel praeguse lehe URL-i.",
+        "options": {
+          "default": "Vaikimisi",
+          "url": "URL"
+        },
+        "preview": "Eelvaade:"
+      },
+      "showQRCode": "Prindi QR-kood",
+      "showQRCodeMode": {
+        "no": "Ei",
+        "simple": "Lihtne",
+        "withIcon": "Ikooniga"
+      },
+      "exportButton": "Ekspordi sildid",
+      "printFilamentTitle": "Prindi filamendi sildid",
+      "printSpoolTitle": "Prindi pooli sildid",
+      "templateHelpFilament": "Kasuta {}, et lisada filamendi objekti väärtusi tekstina. Näiteks {id} asendatakse filamendi ID-ga või {vendor.name} tootja nimega. Kui väärtus puudub, asendatakse see märgiga \"?\". Selle eemaldamiseks saab kasutada teist {}-paari. Lisaks eemaldatakse kogu {}-paaride vaheline tekst, kui väärtus puudub. Näiteks {Article: {article_number}} kuvatakse sildil ainult siis, kui filamendil on artiklinumber. Teksti paksuks kirjaks muutmiseks ümbritse see topelttärnidega **. Klõpsa nuppu, et näha kõigi saadaolevate väljade loendit."
+    },
+    "spoolSelect": {
+      "title": "Vali poolid",
+      "description": "Vali poolid, millele silte printida.",
+      "showArchived": "Näita arhiveeritud",
+      "noSpoolsSelected": "Sa pole ühtegi pooli valinud.",
+      "selectAll": "Vali kõik / tühista valik",
+      "selectedTotal_one": "{{count}} pool valitud",
+      "selectedTotal_other": "{{count}} pooli valitud"
+    },
+    "filamentSelect": {
+      "title": "Vali filamendid",
+      "description": "Vali filamendid, millele silte printida.",
+      "noFilamentsSelected": "Sa pole ühtegi filamenti valinud.",
+      "selectAll": "Vali kõik / tühista valik",
+      "selectedTotal_one": "{{count}} filament valitud",
+      "selectedTotal_other": "{{count}} filamenti valitud"
+    }
+  },
+  "home": {
+    "total_weight": "Koguvaru",
+    "total_value": "Väärtus",
+    "low_stock": "Madal varu",
+    "all_stocked": "Kõik poolid on hästi varustatud",
+    "recently_used": "Hiljuti kasutatud",
+    "no_recent": "Hiljuti kasutatud poole pole",
+    "by_material": "Materjali järgi",
+    "by_location": "Asukoha järgi",
+    "telemetry_subtitle": "Teie filamendi varude reaalajas olek.",
+    "home": "Avaleht",
+    "welcome": "Tere tulemast oma Spoolmani instantsi!",
+    "description": "Paistab, et sa pole veel ühtegi pooli lisanud. Alustamiseks vaata <helpPageLink>abilehte</helpPageLink>.",
+    "by_vendor": "Tootja järgi"
+  },
+  "locations": {
+    "error_empty": "Nimi ei tohi olla tühi",
+    "error_exists": "Asukoht on juba olemas",
+    "locations": "Asukohad",
+    "new_location": "Uus asukoht",
+    "no_location": "Asukoht puudub",
+    "no_locations_help": "Sellel lehel saad oma poole asukohtade kaupa korraldada. Alustamiseks lisa mõned poolid!"
+  },
+  "scanner": {
+    "title": "QR-koodi skanner",
+    "description": "Skanni Spoolmani QR-koodi, et näha pooli üksikasju.",
+    "error": {
+      "notAllowed": "Sa pole kaamerale ligipääsu lubanud.",
+      "insecureContext": "Lehte ei serveerita üle HTTPS-i.",
+      "streamApiNotSupported": "Brauser ei toeta MediaStream API-t.",
+      "notReadable": "Kaamerat ei saa lugeda.",
+      "notFound": "Kaamerat ei leitud.",
+      "unknown": "Tekkis tundmatu viga. ({{error}})"
+    }
+  },
+  "spool": {
+    "spool": "Poolid",
+    "fields": {
+      "id": "ID",
+      "filament_name": "Filament",
+      "filament": "Filament",
+      "filament_internal": "Sisemine",
+      "filament_external": "Väline",
+      "price": "Hind",
+      "material": "Materjal",
+      "weight_to_use": "Kaal",
+      "used_weight": "Kasutatud kaal",
+      "remaining_weight": "Järelejäänud kaal",
+      "measured_weight": "Mõõdetud kaal",
+      "used_length": "Kasutatud pikkus",
+      "remaining_length": "Järelejäänud pikkus",
+      "initial_weight": "Algne kaal",
+      "spool_weight": "Tühikaal",
+      "location": "Asukoht",
+      "lot_nr": "Partii nr",
+      "first_used": "Esmakordselt kasutatud",
+      "last_used": "Viimati kasutatud",
+      "registered": "Registreeritud",
+      "comment": "Kommentaar",
+      "archived": "Arhiveeritud"
+    },
+    "fields_help": {
+      "price": "Täispooli hind. Kui see pole määratud, kasutatakse selle asemel filamendi hinda.",
+      "weight_to_use": "Vali, millist kaaluväärtust sisestada. Mõõdetud kaal on saadaval ainult siis, kui valitud filamendil on pooli kaal määratud.",
+      "used_weight": "Kui palju filamenti on poolilt kasutatud. Uuel poolil peaks kasutatud kogus olema 0 g.",
+      "remaining_weight": "Kui palju filamenti on poolil alles. Uue pooli puhul peaks see vastama pooli kaalule.",
+      "measured_weight": "Kui palju filament ja pool kokku kaaluvad.",
+      "initial_weight": "Filamendi algne kaal poolil (netokaal). Kui see pole määratud, kasutatakse filamendi objekti kaalu.",
+      "spool_weight": "Pooli kaal tühjana. Jäta tühjaks, et kasutada filamendi või tootja väärtust.",
+      "location": "Kus pool asub, kui sul on poolide hoiustamiseks mitu asukohta.",
+      "lot_nr": "Tootja partiinumber. Saab kasutada, et tagada prindi ühtlane värv, kui kasutatakse mitut pooli.",
+      "external_filament": "Oled valinud filamendi välisest andmebaasist. Selle pooli loomisel luuakse filamendi objekt (ja võimalik, et ka tootja objekt) automaatselt. See võib tekitada dubleerivaid filamendi objekte, kui oled sellele filamendile juba filamendi objekti loonud."
+    },
+    "titles": {
+      "create": "Loo pool",
+      "clone": "Klooni pool",
+      "edit": "Muuda pooli",
+      "list": "Poolid",
+      "show": "Näita pooli",
+      "show_title": "[Pool #{{id}}] {{name}}",
+      "archive": "Arhiveeri pool",
+      "adjust": "Kohanda pooli filamenti"
+    },
+    "form": {
+      "measurement_type": {
+        "length": "Pikkus",
+        "weight": "Kaal"
+      },
+      "measurement_type_label": "Mõõtmise tüüp",
+      "adjust_filament_help": "Siin saad poolilt filamenti otse lisada või maha arvata. Positiivne väärtus kulutab filamenti, negatiivne lisab seda.",
+      "adjust_filament_value": "Kulutatav kogus",
+      "new_location_prompt": "Sisesta uus asukoht",
+      "spool_updated": "Keegi või miski on seda pooli pärast selle lehe avamist muutnud. Salvestamine kirjutab need muudatused üle!"
+    },
+    "messages": {
+      "archive": "Kas oled kindel, et soovid selle pooli arhiveerida?"
+    },
+    "formats": {
+      "last_used": "Viimati kasutatud {{date}}"
+    }
+  },
+  "filament": {
+    "filament": "Filamendid",
+    "fields": {
+      "id": "ID",
+      "vendor_name": "Tootja",
+      "vendor": "Tootja",
+      "name": "Nimi",
+      "material": "Materjal",
+      "price": "Hind",
+      "density": "Tihedus",
+      "diameter": "Läbimõõt",
+      "weight": "Kaal",
+      "spool_weight": "Pooli kaal",
+      "article_number": "Artiklinumber",
+      "registered": "Registreeritud",
+      "comment": "Kommentaar",
+      "settings_extruder_temp": "Ekstruuderi temp",
+      "settings_bed_temp": "Aluse temp",
+      "color_hex": "Värv",
+      "single_color": "Ühevärviline",
+      "multi_color": "Mitmevärviline",
+      "coaxial": "Koekstrudeeritud",
+      "longitudinal": "Pikisuunaline",
+      "external_id": "Väline ID",
+      "spools": "Näita poole"
+    },
+    "fields_help": {
+      "name": "Filamendi nimi, et eristada seda filamendi tüüpi teistest sama tootja omadest. Peaks sisaldama näiteks värvi.",
+      "material": "Nt PLA, ABS, PETG jne.",
+      "price": "Täispooli hind.",
+      "weight": "Täispooli filamendi kaal (netokaal). See ei tohiks sisaldada pooli enda kaalu, ainult filamenti. Tavaliselt on see kirjas pakendil.",
+      "spool_weight": "Tühja pooli kaal. Kasutatakse pooli mõõdetud kaalu määramiseks.",
+      "article_number": "Nt EAN, UPC jne.",
+      "multi_color_direction": "Filamendid võivad olla mitmevärvilised kahel viisil: kas koekstrusiooni teel, nagu ühtlaste värvidega kahevärvilised filamendid, või pikisuunaliste värvimuutuste kaudu, nagu gradientfilamendid, mille värv muutub piki pooli."
+    },
+    "titles": {
+      "create": "Loo filament",
+      "clone": "Klooni filament",
+      "edit": "Muuda filamenti",
+      "list": "Filamendid",
+      "show": "Näita filamenti",
+      "show_title": "[Filament #{{id}}] {{name}}"
+    },
+    "form": {
+      "filament_updated": "Keegi või miski on seda filamenti pärast selle lehe avamist muutnud. Salvestamine kirjutab need muudatused üle!",
+      "import_external": "Impordi välisest allikast",
+      "import_external_description": "Vali loendist filament, et selle andmed filamendi loomise vormi automaatselt täita. See kirjutab üle kõik vormi sisestatud andmed.<br><br>Vajadusel luuakse tootja objekt automaatselt, kui klõpsad Ok.",
+      "import_3dfp": "3D Filament Profiles ID",
+      "import_3dfp_help": "Täida andmed automaatselt, laadides need saidilt 3dfilamentprofiles.com",
+      "import_3dfp_placeholder": "nt 12875",
+      "import_3dfp_success": "Filament laaditi saidilt 3dfilamentprofiles.com edukalt",
+      "import_3dfp_error": "Filamendi andmete laadimine saidilt 3dfilamentprofiles.com ebaõnnestus"
     },
     "buttons": {
-        "create": "Loo",
-        "save": "Salvesta",
-        "confirm": "Oled kindel?",
-        "clear": "Tühjenda",
-        "refresh": "Uuenda",
-        "show": "Näita",
-        "hideColumns": "Peida tulbad",
-        "clearFilters": "Tühjenda filtrid",
-        "edit": "Muuda",
-        "undo": "Võta tagasi",
-        "clone": "Klooni",
-        "archive": "Arhiveeri",
-        "notAccessTitle": "Sul pole õigusi sisenemiseks",
-        "saveAndAdd": "Salvesta ja Lisa",
-        "logout": "Logi välja",
-        "delete": "Kustuta",
-        "cancel": "Tühista",
-        "import": "Impordi",
-        "filter": "Filtreeri",
-        "unArchive": "Võta arhiivist tagasi",
-        "hideArchived": "Peida arhiveeritud",
-        "showArchived": "Näita arhiveeritud",
-        "continue": "Jätka"
+      "add_spool": "Lisa pool",
+      "fetch": "Laadi"
+    }
+  },
+  "vendor": {
+    "vendor": "Tootjad",
+    "fields": {
+      "id": "ID",
+      "name": "Nimi",
+      "empty_spool_weight": "Tühja pooli kaal",
+      "external_id": "Väline ID",
+      "registered": "Registreeritud",
+      "comment": "Kommentaar"
     },
-    "notifications": {
-        "error": "Viga (kood: {{statusCode}})",
-        "undoable": "Sul on {{seconds}} sekundit, et muudatus tagasi võtta.",
-        "success": "Õnnestunud",
-        "createSuccess": "Loodi {{resource}}",
-        "createError": "Tekkis viga {{resource}} loomisel. (staatuse kood: {{statusCode}})",
-        "deleteSuccess": "Edukalt kustutatud {{resource}}",
-        "deleteError": "Viga {{resource}} kustutamisel. (staatuse kood: {{statusCode}})",
-        "editSuccess": "Edukalt muudetud {{resource}}",
-        "editError": "Viga {{resource}} muutmisel (staatuse kood: {{statusCode}})",
-        "importProgress": "Importimine: {{processed}}/{{total}}",
-        "saveSuccessful": "Salvesta edukalt!",
-        "validationError": "Viga validerimisel: {{error}}"
+    "fields_help": {
+      "empty_spool_weight": "Selle tootja tühja pooli kaal."
     },
-    "warnWhenUnsavedChanges": "Oled sa kindel, et soovid lahkuda? Sul on salvestamata muudatusi.",
-    "kofi": "Anna mulle tippi Ko-fi's",
-    "loading": "Laadimine",
-    "version": "Versioon",
-    "unknown": "Tundmatu",
-    "yes": "Jah",
-    "no": "Ei",
-    "tags": {
-        "clone": "Klooni"
+    "titles": {
+      "create": "Loo tootja",
+      "clone": "Klooni tootja",
+      "edit": "Muuda tootjat",
+      "list": "Tootjad",
+      "show": "Näita tootjat",
+      "show_title": "[Tootja #{{id}}] {{name}}"
     },
-    "dashboard": {
-        "title": "Juhtpaneel"
+    "form": {
+      "vendor_updated": "Keegi või miski on seda tootjat pärast selle lehe avamist muutnud. Salvestamine kirjutab need muudatused üle!"
+    }
+  },
+  "help": {
+    "help": "Abi",
+    "resources": {
+      "filament": "Filamendi margid. Neil on omadused nagu nimi, materjal, värv, läbimõõt ja muud.",
+      "spool": "Konkreetse filamendi üksikud füüsilised poolid.",
+      "vendor": "Ettevõtted, kes filamenti toodavad."
     },
-    "printing": {
-        "generic": {
-            "title": "Trükkib"
-        }
+    "description": "<title>Abi</title><p>Siin on mõned näpunäited alustamiseks.</p><p>Spoolman hoiab kolme tüüpi andmeid:</p><itemsHelp/><p>Uue pooli lisamiseks andmebaasi alusta <filamentCreateLink>filamendi</filamentCreateLink> objekti loomisest. Kui see on tehtud, loo selle konkreetse pooli jaoks <spoolCreateLink>pooli</spoolCreateLink> objekt. Kui hangid hiljem sama filamendi poole juurde, loo lihtsalt uued pooli objektid ja kasuta sama filamendi objekti uuesti.</p><p>Soovi korral saad luua ka <vendorCreateLink>tootja</vendorCreateLink> objekti filamenti tootva ettevõtte jaoks, kui soovid seda infot jälgida.</p><p>Sul on võimalus ühendada Spoolmaniga teisi 3D-printeri teenuseid, näiteks Moonraker, mis suudab filamendi kasutust automaatselt jälgida ja pooli objekte sinu eest uuendada. Selle seadistamise juhised leiad <readmeLink>Spoolmani README-st</readmeLink>.</p>"
+  },
+  "table": {
+    "actions": "Toimingud",
+    "filter": {
+      "ok": "OK",
+      "search": "Otsi...",
+      "min": "Min...",
+      "max": "Maks...",
+      "from": "Alates...",
+      "to": "Kuni..."
+    }
+  },
+  "settings": {
+    "settings": "Seaded",
+    "header": "Seaded",
+    "general": {
+      "tab": "Üldine",
+      "currency": {
+        "label": "Valuuta"
+      },
+      "base_url": {
+        "label": "Baas-URL",
+        "tooltip": "Baas-URL, mida kasutatakse näiteks QR-koodide genereerimisel."
+      },
+      "round_prices": {
+        "label": "Ümarda hinnad",
+        "tooltip": "Ümarda hinnad lähima täisarvuni."
+      }
     },
+    "extra_fields": {
+      "tab": "Lisaväljad",
+      "description": "<p>Siin saad oma üksustele lisada kohandatud lisavälju.</p><p>Kui väli on lisatud, ei saa selle võtit ega tüüpi enam muuta, ning valikutüüpi väljadel ei saa valikuid eemaldada ega mitmikvaliku olekut muuta. Kui eemaldad välja, kustutatakse kõigi üksuste seotud andmed.</p><p>Võti on see, mille kaudu teised programmid andmeid loevad ja kirjutavad, seega kui sinu kohandatud väli peab lõimuma kolmanda osapoole programmiga, veendu, et see oleks õigesti määratud. Vaikeväärtust rakendatakse ainult uutele üksustele.</p><p>Lisavälju saab tabelivaadetes kuvada ja sortida. Valiku- ja tõeväärtusväljad pakuvad seal ka filtreerimisvõimalusi ning kõigi lisaväljatüüpide puhul saab filtreerida tühje väärtusi.</p>",
+      "params": {
+        "key": "Võti",
+        "name": "Nimi",
+        "field_type": "Tüüp",
+        "unit": "Ühik",
+        "order": "Järjekord",
+        "default_value": "Vaikeväärtus",
+        "choices": "Valikud",
+        "multi_choice": "Mitmikvalik"
+      },
+      "field_type": {
+        "text": "Tekst",
+        "integer": "Täisarv",
+        "integer_range": "Täisarvuvahemik",
+        "float": "Ujukomaarv",
+        "float_range": "Ujukomaarvu vahemik",
+        "datetime": "Kuupäev ja kellaaeg",
+        "boolean": "Tõeväärtus",
+        "choice": "Valik"
+      },
+      "boolean_true": "Jah",
+      "boolean_false": "Ei",
+      "choices_missing_error": "Valikuid ei saa eemaldada. Järgmised valikud on puudu: {{choices}}",
+      "non_unique_key_error": "Võti peab olema unikaalne.",
+      "key_not_changed": "Palun muuda võti millekski muuks.",
+      "delete_confirm": "Kas kustutada väli {{name}}?",
+      "delete_confirm_description": "See kustutab välja ja kõigi üksuste seotud andmed."
+    }
+  },
+  "documentTitle": {
+    "default": "Spoolman",
+    "suffix": " | Spoolman",
     "home": {
-        "total_weight": "Koguvaru",
-        "total_value": "Väärtus",
-        "low_stock": "Madal varu",
-        "all_stocked": "Kõik poolid on hästi varustatud",
-        "recently_used": "Hiljuti kasutatud",
-        "no_recent": "Hiljuti kasutatud poole pole",
-        "by_material": "Materjali järgi",
-        "by_location": "Asukoha järgi",
-        "telemetry_subtitle": "Teie filamendi varude reaalajas olek."
+      "list": "Avaleht | Spoolman"
+    },
+    "help": {
+      "list": "Abi | Spoolman"
     },
     "locations": {
-        "error_empty": "Nimi ei tohi olla tühi",
-        "error_exists": "Asukoht on juba olemas"
+      "list": "Asukohad | Spoolman"
+    },
+    "filament": {
+      "list": "Filamendid | Spoolman",
+      "show": "#{{id}} Näita filamenti | Spoolman",
+      "edit": "#{{id}} Muuda filamenti | Spoolman",
+      "create": "Loo filament | Spoolman",
+      "clone": "#{{id}} Klooni filament | Spoolman"
+    },
+    "spool": {
+      "list": "Poolid | Spoolman",
+      "show": "#{{id}} Näita pooli | Spoolman",
+      "edit": "#{{id}} Muuda pooli | Spoolman",
+      "create": "Loo pool | Spoolman",
+      "clone": "#{{id}} Klooni pool | Spoolman"
+    },
+    "vendor": {
+      "list": "Tootjad | Spoolman",
+      "show": "#{{id}} Näita tootjat | Spoolman",
+      "edit": "#{{id}} Muuda tootjat | Spoolman",
+      "create": "Loo tootja | Spoolman",
+      "clone": "#{{id}} Klooni tootja | Spoolman"
     }
+  },
+  "calibration": {
+    "title": "Kalibreerimine",
+    "no_data": "Kalibreerimisandmeid pole veel.",
+    "recommended_title": "Kalibreeritud seaded",
+    "no_recommended": "Soovitatud väärtusi pole veel määratud.",
+    "buttons": {
+      "start": "Alusta kalibreerimist",
+      "edit_session": "Muuda",
+      "delete_session": "Kustuta",
+      "add_step": "Lisa tulemus",
+      "edit_step": "Muuda",
+      "delete_step": "Kustuta",
+      "save": "Salvesta"
+    },
+    "fields": {
+      "last_session": "Viimane seanss",
+      "history": "Kalibreerimise ajalugu",
+      "steps_count": "{{count}} samm(u) salvestatud",
+      "no_steps": "Ühtegi sammu tulemust pole veel salvestatud.",
+      "printer_name": "Printeri nimi",
+      "nozzle_diameter": "Düüsi läbimõõt (mm)",
+      "notes": "Märkmed",
+      "status": "Olek",
+      "step_type": "Kalibreerimissamm",
+      "confidence": "Usaldusväärsus",
+      "inputs": "Sisendid",
+      "outputs_and_recommended": "Väljundid ja soovitatud väärtused"
+    },
+    "session_form": {
+      "create_title": "Alusta kalibreerimisseanssi",
+      "edit_title": "Muuda kalibreerimisseanssi"
+    },
+    "step_form": {
+      "add_title": "Lisa sammu tulemus",
+      "edit_title": "Muuda sammu tulemust",
+      "recommended_hint": "Siinsed väärtused kuvatakse pooli lehel soovitatud seadetena."
+    },
+    "status": {
+      "planned": "Plaanitud",
+      "in_progress": "Pooleli",
+      "complete": "Valmis",
+      "archived": "Arhiveeritud"
+    },
+    "confidence": {
+      "high": "Kõrge",
+      "medium": "Keskmine",
+      "low": "Madal"
+    },
+    "step_types": {
+      "temperature": "Temperatuur",
+      "volumetric_speed": "Mahuline kiirus",
+      "pressure_advance": "Pressure Advance",
+      "flow_rate": "Flow Rate",
+      "retraction": "Retraction",
+      "tolerance": "Tolerants",
+      "cornering": "Cornering",
+      "input_shaping": "Input Shaping",
+      "vfa": "VFA"
+    },
+    "delete_session_confirm": "Kas kustutada see kalibreerimisseanss ja kõik selle sammude tulemused?",
+    "delete_step_confirm": "Kas kustutada see sammu tulemus?",
+    "wizard": {
+      "title": "Kalibreerimisviisard",
+      "subtitle": "Järgi OrcaSliceri kalibreerimisjuhendit samm-sammult. Võid iga sammu vahele jätta ja hiljem jätkata.",
+      "start": "Käivita viisard",
+      "resume": "Jätka viisardit",
+      "step_of": "Samm {{current}} / {{total}}",
+      "already_done": "Juba salvestatud",
+      "buttons": {
+        "back": "Tagasi",
+        "skip": "Jäta vahele",
+        "save_continue": "Salvesta ja jätka",
+        "save_finish": "Salvesta ja lõpeta",
+        "skip_finish": "Jäta vahele ja lõpeta",
+        "finish": "Lõpeta",
+        "cancel": "Tühista"
+      },
+      "skip_finish_confirm": "Kas märkida see seanss lõpetatuks ilma seda sammu salvestamata?",
+      "session_complete": "Kalibreerimisseanss on märgitud lõpetatuks."
+    }
+  },
+  "external": {
+    "source_spoolmandb": "SpoolmanDB",
+    "source_tigertag": "TigerTag"
+  },
+  "nfc": {
+    "scan_title": "NFC-kiibi skanner",
+    "scan_description": "Skanni NFC-kiipi, et näha pooli üksikasju.",
+    "encode_button": "Kodeeri NFC-le",
+    "encode_title": "Kodeeri pool NFC-kiibile",
+    "write_success": "Kiip edukalt kirjutatud!",
+    "write_error": "Kiibi kirjutamine ebaõnnestus.",
+    "no_match": "Sellele kiibile vastavat pooli ei leitud.",
+    "create_from_tag": "Loo pool kiibi põhjal",
+    "create_from_tag_description": "Vastavat pooli ei leitud. Saad allolevate kiibi andmete põhjal luua uue pooli.",
+    "creating_spool": "Pooli loomine...",
+    "create_success": "Pool edukalt loodud!",
+    "create_error": "Pooli loomine kiibi andmetest ebaõnnestus.",
+    "tag_color": "Värv",
+    "tag_diameter": "Läbimõõt",
+    "tag_weight": "Kaal",
+    "tag_nozzle_temp": "Düüsi temp",
+    "tag_bed_temp": "Aluse temp",
+    "mode_browser": "Brauser",
+    "mode_server": "Server",
+    "unsupported": "See brauser ei toeta NFC-d.",
+    "place_tag": "Aseta kiip lugejale...",
+    "reading": "Kiibi lugemine...",
+    "writing": "Kiibi kirjutamine...",
+    "user_message": "Kasutaja sõnum",
+    "user_message_help": "Valikuline sõnum (max 28 tähemärki)",
+    "preview_title": "Andmete eelvaade",
+    "status": {
+      "connected": "Ühendatud",
+      "disconnected": "Ühendamata",
+      "disabled": "Keelatud"
+    },
+    "browser_ndef_warning": "Hoiatus: brauseri NFC-kirjutused kasutavad NDEF-vormingut. Nii kirjutatud kiipe EI tunne TigerTag rakendus ära, kuna see eeldab toorbinaarandmeid lehtedel 4–39. TigerTagiga ühilduvaks kirjutamiseks kasuta serverirežiimi või laadi alla toorbinaarfail, mida kasutada välise NFC-tööriistaga.",
+    "download_raw_binary": "Laadi alla toorbinaarfail",
+    "download_success": "Binaarfail edukalt alla laaditud.",
+    "browser_write_success": "TigerTagi andmed kirjutati NFC-kiibile NDEF-i kaudu.",
+    "error": {
+      "no_reader": "NFC-lugejat ei tuvastatud.",
+      "read_failed": "Kiibi lugemine ebaõnnestus.",
+      "write_failed": "Kiibi kirjutamine ebaõnnestus.",
+      "not_supported": "See brauser ei toeta Web NFC-d. Kasuta serverirežiimi koos ühendatud lugejaga.",
+      "permission_denied": "NFC luba keelati.",
+      "encode_failed": "TigerTagi andmete kodeerimine ebaõnnestus."
+    },
+    "bind_title": "Seo NFC-kiip pooliga",
+    "bind_button": "Seo NFC-kiip",
+    "bind_description": "Skanni olemasolevat NFC-kiipi, et siduda see selle pooliga. Selle kiibi tulevased skannimised valivad automaatselt selle pooli.",
+    "bind_confirm_description": "Kiip skannitud. Vaata allolevad kiibi andmed üle ja kinnita, et siduda see selle pooliga.",
+    "bind_binding": "Sidumine...",
+    "bind_success": "Kiip edukalt pooliga seotud!",
+    "bind_error": "Kiibi sidumine pooliga ebaõnnestus.",
+    "bind_scan_again": "Skanni uuesti",
+    "bind_no_tigertag": "Sellel kiibil ei leitud TigerTagi andmeid. Sidumiseks toetatakse ainult TigerTagi vormingut.",
+    "tag_format": "Kiibi vorming",
+    "tag_format_label": "Kiibi vorming",
+    "tag_material": "Materjal",
+    "tag_material_type": "Materjali tüüp",
+    "qidi_write_info": "Qidi kiibid salvestavad ainult materjali ja värvi. Kiibile kirjutatakse lähima vastega Qidi materjali- ja värvikoodid."
+  }
 }

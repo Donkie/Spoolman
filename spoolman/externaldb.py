@@ -19,7 +19,7 @@ from spoolman.env import get_cache_dir
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_EXTERNAL_DB_URL = "https://donkie.github.io/SpoolmanDB/"
+DEFAULT_EXTERNAL_DB_URL = "https://sherrmann.github.io/SpoolmanDB/"
 DEFAULT_SYNC_INTERVAL = 3600
 
 policy = hishel.SpecificationPolicy(cache_options=hishel.CacheOptions(allow_stale=True))

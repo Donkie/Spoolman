@@ -21,6 +21,7 @@ payload finder returns ``None`` (never raises) on truncated/malformed NDEF data,
 regardless of which parser backs it.
 """
 
+import hashlib
 import io
 import uuid
 
@@ -328,37 +329,34 @@ def test_effective_brand_uuid_prefers_explicit_and_none_without_source():
     assert OpenPrintTagData().effective_brand_uuid is None
 
 
-def test_effective_instance_uuid_from_bytes_uid_is_version_dependent():
-    """Deriving from a bytes tag UID hits ``uuid.uuid5`` with bytes.
+def test_effective_instance_uuid_derives_from_bytes_uid_on_all_pythons():
+    """A bytes tag UID deterministically derives a v5 UUID on every interpreter.
 
-    ``effective_instance_uuid`` passes ``nfc_tag_uid`` (bytes) straight to
-    ``uuid.uuid5``. CPython < 3.12 rejects a bytes ``name`` with ``TypeError``;
-    3.12+ accepts it and derives a UUID. That is a latent portability issue (the
-    project supports Python >= 3.10) flagged for a deliberate source fix — here we
-    pin whichever behaviour the running interpreter exhibits so the test is stable
-    across the whole supported range. Source is read-only.
+    Golden value: RFC 4122 uuid5 over ``UUID_NS_INSTANCE`` with the raw UID bytes
+    as the name — identical to what CPython 3.12+'s ``uuid.uuid5`` produces when
+    handed bytes, so tag bindings created by the Docker image (3.14) stay stable.
     """
     tag = OpenPrintTagData(nfc_tag_uid=b"\x01\x02\x03\x04")
-    try:
-        derived = tag.effective_instance_uuid
-    except TypeError:
-        return  # pre-3.12: uuid5 rejects the bytes UID
-    assert derived  # 3.12+: a UUID is derived from the tag UID
+    derived = tag.effective_instance_uuid
+    assert derived is not None
+    assert uuid.UUID(derived).version == 5
+    expected = uuid.UUID(bytes=hashlib.sha1(UUID_NS_INSTANCE.bytes + b"\x01\x02\x03\x04").digest()[:16], version=5)  # noqa: S324
+    assert derived == str(expected)
+    # Deterministic: same UID always derives the same UUID
+    assert OpenPrintTagData(nfc_tag_uid=b"\x01\x02\x03\x04").effective_instance_uuid == derived
 
 
-def test_effective_brand_uuid_from_name_is_version_dependent():
-    """Deriving a brand UUID from a name hits ``uuid.uuid5`` with bytes.
+def test_effective_brand_uuid_derives_from_name_on_all_pythons():
+    """A brand name deterministically derives a v5 UUID on every interpreter.
 
-    ``effective_brand_uuid`` calls ``uuid.uuid5(ns, brand_name.encode(...))``,
-    passing ``bytes``; as above this raises on CPython < 3.12 and derives on 3.12+.
-    Pinned version-agnostically; source unchanged.
+    Golden value: standard str-name uuid5, whose UTF-8 encoding matches the bytes
+    the pre-fix code passed on CPython 3.12+ — existing derived brand UUIDs are
+    unchanged.
     """
     tag = OpenPrintTagData(brand_name="Prusament")
-    try:
-        derived = tag.effective_brand_uuid
-    except TypeError:
-        return  # pre-3.12: uuid5 rejects the bytes name
-    assert derived  # 3.12+: a UUID is derived from the brand name
+    derived = tag.effective_brand_uuid
+    assert derived == str(uuid.uuid5(UUID_NS_BRAND, "Prusament"))
+    assert uuid.UUID(derived).version == 5
 
 
 def test_uuid_namespaces_are_stable_constants():

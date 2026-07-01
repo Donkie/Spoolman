@@ -7,6 +7,7 @@ containing CBOR-encoded sections (meta, main, aux).
 Based on the OpenPrintTag specification: https://specs.openprinttag.org
 """
 
+import hashlib
 import io
 import logging
 import uuid
@@ -75,6 +76,18 @@ UUID_NS_BRAND = uuid.UUID("5269dfb7-1559-440a-85be-aba5f3eff2d2")
 UUID_NS_MATERIAL = uuid.UUID("616fc86d-7d99-4953-96c7-46d2836b9be9")
 UUID_NS_PACKAGE = uuid.UUID("6f7d485e-db8d-4979-904e-a231cd6602b2")
 UUID_NS_INSTANCE = uuid.UUID("31062f81-b5bd-4f86-a5f8-46367e841508")
+
+
+def _uuid5_from_bytes(namespace: uuid.UUID, name: bytes) -> uuid.UUID:
+    """RFC 4122 version-5 UUID for a raw-bytes name.
+
+    ``uuid.uuid5`` only accepts a ``bytes`` name on CPython >= 3.12; this produces
+    the identical UUID on every supported interpreter, so tag-UID-derived
+    instance UUIDs stay stable across Docker (3.14) and native installs (>= 3.10).
+    """
+    digest = hashlib.sha1(namespace.bytes + name).digest()  # noqa: S324 # SHA-1 is mandated by RFC 4122 for uuid5
+    return uuid.UUID(bytes=digest[:16], version=5)
+
 
 # Main section field keys
 MF_INSTANCE_UUID = 0
@@ -174,8 +187,7 @@ class OpenPrintTagData:
         if self.instance_uuid:
             return self.instance_uuid
         if self.nfc_tag_uid:
-            derived = uuid.uuid5(UUID_NS_INSTANCE, self.nfc_tag_uid)
-            return str(derived)
+            return str(_uuid5_from_bytes(UUID_NS_INSTANCE, self.nfc_tag_uid))
         return None
 
     @property
@@ -184,8 +196,7 @@ class OpenPrintTagData:
         if self.brand_uuid:
             return self.brand_uuid
         if self.brand_name:
-            derived = uuid.uuid5(UUID_NS_BRAND, self.brand_name.encode("utf-8"))
-            return str(derived)
+            return str(uuid.uuid5(UUID_NS_BRAND, self.brand_name))
         return None
 
 

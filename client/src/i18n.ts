@@ -149,6 +149,17 @@ export const languages: { [key: string]: Language } = {
     fullCode: "tr-TR",
     djs: () => import("dayjs/locale/tr"),
   },
+  ["et"]: {
+    name: "Eesti",
+    fullCode: "et-EE",
+    djs: () => import("dayjs/locale/et"),
+  },
+  // dayjs has no hi-Latn locale; plain English date formatting fits romanized Hindi UIs better than Devanagari
+  ["hi-Latn"]: {
+    name: "Hinglish",
+    fullCode: "hi-IN",
+    djs: () => import("dayjs/locale/en"),
+  },
 };
 
 i18n

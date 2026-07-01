@@ -1,32 +1,581 @@
 {
-    "actions": {
-        "list": "Suchi",
-        "create": "Banaye",
-        "edit": "Sampadan Karen",
-        "show": "Dikhayen",
-        "clone": "Clone"
+  "actions": {
+    "list": "Suchi",
+    "create": "Banaye",
+    "edit": "Sampadan Karen",
+    "show": "Dikhayen",
+    "clone": "Clone"
+  },
+  "buttons": {
+    "create": "Banaye",
+    "save": "Sahejen",
+    "edit": "Sampadan Karen",
+    "confirm": "Kya aapko pakka hai?",
+    "continue": "Aage badhen",
+    "show": "Dikhayen",
+    "saveAndAdd": "Save karein aur jodein",
+    "logout": "Log out karein",
+    "delete": "Delete karein",
+    "cancel": "Cancel karein",
+    "filter": "Filter karein",
+    "clear": "Saaf karein",
+    "refresh": "Refresh karein",
+    "undo": "Undo karein",
+    "import": "Import karein",
+    "clone": "Clone karein",
+    "archive": "Archive karein",
+    "unArchive": "Unarchive karein",
+    "hideArchived": "Archived chhupayen",
+    "showArchived": "Archived dikhayen",
+    "notAccessTitle": "Aapko access karne ki anumati nahi hai",
+    "hideColumns": "Columns chhupayen",
+    "clearFilters": "Filters saaf karein"
+  },
+  "home": {
+    "total_weight": "Kul stock",
+    "total_value": "Mulya",
+    "low_stock": "Kam stock",
+    "all_stocked": "Sabhi spool achhe se stock hain",
+    "recently_used": "Haal hi mein istemal ki gayi",
+    "no_recent": "Koi haal hi mein istemal ki gayi spool nahi",
+    "by_material": "Material ke anusaar",
+    "by_location": "Jagah ke anusaar",
+    "telemetry_subtitle": "Aapke filament inventory ki real-time sthiti.",
+    "home": "Home",
+    "welcome": "Aapke Spoolman instance mein swagat hai!",
+    "description": "Lagta hai aapne abhi tak koi spool nahi jodi hai. Shuruaat karne mein madad ke liye <helpPageLink>Help page</helpPageLink> dekhein.",
+    "by_vendor": "Manufacturer ke anusaar"
+  },
+  "locations": {
+    "error_empty": "Naam khaali nahi ho sakta",
+    "error_exists": "Jagah pehle se maujood hai",
+    "locations": "Jagahein",
+    "new_location": "Nayi Jagah",
+    "no_location": "Koi Jagah nahi",
+    "no_locations_help": "Is page par aap apni spools ko jagahon ke hisaab se organize kar sakte hain, shuruaat karne ke liye kuch spools jodein!"
+  },
+  "warnWhenUnsavedChanges": "Kya aap sach mein jaana chahte hain? Aapke kuch badlav save nahi hue hain.",
+  "notifications": {
+    "success": "Safal",
+    "error": "Error (status code: {{statusCode}})",
+    "undoable": "Undo karne ke liye aapke paas {{seconds}} second hain.",
+    "createSuccess": "{{resource}} safaltapoorvak banaya gaya",
+    "createError": "{{resource}} banane mein error hua (status code: {{statusCode}})",
+    "deleteSuccess": "{{resource}} safaltapoorvak delete kiya gaya",
+    "deleteError": "{{resource}} delete karne mein error hua (status code: {{statusCode}})",
+    "editSuccess": "{{resource}} safaltapoorvak edit kiya gaya",
+    "editError": "{{resource}} edit karne mein error hua (status code: {{statusCode}})",
+    "importProgress": "Import ho raha hai: {{processed}}/{{total}}",
+    "saveSuccessful": "Save safal raha!",
+    "validationError": "Validation error: {{error}}"
+  },
+  "kofi": "Ko-fi par mujhe tip dein",
+  "loading": "Load ho raha hai",
+  "version": "Version",
+  "unknown": "Agyaat",
+  "yes": "Haan",
+  "no": "Nahi",
+  "tags": {
+    "clone": "Clone"
+  },
+  "dashboard": {
+    "title": "Dashboard"
+  },
+  "printing": {
+    "generic": {
+      "title": "Printing",
+      "description": "Manchaaha print layout paane ke liye neeche di gayi settings ko adjust karein. Dhyan rahe ki printers aur aapka OS apne khud ke margins aur scaling laga sakte hain, isliye sab sahi hone se pehle aapko kuch trial-and-error karna pad sakta hai. Asli labels par print karne se pehle ise saade kaagaz par test karein.",
+      "helpMargin": "Margins ko aapke label paper aur printer ke hisaab se set karna chahiye, inhe badalne se poore grid ka size badal jayega.",
+      "helpPrinterMargin": "Safe-Zone ko is hisaab se set karein ki aapka printer kaagaz ke kinare ke kitne paas tak print kar sakta hai, inhe badalne se poora grid prabhavit nahi hoga.",
+      "print": "Print karein",
+      "columns": "Columns",
+      "rows": "Rows",
+      "paperSize": "Paper Size",
+      "customSize": "Custom",
+      "dimensions": "Dimensions",
+      "showBorder": "Border dikhayen",
+      "previewScale": "Preview Scale",
+      "skipItems": "Items chhodein",
+      "itemCopies": "Item Copies",
+      "contentSettings": "Content Settings",
+      "layoutSettings": "Layout Settings",
+      "horizontalSpacing": "Horizontal Spacing",
+      "verticalSpacing": "Vertical Spacing",
+      "marginLeft": "Baayan Margin",
+      "marginRight": "Daayan Margin",
+      "marginTop": "Upar ka Margin",
+      "marginBottom": "Neeche ka Margin",
+      "printerMarginLeft": "Safe-Zone Baayan",
+      "printerMarginRight": "Safe-Zone Daayan",
+      "printerMarginTop": "Safe-Zone Upar",
+      "printerMarginBottom": "Safe-Zone Neeche",
+      "borders": {
+        "none": "Koi nahi",
+        "border": "Border",
+        "grid": "Grid"
+      },
+      "settings": "Presets",
+      "defaultSettings": "Default",
+      "addSettings": "Naya Preset jodein",
+      "newSetting": "Naya",
+      "duplicateSettings": "Duplicate karein",
+      "deleteSettings": "Maujooda Preset delete karein",
+      "deleteSettingsConfirm": "Kya aap sach mein is preset ko delete karna chahte hain?",
+      "settingsName": "Preset ka Naam",
+      "saveSetting": "Presets save karein",
+      "saveAsImage": "Image ke roop mein save karein"
+    },
+    "qrcode": {
+      "button": "Labels print karein",
+      "title": "Label Printing",
+      "template": "Label Template",
+      "templateHelp": "Spool object ki values ko text ke roop mein daalne ke liye {} ka istemal karein. Udaharan ke liye, {id} spool id se badal diya jayega, ya {filament.material} spool ke material se badal diya jayega. Agar koi value missing hai to use \"?\" se badal diya jayega. Ise hatane ke liye {} ka doosra set istemal kiya ja sakta hai. Iske alawa, agar value missing hai to {} ke sets ke beech ka saara text hata diya jayega. Udaharan ke liye, {Lot Nr: {lot_nr}} tabhi label par dikhega jab spool ka lot number ho. Text ko bold banane ke liye use double asterix ** se gherein. Sabhi uplabdh tags ki list dekhne ke liye button par click karein.",
+      "textSize": "Label Text Size",
+      "showContent": "Label print karein",
+      "useHTTPUrl": {
+        "label": "QR code link",
+        "tooltip": "Proprietary link ka istemal karega jo sirf Spoolman ke scanning feature se scan karne par kaam karega (default). URL ya to settings mein diye gaye base URL ka istemal karta hai, ya set na hone par current page ke URL ka.",
+        "options": {
+          "default": "Default",
+          "url": "URL"
+        },
+        "preview": "Preview:"
+      },
+      "showQRCode": "QR Code print karein",
+      "showQRCodeMode": {
+        "no": "Nahi",
+        "simple": "Saral",
+        "withIcon": "Icon ke saath"
+      },
+      "exportButton": "Labels export karein",
+      "printFilamentTitle": "Filament Labels print karein",
+      "printSpoolTitle": "Spool Labels print karein",
+      "templateHelpFilament": "Filament object ki values ko text ke roop mein daalne ke liye {} ka istemal karein. Udaharan ke liye, {id} filament id se badal diya jayega, ya {vendor.name} vendor ke naam se badal diya jayega. Agar koi value missing hai to use \"?\" se badal diya jayega. Ise hatane ke liye {} ka doosra set istemal kiya ja sakta hai. Iske alawa, agar value missing hai to {} ke sets ke beech ka saara text hata diya jayega. Udaharan ke liye, {Article: {article_number}} tabhi label par dikhega jab filament ka article number ho. Text ko bold banane ke liye use double asterix ** se gherein. Sabhi uplabdh tags ki list dekhne ke liye button par click karein."
+    },
+    "spoolSelect": {
+      "title": "Spools chunein",
+      "description": "Labels print karne ke liye spools chunein.",
+      "showArchived": "Archived dikhayen",
+      "noSpoolsSelected": "Aapne koi spool select nahi kiya hai.",
+      "selectAll": "Sabhi Select/Unselect karein",
+      "selectedTotal_one": "{{count}} spool select kiya gaya",
+      "selectedTotal_other": "{{count}} spools select kiye gaye"
+    },
+    "filamentSelect": {
+      "title": "Filaments chunein",
+      "description": "Labels print karne ke liye filaments chunein.",
+      "noFilamentsSelected": "Aapne koi filament select nahi kiya hai.",
+      "selectAll": "Sabhi Select/Unselect karein",
+      "selectedTotal_one": "{{count}} filament select kiya gaya",
+      "selectedTotal_other": "{{count}} filaments select kiye gaye"
+    }
+  },
+  "scanner": {
+    "title": "QR Code Scanner",
+    "description": "Spool ki jaankari dekhne ke liye ek Spoolman QR code scan karein.",
+    "error": {
+      "notAllowed": "Aapne camera ka access allow nahi kiya hai.",
+      "insecureContext": "Yeh page HTTPS par serve nahi ho raha hai.",
+      "streamApiNotSupported": "Browser MediaStream API ko support nahi karta.",
+      "notReadable": "Camera padha nahi ja sakta.",
+      "notFound": "Koi camera nahi mila.",
+      "unknown": "Ek agyaat error hua. ({{error}})"
+    }
+  },
+  "spool": {
+    "spool": "Spools",
+    "fields": {
+      "id": "ID",
+      "filament_name": "Filament",
+      "filament": "Filament",
+      "filament_internal": "Internal",
+      "filament_external": "External",
+      "price": "Keemat",
+      "material": "Material",
+      "weight_to_use": "Vajan",
+      "used_weight": "Istemal hua Vajan",
+      "remaining_weight": "Bacha hua Vajan",
+      "measured_weight": "Maapa gaya Vajan",
+      "used_length": "Istemal hui Lambai",
+      "remaining_length": "Bachi hui Lambai",
+      "initial_weight": "Shuruaati Vajan",
+      "spool_weight": "Khaali Vajan",
+      "location": "Jagah",
+      "lot_nr": "Lot Nr",
+      "first_used": "Pehli baar istemal",
+      "last_used": "Aakhri baar istemal",
+      "registered": "Registered",
+      "comment": "Comment",
+      "archived": "Archived"
+    },
+    "fields_help": {
+      "price": "Poori spool ki keemat. Agar set nahi hai, to filament ki keemat maani jayegi.",
+      "weight_to_use": "Chunein ki kaunsi weight value enter karni hai. Measured weight tabhi uplabdh hai jab chune gaye filament ke liye spool weight set ho.",
+      "used_weight": "Spool se kitna filament istemal ho chuka hai. Nayi spool mein 0g istemal hona chahiye.",
+      "remaining_weight": "Spool par kitna filament bacha hai. Nayi spool ke liye yeh spool ke filament weight ke barabar hona chahiye.",
+      "measured_weight": "Filament aur spool ka kul vajan kitna hai.",
+      "initial_weight": "Spool par filament ka shuruaati vajan (net weight). Agar set nahi hai to filament object ka weight istemal hoga.",
+      "spool_weight": "Khaali spool ka vajan. Filament ya manufacturer ki value istemal karne ke liye khaali chhodein.",
+      "location": "Spool kahan rakhi hai, agar aapke paas spools rakhne ki kai jagahein hain.",
+      "lot_nr": "Manufacturer ka lot number. Kai spools istemal hone par print ka rang ek jaisa rakhne ke liye iska istemal kiya ja sakta hai.",
+      "external_filament": "Aapne external database se ek filament chuna hai. Jab aap yeh spool banayenge to ek filament object (aur shayad ek manufacturer object) apne aap ban jayega. Agar aapne is filament ke liye pehle se filament object banaya hai to isse duplicate filament objects ban sakte hain."
+    },
+    "titles": {
+      "create": "Spool banayein",
+      "clone": "Spool clone karein",
+      "edit": "Spool edit karein",
+      "list": "Spools",
+      "show": "Spool dikhayen",
+      "show_title": "[Spool #{{id}}] {{name}}",
+      "archive": "Spool archive karein",
+      "adjust": "Spool ka Filament adjust karein"
+    },
+    "form": {
+      "measurement_type": {
+        "length": "Lambai",
+        "weight": "Vajan"
+      },
+      "measurement_type_label": "Maap ka Prakaar",
+      "adjust_filament_help": "Yahan aap spool se seedhe filament joda ya ghata sakte hain. Positive value filament consume karegi, negative value use jodegi.",
+      "adjust_filament_value": "Consume ki Matra",
+      "new_location_prompt": "Nayi jagah enter karein",
+      "spool_updated": "Jab se aapne yeh page khola hai, tab se is spool ko kisi aur ne/kisi cheez ne update kiya hai. Save karne par woh badlav overwrite ho jayenge!"
+    },
+    "messages": {
+      "archive": "Kya aap sach mein is spool ko archive karna chahte hain?"
+    },
+    "formats": {
+      "last_used": "Aakhri baar istemal {{date}}"
+    }
+  },
+  "filament": {
+    "filament": "Filaments",
+    "fields": {
+      "id": "ID",
+      "vendor_name": "Manufacturer",
+      "vendor": "Manufacturer",
+      "name": "Naam",
+      "material": "Material",
+      "price": "Keemat",
+      "density": "Density",
+      "diameter": "Diameter",
+      "weight": "Vajan",
+      "spool_weight": "Spool ka Vajan",
+      "article_number": "Article Number",
+      "registered": "Registered",
+      "comment": "Comment",
+      "settings_extruder_temp": "Extruder Temp",
+      "settings_bed_temp": "Bed Temp",
+      "color_hex": "Rang",
+      "single_color": "Single",
+      "multi_color": "Multi",
+      "coaxial": "Coextruded",
+      "longitudinal": "Longitudinal",
+      "external_id": "External ID",
+      "spools": "Spools dikhayen"
+    },
+    "fields_help": {
+      "name": "Filament ka naam, taaki isse usi manufacturer ke doosre filament types se alag pehchana ja sake. Ismein udaharan ke liye rang shamil hona chahiye.",
+      "material": "Jaise PLA, ABS, PETG, aadi.",
+      "price": "Poori spool ki keemat.",
+      "weight": "Poori spool ka filament vajan (net weight). Ismein spool ka apna vajan shamil nahi hona chahiye, sirf filament ka. Yeh wahi hota hai jo aam taur par packaging par likha hota hai.",
+      "spool_weight": "Khaali spool ka vajan. Spool ka measured weight nikaalne ke liye istemal hota hai.",
+      "article_number": "Jaise EAN, UPC, aadi.",
+      "multi_color_direction": "Filaments do tarah se kai rang ke ho sakte hain: ya to coextrusion se, jaise dual-color filaments jinke multi-colors ek jaise rehte hain, ya longitudinal rang badlav se, jaise gradient filaments jinke rang spool ke saath-saath badalte hain."
+    },
+    "titles": {
+      "create": "Filament banayein",
+      "clone": "Filament clone karein",
+      "edit": "Filament edit karein",
+      "list": "Filaments",
+      "show": "Filament dikhayen",
+      "show_title": "[Filament #{{id}}] {{name}}"
+    },
+    "form": {
+      "filament_updated": "Jab se aapne yeh page khola hai, tab se is filament ko kisi aur ne/kisi cheez ne update kiya hai. Save karne par woh badlav overwrite ho jayenge!",
+      "import_external": "External se import karein",
+      "import_external_description": "Filament creation form mein details apne aap bharne ke liye list mein se ek filament chunein. Isse form mein aapka bhara hua data overwrite ho jayega.<br><br>Zaroorat hone par, Ok click karne par ek Manufacturer object apne aap ban jayega.",
+      "import_3dfp": "3D Filament Profiles ID",
+      "import_3dfp_help": "3dfilamentprofiles.com se jaankari laakar apne aap bharein",
+      "import_3dfp_placeholder": "jaise 12875",
+      "import_3dfp_success": "3dfilamentprofiles.com se filament safaltapoorvak fetch kiya gaya",
+      "import_3dfp_error": "3dfilamentprofiles.com se filament data fetch karne mein vifal"
     },
     "buttons": {
-        "create": "Banaye",
-        "save": "Sahejen",
-        "edit": "Sampadan Karen",
-        "confirm": "Kya aapko pakka hai?",
-        "continue": "Aage badhen",
-        "show": "Dikhayen"
+      "add_spool": "Spool jodein",
+      "fetch": "Fetch karein"
+    }
+  },
+  "vendor": {
+    "vendor": "Manufacturers",
+    "fields": {
+      "id": "ID",
+      "name": "Naam",
+      "empty_spool_weight": "Khaali Spool ka Vajan",
+      "external_id": "External ID",
+      "registered": "Registered",
+      "comment": "Comment"
     },
+    "fields_help": {
+      "empty_spool_weight": "Is manufacturer ki khaali spool ka vajan."
+    },
+    "titles": {
+      "create": "Manufacturer banayein",
+      "clone": "Manufacturer clone karein",
+      "edit": "Manufacturer edit karein",
+      "list": "Manufacturers",
+      "show": "Manufacturer dikhayen",
+      "show_title": "[Manufacturer #{{id}}] {{name}}"
+    },
+    "form": {
+      "vendor_updated": "Jab se aapne yeh page khola hai, tab se is manufacturer ko kisi aur ne/kisi cheez ne update kiya hai. Save karne par woh badlav overwrite ho jayenge!"
+    }
+  },
+  "help": {
+    "help": "Help",
+    "resources": {
+      "filament": "Filament ke brands. Inmein naam, material, rang, diameter jaisi properties hoti hain.",
+      "spool": "Kisi khaas filament ki alag-alag physical spools.",
+      "vendor": "Woh companies jo filament banati hain."
+    },
+    "description": "<title>Help</title><p>Shuruaat karne ke liye yahan kuch tips hain.</p><p>Spoolman 3 alag-alag prakaar ka data rakhta hai:</p><itemsHelp/><p>Database mein nayi spool jodne ke liye, pehle ek <filamentCreateLink>Filament</filamentCreateLink> object banayein. Uske baad, us khaas spool ke liye ek <spoolCreateLink>Spool</spoolCreateLink> object banayein. Agar aap baad mein usi filament ki aur spools lete hain, to bas aur Spool objects bana lein aur wahi Filament object dobara istemal karein.</p><p>Chaahein to, filament banane wali company ki jaankari track karne ke liye aap ek <vendorCreateLink>Manufacturer</vendorCreateLink> object bhi bana sakte hain.</p><p>Aap doosri 3D printer services ko Spoolman se jod sakte hain, jaise Moonraker, jo apne aap filament ke istemal par nazar rakhkar Spool objects update kar sakti hai. Ise set up karne ke liye <readmeLink>Spoolman README</readmeLink> dekhein.</p>"
+  },
+  "table": {
+    "actions": "Actions",
+    "filter": {
+      "ok": "OK",
+      "search": "Khojein...",
+      "min": "Min...",
+      "max": "Max...",
+      "from": "Se...",
+      "to": "Tak..."
+    }
+  },
+  "settings": {
+    "settings": "Settings",
+    "header": "Settings",
+    "general": {
+      "tab": "General",
+      "currency": {
+        "label": "Currency"
+      },
+      "base_url": {
+        "label": "Base URL",
+        "tooltip": "QR codes jaisi features generate karte samay istemal hone wala base URL."
+      },
+      "round_prices": {
+        "label": "Keematein round karein",
+        "tooltip": "Keematon ko nazdeeki poore number tak round karein."
+      }
+    },
+    "extra_fields": {
+      "tab": "Extra Fields",
+      "description": "<p>Yahan aap apni entities mein extra custom fields jod sakte hain.</p><p>Ek baar field jud jaane par, aap uski key ya type nahi badal sakte, aur choice type fields ke liye aap na choices hata sakte hain na multi choice state badal sakte hain. Agar aap koi field hataate hain, to sabhi entities ka usse juda data delete ho jayega.</p><p>Key wahi hai jiske roop mein doosre programs data padhte/likhte hain, isliye agar aapka custom field kisi third-party program ke saath integrate hona hai, to use sahi set karein. Default value sirf naye items par lagoo hoti hai.</p><p>Extra fields ko table views mein dikhaya aur sort kiya ja sakta hai. Choice aur boolean fields wahan filter options bhi dete hain, aur sabhi extra field types khaali values ke liye filtering support karte hain.</p>",
+      "params": {
+        "key": "Key",
+        "name": "Naam",
+        "field_type": "Type",
+        "unit": "Unit",
+        "order": "Kram",
+        "default_value": "Default Value",
+        "choices": "Choices",
+        "multi_choice": "Multi Choice"
+      },
+      "field_type": {
+        "text": "Text",
+        "integer": "Integer",
+        "integer_range": "Integer Range",
+        "float": "Float",
+        "float_range": "Float Range",
+        "datetime": "Datetime",
+        "boolean": "Boolean",
+        "choice": "Choice"
+      },
+      "boolean_true": "Haan",
+      "boolean_false": "Nahi",
+      "choices_missing_error": "Aap choices hata nahi sakte. Yeh choices missing hain: {{choices}}",
+      "non_unique_key_error": "Key unique honi chahiye.",
+      "key_not_changed": "Kripya key ko kisi aur cheez mein badlein.",
+      "delete_confirm": "Field {{name}} delete karein?",
+      "delete_confirm_description": "Isse yeh field aur sabhi entities ka isse juda saara data delete ho jayega."
+    }
+  },
+  "documentTitle": {
+    "default": "Spoolman",
+    "suffix": " | Spoolman",
     "home": {
-        "total_weight": "Kul stock",
-        "total_value": "Mulya",
-        "low_stock": "Kam stock",
-        "all_stocked": "Sabhi spool achhe se stock hain",
-        "recently_used": "Haal hi mein istemal ki gayi",
-        "no_recent": "Koi haal hi mein istemal ki gayi spool nahi",
-        "by_material": "Material ke anusaar",
-        "by_location": "Jagah ke anusaar",
-        "telemetry_subtitle": "Aapke filament inventory ki real-time sthiti."
+      "list": "Home | Spoolman"
+    },
+    "help": {
+      "list": "Help | Spoolman"
     },
     "locations": {
-        "error_empty": "Naam khaali nahi ho sakta",
-        "error_exists": "Jagah pehle se maujood hai"
+      "list": "Jagahein | Spoolman"
+    },
+    "filament": {
+      "list": "Filaments | Spoolman",
+      "show": "#{{id}} Filament dikhayen | Spoolman",
+      "edit": "#{{id}} Filament edit karein | Spoolman",
+      "create": "Filament banayein | Spoolman",
+      "clone": "#{{id}} Filament clone karein | Spoolman"
+    },
+    "spool": {
+      "list": "Spools | Spoolman",
+      "show": "#{{id}} Spool dikhayen | Spoolman",
+      "edit": "#{{id}} Spool edit karein | Spoolman",
+      "create": "Spool banayein | Spoolman",
+      "clone": "#{{id}} Spool clone karein | Spoolman"
+    },
+    "vendor": {
+      "list": "Manufacturers | Spoolman",
+      "show": "#{{id}} Manufacturer dikhayen | Spoolman",
+      "edit": "#{{id}} Manufacturer edit karein | Spoolman",
+      "create": "Manufacturer banayein | Spoolman",
+      "clone": "#{{id}} Manufacturer clone karein | Spoolman"
     }
+  },
+  "calibration": {
+    "title": "Calibration",
+    "no_data": "Abhi tak koi calibration data nahi hai.",
+    "recommended_title": "Calibrated Settings",
+    "no_recommended": "Abhi tak koi recommended values set nahi hain.",
+    "buttons": {
+      "start": "Calibration shuru karein",
+      "edit_session": "Edit karein",
+      "delete_session": "Delete karein",
+      "add_step": "Result jodein",
+      "edit_step": "Edit karein",
+      "delete_step": "Delete karein",
+      "save": "Save karein"
+    },
+    "fields": {
+      "last_session": "Aakhri session",
+      "history": "Calibration History",
+      "steps_count": "{{count}} step(s) record kiye gaye",
+      "no_steps": "Abhi tak koi step results record nahi hue hain.",
+      "printer_name": "Printer ka Naam",
+      "nozzle_diameter": "Nozzle Diameter (mm)",
+      "notes": "Notes",
+      "status": "Status",
+      "step_type": "Calibration Step",
+      "confidence": "Confidence",
+      "inputs": "Inputs",
+      "outputs_and_recommended": "Outputs aur Recommended Values"
+    },
+    "session_form": {
+      "create_title": "Calibration Session shuru karein",
+      "edit_title": "Calibration Session edit karein"
+    },
+    "step_form": {
+      "add_title": "Step Result jodein",
+      "edit_title": "Step Result edit karein",
+      "recommended_hint": "Yahan di gayi values spool page par recommended settings ke roop mein dikhti hain."
+    },
+    "status": {
+      "planned": "Planned",
+      "in_progress": "Chal raha hai",
+      "complete": "Poora hua",
+      "archived": "Archived"
+    },
+    "confidence": {
+      "high": "Zyada",
+      "medium": "Madhyam",
+      "low": "Kam"
+    },
+    "step_types": {
+      "temperature": "Temperature",
+      "volumetric_speed": "Volumetric Speed",
+      "pressure_advance": "Pressure Advance",
+      "flow_rate": "Flow Rate",
+      "retraction": "Retraction",
+      "tolerance": "Tolerance",
+      "cornering": "Cornering",
+      "input_shaping": "Input Shaping",
+      "vfa": "VFA"
+    },
+    "delete_session_confirm": "Yeh calibration session aur iske sabhi step results delete karein?",
+    "delete_step_confirm": "Yeh step result delete karein?",
+    "wizard": {
+      "title": "Calibration Wizard",
+      "subtitle": "OrcaSlicer calibration guide ko step by step follow karein. Aap koi bhi step chhod sakte hain aur baad mein resume kar sakte hain.",
+      "start": "Wizard shuru karein",
+      "resume": "Wizard resume karein",
+      "step_of": "{{total}} mein se Step {{current}}",
+      "already_done": "Pehle se record kiya gaya",
+      "buttons": {
+        "back": "Peeche",
+        "skip": "Skip karein",
+        "save_continue": "Save karke aage badhein",
+        "save_finish": "Save karke khatam karein",
+        "skip_finish": "Skip karke khatam karein",
+        "finish": "Khatam karein",
+        "cancel": "Cancel karein"
+      },
+      "skip_finish_confirm": "Is step ko save kiye bina session ko complete mark karein?",
+      "session_complete": "Calibration session complete mark kiya gaya."
+    }
+  },
+  "external": {
+    "source_spoolmandb": "SpoolmanDB",
+    "source_tigertag": "TigerTag"
+  },
+  "nfc": {
+    "scan_title": "NFC Tag Scanner",
+    "scan_description": "Spool ki jaankari dekhne ke liye ek NFC tag scan karein.",
+    "encode_button": "NFC par encode karein",
+    "encode_title": "Spool ko NFC Tag par encode karein",
+    "write_success": "Tag safaltapoorvak likha gaya!",
+    "write_error": "Tag likhne mein vifal.",
+    "no_match": "Is tag ke liye koi matching spool nahi mila.",
+    "create_from_tag": "Tag se Spool banayein",
+    "create_from_tag_description": "Koi matching spool nahi mila. Aap neeche diye gaye tag data se ek nayi spool bana sakte hain.",
+    "creating_spool": "Spool ban rahi hai...",
+    "create_success": "Spool safaltapoorvak ban gayi!",
+    "create_error": "Tag data se spool banane mein vifal.",
+    "tag_color": "Rang",
+    "tag_diameter": "Diameter",
+    "tag_weight": "Vajan",
+    "tag_nozzle_temp": "Nozzle Temp",
+    "tag_bed_temp": "Bed Temp",
+    "mode_browser": "Browser",
+    "mode_server": "Server",
+    "unsupported": "Is browser mein NFC support nahi hai.",
+    "place_tag": "Tag ko reader par rakhein...",
+    "reading": "Tag padha ja raha hai...",
+    "writing": "Tag likha ja raha hai...",
+    "user_message": "User Message",
+    "user_message_help": "Vaikalpik message (adhiktam 28 characters)",
+    "preview_title": "Data Preview",
+    "status": {
+      "connected": "Juda hua",
+      "disconnected": "Juda nahi hai",
+      "disabled": "Band hai"
+    },
+    "browser_ndef_warning": "Chetavani: Browser NFC writes NDEF format ka istemal karti hain. Is tarah likhe gaye tags TigerTag app dwara pehchane NAHI jayenge, jo pages 4-39 par raw binary ki apeksha karta hai. TigerTag-compatible writes ke liye Server mode ka istemal karein, ya kisi external NFC tool ke saath istemal ke liye Raw Binary download karein.",
+    "download_raw_binary": "Raw Binary download karein",
+    "download_success": "Binary file safaltapoorvak download hui.",
+    "browser_write_success": "TigerTag data NDEF ke zariye NFC tag par likha gaya.",
+    "error": {
+      "no_reader": "Koi NFC reader nahi mila.",
+      "read_failed": "Tag padhne mein vifal.",
+      "write_failed": "Tag likhne mein vifal.",
+      "not_supported": "Is browser mein Web NFC support nahi hai. Connected reader ke saath Server mode ka istemal karein.",
+      "permission_denied": "NFC ki anumati nahi mili.",
+      "encode_failed": "TigerTag data encode karne mein vifal."
+    },
+    "bind_title": "NFC Tag ko Spool se link karein",
+    "bind_button": "NFC Tag link karein",
+    "bind_description": "Is spool se link karne ke liye ek maujooda NFC tag scan karein. Aage is tag ko scan karne par yeh spool apne aap select ho jayegi.",
+    "bind_confirm_description": "Tag scan ho gaya. Neeche diya gaya tag data dekhein aur is spool se link karne ke liye confirm karein.",
+    "bind_binding": "Link ho raha hai...",
+    "bind_success": "Tag safaltapoorvak spool se link ho gaya!",
+    "bind_error": "Tag ko spool se link karne mein vifal.",
+    "bind_scan_again": "Dobara scan karein",
+    "bind_no_tigertag": "Is tag par koi TigerTag data nahi mila. Link karne ke liye sirf TigerTag format supported hai.",
+    "tag_format": "Tag Format",
+    "tag_format_label": "Tag Format",
+    "tag_material": "Material",
+    "tag_material_type": "Material ka Prakaar",
+    "qidi_write_info": "Qidi tags sirf material aur rang store karte hain. Tag ko sabse milte-julte Qidi material aur color codes ke saath likha jayega."
+  }
 }

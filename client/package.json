@@ -85,7 +85,8 @@
     "check-i18n": "node scripts/check-i18n.js",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "format": "prettier --write .",
-    "format-check": "prettier --check ."
+    "format-check": "prettier --check .",
+    "bench": "vitest bench --run"
   },
   "browserslist": {
     "production": [

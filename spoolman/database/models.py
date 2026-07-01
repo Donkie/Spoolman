@@ -133,7 +133,7 @@ class Setting(Base):
 class VendorField(Base):
     __tablename__ = "vendor_field"
 
-    vendor_id: Mapped[int] = mapped_column(ForeignKey("vendor.id"), primary_key=True, index=True)
+    vendor_id: Mapped[int] = mapped_column(ForeignKey("vendor.id", ondelete="CASCADE"), primary_key=True, index=True)
     vendor: Mapped["Vendor"] = relationship(back_populates="extra")
     key: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
     value: Mapped[str] = mapped_column(Text())
@@ -142,7 +142,9 @@ class VendorField(Base):
 class FilamentField(Base):
     __tablename__ = "filament_field"
 
-    filament_id: Mapped[int] = mapped_column(ForeignKey("filament.id"), primary_key=True, index=True)
+    filament_id: Mapped[int] = mapped_column(
+        ForeignKey("filament.id", ondelete="CASCADE"), primary_key=True, index=True
+    )
     filament: Mapped["Filament"] = relationship(back_populates="extra")
     key: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
     value: Mapped[str] = mapped_column(Text())
@@ -151,7 +153,7 @@ class FilamentField(Base):
 class SpoolField(Base):
     __tablename__ = "spool_field"
 
-    spool_id: Mapped[int] = mapped_column(ForeignKey("spool.id"), primary_key=True, index=True)
+    spool_id: Mapped[int] = mapped_column(ForeignKey("spool.id", ondelete="CASCADE"), primary_key=True, index=True)
     spool: Mapped["Spool"] = relationship(back_populates="extra")
     key: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
     value: Mapped[str] = mapped_column(Text())
