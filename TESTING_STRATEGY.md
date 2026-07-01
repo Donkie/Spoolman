@@ -318,9 +318,17 @@ uses a different weight fallback than the **filter** (dead defensive branches).
   branches** (loading / error / empty-onboarding / dashboard, incl. the error-vs-empty fix) and
   the **`authReloadHandler`** 401 auto-reload (idempotent-only, cooldown, SW unregister).
 
+**Also done — Phase 2 tail complete:**
+
+- Extra-field numeric-**range** filtering (integer `min:max` / `min:` / `:max`, invalid→400) and
+  **boolean** field filtering (true/false) through the API.
+- **hishel download cache**: `_download_file` fetches once and serves a repeat cacheable request
+  from the shared storage without hitting the network (respx-verified), and HTTP errors propagate.
+
 **Remaining (follow-up):**
 
-- Phase 2 tail: extra-field range/boolean filters, hishel cache behavior.
-- Phase 3 (component): print-dialog immutability, i18n `<Trans>` rendering.
+- Phase 3 (component): print-dialog default-resolution/immutability, i18n `<Trans>` rendering.
+  (The print-dialog updates are now plain immutable spreads — low marginal value; the default
+  resolution is the part worth covering if the dialog is rendered.)
 - Phase 4: Playwright e2e for the SW/manifest flows; establish the mutation-score baseline and
   promote it to a hard gate.
