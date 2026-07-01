@@ -12,5 +12,5 @@
     "src/utils/tigertagCodec.ts",
     "src/pages/locations/components/spoolCardHelpers.ts"
   ],
-  "thresholds": { "high": 90, "low": 80, "break": 80 }
+  "thresholds": { "high": 95, "low": 90, "break": 90 }
 }

@@ -5,6 +5,7 @@ import {
   TigerTagBinaryData,
   TIGERTAG_EPOCH_OFFSET,
   TIGERTAG_MAKER_V1,
+  TIGERTAG_PRO_V1,
   decodeTigerTag,
   encodeTigerTag,
   isTigerTag,
@@ -201,6 +202,67 @@ describe("encodeTigerTag - user_message truncation", () => {
     const decoded = decodeTigerTag(encodeTigerTag(data));
     expect(decoded.user_message).toBe("x".repeat(28));
   });
+
+  it("round-trips an empty user_message back to an empty string, not a run of NUL chars", () => {
+    // The whole 28-byte field is NUL, so the first NUL is at index 0. The decoder must
+    // treat index 0 as "terminator at the start" (empty), not "no terminator found".
+    const data: TigerTagBinaryData = {
+      id_tigertag: TIGERTAG_MAKER_V1,
+      id_product: 1,
+      id_material: 0,
+      id_diameter: 1,
+      id_aspect: 0,
+      id_type: 142,
+      id_brand: 0,
+      color_r: 0,
+      color_g: 0,
+      color_b: 0,
+      color_a: 255,
+      weight: 0,
+      nozzle_temp: 0,
+      nozzle_temp_max: 0,
+      bed_temp: 0,
+      bed_temp_max: 0,
+      drying_temp: 0,
+      drying_duration: 0,
+      timestamp: 0,
+      emoji: 0,
+      user_message: "",
+    };
+    expect(decodeTigerTag(encodeTigerTag(data)).user_message).toBe("");
+  });
+
+  it("does not write the user_message past its 28-byte field into the signature region", () => {
+    // A 40-char message must be clamped on encode so bytes at/after offset 86 (the
+    // start of the signature/reserved region) stay zero. Dropping the clamp would
+    // spill message bytes into that region.
+    const data: TigerTagBinaryData = {
+      id_tigertag: TIGERTAG_MAKER_V1,
+      id_product: 1,
+      id_material: 0,
+      id_diameter: 1,
+      id_aspect: 0,
+      id_type: 142,
+      id_brand: 0,
+      color_r: 0,
+      color_g: 0,
+      color_b: 0,
+      color_a: 255,
+      weight: 0,
+      nozzle_temp: 0,
+      nozzle_temp_max: 0,
+      bed_temp: 0,
+      bed_temp_max: 0,
+      drying_temp: 0,
+      drying_duration: 0,
+      timestamp: 0,
+      emoji: 0,
+      user_message: "x".repeat(40),
+    };
+    const bytes = new Uint8Array(encodeTigerTag(data));
+    expect(bytes[86]).toBe(0);
+    expect(bytes[87]).toBe(0);
+  });
 });
 
 // --- mapSpoolToTigerTag -----------------------------------------------------
@@ -263,11 +325,69 @@ describe("mapSpoolToTigerTag", () => {
     const data = mapSpoolToTigerTag(spool({ filament: filament({ weight: 999.6 }) }));
     expect(data.weight).toBe(999);
   });
+
+  it("defaults user_message to an empty string, and uses the argument when given", () => {
+    // No message argument → the default "" (not some other sentinel).
+    expect(mapSpoolToTigerTag(spool({ filament: filament() })).user_message).toBe("");
+    // Explicit message is carried through unchanged.
+    expect(mapSpoolToTigerTag(spool({ filament: filament() }), "Shelf B").user_message).toBe("Shelf B");
+  });
+
+  it("falls back to spool.id when the external_id is not a tigertag_ id", () => {
+    // A non-tigertag external_id must NOT be parsed as a product id.
+    const s = spool({ id: 888, filament: filament({ external_id: "openprinttag_5" }) });
+    expect(mapSpoolToTigerTag(s).id_product).toBe(888);
+  });
+
+  it("maps diameters within ±0.1 of a known size, and 0 (unknown) just outside the tolerance", () => {
+    // Inside the half-open tolerance window (|d - nominal| < 0.1) → the coded size.
+    expect(mapSpoolToTigerTag(spool({ filament: filament({ diameter: 1.7 }) })).id_diameter).toBe(1);
+    expect(mapSpoolToTigerTag(spool({ filament: filament({ diameter: 2.9 }) })).id_diameter).toBe(2);
+    // Exactly 0.1 away is OUTSIDE (strict <), and clearly-different diameters are unknown → 0.
+    expect(mapSpoolToTigerTag(spool({ filament: filament({ diameter: 1.85 }) })).id_diameter).toBe(0);
+    expect(mapSpoolToTigerTag(spool({ filament: filament({ diameter: 2.95 }) })).id_diameter).toBe(0);
+    expect(mapSpoolToTigerTag(spool({ filament: filament({ diameter: 3.0 }) })).id_diameter).toBe(0);
+  });
+
+  it("ignores a color_hex too short to hold RGB, leaving the channels at their defaults", () => {
+    const data = mapSpoolToTigerTag(spool({ filament: filament({ color_hex: "#fff" }) }));
+    expect([data.color_r, data.color_g, data.color_b]).toEqual([0, 0, 0]);
+    expect(data.color_a).toBe(255);
+  });
+
+  it("parses the alpha channel from an 8-digit color_hex", () => {
+    const data = mapSpoolToTigerTag(spool({ filament: filament({ color_hex: "#ff8800cc" }) }));
+    expect([data.color_r, data.color_g, data.color_b, data.color_a]).toEqual([255, 136, 0, 204]);
+  });
+
+  it("leaves weight at 0 (not NaN) when the filament has no weight", () => {
+    // The guard must skip the truncate; entering it with an undefined weight would
+    // produce Math.trunc(undefined) === NaN.
+    expect(mapSpoolToTigerTag(spool({ filament: filament() })).weight).toBe(0);
+  });
+
+  it("copies extruder/bed temps when present and defaults them to 0 when absent", () => {
+    const withTemps = mapSpoolToTigerTag(
+      spool({ filament: filament({ settings_extruder_temp: 215, settings_bed_temp: 60 }) }),
+    );
+    expect(withTemps.nozzle_temp).toBe(215);
+    expect(withTemps.bed_temp).toBe(60);
+
+    const withoutTemps = mapSpoolToTigerTag(spool({ filament: filament() }));
+    expect(withoutTemps.nozzle_temp).toBe(0);
+    expect(withoutTemps.bed_temp).toBe(0);
+  });
 });
 
 // Mutation-testing-driven coverage (Stryker): the length guards and defaults for the
 // trailing fields (bed temps, emoji, message) are only exercised by truncated buffers.
 describe("isTigerTag", () => {
+  it("recognises BOTH the Maker and the Pro/+ magic numbers", () => {
+    // Both magics must be accepted — dropping either half of the check is a bug.
+    expect(isTigerTag(TIGERTAG_MAKER_V1)).toBe(true);
+    expect(isTigerTag(TIGERTAG_PRO_V1)).toBe(true);
+  });
+
   it("returns false for magic numbers that are not a TigerTag", () => {
     expect(isTigerTag(0x12345678)).toBe(false);
     expect(isTigerTag(0)).toBe(false);
@@ -287,10 +407,26 @@ describe("decodeTigerTag with truncated-but-valid buffers", () => {
     expect(data.user_message).toBe("");
   });
 
+  it("does not read a partial bed-temp pair: a 37-byte buffer keeps them at 0 without over-reading", () => {
+    // 37 bytes means offset 37 (bed_temp_max) is out of range. The guard must exclude
+    // this case; reading it anyway would throw a RangeError on the DataView.
+    const data = decodeTigerTag(goldenPayload().slice(0, 37));
+    expect(data.bed_temp).toBe(0);
+    expect(data.bed_temp_max).toBe(0);
+  });
+
   it("reads the bed temps once the buffer includes them (38 bytes), still defaulting emoji/message", () => {
     const data = decodeTigerTag(goldenPayload().slice(0, 38));
     expect(data.bed_temp).toBe(60);
     expect(data.bed_temp_max).toBe(70);
+    expect(data.emoji).toBe(0);
+    expect(data.user_message).toBe("");
+  });
+
+  it("does not partially read the emoji: a 56-byte buffer keeps it at 0 without over-reading", () => {
+    // 56 bytes is past the bed temps but short of the 4-byte emoji at offset 54..57.
+    // The guard must exclude it; a mis-sized guard would read out of range and throw.
+    const data = decodeTigerTag(goldenPayload().slice(0, 56));
     expect(data.emoji).toBe(0);
     expect(data.user_message).toBe("");
   });

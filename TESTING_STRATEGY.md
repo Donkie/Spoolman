@@ -337,15 +337,15 @@ uses a different weight fallback than the **filter** (dead defensive branches).
 **Also done — Phase 4 mutation baseline (Stryker) established as a hard gate:**
 
 Ran Stryker on the crown-jewel client modules (`stryker.config.json`; `npm run mutation`).
-Mutation score **90.97%** overall (was 87.5% at first baseline, before `analytics.ts` was
-hardened from 88% → 98%):
+Mutation score **97.20%** overall (was 87.5% at first baseline; `analytics.ts` was hardened
+88% → 98% and `tigertagCodec.ts` 82% → 96%):
 
 | Module | Score |
 |---|---|
 | `spoolCardHelpers.ts` | 100% |
 | `scan.ts` | 98% (was 81% — mutation testing surfaced untested URL-regex edges: http vs https, multi-digit id, leading/trailing anchors) |
 | `analytics.ts` | 98% (was 88% — mutation surfaced sort-direction mutants that survived because breakdown fixtures used equal counts and inputs already in sorted order, and a low-stock/`getWeightPct` `filament.weight` fallback never exercised without `initial_weight`) |
-| `tigertagCodec.ts` | 82% (was 74% — added truncated-buffer decode + `isTigerTag(false)` cases) |
+| `tigertagCodec.ts` | 96% (was 74% → 82% → 96% — mutation drove out the untested `mapSpoolToTigerTag` branches: default `user_message`, non-`tigertag_` external-id fallback, diameter ±0.1 tolerance edges, short/8-digit `color_hex`, missing-weight/temps; plus decode over-read guards at 37/56 bytes, empty-message NUL handling, and the encode 28-byte message clamp) |
 
 The two mutants that survive on `analytics.ts` at 98% are `LogicalOperator` twins of the
 **`pctB`** denominator inside the low-stock **sort** comparator; the byte-for-byte identical
@@ -354,9 +354,17 @@ because of V8's internal comparator call-order (forcing `pctB`'s denominator to 
 yields the correct order for reachable inputs). They are effectively equivalent mutants; chasing
 them would couple a test to V8 sort internals, which §0 forbids.
 
-The break threshold is raised to **80** and the scheduled `mutation.yml` job now enforces it
-(no `|| true`), so a drop below 80% fails the run. This is the direct proof the suite catches
-injected bugs, not just executes lines.
+The six survivors on `tigertagCodec.ts` at 96% are likewise equivalent/unreachable: two dead
+`offset += 4` writes whose result is never read again, a defensive `if (filament.diameter)` guard
+(a falsy diameter never matches a tolerance branch anyway), a `/^#/` → `/#/` anchor change that
+only differs on malformed mid-string-`#` hex (producing `NaN` channels), and the two `< 0.1` →
+`<= 0.1` diameter-tolerance mutants — which no `double` can distinguish, since none makes
+`|diameter − 1.75|` land *exactly* on `0.1`. Killing them would demand `NaN`/float-boundary
+assertions coupled to representation quirks, which §0 forbids.
+
+With every crown-jewel module now clearing 90%, the break threshold is raised to **90** (high 95,
+low 90) and the scheduled `mutation.yml` job enforces it (no `|| true`), so a drop below 90% fails
+the run. This is the direct proof the suite catches injected bugs, not just executes lines.
 
 **Also done — Python mutation baseline (`mutmut`) established (advisory):**
 
@@ -377,5 +385,6 @@ advisory framing anticipates. Kicking the tests here is also what surfaced the `
 
 - Phase 3 (component): print-dialog default-resolution, i18n `<Trans>` rendering (both need
   rendering provider-heavy components; the print-dialog updates are plain immutable spreads now).
-- Phase 4: Playwright e2e for the SW/manifest flows; raise `tigertagCodec.ts` (82%) toward the
-  90% "high" threshold (`analytics.ts` is now 98%).
+- Phase 4: Playwright e2e for the SW/manifest flows. (Client mutation scores now clear the 90%
+  "high" threshold across all crown-jewel modules: `analytics.ts` 98%, `tigertagCodec.ts` 96%,
+  `scan.ts` 98%, `spoolCardHelpers.ts` 100%.)
