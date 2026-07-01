@@ -30,8 +30,24 @@ test.describe("spool list sort and filter", () => {
     // take the first (visible) match.
     await page.locator("th", { hasText: "Material" }).locator(".ant-table-filter-trigger").first().click();
     const dropdown = page.locator(".ant-table-filter-dropdown:visible");
-    await dropdown.getByText(material, { exact: true }).click();
-    await dropdown.getByRole("button", { name: "OK" }).click();
+
+    // The option list refetches while the dropdown opens; a click landing during
+    // that re-render can be swallowed (seen as a CI flake: OK then applied an
+    // empty filter). Click until the item's checkbox is actually checked.
+    const option = dropdown.locator(".ant-dropdown-menu-item").filter({ hasText: material });
+    await expect(async () => {
+      if ((await option.locator(".ant-checkbox-checked").count()) === 0) {
+        await option.click();
+      }
+      await expect(option.locator(".ant-checkbox-checked")).toBeVisible({ timeout: 1000 });
+    }).toPass();
+
+    // Applying the filter refetches the (server-filtered) list; wait for it so the
+    // row-count assertion can't race the request.
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes("/api/v1/spool") && r.request().method() === "GET"),
+      dropdown.getByRole("button", { name: "OK" }).click(),
+    ]);
 
     // Only the three seeded spools remain.
     const firstCol = page.locator(".ant-table-tbody tr.ant-table-row td:first-child");

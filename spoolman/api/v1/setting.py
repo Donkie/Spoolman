@@ -6,6 +6,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Body, Depends, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import Message, SettingEvent, SettingResponse
@@ -170,13 +171,21 @@ async def update(
         except ValueError as e:
             return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
-        await setting.update(db=db, definition=definition, value=body)
+        try:
+            await setting.update(db=db, definition=definition, value=body)
+            await db.commit()
+        except IntegrityError:
+            # Two concurrent first-time saves of the same key can both miss the
+            # merge's SELECT and both INSERT; the loser hits the unique key.
+            # Retry once — the row now exists, so the merge becomes an UPDATE.
+            await db.rollback()
+            await setting.update(db=db, definition=definition, value=body)
+            await db.commit()
         logger.info('Setting "%s" has been set to "%s".', key, body)
     else:
         await setting.delete(db=db, definition=definition)
         logger.info('Setting "%s" has been unset.', key)
-
-    await db.commit()
+        await db.commit()
 
     # Get the new value of the setting.
     try:
