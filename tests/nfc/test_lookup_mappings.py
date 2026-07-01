@@ -2,7 +2,7 @@
 
 Covers TESTING_CANDIDATES rows 13, 16, 20:
   * `_detect_tag_format` — format auto-detection dispatch.
-  * `_make_nfc_tag_id` — composite (id_product, timestamp) key.
+  * `make_nfc_tag_id` — composite (id_product, timestamp) key.
   * `map_spool_to_tigertag` / `map_spool_to_qidi` — spool → tag-data mapping.
 
 Oracle: the documented mapping rules. Spools/filaments are built as lightweight
@@ -18,7 +18,7 @@ from spoolman.api.v1.nfc import _detect_tag_format
 from spoolman.qidi_codec import color_code_from_hex, material_code_from_name
 from spoolman.qidi_lookup import map_spool_to_qidi
 from spoolman.tigertag_codec import TigerTagData
-from spoolman.tigertag_lookup import _make_nfc_tag_id, map_spool_to_tigertag
+from spoolman.tigertag_lookup import make_nfc_tag_id, map_spool_to_tigertag
 
 # TigerTag epoch offset (seconds between 1970-01-01 and 2000-01-01).
 TIGERTAG_EPOCH_OFFSET = 946684800
@@ -71,17 +71,17 @@ def test_detect_defaults_to_tigertag():
     assert _detect_tag_format(b"\xe1\x40", "bogus") == "openprinttag"
 
 
-# --- _make_nfc_tag_id -------------------------------------------------------
+# --- make_nfc_tag_id -------------------------------------------------------
 
 
-def test_make_nfc_tag_id_composes_product_and_timestamp():
+def testmake_nfc_tag_id_composes_product_and_timestamp():
     tag = TigerTagData(id_product=28, timestamp=123456)
-    assert _make_nfc_tag_id(tag) == "tigertag_28_123456"
+    assert make_nfc_tag_id(tag) == "tigertag_28_123456"
 
 
-def test_make_nfc_tag_id_requires_positive_product_and_timestamp():
-    assert _make_nfc_tag_id(TigerTagData(id_product=0, timestamp=123)) is None
-    assert _make_nfc_tag_id(TigerTagData(id_product=28, timestamp=0)) is None
+def testmake_nfc_tag_id_requires_positive_product_and_timestamp():
+    assert make_nfc_tag_id(TigerTagData(id_product=0, timestamp=123)) is None
+    assert make_nfc_tag_id(TigerTagData(id_product=28, timestamp=0)) is None
 
 
 # --- map_spool_to_tigertag --------------------------------------------------

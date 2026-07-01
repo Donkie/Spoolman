@@ -451,7 +451,13 @@ def _detect_tag_format(raw_data: bytes, tag_type: str | None) -> str:
 
 
 # Serializes auto-creating lookups: without it, two concurrent scans of the same
-# unknown tag both miss the duplicate check and both create a spool.
+# unknown tag both miss the duplicate check and both create a spool. The lock is
+# per-process, which matches how Spoolman ships (a single uvicorn worker in the
+# Docker entrypoint, the native install, and `poe run`); multi-worker/replica
+# deployments could still race. DB-level enforcement was considered and declined:
+# a unique constraint on spool_field(key, value) would forbid legitimate duplicate
+# extra-field values across spools, and a partial unique index on key='nfc_tag_id'
+# is not portable to MySQL, one of the four supported dialects.
 _AUTO_CREATE_LOCK = asyncio.Lock()
 
 
@@ -508,7 +514,7 @@ async def _create_spool_from_tigertag(  # noqa: C901
     5. Fallback to raw tag data with generic name
     """
     from spoolman.database.models import SpoolField
-    from spoolman.tigertag_lookup import _make_nfc_tag_id
+    from spoolman.tigertag_lookup import make_nfc_tag_id
 
     external_id = f"tigertag_{tag_data.id_product}" if tag_data.id_product > 0 else None
 
@@ -593,7 +599,7 @@ async def _create_spool_from_tigertag(  # noqa: C901
     db_spool = await spool_db.create(db=db, filament_id=filament_id)
 
     # Bind the TigerTag to the spool
-    nfc_tag_id = _make_nfc_tag_id(tag_data)
+    nfc_tag_id = make_nfc_tag_id(tag_data)
     if nfc_tag_id:
         db.add(SpoolField(spool_id=db_spool.id, key="nfc_tag_id", value=nfc_tag_id))
         await db.flush()
@@ -934,7 +940,7 @@ async def _bind_tigertag(db: AsyncSession, spool: "Spool", request: NfcBindReque
     """Handle TigerTag binding."""
     from spoolman.database.models import SpoolField
     from spoolman.tigertag_codec import TigerTagData, decode_ntag213
-    from spoolman.tigertag_lookup import _make_nfc_tag_id, bind_spool_to_tigertag
+    from spoolman.tigertag_lookup import bind_spool_to_tigertag, make_nfc_tag_id
 
     tag_response = None
     if request.raw_data_b64:
@@ -967,7 +973,7 @@ async def _bind_tigertag(db: AsyncSession, spool: "Spool", request: NfcBindReque
             message="Provide either raw_data_b64 or both id_product and timestamp.",
         )
 
-    nfc_tag_id = _make_nfc_tag_id(tag_data)
+    nfc_tag_id = make_nfc_tag_id(tag_data)
     if nfc_tag_id is None:
         return NfcBindResponse(
             success=False,
@@ -1003,7 +1009,7 @@ async def _bind_tigertag(db: AsyncSession, spool: "Spool", request: NfcBindReque
 async def _bind_qidi(db: AsyncSession, spool: "Spool", request: NfcBindRequest) -> NfcBindResponse:
     """Handle Qidi tag binding by UID."""
     from spoolman.database.models import SpoolField
-    from spoolman.qidi_lookup import _make_nfc_tag_id, bind_spool_to_qidi_tag
+    from spoolman.qidi_lookup import bind_spool_to_qidi_tag, make_nfc_tag_id
 
     if not request.nfc_tag_uid:
         return NfcBindResponse(
@@ -1011,7 +1017,7 @@ async def _bind_qidi(db: AsyncSession, spool: "Spool", request: NfcBindRequest) 
             message="Qidi tag binding requires nfc_tag_uid (MIFARE Classic hardware UID).",
         )
 
-    nfc_tag_id = _make_nfc_tag_id(request.nfc_tag_uid)
+    nfc_tag_id = make_nfc_tag_id(request.nfc_tag_uid)
 
     # Check if another spool is already bound to this tag
     existing_stmt = select(SpoolField).where(SpoolField.key == "nfc_tag_id").where(SpoolField.value == nfc_tag_id)
@@ -1174,9 +1180,9 @@ async def _create_from_tigertag_tag(
         tag_data.color_hex = request.color_hex
 
     # Retry/double-submit guard: this tag identity may already be bound to a spool.
-    from spoolman.tigertag_lookup import _make_nfc_tag_id
+    from spoolman.tigertag_lookup import make_nfc_tag_id
 
-    stable_id = _make_nfc_tag_id(tag_data)
+    stable_id = make_nfc_tag_id(tag_data)
     if stable_id:
         existing = await _find_spool_by_nfc_tag_value(db, stable_id)
         if existing is not None:

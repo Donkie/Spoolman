@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 QIDI_VENDOR_NAME = "Qidi"
 
 
-def _make_nfc_tag_id(tag_uid_hex: str) -> str:
+def make_nfc_tag_id(tag_uid_hex: str) -> str:
     """Build a spool-level NFC tag identifier from the MIFARE Classic UID.
 
     Since Qidi tags only store material+color (not a unique spool ID),
@@ -46,7 +46,7 @@ async def bind_spool_to_qidi_tag(db: AsyncSession, spool: Spool, tag_uid_hex: st
 
     Returns True if a new binding was created, False if already bound.
     """
-    nfc_tag_id = _make_nfc_tag_id(tag_uid_hex)
+    nfc_tag_id = make_nfc_tag_id(tag_uid_hex)
 
     for field in spool.extra:
         if field.key == "nfc_tag_id":
@@ -88,7 +88,7 @@ async def find_spool_by_qidi_tag(
     """
     # Strategy 1: Exact match by UID binding
     if tag_uid_hex:
-        nfc_tag_id = _make_nfc_tag_id(tag_uid_hex)
+        nfc_tag_id = make_nfc_tag_id(tag_uid_hex)
         stmt = (
             select(Spool)
             .join(Spool.extra)
@@ -210,7 +210,7 @@ async def create_spool_from_qidi_tag(
 
     # Bind tag UID to spool
     if tag_uid_hex:
-        nfc_tag_id = _make_nfc_tag_id(tag_uid_hex)
+        nfc_tag_id = make_nfc_tag_id(tag_uid_hex)
         db.add(SpoolField(spool_id=db_spool.id, key="nfc_tag_id", value=nfc_tag_id))
         await db.flush()
         logger.info("Bound new spool %d to Qidi tag %s", db_spool.id, nfc_tag_id)
