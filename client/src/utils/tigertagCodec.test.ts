@@ -264,3 +264,45 @@ describe("mapSpoolToTigerTag", () => {
     expect(data.weight).toBe(999);
   });
 });
+
+// Mutation-testing-driven coverage (Stryker): the length guards and defaults for the
+// trailing fields (bed temps, emoji, message) are only exercised by truncated buffers.
+describe("isTigerTag", () => {
+  it("returns false for magic numbers that are not a TigerTag", () => {
+    expect(isTigerTag(0x12345678)).toBe(false);
+    expect(isTigerTag(0)).toBe(false);
+  });
+});
+
+describe("decodeTigerTag with truncated-but-valid buffers", () => {
+  it("decodes a header-only (36-byte) buffer, defaulting the trailing fields", () => {
+    const data = decodeTigerTag(goldenPayload().slice(0, 36));
+    // Header fields still decode correctly.
+    expect(data.id_tigertag).toBe(TIGERTAG_MAKER_V1);
+    expect(data.weight).toBe(1000);
+    // Fields past the header are absent, so they take their defaults (no over-read).
+    expect(data.bed_temp).toBe(0);
+    expect(data.bed_temp_max).toBe(0);
+    expect(data.emoji).toBe(0);
+    expect(data.user_message).toBe("");
+  });
+
+  it("reads the bed temps once the buffer includes them (38 bytes), still defaulting emoji/message", () => {
+    const data = decodeTigerTag(goldenPayload().slice(0, 38));
+    expect(data.bed_temp).toBe(60);
+    expect(data.bed_temp_max).toBe(70);
+    expect(data.emoji).toBe(0);
+    expect(data.user_message).toBe("");
+  });
+
+  it("reads the emoji once the buffer includes it (58 bytes), still defaulting the message", () => {
+    const data = decodeTigerTag(goldenPayload().slice(0, 58));
+    expect(data.emoji).toBe(0x0001f600);
+    expect(data.user_message).toBe("");
+  });
+
+  it("reads the user message once the buffer includes it (86 bytes)", () => {
+    const data = decodeTigerTag(goldenPayload().slice(0, 86));
+    expect(data.user_message).toBe("PLA Orange");
+  });
+});

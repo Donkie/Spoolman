@@ -325,10 +325,26 @@ uses a different weight fallback than the **filter** (dead defensive branches).
 - **hishel download cache**: `_download_file` fetches once and serves a repeat cacheable request
   from the shared storage without hitting the network (respx-verified), and HTTP errors propagate.
 
+**Also done — Phase 4 mutation baseline (Stryker) established as a hard gate:**
+
+Ran Stryker on the crown-jewel client modules (`stryker.config.json`; `npm run mutation`).
+Baseline mutation score **87.5%** overall:
+
+| Module | Score |
+|---|---|
+| `spoolCardHelpers.ts` | 100% |
+| `scan.ts` | 98% (was 81% — mutation testing surfaced untested URL-regex edges: http vs https, multi-digit id, leading/trailing anchors) |
+| `analytics.ts` | 88% |
+| `tigertagCodec.ts` | 82% (was 74% — added truncated-buffer decode + `isTigerTag(false)` cases) |
+
+The break threshold is raised to **80** and the scheduled `mutation.yml` job now enforces it
+(no `|| true`), so a drop below 80% fails the run. This is the direct proof the suite catches
+injected bugs, not just executes lines.
+
 **Remaining (follow-up):**
 
-- Phase 3 (component): print-dialog default-resolution/immutability, i18n `<Trans>` rendering.
-  (The print-dialog updates are now plain immutable spreads — low marginal value; the default
-  resolution is the part worth covering if the dialog is rendered.)
-- Phase 4: Playwright e2e for the SW/manifest flows; establish the mutation-score baseline and
-  promote it to a hard gate.
+- Phase 3 (component): print-dialog default-resolution, i18n `<Trans>` rendering (both need
+  rendering provider-heavy components; the print-dialog updates are plain immutable spreads now).
+- Phase 4: Playwright e2e for the SW/manifest flows; raise the per-module mutation scores on
+  `analytics.ts`/`tigertagCodec.ts` toward the 90% "high" threshold; baseline `mutmut` for the
+  Python crown-jewel modules the same way.

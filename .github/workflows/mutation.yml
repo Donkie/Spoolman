@@ -52,6 +52,10 @@ jobs:
           npm ci
 
       - name: Run Stryker on crown-jewel modules
+        # @stryker-mutator/core + the vitest-runner plugin are dev dependencies, so
+        # Stryker resolves the runner from client/node_modules after `npm ci`.
+        # No `|| true`: the baseline is established (~87% mutation score), so Stryker's
+        # break threshold (80) now enforces a hard floor on this scheduled run.
         run: |
           cd client
-          npx --yes @stryker-mutator/core@^9 run || true
+          npm run mutation

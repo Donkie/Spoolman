@@ -37,6 +37,13 @@ describe("parseScanResult", () => {
     expect(parseScanResult("WEB+SPOOLMAN:S-3")).toEqual({ resource: "spool", id: "3", path: "/spool/show/3" });
   });
 
+  it.each(RESOURCES)("rejects characters before the custom scheme for a %s (leading anchor)", (resource) => {
+    const prefix = resource === "spool" ? "S" : "F";
+    // The ^ anchor must reject anything preceding "web+spoolman:".
+    expect(parseScanResult(`x web+spoolman:${prefix}-1`)).toBeNull();
+    expect(parseScanResult(`javascript:web+spoolman:${prefix}-1`)).toBeNull();
+  });
+
   it("keeps spool and filament targets distinct", () => {
     expect(parseScanResult("web+spoolman:s-1")?.resource).toBe("spool");
     expect(parseScanResult("web+spoolman:f-1")?.resource).toBe("filament");
@@ -59,5 +66,31 @@ describe("parseScanResult", () => {
   it("requires the id to be the whole trailing segment (anchored)", () => {
     // No partial match: extra path after the id must not sneak through.
     expect(parseScanResult("https://h/spool/show/1/extra")).toBeNull();
+  });
+
+  it.each(RESOURCES)("accepts an http:// (non-https) deep-link URL for a %s", (resource) => {
+    // Covers the optional 's' in https? — both schemes must resolve.
+    expect(parseScanResult(`http://host/${resource}/show/5`)).toEqual({
+      resource,
+      id: "5",
+      path: `/${resource}/show/5`,
+    });
+  });
+
+  it.each(RESOURCES)("parses a multi-digit id from a URL for a %s", (resource) => {
+    // Covers [0-9]+ — the id is one-or-more digits, not exactly one.
+    expect(parseScanResult(`https://host/${resource}/show/12345`)?.id).toBe("12345");
+  });
+
+  it.each(RESOURCES)("rejects characters before the scheme for a %s (leading anchor)", (resource) => {
+    // The ^ anchor must reject anything preceding the URL.
+    expect(parseScanResult(`x https://host/${resource}/show/1`)).toBeNull();
+    expect(parseScanResult(`data:text/html,https://host/${resource}/show/1`)).toBeNull();
+  });
+
+  it.each(RESOURCES)("rejects trailing characters after the id for a %s (trailing anchor)", (resource) => {
+    // The $ anchor must reject anything following the id.
+    expect(parseScanResult(`https://host/${resource}/show/1x`)).toBeNull();
+    expect(parseScanResult(`https://host/${resource}/show/1/extra`)).toBeNull();
   });
 });
