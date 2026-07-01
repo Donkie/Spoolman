@@ -50,6 +50,32 @@ export default defineConfig({
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+        // Do NOT register a NavigationRoute bound to the precached index.html.
+        //
+        // vite is built with base:"" (see above) so client/dist/index.html
+        // references its assets relatively ("./config.js", "./assets/...").
+        // The backend rewrites those "./ paths to the runtime base path at
+        // serve time (spoolman/client.py SinglePageApplication), but that
+        // rewrite only touches the copy FastAPI serves -- it never reaches the
+        // raw file workbox precaches. If the service worker answered a deep
+        // hard-navigation (e.g. /spool/print) from that precached HTML, the
+        // browser would resolve "./config.js" / "./assets/*" against the deep
+        // URL and 404, so the app would fail to boot.
+        //
+        // navigateFallback: null suppresses the NavigationRoute entirely
+        // (workbox sw-template guards it behind `if (navigateFallback)`), so
+        // every navigation -- root and deep, root-deploy and sub-path deploy --
+        // goes to the network/backend, which serves the correctly rewritten
+        // index.html. Asset precaching and cleanupOutdatedCaches are unaffected,
+        // so already-loaded assets are still cached for post-boot offline use.
+        //
+        // Trade-off: a fully-offline cold launch of the installed PWA requires
+        // the network for the initial document fetch. This is acceptable for an
+        // online-first inventory app and is, in practice, no real regression:
+        // config.js (window.SPOOLMAN_BASE_PATH) is served dynamically by the
+        // backend and is intentionally not precached, so an offline cold boot
+        // could never initialise anyway.
+        navigateFallback: null,
       },
     }),
   ],
