@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@playwright/test": "^1.61.1",
     "@refinedev/cli": "^2.16.50",
     "@stryker-mutator/core": "^9.6.1",
     "@stryker-mutator/vitest-runner": "^9.6.1",
@@ -57,6 +58,7 @@
     "eslint-plugin-react-refresh": "^0.4.26",
     "globals": "^17.0.0",
     "jsdom": "^29.1.1",
+    "monocart-coverage-reports": "^2.12.12",
     "msw": "^2.14.6",
     "prettier": "3.7.4",
     "typescript": "^6.0.3",
@@ -78,6 +80,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
     "mutation": "stryker run",
     "check-i18n": "node scripts/check-i18n.js",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",

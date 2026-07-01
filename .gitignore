@@ -212,3 +212,12 @@ mutants/
 # Stryker (client) HTML report + working dir
 **/reports/mutation/
 .stryker-tmp/
+
+# Playwright e2e artifacts
+**/test-results/
+**/playwright-report/
+**/.playwright/
+# e2e real-backend temp DB + client coverage output
+.e2e-data/
+**/coverage-e2e/
+**/.coverage-raw/

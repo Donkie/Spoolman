@@ -145,6 +145,10 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests*/*" = ["ANN201", "ASYNC210", "S101", "PLR2004", "D103", "TID252", "PT011"]
+# Standalone Playwright e2e serving harness (run as a script, not imported as a
+# package): INP001 (no __init__.py by design) and TC002 (keep the Starlette Request
+# import runtime-visible rather than gating it behind TYPE_CHECKING in a tiny script).
+"client/e2e/*.py" = ["INP001", "TC002"]
 "migrations/versions/*" = ["N999"]
 # NFC support modules are binary-protocol codecs and hardware (USB/NFC) I/O.
 # Magic byte values, branchy decoders/state machines, defensive broad-except

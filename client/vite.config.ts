@@ -5,6 +5,11 @@ import svgr from "vite-plugin-svgr";
 
 export default defineConfig({
   base: "",
+  // Emit INLINE source maps only for the e2e coverage build (E2E_COVERAGE=1) so
+  // Playwright's V8 coverage can be mapped back to the TypeScript sources at report
+  // time (inline = the map travels inside each bundle's source, so monocart resolves
+  // it without a running server). Production builds stay map-free.
+  build: { sourcemap: process.env.E2E_COVERAGE === "1" ? "inline" : false },
   plugins: [
     react(),
     svgr(),
