@@ -66,6 +66,12 @@ export default defineConfig({
         SPOOLMAN_DB_TYPE: "sqlite",
         SPOOLMAN_DIR_DATA: path.join(repoRoot, ".e2e-data"),
         SPOOLMAN_LOGGING_LEVEL: "WARNING",
+        // Keep the suite hermetic: no filament-DB sync from GitHub Pages, and 3DFP
+        // profile lookups loop back to this server — the SPA fallback returns HTML
+        // that parses to no profile, giving the error branch a deterministic 404
+        // instead of a live call to 3dfilamentprofiles.com.
+        EXTERNAL_DB_URL: "",
+        EXTERNAL_3DFP_URL: APP_BASE_URL,
       },
       url: `${APP_BASE_URL}/api/v1/health`,
       reuseExistingServer: !process.env.CI,

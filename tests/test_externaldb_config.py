@@ -8,6 +8,7 @@ startup (regression guard from PR #2). Mock only the boundary (the environment).
 import pytest
 
 from spoolman import externaldb
+from spoolman.api.v1.externaldb import DEFAULT_3DFP_BASE_URL, get_3dfp_base_url
 from spoolman.externaldb import (
     DEFAULT_EXTERNAL_DB_URL,
     DEFAULT_SYNC_INTERVAL,
@@ -54,3 +55,16 @@ def test_external_db_url_defaults_when_unset(monkeypatch: pytest.MonkeyPatch):
 def test_external_db_url_uses_the_configured_url(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("EXTERNAL_DB_URL", "https://example.test/db")
     assert get_external_db_url() == "https://example.test/db"
+
+
+# --- 3D Filament Profiles base URL (EXTERNAL_3DFP_URL) ------------------------
+
+
+def test_3dfp_base_url_defaults_when_unset(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("EXTERNAL_3DFP_URL", raising=False)
+    assert get_3dfp_base_url() == DEFAULT_3DFP_BASE_URL
+
+
+def test_3dfp_base_url_uses_the_configured_url_and_strips_trailing_slash(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("EXTERNAL_3DFP_URL", "http://127.0.0.1:30013/")
+    assert get_3dfp_base_url() == "http://127.0.0.1:30013"
