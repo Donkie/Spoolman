@@ -16,7 +16,7 @@ from sqlalchemy.engine import URL
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from spoolman import extra_field_registry
-from spoolman.api.v1 import field, filament, nfc, spool, vendor
+from spoolman.api.v1 import field, filament, nfc, setting, spool, vendor
 from spoolman.database import database as db_module
 from spoolman.database.models import Base
 
@@ -46,6 +46,7 @@ async def client(tmp_path: Path) -> AsyncIterator[AsyncClient]:
     app.include_router(spool.router, prefix="/api/v1")
     app.include_router(nfc.router, prefix="/api/v1")
     app.include_router(field.router, prefix="/api/v1")
+    app.include_router(setting.router, prefix="/api/v1")
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as http_client:

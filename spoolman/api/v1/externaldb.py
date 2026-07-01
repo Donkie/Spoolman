@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import re
 from pathlib import Path
 
@@ -21,6 +22,18 @@ router = APIRouter(
 
 
 logger = logging.getLogger(__name__)
+
+
+DEFAULT_3DFP_BASE_URL = "https://3dfilamentprofiles.com"
+
+
+def get_3dfp_base_url() -> str:
+    """Get the base URL for 3D Filament Profiles lookups.
+
+    Overridable via EXTERNAL_3DFP_URL so tests (and users behind proxies/mirrors)
+    can point profile imports somewhere other than the live third-party site.
+    """
+    return os.getenv("EXTERNAL_3DFP_URL", DEFAULT_3DFP_BASE_URL).rstrip("/")
 
 
 def _load_filament_source(path: Path, source: str) -> list[dict]:
@@ -83,7 +96,7 @@ async def profile(profile_id: str) -> dict:
     """Fetch filament data from 3dfilamentprofiles.com."""
     if not profile_id.isdigit():
         raise HTTPException(status_code=400, detail="Invalid profile ID; expected a numeric ID.")
-    url = f"https://3dfilamentprofiles.com/filament/details/{profile_id}"
+    url = f"{get_3dfp_base_url()}/filament/details/{profile_id}"
     try:
         headers = {
             "User-Agent": (

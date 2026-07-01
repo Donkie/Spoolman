@@ -20,7 +20,7 @@ from spoolman.tigertag_codec import TigerTagData
 logger = logging.getLogger(__name__)
 
 
-def _make_nfc_tag_id(tag_data: TigerTagData) -> str | None:
+def make_nfc_tag_id(tag_data: TigerTagData) -> str | None:
     """Build a spool-level NFC tag identifier from TigerTag data.
 
     Uses (id_product, timestamp) as a composite key. Both tags on the same
@@ -41,7 +41,7 @@ async def bind_spool_to_tigertag(db: AsyncSession, spool: Spool, tag_data: Tiger
 
     Returns True if a new binding was created, False if already bound or no usable key.
     """
-    nfc_tag_id = _make_nfc_tag_id(tag_data)
+    nfc_tag_id = make_nfc_tag_id(tag_data)
     if nfc_tag_id is None:
         return False
 
@@ -87,7 +87,7 @@ async def find_spool_by_tigertag(
         Optional[Spool]: The matched spool, or None if no match found.
 
     """
-    nfc_tag_id = _make_nfc_tag_id(tag_data)
+    nfc_tag_id = make_nfc_tag_id(tag_data)
 
     if tag_data.id_product > 0:
         # Strategy 1: Exact match by nfc_tag_id on spool

@@ -13,11 +13,14 @@ test.describe("filament journey", () => {
     await page.getByRole("button", { name: "Create" }).click();
     await expect(page).toHaveURL(atPath("/filament/create"));
 
-    await page.getByLabel("Name").fill(name);
-    await page.getByLabel("Material").fill("PLA");
-    await page.getByLabel("Density").fill("1.24");
-    await page.getByLabel("Diameter").fill("1.75");
-    await page.getByLabel("Weight").first().fill("1000");
+    // Role-based locators: after the Create click the list (with its sortable
+    // <th aria-label="Name">) is still mounted while the create chunk loads, so
+    // getByLabel can grab the header cell — same flake as vendor.spec.
+    await page.getByRole("textbox", { name: "Name" }).fill(name);
+    await page.getByRole("textbox", { name: "Material" }).fill("PLA");
+    await page.getByRole("spinbutton", { name: "Density" }).fill("1.24");
+    await page.getByRole("spinbutton", { name: "Diameter" }).fill("1.75");
+    await page.getByRole("spinbutton", { name: "Weight" }).first().fill("1000");
     const id = await saveAndGetId(page, "filament");
     await expect(page).toHaveURL(atPath("/filament"));
 
@@ -28,13 +31,13 @@ test.describe("filament journey", () => {
     // Edit → change material
     await page.getByRole("button", { name: "Edit" }).first().click();
     await expect(page).toHaveURL(atPath(`/filament/edit/${id}`));
-    await page.getByLabel("Material").fill("PETG");
+    await page.getByRole("textbox", { name: "Material" }).fill("PETG");
     await saveButton(page).click();
     await expect(page).toHaveURL(atPath("/filament"));
 
     // Clone
     await page.goto(`${APP_BASE_URL}/filament/clone/${id}`);
-    await page.getByLabel("Name").fill(`${name} Clone`);
+    await page.getByRole("textbox", { name: "Name" }).fill(`${name} Clone`);
     const cloneId = await saveAndGetId(page, "filament");
     expect(cloneId).not.toBe(id);
   });
