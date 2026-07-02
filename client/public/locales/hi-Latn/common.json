@@ -303,7 +303,23 @@
     },
     "buttons": {
       "add_spool": "Spool jodein",
-      "fetch": "Fetch karein"
+      "fetch": "Fetch karein",
+      "download_swatch": "Swatch"
+    },
+    "swatch": {
+      "title": "3D-printable swatch",
+      "description": "Is filament ki label jaankari ke saath {{width}} × {{height}} mm ka printable sample card download karein. Card ka body isi filament se print hota hai; text aur QR code ek alag ek-layer wala top hissa hote hain {{color}} mein, jo filament ke rang se contrast ke liye chuna jaata hai.",
+      "print_hint": "Poora card isi filament se print karein aur aakhri layer par filament ko {{color}} mein badlein, ya multi-material setup mein dono hisson ko rang assign karein. QR code dono tarah se scan hota rahega.",
+      "marking_black": "kaala",
+      "marking_white": "safed",
+      "truncated_warning": "Card par fit karne ke liye kuchh text chhota kiya gaya.",
+      "style": "Style",
+      "styles": {
+        "classic": "Classic",
+        "compact": "Compact",
+        "card": "Card"
+      },
+      "download": "Download .3mf"
     }
   },
   "vendor": {
@@ -398,6 +414,14 @@
       "key_not_changed": "Kripya key ko kisi aur cheez mein badlein.",
       "delete_confirm": "Field {{name}} delete karein?",
       "delete_confirm_description": "Isse yeh field aur sabhi entities ka isse juda saara data delete ho jayega."
+    },
+    "swatch": {
+      "tab": "Swatches",
+      "default_style": {
+        "label": "Default swatch style",
+        "tooltip": "3D-printable filament swatch download karte samay pehle se chuna gaya style. Naye styles Spoolman mein client/src/utils/swatch/styles.ts par contribute kiye ja sakte hain."
+      },
+      "preview_description": "Do example filaments ke saath preview — text aur QR code apne aap kaale ya safed mein print hote hain, jo bhi filament ke rang se behtar contrast kare:"
     }
   },
   "documentTitle": {

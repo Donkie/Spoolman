@@ -280,7 +280,23 @@
     "filament": "Filamenter",
     "buttons": {
       "add_spool": "Tilføj spole",
-      "fetch": "Hent"
+      "fetch": "Hent",
+      "download_swatch": "Prøvekort"
+    },
+    "swatch": {
+      "title": "3D-printbart prøvekort",
+      "description": "Download et {{width}} × {{height}} mm printbart prøvekort med etiketoplysningerne for dette filament. Selve kortet printes i filamentet; tekst og QR-kode udgør en separat topdel på ét lag i {{color}}, valgt for bedst kontrast til filamentets farve.",
+      "print_hint": "Print hele kortet i dette filament med et filamentskifte til {{color}} på det sidste lag, eller tildel farverne til de to dele i en multi-material-opsætning. QR-koden kan scannes i begge tilfælde.",
+      "marking_black": "sort",
+      "marking_white": "hvid",
+      "truncated_warning": "Noget tekst blev forkortet for at passe på kortet.",
+      "style": "Stil",
+      "styles": {
+        "classic": "Klassisk",
+        "compact": "Kompakt",
+        "card": "Kort"
+      },
+      "download": "Download .3mf"
     }
   },
   "actions": {
@@ -436,7 +452,15 @@
       "delete_confirm": "Slet felt: {{name}}?",
       "delete_confirm_description": "Dette vil slette feltet samt alle associerede data for alle poster."
     },
-    "settings": "Indstillinger"
+    "settings": "Indstillinger",
+    "swatch": {
+      "tab": "Prøvekort",
+      "default_style": {
+        "label": "Standardstil for prøvekort",
+        "tooltip": "Stilen der er forvalgt, når du downloader et 3D-printbart filamentprøvekort. Nye stile kan bidrages til Spoolman i client/src/utils/swatch/styles.ts."
+      },
+      "preview_description": "Forhåndsvisning med to eksempelfilamenter — tekst og QR-kode printes automatisk i sort eller hvid, alt efter hvad der giver bedst kontrast til filamentets farve:"
+    }
   },
   "locations": {
     "error_empty": "Navn må ikke være tomt",

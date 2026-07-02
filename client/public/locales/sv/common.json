@@ -291,7 +291,23 @@
     },
     "buttons": {
       "add_spool": "Skapa Spole",
-      "fetch": "Hämta"
+      "fetch": "Hämta",
+      "download_swatch": "Provkort"
+    },
+    "swatch": {
+      "title": "3D-printbart provkort",
+      "description": "Ladda ner ett {{width}} × {{height}} mm printbart provkort med filamentets etikettinformation. Själva kortet skrivs ut i filamentet; texten och QR-koden utgör en separat toppdel på ett lager i {{color}}, vald för bästa kontrast mot filamentets färg.",
+      "print_hint": "Skriv ut hela kortet i detta filament med ett filamentbyte till {{color}} på sista lagret, eller tilldela färgerna till de två delarna i en multimaterialuppsättning. QR-koden kan skannas i båda fallen.",
+      "marking_black": "svart",
+      "marking_white": "vit",
+      "truncated_warning": "Viss text kortades för att få plats på kortet.",
+      "style": "Stil",
+      "styles": {
+        "classic": "Klassisk",
+        "compact": "Kompakt",
+        "card": "Kort"
+      },
+      "download": "Ladda ner .3mf"
     }
   },
   "vendor": {
@@ -392,6 +408,14 @@
       "delete_confirm": "Ta bort fältet {{name}}?",
       "non_unique_key_error": "Nyckeln måste vara unik.",
       "key_not_changed": "Vänligen ändra nyckeln till något annat."
+    },
+    "swatch": {
+      "tab": "Provkort",
+      "default_style": {
+        "label": "Standardstil för provkort",
+        "tooltip": "Stilen som är förvald när du laddar ner ett 3D-printbart filamentprovkort. Nya stilar kan bidras till Spoolman i client/src/utils/swatch/styles.ts."
+      },
+      "preview_description": "Förhandsvisning med två exempelfilament — texten och QR-koden skrivs automatiskt ut i svart eller vitt, beroende på vad som ger bäst kontrast mot filamentets färg:"
     }
   },
   "documentTitle": {

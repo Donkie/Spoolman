@@ -280,7 +280,23 @@
     },
     "buttons": {
       "add_spool": "Tekercs hozzáadása",
-      "fetch": "Lekérés"
+      "fetch": "Lekérés",
+      "download_swatch": "Mintakártya"
+    },
+    "swatch": {
+      "title": "3D-nyomtatható mintakártya",
+      "description": "Tölts le egy {{width}} × {{height}} mm-es nyomtatható mintakártyát a filament címkeadataival. A kártya teste magából a filamentből készül; a szöveg és a QR-kód külön, egy réteg magas felső részt alkot {{color}} színben, amelyet a filament színével való kontraszt alapján választunk.",
+      "print_hint": "Nyomtasd az egész kártyát ebből a filamentből, az utolsó rétegnél {{color}} színre váltva, vagy rendeld hozzá a színeket a két részhez multi-material beállításban. A QR-kód mindkét esetben beolvasható marad.",
+      "marking_black": "fekete",
+      "marking_white": "fehér",
+      "truncated_warning": "Néhány szöveg rövidítve lett, hogy elférjen a kártyán.",
+      "style": "Stílus",
+      "styles": {
+        "classic": "Klasszikus",
+        "compact": "Kompakt",
+        "card": "Kártya"
+      },
+      "download": ".3mf letöltése"
     }
   },
   "actions": {
@@ -436,6 +452,14 @@
         "label": "Árak kerekítése",
         "tooltip": "Az árak kerekítése a legközelebbi egész számra."
       }
+    },
+    "swatch": {
+      "tab": "Mintakártyák",
+      "default_style": {
+        "label": "Alapértelmezett mintakártya-stílus",
+        "tooltip": "A 3D-nyomtatható filament-mintakártya letöltésekor előre kiválasztott stílus. Új stílusokkal a client/src/utils/swatch/styles.ts fájlban lehet hozzájárulni a Spoolmanhoz."
+      },
+      "preview_description": "Előnézet két példa filamenttel — a szöveg és a QR-kód automatikusan feketével vagy fehérrel nyomtatódik, attól függően, melyik üt el jobban a filament színétől:"
     }
   },
   "locations": {

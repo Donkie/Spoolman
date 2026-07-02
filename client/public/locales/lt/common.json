@@ -282,7 +282,23 @@
     },
     "buttons": {
       "add_spool": "Pridėti ritę",
-      "fetch": "Gauti"
+      "fetch": "Gauti",
+      "download_swatch": "Pavyzdys"
+    },
+    "swatch": {
+      "title": "3D spausdinamas pavyzdys",
+      "description": "Atsisiųskite {{width}} × {{height}} mm spausdinamą pavyzdžio kortelę su šios gijos etiketės informacija. Kortelės korpusas spausdinamas iš pačios gijos; tekstas ir QR kodas sudaro atskirą vieno sluoksnio aukščio viršutinę dalį ({{color}}), parinktą pagal kontrastą su gijos spalva.",
+      "print_hint": "Spausdinkite visą kortelę iš šios gijos, paskutiniame sluoksnyje pakeisdami giją į {{color}}, arba priskirkite spalvas abiem dalims kelių medžiagų sąrankoje. QR kodas abiem atvejais lieka nuskaitomas.",
+      "marking_black": "juoda",
+      "marking_white": "balta",
+      "truncated_warning": "Dalis teksto sutrumpinta, kad tilptų kortelėje.",
+      "style": "Stilius",
+      "styles": {
+        "classic": "Klasikinis",
+        "compact": "Kompaktiškas",
+        "card": "Kortelė"
+      },
+      "download": "Atsisiųsti .3mf"
     }
   },
   "vendor": {
@@ -392,6 +408,14 @@
       "key_not_changed": "Prašome pakeisti raktą į ką nors kitą.",
       "delete_confirm": "Šalinti lauką {{name}}?",
       "delete_confirm_description": "Tai ištrins lauką ir visus susijusius duomenis visiems objektams."
+    },
+    "swatch": {
+      "tab": "Pavyzdžiai",
+      "default_style": {
+        "label": "Numatytasis pavyzdžio stilius",
+        "tooltip": "Stilius, iš anksto parenkamas atsisiunčiant 3D spausdinamą gijos pavyzdį. Naujų stilių galima pridėti prie Spoolman faile client/src/utils/swatch/styles.ts."
+      },
+      "preview_description": "Peržiūra su dviem pavyzdinėmis gijomis — tekstas ir QR kodas automatiškai spausdinami juodai arba baltai, atsižvelgiant į tai, kas geriau kontrastuoja su gijos spalva:"
     }
   },
   "documentTitle": {

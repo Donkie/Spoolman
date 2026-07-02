@@ -3,6 +3,7 @@ import {
   EyeOutlined,
   FileOutlined,
   FilterOutlined,
+  IdcardOutlined,
   PlusSquareOutlined,
   PrinterOutlined,
 } from "@ant-design/icons";
@@ -24,6 +25,7 @@ import {
   SpoolIconColumn,
 } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
+import SwatchDownloadModal from "../../components/swatchDownloadModal";
 import {
   useSpoolmanArticleNumbers,
   useSpoolmanFilamentNames,
@@ -134,6 +136,9 @@ export const FilamentList = () => {
   // Create state for the columns to show
   const [showColumns, setShowColumns] = useState<string[]>(initialState.showColumns ?? defaultColumns);
 
+  // Filament to show the swatch download dialog for
+  const [swatchFilament, setSwatchFilament] = useState<IFilamentCollapsed | null>(null);
+
   // Store state in local storage
   const tableState: TableState = {
     sorters,
@@ -161,6 +166,11 @@ export const FilamentList = () => {
     { name: t("buttons.edit"), icon: <EditOutlined />, link: editUrl("filament", record.id) },
     { name: t("buttons.clone"), icon: <PlusSquareOutlined />, link: cloneUrl("filament", record.id) },
     { name: t("filament.buttons.add_spool"), icon: <FileOutlined />, link: filamentAddSpoolUrl(record.id) },
+    {
+      name: t("filament.buttons.download_swatch"),
+      icon: <IdcardOutlined />,
+      onClick: () => setSwatchFilament(record),
+    },
   ];
 
   const commonProps = {
@@ -359,6 +369,11 @@ export const FilamentList = () => {
           }),
           ActionsColumn(t("table.actions"), actions),
         ])}
+      />
+      <SwatchDownloadModal
+        filament={swatchFilament}
+        vendorName={swatchFilament?.["vendor.name"] ?? undefined}
+        onClose={() => setSwatchFilament(null)}
       />
     </List>
   );

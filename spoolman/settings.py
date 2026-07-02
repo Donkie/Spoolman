@@ -65,6 +65,10 @@ register_setting("currency", SettingType.STRING, json.dumps("EUR"))
 register_setting("round_prices", SettingType.BOOLEAN, json.dumps(obj=False))
 register_setting("print_presets", SettingType.ARRAY, json.dumps([]))
 register_setting("print_presets_filament", SettingType.ARRAY, json.dumps([]))
+# Default style for the 3D-printable filament swatch download; empty means the
+# client-side default style. The known style keys live in the client
+# (client/src/utils/swatch/styles.ts), so the backend only stores the string.
+register_setting("swatch_style", SettingType.STRING, json.dumps(""))
 
 register_setting("extra_fields_vendor", SettingType.ARRAY, json.dumps([]))
 register_setting("extra_fields_filament", SettingType.ARRAY, json.dumps([]))

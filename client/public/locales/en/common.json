@@ -280,7 +280,23 @@
     },
     "buttons": {
       "add_spool": "Add Spool",
-      "fetch": "Fetch"
+      "fetch": "Fetch",
+      "download_swatch": "Swatch"
+    },
+    "swatch": {
+      "title": "3D-printable swatch",
+      "description": "Download a {{width}} × {{height}} mm printable sample card carrying this filament's label info. The card body is printed in the filament itself; the text and QR code form a separate one-layer top part in {{color}}, picked for contrast against the filament color.",
+      "print_hint": "Print the whole card in this filament with a filament change to {{color}} at the last layer, or assign the colors to the two parts in a multi-material setup. The QR code stays scannable either way.",
+      "marking_black": "black",
+      "marking_white": "white",
+      "truncated_warning": "Some text was shortened to fit on the card.",
+      "style": "Style",
+      "styles": {
+        "classic": "Classic",
+        "compact": "Compact",
+        "card": "Card"
+      },
+      "download": "Download .3mf"
     }
   },
   "vendor": {
@@ -359,6 +375,14 @@
         "label": "Round prices",
         "tooltip": "Round prices to the nearest whole number."
       }
+    },
+    "swatch": {
+      "tab": "Swatches",
+      "default_style": {
+        "label": "Default swatch style",
+        "tooltip": "The style preselected when downloading a 3D-printable filament swatch. New styles can be contributed to Spoolman in client/src/utils/swatch/styles.ts."
+      },
+      "preview_description": "Preview with two example filaments — the text and QR code are automatically printed in black or white, whichever contrasts best with the filament color:"
     },
     "extra_fields": {
       "tab": "Extra Fields",

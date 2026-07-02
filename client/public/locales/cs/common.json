@@ -293,7 +293,23 @@
     },
     "buttons": {
       "add_spool": "Přidat cívku",
-      "fetch": "Načíst"
+      "fetch": "Načíst",
+      "download_swatch": "Vzorek"
+    },
+    "swatch": {
+      "title": "Vzorek pro 3D tisk",
+      "description": "Stáhněte tisknutelnou kartu se vzorkem o rozměrech {{width}} × {{height}} mm, která nese údaje ze štítku tohoto filamentu. Tělo karty se tiskne přímo z daného filamentu; text a QR kód tvoří samostatnou vrchní část o výšce jedné vrstvy ({{color}}), zvolenou pro kontrast s barvou filamentu.",
+      "print_hint": "Vytiskněte celou kartu z tohoto filamentu s výměnou filamentu ({{color}}) v poslední vrstvě, nebo přiřaďte barvy oběma částem v multi-materiálovém nastavení. QR kód zůstane čitelný v obou případech.",
+      "marking_black": "černá",
+      "marking_white": "bílá",
+      "truncated_warning": "Část textu byla zkrácena, aby se vešla na kartu.",
+      "style": "Styl",
+      "styles": {
+        "classic": "Klasický",
+        "compact": "Kompaktní",
+        "card": "Karta"
+      },
+      "download": "Stáhnout .3mf"
     }
   },
   "vendor": {
@@ -438,7 +454,15 @@
         "tooltip": "Zaokrouhlete ceny na nejbližší celé číslo."
       }
     },
-    "settings": "Nastavení"
+    "settings": "Nastavení",
+    "swatch": {
+      "tab": "Vzorky",
+      "default_style": {
+        "label": "Výchozí styl vzorku",
+        "tooltip": "Styl předvybraný při stahování vzorku filamentu pro 3D tisk. Nové styly lze do Spoolmanu přispět v souboru client/src/utils/swatch/styles.ts."
+      },
+      "preview_description": "Náhled se dvěma ukázkovými filamenty — text a QR kód se automaticky tisknou černě nebo bíle podle toho, co lépe kontrastuje s barvou filamentu:"
+    }
   },
   "locations": {
     "locations": "Umístění",

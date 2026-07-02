@@ -282,7 +282,23 @@
     },
     "buttons": {
       "add_spool": "Adicionar Carretel",
-      "fetch": "Buscar"
+      "fetch": "Buscar",
+      "download_swatch": "Amostra"
+    },
+    "swatch": {
+      "title": "Amostra imprimível em 3D",
+      "description": "Baixe um cartão de amostra imprimível de {{width}} × {{height}} mm com as informações do rótulo deste filamento. O corpo do cartão é impresso no próprio filamento; o texto e o código QR formam uma parte superior separada de uma única camada em {{color}}, escolhido para contrastar com a cor do filamento.",
+      "print_hint": "Imprima o cartão inteiro neste filamento com uma troca de filamento para {{color}} na última camada, ou atribua as cores às duas partes em uma configuração multimaterial. O código QR continua escaneável nos dois casos.",
+      "marking_black": "preto",
+      "marking_white": "branco",
+      "truncated_warning": "Parte do texto foi encurtada para caber no cartão.",
+      "style": "Estilo",
+      "styles": {
+        "classic": "Clássico",
+        "compact": "Compacto",
+        "card": "Cartão"
+      },
+      "download": "Baixar .3mf"
     }
   },
   "vendor": {
@@ -392,6 +408,14 @@
       "key_not_changed": "Por favor, escolha outra chave.",
       "delete_confirm": "Apagar o campo {{name}}?",
       "delete_confirm_description": "Isso excluirá o campo e todos os dados associados em todas as entidades."
+    },
+    "swatch": {
+      "tab": "Amostras",
+      "default_style": {
+        "label": "Estilo de amostra padrão",
+        "tooltip": "O estilo pré-selecionado ao baixar uma amostra de filamento imprimível em 3D. Novos estilos podem ser contribuídos ao Spoolman em client/src/utils/swatch/styles.ts."
+      },
+      "preview_description": "Pré-visualização com dois filamentos de exemplo — o texto e o código QR são impressos automaticamente em preto ou branco, o que contrastar melhor com a cor do filamento:"
     }
   },
   "documentTitle": {

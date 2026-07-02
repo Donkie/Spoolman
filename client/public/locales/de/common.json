@@ -291,7 +291,23 @@
     },
     "buttons": {
       "add_spool": "Spule hinzufügen",
-      "fetch": "Abrufen"
+      "fetch": "Abrufen",
+      "download_swatch": "Musterkarte"
+    },
+    "swatch": {
+      "title": "3D-druckbare Musterkarte",
+      "description": "Lade eine {{width}} × {{height}} mm große druckbare Musterkarte mit den Etikettdaten dieses Filaments herunter. Der Kartenkörper wird aus dem Filament selbst gedruckt; Text und QR-Code bilden ein separates, eine Schicht hohes Oberteil in {{color}}, gewählt für besten Kontrast zur Filamentfarbe.",
+      "print_hint": "Drucke die gesamte Karte aus diesem Filament mit einem Filamentwechsel zu {{color}} auf der letzten Schicht, oder weise die Farben den beiden Teilen in einem Multi-Material-Setup zu. Der QR-Code bleibt in beiden Fällen scannbar.",
+      "marking_black": "Schwarz",
+      "marking_white": "Weiß",
+      "truncated_warning": "Einige Texte wurden gekürzt, damit sie auf die Karte passen.",
+      "style": "Stil",
+      "styles": {
+        "classic": "Klassisch",
+        "compact": "Kompakt",
+        "card": "Karte"
+      },
+      "download": ".3mf herunterladen"
     }
   },
   "vendor": {
@@ -436,7 +452,15 @@
       "delete_confirm_description": "Dieses Feld und alle damit verbundenen Einträge werden gelöscht.",
       "non_unique_key_error": "Der Schlüssel muss einzigartig sein."
     },
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "swatch": {
+      "tab": "Musterkarten",
+      "default_style": {
+        "label": "Standard-Musterkartenstil",
+        "tooltip": "Der beim Herunterladen einer 3D-druckbaren Filament-Musterkarte vorausgewählte Stil. Neue Stile können in client/src/utils/swatch/styles.ts zu Spoolman beigetragen werden."
+      },
+      "preview_description": "Vorschau mit zwei Beispiel-Filamenten — Text und QR-Code werden automatisch in Schwarz oder Weiß gedruckt, je nachdem, was besser mit der Filamentfarbe kontrastiert:"
+    }
   },
   "locations": {
     "no_location": "Kein Ort",

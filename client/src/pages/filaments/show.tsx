@@ -1,12 +1,14 @@
 import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
 import { useShow, useTranslate } from "@refinedev/core";
-import { PrinterOutlined } from "@ant-design/icons";
+import { IdcardOutlined, PrinterOutlined } from "@ant-design/icons";
 import { CalibrationSection } from "../calibration/CalibrationSection";
 import { Button, Typography } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ExtraFieldDisplay } from "../../components/extraFields";
+import SwatchDownloadModal from "../../components/swatchDownloadModal";
 import { NumberFieldUnit } from "../../components/numberField";
 import SpoolIcon from "../../components/spoolIcon";
 import { enrichText } from "../../utils/parsing";
@@ -29,6 +31,8 @@ export const FilamentShow = () => {
   const { data, isLoading } = query;
 
   const record = data?.data;
+
+  const [swatchOpen, setSwatchOpen] = useState(false);
 
   const formatTitle = (item: IFilament) => {
     let vendorPrefix = "";
@@ -83,6 +87,9 @@ export const FilamentShow = () => {
             }
           >
             {t("printing.qrcode.button")}
+          </Button>
+          <Button type="primary" icon={<IdcardOutlined />} disabled={!record?.id} onClick={() => setSwatchOpen(true)}>
+            {t("filament.buttons.download_swatch")}
           </Button>
           {defaultButtons}
         </>
@@ -171,6 +178,7 @@ export const FilamentShow = () => {
         <ExtraFieldDisplay key={index} field={field} value={record?.extra[field.key]} />
       ))}
       <CalibrationSection filamentId={record?.id} />
+      <SwatchDownloadModal filament={swatchOpen ? (record ?? null) : null} onClose={() => setSwatchOpen(false)} />
     </Show>
   );
 };

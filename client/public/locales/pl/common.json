@@ -292,7 +292,23 @@
     },
     "buttons": {
       "add_spool": "Dodaj Szpulę",
-      "fetch": "Pobierz"
+      "fetch": "Pobierz",
+      "download_swatch": "Próbka"
+    },
+    "swatch": {
+      "title": "Próbka do druku 3D",
+      "description": "Pobierz kartę próbki do druku o wymiarach {{width}} × {{height}} mm z informacjami z etykiety tego filamentu. Korpus karty drukuje się z samego filamentu; tekst i kod QR tworzą osobną, jednowarstwową górną część ({{color}}), dobraną dla kontrastu z kolorem filamentu.",
+      "print_hint": "Wydrukuj całą kartę z tego filamentu ze zmianą filamentu ({{color}}) na ostatniej warstwie, albo przypisz kolory obu częściom w konfiguracji multi-material. Kod QR pozostanie czytelny w obu przypadkach.",
+      "marking_black": "czarny",
+      "marking_white": "biały",
+      "truncated_warning": "Część tekstu skrócono, aby zmieściła się na karcie.",
+      "style": "Styl",
+      "styles": {
+        "classic": "Klasyczny",
+        "compact": "Kompaktowy",
+        "card": "Karta"
+      },
+      "download": "Pobierz .3mf"
     }
   },
   "vendor": {
@@ -438,7 +454,15 @@
       "delete_confirm": "Usunąć pole {{name}}?",
       "delete_confirm_description": "Ta akcja usunie wszystkie pola i powiązane z nimi dane dla wszystkich obiektów."
     },
-    "header": "Ustawienia"
+    "header": "Ustawienia",
+    "swatch": {
+      "tab": "Próbki",
+      "default_style": {
+        "label": "Domyślny styl próbki",
+        "tooltip": "Styl wstępnie wybrany przy pobieraniu próbki filamentu do druku 3D. Nowe style można dodać do Spoolmana w pliku client/src/utils/swatch/styles.ts."
+      },
+      "preview_description": "Podgląd z dwoma przykładowymi filamentami — tekst i kod QR są automatycznie drukowane na czarno lub biało, zależnie od tego, co lepiej kontrastuje z kolorem filamentu:"
+    }
   },
   "locations": {
     "locations": "Lokalizacje",

@@ -322,7 +322,23 @@
     "filament": "Filamente",
     "buttons": {
       "add_spool": "Adăugare rolă",
-      "fetch": "Preia"
+      "fetch": "Preia",
+      "download_swatch": "Mostră"
+    },
+    "swatch": {
+      "title": "Mostră imprimabilă 3D",
+      "description": "Descarcă un card de mostră imprimabil de {{width}} × {{height}} mm cu informațiile de pe eticheta acestui filament. Corpul cardului se imprimă din filamentul însuși; textul și codul QR formează o parte superioară separată, de un singur strat, în {{color}}, ales pentru contrast cu culoarea filamentului.",
+      "print_hint": "Imprimă întregul card din acest filament cu o schimbare de filament la {{color}} pe ultimul strat, sau atribuie culorile celor două părți într-o configurație multi-material. Codul QR rămâne scanabil în ambele cazuri.",
+      "marking_black": "negru",
+      "marking_white": "alb",
+      "truncated_warning": "O parte din text a fost scurtată pentru a încăpea pe card.",
+      "style": "Stil",
+      "styles": {
+        "classic": "Clasic",
+        "compact": "Compact",
+        "card": "Card"
+      },
+      "download": "Descarcă .3mf"
     }
   },
   "vendor": {
@@ -438,6 +454,14 @@
       "key_not_changed": "Te rog să schimbi cheia.",
       "delete_confirm": "Ștergi câmpul{{name}}?",
       "delete_confirm_description": "Ștergerea câmpului și a tuturor datelor asociate pentru toate entitățile."
+    },
+    "swatch": {
+      "tab": "Mostre",
+      "default_style": {
+        "label": "Stil implicit de mostră",
+        "tooltip": "Stilul preselectat la descărcarea unei mostre de filament imprimabile 3D. Stiluri noi pot fi contribuite la Spoolman în client/src/utils/swatch/styles.ts."
+      },
+      "preview_description": "Previzualizare cu două filamente de exemplu — textul și codul QR se imprimă automat în negru sau alb, în funcție de ce contrastează mai bine cu culoarea filamentului:"
     }
   },
   "locations": {

@@ -280,7 +280,23 @@
     },
     "buttons": {
       "add_spool": "Makara Ekle",
-      "fetch": "Getir"
+      "fetch": "Getir",
+      "download_swatch": "Numune"
+    },
+    "swatch": {
+      "title": "3D yazdırılabilir numune",
+      "description": "Bu filamentin etiket bilgilerini taşıyan {{width}} × {{height}} mm boyutunda yazdırılabilir bir numune kartı indirin. Kartın gövdesi filamentin kendisiyle yazdırılır; metin ve QR kodu, filament rengiyle kontrast için seçilen {{color}} renkte tek katman yüksekliğinde ayrı bir üst parça oluşturur.",
+      "print_hint": "Kartın tamamını bu filamentle yazdırın ve son katmanda filamenti {{color}} renge değiştirin, ya da çoklu malzeme kurulumunda renkleri iki parçaya atayın. QR kodu her iki durumda da taranabilir kalır.",
+      "marking_black": "siyah",
+      "marking_white": "beyaz",
+      "truncated_warning": "Bazı metinler karta sığması için kısaltıldı.",
+      "style": "Stil",
+      "styles": {
+        "classic": "Klasik",
+        "compact": "Kompakt",
+        "card": "Kart"
+      },
+      "download": ".3mf indir"
     }
   },
   "vendor": {
@@ -390,6 +406,14 @@
       "key_not_changed": "Lütfen anahtarı başka bir şeyle değiştirin.",
       "delete_confirm": "{{name}} alanı silinsin mi?",
       "delete_confirm_description": "Bu işlem alanı ve ona bağlı tüm varlıkların verilerini silecektir."
+    },
+    "swatch": {
+      "tab": "Numuneler",
+      "default_style": {
+        "label": "Varsayılan numune stili",
+        "tooltip": "3D yazdırılabilir filament numunesi indirilirken önceden seçili olan stil. Yeni stiller client/src/utils/swatch/styles.ts dosyasında Spoolman'a eklenebilir."
+      },
+      "preview_description": "İki örnek filamentle önizleme — metin ve QR kodu, filament rengiyle hangisi daha iyi kontrast oluşturuyorsa otomatik olarak siyah veya beyaz yazdırılır:"
     }
   },
   "documentTitle": {

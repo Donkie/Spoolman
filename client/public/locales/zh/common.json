@@ -289,7 +289,23 @@
     },
     "buttons": {
       "add_spool": "添加料盘",
-      "fetch": "获取"
+      "fetch": "获取",
+      "download_swatch": "色卡"
+    },
+    "swatch": {
+      "title": "可3D打印的色卡",
+      "description": "下载一张 {{width}} × {{height}} mm 的可打印样品卡，包含该耗材的标签信息。卡片主体用耗材本身打印；文字和二维码是单独的一层高的顶部部件，采用{{color}}，根据与耗材颜色的对比度自动选择。",
+      "print_hint": "用该耗材打印整张卡片，并在最后一层换成{{color}}耗材，或在多材料设置中为两个部件分配颜色。两种方式下二维码都可扫描。",
+      "marking_black": "黑色",
+      "marking_white": "白色",
+      "truncated_warning": "部分文字已缩短以适应卡片。",
+      "style": "样式",
+      "styles": {
+        "classic": "经典",
+        "compact": "紧凑",
+        "card": "卡片"
+      },
+      "download": "下载 .3mf"
     }
   },
   "vendor": {
@@ -434,6 +450,14 @@
         "label": "取整",
         "tooltip": "将价格四舍五入到最接近的整数。"
       }
+    },
+    "swatch": {
+      "tab": "色卡",
+      "default_style": {
+        "label": "默认色卡样式",
+        "tooltip": "下载可3D打印的耗材色卡时预选的样式。可在 client/src/utils/swatch/styles.ts 中为 Spoolman 贡献新样式。"
+      },
+      "preview_description": "使用两种示例耗材预览 — 文字和二维码会自动以黑色或白色打印，取决于哪种与耗材颜色对比度更高："
     }
   },
   "locations": {

@@ -281,7 +281,23 @@
     },
     "buttons": {
       "add_spool": "Adicionar Bobine",
-      "fetch": "Obter"
+      "fetch": "Obter",
+      "download_swatch": "Amostra"
+    },
+    "swatch": {
+      "title": "Amostra imprimível em 3D",
+      "description": "Descarregue um cartão de amostra imprimível de {{width}} × {{height}} mm com as informações da etiqueta deste filamento. O corpo do cartão é impresso no próprio filamento; o texto e o código QR formam uma parte superior separada de uma só camada em {{color}}, escolhido para contrastar com a cor do filamento.",
+      "print_hint": "Imprima o cartão inteiro neste filamento com uma troca de filamento para {{color}} na última camada, ou atribua as cores às duas partes numa configuração multimaterial. O código QR continua legível em ambos os casos.",
+      "marking_black": "preto",
+      "marking_white": "branco",
+      "truncated_warning": "Algum texto foi encurtado para caber no cartão.",
+      "style": "Estilo",
+      "styles": {
+        "classic": "Clássico",
+        "compact": "Compacto",
+        "card": "Cartão"
+      },
+      "download": "Descarregar .3mf"
     }
   },
   "vendor": {
@@ -438,6 +454,14 @@
         "tooltip": "Arredonda os preços para o número inteiro mais próximo.",
         "label": "Arredondar preços"
       }
+    },
+    "swatch": {
+      "tab": "Amostras",
+      "default_style": {
+        "label": "Estilo de amostra predefinido",
+        "tooltip": "O estilo pré-selecionado ao descarregar uma amostra de filamento imprimível em 3D. Podem ser contribuídos novos estilos para o Spoolman em client/src/utils/swatch/styles.ts."
+      },
+      "preview_description": "Pré-visualização com dois filamentos de exemplo — o texto e o código QR são impressos automaticamente em preto ou branco, conforme o que contrastar melhor com a cor do filamento:"
     }
   },
   "locations": {

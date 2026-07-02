@@ -277,9 +277,25 @@
     },
     "buttons": {
       "add_spool": "增加料盤",
-      "fetch": "取得"
+      "fetch": "取得",
+      "download_swatch": "色卡"
     },
-    "filament": "線材"
+    "filament": "線材",
+    "swatch": {
+      "title": "可3D列印的色卡",
+      "description": "下載一張 {{width}} × {{height}} mm 的可列印樣品卡，包含該線材的標籤資訊。卡片主體用線材本身列印；文字和 QR 碼是單獨的一層高的頂部零件，採用{{color}}，根據與線材顏色的對比度自動選擇。",
+      "print_hint": "用該線材列印整張卡片，並在最後一層換成{{color}}線材，或在多材料設定中為兩個零件指定顏色。兩種方式下 QR 碼都可掃描。",
+      "marking_black": "黑色",
+      "marking_white": "白色",
+      "truncated_warning": "部分文字已縮短以符合卡片大小。",
+      "style": "樣式",
+      "styles": {
+        "classic": "經典",
+        "compact": "緊湊",
+        "card": "卡片"
+      },
+      "download": "下載 .3mf"
+    }
   },
   "vendor": {
     "vendor": "製造商",
@@ -422,6 +438,14 @@
       "description": "<p>在此，您可以為您的實體加入額外的自訂欄位。</p><p>一旦加入欄位，您將無法更改其鍵值或類型，對於選擇類型欄位，您也無法刪除選項或更改多選狀態。如果刪除欄位，所有實體的相關資料將被刪除。</p><p>鍵值是其他程式讀取/寫入資料的方式，因此如果您的自訂欄位需要與第三方程式整合，請確保正確設置。預設值僅適用於新品項。</p><p>額外的欄位無法在表格視圖中排序或過濾。</p>",
       "non_unique_key_error": "鍵值必須為唯一。",
       "delete_confirm_description": "這將刪除該欄位及所有與之關聯的所有實體資料。"
+    },
+    "swatch": {
+      "tab": "色卡",
+      "default_style": {
+        "label": "預設色卡樣式",
+        "tooltip": "下載可3D列印的線材色卡時預選的樣式。可在 client/src/utils/swatch/styles.ts 中為 Spoolman 貢獻新樣式。"
+      },
+      "preview_description": "使用兩種範例線材預覽 — 文字和 QR 碼會自動以黑色或白色列印，取決於哪種與線材顏色對比度更高："
     }
   },
   "locations": {

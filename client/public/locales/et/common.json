@@ -303,7 +303,23 @@
     },
     "buttons": {
       "add_spool": "Lisa pool",
-      "fetch": "Laadi"
+      "fetch": "Laadi",
+      "download_swatch": "Näidis"
+    },
+    "swatch": {
+      "title": "3D-prinditav näidis",
+      "description": "Laadi alla {{width}} × {{height}} mm prinditav näidiskaart selle filamendi etiketi andmetega. Kaardi keha prinditakse filamendist endast; tekst ja QR-kood moodustavad eraldi ühe kihi kõrguse pealmise osa värvis {{color}}, mis on valitud kontrastiks filamendi värviga.",
+      "print_hint": "Prindi kogu kaart sellest filamendist, vahetades viimasel kihil filamendi värvile {{color}}, või määra värvid kahele osale multimaterjali seadistuses. QR-kood jääb mõlemal juhul skannitavaks.",
+      "marking_black": "must",
+      "marking_white": "valge",
+      "truncated_warning": "Osa teksti lühendati, et see kaardile mahuks.",
+      "style": "Stiil",
+      "styles": {
+        "classic": "Klassikaline",
+        "compact": "Kompaktne",
+        "card": "Kaart"
+      },
+      "download": "Laadi alla .3mf"
     }
   },
   "vendor": {
@@ -398,6 +414,14 @@
       "key_not_changed": "Palun muuda võti millekski muuks.",
       "delete_confirm": "Kas kustutada väli {{name}}?",
       "delete_confirm_description": "See kustutab välja ja kõigi üksuste seotud andmed."
+    },
+    "swatch": {
+      "tab": "Näidised",
+      "default_style": {
+        "label": "Vaikimisi näidise stiil",
+        "tooltip": "Stiil, mis on 3D-prinditava filamendinäidise allalaadimisel eelvalitud. Uusi stiile saab Spoolmani lisada failis client/src/utils/swatch/styles.ts."
+      },
+      "preview_description": "Eelvaade kahe näidisfilamendiga — tekst ja QR-kood prinditakse automaatselt mustas või valges, olenevalt sellest, kumb filamendi värviga paremini kontrasteerub:"
     }
   },
   "documentTitle": {

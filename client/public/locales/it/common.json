@@ -282,7 +282,23 @@
     },
     "buttons": {
       "add_spool": "Aggiungi Bobina",
-      "fetch": "Recupera"
+      "fetch": "Recupera",
+      "download_swatch": "Campione"
+    },
+    "swatch": {
+      "title": "Campione stampabile in 3D",
+      "description": "Scarica una scheda campione stampabile di {{width}} × {{height}} mm con le informazioni dell'etichetta di questo filamento. Il corpo della scheda si stampa con il filamento stesso; il testo e il codice QR formano una parte superiore separata di un solo layer in {{color}}, scelto per contrastare con il colore del filamento.",
+      "print_hint": "Stampa l'intera scheda con questo filamento effettuando un cambio filamento in {{color}} all'ultimo layer, oppure assegna i colori alle due parti in una configurazione multi-materiale. Il codice QR resta leggibile in entrambi i casi.",
+      "marking_black": "nero",
+      "marking_white": "bianco",
+      "truncated_warning": "Parte del testo è stata accorciata per stare nella scheda.",
+      "style": "Stile",
+      "styles": {
+        "classic": "Classico",
+        "compact": "Compatto",
+        "card": "Scheda"
+      },
+      "download": "Scarica .3mf"
     }
   },
   "actions": {
@@ -438,6 +454,14 @@
         "label": "Prezzi arrotondati",
         "tooltip": "Prezzi arrotondati al numero intero più vicino."
       }
+    },
+    "swatch": {
+      "tab": "Campioni",
+      "default_style": {
+        "label": "Stile campione predefinito",
+        "tooltip": "Lo stile preselezionato quando si scarica un campione di filamento stampabile in 3D. Nuovi stili possono essere aggiunti a Spoolman in client/src/utils/swatch/styles.ts."
+      },
+      "preview_description": "Anteprima con due filamenti di esempio — il testo e il codice QR vengono stampati automaticamente in nero o bianco, a seconda di cosa contrasta meglio con il colore del filamento:"
     }
   },
   "locations": {

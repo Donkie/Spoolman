@@ -178,7 +178,23 @@
     },
     "buttons": {
       "add_spool": "Añadir bobina",
-      "fetch": "Obtener"
+      "fetch": "Obtener",
+      "download_swatch": "Muestra"
+    },
+    "swatch": {
+      "title": "Muestra imprimible en 3D",
+      "description": "Descarga una tarjeta de muestra imprimible de {{width}} × {{height}} mm con la información de la etiqueta de este filamento. El cuerpo de la tarjeta se imprime con el propio filamento; el texto y el código QR forman una parte superior separada de una sola capa en {{color}}, elegido para contrastar con el color del filamento.",
+      "print_hint": "Imprime toda la tarjeta con este filamento con un cambio de filamento a {{color}} en la última capa, o asigna los colores a las dos partes en una configuración multimaterial. El código QR seguirá siendo escaneable en ambos casos.",
+      "marking_black": "negro",
+      "marking_white": "blanco",
+      "truncated_warning": "Parte del texto se acortó para que quepa en la tarjeta.",
+      "style": "Estilo",
+      "styles": {
+        "classic": "Clásico",
+        "compact": "Compacto",
+        "card": "Tarjeta"
+      },
+      "download": "Descargar .3mf"
     }
   },
   "vendor": {
@@ -438,7 +454,15 @@
       "delete_confirm_description": "Esto eliminará el campo y todos los datos asociados para todas las entidades.",
       "description": "<p> Aquí puede agregar más campos personalizados a los asuntos.</p><p> Una vez que se agrega un campo, no puede cambiar su clave o tipo, y no puede eliminar opciones ni cambiar el estado de múltiples opciones para campos seleccionados. Si elimina un campo, se eliminarán los datos asociados a todos los sujetos.</p><p> La forma en que otros programas leen/escriben los datos es clave, por lo que si su campo personalizado se va a integrar con un programa de terceros, asegúrese de que esté configurado correctamente. El valor predeterminado solo se utilizará para elementos nuevos.</p><p> Los campos de salida no se pueden ordenar ni filtrar en las vistas de tabla.</p>"
     },
-    "settings": "Ajustes"
+    "settings": "Ajustes",
+    "swatch": {
+      "tab": "Muestras",
+      "default_style": {
+        "label": "Estilo de muestra predeterminado",
+        "tooltip": "El estilo preseleccionado al descargar una muestra de filamento imprimible en 3D. Se pueden aportar nuevos estilos a Spoolman en client/src/utils/swatch/styles.ts."
+      },
+      "preview_description": "Vista previa con dos filamentos de ejemplo — el texto y el código QR se imprimen automáticamente en negro o blanco, lo que mejor contraste con el color del filamento:"
+    }
   },
   "locations": {
     "locations": "Ubicaciones",
