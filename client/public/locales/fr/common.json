@@ -295,6 +295,8 @@
       "style": "Style",
       "styles": {
         "classic": "Classique",
+        "keychain": "Porte-clés",
+        "hanger": "Suspension",
         "compact": "Compact",
         "card": "Carte"
       },

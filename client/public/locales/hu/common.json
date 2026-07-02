@@ -293,6 +293,8 @@
       "style": "Stílus",
       "styles": {
         "classic": "Klasszikus",
+        "keychain": "Kulcstartó",
+        "hanger": "Akasztó",
         "compact": "Kompakt",
         "card": "Kártya"
       },

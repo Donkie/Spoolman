@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { assertWatertight, meshBounds, meshVolume } from "../../test/meshHelpers";
-import { addBox, addExtrudedConvexPolygon, emptyMesh, roundedRectanglePolygon } from "./geometry";
+import {
+  addBox,
+  addExtrudedConvexPolygon,
+  addExtrudedPlateWithHangerTab,
+  addExtrudedPlateWithHole,
+  clipConvexPolygon,
+  emptyMesh,
+  roundedRectanglePolygon,
+} from "./geometry";
 
 function shoelaceArea(points: ReadonlyArray<readonly [number, number]>): number {
   let area = 0;
@@ -133,5 +141,116 @@ describe("roundedRectanglePolygon", () => {
       expect(y).toBeLessThanOrEqual(6 + 1e-9);
     }
     expect(shoelaceArea(points)).toBeGreaterThan(0);
+  });
+});
+
+describe("clipConvexPolygon", () => {
+  const square: [number, number][] = [
+    [0, 0],
+    [4, 0],
+    [4, 4],
+    [0, 4],
+  ];
+
+  it("clips a square to a half-plane", () => {
+    // keep x <= 1
+    expect(clipConvexPolygon(square, 1, 0, 1)).toEqual([
+      [0, 0],
+      [1, 0],
+      [1, 4],
+      [0, 4],
+    ]);
+  });
+
+  it("returns the polygon unchanged when fully inside", () => {
+    expect(clipConvexPolygon(square, 1, 0, 10)).toEqual(square);
+  });
+
+  it("returns [] when nothing remains", () => {
+    expect(clipConvexPolygon(square, 1, 0, -1)).toEqual([]);
+  });
+
+  it("preserves counter-clockwise orientation and area additivity", () => {
+    const left = clipConvexPolygon(square, 1, 0, 1.5);
+    const right = clipConvexPolygon(square, -1, 0, -1.5);
+    expect(shoelaceArea(left)).toBeGreaterThan(0);
+    expect(shoelaceArea(right)).toBeGreaterThan(0);
+    expect(shoelaceArea(left) + shoelaceArea(right)).toBeCloseTo(shoelaceArea(square), 9);
+  });
+});
+
+describe("addExtrudedPlateWithHole", () => {
+  const outline = roundedRectanglePolygon(75, 34, 3);
+  const hole = { cx: 6, cy: 17, r: 2.4 };
+
+  it("builds watertight shells with the exact tiled volume", () => {
+    const mesh = emptyMesh();
+    addExtrudedPlateWithHole(mesh, outline, hole, 0, 2.4, 16);
+    assertWatertight(mesh);
+    // The pieces tile the outline exactly, minus the 16-gon hole (both are
+    // piecewise linear, so this is an equality up to float error).
+    const holeNgonArea = 0.5 * 16 * hole.r * hole.r * Math.sin((2 * Math.PI) / 16);
+    expect(meshVolume(mesh)).toBeCloseTo((shoelaceArea(outline) - holeNgonArea) * 2.4, 6);
+  });
+
+  it("stays within the outline's bounding box", () => {
+    const mesh = emptyMesh();
+    addExtrudedPlateWithHole(mesh, outline, hole, 0, 2.4);
+    const bounds = meshBounds(mesh);
+    expect(bounds.min[0]).toBeGreaterThanOrEqual(-1e-9);
+    expect(bounds.max[0]).toBeLessThanOrEqual(75 + 1e-9);
+    expect(bounds.min[1]).toBeGreaterThanOrEqual(-1e-9);
+    expect(bounds.max[1]).toBeLessThanOrEqual(34 + 1e-9);
+  });
+
+  it("leaves no material inside the hole", () => {
+    const mesh = emptyMesh();
+    addExtrudedPlateWithHole(mesh, outline, hole, 0, 2.4);
+    // No vertex may lie strictly inside the hole polygon's inscribed circle.
+    const safeRadius = hole.r * Math.cos(Math.PI / 16) - 1e-9;
+    for (let i = 0; i < mesh.vertices.length; i += 3) {
+      const distance = Math.hypot(mesh.vertices[i] - hole.cx, mesh.vertices[i + 1] - hole.cy);
+      expect(distance).toBeGreaterThanOrEqual(safeRadius);
+    }
+  });
+});
+
+describe("addExtrudedPlateWithHangerTab", () => {
+  const outline = roundedRectanglePolygon(75, 34, 3);
+  const tab = { cx: 37.5, edgeY: 34, holeR: 2.5, outerR: 5.5 };
+  const SEGMENTS = 16;
+
+  function ngonArea(radius: number): number {
+    return 0.5 * SEGMENTS * radius * radius * Math.sin((2 * Math.PI) / SEGMENTS);
+  }
+
+  it("builds watertight shells with the exact tiled volume", () => {
+    const mesh = emptyMesh();
+    addExtrudedPlateWithHangerTab(mesh, outline, tab, 0, 2.4, SEGMENTS);
+    assertWatertight(mesh);
+    // Card minus the hole's lower half, plus the tab's upper half-annulus —
+    // all piecewise linear, so the tiling is exact up to float error.
+    const expectedArea = shoelaceArea(outline) + ngonArea(tab.outerR) / 2 - ngonArea(tab.holeR);
+    expect(meshVolume(mesh)).toBeCloseTo(expectedArea * 2.4, 6);
+  });
+
+  it("protrudes exactly outerR above the top edge and stays within the width", () => {
+    const mesh = emptyMesh();
+    addExtrudedPlateWithHangerTab(mesh, outline, tab, 0, 2.4);
+    const bounds = meshBounds(mesh);
+    expect(bounds.max[1]).toBeCloseTo(tab.edgeY + tab.outerR, 9);
+    expect(bounds.min[1]).toBeGreaterThanOrEqual(-1e-9);
+    expect(bounds.min[0]).toBeGreaterThanOrEqual(-1e-9);
+    expect(bounds.max[0]).toBeLessThanOrEqual(75 + 1e-9);
+  });
+
+  it("leaves no material inside the nail hole", () => {
+    const mesh = emptyMesh();
+    addExtrudedPlateWithHangerTab(mesh, outline, tab, 0, 2.4);
+    const safeRadius = tab.holeR * Math.cos(Math.PI / SEGMENTS) - 1e-9;
+    for (let i = 0; i < mesh.vertices.length; i += 3) {
+      const distance = Math.hypot(mesh.vertices[i] - tab.cx, mesh.vertices[i + 1] - tab.edgeY);
+      expect(distance).toBeGreaterThanOrEqual(safeRadius);
+    }
   });
 });

@@ -316,6 +316,8 @@
       "style": "Style",
       "styles": {
         "classic": "Classic",
+        "keychain": "Keychain",
+        "hanger": "Hanger",
         "compact": "Compact",
         "card": "Card"
       },

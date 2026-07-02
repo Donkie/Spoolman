@@ -335,6 +335,8 @@
       "style": "Stil",
       "styles": {
         "classic": "Clasic",
+        "keychain": "Breloc",
+        "hanger": "Agățătoare",
         "compact": "Compact",
         "card": "Card"
       },

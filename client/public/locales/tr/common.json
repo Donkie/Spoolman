@@ -293,6 +293,8 @@
       "style": "Stil",
       "styles": {
         "classic": "Klasik",
+        "keychain": "Anahtarlık",
+        "hanger": "Askılı",
         "compact": "Kompakt",
         "card": "Kart"
       },

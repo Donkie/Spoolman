@@ -295,6 +295,8 @@
       "style": "Stilius",
       "styles": {
         "classic": "Klasikinis",
+        "keychain": "Raktų pakabukas",
+        "hanger": "Pakabinamas",
         "compact": "Kompaktiškas",
         "card": "Kortelė"
       },

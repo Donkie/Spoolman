@@ -293,6 +293,8 @@
       "style": "Stil",
       "styles": {
         "classic": "Klassisk",
+        "keychain": "Nøglering",
+        "hanger": "Ophæng",
         "compact": "Kompakt",
         "card": "Kort"
       },

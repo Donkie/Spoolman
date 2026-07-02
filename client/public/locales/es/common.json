@@ -191,6 +191,8 @@
       "style": "Estilo",
       "styles": {
         "classic": "Clásico",
+        "keychain": "Llavero",
+        "hanger": "Colgador",
         "compact": "Compacto",
         "card": "Tarjeta"
       },

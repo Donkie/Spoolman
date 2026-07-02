@@ -92,6 +92,8 @@
       "style": "Stil",
       "styles": {
         "classic": "Klassisk",
+        "keychain": "Nøkkelring",
+        "hanger": "Oppheng",
         "compact": "Kompakt",
         "card": "Kort"
       },

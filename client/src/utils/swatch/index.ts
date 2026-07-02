@@ -13,7 +13,15 @@ import { buildSwatch3mf } from "./threeMf";
 export { pickMarkingColor } from "./color";
 export type { MarkingColor } from "./color";
 export { buildSwatchLayout } from "./layout";
-export type { MarkRect, SwatchInput, SwatchLayout, SwatchStyleSpec, SwatchTextLine } from "./layout";
+export type {
+  MarkRect,
+  SwatchHangerTab,
+  SwatchHole,
+  SwatchInput,
+  SwatchLayout,
+  SwatchStyleSpec,
+  SwatchTextLine,
+} from "./layout";
 export { buildSwatchLayoutForStyle, DEFAULT_SWATCH_STYLE_KEY, getSwatchStyle, SWATCH_STYLES } from "./styles";
 export type { SwatchStyle } from "./styles";
 export { buildSwatch3mf, buildSwatchMeshes } from "./threeMf";

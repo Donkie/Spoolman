@@ -291,6 +291,8 @@
       "style": "樣式",
       "styles": {
         "classic": "經典",
+        "keychain": "鑰匙圈",
+        "hanger": "壁掛",
         "compact": "緊湊",
         "card": "卡片"
       },

@@ -291,6 +291,8 @@
       "style": "スタイル",
       "styles": {
         "classic": "クラシック",
+        "keychain": "キーホルダー",
+        "hanger": "壁掛け",
         "compact": "コンパクト",
         "card": "カード"
       },

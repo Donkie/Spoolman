@@ -316,6 +316,8 @@
       "style": "Stiil",
       "styles": {
         "classic": "Klassikaline",
+        "keychain": "Võtmehoidja",
+        "hanger": "Riputatav",
         "compact": "Kompaktne",
         "card": "Kaart"
       },

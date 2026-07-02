@@ -85,6 +85,13 @@ describe("swatch style registry", () => {
     expect(getSwatchStyle(null).key).toBe(DEFAULT_SWATCH_STYLE_KEY);
   });
 
+  it("never declares both a keychain hole and a hanger tab", () => {
+    // The base-plate builders re-tile the whole card and cannot be combined.
+    for (const style of SWATCH_STYLES) {
+      expect(style.spec.hole && style.spec.hangerTab, `style ${style.key}`).toBeFalsy();
+    }
+  });
+
   it("builds layouts with the dimensions of the requested style", () => {
     const input = FIXTURES[0][1];
     for (const style of SWATCH_STYLES) {
@@ -119,6 +126,20 @@ describe.each(SWATCH_STYLES.map((style) => [style.key, style] as const))("style 
       expect(layout.qr.moduleSizeMm).toBeGreaterThanOrEqual(0.4);
     });
 
+    it("keeps the marking clear of any hole (keychain or hanger tab)", () => {
+      const holes = [
+        style.spec.hole,
+        style.spec.hangerTab ? { cx: style.spec.hangerTab.cx, cy: 0, r: style.spec.hangerTab.holeR } : undefined,
+      ].filter((hole): hole is { cx: number; cy: number; r: number } => hole !== undefined);
+      for (const hole of holes) {
+        for (const rect of layout.markRects) {
+          const nearestX = Math.min(Math.max(hole.cx, rect.x), rect.x + rect.w);
+          const nearestY = Math.min(Math.max(hole.cy, rect.y), rect.y + rect.h);
+          expect(Math.hypot(nearestX - hole.cx, nearestY - hole.cy)).toBeGreaterThanOrEqual(hole.r - 1e-9);
+        }
+      }
+    });
+
     it("builds watertight meshes with the marking exactly one layer above the base", () => {
       const { base, marking } = buildSwatchMeshes(layout);
       assertWatertight(base);
@@ -126,6 +147,12 @@ describe.each(SWATCH_STYLES.map((style) => [style.key, style] as const))("style 
       const baseBounds = meshBounds(base);
       expect(baseBounds.min[2]).toBe(0);
       expect(baseBounds.max[2]).toBeCloseTo(style.spec.baseThicknessMm, 9);
+      // the base must stay within the card footprint, plus any hanger-tab arch above it
+      const tabProtrusion = style.spec.hangerTab?.outerR ?? 0;
+      expect(baseBounds.min[0]).toBeGreaterThanOrEqual(-1e-6);
+      expect(baseBounds.max[0]).toBeLessThanOrEqual(style.spec.widthMm + 1e-6);
+      expect(baseBounds.min[1]).toBeGreaterThanOrEqual(-1e-6);
+      expect(baseBounds.max[1]).toBeLessThanOrEqual(style.spec.heightMm + tabProtrusion + 1e-6);
       const markingBounds = meshBounds(marking);
       expect(markingBounds.min[2]).toBeCloseTo(style.spec.baseThicknessMm, 9);
       expect(markingBounds.max[2]).toBeCloseTo(style.spec.baseThicknessMm + style.spec.markingThicknessMm, 9);
