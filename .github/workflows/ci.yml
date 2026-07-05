@@ -636,7 +636,7 @@ jobs:
           images: |
             ghcr.io/${{ env.GHCR_IMAGE }}
           tags: |
-            type=edge
+            type=raw,value=edge
             type=sha,format=short
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -652,7 +652,7 @@ jobs:
           images: |
             docker.io/cookiemonster95/spoolman
           tags: |
-            type=edge
+            type=raw,value=edge
             type=sha,format=short
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -747,3 +747,23 @@ jobs:
             Also tagged `:latest` (newest release) and `:edge` (latest `master`). Architectures: `amd64`, `arm64`, and `armv7` (all with NFC support).
 
             ---
+  #
+  # Deploy the freshly published :edge image to the spoolman-ng test instance
+  # on the VPS. The SSH key is forced-command — the server runs
+  # /opt/spoolman-ng/deploy.sh no matter what script is sent. PR runs never
+  # reach this (no secrets on pull_request + the explicit if).
+  #
+  deploy-test:
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: [publish-images]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to spoolman-ng
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          port: ${{ secrets.VPS_PORT }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            true # forced-command key runs /opt/spoolman-ng/deploy.sh regardless
