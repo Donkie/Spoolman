@@ -6,6 +6,11 @@ services:
       - POSTGRES_PASSWORD=abc
       - TZ='GMT+4'
       - PGTZ='GMT+4'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1s
+      timeout: 5s
+      retries: 30
   spoolman:
     image: donkie/spoolman:test
     environment:
@@ -18,7 +23,8 @@ services:
       - SPOOLMAN_LOGGING_LEVEL=INFO
       - TZ=Europe/Stockholm
     depends_on:
-      - db
+      db:
+        condition: service_healthy
   tester:
     image: donkie/spoolman-tester:latest
     volumes:

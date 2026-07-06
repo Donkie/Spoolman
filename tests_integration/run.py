@@ -1,18 +1,23 @@
 """Build and run the integration tests."""
 
-# ruff: noqa: S605, S607, T201
+# ruff: noqa: S605, T201
 
 import os
 import sys
 
+# Container engine to use. Defaults to "docker"; set SPOOLMAN_CONTAINER_ENGINE=podman
+# to run the suite with rootless Podman (both expose a compatible `build` and
+# `compose` CLI).
+ENGINE = os.environ.get("SPOOLMAN_CONTAINER_ENGINE", "docker")
+
 if __name__ == "__main__":
-    print("Building and running integration tests...")
+    print(f"Building and running integration tests (engine: {ENGINE})...")
     print("Building Spoolman...")
-    if os.system("docker build -t donkie/spoolman:test .") > 0:
+    if os.system(f"{ENGINE} build -t donkie/spoolman:test .") > 0:
         print("Failed to build Spoolman!")
         sys.exit(1)
     print("Building Spoolman tester...")
-    if os.system("docker build -t donkie/spoolman-tester:latest tests_integration") > 0:
+    if os.system(f"{ENGINE} build -t donkie/spoolman-tester:latest tests_integration") > 0:
         print("Failed to build Spoolman tester!")
         sys.exit(1)
 
@@ -35,9 +40,9 @@ if __name__ == "__main__":
 
     for target in targets:
         print(f"Running integration tests against {target}...")
-        os.system(f"docker compose -f tests_integration/docker-compose-{target}.yml down -v")
+        os.system(f"{ENGINE} compose -f tests_integration/docker-compose-{target}.yml down -v")
         if (
-            os.system(f"docker compose -f tests_integration/docker-compose-{target}.yml up --abort-on-container-exit")
+            os.system(f"{ENGINE} compose -f tests_integration/docker-compose-{target}.yml up --abort-on-container-exit")
             > 0
         ):
             print(f"Integration tests against {target} failed!")
