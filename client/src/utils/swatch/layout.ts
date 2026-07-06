@@ -17,8 +17,13 @@ import {
 import { QrEcLevel, makeQrModules } from "./qr";
 
 const QR_QUIET_MODULES = 2;
-/** Below this module size a 0.4mm nozzle cannot print the QR reliably. */
-const MIN_QR_MODULE_MM = 0.4;
+/**
+ * Nozzle width the QR is optimized for. Module sizes snap to multiples of it
+ * so every module prints as a whole number of extrusion lines — fractional
+ * module widths come out ragged and hurt scannability more than smaller,
+ * cleanly printed modules do.
+ */
+const QR_NOZZLE_WIDTH_MM = 0.4;
 const TRUNCATION_SUFFIX = "..";
 /** Horizontal clearance between a keychain hole and the text block. */
 const HOLE_TEXT_GAP_MM = 2;
@@ -70,7 +75,11 @@ export interface SwatchStyleSpec {
   markingThicknessMm: number;
   cornerRadiusMm: number;
   marginMm: number;
-  /** Side length of the square QR block, including its quiet zone. */
+  /**
+   * Side length of the square area reserved for the QR block (including its
+   * quiet zone). The printed grid snaps to nozzle-width module multiples, so
+   * it can be smaller than this; it is centered within the reserved area.
+   */
   qrAreaMm: number;
   /** Horizontal gap between the text block and the QR block. */
   textQrGapMm: number;
@@ -128,8 +137,10 @@ export interface SwatchLayout {
   qr: {
     x: number;
     y: number;
+    /** Actual side length of the printed grid (modules + quiet zone). */
     sizeMm: number;
     moduleCount: number;
+    /** A multiple of the 0.4mm nozzle width whenever one fits the area. */
     moduleSizeMm: number;
     ecLevel: QrEcLevel;
     /**
@@ -211,20 +222,28 @@ function fitLine(text: string, preferredScale: number, maxWidthMm: number, minSc
 }
 
 /**
- * Encode the QR payload at error-correction level M, but fall back to level L
- * when that would make the modules too small to print: for physical scanning,
- * larger modules help more than extra error-correction bits.
+ * Module size for a QR grid in the reserved area: the largest multiple of the
+ * nozzle width that fits. When even one nozzle width does not fit (huge
+ * payloads), fall back to the raw fraction so the grid still fills the area.
+ */
+function snappedModuleSizeMm(qrAreaMm: number, gridCount: number): number {
+  const rawMm = qrAreaMm / gridCount;
+  // The epsilon keeps intended-exact multiples (e.g. 26.4mm / 33 modules)
+  // from flooring one whole nozzle width down due to floating-point error.
+  const snappedMm = Math.floor(rawMm / QR_NOZZLE_WIDTH_MM + 1e-9) * QR_NOZZLE_WIDTH_MM;
+  return snappedMm >= QR_NOZZLE_WIDTH_MM ? snappedMm : rawMm;
+}
+
+/**
+ * Encode the QR payload at the error-correction level whose modules print
+ * largest after nozzle snapping: for physical scanning, larger modules help
+ * more than extra error-correction bits. Ties go to the stronger level M.
  */
 function chooseQrModules(payload: string, qrAreaMm: number): { modules: boolean[][]; ecLevel: QrEcLevel } {
-  const preferred = makeQrModules(payload, "M");
-  if (qrAreaMm / (preferred.length + 2 * QR_QUIET_MODULES) >= MIN_QR_MODULE_MM) {
-    return { modules: preferred, ecLevel: "M" };
-  }
-  const fallback = makeQrModules(payload, "L");
-  if (fallback.length < preferred.length) {
-    return { modules: fallback, ecLevel: "L" };
-  }
-  return { modules: preferred, ecLevel: "M" };
+  const m = makeQrModules(payload, "M");
+  const l = makeQrModules(payload, "L");
+  const moduleSizeOf = (modules: boolean[][]) => snappedModuleSizeMm(qrAreaMm, modules.length + 2 * QR_QUIET_MODULES);
+  return moduleSizeOf(l) > moduleSizeOf(m) ? { modules: l, ecLevel: "L" } : { modules: m, ecLevel: "M" };
 }
 
 function appendTextRects(rects: MarkRect[], line: SwatchTextLine, xMm: number, yMm: number): void {
@@ -251,13 +270,15 @@ export function buildSwatchLayout(input: SwatchInput, spec: SwatchStyleSpec): Sw
     .filter((hex): hex is string => hex !== null);
   const markRects: MarkRect[] = [];
 
-  // QR block, vertically centered on the right.
-  const qrX = spec.widthMm - spec.marginMm - spec.qrAreaMm;
-  const qrY = (spec.heightMm - spec.qrAreaMm) / 2;
+  // QR block on the right: modules snap to nozzle-width multiples, so the
+  // grid is usually smaller than the reserved area and is centered within it.
   const { modules, ecLevel } = chooseQrModules(input.qrPayload, spec.qrAreaMm);
   const moduleCount = modules.length;
   const gridCount = moduleCount + 2 * QR_QUIET_MODULES;
-  const moduleSizeMm = spec.qrAreaMm / gridCount;
+  const moduleSizeMm = snappedModuleSizeMm(spec.qrAreaMm, gridCount);
+  const qrSizeMm = gridCount * moduleSizeMm;
+  const qrX = spec.widthMm - spec.marginMm - spec.qrAreaMm + (spec.qrAreaMm - qrSizeMm) / 2;
+  const qrY = (spec.heightMm - qrSizeMm) / 2;
   // With a white marking on a dark filament, raise the light modules and the
   // quiet zone instead of the dark modules, so a scanner still sees dark
   // modules on a light background.
@@ -306,6 +327,6 @@ export function buildSwatchLayout(input: SwatchInput, spec: SwatchStyleSpec): Sw
     hangerTab: spec.hangerTab,
     markRects,
     textLines,
-    qr: { x: qrX, y: qrY, sizeMm: spec.qrAreaMm, moduleCount, moduleSizeMm, ecLevel, inverted },
+    qr: { x: qrX, y: qrY, sizeMm: qrSizeMm, moduleCount, moduleSizeMm, ecLevel, inverted },
   };
 }

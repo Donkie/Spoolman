@@ -287,8 +287,8 @@
     },
     "swatch": {
       "title": "Échantillon imprimable en 3D",
-      "description": "Téléchargez une carte d'échantillon imprimable de {{width}} × {{height}} mm reprenant les informations de l'étiquette de ce filament. Le corps de la carte s'imprime avec le filament lui-même ; le texte et le code QR forment une partie supérieure séparée d'une seule couche en {{color}}, choisie pour contraster avec la couleur du filament.",
-      "print_hint": "Imprimez toute la carte avec ce filament avec un changement de filament en {{color}} à la dernière couche, ou attribuez les couleurs aux deux parties dans une configuration multi-matériaux. Le code QR reste lisible dans les deux cas.",
+      "description": "Téléchargez une carte d'échantillon imprimable de {{width}} × {{height}} mm reprenant les informations de l'étiquette de ce filament. Le corps de la carte s'imprime avec le filament lui-même ; le texte et le code QR forment un marquage en relief d'une seule couche en {{color}}, choisi pour contraster avec la couleur du filament.",
+      "print_hint": "Imprimez toute la carte avec ce filament avec un changement de filament en {{color}} à la dernière couche, ou importez les couleurs intégrées dans un slicer multi-couleurs (p. ex. Bambu Studio). Le code QR reste lisible dans les deux cas.",
       "marking_black": "noir",
       "marking_white": "blanc",
       "truncated_warning": "Certains textes ont été raccourcis pour tenir sur la carte.",

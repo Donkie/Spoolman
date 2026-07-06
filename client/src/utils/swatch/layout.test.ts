@@ -180,6 +180,50 @@ describe("buildSwatchLayout", () => {
     expect(qrCellCovered(layout, 0, 0)).toBe(true);
   });
 
+  it("snaps QR modules to a whole multiple of the 0.4mm nozzle width", () => {
+    const layout = buildSwatchLayout(FULL_INPUT, TEST_SPEC);
+    // WEB+SPOOLMAN:F-42 is alphanumeric, so it fits a version-1 code:
+    // 21 modules + 2x2 quiet in a 20mm area snap to exactly 0.8mm.
+    expect(layout.qr.moduleCount).toBe(21);
+    expect(layout.qr.moduleSizeMm).toBeCloseTo(0.8, 9);
+    expect(layout.qr.sizeMm).toBeCloseTo(20, 9);
+  });
+
+  it("centers a snapped-down QR grid within the reserved area", () => {
+    // Byte-mode payload at version 3: 29 modules + 4 quiet snap from ~0.61mm
+    // down to 0.4mm, leaving a 13.2mm grid centered in the 20mm area.
+    const layout = buildSwatchLayout(
+      { ...FULL_INPUT, qrPayload: "https://spool.example.com/filament/show/42" },
+      TEST_SPEC,
+    );
+    expect(layout.qr.moduleCount).toBe(29);
+    expect(layout.qr.moduleSizeMm).toBeCloseTo(0.4, 9);
+    expect(layout.qr.sizeMm).toBeCloseTo(13.2, 9);
+    const areaLeftMm = TEST_SPEC.widthMm - TEST_SPEC.marginMm - TEST_SPEC.qrAreaMm;
+    expect(layout.qr.x).toBeCloseTo(areaLeftMm + (TEST_SPEC.qrAreaMm - layout.qr.sizeMm) / 2, 9);
+    expect(layout.qr.y).toBeCloseTo((TEST_SPEC.heightMm - layout.qr.sizeMm) / 2, 9);
+  });
+
+  it("does not floor away a whole nozzle width when the area is an exact grid multiple", () => {
+    // 26.4mm / 33 grid cells is exactly 0.8mm, but floats make it
+    // 0.7999999999999999 — the snap must not floor that down to 0.4mm.
+    const layout = buildSwatchLayout(
+      { ...FULL_INPUT, qrPayload: "https://spool.example.com/filament/show/42" },
+      { ...TEST_SPEC, qrAreaMm: 26.4 },
+    );
+    expect(layout.qr.moduleCount).toBe(29);
+    expect(layout.qr.moduleSizeMm).toBeCloseTo(0.8, 9);
+  });
+
+  it("prefers the error-correction level whose snapped modules print larger", () => {
+    // 21 alphanumeric chars: version 2 at level M but version 1 at level L.
+    // Version 1 snaps to 0.8mm modules, version 2 only to 0.4mm, so L wins.
+    const layout = buildSwatchLayout({ ...FULL_INPUT, qrPayload: "WEB+SPOOLMAN:F-999999" }, TEST_SPEC);
+    expect(layout.qr.ecLevel).toBe("L");
+    expect(layout.qr.moduleCount).toBe(21);
+    expect(layout.qr.moduleSizeMm).toBeCloseTo(0.8, 9);
+  });
+
   it("uses a larger QR version (smaller modules) for longer payloads", () => {
     const short = buildSwatchLayout(FULL_INPUT, TEST_SPEC);
     const long = buildSwatchLayout(

@@ -296,8 +296,8 @@
     },
     "swatch": {
       "title": "3D-printbart provkort",
-      "description": "Ladda ner ett {{width}} × {{height}} mm printbart provkort med filamentets etikettinformation. Själva kortet skrivs ut i filamentet; texten och QR-koden utgör en separat toppdel på ett lager i {{color}}, vald för bästa kontrast mot filamentets färg.",
-      "print_hint": "Skriv ut hela kortet i detta filament med ett filamentbyte till {{color}} på sista lagret, eller tilldela färgerna till de två delarna i en multimaterialuppsättning. QR-koden kan skannas i båda fallen.",
+      "description": "Ladda ner ett {{width}} × {{height}} mm printbart provkort med filamentets etikettinformation. Själva kortet skrivs ut i filamentet; texten och QR-koden utgör en upphöjd markering på ett lager i {{color}}, vald för bästa kontrast mot filamentets färg.",
+      "print_hint": "Skriv ut hela kortet i detta filament med ett filamentbyte till {{color}} på sista lagret, eller importera de inbäddade färgerna i en flerfärgsslicer (t.ex. Bambu Studio). QR-koden kan skannas i båda fallen.",
       "marking_black": "svart",
       "marking_white": "vit",
       "truncated_warning": "Viss text kortades för att få plats på kortet.",

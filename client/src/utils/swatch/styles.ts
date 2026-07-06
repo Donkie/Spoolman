@@ -13,8 +13,11 @@
 //     automatically (geometry stays inside the card, meshes are watertight,
 //     the 3MF builds) against light/dark/multi-color/minimal filaments.
 //
-// Sizing tips: keep qrAreaMm ≥ 15 so the QR modules stay ≥ ~0.4 mm for a
-// 0.4 mm nozzle, and keep line scales ≥ minPixelScaleMm for legible text.
+// Sizing tips: QR modules snap down to multiples of the 0.4 mm nozzle width,
+// so pick qrAreaMm as (modules + 4 quiet) x a 0.4 multiple for the payloads
+// you care about — 20 fits a version-1 code (21 + 4 modules) at exactly
+// 0.8 mm, 26.4 additionally fits version 3 (typical URL payloads) at 0.8 mm.
+// Keep line scales ≥ minPixelScaleMm for legible text.
 // A style may punch a keychain hole through the card via `hole` — place it on
 // the left side (the text block starts right of its rim) and keep its collar
 // square (1.6x the radius) inside the card outline — or grow a hanger tab on
@@ -130,7 +133,9 @@ const compact: SwatchStyle = {
     markingThicknessMm: 0.2,
     cornerRadiusMm: 2.5,
     marginMm: 2.5,
-    qrAreaMm: 16.5,
+    // Exactly a version-1 QR grid (21 modules + 4 quiet) at 0.8mm; anything
+    // smaller would snap the modules down to 0.4mm.
+    qrAreaMm: 20,
     textQrGapMm: 2,
     lineGapMm: 1,
     minPixelScaleMm: 0.4,
@@ -153,7 +158,9 @@ const card: SwatchStyle = {
     markingThicknessMm: 0.2,
     cornerRadiusMm: 3.5,
     marginMm: 4,
-    qrAreaMm: 26,
+    // A version-3 QR grid (29 + 4 quiet modules) at 0.8mm, so typical URL
+    // payloads (up to ~53 bytes) keep 0.8mm modules on this style.
+    qrAreaMm: 26.4,
     textQrGapMm: 3,
     lineGapMm: 2,
     minPixelScaleMm: 0.4,

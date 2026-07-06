@@ -285,8 +285,8 @@
     },
     "swatch": {
       "title": "3D-nyomtatható mintakártya",
-      "description": "Tölts le egy {{width}} × {{height}} mm-es nyomtatható mintakártyát a filament címkeadataival. A kártya teste magából a filamentből készül; a szöveg és a QR-kód külön, egy réteg magas felső részt alkot {{color}} színben, amelyet a filament színével való kontraszt alapján választunk.",
-      "print_hint": "Nyomtasd az egész kártyát ebből a filamentből, az utolsó rétegnél {{color}} színre váltva, vagy rendeld hozzá a színeket a két részhez multi-material beállításban. A QR-kód mindkét esetben beolvasható marad.",
+      "description": "Tölts le egy {{width}} × {{height}} mm-es nyomtatható mintakártyát a filament címkeadataival. A kártya teste magából a filamentből készül; a szöveg és a QR-kód egy réteg magas, kiemelkedő jelölést alkot {{color}} színben, amelyet a filament színével való kontraszt alapján választunk.",
+      "print_hint": "Nyomtasd az egész kártyát ebből a filamentből, az utolsó rétegnél {{color}} színre váltva, vagy importáld a beágyazott színeket egy többszínű slicerben (pl. Bambu Studio). A QR-kód mindkét esetben beolvasható marad.",
       "marking_black": "fekete",
       "marking_white": "fehér",
       "truncated_warning": "Néhány szöveg rövidítve lett, hogy elférjen a kártyán.",

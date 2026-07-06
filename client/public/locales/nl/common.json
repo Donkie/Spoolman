@@ -318,8 +318,8 @@
     },
     "swatch": {
       "title": "3D-printbare kleurstaal",
-      "description": "Download een printbare staalkaart van {{width}} × {{height}} mm met de labelinformatie van dit filament. De kaart zelf wordt geprint in het filament; de tekst en QR-code vormen een apart bovendeel van één laag in {{color}}, gekozen voor contrast met de filamentkleur.",
-      "print_hint": "Print de hele kaart in dit filament met een filamentwissel naar {{color}} op de laatste laag, of wijs de kleuren toe aan de twee onderdelen in een multi-material-opstelling. De QR-code blijft in beide gevallen scanbaar.",
+      "description": "Download een printbare staalkaart van {{width}} × {{height}} mm met de labelinformatie van dit filament. De kaart zelf wordt geprint in het filament; de tekst en QR-code vormen een verhoogde markering van één laag in {{color}}, gekozen voor contrast met de filamentkleur.",
+      "print_hint": "Print de hele kaart in dit filament met een filamentwissel naar {{color}} op de laatste laag, of importeer de ingebedde kleuren in een meerkleuren-slicer (bijv. Bambu Studio). De QR-code blijft in beide gevallen scanbaar.",
       "marking_black": "zwart",
       "marking_white": "wit",
       "truncated_warning": "Sommige tekst is ingekort om op de kaart te passen.",

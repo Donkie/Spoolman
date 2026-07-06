@@ -286,8 +286,8 @@
     },
     "swatch": {
       "title": "Amostra imprimível em 3D",
-      "description": "Descarregue um cartão de amostra imprimível de {{width}} × {{height}} mm com as informações da etiqueta deste filamento. O corpo do cartão é impresso no próprio filamento; o texto e o código QR formam uma parte superior separada de uma só camada em {{color}}, escolhido para contrastar com a cor do filamento.",
-      "print_hint": "Imprima o cartão inteiro neste filamento com uma troca de filamento para {{color}} na última camada, ou atribua as cores às duas partes numa configuração multimaterial. O código QR continua legível em ambos os casos.",
+      "description": "Descarregue um cartão de amostra imprimível de {{width}} × {{height}} mm com as informações da etiqueta deste filamento. O corpo do cartão é impresso no próprio filamento; o texto e o código QR formam uma marcação em relevo de uma só camada em {{color}}, escolhido para contrastar com a cor do filamento.",
+      "print_hint": "Imprima o cartão inteiro neste filamento com uma troca de filamento para {{color}} na última camada, ou importe as cores incorporadas num fatiador multicolor (p. ex. Bambu Studio). O código QR continua legível em ambos os casos.",
       "marking_black": "preto",
       "marking_white": "branco",
       "truncated_warning": "Algum texto foi encurtado para caber no cartão.",

@@ -287,8 +287,8 @@
     },
     "swatch": {
       "title": "3D spausdinamas pavyzdys",
-      "description": "Atsisiųskite {{width}} × {{height}} mm spausdinamą pavyzdžio kortelę su šios gijos etiketės informacija. Kortelės korpusas spausdinamas iš pačios gijos; tekstas ir QR kodas sudaro atskirą vieno sluoksnio aukščio viršutinę dalį ({{color}}), parinktą pagal kontrastą su gijos spalva.",
-      "print_hint": "Spausdinkite visą kortelę iš šios gijos, paskutiniame sluoksnyje pakeisdami giją į {{color}}, arba priskirkite spalvas abiem dalims kelių medžiagų sąrankoje. QR kodas abiem atvejais lieka nuskaitomas.",
+      "description": "Atsisiųskite {{width}} × {{height}} mm spausdinamą pavyzdžio kortelę su šios gijos etiketės informacija. Kortelės korpusas spausdinamas iš pačios gijos; tekstas ir QR kodas sudaro vieno sluoksnio aukščio iškilų žymėjimą ({{color}}), parinktą pagal kontrastą su gijos spalva.",
+      "print_hint": "Spausdinkite visą kortelę iš šios gijos, paskutiniame sluoksnyje pakeisdami giją į {{color}}, arba importuokite įterptas spalvas kelių spalvų slicer'yje (pvz., Bambu Studio). QR kodas abiem atvejais lieka nuskaitomas.",
       "marking_black": "juoda",
       "marking_white": "balta",
       "truncated_warning": "Dalis teksto sutrumpinta, kad tilptų kortelėje.",

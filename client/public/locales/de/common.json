@@ -296,8 +296,8 @@
     },
     "swatch": {
       "title": "3D-druckbare Musterkarte",
-      "description": "Lade eine {{width}} × {{height}} mm große druckbare Musterkarte mit den Etikettdaten dieses Filaments herunter. Der Kartenkörper wird aus dem Filament selbst gedruckt; Text und QR-Code bilden ein separates, eine Schicht hohes Oberteil in {{color}}, gewählt für besten Kontrast zur Filamentfarbe.",
-      "print_hint": "Drucke die gesamte Karte aus diesem Filament mit einem Filamentwechsel zu {{color}} auf der letzten Schicht, oder weise die Farben den beiden Teilen in einem Multi-Material-Setup zu. Der QR-Code bleibt in beiden Fällen scannbar.",
+      "description": "Lade eine {{width}} × {{height}} mm große druckbare Musterkarte mit den Etikettdaten dieses Filaments herunter. Der Kartenkörper wird aus dem Filament selbst gedruckt; Text und QR-Code bilden eine erhabene, eine Schicht hohe Markierung in {{color}}, gewählt für besten Kontrast zur Filamentfarbe.",
+      "print_hint": "Drucke die gesamte Karte aus diesem Filament mit einem Filamentwechsel zu {{color}} auf der letzten Schicht, oder importiere die eingebetteten Farben in einem Mehrfarb-Slicer (z. B. Bambu Studio). Der QR-Code bleibt in beiden Fällen scannbar.",
       "marking_black": "Schwarz",
       "marking_white": "Weiß",
       "truncated_warning": "Einige Texte wurden gekürzt, damit sie auf die Karte passen.",

@@ -308,8 +308,8 @@
     },
     "swatch": {
       "title": "3D-printable swatch",
-      "description": "Is filament ki label jaankari ke saath {{width}} × {{height}} mm ka printable sample card download karein. Card ka body isi filament se print hota hai; text aur QR code ek alag ek-layer wala top hissa hote hain {{color}} mein, jo filament ke rang se contrast ke liye chuna jaata hai.",
-      "print_hint": "Poora card isi filament se print karein aur aakhri layer par filament ko {{color}} mein badlein, ya multi-material setup mein dono hisson ko rang assign karein. QR code dono tarah se scan hota rahega.",
+      "description": "Is filament ki label jaankari ke saath {{width}} × {{height}} mm ka printable sample card download karein. Card ka body isi filament se print hota hai; text aur QR code {{color}} mein ek-layer ki ubhri hui marking banate hain, jo filament ke rang se contrast ke liye chuni jaati hai.",
+      "print_hint": "Poora card isi filament se print karein aur aakhri layer par filament ko {{color}} mein badlein, ya multi-color slicer (jaise Bambu Studio) mein embedded colors import karein. QR code dono tarah se scan hota rahega.",
       "marking_black": "kaala",
       "marking_white": "safed",
       "truncated_warning": "Card par fit karne ke liye kuchh text chhota kiya gaya.",

@@ -298,8 +298,8 @@
     },
     "swatch": {
       "title": "Vzorek pro 3D tisk",
-      "description": "Stáhněte tisknutelnou kartu se vzorkem o rozměrech {{width}} × {{height}} mm, která nese údaje ze štítku tohoto filamentu. Tělo karty se tiskne přímo z daného filamentu; text a QR kód tvoří samostatnou vrchní část o výšce jedné vrstvy ({{color}}), zvolenou pro kontrast s barvou filamentu.",
-      "print_hint": "Vytiskněte celou kartu z tohoto filamentu s výměnou filamentu ({{color}}) v poslední vrstvě, nebo přiřaďte barvy oběma částem v multi-materiálovém nastavení. QR kód zůstane čitelný v obou případech.",
+      "description": "Stáhněte tisknutelnou kartu se vzorkem o rozměrech {{width}} × {{height}} mm, která nese údaje ze štítku tohoto filamentu. Tělo karty se tiskne přímo z daného filamentu; text a QR kód tvoří vyvýšené značení o výšce jedné vrstvy ({{color}}), zvolené pro kontrast s barvou filamentu.",
+      "print_hint": "Vytiskněte celou kartu z tohoto filamentu s výměnou filamentu ({{color}}) v poslední vrstvě, nebo naimportujte vložené barvy ve vícebarevném sliceru (např. Bambu Studio). QR kód zůstane čitelný v obou případech.",
       "marking_black": "černá",
       "marking_white": "bílá",
       "truncated_warning": "Část textu byla zkrácena, aby se vešla na kartu.",

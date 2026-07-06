@@ -287,8 +287,8 @@
     },
     "swatch": {
       "title": "Campione stampabile in 3D",
-      "description": "Scarica una scheda campione stampabile di {{width}} × {{height}} mm con le informazioni dell'etichetta di questo filamento. Il corpo della scheda si stampa con il filamento stesso; il testo e il codice QR formano una parte superiore separata di un solo layer in {{color}}, scelto per contrastare con il colore del filamento.",
-      "print_hint": "Stampa l'intera scheda con questo filamento effettuando un cambio filamento in {{color}} all'ultimo layer, oppure assegna i colori alle due parti in una configurazione multi-materiale. Il codice QR resta leggibile in entrambi i casi.",
+      "description": "Scarica una scheda campione stampabile di {{width}} × {{height}} mm con le informazioni dell'etichetta di questo filamento. Il corpo della scheda si stampa con il filamento stesso; il testo e il codice QR formano una marcatura in rilievo di un solo layer in {{color}}, scelto per contrastare con il colore del filamento.",
+      "print_hint": "Stampa l'intera scheda con questo filamento effettuando un cambio filamento in {{color}} all'ultimo layer, oppure importa i colori incorporati in uno slicer multicolore (ad es. Bambu Studio). Il codice QR resta leggibile in entrambi i casi.",
       "marking_black": "nero",
       "marking_white": "bianco",
       "truncated_warning": "Parte del testo è stata accorciata per stare nella scheda.",

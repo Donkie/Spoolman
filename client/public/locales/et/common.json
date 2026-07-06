@@ -308,8 +308,8 @@
     },
     "swatch": {
       "title": "3D-prinditav näidis",
-      "description": "Laadi alla {{width}} × {{height}} mm prinditav näidiskaart selle filamendi etiketi andmetega. Kaardi keha prinditakse filamendist endast; tekst ja QR-kood moodustavad eraldi ühe kihi kõrguse pealmise osa värvis {{color}}, mis on valitud kontrastiks filamendi värviga.",
-      "print_hint": "Prindi kogu kaart sellest filamendist, vahetades viimasel kihil filamendi värvile {{color}}, või määra värvid kahele osale multimaterjali seadistuses. QR-kood jääb mõlemal juhul skannitavaks.",
+      "description": "Laadi alla {{width}} × {{height}} mm prinditav näidiskaart selle filamendi etiketi andmetega. Kaardi keha prinditakse filamendist endast; tekst ja QR-kood moodustavad ühe kihi kõrguse reljeefse märgistuse värvis {{color}}, mis on valitud kontrastiks filamendi värviga.",
+      "print_hint": "Prindi kogu kaart sellest filamendist, vahetades viimasel kihil filamendi värvile {{color}}, või impordi manustatud värvid mitmevärvilisse slicerisse (nt Bambu Studio). QR-kood jääb mõlemal juhul skannitavaks.",
       "marking_black": "must",
       "marking_white": "valge",
       "truncated_warning": "Osa teksti lühendati, et see kaardile mahuks.",

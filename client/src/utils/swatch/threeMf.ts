@@ -1,6 +1,21 @@
-// Serialize a swatch layout as a 3MF package: one object with two parts — the
-// base card (filament color) and the raised marking layer (black or white) —
-// so slicers import it as a single multi-part, multi-color model.
+// Serialize a swatch layout as a 3MF package: a single mesh object whose
+// marking triangles (text pixels and QR modules) carry a per-triangle color
+// from an <m:colorgroup> (3MF Materials Extension), while the rest inherits
+// the filament color from the object default.
+//
+// Why one object with face colors, and not one sub-object per color?
+//  - Ultimaker Cura ignores 3MF color/material data entirely and treats every
+//    build object as an independent model — it drops each one to the build
+//    plate, which scattered the old separate marking layer into a sheet of
+//    loose dots. A single mesh keeps the card intact everywhere.
+//  - Bambu Studio's standard-3MF color import only recognizes color groups
+//    (m:colorgroup) — basematerials-encoded files load as geometry only. With
+//    face colors it offers mapping both colors to filaments on import.
+//  - Windows 3D Viewer supports the materials extension, so the swatch still
+//    previews in full color there.
+// The marking is additionally sunk slightly into the base so the two color
+// regions overlap instead of merely touching: exactly-coplanar faces between
+// separate shells are a classic source of slicer artifacts.
 
 import { strToU8, zipSync } from "fflate";
 import {
@@ -15,9 +30,15 @@ import {
 import { SwatchLayout } from "./layout";
 
 const MODEL_NAMESPACE = "http://schemas.microsoft.com/3dmanufacturing/core/2015/02";
+const MATERIAL_NAMESPACE = "http://schemas.microsoft.com/3dmanufacturing/material/2015/02";
 const CORNER_SEGMENTS = 6;
 /** Display color used when the filament has no (valid) color set. */
 const FALLBACK_BASE_COLOR = "#d9d9d9";
+/**
+ * How far the marking sinks into the base, so the union of the two is robust
+ * for slicers (strict overlap instead of exactly-coplanar touching faces).
+ */
+export const MARKING_EMBED_MM = 0.05;
 
 export interface SwatchMeshes {
   base: Mesh;
@@ -55,12 +76,13 @@ export function buildSwatchMeshes(layout: SwatchLayout): SwatchMeshes {
     addExtrudedConvexPolygon(base, outline, 0, layout.baseThicknessMm);
   }
   const marking = emptyMesh();
+  const markingZ0 = Math.max(0, layout.baseThicknessMm - MARKING_EMBED_MM);
   for (const rect of layout.markRects) {
     addBox(
       marking,
       rect.x,
       layout.heightMm - (rect.y + rect.h),
-      layout.baseThicknessMm,
+      markingZ0,
       rect.x + rect.w,
       layout.heightMm - rect.y,
       layout.baseThicknessMm + layout.markingThicknessMm,
@@ -82,16 +104,29 @@ function formatCoordinate(value: number): string {
   return parseFloat(value.toFixed(4)).toString();
 }
 
-function meshXml(mesh: Mesh): string {
+/**
+ * Serialize both part meshes as one 3MF <mesh>. Marking triangles reference
+ * property index 1 of the object's color group (`p1`); base triangles inherit
+ * the object-level default (index 0).
+ */
+function combinedMeshXml(base: Mesh, marking: Mesh): string {
   const parts: string[] = ["<mesh><vertices>"];
-  for (let i = 0; i < mesh.vertices.length; i += 3) {
-    parts.push(
-      `<vertex x="${formatCoordinate(mesh.vertices[i])}" y="${formatCoordinate(mesh.vertices[i + 1])}" z="${formatCoordinate(mesh.vertices[i + 2])}"/>`,
-    );
+  for (const mesh of [base, marking]) {
+    for (let i = 0; i < mesh.vertices.length; i += 3) {
+      parts.push(
+        `<vertex x="${formatCoordinate(mesh.vertices[i])}" y="${formatCoordinate(mesh.vertices[i + 1])}" z="${formatCoordinate(mesh.vertices[i + 2])}"/>`,
+      );
+    }
   }
   parts.push("</vertices><triangles>");
-  for (let i = 0; i < mesh.triangles.length; i += 3) {
-    parts.push(`<triangle v1="${mesh.triangles[i]}" v2="${mesh.triangles[i + 1]}" v3="${mesh.triangles[i + 2]}"/>`);
+  for (let i = 0; i < base.triangles.length; i += 3) {
+    parts.push(`<triangle v1="${base.triangles[i]}" v2="${base.triangles[i + 1]}" v3="${base.triangles[i + 2]}"/>`);
+  }
+  const offset = base.vertices.length / 3;
+  for (let i = 0; i < marking.triangles.length; i += 3) {
+    parts.push(
+      `<triangle v1="${offset + marking.triangles[i]}" v2="${offset + marking.triangles[i + 1]}" v3="${offset + marking.triangles[i + 2]}" p1="1"/>`,
+    );
   }
   parts.push("</triangles></mesh>");
   return parts.join("");
@@ -110,7 +145,7 @@ export function buildSwatch3mf(layout: SwatchLayout, metadata: SwatchMetadata): 
 
   const model: string[] = [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    `<model unit="millimeter" xml:lang="en-US" xmlns="${MODEL_NAMESPACE}">`,
+    `<model unit="millimeter" xml:lang="en-US" xmlns="${MODEL_NAMESPACE}" xmlns:m="${MATERIAL_NAMESPACE}">`,
     `<metadata name="Title">${escapeXml(metadata.title)}</metadata>`,
     '<metadata name="Application">Spoolman</metadata>',
   ];
@@ -119,21 +154,15 @@ export function buildSwatch3mf(layout: SwatchLayout, metadata: SwatchMetadata): 
   }
   model.push(
     "<resources>",
-    '<basematerials id="1">',
-    `<base name="Filament" displaycolor="${baseColor}"/>`,
-    `<base name="Marking (${layout.markingColor})" displaycolor="${markingColor}"/>`,
-    "</basematerials>",
-    '<object id="2" type="model" name="Swatch base" pid="1" pindex="0">',
-    meshXml(base),
-    "</object>",
-    `<object id="3" type="model" name="Swatch marking (${layout.markingColor})" pid="1" pindex="1">`,
-    meshXml(marking),
-    "</object>",
-    `<object id="4" type="model" name="${escapeXml(metadata.title)}">`,
-    '<components><component objectid="2"/><component objectid="3"/></components>',
+    '<m:colorgroup id="1">',
+    `<m:color color="${baseColor}"/>`,
+    `<m:color color="${markingColor}"/>`,
+    "</m:colorgroup>",
+    `<object id="2" type="model" name="${escapeXml(metadata.title)}" pid="1" pindex="0">`,
+    combinedMeshXml(base, marking),
     "</object>",
     "</resources>",
-    '<build><item objectid="4"/></build>',
+    '<build><item objectid="2"/></build>',
     "</model>",
   );
 

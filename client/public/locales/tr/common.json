@@ -285,8 +285,8 @@
     },
     "swatch": {
       "title": "3D yazdırılabilir numune",
-      "description": "Bu filamentin etiket bilgilerini taşıyan {{width}} × {{height}} mm boyutunda yazdırılabilir bir numune kartı indirin. Kartın gövdesi filamentin kendisiyle yazdırılır; metin ve QR kodu, filament rengiyle kontrast için seçilen {{color}} renkte tek katman yüksekliğinde ayrı bir üst parça oluşturur.",
-      "print_hint": "Kartın tamamını bu filamentle yazdırın ve son katmanda filamenti {{color}} renge değiştirin, ya da çoklu malzeme kurulumunda renkleri iki parçaya atayın. QR kodu her iki durumda da taranabilir kalır.",
+      "description": "Bu filamentin etiket bilgilerini taşıyan {{width}} × {{height}} mm boyutunda yazdırılabilir bir numune kartı indirin. Kartın gövdesi filamentin kendisiyle yazdırılır; metin ve QR kodu, filament rengiyle kontrast için seçilen {{color}} renkte tek katman yüksekliğinde kabartma bir işaretleme oluşturur.",
+      "print_hint": "Kartın tamamını bu filamentle yazdırın ve son katmanda filamenti {{color}} renge değiştirin, ya da gömülü renkleri çok renkli bir dilimleyicide (ör. Bambu Studio) içe aktarın. QR kodu her iki durumda da taranabilir kalır.",
       "marking_black": "siyah",
       "marking_white": "beyaz",
       "truncated_warning": "Bazı metinler karta sığması için kısaltıldı.",

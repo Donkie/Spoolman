@@ -183,8 +183,8 @@
     },
     "swatch": {
       "title": "Muestra imprimible en 3D",
-      "description": "Descarga una tarjeta de muestra imprimible de {{width}} × {{height}} mm con la información de la etiqueta de este filamento. El cuerpo de la tarjeta se imprime con el propio filamento; el texto y el código QR forman una parte superior separada de una sola capa en {{color}}, elegido para contrastar con el color del filamento.",
-      "print_hint": "Imprime toda la tarjeta con este filamento con un cambio de filamento a {{color}} en la última capa, o asigna los colores a las dos partes en una configuración multimaterial. El código QR seguirá siendo escaneable en ambos casos.",
+      "description": "Descarga una tarjeta de muestra imprimible de {{width}} × {{height}} mm con la información de la etiqueta de este filamento. El cuerpo de la tarjeta se imprime con el propio filamento; el texto y el código QR forman un marcado en relieve de una sola capa en {{color}}, elegido para contrastar con el color del filamento.",
+      "print_hint": "Imprime toda la tarjeta con este filamento con un cambio de filamento a {{color}} en la última capa, o importa los colores incrustados en un slicer multicolor (p. ej. Bambu Studio). El código QR seguirá siendo escaneable en ambos casos.",
       "marking_black": "negro",
       "marking_white": "blanco",
       "truncated_warning": "Parte del texto se acortó para que quepa en la tarjeta.",

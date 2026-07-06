@@ -297,8 +297,8 @@
     },
     "swatch": {
       "title": "Próbka do druku 3D",
-      "description": "Pobierz kartę próbki do druku o wymiarach {{width}} × {{height}} mm z informacjami z etykiety tego filamentu. Korpus karty drukuje się z samego filamentu; tekst i kod QR tworzą osobną, jednowarstwową górną część ({{color}}), dobraną dla kontrastu z kolorem filamentu.",
-      "print_hint": "Wydrukuj całą kartę z tego filamentu ze zmianą filamentu ({{color}}) na ostatniej warstwie, albo przypisz kolory obu częściom w konfiguracji multi-material. Kod QR pozostanie czytelny w obu przypadkach.",
+      "description": "Pobierz kartę próbki do druku o wymiarach {{width}} × {{height}} mm z informacjami z etykiety tego filamentu. Korpus karty drukuje się z samego filamentu; tekst i kod QR tworzą wypukłe, jednowarstwowe oznaczenie ({{color}}), dobrane dla kontrastu z kolorem filamentu.",
+      "print_hint": "Wydrukuj całą kartę z tego filamentu ze zmianą filamentu ({{color}}) na ostatniej warstwie, albo zaimportuj osadzone kolory w slicerze wielokolorowym (np. Bambu Studio). Kod QR pozostanie czytelny w obu przypadkach.",
       "marking_black": "czarny",
       "marking_white": "biały",
       "truncated_warning": "Część tekstu skrócono, aby zmieściła się na karcie.",

@@ -327,8 +327,8 @@
     },
     "swatch": {
       "title": "Mostră imprimabilă 3D",
-      "description": "Descarcă un card de mostră imprimabil de {{width}} × {{height}} mm cu informațiile de pe eticheta acestui filament. Corpul cardului se imprimă din filamentul însuși; textul și codul QR formează o parte superioară separată, de un singur strat, în {{color}}, ales pentru contrast cu culoarea filamentului.",
-      "print_hint": "Imprimă întregul card din acest filament cu o schimbare de filament la {{color}} pe ultimul strat, sau atribuie culorile celor două părți într-o configurație multi-material. Codul QR rămâne scanabil în ambele cazuri.",
+      "description": "Descarcă un card de mostră imprimabil de {{width}} × {{height}} mm cu informațiile de pe eticheta acestui filament. Corpul cardului se imprimă din filamentul însuși; textul și codul QR formează un marcaj în relief, de un singur strat, în {{color}}, ales pentru contrast cu culoarea filamentului.",
+      "print_hint": "Imprimă întregul card din acest filament cu o schimbare de filament la {{color}} pe ultimul strat, sau importă culorile încorporate într-un slicer multicolor (de ex. Bambu Studio). Codul QR rămâne scanabil în ambele cazuri.",
       "marking_black": "negru",
       "marking_white": "alb",
       "truncated_warning": "O parte din text a fost scurtată pentru a încăpea pe card.",

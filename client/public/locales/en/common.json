@@ -285,8 +285,8 @@
     },
     "swatch": {
       "title": "3D-printable swatch",
-      "description": "Download a {{width}} × {{height}} mm printable sample card carrying this filament's label info. The card body is printed in the filament itself; the text and QR code form a separate one-layer top part in {{color}}, picked for contrast against the filament color.",
-      "print_hint": "Print the whole card in this filament with a filament change to {{color}} at the last layer, or assign the colors to the two parts in a multi-material setup. The QR code stays scannable either way.",
+      "description": "Download a {{width}} × {{height}} mm printable sample card carrying this filament's label info. The card body is printed in the filament itself; the text and QR code form a raised one-layer marking in {{color}}, picked for contrast against the filament color.",
+      "print_hint": "Print the whole card in this filament with a filament change to {{color}} at the last layer, or import the embedded colors in a multi-color slicer (e.g. Bambu Studio). The QR code stays scannable either way.",
       "marking_black": "black",
       "marking_white": "white",
       "truncated_warning": "Some text was shortened to fit on the card.",

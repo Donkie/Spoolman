@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import { assertWatertight, meshBounds } from "../../test/meshHelpers";
 import { SwatchInput, buildSwatchLayout } from "./layout";
 import { DEFAULT_SWATCH_STYLE_KEY, SWATCH_STYLES, buildSwatchLayoutForStyle, getSwatchStyle } from "./styles";
-import { buildSwatch3mf, buildSwatchMeshes } from "./threeMf";
+import { buildSwatch3mf, buildSwatchMeshes, MARKING_EMBED_MM } from "./threeMf";
 
 const FIXTURES: [string, SwatchInput][] = [
   [
@@ -123,7 +123,10 @@ describe.each(SWATCH_STYLES.map((style) => [style.key, style] as const))("style 
     });
 
     it("keeps QR modules printable with a 0.4mm nozzle", () => {
-      expect(layout.qr.moduleSizeMm).toBeGreaterThanOrEqual(0.4);
+      expect(layout.qr.moduleSizeMm).toBeGreaterThanOrEqual(0.4 - 1e-9);
+      // a whole number of extrusion lines per module prints clean edges
+      const linesPerModule = layout.qr.moduleSizeMm / 0.4;
+      expect(Math.abs(linesPerModule - Math.round(linesPerModule))).toBeLessThan(1e-9);
     });
 
     it("keeps the marking clear of any hole (keychain or hanger tab)", () => {
@@ -140,7 +143,7 @@ describe.each(SWATCH_STYLES.map((style) => [style.key, style] as const))("style 
       }
     });
 
-    it("builds watertight meshes with the marking exactly one layer above the base", () => {
+    it("builds watertight meshes with the marking one layer above the base, sunk in for a robust union", () => {
       const { base, marking } = buildSwatchMeshes(layout);
       assertWatertight(base);
       assertWatertight(marking);
@@ -154,7 +157,7 @@ describe.each(SWATCH_STYLES.map((style) => [style.key, style] as const))("style 
       expect(baseBounds.min[1]).toBeGreaterThanOrEqual(-1e-6);
       expect(baseBounds.max[1]).toBeLessThanOrEqual(style.spec.heightMm + tabProtrusion + 1e-6);
       const markingBounds = meshBounds(marking);
-      expect(markingBounds.min[2]).toBeCloseTo(style.spec.baseThicknessMm, 9);
+      expect(markingBounds.min[2]).toBeCloseTo(style.spec.baseThicknessMm - MARKING_EMBED_MM, 9);
       expect(markingBounds.max[2]).toBeCloseTo(style.spec.baseThicknessMm + style.spec.markingThicknessMm, 9);
       // the marking must sit on the card, not hang off it
       expect(markingBounds.min[0]).toBeGreaterThanOrEqual(-1e-6);
