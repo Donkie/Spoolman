@@ -35,11 +35,32 @@ export const Help = () => {
         i18nKey={"help.description"}
         components={{
           p: <p />,
+          h2: <Title level={3} />,
+          h3: <Title level={4} />,
+          h4: <Title level={5} />,
+          hr: <hr style={{ border: 0, borderTop: `1px solid ${token.colorSplit}`, margin: `${token.marginLG}px 0` }} />,
           title: <Title />,
           filamentCreateLink: <Link to="/filament/create" />,
           spoolCreateLink: <Link to="/spool/create" />,
           vendorCreateLink: <Link to="/vendor/create" />,
+          logosSettingsLink: <Link to="/settings/logos" />,
           readmeLink: <Link to="https://github.com/Donkie/Spoolman#integration-status" target="_blank" />,
+          strong: <strong />,
+          code: (
+            <code
+              style={{
+                backgroundColor: token.colorFillSecondary,
+                borderRadius: token.borderRadiusSM,
+                border: `1px solid ${token.colorBorderSecondary}`,
+                fontSize: token.fontSizeSM,
+                lineHeight: 1.35,
+                padding: "0 6px",
+              }}
+            />
+          ),
+          ol: <ol />,
+          ul: <ul />,
+          li: <li />,
           itemsHelp: (
             <List
               itemLayout="horizontal"

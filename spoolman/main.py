@@ -6,10 +6,10 @@ from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import PlainTextResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, PlainTextResponse, RedirectResponse, Response
 from prometheus_client import generate_latest
 from scheduler.asyncio.scheduler import Scheduler
 
@@ -18,6 +18,7 @@ from spoolman.api.v1.router import app as v1_app
 from spoolman.client import SinglePageApplication
 from spoolman.database import database
 from spoolman.prometheus.metrics import registry
+from spoolman.vendor_logos import resolve_vendor_logo_asset
 
 # Define a console logger
 console_handler = logging.StreamHandler()
@@ -97,6 +98,16 @@ window.SPOOLMAN_BASE_PATH = "{base_path}";
 """,
         media_type="text/javascript",
     )
+
+
+@app.get(env.get_base_path() + "/vendor-logos/{asset_path:path}", include_in_schema=False)
+def get_vendor_logo_asset(asset_path: str) -> FileResponse:
+    """Serve vendor logo assets from runtime data directory first, then bundled assets."""
+    # Runtime-generated print logos should override bundled defaults without changing client URLs.
+    resolved = resolve_vendor_logo_asset(asset_path)
+    if resolved is None:
+        raise HTTPException(status_code=404, detail="Logo asset not found.")
+    return FileResponse(path=resolved)
 
 
 # Mount the client side app
