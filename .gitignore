@@ -26,7 +26,8 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-requirements.txt
+# requirements.txt is committed (generated from uv on release) for bare-metal /
+# Moonraker update_manager consumers. See spoolman/bump.py.
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -205,3 +206,4 @@ $RECYCLE.BIN/
 data/
 .pdm-python
 .history
+.claude
