@@ -33,6 +33,13 @@ def utc_timezone_naive(dt: datetime) -> datetime:
     return dt.astimezone(tz=timezone.utc).replace(tzinfo=None)
 
 
+async def notify_filament_count_changed(db: AsyncSession, filament_ids: set[int]) -> None:
+    """Send updated filament events for spool-count changes."""
+    for filament_id in filament_ids:
+        filament_item = await filament.get_by_id(db, filament_id)
+        await filament.filament_changed(filament_item, EventType.UPDATED)
+
+
 async def create(
     *,
     db: AsyncSession,
@@ -96,6 +103,7 @@ async def create(
     db.add(spool)
     await db.commit()
     await spool_changed(spool, EventType.ADDED)
+    await notify_filament_count_changed(db, {spool.filament_id})
     return spool
 
 
@@ -216,6 +224,7 @@ async def update(
 ) -> models.Spool:
     """Update the fields of a spool object."""
     spool = await get_by_id(db, spool_id)
+    previous_filament_id = spool.filament_id
     for k, v in data.items():
         if k == "filament_id":
             spool.filament = await filament.get_by_id(db, v)
@@ -236,14 +245,19 @@ async def update(
             setattr(spool, k, v)
     await db.commit()
     await spool_changed(spool, EventType.UPDATED)
+    if spool.filament_id != previous_filament_id:
+        await notify_filament_count_changed(db, {previous_filament_id, spool.filament_id})
     return spool
 
 
 async def delete(db: AsyncSession, spool_id: int) -> None:
     """Delete a spool object."""
     spool = await get_by_id(db, spool_id)
-    await spool_changed(spool, EventType.DELETED)
+    filament_id = spool.filament_id
     await db.delete(spool)
+    await db.flush()
+    await spool_changed(spool, EventType.DELETED)
+    await notify_filament_count_changed(db, {filament_id})
 
 
 async def clear_extra_field(db: AsyncSession, key: str) -> None:

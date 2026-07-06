@@ -15,6 +15,24 @@ class Fixture:
     filaments: list[dict[str, Any]]
 
 
+def add_spool(filament_id: int) -> dict[str, Any]:
+    """Create a spool for a filament."""
+    result = httpx.post(
+        f"{URL}/api/v1/spool",
+        json={
+            "filament_id": filament_id,
+            "used_weight": 0,
+        },
+    )
+    result.raise_for_status()
+    return result.json()
+
+
+def delete_spool(spool: dict[str, Any]) -> None:
+    """Delete a spool created by a test."""
+    httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
+
+
 @pytest.fixture(scope="module")
 def filaments(random_vendor_mod: dict[str, Any], random_empty_vendor_mod: dict[str, Any]) -> Iterable[Fixture]:
     """Add some filaments to the database."""
@@ -139,6 +157,71 @@ def test_find_all_filaments_sort_desc(filaments: Fixture):
     filaments_result = result.json()
     assert len(filaments_result) == len(filaments.filaments)
     assert filaments_result[-1] == filaments.filaments[0]
+
+
+def test_find_filaments_by_spool_count(filaments: Fixture):
+    spools = [
+        add_spool(filaments.filaments[0]["id"]),
+        add_spool(filaments.filaments[0]["id"]),
+        add_spool(filaments.filaments[1]["id"]),
+    ]
+
+    try:
+        result = httpx.get(f"{URL}/api/v1/filament", params={"spool_count": "0", "sort": "id:asc"})
+        result.raise_for_status()
+
+        filaments_result = result.json()
+        assert [item["id"] for item in filaments_result] == [
+            filaments.filaments[2]["id"],
+            filaments.filaments[3]["id"],
+            filaments.filaments[4]["id"],
+        ]
+        assert [item["spool_count"] for item in filaments_result] == [0, 0, 0]
+    finally:
+        for spool in spools:
+            delete_spool(spool)
+
+
+def test_find_filaments_sort_by_spool_count(filaments: Fixture):
+    spools = [
+        add_spool(filaments.filaments[0]["id"]),
+        add_spool(filaments.filaments[0]["id"]),
+        add_spool(filaments.filaments[1]["id"]),
+    ]
+
+    try:
+        result = httpx.get(f"{URL}/api/v1/filament?sort=spool_count:desc,id:asc")
+        result.raise_for_status()
+
+        filaments_result = result.json()
+        assert [item["id"] for item in filaments_result] == [
+            filaments.filaments[0]["id"],
+            filaments.filaments[1]["id"],
+            filaments.filaments[2]["id"],
+            filaments.filaments[3]["id"],
+            filaments.filaments[4]["id"],
+        ]
+        assert [item["spool_count"] for item in filaments_result] == [2, 1, 0, 0, 0]
+    finally:
+        for spool in spools:
+            delete_spool(spool)
+
+
+def test_find_distinct_spool_counts(filaments: Fixture):
+    spools = [
+        add_spool(filaments.filaments[0]["id"]),
+        add_spool(filaments.filaments[0]["id"]),
+        add_spool(filaments.filaments[1]["id"]),
+    ]
+
+    try:
+        result = httpx.get(f"{URL}/api/v1/filament/spool-count")
+        result.raise_for_status()
+
+        assert result.json() == [0, 1, 2]
+    finally:
+        for spool in spools:
+            delete_spool(spool)
 
 
 def test_find_all_filaments_sort_multiple(filaments: Fixture):

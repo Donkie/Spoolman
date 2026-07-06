@@ -89,3 +89,25 @@ def test_get_filament_not_found():
     assert "filament" in message
     assert "id" in message
     assert "123456789" in message
+
+
+def test_get_filament_spool_count(random_filament: dict[str, Any]):
+    """Test that spool_count is returned for a filament."""
+    spool_result = httpx.post(
+        f"{URL}/api/v1/spool",
+        json={
+            "filament_id": random_filament["id"],
+            "used_weight": 0,
+        },
+    )
+    spool_result.raise_for_status()
+    spool = spool_result.json()
+
+    try:
+        result = httpx.get(f"{URL}/api/v1/filament/{random_filament['id']}")
+        result.raise_for_status()
+
+        filament = result.json()
+        assert filament["spool_count"] == 1
+    finally:
+        httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()

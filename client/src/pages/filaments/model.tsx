@@ -11,6 +11,7 @@ export interface IFilament {
   diameter: number;
   weight?: number;
   spool_weight?: number;
+  spool_count?: number;
   article_number?: string;
   comment?: string;
   settings_extruder_temp?: number;

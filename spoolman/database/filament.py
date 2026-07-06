@@ -25,6 +25,27 @@ from spoolman.math import delta_e, hex_to_rgb, rgb_to_lab
 from spoolman.ws import websocket_manager
 
 
+async def set_spool_counts(
+    db: AsyncSession,
+    filaments: Sequence[models.Filament],
+) -> None:
+    """Populate spool_count on filament models."""
+    if not filaments:
+        return
+
+    filament_ids = [item.id for item in filaments]
+    spool_count_stmt = (
+        select(models.Spool.filament_id, func.count(models.Spool.id))
+        .where(models.Spool.filament_id.in_(filament_ids))
+        .group_by(models.Spool.filament_id)
+    )
+    spool_count_rows = await db.execute(spool_count_stmt)
+    spool_count_map = {int(filament_id): int(count) for filament_id, count in spool_count_rows.all()}
+
+    for item in filaments:
+        item.spool_count = spool_count_map.get(item.id, 0)
+
+
 async def create(
     *,
     db: AsyncSession,
@@ -76,6 +97,7 @@ async def create(
     )
     db.add(filament)
     await db.commit()
+    await set_spool_counts(db, [filament])
     await filament_changed(filament, EventType.ADDED)
     return filament
 
@@ -89,10 +111,11 @@ async def get_by_id(db: AsyncSession, filament_id: int) -> models.Filament:
     )
     if filament is None:
         raise ItemNotFoundError(f"No filament with ID {filament_id} found.")
+    await set_spool_counts(db, [filament])
     return filament
 
 
-async def find(
+async def find(  # noqa: C901
     *,
     db: AsyncSession,
     ids: list[int] | None = None,
@@ -105,6 +128,7 @@ async def find(
     sort_by: dict[str, SortOrder] | None = None,
     limit: int | None = None,
     offset: int = 0,
+    spool_count: int | Sequence[int] | None = None,
 ) -> tuple[list[models.Filament], int]:
     """Find a list of filament objects by search criteria.
 
@@ -113,6 +137,13 @@ async def find(
 
     Returns a tuple containing the list of items and the total count of matching items.
     """
+    spool_count_expr = func.coalesce(
+        select(func.count(models.Spool.id)).where(models.Spool.filament_id == models.Filament.id).scalar_subquery(),
+        0,
+    )
+    # Reuse the same scalar count expression for filtering and sorting so the list can
+    # stay server-driven without materializing every filament first.
+
     stmt = (
         select(models.Filament)
         .options(contains_eager(models.Filament.vendor))
@@ -126,6 +157,10 @@ async def find(
     stmt = add_where_clause_str_opt(stmt, models.Filament.material, material)
     stmt = add_where_clause_str_opt(stmt, models.Filament.article_number, article_number)
     stmt = add_where_clause_str_opt(stmt, models.Filament.external_id, external_id)
+    if spool_count is not None:
+        if isinstance(spool_count, int):
+            spool_count = [spool_count]
+        stmt = stmt.where(spool_count_expr.in_(spool_count))
 
     total_count = None
 
@@ -134,6 +169,16 @@ async def find(
         total_count = (await db.execute(total_count_stmt)).scalar()
 
         stmt = stmt.offset(offset).limit(limit)
+
+    spool_count_sort_order = None
+    if sort_by is not None and "spool_count" in sort_by:
+        spool_count_sort_order = sort_by["spool_count"]
+        sort_by = {field: order for field, order in sort_by.items() if field != "spool_count"}
+
+    if spool_count_sort_order == SortOrder.ASC:
+        stmt = stmt.order_by(spool_count_expr.asc())
+    elif spool_count_sort_order == SortOrder.DESC:
+        stmt = stmt.order_by(spool_count_expr.desc())
 
     if sort_by is not None:
         for fieldstr, order in sort_by.items():
@@ -148,6 +193,8 @@ async def find(
         execution_options={"populate_existing": True},
     )
     result = list(rows.unique().scalars().all())
+    await set_spool_counts(db, result)
+
     if total_count is None:
         total_count = len(result)
 
@@ -175,6 +222,7 @@ async def update(
         else:
             setattr(filament, k, v)
     await db.commit()
+    await set_spool_counts(db, [filament])
     await filament_changed(filament, EventType.UPDATED)
     return filament
 
@@ -219,6 +267,22 @@ async def find_article_numbers(
     stmt = select(models.Filament.article_number).distinct()
     rows = await db.execute(stmt)
     return [row[0] for row in rows.all() if row[0] is not None]
+
+
+async def find_spool_counts(
+    *,
+    db: AsyncSession,
+) -> list[int]:
+    """Find distinct spool counts per filament."""
+    spool_counts_stmt = (
+        select(func.count(models.Spool.id))
+        .select_from(models.Filament)
+        .join(models.Spool, models.Spool.filament_id == models.Filament.id, isouter=True)
+        .group_by(models.Filament.id)
+    )
+    spool_count_rows = await db.execute(spool_counts_stmt)
+    spool_counts = {int(row[0]) for row in spool_count_rows.all()}
+    return sorted(spool_counts)
 
 
 async def find_by_color(

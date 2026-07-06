@@ -217,6 +217,7 @@
         "filament": "Filaments",
         "fields": {
             "id": "ID",
+            "spool_count": "Spool Count",
             "vendor_name": "Manufacturer",
             "vendor": "Manufacturer",
             "name": "Name",
