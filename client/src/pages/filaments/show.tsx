@@ -1,5 +1,6 @@
 import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
 import { useShow, useTranslate } from "@refinedev/core";
+import { CalibrationSection } from "../calibration/CalibrationSection";
 import { Button, Typography } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -151,6 +152,7 @@ export const FilamentShow = () => {
       {extraFields?.data?.map((field, index) => (
         <ExtraFieldDisplay key={index} field={field} value={record?.extra[field.key]} />
       ))}
+      <CalibrationSection filamentId={record?.id} />
     </Show>
   );
 };

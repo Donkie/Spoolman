@@ -83,6 +83,40 @@ class Spool(Base):
     )
 
 
+class CalibrationSession(Base):
+    __tablename__ = "calibration_session"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    registered: Mapped[datetime] = mapped_column()
+    filament_id: Mapped[int] = mapped_column(ForeignKey("filament.id", ondelete="CASCADE"))
+    status: Mapped[str] = mapped_column(String(32))
+    started_at: Mapped[datetime | None] = mapped_column()
+    completed_at: Mapped[datetime | None] = mapped_column()
+    printer_name: Mapped[str | None] = mapped_column(String(256))
+    nozzle_diameter: Mapped[float | None] = mapped_column()
+    notes: Mapped[str | None] = mapped_column(String(1024))
+    steps: Mapped[list["CalibrationStepResult"]] = relationship(
+        back_populates="session",
+        cascade="save-update, merge, delete, delete-orphan",
+        lazy="joined",
+    )
+
+
+class CalibrationStepResult(Base):
+    __tablename__ = "calibration_step_result"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("calibration_session.id", ondelete="CASCADE"))
+    session: Mapped["CalibrationSession"] = relationship(back_populates="steps")
+    step_type: Mapped[str] = mapped_column(String(64))
+    inputs: Mapped[str | None] = mapped_column(Text())
+    outputs: Mapped[str | None] = mapped_column(Text())
+    selected_values: Mapped[str | None] = mapped_column(Text())
+    notes: Mapped[str | None] = mapped_column(String(1024))
+    confidence: Mapped[str | None] = mapped_column(String(32))
+    recorded_at: Mapped[datetime] = mapped_column()
+
+
 class Setting(Base):
     __tablename__ = "setting"
 

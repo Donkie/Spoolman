@@ -395,5 +395,86 @@
         "new_location": "New Location",
         "no_location": "No Location",
         "no_locations_help": "This page lets you organize your spools in locations, add some spools to get started!"
+    },
+    "calibration": {
+        "title": "Calibration",
+        "no_data": "No calibration data yet.",
+        "recommended_title": "Calibrated Settings",
+        "no_recommended": "No recommended values set yet.",
+        "buttons": {
+            "start": "Start Calibration",
+            "edit_session": "Edit",
+            "delete_session": "Delete",
+            "add_step": "Add Result",
+            "edit_step": "Edit",
+            "delete_step": "Delete",
+            "save": "Save"
+        },
+        "fields": {
+            "last_session": "Last session",
+            "history": "Calibration History",
+            "steps_count": "{{count}} step(s) recorded",
+            "no_steps": "No step results recorded yet.",
+            "printer_name": "Printer Name",
+            "nozzle_diameter": "Nozzle Diameter (mm)",
+            "notes": "Notes",
+            "status": "Status",
+            "step_type": "Calibration Step",
+            "confidence": "Confidence",
+            "inputs": "Inputs",
+            "outputs_and_recommended": "Outputs & Recommended Values"
+        },
+        "session_form": {
+            "create_title": "Start Calibration Session",
+            "edit_title": "Edit Calibration Session"
+        },
+        "step_form": {
+            "add_title": "Add Step Result",
+            "edit_title": "Edit Step Result",
+            "recommended_hint": "Values here appear as recommended settings on the spool page."
+        },
+        "status": {
+            "planned": "Planned",
+            "in_progress": "In Progress",
+            "complete": "Complete",
+            "archived": "Archived"
+        },
+        "confidence": {
+            "high": "High",
+            "medium": "Medium",
+            "low": "Low"
+        },
+        "step_types": {
+            "temperature": "Temperature",
+            "volumetric_speed": "Volumetric Speed",
+            "pressure_advance": "Pressure Advance",
+            "flow_rate": "Flow Rate",
+            "retraction": "Retraction",
+            "tolerance": "Tolerance",
+            "cornering": "Cornering",
+            "input_shaping": "Input Shaping",
+            "vfa": "VFA"
+        },
+        "delete_session_confirm": "Delete this calibration session and all its step results?",
+        "delete_step_confirm": "Delete this step result?",
+        "wizard": {
+            "title": "Calibration Wizard",
+            "subtitle": "Follow the OrcaSlicer calibration guide, step by step. You can skip any step and resume later.",
+            "start": "Start Wizard",
+            "resume": "Resume Wizard",
+            "step_of": "Step {{current}} of {{total}}",
+            "already_done": "Already recorded",
+            "buttons": {
+                "back": "Back",
+                "skip": "Skip",
+                "save_continue": "Save & Continue",
+                "save_finish": "Save & Finish",
+                "skip_finish": "Skip & Finish",
+                "finish": "Finish",
+                "cancel": "Cancel"
+            },
+            "skip_finish_confirm": "Mark this session as complete without saving this step?",
+            "session_complete": "Calibration session marked as complete."
+        }
     }
 }
