@@ -34,6 +34,11 @@
     "vite-plugin-svgr": "^4.5.0",
     "zustand": "^5.0.9"
   },
+  "overrides": {
+    "@ant-design/pro-layout": {
+      "path-to-regexp": "^8.4.0"
+    }
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@refinedev/cli": "^2.16.50",
