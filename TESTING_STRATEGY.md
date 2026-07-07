@@ -216,7 +216,7 @@ coupling), then integration, then UI behavior, then browser/e2e and the quality 
 Coverage is a **floor, not the goal** — 100% line coverage with weak assertions proves nothing.
 "Complete" means all four hold:
 
-1. **Every row** in `TESTING_CANDIDATES.md` has ≥1 test asserting its **contract** *and* ≥1 test for
+1. **Every row** in [`TESTING_CANDIDATES.md`](./docs/archive/TESTING_CANDIDATES.md) has ≥1 test asserting its **contract** *and* ≥1 test for
    an **error/edge path** (malformed input, empty, boundary, missing field).
 2. **Branch coverage.** The aspiration is 100% on the pure codec/parser/analytics/filter modules and
    ≥90% on lookup/endpoint glue. What is *actually enforced today* is narrower, and stated honestly:

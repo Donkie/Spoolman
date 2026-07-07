@@ -1,6 +1,6 @@
 # Upstream backlog triage — Donkie/Spoolman → Spoolman NG
 
-**Date:** 2026-07-06 · **Input:** all 265 open issues of the abandoned upstream [Donkie/Spoolman](https://github.com/Donkie/Spoolman) (dump committed as `docs/data/upstream_issues.json`, PRs excluded) · **Method:** one-time multi-agent sweep — every issue investigated against this fork's current code (56 bug reports by Opus agents, 209 requests by Sonnet agents, topic-batched; every verdict cites `path:line` evidence; duplicates merged by an Opus clustering pass). Completes the MASTERPLAN item "Upstream backlog sweep".
+**Date:** 2026-07-06 · **Input:** all 265 open issues of the abandoned upstream [Donkie/Spoolman](https://github.com/Donkie/Spoolman) (dump kept locally as `docs/data/upstream_issues.json` — untracked/gitignored, re-fetchable from the upstream GitHub API; PRs excluded) · **Method:** one-time multi-agent sweep — every issue investigated against this fork's current code (56 bug reports by Opus agents, 209 requests by Sonnet agents, topic-batched; every verdict cites `path:line` evidence; duplicates merged by an Opus clustering pass). Completes the MASTERPLAN item "Upstream backlog sweep".
 
 **Result:** 24 FIX · 108 IMPLEMENT · 133 SKIP → **98 fork issues** filed covering 132 upstream issues (duplicates merged: 34).
 
@@ -250,4 +250,4 @@ Verification: 1225/1229 cited code references resolve mechanically to real files
 | [#949](https://github.com/Donkie/Spoolman/issues/949) | support-question | **SpoolmanDB-Community** — The report (“how do I use SpoolmanDB-Community, I tried the API field but nothing changed”) is a how-to question rather than a reproducible defect, and the mechanism it is asking about already exists and is already documented, just not as an “API field”. The filament catalog source is controlled exc… |
 
 ---
-*Full per-issue verdicts (findings, code references, confidence) are embedded in the filed fork issues; the raw upstream dump is `docs/data/upstream_issues.json` (committed on master).*
+*Full per-issue verdicts (findings, code references, confidence) are embedded in the filed fork issues; the raw upstream dump is kept locally at `docs/data/upstream_issues.json` (untracked — `data/` is gitignored; re-fetchable from the upstream GitHub API).*
