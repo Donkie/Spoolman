@@ -1,16 +1,14 @@
-import { CameraOutlined } from "@ant-design/icons";
 import { useTranslate } from "@refinedev/core";
 import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
-import { FloatButton, Modal, Space } from "antd";
+import { Space } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { parseScanResult } from "../utils/scan";
 
 /**
  * The QR scanning surface — camera view, scan handling and error messaging —
- * without any trigger button or modal chrome. Reused both by the standalone
- * QRCodeScannerModal and by the unified ScanModal so the scanner is composed,
- * not duplicated.
+ * without any trigger button or modal chrome. Rendered inside the unified
+ * ScanModal.
  */
 export const QRScannerPanel = ({ onClose }: { onClose?: () => void }) => {
   const [lastError, setLastError] = useState<string | null>(null);
@@ -74,19 +72,3 @@ export const QRScannerPanel = ({ onClose }: { onClose?: () => void }) => {
     </Space>
   );
 };
-
-const QRCodeScannerModal = () => {
-  const [visible, setVisible] = useState(false);
-  const t = useTranslate();
-
-  return (
-    <>
-      <FloatButton type="primary" onClick={() => setVisible(true)} icon={<CameraOutlined />} shape="circle" />
-      <Modal open={visible} destroyOnHidden onCancel={() => setVisible(false)} footer={null} title={t("scanner.title")}>
-        <QRScannerPanel onClose={() => setVisible(false)} />
-      </Modal>
-    </>
-  );
-};
-
-export default QRCodeScannerModal;

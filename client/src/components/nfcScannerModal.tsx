@@ -1,6 +1,5 @@
-import { WifiOutlined } from "@ant-design/icons";
 import { useTranslate } from "@refinedev/core";
-import { Alert, Button, Descriptions, FloatButton, Modal, Segmented, Space, Spin, Typography } from "antd";
+import { Alert, Button, Descriptions, Segmented, Space, Spin, Typography } from "antd";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import {
@@ -96,7 +95,7 @@ const QidiTagDataSummary: React.FC<{ qidiData: QidiTagData; t: (key: string) => 
 );
 
 /**
- * Reader status hook shared by the standalone modal and the unified ScanModal.
+ * Reader status hook for the unified ScanModal and the NfcScannerPanel.
  * Returns whether server-side and/or Web NFC scanning is currently available.
  */
 export function useNfcAvailability() {
@@ -115,9 +114,8 @@ interface NfcScannerPanelProps {
 
 /**
  * The NFC scanning surface — server/browser mode toggle, scan actions and the
- * create-from-tag fallback — without any trigger button or modal chrome. Reused
- * both by the standalone NfcScannerModal and by the unified ScanModal so the
- * scanner is composed, not duplicated.
+ * create-from-tag fallback — without any trigger button or modal chrome.
+ * Rendered inside the unified ScanModal.
  */
 export const NfcScannerPanel: React.FC<NfcScannerPanelProps> = ({ active, onClose }) => {
   const [mode, setMode] = useState<"browser" | "server">("server");
@@ -157,6 +155,20 @@ export const NfcScannerPanel: React.FC<NfcScannerPanelProps> = ({ active, onClos
 
   const serverEnabled = nfcStatus.data?.enabled === true && nfcStatus.data?.status === "connected";
   const webNfcAvailable = isWebNfcSupported();
+
+  // Keep the selected mode on an enabled segment. Server availability arrives async,
+  // so wait for the status query to settle before deciding — otherwise a working
+  // server reader would briefly read as disabled and steal the default.
+  useEffect(() => {
+    if (nfcStatus.isPending) {
+      return;
+    }
+    if (mode === "server" && !serverEnabled && webNfcAvailable) {
+      setMode("browser");
+    } else if (mode === "browser" && !webNfcAvailable && serverEnabled) {
+      setMode("server");
+    }
+  }, [nfcStatus.isPending, mode, serverEnabled, webNfcAvailable]);
 
   const handleServerRead = useCallback(async () => {
     setUnmatchedTagData(null);
@@ -378,36 +390,3 @@ export const NfcScannerPanel: React.FC<NfcScannerPanelProps> = ({ active, onClos
     </Space>
   );
 };
-
-/**
- * Standalone NFC scanner: a floating trigger that opens the NfcScannerPanel in its
- * own modal. Retained for backward compatibility; the global chrome now uses the
- * unified ScanModal instead.
- */
-const NfcScannerModal: React.FC = () => {
-  const [visible, setVisible] = useState(false);
-  const t = useTranslate();
-  const { available } = useNfcAvailability();
-
-  // Don't show the button if neither server NFC nor Web NFC is available
-  if (!available) {
-    return null;
-  }
-
-  return (
-    <>
-      <FloatButton
-        type="primary"
-        onClick={() => setVisible(true)}
-        icon={<WifiOutlined />}
-        shape="circle"
-        style={{ insetInlineEnd: 74 }}
-      />
-      <Modal open={visible} destroyOnClose onCancel={() => setVisible(false)} footer={null} title={t("nfc.scan_title")}>
-        <NfcScannerPanel active={visible} onClose={() => setVisible(false)} />
-      </Modal>
-    </>
-  );
-};
-
-export default NfcScannerModal;

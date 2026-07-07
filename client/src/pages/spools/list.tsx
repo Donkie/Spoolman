@@ -296,6 +296,9 @@ export const SpoolList = () => {
               if (selectedRowKeys.length > 0) {
                 const params = new URLSearchParams();
                 selectedRowKeys.forEach((key) => params.append("spools", String(key)));
+                // The selection's job is done once it's in the URL; clear it so it
+                // doesn't linger when the user returns from printing.
+                setSelectedRowKeys([]);
                 navigate(`print?${params.toString()}`);
               } else {
                 navigate("print");
