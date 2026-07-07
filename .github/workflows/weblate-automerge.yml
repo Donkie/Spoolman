@@ -1,0 +1,85 @@
+name: Auto-merge Weblate PRs
+
+# Translations are managed exclusively through Weblate (https://hosted.weblate.org/projects/spoolman/),
+# which opens a pull request for every sync back to this repo (see guard-translations.yml). Those PRs
+# are machine-generated, always scoped to client/public/locales/, and gated by the full CI suite just
+# like any other PR. Rather than hand-merging each one, this workflow turns on GitHub's native
+# auto-merge for Weblate-authored PRs so they merge themselves once all required status checks pass.
+#
+# Why auto-merge instead of giving Weblate direct push access to master:
+#   - Every sync still runs through style/tests/build before it can land — nothing merges unvalidated.
+#   - No actor gains unrestricted, un-CI'd direct write to master. A compromised Weblate token can only
+#     open a PR; auto-merge fires solely on green CI for Weblate-authored PRs.
+#   - GitHub write/bypass can't be scoped to locale files, so direct write would grant all-file access.
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+# contents+pull-requests write let the built-in GITHUB_TOKEN enable auto-merge and perform the squash
+# merge. The token is not a ruleset bypass actor and doesn't need to be: with 0 required approvals it
+# satisfies the branch requirements once the required checks go green, exactly like a manual merge.
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    # Only ever act on Weblate's own translation-sync PRs. Human PRs are never touched.
+    # pull_request_target runs in the base-repo context (so GITHUB_TOKEN has write access even for
+    # branch PRs), and this job is safe under it because it never checks out or executes PR code —
+    # it only calls the GitHub API to enable auto-merge.
+    if: github.event.pull_request.user.login == 'weblate'
+    steps:
+      # Defence in depth: don't trust the author alone, trust the diff. Even a compromised Weblate
+      # token can only ever get auto-merged if the PR is confined to locale JSON files. Anything
+      # else (a code file, a workflow, a non-.json file, a file outside client/public/locales/)
+      # fails this step, auto-merge is never enabled, and the PR waits for a human. The file list is
+      # read from the API — this step never checks out or runs PR code, so pull_request_target is safe.
+      - name: Verify PR only changes locale JSON files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          files="$(gh api --paginate "repos/${REPO}/pulls/${PR_NUMBER}/files" --jq '.[].filename')"
+
+          if [ -z "$files" ]; then
+            echo "::error title=Empty diff::Weblate PR reports no changed files; refusing to auto-merge."
+            exit 1
+          fi
+
+          # Every changed path must be a .json file under client/public/locales/<lang>/.
+          offending="$(printf '%s\n' "$files" | grep -vE '^client/public/locales/[^/]+/.+\.json$' || true)"
+
+          if [ -n "$offending" ]; then
+            echo "::error title=Out-of-scope Weblate PR::PR touches files outside client/public/locales/**/*.json; not auto-merging."
+            {
+              echo "## ❌ Auto-merge blocked: out-of-scope changes"
+              echo ""
+              echo "This Weblate PR changes files that are **not** locale JSON under \`client/public/locales/\`:"
+              echo ""
+              echo '```'
+              echo "$offending"
+              echo '```'
+              echo ""
+              echo "Weblate sync PRs are only auto-merged when every changed file is a translation JSON"
+              echo "file. This PR isn't, so it has been left for a maintainer to review and merge by hand."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          echo "All $(printf '%s\n' "$files" | wc -l) changed file(s) are locale JSON. Safe to auto-merge."
+
+      - name: Enable auto-merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        # Squash is the only merge method the repo and the master ruleset allow.
+        run: gh pr merge --auto --squash "$PR_URL"

@@ -1,0 +1,45 @@
+# Spins up Spoolman exactly as it is deployed for real: the production image
+# (client baked in, served on the same origin as the API) backed by a real
+# PostgreSQL database. The frontend integration tests (Playwright) drive this
+# through a browser on the host via the published port.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_PASSWORD=spoolman
+      - POSTGRES_USER=spoolman
+      - POSTGRES_DB=spoolman
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spoolman"]
+      interval: 1s
+      timeout: 5s
+      retries: 30
+
+  spoolman:
+    image: donkie/spoolman:test
+    environment:
+      - SPOOLMAN_DB_TYPE=postgres
+      - SPOOLMAN_DB_HOST=db
+      - SPOOLMAN_DB_PORT=5432
+      - SPOOLMAN_DB_NAME=spoolman
+      - SPOOLMAN_DB_USERNAME=spoolman
+      - SPOOLMAN_DB_PASSWORD=spoolman
+      - SPOOLMAN_LOGGING_LEVEL=INFO
+      - TZ=Europe/Stockholm
+    ports:
+      # Host port is configurable so the suite can avoid clashing with a
+      # locally running Spoolman. Container always listens on 8000.
+      - "${SPOOLMAN_HOST_PORT:-8000}:8000"
+    healthcheck:
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/v1/health').status==200 else 1)"
+      interval: 2s
+      timeout: 5s
+      retries: 45
+      start_period: 5s
+    depends_on:
+      db:
+        condition: service_healthy

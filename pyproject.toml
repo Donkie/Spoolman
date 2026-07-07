@@ -1,6 +1,6 @@
 [project]
 name = "spoolman"
-version = "0.23.1"
+version = "0.24.0"
 description = "A web service that keeps track of 3D printing spools."
 license = "MIT"
 readme = "README.md"
@@ -30,8 +30,8 @@ requires-python = ">=3.10"
 [dependency-groups]
 dev = [
     "ruff==0.14.10",
-    "pytest~=8.3.5",
-    "pytest-asyncio~=0.25.3",
+    "pytest~=9.1.1",
+    "pytest-asyncio~=1.4.0",
     "httpx~=0.28.1",
     "poethepoet>=0.40.0",
 ]
@@ -51,6 +51,10 @@ help = "Start Spoolman."
 [tool.poe.tasks.itest]
 cmd = "python tests_integration/run.py"
 help = "Builds Spoolman and runs integration tests on the backend against all supported databases."
+
+[tool.poe.tasks.itest-frontend]
+cmd = "python tests_frontend/run.py"
+help = "Builds Spoolman and runs Playwright frontend integration tests against a real deployment."
 
 [tool.bumpversion]
 current_version = "0.22.1"

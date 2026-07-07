@@ -5,13 +5,24 @@ PGID=${PGID:-1000}
 SPOOLMAN_PORT=${SPOOLMAN_PORT:-8000}
 SPOOLMAN_HOST=${SPOOLMAN_HOST:-0.0.0.0}
 
-groupmod -o -g "$PGID" app
-usermod -o -u "$PUID" app
+fail() {
+    echo "$1" >&2
+    exit 1
+}
 
-echo User UID: $(id -u app)
-echo User GID: $(id -g app)
+if [ "$(id -u app)" -ne "$PUID" ]; then
+    usermod -o -u "$PUID" app ||
+        fail "Failed to update app UID to $PUID"
+fi
 
-echo "Starting uvicorn..."
+if [ "$(id -g app)" -ne "$PGID" ]; then
+    groupmod -o -g "$PGID" app ||
+        fail "Failed to update app GID to $PGID"
+fi
 
-# Execute the uvicorn command with any additional arguments
-exec gosu "app" uvicorn spoolman.main:app --host $SPOOLMAN_HOST --port $SPOOLMAN_PORT "$@"
+if [ "$(id -u)" -eq 0 ]; then
+    exec gosu "app" "$0" "$@"
+    # NOT REACHABLE
+fi
+
+exec uvicorn spoolman.main:app --host $SPOOLMAN_HOST --port $SPOOLMAN_PORT "$@"

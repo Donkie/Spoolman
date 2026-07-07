@@ -1,0 +1,99 @@
+name: Guard Translations
+
+# Translations are managed exclusively through Weblate (https://hosted.weblate.org/projects/spoolman/).
+# Only the "en" source locale is edited by hand in this repo; every other language is written back
+# by the Weblate bot. This workflow fails any PR (except Weblate's own) that MODIFIES or DELETES an
+# existing non-English translation file, so manual edits don't get overwritten and lost on the next
+# Weblate sync.
+#
+# ADDING a brand-new language file is allowed: contributors bootstrapping a new language must add the
+# code entry in client/src/i18n.ts, and they may include the initial client/public/locales/<lang>/
+# file in the same PR. Only edits to files that ALREADY exist on the base branch are blocked.
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+# NOTE: no `paths:` filter on purpose. If this check is marked "Required" in branch
+# protection, a paths filter would leave PRs that don't touch locales stuck "pending"
+# forever (the check would never post a status). Instead we always run and pass fast
+# when nothing offending changed.
+
+permissions:
+  contents: read
+
+jobs:
+  guard-translations:
+    runs-on: ubuntu-latest
+    # Skip the guard for Weblate's own translation-sync PRs.
+    if: github.event.pull_request.user.login != 'weblate'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for manual non-English translation changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          # Files changed in this PR, keyed by change type. --no-renames turns any rename into a
+          # delete + add pair, so a "renamed" (i.e. rewritten) existing file still trips the delete
+          # rule below and can't be smuggled through as a fresh add.
+          #
+          # --diff-filter=MD keeps only Modified and Deleted paths: edits to files that ALREADY
+          # exist on the base branch. Added (A) files are intentionally excluded, so a contributor
+          # may add a brand-new client/public/locales/<lang>/ file for a new language.
+          offending="$(git diff --no-renames --diff-filter=MD --name-only "$BASE_SHA" "$HEAD_SHA" \
+            | grep -E '^client/public/locales/[^/]+/' \
+            | grep -vE '^client/public/locales/en/' \
+            || true)"
+
+          if [ -n "$offending" ]; then
+            echo "::error title=Manual translation edits are not allowed::This PR edits existing non-English translation files. See the job summary for details."
+
+            {
+              echo "## ❌ Manual translation edits detected"
+              echo ""
+              echo "This PR modifies or deletes one or more **existing non-English** translation files:"
+              echo ""
+              echo '```'
+              echo "$offending"
+              echo '```'
+              echo ""
+              echo "### Why this is blocked"
+              echo ""
+              echo "Every language except the English source (\`client/public/locales/en/\`) is managed"
+              echo "**exclusively through Weblate**. Any manual edit to an existing non-English file here"
+              echo "will be **silently overwritten and lost** the next time Weblate syncs — so we don't"
+              echo "accept them."
+              echo ""
+              echo "### What to do instead"
+              echo ""
+              echo "- **To fix or improve an existing translation:** contribute it through Weblate at"
+              echo "  <https://hosted.weblate.org/projects/spoolman/>. It's free, requires no coding,"
+              echo "  and your change flows back into the repo automatically."
+              echo "- **To add or change a user-facing string:** edit **only** the English source files under"
+              echo "  \`client/public/locales/en/\`. Weblate will pick up the new keys and expose them to"
+              echo "  translators. Revert your changes to every other language and push again."
+              echo "- **To add a brand-new language:** that IS allowed here. Add the language entry to"
+              echo "  \`client/src/i18n.ts\` and, if you like, an initial \`client/public/locales/<lang>/\`"
+              echo "  file — new files are fine, only edits to existing ones are blocked."
+              echo ""
+              echo "> If you believe an existing file genuinely needs a manual change (e.g. a structural"
+              echo "> fix), please explain it in a PR comment so a maintainer can review."
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            echo ""
+            echo "Offending files:"
+            echo "$offending"
+            exit 1
+          fi
+
+          echo "No manual edits to existing non-English translation files detected. ✅"

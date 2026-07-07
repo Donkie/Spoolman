@@ -259,8 +259,11 @@ async def update(
 async def delete(db: AsyncSession, spool_id: int) -> None:
     """Delete a spool object."""
     spool = await get_by_id(db, spool_id)
-    await spool_changed(spool, EventType.DELETED)
     await db.delete(spool)
+    # Commit before notifying so the deletion is durable and visible to subsequent
+    # requests; post-commit notification must be the last, infallible step.
+    await db.commit()
+    await spool_changed(spool, EventType.DELETED)
 
 
 async def clear_extra_field(db: AsyncSession, key: str) -> None:
@@ -268,6 +271,7 @@ async def clear_extra_field(db: AsyncSession, key: str) -> None:
     await db.execute(
         sqlalchemy.delete(models.SpoolField).where(models.SpoolField.key == key),
     )
+    await db.commit()
 
 
 async def use_weight_safe(db: AsyncSession, spool_id: int, weight: float) -> None:
@@ -491,3 +495,4 @@ async def rename_location(
     await db.execute(
         sqlalchemy.update(models.Spool).where(models.Spool.location == current_name).values(location=new_name),
     )
+    await db.commit()

@@ -130,6 +130,9 @@ async def delete(db: AsyncSession, vendor_id: int) -> None:
     """Delete a vendor object."""
     vendor = await get_by_id(db, vendor_id)
     await db.delete(vendor)
+    # Commit before notifying so the deletion is durable and visible to subsequent
+    # requests; post-commit notification must be the last, infallible step.
+    await db.commit()
     await vendor_changed(vendor, EventType.DELETED)
 
 
@@ -138,6 +141,7 @@ async def clear_extra_field(db: AsyncSession, key: str) -> None:
     await db.execute(
         sqlalchemy.delete(models.VendorField).where(models.VendorField.key == key),
     )
+    await db.commit()
 
 
 async def vendor_changed(vendor: models.Vendor, typ: EventType) -> None:

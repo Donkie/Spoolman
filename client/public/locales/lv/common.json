@@ -1,0 +1,19 @@
+{
+    "actions": {
+        "create": "Izveidot",
+        "edit": "Rediģēt",
+        "clone": "Klonēt"
+    },
+    "buttons": {
+        "create": "Izveidot",
+        "save": "Saglabāt",
+        "saveAndAdd": "Saglabāt un pievienot",
+        "logout": "Izrakstīties",
+        "delete": "Dzēst",
+        "edit": "Rediģēt",
+        "confirm": "Vai esat pārliecināts?",
+        "continue": "Turpināt",
+        "filter": "Filtrēt",
+        "clear": "Notīrīt"
+    }
+}

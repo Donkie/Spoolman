@@ -211,6 +211,7 @@ async def clear_extra_field(db: AsyncSession, key: str) -> None:
     await db.execute(
         sqlalchemy.delete(models.FilamentField).where(models.FilamentField.key == key),
     )
+    await db.commit()
 
 
 logger = logging.getLogger(__name__)
