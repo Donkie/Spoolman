@@ -1,6 +1,6 @@
 import { DateField, TextField } from "@refinedev/antd";
 import { UseQueryResult } from "@tanstack/react-query";
-import { Button, Col, DatePicker, Dropdown, Input, InputNumber, Row, Space, Spin } from "antd";
+import { Button, Col, DatePicker, Dropdown, Input, InputNumber, Row, Space, Spin, Typography } from "antd";
 import { ColumnFilterItem, ColumnType, FilterDropdownProps } from "antd/es/table/interface";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -447,10 +447,10 @@ export function ActionsColumn<Obj extends Entity>(
 
 interface SpoolIconColumnProps<Obj extends Entity> extends FilteredQueryColumnProps<Obj> {
   color: (record: Obj) => string | { colors: string[]; vertical: boolean } | undefined;
-  // Optional link target for the name text. When provided, the name becomes a
-  // real anchor (middle-click / ctrl-click friendly) that navigates on its own
-  // and stops the click from bubbling to the row's actions dropdown.
-  href?: (record: Obj) => string | undefined;
+  // Style the name as clickable (pointer + link color) WITHOUT hijacking the
+  // click: the cell's normal click behavior (the row-actions dropdown) still
+  // fires. Pure affordance — clicking a cell was never obvious before.
+  clickAffordance?: boolean;
 }
 
 export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<Obj>) {
@@ -499,13 +499,12 @@ export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<
     render: (rawValue, record: Obj) => {
       const value = props.transform ? props.transform(rawValue) : rawValue;
       const colorObj = props.color(record);
-      const href = props.href?.(record);
       // Always render the icon (colored or the neutral "?" fallback) so the name
       // text is aligned across rows regardless of whether a color is defined.
-      const nameNode = href ? (
-        <Link to={href} onClick={(e) => e.stopPropagation()} style={{ cursor: "pointer" }}>
-          {value}
-        </Link>
+      const nameNode = props.clickAffordance ? (
+        // Anchor without href: link styling and pointer cursor, but the click
+        // bubbles to the cell and opens the actions menu as always.
+        <Typography.Link>{value}</Typography.Link>
       ) : (
         value
       );

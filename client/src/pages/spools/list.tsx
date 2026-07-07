@@ -403,7 +403,7 @@ export const SpoolList = () => {
                 : record.filament.color_hex,
             dataId: "filament.combined_name",
             filterValueQuery: useSpoolmanFilamentFilter(),
-            href: (record: ISpoolCollapsed) => showUrl("filament", record["filament.id"]),
+            clickAffordance: true,
           }),
           FilteredQueryColumn({
             ...commonProps,
