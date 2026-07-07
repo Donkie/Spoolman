@@ -1,3 +1,5 @@
+> _**Archived 2026-07-07.** The execution tracking in this document is essentially all complete; its forward-looking role has been superseded by [MASTERPLAN.md](../../MASTERPLAN.md). Kept here for historical record only._
+
 # Spoolman NG — Fork Assessment & Roadmap TODOs
 
 **Date:** 2026-07-01 · **Scope:** all work since upstream v0.23.1 (commit `eafbc64`, Feb 2026; upstream abandoned ~March 2026) through `d34402f` (PR #36).

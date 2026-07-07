@@ -51,7 +51,9 @@ that `.env` file (see the reference below). The database is stored in a
 separate data directory, so updates never touch it.
 
 The native install omits the optional **NFC** (USB reader) feature by default;
-add it with `uv sync --extra nfc`.
+add it with `uv sync --extra nfc`. For reader hardware, USB pass-through, udev
+rules, the `SPOOLMAN_NFC_*` variables, and the browser Web NFC (HTTPS/Android)
+requirements, see the [NFC guide](nfc.md).
 
 ### One-click updates from Moonraker (Klipper users)
 

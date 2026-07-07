@@ -10,3 +10,8 @@ services:
       - "7912:8000"
     environment:
       - TZ=Europe/Stockholm # Optional, defaults to UTC
+      # Server-side USB NFC reader (optional). See docs/nfc.md.
+      # - SPOOLMAN_NFC_ENABLED=TRUE
+    # Pass a USB NFC reader through to the container (needed with SPOOLMAN_NFC_ENABLED). See docs/nfc.md.
+    # devices:
+    #   - /dev/bus/usb:/dev/bus/usb

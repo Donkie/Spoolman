@@ -37,7 +37,7 @@ Spoolman NG is a self-hosted web service designed to help you efficiently manage
   * [TigerTag](https://tigertag.io/) (ISO 14443A / NTAG213) — binary format with external product database lookup.
   * [OpenPrintTag](https://openprinttag.org/) (ISO 15693 / NFC-V) — Prusa's NDEF/CBOR standard with per-spool UUIDs.
   * [Qidi](https://wiki.qidi3d.com/en/QIDIBOX/RFID) (ISO 14443A / MIFARE Classic 1K) — Qidi filament tags with material and color identification.
-  * Browser-based NFC scanning via the Web NFC API, or server-side with a USB reader.
+  * Two read paths: an **in-browser scanner** (Web NFC — Chrome on Android over **HTTPS** only) and an optional **server-side USB reader**. They don't cover the same tags: the USB reader reads TigerTag (NTAG213) and Qidi (MIFARE Classic) only, while **OpenPrintTag (ISO 15693 / NFC-V) is browser-only** — there is no USB path for it. See [docs/nfc.md](docs/nfc.md) for the full matrix, hardware, and setup.
   * Automatic spool creation from tag data when scanning unrecognized tags.
   * External integration endpoint (`POST /api/v1/nfc/lookup`) for Klipper NFC daemons and other clients.
 * **Database Support**: SQLite, PostgreSQL, MySQL, and CockroachDB.
@@ -58,7 +58,10 @@ Spoolman NG is a self-hosted web service designed to help you efficiently manage
 
 ## Installation
 
-Spoolman NG runs the same on `amd64`, `arm64`, and `armv7`. Pick whichever fits you.
+Spoolman NG ships Docker images for `amd64`, `arm64`, and `armv7`. `amd64` and
+`arm64` are the recommended targets for new installs; `armv7` (32-bit ARM) is
+best-effort — see [Deployment & Hardware](#deployment--hardware) for the honest
+support policy before choosing it.
 
 ### Docker (recommended — and the only supported option on Windows/macOS)
 
@@ -114,6 +117,57 @@ path: ~/Spoolman
 Spoolman NG then shows up in your printer UI's update list and tracks new releases automatically. (The releases ship the `release_info.json` that Moonraker's `web` update type expects.)
 
 For all configuration options (databases, backups, base path, every environment variable), see the [Installation & Configuration guide](docs/installation.md).
+
+## Deployment & Hardware
+
+Spoolman NG is light — it happily runs next to Klipper/Moonraker on a
+Raspberry Pi 3/4-class SBC. Dashboard analytics stay snappy even at 10k spools
+(~43 ms aggregation), so the CPU is not a scaling concern; storage is whatever
+your database needs (the default SQLite file is tiny).
+
+**Architectures & support policy.** Images are built and published for all three
+arches to both [`ghcr.io/sherrmann/spoolman`](https://github.com/sherrmann/Spoolman/pkgs/container/spoolman)
+and Docker Hub `cookiemonster95/spoolman`:
+
+| Arch | CI coverage | Notes |
+|---|---|---|
+| `amd64` | Full 4-database integration matrix (SQLite/Postgres/MySQL/CockroachDB) | Recommended. |
+| `arm64` | QEMU boot + `/api/v1/health` smoke only | Recommended for SBCs (Pi 3/4/5 64-bit OS). |
+| `armv7` | QEMU boot + `/api/v1/health` smoke only | **Best-effort.** 32-bit ARM compiles `psycopg2`/`greenlet`/`cbor2` from source (via an `LD_PRELOAD` workaround) and uses pure-Python `cbor2` 5.x. It is supported for the foreseeable future, but 32-bit ARM is a shrinking platform — **prefer arm64 for new installs** where your hardware allows a 64-bit OS. |
+
+The ARM images get only a boot + health-check smoke test in CI (not the full
+integration matrix), so treat arm64/armv7 as verified-to-start rather than
+matrix-tested.
+
+**Ways to run.** All three are covered under [Installation](#installation) above:
+
+- **Docker / Compose** — recommended, and the only supported option on Windows/macOS.
+- **Native install** (Linux) — the one-line [`scripts/install.sh`](scripts/install.sh)
+  (Debian/Arch/Fedora detection; not exercised in CI) sets up `uv`, dependencies,
+  and an optional `systemd` service.
+- **Moonraker one-click updates** for Klipper users.
+
+Databases: SQLite (default, zero-config), PostgreSQL, MySQL/MariaDB, and CockroachDB.
+
+**NFC hardware.** Full guide in **[docs/nfc.md](docs/nfc.md)**. In short:
+
+- Two read paths: an **in-browser scanner** (Web NFC) and an optional
+  **server-side USB reader** (nfcpy).
+- **Browser scanning needs Chrome on Android over HTTPS** — it will not work on a
+  plain-HTTP LAN address like `http://pi:7912`; put Spoolman behind a TLS reverse
+  proxy (Caddy/nginx recipe in the guide).
+- The **USB reader reads TigerTag (NTAG213) and Qidi (MIFARE Classic 1K) only**;
+  **OpenPrintTag (NFC-V) is browser-only** (no USB path).
+- Reader families targeted in code — **PN532, RC522, ACR122U-class** — are
+  *expected to work* via nfcpy but are **not hardware-verified**; reports welcome.
+- Docker needs the reader passed through (`devices: - /dev/bus/usb:/dev/bus/usb`);
+  native installs typically need a udev rule for non-root access. Enable with
+  `SPOOLMAN_NFC_ENABLED=TRUE`.
+
+**Label printing, QR codes & swatches.** Rendered entirely **client-side in the
+browser** — no special hardware. Labels print to any printer your OS can reach;
+QR codes are sized to be scannable at your nozzle width; and color swatches
+download as 3MF files you print on your own machine.
 
 ## Security & exposure
 

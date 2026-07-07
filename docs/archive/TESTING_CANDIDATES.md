@@ -1,3 +1,5 @@
+> _**Archived 2026-07-07.** This document catalogued the pre-test-suite gaps and no longer reflects the current state (the suite it called for now exists — ~470 behavioral tests). It has been superseded by [TESTING_STRATEGY.md](../../TESTING_STRATEGY.md) and is kept here for historical record only._
+
 # Testing Candidates — Changes Since March 2026
 
 This document catalogs code changes introduced in commits since **March 2026** that would

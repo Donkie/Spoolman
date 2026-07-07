@@ -1,6 +1,6 @@
 # Spoolman User Stories — Usage, Importance & Coverage Analysis
 
-This document catalogs what people realistically want to do with Spoolman NG and how well the current codebase (July 2026) serves each need. **Frequency** and **Importance** are heuristic estimates for a typical self-hosting 3D-printing hobbyist; a print farm or makerspace shifts several ratings upward (usage tracking, multi-user, monitoring). **Coverage** ratings are grounded in the fork's source, docs, and its own self-assessments (FORK_ASSESSMENT.md, MASTERPLAN.md). The value of the table is the final column: where the gaps are and what would close them.
+This document catalogs what people realistically want to do with Spoolman NG and how well the current codebase (July 2026) serves each need. **Frequency** and **Importance** are heuristic estimates for a typical self-hosting 3D-printing hobbyist; a print farm or makerspace shifts several ratings upward (usage tracking, multi-user, monitoring). **Coverage** ratings are grounded in the fork's source, docs, and its own self-assessments (archive/FORK_ASSESSMENT.md, ../MASTERPLAN.md). The value of the table is the final column: where the gaps are and what would close them.
 
 **Legend**
 - **Frequency:** Every print · Daily · Weekly · Monthly · Occasional · Setup (one-time) · Rare/emergency

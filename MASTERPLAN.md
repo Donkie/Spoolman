@@ -6,8 +6,8 @@
 An honest assessment of where the fork stands, dimension by dimension, followed by
 issue-ready work items. Each item has a suggested issue title, priority, and rough
 effort so it can be pasted into the tracker as-is. This document supersedes the
-execution tracking in `FORK_ASSESSMENT.md` (which is now essentially all ✅) as the
-forward-looking plan.
+execution tracking in `docs/archive/FORK_ASSESSMENT.md` (now archived, essentially all
+✅) as the forward-looking plan.
 
 Priorities: **P0** = protects users or the project's viability · **P1** = needed to
 grow beyond a personal fork · **P2** = robustness/DX debt · **P3** = polish.
@@ -18,7 +18,8 @@ grow beyond a personal fork · **P2** = robustness/DX debt · **P3** = polish.
 
 **Where we are.** The codebase is in genuinely good shape: ~470 behavioral tests
 (backend unit + in-process integration + 4-database Docker matrix + 22 e2e journeys +
-6 PWA specs), mutation-score gates (Stryker ≥90 enforced, ~97% actual), CodeQL,
+6 PWA specs), mutation-score gates (Stryker ≥90 enforced, ~97% actual — but note this runs
+weekly/on-dispatch via `.github/workflows/mutation.yml`, **not** on every PR), CodeQL,
 hadolint, multi-arch image builds with QEMU smoke tests, CalVer release automation,
 and — since PR #38 — two CI signal gates (fail on backend 5xx during e2e, fail on
 flaky-pass-via-retry) that have already caught real defects on their first outings.
@@ -214,10 +215,10 @@ links to the abandoned upstream.
 
 - [ ] **Enable GitHub Discussions + write the fork announcement** — P1, ~2 h.
   Announce on r/klippers etc.; pin a "state of the fork" discussion.
-- [ ] **Upstream backlog sweep** — P1, ~1–2 days. One-time triage of
-  Donkie/Spoolman's open PRs/issues: adoptable finished PRs, still-applicable bug
-  reports with fixes, top feature requests. Output: a shortlist issue per adoptable
-  item.
+- [x] **Upstream backlog sweep** — P1, ~1–2 days. **Done** (2026-07-06, PR #142) —
+  see [`docs/upstream-triage.md`](docs/upstream-triage.md). One-time triage of all 265
+  open Donkie/Spoolman issues (PRs excluded): 24 FIX · 108 IMPLEMENT · 133 SKIP → 98
+  fork issues filed covering 132 upstream issues.
 - [ ] **Integration ecosystem outreach** — P1, ongoing. PRs/issues to Moonraker,
   Mainsail, Fluidd, OctoPrint-Spoolman, spoolman-homeassistant docs listing Spoolman
   NG as the maintained endpoint.

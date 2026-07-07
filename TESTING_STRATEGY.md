@@ -1,7 +1,7 @@
 # Test Coverage Strategy
 
 Goal: **complete, behavioral test coverage** for every change catalogued in
-[`TESTING_CANDIDATES.md`](./TESTING_CANDIDATES.md) (103 items across 6 clusters), written so the
+[`TESTING_CANDIDATES.md`](./docs/archive/TESTING_CANDIDATES.md) (103 items across 6 clusters), written so the
 tests verify **observable contracts**, not the current implementation. This document defines the
 principles, the infrastructure to stand up, the per-cluster approach, the phased rollout, and the
 quality gates that let us claim "complete."
@@ -218,10 +218,17 @@ Coverage is a **floor, not the goal** — 100% line coverage with weak assertion
 
 1. **Every row** in `TESTING_CANDIDATES.md` has ≥1 test asserting its **contract** *and* ≥1 test for
    an **error/edge path** (malformed input, empty, boundary, missing field).
-2. **Branch coverage** thresholds enforced in CI: **100%** on pure codec/parser/analytics/filter
-   modules; **≥90%** on lookup/endpoint glue; the thin hardware-I/O paths in `nfc_service.py` that
-   need a physical reader are `# pragma: no cover`-excluded and replaced by **fake-tag** unit tests +
-   one smoke test.
+2. **Branch coverage.** The aspiration is 100% on the pure codec/parser/analytics/filter modules and
+   ≥90% on lookup/endpoint glue. What is *actually enforced today* is narrower, and stated honestly:
+   the frontend (`client/vitest.config.ts`) sets **per-file** thresholds on only three pure modules —
+   `home/analytics.ts` (100% statements/functions/lines, branches capped at 85 for the defensive
+   low-stock sort comparator), `utils/scan.ts` (100%), and `spoolCardHelpers.ts` (100%); the global
+   threshold is deliberately omitted so the many not-yet-tested UI modules don't fail the build. The
+   backend measures branch coverage (`pytest --cov=spoolman --cov-branch` in `ci.yml`) but sets **no
+   `--cov-fail-under`**, so backend coverage is reported, not gated. The thin hardware-I/O paths in
+   `nfc_service.py` that need a physical reader carry **no `# pragma: no cover`** markers (there are
+   none anywhere in `spoolman/`); they are simply not run by the fast suite and are covered instead by
+   fake-tag unit tests plus the ARM QEMU boot smoke.
 3. **Mutation score** ≥ an agreed floor (start 80%) on the crown-jewel modules — the codecs,
    `_build_search_filters`, `extra_field_query`, and `home/analytics.ts`. Mutation testing
    (`mutmut`/`cosmic-ray` for Python, **Stryker** for TS) is how we *prove* the tests catch injected
