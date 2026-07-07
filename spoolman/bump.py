@@ -40,7 +40,7 @@ def bump() -> None:
     # Regenerate requirements.txt from uv so bare-metal / Moonraker update_manager
     # installs (which pip install -r requirements.txt) stay in sync with uv.
     subprocess.run(
-        ["uv", "export", "--no-dev", "-o", "requirements.txt", "--no-annotate"],
+        ["uv", "export", "--no-dev", "-o", "requirements.txt", "--no-annotate", "--no-hashes"],
         cwd=project_root,
         check=True,
     )
