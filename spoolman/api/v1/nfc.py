@@ -130,7 +130,11 @@ async def nfc_status() -> NfcStatusResponse:
     try:
         from spoolman.nfc_service import nfc_service
 
-        return NfcStatusResponse(enabled=True, status=nfc_service.get_status())
+        # get_status() may trigger a reconnect (_ensure_connected -> _try_connect ->
+        # nfc.ContactlessFrontend), which opens the USB device and blocks. Run it off
+        # the event loop so a slow/hanging reader open cannot freeze the whole server.
+        status = await asyncio.to_thread(nfc_service.get_status)
+        return NfcStatusResponse(enabled=True, status=status)
     except Exception:
         logger.exception("Error getting NFC status")
         return NfcStatusResponse(enabled=True, status="error")

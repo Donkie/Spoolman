@@ -96,6 +96,10 @@ def _to_external_filament(product: TigerTagProduct) -> ExternalFilament:
 
 TIGERTAG_FILAMENT_TYPE_ID = 142
 TIGERTAG_PAGE_SIZE = 50
+# Upper bound on pagination so a misbehaving/looping API (e.g. nextPage that never
+# becomes None) cannot spin forever. 1000 pages * 50/page = 50k products, far above
+# the real catalog size.
+TIGERTAG_MAX_PAGES = 1000
 
 
 async def _fetch_all_products(base_url: str) -> list[dict]:
@@ -105,7 +109,7 @@ async def _fetch_all_products(base_url: str) -> list[dict]:
     page = 1
 
     async with httpx.AsyncClient() as client:
-        while True:
+        for _ in range(TIGERTAG_MAX_PAGES):
             response = await client.post(
                 products_url,
                 json={"page": page, "per_page": TIGERTAG_PAGE_SIZE, "product_type_id": TIGERTAG_FILAMENT_TYPE_ID},
@@ -118,6 +122,12 @@ async def _fetch_all_products(base_url: str) -> list[dict]:
             if data.get("nextPage") is None:
                 break
             page = data["nextPage"]
+        else:
+            logger.warning(
+                "TigerTag product pagination hit the %d-page safety limit; stopping with %d products collected.",
+                TIGERTAG_MAX_PAGES,
+                len(all_items),
+            )
 
     return all_items
 

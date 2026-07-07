@@ -154,7 +154,7 @@ def decode_ntag213(raw_bytes: bytes) -> TigerTagData:
 
     # Debug: dump raw bytes for diagnosing format issues
     hex_dump = " ".join(f"{b:02x}" for b in raw_bytes[:68])
-    logger.info("TigerTag raw bytes (first 68): %s", hex_dump)
+    logger.debug("TigerTag raw bytes (first 68): %s", hex_dump)
 
     values = struct.unpack_from(_HEADER_FMT, raw_bytes, 0)
 

@@ -6,7 +6,6 @@ Provides functions to:
 - Bind a spool to a specific TigerTag via (id_product, timestamp) pair
 """
 
-import json
 import logging
 import time
 
@@ -229,24 +228,3 @@ def map_spool_to_tigertag(
     data.timestamp = int(time.time()) - 946684800
 
     return data
-
-
-def _load_tigertag_brand_map() -> dict[str, int]:
-    """Load brand name -> ID mapping from cached TigerTag data."""
-    try:
-        from spoolman import filecache
-
-        data = filecache.get_file_contents("tigertag_filaments.json")
-        filaments = json.loads(data)
-        brand_map: dict[str, int] = {}
-        for f in filaments:
-            # Extract brand from the filament entries
-            manufacturer = f.get("manufacturer", "")
-            fid = f.get("id", "")
-            if manufacturer and fid.startswith("tigertag_"):
-                # We don't have direct brand IDs in the filament cache,
-                # so this mapping is approximate
-                pass
-        return brand_map
-    except Exception:
-        return {}

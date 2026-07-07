@@ -3,11 +3,13 @@
 import datetime
 import logging
 import os
+import sqlite3
 from collections.abc import Iterator
 from enum import Enum
 from pathlib import Path
 from urllib.parse import urljoin
 
+import anysqlite
 import hishel
 from hishel.httpx import AsyncCacheClient
 from pydantic import BaseModel, Field, RootModel
@@ -23,6 +25,24 @@ DEFAULT_EXTERNAL_DB_URL = "https://sherrmann.github.io/SpoolmanDB/"
 DEFAULT_SYNC_INTERVAL = 3600
 
 policy = hishel.SpecificationPolicy(cache_options=hishel.CacheOptions(allow_stale=True))
+
+
+def _build_in_memory_cache_storage() -> hishel.AsyncSqliteStorage:
+    """Build a hishel storage backed by a private in-memory SQLite database.
+
+    hishel treats ``database_path`` as a real filesystem path: it resolves the value to
+    ``<cache_dir>/<name>``, so ``database_path=":memory:"`` does NOT open an in-memory
+    database — it tries to create a file literally named ``:memory:`` (invalid on Windows
+    NTFS, and a stray real file on POSIX). Instead we hand hishel a ready-made in-memory
+    connection so it never resolves a path. Construction is synchronous (this runs at
+    import time), so we wrap a plain ``sqlite3`` connection in anysqlite's async wrapper
+    rather than awaiting ``anysqlite.connect``. ``check_same_thread=False`` is required
+    because anysqlite drives the connection from its worker-thread pool.
+    """
+    connection = anysqlite.Connection(sqlite3.connect(":memory:", check_same_thread=False))
+    return hishel.AsyncSqliteStorage(connection=connection)
+
+
 try:
     cache_dir = get_cache_dir()
     cache_dir.mkdir(parents=True, exist_ok=True)
@@ -37,7 +57,7 @@ except OSError:
         "Failed to setup disk-based cache, the path %s may not be writable. Using in-memory cache instead as fallback.",
         str(get_cache_dir().resolve()),
     )
-    cache_storage = hishel.AsyncSqliteStorage(database_path=":memory:")
+    cache_storage = _build_in_memory_cache_storage()
 
 
 class SpoolType(Enum):

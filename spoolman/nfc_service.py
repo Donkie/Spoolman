@@ -58,35 +58,40 @@ class NfcService:
             self._status = "unsupported_reader"
             return False
 
-        # Close any stale handle before reconnecting
-        if self._clf is not None:
+        # Guard the close/open/handle-swap with the same lock the read/write worker
+        # threads hold while touching self._clf, so a reconnect can never close a
+        # handle out from under an in-flight read (use-after-close race). The lock is
+        # a threading.Lock acquired only from worker threads (never the event loop).
+        with self._lock:
+            # Close any stale handle before reconnecting
+            if self._clf is not None:
+                try:
+                    self._clf.close()
+                except Exception:
+                    pass
+                self._clf = None
+                self._initialized = False
+
             try:
-                self._clf.close()
+                import nfc
+
+                path = device_path or "usb"
+                self._clf = nfc.ContactlessFrontend(path)
+                self._initialized = True
+                self._status = "connected"
+                logger.info("NFC reader initialized successfully on %s", path)
+                return True
+            except ImportError:
+                logger.warning(
+                    "nfcpy is not installed. Install it with: pip install nfcpy. NFC features will be unavailable.",
+                )
+                self._status = "nfcpy_not_installed"
+                return False
             except Exception:
-                pass
-            self._clf = None
-            self._initialized = False
-
-        try:
-            import nfc
-
-            path = device_path or "usb"
-            self._clf = nfc.ContactlessFrontend(path)
-            self._initialized = True
-            self._status = "connected"
-            logger.info("NFC reader initialized successfully on %s", path)
-            return True
-        except ImportError:
-            logger.warning(
-                "nfcpy is not installed. Install it with: pip install nfcpy. NFC features will be unavailable.",
-            )
-            self._status = "nfcpy_not_installed"
-            return False
-        except Exception:
-            logger.exception("Failed to initialize NFC reader")
-            self._initialized = False
-            self._status = "error"
-            return False
+                logger.exception("Failed to initialize NFC reader")
+                self._initialized = False
+                self._status = "error"
+                return False
 
     def _ensure_connected(self) -> bool:
         """Reconnect if the reader is in an error/disconnected state.
@@ -135,9 +140,13 @@ class NfcService:
 
         with self._lock:
             try:
+                # Honor the timeout: nfcpy calls terminate() repeatedly while polling and
+                # aborts (returning None) as soon as it returns True. Without this, connect
+                # blocks forever when no tag is present, pinning the worker thread.
+                deadline = time.monotonic() + timeout
                 tag = self._clf.connect(
                     rdwr={"on-connect": lambda tag: False},
-                    terminate=lambda: False,
+                    terminate=lambda: time.monotonic() > deadline,
                 )
 
                 if tag is None:
@@ -186,9 +195,10 @@ class NfcService:
 
         with self._lock:
             try:
+                deadline = time.monotonic() + timeout
                 tag = self._clf.connect(
                     rdwr={"on-connect": lambda tag: False},
-                    terminate=lambda: False,
+                    terminate=lambda: time.monotonic() > deadline,
                 )
 
                 if tag is None:
@@ -295,9 +305,10 @@ class NfcService:
 
         with self._lock:
             try:
+                deadline = time.monotonic() + timeout
                 tag = self._clf.connect(
                     rdwr={"on-connect": lambda tag: False},
-                    terminate=lambda: False,
+                    terminate=lambda: time.monotonic() > deadline,
                 )
 
                 if tag is None:
@@ -351,9 +362,10 @@ class NfcService:
 
         with self._lock:
             try:
+                deadline = time.monotonic() + timeout
                 tag = self._clf.connect(
                     rdwr={"on-connect": lambda tag: False},
-                    terminate=lambda: False,
+                    terminate=lambda: time.monotonic() > deadline,
                 )
 
                 if tag is None:

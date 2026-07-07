@@ -150,7 +150,7 @@ def decode_qidi_block(raw_bytes: bytes) -> QidiTagData:
     if len(raw_bytes) < 3:
         raise ValueError(f"Data too short: expected at least 3 bytes, got {len(raw_bytes)}")
 
-    logger.info(
+    logger.debug(
         "Qidi raw block: %s",
         " ".join(f"{b:02x}" for b in raw_bytes[:16]),
     )
