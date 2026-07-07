@@ -49,8 +49,9 @@ test.describe("spool list sort and filter", () => {
       dropdown.getByRole("button", { name: "OK" }).click(),
     ]);
 
-    // Only the three seeded spools remain.
-    const firstCol = page.locator(".ant-table-tbody tr.ant-table-row td:first-child");
+    // Only the three seeded spools remain. The ID column is the second cell now —
+    // the first is the row-selection checkbox column.
+    const firstCol = page.locator(".ant-table-tbody tr.ant-table-row td:nth-child(2)");
     await expect(firstCol).toHaveCount(3);
 
     // Sort by ID descending (default restored by Clear Filters is id asc).

@@ -1,24 +1,27 @@
 import {
+  DownOutlined,
   InboxOutlined,
   LinkOutlined,
   PrinterOutlined,
+  TagsOutlined,
   ToTopOutlined,
   ToolOutlined,
   WifiOutlined,
 } from "@ant-design/icons";
 import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
 import { useInvalidate, useShow, useTranslate } from "@refinedev/core";
-import { Button, Modal, Typography } from "antd";
+import { Button, Dropdown, Modal, Space, Typography } from "antd";
+import type { MenuProps } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { ExtraFieldDisplay } from "../../components/extraFields";
 import { NumberFieldUnit } from "../../components/numberField";
 import SpoolIcon from "../../components/spoolIcon";
 import { enrichText } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useCurrencyFormatter } from "../../utils/settings";
-import { getBasePath } from "../../utils/url";
 import NfcBindModal from "../../components/nfcBindModal";
 import NfcWriteModal from "../../components/nfcWriteModal";
 import { IFilament } from "../filaments/model";
@@ -32,6 +35,7 @@ const { confirm } = Modal;
 
 export const SpoolShow = () => {
   const t = useTranslate();
+  const navigate = useNavigate();
   const extraFields = useGetFields(EntityType.spool);
   const currencyFormatter = useCurrencyFormatter();
   const invalidate = useInvalidate();
@@ -128,6 +132,37 @@ export const SpoolShow = () => {
       }
     : record?.filament.color_hex;
 
+  // "Labels & Tags" overflow menu — folds the niche label/NFC actions behind a single
+  // default-emphasis menu-button, leaving "Adjust Spool Filament" as the only primary.
+  const labelsMenuItems: MenuProps["items"] = [
+    {
+      key: "print-labels",
+      icon: <PrinterOutlined />,
+      label: t("printing.qrcode.button"),
+      onClick: () => {
+        if (!record) return;
+        navigate(`/spool/print?spools=${record.id}&return=${encodeURIComponent(window.location.pathname)}`);
+      },
+    },
+    // NFC entries are gated so the menu (and printing) survives if the flag ever becomes conditional.
+    ...(showNfcButton
+      ? [
+          {
+            key: "link-nfc",
+            icon: <LinkOutlined />,
+            label: t("nfc.bind_button"),
+            onClick: () => setNfcBindModalVisible(true),
+          },
+          {
+            key: "encode-nfc",
+            icon: <WifiOutlined />,
+            label: t("nfc.encode_button"),
+            onClick: () => setNfcWriteModalVisible(true),
+          },
+        ]
+      : []),
+  ];
+
   return (
     <Show
       isLoading={isLoading}
@@ -137,29 +172,14 @@ export const SpoolShow = () => {
           <Button type="primary" icon={<ToolOutlined />} onClick={() => record && openSpoolAdjustModal(record)}>
             {t("spool.titles.adjust")}
           </Button>
-          <Button
-            type="primary"
-            icon={<PrinterOutlined />}
-            href={
-              getBasePath() +
-              "/spool/print?spools=" +
-              record?.id +
-              "&return=" +
-              encodeURIComponent(window.location.pathname)
-            }
-          >
-            {t("printing.qrcode.button")}
-          </Button>
-          {showNfcButton && (
-            <>
-              <Button type="primary" icon={<LinkOutlined />} onClick={() => setNfcBindModalVisible(true)}>
-                {t("nfc.bind_button")}
-              </Button>
-              <Button type="primary" icon={<WifiOutlined />} onClick={() => setNfcWriteModalVisible(true)}>
-                {t("nfc.encode_button")}
-              </Button>
-            </>
-          )}
+          <Dropdown menu={{ items: labelsMenuItems }} trigger={["click"]} disabled={!record}>
+            <Button icon={<TagsOutlined />}>
+              <Space>
+                {t("buttons.labelsAndTags")}
+                <DownOutlined />
+              </Space>
+            </Button>
+          </Dropdown>
           {record?.archived ? (
             <Button icon={<ToTopOutlined />} onClick={() => archiveSpool(record, false)}>
               {t("buttons.unArchive")}

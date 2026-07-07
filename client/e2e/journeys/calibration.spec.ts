@@ -17,9 +17,11 @@ async function seedFilament(request: import("@playwright/test").APIRequestContex
 test.describe("calibration wizard journey", () => {
   test("start wizard → skip all steps → finish → history shows a complete session", async ({ page, request }) => {
     const filamentId = await seedFilament(request);
-    await page.goto(`${APP_BASE_URL}/filament/show/${filamentId}`);
+    // The Calibration card lives under the "Calibration" tab on the filament show
+    // page; ?tab=calibration deep-links straight to it.
+    await page.goto(`${APP_BASE_URL}/filament/show/${filamentId}?tab=calibration`);
 
-    // The Calibration card renders at the bottom of the show page.
+    // The Calibration card renders inside the active tab.
     await expect(page.getByText("Calibration", { exact: true }).first()).toBeVisible();
 
     // Starting the wizard creates an in_progress session.
@@ -67,7 +69,7 @@ test.describe("calibration wizard journey", () => {
 
   test("cancel keeps the session in progress and the card offers to resume", async ({ page, request }) => {
     const filamentId = await seedFilament(request);
-    await page.goto(`${APP_BASE_URL}/filament/show/${filamentId}`);
+    await page.goto(`${APP_BASE_URL}/filament/show/${filamentId}?tab=calibration`);
 
     await page.getByRole("button", { name: "Start Wizard" }).click();
     const modal = page.locator(".ant-modal-content").filter({ hasText: "Calibration Wizard" });

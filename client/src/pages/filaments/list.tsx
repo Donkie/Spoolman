@@ -12,7 +12,7 @@ import { useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Table } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { useMemo, useState } from "react";
+import { Key, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   ActionsColumn,
@@ -139,6 +139,10 @@ export const FilamentList = () => {
   // Filament to show the swatch download dialog for
   const [swatchFilament, setSwatchFilament] = useState<IFilamentCollapsed | null>(null);
 
+  // Row selection drives the "Print Labels" toolbar action: with rows selected, printing
+  // skips the in-page filament selector and jumps straight to the label dialog.
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
+
   // Store state in local storage
   const tableState: TableState = {
     sorters,
@@ -190,13 +194,18 @@ export const FilamentList = () => {
             type="primary"
             icon={<PrinterOutlined />}
             onClick={() => {
-              navigate("print");
+              if (selectedRowKeys.length > 0) {
+                const params = new URLSearchParams();
+                selectedRowKeys.forEach((key) => params.append("filaments", String(key)));
+                navigate(`print?${params.toString()}`);
+              } else {
+                navigate("print");
+              }
             }}
           >
             {t("printing.qrcode.button")}
           </Button>
           <Button
-            type="primary"
             icon={<FilterOutlined />}
             onClick={() => {
               setFilters([], "replace");
@@ -234,9 +243,7 @@ export const FilamentList = () => {
               },
             }}
           >
-            <Button type="primary" icon={<EditOutlined />}>
-              {t("buttons.hideColumns")}
-            </Button>
+            <Button icon={<EditOutlined />}>{t("buttons.hideColumns")}</Button>
           </Dropdown>
           {defaultButtons}
         </>
@@ -249,6 +256,11 @@ export const FilamentList = () => {
         scroll={{ x: "max-content" }}
         dataSource={dataSource}
         rowKey="id"
+        rowSelection={{
+          selectedRowKeys,
+          onChange: setSelectedRowKeys,
+          preserveSelectedRowKeys: true,
+        }}
         columns={removeUndefined([
           SortedColumn({
             ...commonProps,

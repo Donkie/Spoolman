@@ -95,8 +95,31 @@ const QidiTagDataSummary: React.FC<{ qidiData: QidiTagData; t: (key: string) => 
   </Descriptions>
 );
 
-const NfcScannerModal: React.FC = () => {
-  const [visible, setVisible] = useState(false);
+/**
+ * Reader status hook shared by the standalone modal and the unified ScanModal.
+ * Returns whether server-side and/or Web NFC scanning is currently available.
+ */
+export function useNfcAvailability() {
+  const nfcStatus = useNfcStatus();
+  const serverEnabled = nfcStatus.data?.enabled === true && nfcStatus.data?.status === "connected";
+  const webNfcAvailable = isWebNfcSupported();
+  return { serverEnabled, webNfcAvailable, available: serverEnabled || webNfcAvailable };
+}
+
+interface NfcScannerPanelProps {
+  /** Whether this panel is currently shown; drives aborting/resetting in-flight scans. */
+  active: boolean;
+  /** Called to dismiss the surrounding modal, e.g. after a successful navigation. */
+  onClose: () => void;
+}
+
+/**
+ * The NFC scanning surface — server/browser mode toggle, scan actions and the
+ * create-from-tag fallback — without any trigger button or modal chrome. Reused
+ * both by the standalone NfcScannerModal and by the unified ScanModal so the
+ * scanner is composed, not duplicated.
+ */
+export const NfcScannerPanel: React.FC<NfcScannerPanelProps> = ({ active, onClose }) => {
   const [mode, setMode] = useState<"browser" | "server">("server");
   const [browserScanning, setBrowserScanning] = useState(false);
   const [browserError, setBrowserError] = useState<string | null>(null);
@@ -108,18 +131,25 @@ const NfcScannerModal: React.FC = () => {
   const navigate = useNavigate();
   const scanControllerRef = useRef<AbortController | null>(null);
 
-  // Abort any in-flight Web NFC scan when the modal closes or unmounts, so the NDEFReader scan and
-  // its onreading handler stop and don't setState on an unmounted component later.
+  // Abort any in-flight Web NFC scan when the panel is hidden or unmounts, so the NDEFReader scan and
+  // its onreading handler stop and don't setState on an unmounted component later. Also reset transient
+  // state so reopening starts clean (parity with the old modal's onCancel reset).
   useEffect(() => {
-    if (!visible) {
+    if (!active) {
       scanControllerRef.current?.abort();
       scanControllerRef.current = null;
+      setBrowserScanning(false);
+      setBrowserError(null);
+      setUnmatchedTagData(null);
+      setUnmatchedQidiData(null);
+      setUnmatchedTagUid(null);
+      setUnmatchedTagFormat(null);
     }
     return () => {
       scanControllerRef.current?.abort();
       scanControllerRef.current = null;
     };
-  }, [visible]);
+  }, [active]);
 
   const nfcStatus = useNfcStatus();
   const nfcReadMutation = useNfcRead();
@@ -135,7 +165,7 @@ const NfcScannerModal: React.FC = () => {
     setUnmatchedTagFormat(null);
     const result = await nfcReadMutation.mutateAsync();
     if (result.success && result.spool_id) {
-      setVisible(false);
+      onClose();
       navigate(`/spool/show/${result.spool_id}`);
     } else if (result.success && !result.spool_id) {
       setUnmatchedTagFormat(result.tag_format || null);
@@ -211,7 +241,7 @@ const NfcScannerModal: React.FC = () => {
             // Check for spoolman:s-{id} format
             const spoolmanMatch = text.match(/web\+spoolman:s-(\d+)/);
             if (spoolmanMatch) {
-              setVisible(false);
+              onClose();
               navigate(`/spool/show/${spoolmanMatch[1]}`);
               return;
             }
@@ -219,7 +249,7 @@ const NfcScannerModal: React.FC = () => {
             // Check for URL format
             const urlMatch = text.match(/\/spool\/show\/(\d+)/);
             if (urlMatch) {
-              setVisible(false);
+              onClose();
               navigate(`/spool/show/${urlMatch[1]}`);
               return;
             }
@@ -276,15 +306,91 @@ const NfcScannerModal: React.FC = () => {
     }
 
     if (result.success && result.spool_id) {
-      setVisible(false);
+      onClose();
       setUnmatchedTagData(null);
       setUnmatchedQidiData(null);
       navigate(`/spool/show/${result.spool_id}`);
     }
   }, [unmatchedTagData, unmatchedQidiData, unmatchedTagFormat, unmatchedTagUid, createFromTagMutation, navigate]);
 
+  return (
+    <Space direction="vertical" style={{ width: "100%" }} size="middle">
+      <Text>{t("nfc.scan_description")}</Text>
+
+      <Segmented
+        block
+        options={[
+          { label: t("nfc.mode_server"), value: "server", disabled: !serverEnabled },
+          { label: t("nfc.mode_browser"), value: "browser", disabled: !webNfcAvailable },
+        ]}
+        value={mode}
+        onChange={(value) => setMode(value as "browser" | "server")}
+      />
+
+      {mode === "server" && (
+        <Space direction="vertical" style={{ width: "100%" }} align="center">
+          <Button type="primary" onClick={handleServerRead} loading={nfcReadMutation.isPending} size="large">
+            {nfcReadMutation.isPending ? t("nfc.reading") : t("nfc.scan_title")}
+          </Button>
+          {nfcReadMutation.isSuccess && !nfcReadMutation.data?.spool_id && !unmatchedTagData && (
+            <Alert type="warning" message={nfcReadMutation.data?.message || t("nfc.no_match")} showIcon />
+          )}
+          {nfcReadMutation.isError && <Alert type="error" message={t("nfc.error.read_failed")} showIcon />}
+        </Space>
+      )}
+
+      {mode === "browser" && (
+        <Space direction="vertical" style={{ width: "100%" }} align="center">
+          {browserScanning ? (
+            <Spin tip={t("nfc.place_tag")}>
+              <div style={{ padding: 50 }} />
+            </Spin>
+          ) : (
+            <Button type="primary" onClick={handleBrowserScan} size="large">
+              {t("nfc.scan_title")}
+            </Button>
+          )}
+          {browserError && !unmatchedTagData && <Alert type="error" message={browserError} showIcon />}
+        </Space>
+      )}
+
+      {/* Show tag data and create button when no spool matched */}
+      {(unmatchedTagData || unmatchedQidiData) && (
+        <Space direction="vertical" style={{ width: "100%" }} size="middle">
+          <Alert type="info" message={t("nfc.create_from_tag_description")} showIcon />
+          {unmatchedQidiData ? (
+            <QidiTagDataSummary qidiData={unmatchedQidiData} t={t} />
+          ) : unmatchedTagData ? (
+            <TagDataSummary tagData={unmatchedTagData} t={t} />
+          ) : null}
+          <Button type="primary" onClick={handleCreateFromTag} loading={createFromTagMutation.isPending} block>
+            {createFromTagMutation.isPending ? t("nfc.creating_spool") : t("nfc.create_from_tag")}
+          </Button>
+          {createFromTagMutation.isSuccess && createFromTagMutation.data?.success && (
+            <Alert type="success" message={t("nfc.create_success")} showIcon />
+          )}
+          {(createFromTagMutation.isError ||
+            (createFromTagMutation.isSuccess && !createFromTagMutation.data?.success)) && (
+            <Alert type="error" message={createFromTagMutation.data?.message || t("nfc.create_error")} showIcon />
+          )}
+        </Space>
+      )}
+    </Space>
+  );
+};
+
+/**
+ * Standalone NFC scanner: a floating trigger that opens the NfcScannerPanel in its
+ * own modal. Retained for backward compatibility; the global chrome now uses the
+ * unified ScanModal instead.
+ */
+const NfcScannerModal: React.FC = () => {
+  const [visible, setVisible] = useState(false);
+  const t = useTranslate();
+  const { available } = useNfcAvailability();
+
   // Don't show the button if neither server NFC nor Web NFC is available
-  if (!serverEnabled && !webNfcAvailable) {
+  if (!available) {
     return null;
   }
 
@@ -297,83 +403,8 @@ const NfcScannerModal: React.FC = () => {
         shape="circle"
         style={{ insetInlineEnd: 74 }}
       />
-      <Modal
-        open={visible}
-        destroyOnClose
-        onCancel={() => {
-          setVisible(false);
-          setBrowserScanning(false);
-          setBrowserError(null);
-          setUnmatchedTagData(null);
-          setUnmatchedQidiData(null);
-          setUnmatchedTagUid(null);
-          setUnmatchedTagFormat(null);
-        }}
-        footer={null}
-        title={t("nfc.scan_title")}
-      >
-        <Space direction="vertical" style={{ width: "100%" }} size="middle">
-          <Text>{t("nfc.scan_description")}</Text>
-
-          <Segmented
-            block
-            options={[
-              { label: t("nfc.mode_server"), value: "server", disabled: !serverEnabled },
-              { label: t("nfc.mode_browser"), value: "browser", disabled: !webNfcAvailable },
-            ]}
-            value={mode}
-            onChange={(value) => setMode(value as "browser" | "server")}
-          />
-
-          {mode === "server" && (
-            <Space direction="vertical" style={{ width: "100%" }} align="center">
-              <Button type="primary" onClick={handleServerRead} loading={nfcReadMutation.isPending} size="large">
-                {nfcReadMutation.isPending ? t("nfc.reading") : t("nfc.scan_title")}
-              </Button>
-              {nfcReadMutation.isSuccess && !nfcReadMutation.data?.spool_id && !unmatchedTagData && (
-                <Alert type="warning" message={nfcReadMutation.data?.message || t("nfc.no_match")} showIcon />
-              )}
-              {nfcReadMutation.isError && <Alert type="error" message={t("nfc.error.read_failed")} showIcon />}
-            </Space>
-          )}
-
-          {mode === "browser" && (
-            <Space direction="vertical" style={{ width: "100%" }} align="center">
-              {browserScanning ? (
-                <Spin tip={t("nfc.place_tag")}>
-                  <div style={{ padding: 50 }} />
-                </Spin>
-              ) : (
-                <Button type="primary" onClick={handleBrowserScan} size="large">
-                  {t("nfc.scan_title")}
-                </Button>
-              )}
-              {browserError && !unmatchedTagData && <Alert type="error" message={browserError} showIcon />}
-            </Space>
-          )}
-
-          {/* Show tag data and create button when no spool matched */}
-          {(unmatchedTagData || unmatchedQidiData) && (
-            <Space direction="vertical" style={{ width: "100%" }} size="middle">
-              <Alert type="info" message={t("nfc.create_from_tag_description")} showIcon />
-              {unmatchedQidiData ? (
-                <QidiTagDataSummary qidiData={unmatchedQidiData} t={t} />
-              ) : unmatchedTagData ? (
-                <TagDataSummary tagData={unmatchedTagData} t={t} />
-              ) : null}
-              <Button type="primary" onClick={handleCreateFromTag} loading={createFromTagMutation.isPending} block>
-                {createFromTagMutation.isPending ? t("nfc.creating_spool") : t("nfc.create_from_tag")}
-              </Button>
-              {createFromTagMutation.isSuccess && createFromTagMutation.data?.success && (
-                <Alert type="success" message={t("nfc.create_success")} showIcon />
-              )}
-              {(createFromTagMutation.isError ||
-                (createFromTagMutation.isSuccess && !createFromTagMutation.data?.success)) && (
-                <Alert type="error" message={createFromTagMutation.data?.message || t("nfc.create_error")} showIcon />
-              )}
-            </Space>
-          )}
-        </Space>
+      <Modal open={visible} destroyOnClose onCancel={() => setVisible(false)} footer={null} title={t("nfc.scan_title")}>
+        <NfcScannerPanel active={visible} onClose={() => setVisible(false)} />
       </Modal>
     </>
   );

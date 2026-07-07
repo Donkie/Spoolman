@@ -8,8 +8,7 @@ import { getBasePath } from "../../utils/url";
 import { Version } from "../version";
 
 import { languages } from "../../i18n";
-import NfcScannerModal from "../nfcScannerModal";
-import QRCodeScannerModal from "../qrCodeScanner";
+import ScanModal from "../scanModal";
 
 const { useToken } = theme;
 
@@ -87,8 +86,7 @@ export const Header = ({ sticky }: RefineThemedLayoutHeaderProps) => {
           onChange={() => setMode(mode === "light" ? "dark" : "light")}
           defaultChecked={mode === "dark"}
         />
-        <QRCodeScannerModal />
-        <NfcScannerModal />
+        <ScanModal />
       </Space>
     </AntdLayout.Header>
   );

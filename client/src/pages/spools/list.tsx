@@ -13,7 +13,7 @@ import { useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Modal, Table } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { useCallback, useMemo, useState } from "react";
+import { Key, useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Action,
@@ -161,6 +161,10 @@ export const SpoolList = () => {
   // Create state for the columns to show
   const [showColumns, setShowColumns] = useState<string[]>(initialState.showColumns ?? defaultColumns);
 
+  // Row selection drives the "Print Labels" toolbar action: with rows selected, printing
+  // skips the in-page spool selector and jumps straight to the label dialog for those spools.
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
+
   // Store state in local storage
   const tableState: TableState = {
     sorters,
@@ -264,13 +268,18 @@ export const SpoolList = () => {
             type="primary"
             icon={<PrinterOutlined />}
             onClick={() => {
-              navigate("print");
+              if (selectedRowKeys.length > 0) {
+                const params = new URLSearchParams();
+                selectedRowKeys.forEach((key) => params.append("spools", String(key)));
+                navigate(`print?${params.toString()}`);
+              } else {
+                navigate("print");
+              }
             }}
           >
             {t("printing.qrcode.button")}
           </Button>
           <Button
-            type="primary"
             icon={<InboxOutlined />}
             onClick={() => {
               setShowArchived(!showArchived);
@@ -279,7 +288,6 @@ export const SpoolList = () => {
             {showArchived ? t("buttons.hideArchived") : t("buttons.showArchived")}
           </Button>
           <Button
-            type="primary"
             icon={<FilterOutlined />}
             onClick={() => {
               setFilters([], "replace");
@@ -317,9 +325,7 @@ export const SpoolList = () => {
               },
             }}
           >
-            <Button type="primary" icon={<EditOutlined />}>
-              {t("buttons.hideColumns")}
-            </Button>
+            <Button icon={<EditOutlined />}>{t("buttons.hideColumns")}</Button>
           </Dropdown>
           {defaultButtons}
         </>
@@ -333,6 +339,11 @@ export const SpoolList = () => {
         scroll={{ x: "max-content" }}
         dataSource={dataSource}
         rowKey="id"
+        rowSelection={{
+          selectedRowKeys,
+          onChange: setSelectedRowKeys,
+          preserveSelectedRowKeys: true,
+        }}
         // Make archived rows greyed out
         onRow={(record) => {
           if (record.archived) {

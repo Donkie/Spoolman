@@ -45,6 +45,23 @@ CI runs all of the above plus lint (`ruff`, `eslint`, `prettier`, `tsc`),
 CodeQL, hadolint, multi-arch Docker builds, and a weekly mutation-testing run
 (Stryker enforces a ≥90% mutation score on crown-jewel client modules).
 
+## UI conventions
+
+These rules keep the client's interaction model consistent as features are added:
+
+- **One primary action per page.** Each detail/list page has at most one
+  `type="primary"` (orange) button — the single most important action. Everything
+  else is a default button or lives in an overflow menu (an antd `Dropdown`
+  menu-button, e.g. "Labels & Tags" / "Export").
+- **Single-record actions live in modals or drawers** opened from that record's
+  page (adjust, link/encode NFC tag, download swatch, calibration).
+- **Batch / multi-record flows are dedicated pages** (e.g. label printing). When
+  a list has a selection, its toolbar action operates on the selected rows and
+  skips any in-page re-selection step; with no selection it falls back to the
+  selector.
+- **View-state controls are never primary buttons.** Show/Hide Archived, Clear
+  Filters, Hide Columns and similar toggles use the default button style.
+
 ## Pull requests
 
 - Target `master`. Keep PRs focused; describe the user-visible behavior change.

@@ -113,7 +113,6 @@ export const VendorList = () => {
       headerButtons={({ defaultButtons }) => (
         <>
           <Button
-            type="primary"
             icon={<FilterOutlined />}
             onClick={() => {
               setFilters([], "replace");
@@ -151,9 +150,7 @@ export const VendorList = () => {
               },
             }}
           >
-            <Button type="primary" icon={<EditOutlined />}>
-              {t("buttons.hideColumns")}
-            </Button>
+            <Button icon={<EditOutlined />}>{t("buttons.hideColumns")}</Button>
           </Dropdown>
           {defaultButtons}
         </>

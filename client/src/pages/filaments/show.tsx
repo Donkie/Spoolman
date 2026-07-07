@@ -1,12 +1,13 @@
 import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
 import { useShow, useTranslate } from "@refinedev/core";
-import { IdcardOutlined, PrinterOutlined } from "@ant-design/icons";
+import { DownOutlined, ExportOutlined, IdcardOutlined, PrinterOutlined } from "@ant-design/icons";
 import { CalibrationSection } from "../calibration/CalibrationSection";
-import { Button, Typography } from "antd";
+import { Button, Dropdown, Space, Tabs, Typography } from "antd";
+import type { MenuProps } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { ExtraFieldDisplay } from "../../components/extraFields";
 import SwatchDownloadModal from "../../components/swatchDownloadModal";
 import { NumberFieldUnit } from "../../components/numberField";
@@ -14,7 +15,6 @@ import SpoolIcon from "../../components/spoolIcon";
 import { enrichText } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useCurrencyFormatter } from "../../utils/settings";
-import { getBasePath } from "../../utils/url";
 import { IFilament } from "./model";
 dayjs.extend(utc);
 
@@ -23,6 +23,7 @@ const { Title } = Typography;
 export const FilamentShow = () => {
   const t = useTranslate();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const extraFields = useGetFields(EntityType.filament);
   const currencyFormatter = useCurrencyFormatter();
   const { query } = useShow<IFilament>({
@@ -63,38 +64,30 @@ export const FilamentShow = () => {
       }
     : record?.color_hex;
 
-  return (
-    <Show
-      isLoading={isLoading}
-      title={record ? formatTitle(record) : ""}
-      headerButtons={({ defaultButtons }) => (
-        <>
-          <Button type="primary" onClick={gotoSpools}>
-            {t("filament.fields.spools")}
-          </Button>
-          <Button
-            type="primary"
-            icon={<PrinterOutlined />}
-            disabled={!record?.id}
-            href={
-              record?.id
-                ? getBasePath() +
-                  "/filament/print?filaments=" +
-                  record.id +
-                  "&return=" +
-                  encodeURIComponent(window.location.pathname)
-                : undefined
-            }
-          >
-            {t("printing.qrcode.button")}
-          </Button>
-          <Button type="primary" icon={<IdcardOutlined />} disabled={!record?.id} onClick={() => setSwatchOpen(true)}>
-            {t("filament.buttons.download_swatch")}
-          </Button>
-          {defaultButtons}
-        </>
-      )}
-    >
+  // "Export" overflow menu — folds the niche label/swatch exports behind a single
+  // default-emphasis menu-button rather than emphasizing them as orange primaries.
+  const exportMenuItems: MenuProps["items"] = [
+    {
+      key: "print-labels",
+      icon: <PrinterOutlined />,
+      label: t("printing.qrcode.button"),
+      onClick: () => {
+        if (!record?.id) return;
+        navigate(`/filament/print?filaments=${record.id}&return=${encodeURIComponent(window.location.pathname)}`);
+      },
+    },
+    {
+      key: "download-swatch",
+      icon: <IdcardOutlined />,
+      label: t("filament.buttons.download_swatch"),
+      onClick: () => setSwatchOpen(true),
+    },
+  ];
+
+  const activeTab = searchParams.get("tab") === "calibration" ? "calibration" : "details";
+
+  const detailsContent = (
+    <>
       <Title level={5}>{t("filament.fields.id")}</Title>
       <NumberField value={record?.id ?? ""} />
       <Title level={5}>{t("filament.fields.vendor")}</Title>
@@ -177,7 +170,57 @@ export const FilamentShow = () => {
       {extraFields?.data?.map((field, index) => (
         <ExtraFieldDisplay key={index} field={field} value={record?.extra[field.key]} />
       ))}
-      <CalibrationSection filamentId={record?.id} />
+    </>
+  );
+
+  return (
+    <Show
+      isLoading={isLoading}
+      title={record ? formatTitle(record) : ""}
+      headerButtons={({ defaultButtons }) => (
+        <>
+          <Button onClick={gotoSpools}>{t("filament.fields.spools")}</Button>
+          <Dropdown menu={{ items: exportMenuItems }} trigger={["click"]} disabled={!record?.id}>
+            <Button icon={<ExportOutlined />}>
+              <Space>
+                {t("buttons.export")}
+                <DownOutlined />
+              </Space>
+            </Button>
+          </Dropdown>
+          {defaultButtons}
+        </>
+      )}
+    >
+      <Tabs
+        activeKey={activeTab}
+        onChange={(key) => {
+          setSearchParams(
+            (prev) => {
+              const next = new URLSearchParams(prev);
+              if (key === "calibration") {
+                next.set("tab", "calibration");
+              } else {
+                next.delete("tab");
+              }
+              return next;
+            },
+            { replace: true },
+          );
+        }}
+        items={[
+          {
+            key: "details",
+            label: t("filament.tabs.details"),
+            children: detailsContent,
+          },
+          {
+            key: "calibration",
+            label: t("calibration.title"),
+            children: <CalibrationSection filamentId={record?.id} />,
+          },
+        ]}
+      />
       <SwatchDownloadModal filament={swatchOpen ? (record ?? null) : null} onClose={() => setSwatchOpen(false)} />
     </Show>
   );

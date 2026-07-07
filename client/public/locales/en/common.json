@@ -29,7 +29,9 @@
     "showArchived": "Show Archived",
     "notAccessTitle": "You don't have permission to access",
     "hideColumns": "Hide Columns",
-    "clearFilters": "Clear Filters"
+    "clearFilters": "Clear Filters",
+    "labelsAndTags": "Labels & Tags",
+    "export": "Export"
   },
   "warnWhenUnsavedChanges": "Are you sure you want to leave? You have unsaved changes.",
   "notifications": {
@@ -146,6 +148,12 @@
       "selectedTotal_one": "{{count}} filament selected",
       "selectedTotal_other": "{{count}} filaments selected"
     }
+  },
+  "scan": {
+    "title": "Scan",
+    "qr": "QR Code",
+    "nfc": "NFC",
+    "nfc_hint": "NFC scanning is not available in this browser. Use Android Chrome, or connect a server-side NFC reader."
   },
   "scanner": {
     "title": "QR Code Scanner",
@@ -267,6 +275,9 @@
       "list": "Filaments",
       "show": "Show Filament",
       "show_title": "[Filament #{{id}}] {{name}}"
+    },
+    "tabs": {
+      "details": "Details"
     },
     "form": {
       "filament_updated": "This filament has been updated by someone/something else since you opened this page. Saving will overwrite those changes!",
