@@ -201,6 +201,6 @@ def schedule_tasks(scheduler: Scheduler) -> None:
 
     sync_interval = get_external_db_sync_interval()
     if sync_interval > 0:
-        scheduler.cyclic(datetime.timedelta(seconds=DEFAULT_SYNC_INTERVAL), _sync)  # type: ignore[arg-type]
+        scheduler.cyclic(datetime.timedelta(seconds=sync_interval), _sync)  # type: ignore[arg-type]
     else:
         logger.info("Sync interval is 0, skipping periodic sync of external db.")
