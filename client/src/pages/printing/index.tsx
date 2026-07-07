@@ -50,11 +50,14 @@ export const Printing = () => {
           {step === 0 && (
             <SpoolSelectModal
               description={t("printing.spoolSelect.description")}
-              onContinue={(spools) => {
+              searchPlaceholder={t("printing.spoolSelect.searchPlaceholder")}
+              onPrint={(selectedIds) => {
                 setSearchParams((prev) => {
                   const newParams = new URLSearchParams(prev);
                   newParams.delete("spools");
-                  spools.forEach((spool) => newParams.append("spools", spool.id.toString()));
+                  selectedIds.forEach((id) => newParams.append("spools", id.toString()));
+                  // Keep the selector route as the explicit return target so back/cancel
+                  // returns to the selection step instead of the originating show page.
                   newParams.set("return", "/spool/print");
                   return newParams;
                 });

@@ -128,6 +128,17 @@ class SpoolMeasureParameters(BaseModel):
 async def find(
     *,
     db: Annotated[AsyncSession, Depends(get_db_session)],
+    search: Annotated[
+        str | None,
+        Query(
+            title="Search",
+            description=(
+                "Partial case-insensitive search term applied across spool ID, filament vendor name, filament name, "
+                "material, location, and lot number. Separate multiple terms with a comma. Surround a term with "
+                "quotes to search for the exact term."
+            ),
+        ),
+    ] = None,
     filament_name_old: Annotated[
         str | None,
         Query(alias="filament_name", title="Filament Name", description="See filament.name.", deprecated=True),
@@ -287,6 +298,7 @@ async def find(
 
     db_items, total_count = await spool.find(
         db=db,
+        search=search,
         filament_name=filament_name if filament_name is not None else filament_name_old,
         filament_id=filament_ids,
         filament_material=filament_material if filament_material is not None else filament_material_old,

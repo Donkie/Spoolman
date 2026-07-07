@@ -111,9 +111,10 @@ async def get_by_id(db: AsyncSession, spool_id: int) -> models.Spool:
     return spool
 
 
-async def find(  # noqa: C901, PLR0912
+async def find(  # noqa: C901, PLR0912, PLR0915
     *,
     db: AsyncSession,
+    search: str | None = None,
     filament_name: str | None = None,
     filament_id: int | Sequence[int] | None = None,
     filament_material: str | None = None,
@@ -147,6 +148,40 @@ async def find(  # noqa: C901, PLR0912
     stmt = add_where_clause_str_opt(stmt, models.Filament.material, filament_material)
     stmt = add_where_clause_str_opt(stmt, models.Spool.location, location)
     stmt = add_where_clause_str_opt(stmt, models.Spool.lot_nr, lot_nr)
+    if search is not None:
+        search_conditions = []
+        for value_part in search.split(","):
+            if len(value_part) == 0:
+                continue
+
+            if value_part[0] == '"' and value_part[-1] == '"':
+                exact_value = value_part[1:-1]
+                search_conditions.extend(
+                    [
+                        models.Vendor.name == exact_value,
+                        models.Filament.name == exact_value,
+                        models.Filament.material == exact_value,
+                        models.Spool.location == exact_value,
+                        models.Spool.lot_nr == exact_value,
+                    ],
+                )
+                if exact_value.lstrip("-").isdigit():
+                    search_conditions.append(models.Spool.id == int(exact_value))
+            else:
+                fuzzy_value = f"%{value_part}%"
+                search_conditions.extend(
+                    [
+                        models.Vendor.name.ilike(fuzzy_value),
+                        models.Filament.name.ilike(fuzzy_value),
+                        models.Filament.material.ilike(fuzzy_value),
+                        models.Spool.location.ilike(fuzzy_value),
+                        models.Spool.lot_nr.ilike(fuzzy_value),
+                        sqlalchemy.cast(models.Spool.id, sqlalchemy.String).ilike(fuzzy_value),
+                    ],
+                )
+
+        if search_conditions:
+            stmt = stmt.where(sqlalchemy.or_(*search_conditions))
 
     if not allow_archived:
         # Since the archived field is nullable, and default is false, we need to check for both false or null
