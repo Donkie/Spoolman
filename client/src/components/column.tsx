@@ -173,6 +173,13 @@ export function SortedColumn<Obj extends Entity>(props: BaseColumnProps<Obj>) {
   });
 }
 
+export function TextColumn<Obj extends Entity>(props: BaseColumnProps<Obj>) {
+  return Column({
+    ...props,
+    sorter: false,
+  });
+}
+
 export function RichColumn<Obj extends Entity>(
   props: Omit<BaseColumnProps<Obj>, "transform"> & { transform?: (value: unknown) => string },
 ) {
@@ -340,7 +347,6 @@ export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<
     onCell: () => {
       return {
         style: {
-          paddingLeft: 0,
           paddingTop: 0,
           paddingBottom: 0,
         },

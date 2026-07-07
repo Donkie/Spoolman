@@ -20,6 +20,7 @@ from spoolman.database.utils import (
     add_where_clause_str_opt,
     parse_nested_field,
 )
+from spoolman.color_names import hex_to_color_name
 from spoolman.exceptions import ItemDeleteError, ItemNotFoundError
 from spoolman.math import delta_e, hex_to_rgb, rgb_to_lab
 from spoolman.ws import websocket_manager
@@ -102,6 +103,7 @@ async def find(
     material: str | None = None,
     article_number: str | None = None,
     external_id: str | None = None,
+    color_name: str | None = None,
     sort_by: dict[str, SortOrder] | None = None,
     limit: int | None = None,
     offset: int = 0,
@@ -129,11 +131,17 @@ async def find(
 
     total_count = None
 
+    # color_name is computed, not a DB column — handle sort and filter separately
+    color_name_sort: SortOrder | None = None
+    if sort_by is not None and "color_name" in sort_by:
+        color_name_sort = sort_by.pop("color_name")
+
     if limit is not None:
         total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True)
         total_count = (await db.execute(total_count_stmt)).scalar()
 
-        stmt = stmt.offset(offset).limit(limit)
+        if color_name_sort is None:
+            stmt = stmt.offset(offset).limit(limit)
 
     if sort_by is not None:
         for fieldstr, order in sort_by.items():
@@ -148,8 +156,21 @@ async def find(
         execution_options={"populate_existing": True},
     )
     result = list(rows.unique().scalars().all())
+
+    if color_name is not None:
+        filter_names = {n.strip().strip('"').lower() for n in color_name.split(",")}
+        result = [f for f in result if (hex_to_color_name(f.color_hex) or "").lower() in filter_names]
+        total_count = len(result)
+
     if total_count is None:
         total_count = len(result)
+
+    if color_name_sort is not None:
+        result.sort(
+            key=lambda f: hex_to_color_name(f.color_hex) or "",
+            reverse=(color_name_sort == SortOrder.DESC),
+        )
+        result = result[offset : offset + limit] if limit is not None else result
 
     return result, total_count
 

@@ -1,3 +1,11 @@
+FROM node:20-slim AS node-builder
+
+WORKDIR /build
+COPY client/package.json client/package-lock.json client/.npmrc ./
+RUN npm ci
+COPY client/ ./
+RUN echo "VITE_APIURL=/api/v1" > .env.production && npm run build
+
 FROM python:3.14-slim-bookworm AS python-builder
 
 ENV UV_COMPILE_BYTECODE=1
@@ -51,7 +59,7 @@ RUN useradd -u 1000 -U app \
     && chown -R app:app /home/app/.local/share/spoolman
 
 # Copy built client
-COPY --chown=app:app ./client/dist /home/app/spoolman/client/dist
+COPY --from=node-builder --chown=app:app /build/dist /home/app/spoolman/client/dist
 
 # Copy built app
 COPY --chown=app:app --from=python-builder /home/app/spoolman /home/app/spoolman

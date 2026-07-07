@@ -201,3 +201,55 @@ export function useSpoolmanLocations(enabled: boolean = false) {
     },
   });
 }
+
+export function useSpoolmanColorNames(enabled: boolean = false) {
+  return useQuery<string[]>({
+    enabled: enabled,
+    queryKey: ["colorNames"],
+    queryFn: async () => {
+      const response = await fetch(getAPIURL() + "/filament/color-names");
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    },
+    select: (data) => {
+      return data.sort();
+    },
+  });
+}
+
+export function useSpoolmanUsedColorNames(enabled: boolean = false) {
+  return useQuery<{ name: string; hex: string }[], unknown, ColumnFilterItem[]>({
+    enabled: enabled,
+    queryKey: ["usedColorNames"],
+    queryFn: async () => {
+      const response = await fetch(getAPIURL() + "/filament/used-colors");
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    },
+    select: (data) => {
+      return data.map(({ name, hex }) => ({
+        text: (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <span
+              style={{
+                width: 16,
+                height: 16,
+                flexShrink: 0,
+                display: "inline-block",
+                backgroundColor: `#${hex}`,
+                border: "1px solid rgba(0,0,0,0.15)",
+                borderRadius: 2,
+              }}
+            />
+            {name}
+          </span>
+        ),
+        value: '"' + name + '"',
+      }));
+    },
+  });
+}

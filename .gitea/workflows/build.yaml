@@ -1,0 +1,31 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - hannu
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Container Registry
+        run: |
+          REGISTRY="${GITHUB_SERVER_URL#https://}"
+          echo "${{ secrets.REGISTRY_TOKEN }}" | docker login "$REGISTRY" -u "${{ github.repository_owner }}" --password-stdin
+
+      - name: Build and push Docker image
+        run: |
+          REGISTRY="${GITHUB_SERVER_URL#https://}"
+          IMAGE="$REGISTRY/${GITHUB_REPOSITORY,,}"
+          docker buildx build --push \
+            -t "$IMAGE:${{ github.sha }}" \
+            -t "$IMAGE:latest" \
+            .
+
+      - name: Log out from Registry
+        run: docker logout "${GITHUB_SERVER_URL#https://}"

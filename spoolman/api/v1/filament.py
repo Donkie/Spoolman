@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import Filament, FilamentEvent, Message, MultiColorDirection
+from spoolman.color_names import color_map as _color_map, color_name_to_hex, hex_to_color_name, list_color_names as _list_color_names
 from spoolman.database import filament
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
@@ -92,6 +93,16 @@ class FilamentParameters(BaseModel):
         ),
         examples=["FF0000"],
     )
+    color_name: str | None = Field(
+        None,
+        max_length=64,
+        description=(
+            "Human-readable color name, e.g. 'Lime Green'. "
+            "When provided, sets color_hex to the matching hex value. "
+            "Use GET /filament/color-names for the list of accepted names."
+        ),
+        examples=["Lime Green"],
+    )
     multi_color_hexes: str | None = Field(
         None,
         description=(
@@ -118,6 +129,21 @@ class FilamentParameters(BaseModel):
         None,
         description="Extra fields for this filament.",
     )
+
+    @model_validator(mode="before")  # type: ignore[]
+    @classmethod
+    def resolve_color_name(cls, values: dict) -> dict:
+        """If color_name is provided, resolve it to color_hex."""
+        name = values.get("color_name")
+        if name:
+            hex_value = color_name_to_hex(name)
+            if hex_value is None:
+                raise ValueError(
+                    f"Unknown color name '{name}'. Use GET /filament/color-names for valid names."
+                )
+            if not values.get("color_hex"):
+                values["color_hex"] = hex_value
+        return values
 
     @field_validator("color_hex")
     @classmethod
@@ -275,6 +301,16 @@ async def find(
             ),
         ),
     ] = None,
+    color_name: Annotated[
+        str | None,
+        Query(
+            title="Filament Color Name",
+            description=(
+                "Filter by human-readable color name. Separate multiple names with a comma. "
+                "Use GET /filament/color-names for valid names."
+            ),
+        ),
+    ] = None,
     color_hex: Annotated[
         str | None,
         Query(
@@ -351,6 +387,7 @@ async def find(
         material=material,
         article_number=article_number,
         external_id=external_id,
+        color_name=color_name,
         sort_by=sort_by,
         limit=limit,
         offset=offset,
@@ -382,6 +419,43 @@ async def notify_any(
                 await websocket.send_json({"status": "healthy"})
     except WebSocketDisconnect:
         websocket_manager.disconnect(("filament",), websocket)
+
+
+@router.get(
+    "/color-names",
+    name="List color names",
+    description="Return all accepted human-readable color names that can be passed as color_name in create/update requests.",
+    response_model_exclude_none=True,
+)
+async def get_color_names() -> list[str]:
+    return _list_color_names()
+
+
+@router.get(
+    "/used-colors",
+    name="List used colors",
+    description="Return the distinct color names and hex codes of all filaments currently in the database.",
+    response_model_exclude_none=True,
+)
+async def get_used_colors(db: Annotated[AsyncSession, Depends(get_db_session)]) -> list[dict[str, str]]:
+    db_items, _ = await filament.find(db=db)
+    seen: dict[str, str] = {}
+    for f in db_items:
+        if f.color_hex:
+            name = hex_to_color_name(f.color_hex)
+            if name and name not in seen:
+                seen[name] = f.color_hex
+    return [{"name": name, "hex": hex_val} for name, hex_val in sorted(seen.items())]
+
+
+@router.get(
+    "/color-map",
+    name="Get color map",
+    description="Return a mapping of all accepted color names to their hex codes.",
+    response_model_exclude_none=True,
+)
+async def get_color_map() -> dict[str, str]:
+    return _color_map()
 
 
 @router.get(

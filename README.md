@@ -1,3 +1,13 @@
+> **This is a personal fork of [Donkie/Spoolman](https://github.com/Donkie/Spoolman)** by [Hannu Teulahti](https://github.com/hannteu).
+>
+> **Why this fork?** I wanted human-readable color names on filament spools — being able to say "Neon Green" instead of remembering `#39FF14`. The feature covers the full stack: a nearest-neighbor color lookup table, API input/output, filtering, sorting, and a color autocomplete with live swatches in the UI.
+>
+> I also changed the Docker build to compile the frontend from source instead of copying it from the upstream image, which makes it possible to ship frontend changes in a fork without depending on the upstream release cycle.
+>
+> **Note on AI assistance:** All ideas and requirements are my own. Implementation was done with extensive assistance from [Claude Code](https://claude.ai/code) (Anthropic's AI coding assistant). The architecture decisions, feature design, and direction were driven by me — Claude handled a large part of the code generation, iteration, and debugging.
+>
+> The commits on the `feature/color-name` branch are cleaned-up, logically grouped versions of the development history, intended to make it easy for the upstream author to review and cherry-pick anything useful.
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Donkie/Spoolman/assets/2332094/4e6e80ac-c7be-4ad2-9a33-dedc1b5ba30e">
   <source media="(prefers-color-scheme: light)" srcset="https://github.com/Donkie/Spoolman/assets/2332094/3c120b3a-1422-42f6-a16b-8d5a07c33000">

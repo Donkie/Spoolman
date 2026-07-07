@@ -6,6 +6,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, PlainSerializer
 
+from spoolman.color_names import hex_to_color_name
 from spoolman.database import models
 from spoolman.math import length_from_weight
 from spoolman.settings import SettingDefinition, SettingType
@@ -180,6 +181,14 @@ class Filament(BaseModel):
         ),
         examples=["FF0000"],
     )
+    color_name: str | None = Field(
+        None,
+        description=(
+            "Human-readable name of the nearest matching color, e.g. 'Red', 'Lime Green'. "
+            "Derived from color_hex using nearest-neighbor lookup. Read-only."
+        ),
+        examples=["Red"],
+    )
     multi_color_hexes: str | None = Field(
         None,
         min_length=6,
@@ -226,6 +235,7 @@ class Filament(BaseModel):
             settings_extruder_temp=item.settings_extruder_temp,
             settings_bed_temp=item.settings_bed_temp,
             color_hex=item.color_hex,
+            color_name=hex_to_color_name(item.color_hex),
             multi_color_hexes=item.multi_color_hexes,
             multi_color_direction=(
                 MultiColorDirection(item.multi_color_direction) if item.multi_color_direction is not None else None

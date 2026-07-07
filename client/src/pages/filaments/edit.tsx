@@ -1,6 +1,6 @@
 import { Edit, useForm, useSelect } from "@refinedev/antd";
 import { HttpError, useTranslate } from "@refinedev/core";
-import { Alert, ColorPicker, DatePicker, Form, Input, InputNumber, message, Radio, Select, Typography } from "antd";
+import { Alert, AutoComplete, ColorPicker, DatePicker, Form, Input, InputNumber, message, Radio, Select, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
@@ -9,6 +9,7 @@ import { MultiColorPicker } from "../../components/multiColorPicker";
 import { formatNumberOnUserInput, numberParser, numberParserAllowEmpty } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
+import { getAPIURL } from "../../utils/url";
 import { IVendor } from "../vendors/model";
 import { IFilament, IFilamentParsedExtras } from "./model";
 
@@ -26,8 +27,16 @@ export const FilamentEdit = () => {
   const extraFields = useGetFields(EntityType.filament);
   const currency = useCurrency();
   const [colorType, setColorType] = useState<"single" | "multi">("single");
+  const [colorMap, setColorMap] = useState<Record<string, string>>({});
 
-  const { formProps, saveButtonProps } = useForm<IFilament, HttpError, IFilament, IFilament>({
+  useEffect(() => {
+    fetch(getAPIURL() + "/filament/color-map")
+      .then((r) => r.json())
+      .then(setColorMap)
+      .catch(() => undefined);
+  }, []);
+
+  const { form, formProps, saveButtonProps } = useForm<IFilament, HttpError, IFilament, IFilament>({
     liveMode: "manual",
     onLiveEvent() {
       // Warn the user if the filament has been updated since the form was opened
@@ -170,7 +179,51 @@ export const FilamentEdit = () => {
               return e?.toHex();
             }}
           >
-            <ColorPicker />
+            <ColorPicker
+              onChange={(color) => {
+                const hex = color.toHex();
+                if (!hex || Object.keys(colorMap).length === 0) return;
+                const r = parseInt(hex.slice(0, 2), 16);
+                const g = parseInt(hex.slice(2, 4), 16);
+                const b = parseInt(hex.slice(4, 6), 16);
+                let best = "";
+                let bestDist = Infinity;
+                for (const [name, h] of Object.entries(colorMap)) {
+                  const dr = r - parseInt(h.slice(0, 2), 16);
+                  const dg = g - parseInt(h.slice(2, 4), 16);
+                  const db = b - parseInt(h.slice(4, 6), 16);
+                  const dist = dr * dr + dg * dg + db * db;
+                  if (dist < bestDist) { bestDist = dist; best = name; }
+                }
+                form.setFieldValue("color_name", best);
+              }}
+            />
+          </Form.Item>
+        )}
+        {colorType == "single" && (
+          <Form.Item
+            label={t("filament.fields.color_name")}
+            help={t("filament.fields_help.color_name")}
+            name={"color_name"}
+            rules={[{ required: false }]}
+          >
+            <AutoComplete
+              options={Object.entries(colorMap).map(([name, hex]) => ({
+                value: name,
+                label: (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ width: 16, height: 16, flexShrink: 0, backgroundColor: `#${hex}`, border: "1px solid rgba(0,0,0,0.15)", borderRadius: 2 }} />
+                    {name}
+                  </div>
+                ),
+              }))}
+              filterOption={(input, option) => (option?.value ?? "").toLowerCase().includes(input.toLowerCase())}
+              onSelect={(name: string) => {
+                const hex = colorMap[name];
+                if (hex) form.setFieldValue("color_hex", hex);
+              }}
+              allowClear
+            />
           </Form.Item>
         )}
         {colorType == "multi" && (
