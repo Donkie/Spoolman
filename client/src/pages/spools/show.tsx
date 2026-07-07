@@ -1,4 +1,5 @@
 import {
+  DeleteOutlined,
   DownOutlined,
   InboxOutlined,
   LinkOutlined,
@@ -9,7 +10,7 @@ import {
   WifiOutlined,
 } from "@ant-design/icons";
 import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
-import { useInvalidate, useShow, useTranslate } from "@refinedev/core";
+import { useDelete, useInvalidate, useShow, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Modal, Space, Typography } from "antd";
 import type { MenuProps } from "antd";
 import dayjs from "dayjs";
@@ -72,6 +73,34 @@ export const SpoolShow = () => {
       resource: "spool",
       id: spool.id,
       invalidates: ["list", "detail"],
+    });
+  };
+
+  const { mutate: deleteSpool } = useDelete();
+
+  const deleteSpoolPopup = (spool: ISpool | undefined) => {
+    if (spool === undefined) {
+      return;
+    }
+    confirm({
+      title: t("buttons.confirm"),
+      okText: t("buttons.delete"),
+      okType: "danger",
+      cancelText: t("buttons.cancel"),
+      onOk() {
+        return new Promise<void>((resolve, reject) => {
+          deleteSpool(
+            { resource: "spool", id: spool.id },
+            {
+              onSuccess: () => {
+                resolve();
+                navigate("/spool");
+              },
+              onError: (error) => reject(error),
+            },
+          );
+        });
+      },
     });
   };
 
@@ -166,6 +195,7 @@ export const SpoolShow = () => {
   return (
     <Show
       isLoading={isLoading}
+      canDelete={false}
       title={record ? formatTitle(record) : ""}
       headerButtons={({ defaultButtons }) => (
         <>
@@ -180,15 +210,27 @@ export const SpoolShow = () => {
               </Space>
             </Button>
           </Dropdown>
-          {record?.archived ? (
-            <Button icon={<ToTopOutlined />} onClick={() => archiveSpool(record, false)}>
-              {t("buttons.unArchive")}
-            </Button>
-          ) : (
-            <Button danger icon={<InboxOutlined />} onClick={() => archiveSpoolPopup(record)}>
-              {t("buttons.archive")}
-            </Button>
-          )}
+          {/* Archive is the safe, primary retirement path; Delete rides in its overflow. */}
+          <Dropdown.Button
+            danger={!record?.archived}
+            trigger={["click"]}
+            disabled={!record}
+            onClick={() => (record?.archived ? archiveSpool(record, false) : archiveSpoolPopup(record))}
+            menu={{
+              items: [
+                {
+                  key: "delete",
+                  icon: <DeleteOutlined />,
+                  label: t("buttons.delete"),
+                  danger: true,
+                  onClick: () => deleteSpoolPopup(record),
+                },
+              ],
+            }}
+          >
+            {record?.archived ? <ToTopOutlined /> : <InboxOutlined />}
+            {record?.archived ? t("buttons.unArchive") : t("buttons.archive")}
+          </Dropdown.Button>
 
           {defaultButtons}
           {spoolAdjustModal}
