@@ -21,6 +21,21 @@ def datetime_to_str(dt: datetime) -> str:
 SpoolmanDateTime = Annotated[datetime, PlainSerializer(datetime_to_str)]
 
 
+def _extra_fields_description(entity: str) -> str:
+    r"""Build the description for an entity's ``extra`` field.
+
+    Every value in the ``extra`` map is a JSON-encoded string, regardless of the field's
+    configured type. For example, an ``integer`` field returns ``"42"`` (not ``42``) and a
+    ``text`` field returns ``"\"hello\""``. Consumers must JSON-decode each value to get the
+    typed value. This keeps the map uniformly typed as ``dict[str, str]`` on the wire.
+    """
+    return (
+        f"Extra fields for this {entity}. Every value is a JSON-encoded string, regardless of the field's "
+        'configured type: e.g. an integer field returns "42" (not 42) and a text field returns "\\"hello\\"". '
+        "Consumers must JSON-decode each value. Query the /fields endpoint for the type of each field."
+    )
+
+
 class Message(BaseModel):
     message: str = Field()
 
@@ -73,10 +88,7 @@ class Vendor(BaseModel):
         examples=["eSun"],
     )
     extra: dict[str, str] = Field(
-        description=(
-            "Extra fields for this vendor. All values are JSON-encoded data. "
-            "Query the /fields endpoint for more details about the fields."
-        ),
+        description=_extra_fields_description("vendor"),
     )
 
     @staticmethod
@@ -192,10 +204,7 @@ class Filament(BaseModel):
         examples=["polymaker_pla_polysonicblack_1000_175"],
     )
     extra: dict[str, str] = Field(
-        description=(
-            "Extra fields for this filament. All values are JSON-encoded data. "
-            "Query the /fields endpoint for more details about the fields."
-        ),
+        description=_extra_fields_description("filament"),
     )
 
     @staticmethod
@@ -304,10 +313,7 @@ class Spool(BaseModel):
     )
     archived: bool = Field(description="Whether this spool is archived and should not be used anymore.")
     extra: dict[str, str] = Field(
-        description=(
-            "Extra fields for this spool. All values are JSON-encoded data. "
-            "Query the /fields endpoint for more details about the fields."
-        ),
+        description=_extra_fields_description("spool"),
     )
 
     @staticmethod

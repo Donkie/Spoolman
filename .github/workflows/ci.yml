@@ -249,6 +249,59 @@ jobs:
           up-flags: "--abort-on-container-exit"
           down-flags: "--volumes"
   #
+  # Perform frontend (browser) integration tests against the real image
+  #
+  test-frontend:
+    needs: [build-amd64]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download built image
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: spoolman-image
+          path: /tmp/spoolman-image
+
+      - name: Load built image
+        run: docker load --input /tmp/spoolman-image/spoolman.tar
+
+      - name: Install node
+        uses: actions/setup-node@v4.0.3
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: |
+          cd tests_frontend
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Start Spoolman
+        run: docker compose -f tests_frontend/docker-compose.yml up -d --wait
+
+      - name: Run frontend integration tests
+        run: |
+          cd tests_frontend
+          npx playwright test
+
+      - name: Dump Spoolman logs on failure
+        if: failure()
+        run: docker compose -f tests_frontend/docker-compose.yml logs spoolman
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: playwright-report
+          path: tests_frontend/playwright-report
+          retention-days: 7
+
+      - name: Stop Spoolman
+        if: always()
+        run: docker compose -f tests_frontend/docker-compose.yml down -v
+  #
   # Build arm64 image
   # Don't run this for pull requests
   # Only push to buildcache and let release job push to registry
@@ -336,7 +389,7 @@ jobs:
   #
   publish-images:
     if: ${{ github.event_name != 'pull_request' }}
-    needs: [test, build-amd64, build-arm64, build-armv7, style, build-client]
+    needs: [test, test-frontend, build-amd64, build-arm64, build-armv7, style, build-client]
     runs-on: ubuntu-latest
     permissions:
       packages: write

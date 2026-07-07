@@ -37,9 +37,25 @@ def bump() -> None:
     # Run uv lock to update the lock file
     subprocess.run(["uv", "lock"], check=True)
 
+    # Regenerate requirements.txt from uv so bare-metal / Moonraker update_manager
+    # installs (which pip install -r requirements.txt) stay in sync with uv.
+    subprocess.run(
+        ["uv", "export", "--no-dev", "-o", "requirements.txt", "--no-annotate", "--no-hashes"],
+        cwd=project_root,
+        check=True,
+    )
+
     # Stage the changed files
     subprocess.run(
-        ["git", "add", "pyproject.toml", "uv.lock", "client/package.json", "client/package-lock.json"],
+        [
+            "git",
+            "add",
+            "pyproject.toml",
+            "uv.lock",
+            "requirements.txt",
+            "client/package.json",
+            "client/package-lock.json",
+        ],
         cwd=project_root,
         check=True,
     )
