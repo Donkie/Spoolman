@@ -99,6 +99,9 @@ describe("buildSwatchLayout", () => {
   it("emits non-overlapping marking rects", () => {
     const { markRects } = buildSwatchLayout(FULL_INPUT, TEST_SPEC);
     const epsilon = 1e-9;
+    // Collect violations and assert once: an expect() per rect pair adds O(n²)
+    // assertion overhead, enough to blow the 5s timeout on a loaded parallel run.
+    const overlaps: string[] = [];
     for (let i = 0; i < markRects.length; i++) {
       for (let j = i + 1; j < markRects.length; j++) {
         const a = markRects[i];
@@ -108,9 +111,12 @@ describe("buildSwatchLayout", () => {
           b.x + epsilon < a.x + a.w &&
           a.y + epsilon < b.y + b.h &&
           b.y + epsilon < a.y + a.h;
-        expect(overlap, `rects ${i} and ${j} overlap`).toBe(false);
+        if (overlap) {
+          overlaps.push(`rects ${i} and ${j} overlap`);
+        }
       }
     }
+    expect(overlaps).toEqual([]);
   });
 
   it("renders the expected label lines for a fully populated filament", () => {
