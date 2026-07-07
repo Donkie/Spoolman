@@ -53,6 +53,7 @@ async def find(
     db: AsyncSession,
     name: str | None = None,
     external_id: str | None = None,
+    logo: str | None = None,
     sort_by: dict[str, SortOrder] | None = None,
     limit: int | None = None,
     offset: int = 0,
@@ -65,6 +66,18 @@ async def find(
 
     stmt = add_where_clause_str(stmt, models.Vendor.name, name)
     stmt = add_where_clause_str_opt(stmt, models.Vendor.external_id, external_id)
+    if logo in {"has-logo", "no-logo"}:
+        # Match the UI semantics: only explicit saved logo_url values count here; runtime
+        # fallback images derived from the vendor name are intentionally excluded.
+        has_logo_clause = models.Vendor.extra.any(
+            sqlalchemy.and_(
+                models.VendorField.key == "logo_url",
+                models.VendorField.value.is_not(None),
+                models.VendorField.value != "",
+                models.VendorField.value != '""',
+            ),
+        )
+        stmt = stmt.where(has_logo_clause if logo == "has-logo" else ~has_logo_clause)
 
     total_count = None
 

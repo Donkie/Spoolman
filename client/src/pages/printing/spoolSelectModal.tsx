@@ -1,8 +1,7 @@
-import { RightOutlined } from "@ant-design/icons";
 import { useTable } from "@refinedev/antd";
 import { Button, Checkbox, Col, message, Row, Space, Table } from "antd";
 import { t } from "i18next";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { FilteredQueryColumn, SortedColumn, SpoolIconColumn } from "../../components/column";
 import { useSpoolmanFilamentFilter, useSpoolmanMaterials } from "../../components/otherModels";
@@ -12,7 +11,9 @@ import { ISpool } from "../spools/model";
 
 interface Props {
   description?: string;
-  onContinue: (selectedSpools: ISpool[]) => void;
+  initialSelectedIds?: number[];
+  onExport?: (selectedIds: number[]) => void;
+  onPrint?: (selectedIds: number[]) => void;
 }
 
 interface ISpoolCollapsed extends ISpool {
@@ -21,6 +22,8 @@ interface ISpoolCollapsed extends ISpool {
   "filament.material"?: string;
 }
 
+// Flatten related filament fields onto the row so shared table columns can sort
+// and filter without reaching through nested objects.
 function collapseSpool(element: ISpool): ISpoolCollapsed {
   let filament_name: string;
   if (element.filament.vendor && "name" in element.filament.vendor) {
@@ -36,8 +39,8 @@ function collapseSpool(element: ISpool): ISpoolCollapsed {
   };
 }
 
-const SpoolSelectModal = ({ description, onContinue }: Props) => {
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+const SpoolSelectModal = ({ description, initialSelectedIds, onExport, onPrint }: Props) => {
+  const [selectedItems, setSelectedItems] = useState<number[]>(initialSelectedIds ?? []);
   const [showArchived, setShowArchived] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
@@ -71,38 +74,50 @@ const SpoolSelectModal = ({ description, onContinue }: Props) => {
     },
   });
 
-  // Store state in local storage
+  // Shared column helpers expect table sort/filter state in this shape.
   const tableState: TableState = {
     sorters,
     filters,
     pagination: { currentPage: currentPage, pageSize },
   };
 
-  // Collapse the dataSource to a mutable list and add a filament_name field
+  // Work on shallow copies so selection helpers can inspect row state without mutating
+  // Refine's cached query data.
   const dataSource: ISpoolCollapsed[] = useMemo(
     () => (tableProps.dataSource || []).map((record) => ({ ...record })),
     [tableProps.dataSource],
   );
 
-  // Function to add/remove all filtered items from selected items
-  const selectUnselectFiltered = (select: boolean) => {
-    setSelectedItems((prevSelected) => {
-      const filtered = dataSource.map((spool) => spool.id).filter((spool) => !prevSelected.includes(spool));
-      return select ? [...prevSelected, ...filtered] : filtered;
-    });
-  };
+  // Bulk selection applies only to the rows currently loaded in the modal.
+  const selectUnselectFiltered = useCallback(
+    (select: boolean) => {
+      setSelectedItems((prevSelected) => {
+        const nextSelected = new Set(prevSelected);
+        dataSource.forEach((spool) => {
+          if (select) {
+            nextSelected.add(spool.id);
+          } else {
+            nextSelected.delete(spool.id);
+          }
+        });
+        return Array.from(nextSelected);
+      });
+    },
+    [dataSource],
+  );
 
-  // Handler for selecting/unselecting individual items
-  const handleSelectItem = (item: number) => {
+  const handleSelectItem = useCallback((item: number) => {
     setSelectedItems((prevSelected) =>
       prevSelected.includes(item) ? prevSelected.filter((selected) => selected !== item) : [...prevSelected, item],
     );
-  };
+  }, []);
 
-  // State for the select/unselect all checkbox
-  const isAllFilteredSelected = dataSource.every((spool) => selectedItems.includes(spool.id));
+  // Memoised Set for O(1) membership checks — avoids O(n²) when dataSource and
+  // selectedItems are both large (many loaded spools, many already selected).
+  const selectedSet = useMemo(() => new Set(selectedItems), [selectedItems]);
+  const isAllFilteredSelected = dataSource.length > 0 && dataSource.every((spool) => selectedSet.has(spool.id));
   const isSomeButNotAllFilteredSelected =
-    dataSource.some((spool) => selectedItems.includes(spool.id)) && !isAllFilteredSelected;
+    dataSource.some((spool) => selectedSet.has(spool.id)) && !isAllFilteredSelected;
 
   const commonProps = {
     t,
@@ -131,7 +146,7 @@ const SpoolSelectModal = ({ description, onContinue }: Props) => {
             {
               width: 50,
               render: (_, item: ISpool) => (
-                <Checkbox checked={selectedItems.includes(item.id)} onChange={() => handleSelectItem(item.id)} />
+                <Checkbox checked={selectedSet.has(item.id)} onChange={() => handleSelectItem(item.id)} />
               ),
             },
             SortedColumn({
@@ -181,7 +196,8 @@ const SpoolSelectModal = ({ description, onContinue }: Props) => {
               onChange={(e) => {
                 setShowArchived(e.target.checked);
                 if (!e.target.checked) {
-                  // Remove archived spools from selected items
+                  // Drop archived selections when that filter is hidden so the badge count
+                  // matches the set of choices the modal is showing.
                   setSelectedItems((prevSelected) =>
                     prevSelected.filter(
                       (selected) => dataSource.find((spool) => spool.id === selected)?.archived !== true,
@@ -194,23 +210,42 @@ const SpoolSelectModal = ({ description, onContinue }: Props) => {
             </Checkbox>
           </Col>
           <Col span={24}>
-            <Button
-              type="primary"
-              icon={<RightOutlined />}
-              iconPosition="end"
-              onClick={() => {
-                if (selectedItems.length === 0) {
-                  messageApi.open({
-                    type: "error",
-                    content: t("printing.spoolSelect.noSpoolsSelected"),
-                  });
-                  return;
-                }
-                onContinue(dataSource.filter((spool) => selectedItems.includes(spool.id)));
-              }}
-            >
-              {t("buttons.continue")}
-            </Button>
+            <Space>
+              {onPrint && (
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    if (selectedItems.length === 0) {
+                      messageApi.open({
+                        type: "error",
+                        content: t("printing.spoolSelect.noSpoolsSelected"),
+                      });
+                      return;
+                    }
+                    onPrint(selectedItems);
+                  }}
+                >
+                  {t("printing.qrcode.button")}
+                </Button>
+              )}
+              {onExport && (
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    if (selectedItems.length === 0) {
+                      messageApi.open({
+                        type: "error",
+                        content: t("printing.spoolSelect.noSpoolsSelected"),
+                      });
+                      return;
+                    }
+                    onExport(selectedItems);
+                  }}
+                >
+                  {t("printing.qrcode.exportButton")}
+                </Button>
+              )}
+            </Space>
           </Col>
         </Row>
       </Space>

@@ -202,6 +202,17 @@ class FilamentUpdateParameters(FilamentParameters):
 async def find(
     *,
     db: Annotated[AsyncSession, Depends(get_db_session)],
+    search: Annotated[
+        str | None,
+        Query(
+            title="Search",
+            description=(
+                "Partial case-insensitive search term applied across filament ID, vendor name, name, material, and "
+                "article number. Separate multiple terms with a comma. Surround a term with quotes to search for "
+                "the exact term."
+            ),
+        ),
+    ] = None,
     vendor_name_old: Annotated[
         str | None,
         Query(alias="vendor_name", title="Vendor Name", description="See vendor.name.", deprecated=True),
@@ -345,6 +356,7 @@ async def find(
     db_items, total_count = await filament.find(
         db=db,
         ids=filter_by_ids,
+        search=search,
         vendor_name=vendor_name if vendor_name is not None else vendor_name_old,
         vendor_id=vendor_ids,
         name=name,
@@ -433,8 +445,9 @@ async def create(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
     body: FilamentParameters,
 ):
-    if body.extra:
-        all_fields = await get_extra_fields(db, EntityType.filament)
+    # Fetch extra field definitions once at endpoint entry
+    all_fields = await get_extra_fields(db, EntityType.filament) if body.extra else None
+    if body.extra and all_fields:
         try:
             validate_extra_field_dict(all_fields, body.extra)
         except ValueError as e:
@@ -485,8 +498,9 @@ async def update(  # noqa: ANN201
 ):
     patch_data = body.model_dump(exclude_unset=True)
 
-    if body.extra:
-        all_fields = await get_extra_fields(db, EntityType.filament)
+    # Fetch extra field definitions once at endpoint entry
+    all_fields = await get_extra_fields(db, EntityType.filament) if body.extra else None
+    if body.extra and all_fields:
         try:
             validate_extra_field_dict(all_fields, body.extra)
         except ValueError as e:

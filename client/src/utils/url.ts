@@ -33,3 +33,19 @@ export function getAPIURL(): string {
   }
   return getBasePath() + import.meta.env.VITE_APIURL;
 }
+
+/**
+ * Removes the configured base path from a URL pathname.
+ * Ensures the returned pathname starts with "/" and doesn't double-apply the base path.
+ */
+export function stripBasePath(pathname: string): string {
+  const basePath = getBasePath();
+  if (!basePath) {
+    return pathname;
+  }
+  if (pathname.startsWith(basePath)) {
+    const stripped = pathname.slice(basePath.length);
+    return stripped.length > 0 ? stripped : "/";
+  }
+  return pathname;
+}

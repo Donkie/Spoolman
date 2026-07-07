@@ -76,6 +76,7 @@
             "paperSize": "Paper Size",
             "customSize": "Custom",
             "dimensions": "Dimensions",
+            "amlLabelSize": "AML Label Size",
             "showBorder": "Show Border",
             "previewScale": "Preview Scale",
             "skipItems": "Skip Items",
@@ -106,15 +107,76 @@
             "deleteSettingsConfirm": "Are you sure you want to delete this preset?",
             "settingsName": "Preset Name",
             "saveSetting": "Save Presets",
-            "saveAsImage": "Save as Image"
+            "savePreset": "Save Preset",
+            "saveAsImage": "Save as Image",
+            "saveAsAmlLabels": "Save as AML (Labels)",
+            "saveAsAmlPages": "Save as AML (Pages)",
+            "spoolImagePresets": "Spool Image Presets",
+            "filamentImagePresets": "Filament Image Presets",
+            "exportFormat": "Export Format",
+            "exportFormatOptions": {
+                "png": "PNG",
+                "aml": "AML"
+            },
+            "exportAsZip": "Export as .zip",
+            "exportDpi": "Export DPI",
+            "exportDpiHelp": "Higher DPI improves image quality for exports but increases file size.",
+            "exportLabels": "Export Labels",
+            "filenamePreview": "Filename Preview",
+            "filenamePreviewAdditional": "Additional Example",
+            "zipFilenamePreview": "ZIP Filename"
         },
         "qrcode": {
             "button": "Print Labels",
+            "selectButton": "Print / Export Labels",
+            "exportButton": "Export Labels",
+            "selectTitle": "Export / Print Labels",
+            "exportFilamentTitle": "Export Filament Labels",
+            "exportSpoolTitle": "Export Spool Labels",
+            "printFilamentTitle": "Print Filament Labels",
+            "printSpoolTitle": "Print Spool Labels",
             "title": "Label Printing",
+            "sectionLogo": "Logo",
+            "sectionTitle": "Title",
+            "sectionQRCode": "QR Code",
+            "sectionInformation": "Information",
             "template": "Label Template",
-            "templateHelp": "Use {} to insert values of the spool object as text. For example, {id} will be replaced with the spool id, or {filament.material} will be replaced with the material of the spool. if a value is missing it will be replaced with \"?\". A second set of {} can be used to remove this. In addition, any text between the sets of {} will be removed if the value is missing. For example, {Lot Nr: {lot_nr}} will only show the label if the spool has a lot number. Enclose text with double asterix ** to make it bold. Click the button to view a list of all available tags.",
+            "titleTemplate": "Title Template",
+            "infoTemplate": "Information Template",
+            "templateHelp": "Use {} to insert values of the spool object as text. For example, {id} will be replaced with the spool id, or {filament.material} will be replaced with the material of the spool. if a value is missing it will be replaced with \"?\". A second set of {} can be used to remove this. In addition, any text between the sets of {} will be removed if the value is missing. For example, {Lot Nr: {lot_nr}} will only show the label if the spool has a lot number. Enclose text with double asterix ** to make it bold, and use ==text== to invert text. Click the button to view a list of all available tags.",
+            "templateHelpFilament": "Use {} to insert values of the filament object as text. For example, {id} will be replaced with the filament id, or {vendor.name} will be replaced with the vendor name. If a value is missing it will be replaced with \"?\". A second set of {} can be used to remove this. In addition, any text between the sets of {} will be removed if the value is missing. For example, {Article: {article_number}} will only show the label if a filament has an article number. Enclose text with double asterix ** to make it bold, and use ==text== to invert text. Click the button to view a list of all available tags.",
             "textSize": "Label Text Size",
-            "showContent": "Print Label",
+            "infoTextSize": "Information Text Size",
+            "titleTextSize": "Title Text Size",
+            "titleMaxTextSize": "Title Max Text Size",
+            "titleAreaHeight": "Title Area Height",
+            "showContent": "Show Information on label",
+            "showManufacturerLogo": "Show Manufacturer Logo",
+            "logoSource": "Logo Source",
+            "logoSourceOptions": {
+                "print": "Print Logo",
+                "color": "Color Logo"
+            },
+            "showTitle": "Show Title",
+            "titleFitToWidth": "Fit Title to Width",
+            "titleFitToWidthOptions": {
+                "on": "On",
+                "off": "Off"
+            },
+            "appliedTextSize": "Applied Size",
+            "logoSize": "Logo Size",
+            "logoAlign": "Logo Horizontal Align",
+            "titleAlign": "Title Horizontal Align",
+            "qrCodePosition": "QR Code Position",
+            "qrCodePositionLeft": "Left",
+            "qrCodePositionRight": "Right",
+            "qrCodeAlign": "QR Code Vertical Align",
+            "qrCodeAlignTop": "Top",
+            "qrCodeAlignCenter": "Center",
+            "qrCodeAlignBottom": "Bottom",
+            "qrCodeSize": "QR Code Size",
+            "infoAlign": "Information Horizontal Align",
+            "infoVerticalAlign": "Information Vertical Align",
             "useHTTPUrl": {
                 "label": "QR code link",
                 "tooltip": "Will use proprietary link that will work only if scanned from Spoolman's scanning feature (default). URL uses either the base URL specified in settings, or the current page URL if not set.",
@@ -129,16 +191,31 @@
                 "no": "No",
                 "simple": "Simple",
                 "withIcon": "With Icon"
-            }
+            },
+            "filenameTemplate": "Filename Template",
+            "filenameTemplateTooltipSpool": "Use {} to insert values of the spool object as text. Refer to the label template rules and available tags for details.",
+            "filenameTemplateTooltipFilament": "Use {} to insert values of the filament object as text. Refer to the label template rules and available tags for details.",
+            "titleTemplateTooltipSpool": "Use {} to insert values of the spool object as text. Refer to the label template rules and available tags for details.",
+            "titleTemplateTooltipFilament": "Use {} to insert values of the filament object as text. Refer to the label template rules and available tags for details."
         },
         "spoolSelect": {
             "title": "Select Spools",
             "description": "Select spools to print labels for.",
+            "searchPlaceholder": "Search vendor, name, material, lot #",
             "showArchived": "Show Archived",
             "noSpoolsSelected": "You have not selected any spools.",
             "selectAll": "Select/Unselect All",
             "selectedTotal_one": "{{count}} spool selected",
             "selectedTotal_other": "{{count}} spools selected"
+        },
+        "filamentSelect": {
+            "title": "Select Filaments",
+            "description": "Select filaments to print labels for.",
+            "searchPlaceholder": "Search vendor, name, material, article #",
+            "noFilamentsSelected": "You have not selected any filaments.",
+            "selectAll": "Select/Unselect All",
+            "selectedTotal_one": "{{count}} filament selected",
+            "selectedTotal_other": "{{count}} filaments selected"
         }
     },
     "scanner": {
@@ -275,14 +352,27 @@
         "vendor": "Manufacturers",
         "fields": {
             "id": "ID",
+            "logo": "Logo",
+            "logo_url": "Logo URL",
+            "print_logo_url": "Print Logo URL",
+            "logo_preview": "Logo Preview",
+            "print_logo_preview": "Print Logo Preview",
             "name": "Name",
             "empty_spool_weight": "Empty Spool Weight",
             "external_id": "External ID",
             "registered": "Registered",
-            "comment": "Comment"
+            "comment": "Comment",
+            "logo_suggestions": "Logo Suggestions",
+            "print_logo_suggestions": "Print Logo Suggestions",
+            "logo_suggestions_placeholder": "Select a suggested logo path",
+            "logo_suggestions_none": "None"
         },
         "fields_help": {
-            "empty_spool_weight": "The weight of an empty spool from this manufacturer."
+            "empty_spool_weight": "The weight of an empty spool from this manufacturer.",
+            "logo_url": "Optional custom logo used in the UI. Supports absolute URLs or local paths like /vendor-logos/web/bambu-lab-web.png. Use any image your browser can display from that path or URL.",
+            "print_logo_url": "Optional custom logo used for label rendering. Supports absolute URLs or local paths like /vendor-logos/print/bambu-lab.png. Use any image your browser can display from that path or URL.",
+            "logo_suggestions": "Checks available logo files in /vendor-logos/web for names similar to this manufacturer.",
+            "print_logo_suggestions": "Checks available logo files in /vendor-logos/print for names similar to this manufacturer."
         },
         "titles": {
             "create": "Create Manufacturer",
@@ -292,8 +382,27 @@
             "show": "Show Manufacturer",
             "show_title": "[Manufacturer #{{id}}] {{name}}"
         },
+        "buttons": {
+            "sync_logos": "Sync Logos",
+            "clear_logo_url": "Clear URL",
+            "convert_logo_to_print": "Convert Logo to Print",
+            "convert_logo_to_print_help": "Creates a black-and-white print logo from the current Logo URL and stores it as a separate local print logo file.",
+            "convert_logo_to_print_help_locked": "A Print Logo URL is already set. Clear Print Logo URL to enable creating a new print logo from the current Logo URL."
+        },
+        "logo_filter": {
+            "has_logo": "Has Logo",
+            "no_logo": "No Logo"
+        },
         "form": {
-            "vendor_updated": "This manufacturer has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
+            "vendor_updated": "This manufacturer has been updated by someone/something else since you opened this page. Saving will overwrite those changes!",
+            "logo_sync_no_match": "No matching logos found for this manufacturer name.",
+            "logo_sync_applied": "Suggested logo paths applied.",
+            "logo_preview_auto_notice": "using auto-matched logo from available logo files",
+            "logo_preview_default_notice": "no logo defined, using default generated text logo",
+            "logo_convert_requires_web_logo": "Set a Logo URL first.",
+            "logo_convert_requires_empty_print_logo": "Clear Print Logo URL first to generate a new print logo.",
+            "logo_convert_success": "Generated print logo from web logo.",
+            "logo_convert_error": "Could not generate a print logo from this Logo URL."
         }
     },
     "home": {
@@ -328,6 +437,16 @@
             "round_prices": {
                 "label": "Round prices",
                 "tooltip": "Round prices to the nearest whole number."
+            },
+            "logo_sync": {
+                "title": "Global Manufacturer Logo Sync",
+                "description": "Syncs missing logo URLs across the whole manufacturer database using the bundled logo manifest. Existing logo URLs are not overwritten.",
+                "where": "Source: /vendor-logos/manifest.json (bundled static web/print logo files). Matching ignores minor punctuation/case differences in names.",
+                "button": "Sync Logos Now",
+                "not_ready": "Logo manifest is not available yet.",
+                "load_error": "Could not load manufacturers for logo sync.",
+                "done": "Logo sync complete. Matched {{matched}}, updated {{updated}}.",
+                "scope_note": "This action syncs the whole manufacturer database. You can sync a single manufacturer from its Edit page."
             }
         },
         "extra_fields": {
