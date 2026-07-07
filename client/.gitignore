@@ -18,6 +18,8 @@
 .env.development.local
 .env.test.local
 .env.production.local
+# Generated at build time (CI and tests_frontend/run.py) — never committed
+.env.production
 
 npm-debug.log*
 yarn-debug.log*
