@@ -1,0 +1,63 @@
+/* Spoolman Layout */
+.spoolman-root .ant-layout-sider .ant-menu {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.spoolman-root > .ant-layout {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.spoolman-root > .ant-layout > .ant-layout {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.spoolman-root .ant-layout-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Override refine's wrapper div (inline: minHeight:360, padding) */
+.spoolman-root .ant-layout-content > div {
+  flex: 1 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+@media (max-width: 1024px) {
+  .spoolman-root .ant-layout-content > div {
+    flex: none !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+}
+
+/* Mobile: move sider hamburger into header row */
+@media (max-width: 992px) {
+  .spoolman-root .ant-btn-lg[style*="position: fixed"][style*="top: 64"] {
+    top: 12px !important;
+  }
+}
+
+/* Mobile: show only icons in list header buttons */
+@media (max-width: 768px) {
+  [class*="page-header-heading-extra"] .ant-btn > .ant-btn-icon + span {
+    display: none !important;
+  }
+
+  [class*="page-header-heading-extra"] .ant-space {
+    gap: 4px !important;
+  }
+
+  [class*="page-header-heading-extra"] .ant-btn {
+    padding-inline: 8px !important;
+  }
+}

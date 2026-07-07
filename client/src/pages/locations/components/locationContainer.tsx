@@ -1,13 +1,17 @@
-import { PlusOutlined } from "@ant-design/icons";
 import { useList, useTranslate } from "@refinedev/core";
-import { Button } from "antd";
-import { useEffect, useMemo } from "react";
+import { Input, Modal, Spin } from "antd";
+import { useEffect, useMemo, useState } from "react";
 import { useSetSetting } from "../../../utils/querySettings";
 import { ISpool } from "../../spools/model";
 import { EMPTYLOC, useLocations, useLocationsSpoolOrders, useRenameSpoolLocation } from "../functions";
 import { Location } from "./location";
 
-export function LocationContainer() {
+interface LocationContainerProps {
+  modalOpen: boolean;
+  setModalOpen: (open: boolean) => void;
+}
+
+export function LocationContainer({ modalOpen, setModalOpen }: LocationContainerProps) {
   const t = useTranslate();
   const renameSpoolLocation = useRenameSpoolLocation();
 
@@ -150,8 +154,15 @@ export function LocationContainer() {
     }
   }, [locationsList, settingsLocations, setLocationsSetting]);
 
+  const [newLocationName, setNewLocationName] = useState("");
+  const [modalError, setModalError] = useState("");
+
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
+        <Spin size="large" />
+      </div>
+    );
   }
 
   if (isError) {
@@ -159,40 +170,58 @@ export function LocationContainer() {
   }
 
   const addNewLocation = () => {
-    const baseLocationName = t("locations.new_location");
-    let newLocationName = baseLocationName;
+    const name = newLocationName.trim();
+    if (!name) {
+      setModalError(t("locations.error_empty") || "Name cannot be empty");
+      return;
+    }
+    if (locationsList.includes(name)) {
+      setModalError(t("locations.error_exists") || "Location already exists");
+      return;
+    }
 
     const newLocs = [...locationsList];
-    let i = 1;
-    while (newLocs.includes(newLocationName)) {
-      newLocationName = baseLocationName + " " + i;
-      i++;
-    }
-    newLocs.push(newLocationName);
-
+    newLocs.push(name);
     setLocationsSetting.mutate(newLocs);
+    setModalOpen(false);
+    setNewLocationName("");
+    setModalError("");
   };
 
   return (
     <div>
-      {!isLoading && spoolData.data.length == 0 && (
-        <div className="no-locations">{t("locations.no_locations_help")}</div>
-      )}
-      <div className="loc-metacontainer">
-        {containers}
-        <div className="newLocContainer">
-          <Button
-            type="dashed"
-            shape="circle"
-            icon={<PlusOutlined />}
-            size="large"
-            style={{
-              margin: "1em",
-            }}
-            onClick={addNewLocation}
-          />
+      <Modal
+        title={t("locations.new_location")}
+        open={modalOpen}
+        onOk={addNewLocation}
+        onCancel={() => {
+          setModalOpen(false);
+          setNewLocationName("");
+          setModalError("");
+        }}
+        okText={t("buttons.create") || "Create"}
+        okButtonProps={{ disabled: !newLocationName.trim() }}
+      >
+        <Input
+          autoFocus
+          placeholder=""
+          value={newLocationName}
+          onChange={(e) => {
+            setNewLocationName(e.target.value);
+            setModalError("");
+          }}
+          onPressEnter={addNewLocation}
+          status={modalError ? "error" : undefined}
+          style={{ marginTop: 8 }}
+        />
+        {modalError && <div style={{ color: "#ff4d4f", fontSize: 12, marginTop: 4 }}>{modalError}</div>}
+      </Modal>
+      {!isLoading && (spoolData?.data?.length ?? 0) === 0 && (
+        <div className="loc-empty-state" style={{ padding: 48 }}>
+          {t("locations.no_locations_help")}
         </div>
-      </div>
+      )}
+      <div className="loc-metacontainer">{containers}</div>
     </div>
   );
 }

@@ -222,7 +222,7 @@ function App() {
                     <Route path="edit/:id" element={<LoadableResourcePage resource="vendors" page="edit" />} />
                     <Route path="show/:id" element={<LoadableResourcePage resource="vendors" page="show" />} />
                   </Route>
-                  <Route path="/settings/*" element={<LoadablePage name="settings" />} />
+                  <Route path="/settings" element={<LoadablePage name="settings" />} />
                   <Route path="/help" element={<LoadablePage name="help" />} />
                   <Route path="/locations" element={<LoadablePage name="locations" />} />
                   <Route path="*" element={<ErrorComponent />} />

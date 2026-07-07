@@ -1,0 +1,63 @@
+.settings-layout {
+  display: flex;
+  min-height: 500px;
+}
+
+/* Left navigation panel */
+.settings-nav {
+  flex-shrink: 0;
+  width: 230px;
+  padding: 8px 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.settings-nav .ant-menu {
+  background: transparent !important;
+  border-inline-end: none !important;
+}
+
+.settings-nav .ant-menu-item {
+  border-radius: 6px !important;
+  margin: 2px 8px !important;
+  height: 42px !important;
+  line-height: 42px !important;
+}
+
+/* Right content panel */
+.settings-content {
+  flex: 1;
+  min-width: 0;
+  padding: 16px 32px;
+  overflow-x: auto;
+}
+
+/* Mobile: stack vertically */
+@media (max-width: 768px) {
+  .settings-layout {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .settings-nav {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 4px 0;
+  }
+
+  .settings-nav .ant-menu {
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .settings-nav .ant-menu-item {
+    margin: 4px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    white-space: nowrap;
+  }
+
+  .settings-content {
+    padding: 16px 8px;
+  }
+}

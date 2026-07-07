@@ -351,7 +351,17 @@
     "kofi": "Me donner un pourboire sur Ko-fi",
     "home": {
         "home": "Accueil",
-        "welcome": "Bienvenue sur votre instance Spoolman !"
+        "welcome": "Bienvenue sur votre instance Spoolman !",
+        "description": "Il semble que vous n'ayez pas encore ajouté de bobines. Consultez la <helpPageLink>page d'aide</helpPageLink> pour commencer.",
+        "total_weight": "Stock total",
+        "total_value": "Valeur",
+        "low_stock": "Stock faible",
+        "all_stocked": "Toutes les bobines sont bien approvisionnées",
+        "recently_used": "Utilisées récemment",
+        "no_recent": "Aucune bobine utilisée récemment",
+        "by_material": "Par matériau",
+        "by_location": "Par emplacement",
+        "telemetry_subtitle": "État en temps réel de votre inventaire de filament."
     },
     "settings": {
         "settings": "Paramètres",
@@ -402,6 +412,8 @@
         "locations": "Emplacements",
         "new_location": "Créer un emplacement",
         "no_location": "Pas de localisation",
-        "no_locations_help": "Cette page vous permet d'organiser vos bobines par lieu, ajoutez une bobine pour commencer !"
+        "no_locations_help": "Cette page vous permet d'organiser vos bobines par lieu, ajoutez une bobine pour commencer !",
+        "error_empty": "Le nom ne peut pas être vide",
+        "error_exists": "L'emplacement existe déjà"
     }
 }

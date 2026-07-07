@@ -324,7 +324,18 @@
         }
     },
     "home": {
-        "home": "主頁"
+        "home": "主頁",
+        "welcome": "歡迎使用您的 Spoolman！",
+        "description": "看起來您還沒有添加任何線軸。請查看<helpPageLink>說明頁面</helpPageLink>以開始使用。",
+        "total_weight": "總庫存",
+        "total_value": "總價值",
+        "low_stock": "庫存不足",
+        "all_stocked": "所有線軸庫存充足",
+        "recently_used": "最近使用",
+        "no_recent": "沒有最近使用的線軸",
+        "by_material": "按材料",
+        "by_location": "按位置",
+        "telemetry_subtitle": "耗材庫存即時狀態。"
     },
     "help": {
         "help": "說明",
@@ -387,6 +398,8 @@
         "locations": "位置",
         "no_location": "未設定位置",
         "no_locations_help": "這個頁面讓您將料盤按位置進行整理，請從增加一些線盤來開始！",
-        "new_location": "新增位置"
+        "new_location": "新增位置",
+        "error_empty": "名稱不能為空",
+        "error_exists": "位置已存在"
     }
 }

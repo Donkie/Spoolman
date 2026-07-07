@@ -293,7 +293,17 @@
     "home": {
         "home": "Home",
         "welcome": "Welcome to your Spoolman instance!",
-        "description": "It looks like you haven't added any spools yet. See the <helpPageLink>Help page</helpPageLink> for help getting started."
+        "description": "It looks like you haven't added any spools yet. See the <helpPageLink>Help page</helpPageLink> for help getting started.",
+        "total_weight": "Total Stock",
+        "total_value": "Value",
+        "low_stock": "Low Stock",
+        "all_stocked": "All spools are well stocked",
+        "recently_used": "Recently Used",
+        "no_recent": "No recently used spools",
+        "by_material": "By Material",
+        "by_location": "By Location",
+        "by_vendor": "By Manufacturer",
+        "telemetry_subtitle": "Real-time status of your filament inventory."
     },
     "help": {
         "help": "Help",
@@ -394,6 +404,8 @@
         "locations": "Locations",
         "new_location": "New Location",
         "no_location": "No Location",
-        "no_locations_help": "This page lets you organize your spools in locations, add some spools to get started!"
+        "no_locations_help": "This page lets you organize your spools in locations, add some spools to get started!",
+        "error_empty": "Name cannot be empty",
+        "error_exists": "Location already exists"
     }
 }

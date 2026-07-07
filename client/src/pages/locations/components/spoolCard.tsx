@@ -19,6 +19,18 @@ dayjs.extend(relativeTime);
 
 const { useToken } = theme;
 
+function getWeightPercentage(spool: ISpool): number {
+  const total = spool.initial_weight ?? spool.filament.weight ?? 1000;
+  const remaining = spool.remaining_weight ?? total;
+  return Math.max(0, Math.min(100, (remaining / total) * 100));
+}
+
+function getWeightColor(percentage: number): string {
+  if (percentage <= 10) return "#ff4d4f";
+  if (percentage <= 25) return "#faad14";
+  return "#52c41a";
+}
+
 export function SpoolCard({
   index,
   spool,
@@ -134,6 +146,9 @@ export function SpoolCard({
     filament_name = spool.filament.name ?? spool.filament.id.toString();
   }
 
+  const weightPct = getWeightPercentage(spool);
+  const weightColor = getWeightColor(weightPct);
+
   const opacity = draggedSpoolId === spool.id ? 0 : 1;
   const style = {
     opacity,
@@ -143,15 +158,14 @@ export function SpoolCard({
 
   function formatSubtitle(spool: ISpool) {
     let str = "";
-    if (spool.filament.material) str += spool.filament.material + " - ";
+    if (spool.filament.material) str += spool.filament.material;
     if (spool.filament.weight) {
       const remaining_weight = spool.remaining_weight ?? spool.filament.weight;
-      str += `${formatWeight(remaining_weight, 0)} / ${formatWeight(spool.filament.weight, 0)}`;
+      str += ` \u00B7 ${formatWeight(remaining_weight, 0)} / ${formatWeight(spool.filament.weight, 0)}`;
     }
     if (spool.last_used) {
-      // Format like "last used X time ago"
       const dt = dayjs(spool.last_used);
-      str += ` - ${t("spool.formats.last_used", { date: dt.fromNow() })}`;
+      str += ` \u00B7 ${dt.fromNow()}`;
     }
     return str;
   }
@@ -164,7 +178,7 @@ export function SpoolCard({
           <span>
             #{spool.id} {filament_name}
           </span>
-          <div>
+          <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
             <Link to={`/spool/edit/${spool.id}?return=` + encodeURIComponent(window.location.pathname)}>
               <Button icon={<EditOutlined />} title={t("buttons.edit")} size="small" type="text" />
             </Link>
@@ -180,6 +194,15 @@ export function SpoolCard({
           }}
         >
           {formatSubtitle(spool)}
+        </div>
+        <div className="spool-weight-bar" style={{ backgroundColor: token.colorBgContainerDisabled }}>
+          <div
+            className="spool-weight-bar-fill"
+            style={{
+              width: `${weightPct}%`,
+              backgroundColor: weightColor,
+            }}
+          />
         </div>
       </div>
     </div>

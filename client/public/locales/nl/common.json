@@ -349,7 +349,18 @@
     },
     "kofi": "Tip mij op Ko-fi",
     "home": {
-        "home": "Thuis"
+        "home": "Thuis",
+        "welcome": "Welkom bij je Spoolman-installatie!",
+        "description": "Het lijkt erop dat je nog geen spoelen hebt toegevoegd. Bekijk de <helpPageLink>helppagina</helpPageLink> om aan de slag te gaan.",
+        "total_weight": "Totale voorraad",
+        "total_value": "Waarde",
+        "low_stock": "Lage voorraad",
+        "all_stocked": "Alle spoelen zijn goed bevoorraad",
+        "recently_used": "Recent gebruikt",
+        "no_recent": "Geen recent gebruikte spoelen",
+        "by_material": "Per materiaal",
+        "by_location": "Per locatie",
+        "telemetry_subtitle": "Realtime status van je filamentvoorraad."
     },
     "settings": {
         "header": "Instellingen",
@@ -404,6 +415,8 @@
         "no_location": "Geen locatie",
         "no_locations_help": "Op deze pagina kunt u uw spoelen op verschillende locaties ordenen. Voeg spoelen toe om aan de slag te gaan!",
         "locations": "Locaties",
-        "new_location": "Nieuwe locatie"
+        "new_location": "Nieuwe locatie",
+        "error_empty": "Naam mag niet leeg zijn",
+        "error_exists": "Locatie bestaat al"
     }
 }

@@ -1,8 +1,5 @@
-import { theme } from "antd";
 import { ISpool } from "../../spools/model";
 import { SpoolCard } from "./spoolCard";
-
-const { useToken } = theme;
 
 export function SpoolList({
   spools,
@@ -13,8 +10,6 @@ export function SpoolList({
   spoolOrder: number[];
   setSpoolOrder: (spoolOrder: number[]) => void;
 }) {
-  const { token } = useToken();
-
   // Make sure all spools are in the spoolOrders array
   const finalSpoolOrder = [...spoolOrder].filter((id) => spools.find((spool) => spool.id === id)); // Remove any spools that are not in the spools array
   spools.forEach((spool) => {
@@ -39,13 +34,8 @@ export function SpoolList({
     setSpoolOrder(newSpoolOrder);
   };
 
-  const style = {
-    backgroundColor: token.colorBgContainer,
-    borderRadius: token.borderRadiusLG,
-  };
-
   return (
-    <div className="loc-spools" style={style}>
+    <div className="loc-spools">
       {spools.map((spool, idx) => (
         <SpoolCard key={spool.id} index={idx} spool={spool} moveSpoolOrder={moveSpoolOrder} />
       ))}

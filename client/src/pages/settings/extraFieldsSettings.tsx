@@ -22,7 +22,6 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { useState } from "react";
 import { Trans } from "react-i18next";
-import { useParams } from "react-router";
 import { DateTimePicker } from "../../components/dateTimePicker";
 import { InputNumberRange } from "../../components/inputNumberRange";
 import { EntityType, Field, FieldType, useDeleteField, useGetFields, useSetField } from "../../utils/queryFields";
@@ -283,13 +282,16 @@ const EditableCell = ({ record, editing, dataIndex, children, form, ...restProps
   return <td {...restProps}>{formItem}</td>;
 };
 
-export function ExtraFieldsSettings() {
-  const { entityType } = useParams<{ entityType: EntityType }>();
+interface ExtraFieldsSettingsProps {
+  entityType: EntityType;
+}
+
+export function ExtraFieldsSettings({ entityType }: ExtraFieldsSettingsProps) {
   const t = useTranslate();
   const [form] = Form.useForm();
-  const fields = useGetFields(entityType as EntityType);
-  const setField = useSetField(entityType as EntityType);
-  const deleteField = useDeleteField(entityType as EntityType);
+  const fields = useGetFields(entityType);
+  const setField = useSetField(entityType);
+  const deleteField = useDeleteField(entityType);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newField, setNewField] = useState<FieldHolder | null>(null);
 
@@ -338,7 +340,7 @@ export function ExtraFieldsSettings() {
     const newFieldData: Field = {
       key: "new_field",
       name: "",
-      entity_type: entityType as EntityType,
+      entity_type: entityType,
       field_type: FieldType.text,
       unit: "",
       order: newOrder,
@@ -441,8 +443,6 @@ export function ExtraFieldsSettings() {
     }
     setIsSubmitting(false);
   };
-
-  const niceName = t(`${entityType}.${entityType}`);
 
   const columns: ColumnType<FieldHolder>[] = [
     {
@@ -598,9 +598,6 @@ export function ExtraFieldsSettings() {
 
   return (
     <>
-      <h3>
-        {t("settings.extra_fields.tab")} - {niceName}
-      </h3>
       <Trans
         i18nKey={"settings.extra_fields.description"}
         components={{

@@ -316,7 +316,18 @@
     },
     "kofi": "Donér på Ko-fi",
     "home": {
-        "home": "Hjem"
+        "home": "Hjem",
+        "welcome": "Velkommen til din Spoolman-instans!",
+        "description": "Det ser ud til, at du endnu ikke har tilføjet nogen spoler. Se <helpPageLink>hjælpesiden</helpPageLink> for at komme i gang.",
+        "total_weight": "Samlet beholdning",
+        "total_value": "Værdi",
+        "low_stock": "Lav beholdning",
+        "all_stocked": "Alle spoler er godt fyldt op",
+        "recently_used": "Senest brugt",
+        "no_recent": "Ingen nyligt brugte spoler",
+        "by_material": "Efter materiale",
+        "by_location": "Efter placering",
+        "telemetry_subtitle": "Realtidsstatus for dit filamentlager."
     },
     "settings": {
         "header": "Indstillinger",
@@ -358,5 +369,9 @@
             "delete_confirm_description": "Dette vil slette feltet samt alle associerede data for alle poster."
         },
         "settings": "Indstillinger"
+    },
+    "locations": {
+        "error_empty": "Navn må ikke være tomt",
+        "error_exists": "Placering findes allerede"
     }
 }

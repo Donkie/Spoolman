@@ -59,10 +59,6 @@ export function GeneralSettings() {
           base_url: settings.data?.base_url.value,
         }}
         onFinish={onFinish}
-        style={{
-          maxWidth: "600px",
-          margin: "0 auto",
-        }}
       >
         <Form.Item
           label={t("settings.general.currency.label")}

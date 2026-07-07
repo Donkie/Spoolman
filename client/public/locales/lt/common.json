@@ -294,7 +294,16 @@
     "home": {
         "home": "Pradžia",
         "welcome": "Sveiki atvykę į savo Spoolman!",
-        "description": "Panašu, kad dar nepridėjote jokių ričių. Norėdami gauti pagalbos, kaip pradėti, žr. <helpPageLink>pagalbos puslapį</helpPageLink>."
+        "description": "Panašu, kad dar nepridėjote jokių ričių. Norėdami gauti pagalbos, kaip pradėti, žr. <helpPageLink>pagalbos puslapį</helpPageLink>.",
+        "total_weight": "Bendras kiekis",
+        "total_value": "Vertė",
+        "low_stock": "Mažas kiekis",
+        "all_stocked": "Visos ritės gerai aprūpintos",
+        "recently_used": "Neseniai naudotos",
+        "no_recent": "Nėra neseniai naudotų ričių",
+        "by_material": "Pagal medžiagą",
+        "by_location": "Pagal vietą",
+        "telemetry_subtitle": "Jūsų filamento atsargų būsena realiu laiku."
     },
     "help": {
         "help": "Pagalba",
@@ -395,6 +404,8 @@
         "locations": "Vietos",
         "new_location": "Nauja vieta",
         "no_location": "Be vietos",
-        "no_locations_help": "Šiame puslapyje galite tvarkyti rites pagal vietas, pridėkite keletą ričių, kad pradėtumėte!"
+        "no_locations_help": "Šiame puslapyje galite tvarkyti rites pagal vietas, pridėkite keletą ričių, kad pradėtumėte!",
+        "error_empty": "Pavadinimas negali būti tuščias",
+        "error_exists": "Vieta jau egzistuoja"
     }
 }

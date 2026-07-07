@@ -62,5 +62,20 @@
         "generic": {
             "title": "Trükkib"
         }
+    },
+    "home": {
+        "total_weight": "Koguvaru",
+        "total_value": "Väärtus",
+        "low_stock": "Madal varu",
+        "all_stocked": "Kõik poolid on hästi varustatud",
+        "recently_used": "Hiljuti kasutatud",
+        "no_recent": "Hiljuti kasutatud poole pole",
+        "by_material": "Materjali järgi",
+        "by_location": "Asukoha järgi",
+        "telemetry_subtitle": "Teie filamendi varude reaalajas olek."
+    },
+    "locations": {
+        "error_empty": "Nimi ei tohi olla tühi",
+        "error_exists": "Asukoht on juba olemas"
     }
 }

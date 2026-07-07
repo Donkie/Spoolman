@@ -3,7 +3,7 @@ import type { Identifier, XYCoord } from "dnd-core";
 import { useRef, useState } from "react";
 import { DragSourceMonitor, useDrag, useDrop } from "react-dnd";
 
-import { DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined, InboxOutlined } from "@ant-design/icons";
 import { useTranslate, useUpdate } from "@refinedev/core";
 import { ISpool } from "../../spools/model";
 import { DragItem, ItemTypes, SpoolDragItem } from "../dnd";
@@ -136,18 +136,15 @@ export function Location({
 
   const canEditTitle = title != EMPTYLOC;
 
-  const titleStyle = {
-    color: canEditTitle ? undefined : token.colorTextTertiary,
-  };
-  const spoolCountStyle = {
-    color: token.colorTextQuaternary,
-  };
-
   return (
     <div
       className={"loc-container " + (title != EMPTYLOC ? "grabable" : "")}
       ref={ref}
-      style={{ opacity }}
+      style={{
+        opacity,
+        backgroundColor: token.colorBgContainer,
+        border: `1px solid ${token.colorBorderSecondary}`,
+      }}
       data-handler-id={handlerId}
     >
       <h3>
@@ -162,6 +159,7 @@ export function Location({
               setEditTitle(false);
               return onEditTitle(newTitle);
             }}
+            style={{ fontWeight: 600 }}
           />
         ) : (
           <span
@@ -171,15 +169,32 @@ export function Location({
               setNewTitle(title);
               setEditTitle(true);
             }}
-            style={titleStyle}
+            style={{
+              color: canEditTitle ? token.colorText : token.colorTextTertiary,
+            }}
           >
             {displayTitle}
-            {<span style={spoolCountStyle}> ({spools.length})</span>}
+            <span
+              className="loc-spool-count"
+              style={{
+                backgroundColor: spools.length > 0 ? token.colorPrimaryBg : token.colorBgContainerDisabled,
+                color: spools.length > 0 ? token.colorPrimaryText : token.colorTextQuaternary,
+              }}
+            >
+              {spools.length}
+            </span>
           </span>
         )}
-        {showDelete && <Button icon={<DeleteOutlined />} size="small" type="text" onClick={onDelete} />}
+        {showDelete && <Button icon={<DeleteOutlined />} size="small" type="text" danger onClick={onDelete} />}
       </h3>
-      <SpoolList spools={spools} spoolOrder={locationSpoolOrder} setSpoolOrder={setLocationSpoolOrder} />
+      {spools.length === 0 ? (
+        <div className="loc-empty-state">
+          <InboxOutlined style={{ marginRight: 8 }} />
+          {t("locations.no_locations_help") || "Drop spools here"}
+        </div>
+      ) : (
+        <SpoolList spools={spools} spoolOrder={locationSpoolOrder} setSpoolOrder={setLocationSpoolOrder} />
+      )}
     </div>
   );
 }

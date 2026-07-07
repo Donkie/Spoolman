@@ -388,9 +388,22 @@
         "locations": "場所",
         "new_location": "新しい場所",
         "no_location": "場所なし",
-        "no_locations_help": "このページでは、スプールを場所ごとに整理することができます！"
+        "no_locations_help": "このページでは、スプールを場所ごとに整理することができます！",
+        "error_empty": "名前を入力してください",
+        "error_exists": "この場所は既に存在します"
     },
     "home": {
-        "home": "ホーム"
+        "home": "ホーム",
+        "welcome": "Spoolmanへようこそ！",
+        "description": "まだスプールが追加されていないようです。始め方については<helpPageLink>ヘルプページ</helpPageLink>をご覧ください。",
+        "total_weight": "総在庫",
+        "total_value": "総額",
+        "low_stock": "在庫不足",
+        "all_stocked": "すべてのスプールは十分な在庫があります",
+        "recently_used": "最近使用",
+        "no_recent": "最近使用したスプールはありません",
+        "by_material": "素材別",
+        "by_location": "場所別",
+        "telemetry_subtitle": "フィラメント在庫のリアルタイムステータス。"
     }
 }

@@ -352,7 +352,16 @@
     "home": {
         "home": "Domů",
         "description": "Vypadá to, že jste ještě nepřidali žádné cívky. Úvodní nápovědu najdete na stránce <helpPageLink>Help page</helpPageLink> .",
-        "welcome": "Vítejte ve vaší instanci Spoolman!"
+        "welcome": "Vítejte ve vaší instanci Spoolman!",
+        "total_weight": "Celkový stav",
+        "total_value": "Hodnota",
+        "low_stock": "Nízký stav",
+        "all_stocked": "Všechny cívky jsou dobře zásobeny",
+        "recently_used": "Naposledy použité",
+        "no_recent": "Žádné nedávno použité cívky",
+        "by_material": "Podle materiálu",
+        "by_location": "Podle umístění",
+        "telemetry_subtitle": "Stav vašeho inventáře filamentů v reálném čase."
     },
     "settings": {
         "extra_fields": {
@@ -407,6 +416,8 @@
         "locations": "Umístění",
         "no_locations_help": "Na této stránce můžete uspořádat své cívky podle umístění, přidejte několik cívek a začněte!",
         "new_location": "Nové umístění",
-        "no_location": "Žádné umístění"
+        "no_location": "Žádné umístění",
+        "error_empty": "Název nesmí být prázdný",
+        "error_exists": "Umístění již existuje"
     }
 }

@@ -339,7 +339,18 @@
     },
     "kofi": "在Ko-fi上给我打赏一点小费",
     "home": {
-        "home": "主页"
+        "home": "主页",
+        "welcome": "欢迎使用您的 Spoolman！",
+        "description": "看起来您还没有添加任何线轴。请查看<helpPageLink>帮助页面</helpPageLink>以开始使用。",
+        "total_weight": "总库存",
+        "total_value": "总价值",
+        "low_stock": "库存不足",
+        "all_stocked": "所有线轴库存充足",
+        "recently_used": "最近使用",
+        "no_recent": "没有最近使用的线轴",
+        "by_material": "按材料",
+        "by_location": "按位置",
+        "telemetry_subtitle": "耗材库存实时状态。"
     },
     "help": {
         "help": "帮助",
@@ -403,6 +414,8 @@
         "no_locations_help": "此页面允许您在不同位置管理料盘，添加一些料盘即可开始！",
         "locations": "位置",
         "new_location": "新位置",
-        "no_location": "没有位置"
+        "no_location": "没有位置",
+        "error_empty": "名称不能为空",
+        "error_exists": "位置已存在"
     }
 }
