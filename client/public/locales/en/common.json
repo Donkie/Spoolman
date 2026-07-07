@@ -52,6 +52,12 @@
     "unknown": "Unknown",
     "yes": "Yes",
     "no": "No",
+    "theme": {
+        "label": "Theme",
+        "system": "System",
+        "light": "Light",
+        "dark": "Dark"
+    },
     "tags": {
         "clone": "Clone"
     },
