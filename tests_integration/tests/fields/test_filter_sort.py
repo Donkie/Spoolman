@@ -581,7 +581,6 @@ async def test_empty_filter(entity_type: str, random_filament: dict[str, Any]) -
         httpx.delete(f"{URL}/api/v1/{entity_type}/{id2}").raise_for_status()
 
 
-
 # ---------------------------------------------------------------------------
 # Invalid filter values → 400 (all entity types)
 # ---------------------------------------------------------------------------
@@ -686,3 +685,495 @@ async def test_invalid_float_range_filter_returns_400(entity_type: str) -> None:
         assert "range filter value" in result.json()["message"]
     finally:
         httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+
+
+# ---------------------------------------------------------------------------
+# Filter composition - multiple extra fields, extra + built-in, filter + sort
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_multiple_extra_field_filters_are_anded(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """Filtering on two custom fields at once should AND the conditions together."""
+    text_key = "combo_text_field"
+    int_key = "combo_int_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{text_key}",
+        json={"name": "Combo text", "field_type": "text"},
+    ).raise_for_status()
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{int_key}",
+        json={"name": "Combo int", "field_type": "integer"},
+    ).raise_for_status()
+    # id_match satisfies both; the others satisfy only one each.
+    id_match = _create_entity(entity_type, {text_key: json.dumps("alpha"), int_key: json.dumps(5)}, random_filament)
+    id_text_only = _create_entity(
+        entity_type, {text_key: json.dumps("alpha"), int_key: json.dumps(99)}, random_filament
+    )
+    id_int_only = _create_entity(entity_type, {text_key: json.dumps("beta"), int_key: json.dumps(5)}, random_filament)
+    try:
+        result = httpx.get(
+            f"{URL}/api/v1/{entity_type}",
+            params={f"extra.{text_key}": '"alpha"', f"extra.{int_key}": "5"},
+        )
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id_match in ids
+        assert id_text_only not in ids
+        assert id_int_only not in ids
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{text_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{int_key}").raise_for_status()
+        for eid in (id_match, id_text_only, id_int_only):
+            httpx.delete(f"{URL}/api/v1/{entity_type}/{eid}").raise_for_status()
+
+
+@pytest.mark.asyncio
+async def test_extra_filter_combined_with_builtin_filter(random_filament: dict[str, Any]) -> None:
+    """An extra-field filter should compose (AND) with a built-in filter (filament.material)."""
+    field_key = "builtin_combo_field"
+    httpx.post(
+        f"{URL}/api/v1/field/filament/{field_key}",
+        json={"name": "Builtin combo", "field_type": "text"},
+    ).raise_for_status()
+    vendor_id = random_filament["vendor"]["id"]
+
+    def _make_filament(material: str, extra_value: str) -> int:
+        result = httpx.post(
+            f"{URL}/api/v1/filament",
+            json={
+                "vendor_id": vendor_id,
+                "name": f"Test-{uuid.uuid4().hex[:8]}",
+                "material": material,
+                "density": 1.24,
+                "diameter": 1.75,
+                "extra": {field_key: json.dumps(extra_value)},
+            },
+        )
+        result.raise_for_status()
+        return result.json()["id"]
+
+    mat = f"PLA-{uuid.uuid4().hex[:8]}"
+    id_match = _make_filament(mat, "wanted")
+    id_wrong_material = _make_filament("PETG", "wanted")
+    id_wrong_extra = _make_filament(mat, "other")
+    try:
+        result = httpx.get(
+            f"{URL}/api/v1/filament",
+            params={"material": mat, f"extra.{field_key}": '"wanted"'},
+        )
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id_match in ids
+        assert id_wrong_material not in ids
+        assert id_wrong_extra not in ids
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/filament/{field_key}").raise_for_status()
+        for fid in (id_match, id_wrong_material, id_wrong_extra):
+            httpx.delete(f"{URL}/api/v1/filament/{fid}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_filter_on_one_field_sort_on_another(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """Filter on one custom field while sorting on a different custom field."""
+    filter_key = "fs_filter_field"
+    sort_key = "fs_sort_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{filter_key}",
+        json={"name": "FS filter", "field_type": "text"},
+    ).raise_for_status()
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{sort_key}",
+        json={"name": "FS sort", "field_type": "integer"},
+    ).raise_for_status()
+    # Both included have group="g"; sort by number should put id_low before id_high.
+    id_high = _create_entity(entity_type, {filter_key: json.dumps("g"), sort_key: json.dumps(20)}, random_filament)
+    id_low = _create_entity(entity_type, {filter_key: json.dumps("g"), sort_key: json.dumps(10)}, random_filament)
+    id_other = _create_entity(entity_type, {filter_key: json.dumps("h"), sort_key: json.dumps(1)}, random_filament)
+    try:
+        result = httpx.get(
+            f"{URL}/api/v1/{entity_type}",
+            params={f"extra.{filter_key}": '"g"', "sort": f"extra.{sort_key}:asc"},
+        )
+        assert_httpx_success(result)
+        ordered = [item["id"] for item in result.json() if item["id"] in (id_high, id_low, id_other)]
+        assert ordered == [id_low, id_high]
+        assert id_other not in ordered
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{filter_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{sort_key}").raise_for_status()
+        for eid in (id_high, id_low, id_other):
+            httpx.delete(f"{URL}/api/v1/{entity_type}/{eid}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_pagination_total_count_with_extra_filter(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """x-total-count reflects the filtered set, and limit/offset page within it."""
+    field_key = "paginate_field"
+    unique = uuid.uuid4().hex[:8]
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={"name": "Paginate", "field_type": "text"},
+    ).raise_for_status()
+    # Three entities share a unique value so only these three match the filter.
+    ids = [_create_entity(entity_type, {field_key: json.dumps(unique)}, random_filament) for _ in range(3)]
+    try:
+        result = httpx.get(
+            f"{URL}/api/v1/{entity_type}",
+            params={f"extra.{field_key}": f'"{unique}"', "limit": 2, "offset": 0},
+        )
+        assert_httpx_success(result)
+        assert result.headers["x-total-count"] == "3"
+        assert len(result.json()) == 2
+
+        # Second page returns the remaining item.
+        result = httpx.get(
+            f"{URL}/api/v1/{entity_type}",
+            params={f"extra.{field_key}": f'"{unique}"', "limit": 2, "offset": 2},
+        )
+        assert_httpx_success(result)
+        assert result.headers["x-total-count"] == "3"
+        assert len(result.json()) == 1
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        for eid in ids:
+            httpx.delete(f"{URL}/api/v1/{entity_type}/{eid}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_unknown_extra_field_key_is_ignored(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """Filtering/sorting on an undefined custom field is ignored, not a 400."""
+    id1 = _create_entity(entity_type, {}, random_filament)
+    try:
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={"extra.does_not_exist": "whatever"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 in ids  # filter ignored -> entity still returned
+
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={"sort": "extra.does_not_exist:asc"})
+        assert_httpx_success(result)
+    finally:
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id1}").raise_for_status()
+
+
+# ---------------------------------------------------------------------------
+# Text field edge cases - case-insensitivity, substring, non-ASCII
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_text_filter_case_insensitive_and_partial(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """Text substring filtering is case-insensitive and matches partial substrings."""
+    field_key = "ci_text_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={"name": "CI text", "field_type": "text"},
+    ).raise_for_status()
+    id1 = _create_entity(entity_type, {field_key: json.dumps("HelloWorld")}, random_filament)
+    try:
+        # Partial + lowercase substring of a mixed-case value.
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "elloworl"})
+        assert_httpx_success(result)
+        assert id1 in {item["id"] for item in result.json()}
+
+        # Fully uppercased query still matches (ilike).
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "HELLOWORLD"})
+        assert_httpx_success(result)
+        assert id1 in {item["id"] for item in result.json()}
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id1}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_text_filter_non_ascii(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """Text filtering works with non-ASCII values (encoding canary)."""
+    field_key = "unicode_text_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={"name": "Unicode text", "field_type": "text"},
+    ).raise_for_status()
+    # Store the value unescaped, the way the JS frontend's JSON.stringify does (not Python's
+    # default ensure_ascii=True, which would persist literal \uXXXX escapes).
+    id1 = _create_entity(entity_type, {field_key: json.dumps("Café åäö 日本", ensure_ascii=False)}, random_filament)
+    id2 = _create_entity(entity_type, {field_key: json.dumps("Grün", ensure_ascii=False)}, random_filament)
+    try:
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "åäö"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 in ids
+        assert id2 not in ids
+
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "日本"})
+        assert_httpx_success(result)
+        assert id1 in {item["id"] for item in result.json()}
+
+        # Exact match (double-quoted) on a non-ASCII value.
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": '"Café åäö 日本"'})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id1 in ids
+        assert id2 not in ids
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id1}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id2}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_single_choice_filter_non_ascii(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """Single-choice equality works with non-ASCII choice labels (frontend-stored unescaped)."""
+    field_key = "unicode_choice_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={
+            "name": "Unicode choice",
+            "field_type": "choice",
+            "choices": ["Röd", "Blå"],
+            "multi_choice": False,
+        },
+    ).raise_for_status()
+    id_rod = _create_entity(entity_type, {field_key: json.dumps("Röd", ensure_ascii=False)}, random_filament)
+    id_bla = _create_entity(entity_type, {field_key: json.dumps("Blå", ensure_ascii=False)}, random_filament)
+    try:
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "Röd"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id_rod in ids
+        assert id_bla not in ids
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id_rod}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id_bla}").raise_for_status()
+
+
+# ---------------------------------------------------------------------------
+# Numeric / boolean / choice edge cases
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_integer_multi_value_or(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """A comma-separated integer filter matches any of the listed exact values (OR)."""
+    field_key = "int_or_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={"name": "Int OR", "field_type": "integer"},
+    ).raise_for_status()
+    id100 = _create_entity(entity_type, {field_key: json.dumps(100)}, random_filament)
+    id200 = _create_entity(entity_type, {field_key: json.dumps(200)}, random_filament)
+    id300 = _create_entity(entity_type, {field_key: json.dumps(300)}, random_filament)
+    try:
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "100,300"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id100 in ids
+        assert id300 in ids
+        assert id200 not in ids
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        for eid in (id100, id200, id300):
+            httpx.delete(f"{URL}/api/v1/{entity_type}/{eid}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_float_exact_match_against_int_typed_storage(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """A float field stored as an integer JSON value still matches an equivalent float filter."""
+    field_key = "float_intstore_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={"name": "Float intstore", "field_type": "float"},
+    ).raise_for_status()
+    # json.dumps(2) -> "2" (no decimal); json.dumps(3) -> "3".
+    id2 = _create_entity(entity_type, {field_key: json.dumps(2)}, random_filament)
+    id3 = _create_entity(entity_type, {field_key: json.dumps(3)}, random_filament)
+    try:
+        for query in ("2.0", "2", "2.00"):
+            result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": query})
+            assert_httpx_success(result)
+            ids = {item["id"] for item in result.json()}
+            assert id2 in ids, f"expected match for filter {query!r}"
+            assert id3 not in ids
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id2}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id3}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_boolean_empty_filter_matches_false_and_unset(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """The empty filter on a boolean field returns entities that are false or have no value set."""
+    field_key = "bool_empty_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={"name": "Bool empty", "field_type": "boolean"},
+    ).raise_for_status()
+    id_true = _create_entity(entity_type, {field_key: json.dumps(bool(1))}, random_filament)
+    id_false = _create_entity(entity_type, {field_key: json.dumps(bool(0))}, random_filament)
+    id_unset = _create_entity(entity_type, {}, random_filament)
+    try:
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": ""})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id_false in ids
+        assert id_unset in ids
+        assert id_true not in ids
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        for eid in (id_true, id_false, id_unset):
+            httpx.delete(f"{URL}/api/v1/{entity_type}/{eid}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_boolean_rejects_numeric_tokens(entity_type: str) -> None:
+    """Boolean filters only accept true/false; 1/0 are rejected with 400."""
+    field_key = "bool_token_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={"name": "Bool token", "field_type": "boolean"},
+    ).raise_for_status()
+    try:
+        for token in ("1", "0"):
+            result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": token})
+            assert result.status_code == 400
+            assert "Invalid boolean filter value" in result.json()["message"]
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_multi_choice_no_substring_collision(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """Multi-choice filtering matches whole tokens, not substrings of longer choices."""
+    field_key = "multi_collision_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={
+            "name": "Multi collision",
+            "field_type": "choice",
+            "choices": ["Red", "Reddish"],
+            "multi_choice": True,
+        },
+    ).raise_for_status()
+    id_red = _create_entity(entity_type, {field_key: json.dumps(["Red"])}, random_filament)
+    id_reddish = _create_entity(entity_type, {field_key: json.dumps(["Reddish"])}, random_filament)
+    try:
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "Red"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id_red in ids
+        assert id_reddish not in ids
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id_red}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id_reddish}").raise_for_status()
+
+
+# ---------------------------------------------------------------------------
+# Empty / null bounds and additional invalid-value paths
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_empty_filter_on_integer_field(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """The empty filter on a non-text (integer) field returns only entities with no value set."""
+    field_key = "int_empty_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={"name": "Int empty", "field_type": "integer"},
+    ).raise_for_status()
+    id_set = _create_entity(entity_type, {field_key: json.dumps(42)}, random_filament)
+    id_unset = _create_entity(entity_type, {}, random_filament)
+    try:
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": ""})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id_unset in ids
+        assert id_set not in ids
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id_set}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id_unset}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_range_field_with_null_bound(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """Range fields with a null bound filter on their concrete bound and are excluded on the null side."""
+    field_key = "null_range_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={"name": "Null range", "field_type": "integer_range"},
+    ).raise_for_status()
+    id_open_low = _create_entity(entity_type, {field_key: json.dumps([None, 200])}, random_filament)
+    id_bounded = _create_entity(entity_type, {field_key: json.dumps([100, 300])}, random_filament)
+    try:
+        # Max-only filter uses the concrete second element: [null,200] passes (<=250), [100,300] fails.
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": ":250"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id_open_low in ids
+        assert id_bounded not in ids
+
+        # Min-only filter compares the null first element: [null,200] is excluded, [100,300] passes.
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "50:"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id_bounded in ids
+        assert id_open_low not in ids
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id_open_low}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id_bounded}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_empty_both_sides_range_returns_400(entity_type: str) -> None:
+    """A range/datetime filter with both bounds empty is rejected with a 400."""
+    int_range_key = "empty_range_400"
+    dt_key = "empty_dt_400"
+    int_key = "empty_intrange_400"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{int_range_key}",
+        json={"name": "Empty range", "field_type": "integer_range"},
+    ).raise_for_status()
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{dt_key}",
+        json={"name": "Empty dt", "field_type": "datetime"},
+    ).raise_for_status()
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{int_key}",
+        json={"name": "Empty int range", "field_type": "integer"},
+    ).raise_for_status()
+    try:
+        # integer_range with just a colon -> no bounds -> 400.
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{int_range_key}": ":"})
+        assert result.status_code == 400
+        assert "range filter value" in result.json()["message"]
+
+        # datetime with just a separator -> no bounds -> 400.
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{dt_key}": "|"})
+        assert result.status_code == 400
+        assert "datetime range filter" in result.json()["message"]
+
+        # integer field with a bare colon range -> no bounds -> 400.
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{int_key}": ":"})
+        assert result.status_code == 400
+        assert "range filter value" in result.json()["message"]
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{int_range_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{dt_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{int_key}").raise_for_status()
