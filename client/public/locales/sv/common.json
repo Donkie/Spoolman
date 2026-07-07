@@ -125,6 +125,15 @@
                 "no": "Nej",
                 "simple": "Enkel",
                 "withIcon": "Med logga"
+            },
+            "useHTTPUrl": {
+                "options": {
+                    "default": "",
+                    "url": ""
+                },
+                "preview": "",
+                "tooltip": "",
+                "label": ""
             }
         },
         "spoolSelect": {
@@ -293,7 +302,9 @@
         }
     },
     "home": {
-        "home": "Hem"
+        "home": "Hem",
+        "welcome": "",
+        "description": ""
     },
     "table": {
         "actions": "Åtgärder"
@@ -305,6 +316,14 @@
             "tab": "Allmänt",
             "currency": {
                 "label": "Valuta"
+            },
+            "base_url": {
+                "tooltip": "",
+                "label": ""
+            },
+            "round_prices": {
+                "label": "",
+                "tooltip": ""
             }
         },
         "extra_fields": {
@@ -368,6 +387,9 @@
         },
         "help": {
             "list": "Hjälp | Spoolman"
+        },
+        "locations": {
+            "list": ""
         }
     },
     "help": {
@@ -382,6 +404,8 @@
     "kofi": "Dricksa mig på Ko-fi",
     "locations": {
         "new_location": "Ny plats",
-        "no_location": "Ingen plats"
+        "no_location": "Ingen plats",
+        "locations": "",
+        "no_locations_help": ""
     }
 }

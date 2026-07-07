@@ -1,0 +1,39 @@
+{
+    "buttons": {
+        "clone": "Klonovať",
+        "archive": "Archivovať",
+        "create": "Vytvoriť",
+        "save": "Uložiť",
+        "saveAndAdd": "Uložiť Ako",
+        "logout": "Odhlásiť",
+        "delete": "Zmazať",
+        "edit": "Editovať",
+        "cancel": "Zrušiť",
+        "confirm": "Ste si istý?",
+        "continue": "Pokračovať",
+        "filter": "Filter",
+        "clear": "Vyčistiť",
+        "refresh": "Obnoviť",
+        "show": "Zobraziť",
+        "import": "Importovať",
+        "undo": "Späť",
+        "hideArchived": "Skryť Archivované",
+        "showArchived": "Zobraziť Archivované",
+        "notAccessTitle": "Nedostatočné oprávnenia na prístup"
+    },
+    "actions": {
+        "create": "Vytvoriť",
+        "edit": "Editovať",
+        "show": "Zobraziť",
+        "clone": "Klonovať",
+        "list": "Zoznam"
+    },
+    "notifications": {
+        "success": "Hotovo",
+        "error": "Chyba (status code: {{statusCode}})",
+        "undoable": "Máte {{seconds}} sekúnd do undo.",
+        "editSuccess": "Úspešne upravené {{resource}}",
+        "editError": "Chyba pri editácii {{resource}} (status kód: {{statusCode}})",
+        "importProgress": "Import: {{processed}}/{{total}}"
+    }
+}

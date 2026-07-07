@@ -391,6 +391,8 @@
         "no_locations_help": "このページでは、スプールを場所ごとに整理することができます！"
     },
     "home": {
-        "home": "ホーム"
+        "home": "ホーム",
+        "welcome": "",
+        "description": ""
     }
 }
