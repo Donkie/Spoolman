@@ -7,47 +7,51 @@ import { v4 as uuidv4 } from "uuid";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useGetSetting } from "../../utils/querySettings";
 import { useSavedState } from "../../utils/saveload";
-import { useGetSpoolsByIds } from "../spools/functions";
-import { ISpool } from "../spools/model";
+import { useGetFilamentsByIds } from "../filaments/functions";
+import { IFilament } from "../filaments/model";
 import {
   getConfiguredBaseUrl,
   SpoolQRCodePrintSettings,
   renderLabelContents,
+  renderTemplateText,
   useGetPrintSettings as useGetPrintPresets,
   useSetPrintSettings as useSetPrintPresets,
 } from "./printing";
-import QRCodePrintingDialog from "./qrCodePrintingDialog";
+import QRCodeExportDialog from "./qrCodeExportDialog";
 
 const { Text } = Typography;
 
-interface SpoolQRCodePrintingDialog {
-  spoolIds: number[];
+interface FilamentQRCodeExportDialogProps {
+  filamentIds: number[];
 }
 
-// Adapt spool records into the generic QR print dialog while keeping spool print
-// presets isolated from the export-specific preset buckets.
-const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
+// Adapt filament records into the generic QR export dialog and keep export-only
+// preset fields isolated from the simpler print-only filament presets.
+const FilamentQRCodeExportDialog = ({ filamentIds }: FilamentQRCodeExportDialogProps) => {
   const t = useTranslate();
   const baseUrlSetting = useGetSetting("base_url");
   // Accept both JSON-backed settings and legacy plain strings so old `base_url` values do not crash the dialog.
   const baseUrlRoot = getConfiguredBaseUrl(baseUrlSetting.data?.value, window.location.origin);
   const [messageApi, contextHolder] = message.useMessage();
-  const [useHTTPUrl, setUseHTTPUrl] = useSavedState("print-useHTTPUrl", false);
+  const [useHTTPUrl, setUseHTTPUrl] = useSavedState("export-useHTTPUrl-filament", false);
 
-  const itemQueries = useGetSpoolsByIds(spoolIds);
+  const itemQueries = useGetFilamentsByIds(filamentIds);
   const items = itemQueries
     .map((itemQuery) => {
       return itemQuery.data ?? null;
     })
-    .filter((item) => item !== null) as ISpool[];
+    .filter((item) => item !== null) as IFilament[];
 
-  const [selectedPresetState, setSelectedPresetState] = useSavedState<string | undefined>("selectedPreset", undefined);
+  const [selectedPresetState, setSelectedPresetState] = useSavedState<string | undefined>(
+    "selectedImagePresetFilament",
+    undefined,
+  );
 
-  // Edit a local preset copy first so the form stays responsive and only persists to
-  // saved settings when the user explicitly clicks save.
   const [localPresets, setLocalPresets] = useState<SpoolQRCodePrintSettings[] | undefined>();
-  const remotePresets = useGetPrintPresets();
-  const setRemotePresets = useSetPrintPresets();
+  // Export presets stay in their own bucket so filename/DPI/export-format choices do not
+  // mutate the simpler print-only presets used by the non-export dialog.
+  const remotePresets = useGetPrintPresets("image_presets_filament");
+  const setRemotePresets = useSetPrintPresets("image_presets_filament");
 
   const localOrRemotePresets = localPresets ?? remotePresets;
 
@@ -109,14 +113,13 @@ const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
     };
   } else {
     if (localOrRemotePresets.length === 0) {
-      // First-time print users should land in an editable preset immediately instead of
-      // an empty dialog with no selected settings object.
+      // First-time export users should land in a usable preset immediately instead of an
+      // empty export dialog with no selected settings object to edit.
       const newSetting = addNewPreset();
       if (!newSetting) {
         console.error("Error adding new setting, this should never happen");
         return;
       }
-
       localOrRemotePresets.push(newSetting);
       curPreset = newSetting;
     } else {
@@ -141,102 +144,82 @@ const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
   const [templateHelpOpen, setTemplateHelpOpen] = useState(false);
   const template =
     curPreset.template ??
-    `**{filament.vendor.name} - {filament.name}
-#{id} - {filament.material}**
-Spool Weight: {filament.spool_weight} g
-{ET: {filament.settings_extruder_temp} °C}
-{BT: {filament.settings_bed_temp} °C}
-{Lot Nr: {lot_nr}}
+    `**{vendor.name} - {name}
+#{id} - {material}**
+{Diameter: {diameter} mm}
+{Weight: {weight} g}
+{Spool Weight: {spool_weight} g}
+{ET: {settings_extruder_temp} °C}
+{BT: {settings_bed_temp} °C}
+{Article: {article_number}}
 {{comment}}
-{filament.comment}
-{filament.vendor.comment}`;
+{comment}
+{vendor.comment}`;
+  const filenameTemplate = curPreset.filenameTemplate ?? `{vendor.name}-{material}-{name}`;
 
-  const spoolTags = [
+  const filamentTags = [
     { tag: "id" },
     { tag: "registered" },
-    { tag: "first_used" },
-    { tag: "last_used" },
+    { tag: "name" },
+    { tag: "material" },
     { tag: "price" },
-    { tag: "initial_weight" },
+    { tag: "density" },
+    { tag: "diameter" },
+    { tag: "weight" },
     { tag: "spool_weight" },
-    { tag: "remaining_weight" },
-    { tag: "used_weight" },
-    { tag: "remaining_length" },
-    { tag: "used_length" },
-    { tag: "location" },
-    { tag: "lot_nr" },
+    { tag: "article_number" },
     { tag: "comment" },
-    { tag: "archived" },
-  ];
-  const spoolFields = useGetFields(EntityType.spool);
-  if (spoolFields.data !== undefined) {
-    spoolFields.data.forEach((field) => {
-      spoolTags.push({ tag: `extra.${field.key}` });
-    });
-  }
-  const filamentTags = [
-    { tag: "filament.id" },
-    { tag: "filament.registered" },
-    { tag: "filament.name" },
-    { tag: "filament.material" },
-    { tag: "filament.price" },
-    { tag: "filament.density" },
-    { tag: "filament.diameter" },
-    { tag: "filament.weight" },
-    { tag: "filament.spool_weight" },
-    { tag: "filament.article_number" },
-    { tag: "filament.comment" },
-    { tag: "filament.settings_extruder_temp" },
-    { tag: "filament.settings_bed_temp" },
-    { tag: "filament.color_hex" },
-    { tag: "filament.multi_color_hexes" },
-    { tag: "filament.multi_color_direction" },
-    { tag: "filament.external_id" },
+    { tag: "settings_extruder_temp" },
+    { tag: "settings_bed_temp" },
+    { tag: "color_hex" },
+    { tag: "multi_color_hexes" },
+    { tag: "multi_color_direction" },
+    { tag: "external_id" },
   ];
   const filamentFields = useGetFields(EntityType.filament);
   if (filamentFields.data !== undefined) {
     filamentFields.data.forEach((field) => {
-      filamentTags.push({ tag: `filament.extra.${field.key}` });
+      filamentTags.push({ tag: `extra.${field.key}` });
     });
   }
   const vendorTags = [
-    { tag: "filament.vendor.id" },
-    { tag: "filament.vendor.registered" },
-    { tag: "filament.vendor.name" },
-    { tag: "filament.vendor.comment" },
-    { tag: "filament.vendor.empty_spool_weight" },
-    { tag: "filament.vendor.external_id" },
+    { tag: "vendor.id" },
+    { tag: "vendor.registered" },
+    { tag: "vendor.name" },
+    { tag: "vendor.comment" },
+    { tag: "vendor.empty_spool_weight" },
+    { tag: "vendor.external_id" },
   ];
   const vendorFields = useGetFields(EntityType.vendor);
   if (vendorFields.data !== undefined) {
     vendorFields.data.forEach((field) => {
-      vendorTags.push({ tag: `filament.vendor.extra.${field.key}` });
+      vendorTags.push({ tag: `vendor.extra.${field.key}` });
     });
   }
 
-  // Expose spool, filament, and vendor placeholders because the same tag picker drives
-  // preview text and printed label templates.
-  const templateTags = [...spoolTags, ...filamentTags, ...vendorTags];
+  // Expose both filament and vendor placeholders because the same tag picker drives
+  // label text and export filename templates.
+  const templateTags = [...filamentTags, ...vendorTags];
 
   return (
     <>
       {contextHolder}
-      <QRCodePrintingDialog
+      <QRCodeExportDialog
         printSettings={curPreset.labelSettings}
         setPrintSettings={(newSettings) => {
-          curPreset.labelSettings = newSettings;
-          updateCurrentPreset(curPreset);
+          updateCurrentPreset({ ...curPreset, labelSettings: newSettings });
         }}
         baseUrlRoot={baseUrlRoot}
         useHTTPUrl={useHTTPUrl}
         setUseHTTPUrl={setUseHTTPUrl}
         previewValues={{
-          default: "WEB+SPOOLMAN:S-{id}",
-          url: `${baseUrlRoot}/spool/show/{id}`,
+          default: "WEB+SPOOLMAN:F-{id}",
+          url: `${baseUrlRoot}/filament/show/{id}`,
         }}
+        zipFileTypeName="filament"
         extraSettingsStart={
           <>
-            <Form.Item label={t("printing.generic.spoolPrintPresets")}>
+            <Form.Item label={t("printing.generic.filamentImagePresets")}>
               <Flex gap={8}>
                 <Select
                   value={selectedPresetState}
@@ -285,15 +268,21 @@ Spool Weight: {filament.spool_weight} g
               <Input
                 value={curPreset.labelSettings.printSettings?.name}
                 onChange={(e) => {
-                  curPreset.labelSettings.printSettings.name = e.target.value;
-                  updateCurrentPreset(curPreset);
+                  updateCurrentPreset({
+                    ...curPreset,
+                    labelSettings: {
+                      ...curPreset.labelSettings,
+                      printSettings: { ...curPreset.labelSettings.printSettings, name: e.target.value },
+                    },
+                  });
                 }}
               />
             </Form.Item>
           </>
         }
-        items={items.map((spool) => ({
-          value: useHTTPUrl ? `${baseUrlRoot}/spool/show/${spool.id}` : `WEB+SPOOLMAN:S-${spool.id}`,
+        items={items.map((filament) => ({
+          value: useHTTPUrl ? `${baseUrlRoot}/filament/show/${filament.id}` : `WEB+SPOOLMAN:F-${filament.id}`,
+          amlName: renderTemplateText(filenameTemplate, filament),
           label: (
             <p
               style={{
@@ -302,11 +291,24 @@ Spool Weight: {filament.spool_weight} g
                 whiteSpace: "pre-wrap",
               }}
             >
-              {renderLabelContents(template, spool)}
+              {renderLabelContents(template, filament)}
             </p>
           ),
           errorLevel: "H",
         }))}
+        extraFormatSettings={
+          <Form.Item
+            label={t("printing.qrcode.filenameTemplate")}
+            tooltip={t("printing.qrcode.filenameTemplateTooltipFilament")}
+          >
+            <Input
+              value={filenameTemplate}
+              onChange={(newValue) => {
+                updateCurrentPreset({ ...curPreset, filenameTemplate: newValue.target.value });
+              }}
+            />
+          </Form.Item>
+        }
         extraSettings={
           <>
             <Form.Item label={t("printing.qrcode.template")}>
@@ -314,8 +316,7 @@ Spool Weight: {filament.spool_weight} g
                 value={template}
                 rows={8}
                 onChange={(newValue) => {
-                  curPreset.template = newValue.target.value;
-                  updateCurrentPreset(curPreset);
+                  updateCurrentPreset({ ...curPreset, template: newValue.target.value });
                 }}
               />
             </Form.Item>
@@ -330,7 +331,7 @@ Spool Weight: {filament.spool_weight} g
               />
             </Modal>
             <Text type="secondary">
-              {t("printing.qrcode.templateHelp")}{" "}
+              {t("printing.qrcode.templateHelpFilament")}{" "}
               <Button size="small" onClick={() => setTemplateHelpOpen(true)}>
                 {t("actions.show")}
               </Button>
@@ -357,4 +358,4 @@ Spool Weight: {filament.spool_weight} g
   );
 };
 
-export default SpoolQRCodePrintingDialog;
+export default FilamentQRCodeExportDialog;

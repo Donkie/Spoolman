@@ -13,26 +13,27 @@ import {
   getConfiguredBaseUrl,
   SpoolQRCodePrintSettings,
   renderLabelContents,
+  renderTemplateText,
   useGetPrintSettings as useGetPrintPresets,
   useSetPrintSettings as useSetPrintPresets,
 } from "./printing";
-import QRCodePrintingDialog from "./qrCodePrintingDialog";
+import QRCodeExportDialog from "./qrCodeExportDialog";
 
 const { Text } = Typography;
 
-interface SpoolQRCodePrintingDialog {
+interface SpoolQRCodeExportDialog {
   spoolIds: number[];
 }
 
-// Adapt spool records into the generic QR print dialog while keeping spool print
-// presets isolated from the export-specific preset buckets.
-const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
+// Adapt spool records into the generic QR export dialog and keep export-only
+// preset fields isolated from the simpler print-only spool presets.
+const SpoolQRCodeExportDialog = ({ spoolIds }: SpoolQRCodeExportDialog) => {
   const t = useTranslate();
   const baseUrlSetting = useGetSetting("base_url");
   // Accept both JSON-backed settings and legacy plain strings so old `base_url` values do not crash the dialog.
   const baseUrlRoot = getConfiguredBaseUrl(baseUrlSetting.data?.value, window.location.origin);
   const [messageApi, contextHolder] = message.useMessage();
-  const [useHTTPUrl, setUseHTTPUrl] = useSavedState("print-useHTTPUrl", false);
+  const [useHTTPUrl, setUseHTTPUrl] = useSavedState("export-useHTTPUrl", false);
 
   const itemQueries = useGetSpoolsByIds(spoolIds);
   const items = itemQueries
@@ -41,13 +42,16 @@ const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
     })
     .filter((item) => item !== null) as ISpool[];
 
-  const [selectedPresetState, setSelectedPresetState] = useSavedState<string | undefined>("selectedPreset", undefined);
+  const [selectedPresetState, setSelectedPresetState] = useSavedState<string | undefined>(
+    "selectedImagePresetSpool",
+    undefined,
+  );
 
-  // Edit a local preset copy first so the form stays responsive and only persists to
-  // saved settings when the user explicitly clicks save.
   const [localPresets, setLocalPresets] = useState<SpoolQRCodePrintSettings[] | undefined>();
-  const remotePresets = useGetPrintPresets();
-  const setRemotePresets = useSetPrintPresets();
+  // Export presets stay in their own bucket so filename/DPI/export-format choices do not
+  // mutate the simpler print-only presets used by the non-export dialog.
+  const remotePresets = useGetPrintPresets("image_presets");
+  const setRemotePresets = useSetPrintPresets("image_presets");
 
   const localOrRemotePresets = localPresets ?? remotePresets;
 
@@ -109,14 +113,13 @@ const SpoolQRCodePrintingDialog = ({ spoolIds }: SpoolQRCodePrintingDialog) => {
     };
   } else {
     if (localOrRemotePresets.length === 0) {
-      // First-time print users should land in an editable preset immediately instead of
-      // an empty dialog with no selected settings object.
+      // First-time export users should land in a usable preset immediately instead of an
+      // empty export dialog with no selected settings object to edit.
       const newSetting = addNewPreset();
       if (!newSetting) {
         console.error("Error adding new setting, this should never happen");
         return;
       }
-
       localOrRemotePresets.push(newSetting);
       curPreset = newSetting;
     } else {
@@ -150,6 +153,8 @@ Spool Weight: {filament.spool_weight} g
 {{comment}}
 {filament.comment}
 {filament.vendor.comment}`;
+  const filenameTemplate =
+    curPreset.filenameTemplate ?? `{filament.vendor.name}-{filament.material}-{filament.name}-{id}`;
 
   const spoolTags = [
     { tag: "id" },
@@ -215,17 +220,16 @@ Spool Weight: {filament.spool_weight} g
   }
 
   // Expose spool, filament, and vendor placeholders because the same tag picker drives
-  // preview text and printed label templates.
+  // label text and export filename templates.
   const templateTags = [...spoolTags, ...filamentTags, ...vendorTags];
 
   return (
     <>
       {contextHolder}
-      <QRCodePrintingDialog
+      <QRCodeExportDialog
         printSettings={curPreset.labelSettings}
         setPrintSettings={(newSettings) => {
-          curPreset.labelSettings = newSettings;
-          updateCurrentPreset(curPreset);
+          updateCurrentPreset({ ...curPreset, labelSettings: newSettings });
         }}
         baseUrlRoot={baseUrlRoot}
         useHTTPUrl={useHTTPUrl}
@@ -234,9 +238,10 @@ Spool Weight: {filament.spool_weight} g
           default: "WEB+SPOOLMAN:S-{id}",
           url: `${baseUrlRoot}/spool/show/{id}`,
         }}
+        zipFileTypeName="spool"
         extraSettingsStart={
           <>
-            <Form.Item label={t("printing.generic.spoolPrintPresets")}>
+            <Form.Item label={t("printing.generic.spoolImagePresets")}>
               <Flex gap={8}>
                 <Select
                   value={selectedPresetState}
@@ -285,8 +290,13 @@ Spool Weight: {filament.spool_weight} g
               <Input
                 value={curPreset.labelSettings.printSettings?.name}
                 onChange={(e) => {
-                  curPreset.labelSettings.printSettings.name = e.target.value;
-                  updateCurrentPreset(curPreset);
+                  updateCurrentPreset({
+                    ...curPreset,
+                    labelSettings: {
+                      ...curPreset.labelSettings,
+                      printSettings: { ...curPreset.labelSettings.printSettings, name: e.target.value },
+                    },
+                  });
                 }}
               />
             </Form.Item>
@@ -294,6 +304,7 @@ Spool Weight: {filament.spool_weight} g
         }
         items={items.map((spool) => ({
           value: useHTTPUrl ? `${baseUrlRoot}/spool/show/${spool.id}` : `WEB+SPOOLMAN:S-${spool.id}`,
+          amlName: renderTemplateText(filenameTemplate, spool),
           label: (
             <p
               style={{
@@ -307,6 +318,19 @@ Spool Weight: {filament.spool_weight} g
           ),
           errorLevel: "H",
         }))}
+        extraFormatSettings={
+          <Form.Item
+            label={t("printing.qrcode.filenameTemplate")}
+            tooltip={t("printing.qrcode.filenameTemplateTooltipSpool")}
+          >
+            <Input
+              value={filenameTemplate}
+              onChange={(newValue) => {
+                updateCurrentPreset({ ...curPreset, filenameTemplate: newValue.target.value });
+              }}
+            />
+          </Form.Item>
+        }
         extraSettings={
           <>
             <Form.Item label={t("printing.qrcode.template")}>
@@ -314,8 +338,7 @@ Spool Weight: {filament.spool_weight} g
                 value={template}
                 rows={8}
                 onChange={(newValue) => {
-                  curPreset.template = newValue.target.value;
-                  updateCurrentPreset(curPreset);
+                  updateCurrentPreset({ ...curPreset, template: newValue.target.value });
                 }}
               />
             </Form.Item>
@@ -357,4 +380,4 @@ Spool Weight: {filament.spool_weight} g
   );
 };
 
-export default SpoolQRCodePrintingDialog;
+export default SpoolQRCodeExportDialog;

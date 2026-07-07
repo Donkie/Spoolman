@@ -3,7 +3,7 @@ import { Col, Form, InputNumber, QRCode, Radio, RadioChangeEvent, Row, Slider, S
 import { ReactElement } from "react";
 import { getBasePath } from "../../utils/url";
 import { QRCodePrintSettings } from "./printing";
-import PrintingDialog from "./printingDialog";
+import ExportDialog from "./exportDialog";
 
 const { Text } = Typography;
 
@@ -11,39 +11,46 @@ interface QRCodeData {
   value: string;
   label?: ReactElement;
   errorLevel?: "L" | "M" | "Q" | "H";
+  amlName?: string;
 }
 
-interface QRCodePrintingDialogProps {
+interface QRCodeExportDialogProps {
   items: QRCodeData[];
   printSettings: QRCodePrintSettings;
   setPrintSettings: (setPrintSettings: QRCodePrintSettings) => void;
   extraTitleSettings?: ReactElement;
   extraInfoSettings?: ReactElement;
+  extraExportSettings?: ReactElement;
   extraSettings?: ReactElement;
   extraSettingsStart?: ReactElement;
+  extraFormatSettings?: ReactElement;
   extraButtons?: ReactElement;
   baseUrlRoot: string;
   useHTTPUrl: boolean;
   setUseHTTPUrl: (value: boolean) => void;
   previewValues?: { default: string; url: string };
+  zipFileTypeName: string;
 }
 
-// Wrap the generic print-sheet layout with QR-specific controls so spool and filament
-// print flows can share one renderer without forking the label layout logic.
-const QRCodePrintingDialog = ({
+// Wrap the generic export layout with QR-specific controls so spool and filament
+// export flows can share one renderer without forking the export pipeline.
+const QRCodeExportDialog = ({
   items,
   printSettings,
   setPrintSettings,
-  extraTitleSettings,
-  extraInfoSettings,
   extraSettings,
   extraSettingsStart,
+  extraFormatSettings,
   extraButtons,
+  extraTitleSettings,
+  extraInfoSettings,
+  extraExportSettings,
   baseUrlRoot,
   useHTTPUrl,
   setUseHTTPUrl,
   previewValues,
-}: QRCodePrintingDialogProps) => {
+  zipFileTypeName,
+}: QRCodeExportDialogProps) => {
   const t = useTranslate();
 
   const showContent = printSettings?.showContent === undefined ? true : printSettings?.showContent;
@@ -51,11 +58,11 @@ const QRCodePrintingDialog = ({
   const textSize = printSettings?.textSize || 3;
   const preview = previewValues ?? ({ default: `WEB+SPOOLMAN:S-{id}`, url: `${baseUrlRoot}/spool/show/{id}` } as const);
 
-  // Build the same per-label structure used by the export flow so print previews and
-  // exported files stay visually aligned.
+  // ExportDialog captures each `.print-qrcode-item` into its own file, so attach the
+  // rendered label body and export filename metadata at this level.
   const elements = items.map((item, idx) => {
     return (
-      <div className="print-qrcode-item" key={idx}>
+      <div className="print-qrcode-item" key={idx} data-aml-name={item.amlName ?? ""}>
         {showQRCodeMode !== "no" && (
           <div className="print-qrcode-container">
             <QRCode
@@ -78,14 +85,16 @@ const QRCodePrintingDialog = ({
   });
 
   return (
-    <PrintingDialog
+    <ExportDialog
       items={elements}
       printSettings={printSettings.printSettings}
       setPrintSettings={(newSettings) => {
-        printSettings.printSettings = newSettings;
-        setPrintSettings(printSettings);
+        // Spread to preserve immutability — printSettings.printSettings is a nested object
+        setPrintSettings({ ...printSettings, printSettings: newSettings });
       }}
       extraButtons={extraButtons}
+      extraFormatSettings={extraFormatSettings}
+      zipFileTypeName={zipFileTypeName}
       extraSettingsStart={extraSettingsStart}
       extraSettings={
         <>
@@ -100,8 +109,7 @@ const QRCodePrintingDialog = ({
                 { label: t("printing.qrcode.showQRCodeMode.withIcon"), value: "withIcon" },
               ]}
               onChange={(e: RadioChangeEvent) => {
-                printSettings.showQRCodeMode = e.target.value;
-                setPrintSettings(printSettings);
+                setPrintSettings({ ...printSettings, showQRCodeMode: e.target.value });
               }}
               value={showQRCodeMode}
               optionType="button"
@@ -129,8 +137,7 @@ const QRCodePrintingDialog = ({
             <Switch
               checked={showContent}
               onChange={(checked) => {
-                printSettings.showContent = checked;
-                setPrintSettings(printSettings);
+                setPrintSettings({ ...printSettings, showContent: checked });
               }}
             />
           </Form.Item>
@@ -145,8 +152,7 @@ const QRCodePrintingDialog = ({
                   value={textSize}
                   step={0.1}
                   onChange={(value) => {
-                    printSettings.textSize = value;
-                    setPrintSettings(printSettings);
+                    setPrintSettings({ ...printSettings, textSize: value });
                   }}
                 />
               </Col>
@@ -159,8 +165,7 @@ const QRCodePrintingDialog = ({
                   value={textSize}
                   addonAfter="mm"
                   onChange={(value) => {
-                    printSettings.textSize = value ?? 5;
-                    setPrintSettings(printSettings);
+                    setPrintSettings({ ...printSettings, textSize: value ?? 5 });
                   }}
                 />
               </Col>
@@ -169,6 +174,7 @@ const QRCodePrintingDialog = ({
 
           {extraTitleSettings}
           {extraInfoSettings}
+          {extraExportSettings}
           {extraSettings}
         </>
       }
@@ -199,7 +205,6 @@ const QRCodePrintingDialog = ({
             }
 
             .print-page canvas, .print-page svg {
-              /* display: block; */
               object-fit: contain;
               height: 100% !important;
               width: 100% !important;
@@ -211,4 +216,4 @@ const QRCodePrintingDialog = ({
   );
 };
 
-export default QRCodePrintingDialog;
+export default QRCodeExportDialog;

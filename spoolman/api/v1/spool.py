@@ -389,8 +389,9 @@ async def create(  # noqa: ANN201
             content={"message": "Only specify either remaining_weight or used_weight."},
         )
 
-    if body.extra:
-        all_fields = await get_extra_fields(db, EntityType.spool)
+    # Fetch extra field definitions once at endpoint entry
+    all_fields = await get_extra_fields(db, EntityType.spool) if body.extra else None
+    if body.extra and all_fields:
         try:
             validate_extra_field_dict(all_fields, body.extra)
         except ValueError as e:
@@ -451,8 +452,9 @@ async def update(  # noqa: ANN201
             content={"message": "Only specify either remaining_weight or used_weight."},
         )
 
-    if body.extra:
-        all_fields = await get_extra_fields(db, EntityType.spool)
+    # Fetch extra field definitions once at endpoint entry
+    all_fields = await get_extra_fields(db, EntityType.spool) if body.extra else None
+    if body.extra and all_fields:
         try:
             validate_extra_field_dict(all_fields, body.extra)
         except ValueError as e:

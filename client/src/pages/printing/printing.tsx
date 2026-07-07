@@ -1,7 +1,6 @@
 import { ReactElement } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { useGetSetting, useSetSetting } from "../../utils/querySettings";
-import { ISpool } from "../spools/model";
+import { parseStringSettingValue, useGetSetting, useSetSetting } from "../../utils/querySettings";
 
 export interface PrintSettings {
   id: string;
@@ -16,6 +15,10 @@ export interface PrintSettings {
   paperSize?: string;
   customPaperSize?: { width: number; height: number };
   borderShowMode?: "none" | "border" | "grid";
+  amlLabelSize?: { width: number; height: number };
+  exportDpi?: number;
+  exportFormat?: "png" | "aml";
+  exportAsZip?: boolean;
 }
 
 export interface QRCodePrintSettings {
@@ -27,15 +30,23 @@ export interface QRCodePrintSettings {
 
 export interface SpoolQRCodePrintSettings {
   template?: string;
+  filenameTemplate?: string;
   labelSettings: QRCodePrintSettings;
 }
 
-export function useGetPrintSettings(): SpoolQRCodePrintSettings[] | undefined {
-  const { data } = useGetSetting("print_presets");
+export function getConfiguredBaseUrl(rawValue: string | undefined, fallback: string): string {
+  const parsed = parseStringSettingValue(rawValue, fallback);
+  return parsed.trim() !== "" ? parsed : fallback;
+}
+
+// Load saved print presets and backfill missing ids so older settings remain selectable in the current UI.
+export function useGetPrintSettings(settingKey = "print_presets"): SpoolQRCodePrintSettings[] | undefined {
+  const { data } = useGetSetting(settingKey);
   if (!data) return;
   const parsed: SpoolQRCodePrintSettings[] =
     data && data.value ? JSON.parse(data.value) : ([] as SpoolQRCodePrintSettings[]);
-  // Loop through all parsed and generate a new ID field if it's not set
+  // Backfill IDs onto older presets so select/update flows keep working after
+  // new print/export settings are introduced.
   return parsed.map((settings) => {
     if (!settings.labelSettings.printSettings.id) {
       settings.labelSettings.printSettings.id = uuidv4();
@@ -44,35 +55,25 @@ export function useGetPrintSettings(): SpoolQRCodePrintSettings[] | undefined {
   });
 }
 
-export function useSetPrintSettings(): (spoolQRCodePrintSettings: SpoolQRCodePrintSettings[]) => void {
-  const mut = useSetSetting("print_presets");
-
-  return (spoolQRCodePrintSettings: SpoolQRCodePrintSettings[]) => {
-    mut.mutate(spoolQRCodePrintSettings);
-  };
+export function useSetPrintSettings(settingKey = "print_presets") {
+  return useSetSetting<SpoolQRCodePrintSettings[]>(settingKey);
 }
 
-interface GenericObject {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-  extra: { [key: string]: string };
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getTagValue(tag: string, obj: GenericObject): any {
-  // Split tag by .
+// Resolve dot-path placeholders, including JSON-backed extra fields, for label templates.
+function getTagValue(tag: string, obj: object): unknown {
+  const record = obj as { [key: string]: unknown; extra?: { [key: string]: string } };
   const tagParts = tag.split(".");
   if (tagParts[0] === "extra") {
-    const extraValue = obj.extra[tagParts[1]];
+    const extraValue = record.extra?.[tagParts[1]];
     if (extraValue === undefined) {
       return "?";
     }
     return JSON.parse(extraValue);
   }
 
-  const value = obj[tagParts[0]] ?? "?";
-  // check if value is itself an object. If so, recursively call this and remove the first part of the tag
-  if (typeof value === "object") {
+  const value = record[tagParts[0]] ?? "?";
+  // Nested tags like `vendor.name` recurse through the related object tree.
+  if (typeof value === "object" && value !== null) {
     return getTagValue(tagParts.slice(1).join("."), value);
   }
   return value;
@@ -99,29 +100,34 @@ function applyTextFormatting(text: string): ReactElement[] {
   return elements;
 }
 
-export function renderLabelContents(template: string, spool: ISpool): ReactElement {
-  // Find all {tags} in the template string and loop over them
+export function renderTemplateText(template: string, obj: object): string {
+  // Expand plain `{tag}` placeholders and optional wrapper blocks like
+  // `{prefix {tag} suffix}`, dropping the whole wrapper when the tag is missing.
   const matches = [...template.matchAll(/{(?:[^}{]|{[^}{]*})*}/gs)];
-  let label_text = template;
+  let renderedText = template;
   matches.forEach((match) => {
     if ((match[0].match(/{/g) || []).length == 1) {
       const tag = match[0].replace(/[{}]/g, "");
-      const tagValue = getTagValue(tag, spool);
-      label_text = label_text.replace(match[0], tagValue);
+      const tagValue = getTagValue(tag, obj);
+      renderedText = renderedText.replace(match[0], String(tagValue));
     } else if ((match[0].match(/{/g) || []).length == 2) {
       const structure = match[0].match(/{(.*?){(.*?)}(.*?)}/);
       if (structure != null) {
         const tag = structure[2];
-        const tagValue = getTagValue(tag, spool);
-        if (tagValue == "?") {
-          label_text = label_text.replace(match[0], "");
+        const tagValue = getTagValue(tag, obj);
+        if (tagValue === "?") {
+          renderedText = renderedText.replace(match[0], "");
         } else {
-          label_text = label_text.replace(match[0], structure[1] + tagValue + structure[3]);
+          renderedText = renderedText.replace(match[0], structure[1] + String(tagValue) + structure[3]);
         }
       }
     }
   });
+  return renderedText;
+}
 
+export function renderLabelContents(template: string, obj: object): ReactElement {
+  const renderedText = renderTemplateText(template, obj);
   // Split string on \n into individual lines
-  return <>{applyTextFormatting(label_text)}</>;
+  return <>{applyTextFormatting(renderedText)}</>;
 }

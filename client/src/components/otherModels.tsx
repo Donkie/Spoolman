@@ -5,6 +5,32 @@ import { IFilament } from "../pages/filaments/model";
 import { IVendor } from "../pages/vendors/model";
 import { getAPIURL } from "../utils/url";
 
+/**
+ * Factory function to create a reusable query hook for fetching and sorting string arrays from API endpoints.
+ * @param queryKey - Unique cache key for react-query
+ * @param endpoint - API endpoint to fetch from
+ * @param enabled - Whether the query should be enabled
+ */
+function useSimpleSortedArrayQuery<T>(queryKey: string[], endpoint: string, enabled: boolean = false) {
+  return useQuery<T[], unknown, T[]>({
+    enabled,
+    queryKey,
+    queryFn: async () => {
+      const response = await fetch(getAPIURL() + endpoint);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch from ${endpoint}: ${response.statusText}`);
+      }
+      return response.json();
+    },
+    select: (data) => {
+      if (Array.isArray(data)) {
+        return [...data].sort();
+      }
+      return [];
+    },
+  });
+}
+
 export function useSpoolmanFilamentFilter(enabled: boolean = false) {
   return useQuery<IFilament[], unknown, ColumnFilterItem[]>({
     enabled: enabled,
@@ -135,69 +161,17 @@ export function useSpoolmanVendors(enabled: boolean = false) {
 }
 
 export function useSpoolmanMaterials(enabled: boolean = false) {
-  return useQuery<string[]>({
-    enabled: enabled,
-    queryKey: ["materials"],
-    queryFn: async () => {
-      const response = await fetch(getAPIURL() + "/material");
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    },
-    select: (data) => {
-      return data.sort();
-    },
-  });
+  return useSimpleSortedArrayQuery<string>(["materials"], "/material", enabled);
 }
 
 export function useSpoolmanArticleNumbers(enabled: boolean = false) {
-  return useQuery<string[]>({
-    enabled: enabled,
-    queryKey: ["articleNumbers"],
-    queryFn: async () => {
-      const response = await fetch(getAPIURL() + "/article-number");
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    },
-    select: (data) => {
-      return data.sort();
-    },
-  });
+  return useSimpleSortedArrayQuery<string>(["articleNumbers"], "/article-number", enabled);
 }
 
 export function useSpoolmanLotNumbers(enabled: boolean = false) {
-  return useQuery<string[]>({
-    enabled: enabled,
-    queryKey: ["lotNumbers"],
-    queryFn: async () => {
-      const response = await fetch(getAPIURL() + "/lot-number");
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    },
-    select: (data) => {
-      return data.sort();
-    },
-  });
+  return useSimpleSortedArrayQuery<string>(["lotNumbers"], "/lot-number", enabled);
 }
 
 export function useSpoolmanLocations(enabled: boolean = false) {
-  return useQuery<string[]>({
-    enabled: enabled,
-    queryKey: ["locations"],
-    queryFn: async () => {
-      const response = await fetch(getAPIURL() + "/location");
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    },
-    select: (data) => {
-      return data.sort();
-    },
-  });
+  return useSimpleSortedArrayQuery<string>(["locations"], "/location", enabled);
 }
