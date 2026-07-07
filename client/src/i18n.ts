@@ -139,6 +139,16 @@ export const languages: { [key: string]: Language } = {
     fullCode: "th-TH",
     djs: () => import("dayjs/locale/th"),
   },
+  ["lt"]: {
+    name: "Lietuvių",
+    fullCode: "lt-LT",
+    djs: () => import("dayjs/locale/lt"),
+  },
+  ["tr"]: {
+    name: "Türkçe",
+    fullCode: "tr-TR",
+    djs: () => import("dayjs/locale/tr"),
+  },
 };
 
 i18n
