@@ -41,7 +41,10 @@ const QRCodeScannerModal = () => {
               facingMode: "environment",
             }}
             onScan={onScan}
-            formats={["qr_code"]}
+            // Accept common 2D matrix codes, not just QR, so labels generated with e.g.
+            // Data Matrix or Aztec codes can be scanned too (issue #887). Payloads that
+            // don't match the spoolman format are ignored, so widening this is harmless.
+            formats={["qr_code", "micro_qr_code", "rm_qr_code", "data_matrix", "aztec", "pdf417"]}
             onError={(err: unknown) => {
               const error = err as Error;
               console.error(error);
