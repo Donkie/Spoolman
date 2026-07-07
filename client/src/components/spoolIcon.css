@@ -25,6 +25,18 @@
   border: #44444430 solid 2px;
 }
 
+.spool-icon-unknown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border-style: dashed;
+  background-color: transparent;
+  color: #888;
+  font-weight: 600;
+  line-height: 1;
+}
+
 .spool-icon.vertical *:first-child {
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;

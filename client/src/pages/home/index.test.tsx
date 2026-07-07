@@ -116,3 +116,41 @@ describe("Home render states", () => {
     expect(screen.queryByText("Loading...")).not.toBeInTheDocument();
   });
 });
+
+// A spool whose remaining fraction falls below the low-stock threshold.
+function lowStockSpool(): ISpool {
+  return spool({ remaining_weight: 30, initial_weight: 1000 });
+}
+
+describe("Home dashboard interactions", () => {
+  beforeEach(() => {
+    nextId = 1;
+    mockedUseList.mockReset();
+  });
+
+  it("makes each KPI card a link to its resource list", () => {
+    setSpoolQuery({ data: [spool()] });
+    const { container } = renderHome();
+    const hrefs = Array.from(container.querySelectorAll("a.kpi-card")).map((a) => a.getAttribute("href"));
+    // Spools, Filaments, Manufacturers, Total Stock (spool-derived) in order.
+    expect(hrefs).toEqual(["/spool", "/filament", "/vendor", "/spool"]);
+  });
+
+  it("shows no low-stock warning icon and defaults to the material tab when nothing is low", () => {
+    setSpoolQuery({ data: [spool(), spool()] });
+    renderHome();
+    // No warning triangle anywhere (neither the KPI footer nor the tab label).
+    expect(screen.queryByLabelText("warning")).not.toBeInTheDocument();
+    // By Material is the active tab.
+    expect(screen.getByRole("tab", { name: /home\.by_material/ })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: /home\.low_stock/ })).toHaveAttribute("aria-selected", "false");
+  });
+
+  it("shows the low-stock warning icon and defaults to the low-stock tab when stock is low", () => {
+    setSpoolQuery({ data: [lowStockSpool(), spool()] });
+    renderHome();
+    // At least one warning triangle is rendered (tab label + KPI footer).
+    expect(screen.getAllByLabelText("warning").length).toBeGreaterThan(0);
+    expect(screen.getByRole("tab", { name: /home\.low_stock/ })).toHaveAttribute("aria-selected", "true");
+  });
+});

@@ -9,7 +9,7 @@ import {
   WarningOutlined,
 } from "@ant-design/icons";
 import { useList, useNavigation, useTranslate } from "@refinedev/core";
-import { Button, Result, Tabs, theme, Tooltip } from "antd";
+import { Button, Result, Space, Tabs, theme, Tooltip } from "antd";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import utc from "dayjs/plugin/utc";
@@ -79,6 +79,7 @@ export const Home = () => {
   const totalRemainingWeight = computeTotalRemainingWeight(allSpools);
   const totalValue = computeTotalValue(allSpools);
   const lowStockSpools = computeLowStockSpools(allSpools);
+  const hasLowStock = lowStockSpools.length > 0;
   const recentSpools = computeRecentSpools(allSpools);
   const materialBreakdownData = materialBreakdown(allSpools);
   const locationBreakdownData = locationBreakdown(allSpools, t("locations.no_location"));
@@ -169,22 +170,25 @@ export const Home = () => {
             {t("home.telemetry_subtitle") || "Real-time status of your filament inventory."}
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <Tooltip title={t("spool.titles.create")}>
-            <Button type="primary" icon={<DatabaseOutlined />} onClick={() => navigate("/spool/create")} />
-          </Tooltip>
-          <Tooltip title={t("filament.titles.create")}>
-            <Button type="primary" icon={<HighlightOutlined />} onClick={() => navigate("/filament/create")} />
-          </Tooltip>
-          <Tooltip title={t("vendor.titles.create")}>
-            <Button type="primary" icon={<ShopOutlined />} onClick={() => navigate("/vendor/create")} />
-          </Tooltip>
+        <div className="dash-create-group">
+          <span className="dash-create-label">{t("buttons.create")}</span>
+          <Space.Compact>
+            <Tooltip title={t("home.create.spool", "New spool")}>
+              <Button type="primary" icon={<DatabaseOutlined />} onClick={() => navigate("/spool/create")} />
+            </Tooltip>
+            <Tooltip title={t("home.create.filament", "New filament")}>
+              <Button type="primary" icon={<HighlightOutlined />} onClick={() => navigate("/filament/create")} />
+            </Tooltip>
+            <Tooltip title={t("home.create.vendor", "New manufacturer")}>
+              <Button type="primary" icon={<ShopOutlined />} onClick={() => navigate("/vendor/create")} />
+            </Tooltip>
+          </Space.Compact>
         </div>
       </div>
 
       {/* KPI Cards */}
       <div className="kpi-grid">
-        <div className="kpi-card" style={{ background: S.low }}>
+        <Link to="/spool" className="kpi-card" style={{ background: S.low }}>
           <DatabaseOutlined className="kpi-bg-icon" />
           <div className="kpi-label">{t("spool.spool")}</div>
           <div className="kpi-value">{allSpools.length}</div>
@@ -193,27 +197,27 @@ export const Home = () => {
               +{registeredWithinDays(allSpools, 30)} {t("home.kpi.this_month", "this month")}
             </span>
           </div>
-        </div>
+        </Link>
 
-        <div className="kpi-card" style={{ background: S.low }}>
+        <Link to="/filament" className="kpi-card" style={{ background: S.low }}>
           <HighlightOutlined className="kpi-bg-icon" />
           <div className="kpi-label">{t("filament.filament")}</div>
           <div className="kpi-value">{filaments.result?.total ?? 0}</div>
           <div className="kpi-footer" style={{ color: isDark ? "#00e3fd" : "#0891b2" }}>
             <span>{t("home.kpi.all_synced", "all synced")}</span>
           </div>
-        </div>
+        </Link>
 
-        <div className="kpi-card" style={{ background: S.low }}>
+        <Link to="/vendor" className="kpi-card" style={{ background: S.low }}>
           <ShopOutlined className="kpi-bg-icon" />
           <div className="kpi-label">{t("vendor.vendor")}</div>
           <div className="kpi-value">{vendors.result?.total ?? 0}</div>
           <div className="kpi-footer" style={{ opacity: 0.4 }}>
             {t("home.kpi.top", "top")}: {topVendor}
           </div>
-        </div>
+        </Link>
 
-        <div className="kpi-card" style={{ background: S.low }}>
+        <Link to="/spool" className="kpi-card" style={{ background: S.low }}>
           <ShoppingOutlined className="kpi-bg-icon" />
           <div className="kpi-label">{t("home.total_weight")}</div>
           <div className="kpi-value">
@@ -237,20 +241,20 @@ export const Home = () => {
               </span>
             )}
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Main content area */}
       <div className="dashboard-main">
         {/* Left Column — Tabs */}
         <Tabs
-          defaultActiveKey="lowstock"
+          defaultActiveKey={hasLowStock ? "lowstock" : "materials"}
           items={[
             {
               key: "lowstock",
               label: (
                 <span>
-                  <WarningOutlined style={{ color: "#ff716c" }} /> {t("home.low_stock")}
+                  {hasLowStock && <WarningOutlined style={{ color: "#ff716c" }} />} {t("home.low_stock")}
                 </span>
               ),
               children: (

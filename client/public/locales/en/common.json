@@ -227,7 +227,8 @@
       "spool_updated": "This spool has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
     },
     "messages": {
-      "archive": "Are you sure you want to archive this spool?"
+      "archive": "Are you sure you want to archive this spool?",
+      "update_error": "Could not save changes. Please try again."
     },
     "formats": {
       "last_used": "Last used {{date}}"
@@ -350,7 +351,12 @@
     "by_material": "By Material",
     "by_location": "By Location",
     "by_vendor": "By Manufacturer",
-    "telemetry_subtitle": "Real-time status of your filament inventory."
+    "telemetry_subtitle": "Real-time status of your filament inventory.",
+    "create": {
+      "spool": "New spool",
+      "filament": "New filament",
+      "vendor": "New manufacturer"
+    }
   },
   "help": {
     "help": "Help",

@@ -447,6 +447,10 @@ export function ActionsColumn<Obj extends Entity>(
 
 interface SpoolIconColumnProps<Obj extends Entity> extends FilteredQueryColumnProps<Obj> {
   color: (record: Obj) => string | { colors: string[]; vertical: boolean } | undefined;
+  // Optional link target for the name text. When provided, the name becomes a
+  // real anchor (middle-click / ctrl-click friendly) that navigates on its own
+  // and stops the click from bubbling to the row's actions dropdown.
+  href?: (record: Obj) => string | undefined;
 }
 
 export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<Obj>) {
@@ -495,14 +499,22 @@ export function SpoolIconColumn<Obj extends Entity>(props: SpoolIconColumnProps<
     render: (rawValue, record: Obj) => {
       const value = props.transform ? props.transform(rawValue) : rawValue;
       const colorObj = props.color(record);
+      const href = props.href?.(record);
+      // Always render the icon (colored or the neutral "?" fallback) so the name
+      // text is aligned across rows regardless of whether a color is defined.
+      const nameNode = href ? (
+        <Link to={href} onClick={(e) => e.stopPropagation()} style={{ cursor: "pointer" }}>
+          {value}
+        </Link>
+      ) : (
+        value
+      );
       return (
         <Row wrap={false} justify="space-around" align="middle">
-          {colorObj && (
-            <Col flex="none">
-              <SpoolIcon color={colorObj} />
-            </Col>
-          )}
-          <Col flex="auto">{value}</Col>
+          <Col flex="none">
+            <SpoolIcon color={colorObj} />
+          </Col>
+          <Col flex="auto">{nameNode}</Col>
         </Row>
       );
     },

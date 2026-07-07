@@ -57,6 +57,26 @@
   transform: scale(0.97);
 }
 
+/* Create button group — a bordered cluster with an explicit "CREATE" label so
+   the icon-only buttons read as creation actions. */
+.dash-create-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 8px 5px 12px;
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  border-radius: 8px;
+}
+
+.dash-create-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.55;
+  user-select: none;
+}
+
 /* KPI Grid */
 .kpi-grid {
   display: grid;
@@ -110,6 +130,26 @@
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
+}
+
+/* KPI cards are react-router <Link>s: strip the anchor styling but keep them
+   feeling clickable (pointer cursor, hover lift inherited from .kpi-card). */
+a.kpi-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+a.kpi-card:hover,
+a.kpi-card:focus {
+  color: inherit;
+  text-decoration: none;
+}
+
+a.kpi-card:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
 .kpi-card:hover {
