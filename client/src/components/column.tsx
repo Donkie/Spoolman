@@ -40,7 +40,15 @@ function TextFilterDropdown({ setSelectedKeys, selectedKeys, confirm, clearFilte
         />
       </div>
       <div className="ant-table-filter-dropdown-btns">
-        <Button type="link" size="small" disabled={!hasValue} onClick={() => { clearFilters?.(); confirm(); }}>
+        <Button
+          type="link"
+          size="small"
+          disabled={!hasValue}
+          onClick={() => {
+            clearFilters?.();
+            confirm();
+          }}
+        >
           Reset
         </Button>
         <Button type="primary" size="small" onClick={() => confirm()}>
@@ -93,7 +101,15 @@ function NumberRangeFilterDropdown({
         />
       </div>
       <div className="ant-table-filter-dropdown-btns">
-        <Button type="link" size="small" disabled={!hasValue} onClick={() => { clearFilters?.(); confirm(); }}>
+        <Button
+          type="link"
+          size="small"
+          disabled={!hasValue}
+          onClick={() => {
+            clearFilters?.();
+            confirm();
+          }}
+        >
           Reset
         </Button>
         <Button type="primary" size="small" onClick={() => confirm()}>
@@ -142,7 +158,15 @@ function DateTimeRangeFilterDropdown({ setSelectedKeys, selectedKeys, confirm, c
         />
       </div>
       <div className="ant-table-filter-dropdown-btns">
-        <Button type="link" size="small" disabled={!hasValue} onClick={() => { clearFilters?.(); confirm(); }}>
+        <Button
+          type="link"
+          size="small"
+          disabled={!hasValue}
+          onClick={() => {
+            clearFilters?.();
+            confirm();
+          }}
+        >
           Reset
         </Button>
         <Button type="primary" size="small" onClick={() => confirm()}>
