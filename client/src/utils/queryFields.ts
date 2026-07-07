@@ -114,6 +114,14 @@ export function useSetField(entity_type: EntityType) {
 export const CUSTOM_FIELD_PREFIX = "extra.";
 
 /**
+ * A field name that targets a custom (extra) field, e.g. `extra.my_field`.
+ * Used to admit custom fields in filter/sort field-name unions without
+ * collapsing the whole union to plain `string` (which would erase
+ * compile-time checking of the known `keyof Obj` fields).
+ */
+export type CustomFieldName = `${typeof CUSTOM_FIELD_PREFIX}${string}`;
+
+/**
  * Checks if a field is a custom field (starts with "extra.")
  * @param field The field to check
  * @returns True if the field is a custom field

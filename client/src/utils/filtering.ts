@@ -1,8 +1,8 @@
 import { CrudFilter, CrudOperators } from "@refinedev/core";
-import { Field, getCustomFieldKey, isCustomField } from "./queryFields";
+import { CustomFieldName, getCustomFieldKey, isCustomField } from "./queryFields";
 
 interface TypedCrudFilter<Obj> {
-  field: keyof Obj | string;
+  field: keyof Obj | CustomFieldName;
   operator: Exclude<CrudOperators, "or" | "and">;
   value: string[];
 }
@@ -17,7 +17,17 @@ export function typeFilters<Obj>(filters: CrudFilter[]): TypedCrudFilter<Obj>[] 
  * @param field The field to get the filter values for.
  * @returns An array of filter values for the given field.
  */
-export function getFiltersForField<Obj>(filters: TypedCrudFilter<Obj>[], field: Field | string): string[] {
+// Checked signature: constrains `field` to the object's own keys or a custom
+// (`extra.*`) field, restoring compile-time field-name checking for callers that
+// pass a well-typed field.
+export function getFiltersForField<Obj>(
+  filters: TypedCrudFilter<Obj>[],
+  field: keyof Obj | CustomFieldName,
+): string[];
+// Escape hatch for infrastructure that inherently works in string-space (e.g. the
+// generic Column component, whose `id`/`dataId` props are `string | string[]`).
+export function getFiltersForField<Obj>(filters: TypedCrudFilter<Obj>[], field: string): string[];
+export function getFiltersForField<Obj>(filters: TypedCrudFilter<Obj>[], field: keyof Obj | string): string[] {
   const filterValues: string[] = [];
   filters.forEach((filter) => {
     if (filter.field === field) {
@@ -45,7 +55,7 @@ export function getCustomFieldFilters<Obj = unknown>(
     const field = filter.field.toString();
     if (isCustomField(field)) {
       const key = getCustomFieldKey(field);
-      customFieldFilters[key] = filter.value as string[];
+      customFieldFilters[key] = Array.isArray(filter.value) ? (filter.value as string[]) : [];
     }
   });
 
