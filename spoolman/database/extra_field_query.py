@@ -27,8 +27,9 @@ class _JsonArrayFirstElement(FunctionElement):
 
 
 @compiles(_JsonArrayFirstElement, "postgresql")
+@compiles(_JsonArrayFirstElement, "cockroachdb")
 def _compile_json_array_first_pg(element: _JsonArrayFirstElement, compiler: object, **kw: object) -> str:  # type: ignore[misc]
-    """PostgreSQL: CAST(value AS JSON)->>'0' returns the first element as TEXT."""
+    """PostgreSQL/CockroachDB: CAST(value AS JSON)->>0 returns the first element as TEXT."""
     (col_expr,) = element.clauses
     col_sql = compiler.process(col_expr, **kw)  # type: ignore[union-attr]
     return f"(CAST({col_sql} AS JSON)->>0)"
@@ -50,8 +51,9 @@ class _JsonArraySecondElement(FunctionElement):
 
 
 @compiles(_JsonArraySecondElement, "postgresql")
+@compiles(_JsonArraySecondElement, "cockroachdb")
 def _compile_json_array_second_pg(element: _JsonArraySecondElement, compiler: object, **kw: object) -> str:  # type: ignore[misc]
-    """PostgreSQL: CAST(value AS JSON)->>'1' returns the second element as TEXT."""
+    """PostgreSQL/CockroachDB: CAST(value AS JSON)->>1 returns the second element as TEXT."""
     (col_expr,) = element.clauses
     col_sql = compiler.process(col_expr, **kw)  # type: ignore[union-attr]
     return f"(CAST({col_sql} AS JSON)->>1)"
@@ -190,8 +192,10 @@ def add_where_clause_extra_field(  # noqa: C901, PLR0912, PLR0915
         parsed_value = value_part[1:-1] if exact_match else value_part
 
         if field_type == ExtraFieldType.text:
+            # ensure_ascii=False so non-ASCII values match how the frontend's JSON.stringify stores them
+            # (unescaped), rather than Python's default \uXXXX escaping.
             field_condition = (
-                field_table.value == json.dumps(parsed_value)
+                field_table.value == json.dumps(parsed_value, ensure_ascii=False)
                 if exact_match
                 else field_table.value.ilike(f"%{parsed_value}%")
             )
@@ -232,7 +236,9 @@ def add_where_clause_extra_field(  # noqa: C901, PLR0912, PLR0915
                 field_condition = sqlalchemy.and_(*float_conditions)
             else:
                 try:
-                    field_condition = field_table.value == json.dumps(float(parsed_value))
+                    # Compare numerically rather than by JSON string so that int-typed storage
+                    # (e.g. "2") and non-canonical decimals (e.g. "2.50") match a "2.0" filter.
+                    field_condition = sqlalchemy.cast(field_table.value, sqlalchemy.Float) == float(parsed_value)
                 except ValueError as exc:
                     raise ValueError(f"Invalid float filter value for '{field_key}': {parsed_value}") from exc
         elif field_type == ExtraFieldType.boolean:
@@ -241,7 +247,8 @@ def add_where_clause_extra_field(  # noqa: C901, PLR0912, PLR0915
             if multi_choice:
                 field_condition = field_table.value.like(f'%"{parsed_value}"%')
             else:
-                field_condition = field_table.value == json.dumps(parsed_value)
+                # ensure_ascii=False to match frontend-stored unescaped non-ASCII choice values.
+                field_condition = field_table.value == json.dumps(parsed_value, ensure_ascii=False)
         elif field_type == ExtraFieldType.datetime:
             if "|" in parsed_value:
                 start_str, end_str = parsed_value.split("|", 1)
