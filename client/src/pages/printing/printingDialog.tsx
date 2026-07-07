@@ -178,13 +178,26 @@ const PrintingDialog = ({
     );
   });
 
-  const saveAsImage = () => {
-    const hasPrinted: Element[] = [];
+  const getPrintItems = () => {
+    const root = contentRef.current ?? document;
+    return Array.from(root.getElementsByClassName("print-qrcode-item"));
+  };
 
-    Array.from(document.getElementsByClassName("print-qrcode-item")).forEach(async (item) => {
+  const saveAsImage = async () => {
+    const hasPrinted: Element[] = [];
+    const items = getPrintItems();
+
+    for (const item of items) {
       // Prevent printing copies
+      let isDuplicate = false;
       for (let i = 0; i < hasPrinted.length; i += 1) {
-        if (item.isEqualNode(hasPrinted[i])) return;
+        if (item.isEqualNode(hasPrinted[i])) {
+          isDuplicate = true;
+          break;
+        }
+      }
+      if (isDuplicate) {
+        continue;
       }
       hasPrinted.push(item);
 
@@ -199,7 +212,7 @@ const PrintingDialog = ({
       link.href = url;
       link.download = "spoolmanlabel.png";
       link.click();
-    });
+    }
   };
 
   return (

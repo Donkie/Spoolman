@@ -1,3 +1,4 @@
+import { useQueries } from "@tanstack/react-query";
 import { ExternalFilament } from "../../utils/queryExternalDB";
 import { getAPIURL } from "../../utils/url";
 import { getOrCreateVendorFromExternal } from "../vendors/functions";
@@ -47,4 +48,25 @@ export async function createFilamentFromExternal(externalFilament: ExternalFilam
     throw new Error("Network response was not ok");
   }
   return response.json();
+}
+
+/**
+ * Returns an array of queries using the useQueries hook from @tanstack/react-query.
+ * Each query fetches a filament by its ID from the server.
+ *
+ * @param {number[]} ids - An array of filament IDs to fetch.
+ * @return An array of query results, each containing the fetched filament data.
+ */
+export function useGetFilamentsByIds(ids: number[]) {
+  return useQueries({
+    queries: ids.map((id) => {
+      return {
+        queryKey: ["filament", id],
+        queryFn: async () => {
+          const res = await fetch(getAPIURL() + "/filament/" + id);
+          return (await res.json()) as IFilament;
+        },
+      };
+    }),
+  });
 }

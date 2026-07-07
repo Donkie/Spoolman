@@ -5,32 +5,32 @@ import { Content } from "antd/es/layout/layout";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useNavigate, useSearchParams } from "react-router";
-import SpoolQRCodePrintingDialog from "./spoolQrCodePrintingDialog";
-import SpoolSelectModal from "./spoolSelectModal";
+import FilamentQRCodePrintingDialog from "../printing/filamentQrCodePrintingDialog";
+import FilamentSelectModal from "../printing/filamentSelectModal";
 
 dayjs.extend(utc);
 
 const { useToken } = theme;
 
-export const Printing = () => {
+export const FilamentPrinting = () => {
   const { token } = useToken();
   const t = useTranslate();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const spoolIds = searchParams.getAll("spools").map(Number);
-  const step = spoolIds.length > 0 ? 1 : 0;
+  const filamentIds = searchParams.getAll("filaments").map(Number);
+  const step = filamentIds.length > 0 ? 1 : 0;
 
   return (
     <>
       <PageHeader
-        title={t("printing.qrcode.printSpoolTitle")}
+        title={t("printing.qrcode.printFilamentTitle")}
         onBack={() => {
           const returnUrl = searchParams.get("return");
           if (returnUrl) {
             navigate(returnUrl, { relative: "path" });
           } else {
-            navigate("/spool");
+            navigate("/filament");
           }
         }}
       >
@@ -48,24 +48,24 @@ export const Printing = () => {
           }}
         >
           {step === 0 && (
-            <SpoolSelectModal
-              description={t("printing.spoolSelect.description")}
-              onContinue={(spools) => {
+            <FilamentSelectModal
+              description={t("printing.filamentSelect.description")}
+              onPrint={(selectedFilamentIds: number[]) => {
                 setSearchParams((prev) => {
                   const newParams = new URLSearchParams(prev);
-                  newParams.delete("spools");
-                  spools.forEach((spool) => newParams.append("spools", spool.id.toString()));
-                  newParams.set("return", "/spool/print");
+                  newParams.delete("filaments");
+                  selectedFilamentIds.forEach((id) => newParams.append("filaments", id.toString()));
+                  newParams.set("return", "/filament/print");
                   return newParams;
                 });
               }}
             />
           )}
-          {step === 1 && <SpoolQRCodePrintingDialog spoolIds={spoolIds} />}
+          {step === 1 && <FilamentQRCodePrintingDialog filamentIds={filamentIds} />}
         </Content>
       </PageHeader>
     </>
   );
 };
 
-export default Printing;
+export default FilamentPrinting;
