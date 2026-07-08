@@ -110,6 +110,24 @@ export function useSetField(entity_type: EntityType) {
   });
 }
 
+/**
+ * Checks if a field is a custom field (starts with "extra.")
+ * @param field The field to check
+ * @returns True if the field is a custom field
+ */
+export function isCustomField(field: string): boolean {
+  return field.startsWith("extra.");
+}
+
+/**
+ * Extracts the key from a custom field (removes the "extra." prefix)
+ * @param field The custom field
+ * @returns The key of the custom field
+ */
+export function getCustomFieldKey(field: string): string {
+  return field.substring(6); // Remove "extra." prefix
+}
+
 export function useDeleteField(entity_type: EntityType) {
   const queryClient = useQueryClient();
 
