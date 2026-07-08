@@ -43,6 +43,45 @@ def _compile_json_array_first_default(element: _JsonArrayFirstElement, compiler:
     return f"JSON_EXTRACT({col_sql}, '$[0]')"
 
 
+class _JsonScalarText(FunctionElement):
+    """Cross-database helper: decode a top-level JSON scalar and return it as unquoted TEXT.
+
+    Used to compare against the *decoded* value rather than reconstructing the exact JSON
+    serialization the client wrote. This decouples filtering from json.dumps/JSON.stringify
+    encoding quirks (non-ASCII escaping, surrounding quotes, etc.). Only valid for JSON string
+    scalars (text/choice/datetime) - booleans and numbers are handled with numeric casts instead,
+    since scalar decoding is not consistent for them across dialects.
+    """
+
+    name = "json_scalar_text"
+    inherit_cache = True
+
+
+@compiles(_JsonScalarText, "postgresql")
+@compiles(_JsonScalarText, "cockroachdb")
+def _compile_json_scalar_text_pg(element: _JsonScalarText, compiler: object, **kw: object) -> str:  # type: ignore[misc]
+    """PostgreSQL/CockroachDB: CAST(value AS JSON) #>> '{}' extracts the root scalar as TEXT."""
+    (col_expr,) = element.clauses
+    col_sql = compiler.process(col_expr, **kw)  # type: ignore[union-attr]
+    return f"(CAST({col_sql} AS JSON) #>> '{{}}')"
+
+
+@compiles(_JsonScalarText, "mysql")
+def _compile_json_scalar_text_mysql(element: _JsonScalarText, compiler: object, **kw: object) -> str:  # type: ignore[misc]
+    """MySQL/MariaDB: JSON_EXTRACT keeps the surrounding quotes, so JSON_UNQUOTE is required."""
+    (col_expr,) = element.clauses
+    col_sql = compiler.process(col_expr, **kw)  # type: ignore[union-attr]
+    return f"JSON_UNQUOTE(JSON_EXTRACT({col_sql}, '$'))"
+
+
+@compiles(_JsonScalarText)
+def _compile_json_scalar_text_default(element: _JsonScalarText, compiler: object, **kw: object) -> str:  # type: ignore[misc]
+    """SQLite: json_extract(value, '$') already returns string scalars unquoted."""
+    (col_expr,) = element.clauses
+    col_sql = compiler.process(col_expr, **kw)  # type: ignore[union-attr]
+    return f"JSON_EXTRACT({col_sql}, '$')"
+
+
 class _JsonArraySecondElement(FunctionElement):
     """Cross-database helper: return the second element of a JSON array stored as text."""
 
@@ -87,6 +126,18 @@ def _get_entity_id_column(field_table: type[models.Base]) -> InstrumentedAttribu
     if field_table == models.VendorField:
         return models.VendorField.vendor_id
     raise ValueError(f"Unknown field table: {field_table}")
+
+
+# Escape character for LIKE patterns. Deliberately not backslash: a backslash ESCAPE clause is
+# ambiguous under MySQL/MariaDB string parsing. '/' renders safely on all four dialects.
+_LIKE_ESCAPE = "/"
+
+
+def _escape_like(value: str) -> str:
+    """Escape LIKE wildcards so user input is matched literally, not as a wildcard pattern."""
+    return (
+        value.replace(_LIKE_ESCAPE, _LIKE_ESCAPE * 2).replace("%", f"{_LIKE_ESCAPE}%").replace("_", f"{_LIKE_ESCAPE}_")
+    )
 
 
 def _parse_boolean_filter(value: str) -> bool:
@@ -192,12 +243,14 @@ def add_where_clause_extra_field(  # noqa: C901, PLR0912, PLR0915
         parsed_value = value_part[1:-1] if exact_match else value_part
 
         if field_type == ExtraFieldType.text:
-            # ensure_ascii=False so non-ASCII values match how the frontend's JSON.stringify stores them
-            # (unescaped), rather than Python's default \uXXXX escaping.
+            # Compare against the DB-decoded scalar rather than a reconstructed JSON string, so
+            # matching is independent of how the value was encoded (quote handling, non-ASCII
+            # escaping). Substring search escapes LIKE wildcards to match user input literally.
+            decoded = _JsonScalarText(field_table.value)
             field_condition = (
-                field_table.value == json.dumps(parsed_value, ensure_ascii=False)
+                decoded == parsed_value
                 if exact_match
-                else field_table.value.ilike(f"%{parsed_value}%")
+                else decoded.ilike(f"%{_escape_like(parsed_value)}%", escape=_LIKE_ESCAPE)
             )
         elif field_type == ExtraFieldType.integer:
             if ":" in parsed_value:
@@ -245,25 +298,32 @@ def add_where_clause_extra_field(  # noqa: C901, PLR0912, PLR0915
             field_condition = field_table.value == json.dumps(_parse_boolean_filter(parsed_value))
         elif field_type == ExtraFieldType.choice:
             if multi_choice:
-                field_condition = field_table.value.like(f'%"{parsed_value}"%')
+                # Multi-choice is stored as a JSON array; match the JSON-encoded token as a
+                # substring. json.dumps gives the exact quoted, escaped form the array element
+                # is stored as, and LIKE wildcards in the token are escaped.
+                token = json.dumps(parsed_value, ensure_ascii=False)
+                field_condition = field_table.value.like(f"%{_escape_like(token)}%", escape=_LIKE_ESCAPE)
             else:
-                # ensure_ascii=False to match frontend-stored unescaped non-ASCII choice values.
-                field_condition = field_table.value == json.dumps(parsed_value, ensure_ascii=False)
+                # Compare against the DB-decoded scalar, independent of JSON encoding.
+                field_condition = _JsonScalarText(field_table.value) == parsed_value
         elif field_type == ExtraFieldType.datetime:
+            # Compare decoded ISO-8601 strings. Both bounds and stored values are the frontend's
+            # canonical toISOString() output, so lexicographic comparison is chronological.
+            decoded = _JsonScalarText(field_table.value)
             if "|" in parsed_value:
                 start_str, end_str = parsed_value.split("|", 1)
                 dt_conditions = []
                 if start_str:
-                    dt_conditions.append(field_table.value >= json.dumps(start_str))
+                    dt_conditions.append(decoded >= start_str)
                 if end_str:
-                    dt_conditions.append(field_table.value <= json.dumps(end_str))
+                    dt_conditions.append(decoded <= end_str)
                 if not dt_conditions:
                     raise ValueError(
                         f"Invalid datetime range filter for '{field_key}': {parsed_value}. Expected '<start>|<end>'."
                     )
                 field_condition = sqlalchemy.and_(*dt_conditions)
             else:
-                field_condition = field_table.value == json.dumps(parsed_value)
+                field_condition = decoded == parsed_value
         elif field_type in (ExtraFieldType.integer_range, ExtraFieldType.float_range):
             if ":" not in parsed_value:
                 raise ValueError(
