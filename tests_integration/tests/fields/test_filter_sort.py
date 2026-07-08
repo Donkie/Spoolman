@@ -1177,3 +1177,122 @@ async def test_empty_both_sides_range_returns_400(entity_type: str) -> None:
         httpx.delete(f"{URL}/api/v1/field/{entity_type}/{int_range_key}").raise_for_status()
         httpx.delete(f"{URL}/api/v1/field/{entity_type}/{dt_key}").raise_for_status()
         httpx.delete(f"{URL}/api/v1/field/{entity_type}/{int_key}").raise_for_status()
+
+
+# ---------------------------------------------------------------------------
+# LIKE-wildcard escaping and JSON-scalar decoding edge cases
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_text_filter_escapes_like_wildcards(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """Substring text filtering treats % and _ as literal characters, not LIKE wildcards."""
+    field_key = "wildcard_text_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={"name": "Wildcard text", "field_type": "text"},
+    ).raise_for_status()
+    # '%' would match any sequence, '_' any single char, if not escaped.
+    id_pct = _create_entity(entity_type, {field_key: json.dumps("100% cotton")}, random_filament)
+    id_notpct = _create_entity(entity_type, {field_key: json.dumps("100X cotton")}, random_filament)
+    id_us = _create_entity(entity_type, {field_key: json.dumps("a_b")}, random_filament)
+    id_anychar = _create_entity(entity_type, {field_key: json.dumps("axb")}, random_filament)
+    try:
+        # "100%" must match only the literal "100% cotton", not "100X cotton".
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "100%"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id_pct in ids
+        assert id_notpct not in ids
+
+        # "a_b" must match only the literal "a_b", not "axb" (where _ would be a wildcard).
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "a_b"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id_us in ids
+        assert id_anychar not in ids
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        for entity_id in (id_pct, id_notpct, id_us, id_anychar):
+            httpx.delete(f"{URL}/api/v1/{entity_type}/{entity_id}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_text_filter_escape_char_is_literal(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """A literal '/' (the internal LIKE escape char) in the query is matched literally."""
+    field_key = "slash_text_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={"name": "Slash text", "field_type": "text"},
+    ).raise_for_status()
+    id_slash = _create_entity(entity_type, {field_key: json.dumps("and/or logic")}, random_filament)
+    id_noslash = _create_entity(entity_type, {field_key: json.dumps("andor logic")}, random_filament)
+    try:
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "and/or"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id_slash in ids
+        assert id_noslash not in ids
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id_slash}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id_noslash}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_multi_choice_filter_escapes_like_wildcards(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """Multi-choice token matching treats % and _ in the choice as literal characters."""
+    field_key = "wildcard_choice_field"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={
+            "name": "Wildcard choice",
+            "field_type": "choice",
+            "choices": ["50%", "50X"],
+            "multi_choice": True,
+        },
+    ).raise_for_status()
+    id_pct = _create_entity(entity_type, {field_key: json.dumps(["50%"])}, random_filament)
+    id_x = _create_entity(entity_type, {field_key: json.dumps(["50X"])}, random_filament)
+    try:
+        # "50%" must match only the "50%" token, not "50X" via a wildcard.
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": "50%"})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id_pct in ids
+        assert id_x not in ids
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id_pct}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id_x}").raise_for_status()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("entity_type", ["spool", "filament", "vendor"])
+async def test_single_choice_filter_escapes_like_wildcards(entity_type: str, random_filament: dict[str, Any]) -> None:
+    """Single-choice equality on a value with % matches exactly, not as a wildcard."""
+    field_key = "wildcard_single_choice"
+    httpx.post(
+        f"{URL}/api/v1/field/{entity_type}/{field_key}",
+        json={
+            "name": "Wildcard single choice",
+            "field_type": "choice",
+            "choices": ["50%", "50X"],
+            "multi_choice": False,
+        },
+    ).raise_for_status()
+    id_pct = _create_entity(entity_type, {field_key: json.dumps("50%")}, random_filament)
+    id_x = _create_entity(entity_type, {field_key: json.dumps("50X")}, random_filament)
+    try:
+        result = httpx.get(f"{URL}/api/v1/{entity_type}", params={f"extra.{field_key}": '"50%"'})
+        assert_httpx_success(result)
+        ids = {item["id"] for item in result.json()}
+        assert id_pct in ids
+        assert id_x not in ids
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/{entity_type}/{field_key}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id_pct}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/{entity_type}/{id_x}").raise_for_status()
