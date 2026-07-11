@@ -8,6 +8,12 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import Message
+from spoolman.applications import (
+    ApplicationState,
+    ApplicationToggleRequest,
+    get_applications,
+    set_application_enabled,
+)
 from spoolman.database.database import get_db_session
 from spoolman.exceptions import ItemNotFoundError
 from spoolman.extra_fields import (
@@ -27,6 +33,49 @@ router = APIRouter(
 # ruff: noqa: D103
 
 logger = logging.getLogger(__name__)
+
+
+@router.get(
+    "/application/{entity_type}",
+    name="Get applications",
+    description="Get all registered applications for a specific entity type, including enabled state.",
+    response_model_exclude_none=True,
+)
+async def get_application_list(
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    entity_type: Annotated[EntityType, Path(description="Entity type this application is for")],
+) -> list[ApplicationState]:
+    return await get_applications(db, entity_type)
+
+
+@router.post(
+    "/application/{entity_type}/{key}",
+    name="Enable or disable application",
+    description=(
+        "Enable or disable a registered application for a specific entity type. "
+        "Returns the full list of registered applications for the entity type."
+    ),
+    response_model_exclude_none=True,
+    response_model=list[ApplicationState],
+    responses={404: {"model": Message}},
+)
+async def set_application(
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    entity_type: Annotated[EntityType, Path(description="Entity type this application is for")],
+    key: Annotated[str, Path(min_length=1, max_length=64, pattern="^[a-z0-9_]+$")],
+    body: ApplicationToggleRequest,
+) -> list[ApplicationState] | JSONResponse:
+    try:
+        await set_application_enabled(db, entity_type, key, enabled=body.enabled)
+    except ItemNotFoundError:
+        return JSONResponse(
+            status_code=404,
+            content=Message(
+                message=f"Application with key {key} does not exist for entity type {entity_type.name}",
+            ).dict(),
+        )
+
+    return await get_applications(db, entity_type)
 
 
 @router.get(

@@ -6,6 +6,7 @@ import { ErrorComponent } from "@refinedev/antd";
 import "@refinedev/antd/dist/reset.css";
 
 import {
+  AppstoreOutlined,
   FileOutlined,
   HighlightOutlined,
   HomeOutlined,
@@ -151,6 +152,14 @@ function App() {
                   },
                 },
                 {
+                  name: "applications",
+                  list: "/applications",
+                  meta: {
+                    canDelete: false,
+                    icon: <AppstoreOutlined />,
+                  },
+                },
+                {
                   name: "settings",
                   list: "/settings",
                   meta: {
@@ -225,6 +234,8 @@ function App() {
                   <Route path="/settings/*" element={<LoadablePage name="settings" />} />
                   <Route path="/help" element={<LoadablePage name="help" />} />
                   <Route path="/locations" element={<LoadablePage name="locations" />} />
+                  <Route path="/applications" element={<LoadablePage name="applications" />} />
+                  <Route path="/applications/:appKey" element={<LoadablePage name="applications/detail" />} />
                   <Route path="*" element={<ErrorComponent />} />
                 </Route>
               </Routes>

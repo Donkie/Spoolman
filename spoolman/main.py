@@ -17,6 +17,7 @@ from spoolman import env, externaldb
 from spoolman.api.v1.router import app as v1_app
 from spoolman.client import SinglePageApplication
 from spoolman.database import database
+from spoolman.demo_applications import register_demo_applications
 from spoolman.prometheus.metrics import registry
 
 # Define a console logger
@@ -169,6 +170,9 @@ async def startup() -> None:
 
     logger.info("Setting up database...")
     database.setup_db(database.get_connection_url())
+
+    logger.info("Registering applications...")
+    register_demo_applications()
 
     logger.info("Performing migrations...")
     # Run alembic in a subprocess.

@@ -19,6 +19,14 @@ export enum EntityType {
   spool = "spool",
 }
 
+export enum ApplicationSurface {
+  show = "show",
+  edit = "edit",
+  list = "list",
+  action = "action",
+  derived = "derived",
+}
+
 export interface FieldParameters {
   name: string;
   order: number;
@@ -32,6 +40,21 @@ export interface FieldParameters {
 export interface Field extends FieldParameters {
   key: string;
   entity_type: EntityType;
+}
+
+export interface ApplicationDefinition {
+  key: string;
+  app_key: string | null;
+  icon: string | null;
+  entity_type: EntityType;
+  name: string;
+  description: string;
+  enable_description: string;
+  surfaces: ApplicationSurface[];
+}
+
+export interface ApplicationState extends ApplicationDefinition {
+  enabled: boolean;
 }
 
 export function useGetFields(entity_type: EntityType) {
@@ -148,6 +171,76 @@ export function useDeleteField(entity_type: EntityType) {
       // Invalidate and refetch
       queryClient.invalidateQueries({
         queryKey: ["fields", entity_type],
+      });
+    },
+  });
+}
+
+export function useGetApplications(entity_type: EntityType) {
+  return useQuery<ApplicationState[]>({
+    queryKey: ["applications", entity_type],
+    queryFn: async () => {
+      const response = await fetch(`${getAPIURL()}/field/application/${entity_type}`);
+      return response.json();
+    },
+  });
+}
+
+export function useSetApplicationEnabled(entity_type: EntityType) {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    ApplicationState[],
+    unknown,
+    { key: string; enabled: boolean },
+    { previousFields?: ApplicationState[] }
+  >({
+    mutationFn: async ({ key, enabled }) => {
+      const response = await fetch(`${getAPIURL()}/field/application/${entity_type}/${key}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ enabled }),
+      });
+
+      if (!response.ok) {
+        throw new Error((await response.json()).message);
+      }
+
+      return response.json();
+    },
+    onMutate: async ({ key, enabled }) => {
+      await queryClient.cancelQueries({
+        queryKey: ["applications", entity_type],
+      });
+
+      const previousFields = queryClient.getQueryData<ApplicationState[]>(["applications", entity_type]);
+
+      queryClient.setQueryData<ApplicationState[]>(
+        ["applications", entity_type],
+        (old) =>
+          old?.map((field) => {
+            if (field.key !== key) {
+              return field;
+            }
+            return {
+              ...field,
+              enabled,
+            };
+          }) || old,
+      );
+
+      return { previousFields };
+    },
+    onError: (_err, _newFields, context) => {
+      if (context?.previousFields) {
+        queryClient.setQueryData(["applications", entity_type], context.previousFields);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["applications", entity_type],
       });
     },
   });
