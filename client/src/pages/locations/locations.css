@@ -45,7 +45,6 @@
   flex-direction: column;
   gap: 0.5em;
   min-height: 3em;
-  overflow-y: scroll;
 }
 
 .loc-container .spool {
