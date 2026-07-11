@@ -12,6 +12,7 @@ import {
   Select,
   Space,
   Table,
+  Typography,
   message,
 } from "antd";
 import { FormItemProps, Rule } from "antd/es/form";
@@ -26,6 +27,7 @@ import { useParams } from "react-router";
 import { DateTimePicker } from "../../components/dateTimePicker";
 import { InputNumberRange } from "../../components/inputNumberRange";
 import { EntityType, Field, FieldType, useDeleteField, useGetFields, useSetField } from "../../utils/queryFields";
+import { useOrcaProfileFields } from "../../utils/queryOrca";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -40,6 +42,7 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   dataIndex: string;
   form: FormInstance;
   children: React.ReactNode;
+  entityType?: EntityType;
 }
 
 interface FieldHolder {
@@ -55,8 +58,9 @@ const canEditField = (dataIndex: string, isNew: boolean) => {
   return dataIndex !== "key" && dataIndex !== "field_type" && dataIndex !== "multi_choice";
 };
 
-const EditableCell = ({ record, editing, dataIndex, children, form, ...restProps }: EditableCellProps) => {
+const EditableCell = ({ record, editing, dataIndex, children, form, entityType, ...restProps }: EditableCellProps) => {
   const t = useTranslate();
+  const orcaFields = useOrcaProfileFields();
 
   if (!editing || !canEditField(dataIndex, record.is_new)) {
     return (
@@ -77,10 +81,44 @@ const EditableCell = ({ record, editing, dataIndex, children, form, ...restProps
   const title = t(`settings.extra_fields.params.${dataIndex}`);
 
   let inputNode;
+  let extraCellContent: React.ReactNode = null;
   const rules: Rule[] = [];
   const formItemProps: FormItemProps = {};
   if (dataIndex === "key") {
+    const orcaPicker =
+      record.is_new && entityType === EntityType.filament && orcaFields.data && orcaFields.data.length > 0 ? (
+        <div style={{ marginTop: 4 }}>
+          <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+            From OrcaSlicer:
+          </Typography.Text>
+          <Select
+            size="small"
+            style={{ width: "100%", marginTop: 2 }}
+            placeholder="Pick a profile field…"
+            showSearch
+            allowClear
+            optionFilterProp="label"
+            options={orcaFields.data.map((f) => ({
+              label: `${f.name}  (${f.key})`,
+              value: f.key,
+            }))}
+            onChange={(value: string | undefined) => {
+              if (!value) return;
+              const picked = orcaFields.data?.find((f) => f.key === value);
+              if (!picked) return;
+              form.setFieldsValue({
+                key: picked.key,
+                name: picked.name,
+                field_type: picked.field_type as FieldType,
+                unit: picked.unit ?? "",
+              });
+            }}
+          />
+        </div>
+      ) : null;
+
     inputNode = <Input />;
+    extraCellContent = orcaPicker;
     rules.push({
       required: true,
       min: 1,
@@ -280,7 +318,12 @@ const EditableCell = ({ record, editing, dataIndex, children, form, ...restProps
     </Form.Item>
   ) : null;
 
-  return <td {...restProps}>{formItem}</td>;
+  return (
+    <td {...restProps}>
+      {formItem}
+      {extraCellContent}
+    </td>
+  );
 };
 
 export function ExtraFieldsSettings() {
@@ -579,6 +622,7 @@ export function ExtraFieldsSettings() {
           editing: isEditing(record),
           dataIndex: (col.dataIndex?.toString() || "").split(",").pop() || "",
           form: form,
+          entityType: entityType as EntityType,
           children: [],
         };
       },
