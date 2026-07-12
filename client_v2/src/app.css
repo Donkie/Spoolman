@@ -1,0 +1,139 @@
+/*
+ * Global design tokens for the Spoolman v2 frontend.
+ * Palette, spacing and type scale are derived from the design prototype
+ * (dark theme, IBM Plex, warm orange accent). Values live as CSS custom
+ * properties so components stay declarative and a light theme can be added
+ * later by overriding :root[data-theme='light'].
+ */
+
+:root {
+	/* Surfaces */
+	--bg: #1f1f1f;
+	--bg-app: #1f1f1f;
+	--surface: #252525;
+	--surface-2: #262626;
+	--surface-raised: #2e2e2e;
+	--input-bg: #1a1a1a;
+
+	/* Borders */
+	--border: #333;
+	--border-soft: #2b2b2b;
+	--border-strong: #3d3d3d;
+	--border-input: #383838;
+	--hairline: rgba(255, 255, 255, 0.05);
+
+	/* Text */
+	--text: #ececec;
+	--text-2: #c9c9c9;
+	--text-muted: #8a8a8a;
+	--text-dim: #777;
+	--text-faint: #666;
+
+	/* Accent (warm orange) */
+	--accent: #be682f;
+	--accent-hover: #d47a3b;
+	--accent-link: #d0854a;
+	--accent-link-hover: #e09a60;
+	--accent-soft: #e0996a;
+	--accent-wash: rgba(190, 104, 47, 0.14);
+	--accent-wash-soft: rgba(190, 104, 47, 0.06);
+	--accent-border: #4a4239;
+
+	/* Status */
+	--danger: #c4503a;
+	--danger-soft: #d98a7a;
+	--unused-bg: #33302c;
+	--unused-border: #4a4239;
+	--unused-text: #d0a479;
+
+	/* Typography */
+	--font-sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+	--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+	/* Radii */
+	--radius-sm: 5px;
+	--radius: 6px;
+	--radius-md: 8px;
+	--radius-lg: 10px;
+	--radius-xl: 12px;
+
+	/* Layout */
+	--topbar-h: 53px;
+	--list-w: 470px;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	height: 100%;
+}
+
+body {
+	background: var(--bg);
+	color: var(--text);
+	font-family: var(--font-sans);
+	font-size: 13px;
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+}
+
+a {
+	color: var(--accent-link);
+	text-decoration: none;
+}
+a:hover {
+	color: var(--accent-link-hover);
+}
+
+input,
+select,
+button,
+textarea {
+	font-family: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+	outline: none;
+	border-color: var(--accent);
+}
+
+::placeholder {
+	color: var(--text-faint);
+}
+
+/* Hide the browser-default number spinners everywhere — they never match the
+ * dark theme. Fields that want steppers use the themed NumberInput component. */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+input[type='number'] {
+	-moz-appearance: textfield;
+	appearance: textfield;
+}
+
+/* Slim, unobtrusive scrollbars to match the dense dark UI */
+.scroll-y {
+	overflow-y: auto;
+	min-height: 0;
+	scrollbar-width: thin;
+	scrollbar-color: #3a3a3a transparent;
+}
+.scroll-y::-webkit-scrollbar {
+	width: 8px;
+}
+.scroll-y::-webkit-scrollbar-thumb {
+	background: #3a3a3a;
+	border-radius: 4px;
+}
+
+.mono {
+	font-family: var(--font-mono);
+}

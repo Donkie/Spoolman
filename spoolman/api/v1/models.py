@@ -366,6 +366,51 @@ class Spool(BaseModel):
         )
 
 
+class SpoolGroup(BaseModel):
+    """A group of spools with server-computed aggregates.
+
+    Returned by the ``/spool/group`` endpoint. Spools are grouped by one axis
+    (``group_by``); the aggregates are computed over the matching spools of each
+    group so the client can paginate whole groups without fetching every spool.
+    """
+
+    group_by: str = Field(
+        description="The field the spools are grouped by.",
+        examples=["filament"],
+    )
+    key: str | None = Field(
+        None,
+        description=(
+            "The group key. For group_by=filament/vendor this is the entity ID as a string; for "
+            "material/location it is the value. Null when the grouped field is unset (e.g. spools "
+            "with no location or a filament with no vendor)."
+        ),
+        examples=["12"],
+    )
+    spool_count: int = Field(description="Number of matching spools in this group.", examples=[6])
+    in_use_count: int = Field(
+        description="Number of matching spools that have been used (used_weight > 0).",
+        examples=[2],
+    )
+    total_remaining_weight: float | None = Field(
+        None,
+        description="Sum of remaining filament weight across the group's matching spools, in grams.",
+        examples=[3120.0],
+    )
+    last_used: SpoolmanDateTime | None = Field(
+        None,
+        description="Most recent last_used across the group's matching spools. UTC Timezone.",
+    )
+    filament: Filament | None = Field(
+        None,
+        description="The filament, embedded for group_by=filament so the header needs no extra request.",
+    )
+    vendor: Vendor | None = Field(
+        None,
+        description="The vendor, embedded for group_by=vendor.",
+    )
+
+
 class Info(BaseModel):
     version: str = Field(examples=["0.7.0"])
     debug_mode: bool = Field(examples=[False])

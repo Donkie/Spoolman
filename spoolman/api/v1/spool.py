@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman.api.v1.models import Message, Spool, SpoolEvent
+from spoolman.api.v1.models import Filament, Message, Spool, SpoolEvent, SpoolGroup, Vendor
 from spoolman.database import spool
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
@@ -339,6 +339,161 @@ async def notify_any(
                 await websocket.send_json({"status": "healthy"})
     except WebSocketDisconnect:
         websocket_manager.disconnect(("spool",), websocket)
+
+
+@router.get(
+    "/group",
+    name="Find spool groups",
+    description=(
+        "Group spools that match the search query by one axis (filament, vendor, material or "
+        "location) and return per-group aggregates: spool count, in-use count, total remaining "
+        "weight and most recent usage. Pagination is over groups, so a group is never split and "
+        "its aggregates are always complete. Uses the same filters as the spool search endpoint. "
+        "The total number of matching groups is returned in the x-total-count header."
+    ),
+    response_model_exclude_none=True,
+    responses={
+        200: {"model": list[SpoolGroup]},
+        400: {"model": Message},
+    },
+)
+async def find_groups(
+    *,
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    group_by: Annotated[
+        Literal["filament", "vendor", "material", "location"],
+        Query(title="Group By", description="The field to group spools by."),
+    ],
+    filament_name: Annotated[
+        str | None,
+        Query(
+            alias="filament.name",
+            title="Filament Name",
+            description="Partial case-insensitive search term for the filament name. See the spool search endpoint.",
+        ),
+    ] = None,
+    filament_id: Annotated[
+        str | None,
+        Query(
+            alias="filament.id",
+            title="Filament ID",
+            description="Match an exact filament ID. Separate multiple IDs with a comma.",
+            pattern=r"^-?\d+(,-?\d+)*$",
+        ),
+    ] = None,
+    filament_material: Annotated[
+        str | None,
+        Query(
+            alias="filament.material",
+            title="Filament Material",
+            description="Partial case-insensitive search term for the filament material.",
+        ),
+    ] = None,
+    filament_vendor_name: Annotated[
+        str | None,
+        Query(
+            alias="filament.vendor.name",
+            title="Vendor Name",
+            description="Partial case-insensitive search term for the filament vendor name.",
+        ),
+    ] = None,
+    filament_vendor_id: Annotated[
+        str | None,
+        Query(
+            alias="filament.vendor.id",
+            title="Vendor ID",
+            description=(
+                "Match an exact vendor ID. Separate multiple IDs with a comma. "
+                "Set it to -1 to match spools with filaments with no vendor."
+            ),
+            pattern=r"^-?\d+(,-?\d+)*$",
+        ),
+    ] = None,
+    location: Annotated[
+        str | None,
+        Query(title="Location", description="Partial case-insensitive search term for the spool location."),
+    ] = None,
+    lot_nr: Annotated[
+        str | None,
+        Query(title="Lot/Batch Number", description="Partial case-insensitive search term for the spool lot number."),
+    ] = None,
+    allow_archived: Annotated[
+        bool,
+        Query(title="Allow Archived", description="Whether to include archived spools in the aggregates."),
+    ] = False,
+    sort: Annotated[
+        str | None,
+        Query(
+            title="Sort",
+            description=(
+                'Sort the groups by the given field. Comma-separated "field:direction" items. '
+                "Available fields: group.title, group.total_remaining, group.last_used, "
+                "group.spool_count, group.in_use_count."
+            ),
+            examples=["group.last_used:desc"],
+        ),
+    ] = None,
+    limit: Annotated[
+        int | None,
+        Query(title="Limit", description="Maximum number of groups in the response."),
+    ] = None,
+    offset: Annotated[
+        int,
+        Query(title="Offset", description="Offset in the full group result set if a limit is set."),
+    ] = 0,
+) -> JSONResponse:
+    sort_by: dict[str, SortOrder] = {}
+    if sort is not None:
+        for sort_item in sort.split(","):
+            field, direction = sort_item.split(":")
+            sort_by[field] = SortOrder[direction.upper()]
+
+    filament_ids = [int(item) for item in filament_id.split(",")] if filament_id is not None else None
+    vendor_ids = [int(item) for item in filament_vendor_id.split(",")] if filament_vendor_id is not None else None
+
+    extra_field_filters = {}
+    for key, value in request.query_params.items():
+        if key.startswith("extra."):
+            extra_field_filters[key[6:]] = value
+
+    try:
+        groups, total_count = await spool.find_groups(
+            db=db,
+            group_by=group_by,
+            filament_name=filament_name,
+            filament_id=filament_ids,
+            filament_material=filament_material,
+            vendor_name=filament_vendor_name,
+            vendor_id=vendor_ids,
+            location=location,
+            lot_nr=lot_nr,
+            allow_archived=allow_archived,
+            extra_field_filters=extra_field_filters if extra_field_filters else None,
+            sort_by=sort_by,
+            limit=limit,
+            offset=offset,
+        )
+    except ValueError as e:
+        return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
+
+    content = [
+        SpoolGroup(
+            group_by=group_by,
+            key=None if group.key is None else str(group.key),
+            spool_count=group.spool_count,
+            in_use_count=group.in_use_count,
+            total_remaining_weight=group.total_remaining_weight,
+            last_used=group.last_used,
+            filament=Filament.from_db(group.filament) if group.filament is not None else None,
+            vendor=Vendor.from_db(group.vendor) if group.vendor is not None else None,
+        )
+        for group in groups
+    ]
+    return JSONResponse(
+        content=jsonable_encoder(content, exclude_none=True),
+        headers={"x-total-count": str(total_count)},
+    )
 
 
 @router.get(

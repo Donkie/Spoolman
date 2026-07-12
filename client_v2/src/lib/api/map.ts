@@ -1,0 +1,168 @@
+import type { Filament, Spool, Vendor } from '$lib/types';
+import type { GroupSummary } from './types';
+
+// Map between the Spoolman API JSON shape and the client's domain types.
+// The API uses integer ids and snake_case; the client uses string ids for
+// filament/vendor (so ids compose into keys) and camelCase.
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type Json = Record<string, any>;
+
+export function colorsFromApi(f: Json | undefined): string[] {
+	if (!f) return [];
+	if (f.multi_color_hexes) {
+		return String(f.multi_color_hexes)
+			.split(',')
+			.filter(Boolean)
+			.map((h) => '#' + h.replace(/^#/, ''));
+	}
+	if (f.color_hex) return ['#' + String(f.color_hex).replace(/^#/, '')];
+	return [];
+}
+
+/** ISO timestamp → short relative label like "5 h", "2 d", "3 w", "2 mo". */
+export function relTime(iso: string | null | undefined): string {
+	if (!iso) return '';
+	const then = new Date(iso).getTime();
+	if (Number.isNaN(then)) return '';
+	const secs = Math.max(0, (Date.now() - then) / 1000);
+	const mins = secs / 60;
+	const hours = mins / 60;
+	const days = hours / 24;
+	if (days < 1) return hours >= 1 ? `${Math.round(hours)} h` : `${Math.max(1, Math.round(mins))} m`;
+	if (days < 14) return `${Math.round(days)} d`;
+	if (days < 60) return `${Math.round(days / 7)} w`;
+	if (days < 365) return `${Math.round(days / 30)} mo`;
+	return `${Math.round(days / 365)} y`;
+}
+
+/** ISO timestamp → "Jan 14". */
+export function shortDate(iso: string | null | undefined): string {
+	if (!iso) return '';
+	const d = new Date(iso);
+	return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+export function mapVendor(v: Json): Vendor {
+	return {
+		id: String(v.id),
+		name: v.name ?? '(unnamed vendor)',
+		emptyWeight: v.empty_spool_weight ?? 0,
+		extra: v.extra ?? {}
+	};
+}
+
+export function mapFilament(f: Json): Filament {
+	return {
+		id: String(f.id),
+		vendorId: f.vendor ? String(f.vendor.id) : '',
+		name: f.name ?? '(unnamed filament)',
+		material: f.material ?? '',
+		colors: colorsFromApi(f),
+		diameter: f.diameter ?? 0,
+		density: f.density ?? 0,
+		nozzleTemp: f.settings_extruder_temp ?? 0,
+		bedTemp: f.settings_bed_temp ?? 0,
+		weight: f.weight ?? 0,
+		spoolWeight: f.spool_weight ?? undefined,
+		price: f.price ?? 0,
+		externalId: f.external_id ?? undefined,
+		extra: f.extra ?? {}
+	};
+}
+
+export function mapSpool(s: Json): Spool {
+	const f: Json = s.filament ?? {};
+	return {
+		id: s.id,
+		filamentId: String(f.id ?? ''),
+		unused: (s.used_weight ?? 0) === 0,
+		remaining: s.remaining_weight ?? 0,
+		initial: s.initial_weight ?? f.weight ?? 0,
+		location: s.location ?? '',
+		lot: s.lot_nr ?? '',
+		lastUsedLabel: relTime(s.last_used),
+		registeredLabel: shortDate(s.registered),
+		archived: s.archived ?? false,
+		comment: s.comment ?? '',
+		extra: s.extra ?? {}
+	};
+}
+
+export function mapGroup(g: Json): GroupSummary {
+	const field = g.group_by as GroupSummary['field'];
+	let title = '';
+	let subtitle = '';
+	let badge = '';
+	let colors: string[] = [];
+
+	if (field === 'filament' && g.filament) {
+		const f: Json = g.filament;
+		title = f.name ?? '(unnamed filament)';
+		subtitle = `${f.vendor?.name ?? 'No vendor'} · ${f.diameter} mm`;
+		badge = f.material ?? '';
+		colors = colorsFromApi(f);
+	} else if (field === 'vendor' && g.vendor) {
+		title = g.vendor.name ?? '(unnamed vendor)';
+		subtitle = `${g.spool_count} spool${g.spool_count === 1 ? '' : 's'}`;
+	} else if (field === 'material') {
+		title = g.key ?? 'No material';
+		subtitle = `${g.spool_count} spool${g.spool_count === 1 ? '' : 's'}`;
+	} else if (field === 'location') {
+		title = g.key ?? 'No location';
+		subtitle = `${g.in_use_count} in use`;
+	} else {
+		title = g.key ?? '';
+	}
+
+	return {
+		field,
+		key: g.key ?? '',
+		title,
+		subtitle,
+		badge,
+		colors,
+		spoolCount: g.spool_count ?? 0,
+		inUseCount: g.in_use_count ?? 0,
+		unusedCount: (g.spool_count ?? 0) - (g.in_use_count ?? 0),
+		totalRemaining: g.total_remaining_weight ?? 0,
+		hasStock: (g.spool_count ?? 0) > 0,
+		lastUsedLabel: relTime(g.last_used),
+		lastUsedSort: 0
+	};
+}
+
+// --- domain patch → API request body -------------------------------------
+
+export function spoolPatchToApi(patch: Partial<Spool>): Json {
+	const out: Json = {};
+	if ('location' in patch) out.location = patch.location ?? '';
+	if ('lot' in patch) out.lot_nr = patch.lot ?? '';
+	if ('comment' in patch) out.comment = patch.comment ?? '';
+	if ('archived' in patch) out.archived = patch.archived;
+	if ('remaining' in patch) out.remaining_weight = patch.remaining;
+	if ('extra' in patch) out.extra = patch.extra;
+	return out;
+}
+
+export function filamentPatchToApi(patch: Partial<Filament>): Json {
+	const out: Json = {};
+	if ('name' in patch) out.name = patch.name;
+	if ('material' in patch) out.material = patch.material;
+	if ('colors' in patch) out.color_hex = (patch.colors?.[0] ?? '').replace(/^#/, '') || null;
+	if ('diameter' in patch) out.diameter = patch.diameter;
+	if ('density' in patch) out.density = patch.density;
+	if ('nozzleTemp' in patch) out.settings_extruder_temp = patch.nozzleTemp;
+	if ('bedTemp' in patch) out.settings_bed_temp = patch.bedTemp;
+	if ('price' in patch) out.price = patch.price;
+	if ('extra' in patch) out.extra = patch.extra;
+	return out;
+}
+
+export function vendorPatchToApi(patch: Partial<Vendor>): Json {
+	const out: Json = {};
+	if ('name' in patch) out.name = patch.name;
+	if ('emptyWeight' in patch) out.empty_spool_weight = patch.emptyWeight;
+	if ('extra' in patch) out.extra = patch.extra;
+	return out;
+}

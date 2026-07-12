@@ -2,6 +2,7 @@
 
 import logging
 from collections.abc import Sequence
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
 import sqlalchemy
@@ -136,29 +137,17 @@ async def find(  # noqa: C901, PLR0912
 
     Returns a tuple containing the list of items and the total count of matching items.
     """
-    stmt = (
-        sqlalchemy.select(models.Spool)
-        .join(models.Spool.filament, isouter=True)
-        .join(models.Filament.vendor, isouter=True)
-        .options(contains_eager(models.Spool.filament).contains_eager(models.Filament.vendor))
-    )
-
-    stmt = add_where_clause_int(stmt, models.Spool.filament_id, filament_id)
-    stmt = add_where_clause_int_opt(stmt, models.Filament.vendor_id, vendor_id)
-    stmt = add_where_clause_str(stmt, models.Vendor.name, vendor_name)
-    stmt = add_where_clause_str_opt(stmt, models.Filament.name, filament_name)
-    stmt = add_where_clause_str_opt(stmt, models.Filament.material, filament_material)
-    stmt = add_where_clause_str_opt(stmt, models.Spool.location, location)
-    stmt = add_where_clause_str_opt(stmt, models.Spool.lot_nr, lot_nr)
-
-    if not allow_archived:
-        # Since the archived field is nullable, and default is false, we need to check for both false or null
-        stmt = stmt.where(
-            sqlalchemy.or_(
-                models.Spool.archived.is_(False),
-                models.Spool.archived.is_(None),
-            ),
-        )
+    stmt = _apply_spool_filters(
+        sqlalchemy.select(models.Spool),
+        filament_name=filament_name,
+        filament_id=filament_id,
+        filament_material=filament_material,
+        vendor_name=vendor_name,
+        vendor_id=vendor_id,
+        location=location,
+        lot_nr=lot_nr,
+        allow_archived=allow_archived,
+    ).options(contains_eager(models.Spool.filament).contains_eager(models.Filament.vendor))
 
     total_count = None
 
@@ -223,6 +212,189 @@ async def find(  # noqa: C901, PLR0912
         total_count = len(result)
 
     return result, total_count
+
+
+GROUP_BY_COLUMNS = {
+    "filament": models.Spool.filament_id,
+    "vendor": models.Filament.vendor_id,
+    "material": models.Filament.material,
+    "location": models.Spool.location,
+}
+
+
+def _apply_spool_filters(
+    stmt: sqlalchemy.Select,
+    *,
+    filament_name: str | None = None,
+    filament_id: int | Sequence[int] | None = None,
+    filament_material: str | None = None,
+    vendor_name: str | None = None,
+    vendor_id: int | Sequence[int] | None = None,
+    location: str | None = None,
+    lot_nr: str | None = None,
+    allow_archived: bool = False,
+) -> sqlalchemy.Select:
+    """Apply the standard spool joins and where-clauses shared by find and find_groups."""
+    stmt = stmt.join(models.Spool.filament, isouter=True).join(models.Filament.vendor, isouter=True)
+    stmt = add_where_clause_int(stmt, models.Spool.filament_id, filament_id)
+    stmt = add_where_clause_int_opt(stmt, models.Filament.vendor_id, vendor_id)
+    stmt = add_where_clause_str(stmt, models.Vendor.name, vendor_name)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.name, filament_name)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.material, filament_material)
+    stmt = add_where_clause_str_opt(stmt, models.Spool.location, location)
+    stmt = add_where_clause_str_opt(stmt, models.Spool.lot_nr, lot_nr)
+    if not allow_archived:
+        # archived is nullable with a default of false, so match both false and null.
+        stmt = stmt.where(
+            sqlalchemy.or_(
+                models.Spool.archived.is_(False),
+                models.Spool.archived.is_(None),
+            ),
+        )
+    return stmt
+
+
+@dataclass
+class SpoolGroupResult:
+    """One aggregated spool group, with the grouped entity hydrated for its header."""
+
+    key: object
+    spool_count: int
+    in_use_count: int
+    total_remaining_weight: float
+    last_used: datetime | None
+    filament: models.Filament | None
+    vendor: models.Vendor | None
+
+
+async def find_groups(
+    *,
+    db: AsyncSession,
+    group_by: str,
+    filament_name: str | None = None,
+    filament_id: int | Sequence[int] | None = None,
+    filament_material: str | None = None,
+    vendor_name: str | None = None,
+    vendor_id: int | Sequence[int] | None = None,
+    location: str | None = None,
+    lot_nr: str | None = None,
+    allow_archived: bool = False,
+    extra_field_filters: dict[str, str] | None = None,
+    sort_by: dict[str, SortOrder] | None = None,
+    limit: int | None = None,
+    offset: int = 0,
+) -> tuple[list[SpoolGroupResult], int]:
+    """Group matching spools by one axis and return per-group aggregates.
+
+    Aggregation, group ordering and pagination happen in the database. Pagination is over
+    groups, so a group is never split across pages and its aggregates are always complete.
+
+    Returns a tuple of the requested page of groups and the total number of matching groups.
+    """
+    if group_by not in GROUP_BY_COLUMNS:
+        raise ValueError(f"Invalid group_by field '{group_by}'. Must be one of {sorted(GROUP_BY_COLUMNS)}.")
+    group_col = GROUP_BY_COLUMNS[group_by]
+    title_col = {
+        "filament": models.Filament.name,
+        "vendor": models.Vendor.name,
+        "material": models.Filament.material,
+        "location": models.Spool.location,
+    }[group_by]
+
+    # Remaining weight is computed (see Spool.from_db); mirror that formula so the sum is correct.
+    remaining_expr = coalesce(
+        coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight,
+        0,
+    )
+    spool_count = func.count().label("spool_count")
+    in_use_count = func.sum(case((models.Spool.used_weight > 0, 1), else_=0)).label("in_use_count")
+    total_remaining = func.sum(remaining_expr).label("total_remaining_weight")
+    last_used = func.max(models.Spool.last_used).label("last_used")
+
+    stmt = sqlalchemy.select(
+        group_col.label("group_key"),
+        spool_count,
+        in_use_count,
+        total_remaining,
+        last_used,
+    )
+    stmt = _apply_spool_filters(
+        stmt,
+        filament_name=filament_name,
+        filament_id=filament_id,
+        filament_material=filament_material,
+        vendor_name=vendor_name,
+        vendor_id=vendor_id,
+        location=location,
+        lot_nr=lot_nr,
+        allow_archived=allow_archived,
+    )
+    stmt = await apply_extra_field_filters_and_sort(
+        db=db,
+        stmt=stmt,
+        base_obj=models.Spool,
+        entity_type=EntityType.spool,
+        extra_field_filters=extra_field_filters,
+        sort_by=None,
+    )
+    stmt = stmt.group_by(group_col)
+
+    # Total number of matching groups (before pagination).
+    count_stmt = sqlalchemy.select(func.count()).select_from(stmt.order_by(None).subquery())
+    total_count = (await db.execute(count_stmt)).scalar_one()
+
+    # Group ordering. Every option is an aggregate (or the grouped column), so no non-grouped
+    # bare column is referenced — portable across SQLite, PostgreSQL, MySQL and CockroachDB.
+    order_exprs = {
+        "group.spool_count": spool_count,
+        "group.in_use_count": in_use_count,
+        "group.total_remaining": total_remaining,
+        "group.last_used": last_used,
+        "group.title": func.min(title_col),
+    }
+    applied_sort = False
+    if sort_by:
+        for fieldstr, order in sort_by.items():
+            expr = order_exprs.get(fieldstr)
+            if expr is None:
+                continue
+            stmt = stmt.order_by(expr.asc() if order == SortOrder.ASC else expr.desc())
+            applied_sort = True
+    if not applied_sort:
+        stmt = stmt.order_by(func.min(title_col).asc())
+
+    if limit is not None:
+        stmt = stmt.offset(offset).limit(limit)
+
+    rows = (await db.execute(stmt)).all()
+
+    # Hydrate the grouped entity for the header (filament/vendor); material/location need nothing.
+    keys = [row.group_key for row in rows if row.group_key is not None]
+    filament_map: dict[int, models.Filament] = {}
+    vendor_map: dict[int, models.Vendor] = {}
+    if group_by == "filament" and keys:
+        fstmt = (
+            sqlalchemy.select(models.Filament)
+            .where(models.Filament.id.in_(keys))
+            .options(joinedload(models.Filament.vendor))
+        )
+        filament_map = {f.id: f for f in (await db.execute(fstmt)).unique().scalars().all()}
+    elif group_by == "vendor" and keys:
+        vstmt = sqlalchemy.select(models.Vendor).where(models.Vendor.id.in_(keys))
+        vendor_map = {v.id: v for v in (await db.execute(vstmt)).unique().scalars().all()}
+
+    return [
+        SpoolGroupResult(
+            key=row.group_key,
+            spool_count=int(row.spool_count or 0),
+            in_use_count=int(row.in_use_count or 0),
+            total_remaining_weight=float(row.total_remaining_weight or 0),
+            last_used=row.last_used,
+            filament=filament_map.get(row.group_key) if group_by == "filament" else None,
+            vendor=vendor_map.get(row.group_key) if group_by == "vendor" else None,
+        )
+        for row in rows
+    ], total_count
 
 
 async def update(
