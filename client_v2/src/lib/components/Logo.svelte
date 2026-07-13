@@ -1,16 +1,18 @@
 <script lang="ts">
+	import { base } from '$app/paths';
+
 	interface Props {
 		label?: string;
 		size?: number;
 	}
 
-	let { label = 'Spoolman', size = 18 }: Props = $props();
+	let { label = 'Spoolman', size = 22 }: Props = $props();
 </script>
 
-<div class="logo" style="font-size:{size < 20 ? 15 : 18}px">
-	<span class="ring" style="width:{size}px;height:{size}px"></span>
+<a class="logo" href="{base}/" style="font-size:{size < 20 ? 15 : 18}px" aria-label="Spoolman home">
+	<img class="mark" src="{base}/spoolman.svg" alt="" width={size} height={size} />
 	{#if label}<span>{label}</span>{/if}
-</div>
+</a>
 
 <style>
 	.logo {
@@ -18,10 +20,14 @@
 		align-items: center;
 		gap: 9px;
 		font-weight: 700;
+		color: inherit;
+		text-decoration: none;
 	}
-	.ring {
-		border-radius: 50%;
-		border: 4px solid var(--accent);
+	.logo:hover span {
+		color: var(--accent-soft);
+	}
+	.mark {
 		flex: none;
+		display: block;
 	}
 </style>

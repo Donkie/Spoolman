@@ -13,6 +13,10 @@
 	let { data }: { data: PageData } = $props();
 </script>
 
+<svelte:head>
+	<title>Library | Spoolman</title>
+</svelte:head>
+
 <div class="library">
 	<!-- Left list: front and centre; on mobile it fills the screen. -->
 	<div class="list-pane">

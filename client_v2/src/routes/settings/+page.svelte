@@ -14,6 +14,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Settings | Spoolman</title>
+</svelte:head>
+
 <div class="page scroll-y">
 	<div class="wrap">
 		<div class="title">Settings</div>
@@ -65,15 +69,10 @@
 
 		<div class="sec-label">Extra fields</div>
 		<div class="subtitle sub2">
-			Define custom fields for spools, filaments and vendors. Field type and key can't change once created;
+			Define custom fields for spools, filaments and manufacturers. Field type and key can't change once created;
 			choices can only be added.
 		</div>
 		<ExtraFieldsManager />
-
-		<div class="foot">
-			Spoolman v2 · <a href="https://github.com/Donkie/Spoolman">Documentation</a>
-			· <a href="https://github.com/Donkie/Spoolman/issues">Report an issue</a>
-		</div>
 	</div>
 </div>
 
@@ -133,10 +132,5 @@
 	.unit {
 		font-size: 12px;
 		color: var(--text-dim);
-	}
-	.foot {
-		font-size: 11.5px;
-		color: var(--text-faint);
-		padding: 28px 2px 0;
 	}
 </style>

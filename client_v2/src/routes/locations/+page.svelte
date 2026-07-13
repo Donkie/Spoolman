@@ -6,6 +6,7 @@
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { live } from '$lib/api/live';
 	import { goto } from '$app/navigation';
+	import { grams } from '$lib/utils/format';
 
 	let draggingId = $state<number | null>(null);
 	let dragOver = $state<string | null>(null);
@@ -72,6 +73,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Locations | Spoolman</title>
+</svelte:head>
+
 <div class="page scroll-y">
 	<div class="head">
 		<span class="title">Locations</span>
@@ -114,7 +119,7 @@
 							<span class="chip-id mono">#{s.id}</span>
 							<span class="chip-name">{f.name}</span>
 							<span class="chip-rem mono" class:low={settings.isLow(s.remaining, s.unused)}
-								>{s.remaining} g</span
+								>{grams(s.remaining)} g</span
 							>
 						</div>
 					{/each}

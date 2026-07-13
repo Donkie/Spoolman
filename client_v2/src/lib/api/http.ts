@@ -60,6 +60,19 @@ export async function patchJson<T = unknown>(path: string, body: unknown): Promi
 	return (await res.json()) as T;
 }
 
+export async function putJson<T = unknown>(path: string, body: unknown): Promise<T> {
+	const res = await ensureOk(
+		await fetch(API_BASE + path, {
+			method: 'PUT',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify(body)
+		}),
+		'PUT',
+		path
+	);
+	return (await res.json()) as T;
+}
+
 export async function postJson<T = unknown>(path: string, body: unknown): Promise<T> {
 	const res = await ensureOk(
 		await fetch(API_BASE + path, {

@@ -20,7 +20,7 @@
 	// Filter categories the API can serve (options fetched lazily on open).
 	const FILTER_CATEGORIES: { key: string; label: string; load: () => Promise<string[]> }[] = [
 		{ key: 'material', label: 'Material', load: () => spoolSource.materials() },
-		{ key: 'vendor', label: 'Vendor', load: () => spoolSource.vendorNames() },
+		{ key: 'vendor', label: 'Manufacturer', load: () => spoolSource.vendorNames() },
 		{ key: 'location', label: 'Location', load: () => spoolSource.locations() },
 		{ key: 'lot', label: 'Lot №', load: () => spoolSource.lotNumbers() }
 	];
@@ -48,7 +48,7 @@
 
 	const groupOptions: { key: GroupMode; label: string }[] = [
 		{ key: 'filament', label: 'Filament' },
-		{ key: 'vendor', label: 'Vendor' },
+		{ key: 'vendor', label: 'Manufacturer' },
 		{ key: 'material', label: 'Material' },
 		{ key: 'location', label: 'Location' },
 		{ key: 'none', label: 'None (flat)' }

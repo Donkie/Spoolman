@@ -1,0 +1,131 @@
+import type { LabelElement } from './types';
+import { resolveTemplate, type LabelBinding } from './template';
+import { qrContent, qrPathData } from './qr';
+
+// Turns a design element into a Konva shape spec (in mm units — the Konva layer
+// is scaled by px-per-mm). Text/swatch/rect map to a single node; QR maps to a
+// small group (white background + module path + optional centre logo). The
+// declarative editor and the imperative print export share these specs so their
+// geometry stays identical.
+
+export interface RenderContext {
+	/** Bound spool data; when absent the design renders in "template" preview. */
+	binding?: LabelBinding;
+	baseUrl: string;
+}
+
+export type ShapeSpec =
+	| { kind: 'rect'; config: Record<string, unknown> }
+	| { kind: 'text'; config: Record<string, unknown> }
+	| {
+			kind: 'textclip';
+			x: number;
+			y: number;
+			width: number;
+			clipHeight: number;
+			config: Record<string, unknown>;
+	  }
+	| { kind: 'qr'; x: number; y: number; size: number; pathData: string; logo: boolean };
+
+const PLACEHOLDER_SWATCH = '#9aa0a6';
+
+/** Geometry (in mm, relative to the QR's top-left) for a centred logo. */
+export function qrLogoBox(size: number) {
+	const pad = size * 0.28;
+	const logo = size * 0.2;
+	return {
+		pad,
+		padXY: (size - pad) / 2,
+		logo,
+		logoXY: (size - logo) / 2,
+		radius: size * 0.03
+	};
+}
+
+export function elementToShape(el: LabelElement, ctx: RenderContext): ShapeSpec {
+	switch (el.type) {
+		case 'qr': {
+			const spool = ctx.binding?.spool;
+			const content = spool ? qrContent(el, spool, { baseUrl: ctx.baseUrl }) : 'WEB+SPOOLMAN:S-0';
+			return {
+				kind: 'qr',
+				x: el.x,
+				y: el.y,
+				size: el.size,
+				pathData: qrPathData(content, el.ec, el.size),
+				logo: el.logo
+			};
+		}
+		case 'text': {
+			const text = ctx.binding
+				? resolveTemplate(el.template, ctx.binding)
+				: el.template.replace(/\*\*(.*?)\*\*/gs, '$1');
+			const common = {
+				text,
+				fontSize: el.fontSize,
+				fontStyle: el.bold ? 'bold' : 'normal',
+				fontFamily: 'sans-serif',
+				align: el.align,
+				fill: el.color,
+				lineHeight: 1.15
+			};
+			// Default (undefined) wraps, for backward compatibility with older designs.
+			if (el.wrap !== false) {
+				return { kind: 'text', config: { x: el.x, y: el.y, width: el.w, wrap: 'word', ...common } };
+			}
+			// No wrap: keep each line on one line and clip horizontal overflow to `w`.
+			const lines = Math.max(1, text.split('\n').length);
+			const clipHeight = el.fontSize * 1.15 * lines + el.fontSize * 0.3;
+			// Pin the text height so the transformer box matches the clip (Konva
+			// otherwise reports the wrapped height even with wrap disabled).
+			return {
+				kind: 'textclip',
+				x: el.x,
+				y: el.y,
+				width: el.w,
+				clipHeight,
+				config: { x: 0, y: 0, width: el.w, height: clipHeight, wrap: 'none', ...common }
+			};
+		}
+		case 'swatch': {
+			const colors = ctx.binding?.filament?.colors ?? [];
+			const config: Record<string, unknown> = {
+				x: el.x,
+				y: el.y,
+				width: el.w,
+				height: el.h,
+				cornerRadius: el.radius
+			};
+			if (colors.length === 0) {
+				config.fill = PLACEHOLDER_SWATCH;
+			} else if (colors.length === 1) {
+				config.fill = colors[0];
+			} else {
+				// Even gradient stops across the width for multi-color filaments.
+				const stops: (number | string)[] = [];
+				colors.forEach((hex, i) => {
+					stops.push(colors.length === 1 ? 0 : i / (colors.length - 1), hex);
+				});
+				config.fillLinearGradientStartPoint = { x: 0, y: 0 };
+				config.fillLinearGradientEndPoint = { x: el.w, y: 0 };
+				config.fillLinearGradientColorStops = stops;
+			}
+			return { kind: 'rect', config };
+		}
+		case 'rect': {
+			return {
+				kind: 'rect',
+				config: {
+					x: el.x,
+					y: el.y,
+					width: el.w,
+					height: el.h,
+					cornerRadius: el.radius,
+					fill: el.fill || undefined,
+					stroke: el.stroke || undefined,
+					strokeWidth: el.strokeWidth
+				}
+			};
+		}
+	}
+}

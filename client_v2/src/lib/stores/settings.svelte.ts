@@ -66,6 +66,26 @@ class Settings {
 			return `${value.toFixed(digits)} ${this.currency}`;
 		}
 	}
+
+	/** Format a price's numeric part only (no currency symbol), honoring round_prices. */
+	formatPriceValue(value: number): string {
+		const digits = this.roundPrices ? 0 : 2;
+		return value.toFixed(digits);
+	}
+
+	/** The configured currency's symbol, e.g. "€" or "$", for use as an input addon. */
+	get currencySymbol(): string {
+		try {
+			const parts = new Intl.NumberFormat(undefined, {
+				style: 'currency',
+				currency: this.currency,
+				currencyDisplay: 'narrowSymbol'
+			}).formatToParts(0);
+			return parts.find((p) => p.type === 'currency')?.value ?? this.currency;
+		} catch {
+			return this.currency;
+		}
+	}
 }
 
 export const settings = new Settings();

@@ -5,6 +5,11 @@ export function kg(g: number): string {
 	return (g / 1000).toFixed(1) + ' kg';
 }
 
+/** Round a gram value for display: whole grams stay whole, else one decimal. */
+export function grams(g: number): string {
+	return Number.isInteger(g) ? String(g) : g.toFixed(1);
+}
+
 /** Approximate remaining length in meters for a weight of filament. */
 export function lengthMeters(grams: number, f: Filament): number {
 	// volume(cm³) = mass / density; cross-section area = π r² (mm² → cm²)

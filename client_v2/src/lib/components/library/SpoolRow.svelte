@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Swatch from '../Swatch.svelte';
 	import ProgressBar from '../ProgressBar.svelte';
-	import type { SpoolVM } from '$lib/utils/library';
+	import { rowIdentity, type RowContext, type SpoolVM } from '$lib/utils/library';
 	import * as params from '$lib/library/params';
 	import { page } from '$app/state';
 
@@ -9,10 +9,13 @@
 		vm: SpoolVM;
 		showSwatch?: boolean;
 		indent?: number;
+		/** Listing context — drops whatever the enclosing group already implies. */
+		context?: RowContext;
 	}
 
-	let { vm, showSwatch = false, indent = 14 }: Props = $props();
+	let { vm, showSwatch = false, indent = 14, context = 'flat' }: Props = $props();
 
+	let identity = $derived(rowIdentity(vm, context));
 	let selected = $derived(params.isSelected(page.url.searchParams, 'spool', String(vm.spool.id)));
 </script>
 
@@ -27,8 +30,8 @@
 		<Swatch colors={vm.filament.colors} size={22} />
 	{/if}
 	<span class="name">
-		<span class="title">{vm.name}</span>
-		<span class="sub">{vm.sub}</span>
+		{#if identity.title}<span class="title">{identity.title}</span>{/if}
+		{#if identity.sub}<span class="sub">{identity.sub}</span>{/if}
 	</span>
 	<ProgressBar value={vm.pctValue} danger={vm.low} width="56px" />
 	<span class="rem mono" class:low={vm.low}>{vm.remLabel}</span>

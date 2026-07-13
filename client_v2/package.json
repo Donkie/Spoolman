@@ -16,11 +16,17 @@
     "@sveltejs/adapter-static": "^3.0.6",
     "@sveltejs/kit": "^2.8.1",
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
+    "@types/qrcode": "^1.5.6",
     "prettier": "^3.3.3",
     "prettier-plugin-svelte": "^3.2.7",
     "svelte": "^5.1.9",
     "svelte-check": "^4.0.5",
     "typescript": "^5.6.3",
     "vite": "^5.4.10"
+  },
+  "dependencies": {
+    "konva": "^10.3.0",
+    "qrcode": "^1.5.4",
+    "svelte-konva": "^1.0.1"
   }
 }

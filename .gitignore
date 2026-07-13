@@ -201,8 +201,7 @@ $RECYCLE.BIN/
 
 ### VisualStudioCode ###
 .vscode/
-
-data/
+devdata
 .pdm-python
 .history
 .claude

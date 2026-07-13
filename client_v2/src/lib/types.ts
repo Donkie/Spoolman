@@ -45,6 +45,12 @@ export interface Spool {
 	initial: number;
 	location: string;
 	lot: string;
+	/** Per-spool price override; undefined falls back to the filament's price. */
+	price?: number;
+	/** ISO timestamp of first use, if any. */
+	firstUsed?: string;
+	/** ISO timestamp of most recent use, if any. */
+	lastUsed?: string;
 	/** Human label for when it was last used, e.g. "2 d". Empty = never. */
 	lastUsedLabel: string;
 	/** Human label for registration date, e.g. "Jan 14". */

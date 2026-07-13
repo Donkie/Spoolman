@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FieldType, type FieldDef } from '$lib/api/fields';
+	import { FieldType, NUMERIC_FIELD_TYPES, type FieldDef } from '$lib/api/fields';
 	import Toggle from './Toggle.svelte';
 
 	interface Props {
@@ -8,8 +8,10 @@
 		value: string | undefined;
 		/** Emit the new JSON-encoded value, or undefined to leave unset. */
 		onchange: (json: string | undefined) => void;
+		/** Render the value as plain text instead of an editable input. */
+		readonly?: boolean;
 	}
-	let { field, value, onchange }: Props = $props();
+	let { field, value, onchange, readonly = false }: Props = $props();
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let parsed = $derived.by<any>(() => {
@@ -64,28 +66,76 @@
 	}
 </script>
 
-{#if field.field_type === FieldType.text}
+{#if readonly}
+	{@const withUnit = (v: string) => (field.unit ? `${v} ${field.unit}` : v)}
+	{#if field.field_type === FieldType.integer_range || field.field_type === FieldType.float_range}
+		<span class="mono"
+			>{withUnit(lo === '' && hi === '' ? '—' : `${lo === '' ? '?' : lo}–${hi === '' ? '?' : hi}`)}</span
+		>
+	{:else if field.field_type === FieldType.datetime}
+		<span class="mono">{parsed ? new Date(parsed).toLocaleString() : '—'}</span>
+	{:else if field.field_type === FieldType.boolean}
+		<span>{parsed === true ? 'Yes' : 'No'}</span>
+	{:else if field.field_type === FieldType.choice && field.multi_choice}
+		<span>{selected.length ? selected.join(', ') : '—'}</span>
+	{:else}
+		<span class:mono={NUMERIC_FIELD_TYPES.has(field.field_type)}
+			>{parsed !== undefined && parsed !== '' ? withUnit(String(parsed)) : '—'}</span
+		>
+	{/if}
+{:else if field.field_type === FieldType.text}
 	<input class="edit" value={parsed ?? ''} oninput={(e) => onText(e.currentTarget.value)} />
 {:else if field.field_type === FieldType.integer}
 	<span class="numrow">
-		<input class="edit mono" type="number" step="1" value={parsed ?? ''} oninput={(e) => onInt(e.currentTarget.value)} />
+		<input
+			class="edit mono"
+			type="number"
+			step="1"
+			value={parsed ?? ''}
+			oninput={(e) => onInt(e.currentTarget.value)}
+		/>
 		{#if field.unit}<span class="unit">{field.unit}</span>{/if}
 	</span>
 {:else if field.field_type === FieldType.float}
 	<span class="numrow">
-		<input class="edit mono" type="number" step="any" value={parsed ?? ''} oninput={(e) => onFloat(e.currentTarget.value)} />
+		<input
+			class="edit mono"
+			type="number"
+			step="any"
+			value={parsed ?? ''}
+			oninput={(e) => onFloat(e.currentTarget.value)}
+		/>
 		{#if field.unit}<span class="unit">{field.unit}</span>{/if}
 	</span>
 {:else if field.field_type === FieldType.integer_range || field.field_type === FieldType.float_range}
 	{@const isInt = field.field_type === FieldType.integer_range}
 	<span class="numrow">
-		<input class="edit mono narrow" type="number" step={isInt ? '1' : 'any'} value={lo} oninput={(e) => onRange(0, e.currentTarget.value, isInt)} placeholder="min" />
+		<input
+			class="edit mono narrow"
+			type="number"
+			step={isInt ? '1' : 'any'}
+			value={lo}
+			oninput={(e) => onRange(0, e.currentTarget.value, isInt)}
+			placeholder="min"
+		/>
 		<span class="dash">–</span>
-		<input class="edit mono narrow" type="number" step={isInt ? '1' : 'any'} value={hi} oninput={(e) => onRange(1, e.currentTarget.value, isInt)} placeholder="max" />
+		<input
+			class="edit mono narrow"
+			type="number"
+			step={isInt ? '1' : 'any'}
+			value={hi}
+			oninput={(e) => onRange(1, e.currentTarget.value, isInt)}
+			placeholder="max"
+		/>
 		{#if field.unit}<span class="unit">{field.unit}</span>{/if}
 	</span>
 {:else if field.field_type === FieldType.datetime}
-	<input class="edit mono" type="datetime-local" value={toLocalInput(parsed)} oninput={(e) => onDateTime(e.currentTarget.value)} />
+	<input
+		class="edit mono"
+		type="datetime-local"
+		value={toLocalInput(parsed)}
+		oninput={(e) => onDateTime(e.currentTarget.value)}
+	/>
 {:else if field.field_type === FieldType.boolean}
 	<Toggle checked={parsed === true} onchange={(v) => emit(v)} />
 {:else if field.field_type === FieldType.choice && !field.multi_choice}
@@ -99,7 +149,11 @@
 	<div class="multi">
 		{#each field.choices ?? [] as choice (choice)}
 			<label class="chk">
-				<input type="checkbox" checked={selected.includes(choice)} onchange={(e) => toggleChoice(choice, e.currentTarget.checked)} />
+				<input
+					type="checkbox"
+					checked={selected.includes(choice)}
+					onchange={(e) => toggleChoice(choice, e.currentTarget.checked)}
+				/>
 				{choice}
 			</label>
 		{/each}

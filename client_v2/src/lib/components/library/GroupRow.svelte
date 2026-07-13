@@ -65,10 +65,10 @@
 <div>
 	<GroupHeader group={header} sticky onclick={headerClick} />
 	{#each inUse as vm (vm.spool.id)}
-		<SpoolRow {vm} {showSwatch} indent={26} />
+		<SpoolRow {vm} {showSwatch} indent={26} context={group.field} />
 	{/each}
 	{#if unused.length}
-		<UnusedRow {unused} {showSwatch} indent={26} />
+		<UnusedRow {unused} {showSwatch} indent={26} context={group.field} />
 	{/if}
 	{#if moreCount > 0}
 		<button class="more" onclick={() => (limit += 20)}>＋ show {moreCount} more</button>

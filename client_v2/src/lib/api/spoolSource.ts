@@ -1,6 +1,6 @@
 import type { Filament, Spool, Vendor } from '$lib/types';
 import type { GroupQuery, GroupSummary, Page, SpoolQuery } from './types';
-import { getList, getJson, patchJson, postJson } from './http';
+import { getList, getJson, patchJson, postJson, putJson } from './http';
 import type { QueryParams } from './http';
 import {
 	mapFilament,
@@ -170,7 +170,10 @@ class HttpSpoolSource {
 			inventory.upsertVendor(mapVendor(vendors[0]));
 			vendorId = vendors[0].id;
 		} else {
-			const created = await postJson<Json>('/vendor', { name: ext.manufacturer, external_id: ext.manufacturer });
+			const created = await postJson<Json>('/vendor', {
+				name: ext.manufacturer,
+				external_id: ext.manufacturer
+			});
 			inventory.upsertVendor(mapVendor(created));
 			vendorId = created.id;
 		}
@@ -256,6 +259,27 @@ class HttpSpoolSource {
 	async archiveSpool(id: number): Promise<void> {
 		await this.saveSpool(id, { archived: true });
 	}
+	/** Consume (or, if negative, add back) filament by length. */
+	async useSpoolLength(id: number, length: number): Promise<Spool> {
+		const updated = await putJson<Json>(`/spool/${id}/use`, { use_length: length });
+		const spool = mapSpool(updated);
+		inventory.upsertSpool(spool);
+		return spool;
+	}
+	/** Consume (or, if negative, add back) filament by weight. */
+	async useSpoolWeight(id: number, weight: number): Promise<Spool> {
+		const updated = await putJson<Json>(`/spool/${id}/use`, { use_weight: weight });
+		const spool = mapSpool(updated);
+		inventory.upsertSpool(spool);
+		return spool;
+	}
+	/** Consume filament based on the current gross (spool + filament) weight measurement. */
+	async measureSpool(id: number, weight: number): Promise<Spool> {
+		const updated = await putJson<Json>(`/spool/${id}/measure`, { weight });
+		const spool = mapSpool(updated);
+		inventory.upsertSpool(spool);
+		return spool;
+	}
 	async saveFilament(id: string, patch: Partial<Filament>): Promise<void> {
 		const updated = await patchJson<Json>(`/filament/${id}`, filamentPatchToApi(patch));
 		inventory.upsertFilament(mapFilament(updated));
@@ -283,7 +307,10 @@ class HttpSpoolSource {
 	async vendorNames(): Promise<string[]> {
 		const vendors = await getJson<Json[]>('/vendor');
 		inventory.upsertVendors(vendors.map(mapVendor));
-		return vendors.map((v) => v.name).filter(Boolean).sort();
+		return vendors
+			.map((v) => v.name)
+			.filter(Boolean)
+			.sort();
 	}
 }
 

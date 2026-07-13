@@ -46,7 +46,7 @@ export function shortDate(iso: string | null | undefined): string {
 export function mapVendor(v: Json): Vendor {
 	return {
 		id: String(v.id),
-		name: v.name ?? '(unnamed vendor)',
+		name: v.name ?? '(unnamed manufacturer)',
 		emptyWeight: v.empty_spool_weight ?? 0,
 		extra: v.extra ?? {}
 	};
@@ -81,6 +81,9 @@ export function mapSpool(s: Json): Spool {
 		initial: s.initial_weight ?? f.weight ?? 0,
 		location: s.location ?? '',
 		lot: s.lot_nr ?? '',
+		price: s.price ?? undefined,
+		firstUsed: s.first_used ?? undefined,
+		lastUsed: s.last_used ?? undefined,
 		lastUsedLabel: relTime(s.last_used),
 		registeredLabel: shortDate(s.registered),
 		archived: s.archived ?? false,
@@ -99,11 +102,11 @@ export function mapGroup(g: Json): GroupSummary {
 	if (field === 'filament' && g.filament) {
 		const f: Json = g.filament;
 		title = f.name ?? '(unnamed filament)';
-		subtitle = `${f.vendor?.name ?? 'No vendor'} · ${f.diameter} mm`;
+		subtitle = `${f.vendor?.name ?? 'No manufacturer'} · ${f.diameter} mm`;
 		badge = f.material ?? '';
 		colors = colorsFromApi(f);
 	} else if (field === 'vendor' && g.vendor) {
-		title = g.vendor.name ?? '(unnamed vendor)';
+		title = g.vendor.name ?? '(unnamed manufacturer)';
 		subtitle = `${g.spool_count} spool${g.spool_count === 1 ? '' : 's'}`;
 	} else if (field === 'material') {
 		title = g.key ?? 'No material';
@@ -138,6 +141,9 @@ export function spoolPatchToApi(patch: Partial<Spool>): Json {
 	const out: Json = {};
 	if ('location' in patch) out.location = patch.location ?? '';
 	if ('lot' in patch) out.lot_nr = patch.lot ?? '';
+	if ('price' in patch) out.price = patch.price ?? null;
+	if ('firstUsed' in patch) out.first_used = patch.firstUsed ?? null;
+	if ('lastUsed' in patch) out.last_used = patch.lastUsed ?? null;
 	if ('comment' in patch) out.comment = patch.comment ?? '';
 	if ('archived' in patch) out.archived = patch.archived;
 	if ('remaining' in patch) out.remaining_weight = patch.remaining;

@@ -11,8 +11,9 @@
 		entity: EntityType;
 		extra: Extra;
 		onchange: (key: string, json: string | undefined) => void;
+		readonly?: boolean;
 	}
-	let { entity, extra, onchange }: Props = $props();
+	let { entity, extra, onchange, readonly = false }: Props = $props();
 
 	$effect(() => {
 		fields.ensure(entity);
@@ -25,7 +26,12 @@
 	<FieldGrid>
 		{#each defs as f (f.key)}
 			<Field label={f.name}>
-				<ExtraFieldInput field={f} value={extra[f.key]} onchange={(json) => onchange(f.key, json)} />
+				<ExtraFieldInput
+					field={f}
+					value={extra[f.key]}
+					onchange={(json) => onchange(f.key, json)}
+					{readonly}
+				/>
 			</Field>
 		{/each}
 	</FieldGrid>

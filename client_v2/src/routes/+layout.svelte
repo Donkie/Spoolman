@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import TopBar from '$components/TopBar.svelte';
+	import Footer from '$components/Footer.svelte';
 	import AddSpoolModal from '$components/AddSpoolModal.svelte';
 	import { ui } from '$lib/stores/ui.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
@@ -22,6 +23,7 @@
 	<main>
 		{@render children()}
 	</main>
+	<Footer />
 </div>
 
 <AddSpoolModal

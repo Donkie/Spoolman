@@ -13,7 +13,7 @@
 	import { settings } from '$lib/stores/settings.svelte';
 	import { ui } from '$lib/stores/ui.svelte';
 	import * as params from '$lib/library/params';
-	import { pct } from '$lib/utils/format';
+	import { pct, grams } from '$lib/utils/format';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
 
@@ -104,7 +104,7 @@
 						danger={settings.isLow(s.remaining, s.unused)}
 					/>
 				</span>
-				<span class="rem mono">{s.remaining} g</span>
+				<span class="rem mono">{grams(s.remaining)} g</span>
 				<span class="loc">{s.location || 'no location'}</span>
 			</button>
 		{/each}

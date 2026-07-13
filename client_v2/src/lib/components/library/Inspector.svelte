@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import SpoolInspector from './SpoolInspector.svelte';
 	import FilamentInspector from './FilamentInspector.svelte';
 	import VendorInspector from './VendorInspector.svelte';
@@ -21,8 +22,8 @@
 	<VendorInspector {vendor} />
 {:else}
 	<div class="empty">
-		<div class="ring"></div>
-		<p>Select a spool, filament or vendor from the list to see its details here.</p>
+		<img class="mark" src="{base}/spoolman.svg" alt="" width="56" height="56" />
+		<p>Select a spool, filament or manufacturer from the list to see its details here.</p>
 	</div>
 {/if}
 
@@ -39,12 +40,8 @@
 		color: var(--text-dim);
 		font-size: 13px;
 	}
-	.ring {
-		width: 44px;
-		height: 44px;
-		border-radius: 50%;
-		border: 8px solid var(--accent);
-		opacity: 0.4;
+	.mark {
+		opacity: 0.45;
 	}
 	.empty p {
 		max-width: 280px;

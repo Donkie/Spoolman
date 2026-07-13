@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Swatch from '../Swatch.svelte';
 	import SpoolRow from './SpoolRow.svelte';
-	import type { SpoolVM } from '$lib/utils/library';
+	import type { RowContext, SpoolVM } from '$lib/utils/library';
 	import { isSelected } from '$lib/library/params';
 	import { page } from '$app/state';
 
@@ -9,9 +9,11 @@
 		unused: SpoolVM[];
 		showSwatch?: boolean;
 		indent?: number;
+		/** Listing context, forwarded to the expanded per-instance rows. */
+		context?: RowContext;
 	}
 
-	let { unused, showSwatch = false, indent = 14 }: Props = $props();
+	let { unused, showSwatch = false, indent = 14, context = 'flat' }: Props = $props();
 
 	// Unused spools (never drawn from — used_weight 0) of one filament are
 	// collapsed into a single summary row. Clicking can't know *which* instance
@@ -54,7 +56,7 @@
 {#if expanded}
 	<div class="instances">
 		{#each unused as vm (vm.spool.id)}
-			<SpoolRow {vm} {showSwatch} indent={indent + 14} />
+			<SpoolRow {vm} {showSwatch} indent={indent + 14} {context} />
 		{/each}
 	</div>
 {/if}

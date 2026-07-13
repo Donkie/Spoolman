@@ -1,0 +1,169 @@
+import type { Spool, Filament, Vendor } from '$lib/types';
+import type { FieldDef, EntityType } from '$lib/api/fields';
+
+// Resolves `{placeholder}` templates against a spool and its filament/vendor.
+// Ported from v1's renderLabelContents (client/src/pages/printing/printing.tsx)
+// but resolving the v2 camelCase domain types instead of the raw API JSON.
+//
+// Supported syntax:
+//   {path}                       → the value, or "?" if missing
+//   {prefix{path}suffix}         → whole block dropped when the value is missing
+//   {entity.extra.<key>}         → a custom (extra) field value
+//   \n                           → line break (honored by Konva.Text)
+//   **bold**                     → markers stripped (block-level bold is a text
+//                                  element property; inline bold isn't rendered)
+
+export interface LabelBinding {
+	spool: Spool;
+	filament?: Filament;
+	vendor?: Vendor;
+}
+
+/** Sentinel returned for an absent value; drives conditional-block omission. */
+const MISSING = '?';
+
+function fmtNum(n: number | undefined | null): string | null {
+	if (n === undefined || n === null || Number.isNaN(n)) return null;
+	return String(Math.round(n * 100) / 100);
+}
+
+/** Curated fixed-field resolvers keyed by placeholder path. */
+const RESOLVERS: Record<string, (b: LabelBinding) => string | number | null | undefined> = {
+	'spool.id': (b) => b.spool.id,
+	'spool.location': (b) => b.spool.location,
+	'spool.lot': (b) => b.spool.lot,
+	'spool.comment': (b) => b.spool.comment,
+	'spool.remaining': (b) => fmtNum(b.spool.remaining),
+	'spool.initial': (b) => fmtNum(b.spool.initial),
+	'spool.registered': (b) => b.spool.registeredLabel,
+	'spool.lastUsed': (b) => b.spool.lastUsedLabel,
+
+	'filament.name': (b) => b.filament?.name,
+	'filament.material': (b) => b.filament?.material,
+	'filament.diameter': (b) => fmtNum(b.filament?.diameter),
+	'filament.density': (b) => fmtNum(b.filament?.density),
+	'filament.weight': (b) => fmtNum(b.filament?.weight),
+	'filament.spoolWeight': (b) => fmtNum(b.filament?.spoolWeight),
+	'filament.price': (b) => fmtNum(b.filament?.price ?? undefined),
+	'filament.nozzleTemp': (b) => fmtNum(b.filament?.nozzleTemp),
+	'filament.bedTemp': (b) => fmtNum(b.filament?.bedTemp),
+	'filament.color': (b) => b.filament?.colors[0],
+	'filament.vendor.name': (b) => b.vendor?.name,
+
+	'vendor.name': (b) => b.vendor?.name
+};
+
+/** Resolve a single placeholder path to a display string, or MISSING. */
+function resolvePath(path: string, b: LabelBinding): string {
+	// entity.extra.<key>
+	const extraMatch = path.match(/^(spool|filament|vendor)\.extra\.(.+)$/);
+	if (extraMatch) {
+		const [, entity, key] = extraMatch;
+		const src = entity === 'spool' ? b.spool : entity === 'filament' ? b.filament : b.vendor;
+		const raw = src?.extra?.[key];
+		if (raw === undefined) return MISSING;
+		try {
+			const parsed = JSON.parse(raw);
+			return parsed === null || parsed === '' ? MISSING : String(parsed);
+		} catch {
+			return raw || MISSING;
+		}
+	}
+
+	const resolver = RESOLVERS[path];
+	if (!resolver) return MISSING;
+	const value = resolver(b);
+	if (value === undefined || value === null || value === '') return MISSING;
+	return String(value);
+}
+
+/**
+ * Render a template to a plain string for the given binding. In "preview" mode
+ * (no filament/vendor, or missing values) placeholders resolve to their tags so
+ * the designer stays legible before a real spool is bound.
+ */
+export function resolveTemplate(template: string, b: LabelBinding): string {
+	// Match either a bare {path} or a wrapped {prefix{path}suffix}.
+	const matches = [...template.matchAll(/{(?:[^}{]|{[^}{]*})*}/gs)];
+	let out = template;
+	for (const match of matches) {
+		const braces = (match[0].match(/{/g) || []).length;
+		if (braces === 1) {
+			const path = match[0].replace(/[{}]/g, '');
+			const value = resolvePath(path, b);
+			out = out.replace(match[0], value === MISSING ? '' : value);
+		} else if (braces === 2) {
+			const structure = match[0].match(/{(.*?){(.*?)}(.*?)}/s);
+			if (structure) {
+				const value = resolvePath(structure[2], b);
+				out = out.replace(match[0], value === MISSING ? '' : structure[1] + value + structure[3]);
+			}
+		}
+	}
+	// Inline bold markers aren't rendered on the canvas; strip them.
+	return out.replace(/\*\*(.*?)\*\*/gs, '$1');
+}
+
+// --- Placeholder catalog (for the designer's field palette) ----------------
+
+export interface PlaceholderItem {
+	/** The token inserted into the template, without braces. */
+	token: string;
+	label: string;
+}
+export interface PlaceholderGroup {
+	entity: EntityType;
+	label: string;
+	items: PlaceholderItem[];
+}
+
+const FIXED_GROUPS: PlaceholderGroup[] = [
+	{
+		entity: 'spool',
+		label: 'Spool',
+		items: [
+			{ token: 'spool.id', label: 'ID' },
+			{ token: 'spool.location', label: 'Location' },
+			{ token: 'spool.lot', label: 'Lot nr' },
+			{ token: 'spool.remaining', label: 'Remaining (g)' },
+			{ token: 'spool.initial', label: 'Initial (g)' },
+			{ token: 'spool.registered', label: 'Registered' },
+			{ token: 'spool.lastUsed', label: 'Last used' },
+			{ token: 'spool.comment', label: 'Comment' }
+		]
+	},
+	{
+		entity: 'filament',
+		label: 'Filament',
+		items: [
+			{ token: 'filament.name', label: 'Name' },
+			{ token: 'filament.material', label: 'Material' },
+			{ token: 'filament.diameter', label: 'Diameter (mm)' },
+			{ token: 'filament.density', label: 'Density' },
+			{ token: 'filament.weight', label: 'Net weight (g)' },
+			{ token: 'filament.price', label: 'Price' },
+			{ token: 'filament.nozzleTemp', label: 'Nozzle temp' },
+			{ token: 'filament.bedTemp', label: 'Bed temp' },
+			{ token: 'filament.color', label: 'Color hex' }
+		]
+	},
+	{
+		entity: 'vendor',
+		label: 'Vendor',
+		items: [{ token: 'vendor.name', label: 'Name' }]
+	}
+];
+
+/**
+ * Build the palette groups, merging in extra-field definitions per entity.
+ * `extraFields` maps each entity type to its FieldDef list (from the fields store).
+ */
+export function getPlaceholderGroups(extraFields: Record<EntityType, FieldDef[]>): PlaceholderGroup[] {
+	return FIXED_GROUPS.map((group) => {
+		const extra = (extraFields[group.entity] ?? []).map((f) => ({
+			token: `${group.entity}.extra.${f.key}`,
+			label: f.name
+		}));
+		return { ...group, items: [...group.items, ...extra] };
+	});
+}

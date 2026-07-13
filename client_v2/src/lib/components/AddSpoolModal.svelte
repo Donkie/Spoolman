@@ -73,7 +73,7 @@
 	}
 	function cVendor(c: Choice) {
 		return c.source === 'catalog'
-			? (inventory.vendorById(c.filament.vendorId)?.name ?? 'No vendor')
+			? (inventory.vendorById(c.filament.vendorId)?.name ?? 'No manufacturer')
 			: c.ext.manufacturer;
 	}
 	function cMaterial(c: Choice) {
@@ -93,7 +93,7 @@
 		return c.source === 'catalog' ? c.filament.price : undefined;
 	}
 	function vendorName(f: Filament): string {
-		return inventory.vendorById(f.vendorId)?.name ?? 'No vendor';
+		return inventory.vendorById(f.vendorId)?.name ?? 'No manufacturer';
 	}
 
 	// --- search -------------------------------------------------------------
@@ -253,10 +253,10 @@
 	let vendorMatch = $derived(vendorNames.find((v) => v.toLowerCase() === vendorTrimmed.toLowerCase()));
 	let vendorHint = $derived(
 		vendorTrimmed === ''
-			? 'Optional — leave blank for no vendor'
+			? 'Optional — leave blank for no manufacturer'
 			: vendorMatch
-				? `Using existing vendor “${vendorMatch}”`
-				: `New vendor “${vendorTrimmed}” will be created`
+				? `Using existing manufacturer “${vendorMatch}”`
+				: `New manufacturer “${vendorTrimmed}” will be created`
 	);
 	function onMaterial(v: string) {
 		nf.material = v;
@@ -497,7 +497,7 @@
 							</div>
 							<div class="form">
 								<label class="wide">
-									Vendor
+									Manufacturer
 									<input
 										list="vendor-list"
 										bind:value={nf.vendorName}

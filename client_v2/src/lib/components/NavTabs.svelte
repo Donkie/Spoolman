@@ -4,6 +4,7 @@
 	const tabs = [
 		{ href: '/', label: 'Library' },
 		{ href: '/locations', label: 'Locations' },
+		{ href: '/labels', label: 'Labels' },
 		{ href: '/settings', label: 'Settings' }
 	];
 
@@ -22,27 +23,34 @@
 <style>
 	.tabs {
 		display: flex;
-		gap: 2px;
-		align-self: stretch;
-		align-items: stretch;
+		gap: 4px;
+		align-items: center;
 	}
 	.tab {
 		display: flex;
 		align-items: center;
-		padding: 0 14px;
+		padding: 6px 12px;
+		border-radius: var(--radius);
 		font-weight: 400;
 		font-size: 13px;
 		color: var(--text-dim);
 		cursor: pointer;
 		user-select: none;
 		white-space: nowrap;
+		transition:
+			background 0.12s ease,
+			color 0.12s ease;
 	}
 	.tab:hover {
 		color: var(--text);
+		background: var(--accent-wash-soft);
 	}
 	.tab.active {
 		font-weight: 600;
-		color: var(--text);
-		box-shadow: inset 0 -2px 0 var(--accent);
+		color: var(--accent-soft);
+		background: var(--accent-wash);
+	}
+	.tab.active:hover {
+		background: var(--accent-wash);
 	}
 </style>

@@ -2,6 +2,7 @@
 	import Swatch from '../Swatch.svelte';
 	import Button from '../Button.svelte';
 	import EditableField from '../EditableField.svelte';
+	import DateTimeField from '../DateTimeField.svelte';
 	import SectionLabel from '../SectionLabel.svelte';
 	import ExtraFieldsSection from '../ExtraFieldsSection.svelte';
 	import Breadcrumbs from '../Breadcrumbs.svelte';
@@ -11,9 +12,11 @@
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import * as params from '$lib/library/params';
-	import { lengthMeters, pct } from '$lib/utils/format';
+	import { lengthMeters, pct, grams } from '$lib/utils/format';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
+	import { goto } from '$app/navigation';
+	import { base } from '$app/paths';
 
 	let { spool }: { spool: Spool } = $props();
 
@@ -36,8 +39,48 @@
 	let vendor = $derived(inventory.vendorOf(filament));
 	let used = $derived(spool.initial - spool.remaining);
 
+	// Mirrors the v1 client's "Adjust Spool Filament" modal: length/weight are
+	// signed deltas applied via PUT /spool/{id}/use (positive consumes, negative
+	// adds filament back); measured_weight is the new absolute gross weight
+	// (spool + remaining filament) applied via PUT /spool/{id}/measure.
+	type AdjustMode = 'length' | 'weight' | 'measured_weight';
+	const ADJUST_MODE_KEY = 'spoolman-v2-adjust-mode';
+	const ADJUST_MODES: { key: AdjustMode; label: string; fieldLabel: string; unit: string; help: string }[] = [
+		{
+			key: 'length',
+			label: 'Length',
+			fieldLabel: 'Consume amount:',
+			unit: 'mm',
+			help: 'Positive consumes filament, negative adds it back.'
+		},
+		{
+			key: 'weight',
+			label: 'Weight',
+			fieldLabel: 'Consume amount:',
+			unit: 'g',
+			help: 'Positive consumes filament, negative adds it back.'
+		},
+		{
+			key: 'measured_weight',
+			label: 'Measured Weight',
+			fieldLabel: 'New gross weight:',
+			unit: 'g',
+			help: 'Total weight of the spool + remaining filament, as read from a scale.'
+		}
+	];
+
+	function loadAdjustMode(): AdjustMode {
+		if (typeof localStorage === 'undefined') return 'length';
+		const v = localStorage.getItem(ADJUST_MODE_KEY);
+		return v === 'weight' || v === 'measured_weight' ? v : 'length';
+	}
+
 	let adjustOpen = $state(false);
+	let adjustMode = $state<AdjustMode>(loadAdjustMode());
 	let adjustVal = $state('');
+	let adjustError = $state('');
+	let adjustBusy = $state(false);
+	let adjustInfo = $derived(ADJUST_MODES.find((m) => m.key === adjustMode)!);
 
 	// Debounced persistence for inline field edits; optimistic cache patch first.
 	const saver = makeSaver<number, Partial<Spool>>((id, patch) =>
@@ -45,18 +88,42 @@
 	);
 	$effect(() => () => saver.flush());
 
-	function openAdjust() {
-		adjustVal = String(spool.remaining);
-		adjustOpen = !adjustOpen;
+	function resetAdjustInput() {
+		adjustError = '';
+		adjustVal = '';
 	}
-	function applyAdjust() {
-		const v = parseInt(adjustVal, 10);
-		if (!isNaN(v)) {
-			const remaining = Math.max(0, Math.min(spool.initial, v));
-			inventory.patchSpool(spool.id, { remaining, unused: false });
-			spoolSource.saveSpool(spool.id, { remaining }).catch((e) => console.error('Adjust failed', e));
+	function openAdjust() {
+		adjustOpen = !adjustOpen;
+		if (adjustOpen) resetAdjustInput();
+	}
+	function setAdjustMode(mode: AdjustMode) {
+		adjustMode = mode;
+		resetAdjustInput();
+		if (typeof localStorage !== 'undefined') localStorage.setItem(ADJUST_MODE_KEY, mode);
+	}
+	async function applyAdjust() {
+		const v = parseFloat(adjustVal);
+		if (isNaN(v) || (adjustMode === 'measured_weight' && v < 0)) {
+			adjustError = `Enter a valid ${adjustMode === 'length' ? 'length' : 'weight'}.`;
+			return;
 		}
-		adjustOpen = false;
+
+		adjustError = '';
+		adjustBusy = true;
+		try {
+			if (adjustMode === 'length') {
+				await spoolSource.useSpoolLength(spool.id, v);
+			} else if (adjustMode === 'weight') {
+				await spoolSource.useSpoolWeight(spool.id, v);
+			} else {
+				await spoolSource.measureSpool(spool.id, v);
+			}
+			adjustOpen = false;
+		} catch (e) {
+			adjustError = e instanceof Error ? e.message : 'Failed to adjust weight.';
+		} finally {
+			adjustBusy = false;
+		}
 	}
 	function archive() {
 		inventory.patchSpool(spool.id, { archived: true });
@@ -66,6 +133,16 @@
 	function set(patch: Partial<Spool>) {
 		inventory.patchSpool(spool.id, patch);
 		saver.push(spool.id, patch);
+	}
+
+	function setPrice(raw: string) {
+		const trimmed = raw.trim();
+		if (trimmed === '') {
+			set({ price: undefined });
+			return;
+		}
+		const v = parseFloat(trimmed);
+		if (!isNaN(v) && v >= 0) set({ price: v });
 	}
 
 	const extraSaver = makeExtraSaver(
@@ -99,26 +176,55 @@
 		</div>
 		<div class="actions">
 			<Button variant="outline" onclick={openAdjust}>⚖ Adjust weight</Button>
+			<Button variant="outline" onclick={() => goto(`${base}/labels?spools=${spool.id}`)}
+				>◱ Print label</Button
+			>
 			<Button variant="outline" onclick={archive}>Archive</Button>
 		</div>
 	</div>
 
 	<div class="gauge">
 		<div class="gauge-line">
-			<span class="big mono">{spool.remaining} g</span>
+			<span class="big mono">{grams(spool.remaining)} g</span>
 			<span class="of"
-				>of {spool.initial} g remaining · {lengthMeters(spool.remaining, filament).toFixed(0)} m</span
+				>of {grams(spool.initial)} g remaining · {lengthMeters(spool.remaining, filament).toFixed(0)} m</span
 			>
-			<span class="used">used <span class="mono">{used} g</span></span>
+			<span class="used">used <span class="mono">{grams(used)} g</span></span>
 		</div>
 		<div class="bar"><div class="bar-fill" style="width:{pct(spool.remaining, spool.initial)}%"></div></div>
 
 		{#if adjustOpen}
 			<div class="adjust">
-				<span class="adj-label">New remaining weight:</span>
-				<input class="adj-input mono" bind:value={adjustVal} />
-				<span class="adj-unit">g</span>
-				<Button onclick={applyAdjust}>Apply</Button>
+				<div class="adjust-modes">
+					{#each ADJUST_MODES as m (m.key)}
+						<button
+							type="button"
+							class="mode-btn"
+							class:active={adjustMode === m.key}
+							onclick={() => setAdjustMode(m.key)}
+						>
+							{m.label}
+						</button>
+					{/each}
+				</div>
+				<div class="adjust-row">
+					<span class="adj-label">{adjustInfo.fieldLabel}</span>
+					<input
+						class="adj-input mono"
+						type="number"
+						step="any"
+						value={adjustVal}
+						oninput={(e) => (adjustVal = e.currentTarget.value)}
+						disabled={adjustBusy}
+					/>
+					<span class="adj-unit">{adjustInfo.unit}</span>
+					<Button onclick={applyAdjust} disabled={adjustBusy}>{adjustBusy ? 'Applying…' : 'Apply'}</Button>
+				</div>
+				{#if adjustError}
+					<span class="adj-error">{adjustError}</span>
+				{:else if adjustInfo.help}
+					<span class="adj-help">{adjustInfo.help}</span>
+				{/if}
 			</div>
 		{/if}
 	</div>
@@ -137,12 +243,24 @@
 				<Field label="Lot №">
 					<EditableField value={spool.lot} mono oninput={(v) => set({ lot: v })} />
 				</Field>
-				<Field label="Price" mono>
-					{settings.formatPrice(filament.price)}
-					<span class="hint">· filament default</span>
+				<Field label="Price">
+					<div class="price-row">
+						<EditableField
+							value={spool.price != null ? String(spool.price) : ''}
+							placeholder={settings.formatPriceValue(filament.price) + ' · filament default'}
+							mono
+							oninput={setPrice}
+						/>
+						<span class="price-unit">{settings.currencySymbol}</span>
+					</div>
 				</Field>
 				<Field label="Registered">{spool.registeredLabel}</Field>
-				<Field label="Last used">{spool.lastUsedLabel || '—'}</Field>
+				<Field label="First used">
+					<DateTimeField value={spool.firstUsed} oninput={(iso) => set({ firstUsed: iso })} />
+				</Field>
+				<Field label="Last used">
+					<DateTimeField value={spool.lastUsed} oninput={(iso) => set({ lastUsed: iso })} />
+				</Field>
 				<Field label="Comment">
 					<EditableField value={spool.comment} oninput={(v) => set({ comment: v })} />
 				</Field>
@@ -173,12 +291,25 @@
 				<Field label="Diameter" mono>{filament.diameter} mm</Field>
 				<Field label="Density" mono>{filament.density} g/cm³</Field>
 				<Field label="Nozzle / bed" mono>{filament.nozzleTemp}° / {filament.bedTemp}°</Field>
+				<Field label="Spool weight" mono>{filament.weight} g</Field>
+				{#if filament.spoolWeight}
+					<Field label="Empty spool weight" mono>{filament.spoolWeight} g</Field>
+				{/if}
 			</FieldGrid>
+
+			<ExtraFieldsSection entity="filament" extra={filament.extra} onchange={() => {}} readonly />
 		</div>
 	</div>
 </div>
 
 <style>
+	.insp {
+		/* The two-column grid below needs to react to this panel's own width, not
+		   the viewport's — the library sidebar can leave it squeezed well before
+		   the window itself is narrow (e.g. Firefox drops the time-of-day segment
+		   from datetime-local inputs when their column gets too tight). */
+		container-type: inline-size;
+	}
 	.head {
 		display: flex;
 		align-items: center;
@@ -249,13 +380,41 @@
 	}
 	.adjust {
 		display: flex;
-		align-items: center;
+		flex-direction: column;
 		gap: 10px;
 		margin-top: 14px;
 		padding: 12px 14px;
 		border: 1px solid var(--unused-bg);
 		background: var(--accent-wash-soft);
 		border-radius: var(--radius-md);
+	}
+	.adjust-modes {
+		display: flex;
+		gap: 4px;
+	}
+	.mode-btn {
+		background: none;
+		border: 1px solid var(--border-strong);
+		color: var(--text-2);
+		font-size: 11.5px;
+		font-weight: 500;
+		padding: 4px 10px;
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+	.mode-btn:hover {
+		border-color: var(--accent);
+		color: var(--text);
+	}
+	.mode-btn.active {
+		background: var(--accent);
+		border-color: var(--accent);
+		color: #fff;
+	}
+	.adjust-row {
+		display: flex;
+		align-items: center;
+		gap: 10px;
 	}
 	.adj-label {
 		font-size: 12.5px;
@@ -274,6 +433,14 @@
 		font-size: 12px;
 		color: var(--text-dim);
 	}
+	.adj-help {
+		font-size: 11px;
+		color: var(--text-faint);
+	}
+	.adj-error {
+		font-size: 11px;
+		color: var(--danger-soft);
+	}
 
 	.grid {
 		display: grid;
@@ -281,14 +448,24 @@
 		gap: 0 32px;
 		padding: 4px 20px 24px;
 	}
-	.hint {
-		color: var(--text-faint);
-		font-family: var(--font-sans);
-	}
 	.color-row {
 		display: flex;
 		align-items: center;
 		gap: 7px;
+	}
+	.price-row {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+	.price-row :global(.edit) {
+		flex: 1;
+		min-width: 0;
+	}
+	.price-unit {
+		color: var(--text-dim);
+		font-size: 12px;
+		flex: none;
 	}
 	.link {
 		font-size: 11.5px;
@@ -300,7 +477,7 @@
 		font: inherit;
 	}
 
-	@media (max-width: 620px) {
+	@container (max-width: 760px) {
 		.grid {
 			grid-template-columns: 1fr;
 		}

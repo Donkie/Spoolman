@@ -14,7 +14,7 @@
 	const ENTITIES: { key: EntityType; label: string }[] = [
 		{ key: 'spool', label: 'Spool' },
 		{ key: 'filament', label: 'Filament' },
-		{ key: 'vendor', label: 'Vendor' }
+		{ key: 'vendor', label: 'Manufacturer' }
 	];
 
 	let entity = $state<EntityType>('spool');
