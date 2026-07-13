@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
+
 	interface Props {
 		value: string;
 		placeholder?: string;
@@ -6,7 +8,7 @@
 		fullWidth?: boolean;
 	}
 
-	let { value, placeholder = 'Search', oninput, fullWidth = false }: Props = $props();
+	let { value, placeholder = '', oninput, fullWidth = false }: Props = $props();
 </script>
 
 <div class="search" class:full={fullWidth}>
@@ -15,7 +17,7 @@
 		{value}
 		{placeholder}
 		oninput={(e) => oninput?.(e.currentTarget.value)}
-		aria-label="Search"
+		aria-label={$_('common.search')}
 	/>
 </div>
 

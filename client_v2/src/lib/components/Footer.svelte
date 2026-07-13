@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { getInfo, type Info } from '$lib/api/info';
+	import { _ } from 'svelte-i18n';
 
 	let info = $state<Info | null>(null);
 
@@ -18,14 +19,14 @@
 			v{info.version}{#if info.git_commit}<span class="commit"> ({info.git_commit})</span>{/if}
 		{/if}
 		·
-		<a href="https://github.com/Donkie/Spoolman">Documentation</a>
+		<a href="https://github.com/Donkie/Spoolman">{$_('footer.documentation')}</a>
 		·
-		<a href="https://github.com/Donkie/Spoolman/issues">Report an issue</a>
+		<a href="https://github.com/Donkie/Spoolman/issues">{$_('footer.report_issue')}</a>
 	</div>
 
 	<a class="kofi" href="https://ko-fi.com/donkie" target="_blank" rel="noopener noreferrer">
 		<img src="{base}/kofi_s_logo_nolabel.png" alt="" />
-		Tip me on Ko-fi
+		{$_('kofi')}
 	</a>
 </footer>
 

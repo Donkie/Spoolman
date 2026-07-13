@@ -12,6 +12,7 @@
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { kg } from '$lib/utils/format';
+	import { _ } from 'svelte-i18n';
 
 	interface Props {
 		group: GroupSummary;
@@ -40,10 +41,10 @@
 	});
 
 	let inUse = $derived(
-		spools.filter((s) => !s.unused).map((s) => spoolToVM(s, inventory, settings.lowThreshold))
+		spools.filter((s) => !s.unused).map((s) => spoolToVM(s, inventory, settings.lowThreshold, $_))
 	);
 	let unused = $derived(
-		spools.filter((s) => s.unused).map((s) => spoolToVM(s, inventory, settings.lowThreshold))
+		spools.filter((s) => s.unused).map((s) => spoolToVM(s, inventory, settings.lowThreshold, $_))
 	);
 	let moreCount = $derived(group.spoolCount - spools.length);
 	let showSwatch = $derived(group.field !== 'filament');
@@ -71,7 +72,9 @@
 		<UnusedRow {unused} {showSwatch} indent={26} context={group.field} />
 	{/if}
 	{#if moreCount > 0}
-		<button class="more" onclick={() => (limit += 20)}>＋ show {moreCount} more</button>
+		<button class="more" onclick={() => (limit += 20)}
+			>＋ {$_('library.show_more', { values: { count: moreCount } })}</button
+		>
 	{/if}
 </div>
 

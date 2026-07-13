@@ -6,6 +6,7 @@
 	import PrintLayoutPanel from '$components/labels/PrintLayoutPanel.svelte';
 	import { labelDesigns } from '$lib/stores/labelDesigns.svelte';
 	import type { LabelDesign } from '$lib/labels/types';
+	import { _ } from 'svelte-i18n';
 
 	// Spool ids to pre-select in the print tab (deep-link, e.g. /labels?spools=1,2).
 	const preselected = $derived(
@@ -65,7 +66,7 @@
 	}
 	async function remove() {
 		if (!selectedId) return;
-		if (!confirm('Delete this label design?')) return;
+		if (!confirm($_('labels.delete_confirm'))) return;
 		await labelDesigns.remove(selectedId);
 		selectedId = null;
 		working = null;
@@ -86,16 +87,13 @@
 </script>
 
 <svelte:head>
-	<title>Labels | Spoolman</title>
+	<title>{$_('nav.labels')}{$_('documentTitle.suffix')}</title>
 </svelte:head>
 
 <div class="page scroll-y">
 	<div class="wrap">
-		<div class="title">Label designer</div>
-		<div class="subtitle">
-			Design QR-code labels with any spool, filament, or vendor field, then print them on sheets or a label
-			printer. Designs are saved on the server.
-		</div>
+		<div class="title">{$_('labels.designer_title')}</div>
+		<div class="subtitle">{$_('labels.designer_desc')}</div>
 
 		<div class="toolbar">
 			<select
@@ -104,7 +102,7 @@
 				disabled={labelDesigns.designs.length === 0}
 			>
 				{#if labelDesigns.designs.length === 0}
-					<option value="">No designs yet</option>
+					<option value="">{$_('labels.no_designs_option')}</option>
 				{/if}
 				{#each labelDesigns.designs as d (d.id)}
 					<option value={d.id}>{d.name}</option>
@@ -112,25 +110,29 @@
 			</select>
 
 			{#if working}
-				<input class="name" bind:value={working.name} placeholder="Design name" />
+				<input class="name" bind:value={working.name} placeholder={$_('labels.design_name')} />
 			{/if}
 
 			<div class="spacer"></div>
 
-			<Button variant="outline" onclick={newDesign}>+ New</Button>
+			<Button variant="outline" onclick={newDesign}>+ {$_('labels.new')}</Button>
 			{#if working}
-				<Button variant="outline" onclick={duplicate}>Duplicate</Button>
-				<Button variant="outline" onclick={remove}>Delete</Button>
+				<Button variant="outline" onclick={duplicate}>{$_('labels.duplicate')}</Button>
+				<Button variant="outline" onclick={remove}>{$_('buttons.delete')}</Button>
 				<Button onclick={save} disabled={saving || !dirty}
-					>{saving ? 'Saving…' : dirty ? 'Save' : 'Saved'}</Button
+					>{saving ? $_('labels.saving') : dirty ? $_('buttons.save') : $_('labels.saved')}</Button
 				>
 			{/if}
 		</div>
 
 		{#if working}
 			<div class="tabs">
-				<button class:active={tab === 'design'} onclick={() => (tab = 'design')}>Design</button>
-				<button class:active={tab === 'print'} onclick={() => (tab = 'print')}>Print</button>
+				<button class:active={tab === 'design'} onclick={() => (tab = 'design')}
+					>{$_('labels.tab_design')}</button
+				>
+				<button class:active={tab === 'print'} onclick={() => (tab = 'print')}
+					>{$_('labels.tab_print')}</button
+				>
 			</div>
 
 			{#if visitedDesign}
@@ -145,8 +147,8 @@
 			{/if}
 		{:else}
 			<div class="blank">
-				<p>You don't have any label designs yet.</p>
-				<Button onclick={newDesign}>+ Create your first label</Button>
+				<p>{$_('labels.blank')}</p>
+				<Button onclick={newDesign}>+ {$_('labels.create_first')}</Button>
 			</div>
 		{/if}
 	</div>

@@ -10,6 +10,7 @@
 	import * as params from '$lib/library/params';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
+	import { _ } from 'svelte-i18n';
 
 	let { vendor }: { vendor: Vendor } = $props();
 
@@ -65,19 +66,21 @@
 		<div class="titles">
 			<div class="title">{vendor.name}</div>
 			<div class="subtitle">
-				{filaments.length} filament{filaments.length === 1 ? '' : 's'} · empty spool {vendor.emptyWeight} g
+				{$_('inspector.vendor_sub', {
+					values: { count: filaments.length, weight: vendor.emptyWeight }
+				})}
 			</div>
 		</div>
 	</div>
 
 	<div class="grid">
 		<div class="col">
-			<SectionLabel>Manufacturer</SectionLabel>
+			<SectionLabel>{$_('filament.fields.vendor')}</SectionLabel>
 			<FieldGrid labelWidth="140px">
-				<Field label="Name">
+				<Field label={$_('vendor.fields.name')}>
 					<EditableField value={vendor.name} oninput={(v) => set({ name: v })} />
 				</Field>
-				<Field label="Empty spool wt. g">
+				<Field label={$_('inspector.empty_spool_wt')}>
 					<EditableField
 						value={vendor.emptyWeight}
 						mono
@@ -89,7 +92,7 @@
 			<ExtraFieldsSection entity="vendor" extra={vendor.extra} onchange={extraSaver.change} />
 		</div>
 		<div class="col">
-			<SectionLabel>Filaments</SectionLabel>
+			<SectionLabel>{$_('filament.filament')}</SectionLabel>
 			<div class="fils">
 				{#each filaments as f (f.id)}
 					<button class="fil-row" onclick={() => params.select('filament', f.id)}>

@@ -4,6 +4,7 @@
 	import type { RowContext, SpoolVM } from '$lib/utils/library';
 	import { isSelected } from '$lib/library/params';
 	import { page } from '$app/state';
+	import { _ } from 'svelte-i18n';
 
 	interface Props {
 		unused: SpoolVM[];
@@ -22,7 +23,11 @@
 	let expanded = $state(false);
 
 	let first = $derived(unused[0]);
-	let sub = $derived(`${first.spool.initial} g each · ${first.spool.location || 'unassigned'}`);
+	let sub = $derived(
+		$_('library.unused_sub', {
+			values: { weight: first.spool.initial, location: first.spool.location || $_('library.unassigned') }
+		})
+	);
 
 	// Auto-open when one of these spools becomes the active selection, while
 	// still allowing the header to collapse it again afterwards.
@@ -47,7 +52,7 @@
 	{/if}
 	<span class="label">
 		<span class="fname">{first.filament.name}</span>
-		<span class="badge mono">×{unused.length} unused</span>
+		<span class="badge mono">{$_('library.n_unused', { values: { count: unused.length } })}</span>
 	</span>
 	<span class="sub">{sub}</span>
 	<span class="chev" class:open={expanded}>›</span>

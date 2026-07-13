@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
+
 	interface Props {
 		page: number;
 		pageSize: number;
@@ -8,7 +10,7 @@
 		onpagesize: (size: number) => void;
 	}
 
-	let { page, pageSize, total, unit = 'items', onpage, onpagesize }: Props = $props();
+	let { page, pageSize, total, unit = '', onpage, onpagesize }: Props = $props();
 
 	let pageCount = $derived(Math.max(1, Math.ceil(total / pageSize)));
 	let from = $derived(total === 0 ? 0 : (page - 1) * pageSize + 1);
@@ -38,14 +40,21 @@
 
 <div class="pager">
 	<span class="count">
-		{#if total === 0}No {unit}{:else}{from}–{to} of {total} {unit}{/if}
+		{#if total === 0}{$_('pagination.empty', { values: { unit } })}{:else}{$_('pagination.range', {
+				values: { from, to, total, unit }
+			})}{/if}
 	</span>
 
 	<div class="spacer"></div>
 
 	{#if pageCount > 1}
 		<div class="nums">
-			<button class="pg nav" disabled={page <= 1} onclick={() => go(page - 1)} aria-label="Previous page">‹</button>
+			<button
+				class="pg nav"
+				disabled={page <= 1}
+				onclick={() => go(page - 1)}
+				aria-label={$_('pagination.prev')}>‹</button
+			>
 			{#each pages as p, i (i)}
 				{#if p === '…'}
 					<span class="ellipsis">…</span>
@@ -53,13 +62,23 @@
 					<button class="pg" class:active={p === page} onclick={() => go(p)}>{p}</button>
 				{/if}
 			{/each}
-			<button class="pg nav" disabled={page >= pageCount} onclick={() => go(page + 1)} aria-label="Next page">›</button>
+			<button
+				class="pg nav"
+				disabled={page >= pageCount}
+				onclick={() => go(page + 1)}
+				aria-label={$_('pagination.next')}>›</button
+			>
 		</div>
 	{/if}
 
-	<select class="size" value={pageSize} onchange={(e) => onpagesize(Number(e.currentTarget.value))} aria-label="Page size">
+	<select
+		class="size"
+		value={pageSize}
+		onchange={(e) => onpagesize(Number(e.currentTarget.value))}
+		aria-label={$_('pagination.page_size')}
+	>
 		{#each sizes as s (s)}
-			<option value={s}>{s} / page</option>
+			<option value={s}>{$_('pagination.per_page', { values: { size: s } })}</option>
 		{/each}
 	</select>
 </div>

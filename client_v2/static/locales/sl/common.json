@@ -1,0 +1,398 @@
+{
+    "actions": {
+        "list": "Seznam",
+        "create": "Ustvari",
+        "edit": "Uredi",
+        "show": "Prikaži",
+        "clone": "Podvoji"
+    },
+    "buttons": {
+        "create": "Ustvari",
+        "save": "Shrani",
+        "saveAndAdd": "Shrani in dodaj",
+        "logout": "Odjava",
+        "delete": "Izbriši",
+        "edit": "Uredi",
+        "cancel": "Prekliči",
+        "confirm": "Ste prepričani?",
+        "continue": "Nadaljuj",
+        "filter": "Filter",
+        "clear": "Počisti",
+        "refresh": "Osveži",
+        "show": "Prikaži",
+        "undo": "Razveljavi",
+        "import": "Uvozi",
+        "clone": "Podvoji",
+        "archive": "Arhiviraj",
+        "unArchive": "Odstrani iz arhiva",
+        "hideArchived": "Skrij arhiv",
+        "showArchived": "Prikaži arhiv",
+        "notAccessTitle": "Nimate dovoljenja za dostop",
+        "hideColumns": "Skrij stolpce",
+        "clearFilters": "Počisti filtre"
+    },
+    "notifications": {
+        "saveSuccessful": "Uspešno shranjeno!",
+        "success": "Uspešno",
+        "error": "Napaka (status code: {statusCode})",
+        "undoable": "Imate {seconds} s časa za preklic.",
+        "createSuccess": "Uspešno ustvarjeno {resource}",
+        "createError": "Pri ustvarjanju {resource} je prišlo do napake (status code: {statusCode})",
+        "deleteSuccess": "{resource} uspešno izbrisano",
+        "deleteError": "Napaka pri brisanju {resource} (status code: {statusCode})",
+        "editSuccess": "{resource} uspešno urejeno",
+        "editError": "Napaka pri urejanju {resource} (status code:{statusCode})",
+        "importProgress": "Uvažanje: {processed}/{total}",
+        "validationError": "Napaka overjanja: {error}"
+    },
+    "loading": "Nalaganje",
+    "version": "Verzija",
+    "unknown": "Neznano",
+    "yes": "Da",
+    "no": "Ne",
+    "tags": {
+        "clone": "Podvoji"
+    },
+    "dashboard": {
+        "title": "Nadzorna plošča"
+    },
+    "printing": {
+        "generic": {
+            "title": "Tiskanje",
+            "print": "Natisni",
+            "columns": "Stolpci",
+            "rows": "Vrste",
+            "paperSize": "Velikost papirja",
+            "customSize": "Po meri",
+            "dimensions": "Dimenzije",
+            "showBorder": "Prikaži obrobo",
+            "layoutSettings": "Nastavitve postavitve",
+            "contentSettings": "Nastavitve vsebine",
+            "description": "Prilagodite spodnje nastavitve, da dobite želeno postavitev tiskanja. Upoštevajte, da lahko tiskalniki in vaš operacijski sistem uporabijo svoje robove in merilo, zato boste morda morali nekajkrat poskusiti, preden bo vse pravilno. Preizkusite to na navadnem listu papirja, preden natisnete na dejanske nalepke.",
+            "helpMargin": "Robove je treba nastaviti tako, da ustrezajo papirju za nalepke in tiskalniku; njihova sprememba bo vplivala na velikost celotne mreže.",
+            "helpPrinterMargin": "Varnostno območje je treba nastaviti glede na to, kako blizu roba papirja lahko tiskalnik tiska; sprememba teh nastavitev ne bo vplivala na celotno mrežo.",
+            "previewScale": "Merilo predogleda",
+            "skipItems": "Preskoči elemente",
+            "itemCopies": "Kopije elementov",
+            "horizontalSpacing": "Vodoraven razmik",
+            "verticalSpacing": "Navpičen razmik",
+            "marginLeft": "Lev rob",
+            "marginRight": "Desen rob",
+            "marginTop": "Zgornji rob",
+            "marginBottom": "Spodnji rob",
+            "printerMarginLeft": "Varno območje levo",
+            "printerMarginRight": "Varno območje desno",
+            "printerMarginTop": "Varno območje zgoraj",
+            "printerMarginBottom": "Varno območje spodaj",
+            "borders": {
+                "none": "Brez",
+                "border": "Obroba",
+                "grid": "Mreža"
+            },
+            "settings": "Prednastavitve",
+            "defaultSettings": "Privzeto",
+            "addSettings": "Dodaj novo prednastavitev",
+            "newSetting": "Nov",
+            "duplicateSettings": "Podvoji",
+            "deleteSettings": "Izbriši trenutno prednastavitev",
+            "deleteSettingsConfirm": "Ali ste prepričani, da želite izbrisati to prednastavitev?",
+            "settingsName": "Ime prednastavitve",
+            "saveSetting": "Shrani prednastavitve",
+            "saveAsImage": "Shrani kot sliko"
+        },
+        "qrcode": {
+            "button": "Natisni nalepke",
+            "title": "Tiskanje nalepk",
+            "template": "Predloga nalepke",
+            "templateHelp": "Uporabite '{''}', da vstavite vrednosti objekta kolut kot besedilo. Na primer, '{'id'}' bo nadomeščen z identifikacijsko številko koluta, '{'filament.material'}' pa z materialom koluta. Če vrednost manjka, bo nadomeščena z znakom »?«. To lahko odstranite z dodatnim nizom '{''}'. Poleg tega bo vsak tekst med sklopi '{''}' odstranjen, če vrednost manjka. Na primer, '{'Lot Nr: '{'lot_nr'}''}' bo prikazal etiketo le, če ima kolut številko serije. Tekst obdajte z dvojno zvezdico **, da bo poudarjen. Kliknite gumb, da si ogledate seznam vseh razpoložljivih oznak.",
+            "showContent": "Natisni nalepko",
+            "textSize": "Velikost besedila na nalepki",
+            "useHTTPUrl": {
+                "label": "Povezava QR kode",
+                "options": {
+                    "default": "Privzeto",
+                    "url": "URL"
+                },
+                "preview": "Predogled:",
+                "tooltip": "Uporabljena bo lastniška povezava, ki bo delovala le, če jo skenirate s Kolutarjevo funkcijo skeniranja (privzeto). URL uporablja osnovni URL, določen v nastavitvah, ali pa URL trenutne strani, če ta ni nastavljen."
+            },
+            "showQRCode": "Natisni QR kodo",
+            "showQRCodeMode": {
+                "no": "Ne",
+                "simple": "Preprosto",
+                "withIcon": "Z ikono"
+            }
+        },
+        "spoolSelect": {
+            "description": "Izberite kolute, za katere želite natisniti nalepke.",
+            "title": "Izberite kolute",
+            "showArchived": "Prikaži arhiv",
+            "noSpoolsSelected": "Niste izbrali kolutov.",
+            "selectedTotal": "{count, plural, one {Izbran {count} kolut} two {Izbrana {count} koluta} few {Izbrani {count} koluti} other {Izbranih {count} kolutov}}",
+            "selectAll": "Izberi/Odstrani izbiro vseh"
+        }
+    },
+    "warnWhenUnsavedChanges": "Ali ste prepričani, da želite zapustiti stran? Imate ne shranjene spremembe.",
+    "kofi": "Prispevajte na Ko-fi",
+    "spool": {
+        "form": {
+            "measurement_type_label": "Vrsta meritve",
+            "measurement_type": {
+                "length": "Dolžina",
+                "weight": "Masa"
+            },
+            "adjust_filament_value": "Porabljena količina",
+            "new_location_prompt": "Vnesite novo lokacijo",
+            "adjust_filament_help": "Tukaj lahko neposredno odvzemate ali dodajate filament na kolut. Pozitivna vrednost pomeni porabo filamenta, negativna vrednost pa njegovo dodajanje.",
+            "spool_updated": "Ta kolut je spremenil nekdo drug, odkar ste odprli stran. Shranjevanje bo te spremembe prepisalo!"
+        },
+        "spool": "Koluti",
+        "fields": {
+            "id": "ID",
+            "filament_name": "Filament",
+            "filament": "Filament",
+            "filament_internal": "Notranje",
+            "filament_external": "Zunanje",
+            "price": "Cena",
+            "material": "Material",
+            "weight_to_use": "Masa",
+            "used_weight": "Porabljena masa",
+            "remaining_weight": "Preostala masa",
+            "measured_weight": "Izmerjena masa",
+            "used_length": "Porabljena dolžina",
+            "remaining_length": "Preostala dolžina",
+            "initial_weight": "Začetna masa",
+            "spool_weight": "Prazna masa",
+            "location": "Lokacija",
+            "lot_nr": "Št. serije",
+            "first_used": "Prvič uporabljeno",
+            "last_used": "Zadnjič uporabljeno",
+            "registered": "Registrirano",
+            "comment": "Komentar",
+            "archived": "Arhivirano"
+        },
+        "fields_help": {
+            "price": "Cena polnega koluta. Če ta vrednost ni nastavljena, se namesto nje upošteva cena filamenta.",
+            "weight_to_use": "Izberite, katero vrednost mase želite vnesti. Izmerjena masa je na voljo le, če je za izbran filament nastavljena masa koluta.",
+            "used_weight": "Koliko filamenta je bilo porabljenega s koluta. Pri novem kolutu je vrednost 0 g.",
+            "remaining_weight": "Koliko filamenta je še na kolutu. Pri novem kolutu se ta količina ujema z maso koluta.",
+            "measured_weight": "Koliko tehtata filament in kolut.",
+            "initial_weight": "Začetna masa filamenta na kolutu (neto masa). Če ta vrednost ni nastavljena, se uporabi masa iz objekta filamenta.",
+            "spool_weight": "Masa praznega koluta. Pustite prazno, če želite uporabiti vrednost, navedeno pri filamentu ali pri proizvajalcu.",
+            "location": "Kje se nahaja kolut, če imate več mest za shranjevanje.",
+            "lot_nr": "Številka serije proizvajalca. Uporablja se za zagotavljanje barvne doslednosti tiska, če se uporablja več kolutov.",
+            "external_filament": "Izbrali ste filament iz zunanje zbirke podatkov. Ob ustvarjanju koluta se bo samodejno ustvaril objekt filamenta (in morebiti tudi objekt proizvajalca). Če ste za ta filament že ustvarili objekt filamenta, lahko to povzroči nastanek podvojenih objektov filamenta."
+        },
+        "titles": {
+            "create": "Ustvari kolut",
+            "clone": "Podvoji kolut",
+            "edit": "Uredi kolut",
+            "list": "Koluti",
+            "show": "Prikaži kolut",
+            "show_title": "[Kolut #{id}] {name}",
+            "archive": "Arhiviraj kolut",
+            "adjust": "Prilagodi filament koluta"
+        },
+        "messages": {
+            "archive": "Ali res želite arhivirati ta kolut?"
+        },
+        "formats": {
+            "last_used": "Nazadnje uporabljeno: {date}"
+        }
+    },
+    "settings": {
+        "general": {
+            "currency": {
+                "label": "Valuta"
+            },
+            "base_url": {
+                "label": "Osnovni URL",
+                "tooltip": "Osnoven URL, ki se uporablja pri ustvarjanju elementov, kot npr. QR-kode."
+            },
+            "round_prices": {
+                "label": "Zaokrožene cene",
+                "tooltip": "Zaokroži cene na najbližje celo število."
+            },
+            "tab": "Splošno"
+        },
+        "settings": "Nastavitve",
+        "header": "Nastavitve",
+        "extra_fields": {
+            "tab": "Dodatna polja",
+            "params": {
+                "key": "Ključ",
+                "name": "Ime",
+                "field_type": "Tip",
+                "unit": "Enota",
+                "order": "Zaporedje",
+                "default_value": "Privzeta vrednost",
+                "choices": "Izbire",
+                "multi_choice": "Več izbir"
+            },
+            "field_type": {
+                "text": "Besedilo",
+                "integer": "Celo število",
+                "integer_range": "Območje celih števil",
+                "float": "Decimalno število",
+                "float_range": "Območje decimalnih števil",
+                "datetime": "Datum in čas",
+                "boolean": "Logična vrednost",
+                "choice": "Izbira"
+            },
+            "boolean_true": "Da",
+            "boolean_false": "Ne",
+            "non_unique_key_error": "Ključ mora biti edinstven.",
+            "key_not_changed": "Spremenite geslo v nekaj drugega.",
+            "delete_confirm": "Zbrišem polje {name}?",
+            "delete_confirm_description": "S tem boste izbrisali polje in vse povezane podatke za vse vnose.",
+            "description": "<p>Tukaj lahko svojim entitetam dodate dodatna polja po meri.</p><p>Ko je polje dodano, njegovega ključa ali tipa ni mogoče spremeniti, pri poljih tipa »izbira« pa ni mogoče odstraniti možnosti ali spremeniti nastavitve za večkratno izbiro. Če polje odstranite, bodo povezani podatki za vse entitete izbrisani.</p><p>Ključ je tisto, kar drugi programi uporabljajo za branje/pisanje podatkov, zato če naj bi se vaše polje po meri integriralo s programom tretje osebe, poskrbite, da ga nastavite pravilno. Privzeta vrednost se uporablja le za nove elemente.</p><p>Dodatna polja ni mogoče razvrstiti ali filtrirati v pogledih tabel.</p>",
+            "choices_missing_error": "Možnosti ni mogoče odstraniti. Manjkajo naslednje možnosti: {choices}"
+        }
+    },
+    "scanner": {
+        "title": "Čitalnik QR kode",
+        "description": "Preberite Kolutarjevo QR kodo za ogled podrobnosti o kolutu.",
+        "error": {
+            "notAllowed": "Niste omogočili dostopa do kamere.",
+            "insecureContext": "Stran ni dostopna prek protokola HTTPS.",
+            "streamApiNotSupported": "Brskalnik ne podpira MediaStream API.",
+            "notReadable": "Kamere ni mogoče prebrati.",
+            "notFound": "Kamere ni bilo mogoče najti.",
+            "unknown": "Prišlo je do neznane napake. ({error})"
+        }
+    },
+    "filament": {
+        "filament": "Filamenti",
+        "fields": {
+            "id": "ID",
+            "vendor_name": "Proizvajalec",
+            "vendor": "Proizvajalec",
+            "name": "Ime",
+            "material": "Material",
+            "price": "Cena",
+            "density": "Gostota",
+            "diameter": "Premer",
+            "weight": "Masa",
+            "spool_weight": "Masa koluta",
+            "article_number": "Številka izdelka",
+            "registered": "Registrirano",
+            "comment": "Komentar",
+            "settings_extruder_temp": "Temperatura ekstruderja",
+            "settings_bed_temp": "Temperatura mize",
+            "color_hex": "Barva",
+            "single_color": "Enobarvno",
+            "multi_color": "Večbarvno",
+            "external_id": "Zunanji ID",
+            "spools": "Prikaži kolute",
+            "longitudinal": "Vzdolžno",
+            "coaxial": "Soosno"
+        },
+        "fields_help": {
+            "material": "Npr. PLA, ABS, PETG itd.",
+            "price": "Cena polnega koluta.",
+            "article_number": "Npr. EAN, UPC itd.",
+            "name": "Ime filamenta, ki omogoča razlikovanje tega tipa filamenta od drugih izdelkov istega proizvajalca. Vsebovati mora, na primer, barvo.",
+            "weight": "Masa filamenta na polnem kolutu (neto masa). V to se ne sme vključiti mase samega koluta, temveč le masa filamenta. To je običajno navedeno na embalaži.",
+            "spool_weight": "Masa praznega koluta. Uporablja se za določitev izmerjene mase koluta.",
+            "multi_color_direction": "Filamenti imajo lahko več barv na dva načina: bodisi s sočasnim iztiskom, kot na primer dvobarvni filamenti z enakomerno porazdeljenimi večbarvnimi odtenki, bodisi z vzdolžnimi barvnimi prehodi, kot na primer filamenti z barvnim prehodom, pri katerih se barva spreminja po dolžini koluta."
+        },
+        "titles": {
+            "create": "Ustvari filament",
+            "clone": "Podvoji filament",
+            "edit": "Uredi filament",
+            "list": "Filamenti",
+            "show": "Prikaži filament",
+            "show_title": "[Filament #{id}]{name}"
+        },
+        "form": {
+            "import_external": "Uvozi iz zunanjih",
+            "filament_updated": "Ta filament je spremenil nekdo drug, odkar ste odprli stran. Shranjevanje bo te spremembe prepisalo!",
+            "import_external_description": "Izberite filament s seznama, da se njegovi podatki samodejno vpišejo v obrazec za ustvarjanje filamenta. S tem se bodo nadomestili vsi podatki, ki ste jih vnesli v obrazec.<br><br>Ob kliku na »V redu« se bo po potrebi samodejno ustvaril objekt »Proizvajalec«."
+        },
+        "buttons": {
+            "add_spool": "Dodaj kolut"
+        }
+    },
+    "vendor": {
+        "vendor": "Proizvajalci",
+        "fields": {
+            "id": "ID",
+            "name": "Ime",
+            "empty_spool_weight": "Masa praznega koluta",
+            "external_id": "Zunanji ID",
+            "registered": "Registrirano",
+            "comment": "Komentar"
+        },
+        "titles": {
+            "create": "Ustvari proizvajalca",
+            "clone": "Podvoji proizvajalca",
+            "edit": "Uredi proizvajalca",
+            "list": "Proizvajalci",
+            "show": "Prikaži proizvajalca",
+            "show_title": "[Proizvajalec #{id}] {name}"
+        },
+        "form": {
+            "vendor_updated": "Ta proizvajalec je spremenil nekdo drug, odkar ste odprli stran. Shranjevanje bo te spremembe prepisalo!"
+        },
+        "fields_help": {
+            "empty_spool_weight": "Masa praznega koluta tega proizvajalca."
+        }
+    },
+    "home": {
+        "home": "Dom",
+        "welcome": "Dobrodošli v Kolutarju!",
+        "description": "Izgleda, da še niste dodali nobenih kolutov. Za pomoč pri začetku si oglejte <helpPageLink>pomoč</helpPageLink>."
+    },
+    "help": {
+        "help": "Pomoč",
+        "resources": {
+            "vendor": "Podjetja, ki proizvajajo filament.",
+            "filament": "Znamke filamentov. Imajo lastnosti, kot so ime, material, barva, premer in drugo.",
+            "spool": "Posamezni fizični koluti določenega filamenta."
+        },
+        "description": "<title>Pomoč</title><p>Tukaj je nekaj nasvetov za začetek.</p><p>Kolutar hrani 3 različne vrste podatkov:</p><itemsHelp/><p>Če želite v bazo podatkov dodati nov kolut, najprej ustvarite objekt <filamentCreateLink>Filament</filamentCreateLink>. Ko to storite, nadaljujte z ustvarjanjem objekta <spoolCreateLink>Kolut</spoolCreateLink> za ta določen kolut. Če kasneje pridobite dodatne kolute istega filamenta, preprosto ustvarite dodatne kolutne objekte in ponovno uporabite isti filamentni objekt.</p><p>Po želji lahko ustvarite tudi objekt <vendorCreateLink>Proizvajalec</vendorCreateLink> za podjetje, ki proizvaja filament, če želite slediti tem informacijam. </p><p>Imate možnost povezati druge storitve za 3D-tiskalnike s Kolutarjem, na primer Moonraker, ki lahko samodejno spremlja porabo filamenta in posodablja objekte koluta za vas. Navodila za nastavitev najdete v Kolutarjevi <readmeLink>README</readmeLink> datoteki.</p>"
+    },
+    "table": {
+        "actions": "Dejanja"
+    },
+    "documentTitle": {
+        "default": "Kolutar",
+        "suffix": " | Kolutar",
+        "home": {
+            "list": "Dom | Kolutar"
+        },
+        "help": {
+            "list": "Pomoč | Kolutar"
+        },
+        "locations": {
+            "list": "Lokacije | Kolutar"
+        },
+        "filament": {
+            "list": "Filamenti | Kolutar",
+            "show": "Prikaži filament #{id} | Kolutar",
+            "edit": "Uredi filament #{id} | Kolutar",
+            "create": "Ustvari filament | Kolutar",
+            "clone": "Podvoji filament #{id} | Kolutar"
+        },
+        "spool": {
+            "list": "Koluti | Kolutar",
+            "show": "Prikaži kolut #{id} | Kolutar",
+            "edit": "Uredi kolut #{id} | Kolutar",
+            "create": "Ustvari kolut | Kolutar",
+            "clone": "Podvoji kolut #{id} | Kolutar"
+        },
+        "vendor": {
+            "list": "Proizvajalci | Kolutar",
+            "show": "Prikaži proizvajalca #{id} | Kolutar",
+            "edit": "Uredi proizvajalca #{id} | Kolutar",
+            "create": "Ustvari proizvajalca | Kolutar",
+            "clone": "Podvoji proizvajalca #{id} | Kolutar"
+        }
+    },
+    "locations": {
+        "locations": "Lokacije",
+        "new_location": "Nova lokacija",
+        "no_location": "Brez lokacije",
+        "no_locations_help": "Na tej strani lahko kolute razvrstite po lokacijah. Za začetek dodajte nekaj kolutov."
+    }
+}

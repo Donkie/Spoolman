@@ -1,0 +1,410 @@
+{
+    "actions": {
+        "list": "Lista",
+        "create": "Skapa",
+        "edit": "Ändra",
+        "show": "Visa",
+        "clone": "Klona"
+    },
+    "buttons": {
+        "create": "Skapa",
+        "save": "Spara",
+        "logout": "Logga ut",
+        "delete": "Ta bort",
+        "edit": "Ändra",
+        "cancel": "Avbryt",
+        "confirm": "Är du säker?",
+        "filter": "Filtrera",
+        "clear": "Rensa",
+        "refresh": "Uppdatera",
+        "show": "Visa",
+        "undo": "Ångra",
+        "import": "Importera",
+        "clone": "Klona",
+        "archive": "Arkivera",
+        "unArchive": "Avarkivera",
+        "hideArchived": "Dölj arkiverade",
+        "showArchived": "Visa arkiverade",
+        "notAccessTitle": "Du har inte tillgång till denna sida",
+        "hideColumns": "Dölj kolumner",
+        "clearFilters": "Rensa filter",
+        "saveAndAdd": "Spara och Lägg till",
+        "continue": "Fortsätt"
+    },
+    "warnWhenUnsavedChanges": "Är du säker på att du vill lämna sidan? Du har osparade ändringar.",
+    "notifications": {
+        "success": "Lyckades",
+        "error": "Fel (statuskod: {statusCode})",
+        "undoable": "Du har {seconds} sekunder på dig att ångra.",
+        "createSuccess": "Lyckades skapa {resource}",
+        "createError": "Det gick inte att skapa {resource} (statuskod: {statusCode})",
+        "deleteSuccess": "Lyckades ta bort {resource}",
+        "deleteError": "Det gick inte att ta bort {resource} (statuskod: {statusCode})",
+        "editSuccess": "Lyckades ändra {resource}",
+        "editError": "Det gick inte att ändra {resource} (statuskod: {statusCode})",
+        "importProgress": "Importerar: {processed}/{total}",
+        "saveSuccessful": "Sparning lyckades!",
+        "validationError": "Valideringsfel: {error}"
+    },
+    "loading": "Laddar",
+    "version": "Version",
+    "unknown": "Okänd",
+    "yes": "Ja",
+    "no": "Nej",
+    "tags": {
+        "clone": "Klona"
+    },
+    "dashboard": {
+        "title": "Hem"
+    },
+    "printing": {
+        "generic": {
+            "title": "Utskrift",
+            "description": "Justera inställningarna nedan för att få önskat utskriftslayout. Kom ihåg att skrivare och ditt operativsystem kan tillämpa sina egna marginaler och skalning, så du kan behöva justera inställningarna därefter. Testa på ett vanligt papper innan du skriver ut på de faktiska etiketterna.",
+            "helpMargin": "Marginaler bör konfigureras för att matcha ditt etikettpapper och skrivare, ändringar av dessa kommer att påverka storleken på hela rutnätet.",
+            "helpPrinterMargin": "Säkerhetszon bör ställas in på hur nära papperskanten din skrivare kan skriva ut, ändringar av dessa kommer inte att påverka hela rutnätet.",
+            "print": "Skriv ut",
+            "columns": "Kolumner",
+            "rows": "Rader",
+            "paperSize": "Papperstyp",
+            "customSize": "Anpassad",
+            "dimensions": "Dimensioner",
+            "showBorder": "Visa ram",
+            "previewScale": "Skala förhandsgranskning",
+            "skipItems": "Hoppa över objekt",
+            "contentSettings": "Innehållsinställningar",
+            "layoutSettings": "Layoutinställningar",
+            "horizontalSpacing": "Horisontellt avstånd",
+            "verticalSpacing": "Vertikalt avstånd",
+            "marginLeft": "Marginal - vänster",
+            "marginRight": "Marginal - höger",
+            "marginTop": "Marginal - topp",
+            "marginBottom": "Marginal - botten",
+            "printerMarginLeft": "Säkerhetszon - vänster",
+            "printerMarginRight": "Säkerhetszon - höger",
+            "printerMarginTop": "Säkerhetszon - topp",
+            "printerMarginBottom": "Säkerhetszon - botten",
+            "borders": {
+                "none": "Ingen",
+                "border": "Ram",
+                "grid": "Rutnät"
+            },
+            "defaultSettings": "Standard",
+            "newSetting": "Ny",
+            "settingsName": "Inställningsnamn",
+            "deleteSettingsConfirm": "Är du säker på att du vill radera den nuvarande inställningen?",
+            "itemCopies": "Kopior",
+            "settings": "Inställningar",
+            "addSettings": "Skapa inställning",
+            "saveSetting": "Spara inställningar",
+            "duplicateSettings": "Duplicera",
+            "deleteSettings": "Radera nuvarande inställning",
+            "saveAsImage": "Spara som bild"
+        },
+        "qrcode": {
+            "button": "Skriv ut etiketter",
+            "title": "Etikettutskrift",
+            "spoolWeight": "Spolvikt: {weight}",
+            "lotNr": "Batch: {lot}",
+            "bedTemp": "BT: {temp}",
+            "extruderTemp": "ET: {temp}",
+            "textSize": "Textstorlek",
+            "showSpoolmanIcon": "Visa Spoolman-ikon",
+            "showContent": "Visa text",
+            "showVendor": "Tillverkare",
+            "showLotNr": "Batchnummer",
+            "showSpoolWeight": "Spolvikt",
+            "showTemperatures": "Temperaturer",
+            "showSpoolComment": "Spolkommentar",
+            "showFilamentComment": "Filamentkommentar",
+            "showVendorComment": "Tillverkarkommentar",
+            "template": "Textmall",
+            "templateHelp": "Använd '{''}' för att infoga värden från spolobjektet som text. Till exempel kommer '{'id'}' att ersättas med spolens id, eller '{'filament.material'}' att ersättas med filamentets material. Omslut text med dubbla asterisker ** för att göra den fetstilad. Klicka på knappen för att visa en lista över alla tillgängliga taggar.",
+            "showQRCode": "Visa QR-kod",
+            "showQRCodeMode": {
+                "no": "Nej",
+                "simple": "Enkel",
+                "withIcon": "Med logga"
+            },
+            "useHTTPUrl": {
+                "options": {
+                    "default": "",
+                    "url": ""
+                },
+                "preview": "",
+                "tooltip": "",
+                "label": ""
+            }
+        },
+        "spoolSelect": {
+            "title": "Välj spolar",
+            "description": "Välj spolar att skriva ut etiketter för.",
+            "showArchived": "Tillåt arkiverade",
+            "noSpoolsSelected": "Du har inte valt några spolar.",
+            "selectAll": "Markera/avmarkera alla",
+            "selectedTotal": "{count, plural, one {{count} spole vald} other {{count} spolar valda}}"
+        }
+    },
+    "scanner": {
+        "title": "Skanna QR-kod",
+        "description": "Skanna en QR-kod för att visa information om en spole.",
+        "error": {
+            "notAllowed": "Du har inte tillåtit åtkomst till kameran.",
+            "insecureContext": "Sidan måste använda sig av HTTPS.",
+            "streamApiNotSupported": "Webbläsaren stödjer inte MediaStream API.",
+            "notReadable": "Kameran är inte läsbar.",
+            "notFound": "Ingen kamera hittades.",
+            "unknown": "Ett okänt fel inträffade. ({error})"
+        }
+    },
+    "spool": {
+        "spool": "Spolar",
+        "fields": {
+            "id": "ID",
+            "filament_name": "Filament",
+            "filament": "Filament",
+            "material": "Material",
+            "used_weight": "Använd vikt",
+            "remaining_weight": "Återstående vikt",
+            "used_length": "Använd längd",
+            "remaining_length": "Återstående längd",
+            "location": "Plats",
+            "lot_nr": "Batchnummer",
+            "first_used": "Användes först",
+            "last_used": "Användes senast",
+            "registered": "Registrerad",
+            "comment": "Kommentar",
+            "archived": "Arkiverad",
+            "measured_weight": "Uppmätt vikt",
+            "weight_to_use": "Vikt",
+            "price": "Pris",
+            "initial_weight": "Initial Vikt",
+            "spool_weight": "Tom Vikt",
+            "filament_internal": "Interna",
+            "filament_external": "Externa"
+        },
+        "fields_help": {
+            "used_weight": "Hur mycket filament som använts på spolen. En ny spole har värdet 0g.",
+            "location": "Vart spolen finns om du har flera platser att förvara spolar på.",
+            "lot_nr": "Tillverkarens batchnummer. Kan användas för att se till att en utskrift har jämn färg ifall flera spolar används.",
+            "weight_to_use": "Välj vilken typ av vikt du vill fylla i. Uppmätt vikt är endast tillgänglig om det valda filamentet har en spolvikt satt.",
+            "measured_weight": "Hur mycket filamentet och spolen väger tillsammans.",
+            "remaining_weight": "Hur mycket filament som finns kvar på spolen. För en ny spole så är detta det värdet som står på etiketten.",
+            "price": "Pris för en hel rulle. Om det inte är inställt kommer priset för filamentet istället att antas.",
+            "initial_weight": "Ursprungsvikt av filament på spolen (nettovikt). Om du inte sätter detta så tas vikten från filamentobjektet.",
+            "spool_weight": "Vikten på en tom spole. Lämna tom för att ta värdet från filament- eller tillverkarobjektet.",
+            "external_filament": "Du har valt ett filament från den externa databasen. Ett filamentobjekt (och eventuellt ett tillverkarobjekt) kommer att skapas automatiskt när du skapar denna spole. Detta kan skapa duplicerade filamentobjekt om du redan har skapat ett filamentobjekt för denna filament."
+        },
+        "titles": {
+            "create": "Skapa spole",
+            "clone": "Klona spole",
+            "edit": "Ändra spole",
+            "list": "Spolar",
+            "show": "Visa spole",
+            "archive": "Arkivera spole",
+            "show_title": "[Spole #{id}] {name}",
+            "adjust": "Justera Spolmängd"
+        },
+        "messages": {
+            "archive": "Är du säker på att du vill arkivera denna spole?"
+        },
+        "form": {
+            "new_location_prompt": "Fyll i en ny plats",
+            "spool_updated": "Den här spolen har uppdaterats av något eller någon sedan du öppnade den här sidan. Om du sparar så skriver du över ändringarna!",
+            "measurement_type": {
+                "length": "Längd",
+                "weight": "Vikt"
+            },
+            "measurement_type_label": "Mättyp",
+            "adjust_filament_value": "Mängd att konsumera",
+            "adjust_filament_help": "Här kan du direkt lägga till eller subtrahera filament från spolen. Ett positivt värde kommer att konsumera filament, ett negativt värde kommer att lägga till det."
+        },
+        "formats": {
+            "last_used": "Senast använd {date}"
+        }
+    },
+    "filament": {
+        "filament": "Filament",
+        "fields": {
+            "id": "ID",
+            "vendor_name": "Tillverkare",
+            "vendor": "Tillverkare",
+            "name": "Namn",
+            "material": "Material",
+            "price": "Pris",
+            "density": "Densitet",
+            "diameter": "Diameter",
+            "weight": "Vikt",
+            "spool_weight": "Spolvikt",
+            "article_number": "Artikelnummer",
+            "registered": "Registrerad",
+            "comment": "Kommentar",
+            "settings_extruder_temp": "Extrudertemp",
+            "settings_bed_temp": "Bäddtemp",
+            "color_hex": "Färg",
+            "spools": "Visa spolar",
+            "single_color": "Enkel",
+            "multi_color": "Flerfärgad",
+            "coaxial": "Coextruderad",
+            "longitudinal": "Longitudinell",
+            "external_id": "Externt ID"
+        },
+        "fields_help": {
+            "name": "Filamentets namn, för att skilja detta filament från andra från samma tillverkare. Bör innehålla färgen till exempel.",
+            "material": "T.ex. PLA, ABS, PETG, etc.",
+            "price": "Pris för en full spole.",
+            "weight": "Vikten på en full spole (nettovikt). Detta ska inte inkludera vikten på spolen själv, bara filamentet. Det är vad som vanligtvis står på förpackningen.",
+            "spool_weight": "Vikten på en tom spole. Används för att beräkna filamentvikten från en vägning.",
+            "article_number": "T.ex. EAN, UPC, etc.",
+            "multi_color_direction": "Filament kan ha flera färger på två sätt: antingen genom coextrudering, så som två-färgs filament med konsekventa multifärger, eller genom longitudinella färgförändringar, så som gradientfilament som skiftar färger längs spolen."
+        },
+        "titles": {
+            "create": "Skapa filament",
+            "clone": "Klona filament",
+            "edit": "Ändra filament",
+            "list": "Filament",
+            "show": "Visa filament",
+            "show_title": "[Filament #{id}] {name}"
+        },
+        "form": {
+            "filament_updated": "Det här filamentet har uppdaterats av något eller någon sedan du öppnade den här sidan. Om du sparar så skriver du över ändringarna!",
+            "import_external": "Importera från externt",
+            "import_external_description": "Välj ett filament i listan för att automatiskt fylla dess detaljer i formuläret. Detta kommer att skriva över alla data som du har angett i formuläret.<br><br>Ett tillverkarobjekt skapas automatiskt när du klickar på Ok, om det behövs."
+        },
+        "buttons": {
+            "add_spool": "Skapa Spole"
+        }
+    },
+    "vendor": {
+        "vendor": "Tillverkare",
+        "fields": {
+            "id": "ID",
+            "name": "Namn",
+            "registered": "Registrerad",
+            "comment": "Kommentar",
+            "empty_spool_weight": "Tom spolvikt",
+            "external_id": "Externt ID"
+        },
+        "titles": {
+            "create": "Skapa tillverkare",
+            "clone": "Klona tillverkare",
+            "edit": "Ändra tillverkare",
+            "list": "Tillverkare",
+            "show": "Visa tillverkare",
+            "show_title": "[Tillverkare #{id}] {name}"
+        },
+        "form": {
+            "vendor_updated": "Den här tillverkaren har uppdaterats av något eller någon sedan du öppnade den här sidan. Om du sparar så skriver du över ändringarna!"
+        },
+        "fields_help": {
+            "empty_spool_weight": "Vikten av en tom spool från denna tillverkare."
+        }
+    },
+    "home": {
+        "home": "Hem",
+        "welcome": "",
+        "description": ""
+    },
+    "table": {
+        "actions": "Åtgärder"
+    },
+    "settings": {
+        "settings": "Inställningar",
+        "header": "Inställningar",
+        "general": {
+            "tab": "Allmänt",
+            "currency": {
+                "label": "Valuta"
+            },
+            "base_url": {
+                "tooltip": "",
+                "label": ""
+            },
+            "round_prices": {
+                "label": "",
+                "tooltip": ""
+            }
+        },
+        "extra_fields": {
+            "tab": "Extra Fält",
+            "description": "<p>Här kan du lägga till extra anpassade fält för dina objekt.</p><p>När ett fält har lagts till kan du inte ändra dess nyckel eller typ, och för fält av typen \"val\" kan du inte ta bort val eller ändra flervalsläget. Om du tar bort ett fält kommer den associerade datan för alla enheter att raderas.</p><p>Nyckeln är vad andra program läser/skriver datan som, så om ditt anpassade fält ska integreras med ett tredjepartsprogram, se till att ställa in det korrekt. Standardvärdet tillämpas endast på nya objekt.</p><p>Extra fält kan inte sorteras eller filtreras i tabellvyn.</p>",
+            "params": {
+                "unit": "Enhet",
+                "default_value": "Standardvärde",
+                "key": "Nyckel",
+                "field_type": "Typ",
+                "name": "Namn",
+                "choices": "Val",
+                "order": "Ordning",
+                "multi_choice": "Flerval"
+            },
+            "field_type": {
+                "integer_range": "Heltalsintervall",
+                "float": "Decimaltal",
+                "float_range": "Decimaltalsintervall",
+                "datetime": "Datum och tid",
+                "boolean": "Booleansk",
+                "choice": "Val",
+                "text": "Text",
+                "integer": "Heltal"
+            },
+            "boolean_true": "Ja",
+            "boolean_false": "Nej",
+            "choices_missing_error": "Du kan inte ta bort val. Följande val saknas: {choices}",
+            "delete_confirm_description": "Detta kommer att radera fältet och all tillhörande data för alla objekt.",
+            "delete_confirm": "Ta bort fältet {name}?",
+            "non_unique_key_error": "Nyckeln måste vara unik.",
+            "key_not_changed": "Vänligen ändra nyckeln till något annat."
+        }
+    },
+    "documentTitle": {
+        "default": "Spoolman",
+        "suffix": " | Spoolman",
+        "home": {
+            "list": "Hem | Spoolman"
+        },
+        "filament": {
+            "list": "Filament | Spoolman",
+            "show": "#{id} Visa filament | Spoolman",
+            "edit": "#{id} Redigera filament | Spoolman",
+            "create": "Skapa filament | Spoolman",
+            "clone": "#{id} Klona filament | Spoolman"
+        },
+        "spool": {
+            "list": "Spolar | Spoolman",
+            "show": "#{id} Visa spole | Spoolman",
+            "edit": "#{id} Redigera spole | Spoolman",
+            "create": "Skapa spole | Spoolman",
+            "clone": "#{id} Klona spole | Spoolman"
+        },
+        "vendor": {
+            "list": "Tillverkare | Spoolman",
+            "show": "#{id} Visa tillverkare | Spoolman",
+            "edit": "#{id} Redigera tillverkare | Spoolman",
+            "create": "Skapa tillverkare | Spoolman",
+            "clone": "#{id} Klona tillverkare | Spoolman"
+        },
+        "help": {
+            "list": "Hjälp | Spoolman"
+        },
+        "locations": {
+            "list": ""
+        }
+    },
+    "help": {
+        "resources": {
+            "vendor": "Företagen som tillverkar filamentet.",
+            "filament": "Märken av filament. De har egenskaper som namn, material, färg, diameter och mer.",
+            "spool": "Individuella fysiska spolar av ett specifikt filament."
+        },
+        "description": "<title>Hjälp</title><p>Här är några tips för att komma igång.</p><p>Spoolman innehåller 3 olika typer av data:</p><itemsHelp/><p>För att lägga till en ny spole i databasen måste du först skapa ett <filamentCreateLink>Filament</filamentCreateLink>-objekt för den. När det är klart kan du sedan skapa ett <spoolCreateLink>Spol</spoolCreateLink>-objekt för den individuella spolen. Om du sedan köper ytterligare spolar av samma filament kan du bara skapa ytterligare Spol-objekt och återanvända samma Filament-objekt.</p><p>Du kan valfritt också skapa ett <vendorCreateLink>Tillverkar</vendorCreateLink>-objekt för företaget som tillverkar filamentet om du vill spåra den informationen.</p><p>Du kan koppla andra 3D-skrivartjänster till Spoolman, som Moonraker, som sedan automatiskt kan spåra filamentanvändning och uppdatera Spol-objekten åt dig. Se <readmeLink>Spoolman README</readmeLink> för hur du gör det.</p>",
+        "help": "Hjälp"
+    },
+    "kofi": "Dricksa mig på Ko-fi",
+    "locations": {
+        "new_location": "Ny plats",
+        "no_location": "Ingen plats",
+        "locations": "",
+        "no_locations_help": ""
+    }
+}

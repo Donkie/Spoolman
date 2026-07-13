@@ -12,6 +12,12 @@ interface Repo {
 	vendorOf(f: Filament): Vendor;
 }
 
+/** svelte-i18n's message formatter, threaded in so this stays framework-agnostic. */
+export type TranslateFn = (
+	key: string,
+	options?: { values?: Record<string, string | number | boolean | Date | null | undefined> }
+) => string;
+
 export interface SpoolVM {
 	spool: Spool;
 	filament: Filament;
@@ -33,7 +39,7 @@ export interface GroupHeaderInfo {
 	meta: string;
 }
 
-export function spoolToVM(s: Spool, repo: Repo, lowThreshold: number): SpoolVM {
+export function spoolToVM(s: Spool, repo: Repo, lowThreshold: number, t: TranslateFn): SpoolVM {
 	const filament = repo.filamentById(s.filamentId)!;
 	const vendor = repo.vendorOf(filament);
 	const low = !s.unused && s.remaining <= lowThreshold;
@@ -45,8 +51,12 @@ export function spoolToVM(s: Spool, repo: Repo, lowThreshold: number): SpoolVM {
 		pctValue: pct(s.remaining, s.initial),
 		low,
 		remLabel: grams(s.remaining) + ' g',
-		location: s.location || 'no location',
-		rightLabel: s.unused ? 'unused' : s.lastUsedLabel ? 'used ' + s.lastUsedLabel + ' ago' : 'in use'
+		location: s.location || t('library.no_location'),
+		rightLabel: s.unused
+			? t('library.unused')
+			: s.lastUsedLabel
+				? t('library.used_ago', { values: { time: s.lastUsedLabel } })
+				: t('library.in_use')
 	};
 }
 
@@ -104,21 +114,21 @@ function spoolIdentity(vm: SpoolVM): RowIdentity {
 
 export interface SortDef {
 	key: string;
-	label: string;
-	section: 'Spool' | 'Filament' | 'Extra fields';
+	labelKey: string;
+	section: 'spool' | 'filament' | 'extra';
 	unit?: string;
 }
 
 export function sortDefs(): SortDef[] {
 	return [
-		{ key: 'lastUsed', label: 'Last used', section: 'Spool' },
-		{ key: 'rem', label: 'Remaining weight', section: 'Spool', unit: 'g' },
-		{ key: 'price', label: 'Price', section: 'Spool' },
-		{ key: 'reg', label: 'Registered', section: 'Spool' },
-		{ key: 'lot', label: 'Lot №', section: 'Spool' },
-		{ key: 'mat', label: 'Material', section: 'Filament' },
-		{ key: 'hue', label: 'Color (hue)', section: 'Filament' },
-		{ key: 'noz', label: 'Nozzle temp', section: 'Filament', unit: '°C' },
-		{ key: 'dry', label: 'Dryer cycles', section: 'Extra fields' }
+		{ key: 'lastUsed', labelKey: 'spool.fields.last_used', section: 'spool' },
+		{ key: 'rem', labelKey: 'spool.fields.remaining_weight', section: 'spool', unit: 'g' },
+		{ key: 'price', labelKey: 'spool.fields.price', section: 'spool' },
+		{ key: 'reg', labelKey: 'spool.fields.registered', section: 'spool' },
+		{ key: 'lot', labelKey: 'spool.fields.lot_nr', section: 'spool' },
+		{ key: 'mat', labelKey: 'spool.fields.material', section: 'filament' },
+		{ key: 'hue', labelKey: 'library.sort.hue', section: 'filament' },
+		{ key: 'noz', labelKey: 'library.sort.nozzle', section: 'filament', unit: '°C' },
+		{ key: 'dry', labelKey: 'library.sort.dryer', section: 'extra' }
 	];
 }

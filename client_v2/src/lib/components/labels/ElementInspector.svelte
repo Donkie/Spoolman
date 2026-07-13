@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { LabelElement } from '$lib/labels/types';
 	import type { PlaceholderGroup } from '$lib/labels/template';
+	import { _ } from 'svelte-i18n';
 
 	interface Props {
 		el: LabelElement | null;
@@ -23,23 +24,33 @@
 </script>
 
 {#if !el}
-	<div class="empty">Select an element to edit it, or add one from the palette.</div>
+	<div class="empty">{$_('labels.select_element')}</div>
 {:else}
 	<div class="inspector">
-		<div class="kind">{el.type}</div>
+		<div class="kind">{$_('labels.kind.' + el.type)}</div>
 
 		<div class="row2">
 			<label
-				>X (mm)<input type="number" step="0.5" value={el.x} onchange={(e) => update({ x: num(e) })} /></label
+				>{$_('labels.x_mm')}<input
+					type="number"
+					step="0.5"
+					value={el.x}
+					onchange={(e) => update({ x: num(e) })}
+				/></label
 			>
 			<label
-				>Y (mm)<input type="number" step="0.5" value={el.y} onchange={(e) => update({ y: num(e) })} /></label
+				>{$_('labels.y_mm')}<input
+					type="number"
+					step="0.5"
+					value={el.y}
+					onchange={(e) => update({ y: num(e) })}
+				/></label
 			>
 		</div>
 
 		{#if el.type === 'qr'}
 			<label
-				>Size (mm)<input
+				>{$_('labels.size_mm')}<input
 					type="number"
 					step="0.5"
 					min="5"
@@ -53,28 +64,26 @@
 					checked={el.logo}
 					onchange={(e) => update({ logo: e.currentTarget.checked })}
 				/>
-				Center Spoolman logo</label
+				{$_('labels.center_logo')}</label
 			>
 			<label
-				>Encodes
+				>{$_('labels.encodes')}
 				<select value={el.encoding} onchange={(e) => update({ encoding: e.currentTarget.value })}>
-					<option value="scheme">WEB+SPOOLMAN URI</option>
-					<option value="url">Full HTTP URL</option>
+					<option value="scheme">{$_('labels.enc_scheme')}</option>
+					<option value="url">{$_('labels.enc_url')}</option>
 				</select>
 			</label>
 			<p class="hint">
 				{#if el.encoding === 'url'}
-					A full web link — scannable by any QR reader or phone camera. Uses the External URL from Settings
-					(falls back to this site's address).
+					{$_('labels.hint_enc_url')}
 				{:else}
-					A compact Spoolman code — scan it with the Spoolman app's built-in camera. Most generic scanners
-					won't open it.
+					{$_('labels.hint_enc_scheme')}
 				{/if}
 			</p>
 		{:else if el.type === 'text'}
 			<div class="row2">
 				<label
-					>Width (mm)<input
+					>{$_('labels.width_mm')}<input
 						type="number"
 						step="0.5"
 						min="2"
@@ -83,7 +92,7 @@
 					/></label
 				>
 				<label
-					>Font (mm)<input
+					>{$_('labels.font_mm')}<input
 						type="number"
 						step="0.25"
 						min="1"
@@ -94,11 +103,11 @@
 			</div>
 			<div class="row2">
 				<label
-					>Align
+					>{$_('labels.align')}
 					<select value={el.align} onchange={(e) => update({ align: e.currentTarget.value })}>
-						<option value="left">Left</option>
-						<option value="center">Center</option>
-						<option value="right">Right</option>
+						<option value="left">{$_('labels.align_left')}</option>
+						<option value="center">{$_('labels.align_center')}</option>
+						<option value="right">{$_('labels.align_right')}</option>
 					</select>
 				</label>
 				<label class="check"
@@ -106,11 +115,13 @@
 						type="checkbox"
 						checked={el.bold}
 						onchange={(e) => update({ bold: e.currentTarget.checked })}
-					/> Bold</label
+					/>
+					{$_('labels.bold')}</label
 				>
 			</div>
 			<label class="color-row"
-				>Color <input
+				>{$_('filament.fields.color_hex')}
+				<input
 					type="color"
 					value={el.color}
 					onchange={(e) => update({ color: e.currentTarget.value })}
@@ -121,18 +132,19 @@
 					type="checkbox"
 					checked={el.wrap !== false}
 					onchange={(e) => update({ wrap: e.currentTarget.checked })}
-				/> Wrap text</label
+				/>
+				{$_('labels.wrap_text')}</label
 			>
 			{#if el.wrap === false}
-				<p class="hint">Text stays on one line; anything past the width is clipped.</p>
+				<p class="hint">{$_('labels.hint_nowrap')}</p>
 			{/if}
 			<label
-				>Text / template
+				>{$_('labels.text_template')}
 				<textarea rows="3" value={el.template} onchange={(e) => update({ template: e.currentTarget.value })}
 				></textarea>
 			</label>
 			<label
-				>Insert field
+				>{$_('labels.insert_field')}
 				<select
 					value=""
 					onchange={(e) => {
@@ -140,21 +152,21 @@
 						e.currentTarget.value = '';
 					}}
 				>
-					<option value="" disabled>Choose a field…</option>
+					<option value="" disabled>{$_('labels.choose_field')}</option>
 					{#each groups as g (g.entity)}
-						<optgroup label={g.label}>
+						<optgroup label={$_(g.labelKey)}>
 							{#each g.items as item (item.token)}
-								<option value={item.token}>{item.label}</option>
+								<option value={item.token}>{item.labelKey ? $_(item.labelKey) : item.label}</option>
 							{/each}
 						</optgroup>
 					{/each}
 				</select>
 			</label>
-			<p class="hint">Wrap a field to hide it when empty: <code>{'{Temp: {filament.nozzleTemp}°C}'}</code></p>
+			<p class="hint">{$_('labels.hint_wrap')} <code>{'{Temp: {filament.nozzleTemp}°C}'}</code></p>
 		{:else if el.type === 'swatch'}
 			<div class="row2">
 				<label
-					>Width (mm)<input
+					>{$_('labels.width_mm')}<input
 						type="number"
 						step="0.5"
 						min="2"
@@ -163,7 +175,7 @@
 					/></label
 				>
 				<label
-					>Height (mm)<input
+					>{$_('labels.height_mm')}<input
 						type="number"
 						step="0.5"
 						min="2"
@@ -173,7 +185,7 @@
 				>
 			</div>
 			<label
-				>Corner radius (mm)<input
+				>{$_('labels.corner_radius_mm')}<input
 					type="number"
 					step="0.5"
 					min="0"
@@ -181,11 +193,11 @@
 					onchange={(e) => update({ radius: num(e) })}
 				/></label
 			>
-			<p class="hint">Filled with the spool's filament color(s) at print time.</p>
+			<p class="hint">{$_('labels.hint_swatch')}</p>
 		{:else if el.type === 'rect'}
 			<div class="row2">
 				<label
-					>Width (mm)<input
+					>{$_('labels.width_mm')}<input
 						type="number"
 						step="0.5"
 						min="1"
@@ -194,7 +206,7 @@
 					/></label
 				>
 				<label
-					>Height (mm)<input
+					>{$_('labels.height_mm')}<input
 						type="number"
 						step="0.5"
 						min="1"
@@ -205,7 +217,7 @@
 			</div>
 			<div class="row2">
 				<label
-					>Radius (mm)<input
+					>{$_('labels.radius_mm')}<input
 						type="number"
 						step="0.5"
 						min="0"
@@ -214,7 +226,7 @@
 					/></label
 				>
 				<label
-					>Stroke (mm)<input
+					>{$_('labels.stroke_mm')}<input
 						type="number"
 						step="0.1"
 						min="0"
@@ -225,24 +237,26 @@
 			</div>
 			<div class="row2">
 				<label class="color-row"
-					>Fill <input
+					>{$_('labels.fill')}
+					<input
 						type="color"
 						value={el.fill || '#ffffff'}
 						onchange={(e) => update({ fill: e.currentTarget.value })}
 					/></label
 				>
 				<label class="color-row"
-					>Stroke <input
+					>{$_('labels.stroke')}
+					<input
 						type="color"
 						value={el.stroke || '#000000'}
 						onchange={(e) => update({ stroke: e.currentTarget.value })}
 					/></label
 				>
 			</div>
-			<button class="clear-fill" onclick={() => update({ fill: '' })}>Clear fill (outline only)</button>
+			<button class="clear-fill" onclick={() => update({ fill: '' })}>{$_('labels.clear_fill')}</button>
 		{/if}
 
-		<button class="delete" onclick={ondelete}>Delete element</button>
+		<button class="delete" onclick={ondelete}>{$_('labels.delete_element')}</button>
 	</div>
 {/if}
 

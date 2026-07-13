@@ -1,0 +1,736 @@
+{
+    "actions": {
+        "list": "List",
+        "create": "Create",
+        "edit": "Edit",
+        "show": "Show",
+        "clone": "Clone"
+    },
+    "buttons": {
+        "create": "Create",
+        "save": "Save",
+        "saveAndAdd": "Save and Add",
+        "logout": "Log out",
+        "delete": "Delete",
+        "edit": "Edit",
+        "cancel": "Cancel",
+        "confirm": "Are you sure?",
+        "continue": "Continue",
+        "filter": "Filter",
+        "clear": "Clear",
+        "refresh": "Refresh",
+        "show": "Show",
+        "undo": "Undo",
+        "import": "Import",
+        "clone": "Clone",
+        "archive": "Archive",
+        "unArchive": "Unarchive",
+        "hideArchived": "Hide Archived",
+        "showArchived": "Show Archived",
+        "notAccessTitle": "You don't have permission to access",
+        "hideColumns": "Hide Columns",
+        "clearFilters": "Clear Filters",
+        "close": "Close"
+    },
+    "warnWhenUnsavedChanges": "Are you sure you want to leave? You have unsaved changes.",
+    "notifications": {
+        "success": "Successful",
+        "error": "Error (status code: {statusCode})",
+        "undoable": "You have {seconds} seconds to undo.",
+        "createSuccess": "Successfully created {resource}",
+        "createError": "There was an error creating {resource} (status code: {statusCode})",
+        "deleteSuccess": "Successfully deleted {resource}",
+        "deleteError": "Error when deleting {resource} (status code: {statusCode})",
+        "editSuccess": "Successfully edited {resource}",
+        "editError": "Error when editing {resource} (status code: {statusCode})",
+        "importProgress": "Importing: {processed}/{total}",
+        "saveSuccessful": "Save successful!",
+        "validationError": "Validation error: {error}"
+    },
+    "kofi": "Tip me on Ko-fi",
+    "loading": "Loading",
+    "version": "Version",
+    "unknown": "Unknown",
+    "yes": "Yes",
+    "no": "No",
+    "theme": {
+        "label": "Theme",
+        "system": "System",
+        "light": "Light",
+        "dark": "Dark"
+    },
+    "tags": {
+        "clone": "Clone"
+    },
+    "dashboard": {
+        "title": "Dashboard"
+    },
+    "printing": {
+        "generic": {
+            "title": "Printing",
+            "description": "Tune in the settings below to get the desired print layout. Keep in mind that printers and your OS may apply it's own margins and scaling, so you may need to perform some trial-and-error before it's all correct. Test it on a piece of regular paper before printing on the actual labels.",
+            "helpMargin": "Margins should be configured to match your label paper and printer, changing these will affect the size of the entire grid.",
+            "helpPrinterMargin": "Safe-Zone should be set to how close to the paper edge your printer can print, changing these will not affect the entire grid.",
+            "print": "Print",
+            "columns": "Columns",
+            "rows": "Rows",
+            "paperSize": "Paper Size",
+            "customSize": "Custom",
+            "dimensions": "Dimensions",
+            "showBorder": "Show Border",
+            "previewScale": "Preview Scale",
+            "skipItems": "Skip Items",
+            "itemCopies": "Item Copies",
+            "contentSettings": "Content Settings",
+            "layoutSettings": "Layout Settings",
+            "horizontalSpacing": "Horizontal Spacing",
+            "verticalSpacing": "Vertical Spacing",
+            "marginLeft": "Left Margin",
+            "marginRight": "Right Margin",
+            "marginTop": "Top Margin",
+            "marginBottom": "Bottom Margin",
+            "printerMarginLeft": "Safe-Zone Left",
+            "printerMarginRight": "Safe-Zone Right",
+            "printerMarginTop": "Safe-Zone Top",
+            "printerMarginBottom": "Safe-Zone Bottom",
+            "borders": {
+                "none": "None",
+                "border": "Border",
+                "grid": "Grid"
+            },
+            "settings": "Presets",
+            "defaultSettings": "Default",
+            "addSettings": "Add New Preset",
+            "newSetting": "New",
+            "duplicateSettings": "Duplicate",
+            "deleteSettings": "Delete Current Preset",
+            "deleteSettingsConfirm": "Are you sure you want to delete this preset?",
+            "settingsName": "Preset Name",
+            "saveSetting": "Save Presets",
+            "saveAsImage": "Save as Image"
+        },
+        "qrcode": {
+            "button": "Print Labels",
+            "title": "Label Printing",
+            "template": "Label Template",
+            "templateHelp": "Use '{''}' to insert values of the spool object as text. For example, '{'id'}' will be replaced with the spool id, or '{'filament.material'}' will be replaced with the material of the spool. if a value is missing it will be replaced with \"?\". A second set of '{''}' can be used to remove this. In addition, any text between the sets of '{''}' will be removed if the value is missing. For example, '{'Lot Nr: '{'lot_nr'}''}' will only show the label if the spool has a lot number. Enclose text with double asterix ** to make it bold. Click the button to view a list of all available tags.",
+            "textSize": "Label Text Size",
+            "showContent": "Print Label",
+            "useHTTPUrl": {
+                "label": "QR code link",
+                "tooltip": "Will use proprietary link that will work only if scanned from Spoolman's scanning feature (default). URL uses either the base URL specified in settings, or the current page URL if not set.",
+                "options": {
+                    "default": "Default",
+                    "url": "URL"
+                },
+                "preview": "Preview:"
+            },
+            "showQRCode": "Print QR Code",
+            "showQRCodeMode": {
+                "no": "No",
+                "simple": "Simple",
+                "withIcon": "With Icon"
+            }
+        },
+        "spoolSelect": {
+            "title": "Select Spools",
+            "description": "Select spools to print labels for.",
+            "showArchived": "Show Archived",
+            "noSpoolsSelected": "You have not selected any spools.",
+            "selectAll": "Select/Unselect All",
+            "selectedTotal": "{count, plural, one {{count} spool selected} other {{count} spools selected}}"
+        }
+    },
+    "scanner": {
+        "title": "QR Code Scanner",
+        "description": "Scan a Spoolman QR code to view details about the spool.",
+        "modal_title": "Scan a spool",
+        "hint": "Point your camera at a Spoolman QR code to open its spool.",
+        "starting": "Starting camera…",
+        "errors": {
+            "insecure": "The camera needs a secure connection. Browsers only allow camera access over HTTPS (or via localhost / 127.0.0.1) — open Spoolman that way to scan.",
+            "unsupported": "This browser does not provide camera access.",
+            "denied": "Camera access was blocked. Allow the camera permission for this site in your browser, then try again.",
+            "notFound": "No camera was found on this device.",
+            "inUse": "The camera is already in use by another application.",
+            "generic": "Could not start the camera."
+        },
+        "error": {
+            "notAllowed": "You have not allowed access to the camera.",
+            "insecureContext": "The page is not served over HTTPS.",
+            "streamApiNotSupported": "The browser does not support the MediaStream API.",
+            "notReadable": "The camera is not readable.",
+            "notFound": "No camera was found.",
+            "unknown": "An unknown error occurred. ({error})"
+        }
+    },
+    "spool": {
+        "spool": "Spools",
+        "fields": {
+            "id": "ID",
+            "filament_name": "Filament",
+            "filament": "Filament",
+            "filament_internal": "Internal",
+            "filament_external": "External",
+            "price": "Price",
+            "material": "Material",
+            "weight_to_use": "Weight",
+            "used_weight": "Used Weight",
+            "remaining_weight": "Remaining Weight",
+            "measured_weight": "Measured Weight",
+            "used_length": "Used Length",
+            "remaining_length": "Remaining Length",
+            "initial_weight": "Initial Weight",
+            "spool_weight": "Empty Weight",
+            "location": "Location",
+            "lot_nr": "Lot Nr",
+            "first_used": "First Used",
+            "last_used": "Last Used",
+            "registered": "Registered",
+            "comment": "Comment",
+            "archived": "Archived"
+        },
+        "fields_help": {
+            "price": "Price of a full spool. If not set, the price of the filament will be assumed instead.",
+            "weight_to_use": "Select what weight value to enter. Measured weight is only available if the spool weight is set for the selected filament.",
+            "used_weight": "How much filament has been used from the spool. A new spool should have 0g used.",
+            "remaining_weight": "How much filament is left on the spool. For a new spool this should match the spool weight.",
+            "measured_weight": "How much the filament and spool weigh.",
+            "initial_weight": "The initial weight of filament on the spool (net weight). Will use the weight from the filament object if not set.",
+            "spool_weight": "The weight of the spool when it is empty. Leave empty to use the value from the filament or the manufacturer.",
+            "location": "Where the spool is located if you have multiple locations where you store your spools.",
+            "lot_nr": "Manufacturer's lot number. Can be used to ensure a print has consistent color if multiple spools are used.",
+            "external_filament": "You have selected a filament from the external database. A filament object (and possibly a manufacturer object) will be created automatically when you create this spool. This can create duplicate filament objects if you have already created a filament object for this filament."
+        },
+        "titles": {
+            "create": "Create Spool",
+            "clone": "Clone Spool",
+            "edit": "Edit Spool",
+            "list": "Spools",
+            "show": "Show Spool",
+            "show_title": "[Spool #{id}] {name}",
+            "archive": "Archive Spool",
+            "adjust": "Adjust Spool Filament"
+        },
+        "form": {
+            "measurement_type": {
+                "length": "Length",
+                "weight": "Weight"
+            },
+            "measurement_type_label": "Measurement Type",
+            "adjust_filament_help": "Here you can directly add or subtract filament from the spool. A positive value will consume filament, a negative value will add it.",
+            "adjust_filament_value": "Consume Amount",
+            "new_location_prompt": "Enter a new location",
+            "spool_updated": "This spool has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
+        },
+        "messages": {
+            "archive": "Are you sure you want to archive this spool?"
+        },
+        "formats": {
+            "last_used": "Last used {date}"
+        }
+    },
+    "filament": {
+        "filament": "Filaments",
+        "fields": {
+            "id": "ID",
+            "vendor_name": "Manufacturer",
+            "vendor": "Manufacturer",
+            "name": "Name",
+            "material": "Material",
+            "price": "Price",
+            "density": "Density",
+            "diameter": "Diameter",
+            "weight": "Weight",
+            "spool_weight": "Spool Weight",
+            "article_number": "Article Number",
+            "registered": "Registered",
+            "comment": "Comment",
+            "settings_extruder_temp": "Extruder Temp",
+            "settings_bed_temp": "Bed Temp",
+            "color_hex": "Color",
+            "single_color": "Single",
+            "multi_color": "Multi",
+            "coaxial": "Coextruded",
+            "longitudinal": "Longitudinal",
+            "external_id": "External ID",
+            "spools": "Show Spools"
+        },
+        "fields_help": {
+            "name": "Filament name, to distinguish this filament type among others from the same manufacturer. Should contain the color for example.",
+            "material": "E.g. PLA, ABS, PETG, etc.",
+            "price": "Price of a full spool.",
+            "weight": "The filament weight of a full spool (net weight). This should not include the weight of the spool itself, only the filament. It is what is usually written on the packaging.",
+            "spool_weight": "The weight of an empty spool. Used to determine measured weight of a spool.",
+            "article_number": "E.g. EAN, UPC, etc.",
+            "multi_color_direction": "Filaments can have multiple colors in two ways: either through coextrusion, like dual-color filaments with consistent multi-colors, or through longitudinal color changes, like gradient filaments that shift colors along the spool."
+        },
+        "titles": {
+            "create": "Create Filament",
+            "clone": "Clone Filament",
+            "edit": "Edit Filament",
+            "list": "Filaments",
+            "show": "Show Filament",
+            "show_title": "[Filament #{id}] {name}"
+        },
+        "form": {
+            "filament_updated": "This filament has been updated by someone/something else since you opened this page. Saving will overwrite those changes!",
+            "import_external": "Import from External",
+            "import_external_description": "Select a filament in the list to automatically populate its details in the filament creation form. This will overwrite any data you have entered in the form.<br><br>A Manufacturer object will be created automatically when you click Ok, if necessary."
+        },
+        "buttons": {
+            "add_spool": "Add Spool"
+        }
+    },
+    "vendor": {
+        "vendor": "Manufacturers",
+        "fields": {
+            "id": "ID",
+            "name": "Name",
+            "empty_spool_weight": "Empty Spool Weight",
+            "external_id": "External ID",
+            "registered": "Registered",
+            "comment": "Comment"
+        },
+        "fields_help": {
+            "empty_spool_weight": "The weight of an empty spool from this manufacturer."
+        },
+        "titles": {
+            "create": "Create Manufacturer",
+            "clone": "Clone Manufacturer",
+            "edit": "Edit Manufacturer",
+            "list": "Manufacturers",
+            "show": "Show Manufacturer",
+            "show_title": "[Manufacturer #{id}] {name}"
+        },
+        "form": {
+            "vendor_updated": "This manufacturer has been updated by someone/something else since you opened this page. Saving will overwrite those changes!"
+        }
+    },
+    "home": {
+        "home": "Home",
+        "welcome": "Welcome to your Spoolman instance!",
+        "description": "It looks like you haven't added any spools yet. See the <helpPageLink>Help page</helpPageLink> for help getting started."
+    },
+    "help": {
+        "help": "Help",
+        "resources": {
+            "filament": "Brands of filament. They have properties such as name, material, color, diameter, and more.",
+            "spool": "Individual physical spools of a specific filament.",
+            "vendor": "The companies that make the filament."
+        },
+        "description": "<title>Help</title><p>Here are some tips to get you started.</p><p>Spoolman holds 3 different types of data:</p><itemsHelp/><p>To add a new spool to the database, start by creating a <filamentCreateLink>Filament</filamentCreateLink> object. Once that's done, proceed to create a <spoolCreateLink>Spool</spoolCreateLink> object for that specific spool. If you acquire additional spools of the same filament later on, simply generate additional Spool objects and reuse the same Filament object.</p><p>Optionally, you can also generate a <vendorCreateLink>Manufacturer</vendorCreateLink> object for the company manufacturing the filament if you wish to track that information.</p><p>You have the option to link other 3D printer services to Spoolman, like Moonraker, which can automatically monitor filament usage and update the Spool objects for you. Refer to the <readmeLink>Spoolman README</readmeLink> for guidance on how to set that up.</p>"
+    },
+    "table": {
+        "actions": "Actions"
+    },
+    "settings": {
+        "settings": "Settings",
+        "header": "Settings",
+        "server_note": "General settings and extra fields are stored on the server — applies to every client.",
+        "appearance": {
+            "tab": "Appearance"
+        },
+        "language": {
+            "label": "Language",
+            "desc": "Interface language (this browser only)"
+        },
+        "library": {
+            "tab": "Library behavior",
+            "low_threshold": {
+                "label": "Low-stock threshold",
+                "desc": "Spools at or below this weight are flagged red (this browser only)"
+            }
+        },
+        "general": {
+            "tab": "General",
+            "currency": {
+                "label": "Currency",
+                "desc": "Three-letter ISO code (e.g. EUR, USD) used for prices"
+            },
+            "base_url": {
+                "label": "Base URL",
+                "tooltip": "The base URL to use when generating features such as QR codes."
+            },
+            "external_url": {
+                "label": "External URL",
+                "desc": "Base URL used in QR codes and links to this instance"
+            },
+            "round_prices": {
+                "label": "Round prices",
+                "tooltip": "Round prices to the nearest whole number.",
+                "desc": "Hide decimals when displaying prices"
+            }
+        },
+        "extra_fields": {
+            "tab": "Extra Fields",
+            "short_desc": "Define custom fields for spools, filaments and manufacturers. Field type and key can't change once created; choices can only be added.",
+            "description": "<p>Here you can add extra custom fields to your entities.</p><p>Once a field is added, you can not change its key or type, and for choice type fields you can not remove choices or change the multi choice state. If you remove a field, the associated data for all entities will be deleted.</p><p>The key is what other programs read/write the data as, so if your custom field is supposed to integrate with a third-party program, make sure to set it correctly. Default value is only applied to new items.</p><p>Extra fields can be shown and sorted in the table views. Choice and boolean fields expose filter options there as well, and all extra field types support filtering for empty values.</p>",
+            "params": {
+                "key": "Key",
+                "name": "Name",
+                "field_type": "Type",
+                "unit": "Unit",
+                "order": "Order",
+                "default_value": "Default Value",
+                "choices": "Choices",
+                "multi_choice": "Multi Choice"
+            },
+            "field_type": {
+                "text": "Text",
+                "integer": "Integer",
+                "integer_range": "Integer Range",
+                "float": "Float",
+                "float_range": "Float Range",
+                "datetime": "Datetime",
+                "boolean": "Boolean",
+                "choice": "Choice"
+            },
+            "boolean_true": "Yes",
+            "boolean_false": "No",
+            "choices_missing_error": "You cannot remove choices. The following choices are missing: {choices}",
+            "non_unique_key_error": "The key must be unique.",
+            "key_not_changed": "Please change the key to something else.",
+            "delete_confirm": "Delete field {name}?",
+            "delete_confirm_description": "This will delete the field and all associated data for all entities."
+        }
+    },
+    "documentTitle": {
+        "default": "Spoolman",
+        "suffix": " | Spoolman",
+        "home": {
+            "list": "Home | Spoolman"
+        },
+        "help": {
+            "list": "Help | Spoolman"
+        },
+        "locations": {
+            "list": "Locations | Spoolman"
+        },
+        "filament": {
+            "list": "Filaments | Spoolman",
+            "show": "#{id} Show Filament | Spoolman",
+            "edit": "#{id} Edit Filament | Spoolman",
+            "create": "Create Filament | Spoolman",
+            "clone": "#{id} Clone Filament | Spoolman"
+        },
+        "spool": {
+            "list": "Spools | Spoolman",
+            "show": "#{id} Show Spool | Spoolman",
+            "edit": "#{id} Edit Spool | Spoolman",
+            "create": "Create Spool | Spoolman",
+            "clone": "#{id} Clone Spool | Spoolman"
+        },
+        "vendor": {
+            "list": "Manufacturers | Spoolman",
+            "show": "#{id} Show Manufacturer | Spoolman",
+            "edit": "#{id} Edit Manufacturer | Spoolman",
+            "create": "Create Manufacturer | Spoolman",
+            "clone": "#{id} Clone Manufacturer | Spoolman"
+        }
+    },
+    "locations": {
+        "locations": "Locations",
+        "new_location": "New Location",
+        "no_location": "No Location",
+        "no_locations_help": "This page lets you organize your spools in locations, add some spools to get started!",
+        "drag_hint": "Drag spools between shelves to reassign them",
+        "add_location": "Add location",
+        "new_shelf": "New shelf {n}",
+        "error_empty": "Location name cannot be empty",
+        "error_exists": "A location with that name already exists",
+        "error_rename": "Failed to rename location",
+        "spool_count": "{count, plural, one {# spool} other {# spools}}",
+        "last_used": "Last used {time} ago",
+        "drop_here": "drop spools here"
+    },
+    "nav": {
+        "library": "Library",
+        "locations": "Locations",
+        "labels": "Labels",
+        "settings": "Settings"
+    },
+    "topbar": {
+        "scan": "Scan spool QR code",
+        "add_spools": "Add spools",
+        "search_placeholder": "Search — try \"red\" or \"pla\""
+    },
+    "footer": {
+        "documentation": "Documentation",
+        "report_issue": "Report an issue"
+    },
+    "datetime": {
+        "pick": "Pick date and time",
+        "prev_month": "Previous month",
+        "next_month": "Next month",
+        "time": "Time",
+        "hour": "Hour",
+        "minute": "Minute",
+        "now": "Now",
+        "done": "Done"
+    },
+    "pagination": {
+        "empty": "No {unit}",
+        "range": "{from}–{to} of {total} {unit}",
+        "prev": "Previous page",
+        "next": "Next page",
+        "page_size": "Page size",
+        "per_page": "{size} / page"
+    },
+    "common": {
+        "close_details": "Close details",
+        "increment": "Increment",
+        "decrement": "Decrement",
+        "toggle": "Toggle",
+        "search": "Search",
+        "remove": "Remove"
+    },
+    "extra_field": {
+        "min": "min",
+        "max": "max",
+        "multi_suffix": " · multi",
+        "multiple": "Multiple",
+        "name_placeholder": "Display name",
+        "add_choice": "add choice…",
+        "add_choices_first": "Add choices first",
+        "save_field": "Save field",
+        "none": "No {entity} extra fields defined yet.",
+        "editor_new": "New {entity} field",
+        "editor_edit": "Edit {entity} field",
+        "add_entity_field": "Add {entity} field",
+        "delete_confirm": "Delete extra field “{name}”? This removes its value from all {entity} entries.",
+        "errors": {
+            "key_format": "Key must contain only lowercase letters, numbers and underscores.",
+            "key_reserved": "Please choose a different key.",
+            "key_exists": "A field with this key already exists.",
+            "name_required": "Name is required.",
+            "choice_needed": "Choice fields need at least one choice.",
+            "choices_removed": "Existing choices cannot be removed: {choices}.",
+            "save_failed": "Failed to save field.",
+            "delete_failed": "Failed to delete field."
+        }
+    },
+    "library": {
+        "group_by": "Group",
+        "sort_by": "Sort",
+        "filter_by": "Filter by",
+        "no_values": "No values",
+        "no_location": "no location",
+        "unused": "unused",
+        "in_use": "in use",
+        "used_ago": "used {time} ago",
+        "group_none": "None (flat)",
+        "unit_groups": "groups",
+        "unit_spools": "spools",
+        "api_error": "Couldn't reach the Spoolman API. Is the backend running?",
+        "empty_filtered": "No {unit} match the current filters.",
+        "show_more": "show {count} more",
+        "unused_sub": "{weight} g each · {location}",
+        "unassigned": "unassigned",
+        "n_unused": "×{count} unused",
+        "sort": {
+            "hue": "Color (hue)",
+            "nozzle": "Nozzle temp",
+            "dryer": "Dryer cycles"
+        },
+        "section": {
+            "spool": "Spool",
+            "filament": "Filament",
+            "extra": "Extra fields"
+        }
+    },
+    "validation": {
+        "required": "Required",
+        "must_be_number": "Must be a number",
+        "must_be_gt": "Must be greater than {value}",
+        "must_be_min": "Must be {value} or more",
+        "max_chars": "At most {max} characters",
+        "hex_digits": "Use 6 or 8 hex digits"
+    },
+    "add": {
+        "no_manufacturer": "No manufacturer",
+        "step2": "Step 2 · spool details",
+        "search_placeholder": "Search your catalog and SpoolmanDB…",
+        "your_catalog": "Your catalog",
+        "searching": "Searching…",
+        "no_catalog": "No filaments in your catalog",
+        "in_catalog": "in catalog",
+        "community_db": "community database",
+        "db_unavailable": "SpoolmanDB unavailable",
+        "type_to_search_matches": "Type to search — no matches",
+        "type_to_search_all": "Type to search thousands of filaments",
+        "create_new": "Create a new filament",
+        "create_new_named": "Create a new filament “{name}”",
+        "create_new_sub": "not in your catalog or SpoolmanDB",
+        "new_filament_title": "New filament",
+        "new_filament": "new filament",
+        "use_existing": "use an existing one",
+        "filament_name": "Filament name",
+        "filament_name_placeholder": "e.g. PolyTerra Matte Sage",
+        "pick_color": "Pick color",
+        "advanced": "Advanced specs",
+        "advanced_note": "density, diameter, temperatures (auto-filled from material)",
+        "nozzle": "Nozzle",
+        "bed": "Bed",
+        "count": "Count",
+        "net_weight": "Net weight",
+        "empty_spool": "Empty spool",
+        "price_per_spool": "Price / spool",
+        "location_placeholder": "e.g. Shelf A",
+        "fill_level": "Fill level",
+        "fill": {
+            "full": "Full",
+            "used": "Used",
+            "remaining": "Remaining",
+            "measured": "Measured"
+        },
+        "fill_help": {
+            "used": "Weight of filament already used.",
+            "remaining": "Weight of filament still on the spool.",
+            "measured": "Total weight on a scale now (filament + empty spool)."
+        },
+        "vendor_hint": {
+            "optional": "Optional — leave blank for no manufacturer",
+            "existing": "Using existing manufacturer “{name}”",
+            "new": "New manufacturer “{name}” will be created"
+        },
+        "change": "change",
+        "import_note": "This filament will be added to your catalog when you add the spools.",
+        "add_and_new": "Add & new",
+        "adding": "Adding…",
+        "add_n": "{count, plural, one {Add # spool} other {Add # spools}}",
+        "summary": "{count, plural, one {# spool} other {# spools}} of {name} · {weight} g net each"
+    },
+    "inspector": {
+        "empty": "Select a spool, filament or manufacturer from the list to see its details here.",
+        "adjust_weight": "Adjust weight",
+        "print_label": "Print label",
+        "of_remaining": "of {weight} g remaining · {length} m",
+        "used": "used",
+        "apply": "Apply",
+        "applying": "Applying…",
+        "consume_amount": "Consume amount:",
+        "new_gross": "New gross weight:",
+        "adjust_help": "Positive consumes filament, negative adds it back.",
+        "measured_help": "Total weight of the spool + remaining filament, as read from a scale.",
+        "enter_valid_length": "Enter a valid length.",
+        "enter_valid_weight": "Enter a valid weight.",
+        "adjust_failed": "Failed to adjust weight.",
+        "filament_default": "{price} · filament default",
+        "open_filament": "Open filament →",
+        "multi": "multi ×{count}",
+        "nozzle_bed": "Nozzle / bed",
+        "filament_weight": "Spool weight",
+        "add_spools_of_this": "Add spools of this",
+        "spools_count": "Spools · {count}",
+        "specs": "Specs — edit in place",
+        "color_hex": "Color hex",
+        "diameter_mm": "Diameter mm",
+        "nozzle_c": "Nozzle °C",
+        "bed_c": "Bed °C",
+        "default_price": "Default price ({currency})",
+        "vendor_sub": "{count, plural, one {# filament} other {# filaments}} · empty spool {weight} g",
+        "empty_spool_wt": "Empty spool wt. g"
+    },
+    "labels": {
+        "designer_title": "Label designer",
+        "designer_desc": "Design QR-code labels with any spool, filament, or vendor field, then print them on sheets or a label printer. Designs are saved on the server.",
+        "delete_confirm": "Delete this label design?",
+        "no_designs_option": "No designs yet",
+        "design_name": "Design name",
+        "new": "New",
+        "duplicate": "Duplicate",
+        "saving": "Saving…",
+        "saved": "Saved",
+        "tab_design": "Design",
+        "tab_print": "Print",
+        "blank": "You don't have any label designs yet.",
+        "create_first": "Create your first label",
+        "new_text": "New text",
+        "add_head": "Add",
+        "add_qr": "QR code",
+        "add_text": "Text / field",
+        "add_swatch": "Color swatch",
+        "add_rect": "Rectangle",
+        "label_size": "Label size",
+        "w_mm": "W (mm)",
+        "h_mm": "H (mm)",
+        "preview_with": "Preview with",
+        "sample_data": "Sample data (no spool)",
+        "canvas_hint": "Drag to move · click to select · handles to resize.",
+        "showing_real": "Showing real spool data.",
+        "showing_tags": "Fields show as tags until you pick a spool above.",
+        "select_element": "Select an element to edit it, or add one from the palette.",
+        "kind": {
+            "qr": "QR code",
+            "text": "Text",
+            "swatch": "Swatch",
+            "rect": "Rectangle"
+        },
+        "x_mm": "X (mm)",
+        "y_mm": "Y (mm)",
+        "size_mm": "Size (mm)",
+        "width_mm": "Width (mm)",
+        "height_mm": "Height (mm)",
+        "font_mm": "Font (mm)",
+        "corner_radius_mm": "Corner radius (mm)",
+        "radius_mm": "Radius (mm)",
+        "stroke_mm": "Stroke (mm)",
+        "center_logo": "Center Spoolman logo",
+        "encodes": "Encodes",
+        "enc_scheme": "WEB+SPOOLMAN URI",
+        "enc_url": "Full HTTP URL",
+        "hint_enc_url": "A full web link — scannable by any QR reader or phone camera. Uses the External URL from Settings (falls back to this site's address).",
+        "hint_enc_scheme": "A compact Spoolman code — scan it with the Spoolman app's built-in camera. Most generic scanners won't open it.",
+        "align": "Align",
+        "align_left": "Left",
+        "align_center": "Center",
+        "align_right": "Right",
+        "bold": "Bold",
+        "wrap_text": "Wrap text",
+        "hint_nowrap": "Text stays on one line; anything past the width is clipped.",
+        "text_template": "Text / template",
+        "insert_field": "Insert field",
+        "choose_field": "Choose a field…",
+        "hint_wrap": "Wrap a field to hide it when empty:",
+        "hint_swatch": "Filled with the spool's filament color(s) at print time.",
+        "fill": "Fill",
+        "stroke": "Stroke",
+        "clear_fill": "Clear fill (outline only)",
+        "delete_element": "Delete element",
+        "unknown_filament": "Unknown filament",
+        "select_all_short": "All",
+        "select_none_short": "None",
+        "search_spools": "Search spools…",
+        "no_spools": "No spools.",
+        "layout": "Layout",
+        "mode_sheet": "Sheet (tile)",
+        "mode_label": "Label printer",
+        "paper": "Paper",
+        "landscape": "Landscape",
+        "margin_top": "Top",
+        "margin_bottom": "Bottom",
+        "margin_left": "Left",
+        "margin_right": "Right",
+        "gap_h": "Gap H (mm)",
+        "gap_v": "Gap V (mm)",
+        "skip_cells": "Skip cells",
+        "copies": "Copies",
+        "cut_guides": "Cut guides",
+        "grid_info": "{cols} × {rows} = {perPage} labels / page",
+        "one_per_label": "One {w}×{h} mm page per label.",
+        "preview": "Preview",
+        "showing_spool": "Showing spool #{id}",
+        "select_at_least_one": "Select at least one spool.",
+        "preparing": "Preparing…",
+        "print_n": "{count, plural, one {Print # label} other {Print # labels}}",
+        "fields": {
+            "remaining_g": "Remaining (g)",
+            "initial_g": "Initial (g)",
+            "diameter_mm": "Diameter (mm)",
+            "net_weight_g": "Net weight (g)",
+            "bed_temp": "Bed temp",
+            "group_vendor": "Vendor"
+        }
+    }
+}

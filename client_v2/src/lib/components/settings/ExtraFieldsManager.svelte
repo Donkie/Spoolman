@@ -3,21 +3,28 @@
 	import Card from '../Card.svelte';
 	import {
 		FieldType,
-		FIELD_TYPE_LABELS,
 		NUMERIC_FIELD_TYPES,
 		type EntityType,
 		type FieldDef,
 		type FieldParams
 	} from '$lib/api/fields';
 	import { fields } from '$lib/stores/fields.svelte';
+	import { _ } from 'svelte-i18n';
 
-	const ENTITIES: { key: EntityType; label: string }[] = [
-		{ key: 'spool', label: 'Spool' },
-		{ key: 'filament', label: 'Filament' },
-		{ key: 'vendor', label: 'Manufacturer' }
+	const ENTITIES: { key: EntityType; labelKey: string }[] = [
+		{ key: 'spool', labelKey: 'library.section.spool' },
+		{ key: 'filament', labelKey: 'library.section.filament' },
+		{ key: 'vendor', labelKey: 'filament.fields.vendor' }
 	];
 
+	/** i18n key for the field-type display name. */
+	const fieldTypeKey = (t: FieldType) => `settings.extra_fields.field_type.${t}`;
+
 	let entity = $state<EntityType>('spool');
+	// Human label for the currently-selected entity, for messages/headings.
+	const entityLabel = $derived(
+		$_(ENTITIES.find((e) => e.key === entity)?.labelKey ?? 'library.section.spool')
+	);
 	$effect(() => {
 		fields.ensure(entity);
 	});
@@ -114,29 +121,29 @@
 	async function save() {
 		error = '';
 		if (!/^[a-z0-9_]+$/.test(key)) {
-			error = 'Key must contain only lowercase letters, numbers and underscores.';
+			error = $_('extra_field.errors.key_format');
 			return;
 		}
 		if (key === 'new_field') {
-			error = 'Please choose a different key.';
+			error = $_('extra_field.errors.key_reserved');
 			return;
 		}
 		if (isNew && defs.some((f) => f.key === key)) {
-			error = 'A field with this key already exists.';
+			error = $_('extra_field.errors.key_exists');
 			return;
 		}
 		if (!name.trim()) {
-			error = 'Name is required.';
+			error = $_('extra_field.errors.name_required');
 			return;
 		}
 		if (isChoice && choices.length === 0) {
-			error = 'Choice fields need at least one choice.';
+			error = $_('extra_field.errors.choice_needed');
 			return;
 		}
 		if (!isNew && isChoice) {
 			const missing = originalChoices.filter((c) => !choices.includes(c));
 			if (missing.length) {
-				error = `Existing choices cannot be removed: ${missing.join(', ')}.`;
+				error = $_('extra_field.errors.choices_removed', { values: { choices: missing.join(', ') } });
 				return;
 			}
 		}
@@ -156,18 +163,18 @@
 			await fields.save(entity, key, params);
 			editing = false;
 		} catch (e) {
-			error = e instanceof Error ? e.message : 'Failed to save field.';
+			error = e instanceof Error ? e.message : $_('extra_field.errors.save_failed');
 		} finally {
 			saving = false;
 		}
 	}
 
 	async function del(f: FieldDef) {
-		if (!confirm(`Delete extra field "${f.name}"? This removes its value from all ${entity}s.`)) return;
+		if (!confirm($_('extra_field.delete_confirm', { values: { name: f.name, entity: entityLabel } }))) return;
 		try {
 			await fields.remove(entity, f.key);
 		} catch (e) {
-			error = e instanceof Error ? e.message : 'Failed to delete field.';
+			error = e instanceof Error ? e.message : $_('extra_field.errors.delete_failed');
 		}
 	}
 
@@ -176,7 +183,7 @@
 		try {
 			const v = JSON.parse(f.default_value);
 			if (Array.isArray(v)) return v.map((x) => x ?? '').join(' – ');
-			if (typeof v === 'boolean') return v ? 'Yes' : 'No';
+			if (typeof v === 'boolean') return v ? $_('yes') : $_('no');
 			return String(v);
 		} catch {
 			return '—';
@@ -186,33 +193,39 @@
 
 <div class="tabs">
 	{#each ENTITIES as e (e.key)}
-		<button class="tab" class:active={entity === e.key} onclick={() => (entity = e.key)}>{e.label}</button>
+		<button class="tab" class:active={entity === e.key} onclick={() => (entity = e.key)}
+			>{$_(e.labelKey)}</button
+		>
 	{/each}
 </div>
 
 <Card divided>
 	{#if defs.length === 0}
-		<div class="empty">No extra fields defined for {entity}s yet.</div>
+		<div class="empty">{$_('extra_field.none', { values: { entity: entityLabel } })}</div>
 	{:else}
 		<div class="row head-row">
-			<span class="c-key">Key</span>
-			<span class="c-name">Name</span>
-			<span class="c-type">Type</span>
-			<span class="c-def">Default</span>
+			<span class="c-key">{$_('settings.extra_fields.params.key')}</span>
+			<span class="c-name">{$_('settings.extra_fields.params.name')}</span>
+			<span class="c-type">{$_('settings.extra_fields.params.field_type')}</span>
+			<span class="c-def">{$_('settings.extra_fields.params.default_value')}</span>
 			<span class="c-act"></span>
 		</div>
 		{#each defs as f (f.key)}
 			<div class="row">
 				<span class="c-key mono">{f.key}</span>
-				<span class="c-name">{f.name}{#if f.unit}<span class="unit"> ({f.unit})</span>{/if}</span>
+				<span class="c-name"
+					>{f.name}{#if f.unit}<span class="unit"> ({f.unit})</span>{/if}</span
+				>
 				<span class="c-type">
-					{FIELD_TYPE_LABELS[f.field_type]}
-					{#if f.field_type === FieldType.choice}<span class="unit">{f.multi_choice ? ' · multi' : ''}</span>{/if}
+					{$_(fieldTypeKey(f.field_type))}
+					{#if f.field_type === FieldType.choice}<span class="unit"
+							>{f.multi_choice ? $_('extra_field.multi_suffix') : ''}</span
+						>{/if}
 				</span>
 				<span class="c-def">{defaultPreview(f)}</span>
 				<span class="c-act">
-					<button class="mini" onclick={() => startEdit(f)}>Edit</button>
-					<button class="mini danger" onclick={() => del(f)}>Delete</button>
+					<button class="mini" onclick={() => startEdit(f)}>{$_('buttons.edit')}</button>
+					<button class="mini danger" onclick={() => del(f)}>{$_('buttons.delete')}</button>
 				</span>
 			</div>
 		{/each}
@@ -221,55 +234,66 @@
 
 {#if editing}
 	<div class="editor">
-		<div class="editor-title">{isNew ? 'New' : 'Edit'} {entity} field</div>
+		<div class="editor-title">
+			{isNew
+				? $_('extra_field.editor_new', { values: { entity: entityLabel } })
+				: $_('extra_field.editor_edit', { values: { entity: entityLabel } })}
+		</div>
 		<div class="form">
 			<label class="fld">
-				<span>Key</span>
+				<span>{$_('settings.extra_fields.params.key')}</span>
 				<input class="in mono" bind:value={key} disabled={!isNew} placeholder="lower_snake_case" />
 			</label>
 			<label class="fld">
-				<span>Order</span>
+				<span>{$_('settings.extra_fields.params.order')}</span>
 				<input class="in mono" type="number" min="0" bind:value={order} />
 			</label>
 			<label class="fld wide">
-				<span>Name</span>
-				<input class="in" bind:value={name} placeholder="Display name" />
+				<span>{$_('settings.extra_fields.params.name')}</span>
+				<input class="in" bind:value={name} placeholder={$_('extra_field.name_placeholder')} />
 			</label>
 			<label class="fld">
-				<span>Type</span>
-				<select class="in" value={fieldType} disabled={!isNew} onchange={(e) => onTypeChange(e.currentTarget.value as FieldType)}>
+				<span>{$_('settings.extra_fields.params.field_type')}</span>
+				<select
+					class="in"
+					value={fieldType}
+					disabled={!isNew}
+					onchange={(e) => onTypeChange(e.currentTarget.value as FieldType)}
+				>
 					{#each Object.values(FieldType) as t (t)}
-						<option value={t}>{FIELD_TYPE_LABELS[t]}</option>
+						<option value={t}>{$_(fieldTypeKey(t))}</option>
 					{/each}
 				</select>
 			</label>
 			{#if showsUnit}
 				<label class="fld">
-					<span>Unit</span>
+					<span>{$_('settings.extra_fields.params.unit')}</span>
 					<input class="in" bind:value={unit} placeholder="g, °C…" maxlength="16" />
 				</label>
 			{/if}
 
 			{#if isChoice}
 				<label class="fld">
-					<span>Multiple</span>
+					<span>{$_('extra_field.multiple')}</span>
 					<input type="checkbox" bind:checked={multiChoice} disabled={!isNew} />
 				</label>
 				<div class="fld wide">
-					<span>Choices</span>
+					<span>{$_('settings.extra_fields.params.choices')}</span>
 					<div class="chips">
 						{#each choices as c (c)}
 							<span class="chip">
 								{c}
 								{#if isNew || !originalChoices.includes(c)}
-									<button class="chip-x" onclick={() => removeChoice(c)} aria-label="Remove">✕</button>
+									<button class="chip-x" onclick={() => removeChoice(c)} aria-label={$_('common.remove')}
+										>✕</button
+									>
 								{/if}
 							</span>
 						{/each}
 						<input
 							class="chip-in"
 							bind:value={choiceInput}
-							placeholder="add choice…"
+							placeholder={$_('extra_field.add_choice')}
 							onkeydown={(e) => {
 								if (e.key === 'Enter' || e.key === ',') {
 									e.preventDefault();
@@ -283,10 +307,10 @@
 			{/if}
 
 			<div class="fld wide">
-				<span>Default value</span>
+				<span>{$_('settings.extra_fields.params.default_value')}</span>
 				<div class="def-input">
 					{#if isChoice && choices.length === 0}
-						<span class="hint">Add choices first</span>
+						<span class="hint">{$_('extra_field.add_choices_first')}</span>
 					{:else}
 						<ExtraFieldInput field={draftField} value={defaultJson} onchange={(v) => (defaultJson = v)} />
 					{/if}
@@ -297,12 +321,16 @@
 		{#if error}<div class="error">{error}</div>{/if}
 
 		<div class="editor-actions">
-			<button class="btn ghost" onclick={cancel}>Cancel</button>
-			<button class="btn primary" onclick={save} disabled={saving}>{saving ? 'Saving…' : 'Save field'}</button>
+			<button class="btn ghost" onclick={cancel}>{$_('buttons.cancel')}</button>
+			<button class="btn primary" onclick={save} disabled={saving}
+				>{saving ? $_('labels.saving') : $_('extra_field.save_field')}</button
+			>
 		</div>
 	</div>
 {:else}
-	<button class="add-btn" onclick={startAdd}>＋ Add {entity} field</button>
+	<button class="add-btn" onclick={startAdd}
+		>＋ {$_('extra_field.add_entity_field', { values: { entity: entityLabel } })}</button
+	>
 {/if}
 
 <style>

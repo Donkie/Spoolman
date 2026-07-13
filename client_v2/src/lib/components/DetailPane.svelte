@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { _ } from 'svelte-i18n';
 
 	// Adaptive container for the inspector: a normal in-flow side pane on desktop,
 	// a sliding bottom-sheet drawer on mobile — switched entirely with CSS, so the
@@ -18,12 +19,12 @@
 		class="scrim"
 		role="button"
 		tabindex="-1"
-		aria-label="Close details"
+		aria-label={$_('common.close_details')}
 		onclick={onclose}
 		onkeydown={(e) => e.key === 'Escape' && onclose?.()}
 	></div>
 	<div class="sheet">
-		<button class="grabber" onclick={onclose} aria-label="Close details"><span></span></button>
+		<button class="grabber" onclick={onclose} aria-label={$_('common.close_details')}><span></span></button>
 		<div class="sheet-body scroll-y">
 			{@render children()}
 		</div>

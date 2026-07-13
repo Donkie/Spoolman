@@ -109,54 +109,59 @@ export function resolveTemplate(template: string, b: LabelBinding): string {
 export interface PlaceholderItem {
 	/** The token inserted into the template, without braces. */
 	token: string;
-	label: string;
+	/** i18n key for a fixed field, or... */
+	labelKey?: string;
+	/** ...a literal label for a user-defined extra field (its own name). */
+	label?: string;
 }
 export interface PlaceholderGroup {
 	entity: EntityType;
-	label: string;
+	labelKey: string;
 	items: PlaceholderItem[];
 }
 
 const FIXED_GROUPS: PlaceholderGroup[] = [
 	{
 		entity: 'spool',
-		label: 'Spool',
+		labelKey: 'library.section.spool',
 		items: [
-			{ token: 'spool.id', label: 'ID' },
-			{ token: 'spool.location', label: 'Location' },
-			{ token: 'spool.lot', label: 'Lot nr' },
-			{ token: 'spool.remaining', label: 'Remaining (g)' },
-			{ token: 'spool.initial', label: 'Initial (g)' },
-			{ token: 'spool.registered', label: 'Registered' },
-			{ token: 'spool.lastUsed', label: 'Last used' },
-			{ token: 'spool.comment', label: 'Comment' }
+			{ token: 'spool.id', labelKey: 'spool.fields.id' },
+			{ token: 'spool.location', labelKey: 'spool.fields.location' },
+			{ token: 'spool.lot', labelKey: 'spool.fields.lot_nr' },
+			{ token: 'spool.remaining', labelKey: 'labels.fields.remaining_g' },
+			{ token: 'spool.initial', labelKey: 'labels.fields.initial_g' },
+			{ token: 'spool.registered', labelKey: 'spool.fields.registered' },
+			{ token: 'spool.lastUsed', labelKey: 'spool.fields.last_used' },
+			{ token: 'spool.comment', labelKey: 'spool.fields.comment' }
 		]
 	},
 	{
 		entity: 'filament',
-		label: 'Filament',
+		labelKey: 'library.section.filament',
 		items: [
-			{ token: 'filament.name', label: 'Name' },
-			{ token: 'filament.material', label: 'Material' },
-			{ token: 'filament.diameter', label: 'Diameter (mm)' },
-			{ token: 'filament.density', label: 'Density' },
-			{ token: 'filament.weight', label: 'Net weight (g)' },
-			{ token: 'filament.price', label: 'Price' },
-			{ token: 'filament.nozzleTemp', label: 'Nozzle temp' },
-			{ token: 'filament.bedTemp', label: 'Bed temp' },
-			{ token: 'filament.color', label: 'Color hex' }
+			{ token: 'filament.name', labelKey: 'filament.fields.name' },
+			{ token: 'filament.material', labelKey: 'filament.fields.material' },
+			{ token: 'filament.diameter', labelKey: 'labels.fields.diameter_mm' },
+			{ token: 'filament.density', labelKey: 'filament.fields.density' },
+			{ token: 'filament.weight', labelKey: 'labels.fields.net_weight_g' },
+			{ token: 'filament.price', labelKey: 'filament.fields.price' },
+			{ token: 'filament.nozzleTemp', labelKey: 'library.sort.nozzle' },
+			{ token: 'filament.bedTemp', labelKey: 'labels.fields.bed_temp' },
+			{ token: 'filament.color', labelKey: 'inspector.color_hex' }
 		]
 	},
 	{
 		entity: 'vendor',
-		label: 'Vendor',
-		items: [{ token: 'vendor.name', label: 'Name' }]
+		labelKey: 'labels.fields.group_vendor',
+		items: [{ token: 'vendor.name', labelKey: 'vendor.fields.name' }]
 	}
 ];
 
 /**
  * Build the palette groups, merging in extra-field definitions per entity.
  * `extraFields` maps each entity type to its FieldDef list (from the fields store).
+ * Fixed items carry an i18n `labelKey`; extra items carry a literal `label` (the
+ * user-defined field's own name).
  */
 export function getPlaceholderGroups(extraFields: Record<EntityType, FieldDef[]>): PlaceholderGroup[] {
 	return FIXED_GROUPS.map((group) => {

@@ -7,6 +7,7 @@
 	import { ui } from '$lib/stores/ui.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { startLiveSync } from '$lib/api/liveSync';
+	import { isLoading } from 'svelte-i18n';
 	import type { Snippet } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();
@@ -20,11 +21,15 @@
 </script>
 
 <div class="app">
-	<TopBar onadd={() => ui.openAddModal()} onscan={() => ui.openScanner()} />
-	<main>
-		{@render children()}
-	</main>
-	<Footer />
+	{#if $isLoading}
+		<div class="i18n-loading"></div>
+	{:else}
+		<TopBar onadd={() => ui.openAddModal()} onscan={() => ui.openScanner()} />
+		<main>
+			{@render children()}
+		</main>
+		<Footer />
+	{/if}
 </div>
 
 <AddSpoolModal
@@ -48,5 +53,9 @@
 		display: flex;
 		flex: 1;
 		min-height: 0;
+	}
+	/* Placeholder shown only during the brief locale-swap fetch. */
+	.i18n-loading {
+		flex: 1;
 	}
 </style>

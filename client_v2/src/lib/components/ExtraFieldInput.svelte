@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { FieldType, NUMERIC_FIELD_TYPES, type FieldDef } from '$lib/api/fields';
 	import Toggle from './Toggle.svelte';
+	import { _ } from 'svelte-i18n';
 
 	interface Props {
 		field: FieldDef;
@@ -75,7 +76,7 @@
 	{:else if field.field_type === FieldType.datetime}
 		<span class="mono">{parsed ? new Date(parsed).toLocaleString() : '—'}</span>
 	{:else if field.field_type === FieldType.boolean}
-		<span>{parsed === true ? 'Yes' : 'No'}</span>
+		<span>{parsed === true ? $_('yes') : $_('no')}</span>
 	{:else if field.field_type === FieldType.choice && field.multi_choice}
 		<span>{selected.length ? selected.join(', ') : '—'}</span>
 	{:else}
@@ -116,7 +117,7 @@
 			step={isInt ? '1' : 'any'}
 			value={lo}
 			oninput={(e) => onRange(0, e.currentTarget.value, isInt)}
-			placeholder="min"
+			placeholder={$_('extra_field.min')}
 		/>
 		<span class="dash">–</span>
 		<input
@@ -125,7 +126,7 @@
 			step={isInt ? '1' : 'any'}
 			value={hi}
 			oninput={(e) => onRange(1, e.currentTarget.value, isInt)}
-			placeholder="max"
+			placeholder={$_('extra_field.max')}
 		/>
 		{#if field.unit}<span class="unit">{field.unit}</span>{/if}
 	</span>

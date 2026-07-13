@@ -4,6 +4,7 @@
 	import DetailPane from '$components/DetailPane.svelte';
 	import { ui } from '$lib/stores/ui.svelte';
 	import { clearSelection } from '$lib/library/params';
+	import { _ } from 'svelte-i18n';
 	import type { PageData } from './$types';
 
 	// The URL is the source of truth: `data.state` is parsed from the query
@@ -14,7 +15,7 @@
 </script>
 
 <svelte:head>
-	<title>Library | Spoolman</title>
+	<title>{$_('nav.library')}{$_('documentTitle.suffix')}</title>
 </svelte:head>
 
 <div class="library">
@@ -31,7 +32,7 @@
 	</DetailPane>
 
 	<!-- Mobile FAB -->
-	<button class="fab" onclick={() => ui.openAddModal()}>＋ Add spools</button>
+	<button class="fab" onclick={() => ui.openAddModal()}>＋ {$_('topbar.add_spools')}</button>
 </div>
 
 <style>

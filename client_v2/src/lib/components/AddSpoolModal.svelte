@@ -9,6 +9,7 @@
 	import { spoolSource, type NewFilamentDraft } from '$lib/api/spoolSource';
 	import { fields } from '$lib/stores/fields.svelte';
 	import { externalColors, getExternalMaterials, type ExternalFilament } from '$lib/api/external';
+	import { _ } from 'svelte-i18n';
 
 	interface Props {
 		open: boolean;
@@ -73,7 +74,7 @@
 	}
 	function cVendor(c: Choice) {
 		return c.source === 'catalog'
-			? (inventory.vendorById(c.filament.vendorId)?.name ?? 'No manufacturer')
+			? (inventory.vendorById(c.filament.vendorId)?.name ?? $_('add.no_manufacturer'))
 			: c.ext.manufacturer;
 	}
 	function cMaterial(c: Choice) {
@@ -93,7 +94,7 @@
 		return c.source === 'catalog' ? c.filament.price : undefined;
 	}
 	function vendorName(f: Filament): string {
-		return inventory.vendorById(f.vendorId)?.name ?? 'No manufacturer';
+		return inventory.vendorById(f.vendorId)?.name ?? $_('add.no_manufacturer');
 	}
 
 	// --- search -------------------------------------------------------------
@@ -175,19 +176,19 @@
 	let lastUsed = $state('');
 	let extraValues = $state<Extra>({});
 
-	const FILL_MODES: { key: FillMode; label: string }[] = [
-		{ key: 'full', label: 'Full' },
-		{ key: 'used', label: 'Used' },
-		{ key: 'remaining', label: 'Remaining' },
-		{ key: 'measured', label: 'Measured' }
+	const FILL_MODES: { key: FillMode; labelKey: string }[] = [
+		{ key: 'full', labelKey: 'add.fill.full' },
+		{ key: 'used', labelKey: 'add.fill.used' },
+		{ key: 'remaining', labelKey: 'add.fill.remaining' },
+		{ key: 'measured', labelKey: 'add.fill.measured' }
 	];
 	let fillHelp = $derived(
 		fillMode === 'used'
-			? 'Weight of filament already used.'
+			? $_('add.fill_help.used')
 			: fillMode === 'remaining'
-				? 'Weight of filament still on the spool.'
+				? $_('add.fill_help.remaining')
 				: fillMode === 'measured'
-					? 'Total weight on a scale now (filament + empty spool).'
+					? $_('add.fill_help.measured')
 					: ''
 	);
 
@@ -253,10 +254,10 @@
 	let vendorMatch = $derived(vendorNames.find((v) => v.toLowerCase() === vendorTrimmed.toLowerCase()));
 	let vendorHint = $derived(
 		vendorTrimmed === ''
-			? 'Optional — leave blank for no manufacturer'
+			? $_('add.vendor_hint.optional')
 			: vendorMatch
-				? `Using existing manufacturer “${vendorMatch}”`
-				: `New manufacturer “${vendorTrimmed}” will be created`
+				? $_('add.vendor_hint.existing', { values: { name: vendorMatch } })
+				: $_('add.vendor_hint.new', { values: { name: vendorTrimmed } })
 	);
 	function onMaterial(v: string) {
 		nf.material = v;
@@ -356,10 +357,12 @@
 		}
 	}
 
-	let targetName = $derived(creating ? nf.name.trim() || 'new filament' : chosen ? cName(chosen) : '');
+	let targetName = $derived(
+		creating ? nf.name.trim() || $_('add.new_filament') : chosen ? cName(chosen) : ''
+	);
 	let summary = $derived(
 		chosen || creating
-			? `${countN} spool${countN === 1 ? '' : 's'} of ${targetName} · ${netWeight || '?'} g net each`
+			? $_('add.summary', { values: { count: countN, name: targetName, weight: netWeight || '?' } })
 			: ''
 	);
 
@@ -372,11 +375,11 @@
 		{ required = false, min, gt }: { required?: boolean; min?: number; gt?: number } = {}
 	) {
 		const t = v.trim();
-		if (t === '') return required ? 'Required' : '';
+		if (t === '') return required ? $_('validation.required') : '';
 		const n = Number(t);
-		if (!Number.isFinite(n)) return 'Must be a number';
-		if (gt != null && n <= gt) return `Must be greater than ${gt}`;
-		if (min != null && n < min) return `Must be ${min} or more`;
+		if (!Number.isFinite(n)) return $_('validation.must_be_number');
+		if (gt != null && n <= gt) return $_('validation.must_be_gt', { values: { value: gt } });
+		if (min != null && n < min) return $_('validation.must_be_min', { values: { value: min } });
 		return '';
 	}
 	const HEX_RE = /^#?[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/;
@@ -384,15 +387,15 @@
 	let errors = $derived.by(() => {
 		const e: Record<string, string> = {};
 		if (creating) {
-			if (nf.name.trim().length === 0) e.name = 'Required';
-			else if (nf.name.trim().length > 64) e.name = 'At most 64 characters';
-			if (nf.material.trim().length > 64) e.material = 'At most 64 characters';
-			if (nf.vendorName.trim().length > 64) e.vendor = 'At most 64 characters';
+			if (nf.name.trim().length === 0) e.name = $_('validation.required');
+			else if (nf.name.trim().length > 64) e.name = $_('validation.max_chars', { values: { max: 64 } });
+			if (nf.material.trim().length > 64) e.material = $_('validation.max_chars', { values: { max: 64 } });
+			if (nf.vendorName.trim().length > 64) e.vendor = $_('validation.max_chars', { values: { max: 64 } });
 			e.density = numErr(nf.density, { required: true, gt: 0 });
 			e.diameter = numErr(nf.diameter, { required: true, gt: 0 });
 			e.nozzleTemp = numErr(nf.nozzleTemp, { min: 0 });
 			e.bedTemp = numErr(nf.bedTemp, { min: 0 });
-			if (nf.colorHex.trim() && !HEX_RE.test(nf.colorHex.trim())) e.colorHex = 'Use 6 or 8 hex digits';
+			if (nf.colorHex.trim() && !HEX_RE.test(nf.colorHex.trim())) e.colorHex = $_('validation.hex_digits');
 		}
 		e.count = numErr(count, { required: true, gt: 0 });
 		e.netWeight = numErr(netWeight, { gt: 0 });
@@ -423,11 +426,11 @@
 			onkeydown={(e) => e.stopPropagation()}
 		>
 			<div class="modal-head">
-				<span class="title">Add spools</span>
+				<span class="title">{$_('topbar.add_spools')}</span>
 				{#if step === 2}
-					<span class="step-hint">Step 2 · spool details</span>
+					<span class="step-hint">{$_('add.step2')}</span>
 				{/if}
-				<button class="x" onclick={close} aria-label="Close">✕</button>
+				<button class="x" onclick={close} aria-label={$_('buttons.close')}>✕</button>
 			</div>
 
 			{#if step === 1}
@@ -436,14 +439,14 @@
 						class="search-big"
 						value={query}
 						oninput={(e) => onSearch(e.currentTarget.value)}
-						placeholder="Search your catalog and SpoolmanDB…"
+						placeholder={$_('add.search_placeholder')}
 					/>
 					<div class="results">
-						<div class="res-hdr">Your catalog</div>
+						<div class="res-hdr">{$_('add.your_catalog')}</div>
 						{#if searching && localResults.length === 0}
-							<div class="res-note">Searching…</div>
+							<div class="res-note">{$_('add.searching')}</div>
 						{:else if localResults.length === 0}
-							<div class="res-note">No filaments in your catalog</div>
+							<div class="res-note">{$_('add.no_catalog')}</div>
 						{:else}
 							{#each localResults as f (f.id)}
 								<button class="res-item" onclick={() => choose({ source: 'catalog', filament: f })}>
@@ -452,19 +455,19 @@
 										<span class="rn">{f.name}</span>
 										<span class="rs">{vendorName(f)} · {f.material}</span>
 									</div>
-									<span class="tag in-catalog">in catalog</span>
+									<span class="tag in-catalog">{$_('add.in_catalog')}</span>
 								</button>
 							{/each}
 						{/if}
 
-						<div class="res-hdr">SpoolmanDB <span class="hdr-note">community database</span></div>
+						<div class="res-hdr">SpoolmanDB <span class="hdr-note">{$_('add.community_db')}</span></div>
 						{#if extError}
-							<div class="res-note">SpoolmanDB unavailable</div>
+							<div class="res-note">{$_('add.db_unavailable')}</div>
 						{:else if searching && externalResults.length === 0}
-							<div class="res-note">Searching…</div>
+							<div class="res-note">{$_('add.searching')}</div>
 						{:else if externalResults.length === 0}
 							<div class="res-note">
-								Type to search {query.trim() ? '— no matches' : 'thousands of filaments'}
+								{query.trim() ? $_('add.type_to_search_matches') : $_('add.type_to_search_all')}
 							</div>
 						{:else}
 							{#each externalResults as ext (ext.id)}
@@ -482,8 +485,12 @@
 
 					<button class="create-new" onclick={startCreate}>
 						<span class="cn-plus">＋</span>
-						<span>Create a new filament{query.trim() ? ` “${query.trim()}”` : ''}</span>
-						<span class="cn-sub">not in your catalog or SpoolmanDB</span>
+						<span
+							>{query.trim()
+								? $_('add.create_new_named', { values: { name: query.trim() } })
+								: $_('add.create_new')}</span
+						>
+						<span class="cn-sub">{$_('add.create_new_sub')}</span>
 					</button>
 				</div>
 			{:else}
@@ -492,16 +499,16 @@
 					{#if creating}
 						<div class="fil-section">
 							<div class="fs-head">
-								<span class="fs-title">New filament</span>
-								<button class="fs-back" onclick={() => (step = 1)}>use an existing one</button>
+								<span class="fs-title">{$_('add.new_filament_title')}</span>
+								<button class="fs-back" onclick={() => (step = 1)}>{$_('add.use_existing')}</button>
 							</div>
 							<div class="form">
 								<label class="wide">
-									Manufacturer
+									{$_('filament.fields.vendor')}
 									<input
 										list="vendor-list"
 										bind:value={nf.vendorName}
-										placeholder="Manufacturer"
+										placeholder={$_('filament.fields.vendor')}
 										class:invalid={errors.vendor}
 									/>
 									{#if errors.vendor}
@@ -511,16 +518,16 @@
 									{/if}
 								</label>
 								<label class="wide">
-									Filament name <span class="req">*</span>
+									{$_('add.filament_name')} <span class="req">*</span>
 									<input
 										bind:value={nf.name}
-										placeholder="e.g. PolyTerra Matte Sage"
+										placeholder={$_('add.filament_name_placeholder')}
 										class:invalid={errors.name}
 									/>
 									{#if errors.name}<span class="err">{errors.name}</span>{/if}
 								</label>
 								<label>
-									Material
+									{$_('filament.fields.material')}
 									<input
 										list="material-list"
 										value={nf.material}
@@ -531,14 +538,14 @@
 									{#if errors.material}<span class="err">{errors.material}</span>{/if}
 								</label>
 								<label class="color-field">
-									Color
+									{$_('filament.fields.color_hex')}
 									<div class="color-row">
 										<input
 											class="color-pick"
 											type="color"
 											value={colorPicker}
 											oninput={(e) => onColorPick(e.currentTarget.value)}
-											aria-label="Pick color"
+											aria-label={$_('add.pick_color')}
 										/>
 										<input
 											class="mono"
@@ -559,15 +566,14 @@
 							>
 
 							<button class="adv-toggle" onclick={() => (showAdvanced = !showAdvanced)}>
-								{showAdvanced ? '▾' : '▸'} Advanced specs
-								{#if !showAdvanced}<span class="adv-note"
-										>density, diameter, temperatures (auto-filled from material)</span
-									>{/if}
+								{showAdvanced ? '▾' : '▸'}
+								{$_('add.advanced')}
+								{#if !showAdvanced}<span class="adv-note">{$_('add.advanced_note')}</span>{/if}
 							</button>
 							{#if showAdvanced}
 								<div class="form">
 									<label
-										>Density <span class="u">g/cm³</span> <span class="req">*</span>
+										>{$_('filament.fields.density')} <span class="u">g/cm³</span> <span class="req">*</span>
 										<NumberInput
 											bind:value={nf.density}
 											min={0}
@@ -578,7 +584,7 @@
 										{#if errors.density}<span class="err">{errors.density}</span>{/if}
 									</label>
 									<label
-										>Diameter <span class="u">mm</span> <span class="req">*</span>
+										>{$_('filament.fields.diameter')} <span class="u">mm</span> <span class="req">*</span>
 										<NumberInput
 											bind:value={nf.diameter}
 											min={0}
@@ -589,7 +595,7 @@
 										{#if errors.diameter}<span class="err">{errors.diameter}</span>{/if}
 									</label>
 									<label
-										>Nozzle <span class="u">°C</span>
+										>{$_('add.nozzle')} <span class="u">°C</span>
 										<NumberInput
 											bind:value={nf.nozzleTemp}
 											min={0}
@@ -601,7 +607,7 @@
 										{#if errors.nozzleTemp}<span class="err">{errors.nozzleTemp}</span>{/if}
 									</label>
 									<label
-										>Bed <span class="u">°C</span>
+										>{$_('add.bed')} <span class="u">°C</span>
 										<NumberInput
 											bind:value={nf.bedTemp}
 											min={0}
@@ -626,29 +632,27 @@
 								</div>
 								<div class="cs">{cVendor(chosen)} · {cMaterial(chosen)}</div>
 							</div>
-							<button class="change" onclick={() => (step = 1)}>change</button>
+							<button class="change" onclick={() => (step = 1)}>{$_('add.change')}</button>
 						</div>
 						{#if chosen.source === 'external'}
-							<div class="import-note">
-								This filament will be added to your catalog when you add the spools.
-							</div>
+							<div class="import-note">{$_('add.import_note')}</div>
 						{/if}
 					{/if}
 
 					<!-- Spool section -->
 					<div class="form">
 						<label
-							>Count
+							>{$_('add.count')}
 							<NumberInput bind:value={count} min={1} step={1} spaced invalid={!!errors.count} />
 							{#if errors.count}<span class="err">{errors.count}</span>{/if}
 						</label>
 						<label
-							>Net weight <span class="u">g</span>
+							>{$_('add.net_weight')} <span class="u">g</span>
 							<NumberInput bind:value={netWeight} min={0} step={50} spaced invalid={!!errors.netWeight} />
 							{#if errors.netWeight}<span class="err">{errors.netWeight}</span>{/if}
 						</label>
 						<label
-							>Empty spool <span class="u">g</span>
+							>{$_('add.empty_spool')} <span class="u">g</span>
 							<NumberInput
 								bind:value={spoolWeight}
 								min={0}
@@ -660,13 +664,17 @@
 							{#if errors.spoolWeight}<span class="err">{errors.spoolWeight}</span>{/if}
 						</label>
 						<label
-							>Price / spool <span class="u">{settings.currency}</span>
+							>{$_('add.price_per_spool')} <span class="u">{settings.currency}</span>
 							<input class="mono" bind:value={price} placeholder="—" class:invalid={errors.price} />
 							{#if errors.price}<span class="err">{errors.price}</span>{/if}
 						</label>
-						<label>Lot №<input class="mono" bind:value={lot} placeholder="—" /></label>
+						<label>{$_('spool.fields.lot_nr')}<input class="mono" bind:value={lot} placeholder="—" /></label>
 						<label class="wide"
-							>Location<input list="add-locations" bind:value={location} placeholder="e.g. Shelf A" /></label
+							>{$_('spool.fields.location')}<input
+								list="add-locations"
+								bind:value={location}
+								placeholder={$_('add.location_placeholder')}
+							/></label
 						>
 					</div>
 					<datalist id="add-locations"
@@ -674,11 +682,11 @@
 					>
 
 					<div class="fill">
-						<div class="fill-label">Fill level</div>
+						<div class="fill-label">{$_('add.fill_level')}</div>
 						<div class="seg">
 							{#each FILL_MODES as m (m.key)}
 								<button class="seg-btn" class:active={fillMode === m.key} onclick={() => (fillMode = m.key)}
-									>{m.label}</button
+									>{$_(m.labelKey)}</button
 								>
 							{/each}
 						</div>
@@ -699,13 +707,16 @@
 					</div>
 
 					<div class="form dates">
-						<label>First used<input type="datetime-local" bind:value={firstUsed} /></label>
-						<label>Last used<input type="datetime-local" bind:value={lastUsed} /></label>
+						<label
+							>{$_('spool.fields.first_used')}<input type="datetime-local" bind:value={firstUsed} /></label
+						>
+						<label>{$_('spool.fields.last_used')}<input type="datetime-local" bind:value={lastUsed} /></label>
 					</div>
 
 					<div class="form comment-row">
 						<label class="wide"
-							>Comment<textarea rows="2" bind:value={comment} placeholder="—"></textarea></label
+							>{$_('spool.fields.comment')}<textarea rows="2" bind:value={comment} placeholder="—"
+							></textarea></label
 						>
 					</div>
 
@@ -715,10 +726,10 @@
 						<div class="summary">{summary}</div>
 						<div class="actions">
 							<Button variant="outline" disabled={!canSubmit || submitting} onclick={() => submit(true)}
-								>Add &amp; new</Button
+								>{$_('add.add_and_new')}</Button
 							>
 							<Button disabled={!canSubmit || submitting} onclick={() => submit(false)}>
-								{submitting ? 'Adding…' : `Add ${countN} spool${countN === 1 ? '' : 's'}`}
+								{submitting ? $_('add.adding') : $_('add.add_n', { values: { count: countN } })}
 							</Button>
 						</div>
 					</div>

@@ -1,0 +1,8 @@
+# Weblate-managed translation files — do not reformat (mirrors the old client).
+static/locales
+
+# Build output and tooling
+build
+.svelte-kit
+dist
+node_modules

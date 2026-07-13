@@ -7,6 +7,9 @@
 	// digit by digit), which is what made the previous field feel broken. This
 	// component renders its own calendar + time dropdowns in a popover, so both
 	// date and time are always fully clickable and identical in every browser.
+	import { _, locale } from 'svelte-i18n';
+	import { intlLocale } from '$lib/i18n';
+
 	interface Props {
 		/** Current value as an ISO timestamp, or undefined if unset. */
 		value: string | undefined;
@@ -16,21 +19,20 @@
 	let { value, oninput }: Props = $props();
 
 	const pad = (n: number) => String(n).padStart(2, '0');
-	const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-	const MONTHS = [
-		'January',
-		'February',
-		'March',
-		'April',
-		'May',
-		'June',
-		'July',
-		'August',
-		'September',
-		'October',
-		'November',
-		'December'
-	];
+	// Month and weekday names come from Intl in the active locale. Weekdays are
+	// Monday-first (2021-11-01 was a Monday); months use a mid-month date to dodge
+	// timezone edge cases.
+	const dtLocale = $derived(intlLocale($locale));
+	const WEEKDAYS = $derived(
+		Array.from({ length: 7 }, (_v, i) =>
+			new Intl.DateTimeFormat(dtLocale, { weekday: 'short' }).format(new Date(2021, 10, 1 + i))
+		)
+	);
+	const MONTHS = $derived(
+		Array.from({ length: 12 }, (_v, m) =>
+			new Intl.DateTimeFormat(dtLocale, { month: 'long' }).format(new Date(2021, m, 15))
+		)
+	);
 
 	// --- popover open/close + positioning ------------------------------------
 	let root = $state<HTMLDivElement>();
@@ -76,7 +78,12 @@
 		if (!value) return '';
 		const d = new Date(value);
 		if (Number.isNaN(d.getTime())) return '';
-		return `${MONTHS[d.getMonth()].slice(0, 3)} ${d.getDate()}, ${d.getFullYear()}  ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+		const datePart = new Intl.DateTimeFormat(dtLocale, {
+			month: 'short',
+			day: 'numeric',
+			year: 'numeric'
+		}).format(d);
+		return `${datePart}  ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 	});
 
 	// Calendar grid: 6 weeks × 7 days, Monday-first, null = blank leading cell.
@@ -200,17 +207,26 @@
 </script>
 
 <div class="dtf" bind:this={root}>
-	<button type="button" class="trigger" class:empty={!value} onclick={toggle} aria-haspopup="dialog" aria-expanded={open}>
+	<button
+		type="button"
+		class="trigger"
+		class:empty={!value}
+		onclick={toggle}
+		aria-haspopup="dialog"
+		aria-expanded={open}
+	>
 		<span class="cal-icon" aria-hidden="true">🗓</span>
 		<span class="trigger-label mono">{label || '—'}</span>
 	</button>
 
 	{#if open}
-		<div class="pop" bind:this={pop} style={popStyle} role="dialog" aria-label="Pick date and time">
+		<div class="pop" bind:this={pop} style={popStyle} role="dialog" aria-label={$_('datetime.pick')}>
 			<div class="cal-head">
-				<button type="button" class="nav" onclick={prevMonth} aria-label="Previous month">‹</button>
+				<button type="button" class="nav" onclick={prevMonth} aria-label={$_('datetime.prev_month')}>‹</button
+				>
 				<span class="month-label">{MONTHS[viewMonth]} {viewYear}</span>
-				<button type="button" class="nav" onclick={nextMonth} aria-label="Next month">›</button>
+				<button type="button" class="nav" onclick={nextMonth} aria-label={$_('datetime.next_month')}>›</button
+				>
 			</div>
 			<div class="dow">
 				{#each WEEKDAYS as w (w)}
@@ -235,23 +251,23 @@
 				{/each}
 			</div>
 			<div class="time-row">
-				<span class="time-label">Time</span>
-				<select class="sel mono" value={hour} onchange={onHour} aria-label="Hour">
+				<span class="time-label">{$_('datetime.time')}</span>
+				<select class="sel mono" value={hour} onchange={onHour} aria-label={$_('datetime.hour')}>
 					{#each hours as h (h)}
 						<option value={h}>{pad(h)}</option>
 					{/each}
 				</select>
 				<span class="colon">:</span>
-				<select class="sel mono" value={minute} onchange={onMinute} aria-label="Minute">
+				<select class="sel mono" value={minute} onchange={onMinute} aria-label={$_('datetime.minute')}>
 					{#each minutes as m (m)}
 						<option value={m}>{pad(m)}</option>
 					{/each}
 				</select>
 			</div>
 			<div class="actions">
-				<button type="button" class="link" onclick={clear}>Clear</button>
-				<button type="button" class="link" onclick={setNow}>Now</button>
-				<button type="button" class="done" onclick={close}>Done</button>
+				<button type="button" class="link" onclick={clear}>{$_('buttons.clear')}</button>
+				<button type="button" class="link" onclick={setNow}>{$_('datetime.now')}</button>
+				<button type="button" class="done" onclick={close}>{$_('datetime.done')}</button>
 			</div>
 		</div>
 	{/if}

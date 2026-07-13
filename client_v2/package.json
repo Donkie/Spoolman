@@ -28,6 +28,7 @@
     "konva": "^10.3.0",
     "qr-scanner": "^1.4.2",
     "qrcode": "^1.5.4",
+    "svelte-i18n": "^4.0.1",
     "svelte-konva": "^1.0.1"
   }
 }

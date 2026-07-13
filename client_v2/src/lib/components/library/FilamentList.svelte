@@ -13,6 +13,7 @@
 	import { buildGroupQuery, buildFlatSpoolQuery, isGroupedMode } from '$lib/api/query';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { live } from '$lib/api/live';
+	import { _ } from 'svelte-i18n';
 
 	// State comes from the URL via the page load (see routes/+page.ts). Changing
 	// page/pageSize navigates through the params helpers. (Named libraryState, not
@@ -70,8 +71,8 @@
 		return () => offs.forEach((off) => off());
 	});
 
-	let flatVMs = $derived(flatSpools.map((s) => spoolToVM(s, inventory, settings.lowThreshold)));
-	let totalLabel = $derived(grouped ? 'groups' : 'spools');
+	let flatVMs = $derived(flatSpools.map((s) => spoolToVM(s, inventory, settings.lowThreshold, $_)));
+	let totalLabel = $derived(grouped ? $_('library.unit_groups') : $_('library.unit_spools'));
 </script>
 
 <div class="list">
@@ -88,9 +89,9 @@
 		{/if}
 
 		{#if errored}
-			<div class="empty">Couldn't reach the Spoolman API. Is the backend running?</div>
+			<div class="empty">{$_('library.api_error')}</div>
 		{:else if total === 0 && !loading}
-			<div class="empty">No {totalLabel} match the current filters.</div>
+			<div class="empty">{$_('library.empty_filtered', { values: { unit: totalLabel } })}</div>
 		{/if}
 	</div>
 	<Pagination

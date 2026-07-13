@@ -5,6 +5,7 @@
 	import Button from './Button.svelte';
 	import { setQuery } from '$lib/library/params';
 	import { page } from '$app/state';
+	import { _ } from 'svelte-i18n';
 
 	interface Props {
 		onadd?: () => void;
@@ -23,7 +24,7 @@
 		<Logo />
 		<div class="nav-desktop"><NavTabs /></div>
 		<div class="spacer"></div>
-		<button class="scan-btn" onclick={onscan} aria-label="Scan spool QR code" title="Scan spool QR code">
+		<button class="scan-btn" onclick={onscan} aria-label={$_('topbar.scan')} title={$_('topbar.scan')}>
 			<svg
 				viewBox="0 0 24 24"
 				width="18"
@@ -43,10 +44,14 @@
 			</svg>
 		</button>
 		<div class="search-desktop">
-			<SearchInput value={query} placeholder={'⌕ Search — try "red" or "pla"'} oninput={(v) => setQuery(v)} />
+			<SearchInput
+				value={query}
+				placeholder={'⌕ ' + $_('topbar.search_placeholder')}
+				oninput={(v) => setQuery(v)}
+			/>
 		</div>
 		<div class="add-desktop">
-			<Button onclick={onadd}>＋ Add spools</Button>
+			<Button onclick={onadd}>＋ {$_('topbar.add_spools')}</Button>
 		</div>
 	</div>
 
@@ -54,7 +59,7 @@
 	<div class="row mobile-search">
 		<SearchInput
 			value={query}
-			placeholder={'Search — try "red" or "pla"'}
+			placeholder={$_('topbar.search_placeholder')}
 			oninput={(v) => setQuery(v)}
 			fullWidth
 		/>

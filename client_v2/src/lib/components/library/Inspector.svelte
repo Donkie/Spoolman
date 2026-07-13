@@ -5,6 +5,7 @@
 	import VendorInspector from './VendorInspector.svelte';
 	import type { Selection } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
+	import { _ } from 'svelte-i18n';
 
 	let { selection }: { selection: Selection | null } = $props();
 
@@ -23,7 +24,7 @@
 {:else}
 	<div class="empty">
 		<img class="mark" src="{base}/spoolman.svg" alt="" width="56" height="56" />
-		<p>Select a spool, filament or manufacturer from the list to see its details here.</p>
+		<p>{$_('inspector.empty')}</p>
 	</div>
 {/if}
 

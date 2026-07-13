@@ -1,8 +1,9 @@
 <script lang="ts">
 	import * as params from '$lib/library/params';
 	import type { GroupMode, LibraryState } from '$lib/library/params';
-	import { sortDefs } from '$lib/utils/library';
+	import { sortDefs, type SortDef } from '$lib/utils/library';
 	import { spoolSource } from '$lib/api/spoolSource';
+	import { _ } from 'svelte-i18n';
 
 	// Named libraryState, not `state`, to avoid shadowing the $state rune.
 	let { libraryState }: { libraryState: LibraryState } = $props();
@@ -18,11 +19,11 @@
 	}
 
 	// Filter categories the API can serve (options fetched lazily on open).
-	const FILTER_CATEGORIES: { key: string; label: string; load: () => Promise<string[]> }[] = [
-		{ key: 'material', label: 'Material', load: () => spoolSource.materials() },
-		{ key: 'vendor', label: 'Manufacturer', load: () => spoolSource.vendorNames() },
-		{ key: 'location', label: 'Location', load: () => spoolSource.locations() },
-		{ key: 'lot', label: 'Lot №', load: () => spoolSource.lotNumbers() }
+	const FILTER_CATEGORIES: { key: string; labelKey: string; load: () => Promise<string[]> }[] = [
+		{ key: 'material', labelKey: 'spool.fields.material', load: () => spoolSource.materials() },
+		{ key: 'vendor', labelKey: 'filament.fields.vendor', load: () => spoolSource.vendorNames() },
+		{ key: 'location', labelKey: 'spool.fields.location', load: () => spoolSource.locations() },
+		{ key: 'lot', labelKey: 'spool.fields.lot_nr', load: () => spoolSource.lotNumbers() }
 	];
 
 	// Two-level filter menu: pick a property, then a value.
@@ -46,25 +47,32 @@
 	let sorts = $derived(sortDefs());
 	let activeSort = $derived(sorts.find((s) => s.key === libraryState.sortKey) ?? sorts[0]);
 
-	const groupOptions: { key: GroupMode; label: string }[] = [
-		{ key: 'filament', label: 'Filament' },
-		{ key: 'vendor', label: 'Manufacturer' },
-		{ key: 'material', label: 'Material' },
-		{ key: 'location', label: 'Location' },
-		{ key: 'none', label: 'None (flat)' }
+	const groupOptions: { key: GroupMode; labelKey: string }[] = [
+		{ key: 'filament', labelKey: 'spool.fields.filament' },
+		{ key: 'vendor', labelKey: 'filament.fields.vendor' },
+		{ key: 'material', labelKey: 'spool.fields.material' },
+		{ key: 'location', labelKey: 'spool.fields.location' },
+		{ key: 'none', labelKey: 'library.group_none' }
 	];
-	let groupLabel = $derived(groupOptions.find((g) => g.key === libraryState.group)?.label ?? 'Filament');
+	let groupLabel = $derived(
+		$_(groupOptions.find((g) => g.key === libraryState.group)?.labelKey ?? 'spool.fields.filament')
+	);
 
 	function chipLabel(prop: string, value: string): string {
 		const c = FILTER_CATEGORIES.find((x) => x.key === prop);
-		return c ? `${c.label}: ${value}` : value;
+		return c ? `${$_(c.labelKey)}: ${value}` : value;
 	}
 
 	// Sort options grouped by section for the sort dropdown.
+	const SORT_SECTIONS: { key: SortDef['section']; labelKey: string }[] = [
+		{ key: 'spool', labelKey: 'library.section.spool' },
+		{ key: 'filament', labelKey: 'library.section.filament' },
+		{ key: 'extra', labelKey: 'library.section.extra' }
+	];
 	let sortSections = $derived(
-		['Spool', 'Filament', 'Extra fields']
-			.map((sec) => ({ name: sec, items: sorts.filter((s) => s.section === sec) }))
-			.filter((s) => s.items.length)
+		SORT_SECTIONS.map((sec) => ({ ...sec, items: sorts.filter((s) => s.section === sec.key) })).filter(
+			(s) => s.items.length
+		)
 	);
 </script>
 
@@ -82,7 +90,7 @@
 		onclick={() => {
 			toggle('filter');
 			filterProp = null;
-		}}>＋ Filter</button
+		}}>＋ {$_('buttons.filter')}</button
 	>
 
 	{#each libraryState.filters as f (f.prop + f.value)}
@@ -93,29 +101,31 @@
 
 	<div class="spacer"></div>
 
-	<button class="link-btn" onclick={() => toggle('group')}>Group: {groupLabel} ⌄</button>
+	<button class="link-btn" onclick={() => toggle('group')}>{$_('library.group_by')}: {groupLabel} ⌄</button>
 	<button class="chip active sort" onclick={() => toggle('sort')}>
-		Sort: {activeSort.label}
+		{$_('library.sort_by')}: {$_(activeSort.labelKey)}
 		{libraryState.sortAsc ? '↑' : '↓'}
 	</button>
 
 	{#if open === 'filter'}
 		<div class="menu filter-menu">
 			{#if !filterProp}
-				<div class="menu-title">Filter by</div>
+				<div class="menu-title">{$_('library.filter_by')}</div>
 				{#each FILTER_CATEGORIES as c (c.key)}
 					<button class="menu-item" onclick={() => openProp(c.key)}>
-						<span class="mi-label">{c.label}</span>
+						<span class="mi-label">{$_(c.labelKey)}</span>
 						<span class="mi-meta">›</span>
 					</button>
 				{/each}
 			{:else}
 				{@const c = FILTER_CATEGORIES.find((x) => x.key === filterProp)}
-				<button class="menu-title back" onclick={() => (filterProp = null)}>‹ {c?.label}</button>
+				<button class="menu-title back" onclick={() => (filterProp = null)}
+					>‹ {c ? $_(c.labelKey) : ''}</button
+				>
 				{#if optionsLoading}
-					<div class="menu-item"><span class="mi-label">Loading…</span></div>
+					<div class="menu-item"><span class="mi-label">{$_('loading')}…</span></div>
 				{:else if options.length === 0}
-					<div class="menu-item"><span class="mi-label mi-meta">No values</span></div>
+					<div class="menu-item"><span class="mi-label mi-meta">{$_('library.no_values')}</span></div>
 				{:else}
 					{#each options as opt (opt)}
 						<button
@@ -144,7 +154,7 @@
 						close();
 					}}
 				>
-					<span class="mi-label">{g.label}</span>
+					<span class="mi-label">{$_(g.labelKey)}</span>
 				</button>
 			{/each}
 		</div>
@@ -152,8 +162,8 @@
 
 	{#if open === 'sort'}
 		<div class="menu sort-menu">
-			{#each sortSections as sec (sec.name)}
-				<div class="menu-title">{sec.name}</div>
+			{#each sortSections as sec (sec.key)}
+				<div class="menu-title">{$_(sec.labelKey)}</div>
 				{#each sec.items as it (it.key)}
 					<button
 						class="menu-item"
@@ -163,7 +173,7 @@
 							close();
 						}}
 					>
-						<span class="mi-label">{it.label}</span>
+						<span class="mi-label">{$_(it.labelKey)}</span>
 						{#if libraryState.sortKey === it.key}<span class="mi-dir">{libraryState.sortAsc ? '↑' : '↓'}</span
 							>{/if}
 						{#if it.unit}<span class="mi-meta">{it.unit}</span>{/if}

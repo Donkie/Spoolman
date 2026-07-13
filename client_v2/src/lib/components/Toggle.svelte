@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
+
 	interface Props {
 		checked: boolean;
 		onchange?: (checked: boolean) => void;
@@ -12,7 +14,7 @@
 	class:on={checked}
 	role="switch"
 	aria-checked={checked}
-	aria-label="Toggle"
+	aria-label={$_('common.toggle')}
 	onclick={() => onchange?.(!checked)}
 >
 	<span class="knob"></span>

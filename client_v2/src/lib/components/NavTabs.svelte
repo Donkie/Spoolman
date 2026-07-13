@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { _ } from 'svelte-i18n';
 
 	const tabs = [
-		{ href: '/', label: 'Library' },
-		{ href: '/locations', label: 'Locations' },
-		{ href: '/labels', label: 'Labels' },
-		{ href: '/settings', label: 'Settings' }
+		{ href: '/', key: 'nav.library' },
+		{ href: '/locations', key: 'nav.locations' },
+		{ href: '/labels', key: 'nav.labels' },
+		{ href: '/settings', key: 'nav.settings' }
 	];
 
 	function isActive(href: string): boolean {
@@ -16,7 +17,7 @@
 
 <nav class="tabs">
 	{#each tabs as tab (tab.href)}
-		<a href={tab.href} class="tab" class:active={isActive(tab.href)}>{tab.label}</a>
+		<a href={tab.href} class="tab" class:active={isActive(tab.href)}>{$_(tab.key)}</a>
 	{/each}
 </nav>
 

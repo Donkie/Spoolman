@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { parseSpoolCode } from '$lib/utils/spoolCode';
+	import { _ } from 'svelte-i18n';
 
 	interface Props {
 		open: boolean;
@@ -27,25 +28,14 @@
 		goto(`${base}/?sel=spool:${id}`);
 	}
 
-	const MSG = {
-		insecure:
-			'The camera needs a secure connection. Browsers only allow camera access over HTTPS (or via localhost / 127.0.0.1) — open Spoolman that way to scan.',
-		unsupported: 'This browser does not provide camera access.',
-		denied:
-			'Camera access was blocked. Allow the camera permission for this site in your browser, then try again.',
-		notFound: 'No camera was found on this device.',
-		inUse: 'The camera is already in use by another application.',
-		generic: 'Could not start the camera.'
-	};
-
 	/** Map a getUserMedia DOMException to a friendly reason (by its `name`). */
 	function messageForError(err: unknown): string {
 		const name = (err as { name?: string } | null)?.name ?? '';
-		if (name === 'NotAllowedError' || name === 'SecurityError') return MSG.denied;
+		if (name === 'NotAllowedError' || name === 'SecurityError') return $_('scanner.errors.denied');
 		if (name === 'NotFoundError' || name === 'OverconstrainedError' || name === 'DevicesNotFoundError')
-			return MSG.notFound;
-		if (name === 'NotReadableError' || name === 'TrackStartError') return MSG.inUse;
-		return MSG.generic;
+			return $_('scanner.errors.notFound');
+		if (name === 'NotReadableError' || name === 'TrackStartError') return $_('scanner.errors.inUse');
+		return $_('scanner.errors.generic');
 	}
 
 	// qr-scanner collapses every getUserMedia failure into the opaque string
@@ -55,7 +45,7 @@
 		try {
 			const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
 			stream.getTracks().forEach((t) => t.stop());
-			return MSG.generic; // camera works now — the earlier failure was transient
+			return $_('scanner.errors.generic'); // camera works now — the earlier failure was transient
 		} catch (err) {
 			return messageForError(err);
 		}
@@ -74,7 +64,7 @@
 		// at all — qr-scanner would only report a generic "camera not found", so
 		// detect this up front and tell the user the real reason before we try.
 		if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-			error = !window.isSecureContext ? MSG.insecure : MSG.unsupported;
+			error = !window.isSecureContext ? $_('scanner.errors.insecure') : $_('scanner.errors.unsupported');
 			return;
 		}
 
@@ -125,17 +115,17 @@
 			class="modal"
 			role="dialog"
 			aria-modal="true"
-			aria-label="Scan spool QR code"
+			aria-label={$_('topbar.scan')}
 			tabindex="-1"
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 		>
 			<div class="modal-head">
-				<span class="title">Scan a spool</span>
-				<button class="x" onclick={close} aria-label="Close">✕</button>
+				<span class="title">{$_('scanner.modal_title')}</span>
+				<button class="x" onclick={close} aria-label={$_('buttons.close')}>✕</button>
 			</div>
 
-			<p class="hint">Point your camera at a Spoolman QR code to open its spool.</p>
+			<p class="hint">{$_('scanner.hint')}</p>
 
 			<div class="stage">
 				<!-- svelte-ignore a11y_media_has_caption -->
@@ -143,7 +133,7 @@
 				{#if error}
 					<div class="msg error">{error}</div>
 				{:else if starting}
-					<div class="msg">Starting camera…</div>
+					<div class="msg">{$_('scanner.starting')}</div>
 				{/if}
 			</div>
 		</div>

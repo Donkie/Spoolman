@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	// A themed numeric input. Native spinners are hidden app-wide (see app.css);
 	// this component supplies its own up/down steppers styled to match the dark UI.
 	interface Props {
@@ -57,7 +58,7 @@
 		<button
 			type="button"
 			tabindex="-1"
-			aria-label="Increment"
+			aria-label={$_('common.increment')}
 			onmousedown={(e) => (e.preventDefault(), bump(1))}
 		>
 			<svg viewBox="0 0 10 6" width="9" height="6"
@@ -74,7 +75,7 @@
 		<button
 			type="button"
 			tabindex="-1"
-			aria-label="Decrement"
+			aria-label={$_('common.decrement')}
 			onmousedown={(e) => (e.preventDefault(), bump(-1))}
 		>
 			<svg viewBox="0 0 10 6" width="9" height="6"
