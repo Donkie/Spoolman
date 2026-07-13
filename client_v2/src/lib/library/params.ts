@@ -1,4 +1,5 @@
 import { goto } from '$app/navigation';
+import { base } from '$app/paths';
 import type { EntityKind, Selection } from '$lib/types';
 
 // The Library view's entire query state lives in the URL — this module is the
@@ -19,7 +20,6 @@ export interface FilterChip {
 }
 
 export interface LibraryState {
-	query: string;
 	selection: Selection | null;
 	group: GroupMode;
 	sortKey: string;
@@ -68,7 +68,6 @@ export function parseLibraryState(params: URLSearchParams): LibraryState {
 	const selection = kind && ENTITY_KINDS.includes(kind) ? { kind, id: sel!.slice(si + 1) } : null;
 
 	return {
-		query: params.get('q') ?? '',
 		selection,
 		group: group && GROUP_MODES.includes(group) ? group : DEFAULTS.group,
 		sortKey: params.get('sort') ?? DEFAULTS.sortKey,
@@ -91,7 +90,6 @@ export function isSelected(params: URLSearchParams, kind: EntityKind, id: string
 /** Encode Library state back to a canonical query string (no leading `?`). */
 function serializeState(s: LibraryState): string {
 	const p = new URLSearchParams();
-	if (s.query) p.set('q', s.query);
 	if (s.group !== DEFAULTS.group) p.set('group', s.group);
 	if (s.sortKey !== DEFAULTS.sortKey) p.set('sort', s.sortKey);
 	if (s.sortAsc !== DEFAULTS.sortAsc) p.set('dir', s.sortAsc ? 'asc' : 'desc');
@@ -127,10 +125,6 @@ function navigate(next: LibraryState, replace = false): void {
 }
 
 // --- mutators (each preserves the old ui-store semantics) ------------------
-
-export function setQuery(query: string): void {
-	navigate({ ...currentState(), query, page: DEFAULTS.page }, true);
-}
 
 export function setGroup(group: GroupMode): void {
 	navigate({ ...currentState(), group, page: DEFAULTS.page });
@@ -172,4 +166,23 @@ export function select(kind: EntityKind, id: string): void {
 
 export function clearSelection(): void {
 	navigate({ ...currentState(), selection: null });
+}
+
+/**
+ * Open a search result's inspector on the Library page. The search box lives in
+ * the layout, so a result can be picked from any route: when already on the
+ * Library page we merge the selection into the current view (preserving its
+ * group/sort/filters); otherwise we navigate to the Library root with just the
+ * selection.
+ */
+export function openSearchResult(kind: EntityKind, id: string): void {
+	const libraryPath = `${base}/`;
+	const path = window.location.pathname;
+	if (path === libraryPath || path === base || path === '/') {
+		select(kind, id);
+		return;
+	}
+	const p = new URLSearchParams();
+	p.set('sel', `${kind}:${id}`);
+	goto(`${libraryPath}?${p.toString()}`, { noScroll: true });
 }

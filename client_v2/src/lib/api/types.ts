@@ -1,4 +1,4 @@
-import type { Spool } from '$lib/types';
+import type { Filament, Spool, Vendor } from '$lib/types';
 
 // The query/data-source contract. Filtering, sorting, aggregation and
 // pagination are the SERVER's job. Two shapes of list:
@@ -47,9 +47,6 @@ export interface SpoolQuery {
 	/** field path -> allowed values (OR within a field, AND across fields). */
 	filters: Record<string, string[]>;
 	sort: SortField[];
-	search?: string;
-	/** Hex color for similarity ordering (server-side vector search). */
-	color?: string;
 	/** Restrict to one group's spools (for lazy per-group loading). */
 	groupScope?: GroupScope;
 	limit: number;
@@ -60,7 +57,6 @@ export interface SpoolQuery {
 export interface GroupQuery {
 	field: GroupField;
 	filters: Record<string, string[]>;
-	search?: string;
 	/** Group-level ordering (by aggregate: group.total_remaining, group.last_used, group.title). */
 	sort: SortField[];
 	limit: number;
@@ -72,6 +68,28 @@ export interface Page<T> {
 	items: T[];
 	/** Total matching rows across all pages (from X-Total-Count). */
 	total: number;
+}
+
+// --- cross-entity search (GET /search) -----------------------------------
+
+/** One search hit: the matched entity plus which field matched it. */
+export interface SearchMatch<T> {
+	entity: T;
+	/**
+	 * Which field matched: a native field name ("name", "comment", "location",
+	 * "lot_nr", "material", "article_number"), "id" for an exact spool id, "color"
+	 * for a color-similarity match, or "extra.<key>" for an extra field.
+	 */
+	matchField: string;
+}
+
+/** Categorized results of a cross-entity search. */
+export interface SearchResults {
+	spools: SearchMatch<Spool>[];
+	filaments: SearchMatch<Filament>[];
+	vendors: SearchMatch<Vendor>[];
+	/** True when the query was recognized as a color (a threshold slider is relevant). */
+	isColorQuery: boolean;
 }
 
 export interface SpoolDataSource {

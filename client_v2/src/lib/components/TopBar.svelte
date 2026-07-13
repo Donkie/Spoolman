@@ -1,10 +1,8 @@
 <script lang="ts">
 	import Logo from './Logo.svelte';
 	import NavTabs from './NavTabs.svelte';
-	import SearchInput from './SearchInput.svelte';
+	import SearchBox from './library/SearchBox.svelte';
 	import Button from './Button.svelte';
-	import { setQuery } from '$lib/library/params';
-	import { page } from '$app/state';
 	import { _ } from 'svelte-i18n';
 
 	interface Props {
@@ -13,10 +11,6 @@
 	}
 
 	let { onadd, onscan }: Props = $props();
-
-	// The search box lives in the layout (above the routed page), so it reads the
-	// query straight from the URL and writes it back through the params helper.
-	let query = $derived(page.url.searchParams.get('q') ?? '');
 </script>
 
 <header class="topbar">
@@ -44,11 +38,7 @@
 			</svg>
 		</button>
 		<div class="search-desktop">
-			<SearchInput
-				value={query}
-				placeholder={'⌕ ' + $_('topbar.search_placeholder')}
-				oninput={(v) => setQuery(v)}
-			/>
+			<SearchBox />
 		</div>
 		<div class="add-desktop">
 			<Button onclick={onadd}>＋ {$_('topbar.add_spools')}</Button>
@@ -57,12 +47,7 @@
 
 	<!-- Mobile: search + nav collapse onto their own rows -->
 	<div class="row mobile-search">
-		<SearchInput
-			value={query}
-			placeholder={$_('topbar.search_placeholder')}
-			oninput={(v) => setQuery(v)}
-			fullWidth
-		/>
+		<SearchBox fullWidth />
 	</div>
 	<div class="row mobile-nav">
 		<NavTabs />

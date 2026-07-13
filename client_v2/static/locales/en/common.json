@@ -455,6 +455,28 @@
         "add_spools": "Add spools",
         "search_placeholder": "Search — try \"red\" or \"pla\""
     },
+    "search": {
+        "searching": "Searching…",
+        "no_results": "No matches found",
+        "unknown_filament": "Unknown filament",
+        "threshold": "Color match",
+        "color_hint": "Color names must be entered in English.",
+        "section": {
+            "spools": "Spools",
+            "filaments": "Filaments",
+            "vendors": "Manufacturers"
+        },
+        "match": {
+            "name": "name",
+            "material": "material",
+            "article_number": "article number",
+            "comment": "comment",
+            "location": "location",
+            "lot_nr": "lot number",
+            "id": "ID",
+            "color": "color"
+        }
+    },
     "footer": {
         "documentation": "Documentation",
         "report_issue": "Report an issue"

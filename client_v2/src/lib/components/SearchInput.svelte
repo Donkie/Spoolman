@@ -5,10 +5,12 @@
 		value: string;
 		placeholder?: string;
 		oninput?: (value: string) => void;
+		onkeydown?: (e: KeyboardEvent) => void;
+		onfocus?: () => void;
 		fullWidth?: boolean;
 	}
 
-	let { value, placeholder = '', oninput, fullWidth = false }: Props = $props();
+	let { value, placeholder = '', oninput, onkeydown, onfocus, fullWidth = false }: Props = $props();
 </script>
 
 <div class="search" class:full={fullWidth}>
@@ -17,6 +19,8 @@
 		{value}
 		{placeholder}
 		oninput={(e) => oninput?.(e.currentTarget.value)}
+		onkeydown={(e) => onkeydown?.(e)}
+		onfocus={() => onfocus?.()}
 		aria-label={$_('common.search')}
 	/>
 </div>

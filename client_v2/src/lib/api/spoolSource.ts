@@ -98,7 +98,6 @@ class HttpSpoolSource {
 			offset: query.offset
 		};
 		applyFilters(params, query.filters);
-		if (query.search) params['filament.name'] = query.search;
 
 		const { items, total } = await getList('/spool/group', params);
 		for (const g of items as Json[]) {
@@ -119,7 +118,6 @@ class HttpSpoolSource {
 		};
 		applyFilters(params, query.filters);
 		scopeParams(params, query.groupScope);
-		if (query.search) params['filament.name'] = query.search;
 
 		const { items, total } = await getList('/spool', params);
 		return { items: cacheSpools(items), total };

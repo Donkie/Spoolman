@@ -15,7 +15,7 @@ from spoolman.database.database import backup_global_db
 from spoolman.exceptions import ItemNotFoundError
 from spoolman.ws import websocket_manager
 
-from . import export, externaldb, field, filament, models, other, setting, spool, vendor
+from . import export, externaldb, field, filament, models, other, search, setting, spool, vendor
 
 logger = logging.getLogger(__name__)
 
@@ -112,3 +112,4 @@ app.include_router(field.router)
 app.include_router(other.router)
 app.include_router(externaldb.router)
 app.include_router(export.router)
+app.include_router(search.router)

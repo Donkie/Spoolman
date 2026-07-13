@@ -411,6 +411,57 @@ class SpoolGroup(BaseModel):
     )
 
 
+class SearchResultSpool(BaseModel):
+    """A spool that matched a search, with which field matched."""
+
+    spool: Spool = Field(description="The matching spool.")
+    match_field: str = Field(
+        description=(
+            "Which field matched the query: a native field name (e.g. 'comment', 'location', "
+            "'lot_nr'), 'id' for an exact spool-id match, or 'extra.<key>' for an extra field."
+        ),
+        examples=["comment"],
+    )
+
+
+class SearchResultFilament(BaseModel):
+    """A filament that matched a search, with which field matched."""
+
+    filament: Filament = Field(description="The matching filament.")
+    match_field: str = Field(
+        description=(
+            "Which field matched the query: a native field name (e.g. 'name', 'material', "
+            "'article_number', 'comment'), 'color' for a color-similarity match, or 'extra.<key>'."
+        ),
+        examples=["color"],
+    )
+
+
+class SearchResultVendor(BaseModel):
+    """A vendor that matched a search, with which field matched."""
+
+    vendor: Vendor = Field(description="The matching vendor.")
+    match_field: str = Field(
+        description="Which field matched the query: 'name', 'comment', or 'extra.<key>'.",
+        examples=["name"],
+    )
+
+
+class SearchResults(BaseModel):
+    """Categorized results of a cross-entity search."""
+
+    spools: list[SearchResultSpool] = Field(description="Matching spools, best matches first.")
+    filaments: list[SearchResultFilament] = Field(description="Matching filaments, best matches first.")
+    vendors: list[SearchResultVendor] = Field(description="Matching vendors, best matches first.")
+    is_color_query: bool = Field(
+        description=(
+            "Whether the query was recognized as a color (hex code or CSS color name), in which case "
+            "the filament results include color-similarity matches and a threshold slider is relevant."
+        ),
+        examples=[False],
+    )
+
+
 class Info(BaseModel):
     version: str = Field(examples=["0.7.0"])
     debug_mode: bool = Field(examples=[False])

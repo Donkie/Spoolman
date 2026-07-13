@@ -44,7 +44,6 @@ export function buildGroupQuery(state: LibraryState): GroupQuery {
 	return {
 		field,
 		filters: currentFilters(state),
-		search: state.query.trim() || undefined,
 		sort: [{ field: groupField, dir }],
 		limit: state.pageSize,
 		offset: (state.page - 1) * state.pageSize,
@@ -62,7 +61,6 @@ export function buildScopedSpoolQuery(state: LibraryState, group: GroupSummary, 
 	return {
 		filters: currentFilters(state),
 		sort,
-		search: state.query.trim() || undefined,
 		groupScope: { field: group.field, key: group.key },
 		limit,
 		offset: 0,
@@ -79,7 +77,6 @@ export function buildFlatSpoolQuery(state: LibraryState): SpoolQuery {
 	return {
 		filters: currentFilters(state),
 		sort,
-		search: state.query.trim() || undefined,
 		limit: state.pageSize,
 		offset: (state.page - 1) * state.pageSize,
 		lowThreshold: settings.lowThreshold
