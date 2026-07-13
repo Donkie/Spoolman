@@ -22,6 +22,15 @@
 	let saving = $state(false);
 	let savedSnapshot = $state('');
 
+	// Keep-alive: once a tab has been visited, keep it mounted (just hidden) so
+	// switching tabs doesn't reset its local state (selected spools, search, etc).
+	let visitedDesign = $state(untrack(() => tab) === 'design');
+	let visitedPrint = $state(untrack(() => tab) === 'print');
+	$effect(() => {
+		if (tab === 'design') visitedDesign = true;
+		else visitedPrint = true;
+	});
+
 	$effect(() => {
 		void labelDesigns.load().then(() => {
 			if (selectedId === null && labelDesigns.designs.length > 0) {
@@ -124,10 +133,15 @@
 				<button class:active={tab === 'print'} onclick={() => (tab = 'print')}>Print</button>
 			</div>
 
-			{#if tab === 'design'}
-				<LabelDesigner bind:design={working} />
-			{:else}
-				<PrintLayoutPanel design={working} {preselected} />
+			{#if visitedDesign}
+				<div class:hidden={tab !== 'design'}>
+					<LabelDesigner bind:design={working} />
+				</div>
+			{/if}
+			{#if visitedPrint}
+				<div class:hidden={tab !== 'print'}>
+					<PrintLayoutPanel design={working} {preselected} />
+				</div>
 			{/if}
 		{:else}
 			<div class="blank">
@@ -209,6 +223,9 @@
 		color: var(--accent-soft);
 		border-bottom-color: var(--accent);
 		font-weight: 600;
+	}
+	.hidden {
+		display: none;
 	}
 	.blank {
 		display: flex;

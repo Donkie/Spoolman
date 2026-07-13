@@ -18,27 +18,29 @@ export type ShapeSpec =
 	| { kind: 'rect'; config: Record<string, unknown> }
 	| { kind: 'text'; config: Record<string, unknown> }
 	| {
-			kind: 'textclip';
-			x: number;
-			y: number;
-			width: number;
-			clipHeight: number;
-			config: Record<string, unknown>;
-	  }
+		kind: 'textclip';
+		x: number;
+		y: number;
+		width: number;
+		clipHeight: number;
+		config: Record<string, unknown>;
+	}
 	| { kind: 'qr'; x: number; y: number; size: number; pathData: string; logo: boolean };
 
 const PLACEHOLDER_SWATCH = '#9aa0a6';
 
 /** Geometry (in mm, relative to the QR's top-left) for a centred logo. */
 export function qrLogoBox(size: number) {
-	const pad = size * 0.28;
-	const logo = size * 0.2;
+	// Square (not rounded) so the white backing fully covers the QR modules
+	// behind it right into the corners — a rounded corner would carve away
+	// white area there and let the black modules peek through.
+	const pad = size * 0.285;
+	const logo = size * 0.25;
 	return {
 		pad,
 		padXY: (size - pad) / 2,
 		logo,
-		logoXY: (size - logo) / 2,
-		radius: size * 0.03
+		logoXY: (size - logo) / 2
 	};
 }
 

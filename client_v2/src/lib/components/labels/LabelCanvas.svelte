@@ -188,14 +188,7 @@
 						<Rect x={0} y={0} width={spec.size} height={spec.size} fill="#ffffff" />
 						<Path data={spec.pathData} fill="#000000" />
 						{#if spec.logo && logoImage}
-							<Rect
-								x={box.padXY}
-								y={box.padXY}
-								width={box.pad}
-								height={box.pad}
-								fill="#ffffff"
-								cornerRadius={box.radius}
-							/>
+							<Rect x={box.padXY} y={box.padXY} width={box.pad} height={box.pad} fill="#ffffff" />
 							<Image image={logoImage} x={box.logoXY} y={box.logoXY} width={box.logo} height={box.logo} />
 						{/if}
 					</Group>

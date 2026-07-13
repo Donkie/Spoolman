@@ -42,14 +42,7 @@ export function renderLabelDataUrl(
 			if (spec.logo && logoImage) {
 				const box = qrLogoBox(spec.size);
 				group.add(
-					new Konva.Rect({
-						x: box.padXY,
-						y: box.padXY,
-						width: box.pad,
-						height: box.pad,
-						fill: '#ffffff',
-						cornerRadius: box.radius
-					})
+					new Konva.Rect({ x: box.padXY, y: box.padXY, width: box.pad, height: box.pad, fill: '#ffffff' })
 				);
 				group.add(
 					new Konva.Image({
