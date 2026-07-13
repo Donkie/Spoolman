@@ -8,9 +8,10 @@
 
 	interface Props {
 		onadd?: () => void;
+		onscan?: () => void;
 	}
 
-	let { onadd }: Props = $props();
+	let { onadd, onscan }: Props = $props();
 
 	// The search box lives in the layout (above the routed page), so it reads the
 	// query straight from the URL and writes it back through the params helper.
@@ -22,6 +23,25 @@
 		<Logo />
 		<div class="nav-desktop"><NavTabs /></div>
 		<div class="spacer"></div>
+		<button class="scan-btn" onclick={onscan} aria-label="Scan spool QR code" title="Scan spool QR code">
+			<svg
+				viewBox="0 0 24 24"
+				width="18"
+				height="18"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true"
+			>
+				<path d="M3 8V5a2 2 0 0 1 2-2h3" />
+				<path d="M21 8V5a2 2 0 0 0-2-2h-3" />
+				<path d="M3 16v3a2 2 0 0 0 2 2h3" />
+				<path d="M21 16v3a2 2 0 0 1-2 2h-3" />
+				<path d="M3 12h18" />
+			</svg>
+		</button>
 		<div class="search-desktop">
 			<SearchInput value={query} placeholder={'⌕ Search — try "red" or "pla"'} oninput={(v) => setQuery(v)} />
 		</div>
@@ -61,6 +81,23 @@
 	}
 	.spacer {
 		flex: 1;
+	}
+	.scan-btn {
+		flex: none;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		height: 36px;
+		border-radius: var(--radius-md);
+		border: 1px solid var(--border-strong);
+		background: none;
+		color: var(--text-2);
+		cursor: pointer;
+	}
+	.scan-btn:hover {
+		color: var(--text);
+		border-color: var(--accent);
 	}
 
 	.mobile-search,

@@ -9,6 +9,9 @@ class UiState {
 	addModalOpen = $state(false);
 	addModalFilamentId = $state<string | null>(null);
 
+	/** QR-code scanner modal (camera). */
+	scannerOpen = $state(false);
+
 	/** Open the Add-spools modal, optionally pre-seeded with a filament. */
 	openAddModal(filamentId?: string) {
 		this.addModalFilamentId = filamentId ?? null;
@@ -17,6 +20,13 @@ class UiState {
 	closeAddModal() {
 		this.addModalOpen = false;
 		this.addModalFilamentId = null;
+	}
+
+	openScanner() {
+		this.scannerOpen = true;
+	}
+	closeScanner() {
+		this.scannerOpen = false;
 	}
 }
 

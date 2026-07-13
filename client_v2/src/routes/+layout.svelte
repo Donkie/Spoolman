@@ -3,6 +3,7 @@
 	import TopBar from '$components/TopBar.svelte';
 	import Footer from '$components/Footer.svelte';
 	import AddSpoolModal from '$components/AddSpoolModal.svelte';
+	import QrScannerModal from '$components/QrScannerModal.svelte';
 	import { ui } from '$lib/stores/ui.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { startLiveSync } from '$lib/api/liveSync';
@@ -19,7 +20,7 @@
 </script>
 
 <div class="app">
-	<TopBar onadd={() => ui.openAddModal()} />
+	<TopBar onadd={() => ui.openAddModal()} onscan={() => ui.openScanner()} />
 	<main>
 		{@render children()}
 	</main>
@@ -31,6 +32,8 @@
 	presetFilamentId={ui.addModalFilamentId}
 	onclose={() => ui.closeAddModal()}
 />
+
+<QrScannerModal open={ui.scannerOpen} onclose={() => ui.closeScanner()} />
 
 <style>
 	.app {
