@@ -87,7 +87,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('nav.labels')}{$_('documentTitle.suffix')}</title>
+	<title>{$_('nav.labels')} | Spoolman</title>
 </svelte:head>
 
 <div class="page scroll-y">

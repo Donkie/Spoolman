@@ -3,6 +3,7 @@
 	import Card from '$components/Card.svelte';
 	import SettingRow from '$components/settings/SettingRow.svelte';
 	import ExtraFieldsManager from '$components/settings/ExtraFieldsManager.svelte';
+	import Trans from '$lib/i18n/Trans.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { _, locale } from 'svelte-i18n';
 	import { setLocale } from '$lib/i18n';
@@ -18,13 +19,12 @@
 </script>
 
 <svelte:head>
-	<title>{$_('settings.header')}{$_('documentTitle.suffix')}</title>
+	<title>{$_('settings.header')} | Spoolman</title>
 </svelte:head>
 
 <div class="page scroll-y">
 	<div class="wrap">
 		<div class="title">{$_('settings.header')}</div>
-		<div class="subtitle">{$_('settings.server_note')}</div>
 
 		<div class="sec-label">{$_('settings.appearance.tab')}</div>
 		<Card divided>
@@ -86,7 +86,7 @@
 		</Card>
 
 		<div class="sec-label">{$_('settings.extra_fields.tab')}</div>
-		<div class="subtitle sub2">{$_('settings.extra_fields.short_desc')}</div>
+		<div class="subtitle sub2"><Trans key="settings.extra_fields.description" /></div>
 		<ExtraFieldsManager />
 	</div>
 </div>

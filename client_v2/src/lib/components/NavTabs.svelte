@@ -4,9 +4,9 @@
 
 	const tabs = [
 		{ href: '/', key: 'nav.library' },
-		{ href: '/locations', key: 'nav.locations' },
+		{ href: '/locations', key: 'locations.locations' },
 		{ href: '/labels', key: 'nav.labels' },
-		{ href: '/settings', key: 'nav.settings' }
+		{ href: '/settings', key: 'settings.header' }
 	];
 
 	function isActive(href: string): boolean {

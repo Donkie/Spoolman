@@ -325,9 +325,7 @@
         "actions": "Actions"
     },
     "settings": {
-        "settings": "Settings",
         "header": "Settings",
-        "server_note": "General settings and extra fields are stored on the server — applies to every client.",
         "appearance": {
             "tab": "Appearance"
         },
@@ -396,8 +394,6 @@
         }
     },
     "documentTitle": {
-        "default": "Spoolman",
-        "suffix": " | Spoolman",
         "home": {
             "list": "Home | Spoolman"
         },

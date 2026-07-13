@@ -15,7 +15,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('nav.library')}{$_('documentTitle.suffix')}</title>
+	<title>{$_('nav.library')} | Spoolman</title>
 </svelte:head>
 
 <div class="library">
