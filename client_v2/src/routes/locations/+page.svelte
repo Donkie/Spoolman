@@ -6,10 +6,14 @@
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { live } from '$lib/api/live';
 	import { goto } from '$app/navigation';
-	import { grams } from '$lib/utils/format';
+	import { weightAuto } from '$lib/utils/format';
 
 	let draggingId = $state<number | null>(null);
 	let dragOver = $state<string | null>(null);
+
+	let editingLocation = $state<string | null>(null);
+	let editValue = $state('');
+	let renameError = $state('');
 
 	// Fetch every (non-archived) spool + the configured locations, kept live.
 	let spools = $state<Spool[]>([]);
@@ -71,6 +75,57 @@
 	function addLocation() {
 		extraLocations = [...extraLocations, 'New shelf ' + (locations.length + extraLocations.length + 1)];
 	}
+
+	function focusAndSelect(el: HTMLInputElement) {
+		el.focus();
+		el.select();
+	}
+
+	function startEdit(loc: string) {
+		if (loc === 'No location') return;
+		editingLocation = loc;
+		editValue = loc;
+		renameError = '';
+	}
+
+	function cancelEdit() {
+		editingLocation = null;
+		renameError = '';
+	}
+
+	async function commitEdit() {
+		if (editingLocation === null) return;
+		const oldName = editingLocation;
+		const newName = editValue.trim();
+
+		if (newName === oldName) {
+			editingLocation = null;
+			renameError = '';
+			return;
+		}
+		if (!newName) {
+			renameError = 'Location name cannot be empty';
+			return;
+		}
+		if ([...locations, ...extraLocations].includes(newName)) {
+			renameError = 'A location with that name already exists';
+			return;
+		}
+
+		const hasSpools = spools.some((s) => (s.location || 'No location') === oldName);
+		try {
+			if (hasSpools) {
+				await spoolSource.renameLocation(oldName, newName);
+				spools = spools.map((s) => (s.location === oldName ? { ...s, location: newName } : s));
+			}
+			locations = locations.map((l) => (l === oldName ? newName : l));
+			extraLocations = extraLocations.map((l) => (l === oldName ? newName : l));
+			editingLocation = null;
+			renameError = '';
+		} catch (e) {
+			renameError = e instanceof Error ? e.message : 'Failed to rename location';
+		}
+	}
 </script>
 
 <svelte:head>
@@ -99,12 +154,44 @@
 			>
 				<div class="shelf-head">
 					<span class="grip">⠿</span>
-					<span class="shelf-name">{shelf.name}</span>
+					{#if editingLocation === shelf.name}
+						<input
+							class="shelf-name-input"
+							value={editValue}
+							use:focusAndSelect
+							oninput={(e) => (editValue = (e.target as HTMLInputElement).value)}
+							onblur={commitEdit}
+							onkeydown={(e) => {
+								if (e.key === 'Enter') {
+									e.preventDefault();
+									(e.target as HTMLInputElement).blur();
+								} else if (e.key === 'Escape') {
+									e.preventDefault();
+									cancelEdit();
+								}
+							}}
+						/>
+					{:else}
+						<span
+							class="shelf-name"
+							class:editable={shelf.name !== 'No location'}
+							role="button"
+							tabindex="0"
+							onclick={() => startEdit(shelf.name)}
+							onkeydown={(e) => e.key === 'Enter' && startEdit(shelf.name)}
+						>
+							{shelf.name}
+						</span>
+					{/if}
 					<span class="shelf-meta">{shelf.spools.length} spool{shelf.spools.length === 1 ? '' : 's'}</span>
 				</div>
+				{#if editingLocation === shelf.name && renameError}
+					<div class="rename-error">{renameError}</div>
+				{/if}
 				<div class="shelf-body">
 					{#each shelf.spools as s (s.id)}
 						{@const f = inventory.filamentById(s.filamentId)!}
+						{@const v = inventory.vendorOf(f)}
 						<div
 							class="chip"
 							role="button"
@@ -115,12 +202,18 @@
 							onclick={() => openSpool(s.id)}
 							onkeydown={(e) => e.key === 'Enter' && openSpool(s.id)}
 						>
-							<Swatch colors={f.colors} size={14} radius={4} />
-							<span class="chip-id mono">#{s.id}</span>
-							<span class="chip-name">{f.name}</span>
-							<span class="chip-rem mono" class:low={settings.isLow(s.remaining, s.unused)}
-								>{grams(s.remaining)} g</span
-							>
+							<Swatch colors={f.colors} size={22} radius={5} />
+							<div class="chip-info">
+								<div class="chip-title">
+									<span class="chip-id mono">#{s.id}</span>
+									{#if v.name !== '?'}{v.name}{' - '}{/if}{f.name}
+								</div>
+								<div class="chip-subtitle">
+									{f.material}{' - '}<span class:low={settings.isLow(s.remaining, s.unused)}
+										>{weightAuto(s.remaining)}</span
+									>{' / '}{weightAuto(f.weight)}{#if s.lastUsedLabel}{' - Last used '}{s.lastUsedLabel} ago{/if}
+								</div>
+							</div>
 						</div>
 					{/each}
 					{#if shelf.spools.length === 0}
@@ -208,22 +301,49 @@
 		font-weight: 600;
 		font-size: 13px;
 	}
+	.shelf-name.editable {
+		cursor: text;
+		border-radius: 4px;
+	}
+	.shelf-name.editable:hover {
+		background: var(--bg);
+	}
+	.shelf-name-input {
+		flex: 1;
+		font-weight: 600;
+		font-size: 13px;
+		font-family: inherit;
+		color: inherit;
+		background: var(--bg);
+		border: 1px solid var(--accent-border);
+		border-radius: 4px;
+		padding: 1px 5px;
+		min-width: 0;
+	}
+	.shelf-name-input:focus {
+		outline: none;
+		border-color: var(--accent);
+	}
+	.rename-error {
+		font-size: 11px;
+		color: var(--danger-soft);
+		padding: 0 12px 8px;
+	}
 	.shelf-meta {
 		font-size: 11px;
 		color: var(--text-dim);
 	}
 	.shelf-body {
 		display: flex;
-		flex-wrap: wrap;
-		gap: 8px;
+		flex-direction: column;
+		gap: 6px;
 		padding: 10px 12px;
 		flex: 1;
-		align-content: flex-start;
 	}
 	.chip {
 		display: flex;
 		align-items: center;
-		gap: 7px;
+		gap: 9px;
 		background: var(--bg);
 		border: 1px solid var(--border-input);
 		border-radius: 7px;
@@ -234,23 +354,32 @@
 	.chip:hover {
 		border-color: var(--accent);
 	}
-	.chip-id {
-		font-size: 11px;
-		color: var(--text-muted);
+	.chip-info {
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
+		min-width: 0;
 	}
-	.chip-name {
-		font-size: 11.5px;
+	.chip-title {
+		font-size: 12px;
 		color: var(--text-2);
-		max-width: 150px;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
-	.chip-rem {
+	.chip-id {
 		font-size: 11px;
 		color: var(--text-muted);
+		margin-right: 2px;
 	}
-	.chip-rem.low {
+	.chip-subtitle {
+		font-size: 10.5px;
+		color: var(--text-dim);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.chip-subtitle .low {
 		color: var(--danger-soft);
 	}
 	.empty {

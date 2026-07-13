@@ -10,6 +10,11 @@ export function grams(g: number): string {
 	return Number.isInteger(g) ? String(g) : g.toFixed(1);
 }
 
+/** Grams → "864 g" or "1 kg", switching units at 1000 g like the old client. */
+export function weightAuto(weightInGrams: number): string {
+	return weightInGrams >= 1000 ? grams(weightInGrams / 1000) + ' kg' : grams(weightInGrams) + ' g';
+}
+
 /** Approximate remaining length in meters for a weight of filament. */
 export function lengthMeters(grams: number, f: Filament): number {
 	// volume(cm³) = mass / density; cross-section area = π r² (mm² → cm²)

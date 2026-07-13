@@ -301,6 +301,10 @@ class HttpSpoolSource {
 	async locations(): Promise<string[]> {
 		return getJson<string[]>('/location');
 	}
+	/** Rename a location, moving every spool currently in it to the new name. */
+	async renameLocation(current: string, next: string): Promise<void> {
+		await patchJson<string>(`/location/${encodeURIComponent(current)}`, { name: next });
+	}
 	async lotNumbers(): Promise<string[]> {
 		return getJson<string[]>('/lot-number');
 	}
