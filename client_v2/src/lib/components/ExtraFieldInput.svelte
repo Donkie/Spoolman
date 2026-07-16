@@ -117,7 +117,7 @@
 			step={isInt ? '1' : 'any'}
 			value={lo}
 			oninput={(e) => onRange(0, e.currentTarget.value, isInt)}
-			placeholder={m['extraField.min']()}
+			placeholder={m['settings.extraFields.min']()}
 		/>
 		<span class="dash">–</span>
 		<input
@@ -126,7 +126,7 @@
 			step={isInt ? '1' : 'any'}
 			value={hi}
 			oninput={(e) => onRange(1, e.currentTarget.value, isInt)}
-			placeholder={m['extraField.max']()}
+			placeholder={m['settings.extraFields.max']()}
 		/>
 		{#if field.unit}<span class="unit">{field.unit}</span>{/if}
 	</span>
@@ -138,7 +138,11 @@
 		oninput={(e) => onDateTime(e.currentTarget.value)}
 	/>
 {:else if field.field_type === FieldType.boolean}
-	<Toggle checked={parsed === true} onchange={(v) => emit(v)} />
+	<Toggle
+		checked={parsed === true}
+		onchange={(v) => emit(v)}
+		ariaLabel={m['settings.extraFields.fieldType.boolean']()}
+	/>
 {:else if field.field_type === FieldType.choice && !field.multi_choice}
 	<select class="sel" value={parsed ?? ''} onchange={(e) => emit(e.currentTarget.value || undefined)}>
 		<option value="">—</option>

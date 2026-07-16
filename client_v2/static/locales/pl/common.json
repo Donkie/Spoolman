@@ -35,63 +35,31 @@
         "titles": {
             "list": "Szpule",
             "show": "Pokaż szpulę",
+            "show_title": "[Szpula #{{id}}] {{name}}",
             "edit": "Edytowanie szpuli",
             "create": "Tworzenie szpuli",
             "clone": "Klonowanie szpuli",
             "archive": "Zarchiwizuj szpulę",
-            "show_title": "[Szpula #{{id}}] {{name}}",
             "adjust": "Dostosuj szpulę filamentu"
         },
         "spool": "Szpule",
-        "fields": {
-            "id": "ID",
-            "filament_name": "Filament",
-            "filament": "Filament",
-            "material": "Materiał",
-            "remaining_weight": "Pozostała waga",
-            "used_length": "Zużyta długość",
-            "remaining_length": "Pozostała długość",
-            "location": "Lokalizacja",
-            "lot_nr": "Numer partii (LOT)",
-            "first_used": "Pierwsze użycie",
-            "last_used": "Ostatnie użycie",
-            "comment": "Komentarz",
-            "archived": "Zarchiwizowano",
-            "used_weight": "Zużyta waga",
-            "registered": "Zarejestrowano",
-            "measured_weight": "Zmierzona waga",
-            "weight_to_use": "Waga",
-            "price": "Cena",
-            "initial_weight": "Waga początkowa",
-            "spool_weight": "Waga pusta",
-            "filament_internal": "Wewnętrzne",
-            "filament_external": "Zewnętrzne"
-        },
+        "fields": "Wybrałeś filament z zewnętrznej bazy. Element filamentu (możliwe też że element producenta) zostanie stworzony automatycznie gdy stworzysz szpulę. Może to spowodować utworzenie się duplikatów elementów filamentu jeżeli już stworzyłeś element filamentu dla tego filamentu.",
         "fields_help": {
             "location": "Wpisz gdzie znajduje się szpula, jeśli masz wiele lokalizacji, w których przechowujesz szpule.",
-            "lot_nr": "Numer partii producenta. Może być stosowany w celu zapewnienia jednolitego koloru wydruku w przypadku użycia wielu szpul.",
-            "used_weight": "Podaj ile filamentu użyto ze szpuli. Jeśli jest nowa, podaj 0g użycia.",
-            "remaining_weight": "Ile filamentu pozostało na szpuli. W przypadku nowej szpuli powinno to odpowiadać wadze szpuli.",
-            "measured_weight": "Waga filamentu i szpuli.",
-            "weight_to_use": "Wybierz jaką wagę wprowadzić. Zmierzona waga jest dostępna tylko wtedy, gdy waga szpuli jest ustawiona dla wybranego filamentu.",
-            "price": "Cena pełnej szpuli. Jeśli nie ustawiona, cena filamentu będzie domyślna.",
-            "initial_weight": "Masa początkowa filamentu(netto). Może być podana przez producenta, ale możesz ustawić dla każdej szpuli, aby uwzględnić ewentualne niedokładności.",
-            "spool_weight": "Waga pustej szpuli. Pozostaw puste, aby użyć wartości z filamentu lub od producenta.",
-            "external_filament": "Wybrałeś filament z zewnętrznej bazy. Element filamentu (możliwe też że element producenta) zostanie stworzony automatycznie gdy stworzysz szpulę. Może to spowodować utworzenie się duplikatów elementów filamentu jeżeli już stworzyłeś element filamentu dla tego filamentu."
+            "price": "Cena pełnej szpuli. Jeśli nie ustawiona, cena filamentu będzie domyślna."
         },
         "messages": {
             "archive": "Czy na pewno chcesz zarchiwizować tę szpulę?"
         },
         "form": {
-            "new_location_prompt": "Wprowadź nową lokalizację",
+            "new": "Wprowadź nową lokalizację",
             "spool_updated": "Szpula została zaktualizowana od czasu otwarcia tej strony. Zapisanie nadpisze te zmiany!",
+            "measurement": "Typ pomiaru",
             "measurement_type": {
                 "length": "Długość",
                 "weight": "Waga"
             },
-            "measurement_type_label": "Typ pomiaru",
-            "adjust_filament_help": "Tutaj możesz bezpośrednio dodać lub usunąć filament z szpuli. Dodatnia wartość spowoduje odjęcie filamentu, ujemna wartość spowoduje jego dodanie.",
-            "adjust_filament_value": "Ilość zużycia"
+            "adjust": "Ilość zużycia"
         },
         "formats": {
             "last_used": "Ostatnio użyty {{date}}"
@@ -226,38 +194,12 @@
     },
     "filament": {
         "filament": "Filamenty",
-        "fields": {
-            "id": "ID",
-            "vendor_name": "Producent",
-            "vendor": "Producent",
-            "name": "Nazwa",
-            "material": "Materiał",
-            "price": "Cena",
-            "density": "Gęstość",
-            "diameter": "Średnica",
-            "weight": "Waga",
-            "spool_weight": "Waga szpuli",
-            "registered": "Zarejestrowano",
-            "comment": "Komentarz",
-            "settings_extruder_temp": "Temperatura ekstrudera",
-            "settings_bed_temp": "Temperatura stołu",
-            "color_hex": "Kolor",
-            "article_number": "Numer artykułu",
-            "spools": "Zobacz szpule",
-            "external_id": "Zewnętrzne ID",
-            "single_color": "Pojedynczy",
-            "multi_color": "Wielo",
-            "longitudinal": "Wzdłużny",
-            "coaxial": "Koekstrudowany"
-        },
+        "fields": "Filamenty mogą mieć wiele kolorów na dwa sposoby: Kolory mogą się ciągnąć równolegle na całej długości filamentu lub kolory filamentu mogą się zmieniać na długości filamentu.",
         "fields_help": {
             "material": "Np. PLA, ABS, PETG itp.",
             "price": "Cena pełnej szpuli.",
-            "spool_weight": "Waga pustej szpuli. Używana do określenia ciężaru szpuli.",
-            "article_number": "Np. EAN, UPC itp.",
             "name": "Nazwa filamentu, aby odróżnić ten typ filamentu od innych pochodzących od tego samego producenta. Powinna zawierać np. kolor.",
-            "weight": "Waga filamentu na pełnej szpuli (waga netto). Nie powinno to obejmować wagi samej szpuli, a jedynie filamentu. Jest to zwykle napisane na opakowaniu.",
-            "multi_color_direction": "Filamenty mogą mieć wiele kolorów na dwa sposoby: Kolory mogą się ciągnąć równolegle na całej długości filamentu lub kolory filamentu mogą się zmieniać na długości filamentu."
+            "weight": "Waga filamentu na pełnej szpuli (waga netto). Nie powinno to obejmować wagi samej szpuli, a jedynie filamentu. Jest to zwykle napisane na opakowaniu."
         },
         "titles": {
             "create": "Tworzenie filamentu",
@@ -269,8 +211,8 @@
         },
         "form": {
             "filament_updated": "Ten filament został zaktualizowany przez kogoś/coś innego od czasu otwarcia tej strony. Zapisanie nadpisze te zmiany!",
-            "import_external": "Importuj z zewnątrz",
-            "import_external_description": "Wybierz filament z listy by automatycznie zpopulować jego informacje w formularzu tworzenia filamentu. Spowoduje to nadpisanie danych które wpisałeś już w formularzu. Producent zostanie automatycznie stworzony jeżeli klikniesz Ok, jeżeli będzie to wymagane."
+            "import": "Wybierz filament z listy by automatycznie zpopulować jego informacje w formularzu tworzenia filamentu. Spowoduje to nadpisanie danych które wpisałeś już w formularzu. Producent zostanie automatycznie stworzony jeżeli klikniesz Ok, jeżeli będzie to wymagane.",
+            "import_external": "Importuj z zewnątrz"
         },
         "buttons": {
             "add_spool": "Dodaj Szpulę"
@@ -278,14 +220,7 @@
     },
     "vendor": {
         "vendor": "Producenci",
-        "fields": {
-            "id": "ID",
-            "name": "Nazwa",
-            "registered": "Zarejestrowano",
-            "comment": "Komentarz",
-            "empty_spool_weight": "Waga pustej szpuli",
-            "external_id": "Zewnętrzne ID"
-        },
+        "fields": "Waga pustej szpuli od tego producenta.",
         "titles": {
             "create": "Stwórz producenta",
             "clone": "Sklonuj producenta",
@@ -296,9 +231,6 @@
         },
         "form": {
             "vendor_updated": "Ten producent został zaktualizowany przez kogoś/coś innego od czasu otwarcia tej strony. Zapisanie spowoduje nadpisanie tych zmian!"
-        },
-        "fields_help": {
-            "empty_spool_weight": "Waga pustej szpuli od tego producenta."
         }
     },
     "table": {
@@ -370,43 +302,24 @@
                 "label": "Zaokrąglone ceny"
             }
         },
+        "extra": "Ta akcja usunie wszystkie pola i powiązane z nimi dane dla wszystkich obiektów.",
         "extra_fields": {
             "tab": "Dodatkowe parametry",
-            "boolean_true": "Tak",
-            "boolean_false": "Nie",
             "params": {
                 "name": "Nazwa",
-                "field_type": "Typ",
                 "unit": "Jednostka",
                 "order": "Kolejność",
-                "default_value": "Domyślna wartość",
                 "key": "Klucz",
-                "choices": "Wybory",
-                "multi_choice": "Wielokrotny wybór"
+                "choices": "Wybory"
             },
-            "field_type": {
-                "integer": "Liczba całkowita",
-                "integer_range": "Zakres liczb",
-                "float": "Liczba zmiennoprzecinkowa",
-                "choice": "Wybór",
-                "text": "Tekst",
-                "float_range": "Zakres",
-                "datetime": "Data i Czas",
-                "boolean": "Wartość logiczna"
-            },
-            "non_unique_key_error": "Klucz musi być unikalny.",
-            "description": "<p>Tutaj możesz dodać dodatkowe pola niestandardowe do swoich podmiotów.</p><p>Po dodaniu pola nie można zmienić jego klucza ani typu, a w przypadku pól typu wyboru nie można usunąć wyborów ani zmienić stanu wielokrotnego wyboru. Jeśli usuniesz pole, powiązane dane dla wszystkich podmiotów zostaną usunięte.</p><p>Klucz jest tym, co inne programy odczytują/zapisują jako dane, więc jeśli twoje niestandardowe pole ma być zintegrowane z programem innej firmy, upewnij się, że ustawiłeś je poprawnie. Wartość domyślna jest stosowana tylko do nowych elementów.</p><p>Dodatkowych pól nie można sortować ani filtrować w widokach tabeli.</p>",
-            "choices_missing_error": "Nie możesz usunąc możliwośći wyboru. Ten wybór nie istnieje: {{choices}}",
-            "key_not_changed": "Zmień klucz na inny.",
-            "delete_confirm": "Usunąć pole {{name}}?",
-            "delete_confirm_description": "Ta akcja usunie wszystkie pola i powiązane z nimi dane dla wszystkich obiektów."
+            "description": "<p>Tutaj możesz dodać dodatkowe pola niestandardowe do swoich podmiotów.</p><p>Po dodaniu pola nie można zmienić jego klucza ani typu, a w przypadku pól typu wyboru nie można usunąć wyborów ani zmienić stanu wielokrotnego wyboru. Jeśli usuniesz pole, powiązane dane dla wszystkich podmiotów zostaną usunięte.</p><p>Klucz jest tym, co inne programy odczytują/zapisują jako dane, więc jeśli twoje niestandardowe pole ma być zintegrowane z programem innej firmy, upewnij się, że ustawiłeś je poprawnie. Wartość domyślna jest stosowana tylko do nowych elementów.</p><p>Dodatkowych pól nie można sortować ani filtrować w widokach tabeli.</p>"
         },
         "header": "Ustawienia"
     },
     "locations": {
         "locations": "Lokalizacje",
         "new_location": "Nowa lokalizacja",
-        "no_location": "Brak lokalizacji",
-        "no_locations_help": "Ta strona pozwala uporządkować szpule w lokalizacjach, dodaj kilka szpul aby rozpocząć!"
+        "no": "Ta strona pozwala uporządkować szpule w lokalizacjach, dodaj kilka szpul aby rozpocząć!",
+        "no_location": "Brak lokalizacji"
     }
 }

@@ -3,7 +3,6 @@
 	import Card from '$components/Card.svelte';
 	import SettingRow from '$components/settings/SettingRow.svelte';
 	import ExtraFieldsManager from '$components/settings/ExtraFieldsManager.svelte';
-	import Trans from '$lib/i18n/Trans.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { locales, getLocale, setLocale } from '$lib/paraglide/runtime.js';
 	import * as m from '$lib/paraglide/messages';
@@ -26,7 +25,7 @@
 </script>
 
 <svelte:head>
-	<title>{m['settings.header']()} | Spoolman</title>
+	<title>{m['documentTitle.settings.list']()}</title>
 </svelte:head>
 
 <div class="page scroll-y">
@@ -61,6 +60,7 @@
 				<Toggle
 					checked={settings.roundPrices}
 					onchange={(v) => settings.setRoundPrices(v).catch((e) => console.error(e))}
+					ariaLabel={m['settings.general.roundPrices.label']()}
 				/>
 			</SettingRow>
 			<SettingRow
@@ -93,7 +93,12 @@
 		</Card>
 
 		<div class="sec-label">{m['settings.extraFields.tab']()}</div>
-		<div class="subtitle sub2"><Trans key="settings.extraFields.description" /></div>
+		<div class="subtitle sub2">
+			<p>{m['settings.extraFields.description.intro']()}</p>
+			<p>{m['settings.extraFields.description.constraints']()}</p>
+			<p>{m['settings.extraFields.description.keyUsage']()}</p>
+			<p>{m['settings.extraFields.description.tableViews']()}</p>
+		</div>
 		<ExtraFieldsManager />
 	</div>
 </div>

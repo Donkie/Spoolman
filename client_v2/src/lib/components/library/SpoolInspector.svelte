@@ -187,7 +187,7 @@
 		<div class="actions">
 			<Button variant="outline" onclick={openAdjust}>⚖ {m['inspector.adjustWeight']()}</Button>
 			<Button variant="outline" onclick={() => goto(`${base}/labels?spools=${spool.id}`)}
-				>◱ {m['inspector.printLabel']()}</Button
+				>◱ {m['printing.qrcode.button']()}</Button
 			>
 			<Button variant="outline" onclick={archive}>{m['buttons.archive']()}</Button>
 		</div>

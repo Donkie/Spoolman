@@ -148,41 +148,10 @@
     },
     "spool": {
         "spool": "料盤",
-        "fields": {
-            "id": "ID",
-            "filament": "線材",
-            "filament_internal": "內部",
-            "used_weight": "已用重量",
-            "remaining_weight": "剩餘重量",
-            "measured_weight": "實測重量",
-            "used_length": "已用長度",
-            "remaining_length": "剩餘長度",
-            "initial_weight": "初始重量",
-            "spool_weight": "空料盤重量",
-            "location": "位置",
-            "lot_nr": "批號",
-            "first_used": "首次使用",
-            "last_used": "上次使用",
-            "registered": "登記於",
-            "filament_name": "線材",
-            "filament_external": "外部",
-            "price": "價格",
-            "weight_to_use": "重量",
-            "comment": "備註",
-            "archived": "封存",
-            "material": "材料"
-        },
+        "fields": "您已從外部資料庫選擇了一種線材。在建立此線盤時，系統將自動建立一個線材（以及可能的製造商）。如果您之前已為該線材建立過資料，這可能會產生重複的線材。",
         "fields_help": {
             "price": "完整線盤的價格。如果未設定，則會假設為線材的價格。",
-            "used_weight": "料盤所使用的線材重量。一個新料盤應該為0克。",
-            "measured_weight": "線材和料盤的重量為多少。",
-            "initial_weight": "料盤上線材的初始重量（淨重）。如果未設置，將使用線材物件中的重量。",
-            "spool_weight": "線盤的空盤重量。留空時將使用線材或製造商提供的數值。",
-            "location": "如果您的料盤存於多個位置，請填寫料盤所在位置。",
-            "lot_nr": "製造商的批號。如果使用多個線盤，可用於確保列印的顏色一致。",
-            "weight_to_use": "選擇要輸入的重量值。只有在選擇的線材設置了料盤重量時，才會顯示測量重量。",
-            "remaining_weight": "料盤所剩餘的線材。對於新的料盤來說應等於料盤重量。",
-            "external_filament": "您已從外部資料庫選擇了一種線材。在建立此線盤時，系統將自動建立一個線材（以及可能的製造商）。如果您之前已為該線材建立過資料，這可能會產生重複的線材。"
+            "location": "如果您的料盤存於多個位置，請填寫料盤所在位置。"
         },
         "titles": {
             "create": "建立線盤",
@@ -190,19 +159,18 @@
             "edit": "編輯線盤",
             "list": "線盤",
             "show": "檢視線盤",
-            "adjust": "調整料盤線材",
             "show_title": "[線盤 #{{id}}] {{name}}",
+            "adjust": "調整料盤線材",
             "archive": "封存線盤"
         },
         "form": {
-            "measurement_type_label": "測量類型",
-            "adjust_filament_help": "此處您可直接增加或減少料盤上的線材，正數為減少線材數量，負數為增加線材數量。",
-            "adjust_filament_value": "消耗量",
+            "measurement": "測量類型",
             "measurement_type": {
                 "length": "長度",
                 "weight": "重量"
             },
-            "new_location_prompt": "輸入一個新位置",
+            "adjust": "消耗量",
+            "new": "輸入一個新位置",
             "spool_updated": "此線盤已被其他人/程式更新過。若儲存將覆蓋這些變更！"
         },
         "messages": {
@@ -213,37 +181,11 @@
         }
     },
     "filament": {
-        "fields": {
-            "vendor": "製造商",
-            "name": "名稱",
-            "material": "材料",
-            "price": "價格",
-            "density": "密度",
-            "diameter": "線徑",
-            "weight": "重量",
-            "spool_weight": "料盤重量",
-            "article_number": "產品編號",
-            "comment": "備註",
-            "color_hex": "顏色",
-            "multi_color": "多色",
-            "coaxial": "混色",
-            "settings_extruder_temp": "擠出機溫度",
-            "settings_bed_temp": "床台溫度",
-            "external_id": "內部ID",
-            "spools": "檢視料盤",
-            "longitudinal": "縱向",
-            "single_color": "單色",
-            "id": "ID",
-            "vendor_name": "製造商",
-            "registered": "已登記"
-        },
+        "fields": "線材的顏色可通過兩種方式呈現多樣性：一種是共擠技術，例如雙色線材，具有穩定的多色效果；另一種是沿線材長度的顏色變化，例如漸變線材，顏色會隨著線材捲的長度逐漸轉變。",
         "fields_help": {
             "material": "例如：PLA、ABS、PETG等。",
             "name": "線材名稱，用來區分相同製造商的不同線材類型。例如應該包含顏色資訊。",
-            "article_number": "例如EAN、UPC等。",
             "price": "全新料盤價格。",
-            "spool_weight": "空線盤的重量，用於計算整捲線的實際重量。",
-            "multi_color_direction": "線材的顏色可通過兩種方式呈現多樣性：一種是共擠技術，例如雙色線材，具有穩定的多色效果；另一種是沿線材長度的顏色變化，例如漸變線材，顏色會隨著線材捲的長度逐漸轉變。",
             "weight": "整捲線材的重量（淨重）。此重量不應包含線盤本身的重量，僅限於線材的重量，通常會標示在包裝上。"
         },
         "titles": {
@@ -255,9 +197,9 @@
             "show_title": "[線材 #{{id}}] {{name}}"
         },
         "form": {
+            "import": "在列表中選擇一種線材，即可自動填入線材建立表單中的相關詳細資訊。此操作將覆蓋您已輸入的所有資料。<br><br>如果需要，當您點擊“確定”時，將自動建立一個製造商對象。",
             "import_external": "從外部匯入",
-            "filament_updated": "自您開啟此頁面以後，此線材已被其他人/事物更新。儲存將覆蓋這些變更！",
-            "import_external_description": "在列表中選擇一種線材，即可自動填入線材建立表單中的相關詳細資訊。此操作將覆蓋您已輸入的所有資料。<br><br>如果需要，當您點擊“確定”時，將自動建立一個製造商對象。"
+            "filament_updated": "自您開啟此頁面以後，此線材已被其他人/事物更新。儲存將覆蓋這些變更！"
         },
         "buttons": {
             "add_spool": "增加料盤"
@@ -266,22 +208,12 @@
     },
     "vendor": {
         "vendor": "製造商",
-        "fields": {
-            "name": "名稱",
-            "empty_spool_weight": "空料盤重量",
-            "external_id": "外部ID",
-            "comment": "備註",
-            "id": "ID",
-            "registered": "已登記"
-        },
-        "fields_help": {
-            "empty_spool_weight": "此製造商空線盤的重量。"
-        },
+        "fields": "此製造商空線盤的重量。",
         "titles": {
             "create": "建立製造商",
             "edit": "編輯製造商",
-            "show_title": "[製造商 #{{id}}] {{name}}",
             "show": "檢視製造商",
+            "show_title": "[製造商 #{{id}}] {{name}}",
             "clone": "複製製造商",
             "list": "製造商"
         },
@@ -357,42 +289,23 @@
                 "tooltip": "將價格四捨五入至最接近的整數。"
             }
         },
+        "extra": "這將刪除該欄位及所有與之關聯的所有實體資料。",
         "extra_fields": {
             "tab": "額外欄位",
             "params": {
                 "key": "鍵值",
                 "name": "名稱",
-                "field_type": "類型",
                 "unit": "單位",
                 "order": "順序",
-                "default_value": "預設值",
-                "multi_choice": "多選項",
                 "choices": "選項"
             },
-            "field_type": {
-                "text": "文字",
-                "float_range": "小數範圍",
-                "datetime": "日期時間",
-                "boolean": "布林",
-                "choice": "選項",
-                "float": "小數",
-                "integer": "整數",
-                "integer_range": "整數範圍"
-            },
-            "boolean_true": "是",
-            "boolean_false": "否",
-            "choices_missing_error": "您無法刪除選項。以下選項缺失：{{choices}}",
-            "key_not_changed": "請將鍵值更改為其他名稱。",
-            "delete_confirm": "刪除欄位 {{name}}？",
-            "description": "<p>在此，您可以為您的實體加入額外的自訂欄位。</p><p>一旦加入欄位，您將無法更改其鍵值或類型，對於選擇類型欄位，您也無法刪除選項或更改多選狀態。如果刪除欄位，所有實體的相關資料將被刪除。</p><p>鍵值是其他程式讀取/寫入資料的方式，因此如果您的自訂欄位需要與第三方程式整合，請確保正確設置。預設值僅適用於新品項。</p><p>額外的欄位無法在表格視圖中排序或過濾。</p>",
-            "non_unique_key_error": "鍵值必須為唯一。",
-            "delete_confirm_description": "這將刪除該欄位及所有與之關聯的所有實體資料。"
+            "description": "<p>在此，您可以為您的實體加入額外的自訂欄位。</p><p>一旦加入欄位，您將無法更改其鍵值或類型，對於選擇類型欄位，您也無法刪除選項或更改多選狀態。如果刪除欄位，所有實體的相關資料將被刪除。</p><p>鍵值是其他程式讀取/寫入資料的方式，因此如果您的自訂欄位需要與第三方程式整合，請確保正確設置。預設值僅適用於新品項。</p><p>額外的欄位無法在表格視圖中排序或過濾。</p>"
         }
     },
     "locations": {
         "locations": "位置",
+        "no": "這個頁面讓您將料盤按位置進行整理，請從增加一些線盤來開始！",
         "no_location": "未設定位置",
-        "no_locations_help": "這個頁面讓您將料盤按位置進行整理，請從增加一些線盤來開始！",
         "new_location": "新增位置"
     }
 }

@@ -15,7 +15,7 @@
 </script>
 
 <svelte:head>
-	<title>{m['nav.library']()} | Spoolman</title>
+	<title>{m['documentTitle.library.list']()}</title>
 </svelte:head>
 
 <div class="library">

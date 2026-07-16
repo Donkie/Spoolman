@@ -1,12 +1,11 @@
 <script lang="ts">
-	import * as m from '$lib/paraglide/messages';
-
 	interface Props {
 		checked: boolean;
 		onchange?: (checked: boolean) => void;
+		ariaLabel: string | undefined;
 	}
 
-	let { checked, onchange }: Props = $props();
+	let { checked, onchange, ariaLabel }: Props = $props();
 </script>
 
 <button
@@ -14,7 +13,7 @@
 	class:on={checked}
 	role="switch"
 	aria-checked={checked}
-	aria-label={m['common.toggle']()}
+	aria-label={ariaLabel}
 	onclick={() => onchange?.(!checked)}
 >
 	<span class="knob"></span>

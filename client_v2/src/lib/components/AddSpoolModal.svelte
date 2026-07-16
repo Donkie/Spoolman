@@ -456,7 +456,7 @@
 							{/each}
 						{/if}
 
-						<div class="res-hdr">SpoolmanDB <span class="hdr-note">{m['add.communityDb']()}</span></div>
+						<div class="res-hdr"><span class="hdr-note">{m['add.communityDb']()}</span></div>
 						{#if extError}
 							<div class="res-note">{m['add.dbUnavailable']()}</div>
 						{:else if searching && externalResults.length === 0}
@@ -589,7 +589,7 @@
 										{#if errors.diameter}<span class="err">{errors.diameter}</span>{/if}
 									</label>
 									<label
-										>{m['add.nozzle']()} <span class="u">°C</span>
+										>{m['filament.fields.settingsBedTemp']()} <span class="u">°C</span>
 										<NumberInput
 											bind:value={nf.nozzleTemp}
 											min={0}
@@ -601,7 +601,7 @@
 										{#if errors.nozzleTemp}<span class="err">{errors.nozzleTemp}</span>{/if}
 									</label>
 									<label
-										>{m['add.bed']()} <span class="u">°C</span>
+										>{m['filament.fields.settingsExtruderTemp']()} <span class="u">°C</span>
 										<NumberInput
 											bind:value={nf.bedTemp}
 											min={0}

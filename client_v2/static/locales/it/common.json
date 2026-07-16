@@ -124,62 +124,30 @@
         }
     },
     "spool": {
-        "fields": {
-            "measured_weight": "Peso Misurato",
-            "last_used": "Ultimo Utilizzo",
-            "material": "Materiale",
-            "weight_to_use": "Peso",
-            "lot_nr": "Lotto Nr",
-            "filament_name": "Filamento",
-            "comment": "Note",
-            "filament": "Filamento",
-            "location": "Posizione",
-            "used_length": "Lunghezza Utilizzata",
-            "archived": "Archiviati",
-            "remaining_length": "Lunghezza Rimanente",
-            "registered": "Registrato",
-            "first_used": "Primo Utilizzo",
-            "used_weight": "Peso Utilizzato",
-            "id": "ID",
-            "remaining_weight": "Peso Rimanente",
-            "price": "Prezzo",
-            "filament_external": "Esterno",
-            "filament_internal": "Interno",
-            "spool_weight": "Peso a vuoto/tara",
-            "initial_weight": "Peso iniziale"
-        },
+        "fields": "Peso iniziale del filamento sulla bobina (peso netto). Se non impostato, viene utilizzato il peso dal profilo del filamento.",
         "titles": {
             "archive": "Archivia Bobina",
             "show": "Mostra Bobina",
+            "show_title": "[Bobina #{{id}}] {{name}}",
             "edit": "Modifica Bobina",
             "create": "Crea Bobina",
             "clone": "Clona Bobina",
-            "show_title": "[Bobina #{{id}}] {{name}}",
             "list": "Bobine",
             "adjust": "Regola il filamento della bobina"
         },
         "fields_help": {
-            "used_weight": "Quanto filamento è stato utilizzato dalla bobina. Una nuova bobina dovrebbe avere 0 gr utilizzati.",
-            "weight_to_use": "Selezionare il valore del peso da inserire. Il peso misurato è disponibile solo se il peso della bobina è impostato per il filamento selezionato.",
-            "measured_weight": "Quanto pesano il filamento e la bobina.",
-            "lot_nr": "Numero di lotto del produttore. Può essere utilizzato per garantire che la stampa abbia colori uniformi se vengono utilizzate più bobine.",
-            "remaining_weight": "Quanto filamento è rimasto sulla bobina. Per una nuova bobina questo dovrebbe corrispondere al peso della bobina.",
             "location": "Dove si trova la bobina se disponi di più posizioni in cui conservare le bobine.",
-            "price": "Prezzo di una bobina completa. Se non viene impostato, verrà utilizzato il prezzo del filamento.",
-            "spool_weight": "Il peso della bobina vuota (tara). Lasciare vuoto per usare il valore dal profilo filamento o dal profilo produttore.",
-            "external_filament": "Hai selezionato un filamento da un database esterno. Un profilo filamento (e possibilmente anche un profilo produttore) verrà creato automaticamente quando crei questa bobina. Ciò potrebbe creare un profilo filamento duplicato se hai già creato un profilo per questo filamento.",
-            "initial_weight": "Peso iniziale del filamento sulla bobina (peso netto). Se non impostato, viene utilizzato il peso dal profilo del filamento."
+            "price": "Prezzo di una bobina completa. Se non viene impostato, verrà utilizzato il prezzo del filamento."
         },
         "form": {
-            "new_location_prompt": "Inserisci nuova posizione",
+            "new": "Inserisci nuova posizione",
             "spool_updated": "Ci sono stati degli aggiornamenti per questa bobina da quando è stata aperta questa pagina. Il salvataggio sovrascriverà le modifiche!",
+            "measurement": "Tipo di misurazione",
             "measurement_type": {
                 "length": "Lunghezza",
                 "weight": "Peso"
             },
-            "adjust_filament_value": "Quantità di consumo",
-            "measurement_type_label": "Tipo di misurazione",
-            "adjust_filament_help": "Qui puoi aggiungere o sottrarre direttamente filamento dalla bobina. Un valore positivo consumerà filamento, un valore negativo lo aggiungerà."
+            "adjust": "Qui puoi aggiungere o sottrarre direttamente filamento dalla bobina. Un valore positivo consumerà filamento, un valore negativo lo aggiungerà."
         },
         "spool": "Bobine",
         "messages": {
@@ -215,43 +183,17 @@
         "continue": "Continua"
     },
     "filament": {
+        "fields": "I filamenti possono avere più colori in due modi: attraverso la coestrusione, come i filamenti a due colori con più colori omogenei, o attraverso cambiamenti di colore longitudinali, come i filamenti a gradiente che cambiano colore lungo la bobina.",
         "fields_help": {
             "name": "Nome del filamento, per distinguere questo tipo di filamento dagli altri dello stesso produttore. Dovrebbe contenere il colore, ad esempio.",
-            "article_number": "Es.: EAN, UPC, etc.",
-            "spool_weight": "Il peso di una bobina vuota. Utilizzato per determinare il peso misurato di una bobina.",
             "price": "Prezzo di una bobina piena.",
             "weight": "Il peso del filamento di una bobina piena (peso netto). Questo non dovrebbe includere il peso della bobina stessa, ma solo del filamento. È quello che solitamente c'è scritto sulla confezione.",
-            "material": "Es.: PLA, ABS, PETG, etc.",
-            "multi_color_direction": "I filamenti possono avere più colori in due modi: attraverso la coestrusione, come i filamenti a due colori con più colori omogenei, o attraverso cambiamenti di colore longitudinali, come i filamenti a gradiente che cambiano colore lungo la bobina."
-        },
-        "fields": {
-            "material": "Materiale",
-            "vendor_name": "Produttore",
-            "settings_extruder_temp": "Temperatura Estrusore",
-            "comment": "Note",
-            "diameter": "Diametro",
-            "weight": "Peso",
-            "spool_weight": "Peso Bobina",
-            "registered": "Registrato",
-            "name": "Nome",
-            "price": "Prezzo",
-            "settings_bed_temp": "Temperatura Piatto",
-            "vendor": "Produttore",
-            "density": "Densità",
-            "id": "ID",
-            "color_hex": "Colore",
-            "article_number": "Numero Articolo",
-            "spools": "Mostra bobine",
-            "external_id": "ID esterno",
-            "single_color": "Unico",
-            "multi_color": "Multiplo",
-            "coaxial": "Coestruso",
-            "longitudinal": "Longitudinale"
+            "material": "Es.: PLA, ABS, PETG, etc."
         },
         "titles": {
             "clone": "Clona Filamento",
-            "show_title": "[Filamento #{{id}}] {{name}}",
             "show": "Mostra Filamento",
+            "show_title": "[Filamento #{{id}}] {{name}}",
             "create": "Crea Filamento",
             "edit": "Modifica Filamento",
             "list": "Filamenti"
@@ -259,8 +201,8 @@
         "filament": "Filamenti",
         "form": {
             "filament_updated": "Ci sono stati degli aggiornamenti per questo filamento da quando è stata aperta questa pagina. Il salvataggio sovrascriverà le modifiche!",
-            "import_external": "Importa da Esterno",
-            "import_external_description": "Seleziona un filamento dalla lista per compilare automaticamente i dettagli del modulo creazione filamento. Ciò sovrascriverà qualsiasi informazione hai precedentemente inserito nel modulo. <rb><br> Se necessario, verrà creato automaticamente un profilo Produttore quando clicchi Ok."
+            "import": "Seleziona un filamento dalla lista per compilare automaticamente i dettagli del modulo creazione filamento. Ciò sovrascriverà qualsiasi informazione hai precedentemente inserito nel modulo. <rb><br> Se necessario, verrà creato automaticamente un profilo Produttore quando clicchi Ok.",
+            "import_external": "Importa da Esterno"
         },
         "buttons": {
             "add_spool": "Aggiungi Bobina"
@@ -275,27 +217,17 @@
     },
     "vendor": {
         "titles": {
-            "show_title": "[Produttore #{{id}}] {{name}}",
             "show": "Mostra Produttori",
+            "show_title": "[Produttore #{{id}}] {{name}}",
             "edit": "Modifica Produttore",
             "clone": "Duplica Produttore",
             "create": "Crea Produttore",
             "list": "Produttori"
         },
-        "fields": {
-            "registered": "Registrato",
-            "comment": "Note",
-            "name": "Nome",
-            "id": "ID",
-            "external_id": "ID Esterno",
-            "empty_spool_weight": "Peso a vuoto della bobina/tara"
-        },
+        "fields": "Il peso di una bobina vuota di questo produttore.",
         "vendor": "Produttori",
         "form": {
             "vendor_updated": "Ci sono stati degli aggiornamenti per questo produttore da quando hai aperto questa pagina. Il salvataggio sovrascriverà le modifiche!"
-        },
-        "fields_help": {
-            "empty_spool_weight": "Il peso di una bobina vuota di questo produttore."
         }
     },
     "scanner": {
@@ -356,34 +288,15 @@
     },
     "settings": {
         "settings": "Configurazione",
+        "extra": "Questo eliminerà il campo e tutti i dati associati di tutte le selezioni.",
         "extra_fields": {
             "params": {
                 "order": "Ordine",
-                "default_value": "Valore di Default",
                 "key": "Chiave",
                 "name": "Nome",
-                "field_type": "Tipo",
                 "choices": "Scelte",
-                "multi_choice": "Scelta multipla",
                 "unit": "Unità"
             },
-            "field_type": {
-                "text": "\"Testo\" per tipo campo extra",
-                "datetime": "Data e ora",
-                "choice": "Scelta",
-                "float": "Decimali",
-                "integer_range": "Intervallo di numeri interi",
-                "float_range": "Intervallo decimali",
-                "boolean": "Booleano",
-                "integer": "\"Intero\" per tipo campo extra, numero intero senza decimali"
-            },
-            "choices_missing_error": "Non è possibile rimuovere le scelte. Mancano i seguenti elementi: {{choices}}",
-            "non_unique_key_error": "La chiave deve essere univoca.",
-            "key_not_changed": "Si prega di utilizzare una chiave diversa.",
-            "boolean_true": "Si",
-            "boolean_false": "No",
-            "delete_confirm": "Cancellare il campo {{name}}?",
-            "delete_confirm_description": "Questo eliminerà il campo e tutti i dati associati di tutte le selezioni.",
             "tab": "Campi extra",
             "description": "<p>Qui è possibile aggiungere campi personalizzati.</p><p>Una volta aggiunto un campo, non è possibile modificarne la chiave o il tipo, e per i campi di tipo scelta non è possibile rimuovere le scelte o modificare lo stato di scelta multipla. Se si rimuove un campo, tutti i dati associati saranno cancellati.</p><p>La chiave è il modo in cui gli altri programmi leggono/scrivono i dati, quindi se il campo personalizzato deve integrarsi con un programma di terze parti, assicurarsi di impostarla correttamente. Il valore predefinito viene applicato solo ai nuovi elementi.</p><p>I campi extra non possono essere ordinati o filtrati nelle viste tabella.</p>"
         },
@@ -406,7 +319,7 @@
     "locations": {
         "locations": "Posizioni",
         "new_location": "Nuova Posizione",
-        "no_location": "Nessuna Posizione",
-        "no_locations_help": "Questa pagina ti consente di organizzare le bobine in base alla posizione. Aggiungi alcune bobine per iniziare!"
+        "no": "Questa pagina ti consente di organizzare le bobine in base alla posizione. Aggiungi alcune bobine per iniziare!",
+        "no_location": "Nessuna Posizione"
     }
 }

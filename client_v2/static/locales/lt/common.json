@@ -150,41 +150,10 @@
     },
     "spool": {
         "spool": "Ritės",
-        "fields": {
-            "id": "ID",
-            "filament_name": "Gija",
-            "filament": "Gija",
-            "filament_internal": "Vidinis",
-            "filament_external": "Išorinis",
-            "price": "Kaina",
-            "material": "Medžiaga",
-            "weight_to_use": "Svoris",
-            "used_weight": "Naudotas svoris",
-            "remaining_weight": "Likęs svoris",
-            "measured_weight": "Išmatuotas svoris",
-            "used_length": "Panaudotas ilgis",
-            "remaining_length": "Likęs ilgis",
-            "initial_weight": "Pradinis svoris",
-            "spool_weight": "Tuščas svoris",
-            "location": "Vieta",
-            "lot_nr": "Lot Nr",
-            "first_used": "Pirmą kartą panaudota",
-            "last_used": "Paskutinį kartą panaudota",
-            "registered": "Registruota",
-            "comment": "Komentaras",
-            "archived": "Archyvuota"
-        },
+        "fields": "Pasirinkote gijąiš išorinės duomenų bazės. Kuriant šią ritę, bus automatiškai sukurtas gijos objektas (ir galbūt gamintojo objektas). Tai gali sukurti pasikartojančius gijų objektus, jei jau sukūrėte šios gijos objektą.",
         "fields_help": {
             "price": "Pilnos ritės kaina. Jei nenustatyta, bus laikoma, kad kaina yra pačios gijos kaina.",
-            "weight_to_use": "Pasirinkite, kokią svorio vertę įvesti. Išmatuotas svoris galimas tik tuo atveju, jei pasirinktai kaitinimo medžiagai nustatytas ritės svoris.",
-            "used_weight": "Kiek plastiko buvo sunaudota iš ritės. Naujoje ritėje turėtų būti sunaudota 0 g.",
-            "remaining_weight": "Kiek gijos liko ant ritės. Naujos ritės svoris turėtų atitikti ritės svorį.",
-            "measured_weight": "Kiek sveria gija ir ritė.",
-            "initial_weight": "Pradinis gijos svoris ant ritės (grynasis svoris). Jei nenustatytas, bus naudojamas gijos objekto svoris.",
-            "spool_weight": "Tuščios ritės svoris. Palikite tuščią, jei norite naudoti vertę, nurodytą ant gijos arba gamintojo.",
-            "location": "Kur yra ritė, jei rites laikote keliose vietose.",
-            "lot_nr": "Gamintojo partijos numeris. Gali būti naudojamas siekiant užtikrinti, kad spaudinio spalva būtų vienoda, jei naudojamos kelios ritės.",
-            "external_filament": "Pasirinkote gijąiš išorinės duomenų bazės. Kuriant šią ritę, bus automatiškai sukurtas gijos objektas (ir galbūt gamintojo objektas). Tai gali sukurti pasikartojančius gijų objektus, jei jau sukūrėte šios gijos objektą."
+            "location": "Kur yra ritė, jei rites laikote keliose vietose."
         },
         "titles": {
             "create": "Sukurti ritę",
@@ -197,14 +166,13 @@
             "adjust": "Reguliuoti ritės giją"
         },
         "form": {
+            "measurement": "Matavimo tipas",
             "measurement_type": {
                 "length": "Ilgis",
                 "weight": "Svoris"
             },
-            "measurement_type_label": "Matavimo tipas",
-            "adjust_filament_help": "Čia galite tiesiogiai pridėti arba atimti giją iš ritės. Teigiama vertė sunaudos giją, neigiama – jį pridės.",
-            "adjust_filament_value": "Suvartoti kiekį",
-            "new_location_prompt": "Įveskite naują vietą",
+            "adjust": "Suvartoti kiekį",
+            "new": "Įveskite naują vietą",
             "spool_updated": "Šią ritę kažkas kitas atnaujino nuo tada, kai atidarėte šį puslapį. Išsaugojus šie pakeitimai bus perrašyti!"
         },
         "messages": {
@@ -216,38 +184,12 @@
     },
     "filament": {
         "filament": "Gijos",
-        "fields": {
-            "id": "ID",
-            "vendor_name": "Gamintojas",
-            "vendor": "Gamintojas",
-            "name": "Pavadinimas",
-            "material": "Medžiaga",
-            "price": "Kaina",
-            "density": "Tankis",
-            "diameter": "Skersmuo",
-            "weight": "Svoris",
-            "spool_weight": "Ritės svoris",
-            "article_number": "Gaminio numeris",
-            "registered": "Registruota",
-            "comment": "Komentaras",
-            "settings_extruder_temp": "Ekstruderio temperatūra",
-            "settings_bed_temp": "Pado temperatūra",
-            "color_hex": "Spalva",
-            "single_color": "Viena",
-            "multi_color": "Daugiaspalvis",
-            "coaxial": "Koekstruduotas",
-            "longitudinal": "Išilginis",
-            "external_id": "Išorinis ID",
-            "spools": "Rodyti rites"
-        },
+        "fields": "Gijos turėti kelias spalvas dviem būdais: arba dėl koekstruzijos, kaip dviejų spalvų gijos su nuosekliomis daugiaspalvėmis spalvomis, arba dėl išilginių spalvų pokyčių, kaip gradientinės gijos, kurios keičia spalvas išilgai ritės.",
         "fields_help": {
             "name": "Gijos pavadinimas, kad būtų galima atskirti šį gijos tipą nuo kitų to paties gamintojo gijų. Pavyzdžiui, turėtų būti nurodyta spalva.",
             "material": "Pvz. PLA, ABS, PETG, ir tt.",
             "price": "Pilnos ritės kaina.",
-            "weight": "Pilnos ritės gijos svoris (grynasis svoris). Į šį skaičių neturėtų būti įtrauktas pačios ritės svoris, tik gijos svoris. Tai paprastai nurodoma ant pakuotės.",
-            "spool_weight": "Tuščios ritės svoris. Naudojamas išmatuotam ritės svoriui nustatyti.",
-            "article_number": "Pvz. EAN, UPC, ir tt.",
-            "multi_color_direction": "Gijos turėti kelias spalvas dviem būdais: arba dėl koekstruzijos, kaip dviejų spalvų gijos su nuosekliomis daugiaspalvėmis spalvomis, arba dėl išilginių spalvų pokyčių, kaip gradientinės gijos, kurios keičia spalvas išilgai ritės."
+            "weight": "Pilnos ritės gijos svoris (grynasis svoris). Į šį skaičių neturėtų būti įtrauktas pačios ritės svoris, tik gijos svoris. Tai paprastai nurodoma ant pakuotės."
         },
         "titles": {
             "create": "Kirti giją",
@@ -259,8 +201,8 @@
         },
         "form": {
             "filament_updated": "Šią giją kažkas kitas atnaujino nuo tada, kai atidarėte šį puslapį. Išsaugojus šie pakeitimai bus perrašyti!",
-            "import_external": "Importuoti iš išorės",
-            "import_external_description": "Pasirinkite giją sąraše, kad jos informacija būtų automatiškai užpildyta gijos kūrimo formoje. Tai perrašys visus formoje įvestus duomenis.<br><br>Jei reikia, gamintojo objektas bus sukurtas automatiškai, kai spustelėsite „Gerai“."
+            "import": "Pasirinkite giją sąraše, kad jos informacija būtų automatiškai užpildyta gijos kūrimo formoje. Tai perrašys visus formoje įvestus duomenis.<br><br>Jei reikia, gamintojo objektas bus sukurtas automatiškai, kai spustelėsite „Gerai“.",
+            "import_external": "Importuoti iš išorės"
         },
         "buttons": {
             "add_spool": "Pridėti ritę"
@@ -268,17 +210,7 @@
     },
     "vendor": {
         "vendor": "Gamintojai",
-        "fields": {
-            "id": "ID",
-            "name": "Pavadinimas",
-            "empty_spool_weight": "Tuščios ritės svoris",
-            "external_id": "Išorinis ID",
-            "registered": "Registruota",
-            "comment": "Komentaras"
-        },
-        "fields_help": {
-            "empty_spool_weight": "Tuščios šio gamintojo ritės svoris."
-        },
+        "fields": "Tuščios šio gamintojo ritės svoris.",
         "titles": {
             "create": "Sukurti gamintoją",
             "clone": "Klonuoti gamintoją",
@@ -325,36 +257,17 @@
                 "tooltip": "Apvalinkite kainas iki artimiausio sveikojo skaičiaus."
             }
         },
+        "extra": "Tai ištrins lauką ir visus susijusius duomenis visiems objektams.",
         "extra_fields": {
             "tab": "Papildomi laukai",
             "description": "<p>Čia galite pridėti papildomų pasirinktinių laukų prie savo objektų.</p><p>Pridėjus lauką, negalite keisti jo rakto ar tipo, o pasirinkimų tipo laukų negalite pašalinti pasirinkimų ar pakeisti kelių pasirinkimų būsenos. Jei pašalinsite lauką, bus ištrinti su visais objektais susiję duomenys.</p><p>Raktas yra tai, kaip kitos programos skaito / rašo duomenis, todėl jei jūsų pasirinktinis laukas turėtų būti integruotas su trečiosios šalies programa, įsitikinkite, kad jis nustatytas teisingai. Numatytoji reikšmė taikoma tik naujiems elementams.</p><p>Papildomų laukų negalima rūšiuoti ar filtruoti lentelės rodiniuose.</p>",
             "params": {
                 "key": "Raktas",
                 "name": "Pavadinimas",
-                "field_type": "Tipas",
                 "unit": "Vienetas",
                 "order": "Tvarka",
-                "default_value": "Numatytoji reikšmė",
-                "choices": "Pasirinkimai",
-                "multi_choice": "Keli pasirinkimai"
-            },
-            "field_type": {
-                "text": "Tekstas",
-                "integer": "Skaičius",
-                "integer_range": "Sveiki skaičiai",
-                "float": "Realus skaičius",
-                "float_range": "Realūs skaičiai",
-                "datetime": "Data Laikas",
-                "boolean": "Loginis",
-                "choice": "Pasirinkimas"
-            },
-            "boolean_true": "Taip",
-            "boolean_false": "Ne",
-            "choices_missing_error": "Negalite pašalinti pasirinkimų. Trūksta šių pasirinkimų: {{choices}}",
-            "non_unique_key_error": "Raktas turi būti unukalus.",
-            "key_not_changed": "Prašome pakeisti raktą į ką nors kitą.",
-            "delete_confirm": "Šalinti lauką {{name}}?",
-            "delete_confirm_description": "Tai ištrins lauką ir visus susijusius duomenis visiems objektams."
+                "choices": "Pasirinkimai"
+            }
         }
     },
     "documentTitle": {
@@ -394,7 +307,7 @@
     "locations": {
         "locations": "Vietos",
         "new_location": "Nauja vieta",
-        "no_location": "Be vietos",
-        "no_locations_help": "Šiame puslapyje galite tvarkyti rites pagal vietas, pridėkite keletą ričių, kad pradėtumėte!"
+        "no": "Šiame puslapyje galite tvarkyti rites pagal vietas, pridėkite keletą ričių, kad pradėtumėte!",
+        "no_location": "Be vietos"
     }
 }

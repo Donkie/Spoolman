@@ -131,7 +131,7 @@
 </script>
 
 <svelte:head>
-	<title>{m['nav.locations']()} | Spoolman</title>
+	<title>{m['documentTitle.locations.list']()}</title>
 </svelte:head>
 
 <div class="page scroll-y">

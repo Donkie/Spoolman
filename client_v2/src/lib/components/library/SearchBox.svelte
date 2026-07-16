@@ -193,7 +193,7 @@
 <div class="search-box" class:full={fullWidth} bind:this={wrapper}>
 	<SearchInput
 		value={query}
-		placeholder={'⌕ ' + m['topbar.searchPlaceholder']()}
+		placeholder={m['topbar.searchPlaceholder']()}
 		oninput={(v) => {
 			query = v;
 			open = true;

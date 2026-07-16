@@ -19,12 +19,12 @@
 		class="scrim"
 		role="button"
 		tabindex="-1"
-		aria-label={m['common.closeDetails']()}
+		aria-label={m['buttons.close']()}
 		onclick={onclose}
 		onkeydown={(e) => e.key === 'Escape' && onclose?.()}
 	></div>
 	<div class="sheet">
-		<button class="grabber" onclick={onclose} aria-label={m['common.closeDetails']()}><span></span></button>
+		<button class="grabber" onclick={onclose} aria-label={m['buttons.close']()}><span></span></button>
 		<div class="sheet-body scroll-y">
 			{@render children()}
 		</div>

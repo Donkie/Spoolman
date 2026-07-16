@@ -87,7 +87,7 @@
 </script>
 
 <svelte:head>
-	<title>{m['nav.labels']()} | Spoolman</title>
+	<title>{m['documentTitle.labels.list']()}</title>
 </svelte:head>
 
 <div class="page scroll-y">

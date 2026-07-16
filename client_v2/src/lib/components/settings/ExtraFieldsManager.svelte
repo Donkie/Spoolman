@@ -129,29 +129,29 @@
 	async function save() {
 		error = '';
 		if (!/^[a-z0-9_]+$/.test(key)) {
-			error = m['extraField.errors.keyFormat']();
+			error = m['settings.extraFields.errors.keyFormat']();
 			return;
 		}
 		if (key === 'new_field') {
-			error = m['extraField.errors.keyReserved']();
+			error = m['settings.extraFields.errors.keyReserved']();
 			return;
 		}
 		if (isNew && defs.some((f) => f.key === key)) {
-			error = m['extraField.errors.keyExists']();
+			error = m['settings.extraFields.errors.keyExists']();
 			return;
 		}
 		if (!name.trim()) {
-			error = m['extraField.errors.nameRequired']();
+			error = m['settings.extraFields.errors.nameRequired']();
 			return;
 		}
 		if (isChoice && choices.length === 0) {
-			error = m['extraField.errors.choiceNeeded']();
+			error = m['settings.extraFields.errors.choiceNeeded']();
 			return;
 		}
 		if (!isNew && isChoice) {
 			const missing = originalChoices.filter((c) => !choices.includes(c));
 			if (missing.length) {
-				error = m['extraField.errors.choicesRemoved']({ choices: missing.join(', ') });
+				error = m['settings.extraFields.errors.choicesRemoved']({ choices: missing.join(', ') });
 				return;
 			}
 		}
@@ -171,18 +171,18 @@
 			await fields.save(entity, key, params);
 			editing = false;
 		} catch (e) {
-			error = e instanceof Error ? e.message : m['extraField.errors.saveFailed']();
+			error = e instanceof Error ? e.message : m['settings.extraFields.errors.saveFailed']();
 		} finally {
 			saving = false;
 		}
 	}
 
 	async function del(f: FieldDef) {
-		if (!confirm(m['extraField.deleteConfirm']({ name: f.name, entity: entityLabel }))) return;
+		if (!confirm(m['settings.extraFields.deleteConfirm']({ name: f.name, entity: entityLabel }))) return;
 		try {
 			await fields.remove(entity, f.key);
 		} catch (e) {
-			error = e instanceof Error ? e.message : m['extraField.errors.deleteFailed']();
+			error = e instanceof Error ? e.message : m['settings.extraFields.errors.deleteFailed']();
 		}
 	}
 
@@ -207,7 +207,7 @@
 
 <Card divided>
 	{#if defs.length === 0}
-		<div class="empty">{m['extraField.none']({ entity: entityLabel })}</div>
+		<div class="empty">{m['settings.extraFields.none']({ entity: entityLabel })}</div>
 	{:else}
 		<div class="row head-row">
 			<span class="c-key">{m['settings.extraFields.params.key']()}</span>
@@ -225,7 +225,7 @@
 				<span class="c-type">
 					{FIELD_TYPE_LABELS[f.field_type]()}
 					{#if f.field_type === FieldType.choice}<span class="unit"
-							>{f.multi_choice ? m['extraField.multiSuffix']() : ''}</span
+							>{f.multi_choice ? m['settings.extraFields.multiSuffix']() : ''}</span
 						>{/if}
 				</span>
 				<span class="c-def">{defaultPreview(f)}</span>
@@ -242,8 +242,8 @@
 	<div class="editor">
 		<div class="editor-title">
 			{isNew
-				? m['extraField.editorNew']({ entity: entityLabel })
-				: m['extraField.editorEdit']({ entity: entityLabel })}
+				? m['settings.extraFields.editorNew']({ entity: entityLabel })
+				: m['settings.extraFields.editorEdit']({ entity: entityLabel })}
 		</div>
 		<div class="form">
 			<label class="fld">
@@ -256,7 +256,7 @@
 			</label>
 			<label class="fld wide">
 				<span>{m['settings.extraFields.params.name']()}</span>
-				<input class="in" bind:value={name} placeholder={m['extraField.namePlaceholder']()} />
+				<input class="in" bind:value={name} placeholder={m['settings.extraFields.namePlaceholder']()} />
 			</label>
 			<label class="fld">
 				<span>{m['settings.extraFields.params.fieldType']()}</span>
@@ -280,7 +280,7 @@
 
 			{#if isChoice}
 				<label class="fld">
-					<span>{m['extraField.multiple']()}</span>
+					<span>{m['settings.extraFields.multiple']()}</span>
 					<input type="checkbox" bind:checked={multiChoice} disabled={!isNew} />
 				</label>
 				<div class="fld wide">
@@ -299,7 +299,7 @@
 						<input
 							class="chip-in"
 							bind:value={choiceInput}
-							placeholder={m['extraField.addChoice']()}
+							placeholder={m['settings.extraFields.addChoice']()}
 							onkeydown={(e) => {
 								if (e.key === 'Enter' || e.key === ',') {
 									e.preventDefault();
@@ -316,7 +316,7 @@
 				<span>{m['settings.extraFields.params.defaultValue']()}</span>
 				<div class="def-input">
 					{#if isChoice && choices.length === 0}
-						<span class="hint">{m['extraField.addChoicesFirst']()}</span>
+						<span class="hint">{m['settings.extraFields.addChoicesFirst']()}</span>
 					{:else}
 						<ExtraFieldInput field={draftField} value={defaultJson} onchange={(v) => (defaultJson = v)} />
 					{/if}
@@ -329,13 +329,13 @@
 		<div class="editor-actions">
 			<button class="btn ghost" onclick={cancel}>{m['buttons.cancel']()}</button>
 			<button class="btn primary" onclick={save} disabled={saving}
-				>{saving ? m['labels.saving']() : m['extraField.saveField']()}</button
+				>{saving ? m['labels.saving']() : m['settings.extraFields.saveField']()}</button
 			>
 		</div>
 	</div>
 {:else}
 	<button class="add-btn" onclick={startAdd}
-		>＋ {m['extraField.addEntityField']({ entity: entityLabel })}</button
+		>＋ {m['settings.extraFields.addEntityField']({ entity: entityLabel })}</button
 	>
 {/if}
 

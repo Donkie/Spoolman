@@ -123,62 +123,30 @@
         }
     },
     "spool": {
-        "fields": {
-            "measured_weight": "Målt vægt",
-            "last_used": "Sidst anvendt",
-            "material": "Materiale",
-            "weight_to_use": "Vægt",
-            "lot_nr": "Partinummer",
-            "filament_name": "Filament",
-            "comment": "Kommentar",
-            "filament": "Filament",
-            "location": "Placering",
-            "used_length": "Brugt længde",
-            "archived": "Arkiveret",
-            "remaining_length": "Resterende længde",
-            "registered": "Registreret",
-            "first_used": "Først anvendt",
-            "used_weight": "Brugt vægt",
-            "id": "ID",
-            "remaining_weight": "Resterende vægt",
-            "price": "Pris",
-            "initial_weight": "Startvægt",
-            "spool_weight": "Tom vægt",
-            "filament_internal": "Intern",
-            "filament_external": "Ekstern"
-        },
+        "fields": "Vægten af spolen når den er tom. Et tomt felt vil bruge værdien fra filament eller producent.",
         "titles": {
             "archive": "Arkivér spole",
             "show": "Vis spole",
+            "show_title": "[Spole #{{id}}] {{name}}",
             "edit": "Redigér spole",
             "create": "Opret spole",
             "clone": "Klon spole",
-            "show_title": "[Spole #{{id}}] {{name}}",
             "list": "Spoler",
             "adjust": "Tilpas spolefilament"
         },
         "form": {
             "spool_updated": "Denne spole er blevet redigeret af nogen/noget andet siden du åbnede denne side. Hvis du gemmer overskrives disse ændringer!",
-            "new_location_prompt": "Indtast ny placering",
-            "measurement_type_label": "Måletype",
-            "adjust_filament_value": "Fjern mængde",
+            "new": "Indtast ny placering",
+            "measurement": "Måletype",
             "measurement_type": {
                 "weight": "Vægt",
                 "length": "Længde"
             },
-            "adjust_filament_help": "Her kan du direkte tilføje eller fjerne filament fra spolen. En positiv værdi vil fjerne filament, en negativ værdi vil tilføje det."
+            "adjust": "Her kan du direkte tilføje eller fjerne filament fra spolen. En positiv værdi vil fjerne filament, en negativ værdi vil tilføje det."
         },
         "fields_help": {
-            "used_weight": "Hvor meget filament er der brugt fra spolen. En ny spole bør have 0g brugt.",
-            "weight_to_use": "Vælg hvilken vægt der skal angives. Målt vægt er kun tilgængelig, hvis der er indstillet en spolevægt for det valgte filament.",
-            "measured_weight": "Hvor meget filament og spole vejer.",
-            "lot_nr": "Producentens \"batch/partinummer\". Kan bruges til at sikre ensartede farver ved brug af flere ruller.",
-            "remaining_weight": "Hvor meget filament er der tilbage på spolen. For en ny spole bør dette matche spolens vægt.",
             "location": "Placering af spolen, hvis du opbevarer spoler flere steder.",
-            "price": "Pris for en fuld spole. Hvis ikke indstillet, vil prisen i stedet blive antaget.",
-            "external_filament": "Du har valgt et filament fra den eksterne database. Et filament (og muligvis en producent) vil blive oprettet automatisk, når du gemmer denne spole. Dette kan skabe duplikerede objekter, hvis du allerede har oprettet dette filament.",
-            "initial_weight": "Startvægten af filament på spolen (nettovægt). Bruger filamentets standardvægt, hvis ikke angivet.",
-            "spool_weight": "Vægten af spolen når den er tom. Et tomt felt vil bruge værdien fra filament eller producent."
+            "price": "Pris for en fuld spole. Hvis ikke indstillet, vil prisen i stedet blive antaget."
         },
         "spool": "Spoler",
         "messages": {
@@ -214,51 +182,25 @@
         "continue": "Fortsæt"
     },
     "filament": {
+        "fields": "Filamenter kan have flere farver på to måder: Enten koaksialt, som 2- & 3-farvede filamenter med vedvarende flerfarvethed, eller gennem langsgående ændringer, som regnbuefilamenter, hvor farven skifter undervejs på spolen.",
         "fields_help": {
             "name": "Filamentnavn, for at adskille dette filament fra andre fra samme producent. Kan for eksempel indeholde farven.",
-            "article_number": "F.eks. EAN, UPC, e.l.",
-            "spool_weight": "Vægten af en tom spole. Bruges til at angive den målte vægt af en spole.",
             "price": "Pris for en ny spole.",
             "weight": "Filamentets vægt på en ny spole (nettovægt). Dette bør ikke inkludere vægten af selve spolen, kun filamentet. Det er som regel den angivne vægt på pakken.",
-            "material": "F.eks. PLA, ABS, PETG, m.m.",
-            "multi_color_direction": "Filamenter kan have flere farver på to måder: Enten koaksialt, som 2- & 3-farvede filamenter med vedvarende flerfarvethed, eller gennem langsgående ændringer, som regnbuefilamenter, hvor farven skifter undervejs på spolen."
-        },
-        "fields": {
-            "material": "Materiale",
-            "vendor_name": "Producent",
-            "settings_extruder_temp": "Ekstrudertemperatur",
-            "comment": "Kommentar",
-            "diameter": "Diameter",
-            "weight": "Vægt",
-            "spool_weight": "Spolevægt",
-            "registered": "Registreret",
-            "name": "Navn",
-            "price": "Pris",
-            "settings_bed_temp": "Printpladetemperatur",
-            "vendor": "Producent",
-            "density": "Massefylde",
-            "id": "ID",
-            "color_hex": "Farve",
-            "article_number": "Produktnummer",
-            "spools": "Vis spoler",
-            "external_id": "Eksternt ID",
-            "longitudinal": "Langsgående",
-            "multi_color": "Flerfarvet",
-            "coaxial": "Koaksialt",
-            "single_color": "Enkeltfarvet"
+            "material": "F.eks. PLA, ABS, PETG, m.m."
         },
         "titles": {
             "clone": "Klon filament",
-            "show_title": "[Filament #{{id}}] {{name}}",
             "show": "Vis filament",
+            "show_title": "[Filament #{{id}}] {{name}}",
             "create": "Opret filament",
             "edit": "Redigér filament",
             "list": "Filamenter"
         },
         "form": {
             "filament_updated": "Dette filament er blevet redigeret af nogen/noget andet siden du åbnede denne side. Hvis du gemmer overskrives disse ændringer!",
-            "import_external": "Importér fra ekstern kilde",
-            "import_external_description": "Vælg et filament på listen, for automatisk at udfylde detaljerne i formularen. Dette vil overskrive al data, du allerede har indtastet i formularen. <br><br> En producent vil blive oprettet automatisk, hvis nødvendigt, når du klikker OK."
+            "import": "Vælg et filament på listen, for automatisk at udfylde detaljerne i formularen. Dette vil overskrive al data, du allerede har indtastet i formularen. <br><br> En producent vil blive oprettet automatisk, hvis nødvendigt, når du klikker OK.",
+            "import_external": "Importér fra ekstern kilde"
         },
         "filament": "Filamenter",
         "buttons": {
@@ -274,8 +216,8 @@
     },
     "vendor": {
         "titles": {
-            "show_title": "[Producent #{{id}}] {{name}}",
             "show": "Vis producent",
+            "show_title": "[Producent #{{id}}] {{name}}",
             "edit": "Redigér producent",
             "clone": "Klon producent",
             "create": "Opret producent",
@@ -284,18 +226,8 @@
         "form": {
             "vendor_updated": "Denne producent er blevet redigeret af nogen/noget andet siden du åbnede denne side. Hvis du gemmer overskrives disse ændringer!"
         },
-        "fields": {
-            "registered": "Registreret",
-            "comment": "Kommentar",
-            "name": "Navn",
-            "id": "ID",
-            "external_id": "Eksternt ID",
-            "empty_spool_weight": "Tom Spolevægt"
-        },
-        "vendor": "Producenter",
-        "fields_help": {
-            "empty_spool_weight": "Vægten af en tom spole fra denne producent."
-        }
+        "fields": "Vægten af en tom spole fra denne producent.",
+        "vendor": "Producenter"
     },
     "scanner": {
         "title": "QR-kode skanner",
@@ -369,43 +301,24 @@
                 "tooltip": "Afrund priser til nærmeste heltal."
             }
         },
+        "extra": "Dette vil slette feltet samt alle associerede data for alle poster.",
         "extra_fields": {
             "params": {
                 "key": "Nøgle",
                 "name": "Navn",
-                "field_type": "Type",
                 "unit": "Enhed",
                 "order": "Sortering",
-                "default_value": "Standardværdi",
-                "multi_choice": "Multi-valg",
                 "choices": "Valgmuligheder"
             },
-            "field_type": {
-                "integer_range": "Heltalspænd",
-                "float": "Decimaltal",
-                "float_range": "Decimaltalspænd",
-                "datetime": "Dato-tid",
-                "boolean": "Boolean (Ja/Nej)",
-                "choice": "Valg",
-                "text": "Tekst",
-                "integer": "Heltal"
-            },
-            "choices_missing_error": "Du kan ikke fjerne valgmuligheder. De følgende valgmuligheder mangler: {{choices}}",
             "tab": "Ekstra felter",
-            "description": "<p>Her kan du tilføje ekstra felter til dine poster.</p><p>Når et felt er tilføjet kan du ikke redigere dens Nøgle eller Type, og for visse felttyper kan du ikke fjerne valg, eller ændre multi-valgstatus. Hvis du fjerner et felt, vil associeret data i alle poster blive slettet.</p><p>Nøglen er hvad andre programmer læser/skriver data som, så hvis dit felt skal integreres med et tredjepartsprogram, skal du sørge for at indstille det korrekt. Standardværdi bliver kun tilføjet til nye felter.</p><p>Ekstra felter kan ikke sorteres eller filtreres i oversigterne.</p>",
-            "boolean_true": "Ja",
-            "boolean_false": "Nej",
-            "non_unique_key_error": "Nøglen skal være Unik.",
-            "key_not_changed": "Ændr venligst nøglen til noget andet.",
-            "delete_confirm": "Slet felt: {{name}}?",
-            "delete_confirm_description": "Dette vil slette feltet samt alle associerede data for alle poster."
+            "description": "<p>Her kan du tilføje ekstra felter til dine poster.</p><p>Når et felt er tilføjet kan du ikke redigere dens Nøgle eller Type, og for visse felttyper kan du ikke fjerne valg, eller ændre multi-valgstatus. Hvis du fjerner et felt, vil associeret data i alle poster blive slettet.</p><p>Nøglen er hvad andre programmer læser/skriver data som, så hvis dit felt skal integreres med et tredjepartsprogram, skal du sørge for at indstille det korrekt. Standardværdi bliver kun tilføjet til nye felter.</p><p>Ekstra felter kan ikke sorteres eller filtreres i oversigterne.</p>"
         },
         "settings": "Indstillinger"
     },
     "locations": {
         "new_location": "Ny lokation",
+        "no": "Denne side lader dig organisere dine spoler i lokationer, tilføj nogle spoler for at komme i gang!",
         "no_location": "Ingen lokation",
-        "locations": "Lokationer",
-        "no_locations_help": "Denne side lader dig organisere dine spoler i lokationer, tilføj nogle spoler for at komme i gang!"
+        "locations": "Lokationer"
     }
 }

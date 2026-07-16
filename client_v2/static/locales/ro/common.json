@@ -189,48 +189,17 @@
         "help": "Ajutor"
     },
     "spool": {
-        "fields": {
-            "weight_to_use": "Greutate",
-            "registered": "Înregistrat",
-            "used_weight": "Greutate folosita",
-            "first_used": "Prima utilizare",
-            "location": "Locație",
-            "material": "Material",
-            "last_used": "Ultima utilizare",
-            "archived": "Arhivat",
-            "price": "Preț",
-            "used_length": "Lungime folosita",
-            "measured_weight": "Greutate masurata",
-            "lot_nr": "Lot Nr",
-            "comment": "Comentariu",
-            "id": "ID",
-            "filament": "Filament",
-            "filament_name": "Filament",
-            "remaining_length": "Lungime ramasa",
-            "remaining_weight": "Greutate ramasa",
-            "filament_internal": "Intern",
-            "filament_external": "Extern",
-            "initial_weight": "Greutatea inițială",
-            "spool_weight": "Greutatea rolei"
-        },
+        "fields": "Ai selectat un filament din baza de date externă. Un obiect filament (și posibil un obiect de la fabricant) va fi creat automat atunci când creați această rolă. Aceasta poate crea obiecte filament duplicate dacă ați creat deja un obiect filament pentru acest filament.",
         "fields_help": {
             "location": "Locatia in care bobina este stocata.",
-            "weight_to_use": "Selectati greutatea care trebuie folosita. Greutatea masurata e disponibila numai daca greutatea bobinei goale este setata pentru filamentul respectiv.",
-            "used_weight": "Cat filament a fost folosit de pe bobina respectiva. O bobina noua ar trebui sa aiba 0 grame folosite.",
-            "price": "Pretul unei bobine. Daca nu e definit, pretul filamentului va fi folosit.",
-            "lot_nr": "Numarul de productie al lotului. Poate fi folosit pentru a garanta consistenta culorii, in caz ca mai multe bobine sunt folosite la acelasi print.",
-            "remaining_weight": "Cat filament a ramas pe bobina. Aceasta valoare reprezinta greutatea filamentului de pe bobina respectiva.",
-            "measured_weight": "Greutatea totala a bobinei si filamentului.",
-            "initial_weight": "Greutatea inițială a filamentului de pe rolă (greutate netă). Se va folosi greutatea din obiectul filament dacă nu este setată.",
-            "spool_weight": "Greutatea rolei atunci când este goală. Lăsați necompletat pentru a folosi valoarea de la filament sau de la producător.",
-            "external_filament": "Ai selectat un filament din baza de date externă. Un obiect filament (și posibil un obiect de la fabricant) va fi creat automat atunci când creați această rolă. Aceasta poate crea obiecte filament duplicate dacă ați creat deja un obiect filament pentru acest filament."
+            "price": "Pretul unei bobine. Daca nu e definit, pretul filamentului va fi folosit."
         },
         "titles": {
             "list": "Bobine",
             "archive": "Archiveaza bobina",
+            "show": "Arata bobina",
             "show_title": "[Bobina #{{id}}] {{name}}",
             "create": "Creați bobină",
-            "show": "Arata bobina",
             "edit": "Editeaza bobina",
             "clone": "Cloneaza bobina",
             "adjust": "Ajustarea rolei de filament"
@@ -240,14 +209,13 @@
         },
         "form": {
             "spool_updated": "Aceasta bobina a fost modificata de altcineva in timpul scurs de la deschiderea acestei pagini, Salvarea va suprascrie aceste schimbari!",
-            "new_location_prompt": "Introduceti o locatie noua",
+            "new": "Introduceti o locatie noua",
+            "measurement": "Tipul măsurării",
             "measurement_type": {
                 "length": "Lungime",
                 "weight": "Greutate"
             },
-            "measurement_type_label": "Tipul măsurării",
-            "adjust_filament_help": "Aici poți adăuga sau elimina direct filament din rolă. O valoare pozitivă va consuma filament, iar o valoare negativă îl va adăuga.",
-            "adjust_filament_value": "Cantitatea consumată"
+            "adjust": "Cantitatea consumată"
         },
         "spool": "Bobine",
         "formats": {
@@ -255,51 +223,25 @@
         }
     },
     "filament": {
-        "fields": {
-            "registered": "Înregistrat",
-            "article_number": "Numarul articolului",
-            "id": "ID",
-            "vendor": "Producător",
-            "settings_bed_temp": "Temperatura patului",
-            "material": "Material",
-            "price": "Preț",
-            "name": "Nume",
-            "color_hex": "Culoare",
-            "settings_extruder_temp": "Temperatura extruderului",
-            "vendor_name": "Producător",
-            "diameter": "Diametru",
-            "density": "Densitate",
-            "weight": "Greutate",
-            "spools": "Arata bobinele",
-            "comment": "Comentariu",
-            "spool_weight": "Greutatea bobinei",
-            "single_color": "Unică",
-            "multi_color": "Multi",
-            "coaxial": "Co-extrudat",
-            "longitudinal": "Longitudinal",
-            "external_id": "ID extern"
-        },
+        "fields": "Filamentele pot avea multiple culori în două moduri: fie prin co-extrudare, cum ar fi filamentele de două culori cu culori multiple consistente, fie prin schimbări de culoare longitudinale, cum ar fi filamentele gradient care își schimbă culorile pe parcursul rolei.",
         "fields_help": {
             "price": "Pretului unei bobine noi.",
             "material": "Ex. PLA, ABS, PETG, etc.",
             "name": "Numele filamentului, pentru a-l putea distinge de altele ale aceluiași producător. Trebuie să conțină culoarea de exemplu.",
-            "spool_weight": "Greutatea unei bobine goale (fara filament). Este folosita pentru a calcula greutatea unei bobine cu filament.",
-            "article_number": "Ex. EAN, UPC etc.",
-            "weight": "Greutatea neta a filamentului de pe o bobina. Nu trebuie sa includa greutatea bobinei, ci doar cea a filamentului. De obicei greutatea filementului este cea inscrisa pe ambalaj.",
-            "multi_color_direction": "Filamentele pot avea multiple culori în două moduri: fie prin co-extrudare, cum ar fi filamentele de două culori cu culori multiple consistente, fie prin schimbări de culoare longitudinale, cum ar fi filamentele gradient care își schimbă culorile pe parcursul rolei."
+            "weight": "Greutatea neta a filamentului de pe o bobina. Nu trebuie sa includa greutatea bobinei, ci doar cea a filamentului. De obicei greutatea filementului este cea inscrisa pe ambalaj."
         },
         "titles": {
             "edit": "Modifica del filamento",
+            "show": "Arată filamentul",
             "show_title": "[Filament #{{id}}] {{name}}",
             "create": "Creați filament",
-            "show": "Arată filamentul",
             "list": "Filamente",
             "clone": "Clonarea filamentului"
         },
         "form": {
             "filament_updated": "Acest filament a fost actualizat de cineva/altceva de când ai deschis această pagină. Salvarea va suprascrie aceste modificări!",
-            "import_external": "Importare din exterior",
-            "import_external_description": "Selectați un filament din listă pentru a completa automat detaliile sale în formularul de creare a filamentului. Acest lucru va suprascrie orice date pe care le-ați introdus în formular.<br><br>Un obiect Producător va fi creat automat când faceți clic pe Ok, dacă este necesar."
+            "import": "Selectați un filament din listă pentru a completa automat detaliile sale în formularul de creare a filamentului. Acest lucru va suprascrie orice date pe care le-ați introdus în formular.<br><br>Un obiect Producător va fi creat automat când faceți clic pe Ok, dacă este necesar.",
+            "import_external": "Importare din exterior"
         },
         "filament": "Filamente",
         "buttons": {
@@ -308,27 +250,17 @@
     },
     "vendor": {
         "vendor": "Producători",
-        "fields": {
-            "registered": "Înregistrat",
-            "comment": "Comentariu",
-            "name": "Nume",
-            "id": "ID",
-            "empty_spool_weight": "Greutatea rolei goale",
-            "external_id": "ID extern"
-        },
+        "fields": "Greutatea unei role goale de la acest producător.",
         "titles": {
             "clone": "Duplicarea producătorului",
             "show": "Afișarea producătorilor",
+            "show_title": "[Producător #{{id}}] {{name}}",
             "list": "Producători",
             "create": "Adăugarea unui producător",
-            "show_title": "[Producător #{{id}}] {{name}}",
             "edit": "Editarea producătorului"
         },
         "form": {
             "vendor_updated": "Acest producător a fost actualizat de cineva/altceva de când ai deschis această pagină. Salvarea va suprascrie acele modificări!"
-        },
-        "fields_help": {
-            "empty_spool_weight": "Greutatea unei role goale de la acest producător."
         }
     },
     "dashboard": {
@@ -371,42 +303,23 @@
                 "tooltip": "Prețurile estimative la cel mai apropiat întreg."
             }
         },
+        "extra": "Ștergerea câmpului și a tuturor datelor asociate pentru toate entitățile.",
         "extra_fields": {
             "tab": "Câmpuri extra",
             "description": "<p>Aici poți adăuga câmpuri suplimentare personalizate entităților tale.</p><p>Odată ce un câmp este adăugat, nu poți schimba cheia sau tipul acestuia, iar pentru câmpurile de tip alegere nu poți elimina opțiunile sau schimba starea de alegere multiplă. Dacă elimini un câmp, datele asociate pentru toate entitățile vor fi șterse.</p><p>Cheia este ceea ce alte programe folosesc pentru a citi/scrie date, așa că, dacă câmpul tău personalizat ar trebui să se integreze cu un program de terță parte, asigură-te că îl setezi corect. Valoarea implicită se aplică doar articolelor noi.</p><p>Câmpurile suplimentare nu pot fi sortate sau filtrate în tabele.</p>",
             "params": {
                 "key": "Cheie",
                 "name": "Nume",
-                "field_type": "Tip",
                 "unit": "Unitate",
                 "order": "Stoc",
-                "default_value": "Valoarea implicită",
-                "choices": "Selecții",
-                "multi_choice": "Selecție multiplă"
-            },
-            "field_type": {
-                "text": "Text",
-                "integer": "Întreg",
-                "integer_range": "Interval întreg",
-                "float": "Număr zecimal",
-                "float_range": "Interval de numere zecimale",
-                "datetime": "Dată/timp",
-                "boolean": "Boolean",
-                "choice": "Selecție"
-            },
-            "boolean_true": "Da",
-            "boolean_false": "Nu",
-            "choices_missing_error": "Nu poți înlătura selecții. Următoarele selecții lipsesc: {{choices}}",
-            "non_unique_key_error": "Cheia trebuie să fie unică.",
-            "key_not_changed": "Te rog să schimbi cheia.",
-            "delete_confirm": "Ștergi câmpul{{name}}?",
-            "delete_confirm_description": "Ștergerea câmpului și a tuturor datelor asociate pentru toate entitățile."
+                "choices": "Selecții"
+            }
         }
     },
     "locations": {
         "locations": "Zone",
         "new_location": "Zonă nouă",
-        "no_location": "Fără zonă",
-        "no_locations_help": "Această pagină îți permite să îți organizezi rolele în zone, adaugă câteva role pentru a începe!"
+        "no": "Această pagină îți permite să îți organizezi rolele în zone, adaugă câteva role pentru a începe!",
+        "no_location": "Fără zonă"
     }
 }

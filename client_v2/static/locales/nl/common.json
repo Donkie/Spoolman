@@ -181,117 +181,59 @@
         }
     },
     "spool": {
-        "fields": {
-            "measured_weight": "Gemeten gewicht",
-            "last_used": "Laatst gebruikt",
-            "material": "Materiaal",
-            "weight_to_use": "Gewicht",
-            "lot_nr": "Lotnummer",
-            "filament_name": "Filament",
-            "comment": "Opmerking",
-            "filament": "Filament",
-            "location": "Locatie",
-            "used_length": "Gebruikte lengte",
-            "archived": "Gearchiveerd",
-            "remaining_length": "Overgebleven lengte",
-            "registered": "Geregistreerd",
-            "first_used": "Eerst gebruikt",
-            "used_weight": "Gebruikt gewicht",
-            "id": "ID",
-            "remaining_weight": "Overgebleven gewicht",
-            "price": "Prijs",
-            "initial_weight": "Initieel gewicht",
-            "spool_weight": "Leeg gewicht",
-            "filament_internal": "Intern",
-            "filament_external": "Extern"
-        },
+        "fields": "U heeft een filament uit de externe database geselecteerd. Er wordt automatisch een filament-object (en mogelijk een fabrikant-object) gemaakt wanneer u deze spoel maakt. Hierdoor kunnen dubbele filament-objecten ontstaan als u al een filament-object voor dit filament hebt gemaakt.",
         "titles": {
             "archive": "Spoel archiveren",
             "show": "Spoel tonen",
+            "show_title": "[Spoel #{{id}}] {{name}}",
             "edit": "Spoel bewerken",
             "create": "Spoel maken",
             "clone": "Spoel klonen",
             "list": "Spoelen",
-            "show_title": "[Spoel #{{id}}] {{name}}",
             "adjust": "Spoel Filament aanpassen"
         },
         "fields_help": {
-            "used_weight": "Hoeveel filament er van de spoel is gebruikt. Op een nieuwe spoel zal 0g gebruikt zijn.",
-            "weight_to_use": "Selecteer welke gewichtswaarde u wilt invoeren. Het gemeten gewicht is alleen beschikbaar als het spoelgewicht is ingesteld voor het geselecteerde filament.",
-            "measured_weight": "Hoeveel het filament en de spoel wegen.",
-            "lot_nr": "Lotnummer van de fabrikant. Kan worden gebruikt om ervoor te zorgen dat een afdruk een consistente kleur heeft als er meerdere spoelen worden gebruikt.",
-            "remaining_weight": "Hoeveel filament zit er nog op de spoel. Bij een nieuwe spoel zal dit overeenkomen met het spoelgewicht.",
             "location": "Waar de spoel zich bevindt, wanneer er meerdere opslag locaties zijn.",
-            "price": "Prijs van een volledige spoel. Als dit niet wordt ingevuld, wordt in plaats daarvan uitgegaan van de prijs van het filament.",
-            "initial_weight": "Het initiële gewicht van het filament op de spoel (nettogewicht). Als dit niet is opgegeven, wordt het gewicht van het filament-object gebruikt.",
-            "spool_weight": "Het gewicht van de spoel als deze leeg is. Laat dit leeg om de waarde van het filament of de fabrikant te gebruiken.",
-            "external_filament": "U heeft een filament uit de externe database geselecteerd. Er wordt automatisch een filament-object (en mogelijk een fabrikant-object) gemaakt wanneer u deze spoel maakt. Hierdoor kunnen dubbele filament-objecten ontstaan als u al een filament-object voor dit filament hebt gemaakt."
+            "price": "Prijs van een volledige spoel. Als dit niet wordt ingevuld, wordt in plaats daarvan uitgegaan van de prijs van het filament."
         },
         "spool": "Spoelen",
         "messages": {
             "archive": "Weet u zeker dat u deze spoel wil archiveren?"
         },
         "form": {
-            "new_location_prompt": "Voer een nieuwe locatie in",
+            "new": "Voer een nieuwe locatie in",
             "spool_updated": "Deze spoel is bijgewerkt door iemand/iets anders sinds je deze pagina hebt geopend. Opslaan zal die wijzigingen overschrijven!",
-            "adjust_filament_help": "Hier kunt u direct filament toevoegen of verwijderen van de spoel. Een positieve waarde zal filament verbruiken, een negatieve waarde zal het toevoegen.",
+            "adjust": "Verbruikte hoeveelheid",
+            "measurement": "Meettype",
             "measurement_type": {
                 "length": "Lengte",
                 "weight": "Gewicht"
-            },
-            "measurement_type_label": "Meettype",
-            "adjust_filament_value": "Verbruikte hoeveelheid"
+            }
         },
         "formats": {
             "last_used": "Laatst gebruikt {{date}}"
         }
     },
     "filament": {
+        "fields": "Filamenten kunnen op twee manieren meerdere kleuren hebben: door coëxtrusie, zoals tweekleurige filamenten met consistente meerkleuren, of door kleurveranderingen in de lengterichting, zoals verloopfilamenten die van kleur veranderen langs de spoel.",
         "fields_help": {
             "name": "Filamentnaam, om dit filamenttype onder andere van dezelfde fabrikant te onderscheiden. Moet bijvoorbeeld de kleur bevatten.",
-            "article_number": "Bv. EAN. UPC, enz.",
-            "spool_weight": "Het gewicht van een lege spoel. Wordt gebruikt om het gemeten gewicht van een spoel te bepalen.",
             "price": "Prijs van een volledige spoel.",
             "weight": "Het filamentgewicht van een volle spoel (nettogewicht). Dit mag niet het gewicht van de spoel zelf omvatten, alleen het filament. Dit staat meestal op de verpakking.",
-            "material": "Bv. PLA, ABS, PETG, enz.",
-            "multi_color_direction": "Filamenten kunnen op twee manieren meerdere kleuren hebben: door coëxtrusie, zoals tweekleurige filamenten met consistente meerkleuren, of door kleurveranderingen in de lengterichting, zoals verloopfilamenten die van kleur veranderen langs de spoel."
-        },
-        "fields": {
-            "material": "Materiaal",
-            "vendor_name": "Fabrikant",
-            "settings_extruder_temp": "Extruder Temperatuur",
-            "comment": "Opmerking",
-            "diameter": "Diameter",
-            "weight": "Gewicht",
-            "spool_weight": "Gewicht spoel",
-            "registered": "Geregistreerd",
-            "name": "Naam",
-            "price": "Prijs",
-            "settings_bed_temp": "Bed temperatuur",
-            "vendor": "Fabrikant",
-            "density": "Dichtheid",
-            "id": "ID",
-            "color_hex": "Kleur",
-            "article_number": "Artikel nummer",
-            "spools": "Spoelen tonen",
-            "external_id": "Extern ID",
-            "single_color": "Enkel",
-            "multi_color": "Meervoudig",
-            "coaxial": "Gecoëxtrudeerde",
-            "longitudinal": "Longitudinaal"
+            "material": "Bv. PLA, ABS, PETG, enz."
         },
         "titles": {
             "clone": "Filament klonen",
             "show": "Filament tonen",
+            "show_title": "[Filament #{{id}}] {{name}}",
             "create": "Filament maken",
             "edit": "Filament bewerken",
-            "list": "Filamenten",
-            "show_title": "[Filament #{{id}}] {{name}}"
+            "list": "Filamenten"
         },
         "filament": "Filamenten",
         "form": {
             "filament_updated": "Dit filament is bijgewerkt door iemand/iets anders sinds je deze pagina geopend hebt. Deze veranderingen worden overschreven als je op slaat!",
-            "import_external_description": "Selecteer een filament in de lijst om de details ervan automatisch in te vullen in het formulier voor het maken van filamenten. Hierdoor worden alle gegevens die u in het formulier hebt ingevoerd, overschreven.<br><br>Er wordt indien nodig automatisch een Fabrikant-object gemaakt als u op OK klikt.",
+            "import": "Selecteer een filament in de lijst om de details ervan automatisch in te vullen in het formulier voor het maken van filamenten. Hierdoor worden alle gegevens die u in het formulier hebt ingevoerd, overschreven.<br><br>Er wordt indien nodig automatisch een Fabrikant-object gemaakt als u op OK klikt.",
             "import_external": "Importeren van extern"
         },
         "buttons": {
@@ -313,26 +255,16 @@
     "vendor": {
         "titles": {
             "show": "Fabrikant tonen",
+            "show_title": "[Fabrikant #{{id}}] {{name}}",
             "edit": "Fabrikant bewerken",
             "clone": "Fabrikant klonen",
             "create": "Fabrikant maken",
-            "list": "Fabrikanten",
-            "show_title": "[Fabrikant #{{id}}] {{name}}"
+            "list": "Fabrikanten"
         },
-        "fields": {
-            "registered": "Geregistreerd",
-            "comment": "Opmerking",
-            "name": "Naam",
-            "id": "ID",
-            "empty_spool_weight": "Gewicht lege spoel",
-            "external_id": "Extern ID"
-        },
+        "fields": "Het gewicht van een lege spoel van deze fabrikant.",
         "vendor": "Fabrikanten",
         "form": {
             "vendor_updated": "Deze fabrikant is bijgewerkt door iemand/iets anders sinds je deze pagina geopend hebt. De veranderingen worden overschreven als je opslaat!"
-        },
-        "fields_help": {
-            "empty_spool_weight": "Het gewicht van een lege spoel van deze fabrikant."
         }
     },
     "table": {
@@ -369,42 +301,23 @@
                 "tooltip": "Rond prijzen af op het dichtstbijzijnde gehele getal."
             }
         },
+        "extra": "Hierdoor worden het veld en alle bijbehorende gegevens voor alle entiteiten verwijderd.",
         "extra_fields": {
             "tab": "Extra velden",
             "params": {
                 "name": "Naam",
                 "key": "Key",
-                "field_type": "Type",
                 "unit": "Eenheid",
                 "order": "Volgorde",
-                "default_value": "Standaardwaarde",
-                "choices": "Keuzes",
-                "multi_choice": "Meerkeuze"
+                "choices": "Keuzes"
             },
-            "field_type": {
-                "text": "Tekst",
-                "integer": "Gehele getallen",
-                "integer_range": "Bereik van gehele getallen",
-                "float": "Kommagetal",
-                "float_range": "Bereik van kommagetallen",
-                "datetime": "Datum/tijd",
-                "boolean": "Booleaanse waarde",
-                "choice": "Keuze"
-            },
-            "boolean_true": "Ja",
-            "boolean_false": "Nee",
-            "choices_missing_error": "U kunt geen keuzes verwijderen. De volgende keuzes ontbreken: {{choices}}",
-            "non_unique_key_error": "De key moet uniek zijn.",
-            "key_not_changed": "Key niet gewijzigd.",
-            "delete_confirm": "Veld {{name}} verwijderen?",
-            "delete_confirm_description": "Hierdoor worden het veld en alle bijbehorende gegevens voor alle entiteiten verwijderd.",
             "description": "<p>Hier kunt u extra aangepaste velden toevoegen aan uw entiteiten.</p><p>Zodra een veld is toegevoegd, kunt u de key of het type ervan niet wijzigen, en voor velden met keuzetypes kunt u geen keuzes verwijderen of de meervoudige velden wijzigen. Als u een veld verwijdert, worden de bijbehorende gegevens voor alle entiteiten verwijderd.</p><p>De key is hoe andere programma's de gegevens lezen/schrijven, dus of uw aangepaste veld moet worden geïntegreerd met een derde partij programma, zorg ervoor dat u het correct instelt. De standaardwaarde wordt alleen toegepast op nieuwe items.</p><p>Extra velden kunnen niet worden gesorteerd of gefilterd in de tabelweergaven.</p>"
         },
         "settings": "Instellingen"
     },
     "locations": {
+        "no": "Op deze pagina kunt u uw spoelen op verschillende locaties ordenen. Voeg spoelen toe om aan de slag te gaan!",
         "no_location": "Geen locatie",
-        "no_locations_help": "Op deze pagina kunt u uw spoelen op verschillende locaties ordenen. Voeg spoelen toe om aan de slag te gaan!",
         "locations": "Locaties",
         "new_location": "Nieuwe locatie"
     }

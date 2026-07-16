@@ -149,41 +149,10 @@
     },
     "spool": {
         "spool": "Makaralar",
-        "fields": {
-            "id": "ID",
-            "filament_name": "Filament",
-            "filament": "Filament",
-            "filament_internal": "Dahili",
-            "filament_external": "Harici",
-            "price": "Fiyat",
-            "material": "Malzeme",
-            "weight_to_use": "Ağırlık",
-            "used_weight": "Kullanılmış Ağırlık",
-            "remaining_weight": "Kalan Ağırlık",
-            "measured_weight": "Tartılmış Ağırlık",
-            "used_length": "Kullanılmış Uzunluk",
-            "remaining_length": "Kalan Uzunluk",
-            "initial_weight": "Başlangıç Ağırlığı",
-            "spool_weight": "Boş Makara Ağırlığı",
-            "location": "Konum",
-            "lot_nr": "Lot No",
-            "first_used": "İlk Kullanım Tarihi",
-            "last_used": "Son Kullanım Tarihi",
-            "registered": "Kayıtlı",
-            "comment": "Yorum",
-            "archived": "Arşivlendi"
-        },
+        "fields": "Dış veritabanından bir filament seçtiniz. Bu makarayı oluşturduğunuzda otomatik olarak bir filament nesnesi (ve muhtemelen bir üretici nesnesi) oluşturulacaktır. Eğer bu filament için zaten bir filament nesnesi oluşturduysanız, bu işlem tekrarlanan (çift) filament nesneleri yaratabilir.",
         "fields_help": {
             "price": "Makaranın fiyatı eğer makara fiyatı belirlenmemişse filament fiyatı devralınacaktır.",
-            "weight_to_use": "Hangi ağırlık değerinin girileceğini seçin. Ölçülen ağırlık, yalnızca seçilen filamente ait makara ağırlığı ayarlanmışsa kullanılabilir.",
-            "used_weight": "Makaradan ne kadar filament kullanıldığını gösterir. Yeni bir makaranın kullanılmamış olması gerekir ve 0g kullanım göstermelidir.",
-            "remaining_weight": "Makara üzerinde ne kadar filament kaldığını gösterir. Yeni bir makara için bu değer, makara ağırlığıyla eşlit olmalıdır.",
-            "measured_weight": "Filament ve makaranın toplam ağırlığını gösterir.",
-            "initial_weight": "Makara üzerindeki filamentin ilk (net) ağırlığıdır. Ayarlanmadıysa, filament nesnesindeki ağırlık değeri kullanılır.",
-            "spool_weight": "Makaranın boş ağırlığıdır. Bu alan boş bırakılırsa, filamentten veya üreticiden gelen değer kullanılır.",
-            "location": "Makaralarınızı birden fazla konumda saklamanız durumunda makaranın bulunduğu yer bilgisidir.",
-            "lot_nr": "Üretici lot numarası. Birden fazla makara kullanımı durumunda tutarlı renk alınmasını sağlamak için kullanılabilir.",
-            "external_filament": "Dış veritabanından bir filament seçtiniz. Bu makarayı oluşturduğunuzda otomatik olarak bir filament nesnesi (ve muhtemelen bir üretici nesnesi) oluşturulacaktır. Eğer bu filament için zaten bir filament nesnesi oluşturduysanız, bu işlem tekrarlanan (çift) filament nesneleri yaratabilir."
+            "location": "Makaralarınızı birden fazla konumda saklamanız durumunda makaranın bulunduğu yer bilgisidir."
         },
         "titles": {
             "create": "Makara Oluştur",
@@ -196,14 +165,13 @@
             "adjust": "Makara filamentini ayarla"
         },
         "form": {
+            "measurement": "Ölçüm Şekli",
             "measurement_type": {
                 "length": "Uzunluk",
                 "weight": "Ağırlık"
             },
-            "measurement_type_label": "Ölçüm Şekli",
-            "adjust_filament_help": "Burada makaradan filament doğrudan ekleyebilir veya çıkarabilirsiniz. Pozitif bir değer filamentin tüketildiğini, negatif bir değer ise filamentin eklendiğini gösterir.",
-            "adjust_filament_value": "Tüketim Miktarı",
-            "new_location_prompt": "Yeni konumu girin",
+            "adjust": "Tüketim Miktarı",
+            "new": "Yeni konumu girin",
             "spool_updated": "Bu makara, siz bu sayfayı açtığınızdan beri başka biri veya bir şey tarafından güncellendi. Kaydetme işlemi bu değişikliklerin üzerine yazacaktır!"
         },
         "messages": {
@@ -215,38 +183,12 @@
     },
     "filament": {
         "filament": "Filamentler",
-        "fields": {
-            "id": "ID",
-            "vendor_name": "Üretici",
-            "vendor": "Üretici",
-            "name": "Ad",
-            "material": "Malzeme",
-            "price": "Fiyat",
-            "density": "Yoğunluk",
-            "diameter": "Çap",
-            "weight": "Ağırlık",
-            "spool_weight": "Makara Ağırlığı",
-            "article_number": "Artikel Numarası",
-            "registered": "Kayıtlı",
-            "comment": "Yorum",
-            "settings_extruder_temp": "Extruder Sıcaklığı",
-            "settings_bed_temp": "Tabla Sıcaklığı",
-            "color_hex": "Renk",
-            "single_color": "Tek Renk",
-            "multi_color": "Çok Renk",
-            "coaxial": "Koekstrüde edilmiş",
-            "longitudinal": "Boylamsal",
-            "external_id": "Harici ID",
-            "spools": "Makaraları Göster"
-        },
+        "fields": "Filamentler iki farklı şekilde birden fazla renge sahip olabilir: Birincisi, çift renkli filamentlerde olduğu gibi, koekstrüzyon yoluyla sabit çoklu renklerle üretilen filamentlerdir. İkincisi ise, makara boyunca renk geçişleri olan gradyan filamentlerde görülen boyuna (uzunlamasına) renk değişiklikleridir.",
         "fields_help": {
             "name": "Filament adı, aynı üreticinin diğer filament türlerinden ayırt edilebilmesi için kullanılır. Örneğin, renk bilgisini içermelidir.",
             "material": "Örn.PLA, ABS, PETG, gibi.",
             "price": "Tam dolu makaranın fiyatı.",
-            "weight": "Dolu bir makaradaki filamentin ağırlığıdır (net ağırlık). Bu değer yalnızca filamentin ağırlığını içermelidir, makaranın kendisinin ağırlığı dahil edilmemelidir. Genellikle ambalaj üzerinde yazan değerdir.",
-            "spool_weight": "Boş bir makaranın ağırlığıdır. Makaradaki ölçülen ağırlığın hesaplanmasında kullanılır.",
-            "article_number": "Örn. EAN, UPC, gibi.",
-            "multi_color_direction": "Filamentler iki farklı şekilde birden fazla renge sahip olabilir: Birincisi, çift renkli filamentlerde olduğu gibi, koekstrüzyon yoluyla sabit çoklu renklerle üretilen filamentlerdir. İkincisi ise, makara boyunca renk geçişleri olan gradyan filamentlerde görülen boyuna (uzunlamasına) renk değişiklikleridir."
+            "weight": "Dolu bir makaradaki filamentin ağırlığıdır (net ağırlık). Bu değer yalnızca filamentin ağırlığını içermelidir, makaranın kendisinin ağırlığı dahil edilmemelidir. Genellikle ambalaj üzerinde yazan değerdir."
         },
         "titles": {
             "create": "Filament Oluştur",
@@ -258,8 +200,8 @@
         },
         "form": {
             "filament_updated": "Bu filament, siz bu sayfayı açtıktan sonra başka biri veya bir şey tarafından güncellendi. Kaydetme işlemi bu değişikliklerin üzerine yazacaktır!",
-            "import_external": "Harici Kaynaktan İçeriye Aktar",
-            "import_external_description": "Listeden bir filament seçerek, filament oluşturma formunun detaylarının otomatik olarak doldurulmasını sağlayabilirsiniz. Bu işlem, formda daha önce girdiğiniz tüm verilerin üzerine yazacaktır.<br><br>Gerekirse, \"Tamam\" butonuna tıkladığınızda otomatik olarak bir Üretici nesnesi oluşturulacaktır."
+            "import": "Listeden bir filament seçerek, filament oluşturma formunun detaylarının otomatik olarak doldurulmasını sağlayabilirsiniz. Bu işlem, formda daha önce girdiğiniz tüm verilerin üzerine yazacaktır.<br><br>Gerekirse, \"Tamam\" butonuna tıkladığınızda otomatik olarak bir Üretici nesnesi oluşturulacaktır.",
+            "import_external": "Harici Kaynaktan İçeriye Aktar"
         },
         "buttons": {
             "add_spool": "Makara Ekle"
@@ -267,17 +209,7 @@
     },
     "vendor": {
         "vendor": "Üreticiler",
-        "fields": {
-            "id": "ID",
-            "name": "İsim",
-            "empty_spool_weight": "Boş Makara Ağırlığı",
-            "external_id": "Harici ID",
-            "registered": "Kayıtlı",
-            "comment": "Yorum"
-        },
-        "fields_help": {
-            "empty_spool_weight": "Bu üreticiden boş bir makaranın ağırlığı."
-        },
+        "fields": "Bu üreticiden boş bir makaranın ağırlığı.",
         "titles": {
             "create": "Üretici Oluştur",
             "clone": "Üretici Kopyala",
@@ -324,36 +256,17 @@
                 "tooltip": "Fiyatları en yakın tam sayıya yuvarla."
             }
         },
+        "extra": "Bu işlem alanı ve ona bağlı tüm varlıkların verilerini silecektir.",
         "extra_fields": {
             "tab": "Ekstra Alanlar",
             "description": "<p>Burada varlıklarınıza ekstra özel alanlar ekleyebilirsiniz.</p><p>Bir alan eklendikten sonra, anahtarını (key) veya türünü değiştiremezsiniz; seçim türündeki alanlarda ise seçenekleri kaldıramaz veya çoklu seçim durumunu değiştiremezsiniz. Bir alanı silerseniz, o alana bağlı tüm varlıkların verileri silinir.</p><p>Anahtar, diğer programların veriyi okuduğu/yazdığı isimdir; bu nedenle, özel alanınız üçüncü taraf bir programla entegrasyon için kullanılacaksa doğru şekilde ayarlandığından emin olun. Varsayılan değer yalnızca yeni öğelere uygulanır.</p><p>Ekstra alanlar tablo görünümünde sıralanamaz veya filtrelenemez.</p>",
             "params": {
                 "key": "Anahtar",
                 "name": "İsim",
-                "field_type": "Tür",
                 "unit": "Birim",
                 "order": "Sipariş",
-                "default_value": "Varsayılan Değer",
-                "choices": "Seçenekler",
-                "multi_choice": "Çoklu Seçim"
-            },
-            "field_type": {
-                "text": "Metin",
-                "integer": "Tam Sayı",
-                "integer_range": "Tam Sayı Aralık",
-                "float": "Ondalıklı Sayı",
-                "float_range": "Ondalıklı Sayı Aralığı",
-                "datetime": "Tarih+Saat",
-                "boolean": "İkili Değer",
-                "choice": "Seçim Listesi"
-            },
-            "boolean_true": "Evet",
-            "boolean_false": "Hayır",
-            "choices_missing_error": "Seçenekleri kaldıramazsınız. Aşağıdaki seçenekler eksik: {{choices}}",
-            "non_unique_key_error": "Anahtar benzersiz olmalıdır.",
-            "key_not_changed": "Lütfen anahtarı başka bir şeyle değiştirin.",
-            "delete_confirm": "{{name}} alanı silinsin mi?",
-            "delete_confirm_description": "Bu işlem alanı ve ona bağlı tüm varlıkların verilerini silecektir."
+                "choices": "Seçenekler"
+            }
         }
     },
     "documentTitle": {
@@ -393,7 +306,7 @@
     "locations": {
         "locations": "Konumlar",
         "new_location": "Yeni Konum",
-        "no_location": "Konum Yok",
-        "no_locations_help": "Bu sayfa, makaralarınızı konumlara göre düzenlemenizi sağlar. Başlamak için birkaç makara ekleyin!"
+        "no": "Bu sayfa, makaralarınızı konumlara göre düzenlemenizi sağlar. Başlamak için birkaç makara ekleyin!",
+        "no_location": "Konum Yok"
     }
 }

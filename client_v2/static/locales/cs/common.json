@@ -161,41 +161,10 @@
     },
     "spool": {
         "spool": "Cívky",
-        "fields": {
-            "id": "ID",
-            "filament_name": "Filament",
-            "filament": "Filament",
-            "material": "Materiál",
-            "weight_to_use": "Hmotnost",
-            "used_weight": "Použitá hmotnost",
-            "remaining_weight": "Zbývající hmotnost",
-            "measured_weight": "Naměřená hmotnost",
-            "used_length": "Použitá délka",
-            "remaining_length": "Zbývající délka",
-            "location": "Umístění",
-            "lot_nr": "Číslo šarže",
-            "first_used": "První použití",
-            "last_used": "Naposledy použitá",
-            "registered": "Registrováno",
-            "comment": "Komentář",
-            "archived": "Archivováno",
-            "price": "Cena",
-            "spool_weight": "Prázdná hmotnost",
-            "initial_weight": "Výchozí hmotnost",
-            "filament_internal": "Interní",
-            "filament_external": "Externí"
-        },
+        "fields": "Vybrali jste filament z externí databáze. Objekt filamentu (a případně i objekt výrobce) se vytvoří automaticky při vytvoření této cívky. Tím se mohou vytvořit duplicitní objekty filamentů, pokud jste již objekt filamentu pro toto vlákno vytvořili.",
         "fields_help": {
-            "weight_to_use": "Vyberte, jakou hodnotu hmotnosti chcete zadat. Naměřená hmotnost je k dispozici pouze v případě, že je pro vybraný filament nastavena hmotnost cívky.",
-            "used_weight": "Kolik filamntu bylo z cívky spotřebováno. Na nové cívce by mělo být použito 0 g.",
-            "remaining_weight": "Kolik filamentu zbývá na cívce. U nové cívky by to mělo odpovídat hmotnosti filamentu na cívce.",
-            "measured_weight": "Jaká je hmotnost filamentu a cívky.",
             "location": "Kde se cívka nachází, pokud máte více míst, kde cívky skladujete.",
-            "lot_nr": "Číslo šarže výrobce. Lze použít k zajištění jednotné barvy tisku v případě použití více cívek.",
-            "price": "Cena celé cívky. Pokud není nastavena, předpokládá se cena filamentu.",
-            "spool_weight": "Hmotnost prázdné cívky. Nechte prázdné, chcete-li použít hodnotu z filamentu nebo od výrobce.",
-            "initial_weight": "Počáteční hmotnost vlákna na cívce (čistá hmotnost). Pokud není nastavena, použije se hmotnost z objektu filament.",
-            "external_filament": "Vybrali jste filament z externí databáze. Objekt filamentu (a případně i objekt výrobce) se vytvoří automaticky při vytvoření této cívky. Tím se mohou vytvořit duplicitní objekty filamentů, pokud jste již objekt filamentu pro toto vlákno vytvořili."
+            "price": "Cena celé cívky. Pokud není nastavena, předpokládá se cena filamentu."
         },
         "titles": {
             "create": "Vytvořit cívku",
@@ -203,23 +172,22 @@
             "edit": "Upravit cívku",
             "list": "Cívky",
             "show": "Zobrazit cívku",
-            "archive": "Archivní cívka",
             "show_title": "[Cívka #{{id}}] {{name}}",
+            "archive": "Archivní cívka",
             "adjust": "Nastavení cívky filamentu"
         },
         "messages": {
             "archive": "Opravdu chcete tuto cívku archivovat?"
         },
         "form": {
-            "new_location_prompt": "Zadejte nové umístění",
+            "new": "Zadejte nové umístění",
             "spool_updated": "Od otevření této stránky byla tato cívka někým/něčím aktualizována. Uložením se tyto změny přepíší!",
+            "measurement": "Typ měření",
             "measurement_type": {
                 "length": "Délka",
                 "weight": "Hmotnost"
             },
-            "measurement_type_label": "Typ měření",
-            "adjust_filament_help": "Zde můžete přímo přidávat nebo odebírat filament z cívky. Kladná hodnota filament odebere, záporná hodnota ho přidá.",
-            "adjust_filament_value": "Spotřebované množství"
+            "adjust": "Spotřebované množství"
         },
         "formats": {
             "last_used": "Naposledy použitý {{date}}"
@@ -227,38 +195,12 @@
     },
     "filament": {
         "filament": "Filamenty",
-        "fields": {
-            "id": "Id",
-            "vendor_name": "Výrobce",
-            "vendor": "Výrobce",
-            "name": "Název",
-            "material": "Materiál",
-            "price": "Cena",
-            "density": "Hustota",
-            "diameter": "Průměr",
-            "weight": "Váha",
-            "spool_weight": "Hmotnost cívky",
-            "article_number": "Číslo výrobku",
-            "registered": "Registrováno",
-            "comment": "Komentář",
-            "settings_extruder_temp": "Teplota extruderu",
-            "settings_bed_temp": "Teplota podložky",
-            "color_hex": "Barva",
-            "spools": "Zobrazit cívky",
-            "external_id": "Externí ID",
-            "single_color": "Jediný",
-            "coaxial": "Koextrudovaný",
-            "longitudinal": "Podélná",
-            "multi_color": "Více"
-        },
+        "fields": "Filamenty mohou mít více barev dvěma způsoby: buď koextruzí jako dvoubarevná vlákna s konzistentními více barvami, nebo podélnými změnami barev jako gradientní vlákna, která mění barvy podél cívky.",
         "fields_help": {
             "name": "Název filamentu, aby se tento typ vlákna odlišil od ostatních filamentů od stejného výrobce. Měl by obsahovat například barvu.",
             "material": "Např. PLA, ABS, ASA, PETG, atd.",
             "price": "Cena celé cívky.",
-            "weight": "Hmotnost plného cívky filamentu (čistá hmotnost). Tato hmotnost by neměla zahrnovat hmotnost samotné cívky, ale pouze filamentu. Obvykle se uvádí na obalu.",
-            "spool_weight": "Hmotnost prázdné cívky. Slouží k určení naměřené hmotnosti cívky.",
-            "article_number": "Např. EAN, UPC, atd.",
-            "multi_color_direction": "Filamenty mohou mít více barev dvěma způsoby: buď koextruzí jako dvoubarevná vlákna s konzistentními více barvami, nebo podélnými změnami barev jako gradientní vlákna, která mění barvy podél cívky."
+            "weight": "Hmotnost plného cívky filamentu (čistá hmotnost). Tato hmotnost by neměla zahrnovat hmotnost samotné cívky, ale pouze filamentu. Obvykle se uvádí na obalu."
         },
         "titles": {
             "create": "Vytvořit filament",
@@ -270,8 +212,8 @@
         },
         "form": {
             "filament_updated": "Toto vlákno bylo od doby, kdy jste otevřeli tuto stránku, někým/něčím aktualizováno. Uložením se tyto změny přepíší!",
-            "import_external": "Import z externího zdroje",
-            "import_external_description": "Výběrem filamentu v seznamu se automaticky vyplní jeho údaje ve formuláři pro vytvoření filamentu. Tím se přepíší všechny údaje, které jste do formuláře zadali.<br><br>Po kliknutí na tlačítko OK se v případě potřeby automaticky vytvoří objekt Výrobce."
+            "import": "Výběrem filamentu v seznamu se automaticky vyplní jeho údaje ve formuláři pro vytvoření filamentu. Tím se přepíší všechny údaje, které jste do formuláře zadali.<br><br>Po kliknutí na tlačítko OK se v případě potřeby automaticky vytvoří objekt Výrobce.",
+            "import_external": "Import z externího zdroje"
         },
         "buttons": {
             "add_spool": "Přidat cívku"
@@ -279,14 +221,7 @@
     },
     "vendor": {
         "vendor": "Výrobci",
-        "fields": {
-            "id": "Id",
-            "name": "Název",
-            "registered": "Registrováno",
-            "comment": "Komentář",
-            "empty_spool_weight": "Hmotnost prázdné cívky",
-            "external_id": "Externí ID"
-        },
+        "fields": "Hmotnost prázdné cívky od tohoto výrobce.",
         "titles": {
             "create": "Vytvořit výrobce",
             "clone": "Duplikovat výrobce",
@@ -297,9 +232,6 @@
         },
         "form": {
             "vendor_updated": "Od otevření této stránky byl tento prodejce někým/něčím aktualizován. Uložením se tyto změny přepíší!"
-        },
-        "fields_help": {
-            "empty_spool_weight": "Hmotnost prázdné cívky od tohoto výrobce."
         }
     },
     "table": {
@@ -355,36 +287,17 @@
         "welcome": "Vítejte ve vaší instanci Spoolman!"
     },
     "settings": {
+        "extra": "Tím se odstraní pole a všechna související data pro všechny subjekty.",
         "extra_fields": {
             "tab": "Další pole",
             "params": {
                 "key": "Klíč",
                 "name": "Název",
-                "field_type": "Typ",
                 "order": "Objednávka",
-                "default_value": "Výchozí hodnota",
-                "multi_choice": "Výběr z více možností",
                 "unit": "Jednotka",
                 "choices": "Volby"
             },
-            "field_type": {
-                "text": "Text",
-                "integer": "Celé číslo",
-                "integer_range": "Rozsah celých čísel",
-                "float": "Plovoucí",
-                "datetime": "Datumčas",
-                "choice": "Volba",
-                "float_range": "Plovoucí rozsah",
-                "boolean": "Logická hodnota"
-            },
-            "boolean_true": "Ano",
-            "boolean_false": "Ne",
-            "choices_missing_error": "Volby nelze odstranit. Chybí následující volby: {{choices}}",
-            "non_unique_key_error": "Tento klíč musí být jedinečný.",
-            "key_not_changed": "Změňte prosím klíč na jiný.",
-            "delete_confirm": "Smazat pole {{name}}?",
-            "description": "<p>Zde můžete přidat další vlastní pole k subjektům.</p><p>Jakmile je pole přidáno, nemůžete změnit jeho klíč ani typ a u polí typu výběr nemůžete odebrat volby ani změnit stav více voleb. Pokud pole odstraníte, budou odstraněna přidružená data pro všechny subjekty.</p><p>Klíčové je, jako co ostatní programy čtou/zapisují data, takže pokud má být vaše vlastní pole integrováno s programem třetí strany, ujistěte se, že je správně nastaveno. Výchozí hodnota se použije pouze pro nové položky.</p><p>Výstupní pole nelze v zobrazeních tabulky řadit ani filtrovat.</p>",
-            "delete_confirm_description": "Tím se odstraní pole a všechna související data pro všechny subjekty."
+            "description": "<p>Zde můžete přidat další vlastní pole k subjektům.</p><p>Jakmile je pole přidáno, nemůžete změnit jeho klíč ani typ a u polí typu výběr nemůžete odebrat volby ani změnit stav více voleb. Pokud pole odstraníte, budou odstraněna přidružená data pro všechny subjekty.</p><p>Klíčové je, jako co ostatní programy čtou/zapisují data, takže pokud má být vaše vlastní pole integrováno s programem třetí strany, ujistěte se, že je správně nastaveno. Výchozí hodnota se použije pouze pro nové položky.</p><p>Výstupní pole nelze v zobrazeních tabulky řadit ani filtrovat.</p>"
         },
         "header": "Nastavení",
         "general": {
@@ -405,8 +318,8 @@
     },
     "locations": {
         "locations": "Umístění",
-        "no_locations_help": "Na této stránce můžete uspořádat své cívky podle umístění, přidejte několik cívek a začněte!",
-        "new_location": "Nové umístění",
-        "no_location": "Žádné umístění"
+        "no": "Na této stránce můžete uspořádat své cívky podle umístění, přidejte několik cívek a začněte!",
+        "no_location": "Žádné umístění",
+        "new_location": "Nové umístění"
     }
 }
