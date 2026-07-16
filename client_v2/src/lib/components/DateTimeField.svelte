@@ -7,8 +7,9 @@
 	// digit by digit), which is what made the previous field feel broken. This
 	// component renders its own calendar + time dropdowns in a popover, so both
 	// date and time are always fully clickable and identical in every browser.
-	import { _, locale } from 'svelte-i18n';
-	import { intlLocale } from '$lib/i18n';
+	import { languages } from '$lib/i18n/languages';
+	import { getLocale } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		/** Current value as an ISO timestamp, or undefined if unset. */
@@ -22,7 +23,7 @@
 	// Month and weekday names come from Intl in the active locale. Weekdays are
 	// Monday-first (2021-11-01 was a Monday); months use a mid-month date to dodge
 	// timezone edge cases.
-	const dtLocale = $derived(intlLocale($locale));
+	const dtLocale = $derived(languages[getLocale()].code);
 	const WEEKDAYS = $derived(
 		Array.from({ length: 7 }, (_v, i) =>
 			new Intl.DateTimeFormat(dtLocale, { weekday: 'short' }).format(new Date(2021, 10, 1 + i))
@@ -220,12 +221,12 @@
 	</button>
 
 	{#if open}
-		<div class="pop" bind:this={pop} style={popStyle} role="dialog" aria-label={$_('datetime.pick')}>
+		<div class="pop" bind:this={pop} style={popStyle} role="dialog" aria-label={m['datetime.pick']()}>
 			<div class="cal-head">
-				<button type="button" class="nav" onclick={prevMonth} aria-label={$_('datetime.prev_month')}>‹</button
+				<button type="button" class="nav" onclick={prevMonth} aria-label={m['datetime.prevMonth']()}>‹</button
 				>
 				<span class="month-label">{MONTHS[viewMonth]} {viewYear}</span>
-				<button type="button" class="nav" onclick={nextMonth} aria-label={$_('datetime.next_month')}>›</button
+				<button type="button" class="nav" onclick={nextMonth} aria-label={m['datetime.nextMonth']()}>›</button
 				>
 			</div>
 			<div class="dow">
@@ -251,23 +252,23 @@
 				{/each}
 			</div>
 			<div class="time-row">
-				<span class="time-label">{$_('datetime.time')}</span>
-				<select class="sel mono" value={hour} onchange={onHour} aria-label={$_('datetime.hour')}>
+				<span class="time-label">{m['datetime.time']()}</span>
+				<select class="sel mono" value={hour} onchange={onHour} aria-label={m['datetime.hour']()}>
 					{#each hours as h (h)}
 						<option value={h}>{pad(h)}</option>
 					{/each}
 				</select>
 				<span class="colon">:</span>
-				<select class="sel mono" value={minute} onchange={onMinute} aria-label={$_('datetime.minute')}>
+				<select class="sel mono" value={minute} onchange={onMinute} aria-label={m['datetime.minute']()}>
 					{#each minutes as m (m)}
 						<option value={m}>{pad(m)}</option>
 					{/each}
 				</select>
 			</div>
 			<div class="actions">
-				<button type="button" class="link" onclick={clear}>{$_('buttons.clear')}</button>
-				<button type="button" class="link" onclick={setNow}>{$_('datetime.now')}</button>
-				<button type="button" class="done" onclick={close}>{$_('datetime.done')}</button>
+				<button type="button" class="link" onclick={clear}>{m['buttons.clear']()}</button>
+				<button type="button" class="link" onclick={setNow}>{m['datetime.now']()}</button>
+				<button type="button" class="done" onclick={close}>{m['datetime.done']()}</button>
 			</div>
 		</div>
 	{/if}

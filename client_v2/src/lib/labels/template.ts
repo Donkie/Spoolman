@@ -1,5 +1,6 @@
 import type { Spool, Filament, Vendor } from '$lib/types';
 import type { FieldDef, EntityType } from '$lib/api/fields';
+import * as m from '$lib/paraglide/messages';
 
 // Resolves `{placeholder}` templates against a spool and its filament/vendor.
 // Ported from v1's renderLabelContents (client/src/pages/printing/printing.tsx)
@@ -110,50 +111,50 @@ export interface PlaceholderItem {
 	/** The token inserted into the template, without braces. */
 	token: string;
 	/** i18n key for a fixed field, or... */
-	labelKey?: string;
+	labelKey?: () => string;
 	/** ...a literal label for a user-defined extra field (its own name). */
 	label?: string;
 }
 export interface PlaceholderGroup {
 	entity: EntityType;
-	labelKey: string;
+	labelKey: () => string;
 	items: PlaceholderItem[];
 }
 
 const FIXED_GROUPS: PlaceholderGroup[] = [
 	{
 		entity: 'spool',
-		labelKey: 'library.section.spool',
+		labelKey: m['library.section.spool'],
 		items: [
-			{ token: 'spool.id', labelKey: 'spool.fields.id' },
-			{ token: 'spool.location', labelKey: 'spool.fields.location' },
-			{ token: 'spool.lot', labelKey: 'spool.fields.lot_nr' },
-			{ token: 'spool.remaining', labelKey: 'labels.fields.remaining_g' },
-			{ token: 'spool.initial', labelKey: 'labels.fields.initial_g' },
-			{ token: 'spool.registered', labelKey: 'spool.fields.registered' },
-			{ token: 'spool.lastUsed', labelKey: 'spool.fields.last_used' },
-			{ token: 'spool.comment', labelKey: 'spool.fields.comment' }
+			{ token: 'spool.id', labelKey: m['spool.fields.id'] },
+			{ token: 'spool.location', labelKey: m['spool.fields.location'] },
+			{ token: 'spool.lot', labelKey: m['spool.fields.lotNr'] },
+			{ token: 'spool.remaining', labelKey: m['labels.fields.remainingG'] },
+			{ token: 'spool.initial', labelKey: m['labels.fields.initialG'] },
+			{ token: 'spool.registered', labelKey: m['spool.fields.registered'] },
+			{ token: 'spool.lastUsed', labelKey: m['spool.fields.lastUsed'] },
+			{ token: 'spool.comment', labelKey: m['spool.fields.comment'] }
 		]
 	},
 	{
 		entity: 'filament',
-		labelKey: 'library.section.filament',
+		labelKey: m['library.section.filament'],
 		items: [
-			{ token: 'filament.name', labelKey: 'filament.fields.name' },
-			{ token: 'filament.material', labelKey: 'filament.fields.material' },
-			{ token: 'filament.diameter', labelKey: 'labels.fields.diameter_mm' },
-			{ token: 'filament.density', labelKey: 'filament.fields.density' },
-			{ token: 'filament.weight', labelKey: 'labels.fields.net_weight_g' },
-			{ token: 'filament.price', labelKey: 'filament.fields.price' },
-			{ token: 'filament.nozzleTemp', labelKey: 'library.sort.nozzle' },
-			{ token: 'filament.bedTemp', labelKey: 'labels.fields.bed_temp' },
-			{ token: 'filament.color', labelKey: 'inspector.color_hex' }
+			{ token: 'filament.name', labelKey: m['filament.fields.name'] },
+			{ token: 'filament.material', labelKey: m['filament.fields.material'] },
+			{ token: 'filament.diameter', labelKey: m['labels.fields.diameterMm'] },
+			{ token: 'filament.density', labelKey: m['filament.fields.density'] },
+			{ token: 'filament.weight', labelKey: m['labels.fields.netWeightG'] },
+			{ token: 'filament.price', labelKey: m['filament.fields.price'] },
+			{ token: 'filament.nozzleTemp', labelKey: m['library.sort.nozzle'] },
+			{ token: 'filament.bedTemp', labelKey: m['labels.fields.bedTemp'] },
+			{ token: 'filament.color', labelKey: m['inspector.colorHex'] }
 		]
 	},
 	{
 		entity: 'vendor',
-		labelKey: 'labels.fields.group_vendor',
-		items: [{ token: 'vendor.name', labelKey: 'vendor.fields.name' }]
+		labelKey: m['labels.fields.groupVendor'],
+		items: [{ token: 'vendor.name', labelKey: m['vendor.fields.name'] }]
 	}
 ];
 

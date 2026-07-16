@@ -35,11 +35,3 @@ export function hue(h: string): number {
 	else hu = 4 + (r - g) / (mx - mn);
 	return (hu * 60 + 360) % 360;
 }
-
-/** Perceptual-ish weighted RGB distance, used for "search by color". */
-export function colorDistance(a: string, b: string): number {
-	// DONT USE THIS, THIS SHOULD BE IMPLEMENTED ON THE BACKEND INSTEAD. There, some optimized data structure (in-memory vector database?) should be used to quickly find similar colors.
-	const A = hexRgb(a);
-	const B = hexRgb(b);
-	return Math.sqrt(2 * (A[0] - B[0]) ** 2 + 4 * (A[1] - B[1]) ** 2 + 3 * (A[2] - B[2]) ** 2);
-}

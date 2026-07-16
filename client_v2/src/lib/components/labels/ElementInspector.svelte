@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { LabelElement } from '$lib/labels/types';
+	import type { LabelElement, ElementType } from '$lib/labels/types';
 	import type { PlaceholderGroup } from '$lib/labels/template';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		el: LabelElement | null;
@@ -10,6 +10,13 @@
 		ondelete: () => void;
 	}
 	let { el, groups, onchange, ondelete }: Props = $props();
+
+	const KIND_LABELS: Record<ElementType, () => string> = {
+		qr: m['labels.kind.qr'],
+		rect: m['labels.kind.rect'],
+		swatch: m['labels.kind.swatch'],
+		text: m['labels.kind.text']
+	};
 
 	// Emit an updated element with a shallow patch applied.
 	function update(patch: Record<string, unknown>) {
@@ -24,14 +31,14 @@
 </script>
 
 {#if !el}
-	<div class="empty">{$_('labels.select_element')}</div>
+	<div class="empty">{m['labels.selectElement']()}</div>
 {:else}
 	<div class="inspector">
-		<div class="kind">{$_('labels.kind.' + el.type)}</div>
+		<div class="kind">{KIND_LABELS[el.type]()}</div>
 
 		<div class="row2">
 			<label
-				>{$_('labels.x_mm')}<input
+				>{m['labels.xMm']()}<input
 					type="number"
 					step="0.5"
 					value={el.x}
@@ -39,7 +46,7 @@
 				/></label
 			>
 			<label
-				>{$_('labels.y_mm')}<input
+				>{m['labels.yMm']()}<input
 					type="number"
 					step="0.5"
 					value={el.y}
@@ -50,7 +57,7 @@
 
 		{#if el.type === 'qr'}
 			<label
-				>{$_('labels.size_mm')}<input
+				>{m['labels.sizeMm']()}<input
 					type="number"
 					step="0.5"
 					min="5"
@@ -64,26 +71,26 @@
 					checked={el.logo}
 					onchange={(e) => update({ logo: e.currentTarget.checked })}
 				/>
-				{$_('labels.center_logo')}</label
+				{m['labels.centerLogo']()}</label
 			>
 			<label
-				>{$_('labels.encodes')}
+				>{m['labels.encodes']()}
 				<select value={el.encoding} onchange={(e) => update({ encoding: e.currentTarget.value })}>
-					<option value="scheme">{$_('labels.enc_scheme')}</option>
-					<option value="url">{$_('labels.enc_url')}</option>
+					<option value="scheme">{m['labels.encScheme']()}</option>
+					<option value="url">{m['labels.encUrl']()}</option>
 				</select>
 			</label>
 			<p class="hint">
 				{#if el.encoding === 'url'}
-					{$_('labels.hint_enc_url')}
+					{m['labels.hintEncUrl']()}
 				{:else}
-					{$_('labels.hint_enc_scheme')}
+					{m['labels.hintEncScheme']()}
 				{/if}
 			</p>
 		{:else if el.type === 'text'}
 			<div class="row2">
 				<label
-					>{$_('labels.width_mm')}<input
+					>{m['labels.widthMm']()}<input
 						type="number"
 						step="0.5"
 						min="2"
@@ -92,7 +99,7 @@
 					/></label
 				>
 				<label
-					>{$_('labels.font_mm')}<input
+					>{m['labels.fontMm']()}<input
 						type="number"
 						step="0.25"
 						min="1"
@@ -103,11 +110,11 @@
 			</div>
 			<div class="row2">
 				<label
-					>{$_('labels.align')}
+					>{m['labels.align']()}
 					<select value={el.align} onchange={(e) => update({ align: e.currentTarget.value })}>
-						<option value="left">{$_('labels.align_left')}</option>
-						<option value="center">{$_('labels.align_center')}</option>
-						<option value="right">{$_('labels.align_right')}</option>
+						<option value="left">{m['labels.alignLeft']()}</option>
+						<option value="center">{m['labels.alignCenter']()}</option>
+						<option value="right">{m['labels.alignRight']()}</option>
 					</select>
 				</label>
 				<label class="check"
@@ -116,11 +123,11 @@
 						checked={el.bold}
 						onchange={(e) => update({ bold: e.currentTarget.checked })}
 					/>
-					{$_('labels.bold')}</label
+					{m['labels.bold']()}</label
 				>
 			</div>
 			<label class="color-row"
-				>{$_('filament.fields.color_hex')}
+				>{m['filament.fields.colorHex']()}
 				<input
 					type="color"
 					value={el.color}
@@ -133,18 +140,18 @@
 					checked={el.wrap !== false}
 					onchange={(e) => update({ wrap: e.currentTarget.checked })}
 				/>
-				{$_('labels.wrap_text')}</label
+				{m['labels.wrapText']()}</label
 			>
 			{#if el.wrap === false}
-				<p class="hint">{$_('labels.hint_nowrap')}</p>
+				<p class="hint">{m['labels.hintNowrap']()}</p>
 			{/if}
 			<label
-				>{$_('labels.text_template')}
+				>{m['labels.textTemplate']()}
 				<textarea rows="3" value={el.template} onchange={(e) => update({ template: e.currentTarget.value })}
 				></textarea>
 			</label>
 			<label
-				>{$_('labels.insert_field')}
+				>{m['labels.insertField']()}
 				<select
 					value=""
 					onchange={(e) => {
@@ -152,21 +159,21 @@
 						e.currentTarget.value = '';
 					}}
 				>
-					<option value="" disabled>{$_('labels.choose_field')}</option>
+					<option value="" disabled>{m['labels.chooseField']()}</option>
 					{#each groups as g (g.entity)}
-						<optgroup label={$_(g.labelKey)}>
+						<optgroup label={g.labelKey()}>
 							{#each g.items as item (item.token)}
-								<option value={item.token}>{item.labelKey ? $_(item.labelKey) : item.label}</option>
+								<option value={item.token}>{item.labelKey ? item.labelKey() : item.label}</option>
 							{/each}
 						</optgroup>
 					{/each}
 				</select>
 			</label>
-			<p class="hint">{$_('labels.hint_wrap')} <code>{'{Temp: {filament.nozzleTemp}°C}'}</code></p>
+			<p class="hint">{m['labels.hintWrap']()} <code>{'{Temp: {filament.nozzleTemp}°C}'}</code></p>
 		{:else if el.type === 'swatch'}
 			<div class="row2">
 				<label
-					>{$_('labels.width_mm')}<input
+					>{m['labels.widthMm']()}<input
 						type="number"
 						step="0.5"
 						min="2"
@@ -175,7 +182,7 @@
 					/></label
 				>
 				<label
-					>{$_('labels.height_mm')}<input
+					>{m['labels.heightMm']()}<input
 						type="number"
 						step="0.5"
 						min="2"
@@ -185,7 +192,7 @@
 				>
 			</div>
 			<label
-				>{$_('labels.corner_radius_mm')}<input
+				>{m['labels.cornerRadiusMm']()}<input
 					type="number"
 					step="0.5"
 					min="0"
@@ -193,11 +200,11 @@
 					onchange={(e) => update({ radius: num(e) })}
 				/></label
 			>
-			<p class="hint">{$_('labels.hint_swatch')}</p>
+			<p class="hint">{m['labels.hintSwatch']()}</p>
 		{:else if el.type === 'rect'}
 			<div class="row2">
 				<label
-					>{$_('labels.width_mm')}<input
+					>{m['labels.widthMm']()}<input
 						type="number"
 						step="0.5"
 						min="1"
@@ -206,7 +213,7 @@
 					/></label
 				>
 				<label
-					>{$_('labels.height_mm')}<input
+					>{m['labels.heightMm']()}<input
 						type="number"
 						step="0.5"
 						min="1"
@@ -217,7 +224,7 @@
 			</div>
 			<div class="row2">
 				<label
-					>{$_('labels.radius_mm')}<input
+					>{m['labels.radiusMm']()}<input
 						type="number"
 						step="0.5"
 						min="0"
@@ -226,7 +233,7 @@
 					/></label
 				>
 				<label
-					>{$_('labels.stroke_mm')}<input
+					>{m['labels.strokeMm']()}<input
 						type="number"
 						step="0.1"
 						min="0"
@@ -237,7 +244,7 @@
 			</div>
 			<div class="row2">
 				<label class="color-row"
-					>{$_('labels.fill')}
+					>{m['labels.fill']()}
 					<input
 						type="color"
 						value={el.fill || '#ffffff'}
@@ -245,7 +252,7 @@
 					/></label
 				>
 				<label class="color-row"
-					>{$_('labels.stroke')}
+					>{m['labels.stroke']()}
 					<input
 						type="color"
 						value={el.stroke || '#000000'}
@@ -253,10 +260,10 @@
 					/></label
 				>
 			</div>
-			<button class="clear-fill" onclick={() => update({ fill: '' })}>{$_('labels.clear_fill')}</button>
+			<button class="clear-fill" onclick={() => update({ fill: '' })}>{m['labels.clearFill']()}</button>
 		{/if}
 
-		<button class="delete" onclick={ondelete}>{$_('labels.delete_element')}</button>
+		<button class="delete" onclick={ondelete}>{m['labels.deleteElement']()}</button>
 	</div>
 {/if}
 

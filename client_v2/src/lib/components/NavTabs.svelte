@@ -1,23 +1,25 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import { page } from '$app/stores';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	const tabs = [
-		{ href: '/', key: 'nav.library' },
-		{ href: '/locations', key: 'locations.locations' },
-		{ href: '/labels', key: 'nav.labels' },
-		{ href: '/settings', key: 'settings.header' }
+		{ href: '/', label: m['nav.library'] },
+		{ href: '/locations', label: m['locations.locations'] },
+		{ href: '/labels', label: m['nav.labels'] },
+		{ href: '/settings', label: m['settings.header'] }
 	];
 
 	function isActive(href: string): boolean {
-		const path = $page.url.pathname;
+		// Compare against the path with the deploy base path stripped off.
+		const path = $page.url.pathname.slice(base.length) || '/';
 		return href === '/' ? path === '/' : path.startsWith(href);
 	}
 </script>
 
 <nav class="tabs">
 	{#each tabs as tab (tab.href)}
-		<a href={tab.href} class="tab" class:active={isActive(tab.href)}>{$_(tab.key)}</a>
+		<a href={base + tab.href} class="tab" class:active={isActive(tab.href)}>{tab.label()}</a>
 	{/each}
 </nav>
 

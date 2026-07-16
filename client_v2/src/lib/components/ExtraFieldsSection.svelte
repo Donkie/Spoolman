@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { fields } from '$lib/stores/fields.svelte';
 	import ExtraFieldInput from './ExtraFieldInput.svelte';
 	import SectionLabel from './SectionLabel.svelte';
@@ -23,7 +23,7 @@
 </script>
 
 {#if defs.length}
-	<SectionLabel>{$_('settings.extra_fields.tab')}</SectionLabel>
+	<SectionLabel>{m['settings.extraFields.tab']()}</SectionLabel>
 	<FieldGrid>
 		{#each defs as f (f.key)}
 			<Field label={f.name}>

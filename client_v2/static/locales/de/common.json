@@ -34,17 +34,17 @@
     "warnWhenUnsavedChanges": "Sicher? Es sind nicht gespeicherte Änderungen vorhanden.",
     "notifications": {
         "success": "Erfolgreich",
-        "error": "Fehler (status code: {statusCode})",
-        "undoable": "Noch {seconds} Sekunden um die Aktion rückgängig zu machen.",
-        "createSuccess": "{resource} erfolgreich erstellt",
-        "createError": "Fehler beim erstellen von {resource} (status code: {statusCode})",
-        "deleteSuccess": "{resource} erfolgreich gelöscht",
-        "deleteError": "Fehler beim löschen von {resource} (status code: {statusCode})",
-        "editSuccess": "{resource} erfolgreich bearbeitet",
-        "editError": "Fehler beim bearbeiten von {resource} (status code: {statusCode})",
-        "importProgress": "{processed}/{total} importiert",
+        "error": "Fehler (status code: {{statusCode}})",
+        "undoable": "Noch {{seconds}} Sekunden um die Aktion rückgängig zu machen.",
+        "createSuccess": "{{resource}} erfolgreich erstellt",
+        "createError": "Fehler beim erstellen von {{resource}} (status code: {{statusCode}})",
+        "deleteSuccess": "{{resource}} erfolgreich gelöscht",
+        "deleteError": "Fehler beim löschen von {{resource}} (status code: {{statusCode}})",
+        "editSuccess": "{{resource}} erfolgreich bearbeitet",
+        "editError": "Fehler beim bearbeiten von {{resource}} (status code: {{statusCode}})",
+        "importProgress": "{{processed}}/{{total}} importiert",
         "saveSuccessful": "Erfolgreich gespeichert!",
-        "validationError": "Validierungsfehler: {error}"
+        "validationError": "Validierungsfehler: {{error}}"
     },
     "loading": "Läd",
     "version": "Version",
@@ -104,10 +104,10 @@
         "qrcode": {
             "button": "Beschriftung drucken",
             "title": "Beschriftung drucken",
-            "spoolWeight": "Gewicht Spule: {weight}",
-            "lotNr": "Lot. Nr: {lot}",
-            "bedTemp": "BT: {temp}",
-            "extruderTemp": "ET: {temp}",
+            "spoolWeight": "Gewicht Spule: {{weight}}",
+            "lotNr": "Lot. Nr: {{lot}}",
+            "bedTemp": "BT: {{temp}}",
+            "extruderTemp": "ET: {{temp}}",
             "textSize": "Textgröße Label",
             "showSpoolmanIcon": "Spoolman Icon anzeigen",
             "showVendor": "Hersteller",
@@ -124,7 +124,7 @@
                 "withIcon": "Mit Icon"
             },
             "template": "Beschriftung Vorlagen",
-            "templateHelp": "Benutze '{''}' um Texte der Spule dynamisch zu übernehmen. Zum Beispiel wird '{'id'}' durch die ID der Spule ersetzt, '{'filament.material'}' wird durch das Material der Spule ersetzt. Wenn ein Wert fehlt, wird er mit \"?\" ersetzt. Ein zweiter Satz von '{''}' kann genutzt werden, um dieses zu umgehen. Zusätzlich wird jeglicher Text zwischen einem Satz von '{''}' entfernt, wenn der Wert fehlt. Beispielsweise zeigt '{'Charge: '{'lot_nr'}''}' nur das Label an, wenn eine Spule eine Charge definiert hat. Texte zwischen zwei Sternen ** werden fett dargestellt. Drücke auf den Knopf um alle verfügbaren Variablen zu sehen.",
+            "templateHelp": "Benutze {} um Texte der Spule dynamisch zu übernehmen. Zum Beispiel wird {id} durch die ID der Spule ersetzt, {filament.material} wird durch das Material der Spule ersetzt. Wenn ein Wert fehlt, wird er mit \"?\" ersetzt. Ein zweiter Satz von {} kann genutzt werden, um dieses zu umgehen. Zusätzlich wird jeglicher Text zwischen einem Satz von {} entfernt, wenn der Wert fehlt. Beispielsweise zeigt {Charge: {lot_nr}} nur das Label an, wenn eine Spule eine Charge definiert hat. Texte zwischen zwei Sternen ** werden fett dargestellt. Drücke auf den Knopf um alle verfügbaren Variablen zu sehen.",
             "showQRCode": "Drucke QR Code",
             "useHTTPUrl": {
                 "label": "QR Code Link",
@@ -142,7 +142,8 @@
             "showArchived": "Archivierte anzeigen",
             "noSpoolsSelected": "Du hast keine Spulen ausgewählt.",
             "selectAll": "Alle aus-/abwählen",
-            "selectedTotal": "{count, plural, one {{count} Spule ausgewählt} other {{count} Spulen ausgewählt}}"
+            "selectedTotal_one": "{{count}} Spule ausgewählt",
+            "selectedTotal_other": "{{count}} Spulen ausgewählt"
         }
     },
     "scanner": {
@@ -154,7 +155,7 @@
             "streamApiNotSupported": "Der Browser unterstützt die MediaStream API nicht.",
             "notReadable": "Zugriff auf Kamera nicht möglich.",
             "notFound": "Keine Kamera gefunden.",
-            "unknown": "Ein unbekannter Fehler ist aufgetreten. ({error})"
+            "unknown": "Ein unbekannter Fehler ist aufgetreten. ({{error}})"
         }
     },
     "spool": {
@@ -202,7 +203,7 @@
             "list": "Spulen",
             "show": "Spule anzeigen",
             "archive": "Spule archivieren",
-            "show_title": "[Spule #{id}] {name}",
+            "show_title": "[Spule #{{id}}] {{name}}",
             "adjust": "Filamentspulen Anpassung"
         },
         "messages": {
@@ -220,7 +221,7 @@
             "measurement_type_label": "Messungstyp"
         },
         "formats": {
-            "last_used": "Zuletzt genutzt {date}"
+            "last_used": "Zuletzt genutzt {{date}}"
         }
     },
     "filament": {
@@ -264,7 +265,7 @@
             "edit": "Filament bearbeiten",
             "list": "Filamente",
             "show": "Filament anzeigen",
-            "show_title": "[Filament #{id}] {name}"
+            "show_title": "[Filament #{{id}}] {{name}}"
         },
         "form": {
             "filament_updated": "Dieses Filament wurde, seit dem die Seite geöffnet wurde, von jemand anderem/etwas anderem bearbeitet. Speichern wird diese Änderungen überschreiben!",
@@ -291,7 +292,7 @@
             "edit": "Hersteller bearbeiten",
             "list": "Herstellerliste",
             "show": "Hersteller anzeigen",
-            "show_title": "[Hersteller #{id}] {name}"
+            "show_title": "[Hersteller #{{id}}] {{name}}"
         },
         "form": {
             "vendor_updated": "Dieser Hersteller wurde, seit dem die Seite geöffnet wurde, von jemand anderem/etwas anderem bearbeitet. Speichern wird diese Änderungen überschreiben!"
@@ -308,24 +309,24 @@
         "suffix": " | Spoolman",
         "filament": {
             "list": "Filamente | Spoolman",
-            "show": "#{id} Filament anzeigen | Spoolman",
-            "edit": "#{id} Filament bearbeiten | Spoolman",
+            "show": "#{{id}} Filament anzeigen | Spoolman",
+            "edit": "#{{id}} Filament bearbeiten | Spoolman",
             "create": "Filament erstellen | Spoolman",
-            "clone": "#{id} Filament duplizieren | Spoolman"
+            "clone": "#{{id}} Filament duplizieren | Spoolman"
         },
         "spool": {
             "list": "Spulen | Spoolman",
-            "show": "#{id} Spule anzeigen | Spoolman",
-            "edit": "#{id} Spule bearbeiten | Spoolman",
+            "show": "#{{id}} Spule anzeigen | Spoolman",
+            "edit": "#{{id}} Spule bearbeiten | Spoolman",
             "create": "Spule erstellen | Spoolman",
-            "clone": "#{id} Spule duplizieren | Spoolman"
+            "clone": "#{{id}} Spule duplizieren | Spoolman"
         },
         "vendor": {
             "list": "Hersteller | Spoolman",
-            "show": "#{id} Hersteller anzeigen | Spoolman",
-            "edit": "#{id} Hersteller bearbeiten | Spoolman",
+            "show": "#{{id}} Hersteller anzeigen | Spoolman",
+            "edit": "#{{id}} Hersteller bearbeiten | Spoolman",
             "create": "Herstellen erstellen | Spoolman",
-            "clone": "#{id} Hersteller duplizieren | Spoolman"
+            "clone": "#{{id}} Hersteller duplizieren | Spoolman"
         },
         "home": {
             "list": "Home | Spoolman"
@@ -392,9 +393,9 @@
             },
             "boolean_true": "Ja",
             "boolean_false": "Nein",
-            "delete_confirm": "Feld {name} entfernen?",
+            "delete_confirm": "Feld {{name}} entfernen?",
             "description": "<p>Hier können Sie zusätzliche benutzerdefinierte Felder zu Ihren Elementen hinzufügen.</p><p>Nach dem Hinzufügen eines Feldes können Sie dessen Schlüssel oder Typ nicht mehr ändern, und bei Auswahlfeldern können Sie keine Auswahlmöglichkeiten entfernen oder den Mehrfachauswahlstatus ändern. Wenn Sie ein Feld entfernen, werden die zugehörigen Daten für alle Elemente gelöscht.</p><p>Der Schlüssel ist derjenige, unter dem andere Programme die Daten lesen/schreiben, wenn Ihr benutzerdefiniertes Feld also mit einem Programm eines Drittanbieters integriert werden soll, stellen Sie sicher, dass Sie ihn richtig einstellen. Der Standardwert wird nur auf neue Elemente angewendet.</p><p>Zusätzliche Felder können in den Tabellenansichten nicht sortiert oder gefiltert werden.</p>",
-            "choices_missing_error": "Du kannst die Auswahl nicht entfernen. Folgende Auswahlmöglichkeiten fehlen: {choices}",
+            "choices_missing_error": "Du kannst die Auswahl nicht entfernen. Folgende Auswahlmöglichkeiten fehlen: {{choices}}",
             "key_not_changed": "Bitte ändere den Schlüssel auf einen anderen Wert.",
             "delete_confirm_description": "Dieses Feld und alle damit verbundenen Einträge werden gelöscht.",
             "non_unique_key_error": "Der Schlüssel muss einzigartig sein."

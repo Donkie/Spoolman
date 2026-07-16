@@ -1,11 +1,11 @@
 {
     "printing": {
         "qrcode": {
-            "extruderTemp": "ET: {temp}",
+            "extruderTemp": "ET: {{temp}}",
             "showSpoolWeight": "Spole vægt",
             "showContent": "Print etiket",
             "showVendorComment": "Sælger kommentarer",
-            "spoolWeight": "Spole vægt: {weight}",
+            "spoolWeight": "Spole vægt: {{weight}}",
             "showTemperatures": "Temperaturer",
             "showVendor": "Sælger",
             "showSpoolComment": "Spole kommentarer",
@@ -13,12 +13,12 @@
             "title": "Etiketprint",
             "showSpoolmanIcon": "Vis Spoolman logo",
             "showLotNr": "Gruppe nr",
-            "bedTemp": "BT: {temp}",
-            "lotNr": "Gruppe nr: {lot}",
+            "bedTemp": "BT: {{temp}}",
+            "lotNr": "Gruppe nr: {{lot}}",
             "showFilamentComment": "Filament kommentarer",
             "button": "Print etiketter",
             "template": "Etiketskabelon",
-            "templateHelp": "Brug '{''}' til at indsætte værdier for spolen som tekst. For eksempel vil '{'id'}' blive erstattet med spolens id, eller '{'filament.material'}' vil blive erstattet med materialet på spolen. Hvis en værdi mangler, vil den blive erstattet med \"?\". Et andet set af '{''}' kan bruges for at fjerne dette. Derudover vil al tekst mellem sættene af '{''}' blive fjernet, hvis værdien mangler. For eksemel, '{'Lot Nr: '{'lot_nr'}''}' vil kun vise etiketten, hvis spolen har et partinummer (Lot Nr). Omgiv teksten med dobbelte asterisk ** for at gøre teksten fed. Klik på knappen for at vise en liste med mulige tags.",
+            "templateHelp": "Brug {} til at indsætte værdier for spolen som tekst. For eksempel vil {id} blive erstattet med spolens id, eller {filament.material} vil blive erstattet med materialet på spolen. Hvis en værdi mangler, vil den blive erstattet med \"?\". Et andet set af {} kan bruges for at fjerne dette. Derudover vil al tekst mellem sættene af {} blive fjernet, hvis værdien mangler. For eksemel, {Lot Nr: {lot_nr}} vil kun vise etiketten, hvis spolen har et partinummer (Lot Nr). Omgiv teksten med dobbelte asterisk ** for at gøre teksten fed. Klik på knappen for at vise en liste med mulige tags.",
             "useHTTPUrl": {
                 "options": {
                     "default": "Standard",
@@ -79,7 +79,8 @@
             "saveAsImage": "Gem som Billede"
         },
         "spoolSelect": {
-            "selectedTotal": "{count, plural, one {{count} spole valgt} other {{count} spoler valgt}}",
+            "selectedTotal_one": "{{count}} spole valgt",
+            "selectedTotal_other": "{{count}} spoler valgt",
             "description": "Vælg spoler, der skal printes etiketter til.",
             "showArchived": "Vis arkiverede",
             "title": "Vælg spoler",
@@ -90,25 +91,25 @@
     "documentTitle": {
         "vendor": {
             "create": "Opret producent | Spoolman",
-            "clone": "#{id} Klon producent | Spoolman",
-            "edit": "#{id} Redigér producent | Spoolman",
+            "clone": "#{{id}} Klon producent | Spoolman",
+            "edit": "#{{id}} Redigér producent | Spoolman",
             "list": "Producenter | Spoolman",
-            "show": "#{id} Vis producent | Spoolman"
+            "show": "#{{id}} Vis producent | Spoolman"
         },
         "default": "Spoolman",
         "spool": {
-            "edit": "#{id} Redigér spole | Spoolman",
+            "edit": "#{{id}} Redigér spole | Spoolman",
             "list": "Spoler | Spoolman",
             "create": "Opret spole | Spoolman",
-            "show": "#{id} Vis spole | Spoolman",
-            "clone": "#{id} Klon spole | Spoolman"
+            "show": "#{{id}} Vis spole | Spoolman",
+            "clone": "#{{id}} Klon spole | Spoolman"
         },
         "filament": {
             "list": "Filamenter | Spoolman",
-            "show": "#{id} Vis filament | Spoolman",
-            "clone": "#{id} Klon filament | Spoolman",
+            "show": "#{{id}} Vis filament | Spoolman",
+            "clone": "#{{id}} Klon filament | Spoolman",
             "create": "Opret filament | Spoolman",
-            "edit": "#{id} Redigér filament | Spoolman"
+            "edit": "#{{id}} Redigér filament | Spoolman"
         },
         "suffix": " | Spoolman",
         "home": {
@@ -152,7 +153,7 @@
             "edit": "Redigér spole",
             "create": "Opret spole",
             "clone": "Klon spole",
-            "show_title": "[Spole #{id}] {name}",
+            "show_title": "[Spole #{{id}}] {{name}}",
             "list": "Spoler",
             "adjust": "Tilpas spolefilament"
         },
@@ -184,7 +185,7 @@
             "archive": "Er du sikker på du vil arkivere denne spole?"
         },
         "formats": {
-            "last_used": "Sidst anvendt {date}"
+            "last_used": "Sidst anvendt {{date}}"
         }
     },
     "buttons": {
@@ -248,7 +249,7 @@
         },
         "titles": {
             "clone": "Klon filament",
-            "show_title": "[Filament #{id}] {name}",
+            "show_title": "[Filament #{{id}}] {{name}}",
             "show": "Vis filament",
             "create": "Opret filament",
             "edit": "Redigér filament",
@@ -273,7 +274,7 @@
     },
     "vendor": {
         "titles": {
-            "show_title": "[Producent #{id}] {name}",
+            "show_title": "[Producent #{{id}}] {{name}}",
             "show": "Vis producent",
             "edit": "Redigér producent",
             "clone": "Klon producent",
@@ -302,25 +303,25 @@
             "insecureContext": "Denne side er ikke sikret med HTTPS.",
             "notReadable": "Kameraet kan ikke indlæses.",
             "notAllowed": "Du har ikke givet adgang til kameraet.",
-            "unknown": "En ukendt fejl opstod. {error}",
+            "unknown": "En ukendt fejl opstod. {{error}}",
             "notFound": "Intet kamera fundet.",
             "streamApiNotSupported": "Denne browser understøtter ikke MediaStream API'et."
         },
         "description": "Skan en Spoolman QR-kode for at se detaljer om spolen."
     },
     "notifications": {
-        "deleteSuccess": "Sletning af {resource} var succesfuld(t)",
-        "error": "Fejl (statuskode: {statusCode})",
-        "editError": "Fejl ved redigering af {resource} (statuskode:{statusCode}",
-        "undoable": "Du har {seconds} sekunder til at fortryde.",
-        "importProgress": "Importerer: {processed}/{total}",
-        "createError": "Der var en fejl under oprettelsen af {resource} (statuskode: {statusCode})",
+        "deleteSuccess": "Sletning af {{resource}} var succesfuld(t)",
+        "error": "Fejl (statuskode: {{statusCode}})",
+        "editError": "Fejl ved redigering af {{resource}} (statuskode:{{statusCode}}",
+        "undoable": "Du har {{seconds}} sekunder til at fortryde.",
+        "importProgress": "Importerer: {{processed}}/{{total}}",
+        "createError": "Der var en fejl under oprettelsen af {{resource}} (statuskode: {{statusCode}})",
         "success": "Succes",
-        "editSuccess": "Redigering af {resource} var succesfuld(t)",
-        "deleteError": "Fejl ved sletning af {resource} (statuskode: {statusCode})",
-        "createSuccess": "Oprettelse af {resource} var succesfuld(t)",
+        "editSuccess": "Redigering af {{resource}} var succesfuld(t)",
+        "deleteError": "Fejl ved sletning af {{resource}} (statuskode: {{statusCode}})",
+        "createSuccess": "Oprettelse af {{resource}} var succesfuld(t)",
         "saveSuccessful": "Gemt!",
-        "validationError": "Kunne ikke gennemføres: {error}"
+        "validationError": "Kunne ikke gennemføres: {{error}}"
     },
     "no": "Nej",
     "unknown": "Ukendt",
@@ -389,14 +390,14 @@
                 "text": "Tekst",
                 "integer": "Heltal"
             },
-            "choices_missing_error": "Du kan ikke fjerne valgmuligheder. De følgende valgmuligheder mangler: {choices}",
+            "choices_missing_error": "Du kan ikke fjerne valgmuligheder. De følgende valgmuligheder mangler: {{choices}}",
             "tab": "Ekstra felter",
             "description": "<p>Her kan du tilføje ekstra felter til dine poster.</p><p>Når et felt er tilføjet kan du ikke redigere dens Nøgle eller Type, og for visse felttyper kan du ikke fjerne valg, eller ændre multi-valgstatus. Hvis du fjerner et felt, vil associeret data i alle poster blive slettet.</p><p>Nøglen er hvad andre programmer læser/skriver data som, så hvis dit felt skal integreres med et tredjepartsprogram, skal du sørge for at indstille det korrekt. Standardværdi bliver kun tilføjet til nye felter.</p><p>Ekstra felter kan ikke sorteres eller filtreres i oversigterne.</p>",
             "boolean_true": "Ja",
             "boolean_false": "Nej",
             "non_unique_key_error": "Nøglen skal være Unik.",
             "key_not_changed": "Ændr venligst nøglen til noget andet.",
-            "delete_confirm": "Slet felt: {name}?",
+            "delete_confirm": "Slet felt: {{name}}?",
             "delete_confirm_description": "Dette vil slette feltet samt alle associerede data for alle poster."
         },
         "settings": "Indstillinger"

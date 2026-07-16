@@ -34,17 +34,17 @@
     "warnWhenUnsavedChanges": "¿Estás seguro que quieres salir? Hay cambios sin guardar.",
     "notifications": {
         "success": "Éxito",
-        "error": "Error (status code: {statusCode})",
-        "undoable": "Tienes {seconds} segundos para deshacer.",
-        "createSuccess": "Has creado {resource} con éxito",
-        "createError": "Hubo un error al crear {resource} (status code: {statusCode})",
-        "deleteSuccess": "Has borrado {resource} con éxito",
-        "deleteError": "Error al borrar {resource} (status code: {statusCode})",
-        "editSuccess": "Has editado {resource} con éxito",
-        "editError": "Error al editar {resource} (status code: {statusCode})",
-        "importProgress": "Importando: {processed}/{total}",
+        "error": "Error (status code: {{statusCode}})",
+        "undoable": "Tienes {{seconds}} segundos para deshacer.",
+        "createSuccess": "Has creado {{resource}} con éxito",
+        "createError": "Hubo un error al crear {{resource}} (status code: {{statusCode}})",
+        "deleteSuccess": "Has borrado {{resource}} con éxito",
+        "deleteError": "Error al borrar {{resource}} (status code: {{statusCode}})",
+        "editSuccess": "Has editado {{resource}} con éxito",
+        "editError": "Error al editar {{resource}} (status code: {{statusCode}})",
+        "importProgress": "Importando: {{processed}}/{{total}}",
         "saveSuccessful": "¡Se guardo correctamente!",
-        "validationError": "Error de validación: {error}"
+        "validationError": "Error de validación: {{error}}"
     },
     "loading": "Cargando",
     "version": "Versión",
@@ -102,7 +102,7 @@
             "list": "Bobinas",
             "show": "Mostrar Bobina",
             "archive": "Archivar Bobina",
-            "show_title": "[Bobina #{id}] {name}",
+            "show_title": "[Bobina #{{id}}] {{name}}",
             "adjust": "Ajustar la bobina del filamento"
         },
         "messages": {
@@ -120,7 +120,7 @@
             "adjust_filament_help": "Aquí puedes añadir o restar directamente filamento de la bobina. Un valor positivo consumirá filamento, un valor negativo lo añadirá."
         },
         "formats": {
-            "last_used": "Utilizado por última vez {date}"
+            "last_used": "Utilizado por última vez {{date}}"
         }
     },
     "filament": {
@@ -164,7 +164,7 @@
             "edit": "Editar Filamento",
             "list": "Filamentos",
             "show": "Mostrar Filamentos",
-            "show_title": "[Filamento #{id}] {name}"
+            "show_title": "[Filamento #{{id}}] {{name}}"
         },
         "form": {
             "filament_updated": "Este filamento ha sido actualizado por alguien/algo más desde que abrió esta página. ¡Al guardar, se sobrescribirán los cambios!",
@@ -191,7 +191,7 @@
             "edit": "Editar un fabricante",
             "list": "Fabricantes",
             "show": "Mostrar Fabricante",
-            "show_title": "[Fabricante #{id}] {name}"
+            "show_title": "[Fabricante #{{id}}] {{name}}"
         },
         "form": {
             "vendor_updated": "Este fabricante ha sido actualizado por alguien/algo desde que abrió esta página. ¡Al guardar, se sobrescribirán los cambios!"
@@ -208,24 +208,24 @@
         "suffix": " | Spoolman",
         "filament": {
             "list": "Filamentos | Spoolman",
-            "show": "#{id} Mostrar Filamentos | Spoolman",
-            "edit": "#{id} Editar Filamentos | Spoolman",
+            "show": "#{{id}} Mostrar Filamentos | Spoolman",
+            "edit": "#{{id}} Editar Filamentos | Spoolman",
             "create": "Crear Filamento | Spoolman",
-            "clone": "#{id} Duplicar Filamento | Spoolman"
+            "clone": "#{{id}} Duplicar Filamento | Spoolman"
         },
         "spool": {
             "list": "Bobinas | Spoolman",
-            "show": "#{id} Mostrar Bobina | Spoolman",
-            "edit": "#{id} Editar Bobina | Spoolman",
+            "show": "#{{id}} Mostrar Bobina | Spoolman",
+            "edit": "#{{id}} Editar Bobina | Spoolman",
             "create": "Crear Bobina | Spoolman",
-            "clone": "#{id} Duplicar Bobina | Spoolman"
+            "clone": "#{{id}} Duplicar Bobina | Spoolman"
         },
         "vendor": {
             "list": "Fabricantes | Spoolman",
-            "show": "#{id} Mostrar el fabricante | Spoolman",
-            "edit": "#{id} Editar el fabricante | Spoolman",
+            "show": "#{{id}} Mostrar el fabricante | Spoolman",
+            "edit": "#{{id}} Editar el fabricante | Spoolman",
             "create": "Crear un fabricante | Spoolman",
-            "clone": "#{id} Duplicar un fabricante | Spoolman"
+            "clone": "#{{id}} Duplicar un fabricante | Spoolman"
         },
         "home": {
             "list": "Inicio | Spoolman"
@@ -239,11 +239,11 @@
     },
     "printing": {
         "qrcode": {
-            "extruderTemp": "TE:{temp}",
+            "extruderTemp": "TE:{{temp}}",
             "showSpoolWeight": "Peso de la Bobina",
             "showContent": "Imprimir Etiqueta",
             "showVendorComment": "Comentarios del Fabricante",
-            "spoolWeight": "Peso de la Bobina: {weight}",
+            "spoolWeight": "Peso de la Bobina: {{weight}}",
             "showTemperatures": "Temperaturas",
             "showVendor": "Fabricante",
             "showSpoolComment": "Comentario de la Bobina",
@@ -251,12 +251,12 @@
             "title": "Imprimiendo las etiquetas",
             "showSpoolmanIcon": "Mostrar Icono de Spoolman",
             "showLotNr": "No. Lote",
-            "bedTemp": "TC:{temp}",
-            "lotNr": "No. Lote:{lot}",
+            "bedTemp": "TC:{{temp}}",
+            "lotNr": "No. Lote:{{lot}}",
             "showFilamentComment": "Comentario de Filamento",
             "button": "Imprimir las etiquetas",
             "template": "Plantilla para la etiqueta",
-            "templateHelp": "Utiliza '{''}' para insertar valores del objeto spool como texto. Por ejemplo, '{'id'}' se sustituirá por el id del carrete, o '{'filament.material'}' se sustituirá por el material del carrete. si falta un valor, se sustituirá por \"?\". Se puede utilizar un segundo conjunto de '{''}' para eliminarlo. Además, cualquier texto entre los '{''}' se eliminará si falta el valor. Por ejemplo, '{'Lot Nr: '{'lot_nr'}''}' solo mostrará la etiqueta si la bobina tiene un número de lote. Encierra el texto con doble asterisco ** para ponerlo en negrita. Haz clic en el botón para ver una lista de todas las etiquetas disponibles.",
+            "templateHelp": "Utiliza {} para insertar valores del objeto spool como texto. Por ejemplo, {id} se sustituirá por el id del carrete, o {filament.material} se sustituirá por el material del carrete. si falta un valor, se sustituirá por \"?\". Se puede utilizar un segundo conjunto de {} para eliminarlo. Además, cualquier texto entre los {} se eliminará si falta el valor. Por ejemplo, {Lot Nr: {lot_nr}} solo mostrará la etiqueta si la bobina tiene un número de lote. Encierra el texto con doble asterisco ** para ponerlo en negrita. Haz clic en el botón para ver una lista de todas las etiquetas disponibles.",
             "showQRCode": "Imprimir un código qr",
             "showQRCodeMode": {
                 "no": "No",
@@ -317,7 +317,9 @@
             "saveAsImage": "Guardar como una imagen"
         },
         "spoolSelect": {
-            "selectedTotal": "{count, plural, one {{count} bobina seleccionada} many {{count} bobinas seleccionadas} other {{count} bobinas seleccionadas}}",
+            "selectedTotal_one": "{{count}} bobina seleccionada",
+            "selectedTotal_many": "{{count}} bobinas seleccionadas",
+            "selectedTotal_other": "{{count}} bobinas seleccionadas",
             "description": "Selecciona los carretes para los que deseas imprimir las etiquetas.",
             "showArchived": "Mostrar archivados",
             "title": "Selección de Bobinas",
@@ -331,7 +333,7 @@
             "insecureContext": "La página no se muestra a través de HTTPS.",
             "notReadable": "La cámara no es legible.",
             "notAllowed": "No has dado permiso de acceso a la cámara.",
-            "unknown": "Un error desconocido ocurrió. ({error})",
+            "unknown": "Un error desconocido ocurrió. ({{error}})",
             "notFound": "La cámara no ha sido detectada.",
             "streamApiNotSupported": "El navegador no es compatible con la API MediaStream."
         },
@@ -392,10 +394,10 @@
             },
             "boolean_true": "Sí",
             "boolean_false": "No",
-            "choices_missing_error": "No se pueden eliminar opciones. Faltan las siguientes opciones: {choices}",
+            "choices_missing_error": "No se pueden eliminar opciones. Faltan las siguientes opciones: {{choices}}",
             "non_unique_key_error": "La clave debe ser única.",
             "key_not_changed": "Por favor, cambie la clave por otra.",
-            "delete_confirm": "¿Borrar campo {name}?",
+            "delete_confirm": "¿Borrar campo {{name}}?",
             "delete_confirm_description": "Esto eliminará el campo y todos los datos asociados para todas las entidades.",
             "description": "<p> Aquí puede agregar más campos personalizados a los asuntos.</p><p> Una vez que se agrega un campo, no puede cambiar su clave o tipo, y no puede eliminar opciones ni cambiar el estado de múltiples opciones para campos seleccionados. Si elimina un campo, se eliminarán los datos asociados a todos los sujetos.</p><p> La forma en que otros programas leen/escriben los datos es clave, por lo que si su campo personalizado se va a integrar con un programa de terceros, asegúrese de que esté configurado correctamente. El valor predeterminado solo se utilizará para elementos nuevos.</p><p> Los campos de salida no se pueden ordenar ni filtrar en las vistas de tabla.</p>"
         },

@@ -34,17 +34,17 @@
     "warnWhenUnsavedChanges": "您確定要離開嗎？您尚有未儲存的變更。",
     "notifications": {
         "success": "成功",
-        "error": "錯誤 ( 狀態碼：{statusCode} )",
-        "undoable": "您有 {seconds} 秒可以還原。",
-        "createSuccess": "成功建立 {resource}",
-        "createError": "建立 {resource} 時發生錯誤（狀態碼：{statusCode}）",
-        "deleteSuccess": "成功刪除 {resource}",
-        "deleteError": "刪除 {resource} 時發生錯誤（狀態碼：{statusCode}）",
-        "editSuccess": "成功編輯{resource}",
-        "editError": "編輯 {resource} 時發生錯誤（狀態碼：{statusCode}）",
-        "importProgress": "匯入中：{processed}/{total}",
+        "error": "錯誤 ( 狀態碼：{{statusCode}} )",
+        "undoable": "您有 {{seconds}} 秒可以還原。",
+        "createSuccess": "成功建立 {{resource}}",
+        "createError": "建立 {{resource}} 時發生錯誤（狀態碼：{{statusCode}}）",
+        "deleteSuccess": "成功刪除 {{resource}}",
+        "deleteError": "刪除 {{resource}} 時發生錯誤（狀態碼：{{statusCode}}）",
+        "editSuccess": "成功編輯{{resource}}",
+        "editError": "編輯 {{resource}} 時發生錯誤（狀態碼：{{statusCode}}）",
+        "importProgress": "匯入中：{{processed}}/{{total}}",
         "saveSuccessful": "儲存成功！",
-        "validationError": "驗證錯誤： {error}"
+        "validationError": "驗證錯誤： {{error}}"
     },
     "kofi": "在Ko-fi上打賞我",
     "loading": "讀取中",
@@ -106,7 +106,7 @@
             "title": "標籤列印中",
             "template": "標籤範本",
             "button": "列印標籤",
-            "templateHelp": "使用 '{''}' 插入線捲物件的數值。例如，'{'id'}' 會被替換為線捲 ID，而 '{'filament.material'}' 則會替換為該線捲的材質。若數值缺失，會以「?」代替。您可以使用第二組 '{''}' 來移除此符號；此外，若數值缺失，兩組 '{''}' 之間的任何文字也都會被一併移除。例如，'{'批號：'{'lot_nr'}''}' 僅會在該線捲含有批號資訊時顯示標籤。使用雙星號 ** 包圍文字可設為粗體。點擊按鈕可查看所有可用標籤的清單。",
+            "templateHelp": "使用 {} 插入線捲物件的數值。例如，{id} 會被替換為線捲 ID，而 {filament.material} 則會替換為該線捲的材質。若數值缺失，會以「?」代替。您可以使用第二組 {} 來移除此符號；此外，若數值缺失，兩組 {} 之間的任何文字也都會被一併移除。例如，{批號：{lot_nr}} 僅會在該線捲含有批號資訊時顯示標籤。使用雙星號 ** 包圍文字可設為粗體。點擊按鈕可查看所有可用標籤的清單。",
             "textSize": "標籤文字大小",
             "showContent": "列印標籤",
             "useHTTPUrl": {
@@ -131,7 +131,7 @@
             "showArchived": "檢視已封存",
             "noSpoolsSelected": "您尚未選擇任何料盤。",
             "selectAll": "選擇/取消全選",
-            "selectedTotal": "{count, plural, other {已選擇 {count} 個料盤}}"
+            "selectedTotal_other": "已選擇 {{count}} 個料盤"
         }
     },
     "scanner": {
@@ -142,7 +142,7 @@
             "notReadable": "攝影機不可讀取。",
             "notFound": "未找到攝影機。",
             "insecureContext": "此頁面未通過 HTTPS 提供服務。",
-            "unknown": "發生未知的錯誤。({error})"
+            "unknown": "發生未知的錯誤。({{error}})"
         },
         "title": "掃描QR碼"
     },
@@ -191,7 +191,7 @@
             "list": "線盤",
             "show": "檢視線盤",
             "adjust": "調整料盤線材",
-            "show_title": "[線盤 #{id}] {name}",
+            "show_title": "[線盤 #{{id}}] {{name}}",
             "archive": "封存線盤"
         },
         "form": {
@@ -209,7 +209,7 @@
             "archive": "您確定要封存此線盤嗎？"
         },
         "formats": {
-            "last_used": "上次使用{date}"
+            "last_used": "上次使用{{date}}"
         }
     },
     "filament": {
@@ -252,7 +252,7 @@
             "edit": "編輯線材",
             "list": "線材",
             "show": "檢視線材",
-            "show_title": "[線材 #{id}] {name}"
+            "show_title": "[線材 #{{id}}] {{name}}"
         },
         "form": {
             "import_external": "從外部匯入",
@@ -280,7 +280,7 @@
         "titles": {
             "create": "建立製造商",
             "edit": "編輯製造商",
-            "show_title": "[製造商 #{id}] {name}",
+            "show_title": "[製造商 #{{id}}] {{name}}",
             "show": "檢視製造商",
             "clone": "複製製造商",
             "list": "製造商"
@@ -292,10 +292,10 @@
     "documentTitle": {
         "vendor": {
             "create": "建立製造商 | Spoolman",
-            "clone": "#{id} 複製製造商 | Spoolman",
+            "clone": "#{{id}} 複製製造商 | Spoolman",
             "list": "製造商 | Spoolman",
-            "edit": "#{id} 編輯製造商 | Spoolman",
-            "show": "#{id} 檢視製造商 | Spoolman"
+            "edit": "#{{id}} 編輯製造商 | Spoolman",
+            "show": "#{{id}} 檢視製造商 | Spoolman"
         },
         "default": "Spoolman",
         "suffix": " | Spoolman",
@@ -307,16 +307,16 @@
         },
         "filament": {
             "list": "線材 | Spoolman",
-            "edit": "#{id} 編輯線材 | Spoolman",
-            "show": "#{id} 檢視線材 | Spoolman",
+            "edit": "#{{id}} 編輯線材 | Spoolman",
+            "show": "#{{id}} 檢視線材 | Spoolman",
             "create": "建立線材 | Spoolman",
-            "clone": "#{id} 複製線材 | Spoolman"
+            "clone": "#{{id}} 複製線材 | Spoolman"
         },
         "spool": {
             "create": "建立線盤 | Spoolman",
-            "clone": "#{id} 複製線盤 | Spoolman",
-            "show": "#{id} 檢視線盤 | Spoolman",
-            "edit": "#{id} 編輯線盤 | Spoolman",
+            "clone": "#{{id}} 複製線盤 | Spoolman",
+            "show": "#{{id}} 檢視線盤 | Spoolman",
+            "edit": "#{{id}} 編輯線盤 | Spoolman",
             "list": "線盤 | Spoolman"
         },
         "locations": {
@@ -381,9 +381,9 @@
             },
             "boolean_true": "是",
             "boolean_false": "否",
-            "choices_missing_error": "您無法刪除選項。以下選項缺失：{choices}",
+            "choices_missing_error": "您無法刪除選項。以下選項缺失：{{choices}}",
             "key_not_changed": "請將鍵值更改為其他名稱。",
-            "delete_confirm": "刪除欄位 {name}？",
+            "delete_confirm": "刪除欄位 {{name}}？",
             "description": "<p>在此，您可以為您的實體加入額外的自訂欄位。</p><p>一旦加入欄位，您將無法更改其鍵值或類型，對於選擇類型欄位，您也無法刪除選項或更改多選狀態。如果刪除欄位，所有實體的相關資料將被刪除。</p><p>鍵值是其他程式讀取/寫入資料的方式，因此如果您的自訂欄位需要與第三方程式整合，請確保正確設置。預設值僅適用於新品項。</p><p>額外的欄位無法在表格視圖中排序或過濾。</p>",
             "non_unique_key_error": "鍵值必須為唯一。",
             "delete_confirm_description": "這將刪除該欄位及所有與之關聯的所有實體資料。"

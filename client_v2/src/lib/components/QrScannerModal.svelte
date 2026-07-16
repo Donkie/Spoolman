@@ -1,9 +1,9 @@
 <script lang="ts">
-	import QrScanner from 'qr-scanner';
+	import type QrScanner from 'qr-scanner';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { parseSpoolCode } from '$lib/utils/spoolCode';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		open: boolean;
@@ -31,11 +31,11 @@
 	/** Map a getUserMedia DOMException to a friendly reason (by its `name`). */
 	function messageForError(err: unknown): string {
 		const name = (err as { name?: string } | null)?.name ?? '';
-		if (name === 'NotAllowedError' || name === 'SecurityError') return $_('scanner.errors.denied');
+		if (name === 'NotAllowedError' || name === 'SecurityError') return m['scanner.errors.denied']();
 		if (name === 'NotFoundError' || name === 'OverconstrainedError' || name === 'DevicesNotFoundError')
-			return $_('scanner.errors.notFound');
-		if (name === 'NotReadableError' || name === 'TrackStartError') return $_('scanner.errors.inUse');
-		return $_('scanner.errors.generic');
+			return m['scanner.errors.notFound']();
+		if (name === 'NotReadableError' || name === 'TrackStartError') return m['scanner.errors.inUse']();
+		return m['scanner.errors.generic']();
 	}
 
 	// qr-scanner collapses every getUserMedia failure into the opaque string
@@ -45,7 +45,7 @@
 		try {
 			const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
 			stream.getTracks().forEach((t) => t.stop());
-			return $_('scanner.errors.generic'); // camera works now — the earlier failure was transient
+			return m['scanner.errors.generic'](); // camera works now — the earlier failure was transient
 		} catch (err) {
 			return messageForError(err);
 		}
@@ -64,25 +64,31 @@
 		// at all — qr-scanner would only report a generic "camera not found", so
 		// detect this up front and tell the user the real reason before we try.
 		if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-			error = !window.isSecureContext ? $_('scanner.errors.insecure') : $_('scanner.errors.unsupported');
+			error = !window.isSecureContext ? m['scanner.errors.insecure']() : m['scanner.errors.unsupported']();
 			return;
 		}
 
+		const el = video;
 		let scanner: QrScanner | null = null;
 		let cancelled = false;
 		starting = true;
 
-		scanner = new QrScanner(video, onDecode, {
-			// Prefer the rear camera; ignore frames that don't decode.
-			preferredCamera: 'environment',
-			highlightScanRegion: true,
-			highlightCodeOutline: true,
-			maxScansPerSecond: 5,
-			returnDetailedScanResult: true
-		});
-
-		scanner
-			.start()
+		// qr-scanner is a browser-only library, so load it lazily inside the effect.
+		// A static import would drag its default export into the SSR bundle, where
+		// this client-only usage is stripped and Rollup then warns it is unused.
+		import('qr-scanner')
+			.then(({ default: QrScanner }) => {
+				if (cancelled) return;
+				scanner = new QrScanner(el, onDecode, {
+					// Prefer the rear camera; ignore frames that don't decode.
+					preferredCamera: 'environment',
+					highlightScanRegion: true,
+					highlightCodeOutline: true,
+					maxScansPerSecond: 5,
+					returnDetailedScanResult: true
+				});
+				return scanner.start();
+			})
 			.then(() => {
 				if (cancelled) scanner?.stop();
 			})
@@ -115,17 +121,17 @@
 			class="modal"
 			role="dialog"
 			aria-modal="true"
-			aria-label={$_('topbar.scan')}
+			aria-label={m['topbar.scan']()}
 			tabindex="-1"
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 		>
 			<div class="modal-head">
-				<span class="title">{$_('scanner.modal_title')}</span>
-				<button class="x" onclick={close} aria-label={$_('buttons.close')}>✕</button>
+				<span class="title">{m['scanner.modalTitle']()}</span>
+				<button class="x" onclick={close} aria-label={m['buttons.close']()}>✕</button>
 			</div>
 
-			<p class="hint">{$_('scanner.hint')}</p>
+			<p class="hint">{m['scanner.hint']()}</p>
 
 			<div class="stage">
 				<!-- svelte-ignore a11y_media_has_caption -->
@@ -133,7 +139,7 @@
 				{#if error}
 					<div class="msg error">{error}</div>
 				{:else if starting}
-					<div class="msg">{$_('scanner.starting')}</div>
+					<div class="msg">{m['scanner.starting']()}</div>
 				{/if}
 			</div>
 		</div>

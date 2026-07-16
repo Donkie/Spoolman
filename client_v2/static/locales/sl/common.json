@@ -34,16 +34,16 @@
     "notifications": {
         "saveSuccessful": "Uspešno shranjeno!",
         "success": "Uspešno",
-        "error": "Napaka (status code: {statusCode})",
-        "undoable": "Imate {seconds} s časa za preklic.",
-        "createSuccess": "Uspešno ustvarjeno {resource}",
-        "createError": "Pri ustvarjanju {resource} je prišlo do napake (status code: {statusCode})",
-        "deleteSuccess": "{resource} uspešno izbrisano",
-        "deleteError": "Napaka pri brisanju {resource} (status code: {statusCode})",
-        "editSuccess": "{resource} uspešno urejeno",
-        "editError": "Napaka pri urejanju {resource} (status code:{statusCode})",
-        "importProgress": "Uvažanje: {processed}/{total}",
-        "validationError": "Napaka overjanja: {error}"
+        "error": "Napaka (status code: {{statusCode}})",
+        "undoable": "Imate {{seconds}} s časa za preklic.",
+        "createSuccess": "Uspešno ustvarjeno {{resource}}",
+        "createError": "Pri ustvarjanju {{resource}} je prišlo do napake (status code: {{statusCode}})",
+        "deleteSuccess": "{{resource}} uspešno izbrisano",
+        "deleteError": "Napaka pri brisanju {{resource}} (status code: {{statusCode}})",
+        "editSuccess": "{{resource}} uspešno urejeno",
+        "editError": "Napaka pri urejanju {{resource}} (status code:{{statusCode}})",
+        "importProgress": "Uvažanje: {{processed}}/{{total}}",
+        "validationError": "Napaka overjanja: {{error}}"
     },
     "loading": "Nalaganje",
     "version": "Verzija",
@@ -104,7 +104,7 @@
             "button": "Natisni nalepke",
             "title": "Tiskanje nalepk",
             "template": "Predloga nalepke",
-            "templateHelp": "Uporabite '{''}', da vstavite vrednosti objekta kolut kot besedilo. Na primer, '{'id'}' bo nadomeščen z identifikacijsko številko koluta, '{'filament.material'}' pa z materialom koluta. Če vrednost manjka, bo nadomeščena z znakom »?«. To lahko odstranite z dodatnim nizom '{''}'. Poleg tega bo vsak tekst med sklopi '{''}' odstranjen, če vrednost manjka. Na primer, '{'Lot Nr: '{'lot_nr'}''}' bo prikazal etiketo le, če ima kolut številko serije. Tekst obdajte z dvojno zvezdico **, da bo poudarjen. Kliknite gumb, da si ogledate seznam vseh razpoložljivih oznak.",
+            "templateHelp": "Uporabite {}, da vstavite vrednosti objekta kolut kot besedilo. Na primer, {id} bo nadomeščen z identifikacijsko številko koluta, {filament.material} pa z materialom koluta. Če vrednost manjka, bo nadomeščena z znakom »?«. To lahko odstranite z dodatnim nizom {}. Poleg tega bo vsak tekst med sklopi {} odstranjen, če vrednost manjka. Na primer, {Lot Nr: {lot_nr}} bo prikazal etiketo le, če ima kolut številko serije. Tekst obdajte z dvojno zvezdico **, da bo poudarjen. Kliknite gumb, da si ogledate seznam vseh razpoložljivih oznak.",
             "showContent": "Natisni nalepko",
             "textSize": "Velikost besedila na nalepki",
             "useHTTPUrl": {
@@ -128,7 +128,10 @@
             "title": "Izberite kolute",
             "showArchived": "Prikaži arhiv",
             "noSpoolsSelected": "Niste izbrali kolutov.",
-            "selectedTotal": "{count, plural, one {Izbran {count} kolut} two {Izbrana {count} koluta} few {Izbrani {count} koluti} other {Izbranih {count} kolutov}}",
+            "selectedTotal_one": "Izbran {{count}} kolut",
+            "selectedTotal_two": "Izbrana {{count}} koluta",
+            "selectedTotal_few": "Izbrani {{count}} koluti",
+            "selectedTotal_other": "Izbranih {{count}} kolutov",
             "selectAll": "Izberi/Odstrani izbiro vseh"
         }
     },
@@ -189,7 +192,7 @@
             "edit": "Uredi kolut",
             "list": "Koluti",
             "show": "Prikaži kolut",
-            "show_title": "[Kolut #{id}] {name}",
+            "show_title": "[Kolut #{{id}}] {{name}}",
             "archive": "Arhiviraj kolut",
             "adjust": "Prilagodi filament koluta"
         },
@@ -197,7 +200,7 @@
             "archive": "Ali res želite arhivirati ta kolut?"
         },
         "formats": {
-            "last_used": "Nazadnje uporabljeno: {date}"
+            "last_used": "Nazadnje uporabljeno: {{date}}"
         }
     },
     "settings": {
@@ -243,10 +246,10 @@
             "boolean_false": "Ne",
             "non_unique_key_error": "Ključ mora biti edinstven.",
             "key_not_changed": "Spremenite geslo v nekaj drugega.",
-            "delete_confirm": "Zbrišem polje {name}?",
+            "delete_confirm": "Zbrišem polje {{name}}?",
             "delete_confirm_description": "S tem boste izbrisali polje in vse povezane podatke za vse vnose.",
             "description": "<p>Tukaj lahko svojim entitetam dodate dodatna polja po meri.</p><p>Ko je polje dodano, njegovega ključa ali tipa ni mogoče spremeniti, pri poljih tipa »izbira« pa ni mogoče odstraniti možnosti ali spremeniti nastavitve za večkratno izbiro. Če polje odstranite, bodo povezani podatki za vse entitete izbrisani.</p><p>Ključ je tisto, kar drugi programi uporabljajo za branje/pisanje podatkov, zato če naj bi se vaše polje po meri integriralo s programom tretje osebe, poskrbite, da ga nastavite pravilno. Privzeta vrednost se uporablja le za nove elemente.</p><p>Dodatna polja ni mogoče razvrstiti ali filtrirati v pogledih tabel.</p>",
-            "choices_missing_error": "Možnosti ni mogoče odstraniti. Manjkajo naslednje možnosti: {choices}"
+            "choices_missing_error": "Možnosti ni mogoče odstraniti. Manjkajo naslednje možnosti: {{choices}}"
         }
     },
     "scanner": {
@@ -258,7 +261,7 @@
             "streamApiNotSupported": "Brskalnik ne podpira MediaStream API.",
             "notReadable": "Kamere ni mogoče prebrati.",
             "notFound": "Kamere ni bilo mogoče najti.",
-            "unknown": "Prišlo je do neznane napake. ({error})"
+            "unknown": "Prišlo je do neznane napake. ({{error}})"
         }
     },
     "filament": {
@@ -302,7 +305,7 @@
             "edit": "Uredi filament",
             "list": "Filamenti",
             "show": "Prikaži filament",
-            "show_title": "[Filament #{id}]{name}"
+            "show_title": "[Filament #{{id}}]{{name}}"
         },
         "form": {
             "import_external": "Uvozi iz zunanjih",
@@ -329,7 +332,7 @@
             "edit": "Uredi proizvajalca",
             "list": "Proizvajalci",
             "show": "Prikaži proizvajalca",
-            "show_title": "[Proizvajalec #{id}] {name}"
+            "show_title": "[Proizvajalec #{{id}}] {{name}}"
         },
         "form": {
             "vendor_updated": "Ta proizvajalec je spremenil nekdo drug, odkar ste odprli stran. Shranjevanje bo te spremembe prepisalo!"
@@ -369,24 +372,24 @@
         },
         "filament": {
             "list": "Filamenti | Kolutar",
-            "show": "Prikaži filament #{id} | Kolutar",
-            "edit": "Uredi filament #{id} | Kolutar",
+            "show": "Prikaži filament #{{id}} | Kolutar",
+            "edit": "Uredi filament #{{id}} | Kolutar",
             "create": "Ustvari filament | Kolutar",
-            "clone": "Podvoji filament #{id} | Kolutar"
+            "clone": "Podvoji filament #{{id}} | Kolutar"
         },
         "spool": {
             "list": "Koluti | Kolutar",
-            "show": "Prikaži kolut #{id} | Kolutar",
-            "edit": "Uredi kolut #{id} | Kolutar",
+            "show": "Prikaži kolut #{{id}} | Kolutar",
+            "edit": "Uredi kolut #{{id}} | Kolutar",
             "create": "Ustvari kolut | Kolutar",
-            "clone": "Podvoji kolut #{id} | Kolutar"
+            "clone": "Podvoji kolut #{{id}} | Kolutar"
         },
         "vendor": {
             "list": "Proizvajalci | Kolutar",
-            "show": "Prikaži proizvajalca #{id} | Kolutar",
-            "edit": "Uredi proizvajalca #{id} | Kolutar",
+            "show": "Prikaži proizvajalca #{{id}} | Kolutar",
+            "edit": "Uredi proizvajalca #{{id}} | Kolutar",
             "create": "Ustvari proizvajalca | Kolutar",
-            "clone": "Podvoji proizvajalca #{id} | Kolutar"
+            "clone": "Podvoji proizvajalca #{{id}} | Kolutar"
         }
     },
     "locations": {

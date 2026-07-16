@@ -13,7 +13,7 @@
 	import { buildGroupQuery, buildFlatSpoolQuery, isGroupedMode } from '$lib/api/query';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { live } from '$lib/api/live';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	// State comes from the URL via the page load (see routes/+page.ts). Changing
 	// page/pageSize navigates through the params helpers. (Named libraryState, not
@@ -71,8 +71,8 @@
 		return () => offs.forEach((off) => off());
 	});
 
-	let flatVMs = $derived(flatSpools.map((s) => spoolToVM(s, inventory, settings.lowThreshold, $_)));
-	let totalLabel = $derived(grouped ? $_('library.unit_groups') : $_('library.unit_spools'));
+	let flatVMs = $derived(flatSpools.map((s) => spoolToVM(s, inventory, settings.lowThreshold)));
+	let totalLabel = $derived(grouped ? m['library.unitGroups']() : m['library.unitSpools']());
 </script>
 
 <div class="list">
@@ -89,9 +89,9 @@
 		{/if}
 
 		{#if errored}
-			<div class="empty">{$_('library.api_error')}</div>
+			<div class="empty">{m['library.apiError']()}</div>
 		{:else if total === 0 && !loading}
-			<div class="empty">{$_('library.empty_filtered', { values: { unit: totalLabel } })}</div>
+			<div class="empty">{m['library.emptyFiltered']({ unit: totalLabel })}</div>
 		{/if}
 	</div>
 	<Pagination

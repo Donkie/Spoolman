@@ -76,11 +76,11 @@
             "saveAsImage": "Opslaan als afbeelding"
         },
         "qrcode": {
-            "extruderTemp": "ET: {temp}",
+            "extruderTemp": "ET: {{temp}}",
             "showSpoolWeight": "Gewicht spoel",
             "showContent": "Label printen",
             "showVendorComment": "Opmerking fabrikant",
-            "spoolWeight": "Gewicht spoel: {weight}",
+            "spoolWeight": "Gewicht spoel: {{weight}}",
             "showTemperatures": "Temperaturen",
             "showVendor": "Fabrikant",
             "showSpoolComment": "Opmerking spoel",
@@ -88,12 +88,12 @@
             "title": "Label afdrukken",
             "showSpoolmanIcon": "Spoolman icoon tonen",
             "showLotNr": "Lotnummer",
-            "bedTemp": "BT: {temp}",
-            "lotNr": "Lotnummer: {lot}",
+            "bedTemp": "BT: {{temp}}",
+            "lotNr": "Lotnummer: {{lot}}",
             "showFilamentComment": "Opmerking filament",
             "button": "Labels afdrukken",
             "template": "Label Sjabloon",
-            "templateHelp": "Gebruik '{''}' om waarden van het spool-object als tekst in te voegen. Bijvoorbeeld, '{'id'}' wordt vervangen door de spool-id, of '{'filament.material'}' wordt vervangen door het materiaal van de spool. Als een waarde ontbreekt, wordt deze vervangen door \"?\". Een tweede set '{''}' kan worden gebruikt om dit te verwijderen. Bovendien wordt alle tekst tussen de sets '{''}' verwijderd als de waarde ontbreekt. Bijvoorbeeld, '{'Lot Nr: '{'lot_nr'}''}' toont alleen het label als de spool een lotnummer heeft. Sluit tekst in met dubbele asterisk ** om deze vet te maken. Klik op de knop om een lijst met alle beschikbare tags te bekijken.",
+            "templateHelp": "Gebruik {} om waarden van het spool-object als tekst in te voegen. Bijvoorbeeld, {id} wordt vervangen door de spool-id, of {filament.material} wordt vervangen door het materiaal van de spool. Als een waarde ontbreekt, wordt deze vervangen door \"?\". Een tweede set {} kan worden gebruikt om dit te verwijderen. Bovendien wordt alle tekst tussen de sets {} verwijderd als de waarde ontbreekt. Bijvoorbeeld, {Lot Nr: {lot_nr}} toont alleen het label als de spool een lotnummer heeft. Sluit tekst in met dubbele asterisk ** om deze vet te maken. Klik op de knop om een lijst met alle beschikbare tags te bekijken.",
             "showQRCodeMode": {
                 "no": "Nee",
                 "simple": "Simpel",
@@ -111,7 +111,8 @@
             }
         },
         "spoolSelect": {
-            "selectedTotal": "{count, plural, one {{count} spoel geselecteerd} other {{count} spoelen geselecteerd}}",
+            "selectedTotal_one": "{{count}} spoel geselecteerd",
+            "selectedTotal_other": "{{count}} spoelen geselecteerd",
             "description": "Selecteer spoelen waarvoor je labels wilt afdrukken.",
             "showArchived": "Gearchiveerde tonen",
             "title": "Spoelen selecteren",
@@ -120,18 +121,18 @@
         }
     },
     "notifications": {
-        "deleteSuccess": "{resource} succesvol verwijderd",
-        "error": "Fout (fout code {statusCode})",
-        "editError": "Fout opgetreden bij het bewerken van {resource} (status code {statusCode})",
-        "undoable": "U heeft {seconds} seconden om ongedaan te maken.",
-        "importProgress": "Importeren: {processed}/{total}",
-        "createError": "Er is een fout opgetreden bij het aanmaken van {resource} (status code {statusCode})",
+        "deleteSuccess": "{{resource}} succesvol verwijderd",
+        "error": "Fout (fout code {{statusCode}})",
+        "editError": "Fout opgetreden bij het bewerken van {{resource}} (status code {{statusCode}})",
+        "undoable": "U heeft {{seconds}} seconden om ongedaan te maken.",
+        "importProgress": "Importeren: {{processed}}/{{total}}",
+        "createError": "Er is een fout opgetreden bij het aanmaken van {{resource}} (status code {{statusCode}})",
         "success": "Succesvol",
-        "editSuccess": "{resource} succesvol bewerkt",
-        "deleteError": "Fout opgetreden bij het verwijderen van {resource} (status code {statusCode})",
-        "createSuccess": "{resource} succesvol aangemaakt",
+        "editSuccess": "{{resource}} succesvol bewerkt",
+        "deleteError": "Fout opgetreden bij het verwijderen van {{resource}} (status code {{statusCode}})",
+        "createSuccess": "{{resource}} succesvol aangemaakt",
         "saveSuccessful": "Succesvol opgeslagen!",
-        "validationError": "Validatie error: {error}"
+        "validationError": "Validatie error: {{error}}"
     },
     "no": "Nee",
     "unknown": "Onbekend",
@@ -148,25 +149,25 @@
     "documentTitle": {
         "vendor": {
             "create": "Fabrikant maken | Spoolman",
-            "clone": "#{id} Fabrikant klonen | Spoolman",
-            "edit": "#{id} Fabrikant bewerken | Spoolman",
+            "clone": "#{{id}} Fabrikant klonen | Spoolman",
+            "edit": "#{{id}} Fabrikant bewerken | Spoolman",
             "list": "Fabrikanten | Spoolman",
-            "show": "#{id} Fabrikant tonen | Spoolman"
+            "show": "#{{id}} Fabrikant tonen | Spoolman"
         },
         "default": "Spoolman",
         "spool": {
-            "edit": "#{id} Spoel bewerken | Spoolman",
+            "edit": "#{{id}} Spoel bewerken | Spoolman",
             "list": "Spoelen | Spoolman",
             "create": "Spoel maken | Spoolman",
-            "show": "#{id} Spoel tonen | Spoolman",
-            "clone": "#{id} Spoel klonen | Spoolman"
+            "show": "#{{id}} Spoel tonen | Spoolman",
+            "clone": "#{{id}} Spoel klonen | Spoolman"
         },
         "filament": {
             "list": "Filamenten | Spoolman",
-            "show": "#{id} Filament tonen | Spoolman",
-            "clone": "#{id} Filament klonen | Spoolman",
+            "show": "#{{id}} Filament tonen | Spoolman",
+            "clone": "#{{id}} Filament klonen | Spoolman",
             "create": "Filament maken | Spoolman",
-            "edit": "#{id} Filament bewerken | Spoolman"
+            "edit": "#{{id}} Filament bewerken | Spoolman"
         },
         "suffix": " | Spoolman",
         "home": {
@@ -211,7 +212,7 @@
             "create": "Spoel maken",
             "clone": "Spoel klonen",
             "list": "Spoelen",
-            "show_title": "[Spoel #{id}] {name}",
+            "show_title": "[Spoel #{{id}}] {{name}}",
             "adjust": "Spoel Filament aanpassen"
         },
         "fields_help": {
@@ -242,7 +243,7 @@
             "adjust_filament_value": "Verbruikte hoeveelheid"
         },
         "formats": {
-            "last_used": "Laatst gebruikt {date}"
+            "last_used": "Laatst gebruikt {{date}}"
         }
     },
     "filament": {
@@ -285,7 +286,7 @@
             "create": "Filament maken",
             "edit": "Filament bewerken",
             "list": "Filamenten",
-            "show_title": "[Filament #{id}] {name}"
+            "show_title": "[Filament #{{id}}] {{name}}"
         },
         "filament": "Filamenten",
         "form": {
@@ -303,7 +304,7 @@
             "insecureContext": "De pagina wordt niet weergegeven via HTTPS.",
             "notReadable": "De camera is niet leesbaar.",
             "notAllowed": "Je hebt geen toegang tot de camera verleend.",
-            "unknown": "Er is een onbekende fout opgetreden. ({error})",
+            "unknown": "Er is een onbekende fout opgetreden. ({{error}})",
             "notFound": "Geen camera gevonden.",
             "streamApiNotSupported": "De browser ondersteunt de MediaStream API niet."
         },
@@ -316,7 +317,7 @@
             "clone": "Fabrikant klonen",
             "create": "Fabrikant maken",
             "list": "Fabrikanten",
-            "show_title": "[Fabrikant #{id}] {name}"
+            "show_title": "[Fabrikant #{{id}}] {{name}}"
         },
         "fields": {
             "registered": "Geregistreerd",
@@ -392,10 +393,10 @@
             },
             "boolean_true": "Ja",
             "boolean_false": "Nee",
-            "choices_missing_error": "U kunt geen keuzes verwijderen. De volgende keuzes ontbreken: {choices}",
+            "choices_missing_error": "U kunt geen keuzes verwijderen. De volgende keuzes ontbreken: {{choices}}",
             "non_unique_key_error": "De key moet uniek zijn.",
             "key_not_changed": "Key niet gewijzigd.",
-            "delete_confirm": "Veld {name} verwijderen?",
+            "delete_confirm": "Veld {{name}} verwijderen?",
             "delete_confirm_description": "Hierdoor worden het veld en alle bijbehorende gegevens voor alle entiteiten verwijderd.",
             "description": "<p>Hier kunt u extra aangepaste velden toevoegen aan uw entiteiten.</p><p>Zodra een veld is toegevoegd, kunt u de key of het type ervan niet wijzigen, en voor velden met keuzetypes kunt u geen keuzes verwijderen of de meervoudige velden wijzigen. Als u een veld verwijdert, worden de bijbehorende gegevens voor alle entiteiten verwijderd.</p><p>De key is hoe andere programma's de gegevens lezen/schrijven, dus of uw aangepaste veld moet worden geïntegreerd met een derde partij programma, zorg ervoor dat u het correct instelt. De standaardwaarde wordt alleen toegepast op nieuwe items.</p><p>Extra velden kunnen niet worden gesorteerd of gefilterd in de tabelweergaven.</p>"
         },

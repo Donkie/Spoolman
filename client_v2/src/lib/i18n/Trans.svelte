@@ -22,7 +22,7 @@
 -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { parseRichText, type TransNode } from './richText';
 
 	interface Props {

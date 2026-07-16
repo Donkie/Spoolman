@@ -8,8 +8,11 @@ const config = {
 		// Spoolman serves the built frontend as a static SPA, so we prerender a
 		// fallback and let client-side routing take over.
 		adapter: adapter({
-			fallback: 'index.html'
+			fallback: '200.html'
 		}),
+		paths: {
+			relative: true
+		},
 		alias: {
 			$components: 'src/lib/components'
 		}

@@ -34,17 +34,17 @@
     "warnWhenUnsavedChanges": "Jste si jisti, že chcete odejít? Máte neuložené změny.",
     "notifications": {
         "success": "Úspěšné",
-        "error": "Chyba (kód chyby: {statusCode})",
-        "undoable": "Máte {seconds} sekund na zrušení.",
-        "createSuccess": "Úspěšně vytvořeno {resource}",
-        "createError": "Při vytváření došlo k chybě {resource} (status code: {statusCode})",
-        "deleteSuccess": "Úspěšně vymazáno {resource}",
-        "deleteError": "Chyba při odstranění {resource} (status code: {statusCode})",
-        "editSuccess": "Úspěšně upraveno {resource}",
-        "editError": "Chyba při úpravě {resource} (status code: {statusCode})",
-        "importProgress": "Importování: {processed}/{total}",
+        "error": "Chyba (kód chyby: {{statusCode}})",
+        "undoable": "Máte {{seconds}} sekund na zrušení.",
+        "createSuccess": "Úspěšně vytvořeno {{resource}}",
+        "createError": "Při vytváření došlo k chybě {{resource}} (status code: {{statusCode}})",
+        "deleteSuccess": "Úspěšně vymazáno {{resource}}",
+        "deleteError": "Chyba při odstranění {{resource}} (status code: {{statusCode}})",
+        "editSuccess": "Úspěšně upraveno {{resource}}",
+        "editError": "Chyba při úpravě {{resource}} (status code: {{statusCode}})",
+        "importProgress": "Importování: {{processed}}/{{total}}",
         "saveSuccessful": "Úspěšně uloženo!",
-        "validationError": "Chyba ověření: {error}"
+        "validationError": "Chyba ověření: {{error}}"
     },
     "loading": "Načítání",
     "version": "Verze",
@@ -104,10 +104,10 @@
         "qrcode": {
             "button": "Tisk štítků",
             "title": "Tisk štítku",
-            "spoolWeight": "Hmotnost cívky: {weight}",
-            "lotNr": "Číslo šarže: {lot}",
-            "bedTemp": "BT: {temp}",
-            "extruderTemp": "ET: {temp}",
+            "spoolWeight": "Hmotnost cívky: {{weight}}",
+            "lotNr": "Číslo šarže: {{lot}}",
+            "bedTemp": "BT: {{temp}}",
+            "extruderTemp": "ET: {{temp}}",
             "textSize": "Velikost textu štítku",
             "showSpoolmanIcon": "Zobrazit ikonu Spoolman",
             "showVendor": "Výrobce",
@@ -128,7 +128,7 @@
                 "preview": "Náhled:"
             },
             "template": "Šablona štítku",
-            "templateHelp": "Pomocí '{''}' vložíte hodnoty objektu cívky jako text. Například, '{'id'}' bude nahrazeno ID cívky nebo '{'filament.material'}' bude nahrazeno materiálem cívky. Pokud hodnota chybí, bude nahrazena znakem „?“. K odstranění této hodnoty lze použít druhou sadu '{''}'. Kromě toho bude odstraněn jakýkoli text mezi sadami '{''}', pokud hodnota chybí. Například '{'Lot Nr: '{'lot_nr'}''}' zobrazí popisek pouze v případě, že cívka má číslo šarže. Text uzavřete dvojitou hvězdičkou **, aby byl tučný. Kliknutím na tlačítko zobrazíte seznam všech dostupných značek.",
+            "templateHelp": "Pomocí {} vložíte hodnoty objektu cívky jako text. Například, {id} bude nahrazeno ID cívky nebo {filament.material} bude nahrazeno materiálem cívky. Pokud hodnota chybí, bude nahrazena znakem „?“. K odstranění této hodnoty lze použít druhou sadu {}. Kromě toho bude odstraněn jakýkoli text mezi sadami {}, pokud hodnota chybí. Například {Lot Nr: {lot_nr}} zobrazí popisek pouze v případě, že cívka má číslo šarže. Text uzavřete dvojitou hvězdičkou **, aby byl tučný. Kliknutím na tlačítko zobrazíte seznam všech dostupných značek.",
             "showQRCode": "Tisk QR kódu",
             "showQRCodeMode": {
                 "no": "Ne",
@@ -142,7 +142,9 @@
             "showArchived": "Zobrazit archivované",
             "noSpoolsSelected": "Nevybrali jste žádné cívky.",
             "selectAll": "Vybrat/odebrat vše",
-            "selectedTotal": "{count, plural, one {{count} vybraná cívka} few {{count} vybrané cívky} other {{count} vybraných cívek}}"
+            "selectedTotal_one": "{{count}} vybraná cívka",
+            "selectedTotal_few": "{{count}} vybrané cívky",
+            "selectedTotal_other": "{{count}} vybraných cívek"
         }
     },
     "scanner": {
@@ -154,7 +156,7 @@
             "streamApiNotSupported": "Prohlížeč nepodporuje MediaStream API.",
             "notReadable": "Kamera není čitelná.",
             "notFound": "Nebyla nalezena žádná kamera.",
-            "unknown": "Došlo k neznámé chybě. ({error})"
+            "unknown": "Došlo k neznámé chybě. ({{error}})"
         }
     },
     "spool": {
@@ -202,7 +204,7 @@
             "list": "Cívky",
             "show": "Zobrazit cívku",
             "archive": "Archivní cívka",
-            "show_title": "[Cívka #{id}] {name}",
+            "show_title": "[Cívka #{{id}}] {{name}}",
             "adjust": "Nastavení cívky filamentu"
         },
         "messages": {
@@ -220,7 +222,7 @@
             "adjust_filament_value": "Spotřebované množství"
         },
         "formats": {
-            "last_used": "Naposledy použitý {date}"
+            "last_used": "Naposledy použitý {{date}}"
         }
     },
     "filament": {
@@ -264,7 +266,7 @@
             "edit": "Upravit filament",
             "list": "Filamenty",
             "show": "Zobrazit filament",
-            "show_title": "[Filament #{id}] {name}"
+            "show_title": "[Filament #{{id}}] {{name}}"
         },
         "form": {
             "filament_updated": "Toto vlákno bylo od doby, kdy jste otevřeli tuto stránku, někým/něčím aktualizováno. Uložením se tyto změny přepíší!",
@@ -291,7 +293,7 @@
             "edit": "Upravit výrobce",
             "list": "Výrobci",
             "show": "Zobrazit výrobce",
-            "show_title": "[Výrobce #{id}] {name}"
+            "show_title": "[Výrobce #{{id}}] {{name}}"
         },
         "form": {
             "vendor_updated": "Od otevření této stránky byl tento prodejce někým/něčím aktualizován. Uložením se tyto změny přepíší!"
@@ -308,24 +310,24 @@
         "suffix": " | Spoolman",
         "filament": {
             "list": "Filamenty | Spoolman",
-            "show": "#{id} Zobrazit Filament | Spoolman",
-            "edit": "#{id} Upravit Filament | Spoolman",
+            "show": "#{{id}} Zobrazit Filament | Spoolman",
+            "edit": "#{{id}} Upravit Filament | Spoolman",
             "create": "Vytvořit Filament | Spoolman",
-            "clone": "#{id} Duplikovat Filament | Spoolman"
+            "clone": "#{{id}} Duplikovat Filament | Spoolman"
         },
         "spool": {
             "list": "Cívky | Spoolman",
-            "show": "#{id} Zobrazit cívku | Spoolman",
-            "edit": "#{id} Upravit cívku | Spoolman",
+            "show": "#{{id}} Zobrazit cívku | Spoolman",
+            "edit": "#{{id}} Upravit cívku | Spoolman",
             "create": "Vytvořit cívku | Spoolman",
-            "clone": "#{id} Duplikovat cívku | Spoolman"
+            "clone": "#{{id}} Duplikovat cívku | Spoolman"
         },
         "vendor": {
             "list": "Výrobci | Spoolman",
-            "show": "#{id} Zobrazit výrobce | Spoolman",
-            "edit": "#{id} Upravit výrobce | Spoolman",
+            "show": "#{{id}} Zobrazit výrobce | Spoolman",
+            "edit": "#{{id}} Upravit výrobce | Spoolman",
             "create": "Vytvořit výrobce | Spoolman",
-            "clone": "#{id} Duplikovat výrobce | Spoolman"
+            "clone": "#{{id}} Duplikovat výrobce | Spoolman"
         },
         "home": {
             "list": "Domů | Spoolman"
@@ -377,10 +379,10 @@
             },
             "boolean_true": "Ano",
             "boolean_false": "Ne",
-            "choices_missing_error": "Volby nelze odstranit. Chybí následující volby: {choices}",
+            "choices_missing_error": "Volby nelze odstranit. Chybí následující volby: {{choices}}",
             "non_unique_key_error": "Tento klíč musí být jedinečný.",
             "key_not_changed": "Změňte prosím klíč na jiný.",
-            "delete_confirm": "Smazat pole {name}?",
+            "delete_confirm": "Smazat pole {{name}}?",
             "description": "<p>Zde můžete přidat další vlastní pole k subjektům.</p><p>Jakmile je pole přidáno, nemůžete změnit jeho klíč ani typ a u polí typu výběr nemůžete odebrat volby ani změnit stav více voleb. Pokud pole odstraníte, budou odstraněna přidružená data pro všechny subjekty.</p><p>Klíčové je, jako co ostatní programy čtou/zapisují data, takže pokud má být vaše vlastní pole integrováno s programem třetí strany, ujistěte se, že je správně nastaveno. Výchozí hodnota se použije pouze pro nové položky.</p><p>Výstupní pole nelze v zobrazeních tabulky řadit ani filtrovat.</p>",
             "delete_confirm_description": "Tím se odstraní pole a všechna související data pro všechny subjekty."
         },

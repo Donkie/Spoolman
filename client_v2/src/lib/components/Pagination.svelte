@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		page: number;
@@ -40,8 +40,11 @@
 
 <div class="pager">
 	<span class="count">
-		{#if total === 0}{$_('pagination.empty', { values: { unit } })}{:else}{$_('pagination.range', {
-				values: { from, to, total, unit }
+		{#if total === 0}{m['pagination.empty']({ unit })}{:else}{m['pagination.range']({
+				from,
+				to,
+				total,
+				unit
 			})}{/if}
 	</span>
 
@@ -53,7 +56,7 @@
 				class="pg nav"
 				disabled={page <= 1}
 				onclick={() => go(page - 1)}
-				aria-label={$_('pagination.prev')}>‹</button
+				aria-label={m['pagination.prev']()}>‹</button
 			>
 			{#each pages as p, i (i)}
 				{#if p === '…'}
@@ -66,7 +69,7 @@
 				class="pg nav"
 				disabled={page >= pageCount}
 				onclick={() => go(page + 1)}
-				aria-label={$_('pagination.next')}>›</button
+				aria-label={m['pagination.next']()}>›</button
 			>
 		</div>
 	{/if}
@@ -75,10 +78,10 @@
 		class="size"
 		value={pageSize}
 		onchange={(e) => onpagesize(Number(e.currentTarget.value))}
-		aria-label={$_('pagination.page_size')}
+		aria-label={m['pagination.pageSize']()}
 	>
 		{#each sizes as s (s)}
-			<option value={s}>{$_('pagination.per_page', { values: { size: s } })}</option>
+			<option value={s}>{m['pagination.perPage']({ size: s })}</option>
 		{/each}
 	</select>
 </div>

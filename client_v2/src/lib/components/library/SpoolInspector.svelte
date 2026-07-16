@@ -17,7 +17,7 @@
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	let { spool }: { spool: Spool } = $props();
 
@@ -48,31 +48,31 @@
 	const ADJUST_MODE_KEY = 'spoolman-v2-adjust-mode';
 	const ADJUST_MODES: {
 		key: AdjustMode;
-		labelKey: string;
-		fieldLabelKey: string;
+		labelKey: () => string;
+		fieldLabelKey: () => string;
 		unit: string;
-		helpKey: string;
+		helpKey: () => string;
 	}[] = [
 		{
 			key: 'length',
-			labelKey: 'spool.form.measurement_type.length',
-			fieldLabelKey: 'inspector.consume_amount',
+			labelKey: m['spool.form.measurementType.length'],
+			fieldLabelKey: m['inspector.consumeAmount'],
 			unit: 'mm',
-			helpKey: 'inspector.adjust_help'
+			helpKey: m['inspector.adjustHelp']
 		},
 		{
 			key: 'weight',
-			labelKey: 'spool.form.measurement_type.weight',
-			fieldLabelKey: 'inspector.consume_amount',
+			labelKey: m['spool.form.measurementType.weight'],
+			fieldLabelKey: m['inspector.consumeAmount'],
 			unit: 'g',
-			helpKey: 'inspector.adjust_help'
+			helpKey: m['inspector.adjustHelp']
 		},
 		{
 			key: 'measured_weight',
-			labelKey: 'spool.fields.measured_weight',
-			fieldLabelKey: 'inspector.new_gross',
+			labelKey: m['spool.fields.measuredWeight'],
+			fieldLabelKey: m['inspector.newGross'],
 			unit: 'g',
-			helpKey: 'inspector.measured_help'
+			helpKey: m['inspector.measuredHelp']
 		}
 	];
 
@@ -112,7 +112,7 @@
 		const v = parseFloat(adjustVal);
 		if (isNaN(v) || (adjustMode === 'measured_weight' && v < 0)) {
 			adjustError =
-				adjustMode === 'length' ? $_('inspector.enter_valid_length') : $_('inspector.enter_valid_weight');
+				adjustMode === 'length' ? m['inspector.enterValidLength']() : m['inspector.enterValidWeight']();
 			return;
 		}
 
@@ -128,7 +128,7 @@
 			}
 			adjustOpen = false;
 		} catch (e) {
-			adjustError = e instanceof Error ? e.message : $_('inspector.adjust_failed');
+			adjustError = e instanceof Error ? e.message : m['inspector.adjustFailed']();
 		} finally {
 			adjustBusy = false;
 		}
@@ -180,16 +180,16 @@
 			</div>
 			<div class="subtitle">
 				{filament.material} · {filament.diameter} mm · {spool.unused
-					? $_('library.unused')
-					: $_('library.in_use')}
+					? m['library.unused']()
+					: m['library.inUse']()}
 			</div>
 		</div>
 		<div class="actions">
-			<Button variant="outline" onclick={openAdjust}>⚖ {$_('inspector.adjust_weight')}</Button>
+			<Button variant="outline" onclick={openAdjust}>⚖ {m['inspector.adjustWeight']()}</Button>
 			<Button variant="outline" onclick={() => goto(`${base}/labels?spools=${spool.id}`)}
-				>◱ {$_('inspector.print_label')}</Button
+				>◱ {m['inspector.printLabel']()}</Button
 			>
-			<Button variant="outline" onclick={archive}>{$_('buttons.archive')}</Button>
+			<Button variant="outline" onclick={archive}>{m['buttons.archive']()}</Button>
 		</div>
 	</div>
 
@@ -197,14 +197,12 @@
 		<div class="gauge-line">
 			<span class="big mono">{grams(spool.remaining)} g</span>
 			<span class="of"
-				>{$_('inspector.of_remaining', {
-					values: {
-						weight: grams(spool.initial),
-						length: lengthMeters(spool.remaining, filament).toFixed(0)
-					}
+				>{m['inspector.ofRemaining']({
+					weight: grams(spool.initial),
+					length: lengthMeters(spool.remaining, filament).toFixed(0)
 				})}</span
 			>
-			<span class="used">{$_('inspector.used')} <span class="mono">{grams(used)} g</span></span>
+			<span class="used">{m['inspector.used']()} <span class="mono">{grams(used)} g</span></span>
 		</div>
 		<div class="bar"><div class="bar-fill" style="width:{pct(spool.remaining, spool.initial)}%"></div></div>
 
@@ -218,12 +216,12 @@
 							class:active={adjustMode === m.key}
 							onclick={() => setAdjustMode(m.key)}
 						>
-							{$_(m.labelKey)}
+							{m.labelKey()}
 						</button>
 					{/each}
 				</div>
 				<div class="adjust-row">
-					<span class="adj-label">{$_(adjustInfo.fieldLabelKey)}</span>
+					<span class="adj-label">{adjustInfo.fieldLabelKey()}</span>
 					<input
 						class="adj-input mono"
 						type="number"
@@ -234,13 +232,13 @@
 					/>
 					<span class="adj-unit">{adjustInfo.unit}</span>
 					<Button onclick={applyAdjust} disabled={adjustBusy}
-						>{adjustBusy ? $_('inspector.applying') : $_('inspector.apply')}</Button
+						>{adjustBusy ? m['inspector.applying']() : m['inspector.apply']()}</Button
 					>
 				</div>
 				{#if adjustError}
 					<span class="adj-error">{adjustError}</span>
 				{:else if adjustInfo.helpKey}
-					<span class="adj-help">{$_(adjustInfo.helpKey)}</span>
+					<span class="adj-help">{adjustInfo.helpKey()}</span>
 				{/if}
 			</div>
 		{/if}
@@ -248,24 +246,24 @@
 
 	<div class="grid">
 		<div class="col">
-			<SectionLabel>{$_('library.section.spool')}</SectionLabel>
+			<SectionLabel>{m['library.section.spool']()}</SectionLabel>
 			<FieldGrid>
-				<Field label={$_('spool.fields.location')}>
+				<Field label={m['spool.fields.location']()}>
 					<EditableField
 						value={spool.location}
-						placeholder={$_('library.no_location')}
+						placeholder={m['library.noLocation']()}
 						oninput={(v) => set({ location: v })}
 					/>
 				</Field>
-				<Field label={$_('spool.fields.lot_nr')}>
+				<Field label={m['spool.fields.lotNr']()}>
 					<EditableField value={spool.lot} mono oninput={(v) => set({ lot: v })} />
 				</Field>
-				<Field label={$_('spool.fields.price')}>
+				<Field label={m['spool.fields.price']()}>
 					<div class="price-row">
 						<EditableField
 							value={spool.price != null ? String(spool.price) : ''}
-							placeholder={$_('inspector.filament_default', {
-								values: { price: settings.formatPriceValue(filament.price) }
+							placeholder={m['inspector.filamentDefault']({
+								price: settings.formatPriceValue(filament.price)
 							})}
 							mono
 							oninput={setPrice}
@@ -273,14 +271,14 @@
 						<span class="price-unit">{settings.currencySymbol}</span>
 					</div>
 				</Field>
-				<Field label={$_('spool.fields.registered')}>{spool.registeredLabel}</Field>
-				<Field label={$_('spool.fields.first_used')}>
+				<Field label={m['spool.fields.registered']()}>{spool.registeredLabel}</Field>
+				<Field label={m['spool.fields.firstUsed']()}>
 					<DateTimeField value={spool.firstUsed} oninput={(iso) => set({ firstUsed: iso })} />
 				</Field>
-				<Field label={$_('spool.fields.last_used')}>
+				<Field label={m['spool.fields.lastUsed']()}>
 					<DateTimeField value={spool.lastUsed} oninput={(iso) => set({ lastUsed: iso })} />
 				</Field>
-				<Field label={$_('spool.fields.comment')}>
+				<Field label={m['spool.fields.comment']()}>
 					<EditableField value={spool.comment} oninput={(v) => set({ comment: v })} />
 				</Field>
 			</FieldGrid>
@@ -290,31 +288,31 @@
 
 		<div class="col">
 			<SectionLabel>
-				{$_('library.section.filament')}
+				{m['library.section.filament']()}
 				{#snippet right()}
 					<button class="link" onclick={() => params.select('filament', filament.id)}
-						>{$_('inspector.open_filament')}</button
+						>{m['inspector.openFilament']()}</button
 					>
 				{/snippet}
 			</SectionLabel>
 			<FieldGrid>
-				<Field label={$_('filament.fields.material')}>{filament.material}</Field>
-				<Field label={$_('filament.fields.color_hex')}>
+				<Field label={m['filament.fields.material']()}>{filament.material}</Field>
+				<Field label={m['filament.fields.colorHex']()}>
 					<span class="color-row">
 						<Swatch colors={filament.colors} size={11} radius={3} />
 						<span class="mono"
 							>{filament.colors.length > 1
-								? $_('inspector.multi', { values: { count: filament.colors.length } })
+								? m['inspector.multi']({ count: filament.colors.length })
 								: filament.colors[0].toUpperCase()}</span
 						>
 					</span>
 				</Field>
-				<Field label={$_('filament.fields.diameter')} mono>{filament.diameter} mm</Field>
-				<Field label={$_('filament.fields.density')} mono>{filament.density} g/cm³</Field>
-				<Field label={$_('inspector.nozzle_bed')} mono>{filament.nozzleTemp}° / {filament.bedTemp}°</Field>
-				<Field label={$_('inspector.filament_weight')} mono>{filament.weight} g</Field>
+				<Field label={m['filament.fields.diameter']()} mono>{filament.diameter} mm</Field>
+				<Field label={m['filament.fields.density']()} mono>{filament.density} g/cm³</Field>
+				<Field label={m['inspector.nozzleBed']()} mono>{filament.nozzleTemp}° / {filament.bedTemp}°</Field>
+				<Field label={m['inspector.filamentWeight']()} mono>{filament.weight} g</Field>
 				{#if filament.spoolWeight}
-					<Field label={$_('vendor.fields.empty_spool_weight')} mono>{filament.spoolWeight} g</Field>
+					<Field label={m['vendor.fields.emptySpoolWeight']()} mono>{filament.spoolWeight} g</Field>
 				{/if}
 			</FieldGrid>
 

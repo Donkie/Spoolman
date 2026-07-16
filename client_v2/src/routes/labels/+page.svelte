@@ -6,7 +6,7 @@
 	import PrintLayoutPanel from '$components/labels/PrintLayoutPanel.svelte';
 	import { labelDesigns } from '$lib/stores/labelDesigns.svelte';
 	import type { LabelDesign } from '$lib/labels/types';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	// Spool ids to pre-select in the print tab (deep-link, e.g. /labels?spools=1,2).
 	const preselected = $derived(
@@ -66,7 +66,7 @@
 	}
 	async function remove() {
 		if (!selectedId) return;
-		if (!confirm($_('labels.delete_confirm'))) return;
+		if (!confirm(m['labels.deleteConfirm']())) return;
 		await labelDesigns.remove(selectedId);
 		selectedId = null;
 		working = null;
@@ -87,13 +87,13 @@
 </script>
 
 <svelte:head>
-	<title>{$_('nav.labels')} | Spoolman</title>
+	<title>{m['nav.labels']()} | Spoolman</title>
 </svelte:head>
 
 <div class="page scroll-y">
 	<div class="wrap">
-		<div class="title">{$_('labels.designer_title')}</div>
-		<div class="subtitle">{$_('labels.designer_desc')}</div>
+		<div class="title">{m['labels.designerTitle']()}</div>
+		<div class="subtitle">{m['labels.designerDesc']()}</div>
 
 		<div class="toolbar">
 			<select
@@ -102,7 +102,7 @@
 				disabled={labelDesigns.designs.length === 0}
 			>
 				{#if labelDesigns.designs.length === 0}
-					<option value="">{$_('labels.no_designs_option')}</option>
+					<option value="">{m['labels.noDesignsOption']()}</option>
 				{/if}
 				{#each labelDesigns.designs as d (d.id)}
 					<option value={d.id}>{d.name}</option>
@@ -110,17 +110,17 @@
 			</select>
 
 			{#if working}
-				<input class="name" bind:value={working.name} placeholder={$_('labels.design_name')} />
+				<input class="name" bind:value={working.name} placeholder={m['labels.designName']()} />
 			{/if}
 
 			<div class="spacer"></div>
 
-			<Button variant="outline" onclick={newDesign}>+ {$_('labels.new')}</Button>
+			<Button variant="outline" onclick={newDesign}>+ {m['labels.new']()}</Button>
 			{#if working}
-				<Button variant="outline" onclick={duplicate}>{$_('labels.duplicate')}</Button>
-				<Button variant="outline" onclick={remove}>{$_('buttons.delete')}</Button>
+				<Button variant="outline" onclick={duplicate}>{m['labels.duplicate']()}</Button>
+				<Button variant="outline" onclick={remove}>{m['buttons.delete']()}</Button>
 				<Button onclick={save} disabled={saving || !dirty}
-					>{saving ? $_('labels.saving') : dirty ? $_('buttons.save') : $_('labels.saved')}</Button
+					>{saving ? m['labels.saving']() : dirty ? m['buttons.save']() : m['labels.saved']()}</Button
 				>
 			{/if}
 		</div>
@@ -128,10 +128,10 @@
 		{#if working}
 			<div class="tabs">
 				<button class:active={tab === 'design'} onclick={() => (tab = 'design')}
-					>{$_('labels.tab_design')}</button
+					>{m['labels.tabDesign']()}</button
 				>
 				<button class:active={tab === 'print'} onclick={() => (tab = 'print')}
-					>{$_('labels.tab_print')}</button
+					>{m['labels.tabPrint']()}</button
 				>
 			</div>
 
@@ -147,8 +147,8 @@
 			{/if}
 		{:else}
 			<div class="blank">
-				<p>{$_('labels.blank')}</p>
-				<Button onclick={newDesign}>+ {$_('labels.create_first')}</Button>
+				<p>{m['labels.blank']()}</p>
+				<Button onclick={newDesign}>+ {m['labels.createFirst']()}</Button>
 			</div>
 		{/if}
 	</div>

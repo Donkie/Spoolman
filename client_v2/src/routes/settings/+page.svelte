@@ -5,8 +5,8 @@
 	import ExtraFieldsManager from '$components/settings/ExtraFieldsManager.svelte';
 	import Trans from '$lib/i18n/Trans.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
-	import { _, locale } from 'svelte-i18n';
-	import { setLocale } from '$lib/i18n';
+	import { locales, getLocale, setLocale } from '$lib/paraglide/runtime.js';
+	import * as m from '$lib/paraglide/messages';
 	import { languages } from '$lib/i18n/languages';
 
 	function saveCurrency(v: string) {
@@ -16,30 +16,37 @@
 	function saveBaseUrl(v: string) {
 		settings.setBaseUrl(v.trim()).catch((e) => console.error(e));
 	}
+
+	let localeData = locales.map((code) => {
+		return {
+			code,
+			langData: languages[code]
+		};
+	});
 </script>
 
 <svelte:head>
-	<title>{$_('settings.header')} | Spoolman</title>
+	<title>{m['settings.header']()} | Spoolman</title>
 </svelte:head>
 
 <div class="page scroll-y">
 	<div class="wrap">
-		<div class="title">{$_('settings.header')}</div>
+		<div class="title">{m['settings.header']()}</div>
 
-		<div class="sec-label">{$_('settings.appearance.tab')}</div>
+		<div class="sec-label">{m['settings.appearance.tab']()}</div>
 		<Card divided>
-			<SettingRow title={$_('settings.language.label')} desc={$_('settings.language.desc')}>
-				<select class="lang" value={$locale} onchange={(e) => setLocale(e.currentTarget.value)}>
-					{#each Object.entries(languages) as [code, meta] (code)}
-						<option value={code}>{meta.name}</option>
+			<SettingRow title={m['settings.language.label']()} desc={m['settings.language.desc']()}>
+				<select class="lang" value={getLocale()} onchange={(e) => setLocale(e.currentTarget.value)}>
+					{#each localeData as locale (locale.code)}
+						<option value={locale.code}>{locale.langData.name}</option>
 					{/each}
 				</select>
 			</SettingRow>
 		</Card>
 
-		<div class="sec-label">{$_('settings.general.tab')}</div>
+		<div class="sec-label">{m['settings.general.tab']()}</div>
 		<Card divided>
-			<SettingRow title={$_('settings.general.currency.label')} desc={$_('settings.general.currency.desc')}>
+			<SettingRow title={m['settings.general.currency.label']()} desc={m['settings.general.currency.desc']()}>
 				<input
 					class="code mono"
 					value={settings.currency}
@@ -48,8 +55,8 @@
 				/>
 			</SettingRow>
 			<SettingRow
-				title={$_('settings.general.round_prices.label')}
-				desc={$_('settings.general.round_prices.desc')}
+				title={m['settings.general.roundPrices.label']()}
+				desc={m['settings.general.roundPrices.desc']()}
 			>
 				<Toggle
 					checked={settings.roundPrices}
@@ -57,8 +64,8 @@
 				/>
 			</SettingRow>
 			<SettingRow
-				title={$_('settings.general.external_url.label')}
-				desc={$_('settings.general.external_url.desc')}
+				title={m['settings.general.externalUrl.label']()}
+				desc={m['settings.general.externalUrl.desc']()}
 			>
 				<input
 					class="url"
@@ -69,11 +76,11 @@
 			</SettingRow>
 		</Card>
 
-		<div class="sec-label">{$_('settings.library.tab')}</div>
+		<div class="sec-label">{m['settings.library.tab']()}</div>
 		<Card divided>
 			<SettingRow
-				title={$_('settings.library.low_threshold.label')}
-				desc={$_('settings.library.low_threshold.desc')}
+				title={m['settings.library.lowThreshold.label']()}
+				desc={m['settings.library.lowThreshold.desc']()}
 			>
 				<input
 					class="num mono"
@@ -85,8 +92,8 @@
 			</SettingRow>
 		</Card>
 
-		<div class="sec-label">{$_('settings.extra_fields.tab')}</div>
-		<div class="subtitle sub2"><Trans key="settings.extra_fields.description" /></div>
+		<div class="sec-label">{m['settings.extraFields.tab']()}</div>
+		<div class="subtitle sub2"><Trans key="settings.extraFields.description" /></div>
 		<ExtraFieldsManager />
 	</div>
 </div>

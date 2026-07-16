@@ -39,7 +39,7 @@
             "create": "Tworzenie szpuli",
             "clone": "Klonowanie szpuli",
             "archive": "Zarchiwizuj szpulę",
-            "show_title": "[Szpula #{id}] {name}",
+            "show_title": "[Szpula #{{id}}] {{name}}",
             "adjust": "Dostosuj szpulę filamentu"
         },
         "spool": "Szpule",
@@ -94,7 +94,7 @@
             "adjust_filament_value": "Ilość zużycia"
         },
         "formats": {
-            "last_used": "Ostatnio użyty {date}"
+            "last_used": "Ostatnio użyty {{date}}"
         }
     },
     "dashboard": {
@@ -102,17 +102,17 @@
     },
     "notifications": {
         "success": "Powodzenie",
-        "undoable": "Na cofnięcie masz {seconds} sek.",
-        "createSuccess": "Pomyślnie utworzono {resource}",
-        "deleteSuccess": "Pomyślnie usunięto {resource}",
-        "deleteError": "Błąd podczas usuwania {resource} (kod statusu: {statusCode})",
-        "editSuccess": "Pomyślnie edytowano {resource}",
-        "editError": "Błąd podczas edycji {resource} (kod statusu: {statusCode})",
-        "importProgress": "Importowanie: {processed}/{total}",
-        "error": "Błąd (kod statusu: {statusCode})",
-        "createError": "Wystąpił błąd podczas tworzenia {resource} (kod statusu: {statusCode})",
+        "undoable": "Na cofnięcie masz {{seconds}} sek.",
+        "createSuccess": "Pomyślnie utworzono {{resource}}",
+        "deleteSuccess": "Pomyślnie usunięto {{resource}}",
+        "deleteError": "Błąd podczas usuwania {{resource}} (kod statusu: {{statusCode}})",
+        "editSuccess": "Pomyślnie edytowano {{resource}}",
+        "editError": "Błąd podczas edycji {{resource}} (kod statusu: {{statusCode}})",
+        "importProgress": "Importowanie: {{processed}}/{{total}}",
+        "error": "Błąd (kod statusu: {{statusCode}})",
+        "createError": "Wystąpił błąd podczas tworzenia {{resource}} (kod statusu: {{statusCode}})",
         "saveSuccessful": "Pomyślnie zapisano!",
-        "validationError": "Błąd walidacji: {error}"
+        "validationError": "Błąd walidacji: {{error}}"
     },
     "loading": "Wczytywanie",
     "version": "Wersja",
@@ -169,8 +169,8 @@
         "qrcode": {
             "button": "Drukuj etykiety",
             "title": "Drukowanie etykiety",
-            "bedTemp": "TS: {temp}",
-            "extruderTemp": "TE: {temp}",
+            "bedTemp": "TS: {{temp}}",
+            "extruderTemp": "TE: {{temp}}",
             "textSize": "Rozmiar tekstu etykiety",
             "showSpoolmanIcon": "Pokaż ikonę Spoolman",
             "showVendor": "Producent",
@@ -180,8 +180,8 @@
             "showTemperatures": "Temperatury",
             "showFilamentComment": "Komentarz filamentu",
             "showVendorComment": "Komentarz producenta",
-            "spoolWeight": "Waga szpuli: {weight}",
-            "lotNr": "LOT: {lot}",
+            "spoolWeight": "Waga szpuli: {{weight}}",
+            "lotNr": "LOT: {{lot}}",
             "showSpoolComment": "Komentarz szpuli",
             "template": "Wzór etykiety",
             "useHTTPUrl": {
@@ -199,14 +199,16 @@
                 "withIcon": "Z ikoną",
                 "simple": "Proste"
             },
-            "templateHelp": "Użyj '{''}', aby wstawić wartości obiektu szpuli jako tekst. Na przykład '{'id'}' zostanie zastąpione identyfikatorem szpuli lub '{'filament.material'}' zostanie zastąpione materiałem szpuli. jeśli brakuje wartości, zostanie ona zastąpiona „?”. Drugi zestaw '{''}' może być użyty do usunięcia tego. Ponadto każdy tekst między zestawami '{''}' zostanie usunięty, jeśli brakuje wartości. Na przykład '{'Lot Nr: '{'lot_nr'}''}' pokaże etykietę tylko wtedy, gdy szpula ma numer partii. Otocz tekst podwójną gwiazdką **, aby go pogrubić. Kliknij przycisk, aby wyświetlić listę wszystkich dostępnych tagów."
+            "templateHelp": "Użyj {}, aby wstawić wartości obiektu szpuli jako tekst. Na przykład {id} zostanie zastąpione identyfikatorem szpuli lub {filament.material} zostanie zastąpione materiałem szpuli. jeśli brakuje wartości, zostanie ona zastąpiona „?”. Drugi zestaw {} może być użyty do usunięcia tego. Ponadto każdy tekst między zestawami {} zostanie usunięty, jeśli brakuje wartości. Na przykład {Lot Nr: {lot_nr}} pokaże etykietę tylko wtedy, gdy szpula ma numer partii. Otocz tekst podwójną gwiazdką **, aby go pogrubić. Kliknij przycisk, aby wyświetlić listę wszystkich dostępnych tagów."
         },
         "spoolSelect": {
             "title": "Wybierz szpule",
             "description": "Wybierz szpule dla których mają być drukowane etykiety.",
             "showArchived": "Pokaż zarchiwizowane",
             "selectAll": "Wybierz/Odznacz wszystko",
-            "selectedTotal": "{count, plural, one {Wybrano {count} szpulę} few {Wybrano {count} szpule} many {Wybrano {count} szpul} other {Wybrano {count} szpul}}",
+            "selectedTotal_one": "Wybrano {{count}} szpulę",
+            "selectedTotal_few": "Wybrano {{count}} szpule",
+            "selectedTotal_many": "Wybrano {{count}} szpul",
             "noSpoolsSelected": "Nie wybrano żadnych szpul."
         }
     },
@@ -218,7 +220,7 @@
             "streamApiNotSupported": "Przeglądarka nie obsługuje API MediaStream.",
             "notReadable": "Kamera jest niedostępna do odczytu.",
             "notFound": "Nie znaleziono kamery.",
-            "unknown": "Wystąpił nieznany błąd. ({error})"
+            "unknown": "Wystąpił nieznany błąd. ({{error}})"
         },
         "description": "Zeskanuj kod QR Spoolman, aby wyświetlić szczegółowe informacje o szpuli."
     },
@@ -263,7 +265,7 @@
             "edit": "Edytowanie filamentu",
             "list": "Filamenty",
             "show": "Pokaż filament",
-            "show_title": "[Filament #{id}] {name}"
+            "show_title": "[Filament #{{id}}] {{name}}"
         },
         "form": {
             "filament_updated": "Ten filament został zaktualizowany przez kogoś/coś innego od czasu otwarcia tej strony. Zapisanie nadpisze te zmiany!",
@@ -290,7 +292,7 @@
             "edit": "Edytuj producenta",
             "list": "Producenci",
             "show": "Pokaż producenta",
-            "show_title": "[Producent #{id}] {name}"
+            "show_title": "[Producent #{{id}}] {{name}}"
         },
         "form": {
             "vendor_updated": "Ten producent został zaktualizowany przez kogoś/coś innego od czasu otwarcia tej strony. Zapisanie spowoduje nadpisanie tych zmian!"
@@ -307,24 +309,24 @@
         "suffix": " | Spoolman",
         "filament": {
             "list": "Filamenty | Spoolman",
-            "edit": "#{id} Edytuj filament | Spoolman",
+            "edit": "#{{id}} Edytuj filament | Spoolman",
             "create": "Tworzenie filamentu | Spoolman",
-            "clone": "#{id} Klonowanie filamentu | Spoolman",
-            "show": "#{id} Filament | Spoolman"
+            "clone": "#{{id}} Klonowanie filamentu | Spoolman",
+            "show": "#{{id}} Filament | Spoolman"
         },
         "spool": {
             "list": "Szpule | Spoolman",
-            "show": "#{id} Szpula | Spoolman",
-            "edit": "#{id} Edytuj szpulę | Spoolman",
+            "show": "#{{id}} Szpula | Spoolman",
+            "edit": "#{{id}} Edytuj szpulę | Spoolman",
             "create": "Tworzenie szpuli | Spoolman",
-            "clone": "#{id} Klonowanie szpuli | Spoolman"
+            "clone": "#{{id}} Klonowanie szpuli | Spoolman"
         },
         "vendor": {
-            "show": "#{id} Pokaż producenta | Spoolman",
+            "show": "#{{id}} Pokaż producenta | Spoolman",
             "list": "Producenci | Spoolman",
-            "edit": "#{id} Edytuj producenta | Spoolman",
+            "edit": "#{{id}} Edytuj producenta | Spoolman",
             "create": "Stwórz producenta | Spoolman",
-            "clone": "#{id} Sklonuj producenta | Spoolman"
+            "clone": "#{{id}} Sklonuj producenta | Spoolman"
         },
         "home": {
             "list": "Strona główna | Spoolman"
@@ -394,9 +396,9 @@
             },
             "non_unique_key_error": "Klucz musi być unikalny.",
             "description": "<p>Tutaj możesz dodać dodatkowe pola niestandardowe do swoich podmiotów.</p><p>Po dodaniu pola nie można zmienić jego klucza ani typu, a w przypadku pól typu wyboru nie można usunąć wyborów ani zmienić stanu wielokrotnego wyboru. Jeśli usuniesz pole, powiązane dane dla wszystkich podmiotów zostaną usunięte.</p><p>Klucz jest tym, co inne programy odczytują/zapisują jako dane, więc jeśli twoje niestandardowe pole ma być zintegrowane z programem innej firmy, upewnij się, że ustawiłeś je poprawnie. Wartość domyślna jest stosowana tylko do nowych elementów.</p><p>Dodatkowych pól nie można sortować ani filtrować w widokach tabeli.</p>",
-            "choices_missing_error": "Nie możesz usunąc możliwośći wyboru. Ten wybór nie istnieje: {choices}",
+            "choices_missing_error": "Nie możesz usunąc możliwośći wyboru. Ten wybór nie istnieje: {{choices}}",
             "key_not_changed": "Zmień klucz na inny.",
-            "delete_confirm": "Usunąć pole {name}?",
+            "delete_confirm": "Usunąć pole {{name}}?",
             "delete_confirm_description": "Ta akcja usunie wszystkie pola i powiązane z nimi dane dla wszystkich obiektów."
         },
         "header": "Ustawienia"

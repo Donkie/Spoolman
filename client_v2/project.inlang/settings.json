@@ -1,0 +1,40 @@
+{
+	"$schema": "https://inlang.com/schema/project-settings",
+	"modules": [
+		"https://cdn.jsdelivr.net/npm/@inlang/plugin-message-format@4/dist/index.js",
+		"https://cdn.jsdelivr.net/npm/@inlang/plugin-m-function-matcher@2/dist/index.js",
+		"https://cdn.jsdelivr.net/npm/@inlang/plugin-i18next@latest/dist/index.js"
+	],
+	"plugin.inlang.i18next": {
+		"pathPattern": "./static/locales/{locale}/common.json"
+	},
+	"baseLocale": "en",
+	"locales": [
+		"en",
+		"sv",
+		"de",
+		"es",
+		"zh",
+		"zh-Hant",
+		"pl",
+		"ru",
+		"cs",
+		"nb-NO",
+		"nl",
+		"fr",
+		"hu",
+		"it",
+		"uk",
+		"el",
+		"da",
+		"pt",
+		"fa",
+		"ro",
+		"ja",
+		"pt-BR",
+		"ta",
+		"th",
+		"lt",
+		"tr"
+	]
+}

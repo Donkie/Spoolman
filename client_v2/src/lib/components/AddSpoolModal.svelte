@@ -9,7 +9,7 @@
 	import { spoolSource, type NewFilamentDraft } from '$lib/api/spoolSource';
 	import { fields } from '$lib/stores/fields.svelte';
 	import { externalColors, getExternalMaterials, type ExternalFilament } from '$lib/api/external';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		open: boolean;
@@ -74,7 +74,7 @@
 	}
 	function cVendor(c: Choice) {
 		return c.source === 'catalog'
-			? (inventory.vendorById(c.filament.vendorId)?.name ?? $_('add.no_manufacturer'))
+			? (inventory.vendorById(c.filament.vendorId)?.name ?? m['add.noManufacturer']())
 			: c.ext.manufacturer;
 	}
 	function cMaterial(c: Choice) {
@@ -94,7 +94,7 @@
 		return c.source === 'catalog' ? c.filament.price : undefined;
 	}
 	function vendorName(f: Filament): string {
-		return inventory.vendorById(f.vendorId)?.name ?? $_('add.no_manufacturer');
+		return inventory.vendorById(f.vendorId)?.name ?? m['add.noManufacturer']();
 	}
 
 	// --- search -------------------------------------------------------------
@@ -176,19 +176,19 @@
 	let lastUsed = $state('');
 	let extraValues = $state<Extra>({});
 
-	const FILL_MODES: { key: FillMode; labelKey: string }[] = [
-		{ key: 'full', labelKey: 'add.fill.full' },
-		{ key: 'used', labelKey: 'add.fill.used' },
-		{ key: 'remaining', labelKey: 'add.fill.remaining' },
-		{ key: 'measured', labelKey: 'add.fill.measured' }
+	const FILL_MODES: { key: FillMode; labelKey: () => string }[] = [
+		{ key: 'full', labelKey: m['add.fill.full'] },
+		{ key: 'used', labelKey: m['add.fill.used'] },
+		{ key: 'remaining', labelKey: m['add.fill.remaining'] },
+		{ key: 'measured', labelKey: m['add.fill.measured'] }
 	];
 	let fillHelp = $derived(
 		fillMode === 'used'
-			? $_('add.fill_help.used')
+			? m['add.fillHelp.used']()
 			: fillMode === 'remaining'
-				? $_('add.fill_help.remaining')
+				? m['add.fillHelp.remaining']()
 				: fillMode === 'measured'
-					? $_('add.fill_help.measured')
+					? m['add.fillHelp.measured']()
 					: ''
 	);
 
@@ -254,10 +254,10 @@
 	let vendorMatch = $derived(vendorNames.find((v) => v.toLowerCase() === vendorTrimmed.toLowerCase()));
 	let vendorHint = $derived(
 		vendorTrimmed === ''
-			? $_('add.vendor_hint.optional')
+			? m['add.vendorHint.optional']()
 			: vendorMatch
-				? $_('add.vendor_hint.existing', { values: { name: vendorMatch } })
-				: $_('add.vendor_hint.new', { values: { name: vendorTrimmed } })
+				? m['add.vendorHint.existing']({ name: vendorMatch })
+				: m['add.vendorHint.new']({ name: vendorTrimmed })
 	);
 	function onMaterial(v: string) {
 		nf.material = v;
@@ -358,13 +358,9 @@
 	}
 
 	let targetName = $derived(
-		creating ? nf.name.trim() || $_('add.new_filament') : chosen ? cName(chosen) : ''
+		creating ? nf.name.trim() || m['add.newFilament']() : chosen ? cName(chosen) : ''
 	);
-	let summary = $derived(
-		chosen || creating
-			? $_('add.summary', { values: { count: countN, name: targetName, weight: netWeight || '?' } })
-			: ''
-	);
+	let summary = $derived(chosen || creating ? m['add.summary']({ count: countN }) : '');
 
 	// --- validation ---------------------------------------------------------
 	// Mirrors the filament creation API (spoolman/api/v1/filament.py):
@@ -375,11 +371,11 @@
 		{ required = false, min, gt }: { required?: boolean; min?: number; gt?: number } = {}
 	) {
 		const t = v.trim();
-		if (t === '') return required ? $_('validation.required') : '';
+		if (t === '') return required ? m['validation.required']() : '';
 		const n = Number(t);
-		if (!Number.isFinite(n)) return $_('validation.must_be_number');
-		if (gt != null && n <= gt) return $_('validation.must_be_gt', { values: { value: gt } });
-		if (min != null && n < min) return $_('validation.must_be_min', { values: { value: min } });
+		if (!Number.isFinite(n)) return m['validation.mustBeNumber']();
+		if (gt != null && n <= gt) return m['validation.mustBeGt']({ value: gt });
+		if (min != null && n < min) return m['validation.mustBeMin']({ value: min });
 		return '';
 	}
 	const HEX_RE = /^#?[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/;
@@ -387,15 +383,15 @@
 	let errors = $derived.by(() => {
 		const e: Record<string, string> = {};
 		if (creating) {
-			if (nf.name.trim().length === 0) e.name = $_('validation.required');
-			else if (nf.name.trim().length > 64) e.name = $_('validation.max_chars', { values: { max: 64 } });
-			if (nf.material.trim().length > 64) e.material = $_('validation.max_chars', { values: { max: 64 } });
-			if (nf.vendorName.trim().length > 64) e.vendor = $_('validation.max_chars', { values: { max: 64 } });
+			if (nf.name.trim().length === 0) e.name = m['validation.required']();
+			else if (nf.name.trim().length > 64) e.name = m['validation.maxChars']({ max: 64 });
+			if (nf.material.trim().length > 64) e.material = m['validation.maxChars']({ max: 64 });
+			if (nf.vendorName.trim().length > 64) e.vendor = m['validation.maxChars']({ max: 64 });
 			e.density = numErr(nf.density, { required: true, gt: 0 });
 			e.diameter = numErr(nf.diameter, { required: true, gt: 0 });
 			e.nozzleTemp = numErr(nf.nozzleTemp, { min: 0 });
 			e.bedTemp = numErr(nf.bedTemp, { min: 0 });
-			if (nf.colorHex.trim() && !HEX_RE.test(nf.colorHex.trim())) e.colorHex = $_('validation.hex_digits');
+			if (nf.colorHex.trim() && !HEX_RE.test(nf.colorHex.trim())) e.colorHex = m['validation.hexDigits']();
 		}
 		e.count = numErr(count, { required: true, gt: 0 });
 		e.netWeight = numErr(netWeight, { gt: 0 });
@@ -426,11 +422,11 @@
 			onkeydown={(e) => e.stopPropagation()}
 		>
 			<div class="modal-head">
-				<span class="title">{$_('topbar.add_spools')}</span>
+				<span class="title">{m['topbar.addSpools']()}</span>
 				{#if step === 2}
-					<span class="step-hint">{$_('add.step2')}</span>
+					<span class="step-hint">{m['add.step2']()}</span>
 				{/if}
-				<button class="x" onclick={close} aria-label={$_('buttons.close')}>✕</button>
+				<button class="x" onclick={close} aria-label={m['buttons.close']()}>✕</button>
 			</div>
 
 			{#if step === 1}
@@ -439,14 +435,14 @@
 						class="search-big"
 						value={query}
 						oninput={(e) => onSearch(e.currentTarget.value)}
-						placeholder={$_('add.search_placeholder')}
+						placeholder={m['add.searchPlaceholder']()}
 					/>
 					<div class="results">
-						<div class="res-hdr">{$_('add.your_catalog')}</div>
+						<div class="res-hdr">{m['add.yourCatalog']()}</div>
 						{#if searching && localResults.length === 0}
-							<div class="res-note">{$_('add.searching')}</div>
+							<div class="res-note">{m['add.searching']()}</div>
 						{:else if localResults.length === 0}
-							<div class="res-note">{$_('add.no_catalog')}</div>
+							<div class="res-note">{m['add.noCatalog']()}</div>
 						{:else}
 							{#each localResults as f (f.id)}
 								<button class="res-item" onclick={() => choose({ source: 'catalog', filament: f })}>
@@ -455,19 +451,19 @@
 										<span class="rn">{f.name}</span>
 										<span class="rs">{vendorName(f)} · {f.material}</span>
 									</div>
-									<span class="tag in-catalog">{$_('add.in_catalog')}</span>
+									<span class="tag in-catalog">{m['add.inCatalog']()}</span>
 								</button>
 							{/each}
 						{/if}
 
-						<div class="res-hdr">SpoolmanDB <span class="hdr-note">{$_('add.community_db')}</span></div>
+						<div class="res-hdr">SpoolmanDB <span class="hdr-note">{m['add.communityDb']()}</span></div>
 						{#if extError}
-							<div class="res-note">{$_('add.db_unavailable')}</div>
+							<div class="res-note">{m['add.dbUnavailable']()}</div>
 						{:else if searching && externalResults.length === 0}
-							<div class="res-note">{$_('add.searching')}</div>
+							<div class="res-note">{m['add.searching']()}</div>
 						{:else if externalResults.length === 0}
 							<div class="res-note">
-								{query.trim() ? $_('add.type_to_search_matches') : $_('add.type_to_search_all')}
+								{query.trim() ? m['add.typeToSearchMatches']() : m['add.typeToSearchAll']()}
 							</div>
 						{:else}
 							{#each externalResults as ext (ext.id)}
@@ -486,11 +482,9 @@
 					<button class="create-new" onclick={startCreate}>
 						<span class="cn-plus">＋</span>
 						<span
-							>{query.trim()
-								? $_('add.create_new_named', { values: { name: query.trim() } })
-								: $_('add.create_new')}</span
+							>{query.trim() ? m['add.createNewNamed']({ name: query.trim() }) : m['add.createNew']()}</span
 						>
-						<span class="cn-sub">{$_('add.create_new_sub')}</span>
+						<span class="cn-sub">{m['add.createNewSub']()}</span>
 					</button>
 				</div>
 			{:else}
@@ -499,16 +493,16 @@
 					{#if creating}
 						<div class="fil-section">
 							<div class="fs-head">
-								<span class="fs-title">{$_('add.new_filament_title')}</span>
-								<button class="fs-back" onclick={() => (step = 1)}>{$_('add.use_existing')}</button>
+								<span class="fs-title">{m['add.newFilamentTitle']()}</span>
+								<button class="fs-back" onclick={() => (step = 1)}>{m['add.useExisting']()}</button>
 							</div>
 							<div class="form">
 								<label class="wide">
-									{$_('filament.fields.vendor')}
+									{m['filament.fields.vendor']()}
 									<input
 										list="vendor-list"
 										bind:value={nf.vendorName}
-										placeholder={$_('filament.fields.vendor')}
+										placeholder={m['filament.fields.vendor']()}
 										class:invalid={errors.vendor}
 									/>
 									{#if errors.vendor}
@@ -518,16 +512,16 @@
 									{/if}
 								</label>
 								<label class="wide">
-									{$_('add.filament_name')} <span class="req">*</span>
+									{m['add.filamentName']()} <span class="req">*</span>
 									<input
 										bind:value={nf.name}
-										placeholder={$_('add.filament_name_placeholder')}
+										placeholder={m['add.filamentNamePlaceholder']()}
 										class:invalid={errors.name}
 									/>
 									{#if errors.name}<span class="err">{errors.name}</span>{/if}
 								</label>
 								<label>
-									{$_('filament.fields.material')}
+									{m['filament.fields.material']()}
 									<input
 										list="material-list"
 										value={nf.material}
@@ -538,14 +532,14 @@
 									{#if errors.material}<span class="err">{errors.material}</span>{/if}
 								</label>
 								<label class="color-field">
-									{$_('filament.fields.color_hex')}
+									{m['filament.fields.colorHex']()}
 									<div class="color-row">
 										<input
 											class="color-pick"
 											type="color"
 											value={colorPicker}
 											oninput={(e) => onColorPick(e.currentTarget.value)}
-											aria-label={$_('add.pick_color')}
+											aria-label={m['add.pickColor']()}
 										/>
 										<input
 											class="mono"
@@ -567,13 +561,13 @@
 
 							<button class="adv-toggle" onclick={() => (showAdvanced = !showAdvanced)}>
 								{showAdvanced ? '▾' : '▸'}
-								{$_('add.advanced')}
-								{#if !showAdvanced}<span class="adv-note">{$_('add.advanced_note')}</span>{/if}
+								{m['add.advanced']()}
+								{#if !showAdvanced}<span class="adv-note">{m['add.advancedNote']()}</span>{/if}
 							</button>
 							{#if showAdvanced}
 								<div class="form">
 									<label
-										>{$_('filament.fields.density')} <span class="u">g/cm³</span> <span class="req">*</span>
+										>{m['filament.fields.density']()} <span class="u">g/cm³</span> <span class="req">*</span>
 										<NumberInput
 											bind:value={nf.density}
 											min={0}
@@ -584,7 +578,7 @@
 										{#if errors.density}<span class="err">{errors.density}</span>{/if}
 									</label>
 									<label
-										>{$_('filament.fields.diameter')} <span class="u">mm</span> <span class="req">*</span>
+										>{m['filament.fields.diameter']()} <span class="u">mm</span> <span class="req">*</span>
 										<NumberInput
 											bind:value={nf.diameter}
 											min={0}
@@ -595,7 +589,7 @@
 										{#if errors.diameter}<span class="err">{errors.diameter}</span>{/if}
 									</label>
 									<label
-										>{$_('add.nozzle')} <span class="u">°C</span>
+										>{m['add.nozzle']()} <span class="u">°C</span>
 										<NumberInput
 											bind:value={nf.nozzleTemp}
 											min={0}
@@ -607,7 +601,7 @@
 										{#if errors.nozzleTemp}<span class="err">{errors.nozzleTemp}</span>{/if}
 									</label>
 									<label
-										>{$_('add.bed')} <span class="u">°C</span>
+										>{m['add.bed']()} <span class="u">°C</span>
 										<NumberInput
 											bind:value={nf.bedTemp}
 											min={0}
@@ -632,27 +626,27 @@
 								</div>
 								<div class="cs">{cVendor(chosen)} · {cMaterial(chosen)}</div>
 							</div>
-							<button class="change" onclick={() => (step = 1)}>{$_('add.change')}</button>
+							<button class="change" onclick={() => (step = 1)}>{m['add.change']()}</button>
 						</div>
 						{#if chosen.source === 'external'}
-							<div class="import-note">{$_('add.import_note')}</div>
+							<div class="import-note">{m['add.importNote']()}</div>
 						{/if}
 					{/if}
 
 					<!-- Spool section -->
 					<div class="form">
 						<label
-							>{$_('add.count')}
+							>{m['add.count']()}
 							<NumberInput bind:value={count} min={1} step={1} spaced invalid={!!errors.count} />
 							{#if errors.count}<span class="err">{errors.count}</span>{/if}
 						</label>
 						<label
-							>{$_('add.net_weight')} <span class="u">g</span>
+							>{m['add.netWeight']()} <span class="u">g</span>
 							<NumberInput bind:value={netWeight} min={0} step={50} spaced invalid={!!errors.netWeight} />
 							{#if errors.netWeight}<span class="err">{errors.netWeight}</span>{/if}
 						</label>
 						<label
-							>{$_('add.empty_spool')} <span class="u">g</span>
+							>{m['add.emptySpool']()} <span class="u">g</span>
 							<NumberInput
 								bind:value={spoolWeight}
 								min={0}
@@ -664,16 +658,16 @@
 							{#if errors.spoolWeight}<span class="err">{errors.spoolWeight}</span>{/if}
 						</label>
 						<label
-							>{$_('add.price_per_spool')} <span class="u">{settings.currency}</span>
+							>{m['add.pricePerSpool']()} <span class="u">{settings.currency}</span>
 							<input class="mono" bind:value={price} placeholder="—" class:invalid={errors.price} />
 							{#if errors.price}<span class="err">{errors.price}</span>{/if}
 						</label>
-						<label>{$_('spool.fields.lot_nr')}<input class="mono" bind:value={lot} placeholder="—" /></label>
+						<label>{m['spool.fields.lotNr']()}<input class="mono" bind:value={lot} placeholder="—" /></label>
 						<label class="wide"
-							>{$_('spool.fields.location')}<input
+							>{m['spool.fields.location']()}<input
 								list="add-locations"
 								bind:value={location}
-								placeholder={$_('add.location_placeholder')}
+								placeholder={m['add.locationPlaceholder']()}
 							/></label
 						>
 					</div>
@@ -682,11 +676,13 @@
 					>
 
 					<div class="fill">
-						<div class="fill-label">{$_('add.fill_level')}</div>
+						<div class="fill-label">{m['add.fillLevel']()}</div>
 						<div class="seg">
-							{#each FILL_MODES as m (m.key)}
-								<button class="seg-btn" class:active={fillMode === m.key} onclick={() => (fillMode = m.key)}
-									>{$_(m.labelKey)}</button
+							{#each FILL_MODES as fill_mode (fill_mode.key)}
+								<button
+									class="seg-btn"
+									class:active={fillMode === fill_mode.key}
+									onclick={() => (fillMode = fill_mode.key)}>{fill_mode.labelKey()}</button
 								>
 							{/each}
 						</div>
@@ -708,14 +704,14 @@
 
 					<div class="form dates">
 						<label
-							>{$_('spool.fields.first_used')}<input type="datetime-local" bind:value={firstUsed} /></label
+							>{m['spool.fields.firstUsed']()}<input type="datetime-local" bind:value={firstUsed} /></label
 						>
-						<label>{$_('spool.fields.last_used')}<input type="datetime-local" bind:value={lastUsed} /></label>
+						<label>{m['spool.fields.lastUsed']()}<input type="datetime-local" bind:value={lastUsed} /></label>
 					</div>
 
 					<div class="form comment-row">
 						<label class="wide"
-							>{$_('spool.fields.comment')}<textarea rows="2" bind:value={comment} placeholder="—"
+							>{m['spool.fields.comment']()}<textarea rows="2" bind:value={comment} placeholder="—"
 							></textarea></label
 						>
 					</div>
@@ -726,10 +722,10 @@
 						<div class="summary">{summary}</div>
 						<div class="actions">
 							<Button variant="outline" disabled={!canSubmit || submitting} onclick={() => submit(true)}
-								>{$_('add.add_and_new')}</Button
+								>{m['add.addAndNew']()}</Button
 							>
 							<Button disabled={!canSubmit || submitting} onclick={() => submit(false)}>
-								{submitting ? $_('add.adding') : $_('add.add_n', { values: { count: countN } })}
+								{submitting ? m['add.adding']() : m['add.addN']({ count: countN })}
 							</Button>
 						</div>
 					</div>

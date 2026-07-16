@@ -34,17 +34,17 @@
     "warnWhenUnsavedChanges": "Çıkmak istediğinizden emin misiniz? Kaydedilmemiş değişiklikleriniz bulunmakta.",
     "notifications": {
         "success": "Başarılı",
-        "error": "Hata (durum kodu: {statusCode})",
-        "undoable": "Geri almak için {seconds} saniyeniz var.",
-        "createSuccess": "{resource} başarıyla oluşturuldu",
-        "createError": "{resource} oluşturulurken bir hata ile karşılaşıldı (durum kodu :{statusCode})",
-        "deleteSuccess": "{resource} başarılı şekilde silindi",
-        "deleteError": "{resource} silinirken hata ile karşılaşıldı(durum kodu:{statusCode})",
-        "editSuccess": "{resource} başarılı şekilde düzenlendi",
-        "editError": "{resource} düzenlenirken hata ile karşılaşıldı(durum kodu:{statusCode})",
-        "importProgress": "İçe aktarılıyor: {processed}/{total}",
+        "error": "Hata (durum kodu: {{statusCode}})",
+        "undoable": "Geri almak için {{seconds}} saniyeniz var.",
+        "createSuccess": "{{resource}} başarıyla oluşturuldu",
+        "createError": "{{resource}} oluşturulurken bir hata ile karşılaşıldı (durum kodu :{{statusCode}})",
+        "deleteSuccess": "{{resource}} başarılı şekilde silindi",
+        "deleteError": "{{resource}} silinirken hata ile karşılaşıldı(durum kodu:{{statusCode}})",
+        "editSuccess": "{{resource}} başarılı şekilde düzenlendi",
+        "editError": "{{resource}} düzenlenirken hata ile karşılaşıldı(durum kodu:{{statusCode}})",
+        "importProgress": "İçe aktarılıyor: {{processed}}/{{total}}",
         "saveSuccessful": "Kayıt başarılı!",
-        "validationError": "Form kontrol hatası: {error}"
+        "validationError": "Form kontrol hatası: {{error}}"
     },
     "kofi": "Ko-fi'den bana birşeyler ateşle",
     "loading": "Yükleniyor",
@@ -106,7 +106,7 @@
             "button": "Etiketleri Yazdır",
             "title": "Etiket Yazdırılıyor",
             "template": "Etiket Şablonu",
-            "templateHelp": "Makara nesnesinin değerlerini metin olarak eklemek için '{''}' işaretini kullanın. Örneğin, '{'id'}' makaraya ait kimlik numarasıyla, '{'filament.material'}' ise makaradaki malzeme türüyle değiştirilecektir. Eğer bir değer eksikse, yerine \"?\" ibaresi konur. İkinci bir '{''}' çifti kullanılarak bu durum önlenebilir. Ayrıca, iki '{''}' çifti arasındaki herhangi bir metin, değer eksikse tamamen kaldırılır. Örneğin, '{'Lot Nr: '{'lot_nr'}''}' ifadesi yalnızca makarada lot numarası varsa etiket olarak gösterilecektir. Metni kalın yapmak için çift yıldız işareti ** ile metni çevreleyin. Tüm kullanılabilir etiketlerin listesini görmek için butona tıklayın.",
+            "templateHelp": "Makara nesnesinin değerlerini metin olarak eklemek için {} işaretini kullanın. Örneğin, {id} makaraya ait kimlik numarasıyla, {filament.material} ise makaradaki malzeme türüyle değiştirilecektir. Eğer bir değer eksikse, yerine \"?\" ibaresi konur. İkinci bir {} çifti kullanılarak bu durum önlenebilir. Ayrıca, iki {} çifti arasındaki herhangi bir metin, değer eksikse tamamen kaldırılır. Örneğin, {Lot Nr: {lot_nr}} ifadesi yalnızca makarada lot numarası varsa etiket olarak gösterilecektir. Metni kalın yapmak için çift yıldız işareti ** ile metni çevreleyin. Tüm kullanılabilir etiketlerin listesini görmek için butona tıklayın.",
             "textSize": "Etiket Metin Boyutu",
             "showContent": "Etiket Yazdır",
             "useHTTPUrl": {
@@ -131,7 +131,8 @@
             "showArchived": "Arşivlenmişleri göster",
             "noSpoolsSelected": "Hiçbir makara seçimi yapmadınız.",
             "selectAll": "Tümünü Seçin/Kaldırın",
-            "selectedTotal": "{count, plural, one {{count} makara seçildi} other {{count} makara seçildi}}"
+            "selectedTotal_one": "{{count}} makara seçildi",
+            "selectedTotal_other": "{{count}} makara seçildi"
         }
     },
     "scanner": {
@@ -143,7 +144,7 @@
             "streamApiNotSupported": "Bu tarayıcı MediaStream API'sini desteklememektedir.",
             "notReadable": "Kamera okunabilir değil.",
             "notFound": "Kamera bulunamadı.",
-            "unknown": "Bilinmeyen hata oluştu.({error})"
+            "unknown": "Bilinmeyen hata oluştu.({{error}})"
         }
     },
     "spool": {
@@ -190,7 +191,7 @@
             "edit": "Makara Düzenle",
             "list": "Makaralar",
             "show": "Makarayı Göster",
-            "show_title": "[Makara #{id}] {name}",
+            "show_title": "[Makara #{{id}}] {{name}}",
             "archive": "Makarayı Arşivle",
             "adjust": "Makara filamentini ayarla"
         },
@@ -209,7 +210,7 @@
             "archive": "Bu makarayı arşivlemek istediğinizden emin misiniz?"
         },
         "formats": {
-            "last_used": "Son kullanım tarihi {date}"
+            "last_used": "Son kullanım tarihi {{date}}"
         }
     },
     "filament": {
@@ -253,7 +254,7 @@
             "edit": "Filament Düzenle",
             "list": "Filamentler",
             "show": "Filament Göster",
-            "show_title": "[Filament #{id}] {name}"
+            "show_title": "[Filament #{{id}}] {{name}}"
         },
         "form": {
             "filament_updated": "Bu filament, siz bu sayfayı açtıktan sonra başka biri veya bir şey tarafından güncellendi. Kaydetme işlemi bu değişikliklerin üzerine yazacaktır!",
@@ -283,7 +284,7 @@
             "edit": "Üretici Düzenle",
             "list": "Üreticiler",
             "show": "Üretici Göster",
-            "show_title": "[Üretici#{id}] {name}"
+            "show_title": "[Üretici#{{id}}] {{name}}"
         },
         "form": {
             "vendor_updated": "Bu üretici, siz bu sayfayı açtıktan sonra başka biri veya bir şey tarafından güncellendi. Kaydetme işlemi bu değişikliklerin üzerine yazacaktır!"
@@ -348,10 +349,10 @@
             },
             "boolean_true": "Evet",
             "boolean_false": "Hayır",
-            "choices_missing_error": "Seçenekleri kaldıramazsınız. Aşağıdaki seçenekler eksik: {choices}",
+            "choices_missing_error": "Seçenekleri kaldıramazsınız. Aşağıdaki seçenekler eksik: {{choices}}",
             "non_unique_key_error": "Anahtar benzersiz olmalıdır.",
             "key_not_changed": "Lütfen anahtarı başka bir şeyle değiştirin.",
-            "delete_confirm": "{name} alanı silinsin mi?",
+            "delete_confirm": "{{name}} alanı silinsin mi?",
             "delete_confirm_description": "Bu işlem alanı ve ona bağlı tüm varlıkların verilerini silecektir."
         }
     },
@@ -369,24 +370,24 @@
         },
         "filament": {
             "list": "Filamentler | Spoolman",
-            "show": "#{id} Filament Görüntüle | Spoolman",
-            "edit": "#{id} Filament Düzenle | Spoolman",
+            "show": "#{{id}} Filament Görüntüle | Spoolman",
+            "edit": "#{{id}} Filament Düzenle | Spoolman",
             "create": "Filament Oluştur | Spoolman",
-            "clone": "#{id} Filament Kopyala | Spoolman"
+            "clone": "#{{id}} Filament Kopyala | Spoolman"
         },
         "spool": {
             "list": "Makaralar | Spoolman",
-            "show": "#{id} Makara Göster | Spoolman",
-            "edit": "#{id} Makara Düzenle | Spoolman",
+            "show": "#{{id}} Makara Göster | Spoolman",
+            "edit": "#{{id}} Makara Düzenle | Spoolman",
             "create": "Makara Oluştur | Spoolman",
-            "clone": "#{id}Makara Kopyala | Spoolman"
+            "clone": "#{{id}}Makara Kopyala | Spoolman"
         },
         "vendor": {
             "list": "Üreticiler | Spoolman",
-            "show": "#{id} Üretici Göster | Spoolman",
-            "edit": "#{id} Üretici Düzenle | Spoolman",
+            "show": "#{{id}} Üretici Göster | Spoolman",
+            "edit": "#{{id}} Üretici Düzenle | Spoolman",
             "create": "Üretici Oluştur | Spoolman",
-            "clone": "#{id} Üretici Kopyala | Spoolman"
+            "clone": "#{{id}} Üretici Kopyala | Spoolman"
         }
     },
     "locations": {

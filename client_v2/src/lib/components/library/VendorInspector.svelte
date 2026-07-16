@@ -10,7 +10,7 @@
 	import * as params from '$lib/library/params';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	let { vendor }: { vendor: Vendor } = $props();
 
@@ -66,8 +66,8 @@
 		<div class="titles">
 			<div class="title">{vendor.name}</div>
 			<div class="subtitle">
-				{$_('inspector.vendor_sub', {
-					values: { count: filaments.length, weight: vendor.emptyWeight }
+				{m['inspector.vendorSub']({
+					count: filaments.length
 				})}
 			</div>
 		</div>
@@ -75,12 +75,12 @@
 
 	<div class="grid">
 		<div class="col">
-			<SectionLabel>{$_('filament.fields.vendor')}</SectionLabel>
+			<SectionLabel>{m['filament.fields.vendor']()}</SectionLabel>
 			<FieldGrid labelWidth="140px">
-				<Field label={$_('vendor.fields.name')}>
+				<Field label={m['vendor.fields.name']()}>
 					<EditableField value={vendor.name} oninput={(v) => set({ name: v })} />
 				</Field>
-				<Field label={$_('inspector.empty_spool_wt')}>
+				<Field label={m['inspector.emptySpoolWt']()}>
 					<EditableField
 						value={vendor.emptyWeight}
 						mono
@@ -92,7 +92,7 @@
 			<ExtraFieldsSection entity="vendor" extra={vendor.extra} onchange={extraSaver.change} />
 		</div>
 		<div class="col">
-			<SectionLabel>{$_('filament.filament')}</SectionLabel>
+			<SectionLabel>{m['filament.filament']()}</SectionLabel>
 			<div class="fils">
 				{#each filaments as f (f.id)}
 					<button class="fil-row" onclick={() => params.select('filament', f.id)}>

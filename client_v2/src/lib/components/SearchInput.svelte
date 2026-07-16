@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		value: string;
@@ -21,7 +21,7 @@
 		oninput={(e) => oninput?.(e.currentTarget.value)}
 		onkeydown={(e) => onkeydown?.(e)}
 		onfocus={() => onfocus?.()}
-		aria-label={$_('common.search')}
+		aria-label={m['common.search']()}
 	/>
 </div>
 

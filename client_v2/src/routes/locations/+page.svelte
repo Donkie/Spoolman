@@ -7,7 +7,7 @@
 	import { live } from '$lib/api/live';
 	import { goto } from '$app/navigation';
 	import { weightAuto } from '$lib/utils/format';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	let draggingId = $state<number | null>(null);
 	let dragOver = $state<string | null>(null);
@@ -75,7 +75,7 @@
 
 	function addLocation() {
 		const n = locations.length + extraLocations.length + 1;
-		extraLocations = [...extraLocations, $_('locations.new_shelf', { values: { n } })];
+		extraLocations = [...extraLocations, m['locations.newShelf']({ n })];
 	}
 
 	function focusAndSelect(el: HTMLInputElement) {
@@ -106,11 +106,11 @@
 			return;
 		}
 		if (!newName) {
-			renameError = $_('locations.error_empty');
+			renameError = m['locations.errorEmpty']();
 			return;
 		}
 		if ([...locations, ...extraLocations].includes(newName)) {
-			renameError = $_('locations.error_exists');
+			renameError = m['locations.errorExists']();
 			return;
 		}
 
@@ -125,20 +125,20 @@
 			editingLocation = null;
 			renameError = '';
 		} catch (e) {
-			renameError = e instanceof Error ? e.message : $_('locations.error_rename');
+			renameError = e instanceof Error ? e.message : m['locations.errorRename']();
 		}
 	}
 </script>
 
 <svelte:head>
-	<title>{$_('nav.locations')} | Spoolman</title>
+	<title>{m['nav.locations']()} | Spoolman</title>
 </svelte:head>
 
 <div class="page scroll-y">
 	<div class="head">
-		<span class="title">{$_('locations.locations')}</span>
-		<span class="hint">{$_('locations.drag_hint')}</span>
-		<button class="add" onclick={addLocation}>＋ {$_('locations.add_location')}</button>
+		<span class="title">{m['locations.locations']()}</span>
+		<span class="hint">{m['locations.dragHint']()}</span>
+		<button class="add" onclick={addLocation}>＋ {m['locations.addLocation']()}</button>
 	</div>
 
 	<div class="grid">
@@ -182,12 +182,10 @@
 							onclick={() => startEdit(shelf.name)}
 							onkeydown={(e) => e.key === 'Enter' && startEdit(shelf.name)}
 						>
-							{shelf.name === 'No location' ? $_('locations.no_location') : shelf.name}
+							{shelf.name === 'No location' ? m['locations.noLocation']() : shelf.name}
 						</span>
 					{/if}
-					<span class="shelf-meta"
-						>{$_('locations.spool_count', { values: { count: shelf.spools.length } })}</span
-					>
+					<span class="shelf-meta">{m['locations.spoolCount']({ count: shelf.spools.length })}</span>
 				</div>
 				{#if editingLocation === shelf.name && renameError}
 					<div class="rename-error">{renameError}</div>
@@ -215,15 +213,15 @@
 								<div class="chip-subtitle">
 									{f.material}{' - '}<span class:low={settings.isLow(s.remaining, s.unused)}
 										>{weightAuto(s.remaining)}</span
-									>{' / '}{weightAuto(f.weight)}{#if s.lastUsedLabel}{' - '}{$_('locations.last_used', {
-											values: { time: s.lastUsedLabel }
+									>{' / '}{weightAuto(f.weight)}{#if s.lastUsedLabel}{' - '}{m['locations.lastUsed']({
+											time: s.lastUsedLabel
 										})}{/if}
 								</div>
 							</div>
 						</div>
 					{/each}
 					{#if shelf.spools.length === 0}
-						<span class="empty">{$_('locations.drop_here')}</span>
+						<span class="empty">{m['locations.dropHere']()}</span>
 					{/if}
 				</div>
 			</div>

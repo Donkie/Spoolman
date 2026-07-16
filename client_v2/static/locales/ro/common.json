@@ -34,17 +34,17 @@
     "warnWhenUnsavedChanges": "Esti sigur? Modificarile ne-salvate vor fi pierdute.",
     "notifications": {
         "success": "succes",
-        "error": "Eroare (Cod: {statusCode})",
-        "undoable": "Ai inca {seconds} secunde sa corectezi.",
-        "createSuccess": "{resource} creata cu succes",
-        "createError": "Eroare la crearea {resource} (status code: {statusCode})",
-        "deleteSuccess": "{resource} stearsa cu succes",
-        "deleteError": "Eroare la stergerea {resource} (status code: {statusCode})",
-        "editSuccess": "{resource} editata cu succes",
-        "editError": "eroare la editarea {resource} (status code: {statusCode})",
-        "importProgress": "Importare: {processed}/{total}",
+        "error": "Eroare (Cod: {{statusCode}})",
+        "undoable": "Ai inca {{seconds}} secunde sa corectezi.",
+        "createSuccess": "{{resource}} creata cu succes",
+        "createError": "Eroare la crearea {{resource}} (status code: {{statusCode}})",
+        "deleteSuccess": "{{resource}} stearsa cu succes",
+        "deleteError": "Eroare la stergerea {{resource}} (status code: {{statusCode}})",
+        "editSuccess": "{{resource}} editata cu succes",
+        "editError": "eroare la editarea {{resource}} (status code: {{statusCode}})",
+        "importProgress": "Importare: {{processed}}/{{total}}",
         "saveSuccessful": "Salvare reusita!",
-        "validationError": "Eroare de validare: {error}"
+        "validationError": "Eroare de validare: {{error}}"
     },
     "kofi": "Doneaza pe Ko-fi",
     "loading": "Incarca",
@@ -103,16 +103,18 @@
             "showArchived": "Arata arhivate",
             "title": "Selectați bobine",
             "description": "Selectați rolele pentru care trebuie printate etichete.",
-            "selectedTotal": "{count, plural, one {{count} bobina selectata} few {{count} bobine selectate} other {{count} bobine selectate}}",
+            "selectedTotal_one": "{{count}} bobina selectata",
+            "selectedTotal_few": "{{count}} bobine selectate",
+            "selectedTotal_other": "{{count}} bobine selectate",
             "selectAll": "Selecteaza/deselecteaza tot",
             "noSpoolsSelected": "Nu ati selectat nicio bobina."
         },
         "qrcode": {
-            "bedTemp": "BT: {temp}",
+            "bedTemp": "BT: {{temp}}",
             "title": "Printarea codurilor QR",
             "button": "Imprimați codurile QR",
             "showTemperatures": "Temperaturi",
-            "spoolWeight": "Greutatea rolei de filament: {weight}",
+            "spoolWeight": "Greutatea rolei de filament: {{weight}}",
             "showFilamentComment": "Filament Comentariu",
             "showLotNr": "Lot Nr",
             "showContent": "Imprimă eticheta",
@@ -121,9 +123,9 @@
             "showVendorComment": "Comentariul furnizorului",
             "showSpoolmanIcon": "Arata iconul Spoolman",
             "showSpoolComment": "Bobină Comentariu",
-            "extruderTemp": "ET: {temp}",
+            "extruderTemp": "ET: {{temp}}",
             "showVendor": "Furnizor",
-            "lotNr": "Lot Nr: {lot}",
+            "lotNr": "Lot Nr: {{lot}}",
             "template": "Șablon etichetă",
             "useHTTPUrl": {
                 "label": "Link către codul QR",
@@ -140,29 +142,29 @@
                 "simple": "Simplu",
                 "withIcon": "Cu imagine"
             },
-            "templateHelp": "Utilizați '{''}' pentru a insera valorile obiectului filament ca text. De exemplu, '{'id'}' va fi înlocuit cu id-ul filamentului, sau '{'filament.material'}' va fi înlocuit cu materialul filamentului. Dacă o valoare lipsește, aceasta va fi înlocuită cu \"?\". Un al doilea set de '{''}' poate fi folosit pentru a elimina acesta. În plus, orice text între seturile de '{''}' va fi eliminat dacă valoarea lipsește. De exemplu, '{'Lot Nr: '{'lot_nr'}''}' va afișa doar eticheta dacă filamentul are un număr de lot. Încadrați textul cu asteriscuri duble ** pentru a-l face îngroșat. Faceți clic pe buton pentru a vizualiza o listă cu toate etichetele disponibile."
+            "templateHelp": "Utilizați {} pentru a insera valorile obiectului filament ca text. De exemplu, {id} va fi înlocuit cu id-ul filamentului, sau {filament.material} va fi înlocuit cu materialul filamentului. Dacă o valoare lipsește, aceasta va fi înlocuită cu \"?\". Un al doilea set de {} poate fi folosit pentru a elimina acesta. În plus, orice text între seturile de {} va fi eliminat dacă valoarea lipsește. De exemplu, {Lot Nr: {lot_nr}} va afișa doar eticheta dacă filamentul are un număr de lot. Încadrați textul cu asteriscuri duble ** pentru a-l face îngroșat. Faceți clic pe buton pentru a vizualiza o listă cu toate etichetele disponibile."
         }
     },
     "documentTitle": {
         "vendor": {
-            "show": "#{id} Afișare producători | Spoolman",
+            "show": "#{{id}} Afișare producători | Spoolman",
             "list": "Producători | Spoolman",
-            "edit": "#{id} Editare producător | Spoolman",
+            "edit": "#{{id}} Editare producător | Spoolman",
             "create": "Adăugare producător | Spoolman",
-            "clone": "#{id} Duplicare producător | Spoolman"
+            "clone": "#{{id}} Duplicare producător | Spoolman"
         },
         "spool": {
             "create": "Creare rolă| Spoolman",
-            "clone": "#{id} Clonare rolă | Spoolman",
+            "clone": "#{{id}} Clonare rolă | Spoolman",
             "list": "Role | Spoolman",
-            "edit": "#{id} Editare rolă | Spoolman",
-            "show": "#{id} Afișare role | Spoolman"
+            "edit": "#{{id}} Editare rolă | Spoolman",
+            "show": "#{{id}} Afișare role | Spoolman"
         },
         "filament": {
-            "show": "#{id} Afișare filamente | Spoolman",
+            "show": "#{{id}} Afișare filamente | Spoolman",
             "list": "Filamente | Spoolman",
-            "clone": "#{id} Clonare filament | Spoolman",
-            "edit": "#{id} Editare filamente | Spoolman",
+            "clone": "#{{id}} Clonare filament | Spoolman",
+            "edit": "#{{id}} Editare filamente | Spoolman",
             "create": "Creare filament| Spoolman"
         },
         "home": {
@@ -226,7 +228,7 @@
         "titles": {
             "list": "Bobine",
             "archive": "Archiveaza bobina",
-            "show_title": "[Bobina #{id}] {name}",
+            "show_title": "[Bobina #{{id}}] {{name}}",
             "create": "Creați bobină",
             "show": "Arata bobina",
             "edit": "Editeaza bobina",
@@ -249,7 +251,7 @@
         },
         "spool": "Bobine",
         "formats": {
-            "last_used": "Ultima utilizare {date}"
+            "last_used": "Ultima utilizare {{date}}"
         }
     },
     "filament": {
@@ -288,7 +290,7 @@
         },
         "titles": {
             "edit": "Modifica del filamento",
-            "show_title": "[Filament #{id}] {name}",
+            "show_title": "[Filament #{{id}}] {{name}}",
             "create": "Creați filament",
             "show": "Arată filamentul",
             "list": "Filamente",
@@ -319,7 +321,7 @@
             "show": "Afișarea producătorilor",
             "list": "Producători",
             "create": "Adăugarea unui producător",
-            "show_title": "[Producător #{id}] {name}",
+            "show_title": "[Producător #{{id}}] {{name}}",
             "edit": "Editarea producătorului"
         },
         "form": {
@@ -340,7 +342,7 @@
     "scanner": {
         "error": {
             "notFound": "Nicio camera nu a fost gasita.",
-            "unknown": "Eroare necunoscuta. ({error})",
+            "unknown": "Eroare necunoscuta. ({{error}})",
             "notAllowed": "Accesul la camera nu a fost permis.",
             "streamApiNotSupported": "Browserul nu suporta MediaStream API.",
             "insecureContext": "Aceasta pagina nu este servita peste HTTPS.",
@@ -394,10 +396,10 @@
             },
             "boolean_true": "Da",
             "boolean_false": "Nu",
-            "choices_missing_error": "Nu poți înlătura selecții. Următoarele selecții lipsesc: {choices}",
+            "choices_missing_error": "Nu poți înlătura selecții. Următoarele selecții lipsesc: {{choices}}",
             "non_unique_key_error": "Cheia trebuie să fie unică.",
             "key_not_changed": "Te rog să schimbi cheia.",
-            "delete_confirm": "Ștergi câmpul{name}?",
+            "delete_confirm": "Ștergi câmpul{{name}}?",
             "delete_confirm_description": "Ștergerea câmpului și a tuturor datelor asociate pentru toate entitățile."
         }
     },

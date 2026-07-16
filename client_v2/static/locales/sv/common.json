@@ -34,17 +34,17 @@
     "warnWhenUnsavedChanges": "Är du säker på att du vill lämna sidan? Du har osparade ändringar.",
     "notifications": {
         "success": "Lyckades",
-        "error": "Fel (statuskod: {statusCode})",
-        "undoable": "Du har {seconds} sekunder på dig att ångra.",
-        "createSuccess": "Lyckades skapa {resource}",
-        "createError": "Det gick inte att skapa {resource} (statuskod: {statusCode})",
-        "deleteSuccess": "Lyckades ta bort {resource}",
-        "deleteError": "Det gick inte att ta bort {resource} (statuskod: {statusCode})",
-        "editSuccess": "Lyckades ändra {resource}",
-        "editError": "Det gick inte att ändra {resource} (statuskod: {statusCode})",
-        "importProgress": "Importerar: {processed}/{total}",
+        "error": "Fel (statuskod: {{statusCode}})",
+        "undoable": "Du har {{seconds}} sekunder på dig att ångra.",
+        "createSuccess": "Lyckades skapa {{resource}}",
+        "createError": "Det gick inte att skapa {{resource}} (statuskod: {{statusCode}})",
+        "deleteSuccess": "Lyckades ta bort {{resource}}",
+        "deleteError": "Det gick inte att ta bort {{resource}} (statuskod: {{statusCode}})",
+        "editSuccess": "Lyckades ändra {{resource}}",
+        "editError": "Det gick inte att ändra {{resource}} (statuskod: {{statusCode}})",
+        "importProgress": "Importerar: {{processed}}/{{total}}",
         "saveSuccessful": "Sparning lyckades!",
-        "validationError": "Valideringsfel: {error}"
+        "validationError": "Valideringsfel: {{error}}"
     },
     "loading": "Laddar",
     "version": "Version",
@@ -104,10 +104,10 @@
         "qrcode": {
             "button": "Skriv ut etiketter",
             "title": "Etikettutskrift",
-            "spoolWeight": "Spolvikt: {weight}",
-            "lotNr": "Batch: {lot}",
-            "bedTemp": "BT: {temp}",
-            "extruderTemp": "ET: {temp}",
+            "spoolWeight": "Spolvikt: {{weight}}",
+            "lotNr": "Batch: {{lot}}",
+            "bedTemp": "BT: {{temp}}",
+            "extruderTemp": "ET: {{temp}}",
             "textSize": "Textstorlek",
             "showSpoolmanIcon": "Visa Spoolman-ikon",
             "showContent": "Visa text",
@@ -119,7 +119,7 @@
             "showFilamentComment": "Filamentkommentar",
             "showVendorComment": "Tillverkarkommentar",
             "template": "Textmall",
-            "templateHelp": "Använd '{''}' för att infoga värden från spolobjektet som text. Till exempel kommer '{'id'}' att ersättas med spolens id, eller '{'filament.material'}' att ersättas med filamentets material. Omslut text med dubbla asterisker ** för att göra den fetstilad. Klicka på knappen för att visa en lista över alla tillgängliga taggar.",
+            "templateHelp": "Använd {} för att infoga värden från spolobjektet som text. Till exempel kommer {id} att ersättas med spolens id, eller {filament.material} att ersättas med filamentets material. Omslut text med dubbla asterisker ** för att göra den fetstilad. Klicka på knappen för att visa en lista över alla tillgängliga taggar.",
             "showQRCode": "Visa QR-kod",
             "showQRCodeMode": {
                 "no": "Nej",
@@ -142,7 +142,8 @@
             "showArchived": "Tillåt arkiverade",
             "noSpoolsSelected": "Du har inte valt några spolar.",
             "selectAll": "Markera/avmarkera alla",
-            "selectedTotal": "{count, plural, one {{count} spole vald} other {{count} spolar valda}}"
+            "selectedTotal_one": "{{count}} spole vald",
+            "selectedTotal_other": "{{count}} spolar valda"
         }
     },
     "scanner": {
@@ -154,7 +155,7 @@
             "streamApiNotSupported": "Webbläsaren stödjer inte MediaStream API.",
             "notReadable": "Kameran är inte läsbar.",
             "notFound": "Ingen kamera hittades.",
-            "unknown": "Ett okänt fel inträffade. ({error})"
+            "unknown": "Ett okänt fel inträffade. ({{error}})"
         }
     },
     "spool": {
@@ -202,7 +203,7 @@
             "list": "Spolar",
             "show": "Visa spole",
             "archive": "Arkivera spole",
-            "show_title": "[Spole #{id}] {name}",
+            "show_title": "[Spole #{{id}}] {{name}}",
             "adjust": "Justera Spolmängd"
         },
         "messages": {
@@ -220,7 +221,7 @@
             "adjust_filament_help": "Här kan du direkt lägga till eller subtrahera filament från spolen. Ett positivt värde kommer att konsumera filament, ett negativt värde kommer att lägga till det."
         },
         "formats": {
-            "last_used": "Senast använd {date}"
+            "last_used": "Senast använd {{date}}"
         }
     },
     "filament": {
@@ -264,7 +265,7 @@
             "edit": "Ändra filament",
             "list": "Filament",
             "show": "Visa filament",
-            "show_title": "[Filament #{id}] {name}"
+            "show_title": "[Filament #{{id}}] {{name}}"
         },
         "form": {
             "filament_updated": "Det här filamentet har uppdaterats av något eller någon sedan du öppnade den här sidan. Om du sparar så skriver du över ändringarna!",
@@ -291,7 +292,7 @@
             "edit": "Ändra tillverkare",
             "list": "Tillverkare",
             "show": "Visa tillverkare",
-            "show_title": "[Tillverkare #{id}] {name}"
+            "show_title": "[Tillverkare #{{id}}] {{name}}"
         },
         "form": {
             "vendor_updated": "Den här tillverkaren har uppdaterats av något eller någon sedan du öppnade den här sidan. Om du sparar så skriver du över ändringarna!"
@@ -350,9 +351,9 @@
             },
             "boolean_true": "Ja",
             "boolean_false": "Nej",
-            "choices_missing_error": "Du kan inte ta bort val. Följande val saknas: {choices}",
+            "choices_missing_error": "Du kan inte ta bort val. Följande val saknas: {{choices}}",
             "delete_confirm_description": "Detta kommer att radera fältet och all tillhörande data för alla objekt.",
-            "delete_confirm": "Ta bort fältet {name}?",
+            "delete_confirm": "Ta bort fältet {{name}}?",
             "non_unique_key_error": "Nyckeln måste vara unik.",
             "key_not_changed": "Vänligen ändra nyckeln till något annat."
         }
@@ -365,24 +366,24 @@
         },
         "filament": {
             "list": "Filament | Spoolman",
-            "show": "#{id} Visa filament | Spoolman",
-            "edit": "#{id} Redigera filament | Spoolman",
+            "show": "#{{id}} Visa filament | Spoolman",
+            "edit": "#{{id}} Redigera filament | Spoolman",
             "create": "Skapa filament | Spoolman",
-            "clone": "#{id} Klona filament | Spoolman"
+            "clone": "#{{id}} Klona filament | Spoolman"
         },
         "spool": {
             "list": "Spolar | Spoolman",
-            "show": "#{id} Visa spole | Spoolman",
-            "edit": "#{id} Redigera spole | Spoolman",
+            "show": "#{{id}} Visa spole | Spoolman",
+            "edit": "#{{id}} Redigera spole | Spoolman",
             "create": "Skapa spole | Spoolman",
-            "clone": "#{id} Klona spole | Spoolman"
+            "clone": "#{{id}} Klona spole | Spoolman"
         },
         "vendor": {
             "list": "Tillverkare | Spoolman",
-            "show": "#{id} Visa tillverkare | Spoolman",
-            "edit": "#{id} Redigera tillverkare | Spoolman",
+            "show": "#{{id}} Visa tillverkare | Spoolman",
+            "edit": "#{{id}} Redigera tillverkare | Spoolman",
             "create": "Skapa tillverkare | Spoolman",
-            "clone": "#{id} Klona tillverkare | Spoolman"
+            "clone": "#{{id}} Klona tillverkare | Spoolman"
         },
         "help": {
             "list": "Hjälp | Spoolman"

@@ -16,7 +16,7 @@
 	import { pct, grams } from '$lib/utils/format';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	let { filament }: { filament: Filament } = $props();
 
@@ -88,20 +88,20 @@
 			<div class="subtitle">{vendor.name} · {filament.material} · {filament.diameter} mm</div>
 		</div>
 		<div class="add">
-			<Button onclick={() => ui.openAddModal(filament.id)}>＋ {$_('inspector.add_spools_of_this')}</Button>
+			<Button onclick={() => ui.openAddModal(filament.id)}>＋ {m['inspector.addSpoolsOfThis']()}</Button>
 		</div>
 	</div>
 
 	<SectionLabel>
 		{#snippet children()}<span style="padding-left:20px"
-				>{$_('inspector.spools_count', { values: { count: spools.length } })}</span
+				>{m['inspector.spoolsCount']({ count: spools.length })}</span
 			>{/snippet}
 	</SectionLabel>
 	<div class="spools">
 		{#each spools as s (s.id)}
 			<button class="spool-row" onclick={() => params.select('spool', String(s.id))}>
 				<span class="id mono">#{s.id}</span>
-				<span class="state">{s.unused ? $_('library.unused') : $_('library.in_use')}</span>
+				<span class="state">{s.unused ? m['library.unused']() : m['library.inUse']()}</span>
 				<span class="barwrap">
 					<ProgressBar
 						value={pct(s.remaining, s.initial)}
@@ -110,53 +110,53 @@
 					/>
 				</span>
 				<span class="rem mono">{grams(s.remaining)} g</span>
-				<span class="loc">{s.location || $_('library.no_location')}</span>
+				<span class="loc">{s.location || m['library.noLocation']()}</span>
 			</button>
 		{/each}
 	</div>
 
 	<div class="grid">
 		<div class="col">
-			<SectionLabel>{$_('inspector.specs')}</SectionLabel>
+			<SectionLabel>{m['inspector.specs']()}</SectionLabel>
 			<FieldGrid>
-				<Field label={$_('filament.fields.name')}>
+				<Field label={m['filament.fields.name']()}>
 					<EditableField value={filament.name} oninput={(v) => set({ name: v })} />
 				</Field>
-				<Field label={$_('filament.fields.material')}>
+				<Field label={m['filament.fields.material']()}>
 					<EditableField value={filament.material} oninput={(v) => set({ material: v })} />
 				</Field>
-				<Field label={$_('inspector.color_hex')}>
+				<Field label={m['inspector.colorHex']()}>
 					<EditableField value={filament.colors[0]} mono oninput={(v) => set({ colors: [v] })} />
 				</Field>
-				<Field label={$_('inspector.diameter_mm')}>
+				<Field label={m['inspector.diameterMm']()}>
 					<EditableField
 						value={filament.diameter}
 						mono
 						oninput={(v) => set({ diameter: parseFloat(v) || filament.diameter })}
 					/>
 				</Field>
-				<Field label={$_('filament.fields.density')}>
+				<Field label={m['filament.fields.density']()}>
 					<EditableField
 						value={filament.density}
 						mono
 						oninput={(v) => set({ density: parseFloat(v) || filament.density })}
 					/>
 				</Field>
-				<Field label={$_('inspector.nozzle_c')}>
+				<Field label={m['inspector.nozzleC']()}>
 					<EditableField
 						value={filament.nozzleTemp}
 						mono
 						oninput={(v) => set({ nozzleTemp: parseInt(v, 10) || filament.nozzleTemp })}
 					/>
 				</Field>
-				<Field label={$_('inspector.bed_c')}>
+				<Field label={m['inspector.bedC']()}>
 					<EditableField
 						value={filament.bedTemp}
 						mono
 						oninput={(v) => set({ bedTemp: parseInt(v, 10) || filament.bedTemp })}
 					/>
 				</Field>
-				<Field label={$_('inspector.default_price', { values: { currency: settings.currency } })}>
+				<Field label={m['inspector.defaultPrice']({ currency: settings.currency })}>
 					<EditableField value={filament.price} mono oninput={(v) => set({ price: parseFloat(v) || 0 })} />
 				</Field>
 			</FieldGrid>

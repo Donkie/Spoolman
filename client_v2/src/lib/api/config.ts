@@ -2,25 +2,20 @@
 //
 // - In dev, set VITE_APIURL (e.g. http://localhost:8000/api/v1) to point at a
 //   running backend.
-// - In production the backend serves this SPA same-origin and injects
-//   window.SPOOLMAN_BASE_PATH (see the architecture contract), so we default to
-//   `<base>/api/v1`.
+// - In production the backend serves this SPA under an operator-chosen base path
+//   (SPOOLMAN_BASE_PATH). With relative asset paths, SvelteKit derives that base
+//   at runtime into `$app/paths` base, so we resolve the API as `<base>/api/v1`.
+
+import { base } from '$app/paths';
 
 function trimTrailingSlash(s: string): string {
 	return s.replace(/\/+$/, '');
 }
 
-declare global {
-	interface Window {
-		SPOOLMAN_BASE_PATH?: string;
-	}
-}
-
 export const API_BASE: string = (() => {
 	const env = import.meta.env.VITE_APIURL as string | undefined;
 	if (env) return trimTrailingSlash(env);
-	const basePath = (typeof window !== 'undefined' && window.SPOOLMAN_BASE_PATH) || '';
-	return trimTrailingSlash(basePath + '/api/v1');
+	return trimTrailingSlash(base + '/api/v1');
 })();
 
 /** Absolute ws(s):// URL for a resource path like "/spool". */

@@ -4,7 +4,7 @@
 	import type { RowContext, SpoolVM } from '$lib/utils/library';
 	import { isSelected } from '$lib/library/params';
 	import { page } from '$app/state';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		unused: SpoolVM[];
@@ -24,8 +24,9 @@
 
 	let first = $derived(unused[0]);
 	let sub = $derived(
-		$_('library.unused_sub', {
-			values: { weight: first.spool.initial, location: first.spool.location || $_('library.unassigned') }
+		m['library.unusedSub']({
+			weight: first.spool.initial,
+			location: first.spool.location || m['library.unassigned']()
 		})
 	);
 
@@ -52,7 +53,7 @@
 	{/if}
 	<span class="label">
 		<span class="fname">{first.filament.name}</span>
-		<span class="badge mono">{$_('library.n_unused', { values: { count: unused.length } })}</span>
+		<span class="badge mono">{m['library.nUnused']({ count: unused.length })}</span>
 	</span>
 	<span class="sub">{sub}</span>
 	<span class="chev" class:open={expanded}>›</span>

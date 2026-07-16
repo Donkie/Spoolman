@@ -67,7 +67,11 @@ class SinglePageApplication(StaticFiles):
 
     def lookup_path(self, path: str) -> tuple[str, os.stat_result | None]:
         """Return index.html if the requested file cannot be found."""
-        path = path.removeprefix(self.base_path).removeprefix("/")
+        # The ASGI mount (app.mount(base_path, ...)) already strips the base path
+        # from the request, so `path` arrives base-relative. Do NOT strip base_path
+        # again here as a raw string prefix — that corrupts asset names that merely
+        # start with it (e.g. "spoolman.svg" under base "spool" -> "man.svg").
+        path = path.removeprefix("/")
 
         full_path, stat_result = super().lookup_path(path)
 

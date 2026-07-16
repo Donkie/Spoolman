@@ -1,12 +1,7 @@
-// The languages offered in the client_v2 language picker. Keys are the folder
-// names under static/locales (and the svelte-i18n locale ids). `name` is the
+// The languages offered in the client_v2 language picker. Keys are the file
+// names under messages. `name` is the
 // endonym shown in the picker; `code` is the BCP-47 tag used for Intl
 // date/number formatting.
-//
-// This is the curated set carried over from the old client (client/src/i18n.ts)
-// — languages that were at least ~50% translated in Weblate. Additional locale
-// folders may exist under static/locales but are only surfaced here once they
-// reach a usable level of translation.
 
 export interface LanguageMeta {
 	name: string;

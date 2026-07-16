@@ -1,11 +1,11 @@
 {
     "printing": {
         "qrcode": {
-            "extruderTemp": "ET : {temp}",
+            "extruderTemp": "ET : {{temp}}",
             "showSpoolWeight": "Poids de la bobine",
             "showContent": "Imprimer l'étiquette",
             "showVendorComment": "Commentaire sur le fabricant",
-            "spoolWeight": "Poids de la bobine : {weight}",
+            "spoolWeight": "Poids de la bobine : {{weight}}",
             "showTemperatures": "Températures",
             "showVendor": "Fabricant",
             "showSpoolComment": "Commentaire sur la bobine",
@@ -13,12 +13,12 @@
             "title": "Impression d'étiquettes",
             "showSpoolmanIcon": "Montrer l'icône Spoolman",
             "showLotNr": "N° de Lot",
-            "bedTemp": "BT : {temp}",
-            "lotNr": "N° de Lot : {lot}",
+            "bedTemp": "BT : {{temp}}",
+            "lotNr": "N° de Lot : {{lot}}",
             "showFilamentComment": "Commentaire sur le filament",
             "button": "Imprimer des étiquettes",
             "showQRCode": "Imprimer le QR Code",
-            "templateHelp": "Utilisez '{''}' pour insérer les valeurs de l'objet bobine sous forme de texte. Par exemple, '{'id'}' sera remplacé par l'identifiant de la bobine ou '{'filament.material'}' sera remplacé par le matériau de la bobine. Si une variable n'existe pas elle sera remplacée par \"?\". Un deuxième jeu d'accolade peut empêcher cet affichage. De plus si une accolade est utilisée dans une autre tout le texte présenta dans la première accolade sera retiré si la variable est manquante. Par exemple '{'N° lot : '{'lot_nr'}''}' sera affiché uniquement si la bobine a un numéro de lot. Entourez le texte d'un double astérisque ** pour le mettre en gras. Cliquez sur le bouton pour afficher une liste de toutes les balises disponibles.",
+            "templateHelp": "Utilisez {} pour insérer les valeurs de l'objet bobine sous forme de texte. Par exemple, {id} sera remplacé par l'identifiant de la bobine ou {filament.material} sera remplacé par le matériau de la bobine. Si une variable n'existe pas elle sera remplacée par \"?\". Un deuxième jeu d'accolade peut empêcher cet affichage. De plus si une accolade est utilisée dans une autre tout le texte présenta dans la première accolade sera retiré si la variable est manquante. Par exemple {N° lot : {lot_nr}} sera affiché uniquement si la bobine a un numéro de lot. Entourez le texte d'un double astérisque ** pour le mettre en gras. Cliquez sur le bouton pour afficher une liste de toutes les balises disponibles.",
             "template": "Modèle d'étiquette",
             "showQRCodeMode": {
                 "no": "Non",
@@ -79,7 +79,9 @@
             "saveSetting": "Enregistrer les préréglages"
         },
         "spoolSelect": {
-            "selectedTotal": "{count, plural, one {{count} bobine sélectionnée} many {{count} bobines sélectionnées} other {{count} bobines sélectionnées}}",
+            "selectedTotal_one": "{{count}} bobine sélectionnée",
+            "selectedTotal_many": "{{count}} bobines sélectionnées",
+            "selectedTotal_other": "{{count}} bobines sélectionnées",
             "description": "Sélectionnez les bobines pour lesquelles imprimer des étiquettes.",
             "showArchived": "Afficher les archives",
             "title": "Sélectionner les bobines",
@@ -90,25 +92,25 @@
     "documentTitle": {
         "vendor": {
             "create": "Créer le fabricant | Spoolman",
-            "clone": "#{id} Cloner le fabricant | Spoolman",
-            "edit": "#{id} Éditer le fabricant| Spoolman",
+            "clone": "#{{id}} Cloner le fabricant | Spoolman",
+            "edit": "#{{id}} Éditer le fabricant| Spoolman",
             "list": "Fabricants | Spoolman",
-            "show": "#{id} Afficher le fabricant | Spoolman"
+            "show": "#{{id}} Afficher le fabricant | Spoolman"
         },
         "default": "Spoolman",
         "spool": {
-            "edit": "#{id} Editer la Bobine | Spoolman",
+            "edit": "#{{id}} Editer la Bobine | Spoolman",
             "list": "Bobines | Spoolman",
             "create": "Créer la Bobine | Spoolman",
-            "show": "#{id} Afficher la Bobine | Spoolman",
-            "clone": "#{id} Cloner la Bobine | Spoolman"
+            "show": "#{{id}} Afficher la Bobine | Spoolman",
+            "clone": "#{{id}} Cloner la Bobine | Spoolman"
         },
         "filament": {
             "list": "Filaments | Spoolman",
-            "show": "#{id} Afficher le filament | Spoolman",
-            "clone": "#{id} Cloner le Filament | Spoolman",
+            "show": "#{{id}} Afficher le filament | Spoolman",
+            "clone": "#{{id}} Cloner le Filament | Spoolman",
             "create": "Créer le filament | Spoolman",
-            "edit": "#{id} Editer le Filament | Spoolman"
+            "edit": "#{{id}} Editer le Filament | Spoolman"
         },
         "suffix": " | Spoolman",
         "home": {
@@ -153,7 +155,7 @@
             "create": "Créer une bobine",
             "clone": "Cloner une bobine",
             "list": "Bobines",
-            "show_title": "[Bobine #{id}] {name}",
+            "show_title": "[Bobine #{{id}}] {{name}}",
             "adjust": "Ajuster la bobine de filament"
         },
         "fields_help": {
@@ -184,7 +186,7 @@
             "adjust_filament_value": "Quantité consommée"
         },
         "formats": {
-            "last_used": "Dernière utilisation {date}"
+            "last_used": "Dernière utilisation {{date}}"
         }
     },
     "buttons": {
@@ -252,7 +254,7 @@
             "create": "Créer un filament",
             "edit": "Editer le filament",
             "list": "Filaments",
-            "show_title": "[Filament #{id}] {name}"
+            "show_title": "[Filament #{{id}}] {{name}}"
         },
         "filament": "Filaments",
         "form": {
@@ -277,25 +279,25 @@
             "insecureContext": "La page n'est pas servie par HTTPS.",
             "notReadable": "L'appareil photo n'est pas lisible.",
             "notAllowed": "Vous n'avez pas autorisé l'accès à l'appareil photo.",
-            "unknown": "Une erreur inconnue s'est produite. ({error})",
+            "unknown": "Une erreur inconnue s'est produite. ({{error}})",
             "notFound": "Aucun appareil photo n'a été trouvé.",
             "streamApiNotSupported": "Le navigateur ne prend pas en charge l'API MediaStream."
         },
         "description": "Scannez un code QR de Spoolman pour afficher les détails de la bobine."
     },
     "notifications": {
-        "deleteSuccess": "Suppression réussie {resource}",
-        "error": "Erreur (status code : {statusCode})",
-        "editError": "Erreur lors de l'édition {resource} (status code : {statusCode})",
-        "undoable": "Vous avez {seconds} secondes pour annuler.",
-        "importProgress": "Importation : {processed}/{total}",
-        "createError": "Une erreur s'est produite lors de la création de {resource} (status code : {statusCode})",
+        "deleteSuccess": "Suppression réussie {{resource}}",
+        "error": "Erreur (status code : {{statusCode}})",
+        "editError": "Erreur lors de l'édition {{resource}} (status code : {{statusCode}})",
+        "undoable": "Vous avez {{seconds}} secondes pour annuler.",
+        "importProgress": "Importation : {{processed}}/{{total}}",
+        "createError": "Une erreur s'est produite lors de la création de {{resource}} (status code : {{statusCode}})",
         "success": "Réussite",
-        "editSuccess": "Édité avec succès {resource}",
-        "deleteError": "Erreur lors de la suppression de {resource} (status code : {statusCode})",
-        "createSuccess": "Création réussie de {resource}",
+        "editSuccess": "Édité avec succès {{resource}}",
+        "deleteError": "Erreur lors de la suppression de {{resource}} (status code : {{statusCode}})",
+        "createSuccess": "Création réussie de {{resource}}",
         "saveSuccessful": "Sauvegarde réussie !",
-        "validationError": "Erreur de validation : {error}"
+        "validationError": "Erreur de validation : {{error}}"
     },
     "no": "Non",
     "unknown": "Inconnu",
@@ -306,7 +308,7 @@
             "clone": "Cloner un fabricant",
             "create": "Créer un fabricant",
             "list": "Fabricants",
-            "show_title": "[#{id} fabricant] {name}"
+            "show_title": "[#{{id}} fabricant] {{name}}"
         },
         "fields": {
             "registered": "Enregistré",
@@ -380,9 +382,9 @@
             "boolean_false": "Non",
             "non_unique_key_error": "La clé doit être unique.",
             "delete_confirm_description": "Ceci supprimera le champ ainsi que toutes les données associées pour toutes les entités.",
-            "choices_missing_error": "Vous ne pouvez pas retirer les choix. Les choix suivants sont manquants : {choices}",
+            "choices_missing_error": "Vous ne pouvez pas retirer les choix. Les choix suivants sont manquants : {{choices}}",
             "key_not_changed": "Changer la clé pour quelque chose d'autre.",
-            "delete_confirm": "Supprimer le champ {name} ?",
+            "delete_confirm": "Supprimer le champ {{name}} ?",
             "description": "<p>Ici vous pouvez ajouter des champs personnalisés supplémentaires à vos entités.</p><p>Une fois qu'un champ est ajouté, vous ne pouvez plus changer sa clé ou son type, et pour les champs de types \"Choix\", vous ne pouvez plus retirer un choix ou changer l'état des choix multiples. Si vous supprimez un champ, les données associées aux entités seront supprimées.</p><p>La clé correspond à ce que les autres programmes lisent/écrivent, donc si votre champs doit s'intégrer avec un programme tiers, assurez-vous de le configurer correctement. La valeur par défaut n'est appliquées qu'aux nouveaux éléments.</p><p>Les champs supplementaires ne peuvent pas être triés ou filtrés dans les vues de table.</p>"
         },
         "header": "Paramètres",

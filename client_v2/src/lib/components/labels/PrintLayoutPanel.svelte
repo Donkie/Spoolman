@@ -11,7 +11,7 @@
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import type { Spool } from '$lib/types';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		design: LabelDesign;
@@ -69,7 +69,7 @@
 	function spoolLabel(s: Spool): string {
 		const f = inventory.filamentById(s.filamentId);
 		const v = f ? inventory.vendorById(f.vendorId) : undefined;
-		const name = f ? `${v ? v.name + ' ' : ''}${f.name}` : $_('labels.unknown_filament');
+		const name = f ? `${v ? v.name + ' ' : ''}${f.name}` : m['labels.unknownFilament']();
 		return `#${s.id} · ${name}${s.location ? ' · ' + s.location : ''}`;
 	}
 
@@ -131,18 +131,18 @@
 <div class="print-panel">
 	<div class="col spools">
 		<div class="col-head">
-			<span>{$_('spool.spool')}</span>
+			<span>{m['spool.spool']()}</span>
 			<div class="mini-actions">
-				<button onclick={selectAll}>{$_('labels.select_all_short')}</button>
-				<button onclick={clearAll}>{$_('labels.select_none_short')}</button>
+				<button onclick={selectAll}>{m['labels.selectAllShort']()}</button>
+				<button onclick={clearAll}>{m['labels.selectNoneShort']()}</button>
 			</div>
 		</div>
-		<input class="search" placeholder={$_('labels.search_spools')} bind:value={search} />
+		<input class="search" placeholder={m['labels.searchSpools']()} bind:value={search} />
 		<div class="spool-list">
 			{#if loading}
-				<div class="muted">{$_('loading')}…</div>
+				<div class="muted">{m.loading()}…</div>
 			{:else if visibleSpools.length === 0}
-				<div class="muted">{$_('labels.no_spools')}</div>
+				<div class="muted">{m['labels.noSpools']()}</div>
 			{:else}
 				{#each visibleSpools as s (s.id)}
 					<label class="spool-item">
@@ -152,41 +152,41 @@
 				{/each}
 			{/if}
 		</div>
-		<div class="count">{$_('printing.spoolSelect.selectedTotal', { values: { count: selected.size } })}</div>
+		<div class="count">{m['printing.spoolSelect.selectedTotal']({ count: selected.size })}</div>
 	</div>
 
 	<div class="col layout">
-		<div class="col-head"><span>{$_('labels.layout')}</span></div>
+		<div class="col-head"><span>{m['labels.layout']()}</span></div>
 
 		<div class="seg">
 			<button class:active={layout.mode === 'sheet'} onclick={() => (layout.mode = 'sheet')}
-				>{$_('labels.mode_sheet')}</button
+				>{m['labels.modeSheet']()}</button
 			>
 			<button class:active={layout.mode === 'label'} onclick={() => (layout.mode = 'label')}
-				>{$_('labels.mode_label')}</button
+				>{m['labels.modeLabel']()}</button
 			>
 		</div>
 
 		{#if layout.mode === 'sheet'}
 			<label class="fld"
-				>{$_('labels.paper')}
+				>{m['labels.paper']()}
 				<select bind:value={layout.paper}>
 					{#each PAPER_NAMES as p (p)}<option value={p}
-							>{p === 'custom' ? $_('printing.generic.customSize') : p}</option
+							>{p === 'custom' ? m['printing.generic.customSize']() : p}</option
 						>{/each}
 				</select>
 			</label>
 			{#if layout.paper === 'custom'}
 				<div class="row2">
 					<label class="fld"
-						>{$_('labels.width_mm')}<input
+						>{m['labels.widthMm']()}<input
 							type="number"
 							value={layout.custom.w}
 							onchange={(e) => (layout.custom = { ...layout.custom, w: n(e) })}
 						/></label
 					>
 					<label class="fld"
-						>{$_('labels.height_mm')}<input
+						>{m['labels.heightMm']()}<input
 							type="number"
 							value={layout.custom.h}
 							onchange={(e) => (layout.custom = { ...layout.custom, h: n(e) })}
@@ -195,33 +195,33 @@
 				</div>
 			{/if}
 			<label class="chk"
-				><input type="checkbox" bind:checked={layout.landscape} /> {$_('labels.landscape')}</label
+				><input type="checkbox" bind:checked={layout.landscape} /> {m['labels.landscape']()}</label
 			>
 
 			<div class="row4">
 				<label class="fld"
-					>{$_('labels.margin_top')}<input
+					>{m['labels.marginTop']()}<input
 						type="number"
 						value={layout.margin.t}
 						onchange={(e) => setMargin('t', n(e))}
 					/></label
 				>
 				<label class="fld"
-					>{$_('labels.margin_bottom')}<input
+					>{m['labels.marginBottom']()}<input
 						type="number"
 						value={layout.margin.b}
 						onchange={(e) => setMargin('b', n(e))}
 					/></label
 				>
 				<label class="fld"
-					>{$_('labels.margin_left')}<input
+					>{m['labels.marginLeft']()}<input
 						type="number"
 						value={layout.margin.l}
 						onchange={(e) => setMargin('l', n(e))}
 					/></label
 				>
 				<label class="fld"
-					>{$_('labels.margin_right')}<input
+					>{m['labels.marginRight']()}<input
 						type="number"
 						value={layout.margin.r}
 						onchange={(e) => setMargin('r', n(e))}
@@ -230,14 +230,14 @@
 			</div>
 			<div class="row2">
 				<label class="fld"
-					>{$_('labels.gap_h')}<input
+					>{m['labels.gapH']()}<input
 						type="number"
 						value={layout.spacing.h}
 						onchange={(e) => (layout.spacing = { ...layout.spacing, h: n(e) })}
 					/></label
 				>
 				<label class="fld"
-					>{$_('labels.gap_v')}<input
+					>{m['labels.gapV']()}<input
 						type="number"
 						value={layout.spacing.v}
 						onchange={(e) => (layout.spacing = { ...layout.spacing, v: n(e) })}
@@ -246,7 +246,7 @@
 			</div>
 			<div class="row2">
 				<label class="fld"
-					>{$_('labels.skip_cells')}<input
+					>{m['labels.skipCells']()}<input
 						type="number"
 						min="0"
 						value={layout.skip}
@@ -254,7 +254,7 @@
 					/></label
 				>
 				<label class="fld"
-					>{$_('labels.copies')}<input
+					>{m['labels.copies']()}<input
 						type="number"
 						min="1"
 						value={layout.copies}
@@ -268,17 +268,15 @@
 					checked={layout.border === 'border'}
 					onchange={(e) => (layout.border = e.currentTarget.checked ? 'border' : 'none')}
 				/>
-				{$_('labels.cut_guides')}</label
+				{m['labels.cutGuides']()}</label
 			>
 			<div class="grid-info">
-				{$_('labels.grid_info', {
-					values: { cols: grid.cols, rows: grid.rows, perPage: grid.perPage }
-				})}
+				{m['labels.gridInfo']({ cols: grid.cols, rows: grid.rows, perPage: grid.perPage })}
 			</div>
 		{:else}
 			<div class="row2">
 				<label class="fld"
-					>{$_('labels.copies')}<input
+					>{m['labels.copies']()}<input
 						type="number"
 						min="1"
 						value={layout.copies}
@@ -287,13 +285,13 @@
 				>
 			</div>
 			<div class="grid-info">
-				{$_('labels.one_per_label', { values: { w: design.label.w, h: design.label.h } })}
+				{m['labels.onePerLabel']({ w: design.label.w, h: design.label.h })}
 			</div>
 		{/if}
 	</div>
 
 	<div class="col preview">
-		<div class="col-head"><span>{$_('labels.preview')}</span></div>
+		<div class="col-head"><span>{m['labels.preview']()}</span></div>
 		{#if bindings.length > 0}
 			<div class="preview-wrap">
 				<LabelCanvas
@@ -304,14 +302,14 @@
 				/>
 			</div>
 			<div class="muted small">
-				{$_('labels.showing_spool', { values: { id: bindings[0].spool.id } })}
+				{m['labels.showingSpool']({ id: bindings[0].spool.id })}
 			</div>
 		{:else}
-			<div class="muted">{$_('labels.select_at_least_one')}</div>
+			<div class="muted">{m['labels.selectAtLeastOne']()}</div>
 		{/if}
 		<div class="print-btn">
 			<Button onclick={doPrint} disabled={bindings.length === 0 || printing}>
-				{printing ? $_('labels.preparing') : $_('labels.print_n', { values: { count: bindings.length } })}
+				{printing ? m['labels.preparing']() : m['labels.printN']({ count: bindings.length })}
 			</Button>
 		</div>
 	</div>

@@ -60,7 +60,7 @@
         },
         "titles": {
             "clone": "Kopier Filament",
-            "show_title": "[Filament #{id}] {name}",
+            "show_title": "[Filament #{{id}}] {{name}}",
             "show": "Vis filament",
             "create": "Opprett Filament",
             "edit": "Endre Filament",
@@ -124,18 +124,18 @@
             "showTemperatures": "Temperaturer",
             "button": "Skriv ut etiketter",
             "showVendorComment": "Leverandørkommentar",
-            "spoolWeight": "Spolevekt: {weight}",
+            "spoolWeight": "Spolevekt: {{weight}}",
             "showVendor": "Leverandør",
             "showSpoolComment": "Spolekommentar",
             "title": "Etikettprinting",
-            "extruderTemp": "ET: {temp}",
+            "extruderTemp": "ET: {{temp}}",
             "showSpoolWeight": "Spolevekt",
             "showContent": "Skriv ut etikett",
             "textSize": "Tekststørrelse på etikett",
             "showSpoolmanIcon": "Vis Spoolman ikon",
             "showLotNr": "Batch Nr",
-            "bedTemp": "BT: {temp}",
-            "lotNr": "Batch Nr: {lot}",
+            "bedTemp": "BT: {{temp}}",
+            "lotNr": "Batch Nr: {{lot}}",
             "showFilamentComment": "Filament kommentar",
             "template": "Etikett mal",
             "showQRCodeMode": {
@@ -159,7 +159,8 @@
             "showArchived": "Vis arkiverte",
             "title": "Velg spoler",
             "noSpoolsSelected": "Du har ikke valgt noen spoler.",
-            "selectedTotal": "{count, plural, one {{count} spole valgt} other {{count} spoler valgt}}",
+            "selectedTotal_one": "{{count}} spole valgt",
+            "selectedTotal_other": "{{count}} spoler valgt",
             "description": "Velg spoler å printe ut etiketter for.",
             "selectAll": "Velg/fjern merking av alle"
         }
@@ -197,7 +198,7 @@
             "edit": "Rediger spole",
             "create": "Opprett spole",
             "clone": "Klon spole",
-            "show_title": "[Spole #{id}] {name}",
+            "show_title": "[Spole #{{id}}] {{name}}",
             "list": "Spoler",
             "adjust": "Juster spolefilament"
         },
@@ -229,7 +230,7 @@
             "adjust_filament_value": "Juster mengde"
         },
         "formats": {
-            "last_used": "Sist brukt {date}"
+            "last_used": "Sist brukt {{date}}"
         }
     },
     "yes": "Ja",
@@ -244,7 +245,7 @@
             "external_id": "Ekstern ID"
         },
         "titles": {
-            "show_title": "[Leverandør #{id}] {name}",
+            "show_title": "[Leverandør #{{id}}] {{name}}",
             "show": "Vis leverandør",
             "edit": "Rediger leverandør",
             "create": "Opprett leverandør",
@@ -273,7 +274,7 @@
         "title": "QR-kodeskanner",
         "error": {
             "notReadable": "Kameraet kan ikke leses.",
-            "unknown": "Ukjent feil. {error}",
+            "unknown": "Ukjent feil. {{error}}",
             "notFound": "Fant ingen kameraer.",
             "insecureContext": "Siden serveres ikke over HTTPS.",
             "notAllowed": "Du har ikke gitt tilgang til kameraet.",
@@ -282,43 +283,43 @@
         "description": "Skann en Spoolman QR-kode for å se detaljer om spolen."
     },
     "notifications": {
-        "error": "Feil (statuskode: {statusCode})",
+        "error": "Feil (statuskode: {{statusCode}})",
         "success": "Vellykket",
-        "deleteSuccess": "Slettet {resource}",
-        "editError": "Kunne ikke redigere {resource} (statuskode: {statusCode})",
-        "undoable": "Du har {seconds} sekunder på å angre.",
-        "importProgress": "Importerer: {processed}/{total}",
-        "createError": "Kunne ikke opprette {resource} (statuskode: {statusCode})",
-        "editSuccess": "{resource} redigert",
-        "deleteError": "Kunne ikke slette {resource} (statuskode: {statusCode})",
-        "createSuccess": "Opprettet {resource}",
+        "deleteSuccess": "Slettet {{resource}}",
+        "editError": "Kunne ikke redigere {{resource}} (statuskode: {{statusCode}})",
+        "undoable": "Du har {{seconds}} sekunder på å angre.",
+        "importProgress": "Importerer: {{processed}}/{{total}}",
+        "createError": "Kunne ikke opprette {{resource}} (statuskode: {{statusCode}})",
+        "editSuccess": "{{resource}} redigert",
+        "deleteError": "Kunne ikke slette {{resource}} (statuskode: {{statusCode}})",
+        "createSuccess": "Opprettet {{resource}}",
         "saveSuccessful": "Lagring vellykket!",
-        "validationError": "Valideringsfeil: {error}"
+        "validationError": "Valideringsfeil: {{error}}"
     },
     "loading": "Laster",
     "documentTitle": {
         "vendor": {
             "create": "Opprett leverandør | Spoolman",
-            "clone": "#{id} Klon leverandør | Spoolman",
-            "edit": "#{id} Rediger leverandør | Spoolman",
+            "clone": "#{{id}} Klon leverandør | Spoolman",
+            "edit": "#{{id}} Rediger leverandør | Spoolman",
             "list": "Leverandører | Spoolman",
-            "show": "#{id} Vis leverandør | Spoolman"
+            "show": "#{{id}} Vis leverandør | Spoolman"
         },
         "default": "Spoolman",
         "spool": {
-            "edit": "#{id} Rediger spole | Spoolman",
+            "edit": "#{{id}} Rediger spole | Spoolman",
             "list": "Spoler | Spoolman",
             "create": "Opprett spole | Spoolman",
-            "show": "#{id} Vis spole | Spoolman",
-            "clone": "#{id} Klon spole| Spoolman"
+            "show": "#{{id}} Vis spole | Spoolman",
+            "clone": "#{{id}} Klon spole| Spoolman"
         },
         "suffix": " | Spoolman",
         "filament": {
             "list": "Filamenter | Spoolman",
-            "show": "#{id} Vis Filament | Spoolman",
-            "clone": "#{id} Kopier Filament | Spoolman",
+            "show": "#{{id}} Vis Filament | Spoolman",
+            "clone": "#{{id}} Kopier Filament | Spoolman",
             "create": "Opprett Filament | Spoolman",
-            "edit": "#{id} Endre Filament | Spoolman"
+            "edit": "#{{id}} Endre Filament | Spoolman"
         },
         "home": {
             "list": "Hjem | Spoolman"
@@ -400,10 +401,10 @@
             },
             "boolean_true": "Ja",
             "boolean_false": "Nei",
-            "choices_missing_error": "Du kan ikke fjerne valg. Følgende valg mangler: {choices}",
+            "choices_missing_error": "Du kan ikke fjerne valg. Følgende valg mangler: {{choices}}",
             "non_unique_key_error": "Nøkkelen må være unik.",
             "key_not_changed": "Nøkkelen kan ikke endres.",
-            "delete_confirm": "Slette felt {name}?",
+            "delete_confirm": "Slette felt {{name}}?",
             "delete_confirm_description": "Dette vil fjerne feltet permanent fra systemet."
         }
     }

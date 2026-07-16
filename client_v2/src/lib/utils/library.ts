@@ -1,6 +1,7 @@
 import type { Filament, Spool, Vendor } from '$lib/types';
 import type { GroupField } from '$lib/api/types';
 import { pct, grams } from './format';
+import * as m from '$lib/paraglide/messages';
 
 // Client-side concerns ONLY: turning a spool into a row view-model, and the
 // metadata that drives the sort/filter menus. Grouping, filtering, sorting,
@@ -11,12 +12,6 @@ interface Repo {
 	filamentById(id: string): Filament | undefined;
 	vendorOf(f: Filament): Vendor;
 }
-
-/** svelte-i18n's message formatter, threaded in so this stays framework-agnostic. */
-export type TranslateFn = (
-	key: string,
-	options?: { values?: Record<string, string | number | boolean | Date | null | undefined> }
-) => string;
 
 export interface SpoolVM {
 	spool: Spool;
@@ -39,7 +34,7 @@ export interface GroupHeaderInfo {
 	meta: string;
 }
 
-export function spoolToVM(s: Spool, repo: Repo, lowThreshold: number, t: TranslateFn): SpoolVM {
+export function spoolToVM(s: Spool, repo: Repo, lowThreshold: number): SpoolVM {
 	const filament = repo.filamentById(s.filamentId)!;
 	const vendor = repo.vendorOf(filament);
 	const low = !s.unused && s.remaining <= lowThreshold;
@@ -51,12 +46,12 @@ export function spoolToVM(s: Spool, repo: Repo, lowThreshold: number, t: Transla
 		pctValue: pct(s.remaining, s.initial),
 		low,
 		remLabel: grams(s.remaining) + ' g',
-		location: s.location || t('library.no_location'),
+		location: s.location || m['library.noLocation'](),
 		rightLabel: s.unused
-			? t('library.unused')
+			? m['library.unused']()
 			: s.lastUsedLabel
-				? t('library.used_ago', { values: { time: s.lastUsedLabel } })
-				: t('library.in_use')
+				? m['library.usedAgo']({ time: s.lastUsedLabel })
+				: m['library.inUse']()
 	};
 }
 
@@ -114,21 +109,21 @@ function spoolIdentity(vm: SpoolVM): RowIdentity {
 
 export interface SortDef {
 	key: string;
-	labelKey: string;
+	labelKey: () => string;
 	section: 'spool' | 'filament' | 'extra';
 	unit?: string;
 }
 
 export function sortDefs(): SortDef[] {
 	return [
-		{ key: 'lastUsed', labelKey: 'spool.fields.last_used', section: 'spool' },
-		{ key: 'rem', labelKey: 'spool.fields.remaining_weight', section: 'spool', unit: 'g' },
-		{ key: 'price', labelKey: 'spool.fields.price', section: 'spool' },
-		{ key: 'reg', labelKey: 'spool.fields.registered', section: 'spool' },
-		{ key: 'lot', labelKey: 'spool.fields.lot_nr', section: 'spool' },
-		{ key: 'mat', labelKey: 'spool.fields.material', section: 'filament' },
-		{ key: 'hue', labelKey: 'library.sort.hue', section: 'filament' },
-		{ key: 'noz', labelKey: 'library.sort.nozzle', section: 'filament', unit: '°C' },
-		{ key: 'dry', labelKey: 'library.sort.dryer', section: 'extra' }
+		{ key: 'lastUsed', labelKey: m['spool.fields.lastUsed'], section: 'spool' },
+		{ key: 'rem', labelKey: m['spool.fields.remainingWeight'], section: 'spool', unit: 'g' },
+		{ key: 'price', labelKey: m['spool.fields.price'], section: 'spool' },
+		{ key: 'reg', labelKey: m['spool.fields.registered'], section: 'spool' },
+		{ key: 'lot', labelKey: m['spool.fields.lotNr'], section: 'spool' },
+		{ key: 'mat', labelKey: m['spool.fields.material'], section: 'filament' },
+		{ key: 'hue', labelKey: m['library.sort.hue'], section: 'filament' },
+		{ key: 'noz', labelKey: m['library.sort.nozzle'], section: 'filament', unit: '°C' },
+		{ key: 'dry', labelKey: m['library.sort.dryer'], section: 'extra' }
 	];
 }

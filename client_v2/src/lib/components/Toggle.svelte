@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		checked: boolean;
@@ -14,7 +14,7 @@
 	class:on={checked}
 	role="switch"
 	aria-checked={checked}
-	aria-label={$_('common.toggle')}
+	aria-label={m['common.toggle']()}
 	onclick={() => onchange?.(!checked)}
 >
 	<span class="knob"></span>

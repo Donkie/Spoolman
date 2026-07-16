@@ -8,7 +8,7 @@
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import type { Spool } from '$lib/types';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		design: LabelDesign;
@@ -37,7 +37,7 @@
 	function spoolLabel(s: Spool): string {
 		const f = inventory.filamentById(s.filamentId);
 		const v = f ? inventory.vendorById(f.vendorId) : undefined;
-		return `#${s.id} · ${f ? `${v ? v.name + ' ' : ''}${f.name}` : $_('unknown')}`;
+		return `#${s.id} · ${f ? `${v ? v.name + ' ' : ''}${f.name}` : m.unknown()}`;
 	}
 	const previewBinding = $derived.by<LabelBinding | undefined>(() => {
 		if (previewSpoolId === null) return undefined;
@@ -101,7 +101,7 @@
 			align: 'left',
 			color: '#000000',
 			wrap: true,
-			template: $_('labels.new_text')
+			template: m['labels.newText']()
 		});
 	}
 	function addSwatch() {
@@ -137,15 +137,15 @@
 
 <div class="designer">
 	<div class="palette">
-		<div class="p-head">{$_('labels.add_head')}</div>
-		<button onclick={addQr}>◱ {$_('labels.add_qr')}</button>
-		<button onclick={addText}>T {$_('labels.add_text')}</button>
-		<button onclick={addSwatch}>▧ {$_('labels.add_swatch')}</button>
-		<button onclick={addRect}>▭ {$_('labels.add_rect')}</button>
+		<div class="p-head">{m['labels.addHead']()}</div>
+		<button onclick={addQr}>◱ {m['labels.addQr']()}</button>
+		<button onclick={addText}>T {m['labels.addText']()}</button>
+		<button onclick={addSwatch}>▧ {m['labels.addSwatch']()}</button>
+		<button onclick={addRect}>▭ {m['labels.addRect']()}</button>
 
-		<div class="p-head">{$_('labels.label_size')}</div>
+		<div class="p-head">{m['labels.labelSize']()}</div>
 		<label class="sz"
-			>{$_('labels.w_mm')}<input
+			>{m['labels.wMm']()}<input
 				type="number"
 				min="5"
 				value={design.label.w}
@@ -153,7 +153,7 @@
 			/></label
 		>
 		<label class="sz"
-			>{$_('labels.h_mm')}<input
+			>{m['labels.hMm']()}<input
 				type="number"
 				min="5"
 				value={design.label.h}
@@ -164,13 +164,13 @@
 
 	<div class="stage-area">
 		<div class="preview-bar">
-			<span>{$_('labels.preview_with')}</span>
+			<span>{m['labels.previewWith']()}</span>
 			<select
 				value={previewSpoolId === null ? '' : String(previewSpoolId)}
 				onchange={(e) =>
 					(previewSpoolId = e.currentTarget.value === '' ? null : Number(e.currentTarget.value))}
 			>
-				<option value="">{$_('labels.sample_data')}</option>
+				<option value="">{m['labels.sampleData']()}</option>
 				{#each previewSpools as s (s.id)}
 					<option value={String(s.id)}>{spoolLabel(s)}</option>
 				{/each}
@@ -186,8 +186,8 @@
 			onchange={updateElement}
 		/>
 		<div class="hint">
-			{$_('labels.canvas_hint')}
-			{previewBinding ? $_('labels.showing_real') : $_('labels.showing_tags')}
+			{m['labels.canvasHint']()}
+			{previewBinding ? m['labels.showingReal']() : m['labels.showingTags']()}
 		</div>
 	</div>
 

@@ -1,11 +1,11 @@
 {
     "printing": {
         "qrcode": {
-            "extruderTemp": "ET: {temp}",
+            "extruderTemp": "ET: {{temp}}",
             "showSpoolWeight": "Tekercs súlya",
             "showContent": "Címke nyomtatása",
             "showVendorComment": "Gyártó megjegyzés",
-            "spoolWeight": "Orsó súlya: {weight}",
+            "spoolWeight": "Orsó súlya: {{weight}}",
             "showTemperatures": "Hőmérséklet",
             "showVendor": "Gyártó",
             "showSpoolComment": "Orsó Megjegyzés",
@@ -13,8 +13,8 @@
             "title": "Cimkenyomtatás",
             "showSpoolmanIcon": "Spoolman ikon megjelenítése",
             "showLotNr": "Tételszám",
-            "bedTemp": "BT: {temp}",
-            "lotNr": "Tételszám: {lot}",
+            "bedTemp": "BT: {{temp}}",
+            "lotNr": "Tételszám: {{lot}}",
             "showFilamentComment": "Filament Komment",
             "button": "Cimkék Nyomtatása",
             "useHTTPUrl": {
@@ -79,7 +79,8 @@
             "defaultSettings": "Alapbeállítás"
         },
         "spoolSelect": {
-            "selectedTotal": "{count, plural, one {{count} tekercs kiválasztva} other {{count} db tekercs kiválasztva}}",
+            "selectedTotal_one": "{{count}} tekercs kiválasztva",
+            "selectedTotal_other": "{{count}} db tekercs kiválasztva",
             "description": "Válassza ki a tekercseket a cimkék nyomtatásához.",
             "showArchived": "Archivált megjelenítése",
             "title": "Tekercs kiválasztása",
@@ -90,25 +91,25 @@
     "documentTitle": {
         "vendor": {
             "create": "Gyártó létrehozása | Spoolman",
-            "clone": "#{id} Gyártó másolása | Spoolman",
-            "edit": "#{id} Gyártó szerkesztése | Spoolman",
+            "clone": "#{{id}} Gyártó másolása | Spoolman",
+            "edit": "#{{id}} Gyártó szerkesztése | Spoolman",
             "list": "Gyártók | Spoolman",
-            "show": "#{id} Gyártó megjelenítése | Spoolman"
+            "show": "#{{id}} Gyártó megjelenítése | Spoolman"
         },
         "default": "Spoolman",
         "spool": {
-            "edit": "#{id} Tekercs szerkesztése | Spoolman",
+            "edit": "#{{id}} Tekercs szerkesztése | Spoolman",
             "list": "Tekercs | Spoolman",
             "create": "Tekercs létrehozása | Spoolman",
-            "show": "#{id} Tekercs megjelítése | Spoolman",
-            "clone": "#{id} Tekercs másolása | Spoolman"
+            "show": "#{{id}} Tekercs megjelítése | Spoolman",
+            "clone": "#{{id}} Tekercs másolása | Spoolman"
         },
         "filament": {
             "list": "Filamentek | Spoolman",
-            "show": "#{id} Filamentek mejelenítése | Spoolman",
-            "clone": "#{id} Filament másolása | Spoolman",
+            "show": "#{{id}} Filamentek mejelenítése | Spoolman",
+            "clone": "#{{id}} Filament másolása | Spoolman",
             "create": "Filament létrehozása | Spoolman",
-            "edit": "#{id} Filament szerkesztése | Spoolman"
+            "edit": "#{{id}} Filament szerkesztése | Spoolman"
         },
         "suffix": " | Spoolman",
         "home": {
@@ -152,7 +153,7 @@
             "edit": "Tekercs szerkesztése",
             "create": "Tekercs létrehozása",
             "clone": "Tekercs másolása",
-            "show_title": "[Tekercs #{id}] {name}",
+            "show_title": "[Tekercs #{{id}}] {{name}}",
             "list": "Tekercs",
             "adjust": "Tekercs Szál Módosítása"
         },
@@ -184,7 +185,7 @@
             "archive": "Biztosan archiválni szeretné ezt a tekercset?"
         },
         "formats": {
-            "last_used": "Utolsó használat {date}"
+            "last_used": "Utolsó használat {{date}}"
         }
     },
     "buttons": {
@@ -248,7 +249,7 @@
         },
         "titles": {
             "clone": "Filament másolása",
-            "show_title": "[Filament #{id}] {name}",
+            "show_title": "[Filament #{{id}}] {{name}}",
             "show": "Filament megjelítése",
             "create": "Filament létrehozása",
             "edit": "Filament szerkesztése",
@@ -273,7 +274,7 @@
     },
     "vendor": {
         "titles": {
-            "show_title": "[Gyártó #{id}] {name}",
+            "show_title": "[Gyártó #{{id}}] {{name}}",
             "show": "Gyártó megjelenítése",
             "edit": "Gyártó szerkesztése",
             "clone": "Gyártó másolása",
@@ -302,25 +303,25 @@
             "insecureContext": "Az oldal kiszolgálása nem HTTPS-en keresztül történik.",
             "notReadable": "A kamera nem használható.",
             "notAllowed": "Nem engedélyezte a kamerához való hozzáférést.",
-            "unknown": "Ismeretlen hiba történt. ({error})",
+            "unknown": "Ismeretlen hiba történt. ({{error}})",
             "notFound": "Nem található kamera.",
             "streamApiNotSupported": "A böngésző nem támogatja a MediaStream API-t."
         },
         "description": "Olvass be egy Spoolman QR kódot a tekercsről szóló részletek megtekintéséhez."
     },
     "notifications": {
-        "deleteSuccess": "Sikeresen törölve {resource}",
-        "error": "Hiba (Hibakód: {statusCode})",
-        "editError": "Hiba a {resource} szerkesztésekor (hibakód: {statusCode})",
-        "undoable": "{seconds} másodperced van visszavonásra.",
-        "importProgress": "Importálás: {processed}/{total}",
-        "createError": "Hiba történt a(z) {resource} létrehozásakor (hibakód: {statusCode})",
+        "deleteSuccess": "Sikeresen törölve {{resource}}",
+        "error": "Hiba (Hibakód: {{statusCode}})",
+        "editError": "Hiba a {{resource}} szerkesztésekor (hibakód: {{statusCode}})",
+        "undoable": "{{seconds}} másodperced van visszavonásra.",
+        "importProgress": "Importálás: {{processed}}/{{total}}",
+        "createError": "Hiba történt a(z) {{resource}} létrehozásakor (hibakód: {{statusCode}})",
         "success": "Sikeres",
-        "editSuccess": "Sikeresen módosítva {resource}",
-        "deleteError": "Hiba a(z) {resource} törlésekor (hibakód: {statusCode})",
-        "createSuccess": "Sikeresen létrehozva {resource}",
+        "editSuccess": "Sikeresen módosítva {{resource}}",
+        "deleteError": "Hiba a(z) {{resource}} törlésekor (hibakód: {{statusCode}})",
+        "createSuccess": "Sikeresen létrehozva {{resource}}",
         "saveSuccessful": "Sikeres mentés!",
-        "validationError": "Validációs hiba:{error}"
+        "validationError": "Validációs hiba:{{error}}"
     },
     "no": "Nem",
     "unknown": "Ismeretlen",
@@ -379,9 +380,9 @@
             "boolean_false": "Nem",
             "tab": "Extra mezők",
             "boolean_true": "Igen",
-            "choices_missing_error": "Nem tudod eltávolítani a választásokat. A következő választások hiányoznak: {choices}",
+            "choices_missing_error": "Nem tudod eltávolítani a választásokat. A következő választások hiányoznak: {{choices}}",
             "non_unique_key_error": "A kulcsnak egyedinek kell lennie.",
-            "delete_confirm": "Töröli a következő mezőt: {name}?",
+            "delete_confirm": "Töröli a következő mezőt: {{name}}?",
             "delete_confirm_description": "Ez a mező törlése és az összes entitáshoz tartozó adat törlése.",
             "description": "<p>Itt hozzáadhatsz további egyedi mezőket az entitásokhoz.</p><p>Ha egy mezőt hozzáadtál, nem lehet megváltoztatni annak kulcsát vagy típusát, és a választási típusú mezők esetében nem lehet eltávolítani a választásokat vagy megváltoztatni a többválasztásos állapotot. Ha eltávolítasz egy mezőt, az összes entitásra vonatkozó adat törlődik.</p><p>A kulcs az, amit más programok olvasnak/írnak az adatokként, tehát ha az egyedi meződ egy harmadik féllel integrálódik, győződj meg róla, hogy helyesen van beállítva. Az alapértelmezett érték csak az új elemekre vonatkozik.</p><p>Az extra mezőket nem lehet rendezni vagy szűrni a táblázatnézetekben.</p>"
         },

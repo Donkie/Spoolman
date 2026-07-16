@@ -34,17 +34,17 @@
     "warnWhenUnsavedChanges": "您确定要离开吗？您有未保存的更改。",
     "notifications": {
         "success": "操作成功",
-        "error": "出现错误 (状态码：{statusCode})",
-        "undoable": "您有 {seconds} 秒可以撤销。",
-        "createSuccess": "成功创建 {resource}",
-        "createError": "创建 {resource} 时出现错误 (状态码：{statusCode})",
-        "deleteSuccess": "成功删除 {resource}",
-        "deleteError": "删除 {resource} 时出现错误 (状态码：{statusCode})",
-        "editSuccess": "成功修改 {resource}",
-        "editError": "修改 {resource} 时出现错误 (状态码：{statusCode})",
-        "importProgress": "导入中： {processed}/{total}",
+        "error": "出现错误 (状态码：{{statusCode}})",
+        "undoable": "您有 {{seconds}} 秒可以撤销。",
+        "createSuccess": "成功创建 {{resource}}",
+        "createError": "创建 {{resource}} 时出现错误 (状态码：{{statusCode}})",
+        "deleteSuccess": "成功删除 {{resource}}",
+        "deleteError": "删除 {{resource}} 时出现错误 (状态码：{{statusCode}})",
+        "editSuccess": "成功修改 {{resource}}",
+        "editError": "修改 {{resource}} 时出现错误 (状态码：{{statusCode}})",
+        "importProgress": "导入中： {{processed}}/{{total}}",
         "saveSuccessful": "保存成功！",
-        "validationError": "校验错误：{error}"
+        "validationError": "校验错误：{{error}}"
     },
     "loading": "加载中",
     "version": "版本",
@@ -104,10 +104,10 @@
         "qrcode": {
             "button": "打印标签",
             "title": "打印标签",
-            "spoolWeight": "料盘重量：{weight}",
-            "lotNr": "批号：{lot}",
-            "bedTemp": "热床温度：{temp}",
-            "extruderTemp": "挤出温度：{temp}",
+            "spoolWeight": "料盘重量：{{weight}}",
+            "lotNr": "批号：{{lot}}",
+            "bedTemp": "热床温度：{{temp}}",
+            "extruderTemp": "挤出温度：{{temp}}",
             "textSize": "标签文本大小",
             "showSpoolmanIcon": "显示Spoolman图标",
             "showVendor": "制造商",
@@ -125,7 +125,7 @@
                 "withIcon": "含图标",
                 "simple": "简单"
             },
-            "templateHelp": "使用 '{''}' 将料盘的值插入为文本。例如，'{'id'}' 将被替换为料盘的ID，或者 '{'filament.material'}' 将被替换为料盘的材质。如果某个值缺失，将用 \"?\" 替代。可以使用第二组 '{''}' 来删除缺失值相关的内容。此外，任意位于两组 '{''}' 之间的文本，如果值缺失，将被一同删除。例如，'{'Lot Nr: '{'lot_nr'}''}' 只有在料盘存在批号时才会显示标签内容。用双星号 ** 包裹文本可以将其加粗。点击按钮查看所有可用的标签列表。",
+            "templateHelp": "使用 {} 将料盘的值插入为文本。例如，{id} 将被替换为料盘的ID，或者 {filament.material} 将被替换为料盘的材质。如果某个值缺失，将用 \"?\" 替代。可以使用第二组 {} 来删除缺失值相关的内容。此外，任意位于两组 {} 之间的文本，如果值缺失，将被一同删除。例如，{Lot Nr: {lot_nr}} 只有在料盘存在批号时才会显示标签内容。用双星号 ** 包裹文本可以将其加粗。点击按钮查看所有可用的标签列表。",
             "useHTTPUrl": {
                 "tooltip": "将使用专有链接（默认情况下，仅能通过 **Spoolman** 的扫描功能访问）。URL 将使用设置中指定的基础 URL；如果未设置基础 URL，则使用当前页面的 URL。",
                 "label": "二维码链接",
@@ -142,7 +142,7 @@
             "showArchived": "显示存档",
             "noSpoolsSelected": "您尚未选择任何料盘。",
             "selectAll": "选择/取消选择全部",
-            "selectedTotal": "{count, plural, other {已选择{count}个料盘}}"
+            "selectedTotal_other": "已选择{{count}}个料盘"
         }
     },
     "scanner": {
@@ -154,7 +154,7 @@
             "streamApiNotSupported": "浏览器不支持MediaStream API。",
             "notReadable": "相机不可读。",
             "notFound": "没有找到相机。",
-            "unknown": "发生未知错误。({error})"
+            "unknown": "发生未知错误。({{error}})"
         }
     },
     "spool": {
@@ -202,7 +202,7 @@
             "list": "料盘列表",
             "show": "查看料盘",
             "archive": "料盘存档",
-            "show_title": "[料盘 #{id}] {name}",
+            "show_title": "[料盘 #{{id}}] {{name}}",
             "adjust": "调整线盘耗材"
         },
         "messages": {
@@ -220,7 +220,7 @@
             "adjust_filament_value": "消耗量"
         },
         "formats": {
-            "last_used": "上次使用 {date}"
+            "last_used": "上次使用 {{date}}"
         }
     },
     "filament": {
@@ -264,7 +264,7 @@
             "edit": "编辑耗材",
             "list": "耗材列表",
             "show": "查看耗材",
-            "show_title": "[耗材 #{id}] {name}"
+            "show_title": "[耗材 #{{id}}] {{name}}"
         },
         "form": {
             "filament_updated": "自您打开此页面以来，此耗材已被其他人/事物更新。保存将覆盖这些更改！",
@@ -291,7 +291,7 @@
             "edit": "编辑制造商",
             "list": "制造商列表",
             "show": "查看制造商",
-            "show_title": "[制造商 #{id}] {name}"
+            "show_title": "[制造商 #{{id}}] {{name}}"
         },
         "form": {
             "vendor_updated": "自您打开此页面以来，此制造商已被其他人/事物更新。保存将覆盖这些更改！"
@@ -308,24 +308,24 @@
         "suffix": " | Spoolman",
         "filament": {
             "list": "耗材列表 | Spoolman",
-            "show": "#{id} 查看耗材 | Spoolman",
-            "edit": "#{id} 编辑耗材 | Spoolman",
+            "show": "#{{id}} 查看耗材 | Spoolman",
+            "edit": "#{{id}} 编辑耗材 | Spoolman",
             "create": "创建耗材 | Spoolman",
-            "clone": "#{id} 克隆耗材 | Spoolman"
+            "clone": "#{{id}} 克隆耗材 | Spoolman"
         },
         "spool": {
             "list": "料盘列表 | Spoolman",
-            "show": "#{id} 查看料盘 | Spoolman",
-            "edit": "#{id} 编辑料盘 | Spoolman",
+            "show": "#{{id}} 查看料盘 | Spoolman",
+            "edit": "#{{id}} 编辑料盘 | Spoolman",
             "create": "创建料盘 | Spoolman",
-            "clone": "#{id} 克隆料盘 | Spoolman"
+            "clone": "#{{id}} 克隆料盘 | Spoolman"
         },
         "vendor": {
             "list": "制造商 | Spoolman",
-            "show": "#{id} 查看制造商 | Spoolman",
-            "edit": "#{id} 编辑制造商 | Spoolman",
+            "show": "#{{id}} 查看制造商 | Spoolman",
+            "edit": "#{{id}} 编辑制造商 | Spoolman",
             "create": "创建制造商 | Spoolman",
-            "clone": "#{id} 克隆制造商 | Spoolman"
+            "clone": "#{{id}} 克隆制造商 | Spoolman"
         },
         "home": {
             "list": "主页 | Spoolman"
@@ -380,10 +380,10 @@
             },
             "boolean_true": "是",
             "boolean_false": "否",
-            "choices_missing_error": "您无法删除选择。以下选项丢失：{choices}",
+            "choices_missing_error": "您无法删除选择。以下选项丢失：{{choices}}",
             "non_unique_key_error": "键必须是唯一的。",
             "key_not_changed": "请将键改成其他的。",
-            "delete_confirm": "删除字段 {name}？"
+            "delete_confirm": "删除字段 {{name}}？"
         },
         "header": "设置",
         "general": {

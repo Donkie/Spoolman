@@ -3,7 +3,7 @@
 	import NavTabs from './NavTabs.svelte';
 	import SearchBox from './library/SearchBox.svelte';
 	import Button from './Button.svelte';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		onadd?: () => void;
@@ -18,7 +18,7 @@
 		<Logo />
 		<div class="nav-desktop"><NavTabs /></div>
 		<div class="spacer"></div>
-		<button class="scan-btn" onclick={onscan} aria-label={$_('topbar.scan')} title={$_('topbar.scan')}>
+		<button class="scan-btn" onclick={onscan} aria-label={m['topbar.scan']()} title={m['topbar.scan']()}>
 			<svg
 				viewBox="0 0 24 24"
 				width="18"
@@ -41,7 +41,7 @@
 			<SearchBox />
 		</div>
 		<div class="add-desktop">
-			<Button onclick={onadd}>＋ {$_('topbar.add_spools')}</Button>
+			<Button onclick={onadd}>＋ {m['topbar.addSpools']()}</Button>
 		</div>
 	</div>
 

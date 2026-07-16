@@ -32,18 +32,18 @@
         "continue": "Jätka"
     },
     "notifications": {
-        "error": "Viga (kood: {statusCode})",
-        "undoable": "Sul on {seconds} sekundit, et muudatus tagasi võtta.",
+        "error": "Viga (kood: {{statusCode}})",
+        "undoable": "Sul on {{seconds}} sekundit, et muudatus tagasi võtta.",
         "success": "Õnnestunud",
-        "createSuccess": "Loodi {resource}",
-        "createError": "Tekkis viga {resource} loomisel. (staatuse kood: {statusCode})",
-        "deleteSuccess": "Edukalt kustutatud {resource}",
-        "deleteError": "Viga {resource} kustutamisel. (staatuse kood: {statusCode})",
-        "editSuccess": "Edukalt muudetud {resource}",
-        "editError": "Viga {resource} muutmisel (staatuse kood: {statusCode})",
-        "importProgress": "Importimine: {processed}/{total}",
+        "createSuccess": "Loodi {{resource}}",
+        "createError": "Tekkis viga {{resource}} loomisel. (staatuse kood: {{statusCode}})",
+        "deleteSuccess": "Edukalt kustutatud {{resource}}",
+        "deleteError": "Viga {{resource}} kustutamisel. (staatuse kood: {{statusCode}})",
+        "editSuccess": "Edukalt muudetud {{resource}}",
+        "editError": "Viga {{resource}} muutmisel (staatuse kood: {{statusCode}})",
+        "importProgress": "Importimine: {{processed}}/{{total}}",
         "saveSuccessful": "Salvesta edukalt!",
-        "validationError": "Viga validerimisel: {error}"
+        "validationError": "Viga validerimisel: {{error}}"
     },
     "warnWhenUnsavedChanges": "Oled sa kindel, et soovid lahkuda? Sul on salvestamata muudatusi.",
     "kofi": "Anna mulle tippi Ko-fi's",
@@ -126,7 +126,8 @@
             "button": ""
         },
         "spoolSelect": {
-            "selectedTotal": "{count, plural, one {} other {}}",
+            "selectedTotal_one": "",
+            "selectedTotal_other": "",
             "description": "",
             "showArchived": "",
             "title": "",

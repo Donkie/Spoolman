@@ -8,7 +8,7 @@
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { fields } from '$lib/stores/fields.svelte';
 	import type { EntityKind } from '$lib/types';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		fullWidth?: boolean;
@@ -154,12 +154,34 @@
 		'id',
 		'color'
 	]);
+	const MATCH_LABEL: Record<EntityKind, Record<string, () => string>> = {
+		filament: {
+			name: m['filament.fields.name'],
+			material: m['filament.fields.material'],
+			article_number: m['filament.fields.articleNumber'],
+			comment: m['filament.fields.comment'],
+			id: m['filament.fields.id'],
+			color: m['filament.fields.colorHex']
+		},
+		spool: {
+			material: m['spool.fields.material'],
+			comment: m['spool.fields.comment'],
+			id: m['spool.fields.id'],
+			location: m['spool.fields.location'],
+			lot_nr: m['spool.fields.lotNr']
+		},
+		vendor: {
+			name: m['vendor.fields.name'],
+			comment: m['vendor.fields.comment'],
+			id: m['vendor.fields.id']
+		}
+	};
 	function matchLabel(kind: EntityKind, matchField: string): string {
 		if (matchField.startsWith('extra.')) {
 			const key = matchField.slice(6);
 			return fields.get(kind).find((f) => f.key === key)?.name ?? key;
 		}
-		return NATIVE_MATCH.has(matchField) ? $_(`search.match.${matchField}`) : matchField;
+		return matchField in MATCH_LABEL[kind] ? MATCH_LABEL[kind][matchField]() : matchField;
 	}
 
 	// The flat index of an item, so hover/selection highlight lines up with keyboard nav.
@@ -171,7 +193,7 @@
 <div class="search-box" class:full={fullWidth} bind:this={wrapper}>
 	<SearchInput
 		value={query}
-		placeholder={'⌕ ' + $_('topbar.search_placeholder')}
+		placeholder={'⌕ ' + m['topbar.searchPlaceholder']()}
 		oninput={(v) => {
 			query = v;
 			open = true;
@@ -182,78 +204,78 @@
 	/>
 
 	{#if showPanel}
-		<div class="panel" role="listbox" aria-label={$_('common.search')}>
+		<div class="panel" role="listbox" aria-label={m['common.search']()}>
 			{#if results?.isColorQuery}
 				<div class="color-controls">
 					<label class="slider">
-						<span>{$_('search.threshold')}</span>
+						<span>{m['search.threshold']()}</span>
 						<input type="range" min="0" max="60" step="1" bind:value={threshold} oninput={persistThreshold} />
 						<span class="val mono">{threshold}</span>
 					</label>
-					<p class="hint">{$_('search.color_hint')}</p>
+					<p class="hint">{m['search.colorHint']()}</p>
 				</div>
 			{/if}
 
 			{#if loading && !results}
-				<div class="msg">{$_('search.searching')}</div>
+				<div class="msg">{m['search.searching']()}</div>
 			{:else if errored}
-				<div class="msg">{$_('library.api_error')}</div>
+				<div class="msg">{m['library.apiError']()}</div>
 			{:else if !hasResults}
-				<div class="msg">{$_('search.no_results')}</div>
+				<div class="msg">{m['search.noResults']()}</div>
 			{:else}
 				{#if results && results.spools.length}
-					<div class="section-label">{$_('search.section.spools')}</div>
-					{#each results.spools as m (m.entity.id)}
-						{@const filament = inventory.filamentById(m.entity.filamentId)}
+					<div class="section-label">{m['search.section.spools']()}</div>
+					{#each results.spools as spool (spool.entity.id)}
+						{@const filament = inventory.filamentById(spool.entity.filamentId)}
 						<button
 							class="result"
-							class:active={activeIndex === indexOf('spool', String(m.entity.id))}
-							onclick={() => choose('spool', String(m.entity.id))}
+							class:active={activeIndex === indexOf('spool', String(spool.entity.id))}
+							onclick={() => choose('spool', String(spool.entity.id))}
 						>
-							<span class="id mono">#{m.entity.id}</span>
+							<span class="id mono">#{spool.entity.id}</span>
 							<Swatch colors={filament?.colors ?? []} size={20} />
 							<span class="text">
-								<span class="title">{filament?.name || $_('search.unknown_filament')}</span>
-								{#if m.entity.location}<span class="sub">{m.entity.location}</span>{/if}
+								<span class="title">{filament?.name || m['search.unknownFilament']()}</span>
+								{#if spool.entity.location}<span class="sub">{spool.entity.location}</span>{/if}
 							</span>
-							<span class="match">{matchLabel('spool', m.matchField)}</span>
+							<span class="match">{matchLabel('spool', spool.matchField)}</span>
 						</button>
 					{/each}
 				{/if}
 
 				{#if results && results.filaments.length}
-					<div class="section-label">{$_('search.section.filaments')}</div>
-					{#each results.filaments as m (m.entity.id)}
-						{@const vendor = inventory.vendorById(m.entity.vendorId)}
+					<div class="section-label">{m['search.section.filaments']()}</div>
+					{#each results.filaments as filament (filament.entity.id)}
+						{@const vendor = inventory.vendorById(filament.entity.vendorId)}
 						<button
 							class="result"
-							class:active={activeIndex === indexOf('filament', m.entity.id)}
-							onclick={() => choose('filament', m.entity.id)}
+							class:active={activeIndex === indexOf('filament', filament.entity.id)}
+							onclick={() => choose('filament', filament.entity.id)}
 						>
-							<Swatch colors={m.entity.colors} size={20} />
+							<Swatch colors={filament.entity.colors} size={20} />
 							<span class="text">
-								<span class="title">{m.entity.name}</span>
+								<span class="title">{filament.entity.name}</span>
 								{#if vendor?.name}<span class="sub">{vendor.name}</span>{/if}
 							</span>
-							{#if m.entity.material}<MaterialBadge label={m.entity.material} />{/if}
-							<span class="match">{matchLabel('filament', m.matchField)}</span>
+							{#if filament.entity.material}<MaterialBadge label={filament.entity.material} />{/if}
+							<span class="match">{matchLabel('filament', filament.matchField)}</span>
 						</button>
 					{/each}
 				{/if}
 
 				{#if results && results.vendors.length}
-					<div class="section-label">{$_('search.section.vendors')}</div>
-					{#each results.vendors as m (m.entity.id)}
+					<div class="section-label">{m['search.section.vendors']()}</div>
+					{#each results.vendors as vendor (vendor.entity.id)}
 						<button
 							class="result"
-							class:active={activeIndex === indexOf('vendor', m.entity.id)}
-							onclick={() => choose('vendor', m.entity.id)}
+							class:active={activeIndex === indexOf('vendor', vendor.entity.id)}
+							onclick={() => choose('vendor', vendor.entity.id)}
 						>
 							<span class="vendor-icon" aria-hidden="true">🏭</span>
 							<span class="text">
-								<span class="title">{m.entity.name}</span>
+								<span class="title">{vendor.entity.name}</span>
 							</span>
-							<span class="match">{matchLabel('vendor', m.matchField)}</span>
+							<span class="match">{matchLabel('vendor', vendor.matchField)}</span>
 						</button>
 					{/each}
 				{/if}

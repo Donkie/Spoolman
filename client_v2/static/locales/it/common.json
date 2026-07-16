@@ -1,11 +1,11 @@
 {
     "printing": {
         "qrcode": {
-            "extruderTemp": "ET: {temp}",
+            "extruderTemp": "ET: {{temp}}",
             "showSpoolWeight": "Peso Bobina",
             "showContent": "Stampa Etichetta",
             "showVendorComment": "Note Aggiuntive Produttore",
-            "spoolWeight": "Peso Bobina: {weight}",
+            "spoolWeight": "Peso Bobina: {{weight}}",
             "showTemperatures": "Temperature",
             "showVendor": "Produttore",
             "showSpoolComment": "Note aggiuntive Bobina",
@@ -13,12 +13,12 @@
             "title": "Stampando etichetta",
             "showSpoolmanIcon": "Mostra Icona Spoolman",
             "showLotNr": "Lotto Nr",
-            "bedTemp": "BT: {temp}",
-            "lotNr": "Lotto Nr: {lot}",
+            "bedTemp": "BT: {{temp}}",
+            "lotNr": "Lotto Nr: {{lot}}",
             "showFilamentComment": "Note Aggiuntive Filamento",
             "button": "Stampa etichette",
             "template": "Modello di etichetta",
-            "templateHelp": "Utilizza '{''}' per inserire i valori della bobina nel testo. Ad esempio, '{'id'}' verrà sostituito con l'id della bobina, oppure '{'filament.material'}' verrà sostituito con il materiale della bobina. Racchiudi il testo con un doppio asterisco ** per renderlo in grassetto. Fai clic sul pulsante per visualizzare un elenco di tutte le etichette disponibili.",
+            "templateHelp": "Utilizza {} per inserire i valori della bobina nel testo. Ad esempio, {id} verrà sostituito con l'id della bobina, oppure {filament.material} verrà sostituito con il materiale della bobina. Racchiudi il testo con un doppio asterisco ** per renderlo in grassetto. Fai clic sul pulsante per visualizzare un elenco di tutte le etichette disponibili.",
             "showQRCodeMode": {
                 "no": "No",
                 "simple": "Semplice",
@@ -79,7 +79,9 @@
             "saveSetting": "Salva impostazione"
         },
         "spoolSelect": {
-            "selectedTotal": "{count, plural, one {{count} bobina selezionata} many {{count} bobine selezionate} other {{count} bobine selezionate}}",
+            "selectedTotal_one": "{{count}} bobina selezionata",
+            "selectedTotal_many": "{{count}} bobine selezionate",
+            "selectedTotal_other": "{{count}} bobine selezionate",
             "description": "Seleziona le bobine per le quali stampare le etichette.",
             "showArchived": "Mostra Archiviati",
             "title": "Seleziona Bobina",
@@ -90,25 +92,25 @@
     "documentTitle": {
         "vendor": {
             "create": "Crea Produttore | Spoolman",
-            "clone": "#{id} Duplica Produttore | Spoolman",
-            "edit": "#{id} Modifica Produttore | Spoolman",
+            "clone": "#{{id}} Duplica Produttore | Spoolman",
+            "edit": "#{{id}} Modifica Produttore | Spoolman",
             "list": "Produttori | Spoolman",
-            "show": "#{id} Mostra Produttore | Spoolman"
+            "show": "#{{id}} Mostra Produttore | Spoolman"
         },
         "default": "Spoolman",
         "spool": {
-            "edit": "#{id} Modifica Bobina | Spoolman",
+            "edit": "#{{id}} Modifica Bobina | Spoolman",
             "list": "Bobine | Spoolman",
             "create": "Crea Bobina | Spoolman",
-            "show": "#{id} Mostra Bobina | Spoolman",
-            "clone": "#{id} Clona Bobina | Spoolman"
+            "show": "#{{id}} Mostra Bobina | Spoolman",
+            "clone": "#{{id}} Clona Bobina | Spoolman"
         },
         "filament": {
             "list": "Filamenti | Spoolman",
-            "show": "#{id} Mostra Filamento | Spoolman",
-            "clone": "#{id} Clona Filamento | Spoolman",
+            "show": "#{{id}} Mostra Filamento | Spoolman",
+            "clone": "#{{id}} Clona Filamento | Spoolman",
             "create": "Crea Filamento | Spoolman",
-            "edit": "#{id} Modifica Filamento | Spoolman"
+            "edit": "#{{id}} Modifica Filamento | Spoolman"
         },
         "suffix": " | Spoolman",
         "home": {
@@ -152,7 +154,7 @@
             "edit": "Modifica Bobina",
             "create": "Crea Bobina",
             "clone": "Clona Bobina",
-            "show_title": "[Bobina #{id}] {name}",
+            "show_title": "[Bobina #{{id}}] {{name}}",
             "list": "Bobine",
             "adjust": "Regola il filamento della bobina"
         },
@@ -184,7 +186,7 @@
             "archive": "Sei sicuro di voler archiviare questa bobina?"
         },
         "formats": {
-            "last_used": "Ultimo utilizzo {date}"
+            "last_used": "Ultimo utilizzo {{date}}"
         }
     },
     "buttons": {
@@ -248,7 +250,7 @@
         },
         "titles": {
             "clone": "Clona Filamento",
-            "show_title": "[Filamento #{id}] {name}",
+            "show_title": "[Filamento #{{id}}] {{name}}",
             "show": "Mostra Filamento",
             "create": "Crea Filamento",
             "edit": "Modifica Filamento",
@@ -273,7 +275,7 @@
     },
     "vendor": {
         "titles": {
-            "show_title": "[Produttore #{id}] {name}",
+            "show_title": "[Produttore #{{id}}] {{name}}",
             "show": "Mostra Produttori",
             "edit": "Modifica Produttore",
             "clone": "Duplica Produttore",
@@ -302,25 +304,25 @@
             "insecureContext": "La pagina non è disponibile tramite HTTPS.",
             "notReadable": "La fotocamera non riesce a leggere.",
             "notAllowed": "Non hai accesso alla fotocamera.",
-            "unknown": "Si è verificato un errore. ({error})",
+            "unknown": "Si è verificato un errore. ({{error}})",
             "notFound": "Nessuna fotocamera rilevata.",
             "streamApiNotSupported": "il browser non supporta le API MediaStream."
         },
         "description": "Scansiona uno Spoolman QR-Code per visualizzare i dettagli della bobina."
     },
     "notifications": {
-        "deleteSuccess": "{resource} cancellato con successo",
-        "error": "Errore (status code: {statusCode})",
-        "editError": "Errore durante la modifica di {resource} (status code: {statusCode})",
-        "undoable": "Hai {seconds} secondi per ripristinare.",
-        "importProgress": "Importando: {processed}/{total}",
-        "createError": "C'è stato un errore nella creazione di {resource} (status code: {statusCode})",
+        "deleteSuccess": "{{resource}} cancellato con successo",
+        "error": "Errore (status code: {{statusCode}})",
+        "editError": "Errore durante la modifica di {{resource}} (status code: {{statusCode}})",
+        "undoable": "Hai {{seconds}} secondi per ripristinare.",
+        "importProgress": "Importando: {{processed}}/{{total}}",
+        "createError": "C'è stato un errore nella creazione di {{resource}} (status code: {{statusCode}})",
         "success": "Riuscito",
-        "editSuccess": "{resource} modificata con successo",
-        "deleteError": "Error nella cancellazione di {resource} (status code: {statusCode})",
-        "createSuccess": "{resource} creata correttamente",
+        "editSuccess": "{{resource}} modificata con successo",
+        "deleteError": "Error nella cancellazione di {{resource}} (status code: {{statusCode}})",
+        "createSuccess": "{{resource}} creata correttamente",
         "saveSuccessful": "Salvataggio completato!",
-        "validationError": "Errore di convalida: {error}"
+        "validationError": "Errore di convalida: {{error}}"
     },
     "no": "No",
     "unknown": "Sconosciuto",
@@ -375,12 +377,12 @@
                 "boolean": "Booleano",
                 "integer": "\"Intero\" per tipo campo extra, numero intero senza decimali"
             },
-            "choices_missing_error": "Non è possibile rimuovere le scelte. Mancano i seguenti elementi: {choices}",
+            "choices_missing_error": "Non è possibile rimuovere le scelte. Mancano i seguenti elementi: {{choices}}",
             "non_unique_key_error": "La chiave deve essere univoca.",
             "key_not_changed": "Si prega di utilizzare una chiave diversa.",
             "boolean_true": "Si",
             "boolean_false": "No",
-            "delete_confirm": "Cancellare il campo {name}?",
+            "delete_confirm": "Cancellare il campo {{name}}?",
             "delete_confirm_description": "Questo eliminerà il campo e tutti i dati associati di tutte le selezioni.",
             "tab": "Campi extra",
             "description": "<p>Qui è possibile aggiungere campi personalizzati.</p><p>Una volta aggiunto un campo, non è possibile modificarne la chiave o il tipo, e per i campi di tipo scelta non è possibile rimuovere le scelte o modificare lo stato di scelta multipla. Se si rimuove un campo, tutti i dati associati saranno cancellati.</p><p>La chiave è il modo in cui gli altri programmi leggono/scrivono i dati, quindi se il campo personalizzato deve integrarsi con un programma di terze parti, assicurarsi di impostarla correttamente. Il valore predefinito viene applicato solo ai nuovi elementi.</p><p>I campi extra non possono essere ordinati o filtrati nelle viste tabella.</p>"

@@ -5,7 +5,7 @@
 	import VendorInspector from './VendorInspector.svelte';
 	import type { Selection } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	let { selection }: { selection: Selection | null } = $props();
 
@@ -24,7 +24,7 @@
 {:else}
 	<div class="empty">
 		<img class="mark" src="{base}/spoolman.svg" alt="" width="56" height="56" />
-		<p>{$_('inspector.empty')}</p>
+		<p>{m['inspector.empty']()}</p>
 	</div>
 {/if}
 

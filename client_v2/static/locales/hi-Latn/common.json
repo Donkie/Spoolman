@@ -276,7 +276,8 @@
             "button": ""
         },
         "spoolSelect": {
-            "selectedTotal": "{count, plural, one {} other {}}",
+            "selectedTotal_one": "",
+            "selectedTotal_other": "",
             "description": "",
             "showArchived": "",
             "title": "",

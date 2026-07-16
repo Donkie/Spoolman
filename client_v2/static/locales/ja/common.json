@@ -1,17 +1,17 @@
 {
     "notifications": {
-        "undoable": "取り消しまで残り{seconds}秒",
-        "editSuccess": "{resource}の編集が完了",
+        "undoable": "取り消しまで残り{{seconds}}秒",
+        "editSuccess": "{{resource}}の編集が完了",
         "success": "完了",
-        "error": "エラー (status code: {statusCode})",
-        "createSuccess": "{resource}の作成が完了",
-        "deleteSuccess": "{resource}の削除が完了",
-        "editError": "{resource}の編集中にエラーが発生しました (status code: {statusCode})",
-        "importProgress": "インポート中: {processed}/{total}",
+        "error": "エラー (status code: {{statusCode}})",
+        "createSuccess": "{{resource}}の作成が完了",
+        "deleteSuccess": "{{resource}}の削除が完了",
+        "editError": "{{resource}}の編集中にエラーが発生しました (status code: {{statusCode}})",
+        "importProgress": "インポート中: {{processed}}/{{total}}",
         "saveSuccessful": "保存完了!",
-        "createError": "{resource}を作成中にエラーが発生しました。 (status code: {statusCode})",
-        "validationError": "検証エラー: {error}",
-        "deleteError": "{resource}を削除中にエラーが発生しました (status code: {statusCode})"
+        "createError": "{{resource}}を作成中にエラーが発生しました。 (status code: {{statusCode}})",
+        "validationError": "検証エラー: {{error}}",
+        "deleteError": "{{resource}}を削除中にエラーが発生しました (status code: {{statusCode}})"
     },
     "actions": {
         "create": "作成",
@@ -105,7 +105,7 @@
             },
             "showQRCode": "QRコード印刷",
             "showContent": "ラベル印刷",
-            "templateHelp": "値をテキストとして挿入するには'{''}'を使用します。例えば、'{'id'}'はスプールIDに置き換えられ、'{'filament.material'}'はスプールの材質に置き換えられます。値が欠けている場合は「?」に置き換えられます。二重の'{''}'を使用して、この置換を削除することができます。'{''}'のセット間のテキストは、値が欠けている場合に削除されます。例えば、'{'Lot Nr: '{'lot_nr'}''}'は、スプールにロット番号がある場合にのみラベルを表示します。テキストを太字にするには、二重のアスタリスク**で囲みます。利用可能なすべてのタグのリストを表示するには、ボタンをクリックしてください。",
+            "templateHelp": "値をテキストとして挿入するには{}を使用します。例えば、{id}はスプールIDに置き換えられ、{filament.material}はスプールの材質に置き換えられます。値が欠けている場合は「?」に置き換えられます。二重の{}を使用して、この置換を削除することができます。{}のセット間のテキストは、値が欠けている場合に削除されます。例えば、{Lot Nr: {lot_nr}}は、スプールにロット番号がある場合にのみラベルを表示します。テキストを太字にするには、二重のアスタリスク**で囲みます。利用可能なすべてのタグのリストを表示するには、ボタンをクリックしてください。",
             "showQRCodeMode": {
                 "no": "いいえ",
                 "withIcon": "アイコン付き",
@@ -117,7 +117,7 @@
             "showArchived": "アーカイブを表示",
             "selectAll": "すべてを選択 / 選択解除",
             "title": "スプールを選択",
-            "selectedTotal": "{count, plural, other {{count}本のスプールを選択}}",
+            "selectedTotal_other": "{{count}}本のスプールを選択",
             "noSpoolsSelected": "スプールが選択されていません。"
         }
     },
@@ -139,7 +139,7 @@
         "error": {
             "notReadable": "カメラを読み込むことができません。",
             "notFound": "カメラが見つかりません。",
-            "unknown": "未知のエラーが発生しました。({error})",
+            "unknown": "未知のエラーが発生しました。({{error}})",
             "insecureContext": "このページはHTTPSで接続されていません。",
             "streamApiNotSupported": "ブラウザがMediaStream APIに対応していません。",
             "notAllowed": "カメラへのアクセスが許可されていません。"
@@ -186,7 +186,7 @@
         "titles": {
             "create": "スプールを作成",
             "clone": "スプールを複製",
-            "show_title": "[スプール #{id}] {name}",
+            "show_title": "[スプール #{{id}}] {{name}}",
             "adjust": "スプールフィラメントの調整",
             "edit": "スプールを編集",
             "archive": "アーカイブしたスプール",
@@ -208,7 +208,7 @@
             "archive": "本当にこのスプールをアーカイブしますか?"
         },
         "formats": {
-            "last_used": "最終使用日: {date}"
+            "last_used": "最終使用日: {{date}}"
         },
         "spool": "スプール"
     },
@@ -252,7 +252,7 @@
             "clone": "フィラメントを複製",
             "list": "フィラメント",
             "edit": "フィラメントを編集",
-            "show_title": "[フィラメント #{id}] {name}",
+            "show_title": "[フィラメント #{{id}}] {{name}}",
             "show": "フィラメントを表示"
         },
         "form": {
@@ -282,7 +282,7 @@
             "show": "製造者を表示",
             "clone": "製造者を複製",
             "edit": "製造者を編集",
-            "show_title": "[製造者 #{id}] {name}"
+            "show_title": "[製造者 #{{id}}] {{name}}"
         },
         "form": {
             "vendor_updated": "この製造者は、このページを開いてから他の誰か/何かによって更新されています。保存すると、それらの変更が上書きされます!"
@@ -343,10 +343,10 @@
             "boolean_true": "はい",
             "key_not_changed": "別のキーに変更してください。",
             "boolean_false": "いいえ",
-            "delete_confirm": "{name}のフィールドを削除しますか?",
+            "delete_confirm": "{{name}}のフィールドを削除しますか?",
             "delete_confirm_description": "フィールドとすべてのエンティティの関連データがすべて削除されます。",
             "description": "<p>ここで追加のカスタムフィールドを追加できます。</p><p>フィールドを追加すると、そのキーやタイプを変更することはできません。また、選択肢タイプのフィールドでは、選択肢の削除や複数選択の状態を変更することはできません。フィールドを削除すると、すべてのエンティティの関連データが削除されます。</p><p>キーは他のプログラムがデータを読み書きする際に使用するものなので、カスタムフィールドがサードパーティのプログラムと連携する予定がある場合は、正しく設定してください。デフォルト値は新しいアイテムにのみ適用されます。</p><p>追加フィールドはテーブルビューで並べ替えやフィルタリングすることはできません。</p>",
-            "choices_missing_error": "選択肢を削除できません。下記の選択肢がありません: {choices}",
+            "choices_missing_error": "選択肢を削除できません。下記の選択肢がありません: {{choices}}",
             "non_unique_key_error": "キーは一意の値である必要があります。"
         }
     },
@@ -360,23 +360,23 @@
         "default": "Spoolman",
         "suffix": " | Spoolman",
         "filament": {
-            "edit": "フィラメントの編集 #{id} | Spoolman",
-            "clone": "フィラメントの複製 #{id} | Spoolman",
-            "show": "フィラメント #{id} | Spoolman",
+            "edit": "フィラメントの編集 #{{id}} | Spoolman",
+            "clone": "フィラメントの複製 #{{id}} | Spoolman",
+            "show": "フィラメント #{{id}} | Spoolman",
             "create": "フィラメントの作成 | Spoolman",
             "list": "フィラメント | Spoolman"
         },
         "spool": {
             "list": "スプール | Spoolman",
-            "show": "スプール #{id} | Spoolman",
+            "show": "スプール #{{id}} | Spoolman",
             "create": "スプールの作成 | Spoolman",
-            "edit": "スプールの編集 #{id} | Spoolman",
-            "clone": "スプールの複製 #{id} | Spoolman"
+            "edit": "スプールの編集 #{{id}} | Spoolman",
+            "clone": "スプールの複製 #{{id}} | Spoolman"
         },
         "vendor": {
-            "edit": "製造者の編集 #{id} | Spoolman",
-            "clone": "製造者の複製 #{id} | Spoolman",
-            "show": "製造者 #{id} | Spoolman",
+            "edit": "製造者の編集 #{{id}} | Spoolman",
+            "clone": "製造者の複製 #{{id}} | Spoolman",
+            "show": "製造者 #{{id}} | Spoolman",
             "create": "製造者の作成 | Spoolman",
             "list": "製造者 | Spoolman"
         },

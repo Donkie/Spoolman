@@ -34,17 +34,17 @@
     "warnWhenUnsavedChanges": "정말 나갑니까? 변경 사항이 저장되지 않습니다.",
     "notifications": {
         "success": "성공",
-        "error": "오류 (상태 코드: {statusCode})",
+        "error": "오류 (상태 코드: {{statusCode}})",
         "saveSuccessful": "저장 완료!",
-        "validationError": "검증 오류:{error}",
-        "undoable": "{seconds}초 이내에 취소할 수 있습니다.",
-        "createSuccess": "생성 완료 {resource}",
-        "createError": "{resource} 생성 중 오류가 발생했습니다 (상태 코드: {statusCode})",
-        "deleteSuccess": "삭제 완료 {resource}",
-        "deleteError": "{resource} 삭제 중 오류 발생 (상태 코드: {statusCode})",
-        "editSuccess": "수정 완료 {resource}",
-        "editError": "{resource} 편집 중 오류 발생 (상태 코드: {statusCode})",
-        "importProgress": "가져오기: {processed}/{total}"
+        "validationError": "검증 오류:{{error}}",
+        "undoable": "{{seconds}}초 이내에 취소할 수 있습니다.",
+        "createSuccess": "생성 완료 {{resource}}",
+        "createError": "{{resource}} 생성 중 오류가 발생했습니다 (상태 코드: {{statusCode}})",
+        "deleteSuccess": "삭제 완료 {{resource}}",
+        "deleteError": "{{resource}} 삭제 중 오류 발생 (상태 코드: {{statusCode}})",
+        "editSuccess": "수정 완료 {{resource}}",
+        "editError": "{{resource}} 편집 중 오류 발생 (상태 코드: {{statusCode}})",
+        "importProgress": "가져오기: {{processed}}/{{total}}"
     },
     "kofi": "Ko-fi 로 개발 지원",
     "loading": "로딩",
@@ -106,7 +106,7 @@
             "button": "프린트 라벨",
             "title": "라벨 인쇄",
             "template": "라벨 템플릿",
-            "templateHelp": "'{''}'를 사용하여 스풀 객체의 값을 텍스트로 삽입합니다. 예를 들어, '{'id'}'는 스풀 id로 대체되고, '{'filament.material'}'은 스풀의 재료로 대체됩니다. 값이 누락된 경우 \"?\"로 대체됩니다. 두 번째 '{''}' 세트를 사용하여 이를 제거할 수 있습니다. 또한, '{''}' 쌍 사이에 있는 텍스트는 값이 누락된 경우 제거됩니다. 예를 들어, '{'Lot Nr: '{'lot_nr'}''}'은 스풀에 로트 번호가 있을 때만 라벨을 표시합니다. 텍스트를 두 개의 별표 **로 감싸면 굵게 표시됩니다. 사용 가능한 모든 태그 목록을 보려면 버튼을 클릭하세요.",
+            "templateHelp": "{}를 사용하여 스풀 객체의 값을 텍스트로 삽입합니다. 예를 들어, {id}는 스풀 id로 대체되고, {filament.material}은 스풀의 재료로 대체됩니다. 값이 누락된 경우 \"?\"로 대체됩니다. 두 번째 {} 세트를 사용하여 이를 제거할 수 있습니다. 또한, {} 쌍 사이에 있는 텍스트는 값이 누락된 경우 제거됩니다. 예를 들어, {Lot Nr: {lot_nr}}은 스풀에 로트 번호가 있을 때만 라벨을 표시합니다. 텍스트를 두 개의 별표 **로 감싸면 굵게 표시됩니다. 사용 가능한 모든 태그 목록을 보려면 버튼을 클릭하세요.",
             "textSize": "라벨 글씨 크기",
             "showQRCode": "QR 코드 인쇄",
             "showContent": "프린트 라벨",
@@ -131,7 +131,7 @@
             "showArchived": "보관 보기",
             "noSpoolsSelected": "스풀을 선택하지 않았습니다.",
             "selectAll": "선택/모두 해제",
-            "selectedTotal": "{count, plural, other {{count} 스풀 선택됨}}"
+            "selectedTotal_other": "{{count}} 스풀 선택됨"
         }
     },
     "scanner": {
@@ -143,7 +143,7 @@
             "streamApiNotSupported": "브라우저가 MediaStream API를 지원하지 않습니다.",
             "notReadable": "카메라를 읽을 수 없습니다.",
             "notFound": "카메라를 찾을 수 없습니다.",
-            "unknown": "알수 없는 오류 발생. {error}"
+            "unknown": "알수 없는 오류 발생. {{error}}"
         }
     },
     "spool": {
@@ -190,7 +190,7 @@
             "edit": "스풀 수정",
             "list": "스풀",
             "show": "스풀 보기",
-            "show_title": "[스풀 #{id}] {name}",
+            "show_title": "[스풀 #{{id}}] {{name}}",
             "archive": "스풀 보관",
             "adjust": "스풀 필라멘트 조정"
         },
@@ -209,7 +209,7 @@
             "archive": "이 스풀을 보관하시겠습니까?"
         },
         "formats": {
-            "last_used": "최종 사용 {date}"
+            "last_used": "최종 사용 {{date}}"
         }
     },
     "filament": {
@@ -253,7 +253,7 @@
             "edit": "필라멘트 편집",
             "list": "필라멘트",
             "show": "필라멘트 보기",
-            "show_title": "[필라멘트 #{id}] {name}"
+            "show_title": "[필라멘트 #{{id}}] {{name}}"
         },
         "form": {
             "filament_updated": "이 필라멘트는 귀하가 이 페이지를 열었을 때 이후로 다른 사람/무언가에 의해 업데이트 되었습니다. 저장하면 해당 변경 사항이 덮어쓰게 됩니다!",
@@ -283,7 +283,7 @@
             "edit": "제조사 편집",
             "list": "제조사",
             "show": "제조사 보기",
-            "show_title": "[제조사 #{id}] {name}"
+            "show_title": "[제조사 #{{id}}] {{name}}"
         },
         "form": {
             "vendor_updated": "이 제조업체 정보는 귀하가 이 페이지를 열었을 때 이후로 다른 사람/무언가에 의해 업데이트 되었습니다. 저장하면 해당 변경 사항이 덮어쓰게 됩니다!"
@@ -348,10 +348,10 @@
             },
             "boolean_true": "네",
             "boolean_false": "아니오",
-            "choices_missing_error": "선택 항목을 제거할 수 없습니다. 다음 선택 항목이 누락되었습니다: {choices}",
+            "choices_missing_error": "선택 항목을 제거할 수 없습니다. 다음 선택 항목이 누락되었습니다: {{choices}}",
             "non_unique_key_error": "키는 고유해야 합니다.",
             "key_not_changed": "키 값을 다른 것으로 바꿔 주세요.",
-            "delete_confirm": "{name} 필드 삭제?",
+            "delete_confirm": "{{name}} 필드 삭제?",
             "delete_confirm_description": "이 작업은 모든 엔티티에 대해 해당 필드와 관련된 모든 데이터를 삭제합니다."
         }
     },
@@ -369,24 +369,24 @@
         },
         "filament": {
             "list": "필라멘트 | Spoolman",
-            "show": "#{id} 필라멘트 보기 | Spoolman",
-            "edit": "#{id} 필라멘트 편집 | Spoolman",
+            "show": "#{{id}} 필라멘트 보기 | Spoolman",
+            "edit": "#{{id}} 필라멘트 편집 | Spoolman",
             "create": "필라멘트 생성 | Spoolman",
-            "clone": "#{id} 필라멘트 복제 | Spoolman"
+            "clone": "#{{id}} 필라멘트 복제 | Spoolman"
         },
         "spool": {
             "list": "스풀 | Spoolman",
-            "show": "#{id} 스풀 보기 | Spoolman",
-            "edit": "#{id} 스풀 편집 | Spoolman",
+            "show": "#{{id}} 스풀 보기 | Spoolman",
+            "edit": "#{{id}} 스풀 편집 | Spoolman",
             "create": "스풀 생성 | Spoolman",
-            "clone": "#{id} 스풀 복제 | Spoolman"
+            "clone": "#{{id}} 스풀 복제 | Spoolman"
         },
         "vendor": {
             "list": "제조사 | Spoolman",
-            "show": "#{id} 제조사 보기 | Spoolman",
-            "edit": "#{id} 제조사 편집 | Spoolman",
+            "show": "#{{id}} 제조사 보기 | Spoolman",
+            "edit": "#{{id}} 제조사 편집 | Spoolman",
             "create": "제조사 생성 | Spoolman",
-            "clone": "#{id} 제조사 복제 | Spoolman"
+            "clone": "#{{id}} 제조사 복제 | Spoolman"
         }
     },
     "locations": {

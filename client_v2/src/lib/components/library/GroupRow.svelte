@@ -12,7 +12,7 @@
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { kg } from '$lib/utils/format';
-	import { _ } from 'svelte-i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		group: GroupSummary;
@@ -41,10 +41,10 @@
 	});
 
 	let inUse = $derived(
-		spools.filter((s) => !s.unused).map((s) => spoolToVM(s, inventory, settings.lowThreshold, $_))
+		spools.filter((s) => !s.unused).map((s) => spoolToVM(s, inventory, settings.lowThreshold))
 	);
 	let unused = $derived(
-		spools.filter((s) => s.unused).map((s) => spoolToVM(s, inventory, settings.lowThreshold, $_))
+		spools.filter((s) => s.unused).map((s) => spoolToVM(s, inventory, settings.lowThreshold))
 	);
 	let moreCount = $derived(group.spoolCount - spools.length);
 	let showSwatch = $derived(group.field !== 'filament');
@@ -73,7 +73,7 @@
 	{/if}
 	{#if moreCount > 0}
 		<button class="more" onclick={() => (limit += 20)}
-			>＋ {$_('library.show_more', { values: { count: moreCount } })}</button
+			>＋ {m['library.showMore']({ count: moreCount })}</button
 		>
 	{/if}
 </div>

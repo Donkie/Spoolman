@@ -7,7 +7,6 @@
 	import { ui } from '$lib/stores/ui.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { startLiveSync } from '$lib/api/liveSync';
-	import { isLoading } from 'svelte-i18n';
 	import type { Snippet } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();
@@ -16,20 +15,16 @@
 	// and thus every view that reads it, up to date with WebSocket events).
 	$effect(() => {
 		settings.load();
+
 		return startLiveSync();
 	});
 </script>
 
 <div class="app">
-	{#if $isLoading}
-		<div class="i18n-loading"></div>
-	{:else}
-		<TopBar onadd={() => ui.openAddModal()} onscan={() => ui.openScanner()} />
-		<main>
-			{@render children()}
-		</main>
-		<Footer />
-	{/if}
+	<TopBar onadd={() => ui.openAddModal()} onscan={() => ui.openScanner()} />
+
+	<main>{@render children()}</main>
+	<Footer />
 </div>
 
 <AddSpoolModal
@@ -49,13 +44,10 @@
 		background: var(--bg);
 		color: var(--text);
 	}
+
 	main {
 		display: flex;
 		flex: 1;
 		min-height: 0;
-	}
-	/* Placeholder shown only during the brief locale-swap fetch. */
-	.i18n-loading {
-		flex: 1;
 	}
 </style>

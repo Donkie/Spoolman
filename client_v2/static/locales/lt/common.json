@@ -34,17 +34,17 @@
     "warnWhenUnsavedChanges": "Ar tikrai norite išeiti? Yra neišsaugotų pakeitimų.",
     "notifications": {
         "success": "Sėkmingai",
-        "error": "Klaida (kodas: {statusCode})",
-        "undoable": "Jūs turite {seconds} sekundes, kad atšauktumėte.",
-        "createSuccess": "Sėkmingai sukurta {resource}",
-        "createError": "Kūrimo klaida {resource} (kodas: {statusCode})",
-        "deleteSuccess": "Sėkmingai ištrinta {resource}",
-        "deleteError": "Tkaida trinant {resource} (kodas: {statusCode})",
-        "editSuccess": "Sėkmingai redaguota {resource}",
-        "editError": "Redagavimo klaida {resource} (kodas: {statusCode})",
-        "importProgress": "Importuojama: {processed}/{total}",
+        "error": "Klaida (kodas: {{statusCode}})",
+        "undoable": "Jūs turite {{seconds}} sekundes, kad atšauktumėte.",
+        "createSuccess": "Sėkmingai sukurta {{resource}}",
+        "createError": "Kūrimo klaida {{resource}} (kodas: {{statusCode}})",
+        "deleteSuccess": "Sėkmingai ištrinta {{resource}}",
+        "deleteError": "Tkaida trinant {{resource}} (kodas: {{statusCode}})",
+        "editSuccess": "Sėkmingai redaguota {{resource}}",
+        "editError": "Redagavimo klaida {{resource}} (kodas: {{statusCode}})",
+        "importProgress": "Importuojama: {{processed}}/{{total}}",
         "saveSuccessful": "Įrašytaa sėkmingai!",
-        "validationError": "Tikrinimo klaida: {error}"
+        "validationError": "Tikrinimo klaida: {{error}}"
     },
     "kofi": "Paremk mane Ko-fi",
     "loading": "Kraunasi",
@@ -106,7 +106,7 @@
             "button": "Spausdinti etiketes",
             "title": "Etikečių spausdinimas",
             "template": "Etiketės šablonas",
-            "templateHelp": "Norėdami įterpti ritės objekto reikšmes kaip tekstą, naudokite '{''}'. Pavyzdžiui, '{'id'}' bus pakeistas ritės ID arba '{'filament.material'}' bus pakeistas ritės medžiaga. Jei reikšmės trūksta, ji bus pakeista simboliu „?“. Norėdami tai pašalinti, galima naudoti antrą '{''}' rinkinį. Be to, bet koks tekstas tarp '{''}' rinkinių bus pašalintas, jei reikšmės trūksta. Pavyzdžiui, '{'Lot Nr: '{'lot_nr'}''}' rodys žymą tik tuo atveju, jei ritė turi partijos numerį. Apsukite tekstą dviguba žvaigždute **, kad jis būtų paryškintas. Spustelėkite mygtuką, kad peržiūrėtumėte visų galimų žymų sąrašą.",
+            "templateHelp": "Norėdami įterpti ritės objekto reikšmes kaip tekstą, naudokite {}. Pavyzdžiui, {id} bus pakeistas ritės ID arba {filament.material} bus pakeistas ritės medžiaga. Jei reikšmės trūksta, ji bus pakeista simboliu „?“. Norėdami tai pašalinti, galima naudoti antrą {} rinkinį. Be to, bet koks tekstas tarp {} rinkinių bus pašalintas, jei reikšmės trūksta. Pavyzdžiui, {Lot Nr: {lot_nr}} rodys žymą tik tuo atveju, jei ritė turi partijos numerį. Apsukite tekstą dviguba žvaigždute **, kad jis būtų paryškintas. Spustelėkite mygtuką, kad peržiūrėtumėte visų galimų žymų sąrašą.",
             "textSize": "Etiketės teksto dydis",
             "showContent": "Spausdinti etiketę",
             "useHTTPUrl": {
@@ -131,7 +131,9 @@
             "showArchived": "Rodyti archyvuotus",
             "noSpoolsSelected": "Nepasirinkote jokių ričių.",
             "selectAll": "Pasirinkti/Atšaukti visų pasirinkimą",
-            "selectedTotal": "{count, plural, one {{count} ritė pasirinkta} few {{count} ritės pasirinktos} other {{count} ričių pasirinkta}}"
+            "selectedTotal_one": "{{count}} ritė pasirinkta",
+            "selectedTotal_few": "{{count}} ritės pasirinktos",
+            "selectedTotal_other": "{{count}} ričių pasirinkta"
         }
     },
     "scanner": {
@@ -143,7 +145,7 @@
             "streamApiNotSupported": "Naršyklė nepalaiko „MediaStream“ API.",
             "notReadable": "Kameros rodmenys neįskaitomi.",
             "notFound": "Nerasta jokios kameros.",
-            "unknown": "Įvyko nežinoma klaida. ({error})"
+            "unknown": "Įvyko nežinoma klaida. ({{error}})"
         }
     },
     "spool": {
@@ -190,7 +192,7 @@
             "edit": "Redaguoti ritę",
             "list": "Ritės",
             "show": "Rodyti ritę",
-            "show_title": "[Ritė #{id}] {name}",
+            "show_title": "[Ritė #{{id}}] {{name}}",
             "archive": "Archyvuoti ritę",
             "adjust": "Reguliuoti ritės giją"
         },
@@ -209,7 +211,7 @@
             "archive": "Ar tikrai norite archyvuoti šią ritę?"
         },
         "formats": {
-            "last_used": "Paskutinį kartą naudota {date}"
+            "last_used": "Paskutinį kartą naudota {{date}}"
         }
     },
     "filament": {
@@ -253,7 +255,7 @@
             "edit": "Redaguoti giją",
             "list": "Gijos",
             "show": "Rodyti gijas",
-            "show_title": "[Gija #{id}] {name}"
+            "show_title": "[Gija #{{id}}] {{name}}"
         },
         "form": {
             "filament_updated": "Šią giją kažkas kitas atnaujino nuo tada, kai atidarėte šį puslapį. Išsaugojus šie pakeitimai bus perrašyti!",
@@ -283,7 +285,7 @@
             "edit": "Redaguoti gamintoją",
             "list": "Gamintojai",
             "show": "Rodyti gamintojus",
-            "show_title": "[Gamintojas #{id}] {name}"
+            "show_title": "[Gamintojas #{{id}}] {{name}}"
         },
         "form": {
             "vendor_updated": "Šio gamintojo duomenis atnaujino kažkas kitas nuo tada, kai atidarėte šį puslapį. Išsaugojus šiuos pakeitimus bus perrašyti!"
@@ -348,10 +350,10 @@
             },
             "boolean_true": "Taip",
             "boolean_false": "Ne",
-            "choices_missing_error": "Negalite pašalinti pasirinkimų. Trūksta šių pasirinkimų: {choices}",
+            "choices_missing_error": "Negalite pašalinti pasirinkimų. Trūksta šių pasirinkimų: {{choices}}",
             "non_unique_key_error": "Raktas turi būti unukalus.",
             "key_not_changed": "Prašome pakeisti raktą į ką nors kitą.",
-            "delete_confirm": "Šalinti lauką {name}?",
+            "delete_confirm": "Šalinti lauką {{name}}?",
             "delete_confirm_description": "Tai ištrins lauką ir visus susijusius duomenis visiems objektams."
         }
     },
@@ -369,24 +371,24 @@
         },
         "filament": {
             "list": "Gijos | Spoolman",
-            "show": "#{id} Rodyti gijas | Spoolman",
-            "edit": "#{id} Redaguoti gijas | Spoolman",
+            "show": "#{{id}} Rodyti gijas | Spoolman",
+            "edit": "#{{id}} Redaguoti gijas | Spoolman",
             "create": "Kurti giją | Spoolman",
-            "clone": "#{id} Klonuoti giją | Spoolman"
+            "clone": "#{{id}} Klonuoti giją | Spoolman"
         },
         "spool": {
             "list": "Ritės | Spoolman",
-            "show": "#{id} Rodyti rites| Spoolman",
-            "edit": "#{id} Redaguoti rites | Spoolman",
+            "show": "#{{id}} Rodyti rites| Spoolman",
+            "edit": "#{{id}} Redaguoti rites | Spoolman",
             "create": "Kurti ritę | Spoolman",
-            "clone": "#{id} Klonuoti ritę | Spoolman"
+            "clone": "#{{id}} Klonuoti ritę | Spoolman"
         },
         "vendor": {
             "list": "Gamintojai | Spoolman",
-            "show": "#{id} Rodyti gamintojus | Spoolman",
-            "edit": "#{id} Redaguoti gamintojus | Spoolman",
+            "show": "#{{id}} Rodyti gamintojus | Spoolman",
+            "edit": "#{{id}} Redaguoti gamintojus | Spoolman",
             "create": "Kurti gamintoją | Spoolman",
-            "clone": "#{id} Klonuoti gamintoją | Spoolman"
+            "clone": "#{{id}} Klonuoti gamintoją | Spoolman"
         }
     },
     "locations": {
