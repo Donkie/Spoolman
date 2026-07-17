@@ -95,7 +95,8 @@ class HttpSpoolSource {
 			group_by: query.field,
 			sort: sortParam(query.sort),
 			limit: query.limit,
-			offset: query.offset
+			offset: query.offset,
+			allow_archived: query.allowArchived ? 'true' : undefined
 		};
 		applyFilters(params, query.filters);
 
@@ -114,7 +115,8 @@ class HttpSpoolSource {
 		const params: QueryParams = {
 			sort: sortParam(query.sort),
 			limit: query.limit,
-			offset: query.offset
+			offset: query.offset,
+			allow_archived: query.allowArchived ? 'true' : undefined
 		};
 		applyFilters(params, query.filters);
 		scopeParams(params, query.groupScope);

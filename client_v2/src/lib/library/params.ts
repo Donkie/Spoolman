@@ -25,6 +25,8 @@ export interface LibraryState {
 	sortKey: string;
 	sortAsc: boolean;
 	filters: FilterChip[];
+	/** Include archived spools in the listing (and group aggregates). */
+	showArchived: boolean;
 	page: number;
 	pageSize: number;
 }
@@ -36,6 +38,7 @@ const DEFAULTS = {
 	group: 'filament' as GroupMode,
 	sortKey: 'lastUsed',
 	sortAsc: false,
+	showArchived: false,
 	page: 1,
 	pageSize: 20
 };
@@ -73,6 +76,7 @@ export function parseLibraryState(params: URLSearchParams): LibraryState {
 		sortKey: params.get('sort') ?? DEFAULTS.sortKey,
 		sortAsc: params.get('dir') === 'asc',
 		filters: parseFilters(params.getAll('f')),
+		showArchived: params.get('arch') === '1',
 		page: parsePositiveInt(params.get('page'), DEFAULTS.page),
 		pageSize: parsePositiveInt(params.get('size'), DEFAULTS.pageSize)
 	};
@@ -98,6 +102,7 @@ function serializeState(s: LibraryState): string {
 	for (const f of s.filters) {
 		p.append('f', `${encodeURIComponent(f.prop)}:${encodeURIComponent(f.value)}`);
 	}
+	if (s.showArchived !== DEFAULTS.showArchived) p.set('arch', s.showArchived ? '1' : '0');
 	if (s.page !== DEFAULTS.page) p.set('page', String(s.page));
 	if (s.pageSize !== DEFAULTS.pageSize) p.set('size', String(s.pageSize));
 	if (s.selection) p.set('sel', `${s.selection.kind}:${s.selection.id}`);
@@ -144,6 +149,10 @@ export function toggleFilter(prop: string, value: string): void {
 		? s.filters.filter((f) => !(f.prop === prop && f.value === value))
 		: [...s.filters, { prop, value }];
 	navigate({ ...s, filters, page: DEFAULTS.page });
+}
+
+export function setShowArchived(showArchived: boolean): void {
+	navigate({ ...currentState(), showArchived, page: DEFAULTS.page });
 }
 
 export function removeFilter(prop: string, value: string): void {

@@ -49,6 +49,8 @@ export interface SpoolQuery {
 	sort: SortField[];
 	/** Restrict to one group's spools (for lazy per-group loading). */
 	groupScope?: GroupScope;
+	/** Include archived spools in the results (default: excluded). */
+	allowArchived?: boolean;
 	limit: number;
 	offset: number;
 	lowThreshold: number;
@@ -59,6 +61,8 @@ export interface GroupQuery {
 	filters: Record<string, string[]>;
 	/** Group-level ordering (by aggregate: group.total_remaining, group.last_used, group.title). */
 	sort: SortField[];
+	/** Include archived spools in the group aggregates (default: excluded). */
+	allowArchived?: boolean;
 	limit: number;
 	offset: number;
 	lowThreshold: number;

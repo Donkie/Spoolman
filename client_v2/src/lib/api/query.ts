@@ -45,6 +45,7 @@ export function buildGroupQuery(state: LibraryState): GroupQuery {
 		field,
 		filters: currentFilters(state),
 		sort: [{ field: groupField, dir }],
+		allowArchived: state.showArchived,
 		limit: state.pageSize,
 		offset: (state.page - 1) * state.pageSize,
 		lowThreshold: settings.lowThreshold
@@ -62,6 +63,7 @@ export function buildScopedSpoolQuery(state: LibraryState, group: GroupSummary, 
 		filters: currentFilters(state),
 		sort,
 		groupScope: { field: group.field, key: group.key },
+		allowArchived: state.showArchived,
 		limit,
 		offset: 0,
 		lowThreshold: settings.lowThreshold
@@ -77,6 +79,7 @@ export function buildFlatSpoolQuery(state: LibraryState): SpoolQuery {
 	return {
 		filters: currentFilters(state),
 		sort,
+		allowArchived: state.showArchived,
 		limit: state.pageSize,
 		offset: (state.page - 1) * state.pageSize,
 		lowThreshold: settings.lowThreshold

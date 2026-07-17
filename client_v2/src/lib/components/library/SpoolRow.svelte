@@ -4,6 +4,7 @@
 	import { rowIdentity, type RowContext, type SpoolVM } from '$lib/utils/library';
 	import * as params from '$lib/library/params';
 	import { page } from '$app/state';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		vm: SpoolVM;
@@ -22,6 +23,7 @@
 <button
 	class="row"
 	class:selected
+	class:archived={vm.spool.archived}
 	style="padding-left:{indent}px"
 	onclick={() => params.select('spool', String(vm.spool.id))}
 >
@@ -33,6 +35,9 @@
 		{#if identity.title}<span class="title">{identity.title}</span>{/if}
 		{#if identity.sub}<span class="sub">{identity.sub}</span>{/if}
 	</span>
+	{#if vm.spool.archived}
+		<span class="tag">{m['spool.fields.archived']()}</span>
+	{/if}
 	<ProgressBar value={vm.pctValue} danger={vm.low} width="56px" />
 	<span class="rem mono" class:low={vm.low}>{vm.remLabel}</span>
 	<span class="right">{vm.location}</span>
@@ -60,6 +65,20 @@
 	.row.selected {
 		background: var(--accent-wash);
 		border-left-color: var(--accent);
+	}
+	.row.archived .id,
+	.row.archived .name {
+		opacity: 0.55;
+	}
+	.tag {
+		flex: none;
+		font-size: 9.5px;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--text-dim);
+		border: 1px solid var(--border-soft);
+		border-radius: var(--radius-sm);
+		padding: 1px 5px;
 	}
 	.id {
 		font-size: 11px;

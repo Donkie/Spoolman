@@ -85,27 +85,37 @@
 	role="toolbar"
 	tabindex="-1"
 >
-	<button
-		class="chip add-filter"
-		onclick={() => {
-			toggle('filter');
-			filterProp = null;
-		}}>＋ {m['buttons.filter']()}</button
-	>
+	<!-- Filters flow and wrap here; the Group/Sort cluster stays pinned top-right. -->
+	<div class="filters">
+		<button
+			class="chip add-filter"
+			onclick={() => {
+				toggle('filter');
+				filterProp = null;
+			}}>＋ {m['buttons.filter']()}</button
+		>
 
-	{#each libraryState.filters as f (f.prop + f.value)}
-		<button class="chip active" onclick={() => params.removeFilter(f.prop, f.value)}>
-			{chipLabel(f.prop, f.value)} <span class="x">✕</span>
+		{#each libraryState.filters as f (f.prop + f.value)}
+			<button class="chip active" onclick={() => params.removeFilter(f.prop, f.value)}>
+				{chipLabel(f.prop, f.value)} <span class="x">✕</span>
+			</button>
+		{/each}
+
+		<!-- Archived is a filter; when on it shows as a dismissible chip like the rest. -->
+		{#if libraryState.showArchived}
+			<button class="chip active" onclick={() => params.setShowArchived(false)}>
+				{m['spool.fields.archived']()} <span class="x">✕</span>
+			</button>
+		{/if}
+	</div>
+
+	<div class="controls">
+		<button class="link-btn" onclick={() => toggle('group')}>{m['library.groupBy']()}: {groupLabel} ⌄</button>
+		<button class="chip active sort" onclick={() => toggle('sort')}>
+			{m['library.sortBy']()}: {activeSort.labelKey()}
+			{libraryState.sortAsc ? '↑' : '↓'}
 		</button>
-	{/each}
-
-	<div class="spacer"></div>
-
-	<button class="link-btn" onclick={() => toggle('group')}>{m['library.groupBy']()}: {groupLabel} ⌄</button>
-	<button class="chip active sort" onclick={() => toggle('sort')}>
-		{m['library.sortBy']()}: {activeSort.labelKey()}
-		{libraryState.sortAsc ? '↑' : '↓'}
-	</button>
+	</div>
 
 	{#if open === 'filter'}
 		<div class="menu filter-menu">
@@ -117,6 +127,19 @@
 						<span class="mi-meta">›</span>
 					</button>
 				{/each}
+				<div class="menu-sep"></div>
+				<button
+					class="menu-item"
+					role="menuitemcheckbox"
+					aria-checked={libraryState.showArchived}
+					onclick={() => {
+						params.setShowArchived(!libraryState.showArchived);
+						close();
+					}}
+				>
+					<span class="mi-check">{libraryState.showArchived ? '☑' : '☐'}</span>
+					<span class="mi-label">{m['buttons.showArchived']()}</span>
+				</button>
 			{:else}
 				{@const c = FILTER_CATEGORIES.find((x) => x.key === filterProp)}
 				<button class="menu-title back" onclick={() => (filterProp = null)}>‹ {c ? c.labelKey() : ''}</button>
@@ -185,16 +208,30 @@
 <style>
 	.toolbar {
 		display: flex;
-		gap: 6px;
+		gap: 6px 10px;
 		padding: 10px 14px;
 		border-bottom: 1px solid var(--border-soft);
-		align-items: center;
+		/* Top-align so the Group/Sort cluster stays on the first row while filter
+		   chips wrap onto additional rows below. */
+		align-items: flex-start;
 		position: relative;
 		flex: none;
-		flex-wrap: wrap;
 	}
-	.spacer {
-		flex: 1;
+	.filters {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		align-items: center;
+		/* Take the free space and wrap internally; min-width:0 lets it actually
+		   shrink/wrap instead of shoving the controls onto a new row. */
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+	.controls {
+		display: flex;
+		gap: 6px;
+		align-items: center;
+		flex: none;
 	}
 	.chip {
 		display: flex;
@@ -223,6 +260,20 @@
 	.chip.active {
 		background: var(--accent-wash);
 		border: 1px solid var(--accent-border);
+		color: var(--accent-soft);
+	}
+	.menu-sep {
+		height: 1px;
+		background: var(--border-soft);
+		margin: 4px 0;
+	}
+	.mi-check {
+		flex: none;
+		font-size: 12.5px;
+		color: var(--text-dim);
+		width: 15px;
+	}
+	.menu-item[aria-checked='true'] .mi-check {
 		color: var(--accent-soft);
 	}
 	.x {
