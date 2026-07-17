@@ -2,6 +2,7 @@
 	import Swatch from './Swatch.svelte';
 	import Button from './Button.svelte';
 	import NumberInput from './NumberInput.svelte';
+	import DateTimeField from './DateTimeField.svelte';
 	import ExtraFieldsSection from './ExtraFieldsSection.svelte';
 	import type { Filament, Extra } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
@@ -180,8 +181,9 @@
 
 	// Which field's help popup is currently expanded (null = none).
 	let openHelp = $state<string | null>(null);
-	let firstUsed = $state('');
-	let lastUsed = $state('');
+	// Nullable ISO timestamps, driven by the custom DateTimeField picker.
+	let firstUsed = $state<string | undefined>(undefined);
+	let lastUsed = $state<string | undefined>(undefined);
 	let extraValues = $state<Extra>({});
 
 	const FILL_MODES: { key: FillMode; labelKey: () => string }[] = [
@@ -219,8 +221,8 @@
 		comment = '';
 		fillMode = 'full';
 		fillWeight = '';
-		firstUsed = '';
-		lastUsed = '';
+		firstUsed = undefined;
+		lastUsed = undefined;
 		extraValues = seedExtraDefaults();
 	}
 
@@ -348,8 +350,8 @@
 			else if (fillMode === 'remaining') body.remaining_weight = Number(fillWeight) || 0;
 			else if (fillMode === 'measured')
 				body.used_weight = Math.max(0, net + spool - (Number(fillWeight) || 0));
-			if (firstUsed) body.first_used = new Date(firstUsed).toISOString();
-			if (lastUsed) body.last_used = new Date(lastUsed).toISOString();
+			if (firstUsed) body.first_used = firstUsed;
+			if (lastUsed) body.last_used = lastUsed;
 			if (Object.keys(extraValues).length) body.extra = extraValues;
 
 			for (let i = 0; i < n; i++) await spoolSource.createSpool(body);
@@ -754,10 +756,18 @@
 					</div>
 
 					<div class="form dates">
-						<label
-							>{m['spool.fields.firstUsed']()}<input type="datetime-local" bind:value={firstUsed} /></label
+						<label class="date-label"
+							>{m['spool.fields.firstUsed']()}<DateTimeField
+								value={firstUsed}
+								oninput={(iso) => (firstUsed = iso)}
+							/></label
 						>
-						<label>{m['spool.fields.lastUsed']()}<input type="datetime-local" bind:value={lastUsed} /></label>
+						<label class="date-label"
+							>{m['spool.fields.lastUsed']()}<DateTimeField
+								value={lastUsed}
+								oninput={(iso) => (lastUsed = iso)}
+							/></label
+						>
 					</div>
 
 					<div class="form comment-row">
@@ -1189,8 +1199,9 @@
 	.dates {
 		grid-template-columns: 1fr 1fr;
 	}
-	.form input[type='datetime-local'] {
-		color-scheme: dark;
+	/* Give the custom DateTimeField trigger the same top gap as text inputs. */
+	.date-label :global(.dtf) {
+		margin-top: 8px;
 	}
 	.fill {
 		margin-top: 14px;
