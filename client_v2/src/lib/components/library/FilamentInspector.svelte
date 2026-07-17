@@ -15,6 +15,7 @@
 	import * as params from '$lib/library/params';
 	import { pct, grams } from '$lib/utils/format';
 	import { spoolSource } from '$lib/api/spoolSource';
+	import { live } from '$lib/api/live';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
 	import * as m from '$lib/paraglide/messages';
 
@@ -28,8 +29,14 @@
 	// re-trigger this effect in an infinite loop.
 	let filamentId = $derived(filament.id);
 	let spools = $state<Spool[]>([]);
+	// Bumped by live spool events so adding/removing/editing a spool refetches
+	// this filament's list (the fetch below is server-ordered, not read from the
+	// cache, so it needs an explicit nudge to stay in sync).
+	let revision = $state(0);
+	$effect(() => live.subscribe('spool', {}, () => revision++));
 	$effect(() => {
 		const id = filamentId;
+		revision; // refetch on live spool events
 		let cancelled = false;
 		spoolSource
 			.listSpools({
