@@ -79,9 +79,9 @@ function resolvePath(path: string, b: LabelBinding): string {
 }
 
 /**
- * Render a template to a plain string for the given binding. In "preview" mode
- * (no filament/vendor, or missing values) placeholders resolve to their tags so
- * the designer stays legible before a real spool is bound.
+ * Render a template to a plain string for the given binding. A bare `{path}`
+ * whose value is missing resolves to "?"; only the wrapped `{prefix{path}suffix}`
+ * form drops its whole block when the value is missing.
  */
 export function resolveTemplate(template: string, b: LabelBinding): string {
 	// Match either a bare {path} or a wrapped {prefix{path}suffix}.
@@ -91,8 +91,10 @@ export function resolveTemplate(template: string, b: LabelBinding): string {
 		const braces = (match[0].match(/{/g) || []).length;
 		if (braces === 1) {
 			const path = match[0].replace(/[{}]/g, '');
+			// A bare placeholder keeps the "?" sentinel when the value is missing;
+			// only the wrapped form below drops its block. Matches v1's renderLabelContents.
 			const value = resolvePath(path, b);
-			out = out.replace(match[0], value === MISSING ? '' : value);
+			out = out.replace(match[0], value);
 		} else if (braces === 2) {
 			const structure = match[0].match(/{(.*?){(.*?)}(.*?)}/s);
 			if (structure) {
