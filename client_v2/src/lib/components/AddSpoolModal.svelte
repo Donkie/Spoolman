@@ -55,16 +55,21 @@
 	// Common 3D-printing materials with their typical densities (g/cm³). These are
 	// always offered for selection and map to a density, even when SpoolmanDB is
 	// unreachable; SpoolmanDB presets (with temps) merge on top where available.
+	// Densities are kept in sync with SpoolmanDB's materials.json
+	// (https://github.com/Donkie/SpoolmanDB/blob/main/materials.json) — note the
+	// merge only overrides on exact (lowercased) name match, so SpoolmanDB's
+	// longer names (e.g. "Flexible (TPU)", "Polycarbonate (PC)") won't refine
+	// these short keys at runtime; the values below must match on their own.
 	const COMMON_MATERIALS: { name: string; density: number }[] = [
 		{ name: 'PLA', density: 1.24 },
 		{ name: 'PETG', density: 1.27 },
 		{ name: 'ABS', density: 1.04 },
-		{ name: 'ASA', density: 1.07 },
+		{ name: 'ASA', density: 1.05 },
 		{ name: 'TPU', density: 1.21 },
-		{ name: 'Nylon', density: 1.14 },
-		{ name: 'PC', density: 1.2 },
+		{ name: 'Nylon', density: 1.52 },
+		{ name: 'PC', density: 1.3 },
 		{ name: 'PVA', density: 1.23 },
-		{ name: 'HIPS', density: 1.04 },
+		{ name: 'HIPS', density: 1.03 },
 		{ name: 'PP', density: 0.9 }
 	];
 
