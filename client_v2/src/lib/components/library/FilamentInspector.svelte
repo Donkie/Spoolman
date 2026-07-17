@@ -110,7 +110,7 @@
 					/>
 				</span>
 				<span class="rem mono">{grams(s.remaining)} g</span>
-				<span class="loc">{s.location || m['library.noLocation']()}</span>
+				<span class="loc">{s.location ?? ''}</span>
 			</button>
 		{/each}
 	</div>

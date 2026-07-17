@@ -46,7 +46,9 @@ export function spoolToVM(s: Spool, repo: Repo, lowThreshold: number): SpoolVM {
 		pctValue: pct(s.remaining, s.initial),
 		low,
 		remLabel: grams(s.remaining) + ' g',
-		location: s.location || m['library.noLocation'](),
+		// A spool without a location leaves the column blank rather than showing a
+		// placeholder — the empty box reads more cleanly in a dense list.
+		location: s.location ?? '',
 		rightLabel: s.unused
 			? m['library.unused']()
 			: s.lastUsedLabel
