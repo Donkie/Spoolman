@@ -572,6 +572,7 @@
     "validation.hexDigits": "Use 6 or 8 hex digits",
     "validation.maxChars": "At most {{max}} characters",
     "validation.mustBeGt": "Must be greater than {{value}}",
+    "validation.mustBeMax": "Must be {{value}} or less",
     "validation.mustBeMin": "Must be {{value}} or more",
     "validation.mustBeNumber": "Must be a number",
     "validation.required": "Required",

@@ -371,7 +371,7 @@
 	// weight > 0, spool_weight/price ≥ 0; color_hex must be 6 or 8 hex chars.
 	function numErr(
 		v: string,
-		{ required = false, min, gt }: { required?: boolean; min?: number; gt?: number } = {}
+		{ required = false, min, max, gt }: { required?: boolean; min?: number; max?: number; gt?: number } = {}
 	) {
 		const t = v.trim();
 		if (t === '') return required ? m['validation.required']() : '';
@@ -379,6 +379,7 @@
 		if (!Number.isFinite(n)) return m['validation.mustBeNumber']();
 		if (gt != null && n <= gt) return m['validation.mustBeGt']({ value: gt });
 		if (min != null && n < min) return m['validation.mustBeMin']({ value: min });
+		if (max != null && n > max) return m['validation.mustBeMax']({ value: max });
 		return '';
 	}
 	const HEX_RE = /^#?[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/;
@@ -400,7 +401,25 @@
 		e.netWeight = numErr(netWeight, { gt: 0 });
 		e.spoolWeight = numErr(spoolWeight, { min: 0 });
 		e.price = numErr(price, { min: 0 });
-		if (fillMode !== 'full') e.fillWeight = numErr(fillWeight, { min: 0 });
+		if (fillMode !== 'full') {
+			// Cross-check the fill amount against the net/empty-spool weights above.
+			// Only applies the upper bound when those weights are themselves valid so
+			// we don't cascade an unrelated error into this field.
+			const netN = Number(netWeight);
+			const netValid = netWeight.trim() !== '' && Number.isFinite(netN) && netN > 0;
+			const spoolN = Number.isFinite(Number(spoolWeight)) ? Number(spoolWeight) : 0;
+			if (fillMode === 'measured') {
+				// Weight on the scale = filament left + empty spool, so it can be at most
+				// net+spool (full) and at least the empty-spool weight (nothing left).
+				e.fillWeight = numErr(fillWeight, {
+					min: spoolN,
+					max: netValid ? netN + spoolN : undefined
+				});
+			} else {
+				// used/remaining are amounts of filament, capped at the net weight.
+				e.fillWeight = numErr(fillWeight, { min: 0, max: netValid ? netN : undefined });
+			}
+		}
 		// Drop empty (no-error) entries.
 		for (const k of Object.keys(e)) if (!e[k]) delete e[k];
 		return e;
