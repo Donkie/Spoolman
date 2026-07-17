@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Swatch from '../Swatch.svelte';
 	import EditableField from '../EditableField.svelte';
+	import NumberInput from '../NumberInput.svelte';
 	import SectionLabel from '../SectionLabel.svelte';
 	import ExtraFieldsSection from '../ExtraFieldsSection.svelte';
 	import FieldGrid from '../FieldGrid.svelte';
@@ -81,10 +82,14 @@
 					<EditableField value={vendor.name} oninput={(v) => set({ name: v })} />
 				</Field>
 				<Field label={m['inspector.emptySpoolWt']()}>
-					<EditableField
+					<NumberInput
+						dense
+						unit="g"
+						step={10}
+						min={0}
+						width="200px"
 						value={vendor.emptyWeight}
-						mono
-						oninput={(v) => set({ emptyWeight: parseInt(v, 10) || vendor.emptyWeight })}
+						onchange={(v) => set({ emptyWeight: Math.round(v) })}
 					/>
 				</Field>
 			</FieldGrid>

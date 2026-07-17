@@ -589,33 +589,36 @@
 							{#if showAdvanced}
 								<div class="form">
 									<label
-										>{m['filament.fields.density']()} <span class="u">g/cm³</span> <span class="req">*</span>
+										>{m['filament.fields.density']()} <span class="req">*</span>
 										<NumberInput
 											bind:value={nf.density}
 											min={0}
 											step={0.01}
+											unit="g/cm³"
 											spaced
 											invalid={!!errors.density}
 										/>
 										{#if errors.density}<span class="err">{errors.density}</span>{/if}
 									</label>
 									<label
-										>{m['filament.fields.diameter']()} <span class="u">mm</span> <span class="req">*</span>
+										>{m['filament.fields.diameter']()} <span class="req">*</span>
 										<NumberInput
 											bind:value={nf.diameter}
 											min={0}
 											step={0.05}
+											unit="mm"
 											spaced
 											invalid={!!errors.diameter}
 										/>
 										{#if errors.diameter}<span class="err">{errors.diameter}</span>{/if}
 									</label>
 									<label
-										>{m['filament.fields.settingsBedTemp']()} <span class="u">°C</span>
+										>{m['filament.fields.settingsBedTemp']()}
 										<NumberInput
 											bind:value={nf.nozzleTemp}
 											min={0}
 											step={5}
+											unit="°C"
 											placeholder="—"
 											spaced
 											invalid={!!errors.nozzleTemp}
@@ -623,11 +626,12 @@
 										{#if errors.nozzleTemp}<span class="err">{errors.nozzleTemp}</span>{/if}
 									</label>
 									<label
-										>{m['filament.fields.settingsExtruderTemp']()} <span class="u">°C</span>
+										>{m['filament.fields.settingsExtruderTemp']()}
 										<NumberInput
 											bind:value={nf.bedTemp}
 											min={0}
 											step={5}
+											unit="°C"
 											placeholder="—"
 											spaced
 											invalid={!!errors.bedTemp}
@@ -663,7 +667,7 @@
 							{#if errors.count}<span class="err">{errors.count}</span>{/if}
 						</label>
 						<label
-							>{m['filament.fields.weight']()} <span class="u">g</span>
+							>{m['filament.fields.weight']()}
 							<button
 								type="button"
 								class="help-toggle"
@@ -672,7 +676,7 @@
 								aria-expanded={openHelp === 'weight'}
 								onclick={() => (openHelp = openHelp === 'weight' ? null : 'weight')}>ⓘ</button
 							>
-							<NumberInput bind:value={netWeight} min={0} step={50} spaced invalid={!!errors.netWeight} />
+							<NumberInput bind:value={netWeight} min={0} step={50} unit="g" spaced invalid={!!errors.netWeight} />
 							{#if openHelp === 'weight'}
 								<span class="help-popup" id="weight-help" role="note"
 									>{m['filament.fieldsHelp.weight']()}</span
@@ -681,7 +685,7 @@
 							{#if errors.netWeight}<span class="err">{errors.netWeight}</span>{/if}
 						</label>
 						<label
-							>{m['filament.fields.spoolWeight']()} <span class="u">g</span>
+							>{m['filament.fields.spoolWeight']()}
 							<button
 								type="button"
 								class="help-toggle"
@@ -694,6 +698,7 @@
 								bind:value={spoolWeight}
 								min={0}
 								step={10}
+								unit="g"
 								placeholder="—"
 								spaced
 								invalid={!!errors.spoolWeight}
@@ -738,11 +743,11 @@
 									bind:value={fillWeight}
 									min={0}
 									step={10}
+									unit="g"
 									placeholder="0"
-									width="110px"
+									width="130px"
 									invalid={!!errors.fillWeight}
 								/>
-								<span class="u">g</span>
 								<span class="fill-help">{errors.fillWeight || fillHelp}</span>
 							</div>
 						{/if}

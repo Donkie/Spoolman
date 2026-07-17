@@ -1,6 +1,7 @@
 <script lang="ts">
 	import LabelCanvas from './LabelCanvas.svelte';
 	import ElementInspector from './ElementInspector.svelte';
+	import NumberInput from '../NumberInput.svelte';
 	import type { LabelDesign, LabelElement } from '$lib/labels/types';
 	import { getPlaceholderGroups, type LabelBinding } from '$lib/labels/template';
 	import { fields } from '$lib/stores/fields.svelte';
@@ -145,19 +146,23 @@
 
 		<div class="p-head">{m['printing.generic.dimensions']()}</div>
 		<label class="sz"
-			>{m['labels.wMm']()}<input
-				type="number"
-				min="5"
+			>{m['labels.wMm']()}<NumberInput
+				dense
+				unit="mm"
+				min={5}
+				step={0.5}
 				value={design.label.w}
-				onchange={(e) => setLabelSize('w', parseFloat(e.currentTarget.value) || 5)}
+				onchange={(v) => setLabelSize('w', v || 5)}
 			/></label
 		>
 		<label class="sz"
-			>{m['labels.hMm']()}<input
-				type="number"
-				min="5"
+			>{m['labels.hMm']()}<NumberInput
+				dense
+				unit="mm"
+				min={5}
+				step={0.5}
 				value={design.label.h}
-				onchange={(e) => setLabelSize('h', parseFloat(e.currentTarget.value) || 5)}
+				onchange={(v) => setLabelSize('h', v || 5)}
 			/></label
 		>
 	</div>
@@ -240,18 +245,6 @@
 		gap: 4px;
 		font-size: 11px;
 		color: var(--text-dim);
-	}
-	.sz input {
-		border: 1px solid var(--border-strong);
-		background: none;
-		border-radius: 6px;
-		padding: 6px 8px;
-		color: var(--text);
-		font-size: 12.5px;
-	}
-	.sz input:focus {
-		outline: none;
-		border-color: var(--accent);
 	}
 	.stage-area {
 		display: flex;

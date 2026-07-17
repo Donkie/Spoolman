@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Swatch from '../Swatch.svelte';
 	import Button from '../Button.svelte';
+	import NumberInput from '../NumberInput.svelte';
 	import EditableField from '../EditableField.svelte';
 	import Combobox from '../Combobox.svelte';
 	import DateTimeField from '../DateTimeField.svelte';
@@ -158,16 +159,6 @@
 		saver.push(spool.id, patch);
 	}
 
-	function setPrice(raw: string) {
-		const trimmed = raw.trim();
-		if (trimmed === '') {
-			set({ price: undefined });
-			return;
-		}
-		const v = parseFloat(trimmed);
-		if (!isNaN(v) && v >= 0) set({ price: v });
-	}
-
 	const extraSaver = makeExtraSaver(
 		(e) => inventory.patchSpool(spool.id, { extra: e }),
 		(p) => spoolSource.saveSpool(spool.id, { extra: p }).catch((err) => console.error('Save failed', err)),
@@ -237,15 +228,13 @@
 				</div>
 				<div class="adjust-row">
 					<span class="adj-label">{adjustInfo.fieldLabelKey()}</span>
-					<input
-						class="adj-input mono"
-						type="number"
-						step="any"
-						value={adjustVal}
-						oninput={(e) => (adjustVal = e.currentTarget.value)}
+					<NumberInput
+						bind:value={adjustVal}
+						unit={adjustInfo.unit}
+						step={0.01}
 						disabled={adjustBusy}
+						width="130px"
 					/>
-					<span class="adj-unit">{adjustInfo.unit}</span>
 					<Button onclick={applyAdjust} disabled={adjustBusy}
 						>{adjustBusy ? m['inspector.applying']() : m['inspector.apply']()}</Button
 					>
@@ -276,17 +265,18 @@
 					<EditableField value={spool.lot} mono oninput={(v) => set({ lot: v })} />
 				</Field>
 				<Field label={m['spool.fields.price']()}>
-					<div class="price-row">
-						<EditableField
-							value={spool.price != null ? String(spool.price) : ''}
-							placeholder={m['inspector.filamentDefault']({
-								price: settings.formatPriceValue(filament.price)
-							})}
-							mono
-							oninput={setPrice}
-						/>
-						<span class="price-unit">{settings.currencySymbol}</span>
-					</div>
+					<NumberInput
+						dense
+						width="240px"
+						unit={settings.currencySymbol}
+						min={0}
+						placeholder={m['inspector.filamentDefault']({
+							price: settings.formatPriceValue(filament.price)
+						})}
+						value={spool.price ?? ''}
+						onchange={(v) => set({ price: v })}
+						onclear={() => set({ price: undefined })}
+					/>
 				</Field>
 				<Field label={m['spool.fields.registered']()}>{spool.registeredLabel}</Field>
 				<Field label={m['spool.fields.firstUsed']()}>
@@ -456,19 +446,6 @@
 		font-size: 12.5px;
 		color: var(--accent-muted-2);
 	}
-	.adj-input {
-		width: 90px;
-		background: var(--input-bg);
-		border: 1px solid var(--border-input);
-		border-radius: var(--radius);
-		padding: 6px 10px;
-		color: var(--text);
-		font-size: 13px;
-	}
-	.adj-unit {
-		font-size: 12px;
-		color: var(--text-dim);
-	}
 	.adj-help {
 		font-size: 11px;
 		color: var(--text-faint);
@@ -488,20 +465,6 @@
 		display: flex;
 		align-items: center;
 		gap: 7px;
-	}
-	.price-row {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-	}
-	.price-row :global(.edit) {
-		flex: 1;
-		min-width: 0;
-	}
-	.price-unit {
-		color: var(--text-dim);
-		font-size: 12px;
-		flex: none;
 	}
 	.link {
 		font-size: 11.5px;

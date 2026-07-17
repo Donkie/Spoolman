@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import Button from '$components/Button.svelte';
+	import NumberInput from '../NumberInput.svelte';
 	import LabelCanvas from './LabelCanvas.svelte';
 	import type { LabelDesign } from '$lib/labels/types';
 	import type { LabelBinding } from '$lib/labels/template';
@@ -103,9 +104,6 @@
 	function setMargin(k: 't' | 'b' | 'l' | 'r', v: number) {
 		layout.margin = { ...layout.margin, [k]: v };
 	}
-	function n(e: Event): number {
-		return parseFloat((e.currentTarget as HTMLInputElement).value) || 0;
-	}
 </script>
 
 <div class="print-panel">
@@ -159,17 +157,19 @@
 			{#if layout.paper === 'custom'}
 				<div class="row2">
 					<label class="fld"
-						>{m['labels.widthMm']()}<input
-							type="number"
+						>{m['labels.widthMm']()}<NumberInput
+							dense
+							unit="mm"
 							value={layout.custom.w}
-							onchange={(e) => (layout.custom = { ...layout.custom, w: n(e) })}
+							onchange={(v) => (layout.custom = { ...layout.custom, w: v })}
 						/></label
 					>
 					<label class="fld"
-						>{m['labels.heightMm']()}<input
-							type="number"
+						>{m['labels.heightMm']()}<NumberInput
+							dense
+							unit="mm"
 							value={layout.custom.h}
-							onchange={(e) => (layout.custom = { ...layout.custom, h: n(e) })}
+							onchange={(v) => (layout.custom = { ...layout.custom, h: v })}
 						/></label
 					>
 				</div>
@@ -180,65 +180,71 @@
 
 			<div class="row4">
 				<label class="fld"
-					>{m['labels.marginTop']()}<input
-						type="number"
+					>{m['labels.marginTop']()}<NumberInput
+						dense
+						unit="mm"
 						value={layout.margin.t}
-						onchange={(e) => setMargin('t', n(e))}
+						onchange={(v) => setMargin('t', v)}
 					/></label
 				>
 				<label class="fld"
-					>{m['labels.marginBottom']()}<input
-						type="number"
+					>{m['labels.marginBottom']()}<NumberInput
+						dense
+						unit="mm"
 						value={layout.margin.b}
-						onchange={(e) => setMargin('b', n(e))}
+						onchange={(v) => setMargin('b', v)}
 					/></label
 				>
 				<label class="fld"
-					>{m['labels.marginLeft']()}<input
-						type="number"
+					>{m['labels.marginLeft']()}<NumberInput
+						dense
+						unit="mm"
 						value={layout.margin.l}
-						onchange={(e) => setMargin('l', n(e))}
+						onchange={(v) => setMargin('l', v)}
 					/></label
 				>
 				<label class="fld"
-					>{m['labels.marginRight']()}<input
-						type="number"
+					>{m['labels.marginRight']()}<NumberInput
+						dense
+						unit="mm"
 						value={layout.margin.r}
-						onchange={(e) => setMargin('r', n(e))}
+						onchange={(v) => setMargin('r', v)}
 					/></label
 				>
 			</div>
 			<div class="row2">
 				<label class="fld"
-					>{m['printing.generic.horizontalSpacing']()}<input
-						type="number"
+					>{m['printing.generic.horizontalSpacing']()}<NumberInput
+						dense
+						unit="mm"
 						value={layout.spacing.h}
-						onchange={(e) => (layout.spacing = { ...layout.spacing, h: n(e) })}
+						onchange={(v) => (layout.spacing = { ...layout.spacing, h: v })}
 					/></label
 				>
 				<label class="fld"
-					>{m['printing.generic.verticalSpacing']()}<input
-						type="number"
+					>{m['printing.generic.verticalSpacing']()}<NumberInput
+						dense
+						unit="mm"
 						value={layout.spacing.v}
-						onchange={(e) => (layout.spacing = { ...layout.spacing, v: n(e) })}
+						onchange={(v) => (layout.spacing = { ...layout.spacing, v: v })}
 					/></label
 				>
 			</div>
 			<div class="row2">
 				<label class="fld"
-					>{m['printing.generic.skipItems']()}<input
-						type="number"
-						min="0"
+					>{m['printing.generic.skipItems']()}<NumberInput
+						dense
+						min={0}
 						value={layout.skip}
-						onchange={(e) => (layout.skip = n(e))}
+						onchange={(v) => (layout.skip = v)}
 					/></label
 				>
 				<label class="fld"
-					>{m['printing.generic.itemCopies']()}<input
-						type="number"
-						min="1"
+					>{m['printing.generic.itemCopies']()}<NumberInput
+						dense
+						min={1}
 						value={layout.copies}
-						onchange={(e) => (layout.copies = Math.max(1, n(e)))}
+						onchange={(v) => (layout.copies = Math.max(1, v))}
 					/></label
 				>
 			</div>
@@ -256,11 +262,11 @@
 		{:else}
 			<div class="row2">
 				<label class="fld"
-					>{m['labels.copies']()}<input
-						type="number"
-						min="1"
+					>{m['labels.copies']()}<NumberInput
+						dense
+						min={1}
 						value={layout.copies}
-						onchange={(e) => (layout.copies = Math.max(1, n(e)))}
+						onchange={(v) => (layout.copies = Math.max(1, v))}
 					/></label
 				>
 			</div>
@@ -326,7 +332,6 @@
 		padding: 2px 4px;
 	}
 	.search,
-	.fld input,
 	.fld select {
 		width: 100%;
 		border: 1px solid var(--border-strong);
@@ -381,13 +386,15 @@
 	}
 	.row2 {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 		gap: 8px;
 	}
 	.row4 {
 		display: grid;
-		grid-template-columns: 1fr 1fr 1fr 1fr;
-		gap: 6px;
+		/* 2×2 so each margin field has room for a 3-digit value plus the mm unit
+		   and steppers. */
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 6px 8px;
 	}
 	.seg {
 		display: flex;

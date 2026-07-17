@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { LabelElement, ElementType } from '$lib/labels/types';
 	import type { PlaceholderGroup } from '$lib/labels/template';
+	import NumberInput from '../NumberInput.svelte';
 	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
@@ -22,9 +23,6 @@
 	function update(patch: Record<string, unknown>) {
 		if (el) onchange({ ...el, ...patch } as LabelElement);
 	}
-	function num(e: Event): number {
-		return parseFloat((e.currentTarget as HTMLInputElement).value) || 0;
-	}
 	function insertField(token: string) {
 		if (el?.type === 'text') update({ template: `${el.template}{${token}}` });
 	}
@@ -38,31 +36,34 @@
 
 		<div class="row2">
 			<label
-				>{m['labels.xMm']()}<input
-					type="number"
-					step="0.5"
+				>{m['labels.xMm']()}<NumberInput
+					dense
+					unit="mm"
+					step={0.5}
 					value={el.x}
-					onchange={(e) => update({ x: num(e) })}
+					onchange={(v) => update({ x: v })}
 				/></label
 			>
 			<label
-				>{m['labels.yMm']()}<input
-					type="number"
-					step="0.5"
+				>{m['labels.yMm']()}<NumberInput
+					dense
+					unit="mm"
+					step={0.5}
 					value={el.y}
-					onchange={(e) => update({ y: num(e) })}
+					onchange={(v) => update({ y: v })}
 				/></label
 			>
 		</div>
 
 		{#if el.type === 'qr'}
 			<label
-				>{m['labels.sizeMm']()}<input
-					type="number"
-					step="0.5"
-					min="5"
+				>{m['labels.sizeMm']()}<NumberInput
+					dense
+					unit="mm"
+					step={0.5}
+					min={5}
 					value={el.size}
-					onchange={(e) => update({ size: num(e) })}
+					onchange={(v) => update({ size: v })}
 				/></label
 			>
 			<label class="check"
@@ -90,21 +91,23 @@
 		{:else if el.type === 'text'}
 			<div class="row2">
 				<label
-					>{m['labels.widthMm']()}<input
-						type="number"
-						step="0.5"
-						min="2"
+					>{m['labels.widthMm']()}<NumberInput
+						dense
+						unit="mm"
+						step={0.5}
+						min={2}
 						value={el.w}
-						onchange={(e) => update({ w: num(e) })}
+						onchange={(v) => update({ w: v })}
 					/></label
 				>
 				<label
-					>{m['labels.fontMm']()}<input
-						type="number"
-						step="0.25"
-						min="1"
+					>{m['labels.fontMm']()}<NumberInput
+						dense
+						unit="mm"
+						step={0.25}
+						min={1}
 						value={el.fontSize}
-						onchange={(e) => update({ fontSize: num(e) })}
+						onchange={(v) => update({ fontSize: v })}
 					/></label
 				>
 			</div>
@@ -173,72 +176,79 @@
 		{:else if el.type === 'swatch'}
 			<div class="row2">
 				<label
-					>{m['labels.widthMm']()}<input
-						type="number"
-						step="0.5"
-						min="2"
+					>{m['labels.widthMm']()}<NumberInput
+						dense
+						unit="mm"
+						step={0.5}
+						min={2}
 						value={el.w}
-						onchange={(e) => update({ w: num(e) })}
+						onchange={(v) => update({ w: v })}
 					/></label
 				>
 				<label
-					>{m['labels.heightMm']()}<input
-						type="number"
-						step="0.5"
-						min="2"
+					>{m['labels.heightMm']()}<NumberInput
+						dense
+						unit="mm"
+						step={0.5}
+						min={2}
 						value={el.h}
-						onchange={(e) => update({ h: num(e) })}
+						onchange={(v) => update({ h: v })}
 					/></label
 				>
 			</div>
 			<label
-				>{m['labels.cornerRadiusMm']()}<input
-					type="number"
-					step="0.5"
-					min="0"
+				>{m['labels.cornerRadiusMm']()}<NumberInput
+					dense
+					unit="mm"
+					step={0.5}
+					min={0}
 					value={el.radius}
-					onchange={(e) => update({ radius: num(e) })}
+					onchange={(v) => update({ radius: v })}
 				/></label
 			>
 			<p class="hint">{m['labels.hintSwatch']()}</p>
 		{:else if el.type === 'rect'}
 			<div class="row2">
 				<label
-					>{m['labels.widthMm']()}<input
-						type="number"
-						step="0.5"
-						min="1"
+					>{m['labels.widthMm']()}<NumberInput
+						dense
+						unit="mm"
+						step={0.5}
+						min={1}
 						value={el.w}
-						onchange={(e) => update({ w: num(e) })}
+						onchange={(v) => update({ w: v })}
 					/></label
 				>
 				<label
-					>{m['labels.heightMm']()}<input
-						type="number"
-						step="0.5"
-						min="1"
+					>{m['labels.heightMm']()}<NumberInput
+						dense
+						unit="mm"
+						step={0.5}
+						min={1}
 						value={el.h}
-						onchange={(e) => update({ h: num(e) })}
+						onchange={(v) => update({ h: v })}
 					/></label
 				>
 			</div>
 			<div class="row2">
 				<label
-					>{m['labels.radiusMm']()}<input
-						type="number"
-						step="0.5"
-						min="0"
+					>{m['labels.radiusMm']()}<NumberInput
+						dense
+						unit="mm"
+						step={0.5}
+						min={0}
 						value={el.radius}
-						onchange={(e) => update({ radius: num(e) })}
+						onchange={(v) => update({ radius: v })}
 					/></label
 				>
 				<label
-					>{m['labels.strokeMm']()}<input
-						type="number"
-						step="0.1"
-						min="0"
+					>{m['labels.strokeMm']()}<NumberInput
+						dense
+						unit="mm"
+						step={0.1}
+						min={0}
 						value={el.strokeWidth}
-						onchange={(e) => update({ strokeWidth: num(e) })}
+						onchange={(v) => update({ strokeWidth: v })}
 					/></label
 				>
 			</div>
@@ -294,10 +304,9 @@
 	}
 	.row2 {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 		gap: 8px;
 	}
-	input[type='number'],
 	select,
 	textarea {
 		width: 100%;

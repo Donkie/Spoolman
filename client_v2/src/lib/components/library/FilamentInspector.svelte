@@ -2,6 +2,7 @@
 	import Swatch from '../Swatch.svelte';
 	import Button from '../Button.svelte';
 	import EditableField from '../EditableField.svelte';
+	import NumberInput from '../NumberInput.svelte';
 	import ProgressBar from '../ProgressBar.svelte';
 	import SectionLabel from '../SectionLabel.svelte';
 	import ExtraFieldsSection from '../ExtraFieldsSection.svelte';
@@ -135,36 +136,60 @@
 				<Field label={m['inspector.colorHex']()}>
 					<EditableField value={filament.colors[0]} mono oninput={(v) => set({ colors: [v] })} />
 				</Field>
-				<Field label={m['inspector.diameterMm']()}>
-					<EditableField
+				<Field label={m['filament.fields.diameter']()}>
+					<NumberInput
+						dense
+						width="200px"
+						unit="mm"
+						step={0.05}
+						min={0}
 						value={filament.diameter}
-						mono
-						oninput={(v) => set({ diameter: parseFloat(v) || filament.diameter })}
+						onchange={(v) => set({ diameter: v || filament.diameter })}
 					/>
 				</Field>
 				<Field label={m['filament.fields.density']()}>
-					<EditableField
+					<NumberInput
+						dense
+						width="200px"
+						unit="g/cm³"
+						step={0.01}
+						min={0}
 						value={filament.density}
-						mono
-						oninput={(v) => set({ density: parseFloat(v) || filament.density })}
+						onchange={(v) => set({ density: v || filament.density })}
 					/>
 				</Field>
 				<Field label={m['inspector.nozzleC']()}>
-					<EditableField
+					<NumberInput
+						dense
+						width="200px"
+						unit="°C"
+						step={5}
+						min={0}
 						value={filament.nozzleTemp}
-						mono
-						oninput={(v) => set({ nozzleTemp: parseInt(v, 10) || filament.nozzleTemp })}
+						onchange={(v) => set({ nozzleTemp: Math.round(v) })}
 					/>
 				</Field>
 				<Field label={m['inspector.bedC']()}>
-					<EditableField
+					<NumberInput
+						dense
+						width="200px"
+						unit="°C"
+						step={5}
+						min={0}
 						value={filament.bedTemp}
-						mono
-						oninput={(v) => set({ bedTemp: parseInt(v, 10) || filament.bedTemp })}
+						onchange={(v) => set({ bedTemp: Math.round(v) })}
 					/>
 				</Field>
-				<Field label={m['inspector.defaultPrice']({ currency: settings.currency })}>
-					<EditableField value={filament.price} mono oninput={(v) => set({ price: parseFloat(v) || 0 })} />
+				<Field label={m['filament.fields.price']()}>
+					<NumberInput
+						dense
+						width="200px"
+						unit={settings.currency}
+						step={1}
+						min={0}
+						value={filament.price}
+						onchange={(v) => set({ price: v })}
+					/>
 				</Field>
 			</FieldGrid>
 
