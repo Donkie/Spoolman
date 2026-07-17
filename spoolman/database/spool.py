@@ -82,7 +82,7 @@ async def create(
 
     spool = models.Spool(
         filament=filament_item,
-        registered=datetime.utcnow().replace(microsecond=0),
+        registered=datetime.now(timezone.utc).replace(microsecond=0),
         initial_weight=initial_weight,
         spool_weight=spool_weight,
         used_weight=used_weight,
@@ -315,8 +315,8 @@ async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.S
     spool = await get_by_id(db, spool_id)
 
     if spool.first_used is None:
-        spool.first_used = datetime.utcnow().replace(microsecond=0)
-    spool.last_used = datetime.utcnow().replace(microsecond=0)
+        spool.first_used = datetime.now(timezone.utc).replace(microsecond=0)
+    spool.last_used = datetime.now(timezone.utc).replace(microsecond=0)
 
     await db.commit()
     await spool_changed(spool, EventType.UPDATED)
@@ -361,8 +361,8 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
     spool = await get_by_id(db, spool_id)
 
     if spool.first_used is None:
-        spool.first_used = datetime.utcnow().replace(microsecond=0)
-    spool.last_used = datetime.utcnow().replace(microsecond=0)
+        spool.first_used = datetime.now(timezone.utc).replace(microsecond=0)
+    spool.last_used = datetime.now(timezone.utc).replace(microsecond=0)
 
     await db.commit()
     await spool_changed(spool, EventType.UPDATED)
@@ -465,7 +465,7 @@ async def spool_changed(spool: models.Spool, typ: EventType) -> None:
             SpoolEvent(
                 type=typ,
                 resource="spool",
-                date=datetime.utcnow(),
+                date=datetime.now(timezone.utc),
                 payload=Spool.from_db(spool),
             ),
         )
