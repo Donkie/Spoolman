@@ -40,7 +40,7 @@
 		name: '',
 		material: '',
 		colorHex: '',
-		density: '1.24',
+		density: '',
 		diameter: '1.75',
 		nozzleTemp: '',
 		bedTemp: ''
@@ -172,23 +172,26 @@
 	let comment = $state('');
 	let fillMode = $state<FillMode>('full');
 	let fillWeight = $state('');
+
+	// Which field's help popup is currently expanded (null = none).
+	let openHelp = $state<string | null>(null);
 	let firstUsed = $state('');
 	let lastUsed = $state('');
 	let extraValues = $state<Extra>({});
 
 	const FILL_MODES: { key: FillMode; labelKey: () => string }[] = [
 		{ key: 'full', labelKey: m['add.fill.full'] },
-		{ key: 'used', labelKey: m['add.fill.used'] },
-		{ key: 'remaining', labelKey: m['add.fill.remaining'] },
-		{ key: 'measured', labelKey: m['add.fill.measured'] }
+		{ key: 'used', labelKey: m['spool.fields.usedWeight'] },
+		{ key: 'remaining', labelKey: m['spool.fields.remainingWeight'] },
+		{ key: 'measured', labelKey: m['spool.fields.measuredWeight'] }
 	];
 	let fillHelp = $derived(
 		fillMode === 'used'
-			? m['add.fillHelp.used']()
+			? m['spool.fieldsHelp.usedWeight']()
 			: fillMode === 'remaining'
-				? m['add.fillHelp.remaining']()
+				? m['spool.fieldsHelp.remainingWeight']()
 				: fillMode === 'measured'
-					? m['add.fillHelp.measured']()
+					? m['spool.fieldsHelp.measuredWeight']()
 					: ''
 	);
 
@@ -237,7 +240,7 @@
 			name: query.trim(),
 			material: '',
 			colorHex: '',
-			density: '1.24',
+			density: '',
 			diameter: '1.75',
 			nozzleTemp: '',
 			bedTemp: ''
@@ -306,7 +309,7 @@
 					name: nf.name.trim(),
 					vendorName: nf.vendorName.trim(),
 					material: nf.material.trim(),
-					density: Number(nf.density) || 1.24,
+					density: Number(nf.density),
 					diameter: Number(nf.diameter) || 1.75,
 					weight: Number(netWeight) || undefined,
 					spoolWeight: Number(spoolWeight) || undefined,
@@ -456,7 +459,7 @@
 							{/each}
 						{/if}
 
-						<div class="res-hdr"><span class="hdr-note">{m['add.communityDb']()}</span></div>
+						<div class="res-hdr"><span class="hdr-note">{m['add.externalLibrary']()}</span></div>
 						{#if extError}
 							<div class="res-note">{m['add.dbUnavailable']()}</div>
 						{:else if searching && externalResults.length === 0}
@@ -481,9 +484,7 @@
 
 					<button class="create-new" onclick={startCreate}>
 						<span class="cn-plus">＋</span>
-						<span
-							>{query.trim() ? m['add.createNewNamed']({ name: query.trim() }) : m['add.createNew']()}</span
-						>
+						<span>{m['add.createNew']()}</span>
 						<span class="cn-sub">{m['add.createNewSub']()}</span>
 					</button>
 				</div>
@@ -502,7 +503,7 @@
 									<input
 										list="vendor-list"
 										bind:value={nf.vendorName}
-										placeholder={m['filament.fields.vendor']()}
+										placeholder={m['add.manufacturerPlaceholder']()}
 										class:invalid={errors.vendor}
 									/>
 									{#if errors.vendor}
@@ -512,7 +513,7 @@
 									{/if}
 								</label>
 								<label class="wide">
-									{m['add.filamentName']()} <span class="req">*</span>
+									{m['filament.fields.name']()} <span class="req">*</span>
 									<input
 										bind:value={nf.name}
 										placeholder={m['add.filamentNamePlaceholder']()}
@@ -641,12 +642,33 @@
 							{#if errors.count}<span class="err">{errors.count}</span>{/if}
 						</label>
 						<label
-							>{m['add.netWeight']()} <span class="u">g</span>
+							>{m['filament.fields.weight']()} <span class="u">g</span>
+							<button
+								type="button"
+								class="help-toggle"
+								aria-label={m['help.help']()}
+								aria-controls="weight-help"
+								aria-expanded={openHelp === 'weight'}
+								onclick={() => (openHelp = openHelp === 'weight' ? null : 'weight')}>ⓘ</button
+							>
 							<NumberInput bind:value={netWeight} min={0} step={50} spaced invalid={!!errors.netWeight} />
+							{#if openHelp === 'weight'}
+								<span class="help-popup" id="weight-help" role="note"
+									>{m['filament.fieldsHelp.weight']()}</span
+								>
+							{/if}
 							{#if errors.netWeight}<span class="err">{errors.netWeight}</span>{/if}
 						</label>
 						<label
-							>{m['add.emptySpool']()} <span class="u">g</span>
+							>{m['filament.fields.spoolWeight']()} <span class="u">g</span>
+							<button
+								type="button"
+								class="help-toggle"
+								aria-label={m['help.help']()}
+								aria-controls="spoolWeight-help"
+								aria-expanded={openHelp === 'spoolWeight'}
+								onclick={() => (openHelp = openHelp === 'spoolWeight' ? null : 'spoolWeight')}>ⓘ</button
+							>
 							<NumberInput
 								bind:value={spoolWeight}
 								min={0}
@@ -655,10 +677,15 @@
 								spaced
 								invalid={!!errors.spoolWeight}
 							/>
+							{#if openHelp === 'spoolWeight'}
+								<span class="help-popup" id="spoolWeight-help" role="note"
+									>{m['filament.fieldsHelp.spoolWeight']()}</span
+								>
+							{/if}
 							{#if errors.spoolWeight}<span class="err">{errors.spoolWeight}</span>{/if}
 						</label>
 						<label
-							>{m['add.pricePerSpool']()} <span class="u">{settings.currency}</span>
+							>{m['filament.fields.price']()} <span class="u">{settings.currency}</span>
 							<input class="mono" bind:value={price} placeholder="—" class:invalid={errors.price} />
 							{#if errors.price}<span class="err">{errors.price}</span>{/if}
 						</label>
@@ -1071,6 +1098,48 @@
 		margin-top: 4px;
 		font-size: 11px;
 		color: var(--text-faint);
+	}
+	.help-toggle {
+		position: relative;
+		border: none;
+		background: none;
+		padding: 0;
+		margin-left: 2px;
+		font-size: 12px;
+		/* Keep the line box the same height as plain-text labels so grid rows
+		   with a help button stay aligned with those without one. */
+		line-height: 1;
+		color: var(--text-faint);
+		cursor: pointer;
+		vertical-align: middle;
+	}
+	.help-toggle::before {
+		/* Roomy tap target on touch, laid out over the glyph so it doesn't
+		   affect the inline height of the label. */
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 32px;
+		height: 32px;
+		transform: translate(-50%, -50%);
+	}
+	.help-toggle:hover,
+	.help-toggle[aria-expanded='true'] {
+		color: var(--accent-soft);
+	}
+	.help-popup {
+		display: block;
+		margin-top: 6px;
+		padding: 8px 10px;
+		border-radius: 7px;
+		background: var(--surface-2, rgba(127, 127, 127, 0.12));
+		border: 1px solid var(--border-strong);
+		font-size: 11.5px;
+		line-height: 1.45;
+		color: var(--text-muted);
+		/* Flows inline in the form, so it wraps and stays inside the modal on mobile. */
+		max-width: 100%;
 	}
 	.hint.accent {
 		color: var(--accent-soft);
