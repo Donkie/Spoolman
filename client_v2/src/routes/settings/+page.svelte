@@ -55,7 +55,7 @@
 			</SettingRow>
 			<SettingRow
 				title={m['settings.general.roundPrices.label']()}
-				desc={m['settings.general.roundPrices.desc']()}
+				desc={m['settings.general.roundPrices.tooltip']()}
 			>
 				<Toggle
 					checked={settings.roundPrices}
@@ -64,8 +64,8 @@
 				/>
 			</SettingRow>
 			<SettingRow
-				title={m['settings.general.externalUrl.label']()}
-				desc={m['settings.general.externalUrl.desc']()}
+				title={m['settings.general.baseUrl.label']()}
+				desc={m['settings.general.baseUrl.tooltip']()}
 			>
 				<input
 					class="url"

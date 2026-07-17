@@ -169,7 +169,7 @@
 
 		{#if layout.mode === 'sheet'}
 			<label class="fld"
-				>{m['labels.paper']()}
+				>{m['printing.generic.paperSize']()}
 				<select bind:value={layout.paper}>
 					{#each PAPER_NAMES as p (p)}<option value={p}
 							>{p === 'custom' ? m['printing.generic.customSize']() : p}</option
@@ -230,14 +230,14 @@
 			</div>
 			<div class="row2">
 				<label class="fld"
-					>{m['labels.gapH']()}<input
+					>{m['printing.generic.horizontalSpacing']()}<input
 						type="number"
 						value={layout.spacing.h}
 						onchange={(e) => (layout.spacing = { ...layout.spacing, h: n(e) })}
 					/></label
 				>
 				<label class="fld"
-					>{m['labels.gapV']()}<input
+					>{m['printing.generic.verticalSpacing']()}<input
 						type="number"
 						value={layout.spacing.v}
 						onchange={(e) => (layout.spacing = { ...layout.spacing, v: n(e) })}
@@ -246,7 +246,7 @@
 			</div>
 			<div class="row2">
 				<label class="fld"
-					>{m['labels.skipCells']()}<input
+					>{m['printing.generic.skipItems']()}<input
 						type="number"
 						min="0"
 						value={layout.skip}
@@ -254,7 +254,7 @@
 					/></label
 				>
 				<label class="fld"
-					>{m['labels.copies']()}<input
+					>{m['printing.generic.itemCopies']()}<input
 						type="number"
 						min="1"
 						value={layout.copies}

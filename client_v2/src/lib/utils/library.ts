@@ -121,9 +121,9 @@ export function sortDefs(): SortDef[] {
 		{ key: 'price', labelKey: m['spool.fields.price'], section: 'spool' },
 		{ key: 'reg', labelKey: m['spool.fields.registered'], section: 'spool' },
 		{ key: 'lot', labelKey: m['spool.fields.lotNr'], section: 'spool' },
-		{ key: 'mat', labelKey: m['spool.fields.material'], section: 'filament' },
-		{ key: 'hue', labelKey: m['library.sort.hue'], section: 'filament' },
-		{ key: 'noz', labelKey: m['library.sort.nozzle'], section: 'filament', unit: '°C' },
+		{ key: 'mat', labelKey: m['filament.fields.material'], section: 'filament' },
+		{ key: 'hue', labelKey: m['filament.fields.colorHex'], section: 'filament' },
+		{ key: 'noz', labelKey: m['filament.fields.settingsExtruderTemp'], section: 'filament', unit: '°C' },
 		{ key: 'dry', labelKey: m['library.sort.dryer'], section: 'extra' }
 	];
 }

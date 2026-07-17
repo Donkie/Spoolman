@@ -143,7 +143,7 @@
 		<button onclick={addSwatch}>▧ {m['labels.addSwatch']()}</button>
 		<button onclick={addRect}>▭ {m['labels.addRect']()}</button>
 
-		<div class="p-head">{m['labels.labelSize']()}</div>
+		<div class="p-head">{m['printing.generic.dimensions']()}</div>
 		<label class="sz"
 			>{m['labels.wMm']()}<input
 				type="number"
