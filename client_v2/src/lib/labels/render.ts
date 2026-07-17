@@ -29,6 +29,40 @@ export type ShapeSpec =
 
 const PLACEHOLDER_SWATCH = '#9aa0a6';
 
+// Ring thickness (mm) for the swatch's definition border. The printed/canvas
+// swatch is intentionally flat (no gloss) — the glossy sheen lives only in the
+// on-screen Swatch.svelte chip — but the ring keeps light colours legible
+// against a white label.
+const SWATCH_RING = 0.12;
+
+/** Builds the flat colour rect config (fill + definition ring) for a swatch. */
+function swatchConfig(x: number, y: number, width: number, height: number, radius: number, colors: string[]) {
+	const config: Record<string, unknown> = {
+		x,
+		y,
+		width,
+		height,
+		cornerRadius: radius,
+		stroke: 'rgba(0,0,0,0.35)',
+		strokeWidth: SWATCH_RING
+	};
+	if (colors.length === 0) {
+		config.fill = PLACEHOLDER_SWATCH;
+	} else if (colors.length === 1) {
+		config.fill = colors[0];
+	} else {
+		// Even gradient stops across the width for multi-color filaments.
+		const stops: (number | string)[] = [];
+		colors.forEach((hex, i) => {
+			stops.push(colors.length === 1 ? 0 : i / (colors.length - 1), hex);
+		});
+		config.fillLinearGradientStartPoint = { x: 0, y: 0 };
+		config.fillLinearGradientEndPoint = { x: width, y: 0 };
+		config.fillLinearGradientColorStops = stops;
+	}
+	return config;
+}
+
 /** Geometry (in mm, relative to the QR's top-left) for a centred logo. */
 export function qrLogoBox(size: number) {
 	// Square (not rounded) so the white backing fully covers the QR modules
@@ -91,28 +125,7 @@ export function elementToShape(el: LabelElement, ctx: RenderContext): ShapeSpec 
 		}
 		case 'swatch': {
 			const colors = ctx.binding?.filament?.colors ?? [];
-			const config: Record<string, unknown> = {
-				x: el.x,
-				y: el.y,
-				width: el.w,
-				height: el.h,
-				cornerRadius: el.radius
-			};
-			if (colors.length === 0) {
-				config.fill = PLACEHOLDER_SWATCH;
-			} else if (colors.length === 1) {
-				config.fill = colors[0];
-			} else {
-				// Even gradient stops across the width for multi-color filaments.
-				const stops: (number | string)[] = [];
-				colors.forEach((hex, i) => {
-					stops.push(colors.length === 1 ? 0 : i / (colors.length - 1), hex);
-				});
-				config.fillLinearGradientStartPoint = { x: 0, y: 0 };
-				config.fillLinearGradientEndPoint = { x: el.w, y: 0 };
-				config.fillLinearGradientColorStops = stops;
-			}
-			return { kind: 'rect', config };
+			return { kind: 'rect', config: swatchConfig(el.x, el.y, el.w, el.h, el.radius, colors) };
 		}
 		case 'rect': {
 			return {

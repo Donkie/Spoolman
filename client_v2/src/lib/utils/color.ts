@@ -13,15 +13,14 @@ export function hexRgb(h: string): [number, number, number] {
 }
 
 /**
- * Returns an inline `background` (+ border for very dark solids) style string
- * for a swatch given one or more hex colors.
+ * Returns an inline `background` style string for a swatch given one or more hex
+ * colors. Definition (ring) and the glossy sheen are added by Swatch.svelte, so
+ * this only paints the underlying color layer.
  */
 export function swatchStyle(colors: string[] | undefined): string {
 	if (!colors || !colors.length) return 'background:#555';
 	if (colors.length > 1) return `background:linear-gradient(135deg,${colors.join(',')})`;
-	const c = colors[0];
-	const [r, g, b] = hexRgb(c);
-	return `background:${c}${r + g + b < 200 ? ';border:1px solid #4a4a58' : ''}`;
+	return `background:${colors[0]}`;
 }
 
 export function hue(h: string): number {
