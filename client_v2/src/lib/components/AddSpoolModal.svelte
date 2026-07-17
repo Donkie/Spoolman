@@ -2,6 +2,7 @@
 	import Swatch from './Swatch.svelte';
 	import Button from './Button.svelte';
 	import NumberInput from './NumberInput.svelte';
+	import Combobox from './Combobox.svelte';
 	import DateTimeField from './DateTimeField.svelte';
 	import ExtraFieldsSection from './ExtraFieldsSection.svelte';
 	import type { Filament, Extra } from '$lib/types';
@@ -526,11 +527,12 @@
 							<div class="form">
 								<label class="wide">
 									{m['filament.fields.vendor']()}
-									<input
-										list="vendor-list"
-										bind:value={nf.vendorName}
+									<Combobox
+										value={nf.vendorName}
+										options={vendorNames}
 										placeholder={m['add.manufacturerPlaceholder']()}
-										class:invalid={errors.vendor}
+										invalid={!!errors.vendor}
+										oninput={(v) => (nf.vendorName = v)}
 									/>
 									{#if errors.vendor}
 										<span class="err">{errors.vendor}</span>
@@ -549,12 +551,12 @@
 								</label>
 								<label>
 									{m['filament.fields.material']()}
-									<input
-										list="material-list"
+									<Combobox
 										value={nf.material}
-										oninput={(e) => onMaterial(e.currentTarget.value)}
+										options={materialNames}
 										placeholder="PLA"
-										class:invalid={errors.material}
+										invalid={!!errors.material}
+										oninput={onMaterial}
 									/>
 									{#if errors.material}<span class="err">{errors.material}</span>{/if}
 								</label>
@@ -579,13 +581,6 @@
 									{#if errors.colorHex}<span class="err">{errors.colorHex}</span>{/if}
 								</label>
 							</div>
-							<datalist id="vendor-list"
-								>{#each vendorNames as v (v)}<option value={v}></option>{/each}</datalist
-							>
-							<datalist id="material-list"
-								>{#each materialNames as m (m)}<option value={m}></option>{/each}</datalist
-							>
-
 							<button class="adv-toggle" onclick={() => (showAdvanced = !showAdvanced)}>
 								{showAdvanced ? '▾' : '▸'}
 								{m['add.advanced']()}
@@ -717,16 +712,14 @@
 						</label>
 						<label>{m['spool.fields.lotNr']()}<input class="mono" bind:value={lot} placeholder="—" /></label>
 						<label class="wide"
-							>{m['spool.fields.location']()}<input
-								list="add-locations"
-								bind:value={location}
+							>{m['spool.fields.location']()}<Combobox
+								value={location}
+								options={locations}
 								placeholder={m['add.locationPlaceholder']()}
+								oninput={(v) => (location = v)}
 							/></label
 						>
 					</div>
-					<datalist id="add-locations"
-						>{#each locations as loc (loc)}<option value={loc}></option>{/each}</datalist
-					>
 
 					<div class="fill">
 						<div class="fill-label">{m['add.fillLevel']()}</div>

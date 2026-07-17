@@ -2,6 +2,7 @@
 	import Swatch from '../Swatch.svelte';
 	import Button from '../Button.svelte';
 	import EditableField from '../EditableField.svelte';
+	import Combobox from '../Combobox.svelte';
 	import DateTimeField from '../DateTimeField.svelte';
 	import SectionLabel from '../SectionLabel.svelte';
 	import ExtraFieldsSection from '../ExtraFieldsSection.svelte';
@@ -39,6 +40,20 @@
 	let filament = $derived(inventory.filamentById(spool.filamentId) ?? MISSING_FIL);
 	let vendor = $derived(inventory.vendorOf(filament));
 	let used = $derived(spool.initial - spool.remaining);
+
+	// Existing locations for the location picker: pick an existing one from the
+	// dropdown or type a new one. Merge the server's configured locations with the
+	// spool's current value so it's never absent from the list.
+	let serverLocations = $state<string[]>([]);
+	$effect(() => {
+		spoolSource
+			.locations()
+			.then((l) => (serverLocations = l))
+			.catch(() => {});
+	});
+	let locationOptions = $derived(
+		[...new Set([...serverLocations, spool.location].filter((l): l is string => !!l))].sort()
+	);
 
 	// Mirrors the v1 client's "Adjust Spool Filament" modal: length/weight are
 	// signed deltas applied via PUT /spool/{id}/use (positive consumes, negative
@@ -249,9 +264,11 @@
 			<SectionLabel>{m['library.section.spool']()}</SectionLabel>
 			<FieldGrid>
 				<Field label={m['spool.fields.location']()}>
-					<EditableField
+					<Combobox
 						value={spool.location}
 						placeholder={m['library.noLocation']()}
+						options={locationOptions}
+						underline
 						oninput={(v) => set({ location: v })}
 					/>
 				</Field>
