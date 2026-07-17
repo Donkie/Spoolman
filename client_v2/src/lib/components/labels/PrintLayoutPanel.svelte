@@ -2,8 +2,7 @@
 	import { untrack } from 'svelte';
 	import Button from '$components/Button.svelte';
 	import LabelCanvas from './LabelCanvas.svelte';
-	import type { LabelDesign, PrintLayout } from '$lib/labels/types';
-	import { DEFAULT_LAYOUT } from '$lib/labels/types';
+	import type { LabelDesign } from '$lib/labels/types';
 	import type { LabelBinding } from '$lib/labels/template';
 	import { PAPER_NAMES, sheetGrid } from '$lib/labels/paper';
 	import { printLabels } from '$lib/labels/print';
@@ -17,35 +16,16 @@
 		design: LabelDesign;
 		preselected?: number[];
 	}
-	let { design, preselected = [] }: Props = $props();
+	let { design = $bindable(), preselected = [] }: Props = $props();
 
-	const LAYOUT_KEY = 'spoolman-v2-print-layout';
+	// The print layout lives on the design itself, so edits here dirty the design
+	// and are saved (and recalled) with it — different labels want different sheets.
+	const layout = $derived(design.layout);
 
-	let layout = $state<PrintLayout>(loadLayout());
 	let selected = $state<Set<number>>(new Set(untrack(() => preselected)));
 	let search = $state('');
 	let loading = $state(true);
 	let printing = $state(false);
-
-	function loadLayout(): PrintLayout {
-		if (typeof localStorage !== 'undefined') {
-			const raw = localStorage.getItem(LAYOUT_KEY);
-			if (raw) {
-				try {
-					return { ...DEFAULT_LAYOUT, ...JSON.parse(raw) };
-				} catch {
-					/* fall through */
-				}
-			}
-		}
-		return { ...DEFAULT_LAYOUT };
-	}
-	// Persist layout whenever it changes.
-	$effect(() => {
-		if (typeof localStorage !== 'undefined') {
-			localStorage.setItem(LAYOUT_KEY, JSON.stringify($state.snapshot(layout)));
-		}
-	});
 
 	$effect(() => {
 		void load();

@@ -82,6 +82,8 @@ export interface LabelDesign {
 	/** Physical label size in mm. */
 	label: { w: number; h: number };
 	elements: LabelElement[];
+	/** Sheet/label print layout, saved per-design (see PrintLayout below). */
+	layout: PrintLayout;
 }
 
 // --- Print layout ----------------------------------------------------------
@@ -125,6 +127,7 @@ export function newDesign(id: string): LabelDesign {
 		id,
 		name: 'Untitled label',
 		label: { w: 50, h: 25 },
+		layout: structuredClone(DEFAULT_LAYOUT),
 		elements: [
 			{ id: `${id}-qr`, type: 'qr', x: 2, y: 2, size: 21, ec: 'H', encoding: 'scheme', logo: true },
 			{
