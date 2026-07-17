@@ -450,7 +450,7 @@
     "settings.extraFields.booleanFalse": "No",
     "settings.extraFields.booleanTrue": "Yes",
     "settings.extraFields.choicesMissingError": "You cannot remove choices. The following choices are missing: {{choices}}",
-    "settings.extraFields.deleteConfirm": "Delete field {{name}}?",
+    "settings.extraFields.deleteConfirm": "Delete field {{name}} on {{entity}}?",
     "settings.extraFields.deleteConfirmDescription": "This will delete the field and all associated data for all entities.",
     "settings.extraFields.description.constraints": "Once a field is added, you can not change its key or type, and for choice type fields you can not remove choices or change the multi choice state. If you remove a field, the associated data for all entities will be deleted.",
     "settings.extraFields.description.intro": "Here you can add extra custom fields to your entities.",

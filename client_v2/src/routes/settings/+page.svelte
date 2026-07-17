@@ -4,7 +4,7 @@
 	import SettingRow from '$components/settings/SettingRow.svelte';
 	import ExtraFieldsManager from '$components/settings/ExtraFieldsManager.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
-	import { locales, getLocale, setLocale } from '$lib/paraglide/runtime.js';
+	import { locales, getLocale, setLocale, isLocale } from '$lib/paraglide/runtime.js';
 	import * as m from '$lib/paraglide/messages';
 	import { languages } from '$lib/i18n/languages';
 
@@ -35,7 +35,13 @@
 		<div class="sec-label">{m['settings.appearance.tab']()}</div>
 		<Card divided>
 			<SettingRow title={m['settings.language.label']()} desc={m['settings.language.desc']()}>
-				<select class="lang" value={getLocale()} onchange={(e) => setLocale(e.currentTarget.value)}>
+				<select
+				class="lang"
+				value={getLocale()}
+				onchange={(e) => {
+					if (isLocale(e.currentTarget.value)) setLocale(e.currentTarget.value);
+				}}
+			>
 					{#each localeData as locale (locale.code)}
 						<option value={locale.code}>{locale.langData.name}</option>
 					{/each}
