@@ -176,7 +176,7 @@
 
 	/* --- shared ----------------------------------------------------------- */
 	.chev {
-		color: #555;
+		color: var(--text-faint);
 		flex: none;
 		transition: transform 0.12s ease;
 	}

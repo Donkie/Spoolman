@@ -10,6 +10,25 @@
 		<meta name="theme-color" content="#1f1f1f" />
 		<title>Spoolman</title>
 
+		<!-- Resolve the saved color theme before first paint to avoid a flash of the
+		     wrong theme. Mirrors lib/stores/theme.svelte.ts. -->
+		<script>
+			(function () {
+				try {
+					var p = localStorage.getItem('spoolman-v2-theme') || 'system';
+					var t =
+						p === 'light' || p === 'dark'
+							? p
+							: window.matchMedia('(prefers-color-scheme: dark)').matches
+								? 'dark'
+								: 'light';
+					document.documentElement.setAttribute('data-theme', t);
+					var m = document.querySelector('meta[name="theme-color"]');
+					if (m) m.setAttribute('content', t === 'light' ? '#f2f1ee' : '#1f1f1f');
+				} catch (e) {}
+			})();
+		</script>
+
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

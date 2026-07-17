@@ -4,9 +4,16 @@
 	import SettingRow from '$components/settings/SettingRow.svelte';
 	import ExtraFieldsManager from '$components/settings/ExtraFieldsManager.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
+	import { theme, type ThemePref } from '$lib/stores/theme.svelte';
 	import { locales, getLocale, setLocale, isLocale } from '$lib/paraglide/runtime.js';
 	import * as m from '$lib/paraglide/messages';
 	import { languages } from '$lib/i18n/languages';
+
+	const themeOptions: { value: ThemePref; label: () => string }[] = [
+		{ value: 'system', label: m['settings.appearance.theme.system'] },
+		{ value: 'light', label: m['settings.appearance.theme.light'] },
+		{ value: 'dark', label: m['settings.appearance.theme.dark'] }
+	];
 
 	function saveCurrency(v: string) {
 		const code = v.trim().toUpperCase();
@@ -34,14 +41,29 @@
 
 		<div class="sec-label">{m['settings.appearance.tab']()}</div>
 		<Card divided>
+			<SettingRow title={m['settings.appearance.theme.label']()} desc={m['settings.appearance.theme.desc']()}>
+				<div class="seg" role="group" aria-label={m['settings.appearance.theme.label']()}>
+					{#each themeOptions as opt (opt.value)}
+						<button
+							type="button"
+							class="seg-btn"
+							class:active={theme.pref === opt.value}
+							aria-pressed={theme.pref === opt.value}
+							onclick={() => theme.setPref(opt.value)}
+						>
+							{opt.label()}
+						</button>
+					{/each}
+				</div>
+			</SettingRow>
 			<SettingRow title={m['settings.language.label']()} desc={m['settings.language.desc']()}>
 				<select
-				class="lang"
-				value={getLocale()}
-				onchange={(e) => {
-					if (isLocale(e.currentTarget.value)) setLocale(e.currentTarget.value);
-				}}
-			>
+					class="lang"
+					value={getLocale()}
+					onchange={(e) => {
+						if (isLocale(e.currentTarget.value)) setLocale(e.currentTarget.value);
+					}}
+				>
 					{#each localeData as locale (locale.code)}
 						<option value={locale.code}>{locale.langData.name}</option>
 					{/each}
@@ -169,5 +191,30 @@
 	.unit {
 		font-size: 12px;
 		color: var(--text-dim);
+	}
+	.seg {
+		display: inline-flex;
+		gap: 2px;
+		padding: 2px;
+		background: var(--input-bg);
+		border: 1px solid var(--border-input);
+		border-radius: var(--radius);
+	}
+	.seg-btn {
+		background: none;
+		border: none;
+		color: var(--text-muted);
+		padding: 5px 12px;
+		font-size: 12.5px;
+		font-weight: 500;
+		border-radius: var(--radius-sm);
+		cursor: pointer;
+	}
+	.seg-btn:hover {
+		color: var(--text-2);
+	}
+	.seg-btn.active {
+		background: var(--accent);
+		color: #fff;
 	}
 </style>

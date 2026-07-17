@@ -10,7 +10,7 @@
 		padding: 1px 6px;
 		border-radius: 4px;
 		background: var(--surface-raised);
-		color: #b8b8b8;
+		color: var(--text-2);
 		white-space: nowrap;
 	}
 </style>

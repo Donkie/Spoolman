@@ -250,7 +250,7 @@
 	}
 	.add-filter {
 		border: 1px dashed var(--border-strong);
-		color: #9a9a9a;
+		color: var(--text-muted);
 		padding: 4px 10px;
 	}
 	.add-filter:hover {
@@ -277,7 +277,7 @@
 		color: var(--accent-soft);
 	}
 	.x {
-		color: #8a6a4d;
+		color: var(--accent-muted);
 	}
 	.link-btn {
 		font-size: 12px;
@@ -347,7 +347,7 @@
 		font-family: inherit;
 	}
 	.menu-item:hover {
-		background: #2c2c2c;
+		background: var(--surface-raised);
 	}
 	.menu-item.sel {
 		color: var(--accent-soft);
@@ -362,7 +362,7 @@
 		font-size: 11px;
 	}
 	.mi-dir {
-		color: #8a6a4d;
+		color: var(--accent-muted);
 		font-size: 11px;
 	}
 

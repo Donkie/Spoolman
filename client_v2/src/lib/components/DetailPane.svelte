@@ -85,7 +85,7 @@
 			z-index: 21;
 			max-height: 88%;
 			background: var(--bg);
-			border-top: 1px solid #3a3a44;
+			border-top: 1px solid var(--border);
 			border-radius: 20px 20px 0 0;
 			box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.5);
 			transform: translateY(100%);
@@ -108,7 +108,7 @@
 			width: 38px;
 			height: 4px;
 			border-radius: 2px;
-			background: #4a4a4a;
+			background: var(--swatch-border-hover);
 			display: block;
 		}
 		.sheet-body {

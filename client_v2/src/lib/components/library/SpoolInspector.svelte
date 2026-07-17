@@ -405,14 +405,14 @@
 	.bar {
 		height: 8px;
 		border-radius: 4px;
-		background: #3a3a3a;
+		background: var(--track);
 		margin-top: 12px;
 		overflow: hidden;
 	}
 	.bar-fill {
 		height: 100%;
 		border-radius: 4px;
-		background: linear-gradient(90deg, #be682f, #d47a3b);
+		background: linear-gradient(90deg, var(--accent), var(--accent-hover));
 	}
 	.adjust {
 		display: flex;
@@ -454,7 +454,7 @@
 	}
 	.adj-label {
 		font-size: 12.5px;
-		color: #b8a68f;
+		color: var(--accent-muted-2);
 	}
 	.adj-input {
 		width: 90px;

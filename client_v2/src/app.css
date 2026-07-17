@@ -2,8 +2,9 @@
  * Global design tokens for the Spoolman v2 frontend.
  * Palette, spacing and type scale are derived from the design prototype
  * (dark theme, IBM Plex, warm orange accent). Values live as CSS custom
- * properties so components stay declarative and a light theme can be added
- * later by overriding :root[data-theme='light'].
+ * properties so components stay declarative; the light theme is applied by
+ * overriding these under :root[data-theme='light'] below. Components should
+ * always reference tokens (never raw hex) so both themes stay in sync.
  */
 
 :root {
@@ -13,6 +14,7 @@
 	--surface: #252525;
 	--surface-2: #262626;
 	--surface-raised: #2e2e2e;
+	--surface-sunken: #1c1c1c;
 	--input-bg: #1a1a1a;
 
 	/* Borders */
@@ -35,6 +37,8 @@
 	--accent-link: #d0854a;
 	--accent-link-hover: #e09a60;
 	--accent-soft: #e0996a;
+	--accent-muted: #8a6a4d;
+	--accent-muted-2: #b8a68f;
 	--accent-wash: rgba(190, 104, 47, 0.14);
 	--accent-wash-soft: rgba(190, 104, 47, 0.06);
 	--accent-border: #4a4239;
@@ -45,6 +49,11 @@
 	--unused-bg: #33302c;
 	--unused-border: #4a4239;
 	--unused-text: #d0a479;
+
+	/* Controls (toggle/progress tracks, scrollbars, color-swatch chrome) */
+	--track: #3a3a3a;
+	--swatch-border: #363636;
+	--swatch-border-hover: #4a4a4a;
 
 	/* Typography */
 	--font-sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
@@ -60,6 +69,59 @@
 	/* Layout */
 	--topbar-h: 53px;
 	--list-w: 470px;
+}
+
+/* Light theme — overrides only the color tokens; layout/type/radii are shared.
+ * Surfaces run light-to-white as they rise (sunken < bg < surface < raised),
+ * mirroring the dark scale in reverse. The warm-orange accent is nudged darker
+ * so it keeps enough contrast on light backgrounds. */
+:root[data-theme='light'] {
+	/* Surfaces */
+	--bg: #f2f1ee;
+	--bg-app: #f2f1ee;
+	--surface: #f8f7f5;
+	--surface-2: #f5f4f1;
+	--surface-raised: #ffffff;
+	--surface-sunken: #e8e6e2;
+	--input-bg: #ffffff;
+
+	/* Borders */
+	--border: #d8d6d1;
+	--border-soft: #e4e2dd;
+	--border-strong: #c4c2bc;
+	--border-input: #ceccc6;
+	--hairline: rgba(0, 0, 0, 0.06);
+
+	/* Text */
+	--text: #232323;
+	--text-2: #444444;
+	--text-muted: #6c6c6c;
+	--text-dim: #858585;
+	--text-faint: #9a9a9a;
+
+	/* Accent (warm orange, darkened for contrast on light) */
+	--accent: #b25c26;
+	--accent-hover: #9d4f1e;
+	--accent-link: #a9551f;
+	--accent-link-hover: #8f4718;
+	--accent-soft: #a35e2e;
+	--accent-muted: #8a5a2a;
+	--accent-muted-2: #916433;
+	--accent-wash: rgba(178, 92, 38, 0.12);
+	--accent-wash-soft: rgba(178, 92, 38, 0.05);
+	--accent-border: #e2d3c4;
+
+	/* Status */
+	--danger: #b7402c;
+	--danger-soft: #a8462f;
+	--unused-bg: #f1e9df;
+	--unused-border: #e0d2be;
+	--unused-text: #8a5a2a;
+
+	/* Controls */
+	--track: #c8c6bf;
+	--swatch-border: #d6d4cf;
+	--swatch-border-hover: #b4b2ac;
 }
 
 * {
@@ -124,13 +186,13 @@ input[type='number'] {
 	overflow-y: auto;
 	min-height: 0;
 	scrollbar-width: thin;
-	scrollbar-color: #3a3a3a transparent;
+	scrollbar-color: var(--track) transparent;
 }
 .scroll-y::-webkit-scrollbar {
 	width: 8px;
 }
 .scroll-y::-webkit-scrollbar-thumb {
-	background: #3a3a3a;
+	background: var(--track);
 	border-radius: 4px;
 }
 

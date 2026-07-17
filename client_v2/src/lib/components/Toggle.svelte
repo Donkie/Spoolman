@@ -24,7 +24,7 @@
 		width: 34px;
 		height: 19px;
 		border-radius: 10px;
-		background: #3a3a3a;
+		background: var(--track);
 		border: none;
 		position: relative;
 		cursor: pointer;
@@ -43,6 +43,7 @@
 		height: 14px;
 		border-radius: 50%;
 		background: #fff;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 		transition: left 0.15s;
 	}
 	.toggle.on .knob {

@@ -286,7 +286,7 @@
 		width: 100%;
 		background: none;
 		border: none;
-		border-bottom: 1px dashed #3a3a3a;
+		border-bottom: 1px dashed var(--track);
 		color: var(--text);
 		font: inherit;
 		font-size: 12.5px;

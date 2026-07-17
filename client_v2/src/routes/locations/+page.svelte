@@ -293,10 +293,10 @@
 		align-items: center;
 		gap: 8px;
 		padding: 9px 12px;
-		border-bottom: 1px solid #2f2f2f;
+		border-bottom: 1px solid var(--border-soft);
 	}
 	.grip {
-		color: #555;
+		color: var(--text-faint);
 		font-size: 13px;
 		cursor: grab;
 	}
@@ -388,7 +388,7 @@
 	}
 	.empty {
 		font-size: 11.5px;
-		color: #555;
+		color: var(--text-faint);
 		padding: 6px 2px;
 	}
 </style>

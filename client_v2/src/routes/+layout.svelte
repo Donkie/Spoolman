@@ -6,10 +6,18 @@
 	import QrScannerModal from '$components/QrScannerModal.svelte';
 	import { ui } from '$lib/stores/ui.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
+	import { theme } from '$lib/stores/theme.svelte';
 	import { startLiveSync } from '$lib/api/liveSync';
 	import type { Snippet } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();
+
+	// Keep <html data-theme> in sync with the preference (and OS changes when set
+	// to "system"). The initial paint is already themed by the inline script in
+	// app.html; this takes over once the app hydrates.
+	$effect(() => {
+		theme.apply();
+	});
 
 	// Load server settings and start central live-sync (keeps the reactive cache,
 	// and thus every view that reads it, up to date with WebSocket events).

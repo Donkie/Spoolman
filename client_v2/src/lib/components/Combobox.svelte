@@ -194,7 +194,7 @@
 	/* Inline dashed-underline variant, matching EditableField. */
 	.cbx.underline {
 		border: none;
-		border-bottom: 1px dashed #3a3a3a;
+		border-bottom: 1px dashed var(--track);
 		border-radius: 0;
 		padding: 2px 0;
 		font-size: 12.5px;

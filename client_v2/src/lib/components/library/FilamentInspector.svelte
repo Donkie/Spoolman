@@ -221,7 +221,7 @@
 		gap: 9px;
 		padding: 9px 12px;
 		background: var(--surface-2);
-		border: 1px solid #363636;
+		border: 1px solid var(--swatch-border);
 		border-radius: var(--radius-md);
 		font-size: 12px;
 		cursor: pointer;
@@ -230,7 +230,7 @@
 		text-align: left;
 	}
 	.spool-row:hover {
-		border-color: #4a4a4a;
+		border-color: var(--swatch-border-hover);
 	}
 	.id {
 		color: var(--text-muted);

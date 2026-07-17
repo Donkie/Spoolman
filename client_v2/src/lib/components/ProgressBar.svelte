@@ -11,7 +11,7 @@
 
 	let fill = $derived(
 		gradient
-			? 'linear-gradient(90deg,#be682f,#d47a3b)'
+			? 'linear-gradient(90deg,var(--accent),var(--accent-hover))'
 			: danger
 				? 'var(--danger)'
 				: 'var(--accent)'
@@ -27,7 +27,7 @@
 
 <style>
 	.track {
-		background: #3a3a3a;
+		background: var(--track);
 		flex: none;
 		overflow: hidden;
 	}

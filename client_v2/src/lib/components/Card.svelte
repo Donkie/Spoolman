@@ -15,6 +15,6 @@
 		overflow: hidden;
 	}
 	.card.divided > :global(:not(:first-child)) {
-		border-top: 1px solid #2f2f2f;
+		border-top: 1px solid var(--border-soft);
 	}
 </style>

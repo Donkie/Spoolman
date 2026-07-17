@@ -47,7 +47,7 @@
 		position: sticky;
 		top: 0;
 		z-index: 1;
-		background: #1c1c1c;
+		background: var(--surface-sunken);
 	}
 	.body {
 		min-width: 0;

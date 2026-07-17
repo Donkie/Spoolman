@@ -385,7 +385,7 @@
 		font-size: 12.5px;
 	}
 	.row:not(:first-child) {
-		border-top: 1px solid #2f2f2f;
+		border-top: 1px solid var(--border-soft);
 	}
 	.head-row {
 		color: var(--text-dim);
@@ -509,7 +509,7 @@
 	.chip-x {
 		background: none;
 		border: none;
-		color: #8a6a4d;
+		color: var(--accent-muted);
 		cursor: pointer;
 		font-size: 10px;
 		padding: 0;

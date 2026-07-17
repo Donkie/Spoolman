@@ -123,7 +123,7 @@
 		align-items: center;
 		justify-content: center;
 		font-weight: 700;
-		color: #b8b8b8;
+		color: var(--text-2);
 		flex: none;
 	}
 	.title {
@@ -152,7 +152,7 @@
 		gap: 9px;
 		padding: 9px 12px;
 		background: var(--surface-2);
-		border: 1px solid #363636;
+		border: 1px solid var(--swatch-border);
 		border-radius: var(--radius-md);
 		font-size: 12px;
 		cursor: pointer;
@@ -161,7 +161,7 @@
 		text-align: left;
 	}
 	.fil-row:hover {
-		border-color: #4a4a4a;
+		border-color: var(--swatch-border-hover);
 	}
 	.fname {
 		font-weight: 600;

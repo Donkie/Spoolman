@@ -103,7 +103,7 @@
 	}
 	.rem {
 		font-size: 11px;
-		color: #b8b8b8;
+		color: var(--text-2);
 		width: 44px;
 		text-align: right;
 		flex: none;
