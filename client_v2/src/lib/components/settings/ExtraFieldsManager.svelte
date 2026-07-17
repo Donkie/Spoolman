@@ -205,36 +205,38 @@
 	{/each}
 </div>
 
-<Card divided>
+<Card>
 	{#if defs.length === 0}
 		<div class="empty">{m['settings.extraFields.none']({ entity: entityLabel })}</div>
 	{:else}
-		<div class="row head-row">
-			<span class="c-key">{m['settings.extraFields.params.key']()}</span>
-			<span class="c-name">{m['settings.extraFields.params.name']()}</span>
-			<span class="c-type">{m['settings.extraFields.params.fieldType']()}</span>
-			<span class="c-def">{m['settings.extraFields.params.defaultValue']()}</span>
-			<span class="c-act"></span>
-		</div>
-		{#each defs as f (f.key)}
-			<div class="row">
-				<span class="c-key mono">{f.key}</span>
-				<span class="c-name"
-					>{f.name}{#if f.unit}<span class="unit"> ({f.unit})</span>{/if}</span
-				>
-				<span class="c-type">
-					{FIELD_TYPE_LABELS[f.field_type]()}
-					{#if f.field_type === FieldType.choice}<span class="unit"
-							>{f.multi_choice ? m['settings.extraFields.multiSuffix']() : ''}</span
-						>{/if}
-				</span>
-				<span class="c-def">{defaultPreview(f)}</span>
-				<span class="c-act">
-					<button class="mini" onclick={() => startEdit(f)}>{m['buttons.edit']()}</button>
-					<button class="mini danger" onclick={() => del(f)}>{m['buttons.delete']()}</button>
-				</span>
+		<div class="table">
+			<div class="row head-row">
+				<span class="c-key">{m['settings.extraFields.params.key']()}</span>
+				<span class="c-name">{m['settings.extraFields.params.name']()}</span>
+				<span class="c-type">{m['settings.extraFields.params.fieldType']()}</span>
+				<span class="c-def">{m['settings.extraFields.params.defaultValue']()}</span>
+				<span class="c-act"></span>
 			</div>
-		{/each}
+			{#each defs as f (f.key)}
+				<div class="row">
+					<span class="c-key mono">{f.key}</span>
+					<span class="c-name"
+						>{f.name}{#if f.unit}<span class="unit"> ({f.unit})</span>{/if}</span
+					>
+					<span class="c-type">
+						{FIELD_TYPE_LABELS[f.field_type]()}
+						{#if f.field_type === FieldType.choice}<span class="unit"
+								>{f.multi_choice ? m['settings.extraFields.multiSuffix']() : ''}</span
+							>{/if}
+					</span>
+					<span class="c-def">{defaultPreview(f)}</span>
+					<span class="c-act">
+						<button class="mini" onclick={() => startEdit(f)}>{m['buttons.edit']()}</button>
+						<button class="mini danger" onclick={() => del(f)}>{m['buttons.delete']()}</button>
+					</span>
+				</div>
+			{/each}
+		</div>
 	{/if}
 </Card>
 
@@ -366,13 +368,24 @@
 		font-size: 12.5px;
 		color: var(--text-dim);
 	}
-	.row {
+	/* One shared grid for every row so the header and data columns line up.
+	   Rows are subgrids of this, so the auto-sized action column is computed
+	   once across all rows instead of per-row (which caused the misalignment). */
+	.table {
 		display: grid;
 		grid-template-columns: 1fr 1.4fr 1fr 1fr auto;
+	}
+	.row {
+		display: grid;
+		grid-column: 1 / -1;
+		grid-template-columns: subgrid;
 		gap: 12px;
 		align-items: center;
 		padding: 10px 14px;
 		font-size: 12.5px;
+	}
+	.row:not(:first-child) {
+		border-top: 1px solid #2f2f2f;
 	}
 	.head-row {
 		color: var(--text-dim);
@@ -545,7 +558,7 @@
 		.form {
 			grid-template-columns: 1fr;
 		}
-		.row {
+		.table {
 			grid-template-columns: 1fr 1fr auto;
 		}
 		.c-type,
