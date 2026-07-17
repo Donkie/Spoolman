@@ -22,12 +22,23 @@
 	// individual spools, each selectable and distinguishable by its #id.
 	let expanded = $state(false);
 
+	// Under the filament group the used SpoolRows have shed their #id-column
+	// identity and leading swatch (see rowIdentity), so a row-shaped summary
+	// clashes with them. There we render as a quiet sub-section divider instead
+	// of imitating a spool row; every other axis keeps the filament-led row,
+	// which is what actually distinguishes one filament's unused pile from the
+	// next in those views.
+	let asDivider = $derived(context === 'filament');
+
 	let first = $derived(unused[0]);
 	let sub = $derived(
 		m['library.unusedSub']({
 			weight: first.spool.initial,
 			location: first.spool.location || m['library.unassigned']()
 		})
+	);
+	let dividerLabel = $derived(
+		m['library.unusedGroup']({ count: unused.length, weight: first.spool.initial })
 	);
 
 	// Auto-open when one of these spools becomes the active selection, while
@@ -38,36 +49,82 @@
 	$effect(() => {
 		if (hasSelected) expanded = true;
 	});
+
+	function toggle() {
+		expanded = !expanded;
+	}
 </script>
 
-<button
-	class="row"
-	class:expanded
-	style="padding-left:{indent}px"
-	aria-expanded={expanded}
-	onclick={() => (expanded = !expanded)}
->
-	<span class="spacer"></span>
-	{#if showSwatch}
-		<Swatch colors={first.filament.colors} size={22} opacity={0.75} />
-	{/if}
-	<span class="label">
-		<span class="fname">{first.filament.name}</span>
-		<span class="badge mono">{m['library.nUnused']({ count: unused.length })}</span>
-	</span>
-	<span class="sub">{sub}</span>
-	<span class="chev" class:open={expanded}>›</span>
-</button>
+{#if asDivider}
+	<button class="divider" style="padding-left:{indent}px" aria-expanded={expanded} onclick={toggle}>
+		<span class="chev" class:open={expanded}>›</span>
+		<span class="dlabel">{dividerLabel}</span>
+		<span class="rule"></span>
+	</button>
+{:else}
+	<button
+		class="row"
+		class:expanded
+		style="padding-left:{indent}px"
+		aria-expanded={expanded}
+		onclick={toggle}
+	>
+		<span class="spacer"></span>
+		{#if showSwatch}
+			<Swatch colors={first.filament.colors} size={22} opacity={0.75} />
+		{/if}
+		<span class="label">
+			<span class="fname">{first.filament.name}</span>
+			<span class="badge mono">{m['library.nUnused']({ count: unused.length })}</span>
+		</span>
+		<span class="sub">{sub}</span>
+		<span class="chev" class:open={expanded}>›</span>
+	</button>
+{/if}
 
 {#if expanded}
 	<div class="instances">
 		{#each unused as vm (vm.spool.id)}
-			<SpoolRow {vm} {showSwatch} indent={indent + 14} {context} />
+			<!-- Divider-mode instances align with the sibling used rows (same indent)
+			     so the divider reads as the header for the section beneath it. -->
+			<SpoolRow {vm} {showSwatch} indent={asDivider ? indent : indent + 14} {context} />
 		{/each}
 	</div>
 {/if}
 
 <style>
+	/* --- filament-group divider ------------------------------------------ */
+	.divider {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		width: 100%;
+		padding: 6px 14px;
+		border: none;
+		border-top: 1px solid var(--hairline);
+		background: none;
+		color: var(--text-dim);
+		text-align: left;
+		cursor: pointer;
+		font: inherit;
+	}
+	.divider:hover {
+		background: var(--surface-2);
+	}
+	.divider .dlabel {
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: 0.01em;
+		white-space: nowrap;
+		flex: none;
+	}
+	.divider .rule {
+		flex: 1;
+		height: 0;
+		border-top: 1px dashed var(--hairline);
+	}
+
+	/* --- filament-led summary row (vendor/material/location/flat) --------- */
 	.row {
 		display: flex;
 		align-items: center;
@@ -116,6 +173,8 @@
 		color: var(--text-dim);
 		flex: none;
 	}
+
+	/* --- shared ----------------------------------------------------------- */
 	.chev {
 		color: #555;
 		flex: none;

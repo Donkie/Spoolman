@@ -309,6 +309,7 @@
     "library.unitGroups": "groups",
     "library.unitSpools": "spools",
     "library.unused": "unused",
+    "library.unusedGroup": "{{count}} unused · {{weight}} g each",
     "library.unusedSub": "{{weight}} g each · {{location}}",
     "library.usedAgo": "used {{time}} ago",
     "loading": "Loading",
