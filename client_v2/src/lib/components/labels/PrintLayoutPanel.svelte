@@ -371,7 +371,9 @@
 		{/if}
 		<div class="print-btn">
 			<Button onclick={doPrint} disabled={bindings.length === 0 || printing}>
-				{printing ? m['labels.preparing']() : m['labels.printN']({ count: bindings.length })}
+				{printing
+					? m['labels.preparing']()
+					: m['labels.printN']({ count: bindings.length * Math.max(1, layout.copies) })}
 			</Button>
 		</div>
 	</div>
