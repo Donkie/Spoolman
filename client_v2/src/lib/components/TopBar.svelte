@@ -23,6 +23,14 @@
 		<button class="scan-btn" onclick={onscan} aria-label={m['topbar.scan']()} title={m['topbar.scan']()}>
 			<ScanLine size={18} />
 		</button>
+		<button
+			class="add-mobile"
+			onclick={onadd}
+			aria-label={m['topbar.addSpools']()}
+			title={m['topbar.addSpools']()}
+		>
+			<Plus size={18} />
+		</button>
 		<div class="search-desktop">
 			<SearchBox />
 		</div>
@@ -76,6 +84,10 @@
 		border-color: var(--accent);
 	}
 
+	.add-mobile {
+		display: none;
+	}
+
 	.mobile-search,
 	.mobile-nav {
 		display: none;
@@ -86,6 +98,19 @@
 		.search-desktop,
 		.add-desktop {
 			display: none;
+		}
+		.add-mobile {
+			flex: none;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 36px;
+			height: 36px;
+			border-radius: var(--radius-md);
+			border: none;
+			background: var(--accent);
+			color: #fff;
+			cursor: pointer;
 		}
 		.row.primary {
 			gap: 12px;

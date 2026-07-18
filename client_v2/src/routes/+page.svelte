@@ -2,10 +2,8 @@
 	import FilamentList from '$components/library/FilamentList.svelte';
 	import Inspector from '$components/library/Inspector.svelte';
 	import DetailPane from '$components/DetailPane.svelte';
-	import { ui } from '$lib/stores/ui.svelte';
 	import { clearSelection } from '$lib/library/params';
 	import * as m from '$lib/paraglide/messages';
-	import Plus from '@lucide/svelte/icons/plus';
 	import type { PageData } from './$types';
 
 	// The URL is the source of truth: `data.state` is parsed from the query
@@ -31,9 +29,6 @@
 	<DetailPane open={data.state.selection !== null} onclose={() => clearSelection()}>
 		<Inspector selection={data.state.selection} />
 	</DetailPane>
-
-	<!-- Mobile FAB -->
-	<button class="fab" onclick={() => ui.openAddModal()}><Plus size={20} /> {m['topbar.addSpools']()}</button>
 </div>
 
 <style>
@@ -51,33 +46,11 @@
 		flex-direction: column;
 		min-height: 0;
 	}
-	.fab {
-		display: none;
-	}
 
 	@media (max-width: 860px) {
 		.list-pane {
 			width: 100%;
 			border-right: none;
-		}
-		.fab {
-			display: flex;
-			align-items: center;
-			gap: 8px;
-			position: fixed;
-			right: 18px;
-			bottom: 22px;
-			z-index: 15;
-			background: var(--accent);
-			color: #fff;
-			border: none;
-			border-radius: 26px;
-			padding: 14px 18px;
-			font-weight: 600;
-			font-size: 14px;
-			box-shadow: 0 8px 24px rgba(190, 104, 47, 0.4);
-			cursor: pointer;
-			font-family: inherit;
 		}
 	}
 </style>
