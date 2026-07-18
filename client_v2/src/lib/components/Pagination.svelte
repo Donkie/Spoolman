@@ -1,5 +1,7 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
+	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 
 	interface Props {
 		page: number;
@@ -56,7 +58,7 @@
 				class="pg nav"
 				disabled={page <= 1}
 				onclick={() => go(page - 1)}
-				aria-label={m['pagination.prev']()}>‹</button
+				aria-label={m['pagination.prev']()}><ChevronLeft size={16} /></button
 			>
 			{#each pages as p, i (i)}
 				{#if p === '…'}
@@ -69,7 +71,7 @@
 				class="pg nav"
 				disabled={page >= pageCount}
 				onclick={() => go(page + 1)}
-				aria-label={m['pagination.next']()}>›</button
+				aria-label={m['pagination.next']()}><ChevronRight size={16} /></button
 			>
 		</div>
 	{/if}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Swatch from '../Swatch.svelte';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import SpoolRow from './SpoolRow.svelte';
 	import type { RowContext, SpoolVM } from '$lib/utils/library';
 	import { isSelected } from '$lib/library/params';
@@ -57,7 +58,7 @@
 
 {#if asDivider}
 	<button class="divider" style="padding-left:{indent}px" aria-expanded={expanded} onclick={toggle}>
-		<span class="chev" class:open={expanded}>›</span>
+		<span class="chev" class:open={expanded}><ChevronRight size={13} /></span>
 		<span class="dlabel">{dividerLabel}</span>
 		<span class="rule"></span>
 	</button>
@@ -78,7 +79,7 @@
 			<span class="badge mono">{m['library.nUnused']({ count: unused.length })}</span>
 		</span>
 		<span class="sub">{sub}</span>
-		<span class="chev" class:open={expanded}>›</span>
+		<span class="chev" class:open={expanded}><ChevronRight size={13} /></span>
 	</button>
 {/if}
 

@@ -199,3 +199,11 @@ input[type='number'] {
 .mono {
 	font-family: var(--font-mono);
 }
+
+/* Lucide icons inherit text colour (stroke=currentColor) and sit on the text
+   baseline nicely with a slight nudge; flex containers override as needed. */
+.lucide {
+	display: inline-block;
+	vertical-align: -0.15em;
+	flex: none;
+}

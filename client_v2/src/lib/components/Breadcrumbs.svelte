@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	// Inspector breadcrumb trail. The last item is the current entity (rendered
 	// static); earlier items with an `onclick` are navigable.
 	export interface Crumb {
@@ -10,7 +11,7 @@
 
 <div class="crumbs">
 	{#each items as c, i (i)}
-		{#if i > 0}<span class="sep">›</span>{/if}
+		{#if i > 0}<span class="sep"><ChevronRight size={13} /></span>{/if}
 		{#if c.onclick}
 			<button class="crumb" onclick={c.onclick}>{c.label}</button>
 		{:else}

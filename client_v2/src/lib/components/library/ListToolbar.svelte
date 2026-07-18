@@ -4,6 +4,15 @@
 	import { sortDefs, type SortDef } from '$lib/utils/library';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import * as m from '$lib/paraglide/messages';
+	import Plus from '@lucide/svelte/icons/plus';
+	import X from '@lucide/svelte/icons/x';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import ArrowUp from '@lucide/svelte/icons/arrow-up';
+	import ArrowDown from '@lucide/svelte/icons/arrow-down';
+	import Square from '@lucide/svelte/icons/square';
+	import SquareCheck from '@lucide/svelte/icons/square-check';
 
 	// Named libraryState, not `state`, to avoid shadowing the $state rune.
 	let { libraryState }: { libraryState: LibraryState } = $props();
@@ -92,28 +101,30 @@
 			onclick={() => {
 				toggle('filter');
 				filterProp = null;
-			}}>＋ {m['buttons.filter']()}</button
+			}}><Plus size={13} /> {m['buttons.filter']()}</button
 		>
 
 		{#each libraryState.filters as f (f.prop + f.value)}
 			<button class="chip active" onclick={() => params.removeFilter(f.prop, f.value)}>
-				{chipLabel(f.prop, f.value)} <span class="x">✕</span>
+				{chipLabel(f.prop, f.value)} <span class="x"><X size={12} /></span>
 			</button>
 		{/each}
 
 		<!-- Archived is a filter; when on it shows as a dismissible chip like the rest. -->
 		{#if libraryState.showArchived}
 			<button class="chip active" onclick={() => params.setShowArchived(false)}>
-				{m['spool.fields.archived']()} <span class="x">✕</span>
+				{m['spool.fields.archived']()} <span class="x"><X size={12} /></span>
 			</button>
 		{/if}
 	</div>
 
 	<div class="controls">
-		<button class="link-btn" onclick={() => toggle('group')}>{m['library.groupBy']()}: {groupLabel} ⌄</button>
+		<button class="link-btn" onclick={() => toggle('group')}
+			>{m['library.groupBy']()}: {groupLabel} <ChevronDown size={13} /></button
+		>
 		<button class="chip active sort" onclick={() => toggle('sort')}>
 			{m['library.sortBy']()}: {activeSort.labelKey()}
-			{libraryState.sortAsc ? '↑' : '↓'}
+			{#if libraryState.sortAsc}<ArrowUp size={12} />{:else}<ArrowDown size={12} />{/if}
 		</button>
 	</div>
 
@@ -124,7 +135,7 @@
 				{#each FILTER_CATEGORIES as c (c.key)}
 					<button class="menu-item" onclick={() => openProp(c.key)}>
 						<span class="mi-label">{c.labelKey()}</span>
-						<span class="mi-meta">›</span>
+						<span class="mi-meta"><ChevronRight size={14} /></span>
 					</button>
 				{/each}
 				<div class="menu-sep"></div>
@@ -137,12 +148,16 @@
 						close();
 					}}
 				>
-					<span class="mi-check">{libraryState.showArchived ? '☑' : '☐'}</span>
+					<span class="mi-check"
+						>{#if libraryState.showArchived}<SquareCheck size={15} />{:else}<Square size={15} />{/if}</span
+					>
 					<span class="mi-label">{m['buttons.showArchived']()}</span>
 				</button>
 			{:else}
 				{@const c = FILTER_CATEGORIES.find((x) => x.key === filterProp)}
-				<button class="menu-title back" onclick={() => (filterProp = null)}>‹ {c ? c.labelKey() : ''}</button>
+				<button class="menu-title back" onclick={() => (filterProp = null)}
+					><ChevronLeft size={14} /> {c ? c.labelKey() : ''}</button
+				>
 				{#if optionsLoading}
 					<div class="menu-item"><span class="mi-label">{m.loading()}…</span></div>
 				{:else if options.length === 0}
@@ -195,7 +210,8 @@
 						}}
 					>
 						<span class="mi-label">{it.labelKey()}</span>
-						{#if libraryState.sortKey === it.key}<span class="mi-dir">{libraryState.sortAsc ? '↑' : '↓'}</span
+						{#if libraryState.sortKey === it.key}<span class="mi-dir"
+								>{#if libraryState.sortAsc}<ArrowUp size={12} />{:else}<ArrowDown size={12} />{/if}</span
 							>{/if}
 						{#if it.unit}<span class="mi-meta">{it.unit}</span>{/if}
 					</button>

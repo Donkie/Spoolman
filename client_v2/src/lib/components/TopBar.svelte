@@ -4,6 +4,8 @@
 	import SearchBox from './library/SearchBox.svelte';
 	import Button from './Button.svelte';
 	import * as m from '$lib/paraglide/messages';
+	import Plus from '@lucide/svelte/icons/plus';
+	import ScanLine from '@lucide/svelte/icons/scan-line';
 
 	interface Props {
 		onadd?: () => void;
@@ -19,29 +21,13 @@
 		<div class="nav-desktop"><NavTabs /></div>
 		<div class="spacer"></div>
 		<button class="scan-btn" onclick={onscan} aria-label={m['topbar.scan']()} title={m['topbar.scan']()}>
-			<svg
-				viewBox="0 0 24 24"
-				width="18"
-				height="18"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				aria-hidden="true"
-			>
-				<path d="M3 8V5a2 2 0 0 1 2-2h3" />
-				<path d="M21 8V5a2 2 0 0 0-2-2h-3" />
-				<path d="M3 16v3a2 2 0 0 0 2 2h3" />
-				<path d="M21 16v3a2 2 0 0 1-2 2h-3" />
-				<path d="M3 12h18" />
-			</svg>
+			<ScanLine size={18} />
 		</button>
 		<div class="search-desktop">
 			<SearchBox />
 		</div>
 		<div class="add-desktop">
-			<Button onclick={onadd}>＋ {m['topbar.addSpools']()}</Button>
+			<Button onclick={onadd}><Plus size={15} /> {m['topbar.addSpools']()}</Button>
 		</div>
 	</div>
 

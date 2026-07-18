@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Swatch from '../Swatch.svelte';
 	import Button from '../Button.svelte';
+	import Plus from '@lucide/svelte/icons/plus';
 	import EditableField from '../EditableField.svelte';
 	import NumberInput from '../NumberInput.svelte';
 	import ProgressBar from '../ProgressBar.svelte';
@@ -96,7 +97,9 @@
 			<div class="subtitle">{vendor.name} · {filament.material} · {filament.diameter} mm</div>
 		</div>
 		<div class="add">
-			<Button onclick={() => ui.openAddModal(filament.id)}>＋ {m['inspector.addSpoolsOfThis']()}</Button>
+			<Button onclick={() => ui.openAddModal(filament.id)}
+				><Plus size={15} /> {m['inspector.addSpoolsOfThis']()}</Button
+			>
 		</div>
 	</div>
 

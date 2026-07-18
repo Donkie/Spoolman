@@ -4,6 +4,10 @@
 	import NumberInput from '../NumberInput.svelte';
 	import EditableField from '../EditableField.svelte';
 	import Combobox from '../Combobox.svelte';
+	import Scale from '@lucide/svelte/icons/scale';
+	import Printer from '@lucide/svelte/icons/printer';
+	import Archive from '@lucide/svelte/icons/archive';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import DateTimeField from '../DateTimeField.svelte';
 	import SectionLabel from '../SectionLabel.svelte';
 	import ExtraFieldsSection from '../ExtraFieldsSection.svelte';
@@ -193,11 +197,13 @@
 			</div>
 		</div>
 		<div class="actions">
-			<Button variant="outline" onclick={openAdjust}>⚖ {m['inspector.adjustWeight']()}</Button>
-			<Button variant="outline" onclick={() => goto(resolve(`/labels?spools=${spool.id}`))}
-				>◱ {m['printing.qrcode.button']()}</Button
+			<Button variant="outline" onclick={openAdjust}
+				><Scale size={15} /> {m['inspector.adjustWeight']()}</Button
 			>
-			<Button variant="outline" onclick={archive}>{m['buttons.archive']()}</Button>
+			<Button variant="outline" onclick={() => goto(resolve(`/labels?spools=${spool.id}`))}
+				><Printer size={15} /> {m['printing.qrcode.button']()}</Button
+			>
+			<Button variant="outline" onclick={archive}><Archive size={15} /> {m['buttons.archive']()}</Button>
 		</div>
 	</div>
 
@@ -300,7 +306,7 @@
 				{m['library.section.filament']()}
 				{#snippet right()}
 					<button class="link" onclick={() => params.select('filament', filament.id)}
-						>{m['inspector.openFilament']()}</button
+						>{m['inspector.openFilament']()} <ArrowRight size={13} /></button
 					>
 				{/snippet}
 			</SectionLabel>
@@ -469,6 +475,9 @@
 		gap: 7px;
 	}
 	.link {
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
 		font-size: 11.5px;
 		color: var(--accent-link);
 		cursor: pointer;

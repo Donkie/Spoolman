@@ -4,6 +4,7 @@
 	import { resolve } from '$app/paths';
 	import { parseSpoolCode } from '$lib/utils/spoolCode';
 	import * as m from '$lib/paraglide/messages';
+	import X from '@lucide/svelte/icons/x';
 
 	interface Props {
 		open: boolean;
@@ -128,7 +129,7 @@
 		>
 			<div class="modal-head">
 				<span class="title">{m['scanner.modalTitle']()}</span>
-				<button class="x" onclick={close} aria-label={m['buttons.close']()}>✕</button>
+				<button class="x" onclick={close} aria-label={m['buttons.close']()}><X size={16} /></button>
 			</div>
 
 			<p class="hint">{m['scanner.hint']()}</p>

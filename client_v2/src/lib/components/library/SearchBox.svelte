@@ -2,6 +2,7 @@
 	import SearchInput from '../SearchInput.svelte';
 	import Swatch from '../Swatch.svelte';
 	import MaterialBadge from '../MaterialBadge.svelte';
+	import Factory from '@lucide/svelte/icons/factory';
 	import { searchAll } from '$lib/api/search';
 	import type { SearchResults } from '$lib/api/types';
 	import { openSearchResult } from '$lib/library/params';
@@ -271,7 +272,7 @@
 							class:active={activeIndex === indexOf('vendor', vendor.entity.id)}
 							onclick={() => choose('vendor', vendor.entity.id)}
 						>
-							<span class="vendor-icon" aria-hidden="true">🏭</span>
+							<span class="vendor-icon" aria-hidden="true"><Factory size={14} /></span>
 							<span class="text">
 								<span class="title">{vendor.entity.name}</span>
 							</span>

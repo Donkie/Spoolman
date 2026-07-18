@@ -7,6 +7,7 @@
 	import { labelDesigns } from '$lib/stores/labelDesigns.svelte';
 	import type { LabelDesign } from '$lib/labels/types';
 	import * as m from '$lib/paraglide/messages';
+	import Plus from '@lucide/svelte/icons/plus';
 
 	// Spool ids to pre-select in the print tab (deep-link, e.g. /labels?spools=1,2).
 	const preselected = $derived(
@@ -115,7 +116,7 @@
 
 			<div class="spacer"></div>
 
-			<Button variant="outline" onclick={newDesign}>+ {m['labels.new']()}</Button>
+			<Button variant="outline" onclick={newDesign}><Plus size={15} /> {m['labels.new']()}</Button>
 			{#if working}
 				<Button variant="outline" onclick={duplicate}>{m['labels.duplicate']()}</Button>
 				<Button variant="outline" onclick={remove}>{m['buttons.delete']()}</Button>
@@ -148,7 +149,7 @@
 		{:else}
 			<div class="blank">
 				<p>{m['labels.blank']()}</p>
-				<Button onclick={newDesign}>+ {m['labels.createFirst']()}</Button>
+				<Button onclick={newDesign}><Plus size={15} /> {m['labels.createFirst']()}</Button>
 			</div>
 		{/if}
 	</div>

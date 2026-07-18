@@ -10,6 +10,9 @@
 	import { languages } from '$lib/i18n/languages';
 	import { getLocale } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import Calendar from '@lucide/svelte/icons/calendar';
+	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 
 	interface Props {
 		/** Current value as an ISO timestamp, or undefined if unset. */
@@ -278,17 +281,19 @@
 		aria-haspopup="dialog"
 		aria-expanded={open}
 	>
-		<span class="cal-icon" aria-hidden="true">🗓</span>
+		<span class="cal-icon" aria-hidden="true"><Calendar size={14} /></span>
 		<span class="trigger-label mono">{label || '—'}</span>
 	</button>
 
 	{#if open}
 		<div class="pop" bind:this={pop} style={popStyle} role="dialog" aria-label={m['datetime.pick']()}>
 			<div class="cal-head">
-				<button type="button" class="nav" onclick={prevMonth} aria-label={m['datetime.prevMonth']()}>‹</button
+				<button type="button" class="nav" onclick={prevMonth} aria-label={m['datetime.prevMonth']()}
+					><ChevronLeft size={18} /></button
 				>
 				<span class="month-label">{MONTHS[viewMonth]} {viewYear}</span>
-				<button type="button" class="nav" onclick={nextMonth} aria-label={m['datetime.nextMonth']()}>›</button
+				<button type="button" class="nav" onclick={nextMonth} aria-label={m['datetime.nextMonth']()}
+					><ChevronRight size={18} /></button
 				>
 			</div>
 			<div class="dow">

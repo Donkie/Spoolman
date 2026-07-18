@@ -1,5 +1,6 @@
 <script lang="ts">
 	import GroupHeader from './GroupHeader.svelte';
+	import Plus from '@lucide/svelte/icons/plus';
 	import SpoolRow from './SpoolRow.svelte';
 	import UnusedRow from './UnusedRow.svelte';
 	import type { Spool } from '$lib/types';
@@ -73,7 +74,7 @@
 	{/if}
 	{#if moreCount > 0}
 		<button class="more" onclick={() => (limit += 20)}
-			>＋ {m['library.showMore']({ count: moreCount })}</button
+			><Plus size={13} /> {m['library.showMore']({ count: moreCount })}</button
 		>
 	{/if}
 </div>

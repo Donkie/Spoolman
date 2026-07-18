@@ -4,6 +4,10 @@
 	import NumberInput from './NumberInput.svelte';
 	import Combobox from './Combobox.svelte';
 	import DateTimeField from './DateTimeField.svelte';
+	import X from '@lucide/svelte/icons/x';
+	import Plus from '@lucide/svelte/icons/plus';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import ExtraFieldsSection from './ExtraFieldsSection.svelte';
 	import type { Filament, Extra } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
@@ -462,7 +466,7 @@
 				{#if step === 2}
 					<span class="step-hint">{m['add.step2']()}</span>
 				{/if}
-				<button class="x" onclick={close} aria-label={m['buttons.close']()}>✕</button>
+				<button class="x" onclick={close} aria-label={m['buttons.close']()}><X size={16} /></button>
 			</div>
 
 			{#if step === 1}
@@ -516,7 +520,7 @@
 					</div>
 
 					<button class="create-new" onclick={startCreate}>
-						<span class="cn-plus">＋</span>
+						<span class="cn-plus"><Plus size={16} /></span>
 						<span>{m['add.createNew']()}</span>
 						<span class="cn-sub">{m['add.createNewSub']()}</span>
 					</button>
@@ -588,7 +592,7 @@
 								</label>
 							</div>
 							<button class="adv-toggle" onclick={() => (showAdvanced = !showAdvanced)}>
-								{showAdvanced ? '▾' : '▸'}
+								{#if showAdvanced}<ChevronDown size={14} />{:else}<ChevronRight size={14} />{/if}
 								{m['add.advanced']()}
 								{#if !showAdvanced}<span class="adv-note">{m['add.advancedNote']()}</span>{/if}
 							</button>

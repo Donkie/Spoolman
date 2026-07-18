@@ -10,6 +10,10 @@
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import type { Spool } from '$lib/types';
 	import * as m from '$lib/paraglide/messages';
+	import QrCode from '@lucide/svelte/icons/qr-code';
+	import Type from '@lucide/svelte/icons/type';
+	import SwatchBook from '@lucide/svelte/icons/swatch-book';
+	import RectangleHorizontal from '@lucide/svelte/icons/rectangle-horizontal';
 
 	interface Props {
 		design: LabelDesign;
@@ -139,10 +143,10 @@
 <div class="designer">
 	<div class="palette">
 		<div class="p-head">{m['labels.addHead']()}</div>
-		<button onclick={addQr}>◱ {m['labels.addQr']()}</button>
-		<button onclick={addText}>T {m['labels.addText']()}</button>
-		<button onclick={addSwatch}>▧ {m['labels.addSwatch']()}</button>
-		<button onclick={addRect}>▭ {m['labels.addRect']()}</button>
+		<button onclick={addQr}><QrCode size={15} /> {m['labels.addQr']()}</button>
+		<button onclick={addText}><Type size={15} /> {m['labels.addText']()}</button>
+		<button onclick={addSwatch}><SwatchBook size={15} /> {m['labels.addSwatch']()}</button>
+		<button onclick={addRect}><RectangleHorizontal size={15} /> {m['labels.addRect']()}</button>
 
 		<div class="p-head">{m['printing.generic.dimensions']()}</div>
 		<label class="sz"
@@ -226,6 +230,9 @@
 		margin-top: 6px;
 	}
 	.palette button {
+		display: flex;
+		align-items: center;
+		gap: 8px;
 		text-align: left;
 		background: var(--surface-2);
 		border: 1px solid var(--border);

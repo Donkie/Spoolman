@@ -5,6 +5,7 @@
 	import { ui } from '$lib/stores/ui.svelte';
 	import { clearSelection } from '$lib/library/params';
 	import * as m from '$lib/paraglide/messages';
+	import Plus from '@lucide/svelte/icons/plus';
 	import type { PageData } from './$types';
 
 	// The URL is the source of truth: `data.state` is parsed from the query
@@ -32,7 +33,7 @@
 	</DetailPane>
 
 	<!-- Mobile FAB -->
-	<button class="fab" onclick={() => ui.openAddModal()}>＋ {m['topbar.addSpools']()}</button>
+	<button class="fab" onclick={() => ui.openAddModal()}><Plus size={20} /> {m['topbar.addSpools']()}</button>
 </div>
 
 <style>

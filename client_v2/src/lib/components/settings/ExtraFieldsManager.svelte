@@ -10,6 +10,8 @@
 	} from '$lib/api/fields';
 	import { fields } from '$lib/stores/fields.svelte';
 	import * as m from '$lib/paraglide/messages';
+	import Plus from '@lucide/svelte/icons/plus';
+	import X from '@lucide/svelte/icons/x';
 
 	const ENTITIES: { key: EntityType; label: () => string }[] = [
 		{ key: 'spool', label: m['library.section.spool'] },
@@ -293,7 +295,7 @@
 								{c}
 								{#if isNew || !originalChoices.includes(c)}
 									<button class="chip-x" onclick={() => removeChoice(c)} aria-label={m['common.remove']()}
-										>✕</button
+										><X size={12} /></button
 									>
 								{/if}
 							</span>
@@ -337,7 +339,7 @@
 	</div>
 {:else}
 	<button class="add-btn" onclick={startAdd}
-		>＋ {m['settings.extraFields.addEntityField']({ entity: entityLabel })}</button
+		><Plus size={14} /> {m['settings.extraFields.addEntityField']({ entity: entityLabel })}</button
 	>
 {/if}
 

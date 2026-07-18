@@ -8,6 +8,8 @@
 	import { goto } from '$app/navigation';
 	import { weightAuto } from '$lib/utils/format';
 	import * as m from '$lib/paraglide/messages';
+	import Plus from '@lucide/svelte/icons/plus';
+	import GripVertical from '@lucide/svelte/icons/grip-vertical';
 
 	let draggingId = $state<number | null>(null);
 	let dragOver = $state<string | null>(null);
@@ -138,7 +140,7 @@
 	<div class="head">
 		<span class="title">{m['locations.locations']()}</span>
 		<span class="hint">{m['locations.dragHint']()}</span>
-		<button class="add" onclick={addLocation}>＋ {m['locations.addLocation']()}</button>
+		<button class="add" onclick={addLocation}><Plus size={14} /> {m['locations.addLocation']()}</button>
 	</div>
 
 	<div class="grid">
@@ -155,7 +157,7 @@
 				ondrop={() => onDrop(shelf.name)}
 			>
 				<div class="shelf-head">
-					<span class="grip">⠿</span>
+					<span class="grip"><GripVertical size={16} /></span>
 					{#if editingLocation === shelf.name}
 						<input
 							class="shelf-name-input"

@@ -184,7 +184,7 @@
     "inspector.nozzleBed": "Nozzle / bed",
     "inspector.nozzleC": "Nozzle",
     "inspector.ofRemaining": "of {{weight}} g remaining · {{length}} m",
-    "inspector.openFilament": "Open filament →",
+    "inspector.openFilament": "Open filament",
     "inspector.printLabel": "Print label",
     "inspector.specs": "Specs — edit in place",
     "inspector.spoolsCount": "Spools · {{count}}",
