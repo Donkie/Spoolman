@@ -375,7 +375,7 @@ def can_write_to_data_dir() -> bool:
         test_file = get_data_dir().joinpath("test.txt")
         test_file.touch()
         test_file.unlink()
-    except Exception:
+    except OSError:
         return False
     return True
 
@@ -389,7 +389,7 @@ def chown_dir(path: str) -> bool:
         uid = os.getuid()
         gid = os.getgid()
         subprocess.run(["chown", "-R", f"{uid}:{gid}", path], check=True)  # noqa: S607
-    except Exception:
+    except (OSError, subprocess.SubprocessError):
         return False
     return True
 
