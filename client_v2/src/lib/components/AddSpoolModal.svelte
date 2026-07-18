@@ -31,6 +31,7 @@
 
 	let step = $state<1 | 2>(1);
 	let query = $state('');
+	let searchInput = $state<HTMLInputElement | undefined>();
 	let localResults = $state<Filament[]>([]);
 	let externalResults = $state<ExternalFilament[]>([]);
 	let searching = $state(false);
@@ -171,6 +172,13 @@
 		} else if (!open) {
 			initialized = false;
 		}
+	});
+
+	// Focus the search box whenever the search step is showing, so you can open
+	// the modal and start typing immediately. Re-runs when the input remounts
+	// (e.g. returning to step 1 from step 2).
+	$effect(() => {
+		if (open && step === 1 && searchInput) searchInput.focus();
 	});
 
 	// --- spool form ---------------------------------------------------------
@@ -472,6 +480,7 @@
 			{#if step === 1}
 				<div class="body">
 					<input
+						bind:this={searchInput}
 						class="search-big"
 						value={query}
 						oninput={(e) => onSearch(e.currentTarget.value)}
