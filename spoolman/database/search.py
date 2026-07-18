@@ -36,7 +36,8 @@ _TEXT_EXTRA_TYPES = (ExtraFieldType.text, ExtraFieldType.choice)
 _RANK_ID_OR_COLOR = -1  # exact id / color-similarity match
 _RANK_STRONG = 0  # native field prefix/exact text match
 _RANK_WEAK = 1  # native field substring text match
-_RANK_EXTRA = 2  # extra-field text match
+_RANK_VENDOR = 2  # related vendor name text match (filaments only)
+_RANK_EXTRA = 3  # extra-field text match
 
 
 @dataclass
@@ -144,6 +145,35 @@ async def _search_spools(db: AsyncSession, q: str, limit: int) -> list[SpoolMatc
     return [SpoolMatch(spool=spools[sid], match_field=field) for sid, (field, _rank) in ordered]
 
 
+async def _annotate_filament_extras(
+    db: AsyncSession,
+    q: str,
+    load: tuple,
+    hits: dict[int, tuple[str, int]],
+    filaments: dict[int, models.Filament],
+) -> None:
+    """Add filaments matched only via a text/choice extra field to the accumulators."""
+    keys = await _text_extra_keys(db, EntityType.filament)
+    if not keys:
+        return
+    estmt = (
+        select(models.FilamentField.filament_id, models.FilamentField.key)
+        .where(models.FilamentField.key.in_(keys))
+        .where(models.FilamentField.value.ilike(f"%{q}%"))
+        .limit(_CANDIDATE_CAP)
+    )
+    need: list[int] = []
+    for filament_id, key in (await db.execute(estmt)).all():
+        if filament_id not in hits:
+            hits[filament_id] = (f"extra.{key}", _RANK_EXTRA)
+            need.append(filament_id)
+    if not need:
+        return
+    fetch = select(models.Filament).where(models.Filament.id.in_(need)).options(*load)
+    for filament in (await db.execute(fetch)).unique().scalars().all():
+        filaments[filament.id] = filament
+
+
 async def _search_filaments(
     db: AsyncSession,
     q: str,
@@ -187,23 +217,23 @@ async def _search_filaments(
         filaments[filament.id] = filament
         hits[filament.id] = classified
 
-    keys = await _text_extra_keys(db, EntityType.filament)
-    if keys:
-        estmt = (
-            select(models.FilamentField.filament_id, models.FilamentField.key)
-            .where(models.FilamentField.key.in_(keys))
-            .where(models.FilamentField.value.ilike(f"%{q}%"))
-            .limit(_CANDIDATE_CAP)
-        )
-        need: list[int] = []
-        for filament_id, key in (await db.execute(estmt)).all():
-            if filament_id not in hits:
-                hits[filament_id] = (f"extra.{key}", _RANK_EXTRA)
-                need.append(filament_id)
-        if need:
-            fetch = select(models.Filament).where(models.Filament.id.in_(need)).options(*load)
-            for filament in (await db.execute(fetch)).unique().scalars().all():
-                filaments[filament.id] = filament
+    # Filaments whose vendor's name matches, so searching a manufacturer surfaces its
+    # filaments (not just the vendor itself). Ranks below any native-field match.
+    vstmt = (
+        select(models.Filament)
+        .join(models.Filament.vendor)
+        .where(models.Vendor.name.ilike(f"%{q}%"))
+        .options(*load)
+        .order_by(models.Filament.id)
+        .limit(_CANDIDATE_CAP)
+    )
+    for filament in (await db.execute(vstmt)).unique().scalars().all():
+        if filament.id in hits:
+            continue  # already matched on one of its own fields
+        filaments[filament.id] = filament
+        hits[filament.id] = ("vendor.name", _RANK_VENDOR)
+
+    await _annotate_filament_extras(db, q, load, hits, filaments)
 
     # Color hits keep their supplied order; everyone else sorts by (rank, id).
     color_order = {m.filament.id: i for i, m in enumerate(color_hits)}

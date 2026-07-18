@@ -162,7 +162,8 @@
 			article_number: m['filament.fields.articleNumber'],
 			comment: m['filament.fields.comment'],
 			id: m['filament.fields.id'],
-			color: m['filament.fields.colorHex']
+			color: m['filament.fields.colorHex'],
+			'vendor.name': m['filament.fields.vendor']
 		},
 		spool: {
 			material: m['spool.fields.material'],
