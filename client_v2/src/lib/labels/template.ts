@@ -36,7 +36,10 @@ const RESOLVERS: Record<string, (b: LabelBinding) => string | number | null | un
 	'spool.comment': (b) => b.spool.comment,
 	'spool.remaining': (b) => fmtNum(b.spool.remaining),
 	'spool.initial': (b) => fmtNum(b.spool.initial),
+	'spool.used': (b) => fmtNum(b.spool.initial - b.spool.remaining),
+	'spool.price': (b) => fmtNum(b.spool.price ?? b.filament?.price),
 	'spool.registered': (b) => b.spool.registeredLabel,
+	'spool.firstUsed': (b) => b.spool.firstUsedLabel,
 	'spool.lastUsed': (b) => b.spool.lastUsedLabel,
 
 	'filament.name': (b) => b.filament?.name,
@@ -49,9 +52,18 @@ const RESOLVERS: Record<string, (b: LabelBinding) => string | number | null | un
 	'filament.nozzleTemp': (b) => fmtNum(b.filament?.nozzleTemp),
 	'filament.bedTemp': (b) => fmtNum(b.filament?.bedTemp),
 	'filament.color': (b) => b.filament?.colors[0],
+	'filament.articleNumber': (b) => b.filament?.articleNumber,
+	'filament.comment': (b) => b.filament?.comment,
+	'filament.externalId': (b) => b.filament?.externalId,
+	'filament.registered': (b) => b.filament?.registeredLabel,
+	// Vendor fields are reachable both nested under filament (v1 style) and directly.
 	'filament.vendor.name': (b) => b.vendor?.name,
 
-	'vendor.name': (b) => b.vendor?.name
+	'vendor.name': (b) => b.vendor?.name,
+	'vendor.emptyWeight': (b) => fmtNum(b.vendor?.emptyWeight),
+	'vendor.comment': (b) => b.vendor?.comment,
+	'vendor.externalId': (b) => b.vendor?.externalId,
+	'vendor.registered': (b) => b.vendor?.registeredLabel
 };
 
 /** Resolve a single placeholder path to a display string, or MISSING. */
@@ -133,7 +145,10 @@ const FIXED_GROUPS: PlaceholderGroup[] = [
 			{ token: 'spool.lot', labelKey: m['spool.fields.lotNr'] },
 			{ token: 'spool.remaining', labelKey: m['labels.fields.remainingG'] },
 			{ token: 'spool.initial', labelKey: m['labels.fields.initialG'] },
+			{ token: 'spool.used', labelKey: m['spool.fields.usedWeight'] },
+			{ token: 'spool.price', labelKey: m['spool.fields.price'] },
 			{ token: 'spool.registered', labelKey: m['spool.fields.registered'] },
+			{ token: 'spool.firstUsed', labelKey: m['spool.fields.firstUsed'] },
 			{ token: 'spool.lastUsed', labelKey: m['spool.fields.lastUsed'] },
 			{ token: 'spool.comment', labelKey: m['spool.fields.comment'] }
 		]
@@ -150,13 +165,23 @@ const FIXED_GROUPS: PlaceholderGroup[] = [
 			{ token: 'filament.price', labelKey: m['filament.fields.price'] },
 			{ token: 'filament.nozzleTemp', labelKey: m['library.sort.nozzle'] },
 			{ token: 'filament.bedTemp', labelKey: m['labels.fields.bedTemp'] },
-			{ token: 'filament.color', labelKey: m['inspector.colorHex'] }
+			{ token: 'filament.color', labelKey: m['inspector.colorHex'] },
+			{ token: 'filament.articleNumber', labelKey: m['filament.fields.articleNumber'] },
+			{ token: 'filament.externalId', labelKey: m['filament.fields.externalId'] },
+			{ token: 'filament.registered', labelKey: m['filament.fields.registered'] },
+			{ token: 'filament.comment', labelKey: m['filament.fields.comment'] }
 		]
 	},
 	{
 		entity: 'vendor',
 		labelKey: m['labels.fields.groupVendor'],
-		items: [{ token: 'vendor.name', labelKey: m['vendor.fields.name'] }]
+		items: [
+			{ token: 'vendor.name', labelKey: m['vendor.fields.name'] },
+			{ token: 'vendor.emptyWeight', labelKey: m['vendor.fields.emptySpoolWeight'] },
+			{ token: 'vendor.externalId', labelKey: m['vendor.fields.externalId'] },
+			{ token: 'vendor.registered', labelKey: m['vendor.fields.registered'] },
+			{ token: 'vendor.comment', labelKey: m['vendor.fields.comment'] }
+		]
 	}
 ];
 

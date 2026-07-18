@@ -5,7 +5,7 @@
 	import LabelCanvas from './LabelCanvas.svelte';
 	import type { LabelDesign } from '$lib/labels/types';
 	import type { LabelBinding } from '$lib/labels/template';
-	import { PAPER_NAMES, sheetGrid } from '$lib/labels/paper';
+	import { PAPER_NAMES, paperSize, sheetGrid } from '$lib/labels/paper';
 	import { printLabels } from '$lib/labels/print';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { inventory } from '$lib/stores/inventory.svelte';
@@ -104,6 +104,20 @@
 	function setMargin(k: 't' | 'b' | 'l' | 'r', v: number) {
 		layout.margin = { ...layout.margin, [k]: v };
 	}
+	function setSafe(k: 't' | 'b' | 'l' | 'r', v: number) {
+		layout.safe = { ...layout.safe, [k]: Math.max(0, v) };
+	}
+
+	// Solve the fit equation for the label width: pick a width that makes `columns`
+	// labels plus their gaps exactly span the usable page width. Height is left to
+	// the design (the button only touches width, per its label).
+	function fitLabelWidth() {
+		const page = paperSize(layout);
+		const usableW = page.w - layout.margin.l - layout.margin.r;
+		const cols = Math.max(1, Math.round(layout.columns));
+		const w = (usableW - (cols - 1) * layout.spacing.h) / cols;
+		if (w > 0) design.label = { ...design.label, w: Math.round(w * 10) / 10 };
+	}
 </script>
 
 <div class="print-panel">
@@ -178,6 +192,43 @@
 				><input type="checkbox" bind:checked={layout.landscape} /> {m['labels.landscape']()}</label
 			>
 
+			<div class="row2">
+				<div class="fld">
+					{m['labels.labelSize']()}
+					<div class="ro">{design.label.w} × {design.label.h} mm</div>
+					<button type="button" class="linkbtn" onclick={fitLabelWidth} title={m['labels.fitWidthHint']()}
+						>{m['labels.fitWidth']()}</button
+					>
+				</div>
+				<label class="fld"
+					>{m['printing.generic.columns']()}<NumberInput
+						dense
+						min={1}
+						value={layout.columns}
+						onchange={(v) => (layout.columns = Math.max(1, Math.round(v)))}
+					/></label
+				>
+			</div>
+			<div class="row2">
+				<label class="fld"
+					>{m['printing.generic.horizontalSpacing']()}<NumberInput
+						dense
+						unit="mm"
+						value={layout.spacing.h}
+						onchange={(v) => (layout.spacing = { ...layout.spacing, h: v })}
+					/></label
+				>
+				<label class="fld"
+					>{m['printing.generic.verticalSpacing']()}<NumberInput
+						dense
+						unit="mm"
+						value={layout.spacing.v}
+						onchange={(v) => (layout.spacing = { ...layout.spacing, v: v })}
+					/></label
+				>
+			</div>
+
+			<p class="help">{m['printing.generic.helpMargin']()}</p>
 			<div class="row4">
 				<label class="fld"
 					>{m['printing.generic.marginTop']()}<NumberInput
@@ -212,21 +263,43 @@
 					/></label
 				>
 			</div>
-			<div class="row2">
+
+			<p class="help">{m['printing.generic.helpPrinterMargin']()}</p>
+			<div class="row4">
 				<label class="fld"
-					>{m['printing.generic.horizontalSpacing']()}<NumberInput
+					>{m['printing.generic.printerMarginTop']()}<NumberInput
 						dense
+						min={0}
 						unit="mm"
-						value={layout.spacing.h}
-						onchange={(v) => (layout.spacing = { ...layout.spacing, h: v })}
+						value={layout.safe.t}
+						onchange={(v) => setSafe('t', v)}
 					/></label
 				>
 				<label class="fld"
-					>{m['printing.generic.verticalSpacing']()}<NumberInput
+					>{m['printing.generic.printerMarginBottom']()}<NumberInput
 						dense
+						min={0}
 						unit="mm"
-						value={layout.spacing.v}
-						onchange={(v) => (layout.spacing = { ...layout.spacing, v: v })}
+						value={layout.safe.b}
+						onchange={(v) => setSafe('b', v)}
+					/></label
+				>
+				<label class="fld"
+					>{m['printing.generic.printerMarginLeft']()}<NumberInput
+						dense
+						min={0}
+						unit="mm"
+						value={layout.safe.l}
+						onchange={(v) => setSafe('l', v)}
+					/></label
+				>
+				<label class="fld"
+					>{m['printing.generic.printerMarginRight']()}<NumberInput
+						dense
+						min={0}
+						unit="mm"
+						value={layout.safe.r}
+						onchange={(v) => setSafe('r', v)}
 					/></label
 				>
 			</div>
@@ -259,6 +332,9 @@
 			<div class="grid-info">
 				{m['labels.gridInfo']({ cols: grid.cols, rows: grid.rows, perPage: grid.perPage })}
 			</div>
+			{#if !grid.fits}
+				<div class="warn">{m['printing.generic.gridTooWide']()}</div>
+			{/if}
 		{:else}
 			<div class="row2">
 				<label class="fld"
@@ -383,6 +459,37 @@
 		gap: 4px;
 		font-size: 11px;
 		color: var(--text-dim);
+	}
+	/* Read-only display styled like a disabled NumberInput — the label size is
+	   owned by the design, not editable here. */
+	.ro {
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		padding: 7px 9px;
+		color: var(--text-2);
+		font-size: 12.5px;
+		background: var(--surface-2);
+	}
+	.linkbtn {
+		align-self: flex-start;
+		background: none;
+		border: none;
+		padding: 2px 0;
+		color: var(--accent-soft);
+		font-size: 11px;
+		font-family: inherit;
+		cursor: pointer;
+	}
+	.help {
+		margin: 2px 0 0;
+		font-size: 11px;
+		line-height: 1.35;
+		color: var(--text-dim);
+	}
+	.warn {
+		font-size: 11.5px;
+		line-height: 1.35;
+		color: var(--danger, #e5484d);
 	}
 	.row2 {
 		display: grid;

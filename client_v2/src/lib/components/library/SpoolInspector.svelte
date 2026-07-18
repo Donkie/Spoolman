@@ -35,6 +35,8 @@
 		bedTemp: 0,
 		weight: 0,
 		price: 0,
+		comment: '',
+		registeredLabel: '',
 		extra: {}
 	};
 

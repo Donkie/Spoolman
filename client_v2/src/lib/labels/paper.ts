@@ -39,17 +39,28 @@ export interface SheetGrid {
 	perPage: number;
 	cellW: number;
 	cellH: number;
+	/** Total width the grid occupies (mm): cols labels plus the gaps between them. */
+	gridW: number;
+	/** False when the grid is wider than the usable page width (labels would overflow). */
+	fits: boolean;
 }
 
 /**
- * Compute how many labels of the given mm size fit on one sheet, given the
- * layout's margins and spacing.
+ * Compute the sheet grid. The label size is fixed by the design, so the user picks
+ * the column count and the rows are auto-fitted down the usable height. Because
+ * columns are chosen freely, the grid can be wider than the page — `fits` reports
+ * that so the UI can warn instead of silently overflowing.
  */
 export function sheetGrid(layout: PrintLayout, label: { w: number; h: number }): SheetGrid {
 	const page = paperSize(layout);
 	const usableW = page.w - layout.margin.l - layout.margin.r;
 	const usableH = page.h - layout.margin.t - layout.margin.b;
-	const cols = Math.max(1, Math.floor((usableW + layout.spacing.h) / (label.w + layout.spacing.h)));
+	// Fall back to an auto column fit for older saved layouts that predate `columns`.
+	const cols =
+		layout.columns && layout.columns > 0
+			? Math.floor(layout.columns)
+			: Math.max(1, Math.floor((usableW + layout.spacing.h) / (label.w + layout.spacing.h)));
 	const rows = Math.max(1, Math.floor((usableH + layout.spacing.v) / (label.h + layout.spacing.v)));
-	return { cols, rows, perPage: cols * rows, cellW: label.w, cellH: label.h };
+	const gridW = cols * label.w + (cols - 1) * layout.spacing.h;
+	return { cols, rows, perPage: cols * rows, cellW: label.w, cellH: label.h, gridW, fits: gridW <= usableW };
 }

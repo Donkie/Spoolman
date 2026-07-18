@@ -191,6 +191,17 @@
 						onchange={(v) => set({ price: v })}
 					/>
 				</Field>
+				<Field label={m['filament.fields.articleNumber']()}>
+					<EditableField
+						value={filament.articleNumber ?? ''}
+						mono
+						oninput={(v) => set({ articleNumber: v })}
+					/>
+				</Field>
+				<Field label={m['filament.fields.registered']()}>{filament.registeredLabel}</Field>
+				<Field label={m['filament.fields.comment']()}>
+					<EditableField value={filament.comment} oninput={(v) => set({ comment: v })} />
+				</Field>
 			</FieldGrid>
 
 			<ExtraFieldsSection entity="filament" extra={filament.extra} onchange={extraSaver.change} />

@@ -23,7 +23,16 @@ class Inventory {
 		return this.spools.find((s) => s.id === id);
 	}
 	vendorOf(f: Filament): Vendor {
-		return this.vendorById(f.vendorId) ?? { id: '?', name: '?', emptyWeight: 0, extra: {} };
+		return (
+			this.vendorById(f.vendorId) ?? {
+				id: '?',
+				name: '?',
+				emptyWeight: 0,
+				comment: '',
+				registeredLabel: '',
+				extra: {}
+			}
+		);
 	}
 	spoolsOfFilament(filamentId: string): Spool[] {
 		return this.spools.filter((s) => s.filamentId === filamentId);

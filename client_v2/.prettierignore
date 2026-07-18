@@ -1,5 +1,5 @@
 # Weblate-managed translation files — do not reformat (mirrors the old client).
-static/locales
+locales
 
 # Build output and tooling
 build

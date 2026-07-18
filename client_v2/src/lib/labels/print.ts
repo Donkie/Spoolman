@@ -144,10 +144,24 @@ export async function printLabels({ design, bindings, layout, baseUrl }: PrintJo
 	setTimeout(cleanup, 60000);
 }
 
-function labelImg(url: string, w: number, h: number): HTMLImageElement {
+/** Insets in mm to push a label's content in from each edge (for the safe-zone). */
+interface Inset {
+	t: number;
+	r: number;
+	b: number;
+	l: number;
+}
+
+function labelImg(url: string, w: number, h: number, inset?: Inset): HTMLImageElement {
 	const img = document.createElement('img');
 	img.src = url;
-	img.style.cssText = `width:${w}mm;height:${h}mm;display:block;`;
+	const t = inset?.t ?? 0;
+	const r = inset?.r ?? 0;
+	const b = inset?.b ?? 0;
+	const l = inset?.l ?? 0;
+	// Shrink and offset the raster to keep the whole label inside the printable
+	// area of an edge cell; interior cells get no inset and render at full size.
+	img.style.cssText = `width:${w - l - r}mm;height:${h - t - b}mm;margin:${t}mm ${r}mm ${b}mm ${l}mm;display:block;`;
 	return img;
 }
 
@@ -172,6 +186,17 @@ function buildSheetPages(
 	const page = paperSize(layout);
 	const { w: lw, h: lh } = design.label;
 
+	// The label size is fixed by the design, so we place those fixed-size labels on
+	// a grid anchored at the top-left margin, with the user's column count and gaps.
+	// Sticker sheets are die-cut at fixed positions, so we align to the margin rather
+	// than centering. The safe-zone (`layout.safe`) never moves this grid — it only
+	// pushes the content of the outer labels inward by however much it exceeds the
+	// corresponding margin, so a printer that can't reach the paper edge won't clip
+	// them (matches the v1 behavior).
+	const overSafe = (safe: number, margin: number) => Math.max(0, safe - margin);
+	const lastRow = grid.rows - 1;
+	const lastCol = grid.cols - 1;
+
 	// Prepend blank cells so labels start after the skipped positions.
 	const cells: (string | null)[] = [...Array(Math.max(0, layout.skip)).fill(null), ...items];
 	const pageCount = Math.max(1, Math.ceil(cells.length / grid.perPage));
@@ -188,11 +213,17 @@ function buildSheetPages(
 			const row = Math.floor(i / grid.cols);
 			const x = layout.margin.l + col * (lw + layout.spacing.h);
 			const y = layout.margin.t + row * (lh + layout.spacing.v);
+			const inset: Inset = {
+				l: col === 0 ? overSafe(layout.safe.l, layout.margin.l) : 0,
+				r: col === lastCol ? overSafe(layout.safe.r, layout.margin.r) : 0,
+				t: row === 0 ? overSafe(layout.safe.t, layout.margin.t) : 0,
+				b: row === lastRow ? overSafe(layout.safe.b, layout.margin.b) : 0
+			};
 			const cell = document.createElement('div');
 			cell.style.cssText =
 				`position:absolute;left:${x}mm;top:${y}mm;width:${lw}mm;height:${lh}mm;overflow:hidden;` +
 				(layout.border === 'border' ? 'outline:0.2mm solid #bbb;' : '');
-			cell.appendChild(labelImg(url, lw, lh));
+			cell.appendChild(labelImg(url, lw, lh, inset));
 			pageEl.appendChild(cell);
 		}
 		root.appendChild(pageEl);

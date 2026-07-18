@@ -1,4 +1,5 @@
-import { getDesigns, saveDesigns } from '$lib/api/labelDesigns';
+import { getDesignsSetting, saveDesigns } from '$lib/api/labelDesigns';
+import { importV1Presets } from '$lib/labels/migrateV1';
 import { newDesign, type LabelDesign } from '$lib/labels/types';
 
 // Reactive, server-backed collection of label designs. Mirrors the pattern in
@@ -18,7 +19,21 @@ class LabelDesigns {
 	async load(): Promise<void> {
 		if (this.loaded) return;
 		try {
-			this.designs = await getDesigns();
+			const { designs, isSet } = await getDesignsSetting();
+			// First run (setting never written): pull the v1 client's print presets
+			// across so upgrading users keep their labels. Only persist when there was
+			// something to import, so a genuinely new user still starts empty.
+			if (!isSet) {
+				const imported = await importV1Presets();
+				if (imported.length > 0) {
+					this.designs = imported;
+					await this.persist();
+				} else {
+					this.designs = designs;
+				}
+			} else {
+				this.designs = designs;
+			}
 		} catch (e) {
 			console.error('Failed to load label designs', e);
 		} finally {

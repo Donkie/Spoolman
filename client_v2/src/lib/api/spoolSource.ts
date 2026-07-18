@@ -33,6 +33,8 @@ export interface NewFilamentDraft {
 	nozzleTemp?: number;
 	bedTemp?: number;
 	price?: number;
+	articleNumber?: string;
+	comment?: string;
 }
 
 // Map a filter chip prop → API query param. Values are quoted for exact match.
@@ -232,7 +234,9 @@ class HttpSpoolSource {
 			color_hex: draft.colorHex || undefined,
 			settings_extruder_temp: draft.nozzleTemp || undefined,
 			settings_bed_temp: draft.bedTemp || undefined,
-			price: draft.price || undefined
+			price: draft.price || undefined,
+			article_number: draft.articleNumber || undefined,
+			comment: draft.comment || undefined
 		};
 		const created = await postJson<Json>('/filament', body);
 		const f = mapFilament(created);

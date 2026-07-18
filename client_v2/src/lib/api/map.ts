@@ -48,6 +48,9 @@ export function mapVendor(v: Json): Vendor {
 		id: String(v.id),
 		name: v.name ?? '(unnamed manufacturer)',
 		emptyWeight: v.empty_spool_weight ?? 0,
+		comment: v.comment ?? '',
+		externalId: v.external_id ?? undefined,
+		registeredLabel: shortDate(v.registered),
 		extra: v.extra ?? {}
 	};
 }
@@ -66,7 +69,10 @@ export function mapFilament(f: Json): Filament {
 		weight: f.weight ?? 0,
 		spoolWeight: f.spool_weight ?? undefined,
 		price: f.price ?? 0,
+		articleNumber: f.article_number ?? undefined,
+		comment: f.comment ?? '',
 		externalId: f.external_id ?? undefined,
+		registeredLabel: shortDate(f.registered),
 		extra: f.extra ?? {}
 	};
 }
@@ -84,6 +90,7 @@ export function mapSpool(s: Json): Spool {
 		price: s.price ?? undefined,
 		firstUsed: s.first_used ?? undefined,
 		lastUsed: s.last_used ?? undefined,
+		firstUsedLabel: shortDate(s.first_used),
 		lastUsedLabel: relTime(s.last_used),
 		registeredLabel: shortDate(s.registered),
 		archived: s.archived ?? false,
@@ -161,6 +168,8 @@ export function filamentPatchToApi(patch: Partial<Filament>): Json {
 	if ('nozzleTemp' in patch) out.settings_extruder_temp = patch.nozzleTemp;
 	if ('bedTemp' in patch) out.settings_bed_temp = patch.bedTemp;
 	if ('price' in patch) out.price = patch.price;
+	if ('articleNumber' in patch) out.article_number = patch.articleNumber ?? '';
+	if ('comment' in patch) out.comment = patch.comment ?? '';
 	if ('extra' in patch) out.extra = patch.extra;
 	return out;
 }
@@ -169,6 +178,7 @@ export function vendorPatchToApi(patch: Partial<Vendor>): Json {
 	const out: Json = {};
 	if ('name' in patch) out.name = patch.name;
 	if ('emptyWeight' in patch) out.empty_spool_weight = patch.emptyWeight;
+	if ('comment' in patch) out.comment = patch.comment ?? '';
 	if ('extra' in patch) out.extra = patch.extra;
 	return out;
 }

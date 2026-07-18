@@ -10,6 +10,11 @@ export interface Vendor {
 	name: string;
 	/** Empty spool weight in grams. */
 	emptyWeight: number;
+	comment: string;
+	/** SpoolmanDB id if this vendor was imported from the external database. */
+	externalId?: string;
+	/** Human label for registration date, e.g. "Jan 14". */
+	registeredLabel: string;
 	extra: Extra;
 }
 
@@ -29,8 +34,13 @@ export interface Filament {
 	/** Empty spool (tare) weight in grams, if known. */
 	spoolWeight?: number;
 	price: number;
+	/** Manufacturer article/SKU number. */
+	articleNumber?: string;
+	comment: string;
 	/** SpoolmanDB id if this filament was imported from the external database. */
 	externalId?: string;
+	/** Human label for registration date, e.g. "Jan 14". */
+	registeredLabel: string;
 	extra: Extra;
 }
 
@@ -51,6 +61,8 @@ export interface Spool {
 	firstUsed?: string;
 	/** ISO timestamp of most recent use, if any. */
 	lastUsed?: string;
+	/** Human label for when it was first used, e.g. "Jan 14". Empty = never. */
+	firstUsedLabel: string;
 	/** Human label for when it was last used, e.g. "2 d". Empty = never. */
 	lastUsedLabel: string;
 	/** Human label for registration date, e.g. "Jan 14". */

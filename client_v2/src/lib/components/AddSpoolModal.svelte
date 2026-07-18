@@ -45,7 +45,9 @@
 		density: '',
 		diameter: '1.75',
 		nozzleTemp: '',
-		bedTemp: ''
+		bedTemp: '',
+		articleNumber: '',
+		comment: ''
 	});
 	let showAdvanced = $state(false);
 	let vendorNames = $state<string[]>([]);
@@ -251,7 +253,9 @@
 			density: '',
 			diameter: '1.75',
 			nozzleTemp: '',
-			bedTemp: ''
+			bedTemp: '',
+			articleNumber: '',
+			comment: ''
 		};
 		netWeight = '1000';
 		spoolWeight = '';
@@ -324,7 +328,9 @@
 					colorHex: nf.colorHex.trim().replace(/^#/, '') || undefined,
 					nozzleTemp: nf.nozzleTemp ? Number(nf.nozzleTemp) : undefined,
 					bedTemp: nf.bedTemp ? Number(nf.bedTemp) : undefined,
-					price: parseFloat(price) || undefined
+					price: parseFloat(price) || undefined,
+					articleNumber: nf.articleNumber.trim() || undefined,
+					comment: nf.comment.trim() || undefined
 				};
 				const f = await spoolSource.createFilament(draft);
 				filamentId = Number(f.id);
@@ -638,6 +644,14 @@
 										/>
 										{#if errors.bedTemp}<span class="err">{errors.bedTemp}</span>{/if}
 									</label>
+									<label>
+										{m['filament.fields.articleNumber']()}
+										<input class="mono" bind:value={nf.articleNumber} placeholder="—" />
+									</label>
+									<label class="wide">
+										{m['filament.fields.comment']()}
+										<input bind:value={nf.comment} placeholder="—" />
+									</label>
 								</div>
 							{/if}
 						</div>
@@ -676,7 +690,14 @@
 								aria-expanded={openHelp === 'weight'}
 								onclick={() => (openHelp = openHelp === 'weight' ? null : 'weight')}>ⓘ</button
 							>
-							<NumberInput bind:value={netWeight} min={0} step={50} unit="g" spaced invalid={!!errors.netWeight} />
+							<NumberInput
+								bind:value={netWeight}
+								min={0}
+								step={50}
+								unit="g"
+								spaced
+								invalid={!!errors.netWeight}
+							/>
 							{#if openHelp === 'weight'}
 								<span class="help-popup" id="weight-help" role="note"
 									>{m['filament.fieldsHelp.weight']()}</span

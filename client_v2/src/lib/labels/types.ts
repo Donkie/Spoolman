@@ -97,9 +97,26 @@ export interface PrintLayout {
 	/** Used when `paper === 'custom'`, in mm. */
 	custom: { w: number; h: number };
 	landscape: boolean;
-	/** Page margins in mm (sheet mode only). */
+	/**
+	 * Page margins in mm (sheet mode only): where the label grid begins, measured
+	 * from the paper edges. These size and position the grid.
+	 */
 	margin: { t: number; b: number; l: number; r: number };
-	/** Gap between labels in mm (sheet mode only). */
+	/**
+	 * Printer safe-zone in mm (sheet mode only): how close to the paper edge the
+	 * printer can actually print. Unlike `margin` this does NOT move the grid — it
+	 * only insets the content of the edge labels inward when the safe-zone is larger
+	 * than the corresponding margin, so nothing gets clipped by the printer.
+	 */
+	safe: { t: number; b: number; l: number; r: number };
+	/**
+	 * Number of columns in the sheet grid (sheet mode only). The label size is fixed
+	 * by the design, so the user picks how many of those labels sit side by side;
+	 * rows then fill down the page automatically. (Label width × columns can exceed
+	 * the paper — the panel warns when it does.)
+	 */
+	columns: number;
+	/** Gap between adjacent labels in mm (sheet mode only). */
 	spacing: { h: number; v: number };
 	/** Blank cells to skip before the first label (for reusing partial sheets). */
 	skip: number;
@@ -115,6 +132,8 @@ export const DEFAULT_LAYOUT: PrintLayout = {
 	custom: { w: 50, h: 25 },
 	landscape: false,
 	margin: { t: 10, b: 10, l: 10, r: 10 },
+	safe: { t: 0, b: 0, l: 0, r: 0 },
+	columns: 3,
 	spacing: { h: 2, v: 2 },
 	skip: 0,
 	copies: 1,

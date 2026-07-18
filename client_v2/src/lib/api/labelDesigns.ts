@@ -11,9 +11,14 @@ function normalize(design: LabelDesign): LabelDesign {
 	return { ...design, layout: { ...DEFAULT_LAYOUT, ...design.layout } };
 }
 
-export async function getDesigns(): Promise<LabelDesign[]> {
+/**
+ * Load the designs and report whether the setting has ever been written.
+ * `isSet === false` means a fresh install (or a user who never opened the v1
+ * designer), which is the signal to attempt a one-time import of v1 presets.
+ */
+export async function getDesignsSetting(): Promise<{ designs: LabelDesign[]; isSet: boolean }> {
 	const s = await getJson<SettingResponse>('/setting/label_designs');
-	return parseSetting<LabelDesign[]>(s, []).map(normalize);
+	return { designs: parseSetting<LabelDesign[]>(s, []).map(normalize), isSet: s?.is_set ?? false };
 }
 
 export async function saveDesigns(designs: LabelDesign[]): Promise<void> {
