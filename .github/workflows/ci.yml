@@ -88,30 +88,52 @@ jobs:
           rm -f .env && echo "VITE_APIURL=/api/v1" > .env.production
           npm run build
 
+      # Build the new Svelte client (client_v2), served by default at runtime.
+      # No VITE_APIURL is set: the client resolves the API relative to its base path.
+      - name: Install client_v2 dependencies
+        run: |
+          cd client_v2
+          npm ci
+
+      - name: Build client_v2
+        run: |
+          cd client_v2
+          npm run build
+
       - name: Write build info
         run: |
           echo "GIT_COMMIT=$(git rev-parse --short HEAD)" > build.txt
           echo "BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> build.txt
-  
-      # Remove client source and keep only the built dist
+
+      # Remove client sources and keep only the built output for each client
       - name: Clean
         run: |
           mv client/dist dist
           rm -rf client
           mkdir client
           mv dist client/dist
+          mv client_v2/build build_v2
+          rm -rf client_v2
+          mkdir client_v2
+          mv build_v2 client_v2/build
           rm -rf .git
           rm -rf .venv
 
       - name: Fix permissions
         run: |
           chmod +x scripts/*.sh
-      
+
       - name: Upload client Spoolman artifact
         uses: actions/upload-artifact@v4.4.0
         with:
           name: client
           path: client/dist
+
+      - name: Upload client_v2 Spoolman artifact
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: client_v2
+          path: client_v2/build
 
       - name: Upload full Spoolman artifact
         uses: actions/upload-artifact@v4.4.0
@@ -136,6 +158,12 @@ jobs:
         with:
           name: client
           path: client/dist
+
+      - name: Download client_v2
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: client_v2
+          path: client_v2/build
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.6.1
@@ -322,6 +350,12 @@ jobs:
           name: client
           path: client/dist
 
+      - name: Download client_v2
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: client_v2
+          path: client_v2/build
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.2.0
 
@@ -363,6 +397,12 @@ jobs:
           name: client
           path: client/dist
 
+      - name: Download client_v2
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: client_v2
+          path: client_v2/build
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.2.0
 
@@ -402,6 +442,12 @@ jobs:
         with:
           name: client
           path: client/dist
+
+      - name: Download client_v2
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: client_v2
+          path: client_v2/build
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.2.0

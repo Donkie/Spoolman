@@ -50,8 +50,10 @@ RUN useradd -u 1000 -U app \
     && mkdir -p /home/app/.local/share/spoolman \
     && chown -R app:app /home/app/.local/share/spoolman
 
-# Copy built client
+# Copy built clients. The new Svelte client (client_v2) is served by default; the
+# legacy React client (client/dist) is kept for the SPOOLMAN_LEGACY_CLIENT fallback.
 COPY --chown=app:app ./client/dist /home/app/spoolman/client/dist
+COPY --chown=app:app ./client_v2/build /home/app/spoolman/client_v2/build
 
 # Copy built app
 COPY --chown=app:app --from=python-builder /home/app/spoolman /home/app/spoolman

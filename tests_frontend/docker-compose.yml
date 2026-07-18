@@ -25,6 +25,10 @@ services:
       - SPOOLMAN_DB_USERNAME=spoolman
       - SPOOLMAN_DB_PASSWORD=spoolman
       - SPOOLMAN_LOGGING_LEVEL=INFO
+      # These Playwright tests target the legacy (React) client's DOM. The new
+      # Svelte client is now the default, so pin this suite to the legacy client.
+      # TODO: port these tests to the new client and drop this override.
+      - SPOOLMAN_LEGACY_CLIENT=TRUE
       - TZ=Europe/Stockholm
     ports:
       # Host port is configurable so the suite can avoid clashing with a
