@@ -8,60 +8,148 @@
 	import { goto } from '$app/navigation';
 	import { weightAuto } from '$lib/utils/format';
 	import * as m from '$lib/paraglide/messages';
+	import { getSettings, setSetting, parseSetting } from '$lib/api/settings';
 	import Plus from '@lucide/svelte/icons/plus';
 	import GripVertical from '@lucide/svelte/icons/grip-vertical';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
+
+	const NO_LOCATION = 'No location';
 
 	let draggingId = $state<number | null>(null);
 	let dragOver = $state<string | null>(null);
+	let draggingShelf = $state<string | null>(null);
 
 	let editingLocation = $state<string | null>(null);
 	let editValue = $state('');
 	let renameError = $state('');
 
-	// Fetch every (non-archived) spool + the configured locations, kept live.
+	// Fetch every (non-archived) spool plus the server-side ordered location
+	// list, kept live. The `locations` setting is an ordered JSON array of names
+	// that is the source of truth for both the display order and any location
+	// added before it has spools. An empty string marks the position of the
+	// "No location" bucket, so it can be reordered like any other card. See the
+	// equivalent `useLocations` in the old client (which pins it first instead).
+	const EMPTY = '';
 	let spools = $state<Spool[]>([]);
-	let locations = $state<string[]>([]);
-	let extraLocations = $state<string[]>([]); // locally-added, not yet used
+	let settingOrder = $state<string[]>([]);
+	let settingsLoaded = $state(false);
 
-	async function load() {
+	// Map between the display sentinel and the stored empty-string marker.
+	const toStored = (names: string[]) => names.map((n) => (n === NO_LOCATION ? EMPTY : n));
+
+	async function loadSpools() {
 		try {
-			const [page, locs] = await Promise.all([
-				spoolSource.listSpools({
-					filters: {},
-					sort: [{ field: 'location', dir: 'asc' }],
-					limit: 1000,
-					offset: 0,
-					lowThreshold: settings.lowThreshold
-				}),
-				spoolSource.locations()
-			]);
+			const page = await spoolSource.listSpools({
+				filters: {},
+				sort: [{ field: 'location', dir: 'asc' }],
+				limit: 1000,
+				offset: 0,
+				lowThreshold: settings.lowThreshold
+			});
 			spools = page.items;
-			locations = locs;
 		} catch (e) {
-			console.error('Failed to load locations', e);
+			console.error('Failed to load spools', e);
 		}
 	}
 
+	async function loadLocationsSetting() {
+		try {
+			const s = await getSettings();
+			settingOrder = parseSetting<string[]>(s.locations, []).filter((l) => l != null);
+		} catch (e) {
+			console.error('Failed to load locations setting', e);
+		} finally {
+			settingsLoaded = true;
+		}
+	}
+
+	function saveOrder(order: string[]) {
+		settingOrder = order;
+		setSetting('locations', order).catch((e) => console.error('Failed to save location order', e));
+	}
+
 	$effect(() => {
-		load();
-		const off = live.subscribe('spool', {}, () => load());
+		loadSpools();
+		loadLocationsSetting();
+		const off = live.subscribe('spool', {}, () => loadSpools());
 		return off;
 	});
 
-	let shelves = $derived.by(() => {
+	let spoolsByLoc = $derived.by(() => {
 		const map = new Map<string, Spool[]>();
-		for (const loc of [...locations, ...extraLocations]) map.set(loc, []);
 		for (const s of spools) {
-			const loc = s.location || 'No location';
+			const loc = s.location || NO_LOCATION;
 			if (!map.has(loc)) map.set(loc, []);
 			map.get(loc)!.push(s);
 		}
-		return [...map.entries()].map(([name, list]) => ({ name, spools: list }));
+		return map;
 	});
+
+	// The full display order: the saved setting order (empty string → the
+	// "No location" bucket), then any location discovered from spools that isn't
+	// in the setting yet. The "No location" bucket only shows when unlocated
+	// spools exist, and defaults to the front when the setting doesn't place it.
+	let orderedNames = $derived.by(() => {
+		const all: string[] = [];
+		for (const l of settingOrder) {
+			const name = l === EMPTY ? NO_LOCATION : l;
+			if (!all.includes(name)) all.push(name);
+		}
+		if (spoolsByLoc.has(NO_LOCATION) && !all.includes(NO_LOCATION)) all.unshift(NO_LOCATION);
+		for (const l of spoolsByLoc.keys()) if (l !== NO_LOCATION && !all.includes(l)) all.push(l);
+		return all.filter((n) => n !== NO_LOCATION || spoolsByLoc.has(NO_LOCATION));
+	});
+
+	let shelves = $derived(orderedNames.map((name) => ({ name, spools: spoolsByLoc.get(name) ?? [] })));
+
+	// Keep the setting in sync so it always reflects the displayed order,
+	// persisting locations discovered from spools. It settles after a reorder
+	// (when setting == display order already, it's a no-op).
+	$effect(() => {
+		if (!settingsLoaded) return;
+		const stored = toStored(orderedNames);
+		if (JSON.stringify(stored) !== JSON.stringify(settingOrder)) {
+			saveOrder(stored);
+		}
+	});
+
+	function startShelfDrag(e: DragEvent, name: string) {
+		draggingShelf = name;
+		const shelfEl = (e.currentTarget as HTMLElement).closest('.shelf');
+		if (shelfEl && e.dataTransfer) {
+			e.dataTransfer.effectAllowed = 'move';
+			// Drag the whole card, not just the grip handle.
+			e.dataTransfer.setDragImage(shelfEl, 20, 20);
+		}
+	}
+
+	// Live-reorder when the held card enters another (matches the old client).
+	// Fires on dragenter (once per card entered) rather than continuously on
+	// dragover, so it settles instead of oscillating between adjacent cards.
+	// `to` is taken from the pre-removal list so a rightward move lands *after*
+	// the target (letting a card reach the last slot); a leftward move lands
+	// before it. The "No location" bucket participates like any other card.
+	function reorderShelves(target: string) {
+		if (draggingShelf == null || draggingShelf === target) return;
+		const list = [...orderedNames];
+		const from = list.indexOf(draggingShelf);
+		const to = list.indexOf(target);
+		if (from < 0 || to < 0 || from === to) return;
+		list.splice(from, 1);
+		list.splice(to, 0, draggingShelf);
+		settingOrder = toStored(list);
+	}
+
+	function endShelfDrag() {
+		if (draggingShelf != null)
+			setSetting('locations', settingOrder).catch((e) => console.error('Failed to save location order', e));
+		draggingShelf = null;
+		dragOver = null;
+	}
 
 	function onDrop(loc: string) {
 		if (draggingId != null) {
-			const target = loc === 'No location' ? '' : loc;
+			const target = loc === NO_LOCATION ? '' : loc;
 			inventory.patchSpool(draggingId, { location: target });
 			spools = spools.map((s) => (s.id === draggingId ? { ...s, location: target } : s));
 			spoolSource.saveSpool(draggingId, { location: target }).catch((e) => console.error('Move failed', e));
@@ -76,8 +164,11 @@
 	}
 
 	function addLocation() {
-		const n = locations.length + extraLocations.length + 1;
-		extraLocations = [...extraLocations, m['locations.newShelf']({ n })];
+		const existing = new Set(orderedNames);
+		let n = 1;
+		let name = m['locations.newShelf']({ n });
+		while (existing.has(name)) name = m['locations.newShelf']({ n: ++n });
+		saveOrder([...settingOrder, name]);
 	}
 
 	function focusAndSelect(el: HTMLInputElement) {
@@ -86,10 +177,15 @@
 	}
 
 	function startEdit(loc: string) {
-		if (loc === 'No location') return;
+		if (loc === NO_LOCATION) return;
 		editingLocation = loc;
 		editValue = loc;
 		renameError = '';
+	}
+
+	// Only empty, non-default locations can be removed (matches the old client).
+	function deleteLocation(name: string) {
+		saveOrder(settingOrder.filter((l) => l !== name));
 	}
 
 	function cancelEdit() {
@@ -111,19 +207,19 @@
 			renameError = m['locations.errorEmpty']();
 			return;
 		}
-		if ([...locations, ...extraLocations].includes(newName)) {
+		if (orderedNames.includes(newName)) {
 			renameError = m['locations.errorExists']();
 			return;
 		}
 
-		const hasSpools = spools.some((s) => (s.location || 'No location') === oldName);
+		const hasSpools = spools.some((s) => (s.location || NO_LOCATION) === oldName);
 		try {
 			if (hasSpools) {
 				await spoolSource.renameLocation(oldName, newName);
 				spools = spools.map((s) => (s.location === oldName ? { ...s, location: newName } : s));
 			}
-			locations = locations.map((l) => (l === oldName ? newName : l));
-			extraLocations = extraLocations.map((l) => (l === oldName ? newName : l));
+			// Rename in place in the setting so the card keeps its position.
+			saveOrder(settingOrder.map((l) => (l === oldName ? newName : l)));
 			editingLocation = null;
 			renameError = '';
 		} catch (e) {
@@ -148,16 +244,31 @@
 			<div
 				class="shelf"
 				class:over={dragOver === shelf.name}
+				class:dragging={draggingShelf === shelf.name}
 				role="list"
+				ondragenter={(e) => {
+					if (draggingShelf != null) {
+						e.preventDefault();
+						reorderShelves(shelf.name);
+					}
+				}}
 				ondragover={(e) => {
 					e.preventDefault();
-					dragOver = shelf.name;
+					if (draggingShelf == null) dragOver = shelf.name;
 				}}
-				ondragleave={() => (dragOver === shelf.name ? (dragOver = null) : null)}
-				ondrop={() => onDrop(shelf.name)}
+				ondragleave={() => (draggingShelf == null && dragOver === shelf.name ? (dragOver = null) : null)}
+				ondrop={() => (draggingShelf != null ? endShelfDrag() : onDrop(shelf.name))}
 			>
 				<div class="shelf-head">
-					<span class="grip"><GripVertical size={16} /></span>
+					<span
+						class="grip"
+						role="button"
+						tabindex="-1"
+						aria-label={m['locations.reorderLocation']()}
+						draggable="true"
+						ondragstart={(e) => startShelfDrag(e, shelf.name)}
+						ondragend={endShelfDrag}><GripVertical size={16} /></span
+					>
 					{#if editingLocation === shelf.name}
 						<input
 							class="shelf-name-input"
@@ -178,16 +289,26 @@
 					{:else}
 						<span
 							class="shelf-name"
-							class:editable={shelf.name !== 'No location'}
+							class:editable={shelf.name !== NO_LOCATION}
 							role="button"
 							tabindex="0"
 							onclick={() => startEdit(shelf.name)}
 							onkeydown={(e) => e.key === 'Enter' && startEdit(shelf.name)}
 						>
-							{shelf.name === 'No location' ? m['locations.noLocation']() : shelf.name}
+							{shelf.name === NO_LOCATION ? m['locations.noLocation']() : shelf.name}
 						</span>
 					{/if}
 					<span class="shelf-meta">{m['locations.spoolCount']({ count: shelf.spools.length })}</span>
+					{#if shelf.name !== NO_LOCATION && shelf.spools.length === 0 && editingLocation !== shelf.name}
+						<button
+							class="shelf-delete"
+							aria-label={m['locations.deleteLocation']()}
+							title={m['locations.deleteLocation']()}
+							onclick={() => deleteLocation(shelf.name)}
+						>
+							<Trash2 size={14} />
+						</button>
+					{/if}
 				</div>
 				{#if editingLocation === shelf.name && renameError}
 					<div class="rename-error">{renameError}</div>
@@ -290,6 +411,9 @@
 	.shelf.over {
 		border-color: var(--accent);
 	}
+	.shelf.dragging {
+		opacity: 0.5;
+	}
 	.shelf-head {
 		display: flex;
 		align-items: center;
@@ -301,6 +425,11 @@
 		color: var(--text-faint);
 		font-size: 13px;
 		cursor: grab;
+		display: inline-flex;
+		align-items: center;
+	}
+	.grip:active {
+		cursor: grabbing;
 	}
 	.shelf-name {
 		flex: 1;
@@ -338,6 +467,21 @@
 	.shelf-meta {
 		font-size: 11px;
 		color: var(--text-dim);
+	}
+	.shelf-delete {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 2px;
+		border: none;
+		background: none;
+		color: var(--text-faint);
+		cursor: pointer;
+		border-radius: 4px;
+	}
+	.shelf-delete:hover {
+		color: var(--danger-soft);
+		background: var(--bg);
 	}
 	.shelf-body {
 		display: flex;
