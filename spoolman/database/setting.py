@@ -27,7 +27,7 @@ async def update(
     setting = models.Setting(
         key=definition.key,
         value=value,
-        last_updated=datetime.now(timezone.utc).replace(microsecond=0),
+        last_updated=datetime.now(timezone.utc).replace(tzinfo=None, microsecond=0),
     )
     await db.merge(setting)
     # Commit before notifying so the setting is durable and visible to subsequent
@@ -68,7 +68,7 @@ async def setting_changed(definition: SettingDefinition, set_value: str | None, 
         SettingEvent(
             type=typ,
             resource="setting",
-            date=datetime.now(timezone.utc),
+            date=datetime.now(timezone.utc).replace(tzinfo=None),
             payload=SettingKV.from_db(definition, set_value),
         ),
     )
