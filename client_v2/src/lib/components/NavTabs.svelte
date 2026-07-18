@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
+	import type { Pathname } from '$app/types';
 	import { page } from '$app/stores';
 	import * as m from '$lib/paraglide/messages';
 
@@ -8,18 +9,21 @@
 		{ href: '/locations', label: m['locations.locations'] },
 		{ href: '/labels', label: m['nav.labels'] },
 		{ href: '/settings', label: m['settings.header'] }
-	];
+	] satisfies { href: Pathname; label: () => string }[];
+
+	// The deploy base path, without its trailing slash (resolve('/') === `${base}/`).
+	const basePath = resolve('/').replace(/\/$/, '');
 
 	function isActive(href: string): boolean {
 		// Compare against the path with the deploy base path stripped off.
-		const path = $page.url.pathname.slice(base.length) || '/';
+		const path = $page.url.pathname.slice(basePath.length) || '/';
 		return href === '/' ? path === '/' : path.startsWith(href);
 	}
 </script>
 
 <nav class="tabs">
 	{#each tabs as tab (tab.href)}
-		<a href={base + tab.href} class="tab" class:active={isActive(tab.href)}>{tab.label()}</a>
+		<a href={resolve(tab.href)} class="tab" class:active={isActive(tab.href)}>{tab.label()}</a>
 	{/each}
 </nav>
 

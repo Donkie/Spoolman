@@ -18,7 +18,7 @@
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
 	import { goto } from '$app/navigation';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import * as m from '$lib/paraglide/messages';
 
 	let { spool }: { spool: Spool } = $props();
@@ -192,7 +192,7 @@
 		</div>
 		<div class="actions">
 			<Button variant="outline" onclick={openAdjust}>⚖ {m['inspector.adjustWeight']()}</Button>
-			<Button variant="outline" onclick={() => goto(`${base}/labels?spools=${spool.id}`)}
+			<Button variant="outline" onclick={() => goto(resolve(`/labels?spools=${spool.id}`))}
 				>◱ {m['printing.qrcode.button']()}</Button
 			>
 			<Button variant="outline" onclick={archive}>{m['buttons.archive']()}</Button>

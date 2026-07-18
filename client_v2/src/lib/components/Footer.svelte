@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { base } from '$app/paths';
+	import { asset } from '$app/paths';
 	import { getInfo, type Info } from '$lib/api/info';
 	import * as m from '$lib/paraglide/messages';
 
@@ -25,7 +25,7 @@
 	</div>
 
 	<a class="kofi" href="https://ko-fi.com/donkie" target="_blank" rel="noopener noreferrer">
-		<img src="{base}/kofi_s_logo_nolabel.png" alt="" />
+		<img src={asset('/kofi_s_logo_nolabel.png')} alt="" />
 		{m.kofi()}
 	</a>
 </footer>

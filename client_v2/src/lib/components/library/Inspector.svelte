@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { base } from '$app/paths';
+	import { asset } from '$app/paths';
 	import SpoolInspector from './SpoolInspector.svelte';
 	import FilamentInspector from './FilamentInspector.svelte';
 	import VendorInspector from './VendorInspector.svelte';
@@ -23,7 +23,7 @@
 	<VendorInspector {vendor} />
 {:else}
 	<div class="empty">
-		<img class="mark" src="{base}/spoolman.svg" alt="" width="56" height="56" />
+		<img class="mark" src={asset('/spoolman.svg')} alt="" width="56" height="56" />
 		<p>{m['inspector.empty']()}</p>
 	</div>
 {/if}

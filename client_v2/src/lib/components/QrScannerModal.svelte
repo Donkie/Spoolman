@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type QrScanner from 'qr-scanner';
 	import { goto } from '$app/navigation';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { parseSpoolCode } from '$lib/utils/spoolCode';
 	import * as m from '$lib/paraglide/messages';
 
@@ -25,7 +25,7 @@
 		const id = parseSpoolCode(result.data);
 		if (id === null) return;
 		close();
-		goto(`${base}/?sel=spool:${id}`);
+		goto(resolve(`/?sel=spool:${id}`));
 	}
 
 	/** Map a getUserMedia DOMException to a friendly reason (by its `name`). */

@@ -1,5 +1,5 @@
 import { goto } from '$app/navigation';
-import { base } from '$app/paths';
+import { resolve } from '$app/paths';
 import type { EntityKind, Selection } from '$lib/types';
 
 // The Library view's entire query state lives in the URL — this module is the
@@ -185,9 +185,10 @@ export function clearSelection(): void {
  * selection.
  */
 export function openSearchResult(kind: EntityKind, id: string): void {
-	const libraryPath = `${base}/`;
+	const libraryPath = resolve('/'); // `${base}/`
+	const basePath = libraryPath.replace(/\/$/, ''); // base without trailing slash
 	const path = window.location.pathname;
-	if (path === libraryPath || path === base || path === '/') {
+	if (path === libraryPath || path === basePath || path === '/') {
 		select(kind, id);
 		return;
 	}

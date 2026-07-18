@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { base } from '$app/paths';
+	import { resolve, asset } from '$app/paths';
 
 	interface Props {
 		label?: string;
@@ -9,8 +9,8 @@
 	let { label = 'Spoolman', size = 22 }: Props = $props();
 </script>
 
-<a class="logo" href="{base}/" style="font-size:{size < 20 ? 15 : 18}px" aria-label="Spoolman home">
-	<img class="mark" src="{base}/spoolman.svg" alt="" width={size} height={size} />
+<a class="logo" href={resolve('/')} style="font-size:{size < 20 ? 15 : 18}px" aria-label="Spoolman home">
+	<img class="mark" src={asset('/spoolman.svg')} alt="" width={size} height={size} />
 	{#if label}<span>{label}</span>{/if}
 </a>
 

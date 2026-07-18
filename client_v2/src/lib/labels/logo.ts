@@ -1,4 +1,4 @@
-import { base } from '$app/paths';
+import { asset } from '$app/paths';
 
 // Loads the Spoolman logo (static/spoolman.svg) once as an HTMLImageElement for
 // drawing in the centre of QR codes. Cached so every canvas/print job reuses it.
@@ -11,7 +11,7 @@ export function getLogoImage(): Promise<HTMLImageElement> {
 			const img = new Image();
 			img.onload = () => resolve(img);
 			img.onerror = reject;
-			img.src = `${base}/spoolman.svg`;
+			img.src = asset('/spoolman.svg');
 		});
 	}
 	return cached;

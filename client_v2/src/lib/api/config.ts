@@ -4,9 +4,10 @@
 //   running backend.
 // - In production the backend serves this SPA under an operator-chosen base path
 //   (SPOOLMAN_BASE_PATH). With relative asset paths, SvelteKit derives that base
-//   at runtime into `$app/paths` base, so we resolve the API as `<base>/api/v1`.
+//   at runtime, so we resolve the API as `<base>/api/v1`. `resolve('/')` yields
+//   `<base>/`; trimming its trailing slash gives us the bare base path.
 
-import { base } from '$app/paths';
+import { resolve } from '$app/paths';
 
 function trimTrailingSlash(s: string): string {
 	return s.replace(/\/+$/, '');
@@ -15,7 +16,7 @@ function trimTrailingSlash(s: string): string {
 export const API_BASE: string = (() => {
 	const env = import.meta.env.VITE_APIURL as string | undefined;
 	if (env) return trimTrailingSlash(env);
-	return trimTrailingSlash(base + '/api/v1');
+	return trimTrailingSlash(resolve('/')) + '/api/v1';
 })();
 
 /** Absolute ws(s):// URL for a resource path like "/spool". */
