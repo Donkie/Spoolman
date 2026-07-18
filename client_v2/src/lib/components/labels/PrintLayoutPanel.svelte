@@ -180,7 +180,7 @@
 
 			<div class="row4">
 				<label class="fld"
-					>{m['labels.marginTop']()}<NumberInput
+					>{m['printing.generic.marginTop']()}<NumberInput
 						dense
 						unit="mm"
 						value={layout.margin.t}
@@ -188,7 +188,7 @@
 					/></label
 				>
 				<label class="fld"
-					>{m['labels.marginBottom']()}<NumberInput
+					>{m['printing.generic.marginBottom']()}<NumberInput
 						dense
 						unit="mm"
 						value={layout.margin.b}
@@ -196,7 +196,7 @@
 					/></label
 				>
 				<label class="fld"
-					>{m['labels.marginLeft']()}<NumberInput
+					>{m['printing.generic.marginLeft']()}<NumberInput
 						dense
 						unit="mm"
 						value={layout.margin.l}
@@ -204,7 +204,7 @@
 					/></label
 				>
 				<label class="fld"
-					>{m['labels.marginRight']()}<NumberInput
+					>{m['printing.generic.marginRight']()}<NumberInput
 						dense
 						unit="mm"
 						value={layout.margin.r}
