@@ -15,6 +15,7 @@ import { inventory } from '$lib/stores/inventory.svelte';
 import { filamentLabel } from '$lib/utils/library';
 import type { EntityType } from './fields';
 import { type ExternalFilament } from './external';
+import { searchAll } from './search';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Json = Record<string, any>;
@@ -145,16 +146,25 @@ class HttpSpoolSource {
 	}
 
 	async searchFilaments(query: string, limit = 8): Promise<Filament[]> {
-		// The filament endpoint's name filter is `name` (not `filament.name`).
-		const params: QueryParams = { limit, sort: 'name:asc' };
-		if (query) params['name'] = query;
-		const items = await getJson<Json[]>('/filament', params);
-		const filaments = items.map((f) => {
-			if (f.vendor) inventory.upsertVendor(mapVendor(f.vendor));
-			return mapFilament(f);
-		});
-		inventory.upsertFilaments(filaments);
-		return filaments;
+		const q = query.trim();
+		if (!q) {
+			// No query yet: browse a slice of the catalog (sorted by name) so the
+			// picker has something to show as soon as it opens.
+			const params: QueryParams = { limit, sort: 'name:asc' };
+			const items = await getJson<Json[]>('/filament', params);
+			const filaments = items.map((f) => {
+				if (f.vendor) inventory.upsertVendor(mapVendor(f.vendor));
+				return mapFilament(f);
+			});
+			inventory.upsertFilaments(filaments);
+			return filaments;
+		}
+		// Reuse the cross-entity /search backend that powers the library search bar,
+		// so the picker matches on name, material, article number, comment, extra
+		// fields and colour — not just the filament name. We only want the filament
+		// hits here (results already upsert into the reactive cache).
+		const { filaments } = await searchAll(q, 20);
+		return filaments.map((m) => m.entity).slice(0, limit);
 	}
 
 	async searchExternalFilaments(query: string, limit = 8): Promise<ExternalFilament[]> {
