@@ -422,6 +422,21 @@
 		grid-template-columns: 1fr 1fr 1fr;
 		gap: 20px;
 	}
+	/* Spool list keeps a full column; layout + preview share the second one… */
+	@media (max-width: 860px) {
+		.print-panel {
+			grid-template-columns: 1fr 1fr;
+		}
+		.col.preview {
+			grid-column: 1 / -1;
+		}
+	}
+	/* …then everything stacks on phones. */
+	@media (max-width: 560px) {
+		.print-panel {
+			grid-template-columns: 1fr;
+		}
+	}
 	.col {
 		display: flex;
 		flex-direction: column;

@@ -217,6 +217,26 @@
 		gap: 18px;
 		align-items: start;
 	}
+	/* Below the 3-column width, drop the inspector under the palette+stage… */
+	@media (max-width: 860px) {
+		.designer {
+			grid-template-columns: 160px 1fr;
+		}
+		.inspector-area {
+			grid-column: 1 / -1;
+			border-left: none;
+			border-top: 1px solid var(--border);
+			padding-left: 0;
+			padding-top: 18px;
+			min-height: 0;
+		}
+	}
+	/* …then stack everything vertically on phones. */
+	@media (max-width: 560px) {
+		.designer {
+			grid-template-columns: 1fr;
+		}
+	}
 	.palette {
 		display: flex;
 		flex-direction: column;
