@@ -308,14 +308,12 @@ async def search(
     # Numeric query: surface the spool with that exact id at the very top.
     if q.isdigit():
         spool_id = int(q)
-        if not any(m.spool.id == spool_id for m in spools):
-            spool = await db.get(
-                models.Spool,
-                spool_id,
-                options=[joinedload(models.Spool.filament).joinedload(models.Filament.vendor)],
-            )
-            if spool is not None:
-                spools.insert(0, SpoolMatch(spool=spool, match_field="id"))
-                spools = spools[:limit]
+        spool = await db.get(
+            models.Spool, spool_id, options=[joinedload(models.Spool.filament).joinedload(models.Filament.vendor)]
+        )
+        if spool is not None:
+            spools = [m for m in spools if m.spool.id != spool_id]  # drop weaker text match
+            spools.insert(0, SpoolMatch(spool=spool, match_field="id"))
+            spools = spools[:limit]
 
     return SearchResult(spools=spools, filaments=filaments, vendors=vendors, is_color_query=is_color_query)

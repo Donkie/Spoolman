@@ -43,7 +43,12 @@ def data() -> Iterable[Fixture]:
     assert_httpx_success(
         httpx.post(
             f"{URL}/api/v1/field/spool/searchchoice",
-            json={"name": "Search Choice", "field_type": "choice", "choices": [CHOICE_VALUE, "other"]},
+            json={
+                "name": "Search Choice",
+                "field_type": "choice",
+                "choices": [CHOICE_VALUE, "other"],
+                "multi_choice": False,
+            },
         ),
     )
 
@@ -59,6 +64,7 @@ def data() -> Iterable[Fixture]:
             "material": "PLA",
             "density": 1.25,
             "diameter": 1.75,
+            "weight": 1000,
             "color_hex": "ff0000",
             "comment": FILAMENT_COMMENT,
         },
