@@ -25,8 +25,26 @@
 
 	let selected = $state<Set<number>>(new Set(untrack(() => preselected)));
 	let search = $state('');
+	// Default to newest-first so spools you just added sit at the top of the list —
+	// the common case when printing labels for a fresh batch.
+	let sort = $state<'newest' | 'id'>('newest');
 	let loading = $state(true);
 	let printing = $state(false);
+
+	// Spools registered within this window count as "recently added" for the
+	// one-click quick-select.
+	const RECENT_WINDOW_MS = 24 * 60 * 60 * 1000;
+	function isRecent(s: Spool): boolean {
+		if (!s.registered) return false;
+		const t = new Date(s.registered).getTime();
+		return !Number.isNaN(t) && Date.now() - t <= RECENT_WINDOW_MS;
+	}
+	// Sort key that is stable even when `registered` is missing: fall back to the
+	// spool id, which is monotonic with registration order.
+	function recencyKey(s: Spool): number {
+		const t = s.registered ? new Date(s.registered).getTime() : NaN;
+		return Number.isNaN(t) ? s.id : t;
+	}
 
 	$effect(() => {
 		void load();
@@ -58,8 +76,12 @@
 		inventory.spools
 			.filter((s) => !s.archived)
 			.filter((s) => (search ? spoolLabel(s).toLowerCase().includes(search.toLowerCase()) : true))
-			.sort((a, b) => a.id - b.id)
+			.sort((a, b) => (sort === 'newest' ? recencyKey(b) - recencyKey(a) : a.id - b.id))
 	);
+
+	// Count of currently-visible spools added in the last 24h — drives the "Recent"
+	// quick-select label and whether it's actionable.
+	const recentCount = $derived(visibleSpools.filter(isRecent).length);
 
 	function toggle(id: number) {
 		const next = new Set(selected);
@@ -69,6 +91,9 @@
 	}
 	function selectAll() {
 		selected = new Set(visibleSpools.map((s) => s.id));
+	}
+	function selectRecent() {
+		selected = new Set(visibleSpools.filter(isRecent).map((s) => s.id));
 	}
 	function clearAll() {
 		selected = new Set();
@@ -126,10 +151,21 @@
 			<span>{m['spool.spool']()}</span>
 			<div class="mini-actions">
 				<button onclick={selectAll}>{m['labels.selectAllShort']()}</button>
+				<button onclick={selectRecent} disabled={recentCount === 0} title={m['labels.selectRecentHint']()}
+					>{m['labels.selectRecentShort']({ count: recentCount })}</button
+				>
 				<button onclick={clearAll}>{m['labels.selectNoneShort']()}</button>
 			</div>
 		</div>
-		<input class="search" placeholder={m['labels.searchSpools']()} bind:value={search} />
+		<div class="search-row">
+			<input class="search" placeholder={m['labels.searchSpools']()} bind:value={search} />
+			<div class="seg sort" title={m['labels.sortHint']()}>
+				<button class:active={sort === 'newest'} onclick={() => (sort = 'newest')}
+					>{m['labels.sortNewest']()}</button
+				>
+				<button class:active={sort === 'id'} onclick={() => (sort = 'id')}>{m['labels.sortId']()}</button>
+			</div>
+		</div>
 		<div class="spool-list">
 			{#if loading}
 				<div class="muted">{m.loading()}…</div>
@@ -137,9 +173,10 @@
 				<div class="muted">{m['labels.noSpools']()}</div>
 			{:else}
 				{#each visibleSpools as s (s.id)}
-					<label class="spool-item">
+					<label class="spool-item" class:recent={isRecent(s)}>
 						<input type="checkbox" checked={selected.has(s.id)} onchange={() => toggle(s.id)} />
-						<span>{spoolLabel(s)}</span>
+						<span class="lbl">{spoolLabel(s)}</span>
+						{#if s.registeredLabel}<span class="reg">{s.registeredLabel}</span>{/if}
 					</label>
 				{/each}
 			{/if}
@@ -401,6 +438,10 @@
 		letter-spacing: 0.04em;
 		color: var(--text-dim);
 	}
+	.mini-actions {
+		display: flex;
+		gap: 2px;
+	}
 	.mini-actions button {
 		background: none;
 		border: none;
@@ -408,6 +449,26 @@
 		font-size: 12px;
 		cursor: pointer;
 		padding: 2px 4px;
+	}
+	.mini-actions button:disabled {
+		color: var(--text-dim);
+		cursor: default;
+		opacity: 0.6;
+	}
+	.search-row {
+		display: flex;
+		gap: 8px;
+	}
+	.search-row .search {
+		flex: 1;
+		min-width: 0;
+	}
+	.seg.sort {
+		flex: none;
+	}
+	.seg.sort button {
+		padding: 6px 9px;
+		font-size: 11.5px;
 	}
 	.search,
 	.fld select {
@@ -445,10 +506,24 @@
 	.spool-item:hover {
 		background: var(--accent-wash-soft);
 	}
-	.spool-item span {
+	.spool-item .lbl {
+		flex: 1;
+		min-width: 0;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+	}
+	.spool-item .reg {
+		flex: none;
+		font-size: 11px;
+		color: var(--text-dim);
+		white-space: nowrap;
+	}
+	/* Highlight the registration date of spools added in the last 24h so a fresh
+	   batch is easy to spot when scanning the list. */
+	.spool-item.recent .reg {
+		color: var(--accent-soft);
+		font-weight: 600;
 	}
 	.count,
 	.grid-info {

@@ -65,6 +65,8 @@ export interface Spool {
 	firstUsedLabel: string;
 	/** Human label for when it was last used, e.g. "2 d". Empty = never. */
 	lastUsedLabel: string;
+	/** ISO timestamp of when the spool was registered/added. */
+	registered?: string;
 	/** Human label for registration date, e.g. "Jan 14". */
 	registeredLabel: string;
 	archived: boolean;

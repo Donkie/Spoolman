@@ -92,6 +92,7 @@ export function mapSpool(s: Json): Spool {
 		lastUsed: s.last_used ?? undefined,
 		firstUsedLabel: shortDate(s.first_used),
 		lastUsedLabel: relTime(s.last_used),
+		registered: s.registered ?? undefined,
 		registeredLabel: shortDate(s.registered),
 		archived: s.archived ?? false,
 		comment: s.comment ?? '',
