@@ -322,7 +322,7 @@
     "library.usedAgo": "used {{time}} ago",
     "loading": "Loading",
     "locations.addLocation": "Add location",
-    "locations.dragHint": "Drag spools between locations to reassign them",
+    "locations.dragHint": "Drag spools between locations to reassign them, or within a location to reorder them",
     "locations.dropHere": "drop spools here",
     "locations.errorEmpty": "Location name cannot be empty",
     "locations.errorExists": "A location with that name already exists",

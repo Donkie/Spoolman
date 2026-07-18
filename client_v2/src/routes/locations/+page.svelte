@@ -9,15 +9,19 @@
 	import { weightAuto } from '$lib/utils/format';
 	import * as m from '$lib/paraglide/messages';
 	import { getSettings, setSetting, parseSetting } from '$lib/api/settings';
+	import { dndzone, type DndEvent } from 'svelte-dnd-action';
+	import { flip } from 'svelte/animate';
 	import Plus from '@lucide/svelte/icons/plus';
 	import GripVertical from '@lucide/svelte/icons/grip-vertical';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 
 	const NO_LOCATION = 'No location';
+	const FLIP = 160;
 
-	let draggingId = $state<number | null>(null);
-	let dragOver = $state<string | null>(null);
-	let draggingShelf = $state<string | null>(null);
+	// A location card. `id` is what svelte-dnd-action keys on; it equals `name`,
+	// the location's display name (the NO_LOCATION sentinel for the unlocated
+	// bucket). `spools` is the card's own drop zone, in display order.
+	type Shelf = { id: string; name: string; spools: Spool[] };
 
 	let editingLocation = $state<string | null>(null);
 	let editValue = $state('');
@@ -33,9 +37,25 @@
 	let spools = $state<Spool[]>([]);
 	let settingOrder = $state<string[]>([]);
 	let settingsLoaded = $state(false);
+	// Per-location custom spool order, keyed by the stored location name (EMPTY for
+	// "No location"), each an array of spool ids. Source of truth for the order of
+	// spools within a card. Shared with the old client's `locations_spoolorders`.
+	let spoolOrders = $state<Record<string, number[]>>({});
+
+	// The live drag state. `shelves` is the structure the drag zones bind to and
+	// mutate directly; it is rebuilt from the data above whenever nothing is being
+	// dragged. `dragging` pauses that rebuild so an in-flight drag isn't clobbered.
+	// Shelf dragging is gated to the grip handle by keeping the grid zone disabled
+	// until a grip press enables it (svelte-dnd-action's drag-handle pattern), so
+	// it doesn't hijack pointer presses on the spool zones nested inside each card.
+	let shelves = $state<Shelf[]>([]);
+	let dragging = $state(false);
+	let shelvesDragDisabled = $state(true);
+	let displayNames = $derived(shelves.map((sh) => sh.name));
 
 	// Map between the display sentinel and the stored empty-string marker.
 	const toStored = (names: string[]) => names.map((n) => (n === NO_LOCATION ? EMPTY : n));
+	const storedKey = (name: string) => (name === NO_LOCATION ? EMPTY : name);
 
 	async function loadSpools() {
 		try {
@@ -56,6 +76,7 @@
 		try {
 			const s = await getSettings();
 			settingOrder = parseSetting<string[]>(s.locations, []).filter((l) => l != null);
+			spoolOrders = parseSetting<Record<string, number[]>>(s.locations_spoolorders, {});
 		} catch (e) {
 			console.error('Failed to load locations setting', e);
 		} finally {
@@ -75,87 +96,113 @@
 		return off;
 	});
 
-	let spoolsByLoc = $derived.by(() => {
-		const map = new Map<string, Spool[]>();
-		for (const s of spools) {
-			const loc = s.location || NO_LOCATION;
-			if (!map.has(loc)) map.set(loc, []);
-			map.get(loc)!.push(s);
-		}
-		return map;
-	});
-
 	// The full display order: the saved setting order (empty string → the
 	// "No location" bucket), then any location discovered from spools that isn't
 	// in the setting yet. The "No location" bucket only shows when unlocated
 	// spools exist, and defaults to the front when the setting doesn't place it.
-	let orderedNames = $derived.by(() => {
+	function computeOrderedNames(present: Set<string>): string[] {
 		const all: string[] = [];
 		for (const l of settingOrder) {
 			const name = l === EMPTY ? NO_LOCATION : l;
 			if (!all.includes(name)) all.push(name);
 		}
-		if (spoolsByLoc.has(NO_LOCATION) && !all.includes(NO_LOCATION)) all.unshift(NO_LOCATION);
-		for (const l of spoolsByLoc.keys()) if (l !== NO_LOCATION && !all.includes(l)) all.push(l);
-		return all.filter((n) => n !== NO_LOCATION || spoolsByLoc.has(NO_LOCATION));
-	});
+		if (present.has(NO_LOCATION) && !all.includes(NO_LOCATION)) all.unshift(NO_LOCATION);
+		for (const name of present) if (name !== NO_LOCATION && !all.includes(name)) all.push(name);
+		return all.filter((n) => n !== NO_LOCATION || present.has(NO_LOCATION));
+	}
 
-	let shelves = $derived(orderedNames.map((name) => ({ name, spools: spoolsByLoc.get(name) ?? [] })));
+	// Sort a location's spools by its saved custom order; any spool not yet in the
+	// order keeps its incoming (id-sorted) position at the end. Array.sort is
+	// stable, so ties preserve that order.
+	function orderSpools(name: string, list: Spool[]): Spool[] {
+		const order = spoolOrders[storedKey(name)];
+		if (!order?.length) return list;
+		const rank = (id: number) => {
+			const i = order.indexOf(id);
+			return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+		};
+		return [...list].sort((a, b) => rank(a.id) - rank(b.id));
+	}
 
-	// Keep the setting in sync so it always reflects the displayed order,
-	// persisting locations discovered from spools. It settles after a reorder
-	// (when setting == display order already, it's a no-op).
+	function buildShelves(): Shelf[] {
+		const byLoc = new Map<string, Spool[]>();
+		for (const s of spools) {
+			const name = s.location || NO_LOCATION;
+			if (!byLoc.has(name)) byLoc.set(name, []);
+			byLoc.get(name)!.push(s);
+		}
+		return computeOrderedNames(new Set(byLoc.keys())).map((name) => ({
+			id: name,
+			name,
+			spools: orderSpools(name, byLoc.get(name) ?? [])
+		}));
+	}
+
+	// Rebuild the displayed cards from the data whenever it changes, except while a
+	// drag is in progress (the drag handlers own `shelves` then). Also keeps the
+	// `locations` setting reflecting the displayed order so locations discovered
+	// from spools are persisted; it settles once the setting matches.
 	$effect(() => {
-		if (!settingsLoaded) return;
-		const stored = toStored(orderedNames);
-		if (JSON.stringify(stored) !== JSON.stringify(settingOrder)) {
-			saveOrder(stored);
-		}
+		if (!settingsLoaded || dragging) return;
+		const desired = buildShelves();
+		shelves = desired;
+		const stored = toStored(desired.map((sh) => sh.name));
+		if (JSON.stringify(stored) !== JSON.stringify(settingOrder)) saveOrder(stored);
 	});
 
-	function startShelfDrag(e: DragEvent, name: string) {
-		draggingShelf = name;
-		const shelfEl = (e.currentTarget as HTMLElement).closest('.shelf');
-		if (shelfEl && e.dataTransfer) {
-			e.dataTransfer.effectAllowed = 'move';
-			// Drag the whole card, not just the grip handle.
-			e.dataTransfer.setDragImage(shelfEl, 20, 20);
+	function shelfConsider(e: CustomEvent<DndEvent<Shelf>>) {
+		dragging = true;
+		shelves = e.detail.items;
+	}
+
+	function shelfFinalize(e: CustomEvent<DndEvent<Shelf>>) {
+		shelves = e.detail.items;
+		dragging = false;
+		shelvesDragDisabled = true;
+		saveOrder(toStored(shelves.map((sh) => sh.name)));
+	}
+
+	function spoolConsider(idx: number, e: CustomEvent<DndEvent<Spool>>) {
+		dragging = true;
+		shelves[idx].spools = e.detail.items;
+	}
+
+	function spoolFinalize(idx: number, e: CustomEvent<DndEvent<Spool>>) {
+		shelves[idx].spools = e.detail.items;
+		dragging = false;
+		commitSpoolLayout();
+	}
+
+	// Persist the outcome of a spool drag from the current card layout: move any
+	// spool that now sits in a different card to that location, then save every
+	// card's spool order. Diff-based, so the duplicate finalize fired on the other
+	// zone of a cross-card move is a harmless no-op.
+	function commitSpoolLayout() {
+		const changed: { id: number; location: string }[] = [];
+		const next = spools.map((sp) => {
+			const shelf = shelves.find((sh) => sh.spools.some((x) => x.id === sp.id));
+			if (!shelf) return sp;
+			const loc = storedKey(shelf.name);
+			if ((sp.location || '') === loc) return sp;
+			changed.push({ id: sp.id, location: loc });
+			return { ...sp, location: loc };
+		});
+		if (changed.length) {
+			spools = next;
+			for (const c of changed) {
+				inventory.patchSpool(c.id, { location: c.location });
+				spoolSource.saveSpool(c.id, { location: c.location }).catch((e) => console.error('Move failed', e));
+			}
 		}
-	}
 
-	// Live-reorder when the held card enters another (matches the old client).
-	// Fires on dragenter (once per card entered) rather than continuously on
-	// dragover, so it settles instead of oscillating between adjacent cards.
-	// `to` is taken from the pre-removal list so a rightward move lands *after*
-	// the target (letting a card reach the last slot); a leftward move lands
-	// before it. The "No location" bucket participates like any other card.
-	function reorderShelves(target: string) {
-		if (draggingShelf == null || draggingShelf === target) return;
-		const list = [...orderedNames];
-		const from = list.indexOf(draggingShelf);
-		const to = list.indexOf(target);
-		if (from < 0 || to < 0 || from === to) return;
-		list.splice(from, 1);
-		list.splice(to, 0, draggingShelf);
-		settingOrder = toStored(list);
-	}
-
-	function endShelfDrag() {
-		if (draggingShelf != null)
-			setSetting('locations', settingOrder).catch((e) => console.error('Failed to save location order', e));
-		draggingShelf = null;
-		dragOver = null;
-	}
-
-	function onDrop(loc: string) {
-		if (draggingId != null) {
-			const target = loc === NO_LOCATION ? '' : loc;
-			inventory.patchSpool(draggingId, { location: target });
-			spools = spools.map((s) => (s.id === draggingId ? { ...s, location: target } : s));
-			spoolSource.saveSpool(draggingId, { location: target }).catch((e) => console.error('Move failed', e));
+		const nextOrders: Record<string, number[]> = { ...spoolOrders };
+		for (const sh of shelves) nextOrders[storedKey(sh.name)] = sh.spools.map((s) => s.id);
+		if (JSON.stringify(nextOrders) !== JSON.stringify(spoolOrders)) {
+			spoolOrders = nextOrders;
+			setSetting('locations_spoolorders', nextOrders).catch((e) =>
+				console.error('Failed to save spool order', e)
+			);
 		}
-		draggingId = null;
-		dragOver = null;
 	}
 
 	function openSpool(id: number) {
@@ -164,7 +211,7 @@
 	}
 
 	function addLocation() {
-		const existing = new Set(orderedNames);
+		const existing = new Set(displayNames);
 		let n = 1;
 		let name = m['locations.newShelf']({ n });
 		while (existing.has(name)) name = m['locations.newShelf']({ n: ++n });
@@ -207,7 +254,7 @@
 			renameError = m['locations.errorEmpty']();
 			return;
 		}
-		if (orderedNames.includes(newName)) {
+		if (displayNames.includes(newName)) {
 			renameError = m['locations.errorExists']();
 			return;
 		}
@@ -218,6 +265,14 @@
 				await spoolSource.renameLocation(oldName, newName);
 				spools = spools.map((s) => (s.location === oldName ? { ...s, location: newName } : s));
 			}
+			// Carry the card's custom spool order over to the new name.
+			if (spoolOrders[oldName]) {
+				const { [oldName]: moved, ...rest } = spoolOrders;
+				spoolOrders = { ...rest, [newName]: moved };
+				setSetting('locations_spoolorders', spoolOrders).catch((e) =>
+					console.error('Failed to save spool order', e)
+				);
+			}
 			// Rename in place in the setting so the card keeps its position.
 			saveOrder(settingOrder.map((l) => (l === oldName ? newName : l)));
 			editingLocation = null;
@@ -227,6 +282,12 @@
 		}
 	}
 </script>
+
+<svelte:window
+	onpointerup={() => {
+		if (!dragging) shelvesDragDisabled = true;
+	}}
+/>
 
 <svelte:head>
 	<title>{m['documentTitle.locations.list']()}</title>
@@ -239,35 +300,28 @@
 		<button class="add" onclick={addLocation}><Plus size={14} /> {m['locations.addLocation']()}</button>
 	</div>
 
-	<div class="grid">
-		{#each shelves as shelf (shelf.name)}
-			<div
-				class="shelf"
-				class:over={dragOver === shelf.name}
-				class:dragging={draggingShelf === shelf.name}
-				role="list"
-				ondragenter={(e) => {
-					if (draggingShelf != null) {
-						e.preventDefault();
-						reorderShelves(shelf.name);
-					}
-				}}
-				ondragover={(e) => {
-					e.preventDefault();
-					if (draggingShelf == null) dragOver = shelf.name;
-				}}
-				ondragleave={() => (draggingShelf == null && dragOver === shelf.name ? (dragOver = null) : null)}
-				ondrop={() => (draggingShelf != null ? endShelfDrag() : onDrop(shelf.name))}
-			>
+	<div
+		class="grid"
+		use:dndzone={{
+			items: shelves,
+			type: 'shelf',
+			flipDurationMs: FLIP,
+			dragDisabled: shelvesDragDisabled,
+			dropTargetStyle: {}
+		}}
+		onconsider={(e) => shelfConsider(e as CustomEvent<DndEvent<Shelf>>)}
+		onfinalize={(e) => shelfFinalize(e as CustomEvent<DndEvent<Shelf>>)}
+	>
+		{#each shelves as shelf, idx (shelf.id)}
+			<div class="shelf" role="list" animate:flip={{ duration: FLIP }}>
 				<div class="shelf-head">
 					<span
 						class="grip"
 						role="button"
 						tabindex="-1"
 						aria-label={m['locations.reorderLocation']()}
-						draggable="true"
-						ondragstart={(e) => startShelfDrag(e, shelf.name)}
-						ondragend={endShelfDrag}><GripVertical size={16} /></span
+						onmousedown={() => (shelvesDragDisabled = false)}
+						ontouchstart={() => (shelvesDragDisabled = false)}><GripVertical size={16} /></span
 					>
 					{#if editingLocation === shelf.name}
 						<input
@@ -313,36 +367,41 @@
 				{#if editingLocation === shelf.name && renameError}
 					<div class="rename-error">{renameError}</div>
 				{/if}
-				<div class="shelf-body">
-					{#each shelf.spools as s (s.id)}
-						{@const f = inventory.filamentById(s.filamentId)!}
-						{@const v = inventory.vendorOf(f)}
-						<div
-							class="chip"
-							role="button"
-							tabindex="0"
-							draggable="true"
-							ondragstart={() => (draggingId = s.id)}
-							ondragend={() => (draggingId = null)}
-							onclick={() => openSpool(s.id)}
-							onkeydown={(e) => e.key === 'Enter' && openSpool(s.id)}
-						>
-							<Swatch colors={f.colors} size={22} radius={5} />
-							<div class="chip-info">
-								<div class="chip-title">
-									<span class="chip-id mono">#{s.id}</span>
-									{#if v.name !== '?'}{v.name}{' - '}{/if}{f.name}
-								</div>
-								<div class="chip-subtitle">
-									{f.material}{' - '}<span class:low={settings.isLow(s.remaining, s.unused)}
-										>{weightAuto(s.remaining)}</span
-									>{' / '}{weightAuto(f.weight)}{#if s.lastUsedLabel}{' - '}{m['locations.lastUsed']({
-											time: s.lastUsedLabel
-										})}{/if}
+				<div class="shelf-body-wrap">
+					<div
+						class="shelf-body"
+						use:dndzone={{ items: shelf.spools, type: 'spool', flipDurationMs: FLIP, dropTargetStyle: {} }}
+						onconsider={(e) => spoolConsider(idx, e as CustomEvent<DndEvent<Spool>>)}
+						onfinalize={(e) => spoolFinalize(idx, e as CustomEvent<DndEvent<Spool>>)}
+					>
+						{#each shelf.spools as s (s.id)}
+							{@const f = inventory.filamentById(s.filamentId)!}
+							{@const v = inventory.vendorOf(f)}
+							<div
+								class="chip"
+								role="button"
+								tabindex="0"
+								animate:flip={{ duration: FLIP }}
+								onclick={() => openSpool(s.id)}
+								onkeydown={(e) => e.key === 'Enter' && openSpool(s.id)}
+							>
+								<Swatch colors={f.colors} size={22} radius={5} />
+								<div class="chip-info">
+									<div class="chip-title">
+										<span class="chip-id mono">#{s.id}</span>
+										{#if v.name !== '?'}{v.name}{' - '}{/if}{f.name}
+									</div>
+									<div class="chip-subtitle">
+										{f.material}{' - '}<span class:low={settings.isLow(s.remaining, s.unused)}
+											>{weightAuto(s.remaining)}</span
+										>{' / '}{weightAuto(f.weight)}{#if s.lastUsedLabel}{' - '}{m['locations.lastUsed']({
+												time: s.lastUsedLabel
+											})}{/if}
+									</div>
 								</div>
 							</div>
-						</div>
-					{/each}
+						{/each}
+					</div>
 					{#if shelf.spools.length === 0}
 						<span class="empty">{m['locations.dropHere']()}</span>
 					{/if}
@@ -408,12 +467,6 @@
 		flex-direction: column;
 		min-height: 110px;
 	}
-	.shelf.over {
-		border-color: var(--accent);
-	}
-	.shelf.dragging {
-		opacity: 0.5;
-	}
 	.shelf-head {
 		display: flex;
 		align-items: center;
@@ -427,6 +480,7 @@
 		cursor: grab;
 		display: inline-flex;
 		align-items: center;
+		touch-action: none;
 	}
 	.grip:active {
 		cursor: grabbing;
@@ -483,12 +537,20 @@
 		color: var(--danger-soft);
 		background: var(--bg);
 	}
+	/* Wraps the drop zone so the "drop here" hint can overlay an empty card
+	 * without being a child of the zone (which maps its children 1:1 to items). */
+	.shelf-body-wrap {
+		position: relative;
+		display: flex;
+		flex: 1;
+	}
 	.shelf-body {
 		display: flex;
 		flex-direction: column;
 		gap: 6px;
 		padding: 10px 12px;
 		flex: 1;
+		min-height: 42px;
 	}
 	.chip {
 		display: flex;
@@ -500,9 +562,13 @@
 		padding: 6px 9px;
 		cursor: grab;
 		user-select: none;
+		touch-action: none;
 	}
 	.chip:hover {
 		border-color: var(--accent);
+	}
+	.chip:active {
+		cursor: grabbing;
 	}
 	.chip-info {
 		display: flex;
@@ -533,8 +599,13 @@
 		color: var(--danger-soft);
 	}
 	.empty {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		padding: 6px 14px;
 		font-size: 11.5px;
 		color: var(--text-faint);
-		padding: 6px 2px;
+		pointer-events: none;
 	}
 </style>
