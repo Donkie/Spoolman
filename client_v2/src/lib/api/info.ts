@@ -8,6 +8,7 @@ export interface Info {
 	data_dir: string;
 	backups_dir: string;
 	db_type: string;
+	external_db_name: string;
 	git_commit?: string;
 	build_date?: string;
 }

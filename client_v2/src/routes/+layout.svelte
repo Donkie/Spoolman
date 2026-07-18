@@ -6,6 +6,7 @@
 	import QrScannerModal from '$components/QrScannerModal.svelte';
 	import { ui } from '$lib/stores/ui.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
+	import { serverInfo } from '$lib/stores/serverInfo.svelte';
 	import { theme } from '$lib/stores/theme.svelte';
 	import { startLiveSync } from '$lib/api/liveSync';
 	import type { Snippet } from 'svelte';
@@ -23,6 +24,7 @@
 	// and thus every view that reads it, up to date with WebSocket events).
 	$effect(() => {
 		settings.load();
+		serverInfo.load();
 
 		return startLiveSync();
 	});

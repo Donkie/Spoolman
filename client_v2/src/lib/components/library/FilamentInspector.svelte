@@ -13,6 +13,7 @@
 	import type { Filament, Spool } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
+	import { serverInfo } from '$lib/stores/serverInfo.svelte';
 	import { ui } from '$lib/stores/ui.svelte';
 	import * as params from '$lib/library/params';
 	import { pct, grams } from '$lib/utils/format';
@@ -90,8 +91,9 @@
 		<div class="titles">
 			<div class="title">
 				{filament.name}
-				{#if filament.externalId}<span class="ext-badge" title={'SpoolmanDB · ' + filament.externalId}
-						>SpoolmanDB</span
+				{#if filament.externalId}<span
+						class="ext-badge"
+						title={serverInfo.externalDbName + ' · ' + filament.externalId}>{serverInfo.externalDbName}</span
 					>{/if}
 			</div>
 			<div class="subtitle">{vendor.name} · {filament.material} · {filament.diameter} mm</div>

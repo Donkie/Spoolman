@@ -470,6 +470,10 @@ class Info(BaseModel):
     logs_dir: str = Field(examples=["/home/app/.local/share/spoolman"])
     backups_dir: str = Field(examples=["/home/app/.local/share/spoolman/backups"])
     db_type: str = Field(examples=["sqlite"])
+    external_db_name: str = Field(
+        description="Display name for the external filament library, configurable via EXTERNAL_DB_NAME.",
+        examples=["SpoolmanDB"],
+    )
     git_commit: str | None = Field(None, examples=["a1b2c3d"])
     build_date: SpoolmanDateTime | None = Field(None, examples=["2021-01-01T00:00:00Z"])
 

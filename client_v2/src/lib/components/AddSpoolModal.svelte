@@ -12,6 +12,7 @@
 	import type { Filament, Extra } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
+	import { serverInfo } from '$lib/stores/serverInfo.svelte';
 	import { spoolSource, type NewFilamentDraft } from '$lib/api/spoolSource';
 	import { fields } from '$lib/stores/fields.svelte';
 	import { externalColors, getExternalMaterials, type ExternalFilament } from '$lib/api/external';
@@ -484,7 +485,7 @@
 						class="search-big"
 						value={query}
 						oninput={(e) => onSearch(e.currentTarget.value)}
-						placeholder={m['add.searchPlaceholder']()}
+						placeholder={m['add.searchPlaceholder']({ name: serverInfo.externalDbName })}
 					/>
 					<div class="results">
 						<div class="res-hdr">{m['add.yourCatalog']()}</div>
@@ -505,9 +506,9 @@
 							{/each}
 						{/if}
 
-						<div class="res-hdr"><span class="hdr-note">{m['add.externalLibrary']()}</span></div>
+						<div class="res-hdr"><span class="hdr-note">{serverInfo.externalDbName}</span></div>
 						{#if extError}
-							<div class="res-note">{m['add.dbUnavailable']()}</div>
+							<div class="res-note">{m['add.dbUnavailable']({ name: serverInfo.externalDbName })}</div>
 						{:else if searching && externalResults.length === 0}
 							<div class="res-note">{m['add.searching']()}</div>
 						{:else if externalResults.length === 0}
@@ -522,7 +523,7 @@
 										<span class="rn">{ext.name}</span>
 										<span class="rs">{ext.manufacturer} · {ext.material}</span>
 									</div>
-									<span class="tag external">SpoolmanDB</span>
+									<span class="tag external">{serverInfo.externalDbName}</span>
 								</button>
 							{/each}
 						{/if}
@@ -531,7 +532,7 @@
 					<button class="create-new" onclick={startCreate}>
 						<span class="cn-plus"><Plus size={16} /></span>
 						<span>{m['add.createNew']()}</span>
-						<span class="cn-sub">{m['add.createNewSub']()}</span>
+						<span class="cn-sub">{m['add.createNewSub']({ name: serverInfo.externalDbName })}</span>
 					</button>
 				</div>
 			{:else}
@@ -675,7 +676,9 @@
 							<div class="chosen-name">
 								<div class="cn">
 									{cName(chosen)}
-									{#if chosen.source === 'external'}<span class="tag external sm">SpoolmanDB</span>{/if}
+									{#if chosen.source === 'external'}<span class="tag external sm"
+											>{serverInfo.externalDbName}</span
+										>{/if}
 								</div>
 								<div class="cs">{cVendor(chosen)} · {cMaterial(chosen)}</div>
 							</div>

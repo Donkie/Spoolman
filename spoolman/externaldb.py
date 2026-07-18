@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 DEFAULT_EXTERNAL_DB_URL = "https://donkie.github.io/SpoolmanDB/"
+DEFAULT_EXTERNAL_DB_NAME = "SpoolmanDB"
 DEFAULT_SYNC_INTERVAL = 3600
 
 controller = hishel.Controller(allow_stale=True)
@@ -122,6 +123,15 @@ class ExternalMaterialsFile(RootModel):
 def get_external_db_url() -> str:
     """Get the external database URL from environment variables. Defaults to DEFAULT_EXTERNAL_DB_URL."""
     return os.getenv("EXTERNAL_DB_URL", DEFAULT_EXTERNAL_DB_URL)
+
+
+def get_external_db_name() -> str:
+    """Get the display name for the external filament library. Defaults to DEFAULT_EXTERNAL_DB_NAME.
+
+    Operators can point EXTERNAL_DB_URL at their own catalog; this lets them label it accordingly
+    in the UI instead of showing the "SpoolmanDB" default.
+    """
+    return os.getenv("EXTERNAL_DB_NAME", DEFAULT_EXTERNAL_DB_NAME)
 
 
 def get_external_db_sync_interval() -> int:
