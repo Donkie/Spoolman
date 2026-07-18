@@ -234,10 +234,10 @@
 
 	<div class="controls">
 		<button class="link-btn" onclick={() => toggle('group')}
-			>{m['library.groupBy']()}: {groupLabel} <ChevronDown size={13} /></button
+			><span class="ctrl-label">{m['library.groupBy']()}: </span>{groupLabel} <ChevronDown size={13} /></button
 		>
 		<button class="chip active sort" onclick={() => toggle('sort')}>
-			{m['library.sortBy']()}: {activeSort.labelKey()}
+			<span class="ctrl-label">{m['library.sortBy']()}: </span>{activeSort.labelKey()}
 			{#if libraryState.sortAsc}<ArrowUp size={12} />{:else}<ArrowDown size={12} />{/if}
 		</button>
 	</div>
@@ -497,8 +497,16 @@
 	}
 
 	@media (max-width: 860px) {
-		.link-btn {
+		/* Keep the Group/Sort controls available on mobile, but drop their
+		   "Group by:"/"Sort by:" prefixes to save horizontal space, and anchor
+		   both menus to the right edge so they stay aligned when the buttons
+		   shrink. */
+		.ctrl-label {
 			display: none;
+		}
+		.group-menu {
+			right: 14px;
+			left: auto;
 		}
 	}
 </style>
