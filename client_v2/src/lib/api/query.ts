@@ -1,29 +1,12 @@
 import type { GroupField, GroupQuery, GroupSummary, SortField, SpoolQuery } from './types';
 import type { LibraryState } from '$lib/library/params';
+import { resolveSortField, resolveGroupSortField } from '$lib/utils/library';
 import { settings } from '$lib/stores/settings.svelte';
 
-// The ONLY place that maps UI sort keys / group modes to API field paths.
-// Field names here match the Spoolman spool/group endpoints exactly. The
-// LibraryState comes from the URL (see lib/library/params.ts).
-
-const SORT_FIELD: Record<string, string> = {
-	lastUsed: 'last_used',
-	rem: 'remaining_weight',
-	price: 'price',
-	reg: 'registered',
-	lot: 'lot_nr',
-	mat: 'filament.material',
-	hue: 'filament.color_hex',
-	noz: 'filament.settings_extruder_temp',
-	dry: 'extra.dryer_cycles'
-};
-
-// Group-level ordering: map the chosen Sort to a group aggregate where the
-// backend supports it, otherwise order groups by title.
-const GROUP_SORT_FIELD: Record<string, string> = {
-	rem: 'group.total_remaining',
-	lastUsed: 'group.last_used'
-};
+// Translates the URL-borne LibraryState into concrete /spool and /spool/group
+// queries. The UI sort key IS the backend field path now (see FIXED_SORTS in
+// utils/library.ts, the single source of truth for sortable fields); the
+// resolvers there guard against stale/unknown keys and supply group aggregates.
 
 /** True when the list should page GROUPS (grouping on). */
 export function isGroupedMode(state: LibraryState): boolean {
@@ -39,7 +22,7 @@ function currentFilters(state: LibraryState): Record<string, string[]> {
 /** Page-of-groups query (grouped mode). */
 export function buildGroupQuery(state: LibraryState): GroupQuery {
 	const field = state.group as GroupField;
-	const groupField = GROUP_SORT_FIELD[state.sortKey] ?? 'group.title';
+	const groupField = resolveGroupSortField(state.sortKey) ?? 'group.title';
 	const dir = groupField === 'group.title' ? 'asc' : state.sortAsc ? 'asc' : 'desc';
 	return {
 		field,
@@ -54,7 +37,7 @@ export function buildGroupQuery(state: LibraryState): GroupQuery {
 
 /** Spools of one group, ordered by the chosen Sort. */
 export function buildScopedSpoolQuery(state: LibraryState, group: GroupSummary, limit: number): SpoolQuery {
-	const within = SORT_FIELD[state.sortKey] ?? 'last_used';
+	const within = resolveSortField(state.sortKey);
 	const sort: SortField[] = [
 		{ field: within, dir: state.sortAsc ? 'asc' : 'desc' },
 		{ field: 'id', dir: 'asc' }
@@ -73,7 +56,7 @@ export function buildScopedSpoolQuery(state: LibraryState, group: GroupSummary, 
 /** Flat page-of-spools query (group=none). */
 export function buildFlatSpoolQuery(state: LibraryState): SpoolQuery {
 	const sort: SortField[] = [
-		{ field: SORT_FIELD[state.sortKey] ?? 'last_used', dir: state.sortAsc ? 'asc' : 'desc' },
+		{ field: resolveSortField(state.sortKey), dir: state.sortAsc ? 'asc' : 'desc' },
 		{ field: 'id', dir: 'asc' }
 	];
 	return {

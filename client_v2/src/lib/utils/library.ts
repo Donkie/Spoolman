@@ -1,5 +1,6 @@
 import type { Filament, Spool, Vendor } from '$lib/types';
 import type { GroupField } from '$lib/api/types';
+import type { FieldDef } from '$lib/api/fields';
 import { pct, grams } from './format';
 import * as m from '$lib/paraglide/messages';
 
@@ -107,25 +108,107 @@ function spoolIdentity(vm: SpoolVM): RowIdentity {
 	return { title: '', sub: vm.rightLabel };
 }
 
-// --- sort/filter menu metadata -------------------------------------------
-
-export interface SortDef {
-	key: string;
-	labelKey: () => string;
-	section: 'spool' | 'filament' | 'extra';
-	unit?: string;
+/**
+ * A filament's human label, "<manufacturer> <name>" (e.g. "3DJAKE Dark Grey"),
+ * matching how rows identify a filament elsewhere. Falls back to material or the
+ * id when name/vendor are blank. Used by the filament filter menu and its chips.
+ */
+export function filamentLabel(filament: Filament, vendor: Vendor): string {
+	const parts = [vendor.name, filament.name].map((s) => s?.trim()).filter(Boolean);
+	if (parts.length) return parts.join(' ');
+	return filament.material?.trim() || `#${filament.id}`;
 }
 
-export function sortDefs(): SortDef[] {
-	return [
-		{ key: 'lastUsed', labelKey: m['spool.fields.lastUsed'], section: 'spool' },
-		{ key: 'rem', labelKey: m['spool.fields.remainingWeight'], section: 'spool', unit: 'g' },
-		{ key: 'price', labelKey: m['spool.fields.price'], section: 'spool' },
-		{ key: 'reg', labelKey: m['spool.fields.registered'], section: 'spool' },
-		{ key: 'lot', labelKey: m['spool.fields.lotNr'], section: 'spool' },
-		{ key: 'mat', labelKey: m['filament.fields.material'], section: 'filament' },
-		{ key: 'hue', labelKey: m['filament.fields.colorHex'], section: 'filament' },
-		{ key: 'noz', labelKey: m['filament.fields.settingsExtruderTemp'], section: 'filament', unit: '°C' },
-		{ key: 'dry', labelKey: m['library.sort.dryer'], section: 'extra' }
-	];
+// --- sort menu metadata ---------------------------------------------------
+
+export interface SortDef {
+	/** Backend sort field path — also the value stored in the URL's `sort` param. */
+	key: string;
+	labelKey: () => string;
+	section: 'spool' | 'filament' | 'vendor' | 'extra';
+	unit?: string;
+	/**
+	 * Group-aggregate field to order groups by in grouped mode, where the backend
+	 * exposes one. Sorts without a group aggregate fall back to ordering groups by
+	 * title (the within-group spool order still follows `key`).
+	 */
+	groupField?: string;
+}
+
+/**
+ * The fixed sort fields, each keyed by the exact backend field path it maps to
+ * (see the Spoolman /spool sort docs). This is the single source of truth for
+ * both the sort menu (ListToolbar) and the query builders (api/query.ts) — they
+ * must never drift, hence one list.
+ */
+export const FIXED_SORTS: SortDef[] = [
+	// Spool
+	{ key: 'last_used', labelKey: m['spool.fields.lastUsed'], section: 'spool', groupField: 'group.last_used' },
+	{ key: 'first_used', labelKey: m['spool.fields.firstUsed'], section: 'spool' },
+	{ key: 'registered', labelKey: m['spool.fields.registered'], section: 'spool' },
+	{
+		key: 'remaining_weight',
+		labelKey: m['spool.fields.remainingWeight'],
+		section: 'spool',
+		unit: 'g',
+		groupField: 'group.total_remaining'
+	},
+	{ key: 'used_weight', labelKey: m['spool.fields.usedWeight'], section: 'spool', unit: 'g' },
+	{ key: 'price', labelKey: m['spool.fields.price'], section: 'spool' },
+	{ key: 'location', labelKey: m['spool.fields.location'], section: 'spool' },
+	{ key: 'lot_nr', labelKey: m['spool.fields.lotNr'], section: 'spool' },
+	// Filament
+	{ key: 'filament.name', labelKey: m['filament.fields.name'], section: 'filament' },
+	{ key: 'filament.material', labelKey: m['filament.fields.material'], section: 'filament' },
+	{ key: 'filament.color_hex', labelKey: m['filament.fields.colorHex'], section: 'filament' },
+	{ key: 'filament.diameter', labelKey: m['filament.fields.diameter'], section: 'filament', unit: 'mm' },
+	{ key: 'filament.density', labelKey: m['filament.fields.density'], section: 'filament' },
+	{
+		key: 'filament.settings_extruder_temp',
+		labelKey: m['filament.fields.settingsExtruderTemp'],
+		section: 'filament',
+		unit: '°C'
+	},
+	{
+		key: 'filament.settings_bed_temp',
+		labelKey: m['filament.fields.settingsBedTemp'],
+		section: 'filament',
+		unit: '°C'
+	},
+	{ key: 'filament.weight', labelKey: m['filament.fields.weight'], section: 'filament', unit: 'g' },
+	{ key: 'filament.price', labelKey: m['filament.fields.price'], section: 'filament' },
+	// Vendor
+	{ key: 'filament.vendor.name', labelKey: m['filament.fields.vendor'], section: 'vendor' }
+];
+
+const FIXED_SORT_KEYS = new Set(FIXED_SORTS.map((s) => s.key));
+
+/**
+ * All available sort options: the fixed fields above plus the spool's custom
+ * extra fields (queried from the backend). Every extra-field type is sortable.
+ */
+export function sortDefs(extraSpoolFields: FieldDef[] = []): SortDef[] {
+	const extra: SortDef[] = extraSpoolFields.map((f) => ({
+		key: `extra.${f.key}`,
+		labelKey: () => f.name,
+		section: 'extra',
+		unit: f.unit ?? undefined
+	}));
+	return [...FIXED_SORTS, ...extra];
+}
+
+/**
+ * Resolve a URL sort key to a backend sort field. Fixed keys and `extra.*` keys
+ * pass through unchanged (the backend safely ignores an unknown extra key);
+ * anything else — e.g. a stale bookmarked key from an older client — falls back
+ * to the default sort so we never send an invalid field (which would 400).
+ */
+export function resolveSortField(sortKey: string): string {
+	if (FIXED_SORT_KEYS.has(sortKey) || sortKey.startsWith('extra.')) return sortKey;
+	return 'last_used';
+}
+
+/** The group-aggregate ordering field for a sort key, if the backend supports one. */
+export function resolveGroupSortField(sortKey: string): string | undefined {
+	return FIXED_SORTS.find((s) => s.key === sortKey)?.groupField;
 }

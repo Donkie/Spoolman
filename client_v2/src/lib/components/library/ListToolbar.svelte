@@ -1,8 +1,11 @@
 <script lang="ts">
 	import * as params from '$lib/library/params';
 	import type { GroupMode, LibraryState } from '$lib/library/params';
-	import { sortDefs, type SortDef } from '$lib/utils/library';
+	import { sortDefs, filamentLabel, type SortDef } from '$lib/utils/library';
 	import { spoolSource } from '$lib/api/spoolSource';
+	import { inventory } from '$lib/stores/inventory.svelte';
+	import { fields } from '$lib/stores/fields.svelte';
+	import { FieldType, type FieldDef, type EntityType } from '$lib/api/fields';
 	import * as m from '$lib/paraglide/messages';
 	import Plus from '@lucide/svelte/icons/plus';
 	import X from '@lucide/svelte/icons/x';
@@ -27,17 +30,113 @@
 		open = null;
 	}
 
-	// Filter categories the API can serve (options fetched lazily on open).
-	const FILTER_CATEGORIES: { key: string; labelKey: () => string; load: () => Promise<string[]> }[] = [
-		{ key: 'material', labelKey: m['spool.fields.material'], load: () => spoolSource.materials() },
-		{ key: 'vendor', labelKey: m['filament.fields.vendor'], load: () => spoolSource.vendorNames() },
-		{ key: 'location', labelKey: m['spool.fields.location'], load: () => spoolSource.locations() },
-		{ key: 'lot', labelKey: m['spool.fields.lotNr'], load: () => spoolSource.lotNumbers() }
+	// Extra-field definitions (of all three entities) feed the sort and filter menus.
+	$effect(() => {
+		fields.ensure('spool');
+		fields.ensure('filament');
+		fields.ensure('vendor');
+	});
+
+	interface FilterOption {
+		value: string;
+		label: string;
+	}
+	interface FilterCategory {
+		/** Filter prop: a fixed category name, or `extra.<key>` for a custom field. */
+		key: string;
+		label: () => string;
+		load: () => Promise<FilterOption[]>;
+	}
+
+	const asOption = (v: string): FilterOption => ({ value: v, label: v });
+
+	// Fixed categories the API can serve (options fetched lazily on open).
+	const BASE_FILTERS: FilterCategory[] = [
+		{
+			key: 'filament',
+			label: m['spool.fields.filament'],
+			load: async () => spoolSource.filamentOptions()
+		},
+		{
+			key: 'material',
+			label: m['spool.fields.material'],
+			load: async () => (await spoolSource.materials()).map(asOption)
+		},
+		{
+			key: 'vendor',
+			label: m['filament.fields.vendor'],
+			load: async () => (await spoolSource.vendorNames()).map(asOption)
+		},
+		{
+			key: 'location',
+			label: m['spool.fields.location'],
+			load: async () => (await spoolSource.locations()).map(asOption)
+		},
+		{
+			key: 'lot',
+			label: m['spool.fields.lotNr'],
+			load: async () => (await spoolSource.lotNumbers()).map(asOption)
+		}
 	];
+
+	// Extra fields we can offer a discrete option list for: text, choice and
+	// boolean. (Numeric / range / datetime fields have no natural value picker, so
+	// they're not offered as filters here.)
+	const FILTERABLE_EXTRA_TYPES = [FieldType.text, FieldType.choice, FieldType.boolean];
+
+	// A spool can be filtered by its own extra fields, its filament's, and its
+	// vendor's. Each entity's fields carry the query-param prefix the backend wants
+	// and an entity qualifier so equally-named fields stay distinguishable.
+	const EXTRA_SCOPES: { entity: EntityType; prefix: string; qualifier: (() => string) | null }[] = [
+		{ entity: 'spool', prefix: 'extra.', qualifier: null },
+		{ entity: 'filament', prefix: 'filament.extra.', qualifier: m['library.section.filament'] },
+		{ entity: 'vendor', prefix: 'filament.vendor.extra.', qualifier: m['library.section.vendor'] }
+	];
+
+	// Build the option list for one extra field. Boolean → yes/no; multi-choice →
+	// its defined choices; text and single-choice → the distinct values actually in
+	// use, fetched from the backend (mirrors how /material et al. work).
+	async function loadExtraOptions(entity: EntityType, f: FieldDef): Promise<FilterOption[]> {
+		if (f.field_type === FieldType.boolean) {
+			return [
+				{ value: 'true', label: m['settings.extraFields.booleanTrue']() },
+				{ value: 'false', label: m['settings.extraFields.booleanFalse']() }
+			];
+		}
+		if (f.field_type === FieldType.choice && f.multi_choice) {
+			return (f.choices ?? []).map(asOption);
+		}
+		return (await spoolSource.extraFieldValues(entity, f.key)).map(asOption);
+	}
+
+	let extraFilters = $derived<FilterCategory[]>(
+		EXTRA_SCOPES.flatMap(({ entity, prefix, qualifier }) =>
+			fields
+				.get(entity)
+				.filter((f) => FILTERABLE_EXTRA_TYPES.includes(f.field_type))
+				.map((f) => ({
+					key: `${prefix}${f.key}`,
+					label: () => (qualifier ? `${qualifier()} · ${f.name}` : f.name),
+					load: () => loadExtraOptions(entity, f)
+				}))
+		)
+	);
+	let filterCategories = $derived([...BASE_FILTERS, ...extraFilters]);
+
+	// Resolve a filter prop back to the extra-field entity + definition it came from.
+	function extraFieldFor(prop: string): { entity: EntityType; def: FieldDef } | undefined {
+		for (const { entity, prefix } of EXTRA_SCOPES) {
+			if (prop.startsWith(prefix)) {
+				const def = fields.get(entity).find((f) => f.key === prop.slice(prefix.length));
+				return def ? { entity, def } : undefined;
+			}
+		}
+		return undefined;
+	}
 
 	// Two-level filter menu: pick a property, then a value.
 	let filterProp = $state<string | null>(null);
-	let options = $state<string[]>([]);
+	let options = $state<FilterOption[]>([]);
 	let optionsLoading = $state(false);
 
 	async function openProp(key: string) {
@@ -45,7 +144,7 @@
 		options = [];
 		optionsLoading = true;
 		try {
-			options = await FILTER_CATEGORIES.find((c) => c.key === key)!.load();
+			options = await filterCategories.find((c) => c.key === key)!.load();
 		} catch (err) {
 			console.error('Failed to load filter options', err);
 		} finally {
@@ -53,7 +152,7 @@
 		}
 	}
 
-	let sorts = $derived(sortDefs());
+	let sorts = $derived(sortDefs(fields.get('spool')));
 	let activeSort = $derived(sorts.find((s) => s.key === libraryState.sortKey) ?? sorts[0]);
 
 	const groupOptions: { key: GroupMode; labelKey: () => string }[] = [
@@ -68,14 +167,29 @@
 	);
 
 	function chipLabel(prop: string, value: string): string {
-		const c = FILTER_CATEGORIES.find((x) => x.key === prop);
-		return c ? `${c.labelKey()}: ${value}` : value;
+		const c = filterCategories.find((x) => x.key === prop);
+		const label = c?.label() ?? prop;
+		// Filament filters store the numeric id; show the filament's name instead.
+		if (prop === 'filament') {
+			const fil = inventory.filamentById(value);
+			return `${label}: ${fil ? filamentLabel(fil, inventory.vendorOf(fil)) : '#' + value}`;
+		}
+		// Boolean extra fields store true/false but display Yes/No.
+		const def = extraFieldFor(prop)?.def;
+		if (def?.field_type === FieldType.boolean) {
+			const yn =
+				value === 'true' ? m['settings.extraFields.booleanTrue']() : m['settings.extraFields.booleanFalse']();
+			return `${label}: ${yn}`;
+		}
+		if (!c) return value;
+		return `${label}: ${value}`;
 	}
 
 	// Sort options grouped by section for the sort dropdown.
 	const SORT_SECTIONS: { key: SortDef['section']; labelKey: () => string }[] = [
 		{ key: 'spool', labelKey: m['library.section.spool'] },
 		{ key: 'filament', labelKey: m['library.section.filament'] },
+		{ key: 'vendor', labelKey: m['library.section.vendor'] },
 		{ key: 'extra', labelKey: m['library.section.extra'] }
 	];
 	let sortSections = $derived(
@@ -132,9 +246,9 @@
 		<div class="menu filter-menu">
 			{#if !filterProp}
 				<div class="menu-title">{m['library.filterBy']()}</div>
-				{#each FILTER_CATEGORIES as c (c.key)}
+				{#each filterCategories as c (c.key)}
 					<button class="menu-item" onclick={() => openProp(c.key)}>
-						<span class="mi-label">{c.labelKey()}</span>
+						<span class="mi-label">{c.label()}</span>
 						<span class="mi-meta"><ChevronRight size={14} /></span>
 					</button>
 				{/each}
@@ -154,24 +268,24 @@
 					<span class="mi-label">{m['buttons.showArchived']()}</span>
 				</button>
 			{:else}
-				{@const c = FILTER_CATEGORIES.find((x) => x.key === filterProp)}
+				{@const c = filterCategories.find((x) => x.key === filterProp)}
 				<button class="menu-title back" onclick={() => (filterProp = null)}
-					><ChevronLeft size={14} /> {c ? c.labelKey() : ''}</button
+					><ChevronLeft size={14} /> {c ? c.label() : ''}</button
 				>
 				{#if optionsLoading}
 					<div class="menu-item"><span class="mi-label">{m.loading()}…</span></div>
 				{:else if options.length === 0}
 					<div class="menu-item"><span class="mi-label mi-meta">{m['library.noValues']()}</span></div>
 				{:else}
-					{#each options as opt (opt)}
+					{#each options as opt (opt.value)}
 						<button
 							class="menu-item"
 							onclick={() => {
-								params.toggleFilter(filterProp!, opt);
+								params.toggleFilter(filterProp!, opt.value);
 								close();
 							}}
 						>
-							<span class="mi-label">{opt}</span>
+							<span class="mi-label">{opt.label}</span>
 						</button>
 					{/each}
 				{/if}

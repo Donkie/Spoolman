@@ -14,7 +14,10 @@ from sqlalchemy.sql.functions import coalesce
 
 from spoolman.api.v1.models import EventType, Spool, SpoolEvent
 from spoolman.database import filament, models
-from spoolman.database.extra_field_query import apply_extra_field_filters_and_sort
+from spoolman.database.extra_field_query import (
+    apply_extra_field_filters_and_sort,
+    apply_spool_related_extra_filters,
+)
 from spoolman.database.utils import (
     SortOrder,
     add_where_clause_int,
@@ -126,6 +129,8 @@ async def find(  # noqa: C901, PLR0912
     lot_nr: str | None = None,
     allow_archived: bool = False,
     extra_field_filters: dict[str, str] | None = None,
+    filament_extra_field_filters: dict[str, str] | None = None,
+    vendor_extra_field_filters: dict[str, str] | None = None,
     sort_by: dict[str, SortOrder] | None = None,
     limit: int | None = None,
     offset: int = 0,
@@ -158,6 +163,12 @@ async def find(  # noqa: C901, PLR0912
         entity_type=EntityType.spool,
         extra_field_filters=extra_field_filters,
         sort_by=sort_by,
+    )
+    stmt = await apply_spool_related_extra_filters(
+        db=db,
+        stmt=stmt,
+        filament_filters=filament_extra_field_filters,
+        vendor_filters=vendor_extra_field_filters,
     )
 
     if sort_by is not None:
@@ -280,6 +291,8 @@ async def find_groups(
     lot_nr: str | None = None,
     allow_archived: bool = False,
     extra_field_filters: dict[str, str] | None = None,
+    filament_extra_field_filters: dict[str, str] | None = None,
+    vendor_extra_field_filters: dict[str, str] | None = None,
     sort_by: dict[str, SortOrder] | None = None,
     limit: int | None = None,
     offset: int = 0,
@@ -302,9 +315,11 @@ async def find_groups(
     }[group_by]
 
     # Remaining weight is computed (see Spool.from_db); mirror that formula so the sum is correct.
+    # The fallback literal is 0.0 (float, not int): the weights are floats, and CockroachDB rejects
+    # a COALESCE that mixes a float expression with an int literal ("incompatible COALESCE expressions").
     remaining_expr = coalesce(
         coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight,
-        0,
+        0.0,
     )
     spool_count = func.count().label("spool_count")
     in_use_count = func.sum(case((models.Spool.used_weight > 0, 1), else_=0)).label("in_use_count")
@@ -336,6 +351,12 @@ async def find_groups(
         entity_type=EntityType.spool,
         extra_field_filters=extra_field_filters,
         sort_by=None,
+    )
+    stmt = await apply_spool_related_extra_filters(
+        db=db,
+        stmt=stmt,
+        filament_filters=filament_extra_field_filters,
+        vendor_filters=vendor_extra_field_filters,
     )
     stmt = stmt.group_by(group_col)
 

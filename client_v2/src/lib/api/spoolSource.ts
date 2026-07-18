@@ -12,6 +12,8 @@ import {
 	vendorPatchToApi
 } from './map';
 import { inventory } from '$lib/stores/inventory.svelte';
+import { filamentLabel } from '$lib/utils/library';
+import type { EntityType } from './fields';
 import { getExternalFilaments, type ExternalFilament } from './external';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -39,11 +41,25 @@ export interface NewFilamentDraft {
 
 // Map a filter chip prop → API query param. Values are quoted for exact match.
 const FILTER_PARAM: Record<string, string> = {
+	filament: 'filament.id',
 	material: 'filament.material',
 	vendor: 'filament.vendor.name',
 	location: 'location',
 	lot: 'lot_nr'
 };
+
+// Filters whose values are passed through verbatim rather than double-quoted for
+// exact string match. `filament` filters by numeric id, which the API parses as
+// an int and would reject if quoted.
+const UNQUOTED_FILTERS = new Set(['filament']);
+
+// A filter prop is either one of the fixed categories above or an extra-field
+// filter whose prop is already the query param the backend expects — `extra.<key>`
+// for spool fields, `filament.extra.<key>` / `filament.vendor.extra.<key>` for a
+// spool's filament or vendor.
+function filterParam(prop: string): string | undefined {
+	return prop.includes('extra.') ? prop : FILTER_PARAM[prop];
+}
 
 function quote(v: string): string {
 	return `"${v}"`;
@@ -51,9 +67,10 @@ function quote(v: string): string {
 
 function applyFilters(params: QueryParams, filters: Record<string, string[]>) {
 	for (const [prop, values] of Object.entries(filters)) {
-		const key = FILTER_PARAM[prop];
+		const key = filterParam(prop);
 		if (!key || !values.length) continue;
-		params[key] = values.map(quote).join(',');
+		const encode = UNQUOTED_FILTERS.has(prop) ? (v: string) => v : quote;
+		params[key] = values.map(encode).join(',');
 	}
 }
 
@@ -301,6 +318,27 @@ class HttpSpoolSource {
 
 	async materials(): Promise<string[]> {
 		return getJson<string[]>('/material');
+	}
+	/**
+	 * Every filament as a `{ value: id, label }` option for the "filament" filter,
+	 * so a spool listing can be narrowed to one specific filament (e.g. a given
+	 * colour from a given manufacturer). Filaments are cached so the chosen chip
+	 * can render its label from the reactive store.
+	 */
+	async filamentOptions(): Promise<{ value: string; label: string }[]> {
+		const items = await getJson<Json[]>('/filament');
+		const filaments = items.map((f) => {
+			if (f.vendor) inventory.upsertVendor(mapVendor(f.vendor));
+			return mapFilament(f);
+		});
+		inventory.upsertFilaments(filaments);
+		return filaments
+			.map((f) => ({ value: f.id, label: filamentLabel(f, inventory.vendorOf(f)) }))
+			.sort((a, b) => a.label.localeCompare(b.label));
+	}
+	/** Distinct values currently stored for a scalar extra field (text/single-choice). */
+	async extraFieldValues(entity: EntityType, key: string): Promise<string[]> {
+		return getJson<string[]>(`/field/${entity}/${encodeURIComponent(key)}/values`);
 	}
 	async locations(): Promise<string[]> {
 		return getJson<string[]>('/location');

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 import sqlalchemy
 from sqlalchemy import Select
 from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import FunctionElement
 
 from spoolman.database import models
@@ -167,14 +168,17 @@ async def apply_extra_field_filters_and_sort(
     extra_fields_dict: dict[str, ExtraField] = {field.key: field for field in extra_fields}
 
     if extra_field_filters:
+        field_table = _get_field_table_for_entity(entity_type)
+        id_select = sqlalchemy.select(_get_entity_id_column(field_table))
         for field_key, value in extra_field_filters.items():
             field = extra_fields_dict.get(field_key)
             if field is None:
                 continue
             stmt = add_where_clause_extra_field(
                 stmt=stmt,
-                base_obj=base_obj,
-                entity_type=entity_type,
+                link_column=base_obj.id,
+                id_select=id_select,
+                field_table=field_table,
                 field_key=field_key,
                 field_type=field.field_type,
                 value=value,
@@ -203,21 +207,82 @@ async def apply_extra_field_filters_and_sort(
     return stmt
 
 
+async def apply_spool_related_extra_filters(
+    *,
+    db: AsyncSession,
+    stmt: Select,
+    filament_filters: dict[str, str] | None,
+    vendor_filters: dict[str, str] | None,
+) -> Select:
+    """Filter a spool query by extra fields that live on the spool's filament or its vendor.
+
+    Spool extra fields are handled by apply_extra_field_filters_and_sort; this handles the two
+    related entities, linking through Spool.filament_id (a spool matches when its filament — or that
+    filament's vendor — matches the extra-field condition).
+    """
+    if filament_filters:
+        fields = {f.key: f for f in await get_extra_fields(db, EntityType.filament)}
+        for field_key, value in filament_filters.items():
+            field = fields.get(field_key)
+            if field is None:
+                continue
+            stmt = add_where_clause_extra_field(
+                stmt=stmt,
+                link_column=models.Spool.filament_id,
+                id_select=sqlalchemy.select(models.FilamentField.filament_id),
+                field_table=models.FilamentField,
+                field_key=field_key,
+                field_type=field.field_type,
+                value=value,
+                multi_choice=field.multi_choice if field.field_type == ExtraFieldType.choice else None,
+            )
+
+    if vendor_filters:
+        fields = {f.key: f for f in await get_extra_fields(db, EntityType.vendor)}
+        for field_key, value in vendor_filters.items():
+            field = fields.get(field_key)
+            if field is None:
+                continue
+            # Map matching vendors back to filament ids: a spool matches when its filament's vendor
+            # matches. Alias Filament so this subquery doesn't collide with the outer query's join.
+            fil = aliased(models.Filament)
+            id_select = sqlalchemy.select(fil.id).join(
+                models.VendorField,
+                models.VendorField.vendor_id == fil.vendor_id,
+            )
+            stmt = add_where_clause_extra_field(
+                stmt=stmt,
+                link_column=models.Spool.filament_id,
+                id_select=id_select,
+                field_table=models.VendorField,
+                field_key=field_key,
+                field_type=field.field_type,
+                value=value,
+                multi_choice=field.multi_choice if field.field_type == ExtraFieldType.choice else None,
+            )
+
+    return stmt
+
+
 def add_where_clause_extra_field(  # noqa: C901, PLR0912, PLR0915
     stmt: Select,
-    base_obj: type[models.Base],
-    entity_type: EntityType,
+    *,
+    link_column: InstrumentedAttribute[int],
+    id_select: Select,
+    field_table: type[models.Base],
     field_key: str,
     field_type: ExtraFieldType,
     value: str,
-    *,
     multi_choice: bool | None = None,
 ) -> Select:
-    """Add a where clause to a select statement for an extra field."""
-    field_table = _get_field_table_for_entity(entity_type)
-    entity_id_column = _get_entity_id_column(field_table)
-    base_id_column = base_obj.id
+    """Add a where clause to a select statement for an extra field.
 
+    `link_column` is the column on the outer query to constrain (e.g. Spool.id, or Spool.filament_id
+    when filtering spools by a filament/vendor extra field). `id_select` is a SELECT of ids in that
+    same space (with any join to `field_table` already applied); this function narrows a copy of it
+    by the field key/value conditions. This indirection is what lets one query filter by extra fields
+    that live on a related entity.
+    """
     conditions = []
     for value_part in value.split(","):
         # Empty-string filters follow the existing string-query API semantics.
@@ -229,14 +294,12 @@ def add_where_clause_extra_field(  # noqa: C901, PLR0912, PLR0915
             if field_type == ExtraFieldType.boolean:
                 empty_conditions.append(field_table.value == json.dumps(bool(0)))
 
-            field_has_empty_value = sqlalchemy.select(entity_id_column).where(
+            field_has_empty_value = id_select.where(
                 sqlalchemy.and_(field_table.key == field_key, sqlalchemy.or_(*empty_conditions))
             )
-            field_missing_entirely = sqlalchemy.select(base_id_column).where(
-                base_id_column.not_in(sqlalchemy.select(entity_id_column).where(field_table.key == field_key))
-            )
-            conditions.append(base_id_column.in_(field_has_empty_value))
-            conditions.append(base_id_column.in_(field_missing_entirely))
+            # The linked entity either stores an empty value, or has no row for this key at all.
+            conditions.append(link_column.in_(field_has_empty_value))
+            conditions.append(link_column.not_in(id_select.where(field_table.key == field_key)))
             continue
 
         exact_match = value_part.startswith('"') and value_part.endswith('"')
@@ -353,15 +416,34 @@ def add_where_clause_extra_field(  # noqa: C901, PLR0912, PLR0915
         else:
             raise ValueError(f"Unsupported extra field type for '{field_key}': {field_type}")
 
-        matching_entities = sqlalchemy.select(entity_id_column).where(
-            sqlalchemy.and_(field_table.key == field_key, field_condition)
-        )
-        conditions.append(base_id_column.in_(matching_entities))
+        matching_entities = id_select.where(sqlalchemy.and_(field_table.key == field_key, field_condition))
+        conditions.append(link_column.in_(matching_entities))
 
     if not conditions:
         return stmt
 
     return stmt.where(sqlalchemy.or_(*conditions))
+
+
+async def find_extra_field_values(
+    *,
+    db: AsyncSession,
+    entity_type: EntityType,
+    field_key: str,
+) -> list[str]:
+    """Find all distinct values currently stored for a scalar extra field.
+
+    Intended for text/single-choice/datetime fields, whose values are stored as JSON string
+    scalars. Values are DB-decoded (see _JsonScalarText) so the result is independent of JSON
+    encoding, mirroring the built-in distinct-value endpoints (materials, locations, ...). Empty
+    and null values are omitted; the result is sorted for a stable option order.
+    """
+    field_table = _get_field_table_for_entity(entity_type)
+    decoded = _JsonScalarText(field_table.value)
+    stmt = sqlalchemy.select(decoded).where(field_table.key == field_key).distinct()
+    rows = await db.execute(stmt)
+    values = {row[0] for row in rows.all() if row[0] is not None and row[0] != ""}
+    return sorted(values)
 
 
 def add_order_by_extra_field(

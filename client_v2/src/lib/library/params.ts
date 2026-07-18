@@ -36,7 +36,7 @@ const ENTITY_KINDS: EntityKind[] = ['spool', 'filament', 'vendor'];
 
 const DEFAULTS = {
 	group: 'filament' as GroupMode,
-	sortKey: 'lastUsed',
+	sortKey: 'last_used',
 	sortAsc: false,
 	showArchived: false,
 	page: 1,

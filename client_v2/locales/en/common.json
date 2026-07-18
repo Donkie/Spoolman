@@ -307,6 +307,7 @@
     "library.section.extra": "Extra fields",
     "library.section.filament": "Filament",
     "library.section.spool": "Spool",
+    "library.section.vendor": "Manufacturer",
     "library.showMore": "show {{count}} more",
     "library.sort.dryer": "Dryer cycles",
     "library.sort.hue": "Color (hue)",

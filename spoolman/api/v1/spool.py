@@ -10,6 +10,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.datastructures import QueryParams
 
 from spoolman.api.v1.models import Filament, Message, Spool, SpoolEvent, SpoolGroup, Vendor
 from spoolman.database import spool
@@ -27,6 +28,27 @@ router = APIRouter(
 )
 
 # ruff: noqa: D103
+
+
+# Query-param prefixes for extra-field filters, longest first so the most specific one wins.
+_EXTRA_FILTER_PREFIXES = (
+    ("filament.vendor.extra.", "vendor"),
+    ("filament.extra.", "filament"),
+    ("extra.", "spool"),
+)
+
+
+def _parse_extra_field_filters(
+    query_params: QueryParams,
+) -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
+    """Split extra-field filter query params into (spool, filament, vendor) dicts keyed by field key."""
+    buckets: dict[str, dict[str, str]] = {"spool": {}, "filament": {}, "vendor": {}}
+    for key, value in query_params.items():
+        for prefix, entity in _EXTRA_FILTER_PREFIXES:
+            if key.startswith(prefix):
+                buckets[entity][key[len(prefix) :]] = value
+                break
+    return buckets["spool"], buckets["filament"], buckets["vendor"]
 
 
 class SpoolParameters(BaseModel):
@@ -286,13 +308,9 @@ async def find(
     else:
         filament_vendor_ids = None
 
-    # Extract custom field filters from query parameters
-    extra_field_filters = {}
-    query_params = request.query_params
-    for key, value in query_params.items():
-        if key.startswith("extra."):
-            field_key = key[6:]  # Remove "extra." prefix
-            extra_field_filters[field_key] = value
+    # Extract custom field filters from query parameters. Spool extra fields use `extra.<key>`;
+    # a filament's extra fields use `filament.extra.<key>` and its vendor's `filament.vendor.extra.<key>`.
+    spool_extra, filament_extra, vendor_extra = _parse_extra_field_filters(request.query_params)
 
     try:
         db_items, total_count = await spool.find(
@@ -305,7 +323,9 @@ async def find(
             location=location,
             lot_nr=lot_nr,
             allow_archived=allow_archived,
-            extra_field_filters=extra_field_filters if extra_field_filters else None,
+            extra_field_filters=spool_extra or None,
+            filament_extra_field_filters=filament_extra or None,
+            vendor_extra_field_filters=vendor_extra or None,
             sort_by=sort_by,
             limit=limit,
             offset=offset,
@@ -452,10 +472,7 @@ async def find_groups(
     filament_ids = [int(item) for item in filament_id.split(",")] if filament_id is not None else None
     vendor_ids = [int(item) for item in filament_vendor_id.split(",")] if filament_vendor_id is not None else None
 
-    extra_field_filters = {}
-    for key, value in request.query_params.items():
-        if key.startswith("extra."):
-            extra_field_filters[key[6:]] = value
+    spool_extra, filament_extra, vendor_extra = _parse_extra_field_filters(request.query_params)
 
     try:
         groups, total_count = await spool.find_groups(
@@ -469,7 +486,9 @@ async def find_groups(
             location=location,
             lot_nr=lot_nr,
             allow_archived=allow_archived,
-            extra_field_filters=extra_field_filters if extra_field_filters else None,
+            extra_field_filters=spool_extra or None,
+            filament_extra_field_filters=filament_extra or None,
+            vendor_extra_field_filters=vendor_extra or None,
             sort_by=sort_by,
             limit=limit,
             offset=offset,
