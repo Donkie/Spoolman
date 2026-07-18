@@ -1,7 +1,7 @@
 """Helper functions for interacting with vendor database objects."""
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 import sqlalchemy
 from sqlalchemy import func, select
@@ -30,7 +30,7 @@ async def create(
     """Add a new vendor to the database."""
     vendor = models.Vendor(
         name=name,
-        registered=datetime.utcnow().replace(microsecond=0),
+        registered=datetime.now(timezone.utc).replace(tzinfo=None, microsecond=0),
         comment=comment,
         empty_spool_weight=empty_spool_weight,
         external_id=external_id,
@@ -152,7 +152,7 @@ async def vendor_changed(vendor: models.Vendor, typ: EventType) -> None:
             VendorEvent(
                 type=typ,
                 resource="vendor",
-                date=datetime.utcnow(),
+                date=datetime.now(timezone.utc).replace(tzinfo=None),
                 payload=Vendor.from_db(vendor),
             ),
         )
