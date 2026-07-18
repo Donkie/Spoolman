@@ -1,8 +1,9 @@
 import { getJson } from './http';
 
-// SpoolmanDB (external filament database). The catalog is large (thousands of
-// entries) and static-ish, so we fetch it once and filter client-side, mirroring
-// the original frontend.
+// SpoolmanDB (external filament database). The filament catalog is large (thousands of
+// entries), so we never download it whole — filament searches go through the backend
+// `/external/filament/search` endpoint (see spoolSource.searchExternalFilaments). The
+// materials list below is tiny and still fetched in full for the new-filament presets.
 
 export interface ExternalFilament {
 	id: string;
@@ -18,16 +19,6 @@ export interface ExternalFilament {
 	extruder_temp?: number;
 	bed_temp?: number;
 	multi_color_direction?: string;
-}
-
-let cache: Promise<ExternalFilament[]> | null = null;
-
-export function getExternalFilaments(): Promise<ExternalFilament[]> {
-	cache ??= getJson<ExternalFilament[]>('/external/filament').catch((e) => {
-		cache = null; // allow retry on failure
-		throw e;
-	});
-	return cache;
 }
 
 export interface ExternalMaterial {

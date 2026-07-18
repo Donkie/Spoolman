@@ -165,6 +165,45 @@ def get_materials_file() -> Path:
     return filecache.get_file("materials.json")
 
 
+# In-memory cache of the parsed filament catalog, keyed by the cache file's mtime so it
+# is only re-parsed when a sync rewrites the file.
+_filaments_cache: tuple[float, list[ExternalFilament]] | None = None
+
+
+def _load_filaments() -> list[ExternalFilament]:
+    """Load and parse the cached filament catalog, memoized by the file's mtime."""
+    global _filaments_cache  # noqa: PLW0603
+    path = get_filaments_file()
+    if not path.exists():
+        return []
+    mtime = path.stat().st_mtime
+    if _filaments_cache is None or _filaments_cache[0] != mtime:
+        _filaments_cache = (mtime, _parse_filaments_from_bytes(path.read_bytes()).root)
+    return _filaments_cache[1]
+
+
+def search_filaments(query: str, limit: int) -> list[ExternalFilament]:
+    """Search the external filament catalog server-side.
+
+    Keeps the same semantics as the client-side search it replaces: the query is split
+    into whitespace-separated words and every word must appear (case-insensitively) as a
+    substring of the filament's "manufacturer name material" text. Results preserve
+    catalog order and are capped at `limit`, so the entire catalog never has to be sent
+    to the client.
+    """
+    words = query.lower().split()
+    if not words:
+        return []
+    results: list[ExternalFilament] = []
+    for filament in _load_filaments():
+        haystack = f"{filament.manufacturer} {filament.name} {filament.material}".lower()
+        if all(word in haystack for word in words):
+            results.append(filament)
+            if len(results) >= limit:
+                break
+    return results
+
+
 async def _sync() -> None:
     logger.info("Syncing external DB.")
 

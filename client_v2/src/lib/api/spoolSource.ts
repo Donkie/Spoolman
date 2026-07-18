@@ -14,7 +14,7 @@ import {
 import { inventory } from '$lib/stores/inventory.svelte';
 import { filamentLabel } from '$lib/utils/library';
 import type { EntityType } from './fields';
-import { getExternalFilaments, type ExternalFilament } from './external';
+import { type ExternalFilament } from './external';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Json = Record<string, any>;
@@ -158,14 +158,11 @@ class HttpSpoolSource {
 	}
 
 	async searchExternalFilaments(query: string, limit = 8): Promise<ExternalFilament[]> {
-		const all = await getExternalFilaments();
-		const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-		if (!words.length) return [];
-		const matches = all.filter((f) => {
-			const hay = `${f.manufacturer} ${f.name} ${f.material}`.toLowerCase();
-			return words.every((w) => hay.includes(w));
-		});
-		return matches.slice(0, limit);
+		// Filtering happens server-side (/external/filament/search) so the whole catalog
+		// — thousands of entries — never has to be downloaded to the client.
+		const q = query.trim();
+		if (!q) return [];
+		return getJson<ExternalFilament[]>('/external/filament/search', { query: q, limit });
 	}
 
 	/**
