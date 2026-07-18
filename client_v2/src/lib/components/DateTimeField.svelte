@@ -20,13 +20,36 @@
 	let { value, oninput }: Props = $props();
 
 	const pad = (n: number) => String(n).padStart(2, '0');
-	// Month and weekday names come from Intl in the active locale. Weekdays are
-	// Monday-first (2021-11-01 was a Monday); months use a mid-month date to dodge
-	// timezone edge cases.
+	// Month and weekday names come from Intl in the active locale; months use a
+	// mid-month date to dodge timezone edge cases.
 	const dtLocale = $derived(languages[getLocale()].code);
+
+	// First day of the week per locale (1 = Monday … 7 = Sunday). Some locales
+	// (e.g. en-US) start the week on Sunday, others on Saturday. Fall back to
+	// Monday if the browser lacks Intl.Locale week info.
+	const firstDay = $derived.by(() => {
+		try {
+			const loc = new Intl.Locale(dtLocale) as Intl.Locale & {
+				weekInfo?: { firstDay: number };
+				getWeekInfo?: () => { firstDay: number };
+			};
+			const info = loc.getWeekInfo?.() ?? loc.weekInfo;
+			if (info?.firstDay) return info.firstDay;
+		} catch {
+			/* older browsers: fall through */
+		}
+		return 1;
+	});
+	// JS getDay() index (0 = Sunday) of the locale's first weekday.
+	const firstJsDay = $derived(firstDay % 7);
+
+	// Weekday short names, ordered starting from the locale's first day.
+	// 2021-10-31 was a Sunday, so `Oct 31 + jsDay` yields a date with that weekday.
 	const WEEKDAYS = $derived(
 		Array.from({ length: 7 }, (_v, i) =>
-			new Intl.DateTimeFormat(dtLocale, { weekday: 'short' }).format(new Date(2021, 10, 1 + i))
+			new Intl.DateTimeFormat(dtLocale, { weekday: 'short' }).format(
+				new Date(2021, 9, 31 + ((firstJsDay + i) % 7))
+			)
 		)
 	);
 	const MONTHS = $derived(
@@ -34,6 +57,23 @@
 			new Intl.DateTimeFormat(dtLocale, { month: 'long' }).format(new Date(2021, m, 15))
 		)
 	);
+
+	// Whether the active locale prefers a 12-hour clock (AM/PM) over 24-hour.
+	const hour12 = $derived.by(() => {
+		try {
+			return new Intl.DateTimeFormat(dtLocale, { hour: 'numeric' }).resolvedOptions().hour12 ?? false;
+		} catch {
+			return false;
+		}
+	});
+	// Localized AM/PM (day-period) labels for the 12-hour meridiem picker.
+	const meridiems = $derived.by(() => {
+		const label = (h: number) =>
+			new Intl.DateTimeFormat(dtLocale, { hour: 'numeric', hour12: true })
+				.formatToParts(new Date(2021, 0, 1, h))
+				.find((p) => p.type === 'dayPeriod')?.value;
+		return { am: label(9) ?? 'AM', pm: label(21) ?? 'PM' };
+	});
 
 	// --- popover open/close + positioning ------------------------------------
 	let root = $state<HTMLDivElement>();
@@ -84,12 +124,18 @@
 			day: 'numeric',
 			year: 'numeric'
 		}).format(d);
-		return `${datePart}  ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+		// Time part follows the locale's 12/24-hour preference.
+		const timePart = new Intl.DateTimeFormat(dtLocale, {
+			hour: '2-digit',
+			minute: '2-digit'
+		}).format(d);
+		return `${datePart}  ${timePart}`;
 	});
 
-	// Calendar grid: 6 weeks × 7 days, Monday-first, null = blank leading cell.
+	// Calendar grid: 6 weeks × 7 days, ordered from the locale's first weekday,
+	// null = blank leading cell.
 	let grid = $derived.by(() => {
-		const firstDow = (new Date(viewYear, viewMonth, 1).getDay() + 6) % 7; // 0 = Mon
+		const firstDow = (new Date(viewYear, viewMonth, 1).getDay() - firstJsDay + 7) % 7;
 		const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
 		const cells: (number | null)[] = [];
 		for (let i = 0; i < firstDow; i++) cells.push(null);
@@ -108,7 +154,13 @@
 	}
 
 	const hours = Array.from({ length: 24 }, (_, i) => i);
+	// 12-hour clock face, ordered 12, 1, 2 … 11.
+	const hours12 = [12, ...Array.from({ length: 11 }, (_, i) => i + 1)];
 	const minutes = Array.from({ length: 60 }, (_, i) => i);
+
+	// 12-hour view of the internal 0-23 `hour`.
+	const displayHour = $derived(hour % 12 === 0 ? 12 : hour % 12);
+	const isPm = $derived(hour >= 12);
 
 	// --- emit ----------------------------------------------------------------
 	function commit() {
@@ -125,6 +177,16 @@
 	}
 	function onHour(e: Event) {
 		hour = Number((e.currentTarget as HTMLSelectElement).value);
+		commit();
+	}
+	function onHour12(e: Event) {
+		const h12 = Number((e.currentTarget as HTMLSelectElement).value); // 1-12
+		hour = (h12 % 12) + (isPm ? 12 : 0);
+		commit();
+	}
+	function onMeridiem(e: Event) {
+		const pm = (e.currentTarget as HTMLSelectElement).value === 'pm';
+		hour = (hour % 12) + (pm ? 12 : 0);
 		commit();
 	}
 	function onMinute(e: Event) {
@@ -253,17 +315,36 @@
 			</div>
 			<div class="time-row">
 				<span class="time-label">{m['datetime.time']()}</span>
-				<select class="sel mono" value={hour} onchange={onHour} aria-label={m['datetime.hour']()}>
-					{#each hours as h (h)}
-						<option value={h}>{pad(h)}</option>
-					{/each}
-				</select>
+				{#if hour12}
+					<select class="sel mono" value={displayHour} onchange={onHour12} aria-label={m['datetime.hour']()}>
+						{#each hours12 as h (h)}
+							<option value={h}>{pad(h)}</option>
+						{/each}
+					</select>
+				{:else}
+					<select class="sel mono" value={hour} onchange={onHour} aria-label={m['datetime.hour']()}>
+						{#each hours as h (h)}
+							<option value={h}>{pad(h)}</option>
+						{/each}
+					</select>
+				{/if}
 				<span class="colon">:</span>
 				<select class="sel mono" value={minute} onchange={onMinute} aria-label={m['datetime.minute']()}>
 					{#each minutes as m (m)}
 						<option value={m}>{pad(m)}</option>
 					{/each}
 				</select>
+				{#if hour12}
+					<select
+						class="sel meridiem"
+						value={isPm ? 'pm' : 'am'}
+						onchange={onMeridiem}
+						aria-label={m['datetime.time']()}
+					>
+						<option value="am">{meridiems.am}</option>
+						<option value="pm">{meridiems.pm}</option>
+					</select>
+				{/if}
 			</div>
 			<div class="actions">
 				<button type="button" class="link" onclick={clear}>{m['buttons.clear']()}</button>
@@ -406,6 +487,10 @@
 	}
 	.colon {
 		color: var(--text-dim);
+	}
+	.meridiem {
+		margin-left: 6px;
+		text-transform: uppercase;
 	}
 	.actions {
 		display: flex;
