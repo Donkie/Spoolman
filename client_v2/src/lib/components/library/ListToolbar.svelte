@@ -68,6 +68,17 @@
 			load: async () => (await spoolSource.vendorNames()).map(asOption)
 		},
 		{
+			key: 'direction',
+			label: m['filament.fields.colorType'],
+			// Fixed set: single-color (no direction, sent as an empty string) plus the
+			// two multi-color directions the backend recognises.
+			load: async () => [
+				{ value: '', label: m['filament.fields.singleColor']() },
+				{ value: 'coaxial', label: m['filament.fields.coaxial']() },
+				{ value: 'longitudinal', label: m['filament.fields.longitudinal']() }
+			]
+		},
+		{
 			key: 'location',
 			label: m['spool.fields.location'],
 			load: async () => (await spoolSource.locations()).map(asOption)
@@ -174,6 +185,17 @@
 			const fil = inventory.filamentById(value);
 			return `${label}: ${fil ? filamentLabel(fil, inventory.vendorOf(fil)) : '#' + value}`;
 		}
+		// Multi-color direction stores the raw enum value (empty = single color);
+		// show its localized label.
+		if (prop === 'direction') {
+			const dir =
+				value === 'coaxial'
+					? m['filament.fields.coaxial']()
+					: value === 'longitudinal'
+						? m['filament.fields.longitudinal']()
+						: m['filament.fields.singleColor']();
+			return `${label}: ${dir}`;
+		}
 		// Boolean extra fields store true/false but display Yes/No.
 		const def = extraFieldFor(prop)?.def;
 		if (def?.field_type === FieldType.boolean) {
@@ -234,7 +256,8 @@
 
 	<div class="controls">
 		<button class="link-btn" onclick={() => toggle('group')}
-			><span class="ctrl-label">{m['library.groupBy']()}: </span>{groupLabel} <ChevronDown size={13} /></button
+			><span class="ctrl-label">{m['library.groupBy']()}: </span>{groupLabel}
+			<ChevronDown size={13} /></button
 		>
 		<button class="chip active sort" onclick={() => toggle('sort')}>
 			<span class="ctrl-label">{m['library.sortBy']()}: </span>{activeSort.labelKey()}

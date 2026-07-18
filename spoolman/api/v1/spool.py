@@ -222,6 +222,19 @@ async def find(
             ),
         ),
     ] = None,
+    filament_multi_color_direction: Annotated[
+        str | None,
+        Query(
+            alias="filament.multi_color_direction",
+            title="Filament Multi-Color Direction",
+            description=(
+                "Match spools by their filament's multi-color direction, e.g. coaxial or longitudinal. "
+                "Separate multiple terms with a comma. Specify an empty string to match single-color filaments. "
+                "Surround a term with quotes to search for the exact term."
+            ),
+            examples=['"coaxial"', '"longitudinal"'],
+        ),
+    ] = None,
     filament_vendor_name: Annotated[
         str | None,
         Query(
@@ -318,6 +331,7 @@ async def find(
             filament_name=filament_name if filament_name is not None else filament_name_old,
             filament_id=filament_ids,
             filament_material=filament_material if filament_material is not None else filament_material_old,
+            filament_multi_color_direction=filament_multi_color_direction,
             vendor_name=filament_vendor_name if filament_vendor_name is not None else vendor_name_old,
             vendor_id=filament_vendor_ids,
             location=location,
@@ -410,6 +424,18 @@ async def find_groups(
             description="Partial case-insensitive search term for the filament material.",
         ),
     ] = None,
+    filament_multi_color_direction: Annotated[
+        str | None,
+        Query(
+            alias="filament.multi_color_direction",
+            title="Filament Multi-Color Direction",
+            description=(
+                "Match by the filament's multi-color direction, e.g. coaxial or longitudinal. "
+                "Specify an empty string to match single-color filaments."
+            ),
+            examples=['"coaxial"', '"longitudinal"'],
+        ),
+    ] = None,
     filament_vendor_name: Annotated[
         str | None,
         Query(
@@ -481,6 +507,7 @@ async def find_groups(
             filament_name=filament_name,
             filament_id=filament_ids,
             filament_material=filament_material,
+            filament_multi_color_direction=filament_multi_color_direction,
             vendor_name=filament_vendor_name,
             vendor_id=vendor_ids,
             location=location,

@@ -81,7 +81,7 @@
 				<Field label={m['vendor.fields.name']()}>
 					<EditableField value={vendor.name} oninput={(v) => set({ name: v })} />
 				</Field>
-				<Field label={m['inspector.emptySpoolWt']()}>
+				<Field label={m['vendor.fields.emptySpoolWeight']()}>
 					<NumberInput
 						dense
 						unit="g"

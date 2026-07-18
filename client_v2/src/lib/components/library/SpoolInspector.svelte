@@ -324,7 +324,8 @@
 				</Field>
 				<Field label={m['filament.fields.diameter']()} mono>{filament.diameter} mm</Field>
 				<Field label={m['filament.fields.density']()} mono>{filament.density} g/cm³</Field>
-				<Field label={m['inspector.nozzleBed']()} mono>{filament.nozzleTemp}° / {filament.bedTemp}°</Field>
+				<Field label={m['filament.fields.settingsExtruderTemp']()} mono>{filament.nozzleTemp} °C</Field>
+				<Field label={m['filament.fields.settingsBedTemp']()} mono>{filament.bedTemp} °C</Field>
 				<Field label={m['inspector.filamentWeight']()} mono>{filament.weight} g</Field>
 				{#if filament.spoolWeight}
 					<Field label={m['vendor.fields.emptySpoolWeight']()} mono>{filament.spoolWeight} g</Field>

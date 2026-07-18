@@ -1,4 +1,4 @@
-import type { Filament, Spool, Vendor } from '$lib/types';
+import type { Filament, MultiColorDirection, Spool, Vendor } from '$lib/types';
 import type { GroupQuery, GroupSummary, Page, SpoolQuery } from './types';
 import { getList, getJson, patchJson, postJson, putJson } from './http';
 import type { QueryParams } from './http';
@@ -9,7 +9,8 @@ import {
 	mapVendor,
 	spoolPatchToApi,
 	filamentPatchToApi,
-	vendorPatchToApi
+	vendorPatchToApi,
+	colorFieldsToApi
 } from './map';
 import { inventory } from '$lib/stores/inventory.svelte';
 import { filamentLabel } from '$lib/utils/library';
@@ -32,7 +33,9 @@ export interface NewFilamentDraft {
 	diameter: number;
 	weight?: number;
 	spoolWeight?: number;
-	colorHex?: string;
+	/** One or more hex colors (with or without '#'); 2+ makes it multi-color. */
+	colors?: string[];
+	multiColorDirection?: MultiColorDirection;
 	nozzleTemp?: number;
 	bedTemp?: number;
 	price?: number;
@@ -45,14 +48,17 @@ const FILTER_PARAM: Record<string, string> = {
 	filament: 'filament.id',
 	material: 'filament.material',
 	vendor: 'filament.vendor.name',
+	direction: 'filament.multi_color_direction',
 	location: 'location',
 	lot: 'lot_nr'
 };
 
 // Filters whose values are passed through verbatim rather than double-quoted for
 // exact string match. `filament` filters by numeric id, which the API parses as
-// an int and would reject if quoted.
-const UNQUOTED_FILTERS = new Set(['filament']);
+// an int and would reject if quoted. `direction` is passed verbatim so its empty
+// value (single-color = no direction) hits the backend's NULL-match branch, which
+// quoting would turn into an exact match on the literal empty string instead.
+const UNQUOTED_FILTERS = new Set(['filament', 'direction']);
 
 // A filter prop is either one of the fixed categories above or an extra-field
 // filter whose prop is already the query param the backend expects — `extra.<key>`
@@ -255,12 +261,12 @@ class HttpSpoolSource {
 			diameter: draft.diameter,
 			weight: draft.weight || undefined,
 			spool_weight: draft.spoolWeight || undefined,
-			color_hex: draft.colorHex || undefined,
 			settings_extruder_temp: draft.nozzleTemp || undefined,
 			settings_bed_temp: draft.bedTemp || undefined,
 			price: draft.price || undefined,
 			article_number: draft.articleNumber || undefined,
-			comment: draft.comment || undefined
+			comment: draft.comment || undefined,
+			...colorFieldsToApi(draft.colors, draft.multiColorDirection)
 		};
 		const created = await postJson<Json>('/filament', body);
 		const f = mapFilament(created);

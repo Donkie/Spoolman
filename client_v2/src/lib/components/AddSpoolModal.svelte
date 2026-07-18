@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Swatch from './Swatch.svelte';
+	import ColorEditor from './ColorEditor.svelte';
 	import Button from './Button.svelte';
 	import NumberInput from './NumberInput.svelte';
 	import Combobox from './Combobox.svelte';
@@ -9,7 +10,7 @@
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import ExtraFieldsSection from './ExtraFieldsSection.svelte';
-	import type { Filament, Extra } from '$lib/types';
+	import type { Filament, Extra, MultiColorDirection } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { serverInfo } from '$lib/stores/serverInfo.svelte';
@@ -47,7 +48,8 @@
 		vendorName: '',
 		name: '',
 		material: '',
-		colorHex: '',
+		colors: [] as string[],
+		multiColorDirection: undefined as MultiColorDirection | undefined,
 		density: '',
 		diameter: '1.75',
 		nozzleTemp: '',
@@ -262,7 +264,8 @@
 			vendorName: '',
 			name: query.trim(),
 			material: '',
-			colorHex: '',
+			colors: [],
+			multiColorDirection: undefined,
 			density: '',
 			diameter: '1.75',
 			nozzleTemp: '',
@@ -299,17 +302,6 @@
 		}
 	}
 
-	// Native color picker <-> hex text field. The picker only speaks #rrggbb, so
-	// we feed it the first 6 valid digits and default to grey when the field is
-	// empty/invalid; picking writes back an uppercase 6-digit hex.
-	let colorPicker = $derived.by(() => {
-		const h = nf.colorHex.trim().replace(/^#/, '');
-		return /^[0-9a-fA-F]{6}/.test(h) ? '#' + h.slice(0, 6) : '#888888';
-	});
-	function onColorPick(v: string) {
-		nf.colorHex = v.replace(/^#/, '').toUpperCase();
-	}
-
 	function reset() {
 		step = 1;
 		query = '';
@@ -338,7 +330,8 @@
 					diameter: Number(nf.diameter) || 1.75,
 					weight: Number(netWeight) || undefined,
 					spoolWeight: Number(spoolWeight) || undefined,
-					colorHex: nf.colorHex.trim().replace(/^#/, '') || undefined,
+					colors: nf.colors,
+					multiColorDirection: nf.multiColorDirection,
 					nozzleTemp: nf.nozzleTemp ? Number(nf.nozzleTemp) : undefined,
 					bedTemp: nf.bedTemp ? Number(nf.bedTemp) : undefined,
 					price: parseFloat(price) || undefined,
@@ -422,7 +415,7 @@
 			e.diameter = numErr(nf.diameter, { required: true, gt: 0 });
 			e.nozzleTemp = numErr(nf.nozzleTemp, { min: 0 });
 			e.bedTemp = numErr(nf.bedTemp, { min: 0 });
-			if (nf.colorHex.trim() && !HEX_RE.test(nf.colorHex.trim())) e.colorHex = m['validation.hexDigits']();
+			if (nf.colors.some((c) => c.trim() && !HEX_RE.test(c.trim()))) e.colorHex = m['validation.hexDigits']();
 		}
 		e.count = numErr(count, { required: true, gt: 0 });
 		e.netWeight = numErr(netWeight, { gt: 0 });
@@ -580,22 +573,16 @@
 									/>
 									{#if errors.material}<span class="err">{errors.material}</span>{/if}
 								</label>
-								<label class="color-field">
+								<label class="color-field wide">
 									{m['filament.fields.colorHex']()}
-									<div class="color-row">
-										<input
-											class="color-pick"
-											type="color"
-											value={colorPicker}
-											oninput={(e) => onColorPick(e.currentTarget.value)}
-											aria-label={m['add.pickColor']()}
-										/>
-										<input
-											class="mono"
-											bind:value={nf.colorHex}
-											placeholder="hex"
-											maxlength="8"
-											class:invalid={errors.colorHex}
+									<div class="color-editor-wrap">
+										<ColorEditor
+											colors={nf.colors}
+											direction={nf.multiColorDirection}
+											onchange={(v) => {
+												nf.colors = v.colors;
+												nf.multiColorDirection = v.direction;
+											}}
 										/>
 									</div>
 									{#if errors.colorHex}<span class="err">{errors.colorHex}</span>{/if}
@@ -1072,37 +1059,8 @@
 		background: var(--border-soft);
 		margin: 16px 0 4px;
 	}
-	.color-field .color-row {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		margin-top: 5px;
-	}
-	.color-field .color-row input {
-		margin-top: 0;
-		flex: 1;
-		min-width: 0;
-	}
-	.color-pick {
-		flex: none !important;
-		width: 30px !important;
-		height: 30px;
-		padding: 2px !important;
-		border: 1px solid var(--border-strong) !important;
-		border-radius: 6px;
-		background: none;
-		cursor: pointer;
-	}
-	.color-pick::-webkit-color-swatch-wrapper {
-		padding: 0;
-	}
-	.color-pick::-webkit-color-swatch {
-		border: none;
-		border-radius: 4px;
-	}
-	.color-pick::-moz-color-swatch {
-		border: none;
-		border-radius: 4px;
+	.color-editor-wrap {
+		margin-top: 6px;
 	}
 	.adv-toggle {
 		display: flex;

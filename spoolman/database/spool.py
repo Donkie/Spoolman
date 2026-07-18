@@ -123,6 +123,7 @@ async def find(  # noqa: C901, PLR0912
     filament_name: str | None = None,
     filament_id: int | Sequence[int] | None = None,
     filament_material: str | None = None,
+    filament_multi_color_direction: str | None = None,
     vendor_name: str | None = None,
     vendor_id: int | Sequence[int] | None = None,
     location: str | None = None,
@@ -147,6 +148,7 @@ async def find(  # noqa: C901, PLR0912
         filament_name=filament_name,
         filament_id=filament_id,
         filament_material=filament_material,
+        filament_multi_color_direction=filament_multi_color_direction,
         vendor_name=vendor_name,
         vendor_id=vendor_id,
         location=location,
@@ -239,6 +241,7 @@ def _apply_spool_filters(
     filament_name: str | None = None,
     filament_id: int | Sequence[int] | None = None,
     filament_material: str | None = None,
+    filament_multi_color_direction: str | None = None,
     vendor_name: str | None = None,
     vendor_id: int | Sequence[int] | None = None,
     location: str | None = None,
@@ -252,6 +255,7 @@ def _apply_spool_filters(
     stmt = add_where_clause_str(stmt, models.Vendor.name, vendor_name)
     stmt = add_where_clause_str_opt(stmt, models.Filament.name, filament_name)
     stmt = add_where_clause_str_opt(stmt, models.Filament.material, filament_material)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.multi_color_direction, filament_multi_color_direction)
     stmt = add_where_clause_str_opt(stmt, models.Spool.location, location)
     stmt = add_where_clause_str_opt(stmt, models.Spool.lot_nr, lot_nr)
     if not allow_archived:
@@ -285,6 +289,7 @@ async def find_groups(
     filament_name: str | None = None,
     filament_id: int | Sequence[int] | None = None,
     filament_material: str | None = None,
+    filament_multi_color_direction: str | None = None,
     vendor_name: str | None = None,
     vendor_id: int | Sequence[int] | None = None,
     location: str | None = None,
@@ -338,6 +343,7 @@ async def find_groups(
         filament_name=filament_name,
         filament_id=filament_id,
         filament_material=filament_material,
+        filament_multi_color_direction=filament_multi_color_direction,
         vendor_name=vendor_name,
         vendor_id=vendor_id,
         location=location,

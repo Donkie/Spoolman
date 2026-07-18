@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Swatch from '../Swatch.svelte';
+	import ColorEditor from '../ColorEditor.svelte';
 	import Button from '../Button.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
 	import EditableField from '../EditableField.svelte';
@@ -138,8 +139,14 @@
 				<Field label={m['filament.fields.material']()}>
 					<EditableField value={filament.material} oninput={(v) => set({ material: v })} />
 				</Field>
-				<Field label={m['inspector.colorHex']()}>
-					<EditableField value={filament.colors[0]} mono oninput={(v) => set({ colors: [v] })} />
+				<Field label={m['filament.fields.colorHex']()}>
+					{#key filament.id}
+						<ColorEditor
+							colors={filament.colors}
+							direction={filament.multiColorDirection}
+							onchange={(v) => set({ colors: v.colors, multiColorDirection: v.direction })}
+						/>
+					{/key}
 				</Field>
 				<Field label={m['filament.fields.diameter']()}>
 					<NumberInput
@@ -163,7 +170,7 @@
 						onchange={(v) => set({ density: v || filament.density })}
 					/>
 				</Field>
-				<Field label={m['inspector.nozzleC']()}>
+				<Field label={m['filament.fields.settingsExtruderTemp']()}>
 					<NumberInput
 						dense
 						width="200px"
@@ -174,7 +181,7 @@
 						onchange={(v) => set({ nozzleTemp: Math.round(v) })}
 					/>
 				</Field>
-				<Field label={m['inspector.bedC']()}>
+				<Field label={m['filament.fields.settingsBedTemp']()}>
 					<NumberInput
 						dense
 						width="200px"

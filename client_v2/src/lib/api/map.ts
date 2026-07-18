@@ -1,4 +1,4 @@
-import type { Filament, Spool, Vendor } from '$lib/types';
+import type { Filament, MultiColorDirection, Spool, Vendor } from '$lib/types';
 import type { GroupSummary } from './types';
 
 // Map between the Spoolman API JSON shape and the client's domain types.
@@ -62,6 +62,7 @@ export function mapFilament(f: Json): Filament {
 		name: f.name ?? '(unnamed filament)',
 		material: f.material ?? '',
 		colors: colorsFromApi(f),
+		multiColorDirection: f.multi_color_direction ?? undefined,
 		diameter: f.diameter ?? 0,
 		density: f.density ?? 0,
 		nozzleTemp: f.settings_extruder_temp ?? 0,
@@ -145,6 +146,27 @@ export function mapGroup(g: Json): GroupSummary {
 
 // --- domain patch → API request body -------------------------------------
 
+/**
+ * Build the API's colour fields from a domain colour list + direction. The
+ * backend keys single- and multi-colour filaments differently and rejects
+ * having both set, so we pick one branch by colour count and null out the
+ * other keys (important when switching an existing filament between the two).
+ */
+export function colorFieldsToApi(
+	colors: string[] | undefined,
+	direction: MultiColorDirection | undefined
+): Json {
+	const hexes = (colors ?? []).map((c) => c.trim().replace(/^#/, '')).filter(Boolean);
+	if (hexes.length > 1) {
+		return {
+			color_hex: null,
+			multi_color_hexes: hexes.join(','),
+			multi_color_direction: direction ?? 'coaxial'
+		};
+	}
+	return { color_hex: hexes[0] ?? null, multi_color_hexes: null, multi_color_direction: null };
+}
+
 export function spoolPatchToApi(patch: Partial<Spool>): Json {
 	const out: Json = {};
 	if ('location' in patch) out.location = patch.location ?? '';
@@ -163,7 +185,9 @@ export function filamentPatchToApi(patch: Partial<Filament>): Json {
 	const out: Json = {};
 	if ('name' in patch) out.name = patch.name;
 	if ('material' in patch) out.material = patch.material;
-	if ('colors' in patch) out.color_hex = (patch.colors?.[0] ?? '').replace(/^#/, '') || null;
+	// Colours and direction always travel together (the inspector pushes both), so
+	// keying off `colors` keeps the single/multi request self-consistent.
+	if ('colors' in patch) Object.assign(out, colorFieldsToApi(patch.colors, patch.multiColorDirection));
 	if ('diameter' in patch) out.diameter = patch.diameter;
 	if ('density' in patch) out.density = patch.density;
 	if ('nozzleTemp' in patch) out.settings_extruder_temp = patch.nozzleTemp;

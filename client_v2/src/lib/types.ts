@@ -5,6 +5,9 @@
 /** Custom-field values: field key → JSON-encoded string value. */
 export type Extra = Record<string, string>;
 
+/** Layout of a multi-color filament's colors. */
+export type MultiColorDirection = 'coaxial' | 'longitudinal';
+
 export interface Vendor {
 	id: string;
 	name: string;
@@ -25,6 +28,8 @@ export interface Filament {
 	material: string;
 	/** One or more hex colors; multiple means a multi-color/gradient swatch. */
 	colors: string[];
+	/** Layout of a multi-color filament; undefined for single-color filaments. */
+	multiColorDirection?: MultiColorDirection;
 	diameter: number;
 	density: number;
 	nozzleTemp: number;
