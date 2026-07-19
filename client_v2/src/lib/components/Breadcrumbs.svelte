@@ -1,10 +1,13 @@
 <script lang="ts">
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	// Inspector breadcrumb trail. The last item is the current entity (rendered
-	// static); earlier items with an `onclick` are navigable.
+	// static); earlier items with an `onclick` are navigable. A `muted` crumb
+	// stands in for a level that doesn't exist (e.g. a filament with no
+	// manufacturer) — there's nothing to navigate to, so it reads as a note.
 	export interface Crumb {
 		label: string;
 		onclick?: () => void;
+		muted?: boolean;
 	}
 	let { items }: { items: Crumb[] } = $props();
 </script>
@@ -14,6 +17,8 @@
 		{#if i > 0}<span class="sep"><ChevronRight size={13} /></span>{/if}
 		{#if c.onclick}
 			<button class="crumb" onclick={c.onclick}>{c.label}</button>
+		{:else if c.muted}
+			<span class="muted">{c.label}</span>
 		{:else}
 			<span class="current">{c.label}</span>
 		{/if}
@@ -42,5 +47,9 @@
 	}
 	.current {
 		color: var(--text-2);
+	}
+	.muted {
+		color: var(--text-dim);
+		font-style: italic;
 	}
 </style>

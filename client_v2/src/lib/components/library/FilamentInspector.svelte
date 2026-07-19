@@ -28,7 +28,9 @@
 
 	let { filament }: { filament: Filament } = $props();
 
-	let vendor = $derived(inventory.vendorOf(filament));
+	// Undefined when the filament has no manufacturer set (or it isn't cached yet) —
+	// the display falls back to a plain "no manufacturer" note instead of a link.
+	let vendor = $derived(inventory.vendorById(filament.vendorId));
 
 	// Fetch this filament's spools from the API (scoped list) rather than the cache.
 	// Depend on the primitive id (via $derived) — not `filament` itself — so the
@@ -88,7 +90,9 @@
 <div class="insp">
 	<Breadcrumbs
 		items={[
-			{ label: vendor.name, onclick: () => params.select('vendor', vendor.id) },
+			vendor
+				? { label: vendor.name, onclick: () => params.select('vendor', vendor.id) }
+				: { label: m['add.noManufacturer'](), muted: true },
 			{ label: filament.name }
 		]}
 	/>
@@ -103,7 +107,10 @@
 						title={serverInfo.externalDbName + ' · ' + filament.externalId}>{serverInfo.externalDbName}</span
 					>{/if}
 			</div>
-			<div class="subtitle">{vendor.name} · {filament.material} · {filament.diameter} mm</div>
+			<div class="subtitle">
+				{#if vendor}{vendor.name} ·
+				{/if}{filament.material} · {filament.diameter} mm
+			</div>
 		</div>
 		<div class="add">
 			<Button onclick={() => ui.openAddModal(filament.id)}

@@ -47,7 +47,9 @@
 	};
 
 	let filament = $derived(inventory.filamentById(spool.filamentId) ?? MISSING_FIL);
-	let vendor = $derived(inventory.vendorOf(filament));
+	// Undefined when the filament has no manufacturer set (or it isn't cached yet) —
+	// the display falls back to a plain "no manufacturer" note instead of a link.
+	let vendor = $derived(inventory.vendorById(filament.vendorId));
 	let used = $derived(spool.initial - spool.remaining);
 
 	// Existing locations for the location picker: pick an existing one from the
@@ -182,7 +184,9 @@
 <div class="insp">
 	<Breadcrumbs
 		items={[
-			{ label: vendor.name, onclick: () => params.select('vendor', vendor.id) },
+			vendor
+				? { label: vendor.name, onclick: () => params.select('vendor', vendor.id) }
+				: { label: m['add.noManufacturer'](), muted: true },
 			{ label: filament.name, onclick: () => params.select('filament', filament.id) },
 			{ label: '#' + spool.id }
 		]}
@@ -192,7 +196,7 @@
 		<Swatch colors={filament.colors} size={40} radius={9} />
 		<div class="titles">
 			<div class="title">
-				{vendor.name}
+				{#if vendor}{vendor.name}{/if}
 				{filament.name}
 				<span class="idmono mono">#{spool.id}</span>
 				{#if spool.archived}<span class="arch-badge">{m['spool.fields.archived']()}</span>{/if}
