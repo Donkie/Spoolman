@@ -274,7 +274,7 @@
 		<div class="col">
 			<SectionLabel>{m['library.section.spool']()}</SectionLabel>
 			<FieldGrid>
-				<Field label={m['spool.fields.location']()}>
+				<Field label={m['spool.fields.location']()} help={m['spool.fieldsHelp.location']()}>
 					<Combobox
 						value={spool.location}
 						placeholder={m['library.noLocation']()}
@@ -283,10 +283,10 @@
 						oninput={(v) => set({ location: v })}
 					/>
 				</Field>
-				<Field label={m['spool.fields.lotNr']()}>
+				<Field label={m['spool.fields.lotNr']()} help={m['spool.fieldsHelp.lotNr']()}>
 					<EditableField value={spool.lot} mono oninput={(v) => set({ lot: v })} />
 				</Field>
-				<Field label={m['spool.fields.price']()}>
+				<Field label={m['spool.fields.price']()} help={m['spool.fieldsHelp.price']()}>
 					<NumberInput
 						dense
 						width="240px"
@@ -340,9 +340,15 @@
 				<Field label={m['filament.fields.density']()} mono>{filament.density} g/cm³</Field>
 				<Field label={m['filament.fields.settingsExtruderTemp']()} mono>{filament.nozzleTemp} °C</Field>
 				<Field label={m['filament.fields.settingsBedTemp']()} mono>{filament.bedTemp} °C</Field>
-				<Field label={m['inspector.filamentWeight']()} mono>{filament.weight} g</Field>
+				<Field label={m['inspector.filamentWeight']()} help={m['filament.fieldsHelp.weight']()} mono
+					>{filament.weight} g</Field
+				>
 				{#if filament.spoolWeight}
-					<Field label={m['vendor.fields.emptySpoolWeight']()} mono>{filament.spoolWeight} g</Field>
+					<Field
+						label={m['vendor.fields.emptySpoolWeight']()}
+						help={m['filament.fieldsHelp.spoolWeight']()}
+						mono>{filament.spoolWeight} g</Field
+					>
 				{/if}
 			</FieldGrid>
 

@@ -204,7 +204,7 @@
 						onchange={(v) => set({ density: v || filament.density })}
 					/>
 				</Field>
-				<Field label={m['filament.fields.weight']()}>
+				<Field label={m['filament.fields.weight']()} help={m['filament.fieldsHelp.weight']()}>
 					<NumberInput
 						dense
 						width="200px"
@@ -215,7 +215,7 @@
 						onchange={(v) => set({ weight: v || filament.weight })}
 					/>
 				</Field>
-				<Field label={m['filament.fields.spoolWeight']()}>
+				<Field label={m['filament.fields.spoolWeight']()} help={m['filament.fieldsHelp.spoolWeight']()}>
 					<NumberInput
 						dense
 						width="200px"
@@ -261,7 +261,7 @@
 						onchange={(v) => set({ price: v })}
 					/>
 				</Field>
-				<Field label={m['filament.fields.articleNumber']()}>
+				<Field label={m['filament.fields.articleNumber']()} help={m['filament.fieldsHelp.articleNumber']()}>
 					<EditableField
 						value={filament.articleNumber ?? ''}
 						mono
