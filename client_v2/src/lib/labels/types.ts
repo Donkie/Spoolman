@@ -91,8 +91,18 @@ export interface LabelDesign {
 export type PaperName = 'A4' | 'A3' | 'A5' | 'Letter' | 'Legal' | 'custom';
 
 export interface PrintLayout {
-	/** `sheet` tiles many labels on one page; `label` prints one label per page. */
-	mode: 'sheet' | 'label';
+	/**
+	 * `sheet` tiles many labels on one page; `label` prints one label per page;
+	 * `image` skips the printer entirely and downloads the labels as PNG files.
+	 */
+	mode: 'sheet' | 'label' | 'image';
+	/**
+	 * Raster resolution in dots per inch for both printing and image export.
+	 * Matching the printer's native density is what keeps small labels sharp:
+	 * most thermal label printers are 203 dpi, laser/inkjet 300+. A mismatch makes
+	 * the driver resample, which is the usual cause of blurry QR codes.
+	 */
+	dpi: number;
 	paper: PaperName;
 	/** Used when `paper === 'custom'`, in mm. */
 	custom: { w: number; h: number };
@@ -128,6 +138,7 @@ export interface PrintLayout {
 
 export const DEFAULT_LAYOUT: PrintLayout = {
 	mode: 'sheet',
+	dpi: 300,
 	paper: 'A4',
 	custom: { w: 50, h: 25 },
 	landscape: false,

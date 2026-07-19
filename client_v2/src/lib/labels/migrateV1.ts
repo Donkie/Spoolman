@@ -122,6 +122,8 @@ function mapLayout(ps: V1PrintSettings): PrintLayout {
 	const { paper, custom } = mapPaper(ps);
 	return {
 		mode: 'sheet',
+		// v1 had no DPI setting, so migrated designs start at the default.
+		dpi: DEFAULT_LAYOUT.dpi,
 		paper,
 		custom,
 		landscape: false,

@@ -6,7 +6,7 @@
 	import type { LabelDesign } from '$lib/labels/types';
 	import type { LabelBinding } from '$lib/labels/template';
 	import { PAPER_NAMES, paperSize, sheetGrid } from '$lib/labels/paper';
-	import { printLabels } from '$lib/labels/print';
+	import { printLabels, saveLabelImages, ZIP_THRESHOLD } from '$lib/labels/print';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
@@ -30,6 +30,7 @@
 	let sort = $state<'newest' | 'id'>('newest');
 	let loading = $state(true);
 	let printing = $state(false);
+	let saving = $state(false);
 
 	// Spools registered within this window count as "recently added" for the
 	// one-click quick-select.
@@ -126,6 +127,18 @@
 		}
 	}
 
+	async function doSaveImages() {
+		if (bindings.length === 0) return;
+		saving = true;
+		try {
+			await saveLabelImages({ design, bindings, layout, baseUrl: settings.baseUrl });
+		} catch (e) {
+			console.error('Save as image failed', e);
+		} finally {
+			saving = false;
+		}
+	}
+
 	function setMargin(k: 't' | 'b' | 'l' | 'r', v: number) {
 		layout.margin = { ...layout.margin, [k]: v };
 	}
@@ -194,7 +207,24 @@
 			<button class:active={layout.mode === 'label'} onclick={() => (layout.mode = 'label')}
 				>{m['labels.modeLabel']()}</button
 			>
+			<button class:active={layout.mode === 'image'} onclick={() => (layout.mode = 'image')}
+				>{m['labels.modeImage']()}</button
+			>
 		</div>
+
+		<!-- DPI applies to every mode: printing rasterizes the labels too, so a
+		     mismatch with the printer's native density blurs small labels either way. -->
+		<label class="fld"
+			>{m['labels.dpi']()}<NumberInput
+				dense
+				min={72}
+				max={1200}
+				unit="dpi"
+				value={layout.dpi}
+				onchange={(v) => (layout.dpi = v)}
+			/></label
+		>
+		<p class="help">{m['labels.dpiHint']()}</p>
 
 		{#if layout.mode === 'sheet'}
 			<p class="help">{m['printing.generic.description']()}</p>
@@ -370,7 +400,7 @@
 			{#if !grid.fits}
 				<div class="warn">{m['printing.generic.gridTooWide']()}</div>
 			{/if}
-		{:else}
+		{:else if layout.mode === 'label'}
 			<div class="row2">
 				<label class="fld"
 					>{m['labels.copies']()}<NumberInput
@@ -384,6 +414,11 @@
 			<div class="grid-info">
 				{m['labels.onePerLabel']({ w: design.label.w, h: design.label.h })}
 			</div>
+		{:else}
+			<!-- Image export has no page geometry to configure: the file *is* the label.
+			     Copies are omitted too, since the files would be byte-identical. -->
+			<p class="help">{m['labels.imageDesc']({ w: design.label.w, h: design.label.h })}</p>
+			<div class="grid-info">{m['labels.imageZipNote']({ threshold: ZIP_THRESHOLD })}</div>
 		{/if}
 	</div>
 
@@ -405,11 +440,17 @@
 			<div class="muted">{m['labels.selectAtLeastOne']()}</div>
 		{/if}
 		<div class="print-btn">
-			<Button onclick={doPrint} disabled={bindings.length === 0 || printing}>
-				{printing
-					? m['labels.preparing']()
-					: m['labels.printN']({ count: bindings.length * Math.max(1, layout.copies) })}
-			</Button>
+			{#if layout.mode === 'image'}
+				<Button onclick={doSaveImages} disabled={bindings.length === 0 || saving}>
+					{saving ? m['labels.preparing']() : m['printing.generic.saveAsImage']()}
+				</Button>
+			{:else}
+				<Button onclick={doPrint} disabled={bindings.length === 0 || printing}>
+					{printing
+						? m['labels.preparing']()
+						: m['labels.printN']({ count: bindings.length * Math.max(1, layout.copies) })}
+				</Button>
+			{/if}
 		</div>
 	</div>
 </div>
@@ -636,6 +677,10 @@
 		font-size: 11px;
 	}
 	.print-btn {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 8px;
 		margin-top: auto;
 		padding-top: 8px;
 	}

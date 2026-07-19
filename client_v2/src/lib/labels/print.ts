@@ -9,18 +9,30 @@ import { paperSize, sheetGrid, pxPerMmForDpi } from './paper';
 // Rendering is done imperatively with raw Konva (sharing elementToShape with the
 // declarative editor) so we can rasterize many spools without mounting Svelte
 // components. Output is composed into an off-screen print container measured in
-// millimeters, then handed to the browser's print dialog.
+// millimeters, then handed to the browser's print dialog. The same rasters back
+// the "save as image" export, which downloads one PNG per label instead.
 
-const PRINT_DPI = 300;
+/** Used for designs saved before `dpi` existed, and as the floor/ceiling guard. */
+const DEFAULT_DPI = 300;
+const MIN_DPI = 72;
+const MAX_DPI = 1200;
 
-/** Rasterize one label (bound to a spool) to a PNG data URL at print DPI. */
+/** Clamp a layout's dpi to something we can actually rasterize. */
+export function resolveDpi(layout: Pick<PrintLayout, 'dpi'>): number {
+	const dpi = layout.dpi ?? DEFAULT_DPI;
+	if (!Number.isFinite(dpi)) return DEFAULT_DPI;
+	return Math.min(MAX_DPI, Math.max(MIN_DPI, Math.round(dpi)));
+}
+
+/** Rasterize one label (bound to a spool) to a PNG data URL at the given DPI. */
 export function renderLabelDataUrl(
 	design: LabelDesign,
 	binding: LabelBinding,
 	baseUrl: string,
-	logoImage: HTMLImageElement | null
+	logoImage: HTMLImageElement | null,
+	dpi: number = DEFAULT_DPI
 ): string {
-	const pxPerMm = pxPerMmForDpi(PRINT_DPI);
+	const pxPerMm = pxPerMmForDpi(dpi);
 	const width = design.label.w * pxPerMm;
 	const height = design.label.h * pxPerMm;
 
@@ -112,7 +124,8 @@ interface PrintJob {
 export async function printLabels({ design, bindings, layout, baseUrl }: PrintJob): Promise<void> {
 	const logoImage = await getLogoImage().catch(() => null);
 	// One raster per spool, reused across copies.
-	const urls = bindings.map((b) => renderLabelDataUrl(design, b, baseUrl, logoImage));
+	const dpi = resolveDpi(layout);
+	const urls = bindings.map((b) => renderLabelDataUrl(design, b, baseUrl, logoImage, dpi));
 	const items: (string | null)[] = [];
 	for (const url of urls) for (let c = 0; c < Math.max(1, layout.copies); c++) items.push(url);
 
@@ -142,6 +155,74 @@ export async function printLabels({ design, bindings, layout, baseUrl }: PrintJo
 	window.print();
 	// Fallback cleanup for browsers that don't fire afterprint.
 	setTimeout(cleanup, 60000);
+}
+
+/**
+ * Above this many labels, deliver a single zip instead of a burst of downloads.
+ * Browsers throttle (and eventually drop) rapid programmatic downloads, and a
+ * dozen separate "keep/discard" prompts is miserable anyway — but for a couple of
+ * labels a plain PNG is friendlier than making the user unzip something.
+ */
+export const ZIP_THRESHOLD = 5;
+
+/** Trigger a browser download of `url` under the given filename. */
+function downloadUrl(url: string, filename: string) {
+	const link = document.createElement('a');
+	link.href = url;
+	link.download = filename;
+	document.body.appendChild(link);
+	link.click();
+	link.remove();
+}
+
+/** Decode a `data:...;base64,` URL to its raw bytes. */
+function dataUrlToBytes(dataUrl: string): Uint8Array {
+	const binary = atob(dataUrl.slice(dataUrl.indexOf(',') + 1));
+	const bytes = new Uint8Array(binary.length);
+	for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+	return bytes;
+}
+
+/**
+ * Render the selected spools' labels and save them as PNGs, each sized by the
+ * design. Only `dpi` is read from the layout — the sheet geometry is deliberately
+ * ignored, since an exported image is meant to be fed to a label printer or an
+ * image editor, where a tiled A4 sheet would just have to be cut apart again.
+ * Copies are ignored too: the files would be byte-identical.
+ *
+ * Small exports download as individual files; anything past `ZIP_THRESHOLD`
+ * arrives as one zip.
+ */
+export async function saveLabelImages({ design, bindings, layout, baseUrl }: PrintJob): Promise<void> {
+	if (bindings.length === 0) return;
+	const logoImage = await getLogoImage().catch(() => null);
+	const dpi = resolveDpi(layout);
+	// Spool ids are unique (the selection is a Set), so these names never collide.
+	const files = bindings.map((b) => ({
+		name: `spoolman-label-${b.spool.id}.png`,
+		dataUrl: renderLabelDataUrl(design, b, baseUrl, logoImage, dpi)
+	}));
+
+	if (files.length <= ZIP_THRESHOLD) {
+		for (const f of files) {
+			downloadUrl(f.dataUrl, f.name);
+			// Space the clicks out so the browser actually delivers every file.
+			if (files.length > 1) await new Promise((r) => setTimeout(r, 150));
+		}
+		return;
+	}
+
+	// Loaded on demand: a zip encoder is dead weight for everyone who never
+	// exports a large batch.
+	const { zipSync } = await import('fflate');
+	const entries: Record<string, Uint8Array> = {};
+	for (const f of files) entries[f.name] = dataUrlToBytes(f.dataUrl);
+	// PNG is already deflated, so re-compressing only burns time. Store instead.
+	const zipped = zipSync(entries, { level: 0 });
+	const url = URL.createObjectURL(new Blob([zipped], { type: 'application/zip' }));
+	downloadUrl(url, 'spoolman-labels.zip');
+	// Revoking immediately can cancel an in-flight download in some browsers.
+	setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
 /** Insets in mm to push a label's content in from each edge (for the safe-zone). */
