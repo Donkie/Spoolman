@@ -297,7 +297,7 @@
 	<div class="head">
 		<span class="title">{m['locations.locations']()}</span>
 		<span class="hint">{m['locations.dragHint']()}</span>
-		<button class="add" onclick={addLocation}><Plus size={14} /> {m['locations.addLocation']()}</button>
+		<button class="add" onclick={addLocation}><Plus size={14} /> {m['locations.newLocation']()}</button>
 	</div>
 
 	<div

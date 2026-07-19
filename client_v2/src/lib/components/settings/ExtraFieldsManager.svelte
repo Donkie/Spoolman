@@ -134,12 +134,8 @@
 			error = m['settings.extraFields.errors.keyFormat']();
 			return;
 		}
-		if (key === 'new_field') {
-			error = m['settings.extraFields.errors.keyReserved']();
-			return;
-		}
 		if (isNew && defs.some((f) => f.key === key)) {
-			error = m['settings.extraFields.errors.keyExists']();
+			error = m['settings.extraFields.nonUniqueKeyError']();
 			return;
 		}
 		if (!name.trim()) {

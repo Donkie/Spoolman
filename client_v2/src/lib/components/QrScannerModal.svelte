@@ -32,11 +32,11 @@
 	/** Map a getUserMedia DOMException to a friendly reason (by its `name`). */
 	function messageForError(err: unknown): string {
 		const name = (err as { name?: string } | null)?.name ?? '';
-		if (name === 'NotAllowedError' || name === 'SecurityError') return m['scanner.errors.denied']();
+		if (name === 'NotAllowedError' || name === 'SecurityError') return m['scanner.error.notAllowed']();
 		if (name === 'NotFoundError' || name === 'OverconstrainedError' || name === 'DevicesNotFoundError')
-			return m['scanner.errors.notFound']();
-		if (name === 'NotReadableError' || name === 'TrackStartError') return m['scanner.errors.inUse']();
-		return m['scanner.errors.generic']();
+			return m['scanner.error.notFound']();
+		if (name === 'NotReadableError' || name === 'TrackStartError') return m['scanner.error.inUse']();
+		return m['scanner.error.unknown']({ error: name });
 	}
 
 	// qr-scanner collapses every getUserMedia failure into the opaque string
@@ -46,7 +46,7 @@
 		try {
 			const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
 			stream.getTracks().forEach((t) => t.stop());
-			return m['scanner.errors.generic'](); // camera works now — the earlier failure was transient
+			return m['scanner.error.unknown']({ error: 'error unknown' }); // camera works now — the earlier failure was transient
 		} catch (err) {
 			return messageForError(err);
 		}
@@ -65,7 +65,9 @@
 		// at all — qr-scanner would only report a generic "camera not found", so
 		// detect this up front and tell the user the real reason before we try.
 		if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-			error = !window.isSecureContext ? m['scanner.errors.insecure']() : m['scanner.errors.unsupported']();
+			error = !window.isSecureContext
+				? m['scanner.error.insecureContext']()
+				: m['scanner.error.streamApiNotSupported']();
 			return;
 		}
 
@@ -122,17 +124,17 @@
 			class="modal"
 			role="dialog"
 			aria-modal="true"
-			aria-label={m['topbar.scan']()}
+			aria-label={m['scanner.title']()}
 			tabindex="-1"
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 		>
 			<div class="modal-head">
-				<span class="title">{m['scanner.modalTitle']()}</span>
+				<span class="title">{m['scanner.title']()}</span>
 				<button class="x" onclick={close} aria-label={m['buttons.close']()}><X size={16} /></button>
 			</div>
 
-			<p class="hint">{m['scanner.hint']()}</p>
+			<p class="hint">{m['scanner.description']()}</p>
 
 			<div class="stage">
 				<!-- svelte-ignore a11y_media_has_caption -->

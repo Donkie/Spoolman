@@ -20,7 +20,7 @@
 		<Logo />
 		<div class="nav-desktop"><NavTabs /></div>
 		<div class="spacer"></div>
-		<button class="scan-btn" onclick={onscan} aria-label={m['topbar.scan']()} title={m['topbar.scan']()}>
+		<button class="scan-btn" onclick={onscan} aria-label={m['scanner.title']()} title={m['scanner.title']()}>
 			<ScanLine size={18} />
 		</button>
 		<button

@@ -197,6 +197,7 @@
 		</div>
 
 		{#if layout.mode === 'sheet'}
+			<p class="help">{m['printing.generic.description']()}</p>
 			<label class="fld"
 				>{m['printing.generic.paperSize']()}
 				<select bind:value={layout.paper}>
@@ -225,9 +226,6 @@
 					>
 				</div>
 			{/if}
-			<label class="chk"
-				><input type="checkbox" bind:checked={layout.landscape} /> {m['labels.landscape']()}</label
-			>
 
 			<div class="row2">
 				<div class="fld">
