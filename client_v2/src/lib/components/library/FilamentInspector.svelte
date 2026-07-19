@@ -204,6 +204,30 @@
 						onchange={(v) => set({ density: v || filament.density })}
 					/>
 				</Field>
+				<Field label={m['filament.fields.weight']()}>
+					<NumberInput
+						dense
+						width="200px"
+						unit="g"
+						step={50}
+						min={0}
+						value={filament.weight}
+						onchange={(v) => set({ weight: v || filament.weight })}
+					/>
+				</Field>
+				<Field label={m['filament.fields.spoolWeight']()}>
+					<NumberInput
+						dense
+						width="200px"
+						unit="g"
+						step={10}
+						min={0}
+						placeholder="—"
+						value={filament.spoolWeight ?? ''}
+						onchange={(v) => set({ spoolWeight: v })}
+						onclear={() => set({ spoolWeight: undefined })}
+					/>
+				</Field>
 				<Field label={m['filament.fields.settingsExtruderTemp']()}>
 					<NumberInput
 						dense

@@ -190,6 +190,9 @@ export function filamentPatchToApi(patch: Partial<Filament>): Json {
 	if ('colors' in patch) Object.assign(out, colorFieldsToApi(patch.colors, patch.multiColorDirection));
 	if ('diameter' in patch) out.diameter = patch.diameter;
 	if ('density' in patch) out.density = patch.density;
+	if ('weight' in patch) out.weight = patch.weight;
+	// Blank means "no tare weight known" — send an explicit null to clear it.
+	if ('spoolWeight' in patch) out.spool_weight = patch.spoolWeight ?? null;
 	if ('nozzleTemp' in patch) out.settings_extruder_temp = patch.nozzleTemp;
 	if ('bedTemp' in patch) out.settings_bed_temp = patch.bedTemp;
 	if ('price' in patch) out.price = patch.price;
