@@ -1,10 +1,13 @@
 """Cross-entity free-text / id / color search backing the /search endpoint.
 
 Searches spools, filaments and vendors in one call and reports, per result, which
-field matched. Text matching uses case-insensitive ``ilike`` so it works on all four
-supported databases. A purely numeric query also matches a spool by its id, and a
-query that is a hex code or a CSS color name runs a color-similarity search over
-filaments (reusing :func:`spoolman.database.filament.find_by_color`).
+field matched. The query is split on whitespace into terms and a row must match
+*every* term (each term may match a different field), so "bambu petg-cf" finds the
+PETG-CF filaments of the Bambu Lab vendor. Text matching uses case-insensitive
+``ilike`` so it works on all four supported databases. A purely numeric query also
+matches a spool by its id, and a query that is a hex code or a CSS color name runs a
+color-similarity search over filaments (reusing
+:func:`spoolman.database.filament.find_by_color`).
 """
 
 from __future__ import annotations
@@ -12,8 +15,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from sqlalchemy import or_, select
-from sqlalchemy.orm import joinedload
+from sqlalchemy import ColumnElement, and_, or_, select
+from sqlalchemy.orm import InstrumentedAttribute, joinedload
 
 from spoolman.colors import resolve_color
 from spoolman.database import filament as filament_db
@@ -29,15 +32,20 @@ if TYPE_CHECKING:
 # still letting prefix matches win over substring ones within a generous window.
 _CANDIDATE_CAP = 200
 
+# Upper bound on how many whitespace-separated terms we honor, so a pathological
+# query can't turn into an arbitrarily large AND-of-ORs.
+_MAX_TERMS = 8
+
 # Extra-field types whose stored value is human-readable text worth searching.
 _TEXT_EXTRA_TYPES = (ExtraFieldType.text, ExtraFieldType.choice)
 
-# Rank buckets (lower sorts first).
+# Rank buckets (lower sorts first). Each base is the rank of a prefix/exact hit on a
+# field of that kind; a mere substring hit ranks one worse.
 _RANK_ID_OR_COLOR = -1  # exact id / color-similarity match
-_RANK_STRONG = 0  # native field prefix/exact text match
-_RANK_WEAK = 1  # native field substring text match
-_RANK_VENDOR = 2  # related vendor name text match (filaments only)
-_RANK_EXTRA = 3  # extra-field text match
+_BASE_NATIVE = 0  # the entity's own text fields
+_BASE_VENDOR = 2  # related vendor name (filaments only)
+_BASE_EXTRA = 4  # extra-field text
+_WEAK_PENALTY = 1
 
 
 @dataclass
@@ -66,23 +74,56 @@ class SearchResult:
     is_color_query: bool
 
 
-def _classify_match(q_lower: str, fields: list[tuple[str, str | None]]) -> tuple[str, int] | None:
-    """Given ordered ``(label, value)`` pairs, return ``(label, rank)`` for the best match.
+def _split_terms(q: str) -> list[str]:
+    """Lower-cased, de-duplicated search terms, in query order."""
+    terms: list[str] = []
+    for raw in q.lower().split():
+        if raw not in terms:
+            terms.append(raw)
+    return terms[:_MAX_TERMS]
 
-    A prefix/exact hit outranks a mere substring hit. Returns ``None`` if nothing matched
-    (shouldn't happen for rows the SQL ``ilike`` already selected, but stays defensive).
+
+def _classify_match(terms: list[str], fields: list[tuple[str, str | None, int]]) -> tuple[str, int] | None:
+    """Return ``(match_field, rank)`` for a row, or ``None`` if some term doesn't match.
+
+    ``fields`` are ordered ``(label, value, base_rank)`` triples. Every term must hit at
+    least one field; the reported field is the single best hit across all terms, while
+    the rank is the *worst* term's rank, so rows where everything matched strongly sort
+    above rows that only just scraped by.
     """
-    weak: tuple[str, int] | None = None
-    for label, value in fields:
-        if not value:
-            continue
-        v = value.lower()
-        if q_lower in v:
-            if v == q_lower or v.startswith(q_lower):
-                return label, _RANK_STRONG
-            if weak is None:
-                weak = (label, _RANK_WEAK)
-    return weak
+    best: tuple[str, int] | None = None
+    worst_rank = _RANK_ID_OR_COLOR
+    for term in terms:
+        term_best: tuple[str, int] | None = None
+        for label, value, base in fields:
+            if not value:
+                continue
+            v = value.lower()
+            if term not in v:
+                continue
+            rank = base if v.startswith(term) else base + _WEAK_PENALTY
+            if term_best is None or rank < term_best[1]:
+                term_best = (label, rank)
+        if term_best is None:
+            return None
+        worst_rank = max(worst_rank, term_best[1])
+        if best is None or term_best[1] < best[1]:
+            best = term_best
+    if best is None:
+        return None
+    return best[0], worst_rank
+
+
+def _term_clause(
+    term: str,
+    columns: list[InstrumentedAttribute],
+    extra_exists: ColumnElement | None,
+) -> ColumnElement:
+    """Build the SQL predicate for a single term: it must appear in any searchable column."""
+    clauses = [col.ilike(f"%{term}%") for col in columns]
+    if extra_exists is not None:
+        clauses.append(extra_exists)
+    return or_(*clauses)
 
 
 async def _text_extra_keys(db: AsyncSession, entity_type: EntityType) -> list[str]:
@@ -91,96 +132,100 @@ async def _text_extra_keys(db: AsyncSession, entity_type: EntityType) -> list[st
     return [f.key for f in fields if f.field_type in _TEXT_EXTRA_TYPES]
 
 
-async def _search_spools(db: AsyncSession, q: str, limit: int) -> list[SpoolMatch]:
-    q_lower = q.lower()
-    # id -> (match_field, rank); spool object filled in afterwards.
-    hits: dict[int, tuple[str, int]] = {}
-    spools: dict[int, models.Spool] = {}
+def _extra_exists(
+    field_model: type,
+    owner_col: InstrumentedAttribute,
+    owner_id_col: InstrumentedAttribute,
+    keys: list[str],
+    term: str,
+) -> ColumnElement | None:
+    """Build a correlated EXISTS matching ``term`` against the row's text/choice extra fields."""
+    if not keys:
+        return None
+    return (
+        select(1)
+        .where(
+            owner_col == owner_id_col,
+            field_model.key.in_(keys),
+            field_model.value.ilike(f"%{term}%"),
+        )
+        .exists()
+    )
 
-    load = (joinedload(models.Spool.filament).joinedload(models.Filament.vendor),)
 
+async def _extra_values(
+    db: AsyncSession,
+    field_model: type,
+    owner_col: InstrumentedAttribute,
+    keys: list[str],
+    ids: list[int],
+) -> dict[int, list[tuple[str, str | None, int]]]:
+    """Fetch the searchable extra-field values of the given rows, as classifier fields."""
+    if not keys or not ids:
+        return {}
+    stmt = select(owner_col, field_model.key, field_model.value).where(
+        owner_col.in_(ids),
+        field_model.key.in_(keys),
+    )
+    out: dict[int, list[tuple[str, str | None, int]]] = {}
+    for owner_id, key, value in (await db.execute(stmt)).all():
+        out.setdefault(owner_id, []).append((f"extra.{key}", value, _BASE_EXTRA))
+    return out
+
+
+async def _search_spools(db: AsyncSession, terms: list[str], limit: int) -> list[SpoolMatch]:
     native_fields = (
         ("comment", models.Spool.comment),
         ("location", models.Spool.location),
         ("lot_nr", models.Spool.lot_nr),
     )
+    columns = [col for _, col in native_fields]
+    keys = await _text_extra_keys(db, EntityType.spool)
+
+    load = (joinedload(models.Spool.filament).joinedload(models.Filament.vendor),)
     stmt = (
         select(models.Spool)
-        .where(or_(*(col.ilike(f"%{q}%") for _, col in native_fields)))
+        .where(
+            and_(
+                *(
+                    _term_clause(
+                        term,
+                        columns,
+                        _extra_exists(models.SpoolField, models.SpoolField.spool_id, models.Spool.id, keys, term),
+                    )
+                    for term in terms
+                ),
+            ),
+        )
         .options(*load)
         .order_by(models.Spool.id)
         .limit(_CANDIDATE_CAP)
     )
     rows = (await db.execute(stmt)).unique().scalars().all()
+
+    extras = await _extra_values(db, models.SpoolField, models.SpoolField.spool_id, keys, [s.id for s in rows])
+
+    hits: dict[int, tuple[str, int]] = {}
+    spools: dict[int, models.Spool] = {}
     for spool in rows:
-        classified = _classify_match(
-            q_lower,
-            [(label, getattr(spool, attr.key)) for label, attr in native_fields],
-        )
+        fields = [(label, getattr(spool, attr.key), _BASE_NATIVE) for label, attr in native_fields]
+        fields.extend(extras.get(spool.id, []))
+        classified = _classify_match(terms, fields)
         if classified is None:
             continue
         spools[spool.id] = spool
         hits[spool.id] = classified
 
-    # Extra-field (text/choice) matches.
-    keys = await _text_extra_keys(db, EntityType.spool)
-    if keys:
-        estmt = (
-            select(models.SpoolField.spool_id, models.SpoolField.key)
-            .where(models.SpoolField.key.in_(keys))
-            .where(models.SpoolField.value.ilike(f"%{q}%"))
-            .limit(_CANDIDATE_CAP)
-        )
-        need: list[int] = []
-        for spool_id, key in (await db.execute(estmt)).all():
-            if spool_id not in hits:
-                hits[spool_id] = (f"extra.{key}", _RANK_EXTRA)
-                need.append(spool_id)
-        if need:
-            fetch = select(models.Spool).where(models.Spool.id.in_(need)).options(*load)
-            for spool in (await db.execute(fetch)).unique().scalars().all():
-                spools[spool.id] = spool
-
     ordered = sorted(hits.items(), key=lambda kv: (kv[1][1], kv[0]))[:limit]
     return [SpoolMatch(spool=spools[sid], match_field=field) for sid, (field, _rank) in ordered]
 
 
-async def _annotate_filament_extras(
-    db: AsyncSession,
-    q: str,
-    load: tuple,
-    hits: dict[int, tuple[str, int]],
-    filaments: dict[int, models.Filament],
-) -> None:
-    """Add filaments matched only via a text/choice extra field to the accumulators."""
-    keys = await _text_extra_keys(db, EntityType.filament)
-    if not keys:
-        return
-    estmt = (
-        select(models.FilamentField.filament_id, models.FilamentField.key)
-        .where(models.FilamentField.key.in_(keys))
-        .where(models.FilamentField.value.ilike(f"%{q}%"))
-        .limit(_CANDIDATE_CAP)
-    )
-    need: list[int] = []
-    for filament_id, key in (await db.execute(estmt)).all():
-        if filament_id not in hits:
-            hits[filament_id] = (f"extra.{key}", _RANK_EXTRA)
-            need.append(filament_id)
-    if not need:
-        return
-    fetch = select(models.Filament).where(models.Filament.id.in_(need)).options(*load)
-    for filament in (await db.execute(fetch)).unique().scalars().all():
-        filaments[filament.id] = filament
-
-
 async def _search_filaments(
     db: AsyncSession,
-    q: str,
+    terms: list[str],
     limit: int,
     color_hits: list[FilamentMatch],
 ) -> list[FilamentMatch]:
-    q_lower = q.lower()
     hits: dict[int, tuple[str, int]] = {}
     filaments: dict[int, models.Filament] = {}
 
@@ -191,49 +236,64 @@ async def _search_filaments(
         filaments[fid] = match.filament
         hits[fid] = (match.match_field, _RANK_ID_OR_COLOR)
 
-    load = (joinedload(models.Filament.vendor),)
     native_fields = (
         ("name", models.Filament.name),
         ("material", models.Filament.material),
         ("article_number", models.Filament.article_number),
         ("comment", models.Filament.comment),
     )
+    # The vendor name is searched alongside the filament's own fields, so a query mixing
+    # a manufacturer and a material ("bambu petg-cf") can satisfy one term from each.
+    columns = [col for _, col in native_fields] + [models.Vendor.name]
+    keys = await _text_extra_keys(db, EntityType.filament)
+
+    load = (joinedload(models.Filament.vendor),)
     stmt = (
         select(models.Filament)
-        .where(or_(*(col.ilike(f"%{q}%") for _, col in native_fields)))
+        .outerjoin(models.Filament.vendor)
+        .where(
+            and_(
+                *(
+                    _term_clause(
+                        term,
+                        columns,
+                        _extra_exists(
+                            models.FilamentField,
+                            models.FilamentField.filament_id,
+                            models.Filament.id,
+                            keys,
+                            term,
+                        ),
+                    )
+                    for term in terms
+                ),
+            ),
+        )
         .options(*load)
         .order_by(models.Filament.id)
         .limit(_CANDIDATE_CAP)
     )
-    for filament in (await db.execute(stmt)).unique().scalars().all():
+    rows = (await db.execute(stmt)).unique().scalars().all()
+
+    extras = await _extra_values(
+        db,
+        models.FilamentField,
+        models.FilamentField.filament_id,
+        keys,
+        [f.id for f in rows],
+    )
+
+    for filament in rows:
         if filament.id in hits:
             continue  # color match already annotated this one
-        classified = _classify_match(
-            q_lower,
-            [(label, getattr(filament, attr.key)) for label, attr in native_fields],
-        )
+        fields = [(label, getattr(filament, attr.key), _BASE_NATIVE) for label, attr in native_fields]
+        fields.append(("vendor.name", filament.vendor.name if filament.vendor else None, _BASE_VENDOR))
+        fields.extend(extras.get(filament.id, []))
+        classified = _classify_match(terms, fields)
         if classified is None:
             continue
         filaments[filament.id] = filament
         hits[filament.id] = classified
-
-    # Filaments whose vendor's name matches, so searching a manufacturer surfaces its
-    # filaments (not just the vendor itself). Ranks below any native-field match.
-    vstmt = (
-        select(models.Filament)
-        .join(models.Filament.vendor)
-        .where(models.Vendor.name.ilike(f"%{q}%"))
-        .options(*load)
-        .order_by(models.Filament.id)
-        .limit(_CANDIDATE_CAP)
-    )
-    for filament in (await db.execute(vstmt)).unique().scalars().all():
-        if filament.id in hits:
-            continue  # already matched on one of its own fields
-        filaments[filament.id] = filament
-        hits[filament.id] = ("vendor.name", _RANK_VENDOR)
-
-    await _annotate_filament_extras(db, q, load, hits, filaments)
 
     # Color hits keep their supplied order; everyone else sorts by (rank, id).
     color_order = {m.filament.id: i for i, m in enumerate(color_hits)}
@@ -244,48 +304,45 @@ async def _search_filaments(
     return [FilamentMatch(filament=filaments[fid], match_field=field) for fid, (field, _rank) in ordered]
 
 
-async def _search_vendors(db: AsyncSession, q: str, limit: int) -> list[VendorMatch]:
-    q_lower = q.lower()
-    hits: dict[int, tuple[str, int]] = {}
-    vendors: dict[int, models.Vendor] = {}
-
+async def _search_vendors(db: AsyncSession, terms: list[str], limit: int) -> list[VendorMatch]:
     native_fields = (
         ("name", models.Vendor.name),
         ("comment", models.Vendor.comment),
     )
+    columns = [col for _, col in native_fields]
+    keys = await _text_extra_keys(db, EntityType.vendor)
+
     stmt = (
         select(models.Vendor)
-        .where(or_(*(col.ilike(f"%{q}%") for _, col in native_fields)))
+        .where(
+            and_(
+                *(
+                    _term_clause(
+                        term,
+                        columns,
+                        _extra_exists(models.VendorField, models.VendorField.vendor_id, models.Vendor.id, keys, term),
+                    )
+                    for term in terms
+                ),
+            ),
+        )
         .order_by(models.Vendor.id)
         .limit(_CANDIDATE_CAP)
     )
-    for vendor in (await db.execute(stmt)).unique().scalars().all():
-        classified = _classify_match(
-            q_lower,
-            [(label, getattr(vendor, attr.key)) for label, attr in native_fields],
-        )
+    rows = (await db.execute(stmt)).unique().scalars().all()
+
+    extras = await _extra_values(db, models.VendorField, models.VendorField.vendor_id, keys, [v.id for v in rows])
+
+    hits: dict[int, tuple[str, int]] = {}
+    vendors: dict[int, models.Vendor] = {}
+    for vendor in rows:
+        fields = [(label, getattr(vendor, attr.key), _BASE_NATIVE) for label, attr in native_fields]
+        fields.extend(extras.get(vendor.id, []))
+        classified = _classify_match(terms, fields)
         if classified is None:
             continue
         vendors[vendor.id] = vendor
         hits[vendor.id] = classified
-
-    keys = await _text_extra_keys(db, EntityType.vendor)
-    if keys:
-        estmt = (
-            select(models.VendorField.vendor_id, models.VendorField.key)
-            .where(models.VendorField.key.in_(keys))
-            .where(models.VendorField.value.ilike(f"%{q}%"))
-            .limit(_CANDIDATE_CAP)
-        )
-        need: list[int] = []
-        for vendor_id, key in (await db.execute(estmt)).all():
-            if vendor_id not in hits:
-                hits[vendor_id] = (f"extra.{key}", _RANK_EXTRA)
-                need.append(vendor_id)
-        if need:
-            fetch = select(models.Vendor).where(models.Vendor.id.in_(need))
-            for vendor in (await db.execute(fetch)).unique().scalars().all():
-                vendors[vendor.id] = vendor
 
     ordered = sorted(hits.items(), key=lambda kv: (kv[1][1], kv[0]))[:limit]
     return [VendorMatch(vendor=vendors[vid], match_field=field) for vid, (field, _rank) in ordered]
@@ -323,7 +380,8 @@ async def search(
 ) -> SearchResult:
     """Run a cross-entity search for ``query`` and return categorized, annotated results."""
     q = query.strip()
-    if not q:
+    terms = _split_terms(q)
+    if not terms:
         return SearchResult(spools=[], filaments=[], vendors=[], is_color_query=False)
 
     color_hex = resolve_color(q)
@@ -331,9 +389,9 @@ async def search(
 
     color_hits = await _color_matches(db, color_hex, color_similarity_threshold, limit) if color_hex else []
 
-    spools = await _search_spools(db, q, limit)
-    filaments = await _search_filaments(db, q, limit, color_hits)
-    vendors = await _search_vendors(db, q, limit)
+    spools = await _search_spools(db, terms, limit)
+    filaments = await _search_filaments(db, terms, limit, color_hits)
+    vendors = await _search_vendors(db, terms, limit)
 
     # Numeric query: surface the spool with that exact id at the very top.
     if q.isdigit():

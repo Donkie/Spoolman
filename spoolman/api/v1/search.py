@@ -32,9 +32,12 @@ router = APIRouter(
     "",
     name="Search",
     description=(
-        "Search across spools, filaments and vendors in a single request. The query is matched "
-        "case-insensitively against the text fields of each entity (and their text/choice extra "
-        "fields). A purely numeric query additionally matches a spool by its exact id. A query that "
+        "Search across spools, filaments and vendors in a single request. The query is split on "
+        "whitespace into terms, and an entity matches only if every term is found case-insensitively "
+        "in one of its text fields (or its text/choice extra fields, or - for filaments - its "
+        "vendor's name); different terms may match different fields, so 'bambu petg-cf' finds the "
+        "PETG-CF filaments made by Bambu Lab. A purely numeric query additionally matches a spool "
+        "by its exact id. A query that "
         "is a hex code (e.g. '#ff0000') or a CSS color name (e.g. 'red') additionally runs a "
         "color-similarity search over filaments. Results are categorized by entity and each result "
         "reports which field matched."

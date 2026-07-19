@@ -163,6 +163,31 @@ def test_search_color_hex(data: Fixture):
     assert _has(body["filaments"], "filament", data.filament["id"], "color")
 
 
+def test_search_vendor_and_material(data: Fixture):
+    """Terms may match different fields: one the vendor name, one the material."""
+    body = _search(f"{VENDOR_NAME} PLA")
+    assert _has(body["filaments"], "filament", data.filament["id"], "material")
+
+
+def test_search_terms_match_different_spool_fields(data: Fixture):
+    body = _search(f"{SPOOL_LOCATION} {SPOOL_COMMENT}")
+    assert any(i["spool"]["id"] == data.spool["id"] for i in body["spools"])
+
+
+def test_search_term_matching_native_and_extra_field(data: Fixture):
+    body = _search(f"{SPOOL_LOCATION} {TEXT_VALUE}")
+    assert any(i["spool"]["id"] == data.spool["id"] for i in body["spools"])
+
+
+def test_search_all_terms_required(data: Fixture):
+    """A term that matches nothing excludes the entity, even if the other terms match."""
+    assert data.vendor["id"]  # ensure the fixture data exists so the empty result is meaningful
+    body = _search(f"{VENDOR_NAME} zzznomatch{SFX}")
+    assert body["spools"] == []
+    assert body["filaments"] == []
+    assert body["vendors"] == []
+
+
 def test_search_no_match(data: Fixture):
     assert data.spool["id"]  # ensure the fixture data exists so "no match" is meaningful
     body = _search(f"zzznomatch{SFX}")
