@@ -4,12 +4,14 @@
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { spoolSource } from '$lib/api/spoolSource';
-	import { live } from '$lib/api/live';
+	import { live, type LiveEvent } from '$lib/api/live';
+	import { mapSpool } from '$lib/api/map';
 	import { goto } from '$app/navigation';
 	import { weightAuto } from '$lib/utils/format';
 	import * as m from '$lib/paraglide/messages';
 	import { getSettings, setSetting, parseSetting } from '$lib/api/settings';
 	import { dndzone, type DndEvent } from 'svelte-dnd-action';
+	import { flushSync } from 'svelte';
 	import { flip } from 'svelte/animate';
 	import Plus from '@lucide/svelte/icons/plus';
 	import GripVertical from '@lucide/svelte/icons/grip-vertical';
@@ -17,31 +19,55 @@
 
 	const NO_LOCATION = 'No location';
 	const FLIP = 160;
+	/** Spools fetched per request when filling (or extending) a location card. */
+	const PAGE = 30;
+	/** Distance from the bottom of a card's list at which the next page is fetched. */
+	const SCROLL_MARGIN = 120;
 
 	// A location card. `id` is what svelte-dnd-action keys on; it equals `name`,
 	// the location's display name (the NO_LOCATION sentinel for the unlocated
-	// bucket). `spools` is the card's own drop zone, in display order.
-	type Shelf = { id: string; name: string; spools: Spool[] };
+	// bucket). `spools` is the card's own drop zone, in display order — only the
+	// pages loaded so far, which is why `total` (the server's count for the whole
+	// location) is what the header reports.
+	type Shelf = { id: string; name: string; spools: Spool[]; total: number; loading: boolean };
 
 	let editingLocation = $state<string | null>(null);
 	let editValue = $state('');
 	let renameError = $state('');
 
-	// Fetch every (non-archived) spool plus the server-side ordered location
-	// list, kept live. The `locations` setting is an ordered JSON array of names
-	// that is the source of truth for both the display order and any location
-	// added before it has spools. An empty string marks the position of the
-	// "No location" bucket, so it can be reordered like any other card. See the
-	// equivalent `useLocations` in the old client (which pins it first instead).
+	// The page never loads the whole spool collection. One cheap aggregate query
+	// (`/spool/group?group_by=location`) yields every location and its spool count;
+	// each card then fetches its own spools a page at a time, starting when the card
+	// scrolls into view and continuing as its list is scrolled. So the cost scales
+	// with what is on screen, not with the size of the collection.
+	//
+	// The `locations` setting is an ordered JSON array of names that is the source
+	// of truth for both the display order and any location added before it has
+	// spools. An empty string marks the position of the "No location" bucket, so it
+	// can be reordered like any other card. See the equivalent `useLocations` in the
+	// old client (which pins it first instead).
 	const EMPTY = '';
-	let spools = $state<Spool[]>([]);
 	let settingOrder = $state<string[]>([]);
 	let settingsLoaded = $state(false);
-	let spoolsLoaded = $state(false);
+	let locationsLoaded = $state(false);
 	// Per-location custom spool order, keyed by the stored location name (EMPTY for
 	// "No location"), each an array of spool ids. Source of truth for the order of
 	// spools within a card. Shared with the old client's `locations_spoolorders`.
 	let spoolOrders = $state<Record<string, number[]>>({});
+
+	// What has been loaded for one location, keyed by the STORED location name
+	// (EMPTY for "No location"). `total` is authoritative and comes from the group
+	// aggregate; `spools` holds only the pages fetched so far. `started` means the
+	// card has come into view at least once, `done` that every page is in hand.
+	type Bucket = { spools: Spool[]; total: number; loading: boolean; done: boolean; started: boolean };
+	let buckets = $state<Record<string, Bucket>>({});
+
+	// Always read the entry back out of the state proxy after creating it — the
+	// object literal itself isn't reactive, so mutating it wouldn't update the UI.
+	function bucket(key: string): Bucket {
+		if (!buckets[key]) buckets[key] = { spools: [], total: 0, loading: false, done: false, started: false };
+		return buckets[key];
+	}
 
 	// The live drag state. `shelves` is the structure the drag zones bind to and
 	// mutate directly; it is rebuilt from the data above whenever nothing is being
@@ -55,27 +81,130 @@
 	let displayNames = $derived(shelves.map((sh) => sh.name));
 	// Nothing at all to show: no saved locations and no spools. Only decided once
 	// both loads have settled, so the help text doesn't flash on the way in.
-	let isEmpty = $derived(settingsLoaded && spoolsLoaded && shelves.length === 0);
+	let isEmpty = $derived(settingsLoaded && locationsLoaded && shelves.length === 0);
 
 	// Map between the display sentinel and the stored empty-string marker.
 	const toStored = (names: string[]) => names.map((n) => (n === NO_LOCATION ? EMPTY : n));
 	const storedKey = (name: string) => (name === NO_LOCATION ? EMPTY : name);
 
-	async function loadSpools() {
+	// The one query that runs up front: every location that currently holds spools,
+	// with its count, aggregated in the database. No spool rows cross the wire.
+	async function loadLocations() {
 		try {
-			const page = await spoolSource.listSpools({
+			const page = await spoolSource.listGroups({
+				field: 'location',
 				filters: {},
-				sort: [{ field: 'location', dir: 'asc' }],
+				sort: [{ field: 'group.title', dir: 'asc' }],
 				limit: 1000,
 				offset: 0,
 				lowThreshold: settings.lowThreshold
 			});
-			spools = page.items;
+			// A NULL location and an empty-string one are distinct rows to the database
+			// but the same "No location" card here, so counts are summed by key.
+			const totals = new Map<string, number>();
+			for (const g of page.items) totals.set(g.key, (totals.get(g.key) ?? 0) + g.spoolCount);
+
+			for (const [key, total] of totals) {
+				const b = bucket(key);
+				b.total = total;
+				// Set both ways: spools added elsewhere reopen a card that had everything.
+				b.done = b.spools.length >= total;
+			}
+			// A location that no longer has any spools keeps its card (if it is in the
+			// setting) but drops whatever it had loaded.
+			for (const [key, b] of Object.entries(buckets)) {
+				if (totals.has(key)) continue;
+				b.total = 0;
+				b.spools = [];
+				b.done = true;
+			}
 		} catch (e) {
-			console.error('Failed to load spools', e);
+			console.error('Failed to load locations', e);
 		} finally {
-			spoolsLoaded = true;
+			locationsLoaded = true;
 		}
+	}
+
+	// A screenful can be a dozen cards, and firing that many requests at once both
+	// queues behind the browser's per-host connection limit (which the live-update
+	// sockets already eat into) and hammers the server. Cards are filled a few at a
+	// time instead; the rest wait their turn.
+	const MAX_INFLIGHT = 3;
+	let inflight = 0;
+	const waiting: (() => void)[] = [];
+
+	async function acquire() {
+		if (inflight >= MAX_INFLIGHT) await new Promise<void>((resolve) => waiting.push(resolve));
+		inflight++;
+	}
+	function release() {
+		inflight--;
+		waiting.shift()?.();
+	}
+
+	// Fetch one more page of a location's spools. Ordering is by id so paging is
+	// stable; the card's custom order is applied to what has been loaded (see
+	// `orderSpools`). Callers may fire this freely — it is a no-op while a request
+	// is in flight or once everything is loaded.
+	async function loadPage(name: string) {
+		const key = storedKey(name);
+		const b = bucket(key);
+		if (b.loading || b.done) return;
+		b.started = true;
+		b.loading = true;
+		await acquire();
+		try {
+			const page = await spoolSource.listSpools({
+				filters: {},
+				sort: [{ field: 'id', dir: 'asc' }],
+				groupScope: { field: 'location', key },
+				limit: PAGE,
+				offset: b.spools.length,
+				lowThreshold: settings.lowThreshold
+			});
+			// A spool moved in by a drag or a live event may already be held here.
+			const seen = new Set(b.spools.map((s) => s.id));
+			const fresh = page.items.filter((s) => !seen.has(s.id));
+			b.spools = [...b.spools, ...fresh];
+			b.total = page.total;
+			b.done = page.items.length === 0 || b.spools.length >= page.total;
+		} catch (e) {
+			// Leave the card unstarted so scrolling it back into view retries, rather
+			// than stranding it empty for the rest of the session.
+			console.error('Failed to load spools for location', name, e);
+			b.started = false;
+		} finally {
+			release();
+			b.loading = false;
+		}
+	}
+
+	/** First page for a card that just scrolled into view. */
+	function ensureLoaded(name: string) {
+		if (!bucket(storedKey(name)).started) loadPage(name);
+	}
+
+	function onBodyScroll(name: string, e: Event) {
+		const el = e.currentTarget as HTMLElement;
+		if (el.scrollTop + el.clientHeight >= el.scrollHeight - SCROLL_MARGIN) loadPage(name);
+	}
+
+	// Load a card's first page once it is (nearly) on screen, so a collection with
+	// hundreds of locations only queries the ones actually being looked at.
+	function inView(node: HTMLElement, onEnter: () => void) {
+		let enter = onEnter;
+		const io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && enter(), {
+			rootMargin: '250px'
+		});
+		io.observe(node);
+		return {
+			update(next: () => void) {
+				enter = next;
+			},
+			destroy() {
+				io.disconnect();
+			}
+		};
 	}
 
 	async function loadLocationsSetting() {
@@ -95,11 +224,59 @@
 		setSetting('locations', order).catch((e) => console.error('Failed to save location order', e));
 	}
 
+	// A remote spool change is applied to the loaded cards directly — reloading them
+	// all would undo the point of paging. Counts (and any location that just came
+	// into or out of existence) come from a single debounced aggregate refresh,
+	// which is also what repairs the count of a card whose spools aren't loaded and
+	// whose previous location we therefore can't know.
+	let countsTimer: ReturnType<typeof setTimeout> | null = null;
+	function scheduleCountRefresh() {
+		if (countsTimer) clearTimeout(countsTimer);
+		countsTimer = setTimeout(() => {
+			countsTimer = null;
+			loadLocations();
+		}, 400);
+	}
+
+	function applyLiveEvent(event: LiveEvent) {
+		// Keep the shared cache fresh first: the chips read their filament from it.
+		inventory.ingest(event);
+
+		const id = Number(event.id);
+		const spool = event.type !== 'deleted' && event.payload ? mapSpool(event.payload) : null;
+		// Archived spools are not shown here, so they leave their card like a deletion.
+		const newKey = spool && !spool.archived ? spool.location || EMPTY : null;
+
+		for (const [key, b] of Object.entries(buckets)) {
+			const i = b.spools.findIndex((s) => s.id === id);
+			if (i === -1) continue;
+			if (key === newKey) b.spools[i] = spool!;
+			else b.spools = b.spools.filter((s) => s.id !== id);
+		}
+		if (newKey !== null) {
+			const b = buckets[newKey];
+			// Pages are fetched in id order, so a card holds every spool up to the
+			// highest id it has loaded: anything at or below that watermark (and
+			// everything at all, once the card is complete) belongs on screen now and
+			// is spliced into its id position. A higher id sits in a page that hasn't
+			// been fetched, and arrives with it.
+			const watermark = b?.spools.length ? b.spools[b.spools.length - 1].id : -1;
+			if (b && (b.done || id <= watermark) && !b.spools.some((s) => s.id === id)) {
+				const at = b.spools.findIndex((s) => s.id > id);
+				b.spools = at === -1 ? [...b.spools, spool!] : b.spools.toSpliced(at, 0, spool!);
+			}
+		}
+		scheduleCountRefresh();
+	}
+
 	$effect(() => {
-		loadSpools();
+		loadLocations();
 		loadLocationsSetting();
-		const off = live.subscribe('spool', {}, () => loadSpools());
-		return off;
+		const off = live.subscribe('spool', {}, applyLiveEvent);
+		return () => {
+			off();
+			if (countsTimer) clearTimeout(countsTimer);
+		};
 	});
 
 	// The full display order: the saved setting order (empty string → the
@@ -117,31 +294,37 @@
 		return all.filter((n) => n !== NO_LOCATION || present.has(NO_LOCATION));
 	}
 
-	// Sort a location's spools by its saved custom order; any spool not yet in the
+	// Sort a location's LOADED spools by its saved custom order; any spool not in the
 	// order keeps its incoming (id-sorted) position at the end. Array.sort is
 	// stable, so ties preserve that order.
 	function orderSpools(name: string, list: Spool[]): Spool[] {
 		const order = spoolOrders[storedKey(name)];
 		if (!order?.length) return list;
-		const rank = (id: number) => {
-			const i = order.indexOf(id);
-			return i === -1 ? Number.MAX_SAFE_INTEGER : i;
-		};
-		return [...list].sort((a, b) => rank(a.id) - rank(b.id));
+		const rank = new Map(order.map((id, i) => [id, i]));
+		const at = (id: number) => rank.get(id) ?? Number.MAX_SAFE_INTEGER;
+		return [...list].sort((a, b) => at(a.id) - at(b.id));
+	}
+
+	// Which locations currently hold spools, by display name.
+	function presentNames(): Set<string> {
+		const names = new Set<string>();
+		for (const [key, b] of Object.entries(buckets)) {
+			if (b.total > 0) names.add(key === EMPTY ? NO_LOCATION : key);
+		}
+		return names;
 	}
 
 	function buildShelves(): Shelf[] {
-		const byLoc = new Map<string, Spool[]>();
-		for (const s of spools) {
-			const name = s.location || NO_LOCATION;
-			if (!byLoc.has(name)) byLoc.set(name, []);
-			byLoc.get(name)!.push(s);
-		}
-		return computeOrderedNames(new Set(byLoc.keys())).map((name) => ({
-			id: name,
-			name,
-			spools: orderSpools(name, byLoc.get(name) ?? [])
-		}));
+		return computeOrderedNames(presentNames()).map((name) => {
+			const b = buckets[storedKey(name)];
+			return {
+				id: name,
+				name,
+				spools: orderSpools(name, b?.spools ?? []),
+				total: b?.total ?? 0,
+				loading: b?.loading ?? false
+			};
+		});
 	}
 
 	// Rebuild the displayed cards from the data whenever it changes, except while a
@@ -149,12 +332,26 @@
 	// `locations` setting reflecting the displayed order so locations discovered
 	// from spools are persisted; it settles once the setting matches.
 	$effect(() => {
-		if (!settingsLoaded || dragging) return;
+		// Both loads have to have settled: rebuilding before the locations are known
+		// would drop the "No location" marker out of the order and then save that.
+		if (!settingsLoaded || !locationsLoaded || dragging) return;
 		const desired = buildShelves();
 		shelves = desired;
 		const stored = toStored(desired.map((sh) => sh.name));
 		if (JSON.stringify(stored) !== JSON.stringify(settingOrder)) saveOrder(stored);
 	});
+
+	// Arming the grid's drag zone from the grip has to happen BEFORE the press
+	// reaches the card: svelte-dnd-action only attaches its mousedown/touchstart
+	// listeners to an item while the zone's `dragDisabled` is false, and it does so
+	// when the action updates. Svelte 5 flushes state changes asynchronously, so
+	// setting the flag in a plain handler arrives too late and the press is simply
+	// never seen — flushSync applies it (and re-runs the action) synchronously.
+	// `pointerdown` is the hook because it precedes both mousedown and touchstart,
+	// so mouse and touch are armed the same way.
+	function enableShelfDrag() {
+		flushSync(() => (shelvesDragDisabled = false));
+	}
 
 	function shelfConsider(e: CustomEvent<DndEvent<Shelf>>) {
 		dragging = true;
@@ -185,24 +382,37 @@
 	// zone of a cross-card move is a harmless no-op.
 	function commitSpoolLayout() {
 		const changed: { id: number; location: string }[] = [];
-		const next = spools.map((sp) => {
-			const shelf = shelves.find((sh) => sh.spools.some((x) => x.id === sp.id));
-			if (!shelf) return sp;
-			const loc = storedKey(shelf.name);
-			if ((sp.location || '') === loc) return sp;
-			changed.push({ id: sp.id, location: loc });
-			return { ...sp, location: loc };
-		});
-		if (changed.length) {
-			spools = next;
-			for (const c of changed) {
-				inventory.patchSpool(c.id, { location: c.location });
-				spoolSource.saveSpool(c.id, { location: c.location }).catch((e) => console.error('Move failed', e));
-			}
+		for (const sh of shelves) {
+			const key = storedKey(sh.name);
+			const b = bucket(key);
+			const before = b.spools.length;
+			b.spools = sh.spools.map((sp) => {
+				if ((sp.location || '') === key) return sp;
+				changed.push({ id: sp.id, location: key });
+				return { ...sp, location: key };
+			});
+			// Cards hold a page, not the location, so the count has to be adjusted by
+			// what moved rather than recomputed from the list.
+			b.total += b.spools.length - before;
+		}
+		for (const c of changed) {
+			inventory.patchSpool(c.id, { location: c.location });
+			spoolSource.saveSpool(c.id, { location: c.location }).catch((e) => console.error('Move failed', e));
 		}
 
+		// A card's saved order can only speak for the spools it has loaded. Ids from
+		// the previous order that aren't loaded (and haven't moved to another card)
+		// are kept, after the loaded ones, so a drag in a partially loaded card
+		// doesn't discard the order of the pages below it.
+		const moved = new Set(changed.map((c) => c.id));
 		const nextOrders: Record<string, number[]> = { ...spoolOrders };
-		for (const sh of shelves) nextOrders[storedKey(sh.name)] = sh.spools.map((s) => s.id);
+		for (const sh of shelves) {
+			const key = storedKey(sh.name);
+			const loaded = sh.spools.map((s) => s.id);
+			const inCard = new Set(loaded);
+			const carried = (spoolOrders[key] ?? []).filter((id) => !inCard.has(id) && !moved.has(id));
+			nextOrders[key] = [...loaded, ...carried];
+		}
 		if (JSON.stringify(nextOrders) !== JSON.stringify(spoolOrders)) {
 			spoolOrders = nextOrders;
 			setSetting('locations_spoolorders', nextOrders).catch((e) =>
@@ -265,11 +475,16 @@
 			return;
 		}
 
-		const hasSpools = spools.some((s) => (s.location || NO_LOCATION) === oldName);
+		const old = buckets[oldName];
 		try {
-			if (hasSpools) {
+			if (old && old.total > 0) {
 				await spoolSource.renameLocation(oldName, newName);
-				spools = spools.map((s) => (s.location === oldName ? { ...s, location: newName } : s));
+				// Carry the loaded page over so the card doesn't have to refetch.
+				buckets[newName] = {
+					...old,
+					spools: old.spools.map((s) => ({ ...s, location: newName }))
+				};
+				delete buckets[oldName];
 			}
 			// Carry the card's custom spool order over to the new name.
 			if (spoolOrders[oldName]) {
@@ -319,15 +534,19 @@
 		onfinalize={(e) => shelfFinalize(e as CustomEvent<DndEvent<Shelf>>)}
 	>
 		{#each shelves as shelf, idx (shelf.id)}
-			<div class="shelf" role="list" animate:flip={{ duration: FLIP }}>
+			<div
+				class="shelf"
+				role="list"
+				animate:flip={{ duration: FLIP }}
+				use:inView={() => ensureLoaded(shelf.name)}
+			>
 				<div class="shelf-head">
 					<span
 						class="grip"
 						role="button"
 						tabindex="-1"
 						aria-label={m['locations.reorderLocation']()}
-						onmousedown={() => (shelvesDragDisabled = false)}
-						ontouchstart={() => (shelvesDragDisabled = false)}><GripVertical size={16} /></span
+						onpointerdown={enableShelfDrag}><GripVertical size={16} /></span
 					>
 					{#if editingLocation === shelf.name}
 						<input
@@ -358,8 +577,8 @@
 							{shelf.name === NO_LOCATION ? m['locations.noLocation']() : shelf.name}
 						</span>
 					{/if}
-					<span class="shelf-meta">{m['locations.spoolCount']({ count: shelf.spools.length })}</span>
-					{#if shelf.name !== NO_LOCATION && shelf.spools.length === 0 && editingLocation !== shelf.name}
+					<span class="shelf-meta">{m['locations.spoolCount']({ count: shelf.total })}</span>
+					{#if shelf.name !== NO_LOCATION && shelf.total === 0 && editingLocation !== shelf.name}
 						<button
 							class="shelf-delete"
 							aria-label={m['locations.deleteLocation']()}
@@ -376,6 +595,7 @@
 				<div class="shelf-body-wrap">
 					<div
 						class="shelf-body"
+						onscroll={(e) => onBodyScroll(shelf.name, e)}
 						use:dndzone={{ items: shelf.spools, type: 'spool', flipDurationMs: FLIP, dropTargetStyle: {} }}
 						onconsider={(e) => spoolConsider(idx, e as CustomEvent<DndEvent<Spool>>)}
 						onfinalize={(e) => spoolFinalize(idx, e as CustomEvent<DndEvent<Spool>>)}
@@ -408,10 +628,13 @@
 							</div>
 						{/each}
 					</div>
-					{#if shelf.spools.length === 0}
+					{#if shelf.spools.length === 0 && !shelf.loading}
 						<span class="empty">{m['locations.dropHere']()}</span>
 					{/if}
 				</div>
+				{#if shelf.loading}
+					<div class="shelf-loading" aria-hidden="true"></div>
+				{/if}
 			</div>
 		{/each}
 	</div>
@@ -554,6 +777,8 @@
 		display: flex;
 		flex: 1;
 	}
+	/* Capped so a location with hundreds of spools stays a card rather than an
+	 * endless column; scrolling it to the bottom fetches the next page. */
 	.shelf-body {
 		display: flex;
 		flex-direction: column;
@@ -561,6 +786,41 @@
 		padding: 10px 12px;
 		flex: 1;
 		min-height: 42px;
+		max-height: min(52vh, 420px);
+		overflow-y: auto;
+		overscroll-behavior: contain;
+	}
+	/* Indeterminate bar along the bottom of a card while a page is in flight. */
+	.shelf-loading {
+		height: 2px;
+		margin: 0 12px 6px;
+		border-radius: 2px;
+		overflow: hidden;
+		background: var(--border-soft);
+	}
+	.shelf-loading::after {
+		content: '';
+		display: block;
+		height: 100%;
+		width: 35%;
+		border-radius: 2px;
+		background: var(--accent);
+		animation: shelf-load 1s ease-in-out infinite;
+	}
+	@keyframes shelf-load {
+		0% {
+			transform: translateX(-100%);
+		}
+		100% {
+			transform: translateX(320%);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.shelf-loading::after {
+			animation: none;
+			width: 100%;
+			opacity: 0.4;
+		}
 	}
 	.chip {
 		display: flex;
