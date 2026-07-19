@@ -3,6 +3,8 @@
 	import ColorEditor from '../ColorEditor.svelte';
 	import Button from '../Button.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
+	import Square from '@lucide/svelte/icons/square';
+	import SquareCheck from '@lucide/svelte/icons/square-check';
 	import EditableField from '../EditableField.svelte';
 	import NumberInput from '../NumberInput.svelte';
 	import ProgressBar from '../ProgressBar.svelte';
@@ -38,9 +40,12 @@
 	// this filament's list (the fetch below is server-ordered, not read from the
 	// cache, so it needs an explicit nudge to stay in sync).
 	let revision = $state(0);
+	// Archived spools are hidden by default here, same as in the library list.
+	let showArchived = $state(false);
 	$effect(() => live.subscribe('spool', {}, () => revision++));
 	$effect(() => {
 		const id = filamentId;
+		const archived = showArchived;
 		revision; // refetch on live spool events
 		let cancelled = false;
 		spoolSource
@@ -48,6 +53,7 @@
 				filters: {},
 				sort: [{ field: 'last_used', dir: 'desc' }],
 				groupScope: { field: 'filament', key: id },
+				allowArchived: archived,
 				limit: 100,
 				offset: 0,
 				lowThreshold: settings.lowThreshold
@@ -110,12 +116,33 @@
 		{#snippet children()}<span style="padding-left:20px"
 				>{m['inspector.spoolsCount']({ count: spools.length })}</span
 			>{/snippet}
+		{#snippet right()}
+			<button
+				class="arch-toggle"
+				role="switch"
+				aria-checked={showArchived}
+				onclick={() => (showArchived = !showArchived)}
+			>
+				{#if showArchived}<SquareCheck size={14} />{:else}<Square size={14} />{/if}
+				{m['buttons.showArchived']()}
+			</button>
+		{/snippet}
 	</SectionLabel>
 	<div class="spools">
 		{#each spools as s (s.id)}
-			<button class="spool-row" onclick={() => params.select('spool', String(s.id))}>
+			<button
+				class="spool-row"
+				class:archived={s.archived}
+				onclick={() => params.select('spool', String(s.id))}
+			>
 				<span class="id mono">#{s.id}</span>
-				<span class="state">{s.unused ? m['library.unused']() : m['library.inUse']()}</span>
+				<span class="state"
+					>{s.archived
+						? m['spool.fields.archived']()
+						: s.unused
+							? m['library.unused']()
+							: m['library.inUse']()}</span
+				>
 				<span class="barwrap">
 					<ProgressBar
 						value={pct(s.remaining, s.initial)}
@@ -279,6 +306,24 @@
 	}
 	.spool-row:hover {
 		border-color: var(--swatch-border-hover);
+	}
+	.spool-row.archived {
+		opacity: 0.6;
+	}
+	.arch-toggle {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		padding: 0 20px 0 0;
+		font: inherit;
+		font-size: 11.5px;
+		background: none;
+		border: none;
+		color: var(--text-dim);
+		cursor: pointer;
+	}
+	.arch-toggle:hover {
+		color: var(--text-2);
 	}
 	.id {
 		color: var(--text-muted);

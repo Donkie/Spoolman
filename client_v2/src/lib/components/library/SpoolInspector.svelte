@@ -7,6 +7,7 @@
 	import Scale from '@lucide/svelte/icons/scale';
 	import Printer from '@lucide/svelte/icons/printer';
 	import Archive from '@lucide/svelte/icons/archive';
+	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import DateTimeField from '../DateTimeField.svelte';
 	import SectionLabel from '../SectionLabel.svelte';
@@ -154,9 +155,15 @@
 			adjustBusy = false;
 		}
 	}
-	function archive() {
-		inventory.patchSpool(spool.id, { archived: true });
-		spoolSource.archiveSpool(spool.id).catch((e) => console.error('Archive failed', e));
+	// Optimistic flip, then persist. The list filters archived spools out by
+	// default, so unarchiving from here is the only way back once one is hidden.
+	function toggleArchived() {
+		const next = !spool.archived;
+		inventory.patchSpool(spool.id, { archived: next });
+		spoolSource.setSpoolArchived(spool.id, next).catch((e) => {
+			inventory.patchSpool(spool.id, { archived: !next });
+			console.error('Archive toggle failed', e);
+		});
 	}
 
 	function set(patch: Partial<Spool>) {
@@ -188,6 +195,7 @@
 				{vendor.name}
 				{filament.name}
 				<span class="idmono mono">#{spool.id}</span>
+				{#if spool.archived}<span class="arch-badge">{m['spool.fields.archived']()}</span>{/if}
 			</div>
 			<div class="subtitle">
 				{filament.material} · {filament.diameter} mm · {spool.unused
@@ -202,7 +210,10 @@
 			<Button variant="outline" onclick={() => goto(resolve(`/labels?spools=${spool.id}`))}
 				><Printer size={15} /> {m['printing.qrcode.button']()}</Button
 			>
-			<Button variant="outline" onclick={archive}><Archive size={15} /> {m['buttons.archive']()}</Button>
+			<Button variant="outline" onclick={toggleArchived}>
+				{#if spool.archived}<ArchiveRestore size={15} /> {m['buttons.unArchive']()}
+				{:else}<Archive size={15} /> {m['buttons.archive']()}{/if}
+			</Button>
 		</div>
 	</div>
 
@@ -362,6 +373,18 @@
 		font-size: 12px;
 		color: var(--text-muted);
 		font-weight: 400;
+	}
+	.arch-badge {
+		font-size: 9.5px;
+		font-weight: 600;
+		vertical-align: middle;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--text-dim);
+		border: 1px solid var(--border-soft);
+		border-radius: var(--radius-sm);
+		padding: 1px 5px;
+		margin-left: 4px;
 	}
 	.subtitle {
 		font-size: 12px;

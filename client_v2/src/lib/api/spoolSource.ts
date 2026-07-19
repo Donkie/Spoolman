@@ -290,8 +290,8 @@ class HttpSpoolSource {
 		const updated = await patchJson<Json>(`/spool/${id}`, spoolPatchToApi(patch));
 		inventory.upsertSpool(mapSpool(updated));
 	}
-	async archiveSpool(id: number): Promise<void> {
-		await this.saveSpool(id, { archived: true });
+	async setSpoolArchived(id: number, archived: boolean): Promise<void> {
+		await this.saveSpool(id, { archived });
 	}
 	/** Consume (or, if negative, add back) filament by length. */
 	async useSpoolLength(id: number, length: number): Promise<Spool> {
