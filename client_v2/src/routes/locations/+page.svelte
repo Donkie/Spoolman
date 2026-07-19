@@ -37,6 +37,7 @@
 	let spools = $state<Spool[]>([]);
 	let settingOrder = $state<string[]>([]);
 	let settingsLoaded = $state(false);
+	let spoolsLoaded = $state(false);
 	// Per-location custom spool order, keyed by the stored location name (EMPTY for
 	// "No location"), each an array of spool ids. Source of truth for the order of
 	// spools within a card. Shared with the old client's `locations_spoolorders`.
@@ -52,6 +53,9 @@
 	let dragging = $state(false);
 	let shelvesDragDisabled = $state(true);
 	let displayNames = $derived(shelves.map((sh) => sh.name));
+	// Nothing at all to show: no saved locations and no spools. Only decided once
+	// both loads have settled, so the help text doesn't flash on the way in.
+	let isEmpty = $derived(settingsLoaded && spoolsLoaded && shelves.length === 0);
 
 	// Map between the display sentinel and the stored empty-string marker.
 	const toStored = (names: string[]) => names.map((n) => (n === NO_LOCATION ? EMPTY : n));
@@ -69,6 +73,8 @@
 			spools = page.items;
 		} catch (e) {
 			console.error('Failed to load spools', e);
+		} finally {
+			spoolsLoaded = true;
 		}
 	}
 
@@ -296,7 +302,7 @@
 <div class="page scroll-y">
 	<div class="head">
 		<span class="title">{m['locations.locations']()}</span>
-		<span class="hint">{m['locations.dragHint']()}</span>
+		{#if !isEmpty}<span class="hint">{m['locations.dragHint']()}</span>{/if}
 		<button class="add" onclick={addLocation}><Plus size={14} /> {m['locations.newLocation']()}</button>
 	</div>
 
@@ -409,6 +415,10 @@
 			</div>
 		{/each}
 	</div>
+
+	{#if isEmpty}
+		<p class="no-locations">{m['locations.noLocationsHelp']()}</p>
+	{/if}
 </div>
 
 <style>
@@ -597,6 +607,14 @@
 	}
 	.chip-subtitle .low {
 		color: var(--danger-soft);
+	}
+	.no-locations {
+		margin: 18vh auto 0;
+		max-width: 420px;
+		text-align: center;
+		font-size: 13px;
+		line-height: 1.6;
+		color: var(--text-dim);
 	}
 	.empty {
 		position: absolute;
