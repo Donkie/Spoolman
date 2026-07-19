@@ -1,16 +1,18 @@
 <script lang="ts">
 	import type { LabelElement, ElementType } from '$lib/labels/types';
 	import type { PlaceholderGroup } from '$lib/labels/template';
+	import { qrTemplate } from '$lib/labels/qr';
 	import NumberInput from '../NumberInput.svelte';
 	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		el: LabelElement | null;
 		groups: PlaceholderGroup[];
+		baseUrl: string;
 		onchange: (el: LabelElement) => void;
 		ondelete: () => void;
 	}
-	let { el, groups, onchange, ondelete }: Props = $props();
+	let { el, groups, baseUrl, onchange, ondelete }: Props = $props();
 
 	const KIND_LABELS: Record<ElementType, () => string> = {
 		qr: m['labels.kind.qr'],
@@ -75,18 +77,16 @@
 				{m['labels.centerLogo']()}</label
 			>
 			<label
-				>{m['labels.encodes']()}
+				>{m['printing.qrcode.useHTTPUrl.label']()}
 				<select value={el.encoding} onchange={(e) => update({ encoding: e.currentTarget.value })}>
-					<option value="scheme">{m['labels.encScheme']()}</option>
-					<option value="url">{m['labels.encUrl']()}</option>
+					<option value="scheme">{m['printing.qrcode.useHTTPUrl.options.default']()}</option>
+					<option value="url">{m['printing.qrcode.useHTTPUrl.options.url']()}</option>
 				</select>
 			</label>
+			<p class="hint">{m['printing.qrcode.useHTTPUrl.tooltip']()}</p>
 			<p class="hint">
-				{#if el.encoding === 'url'}
-					{m['labels.hintEncUrl']()}
-				{:else}
-					{m['labels.hintEncScheme']()}
-				{/if}
+				{m['printing.qrcode.useHTTPUrl.preview']()}
+				<code>{qrTemplate(el, { baseUrl })}</code>
 			</p>
 		{:else if el.type === 'text'}
 			<div class="row2">

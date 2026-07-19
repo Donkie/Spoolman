@@ -204,6 +204,7 @@
 		<ElementInspector
 			el={selectedEl}
 			{groups}
+			baseUrl={settings.baseUrl}
 			onchange={updateElement}
 			ondelete={() => selectedId && removeElement(selectedId)}
 		/>

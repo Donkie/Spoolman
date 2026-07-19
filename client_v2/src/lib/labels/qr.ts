@@ -13,11 +13,19 @@ export interface QrContext {
 
 /** Build the string encoded in a QR element for a given spool. */
 export function qrContent(el: QrElement, spool: Spool, ctx: QrContext): string {
+	return qrTemplate(el, ctx).replace('{id}', String(spool.id));
+}
+
+/**
+ * The same string as {@link qrContent}, but with a literal `{id}` where the
+ * spool id goes — used for the encoding preview in the element inspector.
+ */
+export function qrTemplate(el: QrElement, ctx: QrContext): string {
 	if (el.encoding === 'url') {
 		const root = ctx.baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
-		return `${root.replace(/\/$/, '')}/spool/show/${spool.id}`;
+		return `${root.replace(/\/$/, '')}/spool/show/{id}`;
 	}
-	return `WEB+SPOOLMAN:S-${spool.id}`;
+	return 'WEB+SPOOLMAN:S-{id}';
 }
 
 /** A square boolean module grid for the given text. */
