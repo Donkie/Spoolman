@@ -46,6 +46,8 @@
 	/* Status */
 	--danger: #c4503a;
 	--danger-soft: #d98a7a;
+	--success: #6bb26b;
+	--success-border: #3f6b3f;
 	--unused-bg: #33302c;
 	--unused-border: #4a4239;
 	--unused-text: #d0a479;
@@ -114,6 +116,8 @@
 	/* Status */
 	--danger: #b7402c;
 	--danger-soft: #a8462f;
+	--success: #3d7a3d;
+	--success-border: #a9c9a9;
 	--unused-bg: #f1e9df;
 	--unused-border: #e0d2be;
 	--unused-text: #8a5a2a;

@@ -11,6 +11,7 @@
 	import * as params from '$lib/library/params';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
+	import { trackSave } from '$lib/utils/autosave';
 	import * as m from '$lib/paraglide/messages';
 
 	let { vendor }: { vendor: Vendor } = $props();
@@ -44,7 +45,7 @@
 	);
 
 	const saver = makeSaver<string, Partial<Vendor>>((id, patch) =>
-		spoolSource.saveVendor(id, patch).catch((e) => console.error('Save failed', e))
+		trackSave(spoolSource.saveVendor(id, patch))
 	);
 	$effect(() => () => saver.flush());
 
@@ -55,7 +56,7 @@
 
 	const extraSaver = makeExtraSaver(
 		(e) => inventory.patchVendor(vendor.id, { extra: e }),
-		(p) => spoolSource.saveVendor(vendor.id, { extra: p }).catch((err) => console.error('Save failed', err)),
+		(p) => trackSave(spoolSource.saveVendor(vendor.id, { extra: p })),
 		() => vendor.extra
 	);
 	$effect(() => () => extraSaver.flush());

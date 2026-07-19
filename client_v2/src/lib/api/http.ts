@@ -15,6 +15,17 @@ function queryString(params: QueryParams): string {
 	return s ? '?' + s : '';
 }
 
+/** A non-2xx API response. Carries `status` so callers can report it to the user. */
+export class HttpError extends Error {
+	constructor(
+		message: string,
+		readonly status: number
+	) {
+		super(message);
+		this.name = 'HttpError';
+	}
+}
+
 async function ensureOk(res: Response, method: string, path: string): Promise<Response> {
 	if (!res.ok) {
 		let detail = '';
@@ -23,7 +34,7 @@ async function ensureOk(res: Response, method: string, path: string): Promise<Re
 		} catch {
 			/* ignore */
 		}
-		throw new Error(`${method} ${path} → ${res.status}${detail ? `: ${detail}` : ''}`);
+		throw new HttpError(`${method} ${path} → ${res.status}${detail ? `: ${detail}` : ''}`, res.status);
 	}
 	return res;
 }

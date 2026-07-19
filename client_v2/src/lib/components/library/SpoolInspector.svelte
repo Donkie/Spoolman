@@ -21,6 +21,7 @@
 	import { lengthMeters, pct, grams } from '$lib/utils/format';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
+	import { trackSave } from '$lib/utils/autosave';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import * as m from '$lib/paraglide/messages';
@@ -112,9 +113,7 @@
 	let adjustInfo = $derived(ADJUST_MODES.find((m) => m.key === adjustMode)!);
 
 	// Debounced persistence for inline field edits; optimistic cache patch first.
-	const saver = makeSaver<number, Partial<Spool>>((id, patch) =>
-		spoolSource.saveSpool(id, patch).catch((e) => console.error('Save failed', e))
-	);
+	const saver = makeSaver<number, Partial<Spool>>((id, patch) => trackSave(spoolSource.saveSpool(id, patch)));
 	$effect(() => () => saver.flush());
 
 	function resetAdjustInput() {
@@ -167,7 +166,7 @@
 
 	const extraSaver = makeExtraSaver(
 		(e) => inventory.patchSpool(spool.id, { extra: e }),
-		(p) => spoolSource.saveSpool(spool.id, { extra: p }).catch((err) => console.error('Save failed', err)),
+		(p) => trackSave(spoolSource.saveSpool(spool.id, { extra: p })),
 		() => spool.extra
 	);
 	$effect(() => () => extraSaver.flush());

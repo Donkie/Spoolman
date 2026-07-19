@@ -21,6 +21,7 @@
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { live } from '$lib/api/live';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
+	import { trackSave } from '$lib/utils/autosave';
 	import * as m from '$lib/paraglide/messages';
 
 	let { filament }: { filament: Filament } = $props();
@@ -61,7 +62,7 @@
 	});
 
 	const saver = makeSaver<string, Partial<Filament>>((id, patch) =>
-		spoolSource.saveFilament(id, patch).catch((e) => console.error('Save failed', e))
+		trackSave(spoolSource.saveFilament(id, patch))
 	);
 	$effect(() => () => saver.flush());
 
@@ -72,8 +73,7 @@
 
 	const extraSaver = makeExtraSaver(
 		(e) => inventory.patchFilament(filament.id, { extra: e }),
-		(p) =>
-			spoolSource.saveFilament(filament.id, { extra: p }).catch((err) => console.error('Save failed', err)),
+		(p) => trackSave(spoolSource.saveFilament(filament.id, { extra: p })),
 		() => filament.extra
 	);
 	$effect(() => () => extraSaver.flush());

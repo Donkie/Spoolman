@@ -8,6 +8,7 @@
 	import { locales, getLocale, setLocale, isLocale } from '$lib/paraglide/runtime.js';
 	import * as m from '$lib/paraglide/messages';
 	import { languages } from '$lib/i18n/languages';
+	import { trackSave } from '$lib/utils/autosave';
 
 	const themeOptions: { value: ThemePref; label: () => string }[] = [
 		{ value: 'system', label: m['settings.appearance.theme.system'] },
@@ -17,10 +18,10 @@
 
 	function saveCurrency(v: string) {
 		const code = v.trim().toUpperCase();
-		if (/^[A-Z]{3}$/.test(code)) settings.setCurrency(code).catch((e) => console.error(e));
+		if (/^[A-Z]{3}$/.test(code)) trackSave(settings.setCurrency(code));
 	}
 	function saveBaseUrl(v: string) {
-		settings.setBaseUrl(v.trim()).catch((e) => console.error(e));
+		trackSave(settings.setBaseUrl(v.trim()));
 	}
 
 	let localeData = locales.map((code) => {
@@ -87,7 +88,7 @@
 			>
 				<Toggle
 					checked={settings.roundPrices}
-					onchange={(v) => settings.setRoundPrices(v).catch((e) => console.error(e))}
+					onchange={(v) => trackSave(settings.setRoundPrices(v))}
 					ariaLabel={m['settings.general.roundPrices.label']()}
 				/>
 			</SettingRow>
