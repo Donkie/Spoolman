@@ -332,7 +332,7 @@
 						<span class="mono"
 							>{filament.colors.length > 1
 								? m['inspector.multi']({ count: filament.colors.length })
-								: filament.colors[0].toUpperCase()}</span
+								: (filament.colors[0]?.toUpperCase() ?? '—')}</span
 						>
 					</span>
 				</Field>
