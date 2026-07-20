@@ -41,6 +41,7 @@ export function buildScopedSpoolQuery(
 	state: LibraryState,
 	group: GroupSummary,
 	limit: number,
+	offset: number,
 	signal?: AbortSignal
 ): SpoolQuery {
 	const within = resolveSortField(state.sortKey);
@@ -54,7 +55,7 @@ export function buildScopedSpoolQuery(
 		groupScope: { field: group.field, key: group.key },
 		allowArchived: state.showArchived,
 		limit,
-		offset: 0,
+		offset,
 		lowThreshold: settings.lowThreshold,
 		signal
 	};
