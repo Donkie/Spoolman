@@ -8,6 +8,7 @@
 	import { PAPER_NAMES, paperSize, sheetGrid } from '$lib/labels/paper';
 	import { printLabels, saveLabelImages, ZIP_THRESHOLD } from '$lib/labels/print';
 	import { spoolSource } from '$lib/api/spoolSource';
+	import { searchAll } from '$lib/api/search';
 	import { isAbortError } from '$lib/api/http';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
@@ -30,8 +31,31 @@
 	// the common case when printing labels for a fresh batch.
 	let sort = $state<'newest' | 'id'>('newest');
 	let loading = $state(true);
+	let searching = $state(false);
 	let printing = $state(false);
 	let saving = $state(false);
+
+	// The full inventory can be thousands of spools, so loading every one up front
+	// was an extremely heavy query. Instead preload only the latest batch — the
+	// common case when printing labels for spools you just added — and let search
+	// pull in anything older on demand.
+	const INITIAL_LIMIT = 50;
+	// …but the latest 50 isn't enough for the "Recent" quick-select once you've
+	// added more than that in the last 24h, so we keep paging (newest-first) past
+	// the first 50 while still inside the recent window. PAGE is the batch size for
+	// that extension; MAX_INITIAL caps it so a huge same-day import can't recreate
+	// the original heavy load.
+	const PAGE = 100;
+	const MAX_INITIAL = 1000;
+	// Color-similarity threshold for the search (a query like "#ff0000" or "red"
+	// also runs a color match); matches the value used by the library picker.
+	const COLOR_THRESHOLD = 20;
+
+	// IDs of the preloaded "latest" spools, and of the current search result (null
+	// when not searching). Both index into the reactive inventory cache, so the
+	// list stays live as spools are edited or removed.
+	let baseIds = $state<number[]>([]);
+	let resultIds = $state<number[] | null>(null);
 
 	// Spools registered within this window count as "recently added" for the
 	// one-click quick-select.
@@ -50,26 +74,97 @@
 
 	$effect(() => {
 		const ctrl = new AbortController();
-		void load(ctrl.signal);
+		void loadInitial(ctrl.signal);
 		return () => ctrl.abort();
 	});
-	async function load(signal: AbortSignal) {
+	async function loadInitial(signal: AbortSignal) {
 		try {
-			await spoolSource.listSpools({
-				filters: {},
-				sort: [{ field: 'id', dir: 'asc' }],
-				limit: 1000,
-				offset: 0,
-				lowThreshold: settings.lowThreshold,
-				signal
-			});
+			const seen = new Set<number>();
+			const ids: number[] = [];
+			let offset = 0;
+			// Load the latest INITIAL_LIMIT, then keep paging while the oldest spool
+			// of the last batch is still within the 24h window — so every spool added
+			// today lands in the list (and thus in "Recent"), not just the newest 50.
+			// Sorted by id desc, which is monotonic with registration, so once a batch
+			// reaches past the window everything below it is older too.
+			for (;;) {
+				const limit = ids.length === 0 ? INITIAL_LIMIT : PAGE;
+				const page = await spoolSource.listSpools({
+					filters: {},
+					sort: [{ field: 'id', dir: 'desc' }],
+					limit,
+					offset,
+					lowThreshold: settings.lowThreshold,
+					signal
+				});
+				for (const s of page.items) {
+					if (!seen.has(s.id)) {
+						seen.add(s.id);
+						ids.push(s.id);
+					}
+				}
+				offset += page.items.length;
+				const oldest = page.items.at(-1);
+				const more =
+					page.items.length === limit && // a full page ⇒ there may be more
+					ids.length < MAX_INITIAL && // safety cap
+					!!oldest &&
+					isRecent(oldest); // still inside the 24h window
+				if (!more) break;
+			}
+			baseIds = ids;
 		} catch (e) {
-			// This one query is heavy enough that abandoning the tab mid-load is
-			// exactly when cancelling it matters most.
+			// Abandoning the tab mid-load is exactly when cancelling matters most.
 			if (isAbortError(e, signal)) return;
 			console.error('Failed to load spools for printing', e);
 		} finally {
-			loading = false;
+			if (!signal.aborted) loading = false;
+		}
+	}
+
+	// Search hits the backend rather than filtering the preloaded slice, so spools
+	// outside the latest batch stay findable. Debounced, and superseded queries are
+	// aborted on cleanup.
+	$effect(() => {
+		const q = search.trim();
+		if (!q) {
+			resultIds = null;
+			searching = false;
+			return;
+		}
+		searching = true;
+		const ctrl = new AbortController();
+		const timer = setTimeout(() => void runSearch(q, ctrl.signal), 250);
+		return () => {
+			clearTimeout(timer);
+			ctrl.abort();
+		};
+	});
+	async function runSearch(q: string, signal: AbortSignal) {
+		try {
+			const { spools, filaments } = await searchAll(q, COLOR_THRESHOLD, signal);
+			const ids = new Set<number>(spools.map((m) => m.entity.id));
+			// The /search spool pass only matches spool-native fields, so also pull
+			// the spools of any matched filament — that's how a filament- or
+			// vendor-name query (e.g. "bambu petg") turns up printable spools.
+			const filamentIds = filaments.map((m) => m.entity.id);
+			if (filamentIds.length) {
+				const page = await spoolSource.listSpools({
+					filters: { filament: filamentIds },
+					sort: [{ field: 'id', dir: 'desc' }],
+					limit: 200,
+					offset: 0,
+					lowThreshold: settings.lowThreshold,
+					signal
+				});
+				for (const s of page.items) ids.add(s.id);
+			}
+			resultIds = [...ids];
+		} catch (e) {
+			if (isAbortError(e, signal)) return;
+			console.error('Spool search failed', e);
+		} finally {
+			if (!signal.aborted) searching = false;
 		}
 	}
 
@@ -80,10 +175,13 @@
 		return `#${s.id} · ${name}${s.location ? ' · ' + s.location : ''}`;
 	}
 
+	// The active id set — search results when searching, otherwise the latest batch —
+	// resolved through the reactive cache (so edits/deletes reflect) and sorted.
+	const activeIds = $derived(resultIds ?? baseIds);
 	const visibleSpools = $derived(
-		inventory.spools
-			.filter((s) => !s.archived)
-			.filter((s) => (search ? spoolLabel(s).toLowerCase().includes(search.toLowerCase()) : true))
+		activeIds
+			.map((id) => inventory.spoolById(id))
+			.filter((s): s is Spool => !!s && !s.archived)
 			.sort((a, b) => (sort === 'newest' ? recencyKey(b) - recencyKey(a) : a.id - b.id))
 	);
 
@@ -187,7 +285,7 @@
 			</div>
 		</div>
 		<div class="spool-list">
-			{#if loading}
+			{#if loading || (searching && visibleSpools.length === 0)}
 				<div class="muted">{m.loading()}…</div>
 			{:else if visibleSpools.length === 0}
 				<div class="muted">{m['labels.noSpools']()}</div>
