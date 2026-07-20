@@ -9,6 +9,7 @@
 	// date and time are always fully clickable and identical in every browser.
 	import { languages } from '$lib/i18n/languages';
 	import { getLocale } from '$lib/paraglide/runtime';
+	import { formatDateTime } from '$lib/utils/datetime';
 	import * as m from '$lib/paraglide/messages';
 	import Calendar from '@lucide/svelte/icons/calendar';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
@@ -117,23 +118,9 @@
 		viewMonth = now.getMonth();
 	}
 
-	// Label shown on the trigger.
-	let label = $derived.by(() => {
-		if (!value) return '';
-		const d = new Date(value);
-		if (Number.isNaN(d.getTime())) return '';
-		const datePart = new Intl.DateTimeFormat(dtLocale, {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric'
-		}).format(d);
-		// Time part follows the locale's 12/24-hour preference.
-		const timePart = new Intl.DateTimeFormat(dtLocale, {
-			hour: '2-digit',
-			minute: '2-digit'
-		}).format(d);
-		return `${datePart}  ${timePart}`;
-	});
+	// Label shown on the trigger. Shared with datetime extra fields via
+	// `formatDateTime` so both render identically.
+	let label = $derived(formatDateTime(value));
 
 	// Calendar grid: 6 weeks × 7 days, ordered from the locale's first weekday,
 	// null = blank leading cell.

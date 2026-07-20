@@ -1,5 +1,6 @@
 import type { Filament, MultiColorDirection, Spool, Vendor } from '$lib/types';
 import type { GroupSummary } from './types';
+import { formatDurationShort, formatShortDate } from '$lib/utils/datetime';
 
 // Map between the Spoolman API JSON shape and the client's domain types.
 // The API uses integer ids and snake_case; the client uses string ids for
@@ -20,29 +21,6 @@ export function colorsFromApi(f: Json | undefined): string[] {
 	return [];
 }
 
-/** ISO timestamp → short relative label like "5 h", "2 d", "3 w", "2 mo". */
-export function relTime(iso: string | null | undefined): string {
-	if (!iso) return '';
-	const then = new Date(iso).getTime();
-	if (Number.isNaN(then)) return '';
-	const secs = Math.max(0, (Date.now() - then) / 1000);
-	const mins = secs / 60;
-	const hours = mins / 60;
-	const days = hours / 24;
-	if (days < 1) return hours >= 1 ? `${Math.round(hours)} h` : `${Math.max(1, Math.round(mins))} m`;
-	if (days < 14) return `${Math.round(days)} d`;
-	if (days < 60) return `${Math.round(days / 7)} w`;
-	if (days < 365) return `${Math.round(days / 30)} mo`;
-	return `${Math.round(days / 365)} y`;
-}
-
-/** ISO timestamp → "Jan 14". */
-export function shortDate(iso: string | null | undefined): string {
-	if (!iso) return '';
-	const d = new Date(iso);
-	return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
-
 export function mapVendor(v: Json): Vendor {
 	return {
 		id: String(v.id),
@@ -50,7 +28,7 @@ export function mapVendor(v: Json): Vendor {
 		emptyWeight: v.empty_spool_weight ?? 0,
 		comment: v.comment ?? '',
 		externalId: v.external_id ?? undefined,
-		registeredLabel: shortDate(v.registered),
+		registeredLabel: formatShortDate(v.registered),
 		extra: v.extra ?? {}
 	};
 }
@@ -73,7 +51,7 @@ export function mapFilament(f: Json): Filament {
 		articleNumber: f.article_number ?? undefined,
 		comment: f.comment ?? '',
 		externalId: f.external_id ?? undefined,
-		registeredLabel: shortDate(f.registered),
+		registeredLabel: formatShortDate(f.registered),
 		extra: f.extra ?? {}
 	};
 }
@@ -91,10 +69,10 @@ export function mapSpool(s: Json): Spool {
 		price: s.price ?? undefined,
 		firstUsed: s.first_used ?? undefined,
 		lastUsed: s.last_used ?? undefined,
-		firstUsedLabel: shortDate(s.first_used),
-		lastUsedLabel: relTime(s.last_used),
+		firstUsedLabel: formatShortDate(s.first_used),
+		lastUsedLabel: formatDurationShort(s.last_used),
 		registered: s.registered ?? undefined,
-		registeredLabel: shortDate(s.registered),
+		registeredLabel: formatShortDate(s.registered),
 		archived: s.archived ?? false,
 		comment: s.comment ?? '',
 		extra: s.extra ?? {}
@@ -139,7 +117,7 @@ export function mapGroup(g: Json): GroupSummary {
 		unusedCount: (g.spool_count ?? 0) - (g.in_use_count ?? 0),
 		totalRemaining: g.total_remaining_weight ?? 0,
 		hasStock: (g.spool_count ?? 0) > 0,
-		lastUsedLabel: relTime(g.last_used),
+		lastUsedLabel: formatDurationShort(g.last_used),
 		lastUsedSort: 0
 	};
 }

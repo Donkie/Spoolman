@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { FieldType, NUMERIC_FIELD_TYPES, type FieldDef } from '$lib/api/fields';
 	import Toggle from './Toggle.svelte';
+	import DateTimeField from './DateTimeField.svelte';
+	import { formatDateTime } from '$lib/utils/datetime';
 	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
@@ -47,16 +49,11 @@
 		else emit(cur);
 	}
 
-	// Datetime <-> datetime-local
-	function toLocalInput(iso: unknown): string {
-		if (typeof iso !== 'string' || !iso) return '';
-		const d = new Date(iso);
-		if (Number.isNaN(d.getTime())) return '';
-		const p = (n: number) => String(n).padStart(2, '0');
-		return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
-	}
-	function onDateTime(local: string) {
-		emit(local ? new Date(local).toISOString() : undefined);
+	// Datetime: stored as a JSON-encoded ISO string; edited via the shared
+	// DateTimeField picker (same control/format as builtin datetime fields).
+	let dtValue = $derived(typeof parsed === 'string' ? parsed : undefined);
+	function onDateTime(iso: string | undefined) {
+		emit(iso);
 	}
 
 	// Multi-choice
@@ -74,7 +71,7 @@
 			>{withUnit(lo === '' && hi === '' ? '—' : `${lo === '' ? '?' : lo}–${hi === '' ? '?' : hi}`)}</span
 		>
 	{:else if field.field_type === FieldType.datetime}
-		<span class="mono">{parsed ? new Date(parsed).toLocaleString() : '—'}</span>
+		<span class="mono">{formatDateTime(dtValue) || '—'}</span>
 	{:else if field.field_type === FieldType.boolean}
 		<span>{parsed === true ? m.yes() : m.no()}</span>
 	{:else if field.field_type === FieldType.choice && field.multi_choice}
@@ -131,12 +128,7 @@
 		{#if field.unit}<span class="unit">{field.unit}</span>{/if}
 	</span>
 {:else if field.field_type === FieldType.datetime}
-	<input
-		class="edit mono"
-		type="datetime-local"
-		value={toLocalInput(parsed)}
-		oninput={(e) => onDateTime(e.currentTarget.value)}
-	/>
+	<DateTimeField value={dtValue} oninput={onDateTime} />
 {:else if field.field_type === FieldType.boolean}
 	<Toggle
 		checked={parsed === true}

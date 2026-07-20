@@ -340,14 +340,12 @@
 				<Field label={m['filament.fields.density']()} mono>{filament.density} g/cm³</Field>
 				<Field label={m['filament.fields.settingsExtruderTemp']()} mono>{filament.nozzleTemp} °C</Field>
 				<Field label={m['filament.fields.settingsBedTemp']()} mono>{filament.bedTemp} °C</Field>
-				<Field label={m['inspector.filamentWeight']()} help={m['filament.fieldsHelp.weight']()} mono
+				<Field label={m['filament.fields.weight']()} help={m['filament.fieldsHelp.weight']()} mono
 					>{filament.weight} g</Field
 				>
 				{#if filament.spoolWeight}
-					<Field
-						label={m['vendor.fields.emptySpoolWeight']()}
-						help={m['filament.fieldsHelp.spoolWeight']()}
-						mono>{filament.spoolWeight} g</Field
+					<Field label={m['filament.fields.spoolWeight']()} help={m['filament.fieldsHelp.spoolWeight']()} mono
+						>{filament.spoolWeight} g</Field
 					>
 				{/if}
 			</FieldGrid>
