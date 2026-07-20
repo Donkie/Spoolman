@@ -25,6 +25,23 @@
 	/** Distance from the bottom of a card's list at which the next page is fetched. */
 	const SCROLL_MARGIN = 120;
 
+	// A card's body reserves its final height up front, derived from the location's
+	// spool count (known from the aggregate query before any spool row is fetched),
+	// so the card does not grow — and shove every card below it down — when its first
+	// page arrives. Without this each card jumps from empty (~110px) to full as it
+	// loads, reflowing the whole grid in waves: the load-time "flicker". The result
+	// is clamped to the same cap as the body's `max-height`, so a big location fills
+	// exactly to the cap with no jump. These constants must track the `.chip` /
+	// `.shelf-body` CSS below (chip border-box height, row gap, vertical padding).
+	const CHIP_H = 44;
+	const CHIP_GAP = 6;
+	const BODY_PAD = 20; // 10px top + 10px bottom
+	const BODY_MIN = 42; // floor; matches .shelf-body min-height
+	function bodyReserve(total: number): number {
+		if (total <= 0) return BODY_MIN;
+		return Math.max(BODY_MIN, BODY_PAD + total * CHIP_H + (total - 1) * CHIP_GAP);
+	}
+
 	// A location card. `id` is what svelte-dnd-action keys on; it equals `name`,
 	// the location's display name (the NO_LOCATION sentinel for the unlocated
 	// bucket). `spools` is the card's own drop zone, in display order — only the
@@ -631,6 +648,7 @@
 				<div class="shelf-body-wrap">
 					<div
 						class="shelf-body"
+						style="min-height: min({bodyReserve(shelf.total)}px, var(--shelf-body-cap))"
 						onscroll={(e) => onBodyScroll(shelf.name, e)}
 						use:dndzone={{ items: shelf.spools, type: 'spool', flipDurationMs: FLIP, dropTargetStyle: {} }}
 						onconsider={(e) => spoolConsider(idx, e as CustomEvent<DndEvent<Spool>>)}
@@ -729,6 +747,13 @@
 	.shelf {
 		flex: 1 1 300px;
 		max-width: 380px;
+		/* Without this a flex item's min-width is `auto` (its min-content width), which
+		 * grows once the card's spool chips load. That can push the card past the point
+		 * where N of them still fit on a row, so the grid drops a column and re-wraps —
+		 * cards jumping sideways as each location's query lands (the width-wise
+		 * "flicker"). Pinning min-width to 0 makes the column count depend only on the
+		 * flex-basis and available width, so it stays put as cards fill. */
+		min-width: 0;
 		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
@@ -816,13 +841,17 @@
 	/* Capped so a location with hundreds of spools stays a card rather than an
 	 * endless column; scrolling it to the bottom fetches the next page. */
 	.shelf-body {
+		/* Single source of truth for the height cap: the reserved min-height (set
+		 * inline from the spool count) is clamped to this too, so it never exceeds
+		 * max-height. */
+		--shelf-body-cap: min(52vh, 420px);
 		display: flex;
 		flex-direction: column;
 		gap: 6px;
 		padding: 10px 12px;
 		flex: 1;
 		min-height: 42px;
-		max-height: min(52vh, 420px);
+		max-height: var(--shelf-body-cap);
 		overflow-y: auto;
 		overscroll-behavior: contain;
 	}
