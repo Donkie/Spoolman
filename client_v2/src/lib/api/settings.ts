@@ -11,8 +11,8 @@ export interface SettingResponse {
 
 export type SettingsMap = Record<string, SettingResponse>;
 
-export function getSettings(): Promise<SettingsMap> {
-	return getJson<SettingsMap>('/setting/');
+export function getSettings(signal?: AbortSignal): Promise<SettingsMap> {
+	return getJson<SettingsMap>('/setting/', {}, signal);
 }
 
 export async function setSetting(key: string, value: unknown): Promise<void> {

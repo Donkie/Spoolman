@@ -8,6 +8,7 @@
 	import { PAPER_NAMES, paperSize, sheetGrid } from '$lib/labels/paper';
 	import { printLabels, saveLabelImages, ZIP_THRESHOLD } from '$lib/labels/print';
 	import { spoolSource } from '$lib/api/spoolSource';
+	import { isAbortError } from '$lib/api/http';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import type { Spool } from '$lib/types';
@@ -48,18 +49,24 @@
 	}
 
 	$effect(() => {
-		void load();
+		const ctrl = new AbortController();
+		void load(ctrl.signal);
+		return () => ctrl.abort();
 	});
-	async function load() {
+	async function load(signal: AbortSignal) {
 		try {
 			await spoolSource.listSpools({
 				filters: {},
 				sort: [{ field: 'id', dir: 'asc' }],
 				limit: 1000,
 				offset: 0,
-				lowThreshold: settings.lowThreshold
+				lowThreshold: settings.lowThreshold,
+				signal
 			});
 		} catch (e) {
+			// This one query is heavy enough that abandoning the tab mid-load is
+			// exactly when cancelling it matters most.
+			if (isAbortError(e, signal)) return;
 			console.error('Failed to load spools for printing', e);
 		} finally {
 			loading = false;

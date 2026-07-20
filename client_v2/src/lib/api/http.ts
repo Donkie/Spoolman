@@ -15,6 +15,22 @@ function queryString(params: QueryParams): string {
 	return s ? '?' + s : '';
 }
 
+/**
+ * True when a rejection is the result of cancelling the request rather than a
+ * real failure — callers should return quietly instead of logging it or flagging
+ * the view as broken.
+ *
+ * Pass the signal you cancelled with whenever you have it. It is the reliable
+ * test: an aborted fetch does NOT always reject with a DOMException named
+ * AbortError — Chromium reports a plain `TypeError: Failed to fetch` for aborts
+ * that land while the request is on the wire, which is precisely the case here.
+ * If we asked for the abort, any rejection that follows is ours.
+ */
+export function isAbortError(e: unknown, signal?: AbortSignal): boolean {
+	if (signal?.aborted) return true;
+	return e instanceof DOMException && e.name === 'AbortError';
+}
+
 /** A non-2xx API response. Carries `status` so callers can report it to the user. */
 export class HttpError extends Error {
 	constructor(
@@ -44,17 +60,30 @@ export interface RawPage {
 	total: number;
 }
 
+// Reads take an optional AbortSignal so a view can cancel what it no longer needs
+// — a superseded query, or everything it had in flight when it was navigated away
+// from. Writes deliberately don't: a PATCH that has left the browser has already
+// changed the server, so cancelling it would only hide the result.
+
 /** GET a list endpoint, returning the parsed array plus the X-Total-Count total. */
-export async function getList(path: string, params: QueryParams = {}): Promise<RawPage> {
-	const res = await ensureOk(await fetch(API_BASE + path + queryString(params)), 'GET', path);
+export async function getList(
+	path: string,
+	params: QueryParams = {},
+	signal?: AbortSignal
+): Promise<RawPage> {
+	const res = await ensureOk(await fetch(API_BASE + path + queryString(params), { signal }), 'GET', path);
 	const items = (await res.json()) as unknown[];
 	const header = res.headers.get('x-total-count');
 	const total = header != null && header !== '' ? Number(header) : items.length;
 	return { items, total: Number.isNaN(total) ? items.length : total };
 }
 
-export async function getJson<T = unknown>(path: string, params: QueryParams = {}): Promise<T> {
-	const res = await ensureOk(await fetch(API_BASE + path + queryString(params)), 'GET', path);
+export async function getJson<T = unknown>(
+	path: string,
+	params: QueryParams = {},
+	signal?: AbortSignal
+): Promise<T> {
+	const res = await ensureOk(await fetch(API_BASE + path + queryString(params), { signal }), 'GET', path);
 	return (await res.json()) as T;
 }
 

@@ -54,6 +54,8 @@ export interface SpoolQuery {
 	limit: number;
 	offset: number;
 	lowThreshold: number;
+	/** Cancels the request when the view that asked for it is gone or superseded. */
+	signal?: AbortSignal;
 }
 
 export interface GroupQuery {
@@ -66,6 +68,8 @@ export interface GroupQuery {
 	limit: number;
 	offset: number;
 	lowThreshold: number;
+	/** Cancels the request when the view that asked for it is gone or superseded. */
+	signal?: AbortSignal;
 }
 
 export interface Page<T> {

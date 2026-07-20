@@ -10,6 +10,7 @@
 	import { spoolToVM } from '$lib/utils/library';
 	import { buildScopedSpoolQuery } from '$lib/api/query';
 	import { spoolSource } from '$lib/api/spoolSource';
+	import { isAbortError } from '$lib/api/http';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { kg } from '$lib/utils/format';
@@ -31,14 +32,25 @@
 	// The parent's keyed {#each} recreates this component when the group identity
 	// changes, so `limit` naturally resets; persisting groups keep their window.
 
+	// Every visible group runs one of these, so leaving them in flight after the
+	// list has moved on is what makes rapid paging (or navigating away and back)
+	// pile up queries on the server. The effect cleanup cancels this row's request
+	// whenever it is superseded or the row goes away.
 	let reqId = 0;
 	$effect(() => {
-		const q = buildScopedSpoolQuery(libraryState, group, limit);
+		const ctrl = new AbortController();
+		const q = buildScopedSpoolQuery(libraryState, group, limit, ctrl.signal);
 		revision; // refetch on live events
 		const mine = ++reqId;
-		spoolSource.listSpools(q).then((page) => {
-			if (mine === reqId) spools = page.items;
-		});
+		spoolSource
+			.listSpools(q)
+			.then((page) => {
+				if (mine === reqId) spools = page.items;
+			})
+			.catch((e) => {
+				if (!isAbortError(e, ctrl.signal)) console.error('Failed to load group spools', e);
+			});
+		return () => ctrl.abort();
 	});
 
 	let inUse = $derived(

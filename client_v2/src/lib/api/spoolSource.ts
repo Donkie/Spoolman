@@ -126,7 +126,7 @@ class HttpSpoolSource {
 		};
 		applyFilters(params, query.filters);
 
-		const { items, total } = await getList('/spool/group', params);
+		const { items, total } = await getList('/spool/group', params, query.signal);
 		for (const g of items as Json[]) {
 			if (g.filament) {
 				inventory.upsertFilament(mapFilament(g.filament));
@@ -147,7 +147,7 @@ class HttpSpoolSource {
 		applyFilters(params, query.filters);
 		scopeParams(params, query.groupScope);
 
-		const { items, total } = await getList('/spool', params);
+		const { items, total } = await getList('/spool', params, query.signal);
 		return { items: cacheSpools(items), total };
 	}
 

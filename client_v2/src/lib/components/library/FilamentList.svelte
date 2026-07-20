@@ -12,6 +12,7 @@
 	import { spoolToVM } from '$lib/utils/library';
 	import { buildGroupQuery, buildFlatSpoolQuery, isGroupedMode } from '$lib/api/query';
 	import { spoolSource } from '$lib/api/spoolSource';
+	import { isAbortError } from '$lib/api/http';
 	import { live } from '$lib/api/live';
 	import * as m from '$lib/paraglide/messages';
 
@@ -33,11 +34,16 @@
 	/** Bumped by live events; forces refetch of the page and every GroupRow. */
 	let revision = $state(0);
 
+	// One request at a time: the effect's cleanup aborts the previous one, so a
+	// superseded query (paging, sorting, a live event) — or the whole page being
+	// navigated away from — stops costing bandwidth and backend work instead of
+	// merely having its result discarded.
 	let reqId = 0;
 	$effect(() => {
 		const isGrouped = grouped;
-		const gq = isGrouped ? buildGroupQuery(libraryState) : null;
-		const sq = isGrouped ? null : buildFlatSpoolQuery(libraryState);
+		const ctrl = new AbortController();
+		const gq = isGrouped ? buildGroupQuery(libraryState, ctrl.signal) : null;
+		const sq = isGrouped ? null : buildFlatSpoolQuery(libraryState, ctrl.signal);
 		revision; // refetch on live events
 		const mine = ++reqId;
 		loading = true;
@@ -55,11 +61,12 @@
 			total = page.total;
 			loading = false;
 		}).catch((err) => {
-			if (mine !== reqId) return;
+			if (mine !== reqId || isAbortError(err, ctrl.signal)) return;
 			console.error('Failed to load spools', err);
 			errored = true;
 			loading = false;
 		});
+		return () => ctrl.abort();
 	});
 
 	// The list fetches server-paged data outside the reactive cache, so it keeps

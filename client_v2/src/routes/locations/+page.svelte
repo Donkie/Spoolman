@@ -5,6 +5,7 @@
 	import { settings } from '$lib/stores/settings.svelte';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { live, type LiveEvent } from '$lib/api/live';
+	import { isAbortError } from '$lib/api/http';
 	import { mapSpool } from '$lib/api/map';
 	import { goto } from '$app/navigation';
 	import { weightAuto } from '$lib/utils/format';
@@ -89,7 +90,16 @@
 
 	// The one query that runs up front: every location that currently holds spools,
 	// with its count, aggregated in the database. No spool rows cross the wire.
+	// Everything this page reads is tied to one controller, aborted when the page
+	// goes away. Without it, leaving mid-load leaves a screenful of card queries
+	// running for a server that no longer has anyone to answer — and bouncing in
+	// and out of the page stacks a fresh set on top of each abandoned one.
+	let pageAbort = new AbortController();
+
 	async function loadLocations() {
+		// Captured up front: by the time this settles, `pageAbort` may already be a
+		// fresh controller for a later mount.
+		const signal = pageAbort.signal;
 		try {
 			const page = await spoolSource.listGroups({
 				field: 'location',
@@ -97,7 +107,8 @@
 				sort: [{ field: 'group.title', dir: 'asc' }],
 				limit: 1000,
 				offset: 0,
-				lowThreshold: settings.lowThreshold
+				lowThreshold: settings.lowThreshold,
+				signal
 			});
 			// A NULL location and an empty-string one are distinct rows to the database
 			// but the same "No location" card here, so counts are summed by key.
@@ -119,6 +130,7 @@
 				b.done = true;
 			}
 		} catch (e) {
+			if (isAbortError(e, signal)) return;
 			console.error('Failed to load locations', e);
 		} finally {
 			locationsLoaded = true;
@@ -133,9 +145,20 @@
 	let inflight = 0;
 	const waiting: (() => void)[] = [];
 
-	async function acquire() {
+	/**
+	 * Wait for a slot. Returns false if the page was abandoned while queued — the
+	 * queue is where most of the waste sits when someone navigates away from a
+	 * screenful of cards, so those turns must be dropped rather than sent.
+	 */
+	async function acquire(signal: AbortSignal): Promise<boolean> {
 		if (inflight >= MAX_INFLIGHT) await new Promise<void>((resolve) => waiting.push(resolve));
+		if (signal.aborted) {
+			// Hand the slot straight to the next in line instead of holding it.
+			waiting.shift()?.();
+			return false;
+		}
 		inflight++;
+		return true;
 	}
 	function release() {
 		inflight--;
@@ -150,9 +173,14 @@
 		const key = storedKey(name);
 		const b = bucket(key);
 		if (b.loading || b.done) return;
+		const signal = pageAbort.signal;
 		b.started = true;
 		b.loading = true;
-		await acquire();
+		if (!(await acquire(signal))) {
+			b.loading = false;
+			b.started = false;
+			return;
+		}
 		try {
 			const page = await spoolSource.listSpools({
 				filters: {},
@@ -160,7 +188,8 @@
 				groupScope: { field: 'location', key },
 				limit: PAGE,
 				offset: b.spools.length,
-				lowThreshold: settings.lowThreshold
+				lowThreshold: settings.lowThreshold,
+				signal
 			});
 			// A spool moved in by a drag or a live event may already be held here.
 			const seen = new Set(b.spools.map((s) => s.id));
@@ -170,8 +199,9 @@
 			b.done = page.items.length === 0 || b.spools.length >= page.total;
 		} catch (e) {
 			// Leave the card unstarted so scrolling it back into view retries, rather
-			// than stranding it empty for the rest of the session.
-			console.error('Failed to load spools for location', name, e);
+			// than stranding it empty for the rest of the session. A cancelled request
+			// is the same story without the noise.
+			if (!isAbortError(e, signal)) console.error('Failed to load spools for location', name, e);
 			b.started = false;
 		} finally {
 			release();
@@ -208,11 +238,13 @@
 	}
 
 	async function loadLocationsSetting() {
+		const signal = pageAbort.signal;
 		try {
-			const s = await getSettings();
+			const s = await getSettings(signal);
 			settingOrder = parseSetting<string[]>(s.locations, []).filter((l) => l != null);
 			spoolOrders = parseSetting<Record<string, number[]>>(s.locations_spoolorders, {});
 		} catch (e) {
+			if (isAbortError(e, signal)) return;
 			console.error('Failed to load locations setting', e);
 		} finally {
 			settingsLoaded = true;
@@ -270,12 +302,16 @@
 	}
 
 	$effect(() => {
+		pageAbort = new AbortController();
 		loadLocations();
 		loadLocationsSetting();
 		const off = live.subscribe('spool', {}, applyLiveEvent);
 		return () => {
 			off();
 			if (countsTimer) clearTimeout(countsTimer);
+			// Drops both the requests already on the wire and the ones still queued
+			// behind MAX_INFLIGHT.
+			pageAbort.abort();
 		};
 	});
 

@@ -20,7 +20,7 @@ function currentFilters(state: LibraryState): Record<string, string[]> {
 }
 
 /** Page-of-groups query (grouped mode). */
-export function buildGroupQuery(state: LibraryState): GroupQuery {
+export function buildGroupQuery(state: LibraryState, signal?: AbortSignal): GroupQuery {
 	const field = state.group as GroupField;
 	const groupField = resolveGroupSortField(state.sortKey) ?? 'group.title';
 	const dir = groupField === 'group.title' ? 'asc' : state.sortAsc ? 'asc' : 'desc';
@@ -31,12 +31,18 @@ export function buildGroupQuery(state: LibraryState): GroupQuery {
 		allowArchived: state.showArchived,
 		limit: state.pageSize,
 		offset: (state.page - 1) * state.pageSize,
-		lowThreshold: settings.lowThreshold
+		lowThreshold: settings.lowThreshold,
+		signal
 	};
 }
 
 /** Spools of one group, ordered by the chosen Sort. */
-export function buildScopedSpoolQuery(state: LibraryState, group: GroupSummary, limit: number): SpoolQuery {
+export function buildScopedSpoolQuery(
+	state: LibraryState,
+	group: GroupSummary,
+	limit: number,
+	signal?: AbortSignal
+): SpoolQuery {
 	const within = resolveSortField(state.sortKey);
 	const sort: SortField[] = [
 		{ field: within, dir: state.sortAsc ? 'asc' : 'desc' },
@@ -49,12 +55,13 @@ export function buildScopedSpoolQuery(state: LibraryState, group: GroupSummary, 
 		allowArchived: state.showArchived,
 		limit,
 		offset: 0,
-		lowThreshold: settings.lowThreshold
+		lowThreshold: settings.lowThreshold,
+		signal
 	};
 }
 
 /** Flat page-of-spools query (group=none). */
-export function buildFlatSpoolQuery(state: LibraryState): SpoolQuery {
+export function buildFlatSpoolQuery(state: LibraryState, signal?: AbortSignal): SpoolQuery {
 	const sort: SortField[] = [
 		{ field: resolveSortField(state.sortKey), dir: state.sortAsc ? 'asc' : 'desc' },
 		{ field: 'id', dir: 'asc' }
@@ -65,6 +72,7 @@ export function buildFlatSpoolQuery(state: LibraryState): SpoolQuery {
 		allowArchived: state.showArchived,
 		limit: state.pageSize,
 		offset: (state.page - 1) * state.pageSize,
-		lowThreshold: settings.lowThreshold
+		lowThreshold: settings.lowThreshold,
+		signal
 	};
 }
