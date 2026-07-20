@@ -4,7 +4,10 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
+		"strip-empty-locales": "node scripts/strip-empty-locales.mjs",
+		"predev": "node scripts/strip-empty-locales.mjs",
 		"dev": "vite dev",
+		"prebuild": "node scripts/strip-empty-locales.mjs",
 		"build": "vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
