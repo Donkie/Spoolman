@@ -184,6 +184,44 @@ export const FIXED_SORTS: SortDef[] = [
 
 const FIXED_SORT_KEYS = new Set(FIXED_SORTS.map((s) => s.key));
 
+// The sort key that reduces to each grouping axis's own title. Grouping by X and
+// sorting by X's name are the same operation on the group list, so this key maps
+// to the backend's `group.title` (alphabetical) ordering for that axis.
+const AXIS_NAME_SORT: Record<string, string> = {
+	filament: 'filament.name',
+	vendor: 'filament.vendor.name',
+	material: 'filament.material',
+	location: 'location'
+};
+
+// Text/name sorts read naturally A→Z; numeric, weight and date sorts default to
+// most / most-recent first. Consulted when a sort key is first selected.
+const ASC_DEFAULT_SORTS = new Set([
+	'filament.name',
+	'filament.material',
+	'filament.vendor.name',
+	'location',
+	'lot_nr'
+]);
+
+/** Default direction (ascending?) for a freshly-selected sort key. */
+export function defaultSortAsc(sortKey: string): boolean {
+	return ASC_DEFAULT_SORTS.has(sortKey);
+}
+
+/**
+ * Whether a sort key produces a coherent GROUP ordering under `group`. The
+ * backend can order groups only three ways — by title, total remaining weight,
+ * or last used — so exactly the axis's own name, `remaining_weight` and
+ * `last_used` keep a grouped list honest. Every other sort is a per-spool
+ * ranking that only means something in the flat list, so selecting one flattens
+ * the view (see params.setSortKey). `group === 'none'` is always orderable.
+ */
+export function isGroupOrderable(sortKey: string, group: string): boolean {
+	if (group === 'none') return true;
+	return sortKey === 'last_used' || sortKey === 'remaining_weight' || sortKey === AXIS_NAME_SORT[group];
+}
+
 /**
  * All available sort options: the fixed fields above plus the spool's custom
  * extra fields (queried from the backend). Every extra-field type is sortable.
@@ -209,7 +247,15 @@ export function resolveSortField(sortKey: string): string {
 	return 'last_used';
 }
 
-/** The group-aggregate ordering field for a sort key, if the backend supports one. */
-export function resolveGroupSortField(sortKey: string): string | undefined {
+/**
+ * The group-aggregate ordering field for a sort key under `group`, if the
+ * backend supports one. The axis's own name resolves to `group.title` (the
+ * alphabetical group ordering); `last_used` / `remaining_weight` carry their
+ * aggregate in FIXED_SORTS. Anything else returns undefined — callers fall back
+ * to `group.title`, though the grouped view only ever holds orderable sorts
+ * (see isGroupOrderable).
+ */
+export function resolveGroupSortField(sortKey: string, group: string): string | undefined {
+	if (sortKey === AXIS_NAME_SORT[group]) return 'group.title';
 	return FIXED_SORTS.find((s) => s.key === sortKey)?.groupField;
 }

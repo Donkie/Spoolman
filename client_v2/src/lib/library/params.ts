@@ -1,6 +1,7 @@
 import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 import type { EntityKind, Selection } from '$lib/types';
+import { isGroupOrderable, defaultSortAsc } from '$lib/utils/library';
 
 // The Library view's entire query state lives in the URL — this module is the
 // single place that translates between the query string and a typed
@@ -70,10 +71,16 @@ export function parseLibraryState(params: URLSearchParams): LibraryState {
 	const kind = si > 0 ? (sel!.slice(0, si) as EntityKind) : null;
 	const selection = kind && ENTITY_KINDS.includes(kind) ? { kind, id: sel!.slice(si + 1) } : null;
 
+	const rawGroup = group && GROUP_MODES.includes(group) ? group : DEFAULTS.group;
+	const sortKey = params.get('sort') ?? DEFAULTS.sortKey;
+	// Enforce the grouped-view invariant: a group can only be ordered by a
+	// group-orderable sort. A hand-crafted or stale URL pairing a grouping with a
+	// per-spool sort renders flat, honouring the more specific sort intent. (Our
+	// own mutators never emit such a pairing — see setSortKey/setGroup.)
 	return {
 		selection,
-		group: group && GROUP_MODES.includes(group) ? group : DEFAULTS.group,
-		sortKey: params.get('sort') ?? DEFAULTS.sortKey,
+		group: isGroupOrderable(sortKey, rawGroup) ? rawGroup : 'none',
+		sortKey,
 		sortAsc: params.get('dir') === 'asc',
 		filters: parseFilters(params.getAll('f')),
 		showArchived: params.get('arch') === '1',
@@ -132,14 +139,24 @@ function navigate(next: LibraryState, replace = false): void {
 // --- mutators (each preserves the old ui-store semantics) ------------------
 
 export function setGroup(group: GroupMode): void {
-	navigate({ ...currentState(), group, page: DEFAULTS.page });
+	const s = currentState();
+	// A group can only be ordered three ways; if the active sort isn't one of
+	// them, fall back to the default group ordering so the new view is coherent
+	// rather than silently sorting only within groups.
+	const keepSort = isGroupOrderable(s.sortKey, group);
+	const sortKey = keepSort ? s.sortKey : DEFAULTS.sortKey;
+	const sortAsc = keepSort ? s.sortAsc : DEFAULTS.sortAsc;
+	navigate({ ...s, group, sortKey, sortAsc, page: DEFAULTS.page });
 }
 
 /** Pick a sort key; re-selecting the active key flips its direction. */
 export function setSortKey(key: string): void {
 	const s = currentState();
-	const sortAsc = s.sortKey === key ? !s.sortAsc : false;
-	navigate({ ...s, sortKey: key, sortAsc, page: DEFAULTS.page });
+	const sortAsc = s.sortKey === key ? !s.sortAsc : defaultSortAsc(key);
+	// A per-spool ranking can't order groups, so switch to the flat list where
+	// the ranking is actually visible instead of reordering only within groups.
+	const group = isGroupOrderable(key, s.group) ? s.group : 'none';
+	navigate({ ...s, sortKey: key, sortAsc, group, page: DEFAULTS.page });
 }
 
 export function toggleFilter(prop: string, value: string): void {

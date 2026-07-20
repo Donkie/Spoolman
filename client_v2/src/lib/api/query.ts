@@ -22,8 +22,8 @@ function currentFilters(state: LibraryState): Record<string, string[]> {
 /** Page-of-groups query (grouped mode). */
 export function buildGroupQuery(state: LibraryState, signal?: AbortSignal): GroupQuery {
 	const field = state.group as GroupField;
-	const groupField = resolveGroupSortField(state.sortKey) ?? 'group.title';
-	const dir = groupField === 'group.title' ? 'asc' : state.sortAsc ? 'asc' : 'desc';
+	const groupField = resolveGroupSortField(state.sortKey, state.group) ?? 'group.title';
+	const dir = state.sortAsc ? 'asc' : 'desc';
 	return {
 		field,
 		filters: currentFilters(state),
