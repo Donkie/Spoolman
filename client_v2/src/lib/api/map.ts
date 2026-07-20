@@ -85,6 +85,7 @@ export function mapGroup(g: Json): GroupSummary {
 	let subtitle = '';
 	let badge = '';
 	let colors: string[] = [];
+	let direction: MultiColorDirection | undefined;
 
 	if (field === 'filament' && g.filament) {
 		const f: Json = g.filament;
@@ -92,6 +93,7 @@ export function mapGroup(g: Json): GroupSummary {
 		subtitle = `${f.vendor?.name ?? 'No manufacturer'} · ${f.diameter} mm`;
 		badge = f.material ?? '';
 		colors = colorsFromApi(f);
+		direction = f.multi_color_direction ?? undefined;
 	} else if (field === 'vendor' && g.vendor) {
 		title = g.vendor.name ?? '(unnamed manufacturer)';
 		subtitle = `${g.spool_count} spool${g.spool_count === 1 ? '' : 's'}`;
@@ -112,6 +114,7 @@ export function mapGroup(g: Json): GroupSummary {
 		subtitle,
 		badge,
 		colors,
+		direction,
 		spoolCount: g.spool_count ?? 0,
 		inUseCount: g.in_use_count ?? 0,
 		unusedCount: (g.spool_count ?? 0) - (g.in_use_count ?? 0),

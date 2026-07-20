@@ -16,7 +16,12 @@
 	import { serverInfo } from '$lib/stores/serverInfo.svelte';
 	import { spoolSource, type NewFilamentDraft } from '$lib/api/spoolSource';
 	import { fields } from '$lib/stores/fields.svelte';
-	import { externalColors, getExternalMaterials, type ExternalFilament } from '$lib/api/external';
+	import {
+		externalColors,
+		externalDirection,
+		getExternalMaterials,
+		type ExternalFilament
+	} from '$lib/api/external';
 	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
@@ -99,6 +104,9 @@
 	}
 	function cColors(c: Choice) {
 		return c.source === 'catalog' ? c.filament.colors : externalColors(c.ext);
+	}
+	function cDirection(c: Choice): MultiColorDirection | undefined {
+		return c.source === 'catalog' ? c.filament.multiColorDirection : externalDirection(c.ext);
 	}
 	function cWeight(c: Choice) {
 		return c.source === 'catalog' ? c.filament.weight : c.ext.weight;
@@ -489,7 +497,7 @@
 						{:else}
 							{#each localResults as f (f.id)}
 								<button class="res-item" onclick={() => choose({ source: 'catalog', filament: f })}>
-									<Swatch colors={f.colors} size={18} radius={5} />
+									<Swatch colors={f.colors} direction={f.multiColorDirection} size={18} radius={5} />
 									<div class="res-name">
 										<span class="rn">{f.name}</span>
 										<span class="rs">{vendorName(f)} · {f.material}</span>
@@ -511,7 +519,12 @@
 						{:else}
 							{#each externalResults as ext (ext.id)}
 								<button class="res-item" onclick={() => choose({ source: 'external', ext })}>
-									<Swatch colors={externalColors(ext)} size={18} radius={5} />
+									<Swatch
+									colors={externalColors(ext)}
+									direction={externalDirection(ext)}
+									size={18}
+									radius={5}
+								/>
 									<div class="res-name">
 										<span class="rn">{ext.name}</span>
 										<span class="rs">{ext.manufacturer} · {ext.material}</span>
@@ -659,7 +672,7 @@
 						<div class="sec-divider"></div>
 					{:else if chosen}
 						<div class="chosen">
-							<Swatch colors={cColors(chosen)} size={24} radius={6} />
+							<Swatch colors={cColors(chosen)} direction={cDirection(chosen)} size={24} radius={6} />
 							<div class="chosen-name">
 								<div class="cn">
 									{cName(chosen)}

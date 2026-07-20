@@ -13,7 +13,7 @@
 </script>
 
 <button class="header" class:sticky {onclick}>
-	<Swatch colors={group.colors} size={24} radius={6} />
+	<Swatch colors={group.colors} direction={group.direction} size={24} radius={6} />
 	<div class="body">
 		<div class="line">
 			<span class="title">{group.title}</span>

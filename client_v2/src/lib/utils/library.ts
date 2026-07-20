@@ -1,4 +1,4 @@
-import type { Filament, Spool, Vendor } from '$lib/types';
+import type { Filament, MultiColorDirection, Spool, Vendor } from '$lib/types';
 import type { GroupField } from '$lib/api/types';
 import type { FieldDef } from '$lib/api/fields';
 import { pct, grams } from './format';
@@ -32,6 +32,7 @@ export interface GroupHeaderInfo {
 	subtitle: string;
 	badge: string;
 	colors: string[];
+	direction?: MultiColorDirection;
 	meta: string;
 }
 

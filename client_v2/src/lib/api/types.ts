@@ -1,4 +1,4 @@
-import type { Filament, Spool, Vendor } from '$lib/types';
+import type { Filament, MultiColorDirection, Spool, Vendor } from '$lib/types';
 
 // The query/data-source contract. Filtering, sorting, aggregation and
 // pagination are the SERVER's job. Two shapes of list:
@@ -27,6 +27,8 @@ export interface GroupSummary {
 	subtitle: string;
 	badge: string;
 	colors: string[];
+	/** Multi-color layout, when grouping by a single filament; undefined otherwise. */
+	direction?: MultiColorDirection;
 	spoolCount: number;
 	inUseCount: number;
 	unusedCount: number;

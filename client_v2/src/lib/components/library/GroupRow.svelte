@@ -106,6 +106,7 @@
 		subtitle: group.subtitle,
 		badge: group.badge,
 		colors: group.colors,
+		direction: group.direction,
 		meta: kg(group.totalRemaining)
 	});
 

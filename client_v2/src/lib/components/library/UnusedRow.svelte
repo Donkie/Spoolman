@@ -72,7 +72,12 @@
 	>
 		<span class="spacer"></span>
 		{#if showSwatch}
-			<Swatch colors={first.filament.colors} size={22} opacity={0.75} />
+			<Swatch
+				colors={first.filament.colors}
+				direction={first.filament.multiColorDirection}
+				size={22}
+				opacity={0.75}
+			/>
 		{/if}
 		<span class="label">
 			<span class="fname">{first.filament.name}</span>

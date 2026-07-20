@@ -1,4 +1,5 @@
 import { getJson } from './http';
+import type { MultiColorDirection } from '$lib/types';
 
 // SpoolmanDB (external filament database). The filament catalog is large (thousands of
 // entries), so we never download it whole — filament searches go through the backend
@@ -44,4 +45,11 @@ export function externalColors(ext: ExternalFilament): string[] {
 	if (ext.color_hexes && ext.color_hexes.length) return ext.color_hexes.map((h) => '#' + h.replace(/^#/, ''));
 	if (ext.color_hex) return ['#' + ext.color_hex.replace(/^#/, '')];
 	return [];
+}
+
+/** Multi-color layout of an external filament, if it declares a known one. */
+export function externalDirection(ext: ExternalFilament): MultiColorDirection | undefined {
+	return ext.multi_color_direction === 'coaxial' || ext.multi_color_direction === 'longitudinal'
+		? ext.multi_color_direction
+		: undefined;
 }

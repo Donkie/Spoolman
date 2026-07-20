@@ -193,7 +193,7 @@
 	/>
 
 	<div class="head">
-		<Swatch colors={filament.colors} size={40} radius={9} />
+		<Swatch colors={filament.colors} direction={filament.multiColorDirection} size={40} radius={9} />
 		<div class="titles">
 			<div class="title">
 				{#if vendor}{vendor.name}{/if}
@@ -328,7 +328,7 @@
 				<Field label={m['filament.fields.material']()}>{filament.material}</Field>
 				<Field label={m['filament.fields.colorHex']()}>
 					<span class="color-row">
-						<Swatch colors={filament.colors} size={11} radius={3} />
+						<Swatch colors={filament.colors} direction={filament.multiColorDirection} size={11} radius={3} />
 						<span class="mono"
 							>{filament.colors.length > 1
 								? m['inspector.multi']({ count: filament.colors.length })

@@ -235,7 +235,11 @@
 							onclick={() => choose('spool', String(spool.entity.id))}
 						>
 							<span class="id mono">#{spool.entity.id}</span>
-							<Swatch colors={filament?.colors ?? []} size={20} />
+							<Swatch
+							colors={filament?.colors ?? []}
+							direction={filament?.multiColorDirection}
+							size={20}
+						/>
 							<span class="text">
 								<span class="title">{filament?.name || m['search.unknownFilament']()}</span>
 								{#if spool.entity.location}<span class="sub">{spool.entity.location}</span>{/if}
@@ -254,7 +258,11 @@
 							class:active={activeIndex === indexOf('filament', filament.entity.id)}
 							onclick={() => choose('filament', filament.entity.id)}
 						>
-							<Swatch colors={filament.entity.colors} size={20} />
+							<Swatch
+								colors={filament.entity.colors}
+								direction={filament.entity.multiColorDirection}
+								size={20}
+							/>
 							<span class="text">
 								<span class="title">{filament.entity.name}</span>
 								{#if vendor?.name}<span class="sub">{vendor.name}</span>{/if}

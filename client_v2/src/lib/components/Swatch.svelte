@@ -1,30 +1,34 @@
 <script lang="ts">
 	import { swatchStyle } from '$lib/utils/color';
+	import type { MultiColorDirection } from '$lib/types';
 
 	interface Props {
 		colors: string[] | undefined;
+		/** Multi-color layout; angles the gradient (coaxial/longitudinal). */
+		direction?: MultiColorDirection;
 		size?: number;
 		radius?: number;
 		opacity?: number;
 	}
 
-	let { colors, size = 22, radius = 6, opacity = 1 }: Props = $props();
+	let { colors, direction, size = 22, radius = 6, opacity = 1 }: Props = $props();
 </script>
 
 <span
 	class="swatch"
 	style="width:{size}px;height:{size}px;border-radius:{radius}px;opacity:{opacity};{swatchStyle(
-		colors
+		colors,
+		direction
 	)}"
 ></span>
 
 <style>
 	/*
-	 * Rendered as a glossy physical colour chip rather than a flat rectangle: a
-	 * hairline highlight ring plus an outer dark ring give it definition on any
-	 * surface, and the ::after sheen adds a diagonal gloss. The sheen fades to
-	 * fully transparent through the middle so the true filament colour stays
-	 * readable there — only the corners pick up highlight/shade.
+	 * A flat colour chip with a crisp border rather than a glossy 3D one. Two
+	 * hairline rings, no directional shading or sheen: an outer dark ring defines
+	 * the edge against light backgrounds, and a faint inner light ring defines it
+	 * against dark ones (where the outer ring vanishes). Both are non-directional
+	 * so the chip reads as a clean swatch that matches the rest of the UI.
 	 */
 	.swatch {
 		position: relative;
@@ -32,23 +36,7 @@
 		flex: none;
 		overflow: hidden;
 		box-shadow:
-			inset 0 0 0 1px rgba(255, 255, 255, 0.14),
-			inset 0 -2px 3px rgba(0, 0, 0, 0.28),
-			0 0 0 1px rgba(0, 0, 0, 0.25);
-	}
-
-	.swatch::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-		border-radius: inherit;
-		background: linear-gradient(
-			135deg,
-			rgba(255, 255, 255, 0.22),
-			rgba(255, 255, 255, 0.05) 28%,
-			rgba(255, 255, 255, 0) 46%,
-			rgba(0, 0, 0, 0.1)
-		);
-		pointer-events: none;
+			inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+			0 0 0 1px rgba(0, 0, 0, 0.22);
 	}
 </style>

@@ -106,7 +106,7 @@
 			<div class="fils">
 				{#each filaments as f (f.id)}
 					<button class="fil-row" onclick={() => params.select('filament', f.id)}>
-						<Swatch colors={f.colors} size={18} radius={5} />
+						<Swatch colors={f.colors} direction={f.multiColorDirection} size={18} radius={5} />
 						<span class="fname">{f.name}</span>
 						<span class="meta">{f.material}</span>
 					</button>

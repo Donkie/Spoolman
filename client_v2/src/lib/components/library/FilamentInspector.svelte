@@ -98,7 +98,7 @@
 	/>
 
 	<div class="head">
-		<Swatch colors={filament.colors} size={40} radius={9} />
+		<Swatch colors={filament.colors} direction={filament.multiColorDirection} size={40} radius={9} />
 		<div class="titles">
 			<div class="title">
 				{filament.name}

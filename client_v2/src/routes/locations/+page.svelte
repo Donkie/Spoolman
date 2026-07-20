@@ -665,7 +665,7 @@
 								onclick={() => openSpool(s.id)}
 								onkeydown={(e) => e.key === 'Enter' && openSpool(s.id)}
 							>
-								<Swatch colors={f.colors} size={22} radius={5} />
+								<Swatch colors={f.colors} direction={f.multiColorDirection} size={22} radius={5} />
 								<div class="chip-info">
 									<div class="chip-title">
 										<span class="chip-id mono">#{s.id}</span>

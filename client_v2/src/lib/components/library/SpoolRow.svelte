@@ -29,7 +29,7 @@
 >
 	<span class="id mono">{vm.idLabel}</span>
 	{#if showSwatch}
-		<Swatch colors={vm.filament.colors} size={22} />
+		<Swatch colors={vm.filament.colors} direction={vm.filament.multiColorDirection} size={22} />
 	{/if}
 	<span class="name">
 		{#if identity.title}<span class="title">{identity.title}</span>{/if}
