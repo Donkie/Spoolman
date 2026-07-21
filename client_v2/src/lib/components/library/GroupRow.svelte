@@ -121,7 +121,11 @@
 	{#each inUse as vm (vm.spool.id)}
 		<SpoolRow {vm} {showSwatch} indent={26} context={group.field} />
 	{/each}
-	{#if unused.length}
+	{#if unused.length === 1}
+		<!-- A lone unused spool gains nothing from a collapsing header — it just
+		     adds a click and a row — so render it inline like the used spools. -->
+		<SpoolRow vm={unused[0]} {showSwatch} indent={26} context={group.field} />
+	{:else if unused.length > 1}
 		<UnusedRow {unused} {showSwatch} indent={26} context={group.field} />
 	{/if}
 	{#if moreCount > 0}
