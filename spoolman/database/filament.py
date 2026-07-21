@@ -259,33 +259,41 @@ async def find_by_color(
     db: AsyncSession,
     color_query_hex: str,
     similarity_threshold: float = 25,
-) -> list[models.Filament]:
-    """Find a list of filament objects by similarity to a color.
+) -> list[int]:
+    """Find the ids of filaments whose color is similar to the given color.
 
-    This performs a server-side search, where all filaments are loaded into memory, making it not so efficient.
+    Only the id and color columns are read from the database, so the whole catalog can be scanned
+    cheaply without instantiating full ORM objects (or their vendor joins); callers load the full
+    rows for just the matched ids. Multi-color filaments match if any of their colors is similar.
+
     The similarity threshold is a value between 0 and 100, where 0 means the colors must be identical and 100 means
     pretty much all colors are considered similar.
     """
-    filaments, _ = await find(db=db)
-
     color_query_lab = rgb_to_lab(hex_to_rgb(color_query_hex))
 
-    found_filaments: list[models.Filament] = []
-    for filament in filaments:
-        if filament.color_hex is not None:
-            colors = [filament.color_hex]
-        elif filament.multi_color_hexes is not None:
-            colors = filament.multi_color_hexes.split(",")
+    stmt = select(
+        models.Filament.id,
+        models.Filament.color_hex,
+        models.Filament.multi_color_hexes,
+    )
+    rows = (await db.execute(stmt)).all()
+
+    matched_ids: list[int] = []
+    for filament_id, color_hex, multi_color_hexes in rows:
+        if color_hex is not None:
+            colors = [color_hex]
+        elif multi_color_hexes is not None:
+            colors = multi_color_hexes.split(",")
         else:
             continue
 
         for color in colors:
             color_lab = rgb_to_lab(hex_to_rgb(color))
             if delta_e(color_query_lab, color_lab) <= similarity_threshold:
-                found_filaments.append(filament)
+                matched_ids.append(filament_id)
                 break
 
-    return found_filaments
+    return matched_ids
 
 
 async def filament_changed(filament: models.Filament, typ: EventType) -> None:

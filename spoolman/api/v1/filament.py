@@ -280,7 +280,7 @@ async def find(
         str | None,
         Query(
             title="Filament Color",
-            description="Match filament by similar color. Slow operation!",
+            description="Match filament by similar color.",
         ),
     ] = None,
     color_similarity_threshold: Annotated[
@@ -334,12 +334,11 @@ async def find(
         vendor_ids = None
 
     if color_hex is not None:
-        matched_filaments = await filament.find_by_color(
+        filter_by_ids = await filament.find_by_color(
             db=db,
             color_query_hex=color_hex,
             similarity_threshold=color_similarity_threshold,
         )
-        filter_by_ids = [db_filament.id for db_filament in matched_filaments]
     else:
         filter_by_ids = None
 

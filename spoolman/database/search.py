@@ -361,11 +361,14 @@ def _filament_color_distance(filament: models.Filament, query_lab: list[float]) 
 
 async def _color_matches(db: AsyncSession, color_hex: str, threshold: float, limit: int) -> list[FilamentMatch]:
     """Color-similar filaments, closest first."""
-    matched = await filament_db.find_by_color(
+    matched_ids = await filament_db.find_by_color(
         db=db,
         color_query_hex=color_hex,
         similarity_threshold=threshold,
     )
+    if not matched_ids:
+        return []
+    matched, _ = await filament_db.find(db=db, ids=matched_ids)
     query_lab = rgb_to_lab(hex_to_rgb(color_hex))
     matched.sort(key=lambda f: _filament_color_distance(f, query_lab))
     return [FilamentMatch(filament=f, match_field="color") for f in matched[:limit]]
