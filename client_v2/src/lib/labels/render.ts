@@ -1,6 +1,6 @@
 import type { LabelElement } from './types';
 import { resolveTemplate, type LabelBinding } from './template';
-import { qrContent, qrPathData } from './qr';
+import { qrContent, qrPathData, qrTemplate } from './qr';
 
 // Turns a design element into a Konva shape spec (in mm units — the Konva layer
 // is scaled by px-per-mm). Text/swatch/rect map to a single node; QR maps to a
@@ -18,13 +18,13 @@ export type ShapeSpec =
 	| { kind: 'rect'; config: Record<string, unknown> }
 	| { kind: 'text'; config: Record<string, unknown> }
 	| {
-		kind: 'textclip';
-		x: number;
-		y: number;
-		width: number;
-		clipHeight: number;
-		config: Record<string, unknown>;
-	}
+			kind: 'textclip';
+			x: number;
+			y: number;
+			width: number;
+			clipHeight: number;
+			config: Record<string, unknown>;
+	  }
 	| { kind: 'qr'; x: number; y: number; size: number; pathData: string; logo: boolean };
 
 const PLACEHOLDER_SWATCH = '#9aa0a6';
@@ -82,7 +82,12 @@ export function elementToShape(el: LabelElement, ctx: RenderContext): ShapeSpec 
 	switch (el.type) {
 		case 'qr': {
 			const spool = ctx.binding?.spool;
-			const content = spool ? qrContent(el, spool, { baseUrl: ctx.baseUrl }) : 'WEB+SPOOLMAN:S-0';
+			// With no bound spool (editor canvas), preview the template with id 0 so
+			// the QR's module density matches what will actually print for this
+			// encoding — a long URL/custom target is denser than the compact scheme.
+			const content = spool
+				? qrContent(el, spool, { baseUrl: ctx.baseUrl })
+				: qrTemplate(el, { baseUrl: ctx.baseUrl }).replace('{id}', '0');
 			return {
 				kind: 'qr',
 				x: el.x,

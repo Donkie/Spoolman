@@ -2,10 +2,13 @@ import QRCode from 'qrcode';
 import type { Spool } from '$lib/types';
 import type { QrElement } from './types';
 
-// QR content + geometry. The QR encodes a link back to the spool. Two forms,
-// both understood by Spoolman's scanner (client/src/components/qrCodeScanner.tsx):
+// QR content + geometry. The QR encodes a link back to the spool. The first two
+// forms are understood by Spoolman's scanner (client/src/components/qrCodeScanner.tsx):
 //   scheme → WEB+SPOOLMAN:S-<id>            (compact custom URI)
 //   url    → <base_url>/spool/show/<id>     (opens in a browser)
+//   custom → the element's urlTemplate      (user-supplied, {id} substituted)
+// A custom target is meant for a third-party app or host and won't scan back
+// into Spoolman.
 
 export interface QrContext {
 	baseUrl: string;
@@ -21,11 +24,21 @@ export function qrContent(el: QrElement, spool: Spool, ctx: QrContext): string {
  * spool id goes — used for the encoding preview in the element inspector.
  */
 export function qrTemplate(el: QrElement, ctx: QrContext): string {
+	if (el.encoding === 'custom') {
+		return el.urlTemplate ?? '';
+	}
 	if (el.encoding === 'url') {
 		const root = ctx.baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
 		return `${root.replace(/\/$/, '')}/spool/show/{id}`;
 	}
 	return 'WEB+SPOOLMAN:S-{id}';
+}
+
+/** The URL that the `url` encoding would produce, with a literal `{id}`. Used as
+ * the starting point when the user switches an element to a custom template. */
+export function defaultUrlTemplate(ctx: QrContext): string {
+	const root = ctx.baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
+	return `${root.replace(/\/$/, '')}/spool/show/{id}`;
 }
 
 /** A square boolean module grid for the given text. */

@@ -27,8 +27,16 @@ export interface QrElement extends BaseElement {
 	/**
 	 * `scheme` → `WEB+SPOOLMAN:S-<id>` (compact, scanned by the Spoolman apps).
 	 * `url` → `<base_url>/spool/show/<id>` (opens in any browser).
+	 * `custom` → the user's {@link urlTemplate} with `{id}` substituted; lets a
+	 * printed QR point at a third-party scanner/app or a different host. Such a
+	 * code won't round-trip back into Spoolman's own scanner.
 	 */
-	encoding: 'scheme' | 'url';
+	encoding: 'scheme' | 'url' | 'custom';
+	/**
+	 * Template used when `encoding === 'custom'`. Must contain an `{id}`
+	 * placeholder, which is replaced with the spool id. Ignored otherwise.
+	 */
+	urlTemplate?: string;
 	/** Draw the Spoolman logo in the centre of the code. */
 	logo: boolean;
 }

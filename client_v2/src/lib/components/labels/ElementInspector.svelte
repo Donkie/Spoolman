@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { LabelElement, ElementType } from '$lib/labels/types';
 	import type { PlaceholderGroup } from '$lib/labels/template';
-	import { qrTemplate } from '$lib/labels/qr';
+	import { qrTemplate, defaultUrlTemplate } from '$lib/labels/qr';
 	import NumberInput from '../NumberInput.svelte';
 	import * as m from '$lib/paraglide/messages';
 
@@ -27,6 +27,16 @@
 	}
 	function insertField(token: string) {
 		if (el?.type === 'text') update({ template: `${el.template}{${token}}` });
+	}
+	// Switching a QR element to a custom URL: seed the template from the URL form
+	// so the user has a working `{id}` link to edit instead of a blank field.
+	function setEncoding(value: string) {
+		if (el?.type !== 'qr') return;
+		if (value === 'custom') {
+			update({ encoding: 'custom', urlTemplate: el.urlTemplate || defaultUrlTemplate({ baseUrl }) });
+		} else {
+			update({ encoding: value });
+		}
 	}
 </script>
 
@@ -78,16 +88,32 @@
 			>
 			<label
 				>{m['printing.qrcode.useHTTPUrl.label']()}
-				<select value={el.encoding} onchange={(e) => update({ encoding: e.currentTarget.value })}>
+				<select value={el.encoding} onchange={(e) => setEncoding(e.currentTarget.value)}>
 					<option value="scheme">{m['printing.qrcode.useHTTPUrl.options.default']()}</option>
 					<option value="url">{m['printing.qrcode.useHTTPUrl.options.url']()}</option>
+					<option value="custom">{m['printing.qrcode.useHTTPUrl.options.custom']()}</option>
 				</select>
 			</label>
-			<p class="hint">{m['printing.qrcode.useHTTPUrl.tooltip']()}</p>
-			<p class="hint">
-				{m['printing.qrcode.useHTTPUrl.preview']()}
-				<code>{qrTemplate(el, { baseUrl })}</code>
-			</p>
+			{#if el.encoding === 'custom'}
+				<label
+					>{m['printing.qrcode.customUrl.label']()}
+					<input
+						type="text"
+						value={el.urlTemplate ?? ''}
+						onchange={(e) => update({ urlTemplate: e.currentTarget.value })}
+					/>
+				</label>
+				<p class="hint">
+					{m['printing.qrcode.customUrl.hint']()} <code>{'{id}'}</code>
+				</p>
+				<p class="hint">{m['printing.qrcode.customUrl.caveat']()}</p>
+			{:else}
+				<p class="hint">{m['printing.qrcode.useHTTPUrl.tooltip']()}</p>
+				<p class="hint">
+					{m['printing.qrcode.useHTTPUrl.preview']()}
+					<code>{qrTemplate(el, { baseUrl })}</code>
+				</p>
+			{/if}
 		{:else if el.type === 'text'}
 			<div class="row2">
 				<label
@@ -308,7 +334,8 @@
 		gap: 8px;
 	}
 	select,
-	textarea {
+	textarea,
+	input[type='text'] {
 		width: 100%;
 		border: 1px solid var(--border-strong);
 		background: none;
