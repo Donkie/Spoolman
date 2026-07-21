@@ -3,7 +3,7 @@
 	import Button from '$components/Button.svelte';
 	import NumberInput from '../NumberInput.svelte';
 	import LabelCanvas from './LabelCanvas.svelte';
-	import type { LabelDesign } from '$lib/labels/types';
+	import { labelKind, type LabelDesign } from '$lib/labels/types';
 	import type { LabelBinding } from '$lib/labels/template';
 	import { PAPER_NAMES, paperSize, sheetGrid } from '$lib/labels/paper';
 	import { printLabels, saveLabelImages, ZIP_THRESHOLD } from '$lib/labels/print';
@@ -12,7 +12,7 @@
 	import { isAbortError } from '$lib/api/http';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
-	import type { Spool } from '$lib/types';
+	import type { Spool, Filament } from '$lib/types';
 	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
@@ -20,6 +20,10 @@
 		preselected?: number[];
 	}
 	let { design = $bindable(), preselected = [] }: Props = $props();
+
+	// Whether we're picking spools or filaments to print. Spool labels bind to a
+	// spool (+ its filament/vendor); filament labels bind directly to a filament.
+	const kind = $derived(labelKind(design));
 
 	// The print layout lives on the design itself, so edits here dirty the design
 	// and are saved (and recalled) with it — different labels want different sheets.
@@ -73,6 +77,7 @@
 	}
 
 	$effect(() => {
+		if (kind !== 'spool') return;
 		const ctrl = new AbortController();
 		void loadInitial(ctrl.signal);
 		return () => ctrl.abort();
@@ -126,6 +131,7 @@
 	// outside the latest batch stay findable. Debounced, and superseded queries are
 	// aborted on cleanup.
 	$effect(() => {
+		if (kind !== 'spool') return;
 		const q = search.trim();
 		if (!q) {
 			resultIds = null;
@@ -211,12 +217,75 @@
 		return { spool: s, filament, vendor };
 	}
 
-	const bindings = $derived(
-		[...selected]
-			.map((id) => inventory.spoolById(id))
-			.filter((s): s is Spool => !!s)
-			.map(bindingFor)
+	// --- Filament selection (filament labels) ------------------------------------
+	// Filament catalogs are small enough to load in one page and filter client-side,
+	// so the filament picker is simpler than the spool one: no incremental paging,
+	// no backend search, no "recent" window.
+	let selectedF = $state<Set<string>>(new Set());
+	let fSearch = $state('');
+	let fLoading = $state(true);
+
+	$effect(() => {
+		if (kind !== 'filament') return;
+		const ctrl = new AbortController();
+		fLoading = true;
+		spoolSource
+			.listFilaments(1000, ctrl.signal)
+			.catch((e) => {
+				if (!isAbortError(e, ctrl.signal)) console.error('Failed to load filaments for printing', e);
+			})
+			.finally(() => {
+				if (!ctrl.signal.aborted) fLoading = false;
+			});
+		return () => ctrl.abort();
+	});
+
+	function filamentLabel(f: Filament): string {
+		const v = inventory.vendorById(f.vendorId);
+		const name = `${v ? v.name + ' ' : ''}${f.name}`;
+		return `#${f.id} · ${name}${f.material ? ' · ' + f.material : ''}`;
+	}
+
+	const visibleFilaments = $derived.by(() => {
+		const q = fSearch.trim().toLowerCase();
+		return inventory.filaments
+			.filter((f) => {
+				if (!q) return true;
+				const v = inventory.vendorById(f.vendorId);
+				return `${f.name} ${f.material} ${v?.name ?? ''}`.toLowerCase().includes(q);
+			})
+			.sort((a, b) => a.name.localeCompare(b.name));
+	});
+
+	function toggleF(id: string) {
+		const next = new Set(selectedF);
+		if (next.has(id)) next.delete(id);
+		else next.add(id);
+		selectedF = next;
+	}
+	function selectAllF() {
+		selectedF = new Set(visibleFilaments.map((f) => f.id));
+	}
+	function clearAllF() {
+		selectedF = new Set();
+	}
+
+	// The active binding set drives the preview and the print/save actions; it
+	// switches source with the label kind.
+	const bindings = $derived<LabelBinding[]>(
+		kind === 'filament'
+			? [...selectedF]
+					.map((id) => inventory.filamentById(id))
+					.filter((f): f is Filament => !!f)
+					.map((f) => ({ filament: f, vendor: inventory.vendorById(f.vendorId) }))
+			: [...selected]
+					.map((id) => inventory.spoolById(id))
+					.filter((s): s is Spool => !!s)
+					.map(bindingFor)
 	);
+
+	// Preview caption: the id of the first selected subject, labelled by kind.
+	const previewId = $derived(kind === 'filament' ? bindings[0]?.filament?.id : bindings[0]?.spool?.id);
 
 	const grid = $derived(sheetGrid(layout, design.label));
 
@@ -265,41 +334,70 @@
 
 <div class="print-panel">
 	<div class="col spools">
-		<div class="col-head">
-			<span>{m['spool.spool']()}</span>
-			<div class="mini-actions">
-				<button onclick={selectAll}>{m['labels.selectAllShort']()}</button>
-				<button onclick={selectRecent} disabled={recentCount === 0} title={m['labels.selectRecentHint']()}
-					>{m['labels.selectRecentShort']({ count: recentCount })}</button
-				>
-				<button onclick={clearAll}>{m['labels.selectNoneShort']()}</button>
+		{#if kind === 'filament'}
+			<div class="col-head">
+				<span>{m['filament.filament']()}</span>
+				<div class="mini-actions">
+					<button onclick={selectAllF}>{m['labels.selectAllShort']()}</button>
+					<button onclick={clearAllF}>{m['labels.selectNoneShort']()}</button>
+				</div>
 			</div>
-		</div>
-		<div class="search-row">
-			<input class="search" placeholder={m['labels.searchSpools']()} bind:value={search} />
-			<div class="seg sort" title={m['labels.sortHint']()}>
-				<button class:active={sort === 'newest'} onclick={() => (sort = 'newest')}
-					>{m['labels.sortNewest']()}</button
-				>
-				<button class:active={sort === 'id'} onclick={() => (sort = 'id')}>{m['labels.sortId']()}</button>
+			<div class="search-row">
+				<input class="search" placeholder={m['labels.searchFilaments']()} bind:value={fSearch} />
 			</div>
-		</div>
-		<div class="spool-list">
-			{#if loading || (searching && visibleSpools.length === 0)}
-				<div class="muted">{m.loading()}…</div>
-			{:else if visibleSpools.length === 0}
-				<div class="muted">{m['labels.noSpools']()}</div>
-			{:else}
-				{#each visibleSpools as s (s.id)}
-					<label class="spool-item" class:recent={isRecent(s)}>
-						<input type="checkbox" checked={selected.has(s.id)} onchange={() => toggle(s.id)} />
-						<span class="lbl">{spoolLabel(s)}</span>
-						{#if s.registeredLabel}<span class="reg">{s.registeredLabel}</span>{/if}
-					</label>
-				{/each}
-			{/if}
-		</div>
-		<div class="count">{m['printing.spoolSelect.selectedTotal']({ count: selected.size })}</div>
+			<div class="spool-list">
+				{#if fLoading && visibleFilaments.length === 0}
+					<div class="muted">{m.loading()}…</div>
+				{:else if visibleFilaments.length === 0}
+					<div class="muted">{m['labels.noFilaments']()}</div>
+				{:else}
+					{#each visibleFilaments as f (f.id)}
+						<label class="spool-item">
+							<input type="checkbox" checked={selectedF.has(f.id)} onchange={() => toggleF(f.id)} />
+							<span class="lbl">{filamentLabel(f)}</span>
+							{#if f.registeredLabel}<span class="reg">{f.registeredLabel}</span>{/if}
+						</label>
+					{/each}
+				{/if}
+			</div>
+			<div class="count">{m['labels.filamentsSelected']({ count: selectedF.size })}</div>
+		{:else}
+			<div class="col-head">
+				<span>{m['spool.spool']()}</span>
+				<div class="mini-actions">
+					<button onclick={selectAll}>{m['labels.selectAllShort']()}</button>
+					<button onclick={selectRecent} disabled={recentCount === 0} title={m['labels.selectRecentHint']()}
+						>{m['labels.selectRecentShort']({ count: recentCount })}</button
+					>
+					<button onclick={clearAll}>{m['labels.selectNoneShort']()}</button>
+				</div>
+			</div>
+			<div class="search-row">
+				<input class="search" placeholder={m['labels.searchSpools']()} bind:value={search} />
+				<div class="seg sort" title={m['labels.sortHint']()}>
+					<button class:active={sort === 'newest'} onclick={() => (sort = 'newest')}
+						>{m['labels.sortNewest']()}</button
+					>
+					<button class:active={sort === 'id'} onclick={() => (sort = 'id')}>{m['labels.sortId']()}</button>
+				</div>
+			</div>
+			<div class="spool-list">
+				{#if loading || (searching && visibleSpools.length === 0)}
+					<div class="muted">{m.loading()}…</div>
+				{:else if visibleSpools.length === 0}
+					<div class="muted">{m['labels.noSpools']()}</div>
+				{:else}
+					{#each visibleSpools as s (s.id)}
+						<label class="spool-item" class:recent={isRecent(s)}>
+							<input type="checkbox" checked={selected.has(s.id)} onchange={() => toggle(s.id)} />
+							<span class="lbl">{spoolLabel(s)}</span>
+							{#if s.registeredLabel}<span class="reg">{s.registeredLabel}</span>{/if}
+						</label>
+					{/each}
+				{/if}
+			</div>
+			<div class="count">{m['printing.spoolSelect.selectedTotal']({ count: selected.size })}</div>
+		{/if}
 	</div>
 
 	<div class="col layout">
@@ -539,10 +637,14 @@
 				/>
 			</div>
 			<div class="muted small">
-				{m['labels.showingSpool']({ id: bindings[0].spool.id })}
+				{kind === 'filament'
+					? m['labels.showingFilament']({ id: previewId ?? '' })
+					: m['labels.showingSpool']({ id: previewId ?? '' })}
 			</div>
 		{:else}
-			<div class="muted">{m['labels.selectAtLeastOne']()}</div>
+			<div class="muted">
+				{kind === 'filament' ? m['labels.selectAtLeastOneFilament']() : m['labels.selectAtLeastOne']()}
+			</div>
 		{/if}
 		<div class="print-btn">
 			{#if layout.mode === 'image'}

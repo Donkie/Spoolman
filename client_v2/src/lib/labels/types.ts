@@ -5,6 +5,14 @@
 
 export type ElementType = 'qr' | 'text' | 'swatch' | 'rect';
 
+/**
+ * What real-world entity a design labels. A `spool` label binds to a single spool
+ * (and its filament/vendor); a `filament` label binds to a filament (and its
+ * vendor) with no spool — spool-only fields are dropped and its QR links to the
+ * filament instead of a spool. Defaults to `spool` when absent on older designs.
+ */
+export type LabelKind = 'spool' | 'filament';
+
 /** Fields common to every element: an id and a top-left position in mm. */
 interface BaseElement {
 	id: string;
@@ -87,11 +95,22 @@ export type LabelElement = QrElement | TextElement | SwatchElement | RectElement
 export interface LabelDesign {
 	id: string;
 	name: string;
+	/**
+	 * Whether this design labels spools or filaments. Optional for backward
+	 * compatibility with designs saved before filament labels existed — read it
+	 * through {@link labelKind}, which defaults a missing value to `spool`.
+	 */
+	kind?: LabelKind;
 	/** Physical label size in mm. */
 	label: { w: number; h: number };
 	elements: LabelElement[];
 	/** Sheet/label print layout, saved per-design (see PrintLayout below). */
 	layout: PrintLayout;
+}
+
+/** A design's label kind, defaulting a missing (pre-filament-labels) value to `spool`. */
+export function labelKind(d: Pick<LabelDesign, 'kind'>): LabelKind {
+	return d.kind ?? 'spool';
 }
 
 // --- Print layout ----------------------------------------------------------
@@ -159,11 +178,40 @@ export const DEFAULT_LAYOUT: PrintLayout = {
 	border: 'none'
 };
 
+/** Default text-block template for a fresh spool label (ends in the spool id). */
+export const DEFAULT_SPOOL_TEXT = '**{filament.name}**\n{filament.material}\n#{spool.id}';
+/** Default text-block template for a fresh filament label (a spool id makes no
+ * sense here, so it ends in the filament id instead). */
+export const DEFAULT_FILAMENT_TEXT = '**{filament.name}**\n{filament.material}\n#{filament.id}';
+
+/** The default text-block template for a given label kind. */
+export function defaultTextTemplate(kind: LabelKind): string {
+	return kind === 'filament' ? DEFAULT_FILAMENT_TEXT : DEFAULT_SPOOL_TEXT;
+}
+
+/**
+ * Switch a design's label kind in place, retargeting any text block that still
+ * carries the *other* kind's default template to this kind's default — so a fresh
+ * spool label's `#{spool.id}` line becomes `#{filament.id}` for a filament label,
+ * and vice versa. Templates the user has edited are left untouched.
+ */
+export function setDesignKind(design: LabelDesign, kind: LabelKind): void {
+	const from = defaultTextTemplate(labelKind(design));
+	const to = defaultTextTemplate(kind);
+	design.kind = kind;
+	if (from !== to) {
+		design.elements = design.elements.map((el) =>
+			el.type === 'text' && el.template === from ? { ...el, template: to } : el
+		);
+	}
+}
+
 /** A fresh empty design with a sensible default size and one QR element. */
 export function newDesign(id: string): LabelDesign {
 	return {
 		id,
 		name: 'Untitled label',
+		kind: 'spool',
 		label: { w: 50, h: 25 },
 		layout: structuredClone(DEFAULT_LAYOUT),
 		elements: [
@@ -179,7 +227,7 @@ export function newDesign(id: string): LabelDesign {
 				align: 'left',
 				color: '#000000',
 				wrap: true,
-				template: '**{filament.name}**\n{filament.material}\n#{spool.id}'
+				template: DEFAULT_SPOOL_TEXT
 			}
 		]
 	};

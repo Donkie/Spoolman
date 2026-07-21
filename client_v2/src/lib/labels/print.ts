@@ -1,5 +1,5 @@
 import Konva from 'konva';
-import type { LabelDesign, PrintLayout } from './types';
+import { labelKind, type LabelDesign, type PrintLayout } from './types';
 import type { LabelBinding } from './template';
 import { elementToShape, qrLogoBox } from './render';
 import { getLogoImage } from './logo';
@@ -45,8 +45,9 @@ export function renderLabelDataUrl(
 	// White paper background so the QR always has quiet-zone contrast.
 	layer.add(new Konva.Rect({ x: 0, y: 0, width: design.label.w, height: design.label.h, fill: '#ffffff' }));
 
+	const kind = labelKind(design);
 	for (const el of design.elements) {
-		const spec = elementToShape(el, { binding, baseUrl });
+		const spec = elementToShape(el, { binding, baseUrl, kind });
 		if (spec.kind === 'qr') {
 			const group = new Konva.Group({ x: spec.x, y: spec.y });
 			group.add(new Konva.Rect({ x: 0, y: 0, width: spec.size, height: spec.size, fill: '#ffffff' }));
@@ -197,9 +198,10 @@ export async function saveLabelImages({ design, bindings, layout, baseUrl }: Pri
 	if (bindings.length === 0) return;
 	const logoImage = await getLogoImage().catch(() => null);
 	const dpi = resolveDpi(layout);
-	// Spool ids are unique (the selection is a Set), so these names never collide.
+	const kind = labelKind(design);
+	// Subject ids are unique (the selection is a Set), so these names never collide.
 	const files = bindings.map((b) => ({
-		name: `spoolman-label-${b.spool.id}.png`,
+		name: `spoolman-${kind}-label-${kind === 'filament' ? b.filament?.id : b.spool?.id}.png`,
 		dataUrl: renderLabelDataUrl(design, b, baseUrl, logoImage, dpi)
 	}));
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Konva from 'konva';
 	import { Stage, Layer, Rect, Text, Path, Group, Image, Transformer } from 'svelte-konva';
-	import type { LabelDesign, LabelElement } from '$lib/labels/types';
+	import { labelKind, type LabelDesign, type LabelElement } from '$lib/labels/types';
 	import type { LabelBinding } from '$lib/labels/template';
 	import { elementToShape, qrLogoBox } from '$lib/labels/render';
 	import { getLogoImage } from '$lib/labels/logo';
@@ -43,7 +43,10 @@
 	});
 
 	const specs = $derived(
-		design.elements.map((el) => ({ el, spec: elementToShape(el, { binding, baseUrl }) }))
+		design.elements.map((el) => ({
+			el,
+			spec: elementToShape(el, { binding, baseUrl, kind: labelKind(design) })
+		}))
 	);
 	const stageW = $derived(design.label.w * pxPerMm);
 	const stageH = $derived(design.label.h * pxPerMm);

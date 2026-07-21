@@ -2,13 +2,13 @@
 	import LabelCanvas from './LabelCanvas.svelte';
 	import ElementInspector from './ElementInspector.svelte';
 	import NumberInput from '../NumberInput.svelte';
-	import type { LabelDesign, LabelElement } from '$lib/labels/types';
+	import { labelKind, type LabelDesign, type LabelElement } from '$lib/labels/types';
 	import { getPlaceholderGroups, type LabelBinding } from '$lib/labels/template';
 	import { fields } from '$lib/stores/fields.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { inventory } from '$lib/stores/inventory.svelte';
-	import type { Spool } from '$lib/types';
+	import type { Spool, Filament } from '$lib/types';
 	import * as m from '$lib/paraglide/messages';
 	import QrCode from '@lucide/svelte/icons/qr-code';
 	import Type from '@lucide/svelte/icons/type';
@@ -22,11 +22,25 @@
 
 	let selectedId = $state<string | null>(null);
 
-	// Optional real-spool preview: bind a spool so fields/QR/colors resolve to
-	// real data while designing (independent of the print tab's selection).
-	let previewSpoolId = $state<number | null>(null);
+	const kind = $derived(labelKind(design));
+
+	// Optional real-data preview: bind a spool (spool labels) or filament (filament
+	// labels) so fields/QR/colors resolve to real data while designing (independent
+	// of the print tab's selection). The select's value is the entity id as a string
+	// ('' = sample data); spool ids are numeric, filament ids are numeric strings.
+	let previewId = $state<string>('');
+	// Reset the preview when switching kinds so a stale spool id isn't read as a
+	// filament (or vice versa).
 	$effect(() => {
-		if (inventory.spools.length === 0) {
+		void kind;
+		previewId = '';
+	});
+	$effect(() => {
+		if (kind === 'filament') {
+			if (inventory.filaments.length === 0) {
+				spoolSource.listFilaments().catch((e) => console.error('Failed to load filaments for preview', e));
+			}
+		} else if (inventory.spools.length === 0) {
 			spoolSource
 				.listSpools({
 					filters: {},
@@ -39,14 +53,24 @@
 		}
 	});
 	const previewSpools = $derived(inventory.spools.filter((s) => !s.archived).sort((a, b) => a.id - b.id));
+	const previewFilaments = $derived([...inventory.filaments].sort((a, b) => a.name.localeCompare(b.name)));
 	function spoolLabel(s: Spool): string {
 		const f = inventory.filamentById(s.filamentId);
 		const v = f ? inventory.vendorById(f.vendorId) : undefined;
 		return `#${s.id} · ${f ? `${v ? v.name + ' ' : ''}${f.name}` : m.unknown()}`;
 	}
+	function filamentLabel(f: Filament): string {
+		const v = inventory.vendorById(f.vendorId);
+		return `${v ? v.name + ' ' : ''}${f.name}`;
+	}
 	const previewBinding = $derived.by<LabelBinding | undefined>(() => {
-		if (previewSpoolId === null) return undefined;
-		const s = inventory.spoolById(previewSpoolId);
+		if (previewId === '') return undefined;
+		if (kind === 'filament') {
+			const filament = inventory.filamentById(previewId);
+			if (!filament) return undefined;
+			return { filament, vendor: inventory.vendorById(filament.vendorId) };
+		}
+		const s = inventory.spoolById(Number(previewId));
 		if (!s) return undefined;
 		const filament = inventory.filamentById(s.filamentId);
 		const vendor = filament ? inventory.vendorById(filament.vendorId) : undefined;
@@ -66,11 +90,14 @@
 		fields.ensure('vendor');
 	});
 	const groups = $derived(
-		getPlaceholderGroups({
-			spool: fields.get('spool'),
-			filament: fields.get('filament'),
-			vendor: fields.get('vendor')
-		})
+		getPlaceholderGroups(
+			{
+				spool: fields.get('spool'),
+				filament: fields.get('filament'),
+				vendor: fields.get('vendor')
+			},
+			kind
+		)
 	);
 
 	const selectedEl = $derived(design.elements.find((e) => e.id === selectedId) ?? null);
@@ -174,15 +201,17 @@
 	<div class="stage-area">
 		<div class="preview-bar">
 			<span>{m['labels.previewWith']()}</span>
-			<select
-				value={previewSpoolId === null ? '' : String(previewSpoolId)}
-				onchange={(e) =>
-					(previewSpoolId = e.currentTarget.value === '' ? null : Number(e.currentTarget.value))}
-			>
+			<select value={previewId} onchange={(e) => (previewId = e.currentTarget.value)}>
 				<option value="">{m['labels.sampleData']()}</option>
-				{#each previewSpools as s (s.id)}
-					<option value={String(s.id)}>{spoolLabel(s)}</option>
-				{/each}
+				{#if kind === 'filament'}
+					{#each previewFilaments as f (f.id)}
+						<option value={f.id}>{filamentLabel(f)}</option>
+					{/each}
+				{:else}
+					{#each previewSpools as s (s.id)}
+						<option value={String(s.id)}>{spoolLabel(s)}</option>
+					{/each}
+				{/if}
 			</select>
 		</div>
 		<LabelCanvas
@@ -205,6 +234,7 @@
 			el={selectedEl}
 			{groups}
 			baseUrl={settings.baseUrl}
+			{kind}
 			onchange={updateElement}
 			ondelete={() => selectedId && removeElement(selectedId)}
 		/>

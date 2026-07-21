@@ -1,5 +1,6 @@
 import type { Spool, Filament, Vendor } from '$lib/types';
 import type { FieldDef, EntityType } from '$lib/api/fields';
+import type { LabelKind } from './types';
 import * as m from '$lib/paraglide/messages';
 
 // Resolves `{placeholder}` templates against a spool and its filament/vendor.
@@ -15,7 +16,8 @@ import * as m from '$lib/paraglide/messages';
 //                                  element property; inline bold isn't rendered)
 
 export interface LabelBinding {
-	spool: Spool;
+	/** Absent on filament labels, which have no spool. Spool resolvers then omit. */
+	spool?: Spool;
 	filament?: Filament;
 	vendor?: Vendor;
 }
@@ -30,18 +32,19 @@ function fmtNum(n: number | undefined | null): string | null {
 
 /** Curated fixed-field resolvers keyed by placeholder path. */
 const RESOLVERS: Record<string, (b: LabelBinding) => string | number | null | undefined> = {
-	'spool.id': (b) => b.spool.id,
-	'spool.location': (b) => b.spool.location,
-	'spool.lot': (b) => b.spool.lot,
-	'spool.comment': (b) => b.spool.comment,
-	'spool.remaining': (b) => fmtNum(b.spool.remaining),
-	'spool.initial': (b) => fmtNum(b.spool.initial),
-	'spool.used': (b) => fmtNum(b.spool.initial - b.spool.remaining),
-	'spool.price': (b) => fmtNum(b.spool.price ?? b.filament?.price),
-	'spool.registered': (b) => b.spool.registeredLabel,
-	'spool.firstUsed': (b) => b.spool.firstUsedLabel,
-	'spool.lastUsed': (b) => b.spool.lastUsedLabel,
+	'spool.id': (b) => b.spool?.id,
+	'spool.location': (b) => b.spool?.location,
+	'spool.lot': (b) => b.spool?.lot,
+	'spool.comment': (b) => b.spool?.comment,
+	'spool.remaining': (b) => fmtNum(b.spool?.remaining),
+	'spool.initial': (b) => fmtNum(b.spool?.initial),
+	'spool.used': (b) => (b.spool ? fmtNum(b.spool.initial - b.spool.remaining) : null),
+	'spool.price': (b) => fmtNum(b.spool?.price ?? b.filament?.price),
+	'spool.registered': (b) => b.spool?.registeredLabel,
+	'spool.firstUsed': (b) => b.spool?.firstUsedLabel,
+	'spool.lastUsed': (b) => b.spool?.lastUsedLabel,
 
+	'filament.id': (b) => b.filament?.id,
 	'filament.name': (b) => b.filament?.name,
 	'filament.material': (b) => b.filament?.material,
 	'filament.diameter': (b) => fmtNum(b.filament?.diameter),
@@ -157,6 +160,7 @@ const FIXED_GROUPS: PlaceholderGroup[] = [
 		entity: 'filament',
 		labelKey: m['library.section.filament'],
 		items: [
+			{ token: 'filament.id', labelKey: m['filament.fields.id'] },
 			{ token: 'filament.name', labelKey: m['filament.fields.name'] },
 			{ token: 'filament.material', labelKey: m['filament.fields.material'] },
 			{ token: 'filament.diameter', labelKey: m['labels.fields.diameterMm'] },
@@ -190,9 +194,15 @@ const FIXED_GROUPS: PlaceholderGroup[] = [
  * `extraFields` maps each entity type to its FieldDef list (from the fields store).
  * Fixed items carry an i18n `labelKey`; extra items carry a literal `label` (the
  * user-defined field's own name).
+ *
+ * `kind` drops the groups that don't apply: a filament label has no spool, so its
+ * spool fields are omitted from the palette.
  */
-export function getPlaceholderGroups(extraFields: Record<EntityType, FieldDef[]>): PlaceholderGroup[] {
-	return FIXED_GROUPS.map((group) => {
+export function getPlaceholderGroups(
+	extraFields: Record<EntityType, FieldDef[]>,
+	kind: LabelKind = 'spool'
+): PlaceholderGroup[] {
+	return FIXED_GROUPS.filter((group) => kind !== 'filament' || group.entity !== 'spool').map((group) => {
 		const extra = (extraFields[group.entity] ?? []).map((f) => ({
 			token: `${group.entity}.extra.${f.key}`,
 			label: f.name

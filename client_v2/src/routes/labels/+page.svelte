@@ -5,7 +5,7 @@
 	import LabelDesigner from '$components/labels/LabelDesigner.svelte';
 	import PrintLayoutPanel from '$components/labels/PrintLayoutPanel.svelte';
 	import { labelDesigns } from '$lib/stores/labelDesigns.svelte';
-	import type { LabelDesign } from '$lib/labels/types';
+	import { setDesignKind, type LabelDesign } from '$lib/labels/types';
 	import * as m from '$lib/paraglide/messages';
 	import Plus from '@lucide/svelte/icons/plus';
 
@@ -127,6 +127,21 @@
 		</div>
 
 		{#if working}
+			<div class="type-row">
+				<span class="type-label">{m['labels.labelType']()}</span>
+				<div class="seg">
+					<button
+						class:active={(working.kind ?? 'spool') === 'spool'}
+						onclick={() => working && setDesignKind(working, 'spool')}>{m['labels.typeSpool']()}</button
+					>
+					<button
+						class:active={working.kind === 'filament'}
+						onclick={() => working && setDesignKind(working, 'filament')}>{m['labels.typeFilament']()}</button
+					>
+				</div>
+				<span class="type-hint">{m['labels.typeHint']()}</span>
+			</div>
+
 			<div class="tabs">
 				<button class:active={tab === 'design'} onclick={() => (tab = 'design')}
 					>{m['labels.tabDesign']()}</button
@@ -205,6 +220,44 @@
 	}
 	.spacer {
 		flex: 1;
+	}
+	.type-row {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		flex-wrap: wrap;
+		margin-bottom: 16px;
+	}
+	.type-label {
+		font-size: 12px;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--text-dim);
+	}
+	.type-row .seg {
+		display: flex;
+		border: 1px solid var(--border-strong);
+		border-radius: 7px;
+		overflow: hidden;
+	}
+	.type-row .seg button {
+		background: none;
+		border: none;
+		color: var(--text-dim);
+		padding: 6px 14px;
+		font-size: 12.5px;
+		cursor: pointer;
+	}
+	.type-row .seg button.active {
+		background: var(--accent-wash);
+		color: var(--accent-soft);
+		font-weight: 600;
+	}
+	.type-hint {
+		font-size: 11.5px;
+		color: var(--text-dim);
+		flex: 1;
+		min-width: 180px;
 	}
 	.tabs {
 		display: flex;

@@ -1,44 +1,57 @@
 import QRCode from 'qrcode';
-import type { Spool } from '$lib/types';
-import type { QrElement } from './types';
+import type { QrElement, LabelKind } from './types';
 
-// QR content + geometry. The QR encodes a link back to the spool. The first two
-// forms are understood by Spoolman's scanner (client/src/components/qrCodeScanner.tsx):
-//   scheme → WEB+SPOOLMAN:S-<id>            (compact custom URI)
-//   url    → <base_url>/spool/show/<id>     (opens in a browser)
-//   custom → the element's urlTemplate      (user-supplied, {id} substituted)
+// QR content + geometry. The QR encodes a link back to the label's subject — a
+// spool for spool labels, a filament for filament labels. The first two forms are
+// understood by Spoolman's scanner ($lib/utils/spoolCode.ts):
+//   scheme → WEB+SPOOLMAN:S-<id> / F-<id>              (compact custom URI)
+//   url    → <base_url>/spool/show/<id> or /filament/show/<id>  (opens in a browser)
+//   custom → the element's urlTemplate                 (user-supplied, {id} substituted)
 // A custom target is meant for a third-party app or host and won't scan back
 // into Spoolman.
 
 export interface QrContext {
 	baseUrl: string;
+	/** Whether the {id} refers to a spool or a filament. Defaults to `spool`. */
+	kind?: LabelKind;
 }
 
-/** Build the string encoded in a QR element for a given spool. */
-export function qrContent(el: QrElement, spool: Spool, ctx: QrContext): string {
-	return qrTemplate(el, ctx).replace('{id}', String(spool.id));
+/** Build the string encoded in a QR element for a given subject id. */
+export function qrContent(el: QrElement, id: number | string, ctx: QrContext): string {
+	return qrTemplate(el, ctx).replace('{id}', String(id));
 }
 
 /**
  * The same string as {@link qrContent}, but with a literal `{id}` where the
- * spool id goes — used for the encoding preview in the element inspector.
+ * subject id goes — used for the encoding preview in the element inspector.
  */
 export function qrTemplate(el: QrElement, ctx: QrContext): string {
 	if (el.encoding === 'custom') {
 		return el.urlTemplate ?? '';
 	}
 	if (el.encoding === 'url') {
-		const root = ctx.baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
-		return `${root.replace(/\/$/, '')}/spool/show/{id}`;
+		return `${webRoot(ctx)}/${showPath(ctx)}/show/{id}`;
 	}
-	return 'WEB+SPOOLMAN:S-{id}';
+	return `WEB+SPOOLMAN:${schemePrefix(ctx)}-{id}`;
 }
 
 /** The URL that the `url` encoding would produce, with a literal `{id}`. Used as
  * the starting point when the user switches an element to a custom template. */
 export function defaultUrlTemplate(ctx: QrContext): string {
+	return `${webRoot(ctx)}/${showPath(ctx)}/show/{id}`;
+}
+
+function webRoot(ctx: QrContext): string {
 	const root = ctx.baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
-	return `${root.replace(/\/$/, '')}/spool/show/{id}`;
+	return root.replace(/\/$/, '');
+}
+/** Route segment for the browser link: `spool` or `filament`. */
+function showPath(ctx: QrContext): 'spool' | 'filament' {
+	return ctx.kind === 'filament' ? 'filament' : 'spool';
+}
+/** Compact-scheme entity prefix: `S` for spools, `F` for filaments. */
+function schemePrefix(ctx: QrContext): 'S' | 'F' {
+	return ctx.kind === 'filament' ? 'F' : 'S';
 }
 
 /** A square boolean module grid for the given text. */

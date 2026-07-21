@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { LabelElement, ElementType } from '$lib/labels/types';
+	import type { LabelElement, ElementType, LabelKind } from '$lib/labels/types';
 	import type { PlaceholderGroup } from '$lib/labels/template';
 	import { qrTemplate, defaultUrlTemplate } from '$lib/labels/qr';
 	import NumberInput from '../NumberInput.svelte';
@@ -9,10 +9,12 @@
 		el: LabelElement | null;
 		groups: PlaceholderGroup[];
 		baseUrl: string;
+		/** The design's label kind, so the QR preview shows the right spool/filament target. */
+		kind: LabelKind;
 		onchange: (el: LabelElement) => void;
 		ondelete: () => void;
 	}
-	let { el, groups, baseUrl, onchange, ondelete }: Props = $props();
+	let { el, groups, baseUrl, kind, onchange, ondelete }: Props = $props();
 
 	const KIND_LABELS: Record<ElementType, () => string> = {
 		qr: m['labels.kind.qr'],
@@ -33,7 +35,7 @@
 	function setEncoding(value: string) {
 		if (el?.type !== 'qr') return;
 		if (value === 'custom') {
-			update({ encoding: 'custom', urlTemplate: el.urlTemplate || defaultUrlTemplate({ baseUrl }) });
+			update({ encoding: 'custom', urlTemplate: el.urlTemplate || defaultUrlTemplate({ baseUrl, kind }) });
 		} else {
 			update({ encoding: value });
 		}
@@ -111,7 +113,7 @@
 				<p class="hint">{m['printing.qrcode.useHTTPUrl.tooltip']()}</p>
 				<p class="hint">
 					{m['printing.qrcode.useHTTPUrl.preview']()}
-					<code>{qrTemplate(el, { baseUrl })}</code>
+					<code>{qrTemplate(el, { baseUrl, kind })}</code>
 				</p>
 			{/if}
 		{:else if el.type === 'text'}

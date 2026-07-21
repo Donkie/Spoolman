@@ -157,6 +157,22 @@ class HttpSpoolSource {
 		return { items: cacheSpools(items), total };
 	}
 
+	/**
+	 * Load a batch of filaments for the label picker/preview, newest first, and
+	 * cache them. Filament catalogs are far smaller than spool inventories, so a
+	 * single generous page covers virtually every library; the label picker also
+	 * has a search box for anything past the cap.
+	 */
+	async listFilaments(limit = 1000, signal?: AbortSignal): Promise<Filament[]> {
+		const items = await getJson<Json[]>('/filament', { limit, sort: 'id:desc' }, signal);
+		const filaments = items.map((f) => {
+			if (f.vendor) inventory.upsertVendor(mapVendor(f.vendor));
+			return mapFilament(f);
+		});
+		inventory.upsertFilaments(filaments);
+		return filaments;
+	}
+
 	async searchFilaments(query: string, limit = 8): Promise<Filament[]> {
 		const q = query.trim();
 		if (!q) {

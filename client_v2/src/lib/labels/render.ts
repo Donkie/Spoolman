@@ -1,4 +1,4 @@
-import type { LabelElement } from './types';
+import type { LabelElement, LabelKind } from './types';
 import { resolveTemplate, type LabelBinding } from './template';
 import { qrContent, qrPathData, qrTemplate } from './qr';
 
@@ -9,9 +9,11 @@ import { qrContent, qrPathData, qrTemplate } from './qr';
 // geometry stays identical.
 
 export interface RenderContext {
-	/** Bound spool data; when absent the design renders in "template" preview. */
+	/** Bound spool/filament data; when absent the design renders in "template" preview. */
 	binding?: LabelBinding;
 	baseUrl: string;
+	/** Whether the design labels spools or filaments. Defaults to `spool`. */
+	kind?: LabelKind;
 }
 
 export type ShapeSpec =
@@ -81,13 +83,16 @@ export function qrLogoBox(size: number) {
 export function elementToShape(el: LabelElement, ctx: RenderContext): ShapeSpec {
 	switch (el.type) {
 		case 'qr': {
-			const spool = ctx.binding?.spool;
-			// With no bound spool (editor canvas), preview the template with id 0 so
+			const qrCtx = { baseUrl: ctx.baseUrl, kind: ctx.kind };
+			// The QR's subject is the spool (spool labels) or filament (filament labels).
+			const subjectId = ctx.kind === 'filament' ? ctx.binding?.filament?.id : ctx.binding?.spool?.id;
+			// With no bound subject (editor canvas), preview the template with id 0 so
 			// the QR's module density matches what will actually print for this
 			// encoding — a long URL/custom target is denser than the compact scheme.
-			const content = spool
-				? qrContent(el, spool, { baseUrl: ctx.baseUrl })
-				: qrTemplate(el, { baseUrl: ctx.baseUrl }).replace('{id}', '0');
+			const content =
+				subjectId !== undefined
+					? qrContent(el, subjectId, qrCtx)
+					: qrTemplate(el, qrCtx).replace('{id}', '0');
 			return {
 				kind: 'qr',
 				x: el.x,

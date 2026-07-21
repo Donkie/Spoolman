@@ -231,6 +231,8 @@ export function presetToDesign(preset: V1Preset): LabelDesign {
 	return {
 		id,
 		name: ps.name || 'Imported label',
+		// v1 only ever printed spool labels.
+		kind: 'spool',
 		label,
 		elements: buildElements(ls, id, label, template),
 		layout
