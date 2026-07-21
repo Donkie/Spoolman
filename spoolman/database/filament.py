@@ -191,7 +191,24 @@ async def update(
             setattr(filament, k, v)
     await db.commit()
     await filament_changed(filament, EventType.UPDATED)
+    # A spool's response carries fields derived from its filament (remaining_length,
+    # and the initial_weight/price fall-backs to the filament's values). Those change
+    # when the filament changes, yet no spool row was touched — so subscribers to the
+    # affected spools would keep stale derived values until each spool is next edited.
+    # Re-broadcast the filament's spools so websocket clients refresh them.
+    await _notify_filament_spools(db, filament_id)
     return filament
+
+
+async def _notify_filament_spools(db: AsyncSession, filament_id: int) -> None:
+    """Emit a spool 'updated' event for every spool belonging to a filament."""
+    # Local import: spool.py imports this module at load time, so importing it at the
+    # top here would be a circular import.
+    from spoolman.database import spool  # noqa: PLC0415
+
+    spools, _ = await spool.find(db=db, filament_id=filament_id, allow_archived=True)
+    for s in spools:
+        await spool.spool_changed(s, EventType.UPDATED)
 
 
 async def delete(db: AsyncSession, filament_id: int) -> None:
