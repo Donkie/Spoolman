@@ -917,6 +917,10 @@
 		border-top: 1px solid var(--border);
 		position: sticky;
 		top: 0;
+		/* Sit above scrolling rows: their swatches are position:relative, so
+		   without this the header's opaque background hides the row text but the
+		   positioned swatch still paints on top of the sticky header. */
+		z-index: 1;
 	}
 	.hdr-note {
 		text-transform: none;
