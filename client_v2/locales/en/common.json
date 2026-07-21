@@ -300,6 +300,8 @@
     "labels.yMm": "Y",
     "library.apiError": "Couldn't reach the Spoolman API. Is the backend running?",
     "library.emptyFiltered": "No {{unit}} match the current filters.",
+    "library.emptyTitle": "No spools yet",
+    "library.emptyBody": "Add your first spool to start tracking your filament.",
     "library.filterBy": "Filter by",
     "library.groupBy": "Group",
     "library.groupNone": "None (flat)",

@@ -14,6 +14,9 @@
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { isAbortError } from '$lib/api/http';
 	import { live } from '$lib/api/live';
+	import { ui } from '$lib/stores/ui.svelte';
+	import Button from '../Button.svelte';
+	import Plus from '@lucide/svelte/icons/plus';
 	import * as m from '$lib/paraglide/messages';
 
 	// State comes from the URL via the page load (see routes/+page.ts). Changing
@@ -80,6 +83,11 @@
 
 	let flatVMs = $derived(flatSpools.map((s) => spoolToVM(s, inventory, settings.lowThreshold)));
 	let totalLabel = $derived(grouped ? m['library.unitGroups']() : m['library.unitSpools']());
+
+	// An empty result with no active filters means the library is genuinely empty
+	// (a fresh install), not that a filter excluded everything — so we nudge the
+	// user to add their first spool rather than showing "nothing matches".
+	let isEmptyLibrary = $derived(libraryState.filters.length === 0);
 </script>
 
 <div class="list">
@@ -98,7 +106,18 @@
 		{#if errored}
 			<div class="empty">{m['library.apiError']()}</div>
 		{:else if total === 0 && !loading}
-			<div class="empty">{m['library.emptyFiltered']({ unit: totalLabel })}</div>
+			{#if isEmptyLibrary}
+				<div class="empty empty-cta">
+					<p class="empty-title">{m['library.emptyTitle']()}</p>
+					<p class="empty-body">{m['library.emptyBody']()}</p>
+					<Button onclick={() => ui.openAddModal()}>
+						<Plus size={15} />
+						{m['topbar.addSpools']()}
+					</Button>
+				</div>
+			{:else}
+				<div class="empty">{m['library.emptyFiltered']({ unit: totalLabel })}</div>
+			{/if}
 		{/if}
 	</div>
 	<Pagination
@@ -128,6 +147,25 @@
 	.empty {
 		padding: 40px 14px;
 		text-align: center;
+		font-size: 12.5px;
+		color: var(--text-dim);
+	}
+	.empty-cta {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+		padding-top: 56px;
+	}
+	.empty-title {
+		margin: 0;
+		font-size: 15px;
+		font-weight: 600;
+		color: var(--text-2);
+	}
+	.empty-body {
+		margin: 0 0 8px;
+		max-width: 280px;
 		font-size: 12.5px;
 		color: var(--text-dim);
 	}
