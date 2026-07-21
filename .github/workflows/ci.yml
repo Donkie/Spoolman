@@ -393,6 +393,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: write
+      # Lets cosign fetch an OIDC token from Github and sign without a private key.
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -452,7 +454,15 @@ jobs:
           echo "GIT_COMMIT=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
           echo "BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "$GITHUB_ENV"
 
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v4.1.2
+        with:
+          # Installer v4+ verifies cosign v3 downloads via the Sigstore bundle
+          # format; pin an explicit, current cosign release for reproducibility.
+          cosign-release: v3.1.1
+
       - name: Build and push Docker images
+        id: build
         uses: docker/build-push-action@v6.7.0
         with:
           context: .
@@ -469,6 +479,24 @@ jobs:
             type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-amd64
             type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-arm64
             type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-armv7
+
+      # Sign the manifest by digest rather than by tag: all the tags above point
+      # at the same digest, and the same digest is valid in both registries, so
+      # signing every tag would just repeat the same signature.
+      - name: Sign the published images
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          TAGS: |
+            ${{ steps.meta-ghcr.outputs.tags }}
+            ${{ steps.meta-dh.outputs.tags }}
+        run: |
+          echo "${TAGS}" | while read -r tag; do
+            [ -n "${tag}" ] || continue
+            echo "${tag%:*}"
+          done | sort --unique | while read -r repository; do
+            echo "Signing ${repository}@${DIGEST}"
+            cosign sign --yes "${repository}@${DIGEST}"
+          done
   #
   # Create Github Release if CI was triggered by a tag
   #
