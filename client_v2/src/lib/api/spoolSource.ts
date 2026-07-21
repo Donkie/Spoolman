@@ -1,6 +1,6 @@
 import type { Filament, MultiColorDirection, Spool, Vendor } from '$lib/types';
 import type { GroupQuery, GroupSummary, Page, SpoolQuery } from './types';
-import { getList, getJson, patchJson, postJson, putJson } from './http';
+import { getList, getJson, patchJson, postJson, putJson, HttpError } from './http';
 import type { QueryParams } from './http';
 import {
 	mapFilament,
@@ -101,6 +101,12 @@ function scopeParams(params: QueryParams, scope: SpoolQuery['groupScope']) {
 			params['location'] = scope.key === '' ? '' : quote(scope.key);
 			break;
 	}
+}
+
+/** Treat a 404 as "no such entity" (undefined); re-throw anything else. */
+function swallow404(e: unknown): null {
+	if (e instanceof HttpError && e.status === 404) return null;
+	throw e;
 }
 
 function cacheSpools(raw: unknown[]): Spool[] {
@@ -282,6 +288,33 @@ class HttpSpoolSource {
 		});
 		inventory.upsertFilaments(filaments);
 		return filaments;
+	}
+
+	// --- single-entity fetches (deep links) ---------------------------------
+	// The reactive cache is normally filled by the list/search/live paths, so a
+	// deep link straight to an entity that isn't on the loaded page finds nothing.
+	// These fetch one entity by id and upsert it (plus its embedded relations) so
+	// the inspector resolves regardless of list state. A 404 (stale link, deleted
+	// entity) resolves to undefined rather than throwing.
+
+	async fetchSpool(id: number, signal?: AbortSignal): Promise<Spool | undefined> {
+		const s = await getJson<Json | null>(`/spool/${id}`, {}, signal).catch(swallow404);
+		return s ? cacheSpools([s])[0] : undefined;
+	}
+	async fetchFilament(id: string, signal?: AbortSignal): Promise<Filament | undefined> {
+		const f = await getJson<Json | null>(`/filament/${id}`, {}, signal).catch(swallow404);
+		if (!f) return undefined;
+		if (f.vendor) inventory.upsertVendor(mapVendor(f.vendor));
+		const filament = mapFilament(f);
+		inventory.upsertFilament(filament);
+		return filament;
+	}
+	async fetchVendor(id: string, signal?: AbortSignal): Promise<Vendor | undefined> {
+		const v = await getJson<Json | null>(`/vendor/${id}`, {}, signal).catch(swallow404);
+		if (!v) return undefined;
+		const vendor = mapVendor(v);
+		inventory.upsertVendor(vendor);
+		return vendor;
 	}
 
 	// --- writes -------------------------------------------------------------

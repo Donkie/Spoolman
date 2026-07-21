@@ -176,6 +176,8 @@
     "inspector.diameterMm": "Diameter mm",
     "inspector.empty": "Select a spool, filament or manufacturer from the list to see its details here.",
     "inspector.emptySpoolWt": "Empty spool wt.",
+    "inspector.loading": "Loading...",
+    "inspector.notFound": "This item could not be found. It may have been deleted.",
     "inspector.enterValidLength": "Enter a valid length.",
     "inspector.enterValidWeight": "Enter a valid weight.",
     "inspector.filamentDefault": "{{price}} · filament default",
