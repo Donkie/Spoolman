@@ -25,11 +25,14 @@ controller = hishel.Controller(allow_stale=True)
 try:
     cache_path = get_cache_dir() / "hishel"
     cache_storage = hishel.AsyncFileStorage(base_path=cache_path)
-except PermissionError:
+except PermissionError as exc:
+    # Take the path from the exception rather than from cache_path: the data
+    # directory is created while cache_path is being evaluated, so when that is
+    # what fails, cache_path is never bound.
     logger.warning(
         "Failed to setup disk-based cache due to permission error. Ensure the path %s is writable. "
         "Using in-memory cache instead as fallback.",
-        str(cache_path.resolve()),
+        exc.filename or "of the Spoolman data directory",
     )
     cache_storage = hishel.AsyncInMemoryStorage()
 
