@@ -28,7 +28,7 @@
         "hideArchived": "Hide Archived",
         "showArchived": "Show Archived",
         "notAccessTitle": "You don't have permission to access",
-        "hideColumns": "Hide Columns",
+        "hideColumns": "Columns",
         "clearFilters": "Clear Filters"
     },
     "warnWhenUnsavedChanges": "Are you sure you want to leave? You have unsaved changes.",
