@@ -33,6 +33,19 @@ COPY alembic.ini README.md uv.lock pyproject.toml /home/app/spoolman/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked
 
+# greenlet ships no 32-bit ARM wheel, so on armv7 it is compiled from source.
+# setuptools links the C++ extension with gcc, which leaves libstdc++ out of the
+# .so's NEEDED list, and it then crashes at import with an undefined libstdc++
+# typeinfo symbol, taking startup down during the DB migration. Add libstdc++ to
+# the NEEDED list so the loader pulls it in. Only armv7 is affected; amd64 and
+# arm64 use a correctly linked prebuilt wheel.
+RUN if [ "$(uname -m)" = "armv7l" ]; then \
+        apt-get update && apt-get install -y --no-install-recommends patchelf \
+        && patchelf --add-needed libstdc++.so.6 \
+            "$(find /home/app/spoolman/.venv -name '_greenlet*.so')" \
+        && apt-get clean && rm -rf /var/lib/apt/lists/*; \
+    fi
+
 FROM python:3.14-slim-bookworm AS python-runner
 
 LABEL org.opencontainers.image.source=https://github.com/Donkie/Spoolman
