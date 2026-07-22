@@ -5,8 +5,8 @@ import { Button, Modal, Typography } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { ExtraFieldDisplay } from "../../components/extraFields";
+import ColorHexPreview from "../../components/colorHexPreview";
 import { NumberFieldUnit } from "../../components/numberField";
-import SpoolIcon from "../../components/spoolIcon";
 import { enrichText } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { useCurrencyFormatter } from "../../utils/settings";
@@ -17,7 +17,7 @@ import { ISpool } from "./model";
 
 dayjs.extend(utc);
 
-const { Title } = Typography;
+const { Text, Title } = Typography;
 const { confirm } = Modal;
 
 export const SpoolShow = () => {
@@ -32,6 +32,13 @@ export const SpoolShow = () => {
   const { data, isLoading } = query;
 
   const record = data?.data;
+  // Mirror the filament show-page wording so spool detail pages preserve the same color-direction context.
+  const multiColorLabel =
+    record?.filament.multi_color_hexes && record.filament.multi_color_direction === "longitudinal"
+      ? `${t("filament.fields.longitudinal")} ${t("filament.fields.multi_color")}`
+      : record?.filament.multi_color_hexes
+        ? `${t("filament.fields.coaxial")} ${t("filament.fields.multi_color")}`
+        : null;
 
   const spoolPrice = (item?: ISpool) => {
     const price = item?.price ?? item?.filament.price;
@@ -104,13 +111,6 @@ export const SpoolShow = () => {
     });
   };
 
-  const colorObj = record?.filament.multi_color_hexes
-    ? {
-        colors: record.filament.multi_color_hexes.split(","),
-        vertical: record.filament.multi_color_direction === "longitudinal",
-      }
-    : record?.filament.color_hex;
-
   return (
     <Show
       isLoading={isLoading}
@@ -151,7 +151,16 @@ export const SpoolShow = () => {
       <Title level={5}>{t("spool.fields.id")}</Title>
       <NumberField value={record?.id ?? ""} />
       <Title level={5}>{t("spool.fields.filament")}</Title>
-      {colorObj && <SpoolIcon color={colorObj} size="large" no_margin />}
+      {multiColorLabel && (
+        <Text type="secondary" style={{ display: "block", marginTop: -10, marginBottom: 8 }}>
+          {multiColorLabel}
+        </Text>
+      )}
+      <ColorHexPreview
+        colorHex={record?.filament.color_hex}
+        multiColorHexes={record?.filament.multi_color_hexes}
+        multiColorDirection={record?.filament.multi_color_direction}
+      />
       <TextField value={record ? filamentURL(record?.filament) : ""} />
       <Title level={5}>{t("spool.fields.price")}</Title>
       <TextField value={spoolPrice(record)} />
