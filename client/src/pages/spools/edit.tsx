@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import { useSpoolmanLocations } from "../../components/otherModels";
+import { toComparableState } from "../../utils/formState";
 import { searchMatches } from "../../utils/filtering";
 import { formatNumberOnUserInput, numberParser, numberParserAllowEmpty } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
@@ -15,7 +16,7 @@ import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { createFilamentFromExternal } from "../filaments/functions";
 import { useLocations } from "../locations/functions";
 import { useGetFilamentSelectOptions } from "./functions";
-import { ISpool, ISpoolParsedExtras, WeightToEnter } from "./model";
+import { ISpool, ISpoolEditForm, WeightToEnter } from "./model";
 
 /*
 The API returns the extra fields as JSON values, but we need to parse them into their real types
@@ -24,9 +25,22 @@ We also need to stringify them again before sending them back to the API, which 
 the form's onFinish method. Form.Item's normalize should do this, but it doesn't seem to work.
 */
 
-type ISpoolRequest = ISpoolParsedExtras & {
-  filament_id: number | string;
+// comparableDefaults is typed against ISpoolEditForm so TypeScript will report a compile
+// error here if a new editable field is added to the model without updating this list.
+const comparableDefaults: Record<keyof ISpoolEditForm, unknown> = {
+  first_used: null,
+  last_used: null,
+  filament_id: null,
+  price: null,
+  initial_weight: null,
+  spool_weight: null,
+  used_weight: null,
+  location: "",
+  lot_nr: "",
+  comment: "",
+  extra: {},
 };
+// This list is the source of truth for which inputs participate in the Save-button dirty check.
 
 export const SpoolEdit = () => {
   const t = useTranslate();
@@ -37,7 +51,7 @@ export const SpoolEdit = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const { form, formProps, saveButtonProps } = useForm<ISpool, HttpError, ISpoolRequest, ISpool>({
+  const { form, formProps, saveButtonProps } = useForm<ISpool, HttpError, ISpoolEditForm, ISpool>({
     liveMode: "manual",
     onLiveEvent() {
       // Warn the user if the spool has been updated since the form was opened
@@ -59,14 +73,6 @@ export const SpoolEdit = () => {
 
   const initialWeightValue = Form.useWatch("initial_weight", form);
   const spoolWeightValue = Form.useWatch("spool_weight", form);
-
-  // Add the filament_id field to the form
-  if (formProps.initialValues) {
-    formProps.initialValues["filament_id"] = formProps.initialValues["filament"].id;
-
-    // Parse the extra fields from string values into real types
-    formProps.initialValues = ParsedExtras(formProps.initialValues);
-  }
 
   //
   // Set up the filament selection options
@@ -97,13 +103,25 @@ export const SpoolEdit = () => {
       return null;
     }
   }, [selectedFilamentID, internalSelectOptions, externalSelectOptions]);
+  const watchedAllValues = Form.useWatch([], form);
+
+  // Initialize form fields and parse extra fields
+  useEffect(() => {
+    if (formProps.initialValues && form) {
+      const parsed = ParsedExtras(formProps.initialValues);
+      form.setFieldsValue({
+        ...parsed,
+        filament_id: formProps.initialValues.filament?.id,
+      } as unknown as ISpool);
+    }
+  }, [form, formProps.initialValues?.id, formProps.initialValues?.filament?.id]);
 
   // Override the form's onFinish method to stringify the extra fields
   const originalOnFinish = formProps.onFinish;
-  formProps.onFinish = (allValues: ISpoolRequest) => {
+  formProps.onFinish = (allValues: ISpoolEditForm) => {
     if (allValues !== undefined && allValues !== null) {
       // Lot of stupidity here to make types work
-      const values = StringifiedExtras<ISpoolRequest>(allValues);
+      const values = StringifiedExtras<ISpoolEditForm>(allValues);
       if (selectedFilament?.is_internal === false) {
         // Filament ID being a string indicates its an external filament.
         // If so, we should first create the internal filament version, then edit the spool
@@ -230,8 +248,37 @@ export const SpoolEdit = () => {
     }
   }, [initialUsedWeight]);
 
+  const initialComparableState = useMemo(
+    // ParsedExtras normalizes extra-field values from raw API JSON strings to their actual
+    // types so the initial snapshot matches the form state that setFieldsValue produces.
+    () =>
+      toComparableState(
+        formProps.initialValues
+          ? {
+              ...ParsedExtras(formProps.initialValues),
+              filament_id: formProps.initialValues.filament?.id ?? null,
+            }
+          : formProps.initialValues,
+        comparableDefaults,
+      ),
+    [formProps.initialValues, formProps.initialValues?.filament?.id],
+  );
+  const watchedComparableState = useMemo(
+    () => toComparableState(watchedAllValues, comparableDefaults),
+    [watchedAllValues],
+  );
+  const hasFormChanges =
+    initialComparableState !== null &&
+    watchedComparableState !== null &&
+    initialComparableState !== watchedComparableState;
+  const saveButtonState = {
+    ...saveButtonProps,
+    type: hasFormChanges ? ("primary" as const) : ("default" as const),
+    disabled: saveButtonProps.disabled || !hasFormChanges,
+  };
+
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit saveButtonProps={saveButtonState}>
       {contextHolder}
       <Form {...formProps} layout="vertical">
         <Form.Item

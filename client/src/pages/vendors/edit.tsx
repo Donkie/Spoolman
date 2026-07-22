@@ -3,10 +3,11 @@ import { HttpError, useTranslate } from "@refinedev/core";
 import { Alert, DatePicker, Form, Input, InputNumber, message, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
+import { toComparableState } from "../../utils/formState";
 import { EntityType, useGetFields } from "../../utils/queryFields";
-import { IVendor, IVendorParsedExtras } from "./model";
+import { IVendor, IVendorEditForm, IVendorParsedExtras } from "./model";
 
 /*
 The API returns the extra fields as JSON values, but we need to parse them into their real types
@@ -14,6 +15,17 @@ in order for Ant design's form to work properly. ParsedExtras does this for us.
 We also need to stringify them again before sending them back to the API, which is done by overriding
 the form's onFinish method. Form.Item's normalize should do this, but it doesn't seem to work.
 */
+
+// comparableDefaults is typed against IVendorEditForm so TypeScript will report a compile
+// error here if a new editable field is added to the model without updating this list.
+const comparableDefaults: Record<keyof IVendorEditForm, unknown> = {
+  name: "",
+  comment: "",
+  empty_spool_weight: null,
+  external_id: "",
+  extra: {},
+};
+// This list is the source of truth for which inputs participate in the Save-button dirty check.
 
 export const VendorEdit = () => {
   const t = useTranslate();
@@ -29,11 +41,15 @@ export const VendorEdit = () => {
       setHasChanged(true);
     },
   });
+  const watchedAllValues = Form.useWatch([], formProps.form);
 
-  // Parse the extra fields from string values into real types
-  if (formProps.initialValues) {
-    formProps.initialValues = ParsedExtras(formProps.initialValues);
-  }
+  // Initialize form fields and parse extra fields
+  useEffect(() => {
+    if (formProps.initialValues && formProps.form) {
+      const parsed = ParsedExtras(formProps.initialValues);
+      formProps.form.setFieldsValue(parsed as unknown as IVendor);
+    }
+  }, [formProps.form, formProps.initialValues?.id]);
 
   // Override the form's onFinish method to stringify the extra fields
   const originalOnFinish = formProps.onFinish;
@@ -45,11 +61,38 @@ export const VendorEdit = () => {
         extra: {},
         ...stringifiedAllValues,
       });
+      // Clear the live-update warning: user has seen and chosen to save over the conflict.
+      // Dismissed on submit intent (not on server confirm) — useForm handles server errors separately.
+      setHasChanged(false);
     }
   };
 
+  const initialComparableState = useMemo(
+    // ParsedExtras normalizes extra-field values from raw API JSON strings to their actual
+    // types so the initial snapshot matches the form state that setFieldsValue produces.
+    () =>
+      toComparableState(
+        formProps.initialValues ? ParsedExtras(formProps.initialValues) : formProps.initialValues,
+        comparableDefaults,
+      ),
+    [formProps.initialValues],
+  );
+  const watchedComparableState = useMemo(
+    () => toComparableState(watchedAllValues, comparableDefaults),
+    [watchedAllValues],
+  );
+  const hasFormChanges =
+    initialComparableState !== null &&
+    watchedComparableState !== null &&
+    initialComparableState !== watchedComparableState;
+  const saveButtonState = {
+    ...saveButtonProps,
+    type: hasFormChanges ? ("primary" as const) : ("default" as const),
+    disabled: saveButtonProps.disabled || !hasFormChanges,
+  };
+
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit saveButtonProps={saveButtonState}>
       {contextHolder}
       <Form {...formProps} layout="vertical">
         <Form.Item

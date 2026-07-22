@@ -1,7 +1,15 @@
 import { useTranslate } from "@refinedev/core";
 import { Button, Checkbox, Form, Input, message } from "antd";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { toComparableState } from "../../utils/formState";
 import { useGetSettings, useSetSetting } from "../../utils/querySettings";
+
+const comparableDefaults = {
+  currency: "",
+  base_url: "",
+  round_prices: false,
+} as const;
+// This list is the source of truth for which inputs participate in the Save-button dirty check.
 
 export function GeneralSettings() {
   const settings = useGetSettings();
@@ -9,6 +17,7 @@ export function GeneralSettings() {
   const setCurrency = useSetSetting("currency");
   const setRoundPrices = useSetSetting("round_prices");
   const [form] = Form.useForm();
+  const watchedAllValues = Form.useWatch([], form);
   const [messageApi, contextHolder] = message.useMessage();
   const t = useTranslate();
 
@@ -46,6 +55,32 @@ export function GeneralSettings() {
       setRoundPrices.mutate(values.round_prices);
     }
   };
+
+  const initialComparableState = useMemo(() => {
+    if (!settings.data) {
+      return null;
+    }
+    // Compare the parsed values the form actually edits, not the JSON-encoded storage shape from settings rows.
+    return toComparableState(
+      {
+        currency: JSON.parse(settings.data.currency.value),
+        base_url: JSON.parse(settings.data.base_url.value),
+        round_prices: JSON.parse(settings.data.round_prices.value),
+      },
+      comparableDefaults,
+    );
+  }, [settings.data]);
+
+  const watchedComparableState = useMemo(() => {
+    return toComparableState(watchedAllValues, comparableDefaults);
+  }, [watchedAllValues]);
+
+  const hasFormChanges =
+    initialComparableState !== null &&
+    watchedComparableState !== null &&
+    initialComparableState !== watchedComparableState;
+  // Treat in-flight saves and initial settings fetches the same way so the button never advertises stale availability.
+  const isSaving = settings.isFetching || setCurrency.isPending || setBaseUrl.isPending || setRoundPrices.isPending;
 
   return (
     <>
@@ -105,7 +140,12 @@ export function GeneralSettings() {
         </Form.Item>
 
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-          <Button type="primary" htmlType="submit" loading={settings.isFetching || setCurrency.isPending}>
+          <Button
+            type={hasFormChanges ? "primary" : "default"}
+            htmlType="submit"
+            loading={isSaving}
+            disabled={isSaving || !hasFormChanges}
+          >
             {t("buttons.save")}
           </Button>
         </Form.Item>

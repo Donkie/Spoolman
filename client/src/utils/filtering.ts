@@ -7,8 +7,12 @@ interface TypedCrudFilter<Obj> {
   value: string[];
 }
 
+/**
+ * Type-asserts filter array to strongly-typed filters.
+ * Safe because CrudFilter objects from table state are guaranteed to match TypedCrudFilter shape.
+ */
 export function typeFilters<Obj>(filters: CrudFilter[]): TypedCrudFilter<Obj>[] {
-  return filters as TypedCrudFilter<Obj>[]; // <-- Unsafe cast
+  return filters as TypedCrudFilter<Obj>[];
 }
 
 /**
@@ -124,4 +128,49 @@ export function removeUndefined<T>(array: (T | undefined)[]): T[] {
 export function searchMatches(query: string, test: string): boolean {
   const words = query.toLowerCase().split(" ");
   return words.every((word) => test.toLowerCase().includes(word));
+}
+
+function hasMeaningfulFilterValue(value: unknown): boolean {
+  if (value === null || value === undefined) {
+    return false;
+  }
+
+  if (typeof value === "string") {
+    // Empty-string filters are an intentional "show empty values" query in this app.
+    return value === "" || value.trim().length > 0;
+  }
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return false;
+    }
+    return value.some((entry) => hasMeaningfulFilterValue(entry));
+  }
+
+  return true;
+}
+
+/**
+ * Returns true when at least one filter has a meaningful value.
+ * This ignores empty array values, while preserving the existing empty-string
+ * filter semantics used for "<empty>" options.
+ */
+export function hasMeaningfulFilters(filters?: CrudFilter[]): boolean {
+  if (!filters || filters.length === 0) {
+    return false;
+  }
+
+  return filters.some((filter) => {
+    if ("operator" in filter && (filter.operator === "or" || filter.operator === "and")) {
+      // Refine nests grouped filters, so recurse until we find a real leaf value
+      // instead of treating the wrapper object itself as "active".
+      return hasMeaningfulFilters(filter.value);
+    }
+
+    if ("value" in filter) {
+      return hasMeaningfulFilterValue(filter.value);
+    }
+
+    return false;
+  });
 }

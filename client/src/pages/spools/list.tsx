@@ -33,7 +33,7 @@ import {
   useSpoolmanLotNumbers,
   useSpoolmanMaterials,
 } from "../../components/otherModels";
-import { removeUndefined } from "../../utils/filtering";
+import { hasMeaningfulFilters, removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
 import { useCurrencyFormatter } from "../../utils/settings";
@@ -258,6 +258,8 @@ export const SpoolList = () => {
     tableState,
     sorter: true,
   };
+  // Ignore empty filter shells so the Clear Filters button only lights up for filters that would affect results.
+  const hasActiveFilters = hasMeaningfulFilters(filters);
 
   return (
     <List
@@ -282,7 +284,7 @@ export const SpoolList = () => {
             {showArchived ? t("buttons.hideArchived") : t("buttons.showArchived")}
           </Button>
           <Button
-            type="primary"
+            type={hasActiveFilters ? "primary" : "default"}
             icon={<FilterOutlined />}
             onClick={() => {
               setFilters([], "replace");

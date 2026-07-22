@@ -35,21 +35,22 @@ export function useGetPrintSettings(): SpoolQRCodePrintSettings[] | undefined {
   if (!data) return;
   const parsed: SpoolQRCodePrintSettings[] =
     data && data.value ? JSON.parse(data.value) : ([] as SpoolQRCodePrintSettings[]);
-  // Loop through all parsed and generate a new ID field if it's not set
-  return parsed.map((settings) => {
-    if (!settings.labelSettings.printSettings.id) {
-      settings.labelSettings.printSettings.id = uuidv4();
-    }
-    return settings;
-  });
+  // Keep preset loading immutable so dirty-state comparisons are not affected by
+  // IDs being injected directly into parsed settings objects.
+  return parsed.map((settings) => ({
+    ...settings,
+    labelSettings: {
+      ...settings.labelSettings,
+      printSettings: {
+        ...settings.labelSettings.printSettings,
+        id: settings.labelSettings.printSettings.id || uuidv4(),
+      },
+    },
+  }));
 }
 
-export function useSetPrintSettings(): (spoolQRCodePrintSettings: SpoolQRCodePrintSettings[]) => void {
-  const mut = useSetSetting("print_presets");
-
-  return (spoolQRCodePrintSettings: SpoolQRCodePrintSettings[]) => {
-    mut.mutate(spoolQRCodePrintSettings);
-  };
+export function useSetPrintSettings() {
+  return useSetSetting<SpoolQRCodePrintSettings[]>("print_presets");
 }
 
 interface GenericObject {
