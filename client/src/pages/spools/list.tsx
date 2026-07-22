@@ -9,7 +9,7 @@ import {
   ToTopOutlined,
 } from "@ant-design/icons";
 import { List, useTable } from "@refinedev/antd";
-import { useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
+import { useInvalidate, useList, useNavigation, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Modal, Table } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -27,6 +27,7 @@ import {
   SpoolIconColumn,
 } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
+import { ResourceSearchInput } from "../../components/resourceSearchInput";
 import {
   useSpoolmanFilamentFilter,
   useSpoolmanLocations,
@@ -35,6 +36,7 @@ import {
 } from "../../components/otherModels";
 import { removeUndefined } from "../../utils/filtering";
 import { EntityType, useGetFields } from "../../utils/queryFields";
+import { filterByResourceSearch } from "../../utils/resourceSearch";
 import { TableState, useInitialTableState, useSavedState, useStoreInitialState } from "../../utils/saveload";
 import { useCurrencyFormatter } from "../../utils/settings";
 import { setSpoolArchived, useSpoolAdjustModal } from "./functions";
@@ -115,6 +117,7 @@ export const SpoolList = () => {
 
   // State for the switch to show archived spools
   const [showArchived, setShowArchived] = useSavedState("spoolList-showArchived", false);
+  const [resourceSearch, setResourceSearch] = useState("");
 
   // Fetch data from the API
   // To provide the live updates, we use a custom solution (useLiveify) instead of the built-in refine "liveMode" feature.
@@ -161,6 +164,26 @@ export const SpoolList = () => {
       },
     });
 
+  const { result: allSpoolsData } = useList<ISpoolCollapsed>({
+    resource: "spool",
+    meta: {
+      queryParams: {
+        ["allow_archived"]: showArchived,
+      },
+    },
+    pagination: {
+      mode: "off",
+    },
+    queryOptions: {
+      select(data) {
+        return {
+          total: data.total,
+          data: data.data.map(collapseSpool),
+        };
+      },
+    },
+  });
+
   // Create state for the columns to show
   const [showColumns, setShowColumns] = useState<string[]>(initialState.showColumns ?? defaultColumns);
 
@@ -179,6 +202,10 @@ export const SpoolList = () => {
     [tableProps.dataSource],
   );
   const dataSource = useLiveify("spool", queryDataSource, collapseSpool);
+  const searchedDataSource = useMemo<ISpoolCollapsed[]>(() => {
+    const source: ISpoolCollapsed[] = resourceSearch.trim() ? (allSpoolsData?.data ?? []) : dataSource;
+    return filterByResourceSearch(source, resourceSearch);
+  }, [allSpoolsData?.data, dataSource, resourceSearch]);
 
   // Function for opening an ant design modal that asks for confirmation for archiving a spool
   const archiveSpool = async (spool: ISpoolCollapsed, archive: boolean) => {
@@ -254,7 +281,7 @@ export const SpoolList = () => {
     t,
     navigate,
     actions,
-    dataSource,
+    dataSource: searchedDataSource,
     tableState,
     sorter: true,
   };
@@ -263,6 +290,14 @@ export const SpoolList = () => {
     <List
       headerButtons={({ defaultButtons }) => (
         <>
+          <ResourceSearchInput
+            value={resourceSearch}
+            onChange={(value) => {
+              setResourceSearch(value);
+              setCurrentPage(1);
+            }}
+            placeholder="Search spools"
+          />
           <Button
             type="primary"
             icon={<PrinterOutlined />}
@@ -334,7 +369,8 @@ export const SpoolList = () => {
         sticky
         tableLayout="auto"
         scroll={{ x: "max-content" }}
-        dataSource={dataSource}
+        dataSource={searchedDataSource}
+        pagination={resourceSearch.trim() ? false : tableProps.pagination}
         rowKey="id"
         // Make archived rows greyed out
         onRow={(record) => {

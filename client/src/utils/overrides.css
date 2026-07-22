@@ -1,3 +1,215 @@
 #qty-input {
   text-align: center !important;
 }
+
+:root {
+  --spoolman-mobile-breakpoint: 768px;
+}
+
+html,
+body,
+#root {
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.spoolman-layout,
+.spoolman-layout .ant-layout,
+.spoolman-page-shell {
+  min-width: 0;
+}
+
+.spoolman-page-shell {
+  width: 100%;
+  max-width: 100%;
+}
+
+.spoolman-page-shell .ant-table-wrapper,
+.spoolman-page-shell .ant-table-container,
+.spoolman-page-shell .ant-table-content,
+.spoolman-page-shell .ant-table-body {
+  max-width: 100%;
+}
+
+.spoolman-page-shell .ant-table-content,
+.spoolman-page-shell .ant-table-body {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.spoolman-page-shell .ant-table-cell {
+  overflow-wrap: anywhere;
+}
+
+.resource-search-input {
+  width: min(100%, 360px);
+  margin-bottom: 16px;
+}
+
+.ant-page-header-heading-extra .resource-search-input {
+  margin-bottom: 0;
+}
+
+.spoolman-page-shell .ant-form,
+.spoolman-page-shell .ant-card,
+.spoolman-page-shell .ant-space,
+.spoolman-page-shell .ant-row,
+.spoolman-page-shell .ant-col,
+.spoolman-page-shell .ant-descriptions,
+.spoolman-page-shell .ant-modal,
+.spoolman-page-shell .ant-drawer {
+  min-width: 0;
+}
+
+@media (max-width: 767.98px) {
+  .spoolman-header {
+    height: auto !important;
+    min-height: 56px;
+    padding: 8px 12px !important;
+  }
+
+  .spoolman-header-actions {
+    justify-content: flex-end;
+    row-gap: 6px;
+  }
+
+  .spoolman-header-actions .ant-btn {
+    padding-inline: 8px;
+  }
+
+  .spoolman-page-shell {
+    padding: 0 8px;
+  }
+
+  .spoolman-page-shell main,
+  .spoolman-page-shell .ant-layout-content {
+    margin: 0 !important;
+    padding: 12px 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .spoolman-page-shell .ant-typography,
+  .spoolman-page-shell h1,
+  .spoolman-page-shell h2,
+  .spoolman-page-shell h3 {
+    overflow-wrap: anywhere;
+  }
+
+  .spoolman-page-shell .ant-card,
+  .spoolman-page-shell .ant-list,
+  .spoolman-page-shell .ant-descriptions,
+  .spoolman-page-shell .ant-table-wrapper {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .spoolman-page-shell .ant-card-body,
+  .spoolman-page-shell .ant-card-head,
+  .spoolman-page-shell .ant-list-header {
+    padding-inline: 12px;
+  }
+
+  .spoolman-page-shell .ant-page-header,
+  .spoolman-page-shell .ant-pro-page-container-children-container {
+    padding-inline: 0 !important;
+  }
+
+  .spoolman-page-shell .ant-card-head-wrapper,
+  .spoolman-page-shell .ant-list-header,
+  .spoolman-page-shell .ant-space-wrap {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .spoolman-page-shell .ant-list-header .ant-space,
+  .spoolman-page-shell .ant-card-extra,
+  .spoolman-page-shell .ant-page-header-heading-extra {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .spoolman-page-shell .ant-list-header .ant-btn,
+  .spoolman-page-shell .ant-page-header-heading-extra .ant-btn,
+  .spoolman-page-shell .ant-card-extra .ant-btn {
+    white-space: normal;
+    height: auto;
+    min-height: 32px;
+  }
+
+  .spoolman-page-shell .ant-form-item {
+    margin-bottom: 14px;
+  }
+
+  .spoolman-page-shell .ant-form-item-control,
+  .spoolman-page-shell .ant-input,
+  .spoolman-page-shell .ant-input-number,
+  .spoolman-page-shell .ant-picker,
+  .spoolman-page-shell .ant-select,
+  .spoolman-page-shell .ant-upload,
+  .spoolman-page-shell textarea {
+    max-width: 100%;
+  }
+
+  .spoolman-page-shell .ant-form .ant-space,
+  .spoolman-page-shell .ant-form .ant-space-item,
+  .spoolman-page-shell .ant-form .ant-btn,
+  .spoolman-page-shell .ant-modal-footer .ant-btn,
+  .spoolman-page-shell .ant-drawer-footer .ant-btn {
+    max-width: 100%;
+  }
+
+  .spoolman-page-shell .ant-modal-footer,
+  .spoolman-page-shell .ant-drawer-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .spoolman-page-shell .ant-modal-footer .ant-btn,
+  .spoolman-page-shell .ant-drawer-footer .ant-btn {
+    margin-inline-start: 0 !important;
+  }
+
+  .ant-modal,
+  .ant-modal-root .ant-modal {
+    max-width: calc(100vw - 24px);
+  }
+
+  .ant-modal-content,
+  .ant-drawer-content,
+  .ant-dropdown,
+  .ant-picker-dropdown {
+    max-width: calc(100vw - 16px);
+  }
+
+  .ant-modal-body,
+  .ant-drawer-body {
+    overflow-x: auto;
+  }
+
+  .spoolman-page-shell video,
+  .spoolman-page-shell canvas,
+  .spoolman-page-shell svg,
+  .ant-modal video,
+  .ant-modal canvas,
+  .ant-modal svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .spoolman-page-shell .ant-pagination {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .spoolman-footer {
+    padding: 16px 8px;
+  }
+
+  .spoolman-footer-content {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+}
