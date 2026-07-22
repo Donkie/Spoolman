@@ -17,7 +17,7 @@ from spoolman import env, externaldb
 from spoolman.api.v1.router import app as v1_app
 from spoolman.client import SinglePageApplication
 from spoolman.database import database
-from spoolman.prometheus.metrics import registry
+from spoolman.prometheus.metrics import BUILD_INFO, registry
 
 # Define a console logger
 console_handler = logging.StreamHandler()
@@ -156,12 +156,22 @@ async def startup() -> None:
     # Don't add file logging until we have verified that the data directory is writable
     add_file_logging()
 
+    version = app.version
+    commit = env.get_commit_hash() or ""
+    build_date = env.get_build_date()
+
     logger.info(
         "Starting Spoolman v%s (commit: %s) (built: %s)",
-        app.version,
-        env.get_commit_hash(),
-        env.get_build_date(),
+        version,
+        commit,
+        build_date,
     )
+
+    BUILD_INFO.info({
+        "version": version,
+        "commit": commit,
+        "build_date": str(build_date) if build_date else "",
+    })
 
     logger.info("Using data directory: %s", env.get_data_dir().resolve())
     logger.info("Using logs directory: %s", env.get_logs_dir().resolve())
