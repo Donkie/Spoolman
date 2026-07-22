@@ -28,7 +28,16 @@ export const VendorShow = () => {
   };
 
   return (
-    <Show isLoading={isLoading} title={record ? formatTitle(record) : ""}>
+    <Show
+      isLoading={isLoading}
+      title={
+        record ? (
+          <span style={{ whiteSpace: "normal", overflowWrap: "anywhere", lineHeight: 1.2 }}>{formatTitle(record)}</span>
+        ) : (
+          ""
+        )
+      }
+    >
       <Title level={5}>{t("vendor.fields.id")}</Title>
       <NumberField value={record?.id ?? ""} />
       <Title level={5}>{t("vendor.fields.registered")}</Title>
