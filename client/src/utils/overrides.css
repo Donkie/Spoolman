@@ -1,3 +1,33 @@
 #qty-input {
   text-align: center !important;
 }
+
+.resizable-table-header-cell {
+  position: relative;
+}
+
+.resizable-table-header-handle {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.resizable-table-header-handle::after {
+  content: "";
+  position: absolute;
+  top: 18%;
+  bottom: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  transition: background-color 0.15s ease;
+}
+
+.resizable-table-header-handle:hover::after {
+  background: #d07a36;
+}

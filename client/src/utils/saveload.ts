@@ -6,6 +6,17 @@ interface Pagination {
   pageSize: number;
 }
 
+function parseSavedJSON<T>(value: string | null, fallback: T): T {
+  if (!value) {
+    return fallback;
+  }
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 export interface TableState {
   sorters: CrudSort[];
   filters: CrudFilter[];
@@ -93,7 +104,7 @@ export function useStoreInitialState(tableId: string, state: TableState) {
 export function useSavedState<T>(id: string, defaultValue: T) {
   const [state, setState] = useState<T>(() => {
     const savedState = isLocalStorageAvailable ? localStorage.getItem(`savedStates-${id}`) : null;
-    return savedState ? JSON.parse(savedState) : defaultValue;
+    return parseSavedJSON(savedState, defaultValue);
   });
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 import { EditOutlined, EyeOutlined, FileOutlined, FilterOutlined, PlusSquareOutlined } from "@ant-design/icons";
 import { List, useTable } from "@refinedev/antd";
 import { useInvalidate, useNavigation, useTranslate } from "@refinedev/core";
-import { Button, Dropdown, Table } from "antd";
+import { Button, Dropdown } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useMemo, useState } from "react";
@@ -17,6 +17,7 @@ import {
   SpoolIconColumn,
 } from "../../components/column";
 import { useLiveify } from "../../components/liveify";
+import ResizableTable from "../../components/resizableTable";
 import {
   useSpoolmanArticleNumbers,
   useSpoolmanFilamentNames,
@@ -216,7 +217,8 @@ export const FilamentList = () => {
         </>
       )}
     >
-      <Table<IFilamentCollapsed>
+      <ResizableTable<IFilamentCollapsed>
+        columnResizeKey="filament-list-table"
         {...tableProps}
         sticky
         tableLayout="auto"
