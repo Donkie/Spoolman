@@ -87,4 +87,13 @@ RUN echo "GIT_COMMIT=${GIT_COMMIT}" > build.txt \
 
 # Run command
 EXPOSE 8000
+
+# Add healthcheck to verify the API is responsive using the internal Python interpreter
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD python3 -c "import os, urllib.request; \
+    port = os.getenv('SPOOLMAN_PORT', '8000'); \
+    base = os.getenv('SPOOLMAN_BASE_PATH', '').strip('/'); \
+    path = f'/{base}/api/v1/health'.replace('//', '/'); \
+    urllib.request.urlopen(f'http://localhost:{port}{path}')" || exit 1
+
 ENTRYPOINT ["/home/app/spoolman/entrypoint.sh"]
