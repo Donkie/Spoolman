@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { portal } from '$lib/actions/portal';
+
 	interface Props {
 		value: string | number;
 		options: string[];
@@ -147,6 +149,7 @@
 {#if open && filtered.length > 0}
 	<ul
 		bind:this={listEl}
+		use:portal
 		id={listId}
 		role="listbox"
 		class="cbx-list"

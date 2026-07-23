@@ -14,6 +14,7 @@
 	import Calendar from '@lucide/svelte/icons/calendar';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import { portal } from '$lib/actions/portal';
 
 	interface Props {
 		/** Current value as an ISO timestamp, or undefined if unset. */
@@ -240,7 +241,11 @@
 		// Position once the popover is in the DOM, then keep it glued while open.
 		position();
 		const onDocPointer = (e: PointerEvent) => {
-			if (root && !root.contains(e.target as Node)) close();
+			// The popover is portaled to <body> (see below), so a click inside it is
+			// no longer inside `root` — check it separately or picking a date closes
+			// the popup instead of registering.
+			const t = e.target as Node;
+			if (root && !root.contains(t) && pop && !pop.contains(t)) close();
 		};
 		const onKey = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') close();
@@ -273,7 +278,14 @@
 	</button>
 
 	{#if open}
-		<div class="pop" bind:this={pop} style={popStyle} role="dialog" aria-label={m['datetime.pick']()}>
+		<div
+			class="pop"
+			bind:this={pop}
+			use:portal
+			style={popStyle}
+			role="dialog"
+			aria-label={m['datetime.pick']()}
+		>
 			<div class="cal-head">
 				<button type="button" class="nav" onclick={prevMonth} aria-label={m['datetime.prevMonth']()}
 					><ChevronLeft size={18} /></button
