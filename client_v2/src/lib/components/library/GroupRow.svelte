@@ -110,14 +110,19 @@
 		meta: kg(group.totalRemaining)
 	});
 
-	function headerClick() {
-		if (group.field === 'filament') params.select('filament', group.key);
-		else if (group.field === 'vendor') params.select('vendor', group.key);
-	}
+	// A group header links to its entity's inspector only where the group *is* an
+	// entity — filament and vendor. Material/location groups have nothing to open.
+	let headerHref = $derived(
+		group.field === 'filament'
+			? params.selectHrefFromState(libraryState, 'filament', group.key)
+			: group.field === 'vendor'
+				? params.selectHrefFromState(libraryState, 'vendor', group.key)
+				: undefined
+	);
 </script>
 
 <div>
-	<GroupHeader group={header} sticky onclick={headerClick} />
+	<GroupHeader group={header} sticky href={headerHref} />
 	{#each inUse as vm (vm.spool.id)}
 		<SpoolRow {vm} {showSwatch} indent={26} context={group.field} />
 	{/each}

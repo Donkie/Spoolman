@@ -5,17 +5,34 @@
 		variant?: 'primary' | 'outline' | 'ghost';
 		type?: 'button' | 'submit';
 		onclick?: (e: MouseEvent) => void;
+		/** When set the button navigates: it renders as a real `<a href>` link
+		 *  (middle-click / copy-link work) instead of a `<button>`. */
+		href?: string;
 		title?: string;
 		disabled?: boolean;
 		children: Snippet;
 	}
 
-	let { variant = 'primary', type = 'button', onclick, title, disabled = false, children }: Props = $props();
+	let {
+		variant = 'primary',
+		type = 'button',
+		onclick,
+		href,
+		title,
+		disabled = false,
+		children
+	}: Props = $props();
 </script>
 
-<button class="btn {variant}" {type} {onclick} {title} {disabled}>
-	{@render children()}
-</button>
+{#if href}
+	<a class="btn {variant}" class:disabled {href} {title} {onclick}>
+		{@render children()}
+	</a>
+{:else}
+	<button class="btn {variant}" {type} {onclick} {title} {disabled}>
+		{@render children()}
+	</button>
+{/if}
 
 <style>
 	.btn {
@@ -28,6 +45,7 @@
 		cursor: pointer;
 		user-select: none;
 		white-space: nowrap;
+		text-decoration: none;
 		border: 1px solid transparent;
 		transition:
 			background 0.12s,
@@ -65,7 +83,8 @@
 		color: var(--text);
 	}
 
-	.btn:disabled {
+	.btn:disabled,
+	.btn.disabled {
 		cursor: not-allowed;
 		opacity: 0.45;
 	}

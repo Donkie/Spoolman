@@ -20,12 +20,14 @@
 	let selected = $derived(params.isSelected(page.url.searchParams, 'spool', String(vm.spool.id)));
 </script>
 
-<button
+<a
 	class="row"
 	class:selected
 	class:archived={vm.spool.archived}
 	style="padding-left:{indent}px"
-	onclick={() => params.select('spool', String(vm.spool.id))}
+	href={params.selectHref(page.url.searchParams, 'spool', String(vm.spool.id))}
+	data-sveltekit-keepfocus
+	data-sveltekit-noscroll
 >
 	<span class="id mono">{vm.idLabel}</span>
 	{#if showSwatch}
@@ -41,7 +43,7 @@
 	<ProgressBar value={vm.pctValue} danger={vm.low} width="56px" />
 	<span class="rem mono" class:low={vm.low}>{vm.remLabel}</span>
 	<span class="right">{vm.location}</span>
-</button>
+</a>
 
 <style>
 	.row {
@@ -56,6 +58,7 @@
 		background: none;
 		color: inherit;
 		text-align: left;
+		text-decoration: none;
 		cursor: pointer;
 		font: inherit;
 	}

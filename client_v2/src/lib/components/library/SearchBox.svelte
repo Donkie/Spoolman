@@ -5,7 +5,8 @@
 	import Factory from '@lucide/svelte/icons/factory';
 	import { searchAll } from '$lib/api/search';
 	import type { SearchResults } from '$lib/api/types';
-	import { openSearchResult } from '$lib/library/params';
+	import { openSearchResult, searchResultHref } from '$lib/library/params';
+	import { page } from '$app/state';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { fields } from '$lib/stores/fields.svelte';
 	import type { EntityKind } from '$lib/types';
@@ -111,11 +112,25 @@
 	let hasResults = $derived(flat.length > 0);
 	let showPanel = $derived(open && query.trim().length > 0);
 
-	function choose(kind: EntityKind, id: string) {
-		openSearchResult(kind, id);
+	// Each result is a real `<a href>` (see searchResultHref) so it opens in a new
+	// tab / copies its address like any link. Close and clear the panel afterwards.
+	function dismiss() {
 		open = false;
 		query = '';
 		results = null;
+	}
+
+	// Keyboard selection has no anchor to click, so it navigates imperatively.
+	function chooseByKey(kind: EntityKind, id: string) {
+		openSearchResult(kind, id);
+		dismiss();
+	}
+
+	// A plain click follows the result's href; just tidy the panel. Modified
+	// clicks (new tab/window) are left untouched so several results can be opened.
+	function onResultClick(e: MouseEvent) {
+		if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+		dismiss();
 	}
 
 	function onKeydown(e: KeyboardEvent) {
@@ -134,7 +149,7 @@
 			if (activeIndex >= 0 && activeIndex < flat.length) {
 				e.preventDefault();
 				const item = flat[activeIndex];
-				choose(item.kind, item.id);
+				chooseByKey(item.kind, item.id);
 			}
 		}
 	}
@@ -229,10 +244,17 @@
 					<div class="section-label">{m['search.section.spools']()}</div>
 					{#each results.spools as spool (spool.entity.id)}
 						{@const filament = inventory.filamentById(spool.entity.filamentId)}
-						<button
+						<a
 							class="result"
 							class:active={activeIndex === indexOf('spool', String(spool.entity.id))}
-							onclick={() => choose('spool', String(spool.entity.id))}
+							href={searchResultHref(
+								page.url.searchParams,
+								page.url.pathname,
+								'spool',
+								String(spool.entity.id)
+							)}
+							data-sveltekit-noscroll
+							onclick={onResultClick}
 						>
 							<span class="id mono">#{spool.entity.id}</span>
 							<Swatch
@@ -245,7 +267,7 @@
 								{#if spool.entity.location}<span class="sub">{spool.entity.location}</span>{/if}
 							</span>
 							<span class="match">{matchLabel('spool', spool.matchField)}</span>
-						</button>
+						</a>
 					{/each}
 				{/if}
 
@@ -253,10 +275,17 @@
 					<div class="section-label">{m['search.section.filaments']()}</div>
 					{#each results.filaments as filament (filament.entity.id)}
 						{@const vendor = inventory.vendorById(filament.entity.vendorId)}
-						<button
+						<a
 							class="result"
 							class:active={activeIndex === indexOf('filament', filament.entity.id)}
-							onclick={() => choose('filament', filament.entity.id)}
+							href={searchResultHref(
+								page.url.searchParams,
+								page.url.pathname,
+								'filament',
+								filament.entity.id
+							)}
+							data-sveltekit-noscroll
+							onclick={onResultClick}
 						>
 							<Swatch
 								colors={filament.entity.colors}
@@ -269,24 +298,31 @@
 							</span>
 							{#if filament.entity.material}<MaterialBadge label={filament.entity.material} />{/if}
 							<span class="match">{matchLabel('filament', filament.matchField)}</span>
-						</button>
+						</a>
 					{/each}
 				{/if}
 
 				{#if results && results.vendors.length}
 					<div class="section-label">{m['search.section.vendors']()}</div>
 					{#each results.vendors as vendor (vendor.entity.id)}
-						<button
+						<a
 							class="result"
 							class:active={activeIndex === indexOf('vendor', vendor.entity.id)}
-							onclick={() => choose('vendor', vendor.entity.id)}
+							href={searchResultHref(
+								page.url.searchParams,
+								page.url.pathname,
+								'vendor',
+								vendor.entity.id
+							)}
+							data-sveltekit-noscroll
+							onclick={onResultClick}
 						>
 							<span class="vendor-icon" aria-hidden="true"><Factory size={14} /></span>
 							<span class="text">
 								<span class="title">{vendor.entity.name}</span>
 							</span>
 							<span class="match">{matchLabel('vendor', vendor.matchField)}</span>
-						</button>
+						</a>
 					{/each}
 				{/if}
 			{/if}
@@ -370,6 +406,7 @@
 		background: none;
 		color: inherit;
 		text-align: left;
+		text-decoration: none;
 		cursor: pointer;
 		font: inherit;
 	}

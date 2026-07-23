@@ -10,9 +10,12 @@
 		unit?: string;
 		onpage: (page: number) => void;
 		onpagesize: (size: number) => void;
+		/** When set, page controls render as real `<a href>` links (open-in-new-tab,
+		 *  copy-link) pointing at each page. `onpage` is the fallback when absent. */
+		hrefFor?: (page: number) => string;
 	}
 
-	let { page, pageSize, total, unit = '', onpage, onpagesize }: Props = $props();
+	let { page, pageSize, total, unit = '', onpage, onpagesize, hrefFor }: Props = $props();
 
 	let pageCount = $derived(Math.max(1, Math.ceil(total / pageSize)));
 	let from = $derived(total === 0 ? 0 : (page - 1) * pageSize + 1);
@@ -54,25 +57,39 @@
 
 	{#if pageCount > 1}
 		<div class="nums">
-			<button
-				class="pg nav"
-				disabled={page <= 1}
-				onclick={() => go(page - 1)}
-				aria-label={m['pagination.prev']()}><ChevronLeft size={16} /></button
-			>
+			{#if hrefFor && page > 1}
+				<a class="pg nav" href={hrefFor(page - 1)} data-sveltekit-keepfocus data-sveltekit-noscroll
+					aria-label={m['pagination.prev']()}><ChevronLeft size={16} /></a
+				>
+			{:else}
+				<button
+					class="pg nav"
+					disabled={page <= 1}
+					onclick={() => go(page - 1)}
+					aria-label={m['pagination.prev']()}><ChevronLeft size={16} /></button
+				>
+			{/if}
 			{#each pages as p, i (i)}
 				{#if p === '…'}
 					<span class="ellipsis">…</span>
+				{:else if hrefFor && p !== page}
+					<a class="pg" href={hrefFor(p)} data-sveltekit-keepfocus data-sveltekit-noscroll>{p}</a>
 				{:else}
 					<button class="pg" class:active={p === page} onclick={() => go(p)}>{p}</button>
 				{/if}
 			{/each}
-			<button
-				class="pg nav"
-				disabled={page >= pageCount}
-				onclick={() => go(page + 1)}
-				aria-label={m['pagination.next']()}><ChevronRight size={16} /></button
-			>
+			{#if hrefFor && page < pageCount}
+				<a class="pg nav" href={hrefFor(page + 1)} data-sveltekit-keepfocus data-sveltekit-noscroll
+					aria-label={m['pagination.next']()}><ChevronRight size={16} /></a
+				>
+			{:else}
+				<button
+					class="pg nav"
+					disabled={page >= pageCount}
+					onclick={() => go(page + 1)}
+					aria-label={m['pagination.next']()}><ChevronRight size={16} /></button
+				>
+			{/if}
 		</div>
 	{/if}
 
@@ -113,6 +130,9 @@
 		gap: 2px;
 	}
 	.pg {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 		min-width: 24px;
 		height: 24px;
 		padding: 0 6px;
@@ -123,6 +143,7 @@
 		font-size: 11.5px;
 		cursor: pointer;
 		font-family: inherit;
+		text-decoration: none;
 	}
 	.pg:hover:not(:disabled) {
 		background: var(--surface-2);

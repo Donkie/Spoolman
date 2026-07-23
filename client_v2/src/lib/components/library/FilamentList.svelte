@@ -127,6 +127,7 @@
 		unit={totalLabel}
 		onpage={(p) => params.setPage(p)}
 		onpagesize={(s) => params.setPageSize(s)}
+		hrefFor={(p) => params.pageHrefFromState(libraryState, p)}
 	/>
 </div>
 

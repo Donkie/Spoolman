@@ -7,7 +7,7 @@
 	import { live, type LiveEvent } from '$lib/api/live';
 	import { isAbortError } from '$lib/api/http';
 	import { mapSpool } from '$lib/api/map';
-	import { goto } from '$app/navigation';
+	import { libraryHref } from '$lib/library/params';
 	import { weightAuto } from '$lib/utils/format';
 	import * as m from '$lib/paraglide/messages';
 	import { getSettings, setSetting, parseSetting } from '$lib/api/settings';
@@ -474,11 +474,6 @@
 		}
 	}
 
-	function openSpool(id: number) {
-		// Deep-link into the Library with this spool selected (its inspector open).
-		goto('/?sel=spool:' + id);
-	}
-
 	function addLocation() {
 		const existing = new Set(displayNames);
 		let n = 1;
@@ -657,13 +652,15 @@
 						{#each shelf.spools as s (s.id)}
 							{@const f = inventory.filamentById(s.filamentId)!}
 							{@const v = inventory.vendorOf(f)}
-							<div
+							<!-- A real link to the spool's inspector (open-in-new-tab, copy-link),
+							     but also a svelte-dnd-action drag item. `draggable=false` keeps the
+							     browser's native link drag from fighting the pointer-based dnd; a
+							     genuine drag never fires a click, so it won't also navigate. -->
+							<a
 								class="chip"
-								role="button"
-								tabindex="0"
+								href={libraryHref('spool', String(s.id))}
+								draggable="false"
 								animate:flip={{ duration: FLIP }}
-								onclick={() => openSpool(s.id)}
-								onkeydown={(e) => e.key === 'Enter' && openSpool(s.id)}
 							>
 								<Swatch colors={f.colors} direction={f.multiColorDirection} size={22} radius={5} />
 								<div class="chip-info">
@@ -679,7 +676,7 @@
 											})}{/if}
 									</div>
 								</div>
-							</div>
+							</a>
 						{/each}
 					</div>
 					{#if shelf.spools.length === 0 && !shelf.loading}
@@ -898,6 +895,8 @@
 		cursor: grab;
 		user-select: none;
 		touch-action: none;
+		color: inherit;
+		text-decoration: none;
 	}
 	.chip:hover {
 		border-color: var(--accent);

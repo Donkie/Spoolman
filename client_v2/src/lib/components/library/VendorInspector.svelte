@@ -8,6 +8,7 @@
 	import Field from '../Field.svelte';
 	import type { Filament, Vendor } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
+	import { page } from '$app/state';
 	import * as params from '$lib/library/params';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
@@ -105,11 +106,16 @@
 			<SectionLabel>{m['filament.filament']()}</SectionLabel>
 			<div class="fils">
 				{#each filaments as f (f.id)}
-					<button class="fil-row" onclick={() => params.select('filament', f.id)}>
+					<a
+						class="fil-row"
+						href={params.selectHref(page.url.searchParams, 'filament', f.id)}
+						data-sveltekit-keepfocus
+						data-sveltekit-noscroll
+					>
 						<Swatch colors={f.colors} direction={f.multiColorDirection} size={18} radius={5} />
 						<span class="fname">{f.name}</span>
 						<span class="meta">{f.material}</span>
-					</button>
+					</a>
 				{/each}
 			</div>
 		</div>
@@ -169,6 +175,7 @@
 		color: inherit;
 		font-family: inherit;
 		text-align: left;
+		text-decoration: none;
 	}
 	.fil-row:hover {
 		border-color: var(--swatch-border-hover);

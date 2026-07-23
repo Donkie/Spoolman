@@ -190,6 +190,65 @@ export function select(kind: EntityKind, id: string): void {
 	navigate({ ...currentState(), selection: { kind, id } });
 }
 
+// --- href builders (the navigational twins of the mutators above) ----------
+//
+// The mutators navigate imperatively; these return the same target as a string
+// so a plain `<a href>` can carry it. That's what makes list rows real links —
+// middle-click / ctrl-click "open in new tab", "copy link address", hover
+// preview — instead of `<button onclick>`. Links built from the current view
+// yield a query *relative* to the Library page (where they're rendered), so
+// they stay correct under any deploy base path; pass a reactive
+// `page.url.searchParams` so each link tracks the live group/sort/filters.
+
+/** Query string (with leading `?`) that applies `sel` on top of `state`. */
+function selectQuery(state: LibraryState, kind: EntityKind, id: string): string {
+	return `?${serializeState({ ...state, selection: { kind, id } })}`;
+}
+
+/** Href that opens `kind`/`id`'s inspector, merged into the current view. */
+export function selectHref(params: URLSearchParams, kind: EntityKind, id: string): string {
+	return selectQuery(parseLibraryState(params), kind, id);
+}
+
+/** Same as {@link selectHref} but from an already-parsed state (grouped rows). */
+export function selectHrefFromState(state: LibraryState, kind: EntityKind, id: string): string {
+	return selectQuery(state, kind, id);
+}
+
+/** Href for a given page number within an already-parsed state (pagination links). */
+export function pageHrefFromState(state: LibraryState, page: number): string {
+	return `?${serializeState({ ...state, page })}`;
+}
+
+/**
+ * Absolute (base-aware) href that opens `kind`/`id` on the Library page from
+ * anywhere — a bare selection with no other view state. Use this off the
+ * Library page (a relative `?query` there would attach to the wrong path).
+ */
+export function libraryHref(kind: EntityKind, id: string): string {
+	return `${resolve('/')}?sel=${kind}:${id}`;
+}
+
+/**
+ * Href for a search result. The search box lives in the layout, so a result can
+ * be picked from any route: on the Library page we merge into the current view
+ * (preserving group/sort/filters); elsewhere we point at the Library root with
+ * just the selection. Mirrors {@link openSearchResult}.
+ */
+export function searchResultHref(
+	params: URLSearchParams,
+	pathname: string,
+	kind: EntityKind,
+	id: string
+): string {
+	const libraryPath = resolve('/'); // `${base}/`
+	const basePath = libraryPath.replace(/\/$/, ''); // base without trailing slash
+	if (pathname === libraryPath || pathname === basePath || pathname === '/') {
+		return selectHref(params, kind, id);
+	}
+	return libraryHref(kind, id);
+}
+
 export function clearSelection(): void {
 	navigate({ ...currentState(), selection: null });
 }

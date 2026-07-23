@@ -23,7 +23,7 @@
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
 	import { trackSave } from '$lib/utils/autosave';
-	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import * as m from '$lib/paraglide/messages';
 
@@ -185,9 +185,12 @@
 	<Breadcrumbs
 		items={[
 			vendor
-				? { label: vendor.name, onclick: () => params.select('vendor', vendor.id) }
+				? { label: vendor.name, href: params.selectHref(page.url.searchParams, 'vendor', vendor.id) }
 				: { label: m['add.noManufacturer'](), muted: true },
-			{ label: filament.name, onclick: () => params.select('filament', filament.id) },
+			{
+				label: filament.name,
+				href: params.selectHref(page.url.searchParams, 'filament', filament.id)
+			},
 			{ label: '#' + spool.id }
 		]}
 	/>
@@ -211,7 +214,7 @@
 			<Button variant="outline" onclick={openAdjust}
 				><Scale size={15} /> {m['inspector.adjustWeight']()}</Button
 			>
-			<Button variant="outline" onclick={() => goto(resolve(`/labels?spools=${spool.id}`))}
+			<Button variant="outline" href={resolve(`/labels?spools=${spool.id}`)}
 				><Printer size={15} /> {m['printing.qrcode.button']()}</Button
 			>
 			<Button variant="outline" onclick={toggleArchived}>
@@ -319,8 +322,11 @@
 			<SectionLabel>
 				{m['library.section.filament']()}
 				{#snippet right()}
-					<button class="link" onclick={() => params.select('filament', filament.id)}
-						>{m['inspector.openFilament']()} <ArrowRight size={13} /></button
+					<a
+						class="link"
+						href={params.selectHref(page.url.searchParams, 'filament', filament.id)}
+						data-sveltekit-keepfocus
+						data-sveltekit-noscroll>{m['inspector.openFilament']()} <ArrowRight size={13} /></a
 					>
 				{/snippet}
 			</SectionLabel>
@@ -516,6 +522,7 @@
 		border: none;
 		padding: 0;
 		font: inherit;
+		text-decoration: none;
 	}
 
 	@container (max-width: 760px) {

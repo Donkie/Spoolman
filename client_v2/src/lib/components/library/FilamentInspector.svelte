@@ -18,6 +18,7 @@
 	import { settings } from '$lib/stores/settings.svelte';
 	import { serverInfo } from '$lib/stores/serverInfo.svelte';
 	import { ui } from '$lib/stores/ui.svelte';
+	import { page } from '$app/state';
 	import * as params from '$lib/library/params';
 	import { pct, grams } from '$lib/utils/format';
 	import { spoolSource } from '$lib/api/spoolSource';
@@ -91,7 +92,7 @@
 	<Breadcrumbs
 		items={[
 			vendor
-				? { label: vendor.name, onclick: () => params.select('vendor', vendor.id) }
+				? { label: vendor.name, href: params.selectHref(page.url.searchParams, 'vendor', vendor.id) }
 				: { label: m['add.noManufacturer'](), muted: true },
 			{ label: filament.name }
 		]}
@@ -137,10 +138,12 @@
 	</SectionLabel>
 	<div class="spools">
 		{#each spools as s (s.id)}
-			<button
+			<a
 				class="spool-row"
 				class:archived={s.archived}
-				onclick={() => params.select('spool', String(s.id))}
+				href={params.selectHref(page.url.searchParams, 'spool', String(s.id))}
+				data-sveltekit-keepfocus
+				data-sveltekit-noscroll
 			>
 				<span class="id mono">#{s.id}</span>
 				<span class="state"
@@ -159,7 +162,7 @@
 				</span>
 				<span class="rem mono">{grams(s.remaining)} g</span>
 				<span class="loc">{s.location ?? ''}</span>
-			</button>
+			</a>
 		{/each}
 	</div>
 
@@ -334,6 +337,7 @@
 		color: inherit;
 		font-family: inherit;
 		text-align: left;
+		text-decoration: none;
 	}
 	.spool-row:hover {
 		border-color: var(--swatch-border-hover);
