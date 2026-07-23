@@ -1,15 +1,7 @@
 {
-    "actions.clone": "Klonēt",
-    "actions.create": "Izveidot",
-    "actions.edit": "Rediģēt",
     "buttons.clear": "Notīrīt",
-    "buttons.confirm": "Vai esat pārliecināts?",
-    "buttons.continue": "Turpināt",
-    "buttons.create": "Izveidot",
     "buttons.delete": "Dzēst",
     "buttons.edit": "Rediģēt",
     "buttons.filter": "Filtrēt",
-    "buttons.logout": "Izrakstīties",
-    "buttons.save": "Saglabāt",
-    "buttons.saveAndAdd": "Saglabāt un pievienot"
+    "buttons.save": "Saglabāt"
 }
