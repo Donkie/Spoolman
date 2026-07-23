@@ -162,6 +162,7 @@
 			]).then(([vn, localMats, extMats]) => {
 				vendorNames = vn;
 				const specs: typeof materialSpecs = {};
+				// eslint-disable-next-line svelte/prefer-svelte-reactivity -- transient local, not reactive state
 				const names = new Set<string>(localMats);
 				// Seed with the built-in common materials first…
 				for (const m of COMMON_MATERIALS) {
@@ -388,9 +389,6 @@
 		}
 	}
 
-	let targetName = $derived(
-		creating ? nf.name.trim() || m['add.newFilament']() : chosen ? cName(chosen) : ''
-	);
 	let summary = $derived(chosen || creating ? m['add.summary']({ count: countN }) : '');
 
 	// --- validation ---------------------------------------------------------
@@ -520,11 +518,11 @@
 							{#each externalResults as ext (ext.id)}
 								<button class="res-item" onclick={() => choose({ source: 'external', ext })}>
 									<Swatch
-									colors={externalColors(ext)}
-									direction={externalDirection(ext)}
-									size={18}
-									radius={5}
-								/>
+										colors={externalColors(ext)}
+										direction={externalDirection(ext)}
+										size={18}
+										radius={5}
+									/>
 									<div class="res-name">
 										<span class="rn">{ext.name}</span>
 										<span class="rs">{ext.manufacturer} · {ext.material}</span>

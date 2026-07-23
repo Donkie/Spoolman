@@ -160,16 +160,6 @@
 
 	// "matched: <field>" label. Extra fields resolve to the field's display name;
 	// native fields get a translated label (falling back to the raw name).
-	const NATIVE_MATCH = new Set([
-		'name',
-		'material',
-		'article_number',
-		'comment',
-		'location',
-		'lot_nr',
-		'id',
-		'color'
-	]);
 	const MATCH_LABEL: Record<EntityKind, Record<string, () => string>> = {
 		filament: {
 			name: m['filament.fields.name'],
@@ -257,11 +247,7 @@
 							onclick={onResultClick}
 						>
 							<span class="id mono">#{spool.entity.id}</span>
-							<Swatch
-							colors={filament?.colors ?? []}
-							direction={filament?.multiColorDirection}
-							size={20}
-						/>
+							<Swatch colors={filament?.colors ?? []} direction={filament?.multiColorDirection} size={20} />
 							<span class="text">
 								<span class="title">{filament?.name || m['search.unknownFilament']()}</span>
 								{#if spool.entity.location}<span class="sub">{spool.entity.location}</span>{/if}
@@ -308,12 +294,7 @@
 						<a
 							class="result"
 							class:active={activeIndex === indexOf('vendor', vendor.entity.id)}
-							href={searchResultHref(
-								page.url.searchParams,
-								page.url.pathname,
-								'vendor',
-								vendor.entity.id
-							)}
+							href={searchResultHref(page.url.searchParams, page.url.pathname, 'vendor', vendor.entity.id)}
 							data-sveltekit-noscroll
 							onclick={onResultClick}
 						>

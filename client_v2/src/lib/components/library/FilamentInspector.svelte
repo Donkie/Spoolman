@@ -49,7 +49,7 @@
 	$effect(() => {
 		const id = filamentId;
 		const archived = showArchived;
-		revision; // refetch on live spool events
+		void revision; // refetch on live spool events
 		let cancelled = false;
 		spoolSource
 			.listSpools({
@@ -121,9 +121,7 @@
 	</div>
 
 	<SectionLabel>
-		{#snippet children()}<span style="padding-left:20px"
-				>{m['inspector.spoolsCount']({ count: spools.length })}</span
-			>{/snippet}
+		<span style="padding-left:20px">{m['inspector.spoolsCount']({ count: spools.length })}</span>
 		{#snippet right()}
 			<button
 				class="arch-toggle"

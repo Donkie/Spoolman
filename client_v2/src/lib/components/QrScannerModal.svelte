@@ -137,7 +137,6 @@
 			<p class="hint">{m['scanner.description']()}</p>
 
 			<div class="stage">
-				<!-- svelte-ignore a11y_media_has_caption -->
 				<video bind:this={video} playsinline></video>
 				{#if error}
 					<div class="msg error">{error}</div>

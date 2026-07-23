@@ -82,7 +82,7 @@ Everything viewed is subscribed to and live-updates. The seam is `api/live.ts`
 - **`inventory`** is a reactive normalized **cache**. `api/liveSync.ts` runs one
   central subscription per resource and applies remote events to it, so every
   cache-backed view (inspectors, locations) is live automatically.
-- The **paginated list** fetches server-paged data *outside* the cache, so it
+- The **paginated list** fetches server-paged data _outside_ the cache, so it
   keeps its **own** subscription and refetches the current page on relevant
   events.
 - Local edits patch the cache **and** emit a `local` event (mirroring the server
@@ -101,7 +101,7 @@ CSS custom properties in `src/app.css`.
 - **Desktop** — two panes: the filament/spool list on the left, a live inspector
   on the right.
 - **Mobile** — the list becomes full-width and front-and-centre; selecting an item
-  slides the *same* inspector up as a bottom-sheet **Drawer**
+  slides the _same_ inspector up as a bottom-sheet **Drawer**
   (`src/lib/components/Drawer.svelte`). The top-bar search/nav reflow onto their
   own rows and the "Add spools" button becomes a FAB.
 

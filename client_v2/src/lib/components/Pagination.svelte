@@ -58,7 +58,11 @@
 	{#if pageCount > 1}
 		<div class="nums">
 			{#if hrefFor && page > 1}
-				<a class="pg nav" href={hrefFor(page - 1)} data-sveltekit-keepfocus data-sveltekit-noscroll
+				<a
+					class="pg nav"
+					href={hrefFor(page - 1)}
+					data-sveltekit-keepfocus
+					data-sveltekit-noscroll
 					aria-label={m['pagination.prev']()}><ChevronLeft size={16} /></a
 				>
 			{:else}
@@ -79,7 +83,11 @@
 				{/if}
 			{/each}
 			{#if hrefFor && page < pageCount}
-				<a class="pg nav" href={hrefFor(page + 1)} data-sveltekit-keepfocus data-sveltekit-noscroll
+				<a
+					class="pg nav"
+					href={hrefFor(page + 1)}
+					data-sveltekit-keepfocus
+					data-sveltekit-noscroll
 					aria-label={m['pagination.next']()}><ChevronRight size={16} /></a
 				>
 			{:else}

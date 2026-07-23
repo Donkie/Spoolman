@@ -6,3 +6,6 @@ build
 .svelte-kit
 dist
 node_modules
+
+# Generated code (paraglide i18n compiler output — also gitignored)
+src/lib/paraglide

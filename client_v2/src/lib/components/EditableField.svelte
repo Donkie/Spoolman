@@ -9,13 +9,7 @@
 	let { value, placeholder = '—', mono = false, oninput }: Props = $props();
 </script>
 
-<input
-	class="edit"
-	class:mono
-	{value}
-	{placeholder}
-	oninput={(e) => oninput?.(e.currentTarget.value)}
-/>
+<input class="edit" class:mono {value} {placeholder} oninput={(e) => oninput?.(e.currentTarget.value)} />
 
 <style>
 	.edit {

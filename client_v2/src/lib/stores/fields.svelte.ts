@@ -1,4 +1,11 @@
-import { getFields, setField, deleteField, type EntityType, type FieldDef, type FieldParams } from '$lib/api/fields';
+import {
+	getFields,
+	setField,
+	deleteField,
+	type EntityType,
+	type FieldDef,
+	type FieldParams
+} from '$lib/api/fields';
 
 // Reactive cache of extra-field definitions per entity type. Loaded on demand
 // (inspectors) and by the settings manager; refetched after mutations.

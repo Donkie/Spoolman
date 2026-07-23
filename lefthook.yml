@@ -23,6 +23,21 @@ pre-commit:
             root: "client/"
             run: ./node_modules/.bin/prettier --write .
             stage_fixed: true
+    - group: # Client v2 checks
+        parallel: false
+        jobs:
+          - name: Run lint check on client_v2 files
+            root: "client_v2/"
+            run: ./node_modules/.bin/eslint --fix . # Hardcoded path because Windows messes up if we use npx
+            stage_fixed: true
+          - name: Run format check on client_v2 files
+            root: "client_v2/"
+            run: ./node_modules/.bin/prettier --write .
+            stage_fixed: true
+          - name: Run type check on client_v2 files
+            root: "client_v2/"
+            # svelte-kit sync generates .svelte-kit/tsconfig.json, which svelte-check needs.
+            run: ./node_modules/.bin/svelte-kit sync && ./node_modules/.bin/svelte-check --tsconfig ./tsconfig.json
 
 # Same as pre-commit but no fixes
 ci:
@@ -46,4 +61,17 @@ ci:
           - name: Run format check on client files
             root: "client/"
             run: ./node_modules/.bin/prettier --check .
+    - group: # Client v2 checks
+        parallel: false
+        jobs:
+          - name: Run lint check on client_v2 files
+            root: "client_v2/"
+            run: ./node_modules/.bin/eslint . # Hardcoded path because Windows messes up if we use npx
+          - name: Run format check on client_v2 files
+            root: "client_v2/"
+            run: ./node_modules/.bin/prettier --check .
+          - name: Run type check on client_v2 files
+            root: "client_v2/"
+            # svelte-kit sync generates .svelte-kit/tsconfig.json, which svelte-check needs.
+            run: ./node_modules/.bin/svelte-kit sync && ./node_modules/.bin/svelte-check --tsconfig ./tsconfig.json
 

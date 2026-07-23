@@ -47,7 +47,7 @@
 		const ctrl = new AbortController();
 		const gq = isGrouped ? buildGroupQuery(libraryState, ctrl.signal) : null;
 		const sq = isGrouped ? null : buildFlatSpoolQuery(libraryState, ctrl.signal);
-		revision; // refetch on live events
+		void revision; // refetch on live events
 		const mine = ++reqId;
 		loading = true;
 		errored = false;

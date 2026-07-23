@@ -49,7 +49,7 @@
 	let reqId = 0;
 	$effect(() => {
 		const ctrl = new AbortController();
-		revision; // refetch on live events
+		void revision; // refetch on live events
 		const want = untrack(() => spools.length) || PAGE;
 		const q = buildScopedSpoolQuery(libraryState, group, want, 0, ctrl.signal);
 		const mine = ++reqId;

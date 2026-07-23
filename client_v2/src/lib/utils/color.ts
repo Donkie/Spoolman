@@ -28,8 +28,7 @@ export function hexRgb(h: string): [number, number, number] {
 export function swatchStyle(colors: string[] | undefined, direction?: MultiColorDirection): string {
 	if (!colors || !colors.length) return 'background:#555';
 	if (colors.length > 1) {
-		const angle =
-			direction === 'coaxial' ? '90deg' : direction === 'longitudinal' ? '0deg' : '135deg';
+		const angle = direction === 'coaxial' ? '90deg' : direction === 'longitudinal' ? '0deg' : '135deg';
 		// Each colour gets its own band, but boundaries are softened by a narrow
 		// feather rather than a hard edge or a full-slot blur: colour i stays solid
 		// across most of [i*step, (i+1)*step] and only fades over `feather`% on each

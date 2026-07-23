@@ -129,6 +129,7 @@
 			});
 			// A NULL location and an empty-string one are distinct rows to the database
 			// but the same "No location" card here, so counts are summed by key.
+			// eslint-disable-next-line svelte/prefer-svelte-reactivity -- transient local, not reactive state
 			const totals = new Map<string, number>();
 			for (const g of page.items) totals.set(g.key, (totals.get(g.key) ?? 0) + g.spoolCount);
 
@@ -360,6 +361,7 @@
 
 	// Which locations currently hold spools, by display name.
 	function presentNames(): Set<string> {
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity -- transient local, not reactive state
 		const names = new Set<string>();
 		for (const [key, b] of Object.entries(buckets)) {
 			if (b.total > 0) names.add(key === EMPTY ? NO_LOCATION : key);
@@ -666,12 +668,14 @@
 								<div class="chip-info">
 									<div class="chip-title">
 										<span class="chip-id mono">#{s.id}</span>
-										{#if v.name !== '?'}{v.name}{' - '}{/if}{f.name}
+										{#if v.name !== '?'}{v.name} -
+										{/if}{f.name}
 									</div>
 									<div class="chip-subtitle">
-										{f.material}{' - '}<span class:low={settings.isLow(s.remaining, s.unused)}
-											>{weightAuto(s.remaining)}</span
-										>{' / '}{weightAuto(f.weight)}{#if s.lastUsedLabel}{' - '}{m['locations.lastUsed']({
+										{f.material} -
+										<span class:low={settings.isLow(s.remaining, s.unused)}>{weightAuto(s.remaining)}</span>
+										/ {weightAuto(f.weight)}{#if s.lastUsedLabel}
+											- {m['locations.lastUsed']({
 												time: s.lastUsedLabel
 											})}{/if}
 									</div>

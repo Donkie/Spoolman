@@ -84,6 +84,7 @@
 	});
 	async function loadInitial(signal: AbortSignal) {
 		try {
+			// eslint-disable-next-line svelte/prefer-svelte-reactivity -- transient local, not reactive state
 			const seen = new Set<number>();
 			const ids: number[] = [];
 			let offset = 0;
@@ -149,6 +150,7 @@
 	async function runSearch(q: string, signal: AbortSignal) {
 		try {
 			const { spools, filaments } = await searchAll(q, COLOR_THRESHOLD, signal);
+			// eslint-disable-next-line svelte/prefer-svelte-reactivity -- transient local, not reactive state
 			const ids = new Set<number>(spools.map((m) => m.entity.id));
 			// The /search spool pass only matches spool-native fields, so also pull
 			// the spools of any matched filament — that's how a filament- or
@@ -196,6 +198,7 @@
 	const recentCount = $derived(visibleSpools.filter(isRecent).length);
 
 	function toggle(id: number) {
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity -- transient local; `selected` updates via reassignment below
 		const next = new Set(selected);
 		if (next.has(id)) next.delete(id);
 		else next.add(id);
@@ -258,6 +261,7 @@
 	});
 
 	function toggleF(id: string) {
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity -- transient local; `selectedF` updates via reassignment below
 		const next = new Set(selectedF);
 		if (next.has(id)) next.delete(id);
 		else next.add(id);
