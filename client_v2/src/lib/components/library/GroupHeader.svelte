@@ -24,7 +24,9 @@
 	data-sveltekit-keepfocus={href ? '' : undefined}
 	data-sveltekit-noscroll={href ? '' : undefined}
 >
-	<Swatch colors={group.colors} direction={group.direction} size={24} radius={6} />
+	{#if group.colors.length}
+		<Swatch colors={group.colors} direction={group.direction} size={24} radius={6} />
+	{/if}
 	<div class="body">
 		<div class="line">
 			<span class="title">{group.title}</span>
