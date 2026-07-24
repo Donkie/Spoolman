@@ -32,14 +32,20 @@
 	let asDivider = $derived(context === 'filament');
 
 	let first = $derived(unused[0]);
+	// "Y g each" only makes sense when every collapsed spool shares that weight.
+	// When they differ (rare) we drop the weight rather than quote a misleading
+	// one taken from whichever spool happens to sort first.
+	let sameWeight = $derived(unused.every((vm) => vm.spool.initial === first.spool.initial));
+	let location = $derived(first.spool.location || m['library.unassigned']());
 	let sub = $derived(
-		m['library.unusedSub']({
-			weight: first.spool.initial,
-			location: first.spool.location || m['library.unassigned']()
-		})
+		sameWeight
+			? m['library.unusedSub']({ weight: first.spool.initial, location })
+			: m['library.unusedSubMixed']({ location })
 	);
 	let dividerLabel = $derived(
-		m['library.unusedGroup']({ count: unused.length, weight: first.spool.initial })
+		sameWeight
+			? m['library.unusedGroup']({ count: unused.length, weight: first.spool.initial })
+			: m['library.unusedGroupMixed']({ count: unused.length })
 	);
 
 	// Auto-open when one of these spools becomes the active selection, while
