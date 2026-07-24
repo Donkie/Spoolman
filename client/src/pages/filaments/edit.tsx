@@ -273,7 +273,12 @@ export const FilamentEdit = () => {
             },
           ]}
         >
-          <InputNumber addonAfter="g" precision={1} />
+          <InputNumber
+            addonAfter="g"
+            precision={1}
+            formatter={formatNumberOnUserInput}
+            parser={numberParserAllowEmpty}
+          />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.spool_weight")}
@@ -287,7 +292,12 @@ export const FilamentEdit = () => {
             },
           ]}
         >
-          <InputNumber addonAfter="g" precision={1} />
+          <InputNumber
+            addonAfter="g"
+            precision={1}
+            formatter={formatNumberOnUserInput}
+            parser={numberParserAllowEmpty}
+          />
         </Form.Item>
         <Form.Item
           label={t("filament.fields.settings_extruder_temp")}

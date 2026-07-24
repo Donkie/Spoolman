@@ -1,4 +1,5 @@
 import { InputNumber } from "antd";
+import { formatNumberOnUserInput, numberParserAllowEmpty } from "../utils/parsing";
 
 function parseValue(value?: (number | null)[]): [number | null, number | null] {
   if (value === undefined) {
@@ -12,6 +13,10 @@ function parseValue(value?: (number | null)[]): [number | null, number | null] {
   const [min, max] = value;
 
   return [min, max];
+}
+
+function parseInputNumberValue(value: string | number | null): number | null {
+  return typeof value === "number" ? value : null;
 }
 
 /**
@@ -33,10 +38,12 @@ export function InputNumberRange(props: {
         value={min}
         precision={props.precision ?? 0}
         addonAfter={props.unit}
+        formatter={formatNumberOnUserInput}
+        parser={numberParserAllowEmpty}
         style={{ maxWidth: 110 }}
         onChange={(value) => {
           if (props.onChange) {
-            props.onChange([value, max]);
+            props.onChange([parseInputNumberValue(value), max]);
           }
         }}
       />
@@ -45,10 +52,12 @@ export function InputNumberRange(props: {
         value={max}
         precision={props.precision ?? 0}
         addonAfter={props.unit}
+        formatter={formatNumberOnUserInput}
+        parser={numberParserAllowEmpty}
         style={{ maxWidth: 110 }}
         onChange={(value) => {
           if (props.onChange) {
-            props.onChange([min, value]);
+            props.onChange([min, parseInputNumberValue(value)]);
           }
         }}
       />
