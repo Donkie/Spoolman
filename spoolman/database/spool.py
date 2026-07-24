@@ -319,7 +319,7 @@ async def use_weight(db: AsyncSession, spool_id: int, weight: float) -> models.S
     spool.last_used = datetime.utcnow().replace(microsecond=0)
 
     await db.commit()
-    await spool_changed(spool, EventType.UPDATED)
+    await spool_changed(spool, EventType.UPDATED, {"weight_delta": weight})
     return spool
 
 
@@ -365,7 +365,7 @@ async def use_length(db: AsyncSession, spool_id: int, length: float) -> models.S
     spool.last_used = datetime.utcnow().replace(microsecond=0)
 
     await db.commit()
-    await spool_changed(spool, EventType.UPDATED)
+    await spool_changed(spool, EventType.UPDATED, {"weight_delta": weight})
     return spool
 
 
@@ -457,16 +457,18 @@ async def find_lot_numbers(
     return [row[0] for row in rows.all() if row[0] is not None]
 
 
-async def spool_changed(spool: models.Spool, typ: EventType) -> None:
+async def spool_changed(spool: models.Spool, typ: EventType, delta: Optional[dict] = None) -> None:
     """Notify websocket clients that a spool has changed."""
     try:
+        spool = Spool.from_db(spool)
         await websocket_manager.send(
             ("spool", str(spool.id)),
             SpoolEvent(
                 type=typ,
                 resource="spool",
                 date=datetime.utcnow(),
-                payload=Spool.from_db(spool),
+                payload=spool,
+                payload_extras=delta 
             ),
         )
     except Exception:
