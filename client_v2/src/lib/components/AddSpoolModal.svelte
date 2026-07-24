@@ -16,12 +16,8 @@
 	import { serverInfo } from '$lib/stores/serverInfo.svelte';
 	import { spoolSource, type NewFilamentDraft } from '$lib/api/spoolSource';
 	import { fields } from '$lib/stores/fields.svelte';
-	import {
-		externalColors,
-		externalDirection,
-		getExternalMaterials,
-		type ExternalFilament
-	} from '$lib/api/external';
+	import { externalColors, externalDirection, type ExternalFilament } from '$lib/api/external';
+	import { loadMaterials, type MaterialSpec } from '$lib/data/materials';
 	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
@@ -65,30 +61,7 @@
 	let showAdvanced = $state(false);
 	let vendorNames = $state<string[]>([]);
 	let materialNames = $state<string[]>([]);
-	let materialSpecs = $state<Record<string, { density: number; nozzle: number | null; bed: number | null }>>(
-		{}
-	);
-
-	// Common 3D-printing materials with their typical densities (g/cm³). These are
-	// always offered for selection and map to a density, even when SpoolmanDB is
-	// unreachable; SpoolmanDB presets (with temps) merge on top where available.
-	// Densities are kept in sync with SpoolmanDB's materials.json
-	// (https://github.com/Donkie/SpoolmanDB/blob/main/materials.json) — note the
-	// merge only overrides on exact (lowercased) name match, so SpoolmanDB's
-	// longer names (e.g. "Flexible (TPU)", "Polycarbonate (PC)") won't refine
-	// these short keys at runtime; the values below must match on their own.
-	const COMMON_MATERIALS: { name: string; density: number }[] = [
-		{ name: 'PLA', density: 1.24 },
-		{ name: 'PETG', density: 1.27 },
-		{ name: 'ABS', density: 1.04 },
-		{ name: 'ASA', density: 1.05 },
-		{ name: 'TPU', density: 1.21 },
-		{ name: 'Nylon', density: 1.52 },
-		{ name: 'PC', density: 1.3 },
-		{ name: 'PVA', density: 1.23 },
-		{ name: 'HIPS', density: 1.03 },
-		{ name: 'PP', density: 0.9 }
-	];
+	let materialSpecs = $state<Record<string, MaterialSpec>>({});
 
 	// --- display helpers for a chosen (existing) filament ------------------
 	function cName(c: Choice) {
@@ -155,27 +128,13 @@
 				.locations()
 				.then((l) => (locations = l))
 				.catch(() => {});
-			Promise.all([
-				spoolSource.vendorNames().catch(() => [] as string[]),
-				spoolSource.materials().catch(() => [] as string[]),
-				getExternalMaterials().catch(() => [])
-			]).then(([vn, localMats, extMats]) => {
-				vendorNames = vn;
-				const specs: typeof materialSpecs = {};
-				// eslint-disable-next-line svelte/prefer-svelte-reactivity -- transient local, not reactive state
-				const names = new Set<string>(localMats);
-				// Seed with the built-in common materials first…
-				for (const m of COMMON_MATERIALS) {
-					specs[m.name.toLowerCase()] = { density: m.density, nozzle: null, bed: null };
-					names.add(m.name);
-				}
-				// …then let SpoolmanDB presets (with temps) refine/extend them.
-				for (const m of extMats) {
-					specs[m.material.toLowerCase()] = { density: m.density, nozzle: m.extruder_temp, bed: m.bed_temp };
-					names.add(m.material);
-				}
+			spoolSource
+				.vendorNames()
+				.then((vn) => (vendorNames = vn))
+				.catch(() => {});
+			loadMaterials().then(({ names, specs }) => {
+				materialNames = names;
 				materialSpecs = specs;
-				materialNames = [...names].sort();
 			});
 			if (presetFilamentId) {
 				const f = inventory.filamentById(presetFilamentId);

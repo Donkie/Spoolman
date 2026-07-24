@@ -6,6 +6,7 @@
 	import Square from '@lucide/svelte/icons/square';
 	import SquareCheck from '@lucide/svelte/icons/square-check';
 	import EditableField from '../EditableField.svelte';
+	import Combobox from '../Combobox.svelte';
 	import NumberInput from '../NumberInput.svelte';
 	import ProgressBar from '../ProgressBar.svelte';
 	import SectionLabel from '../SectionLabel.svelte';
@@ -22,6 +23,7 @@
 	import * as params from '$lib/library/params';
 	import { pct, grams } from '$lib/utils/format';
 	import { spoolSource } from '$lib/api/spoolSource';
+	import { loadMaterials } from '$lib/data/materials';
 	import { live } from '$lib/api/live';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
 	import { trackSave } from '$lib/utils/autosave';
@@ -32,6 +34,16 @@
 	// Undefined when the filament has no manufacturer set (or it isn't cached yet) —
 	// the display falls back to a plain "no manufacturer" note instead of a link.
 	let vendor = $derived(inventory.vendorById(filament.vendorId));
+
+	// Material suggestions for the picker below. Unlike AddSpoolModal we only use the
+	// names for autocomplete — editing an existing filament's material must NOT touch
+	// its density/diameter/temp fields, so the specs half of the list is ignored here.
+	let materialNames = $state<string[]>([]);
+	$effect(() => {
+		loadMaterials()
+			.then(({ names }) => (materialNames = names))
+			.catch(() => {});
+	});
 
 	// Fetch this filament's spools from the API (scoped list) rather than the cache.
 	// Depend on the primitive id (via $derived) — not `filament` itself — so the
@@ -172,7 +184,12 @@
 					<EditableField value={filament.name} oninput={(v) => set({ name: v })} />
 				</Field>
 				<Field label={m['filament.fields.material']()}>
-					<EditableField value={filament.material} oninput={(v) => set({ material: v })} />
+					<Combobox
+						value={filament.material}
+						options={materialNames}
+						underline
+						oninput={(v) => set({ material: v })}
+					/>
 				</Field>
 				<Field label={m['filament.fields.colorHex']()}>
 					{#key filament.id}
