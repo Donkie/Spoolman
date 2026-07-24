@@ -14,7 +14,7 @@
 	import { isAbortError } from '$lib/api/http';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
-	import { kg } from '$lib/utils/format';
+	import { weightAuto } from '$lib/utils/format';
 	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
@@ -107,7 +107,7 @@
 		badge: group.badge,
 		colors: group.colors,
 		direction: group.direction,
-		meta: kg(group.totalRemaining)
+		meta: weightAuto(group.totalRemaining)
 	});
 
 	// A group header links to its entity's inspector only where the group *is* an

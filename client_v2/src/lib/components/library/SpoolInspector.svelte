@@ -19,7 +19,7 @@
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import * as params from '$lib/library/params';
-	import { lengthMeters, pct, grams } from '$lib/utils/format';
+	import { lengthMeters, pct, weightAuto } from '$lib/utils/format';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
 	import { trackSave } from '$lib/utils/autosave';
@@ -226,14 +226,14 @@
 
 	<div class="gauge">
 		<div class="gauge-line">
-			<span class="big mono">{grams(spool.remaining)} g</span>
+			<span class="big mono">{weightAuto(spool.remaining)}</span>
 			<span class="of"
 				>{m['inspector.ofRemaining']({
-					weight: grams(spool.initial),
+					weight: weightAuto(spool.initial),
 					length: lengthMeters(spool.remaining, filament).toFixed(0)
 				})}</span
 			>
-			<span class="used">{m['inspector.used']()} <span class="mono">{grams(used)} g</span></span>
+			<span class="used">{m['inspector.used']()} <span class="mono">{weightAuto(used)}</span></span>
 		</div>
 		<div class="bar"><div class="bar-fill" style="width:{pct(spool.remaining, spool.initial)}%"></div></div>
 

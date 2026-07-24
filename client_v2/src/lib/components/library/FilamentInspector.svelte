@@ -21,7 +21,7 @@
 	import { ui } from '$lib/stores/ui.svelte';
 	import { page } from '$app/state';
 	import * as params from '$lib/library/params';
-	import { pct, grams } from '$lib/utils/format';
+	import { pct, weightAuto } from '$lib/utils/format';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { loadMaterials } from '$lib/data/materials';
 	import { live } from '$lib/api/live';
@@ -58,6 +58,10 @@
 	// Archived spools are hidden by default here, same as in the library list.
 	let showArchived = $state(false);
 	$effect(() => live.subscribe('spool', {}, () => revision++));
+	// Aggregate remaining weight across the currently-listed spools, so the header
+	// answers "how much of this filament do I actually have?" (#572, #347, #265).
+	// Follows the same `spools` list, so it respects the showArchived toggle for free.
+	let totalRemaining = $derived(spools.reduce((sum, s) => sum + (s.remaining ?? 0), 0));
 	$effect(() => {
 		const id = filamentId;
 		const archived = showArchived;
@@ -133,7 +137,11 @@
 	</div>
 
 	<SectionLabel>
-		<span style="padding-left:20px">{m['inspector.spoolsCount']({ count: spools.length })}</span>
+		<span style="padding-left:20px"
+			>{m['inspector.spoolsCount']({ count: spools.length })}{#if spools.length}<span class="total"
+					>{m['inspector.spoolsTotalRemaining']({ weight: weightAuto(totalRemaining) })}</span
+				>{/if}</span
+		>
 		{#snippet right()}
 			<button
 				class="arch-toggle"
@@ -170,7 +178,7 @@
 						danger={settings.isLow(s.remaining, s.unused)}
 					/>
 				</span>
-				<span class="rem mono">{grams(s.remaining)} g</span>
+				<span class="rem mono">{weightAuto(s.remaining)}</span>
 				<span class="loc">{s.location ?? ''}</span>
 			</a>
 		{/each}
@@ -359,6 +367,13 @@
 	}
 	.spool-row.archived {
 		opacity: 0.6;
+	}
+	.total {
+		margin-left: 10px;
+		padding-left: 10px;
+		border-left: 1px solid var(--border-soft);
+		color: var(--text-muted);
+		font-weight: 400;
 	}
 	.arch-toggle {
 		display: inline-flex;

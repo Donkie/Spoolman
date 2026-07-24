@@ -1,18 +1,16 @@
 import type { Filament } from '$lib/types';
 
-/** Grams → "1.0 kg". */
-export function kg(g: number): string {
-	return (g / 1000).toFixed(1) + ' kg';
-}
-
 /** Round a gram value for display: whole grams stay whole, else one decimal. */
 export function grams(g: number): string {
 	return Number.isInteger(g) ? String(g) : g.toFixed(1);
 }
 
-/** Grams → "864 g" or "1 kg", switching units at 1000 g like the old client. */
+/** Grams → "864 g" or "1.2 kg", switching units at 1000 g like the old client. */
 export function weightAuto(weightInGrams: number): string {
-	return weightInGrams >= 1000 ? grams(weightInGrams / 1000) + ' kg' : grams(weightInGrams) + ' g';
+	if (weightInGrams < 1000) return grams(weightInGrams) + ' g';
+	// Floor to one decimal so the kg shown never rounds up past what's on the spool —
+	// a displayed "1.2 kg" always means you have at least 1.2 kg, never as little as 1.15.
+	return grams(Math.floor(weightInGrams / 100) / 10) + ' kg';
 }
 
 /** Approximate remaining length in meters for a weight of filament. */

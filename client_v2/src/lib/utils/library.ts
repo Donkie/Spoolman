@@ -1,7 +1,7 @@
 import type { Filament, MultiColorDirection, Spool, Vendor } from '$lib/types';
 import type { GroupField } from '$lib/api/types';
 import type { FieldDef } from '$lib/api/fields';
-import { pct, grams } from './format';
+import { pct, weightAuto } from './format';
 import * as m from '$lib/paraglide/messages';
 
 // Client-side concerns ONLY: turning a spool into a row view-model, and the
@@ -47,7 +47,7 @@ export function spoolToVM(s: Spool, repo: Repo, lowThreshold: number): SpoolVM {
 		idLabel: '#' + s.id,
 		pctValue: pct(s.remaining, s.initial),
 		low,
-		remLabel: grams(s.remaining) + ' g',
+		remLabel: weightAuto(s.remaining),
 		// A spool without a location leaves the column blank rather than showing a
 		// placeholder — the empty box reads more cleanly in a dense list.
 		location: s.location ?? '',
