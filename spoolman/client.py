@@ -25,10 +25,16 @@ class SinglePageApplication(StaticFiles):
     - The legacy client references its assets with ``"./..."`` paths that must be
       rewritten server-side to include the configured base path. Its SPA fallback
       document is ``index.html``. Enable this with ``rewrite_asset_paths=True``.
-    - The Svelte client is built with relative asset paths (SvelteKit
-      ``paths.relative``), so the browser resolves them against the current URL and
-      no rewriting is needed. Its SPA fallback document is ``200.html``, and it also
-      ships prerendered per-route documents (e.g. ``locations.html``).
+    - The Svelte client's prerendered per-route documents (e.g. ``index.html``,
+      ``locations.html``) use relative asset paths and compute the deploy base at
+      runtime, so the browser resolves everything against the current URL and they
+      are served verbatim under any base path. Its SPA fallback document
+      (``200.html``), however, is emitted with *absolute* asset paths (``/_app/...``)
+      and a hardcoded ``base: ""`` — SvelteKit cannot know the deploy base path at
+      build time. When a base path is configured we rewrite that fallback so direct
+      loads of non-prerendered routes (e.g. ``/spool/show/<id>``, the target of
+      printed QR labels) boot correctly. This uses ``rewrite_asset_paths=False`` (the
+      fallback fixup is applied automatically when a base path is set).
     """
 
     def __init__(
@@ -49,6 +55,10 @@ class SinglePageApplication(StaticFiles):
         self.tweaked_html = ""
         if self.rewrite_asset_paths:
             self.load_and_tweak_index_file()
+        elif self.base_path:
+            # Svelte client: the prerendered documents already work under any base
+            # path; only the SPA fallback needs its absolute asset paths fixed up.
+            self.load_and_rewrite_fallback_base_path()
 
     def load_and_tweak_index_file(self) -> None:
         """Load the fallback document and tweak it by replacing all asset paths."""
@@ -63,6 +73,36 @@ class SinglePageApplication(StaticFiles):
         base_path = "/" if len(self.base_path.strip()) == 0 else f"/{self.base_path}/"
         self.tweaked_html = html.replace('"./', f'"{base_path}')
 
+    def load_and_rewrite_fallback_base_path(self) -> None:
+        """Rewrite the SvelteKit SPA fallback so it boots under a base path.
+
+        SvelteKit's adapter-static emits the fallback document (``200.html``) with
+        absolute asset references (``/_app/...``, ``/favicon...``) and a hardcoded
+        ``base: ""`` — it cannot know the operator's base path at build time. The
+        prerendered per-route documents use relative paths and a runtime-computed
+        base, so they work unchanged; only this fallback needs fixing up so that
+        direct loads of non-prerendered routes (e.g. ``/spool/show/<id>``, the target
+        of printed QR labels) resolve their assets and API base under the base path.
+
+        Only called when a base path is configured (``self.base_path`` non-empty);
+        without one the fallback is served verbatim.
+        """
+        if not self.directory:
+            return
+
+        with (Path(self.directory) / self.fallback_document).open() as f:
+            html = f.read()
+
+        prefix = f"/{self.base_path}"
+        # `"/_app/` covers module preloads, stylesheets and the inline `import("/_app/...")`
+        # bootstrap calls; `"/favicon` covers the icon link. `base: ""` is SvelteKit's
+        # runtime base, which drives client-side routing and the derived API URL.
+        self.tweaked_html = (
+            html.replace('"/_app/', f'"{prefix}/_app/')
+            .replace('"/favicon', f'"{prefix}/favicon')
+            .replace('base: ""', f'base: "{prefix}"')
+        )
+
     def file_response(
         self,
         full_path: PathLike,
@@ -72,15 +112,18 @@ class SinglePageApplication(StaticFiles):
     ) -> Response:
         """Overriden default file_response.
 
-        Works the same way, but for the legacy client, when it requests the fallback
-        document we return our tweaked version with all asset paths updated with the
-        base path. The Svelte client uses relative asset paths, so its documents are
-        served verbatim.
+        Works the same way, but when the requested file is the fallback document and
+        we hold a rewritten version of it, we return that instead of the on-disk file.
+        That covers the legacy client (all asset paths rewritten with the base path)
+        and the Svelte client under a base path (fallback asset paths and runtime base
+        fixed up). The Svelte client's prerendered per-route documents are not the
+        fallback document, so they are always served verbatim.
         """
         request_headers = Headers(scope=scope)
 
-        # If full_path points to the fallback document, return our tweaked version
-        if self.rewrite_asset_paths and Path(full_path).name == self.fallback_document:
+        # If full_path points to the fallback document and we have a rewritten
+        # version of it, return that instead of the raw file.
+        if self.tweaked_html and Path(full_path).name == self.fallback_document:
             return Response(self.tweaked_html, status_code=status_code, media_type="text/html")
 
         # Starlette >=1.x dropped the `method` kwarg from FileResponse; it now derives
