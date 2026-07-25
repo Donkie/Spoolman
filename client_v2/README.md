@@ -158,3 +158,17 @@ npm run dev      # http://localhost:5174
 npm run check    # svelte-check (type gate)
 npm run build    # static SPA build (adapter-static, index.html fallback)
 ```
+
+### Mobile accessibility audit
+
+```bash
+npm run audit:a11y          # Playwright + axe-core under Pixel 5 emulation
+npm run audit:a11y:report   # open the last HTML report
+```
+
+Runs [axe-core](https://github.com/dequelabs/axe-core) (WCAG 2.0/2.1 A+AA plus the
+2.2 `target-size` rule) and a custom tap-target measurement across the main
+surfaces (library, locations, labels, settings, add-spool modal, inspector
+drawer). Reuses a `vite dev` already on 5174, or starts one. Human-readable
+results land in `a11y-report.md`; the tap-target advisory minimum is 44px (Apple
+HIG / Material), stricter than the WCAG 24px floor. See `e2e/a11y-mobile.spec.ts`.

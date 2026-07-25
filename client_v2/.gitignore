@@ -7,3 +7,8 @@ node_modules
 !.env.example
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Playwright a11y audit output
+/playwright-report
+/test-results
+/a11y-report.md
