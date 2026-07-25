@@ -35,6 +35,10 @@
 		color: var(--text-dim);
 	}
 	.crumb {
+		/* inline-flex so the label stays vertically centred when the shared mobile
+		   tap-target rule (app.css) gives the link a 44px min-height. */
+		display: inline-flex;
+		align-items: center;
 		color: var(--accent-link);
 		cursor: pointer;
 		background: none;

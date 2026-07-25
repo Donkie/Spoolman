@@ -216,3 +216,51 @@ input[type='number'] {
 	vertical-align: -0.15em;
 	flex: none;
 }
+
+/* --- Mobile touch targets --------------------------------------------------
+ * At the phone breakpoint (the same <=860px the app already uses to switch to
+ * its mobile chrome) the shared interactive primitives are grown to a
+ * comfortable ~44px tap target (Apple HIG) — well above the 24px WCAG 2.2
+ * target-size floor. Desktop keeps its denser sizing untouched.
+ *
+ * This lives in global CSS, not per-component, on purpose: these semantic class
+ * names stay addressable from here even under Svelte's scoped styling (the scope
+ * hash is *added* to a component's own selectors, so an unscoped `.chip` rule
+ * still matches its elements). And because `min-height` is a cross-property
+ * constraint, it clamps the element no matter what `height`/`padding` a
+ * component set, regardless of selector specificity — so one rule reliably
+ * raises every instance of a primitive.
+ *
+ * Square icon buttons that must also grow horizontally (TopBar scan/add) and the
+ * stacked number steppers (which can't each reach 44px inside one input) are
+ * handled in their own components. Intentionally-dense inline editors in the
+ * inspector are left as-is by design. */
+@media (max-width: 860px) {
+	.btn,
+	.chip,
+	.link-btn,
+	.seg-btn,
+	.tab,
+	.logo,
+	.kofi,
+	.crumb,
+	.arch-toggle,
+	.spool-row,
+	.divider,
+	.res-item,
+	.add-btn,
+	.grabber,
+	select,
+	.search input {
+		min-height: 44px;
+	}
+	/* Keep the grabber's grip centred once min-height adds vertical slack. */
+	.grabber {
+		align-items: center;
+	}
+	/* The Ko-fi button collapses to an icon-only square under 560px; keep it a
+	   full tap target in both dimensions. */
+	.kofi {
+		min-width: 44px;
+	}
+}

@@ -237,4 +237,24 @@
 	.ni:focus-within .spin {
 		border-left-color: var(--accent);
 	}
+
+	/* Touch layouts: grow the control to a comfortable tap size. The two steppers
+	   are stacked, so they can't each be 44px tall inside one input, but a 48px
+	   control makes each ~24px — clearing the WCAG 2.2 target-size floor — and the
+	   wider column gives a bigger horizontal hit area. 16px text also stops mobile
+	   Safari from zooming in on focus. */
+	@media (max-width: 860px) {
+		.ni,
+		.ni.dense {
+			min-height: 48px;
+		}
+		.ni input,
+		.ni.dense input {
+			font-size: 16px;
+		}
+		.spin,
+		.ni.dense .spin {
+			width: 32px;
+		}
+	}
 </style>

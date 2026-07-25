@@ -211,15 +211,23 @@
 			</div>
 		</div>
 		<div class="actions">
-			<Button variant="outline" onclick={openAdjust}
-				><Scale size={15} /> {m['inspector.adjustWeight']()}</Button
+			<Button variant="outline" onclick={openAdjust} title={m['inspector.adjustWeight']()}
+				><Scale size={15} /> <span class="btn-label">{m['inspector.adjustWeight']()}</span></Button
 			>
-			<Button variant="outline" href={resolve(`/labels?spools=${spool.id}`)}
-				><Printer size={15} /> {m['printing.qrcode.button']()}</Button
+			<Button
+				variant="outline"
+				href={resolve(`/labels?spools=${spool.id}`)}
+				title={m['printing.qrcode.button']()}
+				><Printer size={15} /> <span class="btn-label">{m['printing.qrcode.button']()}</span></Button
 			>
-			<Button variant="outline" onclick={toggleArchived}>
-				{#if spool.archived}<ArchiveRestore size={15} /> {m['buttons.unArchive']()}
-				{:else}<Archive size={15} /> {m['buttons.archive']()}{/if}
+			<Button
+				variant="outline"
+				onclick={toggleArchived}
+				title={spool.archived ? m['buttons.unArchive']() : m['buttons.archive']()}
+			>
+				{#if spool.archived}<ArchiveRestore size={15} />
+					<span class="btn-label">{m['buttons.unArchive']()}</span>
+				{:else}<Archive size={15} /> <span class="btn-label">{m['buttons.archive']()}</span>{/if}
 			</Button>
 		</div>
 	</div>
@@ -529,8 +537,41 @@
 		.grid {
 			grid-template-columns: 1fr;
 		}
+		/* Keep the spool actions (adjust weight / print / archive) reachable on
+		   narrow panels — including the mobile bottom sheet — by wrapping them onto
+		   their own full-width row under the title instead of hiding them. */
+		.head {
+			flex-wrap: wrap;
+		}
+		.titles {
+			flex: 1;
+		}
 		.actions {
-			display: none;
+			margin-left: 0;
+			flex-basis: 100%;
+			gap: 8px;
+		}
+	}
+
+	/* Very narrow panels (e.g. the mobile bottom sheet) can't fit three labelled
+	   buttons on one row without wrapping to a second, so drop the labels to icons.
+	   The label text is only visually hidden — it stays in the accessibility tree,
+	   so each button keeps its name — and min-width keeps a comfortable tap area. */
+	@container (max-width: 560px) {
+		.actions .btn-label {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			margin: -1px;
+			overflow: hidden;
+			clip: rect(0 0 0 0);
+			white-space: nowrap;
+			border: 0;
+		}
+		.actions :global(.btn) {
+			min-width: 44px;
+			justify-content: center;
 		}
 	}
 </style>

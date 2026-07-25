@@ -416,8 +416,17 @@
 		padding: 4px 20px 24px;
 	}
 	@media (max-width: 620px) {
+		/* Keep the "add spools of this" action reachable on narrow panels by
+		   wrapping it onto its own full-width row instead of hiding it. */
+		.head {
+			flex-wrap: wrap;
+		}
+		.titles {
+			flex: 1;
+		}
 		.add {
-			display: none;
+			margin-left: 0;
+			flex-basis: 100%;
 		}
 	}
 </style>
