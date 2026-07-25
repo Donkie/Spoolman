@@ -10,6 +10,7 @@
 	import { serverInfo } from '$lib/stores/serverInfo.svelte';
 	import { theme } from '$lib/stores/theme.svelte';
 	import { startLiveSync } from '$lib/api/liveSync';
+	import { getLocale, getTextDirection } from '$lib/paraglide/runtime';
 	import type { Snippet } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();
@@ -19,6 +20,15 @@
 	// app.html; this takes over once the app hydrates.
 	$effect(() => {
 		theme.apply();
+	});
+
+	// Reflect the resolved locale onto <html lang>/<dir>. app.html ships a static
+	// "en"/"ltr" default (SSR is off, so the paraglide placeholders would never be
+	// substituted); this applies the real locale once the app hydrates. Changing
+	// the language reloads the page, so reading getLocale() once at mount is enough.
+	$effect(() => {
+		document.documentElement.lang = getLocale();
+		document.documentElement.dir = getTextDirection();
 	});
 
 	// Load server settings and start central live-sync (keeps the reactive cache,
