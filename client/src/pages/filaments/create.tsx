@@ -1,6 +1,6 @@
 import { Create, useForm, useSelect } from "@refinedev/antd";
 import { HttpError, IResourceComponentsProps, useInvalidate, useTranslate } from "@refinedev/core";
-import { Button, ColorPicker, Form, Input, InputNumber, Radio, Select, Typography } from "antd";
+import { Button, ColorPicker, Form, Input, InputNumber, message, Radio, Select, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -8,9 +8,12 @@ import { useEffect, useState } from "react";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import { FilamentImportModal } from "../../components/filamentImportModal";
 import { MultiColorPicker } from "../../components/multiColorPicker";
+import { OrcaLinkedProfileBadge } from "../../components/orcaLinkedProfileBadge";
+import { getOrcaProfileExtraValues, OrcaProfilePickerModal } from "../../components/orcaProfilePickerModal";
 import { formatNumberOnUserInput, numberParser, numberParserAllowEmpty } from "../../utils/parsing";
 import { ExternalFilament } from "../../utils/queryExternalDB";
 import { EntityType, useGetFields } from "../../utils/queryFields";
+import { OrcaFilamentProfileSummary } from "../../utils/queryOrca";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { getOrCreateVendorFromExternal } from "../vendors/functions";
 import { IVendor } from "../vendors/model";
@@ -28,9 +31,11 @@ type IFilamentRequest = Omit<IFilamentParsedExtras, "id" | "registered"> & {
 
 export const FilamentCreate = (props: IResourceComponentsProps & CreateOrCloneProps) => {
   const t = useTranslate();
+  const [messageApi, contextHolder] = message.useMessage();
   const extraFields = useGetFields(EntityType.filament);
   const currency = useCurrency();
   const [isImportExtOpen, setIsImportExtOpen] = useState(false);
+  const [isOrcaPickerOpen, setIsOrcaPickerOpen] = useState(false);
   const invalidate = useInvalidate();
   const [colorType, setColorType] = useState<"single" | "multi">("single");
 
@@ -44,6 +49,9 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
   if (!formProps.initialValues) {
     formProps.initialValues = {};
   }
+
+  const linkedSettingId = Form.useWatch(["extra", "orca_setting_id"], form) as string | undefined;
+  const linkedFilamentId = Form.useWatch(["extra", "orca_filament_id"], form) as string | undefined;
 
   if (props.mode === "clone") {
     // Fix the vendor_id
@@ -92,6 +100,17 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
     });
   };
 
+  const handleOrcaProfileSelect = (profile: OrcaFilamentProfileSummary) => {
+    // Values are heterogeneous (string/number/boolean) depending on each extra field's type,
+    // which antd's Store typing (RecursivePartial over `unknown`) can't express cleanly.
+    const extraValues = getOrcaProfileExtraValues(profile, extraFields.data ?? []);
+    if (Object.keys(extraValues).length === 0) {
+      messageApi.warning(t("filament.form.link_orca_profile_no_matches"));
+      return;
+    }
+    form.setFieldsValue({ extra: extraValues as unknown as { [key: string]: string } });
+  };
+
   // Use useEffect to update the form's initialValues when the extra fields are loaded
   // This is necessary because the form is rendered before the extra fields are loaded
   useEffect(() => {
@@ -112,6 +131,7 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
           <Button type="primary" onClick={() => setIsImportExtOpen(true)}>
             {t("filament.form.import_external")}
           </Button>
+          <Button onClick={() => setIsOrcaPickerOpen(true)}>{t("filament.form.link_orca_profile")}</Button>
         </>
       )}
       footerButtons={() => (
@@ -125,6 +145,7 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
         </>
       )}
     >
+      {contextHolder}
       <FilamentImportModal
         isOpen={isImportExtOpen}
         onImport={(value) => {
@@ -132,6 +153,11 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
           importFilament(value);
         }}
         onClose={() => setIsImportExtOpen(false)}
+      />
+      <OrcaProfilePickerModal
+        isOpen={isOrcaPickerOpen}
+        onSelect={handleOrcaProfileSelect}
+        onClose={() => setIsOrcaPickerOpen(false)}
       />
       <Form {...formProps} layout="vertical">
         <Form.Item
@@ -361,6 +387,7 @@ export const FilamentCreate = (props: IResourceComponentsProps & CreateOrClonePr
           <TextArea maxLength={1024} />
         </Form.Item>
         <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
+        <OrcaLinkedProfileBadge settingId={linkedSettingId} filamentId={linkedFilamentId} />
         {extraFields.data?.map((field, index) => (
           <ExtraFieldFormItem key={index} field={field} />
         ))}

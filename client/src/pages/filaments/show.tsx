@@ -6,6 +6,7 @@ import utc from "dayjs/plugin/utc";
 import { useNavigate } from "react-router";
 import { ExtraFieldDisplay } from "../../components/extraFields";
 import { NumberFieldUnit } from "../../components/numberField";
+import { OrcaLinkedProfileBadge } from "../../components/orcaLinkedProfileBadge";
 import SpoolIcon from "../../components/spoolIcon";
 import { enrichText } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
@@ -49,6 +50,17 @@ export const FilamentShow = () => {
     navigate(URL);
   };
 
+  const parseExtra = (key: string): string | undefined => {
+    const raw = record?.extra?.[key];
+    if (raw === undefined) return undefined;
+    try {
+      const parsed = JSON.parse(raw);
+      return typeof parsed === "string" ? parsed : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+
   const colorObj = record?.multi_color_hexes
     ? {
         colors: record.multi_color_hexes.split(","),
@@ -86,6 +98,7 @@ export const FilamentShow = () => {
       />
       <Title level={5}>{t("filament.fields.name")}</Title>
       <TextField value={record?.name} />
+      <OrcaLinkedProfileBadge settingId={parseExtra("orca_setting_id")} filamentId={parseExtra("orca_filament_id")} />
       <Title level={5}>{t("filament.fields.color_hex")}</Title>
       {colorObj && <SpoolIcon color={colorObj} size="large" no_margin />}
       {record?.color_hex && <TextField value={`#${record?.color_hex}`} />}

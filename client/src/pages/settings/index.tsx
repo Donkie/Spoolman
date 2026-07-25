@@ -1,4 +1,11 @@
-import { FileOutlined, HighlightOutlined, SolutionOutlined, ToolOutlined, UserOutlined } from "@ant-design/icons";
+import {
+  CloudOutlined,
+  FileOutlined,
+  HighlightOutlined,
+  SolutionOutlined,
+  ToolOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 import { useTranslate } from "@refinedev/core";
 import { Menu, theme } from "antd";
 import { Content } from "antd/es/layout/layout";
@@ -7,6 +14,7 @@ import utc from "dayjs/plugin/utc";
 import { Route, Routes, useNavigate } from "react-router";
 import { ExtraFieldsSettings } from "./extraFieldsSettings";
 import { GeneralSettings } from "./generalSettings";
+import { OrcaSettings } from "./orcaSettings";
 
 dayjs.extend(utc);
 
@@ -57,6 +65,7 @@ export const Settings = () => {
           }}
           items={[
             { key: "", label: t("settings.general.tab"), icon: <ToolOutlined /> },
+            { key: "orca", label: "OrcaCloud", icon: <CloudOutlined /> },
             {
               key: "extra",
               label: t("settings.extra_fields.tab"),
@@ -87,6 +96,7 @@ export const Settings = () => {
         <main>
           <Routes>
             <Route index element={<GeneralSettings />} />
+            <Route path="/orca" element={<OrcaSettings />} />
             <Route path="/extra/:entityType" element={<ExtraFieldsSettings />} />
           </Routes>
         </main>

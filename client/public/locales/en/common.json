@@ -265,7 +265,13 @@
         "form": {
             "filament_updated": "This filament has been updated by someone/something else since you opened this page. Saving will overwrite those changes!",
             "import_external": "Import from External",
-            "import_external_description": "Select a filament in the list to automatically populate its details in the filament creation form. This will overwrite any data you have entered in the form.<br><br>A Manufacturer object will be created automatically when you click Ok, if necessary."
+            "import_external_description": "Select a filament in the list to automatically populate its details in the filament creation form. This will overwrite any data you have entered in the form.<br><br>A Manufacturer object will be created automatically when you click Ok, if necessary.",
+            "link_orca_profile": "Link OrcaCloud Profile",
+            "link_orca_profile_description": "Select a synced OrcaCloud filament profile to fill in its Orca Filament ID and Orca Setting ID, plus any other extra field below whose key matches a field in that profile. Nothing else on this form is changed.",
+            "link_orca_profile_not_connected": "Not connected to OrcaCloud yet. Sign in from Settings → OrcaCloud first.",
+            "link_orca_profile_missing_fields": "Define the \"orca_filament_id\" and/or \"orca_setting_id\" extra fields (Settings → Extra Fields → Filament) before linking an OrcaCloud profile.",
+            "link_orca_profile_no_matches": "That profile didn't match any of this filament's extra fields — nothing was filled in. Define extra fields whose keys match OrcaSlicer profile fields (e.g. orca_filament_id, orca_setting_id) in Settings → Extra Fields → Filament.",
+            "linked_orca_profile": "Linked to OrcaCloud profile:"
         },
         "buttons": {
             "add_spool": "Add Spool"

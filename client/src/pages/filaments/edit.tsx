@@ -1,13 +1,28 @@
 import { Edit, useForm, useSelect } from "@refinedev/antd";
 import { HttpError, useTranslate } from "@refinedev/core";
-import { Alert, ColorPicker, DatePicker, Form, Input, InputNumber, message, Radio, Select, Typography } from "antd";
+import {
+  Alert,
+  Button,
+  ColorPicker,
+  DatePicker,
+  Form,
+  Input,
+  InputNumber,
+  message,
+  Radio,
+  Select,
+  Typography,
+} from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../components/extraFields";
 import { MultiColorPicker } from "../../components/multiColorPicker";
+import { OrcaLinkedProfileBadge } from "../../components/orcaLinkedProfileBadge";
+import { getOrcaProfileExtraValues, OrcaProfilePickerModal } from "../../components/orcaProfilePickerModal";
 import { formatNumberOnUserInput, numberParser, numberParserAllowEmpty } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
+import { OrcaFilamentProfileSummary } from "../../utils/queryOrca";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
 import { IVendor } from "../vendors/model";
 import { IFilament, IFilamentParsedExtras } from "./model";
@@ -26,8 +41,9 @@ export const FilamentEdit = () => {
   const extraFields = useGetFields(EntityType.filament);
   const currency = useCurrency();
   const [colorType, setColorType] = useState<"single" | "multi">("single");
+  const [isOrcaPickerOpen, setIsOrcaPickerOpen] = useState(false);
 
-  const { formProps, saveButtonProps } = useForm<IFilament, HttpError, IFilament, IFilament>({
+  const { form, formProps, saveButtonProps } = useForm<IFilament, HttpError, IFilament, IFilament>({
     liveMode: "manual",
     onLiveEvent() {
       // Warn the user if the filament has been updated since the form was opened
@@ -43,6 +59,9 @@ export const FilamentEdit = () => {
     pagination: { mode: "off" },
   });
 
+  const linkedSettingId = Form.useWatch(["extra", "orca_setting_id"], form) as string | undefined;
+  const linkedFilamentId = Form.useWatch(["extra", "orca_filament_id"], form) as string | undefined;
+
   // Add the vendor_id field to the form
   if (formProps.initialValues) {
     formProps.initialValues["vendor_id"] = formProps.initialValues["vendor"]?.id;
@@ -50,6 +69,17 @@ export const FilamentEdit = () => {
     // Parse the extra fields from string values into real types
     formProps.initialValues = ParsedExtras(formProps.initialValues);
   }
+
+  const handleOrcaProfileSelect = (profile: OrcaFilamentProfileSummary) => {
+    // Values are heterogeneous (string/number/boolean) depending on each extra field's type,
+    // which antd's Store typing (RecursivePartial over `unknown`) can't express cleanly.
+    const extraValues = getOrcaProfileExtraValues(profile, extraFields.data ?? []);
+    if (Object.keys(extraValues).length === 0) {
+      messageApi.warning(t("filament.form.link_orca_profile_no_matches"));
+      return;
+    }
+    form.setFieldsValue({ extra: extraValues as unknown as { [key: string]: string } });
+  };
 
   // Update colorType state
   useEffect(() => {
@@ -77,8 +107,21 @@ export const FilamentEdit = () => {
   };
 
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit
+      saveButtonProps={saveButtonProps}
+      headerButtons={({ defaultButtons }) => (
+        <>
+          {defaultButtons}
+          <Button onClick={() => setIsOrcaPickerOpen(true)}>{t("filament.form.link_orca_profile")}</Button>
+        </>
+      )}
+    >
       {contextHolder}
+      <OrcaProfilePickerModal
+        isOpen={isOrcaPickerOpen}
+        onSelect={handleOrcaProfileSelect}
+        onClose={() => setIsOrcaPickerOpen(false)}
+      />
       <Form {...formProps} layout="vertical">
         <Form.Item
           label={t("filament.fields.id")}
@@ -350,6 +393,7 @@ export const FilamentEdit = () => {
           <TextArea maxLength={1024} />
         </Form.Item>
         <Typography.Title level={5}>{t("settings.extra_fields.tab")}</Typography.Title>
+        <OrcaLinkedProfileBadge settingId={linkedSettingId} filamentId={linkedFilamentId} />
         {extraFields.data?.map((field, index) => (
           <ExtraFieldFormItem key={index} field={field} />
         ))}
