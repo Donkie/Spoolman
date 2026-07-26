@@ -412,22 +412,19 @@
 	let canSubmit = $derived((creating || !!chosen) && Object.keys(errors).length === 0);
 </script>
 
+<svelte:window
+	onkeydown={(e) => {
+		if (open && e.key === 'Escape') close();
+	}}
+/>
+
 {#if open}
-	<div
-		class="overlay"
-		role="button"
-		tabindex="0"
-		onclick={close}
-		onkeydown={(e) => e.key === 'Escape' && close()}
-	>
-		<div
-			class="modal"
-			role="dialog"
-			aria-modal="true"
-			tabindex="-1"
-			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => e.stopPropagation()}
-		>
+	<div class="overlay">
+		<!-- Click-outside catcher: a sibling of the modal (not a parent) so it doesn't
+		     nest the modal's interactive controls inside an interactive element.
+		     Keyboard close is handled by the window Escape listener above. -->
+		<button class="backdrop" tabindex="-1" aria-hidden="true" onclick={close}></button>
+		<div class="modal" role="dialog" aria-modal="true" tabindex="-1">
 			<div class="modal-head">
 				<span class="title">{m['topbar.addSpools']()}</span>
 				{#if step === 2}
@@ -799,7 +796,18 @@
 		justify-content: center;
 		padding: 8vh 16px 16px;
 	}
+	.backdrop {
+		position: fixed;
+		inset: 0;
+		border: none;
+		margin: 0;
+		padding: 0;
+		background: transparent;
+		cursor: default;
+	}
 	.modal {
+		position: relative;
+		z-index: 1;
 		width: 640px;
 		max-width: 100%;
 		max-height: 84vh;
