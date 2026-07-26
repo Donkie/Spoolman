@@ -98,6 +98,7 @@
 
 		<div class="toolbar">
 			<select
+				aria-label={m['labels.selectDesign']()}
 				value={selectedId ?? ''}
 				onchange={(e) => selectDesign(e.currentTarget.value)}
 				disabled={labelDesigns.designs.length === 0}

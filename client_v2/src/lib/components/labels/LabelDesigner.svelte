@@ -201,7 +201,11 @@
 	<div class="stage-area">
 		<div class="preview-bar">
 			<span>{m['labels.previewWith']()}</span>
-			<select value={previewId} onchange={(e) => (previewId = e.currentTarget.value)}>
+			<select
+				aria-label={m['labels.previewWith']()}
+				value={previewId}
+				onchange={(e) => (previewId = e.currentTarget.value)}
+			>
 				<option value="">{m['labels.sampleData']()}</option>
 				{#if kind === 'filament'}
 					{#each previewFilaments as f (f.id)}

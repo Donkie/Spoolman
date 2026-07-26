@@ -60,6 +60,7 @@
 			<SettingRow title={m['settings.language.label']()} desc={m['settings.language.desc']()}>
 				<select
 					class="lang"
+					aria-label={m['settings.language.label']()}
 					value={getLocale()}
 					onchange={(e) => {
 						if (isLocale(e.currentTarget.value)) setLocale(e.currentTarget.value);
@@ -77,6 +78,7 @@
 			<SettingRow title={m['settings.general.currency.label']()} desc={m['settings.general.currency.desc']()}>
 				<input
 					class="code mono"
+					aria-label={m['settings.general.currency.label']()}
 					value={settings.currency}
 					maxlength="3"
 					onchange={(e) => saveCurrency(e.currentTarget.value)}
@@ -98,6 +100,7 @@
 			>
 				<input
 					class="url"
+					aria-label={m['settings.general.baseUrl.label']()}
 					value={settings.baseUrl}
 					placeholder="https://spoolman.example.com"
 					onchange={(e) => saveBaseUrl(e.currentTarget.value)}
@@ -114,6 +117,7 @@
 				<input
 					class="num mono"
 					type="number"
+					aria-label={m['settings.library.lowThreshold.label']()}
 					value={settings.lowThreshold}
 					oninput={(e) => settings.setLowThreshold(Number(e.currentTarget.value) || 0)}
 				/>

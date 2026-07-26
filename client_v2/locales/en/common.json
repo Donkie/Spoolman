@@ -139,6 +139,7 @@
     "labels.deleteConfirm": "Delete this label design?",
     "labels.deleteElement": "Delete element",
     "labels.designName": "Design name",
+    "labels.selectDesign": "Select label design",
     "labels.designerDesc": "Design QR-code labels with any spool, filament, or vendor field, then print them on sheets or a label printer. Designs are saved on the server.",
     "labels.designerTitle": "Label designer",
     "labels.dpi": "Resolution",
