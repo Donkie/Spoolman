@@ -39,10 +39,31 @@ interface ResourceSocket {
 	reconnectTimer: ReturnType<typeof setTimeout> | null;
 	pingTimer: ReturnType<typeof setInterval> | null;
 	closed: boolean;
+	/** Consecutive failed connects; drives exponential reconnect backoff. */
+	attempts: number;
 }
+
+// Reconnect backoff. A dropped backend (restart, crash, laptop sleep) used to be
+// retried every fixed 2s forever, per resource — a tab left open overnight then
+// racked up thousands of failed connects, each one an un-collectable console
+// error that bloats memory and janks the page. We back off exponentially with
+// jitter up to a cap instead, and reconnect immediately when the browser signals
+// it's back (network 'online' or the tab becoming visible again).
+const RECONNECT_BASE_MS = 1000;
+const RECONNECT_MAX_MS = 30000;
 
 class WebSocketLive implements LiveConnection {
 	private sockets = new Map<Resource, ResourceSocket>();
+
+	constructor() {
+		if (typeof window !== 'undefined') {
+			const wake = () => this.reconnectAllNow();
+			window.addEventListener('online', wake);
+			document.addEventListener('visibilitychange', () => {
+				if (!document.hidden) wake();
+			});
+		}
+	}
 
 	subscribe(resource: Resource, opts: SubscribeOpts, handler: LiveHandler): () => void {
 		const sock = this.ensure(resource);
@@ -57,7 +78,14 @@ class WebSocketLive implements LiveConnection {
 	private ensure(resource: Resource): ResourceSocket {
 		let sock = this.sockets.get(resource);
 		if (!sock) {
-			sock = { ws: null, subs: new Set(), reconnectTimer: null, pingTimer: null, closed: false };
+			sock = {
+				ws: null,
+				subs: new Set(),
+				reconnectTimer: null,
+				pingTimer: null,
+				closed: false,
+				attempts: 0
+			};
 			this.sockets.set(resource, sock);
 			this.open(resource, sock);
 		}
@@ -100,6 +128,7 @@ class WebSocketLive implements LiveConnection {
 		};
 
 		ws.onopen = () => {
+			sock.attempts = 0; // connected — reset backoff
 			// Light keepalive; the server replies {status:"healthy"} which we ignore.
 			sock.pingTimer = setInterval(() => {
 				if (ws.readyState === WebSocket.OPEN) ws.send('ping');
@@ -118,10 +147,35 @@ class WebSocketLive implements LiveConnection {
 
 	private scheduleReconnect(resource: Resource, sock: ResourceSocket) {
 		if (sock.reconnectTimer) return;
+		const delay = this.backoffDelay(sock.attempts);
+		sock.attempts++;
 		sock.reconnectTimer = setTimeout(() => {
 			sock.reconnectTimer = null;
 			if (!sock.closed && sock.subs.size > 0) this.open(resource, sock);
-		}, 2000);
+		}, delay);
+	}
+
+	/** Exponential backoff with full jitter, capped at RECONNECT_MAX_MS. Jitter
+	 *  spreads the three resource sockets so they don't retry in lockstep. */
+	private backoffDelay(attempts: number): number {
+		const exp = Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * 2 ** attempts);
+		return exp / 2 + Math.random() * (exp / 2);
+	}
+
+	/** Network came back / tab refocused: retry every down socket now instead of
+	 *  waiting out its backoff, and reset the backoff so a fresh drop starts fast. */
+	private reconnectAllNow() {
+		for (const [resource, sock] of this.sockets) {
+			if (sock.closed || sock.subs.size === 0) continue;
+			const rs = sock.ws?.readyState;
+			if (rs === WebSocket.OPEN || rs === WebSocket.CONNECTING) continue;
+			sock.attempts = 0;
+			if (sock.reconnectTimer) {
+				clearTimeout(sock.reconnectTimer);
+				sock.reconnectTimer = null;
+			}
+			this.open(resource, sock);
+		}
 	}
 
 	private teardown(resource: Resource) {

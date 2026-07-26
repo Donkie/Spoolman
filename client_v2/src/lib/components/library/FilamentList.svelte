@@ -74,11 +74,28 @@
 
 	// The list fetches server-paged data outside the reactive cache, so it keeps
 	// its own subscription: any change may reorder/relabel visible rows.
+	//
+	// Events are COALESCED: one revision bump refetches the group page AND every
+	// visible GroupRow (~1 + pageSize requests). A burst — bulk import, a printer
+	// streaming `use` updates, the initial sync — would otherwise fire that whole
+	// fan-out once per event. Debouncing collapses each burst into a single refetch
+	// cycle a beat after it settles.
+	let bumpTimer: ReturnType<typeof setTimeout> | undefined;
+	function bumpRevision() {
+		if (bumpTimer) return; // a bump is already pending; fold this event into it
+		bumpTimer = setTimeout(() => {
+			bumpTimer = undefined;
+			revision++;
+		}, 300);
+	}
 	$effect(() => {
 		const offs = (['spool', 'filament', 'vendor'] as const).map((resource) =>
-			live.subscribe(resource, {}, () => revision++)
+			live.subscribe(resource, {}, bumpRevision)
 		);
-		return () => offs.forEach((off) => off());
+		return () => {
+			offs.forEach((off) => off());
+			if (bumpTimer) clearTimeout(bumpTimer);
+		};
 	});
 
 	let flatVMs = $derived(flatSpools.map((s) => spoolToVM(s, inventory, settings.lowThreshold)));
