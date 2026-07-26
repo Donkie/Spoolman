@@ -69,6 +69,15 @@
 		close();
 		inputEl?.focus();
 	}
+	function onBlur(e: FocusEvent) {
+		// Tabbing (or otherwise moving focus) away from the input closes the list.
+		// Selecting an option keeps focus via choose() → inputEl.focus(); its
+		// onpointerdown preventDefault stops the click itself from blurring us.
+		// Ignore blurs that hand focus into the list so keyboard nav there is safe.
+		const next = e.relatedTarget as Node | null;
+		if (next && listEl?.contains(next)) return;
+		close();
+	}
 	function onInput(e: Event & { currentTarget: HTMLInputElement }) {
 		oninput?.(e.currentTarget.value);
 		if (!open) openList();
@@ -143,6 +152,7 @@
 	autocomplete="off"
 	onfocus={openList}
 	onclick={openList}
+	onblur={onBlur}
 	oninput={onInput}
 	onkeydown={onKeydown}
 />
