@@ -7,26 +7,47 @@ Spoolman has no authentication by design, so the boundary that actually protects
 data is the network. The high-priority items below are the ones that let a *remote website*
 cross that boundary through the victim's browser.
 
-Recommended order: task 0 first (it is the shared building block for tasks 1-4), then the
+Recommended order: task 0 first (it is the shared building block for tasks 1-3), then the
 rest roughly top to bottom.
 
 ---
 
-## 0. Add a shared origin/host allowlist helper
+## 0. Add a shared origin-trust helper, driven by the existing `SPOOLMAN_CORS_ORIGIN`
 
-Tasks 1-4 all need "is this request coming from somewhere we trust". Build it once.
+Tasks 1-3 all need "is this browser origin someone we trust". Build it once.
 
-- [ ] Add `SPOOLMAN_ALLOWED_ORIGINS` (comma-separated) to `spoolman/env.py`, next to
-      `get_cors_origin()`. Default: empty = "same-origin only".
-- [ ] Add `spoolman/security.py` exposing:
-      - `is_trusted_origin(origin: str | None) -> bool` — true when `origin` is absent
-        (same-origin / non-browser client), matches the request's own `Host`, or is in the
-        allowlist.
-      - `allowed_hosts() -> list[str]` — allowlist hostnames + localhost + private ranges,
-        for `TrustedHostMiddleware`.
-- [ ] Document both in the README alongside the other `SPOOLMAN_*` vars.
-- [ ] Unit-test `is_trusted_origin` for: no Origin, matching Host, allowlisted, foreign,
-      and near-miss (`https://evil-spoolman.local` vs `https://spoolman.local`).
+**Do not add a new origin env var.** `SPOOLMAN_CORS_ORIGIN` (`spoolman/env.py:227`) is already
+an operator-declared origin allowlist, and it answers exactly this question: an operator who
+allowlists `https://foo` for CORS has already declared foo trusted to make credentialed
+cross-origin requests. Having the CSRF guard or the WS check refuse that same origin would
+break the deployment CORS was configured for (a separate frontend dev server, a Fluidd/Mainsail
+instance on another origin). Two vars answering one question would also drift apart — CORS
+permits an origin the CSRF guard blocks, or the reverse.
+
+- [ ] Add `spoolman/security.py` with
+      `is_trusted_origin(origin: str | None, host: str) -> bool` — true when `origin` is absent
+      (same-origin navigation or a non-browser client such as Moonraker/OctoPrint), when it
+      matches the request's own `Host`, or when it is in the `SPOOLMAN_CORS_ORIGIN` list.
+      Unset `SPOOLMAN_CORS_ORIGIN` therefore means "same-origin only", which is the right
+      default for every existing deployment.
+- [ ] Normalize before comparing. `get_cors_origin()` is a bare `cors.split(",")` — no
+      trimming, no case folding, no trailing-slash handling. `"https://a, https://b"` yields
+      `" https://b"`, which will never match an `Origin` header. Fix it in
+      `get_cors_origin()` so CORS and the new guard both benefit, and keep the raw value in the
+      startup log so a typo is visible.
+- [ ] Decide `*` explicitly: it conveys no trust information, so the origin guard should treat
+      it as "same-origin only" and log a warning, **not** as "trust everyone". Note that CORS
+      never protected writes in the first place (a cross-origin form post needs no preflight),
+      so letting `*` disable the guard would silently un-fix tasks 1-3 for exactly the
+      operators most at risk. See task 5.
+- [ ] Unit-test: no Origin; Origin matching Host; allowlisted; foreign; near-miss
+      (`https://evil-spoolman.local` vs `https://spoolman.local`); whitespace-padded list entry;
+      `*`.
+
+Task 4 (`TrustedHostMiddleware`) is a **different axis** — it needs bare hostnames, and it must
+keep working for the common deployment that never set `SPOOLMAN_CORS_ORIGIN` at all. Give it
+its own default plus, if a var proves necessary, `SPOOLMAN_ALLOWED_HOSTS` (hosts, not origins).
+That is not a duplicate of the above.
 
 ---
 
@@ -100,10 +121,12 @@ tab left open passively exfiltrates the inventory.
 rebinding gives a malicious page genuine same-origin access — full read *and* write, including
 `DELETE` — which bypasses tasks 1-3 entirely.
 
-- [ ] Add `TrustedHostMiddleware` in `spoolman/main.py` using `allowed_hosts()`.
-- [ ] Default must not break existing deployments: allow localhost, `*.local`, private-range
-      literals, and anything in `SPOOLMAN_ALLOWED_ORIGINS`. Log once at startup listing what
-      is allowed.
+- [ ] Add `TrustedHostMiddleware` in `spoolman/main.py`.
+- [ ] Default must not break existing deployments — most never set any origin config: allow
+      localhost, `*.local`, private-range literals, plus the hostnames parsed out of
+      `SPOOLMAN_CORS_ORIGIN` where it is set. Log once at startup listing what is allowed.
+- [ ] Only add `SPOOLMAN_ALLOWED_HOSTS` if that default proves too narrow — hostnames are a
+      different axis from origins, so this would not duplicate `SPOOLMAN_CORS_ORIGIN`.
 - [ ] README: note that operators behind a reverse proxy on a public hostname must set the var.
 
 ## 5. MEDIUM — Debug mode / `CORS_ORIGIN=*` grants any site full API access **[confirmed]**
@@ -117,6 +140,8 @@ operator setting `SPOOLMAN_CORS_ORIGIN=*` hits the identical path, and the READM
 says nothing about `CORS_ORIGIN`, authentication, or reverse-proxy hardening.
 
 - [ ] Set `allow_credentials=False` whenever the resolved origin list contains `*`.
+- [ ] Keep this separate from the task-0 trust decision: `*` must still mean "same-origin only"
+      for the CSRF and WebSocket guards, otherwise setting it silently un-fixes tasks 1-3.
 - [ ] Log a prominent startup warning when debug mode is on, or when `CORS_ORIGIN=*`, spelling
       out that any website can then read and write the API.
 - [ ] README: document `SPOOLMAN_CORS_ORIGIN` with an explicit "do not use `*` on a shared
