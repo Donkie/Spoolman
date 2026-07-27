@@ -133,10 +133,14 @@ def add_cors_middleware() -> None:
     elif env.is_cors_defined():
         cors_origins = env.get_cors_origin()
         if cors_origins:
-            logger.info("CORS origins defined: %s", cors_origins)
+            # Log the raw value alongside the parsed one so a typo in the operator's list is visible.
+            logger.info("CORS origins defined: %s (parsed from %r)", cors_origins, env.get_cors_origin_raw())
             origins = cors_origins
         else:
-            logger.warning("CORS origins are not defined, no CORS will be applied.")
+            logger.warning(
+                "SPOOLMAN_CORS_ORIGIN is set to %r but contains no origins, no CORS will be applied.",
+                env.get_cors_origin_raw(),
+            )
 
     if not origins:
         return

@@ -24,25 +24,63 @@ break the deployment CORS was configured for (a separate frontend dev server, a 
 instance on another origin). Two vars answering one question would also drift apart — CORS
 permits an origin the CSRF guard blocks, or the reverse.
 
-- [ ] Add `spoolman/security.py` with
+- [x] Add `spoolman/security.py` with
       `is_trusted_origin(origin: str | None, host: str) -> bool` — true when `origin` is absent
       (same-origin navigation or a non-browser client such as Moonraker/OctoPrint), when it
       matches the request's own `Host`, or when it is in the `SPOOLMAN_CORS_ORIGIN` list.
       Unset `SPOOLMAN_CORS_ORIGIN` therefore means "same-origin only", which is the right
       default for every existing deployment.
-- [ ] Normalize before comparing. `get_cors_origin()` is a bare `cors.split(",")` — no
+- [x] Normalize before comparing. `get_cors_origin()` is a bare `cors.split(",")` — no
       trimming, no case folding, no trailing-slash handling. `"https://a, https://b"` yields
       `" https://b"`, which will never match an `Origin` header. Fix it in
       `get_cors_origin()` so CORS and the new guard both benefit, and keep the raw value in the
       startup log so a typo is visible.
-- [ ] Decide `*` explicitly: it conveys no trust information, so the origin guard should treat
-      it as "same-origin only" and log a warning, **not** as "trust everyone". Note that CORS
-      never protected writes in the first place (a cross-origin form post needs no preflight),
-      so letting `*` disable the guard would silently un-fix tasks 1-3 for exactly the
-      operators most at risk. See task 5.
-- [ ] Unit-test: no Origin; Origin matching Host; allowlisted; foreign; near-miss
+- [x] ~~Decide `*` explicitly: it conveys no trust information, so the origin guard should treat
+      it as "same-origin only" and log a warning, **not** as "trust everyone".~~
+      **Reversed (Donkie's call).** `*` is honoured as "trust every origin", and debug mode
+      implies the same. An operator who writes `*` is opting out of origin checks; there is no
+      other way for them to say that, so reinterpreting it as something narrower would just
+      leave them with no escape hatch and force a second env var to reintroduce one. Logged
+      loudly at startup instead. See task 5.
+- [x] Unit-test: no Origin; Origin matching Host; allowlisted; foreign; near-miss
       (`https://evil-spoolman.local` vs `https://spoolman.local`); whitespace-padded list entry;
       `*`.
+
+Done in `spoolman/security.py` + `tests/` (new backend unit-test suite, `poe test`, wired into
+the lefthook `ci` backend group). Notes for the tasks that build on it:
+
+- **Use `is_trusted_request(connection)` from tasks 1-3, not `is_trusted_origin` directly.** It
+  takes a Starlette `HTTPConnection`, so the same call works for a `Request` (CSRF guard) and a
+  `WebSocket` (task 3), and it reads all three headers for you. `is_trusted_origin` stays public
+  for unit tests and anything holding raw header values.
+- `is_trusted_origin` also rejects `Origin: null` (sandboxed iframe, `file://`, `data:` URL) —
+  it identifies nobody — and rejects an origin with no scheme.
+- Default ports are folded, so `https://host:443` and `https://host` both match `Host: host`.
+  A *non*-default port mismatch is untrusted: a different port is a different origin.
+- `trusts_all_origins()` is the opt-out check (`*` or debug mode). Its warning fires once per
+  process (`_warn_all_origins_trusted` is `@cache`d); tests clear it.
+
+**Reverse proxies — handled, no configuration needed.** The guard compares `Origin` against
+`Host`, and a proxy that rewrites `Host` (nginx without `proxy_set_header Host $host`, Apache
+without `ProxyPreserveHost On`) makes the two disagree, which would have 403'd the genuine web
+UI. Those operators typically set no origin config at all, so the `*` opt-out would not have
+rescued them — they would have hit a broken instance first. Fixed by also accepting
+`X-Forwarded-Host`, which those same proxies set to the host the browser asked for. Only the
+first entry of a proxy chain is used.
+
+This does not weaken the guard against the attacks it exists to stop: a malicious page cannot
+set that header on any of them — an HTML form cannot set request headers at all, the browser
+WebSocket API cannot either, and a `fetch` that adds one stops being a simple request and needs
+a CORS preflight an untrusted origin will not get. A non-browser client can forge it, but it can
+equally forge `Origin` and `Host`, and the guard never defended against those (an absent
+`Origin` is trusted by design so Moonraker and OctoPrint keep working).
+
+Verified end-to-end through real ASGI requests and websocket handshakes, not just unit tests:
+Host-preserving proxy, Host-rewriting proxy, direct LAN, and a foreign origin under each — the
+foreign origin is refused in every configuration, including on the websocket handshake.
+
+The preflight argument above assumes CORS is not wide open, so **task 5 should land before
+enforcement is switched on** in tasks 1-3.
 
 Task 4 (`TrustedHostMiddleware`) is a **different axis** — it needs bare hostnames, and it must
 keep working for the common deployment that never set `SPOOLMAN_CORS_ORIGIN` at all. Give it
@@ -140,8 +178,10 @@ operator setting `SPOOLMAN_CORS_ORIGIN=*` hits the identical path, and the READM
 says nothing about `CORS_ORIGIN`, authentication, or reverse-proxy hardening.
 
 - [ ] Set `allow_credentials=False` whenever the resolved origin list contains `*`.
-- [ ] Keep this separate from the task-0 trust decision: `*` must still mean "same-origin only"
-      for the CSRF and WebSocket guards, otherwise setting it silently un-fixes tasks 1-3.
+- [ ] ~~Keep this separate from the task-0 trust decision: `*` must still mean "same-origin only"
+      for the CSRF and WebSocket guards.~~ **Reversed** — `*` and debug mode now disable the
+      origin guards outright (see task 0). Check `allow_credentials=False` does not defeat the
+      point for someone who set `*` to make a cross-origin client work.
 - [ ] Log a prominent startup warning when debug mode is on, or when `CORS_ORIGIN=*`, spelling
       out that any website can then read and write the API.
 - [ ] README: document `SPOOLMAN_CORS_ORIGIN` with an explicit "do not use `*` on a shared
