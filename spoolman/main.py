@@ -15,6 +15,7 @@ from scheduler.asyncio.scheduler import Scheduler
 
 from spoolman import env, externaldb
 from spoolman.api.v1.router import app as v1_app
+from spoolman.auth import secret
 from spoolman.client import SinglePageApplication
 from spoolman.database import database
 from spoolman.prometheus.metrics import registry
@@ -187,6 +188,12 @@ async def startup() -> None:
     logger.info("Using data directory: %s", env.get_data_dir().resolve())
     logger.info("Using logs directory: %s", env.get_logs_dir().resolve())
     logger.info("Using backups directory: %s", env.get_backups_dir().resolve())
+
+    # Resolve the secret key before the database work. It needs a writable data
+    # directory but no schema, so failing here gives an actionable error ahead of the
+    # migration subprocess. Guarded so an auth-disabled instance never grows the file.
+    if env.is_auth_enabled():
+        secret.ensure_secret_key()
 
     logger.info("Setting up database...")
     database.setup_db(database.get_connection_url())

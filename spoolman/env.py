@@ -486,3 +486,162 @@ def is_legacy_client_enabled() -> bool:
     raise ValueError(
         f"Failed to parse SPOOLMAN_LEGACY_CLIENT variable: Unknown value '{legacy_client}'.",
     )
+
+
+#
+# Authentication.
+#
+# All of the below are opt-in: with SPOOLMAN_AUTH_ENABLED unset, the request path is
+# identical to an instance built before authentication existed.
+#
+
+
+def _parse_bool(name: str, default: str) -> bool:
+    """Parse a TRUE/FALSE/1/0 environment variable.
+
+    The older boolean accessors in this module each inline this logic with a bespoke
+    error message that users quote in bug reports, so they are deliberately left alone.
+    New variables use this helper.
+
+    Args:
+        name: The environment variable to read.
+        default: The value to assume when the variable is unset.
+
+    Raises:
+        ValueError: If the variable is set to something other than TRUE/FALSE/1/0.
+
+    Returns:
+        bool: The parsed value.
+
+    """
+    value = os.getenv(name, default).upper()
+    if value in {"FALSE", "0"}:
+        return False
+    if value in {"TRUE", "1"}:
+        return True
+    raise ValueError(f"Failed to parse {name} variable: Unknown value '{value}'.")
+
+
+def _read_env_or_file(name: str) -> str | None:
+    """Read a secret from ``<name>_FILE`` if set, falling back to ``<name>``.
+
+    Follows the same two-step convention as :func:`get_password`, with one deliberate
+    difference: the file contents are stripped. A key or token file is almost always
+    produced by a shell redirect, which appends a newline, and an unstripped trailing
+    newline would silently yield a different secret than the one the operator wrote.
+
+    Args:
+        name: The base environment variable name, without the ``_FILE`` suffix.
+
+    Raises:
+        ValueError: If the file is missing or cannot be read.
+
+    Returns:
+        Optional[str]: The secret, or None if neither variable is set.
+
+    """
+    file_path = os.getenv(name + "_FILE")
+    if file_path is not None:
+        file = Path(file_path)
+        if not file.exists() or not file.is_file():
+            raise ValueError(
+                f'Failed to parse {name}_FILE variable: File "{file_path}" does not exist.',
+            )
+        try:
+            with file.open(encoding="utf-8") as f:
+                return f.read().strip()
+        except OSError as exc:
+            raise ValueError(
+                f'Failed to parse {name}_FILE variable: Failed to read from file "{file_path}": {exc!s}.',
+            ) from exc
+
+    return os.getenv(name)
+
+
+def is_auth_enabled() -> bool:
+    """Get whether authentication is enforced.
+
+    Returns False if no environment variable was set, which keeps zero-config boot and
+    every existing integration working untouched.
+
+    Returns:
+        bool: Whether authentication is enabled.
+
+    """
+    return _parse_bool("SPOOLMAN_AUTH_ENABLED", "FALSE")
+
+
+def get_secret_key() -> str | None:
+    """Get the configured server secret key.
+
+    Returns None when neither SPOOLMAN_SECRET_KEY nor SPOOLMAN_SECRET_KEY_FILE is set,
+    in which case a key is generated and persisted in the data directory instead. See
+    :mod:`spoolman.auth.secret`.
+
+    Returns:
+        Optional[str]: The secret key, or None if unset.
+
+    """
+    return _read_env_or_file("SPOOLMAN_SECRET_KEY")
+
+
+def get_trusted_proxies() -> list[str]:
+    """Get the reverse proxies whose forwarding headers may be believed.
+
+    Accepts a comma-separated list of IP addresses or CIDR networks. Empty by default,
+    which means X-Forwarded-For and X-Forwarded-Proto are never trusted.
+
+    Returns:
+        list[str]: The trusted proxy addresses or networks.
+
+    """
+    proxies = os.getenv("SPOOLMAN_TRUSTED_PROXIES", "")
+    return [entry.strip() for entry in proxies.split(",") if entry.strip()]
+
+
+def is_metrics_public() -> bool:
+    """Get whether the metrics endpoint stays reachable without credentials.
+
+    Only consulted when authentication is enabled; with authentication off, metrics are
+    public regardless.
+
+    Returns:
+        bool: Whether metrics are public.
+
+    """
+    return _parse_bool("SPOOLMAN_METRICS_PUBLIC", "FALSE")
+
+
+def get_metrics_token() -> str | None:
+    """Get the shared token that grants access to the metrics endpoint.
+
+    Returns:
+        Optional[str]: The metrics token, or None if unset.
+
+    """
+    return _read_env_or_file("SPOOLMAN_METRICS_TOKEN")
+
+
+def get_cookie_secure_override() -> bool | None:
+    """Get the operator's override for the Secure flag on session cookies.
+
+    Defaults to AUTO, which derives the flag from the request scheme. An override is
+    needed only for proxies that do not set X-Forwarded-Proto. Guessing True on a
+    plain-HTTP LAN deployment would make the browser discard the cookie and break login
+    with no visible error, so the automatic path never assumes HTTPS.
+
+    Raises:
+        ValueError: If set to something other than AUTO/TRUE/FALSE/1/0.
+
+    Returns:
+        Optional[bool]: True or False to force the flag, None to derive it.
+
+    """
+    value = os.getenv("SPOOLMAN_COOKIE_SECURE", "AUTO").upper()
+    if value == "AUTO":
+        return None
+    if value in {"FALSE", "0"}:
+        return False
+    if value in {"TRUE", "1"}:
+        return True
+    raise ValueError(f"Failed to parse SPOOLMAN_COOKIE_SECURE variable: Unknown value '{value}'.")
