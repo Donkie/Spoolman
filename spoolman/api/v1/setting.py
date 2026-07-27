@@ -206,7 +206,11 @@ async def update(
         except ValueError as e:
             return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
-        await setting.update(db=db, definition=definition, value=body)
+        try:
+            # Raised when the value exceeds the column limit; a client error, not a server one.
+            await setting.update(db=db, definition=definition, value=body)
+        except ValueError as e:
+            return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
         logger.info('Setting "%s" has been set to "%s".', key, body)
     else:
         await setting.delete(db=db, definition=definition)

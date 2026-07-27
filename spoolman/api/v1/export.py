@@ -40,7 +40,7 @@ async def export_spools(
     ] = False,
 ) -> Response:
     all_spools, _ = await spool.find(db=db, allow_archived=allow_archived)
-    return await _export(all_spools, fmt)
+    return await _export(all_spools, fmt, "spools")
 
 
 @router.get(
@@ -54,7 +54,7 @@ async def export_filaments(
     fmt: ExportFormat,
 ) -> Response:
     all_filaments, _ = await filament.find(db=db)
-    return await _export(all_filaments, fmt)
+    return await _export(all_filaments, fmt, "filaments")
 
 
 @router.get(
@@ -68,10 +68,10 @@ async def export_vendors(
     fmt: ExportFormat,
 ) -> Response:
     all_vendors, _ = await vendor.find(db=db)
-    return await _export(all_vendors, fmt)
+    return await _export(all_vendors, fmt, "vendors")
 
 
-async def _export(objects: Iterable[Base], fmt: ExportFormat) -> Response:
+async def _export(objects: Iterable[Base], fmt: ExportFormat, name: str) -> Response:
     """Export the objects in various formats."""
     buffer = io.StringIO()
     media_type = ""
@@ -85,4 +85,10 @@ async def _export(objects: Iterable[Base], fmt: ExportFormat) -> Response:
     else:
         raise ValueError(f"Unknown export format: {fmt}")
 
-    return Response(content=buffer.getvalue(), media_type=media_type)
+    return Response(
+        content=buffer.getvalue(),
+        media_type=media_type,
+        # Offer it as a download with a sensible name rather than letting the browser render it.
+        # `name` is a fixed literal per endpoint, never user input.
+        headers={"Content-Disposition": f'attachment; filename="{name}.{fmt.value}"'},
+    )
