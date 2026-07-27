@@ -57,8 +57,24 @@ class ExtraField(ExtraFieldParameters):
     entity_type: EntityType = Field(description="Entity type this field is for")
 
 
-def validate_extra_field_value(field: ExtraFieldParameters, value: str) -> None:  # noqa: C901, PLR0912
+# Matches the settings cap in spoolman/database/setting.py. The columns are Text(), so nothing
+# stopped a single request storing megabytes: unbounded database growth, and the resulting
+# websocket event overflowed the 1 MiB default frame limit, killing live updates for every client.
+EXTRA_FIELD_VALUE_MAX_LENGTH = 2**16 - 1
+
+# Extra fields are a per-entity schema, not a data store. A few dozen is already generous, and a
+# bound keeps the registry -- which is cached in memory and embedded in every entity response --
+# from being grown without limit.
+MAX_EXTRA_FIELDS_PER_ENTITY = 128
+
+
+def validate_extra_field_value(field: ExtraFieldParameters, value: str) -> None:  # noqa: C901, PLR0912, PLR0915
     """Validate that the value has the correct type."""
+    if len(value) > EXTRA_FIELD_VALUE_MAX_LENGTH:
+        raise ValueError(
+            f"Value is too big, max size is {EXTRA_FIELD_VALUE_MAX_LENGTH} characters.",
+        )
+
     try:
         data = json.loads(value)
     except json.JSONDecodeError:
@@ -193,6 +209,11 @@ def validate_extra_field_setting(key: str, value: str) -> None:
         # ValueError, not TypeError: this is a validation failure the caller turns into a 400.
         raise ValueError(f"Setting {key} must be an array of extra fields.")  # noqa: TRY004
 
+    if len(fields) > MAX_EXTRA_FIELDS_PER_ENTITY:
+        raise ValueError(
+            f"Setting {key} has {len(fields)} extra fields, the maximum is {MAX_EXTRA_FIELDS_PER_ENTITY}.",
+        )
+
     for index, obj in enumerate(fields):
         try:
             field = ExtraField.model_validate(obj)
@@ -270,6 +291,10 @@ async def add_or_update_extra_field(db: AsyncSession, entity_type: EntityType, e
                 raise ValueError("Cannot remove existing choices.")
 
     extra_fields = [field for field in extra_fields if field.key != extra_field.key]
+    if len(extra_fields) >= MAX_EXTRA_FIELDS_PER_ENTITY:
+        raise ValueError(
+            f"Cannot add another extra field for {entity_type.name}, the maximum is {MAX_EXTRA_FIELDS_PER_ENTITY}.",
+        )
     extra_fields.append(extra_field)
 
     setting_def = parse_setting(f"extra_fields_{entity_type.name}")

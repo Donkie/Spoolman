@@ -110,3 +110,44 @@ def test_invalidate_ignores_unrelated_settings(monkeypatch: pytest.MonkeyPatch):
 def test_invalidate_is_safe_when_nothing_is_cached(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(registry, "extra_field_cache", {})
     registry.invalidate_extra_field_cache("extra_fields_spool")
+
+
+def test_oversized_value_is_rejected():
+    """A 2 MB value on one spool used to be accepted: unbounded growth from a single request."""
+    spec = ExtraField.model_validate(field())
+    oversized = json.dumps("x" * (registry.EXTRA_FIELD_VALUE_MAX_LENGTH + 1))
+
+    with pytest.raises(ValueError, match="too big"):
+        registry.validate_extra_field_value(spec, oversized)
+
+
+def test_value_at_the_limit_is_accepted():
+    spec = ExtraField.model_validate(field())
+    at_limit = json.dumps("x" * (registry.EXTRA_FIELD_VALUE_MAX_LENGTH - 2))
+    assert len(at_limit) == registry.EXTRA_FIELD_VALUE_MAX_LENGTH
+
+    registry.validate_extra_field_value(spec, at_limit)
+
+
+def test_oversized_value_is_rejected_through_the_dict_validator():
+    """The spool/filament/vendor endpoints go through here, and they 400 on ValueError."""
+    spec = ExtraField.model_validate(field())
+    oversized = json.dumps("x" * (registry.EXTRA_FIELD_VALUE_MAX_LENGTH + 1))
+
+    with pytest.raises(ValueError, match="too big"):
+        registry.validate_extra_field_dict([spec], {"batch": oversized})
+
+
+def test_too_many_fields_are_rejected():
+    payload = json.dumps(
+        [field(key=f"f{i}", name=f"Field {i}") for i in range(registry.MAX_EXTRA_FIELDS_PER_ENTITY + 1)],
+    )
+    with pytest.raises(ValueError, match="maximum is"):
+        registry.validate_extra_field_setting("extra_fields_spool", payload)
+
+
+def test_field_count_at_the_limit_is_accepted():
+    payload = json.dumps(
+        [field(key=f"f{i}", name=f"Field {i}") for i in range(registry.MAX_EXTRA_FIELDS_PER_ENTITY)],
+    )
+    registry.validate_extra_field_setting("extra_fields_spool", payload)

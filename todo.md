@@ -250,12 +250,14 @@ not a gap. Startup logs both the origin-checks-disabled warning and the credenti
 A vendor named `=cmd|' /C calc'!A0` is written verbatim into the export (CWE-1236); opening it
 in Excel/LibreOffice executes. No `Content-Disposition` header either.
 
-- [ ] In `spoolman/export.py:dump_as_csv`, prefix any cell whose first character is
-      `=`, `+`, `-`, `@`, tab or CR with a single quote.
-- [ ] Add `Content-Disposition: attachment; filename="spools.csv"` (and filaments/vendors) in
-      `spoolman/api/v1/export.py:_export`.
-- [ ] Test: a vendor named `=1+1` exports as `'=1+1`; a normal name is untouched; JSON export
-      is unaffected.
+- [x] Prefix formula-like cells with a single quote — `escape_csv_value` in `spoolman/export.py`.
+      Only *strings* are escaped: numbers reach the writer as numeric types, so a negative
+      number cannot be read as a formula and must not grow a stray quote. Header names need no
+      escaping (fixed attribute names, or extra-field keys constrained to `^[a-z0-9_]+$`).
+- [x] Add `Content-Disposition: attachment` in `_export`, named per endpoint and per format.
+- [x] Test: `tests/test_export.py`, plus verified end-to-end — a vendor named
+      `=cmd|' /C calc'!A0` exports as `'=cmd|' /C calc'!A0`, `Prusament` is untouched, and the
+      JSON export still carries the raw name (correct: JSON is not a spreadsheet).
 
 ## 7. LOW-MEDIUM — Unbounded extra-field values **[confirmed]**
 
@@ -264,12 +266,25 @@ spool was accepted — unbounded DB growth from a single request. Side effect ob
 testing: the resulting websocket event exceeded the 1 MiB default frame limit and killed the
 live-update connection, so one oversized field degrades live updates for every client.
 
-- [ ] Enforce a per-value cap in `validate_extra_field_value`
-      (`spoolman/extra_field_registry.py:59`) — 64 KB matches the settings cap — and a cap on
-      the number of keys per entity.
-- [ ] Return 400, not 500, when a setting exceeds the 65535-char limit: catch the `ValueError`
-      raised in `spoolman/database/setting.py` at `spoolman/api/v1/setting.py:update`.
-- [ ] Test: oversized extra value → 400; oversized setting → 400; both leave the DB unchanged.
+- [x] `EXTRA_FIELD_VALUE_MAX_LENGTH` (65535, matching the settings cap) in
+      `validate_extra_field_value`. The spool/filament/vendor endpoints already turn `ValueError`
+      into a 400, so no endpoint changes were needed.
+- [x] Cap the field *count* too: `MAX_EXTRA_FIELDS_PER_ENTITY` (128), enforced both in
+      `add_or_update_extra_field` and in the settings write path. Note the per-entity *key* count
+      was already bounded — `validate_extra_field_dict` rejects unknown keys — so the unbounded
+      thing was the registry itself, which is cached in memory and embedded in every response.
+- [x] Return 400, not 500, when a setting exceeds the limit — `setting.update`'s `ValueError` is
+      now caught in `api/v1/setting.py:update`.
+- [x] Test: `tests/test_extra_field_registry.py`, plus verified end-to-end.
+
+| Request | Before | After |
+| --- | --- | --- |
+| 2 MB extra value, spool create | 200, stored | 400 |
+| 2 MB extra value, spool update | 200, stored | 400 |
+| 100 000-char setting | 500 | 400 |
+| normal extra value / setting | 200 | 200 |
+
+The setting is left unset after the oversized write, and the server log has no 500s.
 
 ## 8. LOW — Unhandled exceptions → 500 on malformed query params **[confirmed]**
 
