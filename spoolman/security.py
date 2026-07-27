@@ -27,15 +27,29 @@ by also accepting ``X-Forwarded-Host``; see :func:`is_trusted_request`.
 
 import logging
 from functools import cache
+from typing import TYPE_CHECKING
 from urllib.parse import urlsplit
 
 from starlette.requests import HTTPConnection
+from starlette.responses import JSONResponse
 
 from spoolman import env
+
+if TYPE_CHECKING:
+    from starlette.types import ASGIApp, Receive, Scope, Send
 
 logger = logging.getLogger(__name__)
 
 WILDCARD_ORIGIN = "*"
+
+# Methods that can change state. Safe methods are left alone: the same-origin policy already
+# stops a cross-origin page from reading their responses, and OPTIONS must stay reachable for
+# CORS preflight to work at all.
+UNSAFE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
+
+# Websocket close code used when a handshake is refused. In the 4000-4999 range reserved for
+# application use, and deliberately echoes HTTP 403.
+WS_CLOSE_FORBIDDEN = 4403
 
 # An origin of "null" is what a browser sends from a sandboxed iframe, a data: URL or a
 # file:// page. It identifies nobody, so it can never be trusted.
@@ -210,3 +224,64 @@ def is_trusted_request(connection: HTTPConnection) -> bool:
         headers.get("host", ""),
         headers.get("x-forwarded-host"),
     )
+
+
+class TrustedOriginMiddleware:
+    """Refuse state-changing requests and websocket handshakes from untrusted browser origins.
+
+    Spoolman has no authentication, so without this a page on any website the user happens to
+    visit can make their browser write to a Spoolman instance it can reach (a form post needs no
+    CORS preflight), and can open a websocket to it (websockets are exempt from CORS entirely).
+
+    A single middleware rather than a per-endpoint dependency, so that an endpoint added later
+    cannot forget to opt in.
+    """
+
+    def __init__(self, app: "ASGIApp") -> None:
+        """Wrap the given ASGI application."""
+        self.app = app
+
+    async def __call__(self, scope: "Scope", receive: "Receive", send: "Send") -> None:
+        """Reject the connection if its origin is not trusted, otherwise pass it through."""
+        # Every websocket handshake is guarded, since websockets are exempt from CORS and are
+        # readable by the page that opens them. Of plain HTTP only the state-changing methods are.
+        guarded = scope["type"] == "websocket" or (scope["type"] == "http" and scope["method"] in UNSAFE_METHODS)
+        if guarded:
+            connection = HTTPConnection(scope)
+            if not is_trusted_request(connection):
+                await self._refuse(scope, receive, send, connection)
+                return
+        await self.app(scope, receive, send)
+
+    async def _refuse(
+        self,
+        scope: "Scope",
+        receive: "Receive",
+        send: "Send",
+        connection: HTTPConnection,
+    ) -> None:
+        """Close the connection, and log enough for an operator to see why."""
+        logger.warning(
+            "Refused a %s from an untrusted origin. Origin: %r, Host: %r, X-Forwarded-Host: %r, path: %r. "
+            "If this was you, add the origin to SPOOLMAN_CORS_ORIGIN.",
+            "websocket handshake" if scope["type"] == "websocket" else scope["method"] + " request",
+            connection.headers.get("origin"),
+            connection.headers.get("host"),
+            connection.headers.get("x-forwarded-host"),
+            scope.get("path"),
+        )
+        if scope["type"] == "websocket":
+            # The ASGI server expects the connect message to be consumed before a close is sent.
+            await receive()
+            await send({"type": "websocket.close", "code": WS_CLOSE_FORBIDDEN})
+            return
+        response = JSONResponse(
+            status_code=403,
+            content={
+                "message": (
+                    "Request refused: it came from an origin this Spoolman instance does not trust. "
+                    "Set SPOOLMAN_CORS_ORIGIN if this origin should be allowed."
+                ),
+            },
+        )
+        await response(scope, receive, send)

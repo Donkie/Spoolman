@@ -1,7 +1,10 @@
 """Tests for the shared origin-trust helper."""
 
 import pytest
+from fastapi import FastAPI, WebSocket
+from fastapi.testclient import TestClient
 from starlette.requests import HTTPConnection
+from starlette.websockets import WebSocketDisconnect
 
 from spoolman import security
 
@@ -221,3 +224,101 @@ def test_request_helper_rejects_a_foreign_origin_behind_a_proxy():
         )
         is False
     )
+
+
+def _guarded_app() -> FastAPI:
+    """Build a tiny app behind the middleware, so the tests exercise real ASGI dispatch."""
+    app = FastAPI()
+    app.add_middleware(security.TrustedOriginMiddleware)
+
+    @app.get("/thing")
+    async def _read() -> dict[str, bool]:
+        return {"ok": True}
+
+    @app.post("/thing")
+    async def _write() -> dict[str, bool]:
+        return {"ok": True}
+
+    @app.delete("/thing")
+    async def _remove() -> dict[str, bool]:
+        return {"ok": True}
+
+    @app.websocket("/thing")
+    async def _listen(websocket: WebSocket) -> None:
+        await websocket.accept()
+        await websocket.send_json({"ok": True})
+        await websocket.close()
+
+    return app
+
+
+@pytest.fixture
+def client() -> TestClient:
+    """Build a test client for an app sitting behind the origin guard."""
+    return TestClient(_guarded_app(), base_url="http://spoolman.local")
+
+
+def test_middleware_allows_a_same_origin_write(client: TestClient):
+    assert client.post("/thing", headers={"Origin": "http://spoolman.local"}).status_code == 200
+
+
+def test_middleware_refuses_a_cross_origin_write(client: TestClient):
+    response = client.post("/thing", headers={"Origin": "https://evil.example"})
+    assert response.status_code == 403
+    assert "does not trust" in response.json()["message"]
+
+
+def test_middleware_refuses_a_cross_origin_delete(client: TestClient):
+    assert client.delete("/thing", headers={"Origin": "https://evil.example"}).status_code == 403
+
+
+def test_middleware_allows_a_write_without_an_origin(client: TestClient):
+    """Moonraker, OctoPrint and curl send no Origin header."""
+    assert client.post("/thing").status_code == 200
+
+
+def test_middleware_leaves_reads_alone(client: TestClient):
+    """The same-origin policy already stops a foreign page reading the response."""
+    assert client.get("/thing", headers={"Origin": "https://evil.example"}).status_code == 200
+
+
+def test_middleware_allows_a_write_behind_a_host_rewriting_proxy(client: TestClient):
+    response = client.post(
+        "/thing",
+        headers={
+            "Host": "127.0.0.1:7912",
+            "Origin": "https://spoolman.example.com",
+            "X-Forwarded-Host": "spoolman.example.com",
+        },
+    )
+    assert response.status_code == 200
+
+
+def test_middleware_refuses_a_cross_origin_websocket(client: TestClient):
+    """Websockets are exempt from CORS, so this is the one channel that leaks reads."""
+    with (
+        pytest.raises(WebSocketDisconnect),
+        client.websocket_connect(
+            "/thing",
+            headers={"Origin": "https://evil.example"},
+        ),
+    ):
+        pass
+
+
+def test_middleware_allows_a_same_origin_websocket(client: TestClient):
+    # The test client defaults the websocket Host to "testserver" regardless of base_url,
+    # so state it explicitly to keep the same-origin relationship obvious.
+    headers = {"Host": "spoolman.local", "Origin": "http://spoolman.local"}
+    with client.websocket_connect("/thing", headers=headers) as ws:
+        assert ws.receive_json() == {"ok": True}
+
+
+def test_middleware_allows_a_websocket_without_an_origin(client: TestClient):
+    with client.websocket_connect("/thing") as ws:
+        assert ws.receive_json() == {"ok": True}
+
+
+def test_middleware_is_disabled_by_the_wildcard(monkeypatch: pytest.MonkeyPatch, client: TestClient):
+    monkeypatch.setenv("SPOOLMAN_CORS_ORIGIN", "*")
+    assert client.post("/thing", headers={"Origin": "https://evil.example"}).status_code == 200

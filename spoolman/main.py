@@ -13,7 +13,7 @@ from fastapi.responses import PlainTextResponse, RedirectResponse, Response
 from prometheus_client import generate_latest
 from scheduler.asyncio.scheduler import Scheduler
 
-from spoolman import env, externaldb
+from spoolman import env, externaldb, security
 from spoolman.api.v1.router import app as v1_app
 from spoolman.client import SinglePageApplication
 from spoolman.database import database
@@ -124,6 +124,19 @@ else:
     )
 
 
+def add_trusted_origin_middleware() -> None:
+    """Refuse writes and websocket handshakes from browser origins we do not trust."""
+    if security.trusts_all_origins():
+        # Already warned about by trusts_all_origins(); adding the middleware would be a no-op.
+        return
+    trusted = security.get_trusted_origins()
+    if trusted:
+        logger.info("Trusting writes and websockets from this instance's own origin, plus: %s", sorted(trusted))
+    else:
+        logger.info("Trusting writes and websockets from this instance's own origin only.")
+    app.add_middleware(security.TrustedOriginMiddleware)
+
+
 def add_cors_middleware() -> None:
     """Add CORS middleware to the FastAPI app based on environment settings."""
     origins = []
@@ -155,6 +168,9 @@ def add_cors_middleware() -> None:
     )
 
 
+# Order matters: middleware added last is outermost, so CORS wraps the origin guard. That way a
+# legitimate cross-origin client can actually read the 403 body instead of an opaque CORS error.
+add_trusted_origin_middleware()
 add_cors_middleware()
 
 

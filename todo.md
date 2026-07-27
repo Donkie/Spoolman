@@ -107,19 +107,38 @@ resolve to an attacker domain), `label_designs`, `print_presets`, `locations`,
 and puts `GET /api/v1/field/{entity}` into a **persistent 500** (`ValidationError: 4
 validation errors for ExtraField`).
 
-- [ ] Reject non-JSON content types on this endpoint. Preferred: keep the `str` body but pin
-      the media type (`Body(media_type="application/json")`) so a `text/plain` post 415s.
-      Must stay wire-compatible for existing JSON clients (API v1 compat is a non-negotiable).
-- [ ] Add a `Depends` guard (or middleware) rejecting `POST`/`PUT`/`PATCH`/`DELETE` whose
+- [x] Reject non-JSON content types on this endpoint. ~~Preferred: `Body(media_type=...)`.~~
+      **That does not work** — `media_type` is OpenAPI metadata only and is not enforced at
+      runtime; verified with a `text/plain` post to a pinned endpoint, which still returned 200.
+      Done instead with a `require_json_content_type` dependency. Wire-compatible: both clients
+      already send `application/json`, and a `charset` parameter is accepted.
+- [x] Add a `Depends` guard (or middleware) rejecting `POST`/`PUT`/`PATCH`/`DELETE` whose
       `Origin` fails `is_trusted_origin`, returning 403. Applies app-wide, not just here.
-- [ ] Validate the array shape when `extra_fields_*` is written through the settings endpoint —
-      run it through `ExtraField.model_validate` and 400 on failure, so a bad write can never
-      wedge `/field/{entity}` again.
-- [ ] Invalidate `extra_field_cache` when `extra_fields_*` is written via `/setting/{key}`
-      (`spoolman/extra_field_registry.py:145`); today the cache only refreshes via the
-      `/field` endpoints, so the two paths disagree until restart.
-- [ ] Integration test: `text/plain` post → 415; `application/json` post → 200; cross-origin
-      JSON post → 403; malformed `extra_fields_spool` → 400 and `/field/spool` still 200.
+      Done as `security.TrustedOriginMiddleware`, wired in `main.py`.
+- [x] Validate the array shape when `extra_fields_*` is written through the settings endpoint —
+      `validate_extra_field_setting` in the registry, 400 on failure.
+- [x] Invalidate `extra_field_cache` when `extra_fields_*` is written via `/setting/{key}` —
+      `invalidate_extra_field_cache`.
+- [x] Integration test: `tests_integration/tests/setting/test_set.py` (content types, malformed
+      extra fields, cache refresh) and `tests_integration/tests/test_security.py` (origins).
+
+Both attack shapes are now closed independently, which matters because they fail differently: a
+non-browser attacker who can forge `Origin` still hits the 415, and a browser attacker who could
+somehow send JSON still hits the 403.
+
+Verified against a real uvicorn server, replaying the exploit from the audit:
+
+| Request | Before | After |
+| --- | --- | --- |
+| `text/plain` + `Origin: evil` (the exploit) | 200 | 403 |
+| `text/plain`, no `Origin` (non-browser) | 200 | 415 |
+| `application/x-www-form-urlencoded`, empty body (resets the setting) | 200 | 403 |
+| `multipart/form-data` | 200 | 415 |
+| `application/json`, same origin | 200 | 200 |
+| `application/json;charset=utf-8`, same origin | 200 | 200 |
+
+An HTML form can only send those three encodings, so requiring JSON removes the whole class of
+form-driven writes regardless of origin.
 
 ## 2. HIGH — CSRF-triggerable backup rotation destroys restore points **[confirmed]**
 
@@ -145,13 +164,20 @@ channel that bypasses the same-origin policy protecting REST reads. A client sen
 — location, price, filament and vendor names — as soon as the inventory changed. A malicious
 tab left open passively exfiltrates the inventory.
 
-- [ ] Add a shared WS dependency/helper that calls `is_trusted_origin` and closes with code
-      4403 before `websocket.accept()`.
-- [ ] Apply it to all nine WS endpoints — root, plus a collection-level and an item-level one
-      each for spool, filament, vendor and setting. `grep -rn "@router.websocket\|@app.websocket"
-      spoolman/` lists them; confirm none are missed.
-- [ ] Integration test: WS with a foreign `Origin` is refused; WS with no `Origin` (Moonraker,
-      OctoPrint and other non-browser consumers) still connects.
+- [x] ~~Add a shared WS dependency/helper~~ — done in the same `TrustedOriginMiddleware` as
+      task 1, which closes with 4403 before the handshake is accepted. A real uvicorn turns that
+      into an HTTP 403 on the handshake, which is what the integration test asserts.
+- [x] Apply it to all nine WS endpoints. A middleware rather than a per-endpoint dependency
+      precisely because of the "confirm none are missed" worry: it sits above routing, so all
+      nine are covered by construction, and a websocket endpoint added later cannot forget to
+      opt in. (Count confirmed: 2 each in `spool.py`, `filament.py`, `vendor.py`, `setting.py`,
+      plus the root one in `router.py`.)
+- [x] Integration test: `tests_integration/tests/test_security.py` — foreign `Origin` refused,
+      no `Origin` still connects, same origin still connects.
+
+Note that *every* websocket handshake is guarded, not just state-changing ones: websockets are
+exempt from CORS entirely, so an unguarded one leaks reads to any origin. That is the opposite
+of the HTTP rule, where reads are left alone because the same-origin policy already covers them.
 
 ## 4. MEDIUM — No `Host` validation → DNS rebinding
 
