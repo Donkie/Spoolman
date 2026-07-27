@@ -16,21 +16,66 @@ class SortOrder(Enum):
     DESC = 2
 
 
+def parse_sort(sort: str | None) -> dict[str, SortOrder]:
+    """Parse the ``sort`` query parameter into field/direction pairs.
+
+    Shared by the spool, filament and vendor endpoints, which each used to do this inline with a
+    bare ``split(":")`` -- so ``?sort=name`` raised "not enough values to unpack" and
+    ``?sort=name:sideways`` a KeyError, both surfacing as a 500.
+
+    Args:
+        sort: The raw parameter, e.g. ``name:asc,filament.material:desc``. May be None.
+
+    Returns:
+        dict[str, SortOrder]: Field name to direction, empty if nothing was requested.
+
+    Raises:
+        ValueError: If an entry has no direction, or a direction that is not asc/desc.
+
+    """
+    sort_by: dict[str, SortOrder] = {}
+    if sort is None:
+        return sort_by
+
+    for sort_item in sort.split(","):
+        item = sort_item.strip()
+        if not item:
+            continue
+
+        field, separator, direction = item.partition(":")
+        if not separator:
+            raise ValueError(f"Invalid sort '{item}', expected the form 'field:asc' or 'field:desc'.")
+        if not field:
+            raise ValueError(f"Invalid sort '{item}', no field name was given.")
+        try:
+            sort_by[field] = SortOrder[direction.strip().upper()]
+        except KeyError:
+            raise ValueError(
+                f"Invalid sort direction '{direction}' for field '{field}', expected 'asc' or 'desc'.",
+            ) from None
+
+    return sort_by
+
+
 def parse_nested_field(base_obj: type[models.Base], field: str) -> attributes.InstrumentedAttribute[Any]:
     """Parse a nested field string into a sqlalchemy field object."""
     fields = field.split(".")
-    if not hasattr(base_obj, fields[0]):
-        raise ValueError(f"Invalid field name '{field}', '{fields[0]}' is not a valid field on '{base_obj.__name__}'.")
 
-    if fields[0] == "filament" and len(fields) == 1:
-        raise ValueError("No field specified for filament")
-    if fields[0] == "filament":
+    if fields[0] == "filament" and hasattr(base_obj, "filament"):
+        if len(fields) == 1:
+            raise ValueError("No field specified for filament")
         return parse_nested_field(models.Filament, ".".join(fields[1:]))
 
-    if fields[0] == "vendor" and len(fields) == 1:
-        raise ValueError("No field specified for vendor")
-    if fields[0] == "vendor":
+    if fields[0] == "vendor" and hasattr(base_obj, "vendor"):
+        if len(fields) == 1:
+            raise ValueError("No field specified for vendor")
         return parse_nested_field(models.Vendor, ".".join(fields[1:]))
+
+    # Only mapped columns, not any attribute that happens to exist. `hasattr` also accepted
+    # `metadata`, `registry` and relationships, which then reached order_by() and blew up there --
+    # `?sort=metadata:asc` raised "'MetaData' object has no attribute 'asc'" as a 500.
+    if fields[0] not in sqlalchemy.inspect(base_obj).columns:
+        raise ValueError(f"Invalid field name '{field}', '{fields[0]}' is not a valid field on '{base_obj.__name__}'.")
 
     if len(fields) > 1:
         raise ValueError(f"Field '{fields[0]}' does not have any nested fields")

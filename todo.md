@@ -299,12 +299,21 @@ All three reproduced in the server log:
 `parse_nested_field` (`spoolman/database/utils.py:19`) gates on `hasattr`, so any non-column
 attribute (`metadata`, `registry`, relationships) passes through to `order_by`.
 
-- [ ] Parse `sort` in one shared helper that 400s on a missing colon, an unknown direction, or
-      an unknown field, instead of the ad-hoc `split(":")` in `spool.py`, `filament.py` and
-      `vendor.py`.
-- [ ] Restrict `parse_nested_field` to mapped columns (check the SQLAlchemy mapper's
-      `columns`/`attrs`, not `hasattr`).
-- [ ] Test the three rows above → 400 with a useful message.
+- [x] `parse_sort` in `spoolman/database/utils.py`, used by all four call sites (`spool.py` has
+      two — list and group). Tolerates whitespace, rejects a missing colon, an empty field name
+      and an unknown direction.
+- [x] Restrict `parse_nested_field` to mapped columns via `sqlalchemy.inspect(...).columns`
+      instead of `hasattr`. Relationship traversal (`filament.`/`vendor.`) still works.
+- [x] Test: `tests/test_sort_parsing.py`, plus verified end-to-end on all three endpoints.
+
+**Found while testing:** `database/vendor.py` was not using `parse_nested_field` at all — a bare
+`getattr(models.Vendor, fieldstr)` — so `/vendor` kept returning 500 after the helper was fixed.
+Now uses the shared helper like `filament.py` does. Worth noting that the audit only listed the
+three failing rows generically; the vendor path needed a separate fix.
+
+All three endpoints now 400 on `sort=name`, `sort=name:sideways`, `sort=metadata:asc`,
+`sort=registry:asc` and `sort=nonsense:asc`, while `sort=id:asc` and multi-field sorts still
+return 200. No unhandled exceptions in the server log.
 
 ## 9. LOW — Information disclosure
 

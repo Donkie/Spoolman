@@ -15,7 +15,7 @@ from starlette.datastructures import QueryParams
 from spoolman.api.v1.models import Filament, Message, Spool, SpoolEvent, SpoolGroup, Vendor
 from spoolman.database import spool
 from spoolman.database.database import get_db_session
-from spoolman.database.utils import SortOrder
+from spoolman.database.utils import parse_sort
 from spoolman.exceptions import ItemCreateError, SpoolMeasureError
 from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
 from spoolman.ws import websocket_manager
@@ -303,11 +303,10 @@ async def find(
     ] = None,
     offset: Annotated[int, Query(title="Offset", description="Offset in the full result set if a limit is set.")] = 0,
 ) -> JSONResponse:
-    sort_by: dict[str, SortOrder] = {}
-    if sort is not None:
-        for sort_item in sort.split(","):
-            field, direction = sort_item.split(":")
-            sort_by[field] = SortOrder[direction.upper()]
+    try:
+        sort_by = parse_sort(sort)
+    except ValueError as e:
+        return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     filament_id = filament_id if filament_id is not None else filament_id_old
     if filament_id is not None:
@@ -489,11 +488,10 @@ async def find_groups(
         Query(title="Offset", description="Offset in the full group result set if a limit is set."),
     ] = 0,
 ) -> JSONResponse:
-    sort_by: dict[str, SortOrder] = {}
-    if sort is not None:
-        for sort_item in sort.split(","):
-            field, direction = sort_item.split(":")
-            sort_by[field] = SortOrder[direction.upper()]
+    try:
+        sort_by = parse_sort(sort)
+    except ValueError as e:
+        return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     filament_ids = [int(item) for item in filament_id.split(",")] if filament_id is not None else None
     vendor_ids = [int(item) for item in filament_vendor_id.split(",")] if filament_vendor_id is not None else None

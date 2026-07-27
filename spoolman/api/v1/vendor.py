@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from spoolman.api.v1.models import Message, Vendor, VendorEvent
 from spoolman.database import vendor
 from spoolman.database.database import get_db_session
-from spoolman.database.utils import SortOrder
+from spoolman.database.utils import parse_sort
 from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
 from spoolman.ws import websocket_manager
 
@@ -119,11 +119,10 @@ async def find(
     ] = None,
     offset: Annotated[int, Query(title="Offset", description="Offset in the full result set if a limit is set.")] = 0,
 ) -> JSONResponse:
-    sort_by: dict[str, SortOrder] = {}
-    if sort is not None:
-        for sort_item in sort.split(","):
-            field, direction = sort_item.split(":")
-            sort_by[field] = SortOrder[direction.upper()]
+    try:
+        sort_by = parse_sort(sort)
+    except ValueError as e:
+        return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     # Extract custom field filters from query parameters
     extra_field_filters = {}

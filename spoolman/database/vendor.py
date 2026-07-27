@@ -10,7 +10,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from spoolman.api.v1.models import EventType, Vendor, VendorEvent
 from spoolman.database import models
 from spoolman.database.extra_field_query import apply_extra_field_filters_and_sort
-from spoolman.database.utils import SortOrder, add_where_clause_str, add_where_clause_str_opt
+from spoolman.database.utils import (
+    SortOrder,
+    add_where_clause_str,
+    add_where_clause_str_opt,
+    parse_nested_field,
+)
 from spoolman.exceptions import ItemNotFoundError
 from spoolman.extra_field_registry import EntityType
 from spoolman.ws import websocket_manager
@@ -86,7 +91,7 @@ async def find(
             if fieldstr.startswith("extra."):
                 continue
 
-            field = getattr(models.Vendor, fieldstr)
+            field = parse_nested_field(models.Vendor, fieldstr)
             if order == SortOrder.ASC:
                 stmt = stmt.order_by(field.asc())
             elif order == SortOrder.DESC:
