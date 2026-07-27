@@ -78,13 +78,13 @@ async def health() -> models.HealthCheck:
 )
 async def backup():  # noqa: ANN201
     """Trigger a database backup."""
-    path = await backup_global_db()
-    if path is None:
+    result = await backup_global_db()
+    if result.path is None:
         return JSONResponse(
             status_code=500,
             content={"message": "Backup failed. See server logs for more information."},
         )
-    return models.BackupResponse(path=str(path))
+    return models.BackupResponse(path=str(result.path), created=result.created)
 
 
 @app.websocket(
