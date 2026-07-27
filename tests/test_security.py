@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from starlette.requests import HTTPConnection
 from starlette.websockets import WebSocketDisconnect
 
-from spoolman import security
+from spoolman import env, security
 
 
 def connection(**headers: str) -> HTTPConnection:
@@ -322,3 +322,9 @@ def test_middleware_allows_a_websocket_without_an_origin(client: TestClient):
 def test_middleware_is_disabled_by_the_wildcard(monkeypatch: pytest.MonkeyPatch, client: TestClient):
     monkeypatch.setenv("SPOOLMAN_CORS_ORIGIN", "*")
     assert client.post("/thing", headers={"Origin": "https://evil.example"}).status_code == 200
+
+
+def test_wildcard_survives_normalization(monkeypatch: pytest.MonkeyPatch):
+    """main.add_cors_middleware drops allow_credentials by looking for this in the parsed list."""
+    monkeypatch.setenv("SPOOLMAN_CORS_ORIGIN", " * ")
+    assert env.get_cors_origin() == [security.WILDCARD_ORIGIN]

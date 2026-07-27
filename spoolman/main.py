@@ -158,10 +158,19 @@ def add_cors_middleware() -> None:
     if not origins:
         return
 
+    # Starlette resolves allow_origins=["*"] with allow_credentials=True by echoing the caller's
+    # origin back and setting Access-Control-Allow-Credentials, which tells the browser it may
+    # send cookies to any site that asks. Spoolman has no cookies of its own, but plenty of
+    # instances sit behind a reverse proxy that does the authentication with one -- and there,
+    # this combination lets any website the user visits make authenticated requests as them.
+    allow_credentials = security.WILDCARD_ORIGIN not in origins
+    if not allow_credentials:
+        logger.warning("Allowing all CORS origins, so credentialed cross-origin requests are refused.")
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
-        allow_credentials=True,
+        allow_credentials=allow_credentials,
         allow_methods=["*"],
         allow_headers=["*"],
         expose_headers=["X-Total-Count"],

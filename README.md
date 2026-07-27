@@ -37,5 +37,38 @@ Spoolman is a self-hosted web service designed to help you efficiently manage yo
 **Web client preview:**
 ![image](https://github.com/Donkie/Spoolman/assets/2332094/33928d5e-440f-4445-aca9-456c4370ad0d)
 
+## Security
+
+**Spoolman has no authentication.** This is by design — it is built to sit on a trusted home
+network alongside your printers, where requiring a login for every Moonraker or OctoPrint call
+would only get in the way. It does mean that anyone who can reach Spoolman over the network can
+read and modify your entire inventory.
+
+If your instance is reachable from beyond your own LAN, put it behind a reverse proxy that
+handles authentication (Authelia, Authentik, or your proxy's own basic auth). Do not forward a
+port to it directly.
+
+Spoolman does defend the one boundary a browser can be tricked into crossing on your behalf: a
+website you visit cannot make your browser write to your Spoolman instance, or open a websocket
+to it, unless it is an origin you have allowed. That protection is not a substitute for the
+above — it does nothing about anyone already on your network.
+
+### `SPOOLMAN_CORS_ORIGIN`
+
+A comma-separated list of extra browser origins allowed to talk to Spoolman, for example
+`https://fluidd.local,https://mainsail.local`. Leave it unset unless you have a browser-based
+client on a *different* origin; the built-in web client does not need it, and neither does
+Moonraker, OctoPrint, Home Assistant or anything else that is not a browser.
+
+> [!WARNING]
+> Setting it to `*` turns the origin checks off entirely, which means any website you happen to
+> visit can read and modify your Spoolman data in the background. Only do this on a network you
+> trust completely, and list the origins you actually need instead wherever you can. Debug mode
+> (`SPOOLMAN_DEBUG_MODE`) has the same effect and is not meant for normal use.
+
+If you run Spoolman behind a reverse proxy, forward the original host — nginx
+`proxy_set_header Host $host;`, Apache `ProxyPreserveHost On`, or the `X-Forwarded-Host` header,
+any of which is enough. Traefik, Caddy and HAProxy do this by default.
+
 ## Installation
 Please see the [Installation page on the Wiki](https://github.com/Donkie/Spoolman/wiki/Installation) for details how to install Spoolman.

@@ -221,16 +221,29 @@ and the `DELETE /api/v1/spool/1` preflight returned
 operator setting `SPOOLMAN_CORS_ORIGIN=*` hits the identical path, and the README currently
 says nothing about `CORS_ORIGIN`, authentication, or reverse-proxy hardening.
 
-- [ ] Set `allow_credentials=False` whenever the resolved origin list contains `*`.
+- [x] Set `allow_credentials=False` whenever the resolved origin list contains `*`.
+      Worth keeping even though Spoolman has no cookies of its own: plenty of instances sit
+      behind a reverse proxy that authenticates with one, and there this combination let any
+      website the user visited make authenticated requests as them.
 - [ ] ~~Keep this separate from the task-0 trust decision: `*` must still mean "same-origin only"
       for the CSRF and WebSocket guards.~~ **Reversed** — `*` and debug mode now disable the
       origin guards outright (see task 0). Check `allow_credentials=False` does not defeat the
       point for someone who set `*` to make a cross-origin client work.
-- [ ] Log a prominent startup warning when debug mode is on, or when `CORS_ORIGIN=*`, spelling
-      out that any website can then read and write the API.
-- [ ] README: document `SPOOLMAN_CORS_ORIGIN` with an explicit "do not use `*` on a shared
-      network" warning, plus a short "Spoolman has no authentication — put it behind a reverse
-      proxy with auth if it is reachable beyond your LAN" section.
+- [x] Log a prominent startup warning when debug mode is on, or when `CORS_ORIGIN=*` — done in
+      task 0 via `trusts_all_origins()`, which both guards fire through.
+- [x] README: new `## Security` section. The README has no config reference at all (that lives
+      in the Wiki), so this documents the no-auth property as the headline fact it is, plus
+      `SPOOLMAN_CORS_ORIGIN`, the `*` warning, and the reverse-proxy `Host` requirement.
+
+Verified against a real server with `SPOOLMAN_CORS_ORIGIN=*`:
+
+| Header | Before | After |
+| --- | --- | --- |
+| `access-control-allow-origin` | `https://evil.example` (echoed) | `*` |
+| `access-control-allow-credentials` | `true` | absent |
+
+Cross-origin *writes* are still allowed under `*` — that is the opt-out working as intended,
+not a gap. Startup logs both the origin-checks-disabled warning and the credentials one.
 
 ## 6. LOW-MEDIUM — CSV formula injection in `/api/v1/export/*?fmt=csv` **[confirmed]**
 
