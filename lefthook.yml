@@ -52,6 +52,8 @@ ci:
             run: uv run ruff format --check .
           - name: Check UV lockfile consistency
             run: uv lock --check
+          - name: Run backend unit tests
+            run: uv run pytest tests
     - group: # Client checks
         parallel: false
         jobs:

@@ -48,6 +48,10 @@ help = "Bump Spoolman version."
 cmd = "uvicorn spoolman.main:app"
 help = "Start Spoolman."
 
+[tool.poe.tasks.test]
+cmd = "pytest tests"
+help = "Runs the backend unit tests. These need no database or running server."
+
 [tool.poe.tasks.itest]
 cmd = "python tests_integration/run.py"
 help = "Builds Spoolman and runs integration tests on the backend against all supported databases."
@@ -66,6 +70,10 @@ allow_dirty = false
 filename = "pyproject.toml"
 search = 'version = "{current_version}"'
 replace = 'version = "{new_version}"'
+
+[tool.pytest.ini_options]
+# Only the unit tests. tests_integration needs a live server and is run via `poe itest`.
+testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 120
