@@ -117,7 +117,7 @@ class SpoolUpdateParameters(SpoolParameters):
 
     @field_validator("filament_id")
     @classmethod
-    def prevent_none(cls: type["SpoolUpdateParameters"], v: int | None) -> int | None:
+    def prevent_none(cls: type[SpoolUpdateParameters], v: int | None) -> int | None:
         """Prevent filament_id from being None."""
         if v is None:
             raise ValueError("Value must not be None.")

@@ -1,6 +1,6 @@
 """Integration tests for the Spool API endpoint."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -69,7 +69,7 @@ def test_add_spool_remaining_weight(random_filament: dict[str, Any]):
     )
 
     # Verify that registered happened almost now (within 1 minute)
-    diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["registered"])).total_seconds())
+    diff = abs((datetime.now(tz=UTC) - datetime.fromisoformat(spool["registered"])).total_seconds())
     assert diff < 60
 
     # Clean up
@@ -261,7 +261,7 @@ def test_add_spool_initial_weight(random_filament: dict[str, Any]):
     )
 
     # Verify that registered happened almost now (within 1 minute)
-    diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["registered"])).total_seconds())
+    diff = abs((datetime.now(tz=UTC) - datetime.fromisoformat(spool["registered"])).total_seconds())
     assert diff < 60
 
     # Clean up
@@ -332,7 +332,7 @@ def test_add_spool_spool_weight(random_filament: dict[str, Any]):
     )
 
     # Verify that registered happened almost now (within 1 minute)
-    diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["registered"])).total_seconds())
+    diff = abs((datetime.now(tz=UTC) - datetime.fromisoformat(spool["registered"])).total_seconds())
     assert diff < 60
 
     # Clean up

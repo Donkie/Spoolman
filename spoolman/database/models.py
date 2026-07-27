@@ -1,7 +1,6 @@
 """SQLAlchemy data models."""
 
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import ForeignKey, Integer, String, Text
 from sqlalchemy.ext.asyncio import AsyncAttrs
@@ -33,9 +32,9 @@ class Vendor(Base):
     name: Mapped[str] = mapped_column(String(64))
     empty_spool_weight: Mapped[float | None] = mapped_column(comment="The weight of an empty spool.")
     comment: Mapped[str | None] = mapped_column(String(1024))
-    filaments: Mapped[list["Filament"]] = relationship(back_populates="vendor")
+    filaments: Mapped[list[Filament]] = relationship(back_populates="vendor")
     external_id: Mapped[str | None] = mapped_column(String(256))
-    extra: Mapped[list["VendorField"]] = relationship(
+    extra: Mapped[list[VendorField]] = relationship(
         back_populates="vendor",
         cascade="save-update, merge, delete, delete-orphan",
         lazy="selectin",
@@ -49,8 +48,8 @@ class Filament(Base):
     registered: Mapped[datetime] = mapped_column()
     name: Mapped[str | None] = mapped_column(String(64))
     vendor_id: Mapped[int | None] = mapped_column(ForeignKey("vendor.id"))
-    vendor: Mapped[Optional["Vendor"]] = relationship(back_populates="filaments")
-    spools: Mapped[list["Spool"]] = relationship(back_populates="filament")
+    vendor: Mapped[Vendor | None] = relationship(back_populates="filaments")
+    spools: Mapped[list[Spool]] = relationship(back_populates="filament")
     material: Mapped[str | None] = mapped_column(String(64))
     price: Mapped[float | None] = mapped_column()
     density: Mapped[float] = mapped_column()
@@ -65,7 +64,7 @@ class Filament(Base):
     multi_color_hexes: Mapped[str | None] = mapped_column(String(128))
     multi_color_direction: Mapped[str | None] = mapped_column(String(16))
     external_id: Mapped[str | None] = mapped_column(String(256))
-    extra: Mapped[list["FilamentField"]] = relationship(
+    extra: Mapped[list[FilamentField]] = relationship(
         back_populates="filament",
         cascade="save-update, merge, delete, delete-orphan",
         lazy="selectin",
@@ -81,7 +80,7 @@ class Spool(Base):
     last_used: Mapped[datetime | None] = mapped_column()
     price: Mapped[float | None] = mapped_column()
     filament_id: Mapped[int] = mapped_column(ForeignKey("filament.id"))
-    filament: Mapped["Filament"] = relationship(back_populates="spools")
+    filament: Mapped[Filament] = relationship(back_populates="spools")
     initial_weight: Mapped[float | None] = mapped_column()
     spool_weight: Mapped[float | None] = mapped_column()
     used_weight: Mapped[float] = mapped_column()
@@ -89,7 +88,7 @@ class Spool(Base):
     lot_nr: Mapped[str | None] = mapped_column(String(64))
     comment: Mapped[str | None] = mapped_column(String(1024))
     archived: Mapped[bool | None] = mapped_column()
-    extra: Mapped[list["SpoolField"]] = relationship(
+    extra: Mapped[list[SpoolField]] = relationship(
         back_populates="spool",
         cascade="save-update, merge, delete, delete-orphan",
         lazy="selectin",
@@ -108,7 +107,7 @@ class VendorField(Base):
     __tablename__ = "vendor_field"
 
     vendor_id: Mapped[int] = mapped_column(ForeignKey("vendor.id"), primary_key=True, index=True)
-    vendor: Mapped["Vendor"] = relationship(back_populates="extra")
+    vendor: Mapped[Vendor] = relationship(back_populates="extra")
     key: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
     value: Mapped[str] = mapped_column(Text())
 
@@ -117,7 +116,7 @@ class FilamentField(Base):
     __tablename__ = "filament_field"
 
     filament_id: Mapped[int] = mapped_column(ForeignKey("filament.id"), primary_key=True, index=True)
-    filament: Mapped["Filament"] = relationship(back_populates="extra")
+    filament: Mapped[Filament] = relationship(back_populates="extra")
     key: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
     value: Mapped[str] = mapped_column(Text())
 
@@ -126,6 +125,6 @@ class SpoolField(Base):
     __tablename__ = "spool_field"
 
     spool_id: Mapped[int] = mapped_column(ForeignKey("spool.id"), primary_key=True, index=True)
-    spool: Mapped["Spool"] = relationship(back_populates="extra")
+    spool: Mapped[Spool] = relationship(back_populates="extra")
     key: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
     value: Mapped[str] = mapped_column(Text())

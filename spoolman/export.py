@@ -38,7 +38,7 @@ async def flatten_sqlalchemy_object(obj: models.Base, parent_key: str = "", sep:
     return fields
 
 
-async def dump_as_csv(sqlalchemy_objects: Iterable[models.Base], writer: "SupportsWrite[str]") -> None:
+async def dump_as_csv(sqlalchemy_objects: Iterable[models.Base], writer: SupportsWrite[str]) -> None:
     """Export a list of objects as CSV to a writer. Nested objects are flattened with dot-separated keys."""
     # Flatten each object and get all column names
     all_flattened = await asyncio.gather(*[flatten_sqlalchemy_object(obj) for obj in sqlalchemy_objects])
@@ -57,7 +57,7 @@ async def dump_as_csv(sqlalchemy_objects: Iterable[models.Base], writer: "Suppor
         csv_writer.writerow(flattened_obj)
 
 
-async def dump_as_json(sqlalchemy_objects: Iterable[models.Base], writer: "SupportsWrite[str]") -> None:
+async def dump_as_json(sqlalchemy_objects: Iterable[models.Base], writer: SupportsWrite[str]) -> None:
     """Export a list of objects as JSON to a writer. Nested objects are flattened with dot-separated keys."""
     # Flatten each object and get all column names
     all_flattened = await asyncio.gather(*[flatten_sqlalchemy_object(obj) for obj in sqlalchemy_objects])

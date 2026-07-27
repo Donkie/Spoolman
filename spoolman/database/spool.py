@@ -3,7 +3,7 @@
 import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import sqlalchemy
 from sqlalchemy import case, func
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 def utc_timezone_naive(dt: datetime) -> datetime:
     """Convert a datetime object to UTC and remove timezone info."""
-    return dt.astimezone(tz=timezone.utc).replace(tzinfo=None)
+    return dt.astimezone(tz=UTC).replace(tzinfo=None)
 
 
 async def create(

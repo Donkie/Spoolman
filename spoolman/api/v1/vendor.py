@@ -57,7 +57,7 @@ class VendorUpdateParameters(VendorParameters):
 
     @field_validator("name")
     @classmethod
-    def prevent_none(cls: type["VendorUpdateParameters"], v: str | None) -> str | None:
+    def prevent_none(cls: type[VendorUpdateParameters], v: str | None) -> str | None:
         """Prevent name from being None."""
         if v is None:
             raise ValueError("Value must not be None.")

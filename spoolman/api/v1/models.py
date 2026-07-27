@@ -1,6 +1,6 @@
 """Pydantic data models for typing the FastAPI request/responses."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Annotated, Literal
 
@@ -14,7 +14,7 @@ from spoolman.settings import SettingDefinition, SettingType
 def datetime_to_str(dt: datetime) -> str:
     """Convert a datetime object to a string."""
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
+        dt = dt.replace(tzinfo=UTC)
     return dt.isoformat().replace("+00:00", "Z")
 
 
@@ -51,7 +51,7 @@ class SettingKV(BaseModel):
     setting: SettingResponse = Field(description="Setting value.")
 
     @staticmethod
-    def from_db(definition: SettingDefinition, set_value: str | None) -> "SettingKV":
+    def from_db(definition: SettingDefinition, set_value: str | None) -> SettingKV:
         """Create a new Pydantic vendor object from a database vendor object."""
         return SettingKV(
             key=definition.key,
@@ -92,7 +92,7 @@ class Vendor(BaseModel):
     )
 
     @staticmethod
-    def from_db(item: models.Vendor) -> "Vendor":
+    def from_db(item: models.Vendor) -> Vendor:
         """Create a new Pydantic vendor object from a database vendor object."""
         return Vendor(
             id=item.id,
@@ -208,7 +208,7 @@ class Filament(BaseModel):
     )
 
     @staticmethod
-    def from_db(item: models.Filament) -> "Filament":
+    def from_db(item: models.Filament) -> Filament:
         """Create a new Pydantic filament object from a database filament object."""
         return Filament(
             id=item.id,
@@ -317,7 +317,7 @@ class Spool(BaseModel):
     )
 
     @staticmethod
-    def from_db(item: models.Spool) -> "Spool":
+    def from_db(item: models.Spool) -> Spool:
         """Create a new Pydantic spool object from a database spool object."""
         filament = Filament.from_db(item.filament)
 

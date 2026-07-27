@@ -219,7 +219,7 @@ def schedule_tasks(scheduler: Scheduler) -> None:
         scheduler.daily(datetime.time(hour=0, minute=0, second=0), _backup_task)  # type: ignore[arg-type]
 
 
-async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
+async def get_db_session() -> AsyncGenerator[AsyncSession]:
     """Get a DB session to be used with FastAPI's dependency system.
 
     Yields:

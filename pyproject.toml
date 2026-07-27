@@ -25,7 +25,7 @@ dependencies = [
     "hishel~=0.1",
     "aiomysql[rsa]~=0.3",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.14"
 
 [dependency-groups]
 dev = [
@@ -69,7 +69,7 @@ replace = 'version = "{new_version}"'
 
 [tool.ruff]
 line-length = 120
-target-version = "py310"
+target-version = "py314"
 extend-exclude = ["client_v2"]
 
 [tool.ruff.lint]
@@ -92,6 +92,16 @@ ignore = [
     "S104",
     "S603",
     "SIM108",
+    # TC001/2/3 want type-only imports moved into `if TYPE_CHECKING:` blocks. That is
+    # wrong here: FastAPI resolves `Annotated[AsyncSession, Depends(...)]` and websocket
+    # parameters at runtime, Pydantic resolves field types at runtime, and SQLAlchemy
+    # resolves `Mapped[...]` at mapper-configuration time. A TYPE_CHECKING-only import is
+    # absent from the runtime namespace, so applying these breaks dependency injection.
+    # Ruff marks all of them as unsafe fixes for exactly this reason. They only began
+    # firing when target-version moved to py314 (PEP 649 deferred annotations).
+    "TC001",
+    "TC002",
+    "TC003",
     "TD002",
     "TD003",
     "TRY003",

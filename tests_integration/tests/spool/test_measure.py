@@ -1,6 +1,6 @@
 """Integration tests for the Spool API endpoint."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -45,11 +45,11 @@ def test_measure_spool(random_filament: dict[str, Any], measurement: float):
     expected_remaining = max(measurement - spool_weight, 0)
     assert spool["remaining_weight"] == pytest.approx(expected_remaining)
     # Verify that first_used has been updated
-    diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["first_used"])).total_seconds())
+    diff = abs((datetime.now(tz=UTC) - datetime.fromisoformat(spool["first_used"])).total_seconds())
     assert diff < 60
 
     # Verify that last_used has been updated
-    diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["last_used"])).total_seconds())
+    diff = abs((datetime.now(tz=UTC) - datetime.fromisoformat(spool["last_used"])).total_seconds())
     assert diff < 60
 
     # Clean up
@@ -143,11 +143,11 @@ def test_measure_spool_sequence(random_filament: dict[str, Any], measurements: l
         expected_remaining = max(m - spool_weight, 0)
         assert spool["remaining_weight"] == pytest.approx(expected_remaining)
         # Verify that first_used has been updated
-        diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["first_used"])).total_seconds())
+        diff = abs((datetime.now(tz=UTC) - datetime.fromisoformat(spool["first_used"])).total_seconds())
         assert diff < 60
 
         # Verify that last_used has been updated
-        diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["last_used"])).total_seconds())
+        diff = abs((datetime.now(tz=UTC) - datetime.fromisoformat(spool["last_used"])).total_seconds())
         assert diff < 60
 
         current_weight = current_weight - expected_use
@@ -195,11 +195,11 @@ def test_measure_spool_empty(random_empty_filament: dict[str, Any], measurements
         expected_remaining = max(m - spool_weight, 0)
         assert spool["remaining_weight"] == pytest.approx(expected_remaining)
         # Verify that first_used has been updated
-        diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["first_used"])).total_seconds())
+        diff = abs((datetime.now(tz=UTC) - datetime.fromisoformat(spool["first_used"])).total_seconds())
         assert diff < 60
 
         # Verify that last_used has been updated
-        diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["last_used"])).total_seconds())
+        diff = abs((datetime.now(tz=UTC) - datetime.fromisoformat(spool["last_used"])).total_seconds())
         assert diff < 60
 
         current_weight = current_weight - expected_use

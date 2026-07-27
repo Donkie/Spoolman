@@ -2,7 +2,7 @@
 
 import asyncio
 import math
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -43,11 +43,11 @@ def test_use_spool_weight(random_filament: dict[str, Any], use_weight: float):
     assert spool["remaining_weight"] == pytest.approx(min(max(start_weight - use_weight, 0), filament_net_weight))
 
     # Verify that first_used has been updated
-    diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["first_used"])).total_seconds())
+    diff = abs((datetime.now(tz=UTC) - datetime.fromisoformat(spool["first_used"])).total_seconds())
     assert diff < 60
 
     # Verify that last_used has been updated
-    diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["last_used"])).total_seconds())
+    diff = abs((datetime.now(tz=UTC) - datetime.fromisoformat(spool["last_used"])).total_seconds())
     assert diff < 60
 
     # Clean up
@@ -93,7 +93,7 @@ def test_use_spool_length(random_filament: dict[str, Any], use_length: float):
     assert spool["first_used"] == "2023-01-01T00:00:00Z"
 
     # Verify that last_used has been updated
-    diff = abs((datetime.now(tz=timezone.utc) - datetime.fromisoformat(spool["last_used"])).total_seconds())
+    diff = abs((datetime.now(tz=UTC) - datetime.fromisoformat(spool["last_used"])).total_seconds())
     assert diff < 60
 
     # Clean up

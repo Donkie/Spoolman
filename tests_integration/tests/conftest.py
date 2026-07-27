@@ -46,7 +46,7 @@ def pytest_sessionstart(session):  # noqa: ARG001, ANN001
             response = httpx.get(URL, timeout=1)
             response.raise_for_status()
             print("pytest: Spoolman now seems to be up!")  # noqa: T201
-        except httpx.HTTPError:  # noqa: PERF203
+        except httpx.HTTPError:
             if time.time() - start_time > TIMEOUT:
                 raise
             time.sleep(0.5)

@@ -1,7 +1,7 @@
 """Integration tests for the custom extra fields system."""
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 import pytest
@@ -136,7 +136,7 @@ def test_add_datetime_field():
         json={
             "name": "My datetime field",
             "field_type": "datetime",
-            "default_value": json.dumps(datetime.now(timezone.utc).isoformat()),
+            "default_value": json.dumps(datetime.now(UTC).isoformat()),
         },
     )
     assert_httpx_success(result)

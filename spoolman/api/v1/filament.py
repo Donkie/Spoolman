@@ -158,7 +158,7 @@ class FilamentParameters(BaseModel):
         return v
 
     @model_validator(mode="after")  # type: ignore[]
-    def validate(self) -> "FilamentParameters":
+    def validate(self) -> FilamentParameters:
         """Validate the model."""
         if self.color_hex and self.multi_color_hexes:
             raise ValueError("Cannot specify both color_hex and multi_color_hexes.")
@@ -178,7 +178,7 @@ class FilamentUpdateParameters(FilamentParameters):
 
     @field_validator("density", "diameter")
     @classmethod
-    def prevent_none(cls: type["FilamentUpdateParameters"], v: float | None) -> float | None:
+    def prevent_none(cls: type[FilamentUpdateParameters], v: float | None) -> float | None:
         """Prevent density and diameter from being None."""
         if v is None:
             raise ValueError("Value must not be None.")
