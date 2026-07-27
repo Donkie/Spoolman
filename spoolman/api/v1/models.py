@@ -488,6 +488,16 @@ class BackupResponse(BaseModel):
         description="Path to the created backup file.",
         examples=["/home/app/.local/share/spoolman/backups/spoolman.db"],
     )
+    created: bool = Field(
+        default=True,
+        description=(
+            "Whether this call wrote a new backup. False means an existing one was returned "
+            "instead, either because the database has not changed since it was taken or because "
+            "one was made very recently. Rotating discards the oldest restore point, so it is "
+            "deliberately not done more often than necessary."
+        ),
+        examples=[True],
+    )
 
 
 class EventType(str, Enum):

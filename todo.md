@@ -148,12 +148,30 @@ and writes a fresh snapshot. Six cross-origin posts left all six backup files cr
 the attack window — the real history was gone. Chained after task 1, an attacker corrupts
 state *and* burns the rollback path.
 
-- [ ] Cover `/backup` with the task-1 origin guard.
-- [ ] Skip rotation when the live DB is byte-identical to the newest backup, so repeated
-      calls cannot churn through the history.
-- [ ] Rate-limit `/backup` (e.g. one rotation per N minutes; return the existing path
-      otherwise).
-- [ ] Integration test: N rapid backup calls preserve at least the oldest restore point.
+- [x] Cover `/backup` with the task-1 origin guard — covered app-wide by
+      `TrustedOriginMiddleware`; a cross-origin `POST /backup` now 403s.
+- [x] Skip rotation when the DB is unchanged. **Not** by comparing the live DB file, as
+      originally written: under WAL the live file does not yet contain recent commits, so
+      comparing it would skip backups that were genuinely needed. Instead the new snapshot is
+      written to `spoolman.db.pending` first and compared against the newest backup — sqlite's
+      backup API reads through the connection, so it sees WAL content. If they match, the
+      pending file is discarded and the history is left untouched.
+- [x] Rate-limit `/backup`: `MIN_SECONDS_BETWEEN_ROTATIONS` (5 min), returning the existing
+      path. Monotonic clock, process-local state, and never applied when no backup exists yet.
+- [x] Integration test in `tests_integration/tests/test_backup.py`, plus
+      `tests/test_backup_rotation.py` for the rotation semantics (9 tests, no Docker needed).
+
+`BackupResponse` gained a `created` field. Additive, so v1-compatible, but it is load-bearing:
+silently returning a stale path when a user asked for a backup would tell them they have a fresh
+restore point when they do not, which is precisely the wrong failure mode for this project.
+
+Verified end-to-end against a real server — six rapid calls left exactly one backup and never
+rotated, where the audit saw six rotations destroy the entire history:
+
+| Call | Before | After |
+| --- | --- | --- |
+| 1 | rotates | `created: true` |
+| 2-6 | rotates each time | `created: false`, history untouched |
 
 ## 3. MEDIUM-HIGH — Cross-site WebSocket hijacking **[confirmed]**
 
