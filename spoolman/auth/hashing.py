@@ -1,9 +1,17 @@
 """Password and token hashing.
 
-Passwords use :func:`hashlib.scrypt`. The alternatives normally reached for --
-``argon2-cffi`` and ``bcrypt`` -- ship compiled wheels that are unavailable or painful
-on the armv7 image Spoolman still builds, whereas scrypt is in the standard library and
-is a memory-hard function in its own right.
+Passwords use :func:`hashlib.scrypt`, a memory-hard KDF in the standard library.
+
+The obvious alternative is to depend on a hashing library, and that was considered and
+declined for phase 1. ``argon2-cffi`` is the strongest option but its bindings have no
+armv7 wheel, so that image would compile a C extension under QEMU in CI. ``bcrypt`` 5.0
+does now publish armv7 wheels, but truncates passwords at 72 bytes. ``passlib`` has had
+no release since 2020. None of them addresses the part of login that actually leaks
+information -- see :func:`dummy_verify` -- which is application-level either way.
+
+What a library would replace is the encoding and parsing below. It is deliberately kept
+behind this module's interface so the decision can be revisited without touching
+callers.
 
 Every hash records the parameters it was produced with, so the cost can be raised later
 without a migration: :func:`verify_password` re-derives using the parameters embedded in

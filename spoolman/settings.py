@@ -73,3 +73,9 @@ register_setting("base_url", SettingType.STRING, json.dumps(""))
 
 register_setting("locations", SettingType.ARRAY, json.dumps([]))
 register_setting("locations_spoolorders", SettingType.OBJECT, json.dumps({}))
+
+# Never store a secret in a setting. Settings are readable through GET /setting/ and
+# every write is broadcast to all websocket subscribers, so anything put here is public
+# to every client that can read the API. Deployment secrets belong in environment
+# variables; see spoolman/env.py.
+register_setting("auth_anonymous_read", SettingType.BOOLEAN, json.dumps(obj=False))
