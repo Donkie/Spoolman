@@ -3,13 +3,23 @@
 		value: string | number;
 		placeholder?: string;
 		mono?: boolean;
+		/** Read-only presentation, for users without permission to edit. */
+		disabled?: boolean;
 		oninput?: (value: string) => void;
 	}
 
-	let { value, placeholder = '—', mono = false, oninput }: Props = $props();
+	let { value, placeholder = '—', mono = false, disabled = false, oninput }: Props = $props();
 </script>
 
-<input class="edit" class:mono {value} {placeholder} oninput={(e) => oninput?.(e.currentTarget.value)} />
+<input
+	class="edit"
+	class:mono
+	{value}
+	{placeholder}
+	{disabled}
+	readonly={disabled}
+	oninput={(e) => oninput?.(e.currentTarget.value)}
+/>
 
 <style>
 	.edit {
@@ -23,5 +33,13 @@
 	}
 	.edit:focus {
 		border-bottom-color: var(--accent);
+	}
+
+	/* Read-only: drop the dashed affordance so the field does not invite an edit
+	   that the server would refuse. */
+	.edit:disabled {
+		border-bottom-color: transparent;
+		color: var(--text-2);
+		cursor: default;
 	}
 </style>

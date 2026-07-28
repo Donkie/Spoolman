@@ -28,6 +28,7 @@
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
 	import { trackSave } from '$lib/utils/autosave';
 	import * as m from '$lib/paraglide/messages';
+	import { auth } from '$lib/stores/auth.svelte';
 
 	let { filament }: { filament: Filament } = $props();
 
@@ -189,10 +190,11 @@
 			<SectionLabel>{m['inspector.specs']()}</SectionLabel>
 			<FieldGrid>
 				<Field label={m['filament.fields.name']()}>
-					<EditableField value={filament.name} oninput={(v) => set({ name: v })} />
+					<EditableField disabled={!auth.canEdit} value={filament.name} oninput={(v) => set({ name: v })} />
 				</Field>
 				<Field label={m['filament.fields.material']()}>
 					<Combobox
+						disabled={!auth.canEdit}
 						value={filament.material}
 						options={materialNames}
 						underline
@@ -201,15 +203,20 @@
 				</Field>
 				<Field label={m['filament.fields.colorHex']()}>
 					{#key filament.id}
-						<ColorEditor
-							colors={filament.colors}
-							direction={filament.multiColorDirection}
-							onchange={(v) => set({ colors: v.colors, multiColorDirection: v.direction })}
-						/>
+						<!-- ColorEditor has no disabled prop of its own; inert takes the whole
+						     subtree out of interaction without having to add one. -->
+						<div class="gate" inert={!auth.canEdit}>
+							<ColorEditor
+								colors={filament.colors}
+								direction={filament.multiColorDirection}
+								onchange={(v) => set({ colors: v.colors, multiColorDirection: v.direction })}
+							/>
+						</div>
 					{/key}
 				</Field>
 				<Field label={m['filament.fields.diameter']()}>
 					<NumberInput
+						disabled={!auth.canEdit}
 						dense
 						width="200px"
 						unit="mm"
@@ -221,6 +228,7 @@
 				</Field>
 				<Field label={m['filament.fields.density']()}>
 					<NumberInput
+						disabled={!auth.canEdit}
 						dense
 						width="200px"
 						unit="g/cm³"
@@ -232,6 +240,7 @@
 				</Field>
 				<Field label={m['filament.fields.weight']()} help={m['filament.fieldsHelp.weight']()}>
 					<NumberInput
+						disabled={!auth.canEdit}
 						dense
 						width="200px"
 						unit="g"
@@ -243,6 +252,7 @@
 				</Field>
 				<Field label={m['filament.fields.spoolWeight']()} help={m['filament.fieldsHelp.spoolWeight']()}>
 					<NumberInput
+						disabled={!auth.canEdit}
 						dense
 						width="200px"
 						unit="g"
@@ -256,6 +266,7 @@
 				</Field>
 				<Field label={m['filament.fields.settingsExtruderTemp']()}>
 					<NumberInput
+						disabled={!auth.canEdit}
 						dense
 						width="200px"
 						unit="°C"
@@ -267,6 +278,7 @@
 				</Field>
 				<Field label={m['filament.fields.settingsBedTemp']()}>
 					<NumberInput
+						disabled={!auth.canEdit}
 						dense
 						width="200px"
 						unit="°C"
@@ -278,6 +290,7 @@
 				</Field>
 				<Field label={m['filament.fields.price']()}>
 					<NumberInput
+						disabled={!auth.canEdit}
 						dense
 						width="200px"
 						unit={settings.currency}
@@ -289,6 +302,7 @@
 				</Field>
 				<Field label={m['filament.fields.articleNumber']()} help={m['filament.fieldsHelp.articleNumber']()}>
 					<EditableField
+						disabled={!auth.canEdit}
 						value={filament.articleNumber ?? ''}
 						mono
 						oninput={(v) => set({ articleNumber: v })}
@@ -296,11 +310,20 @@
 				</Field>
 				<Field label={m['filament.fields.registered']()}>{filament.registeredLabel}</Field>
 				<Field label={m['filament.fields.comment']()}>
-					<EditableField value={filament.comment} oninput={(v) => set({ comment: v })} />
+					<EditableField
+						disabled={!auth.canEdit}
+						value={filament.comment}
+						oninput={(v) => set({ comment: v })}
+					/>
 				</Field>
 			</FieldGrid>
 
-			<ExtraFieldsSection entity="filament" extra={filament.extra} onchange={extraSaver.change} />
+			<ExtraFieldsSection
+				readonly={!auth.canEdit}
+				entity="filament"
+				extra={filament.extra}
+				onchange={extraSaver.change}
+			/>
 		</div>
 	</div>
 </div>
@@ -428,5 +451,10 @@
 			margin-left: 0;
 			flex-basis: 100%;
 		}
+	}
+
+	/* Wrapper exists only to carry `inert`; it must not affect layout. */
+	.gate {
+		display: contents;
 	}
 </style>

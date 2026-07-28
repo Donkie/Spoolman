@@ -14,6 +14,7 @@
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
 	import { trackSave } from '$lib/utils/autosave';
 	import * as m from '$lib/paraglide/messages';
+	import { auth } from '$lib/stores/auth.svelte';
 
 	let { vendor }: { vendor: Vendor } = $props();
 
@@ -81,10 +82,11 @@
 			<SectionLabel>{m['filament.fields.vendor']()}</SectionLabel>
 			<FieldGrid labelWidth="140px">
 				<Field label={m['vendor.fields.name']()}>
-					<EditableField value={vendor.name} oninput={(v) => set({ name: v })} />
+					<EditableField disabled={!auth.canEdit} value={vendor.name} oninput={(v) => set({ name: v })} />
 				</Field>
 				<Field label={m['vendor.fields.emptySpoolWeight']()} help={m['vendor.fieldsHelp.emptySpoolWeight']()}>
 					<NumberInput
+						disabled={!auth.canEdit}
 						dense
 						unit="g"
 						step={10}
@@ -96,11 +98,20 @@
 				</Field>
 				<Field label={m['vendor.fields.registered']()}>{vendor.registeredLabel}</Field>
 				<Field label={m['vendor.fields.comment']()}>
-					<EditableField value={vendor.comment} oninput={(v) => set({ comment: v })} />
+					<EditableField
+						disabled={!auth.canEdit}
+						value={vendor.comment}
+						oninput={(v) => set({ comment: v })}
+					/>
 				</Field>
 			</FieldGrid>
 
-			<ExtraFieldsSection entity="vendor" extra={vendor.extra} onchange={extraSaver.change} />
+			<ExtraFieldsSection
+				readonly={!auth.canEdit}
+				entity="vendor"
+				extra={vendor.extra}
+				onchange={extraSaver.change}
+			/>
 		</div>
 		<div class="col">
 			<SectionLabel>{m['filament.filament']()}</SectionLabel>

@@ -7,6 +7,7 @@
 	import { theme, type ThemePref } from '$lib/stores/theme.svelte';
 	import { locales, getLocale, setLocale, isLocale } from '$lib/paraglide/runtime.js';
 	import * as m from '$lib/paraglide/messages';
+	import { auth } from '$lib/stores/auth.svelte';
 	import { languages } from '$lib/i18n/languages';
 	import { trackSave } from '$lib/utils/autosave';
 
@@ -40,99 +41,116 @@
 	<div class="wrap">
 		<div class="title">{m['settings.header']()}</div>
 
-		<div class="sec-label">{m['settings.appearance.tab']()}</div>
-		<Card divided>
-			<SettingRow title={m['settings.appearance.theme.label']()} desc={m['settings.appearance.theme.desc']()}>
-				<div class="seg" role="group" aria-label={m['settings.appearance.theme.label']()}>
-					{#each themeOptions as opt (opt.value)}
-						<button
-							type="button"
-							class="seg-btn"
-							class:active={theme.pref === opt.value}
-							aria-pressed={theme.pref === opt.value}
-							onclick={() => theme.setPref(opt.value)}
-						>
-							{opt.label()}
-						</button>
-					{/each}
-				</div>
-			</SettingRow>
-			<SettingRow title={m['settings.language.label']()} desc={m['settings.language.desc']()}>
-				<select
-					class="lang"
-					aria-label={m['settings.language.label']()}
-					value={getLocale()}
-					onchange={(e) => {
-						if (isLocale(e.currentTarget.value)) setLocale(e.currentTarget.value);
-					}}
+		{#if !auth.canManage}
+			<p class="notice">{m['auth.readOnlyNotice']()}</p>
+		{/if}
+
+		<!-- Every control below writes through POST /setting/{key}, which the server
+		     gates at manage. `inert` removes the whole subtree from interaction and from
+		     the accessibility tree with one attribute, which beats threading a `disabled`
+		     prop through a dozen components that were never built to take one. This is
+		     cosmetic; the server is the authority. -->
+		<div class="sections" inert={!auth.canManage}>
+			<div class="sec-label">{m['settings.appearance.tab']()}</div>
+			<Card divided>
+				<SettingRow
+					title={m['settings.appearance.theme.label']()}
+					desc={m['settings.appearance.theme.desc']()}
 				>
-					{#each localeData as locale (locale.code)}
-						<option value={locale.code}>{locale.langData.name}</option>
-					{/each}
-				</select>
-			</SettingRow>
-		</Card>
+					<div class="seg" role="group" aria-label={m['settings.appearance.theme.label']()}>
+						{#each themeOptions as opt (opt.value)}
+							<button
+								type="button"
+								class="seg-btn"
+								class:active={theme.pref === opt.value}
+								aria-pressed={theme.pref === opt.value}
+								onclick={() => theme.setPref(opt.value)}
+							>
+								{opt.label()}
+							</button>
+						{/each}
+					</div>
+				</SettingRow>
+				<SettingRow title={m['settings.language.label']()} desc={m['settings.language.desc']()}>
+					<select
+						class="lang"
+						aria-label={m['settings.language.label']()}
+						value={getLocale()}
+						onchange={(e) => {
+							if (isLocale(e.currentTarget.value)) setLocale(e.currentTarget.value);
+						}}
+					>
+						{#each localeData as locale (locale.code)}
+							<option value={locale.code}>{locale.langData.name}</option>
+						{/each}
+					</select>
+				</SettingRow>
+			</Card>
 
-		<div class="sec-label">{m['settings.general.tab']()}</div>
-		<Card divided>
-			<SettingRow title={m['settings.general.currency.label']()} desc={m['settings.general.currency.desc']()}>
-				<input
-					class="code mono"
-					aria-label={m['settings.general.currency.label']()}
-					value={settings.currency}
-					maxlength="3"
-					onchange={(e) => saveCurrency(e.currentTarget.value)}
-				/>
-			</SettingRow>
-			<SettingRow
-				title={m['settings.general.roundPrices.label']()}
-				desc={m['settings.general.roundPrices.tooltip']()}
-			>
-				<Toggle
-					checked={settings.roundPrices}
-					onchange={(v) => trackSave(settings.setRoundPrices(v))}
-					ariaLabel={m['settings.general.roundPrices.label']()}
-				/>
-			</SettingRow>
-			<SettingRow
-				title={m['settings.general.baseUrl.label']()}
-				desc={m['settings.general.baseUrl.tooltip']()}
-			>
-				<input
-					class="url"
-					aria-label={m['settings.general.baseUrl.label']()}
-					value={settings.baseUrl}
-					placeholder="https://spoolman.example.com"
-					onchange={(e) => saveBaseUrl(e.currentTarget.value)}
-				/>
-			</SettingRow>
-		</Card>
+			<div class="sec-label">{m['settings.general.tab']()}</div>
+			<Card divided>
+				<SettingRow
+					title={m['settings.general.currency.label']()}
+					desc={m['settings.general.currency.desc']()}
+				>
+					<input
+						class="code mono"
+						aria-label={m['settings.general.currency.label']()}
+						value={settings.currency}
+						maxlength="3"
+						onchange={(e) => saveCurrency(e.currentTarget.value)}
+					/>
+				</SettingRow>
+				<SettingRow
+					title={m['settings.general.roundPrices.label']()}
+					desc={m['settings.general.roundPrices.tooltip']()}
+				>
+					<Toggle
+						checked={settings.roundPrices}
+						onchange={(v) => trackSave(settings.setRoundPrices(v))}
+						ariaLabel={m['settings.general.roundPrices.label']()}
+					/>
+				</SettingRow>
+				<SettingRow
+					title={m['settings.general.baseUrl.label']()}
+					desc={m['settings.general.baseUrl.tooltip']()}
+				>
+					<input
+						class="url"
+						aria-label={m['settings.general.baseUrl.label']()}
+						value={settings.baseUrl}
+						placeholder="https://spoolman.example.com"
+						onchange={(e) => saveBaseUrl(e.currentTarget.value)}
+					/>
+				</SettingRow>
+			</Card>
 
-		<div class="sec-label">{m['settings.library.tab']()}</div>
-		<Card divided>
-			<SettingRow
-				title={m['settings.library.lowThreshold.label']()}
-				desc={m['settings.library.lowThreshold.desc']()}
-			>
-				<input
-					class="num mono"
-					type="number"
-					aria-label={m['settings.library.lowThreshold.label']()}
-					value={settings.lowThreshold}
-					oninput={(e) => settings.setLowThreshold(Number(e.currentTarget.value) || 0)}
-				/>
-				<span class="unit">g</span>
-			</SettingRow>
-		</Card>
+			<div class="sec-label">{m['settings.library.tab']()}</div>
+			<Card divided>
+				<SettingRow
+					title={m['settings.library.lowThreshold.label']()}
+					desc={m['settings.library.lowThreshold.desc']()}
+				>
+					<input
+						class="num mono"
+						type="number"
+						aria-label={m['settings.library.lowThreshold.label']()}
+						value={settings.lowThreshold}
+						oninput={(e) => settings.setLowThreshold(Number(e.currentTarget.value) || 0)}
+					/>
+					<span class="unit">g</span>
+				</SettingRow>
+			</Card>
 
-		<div class="sec-label">{m['settings.extraFields.tab']()}</div>
-		<div class="subtitle sub2">
-			<p>{m['settings.extraFields.description.intro']()}</p>
-			<p>{m['settings.extraFields.description.constraints']()}</p>
-			<p>{m['settings.extraFields.description.keyUsage']()}</p>
-			<p>{m['settings.extraFields.description.tableViews']()}</p>
+			<div class="sec-label">{m['settings.extraFields.tab']()}</div>
+			<div class="subtitle sub2">
+				<p>{m['settings.extraFields.description.intro']()}</p>
+				<p>{m['settings.extraFields.description.constraints']()}</p>
+				<p>{m['settings.extraFields.description.keyUsage']()}</p>
+				<p>{m['settings.extraFields.description.tableViews']()}</p>
+			</div>
+			<ExtraFieldsManager />
 		</div>
-		<ExtraFieldsManager />
 	</div>
 </div>
 
@@ -221,5 +239,15 @@
 	.seg-btn.active {
 		background: var(--accent);
 		color: #fff;
+	}
+
+	.notice {
+		margin: 0 0 12px;
+		padding: 8px 10px;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-sm);
+		background: var(--surface-sunken);
+		color: var(--text-2);
+		font-size: 0.82rem;
 	}
 </style>

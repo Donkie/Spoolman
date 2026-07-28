@@ -26,6 +26,7 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import * as m from '$lib/paraglide/messages';
+	import { auth } from '$lib/stores/auth.svelte';
 
 	let { spool }: { spool: Spool } = $props();
 
@@ -265,7 +266,7 @@
 						bind:value={adjustVal}
 						unit={adjustInfo.unit}
 						step={0.01}
-						disabled={adjustBusy}
+						disabled={adjustBusy || !auth.canEdit}
 						width="130px"
 					/>
 					<Button onclick={applyAdjust} disabled={adjustBusy}
@@ -287,6 +288,7 @@
 			<FieldGrid>
 				<Field label={m['spool.fields.location']()} help={m['spool.fieldsHelp.location']()}>
 					<Combobox
+						disabled={!auth.canEdit}
 						value={spool.location}
 						placeholder={m['library.noLocation']()}
 						options={locationOptions}
@@ -295,10 +297,11 @@
 					/>
 				</Field>
 				<Field label={m['spool.fields.lotNr']()} help={m['spool.fieldsHelp.lotNr']()}>
-					<EditableField value={spool.lot} mono oninput={(v) => set({ lot: v })} />
+					<EditableField disabled={!auth.canEdit} value={spool.lot} mono oninput={(v) => set({ lot: v })} />
 				</Field>
 				<Field label={m['spool.fields.price']()} help={m['spool.fieldsHelp.price']()}>
 					<NumberInput
+						disabled={!auth.canEdit}
 						dense
 						width="240px"
 						unit={settings.currencySymbol}
@@ -319,11 +322,20 @@
 					<DateTimeField value={spool.lastUsed} oninput={(iso) => set({ lastUsed: iso })} />
 				</Field>
 				<Field label={m['spool.fields.comment']()}>
-					<EditableField value={spool.comment} oninput={(v) => set({ comment: v })} />
+					<EditableField
+						disabled={!auth.canEdit}
+						value={spool.comment}
+						oninput={(v) => set({ comment: v })}
+					/>
 				</Field>
 			</FieldGrid>
 
-			<ExtraFieldsSection entity="spool" extra={spool.extra} onchange={extraSaver.change} />
+			<ExtraFieldsSection
+				readonly={!auth.canEdit}
+				entity="spool"
+				extra={spool.extra}
+				onchange={extraSaver.change}
+			/>
 		</div>
 
 		<div class="col">
@@ -364,6 +376,8 @@
 				{/if}
 			</FieldGrid>
 
+			<!-- Already read-only regardless of permission: this shows the parent filament's
+			     fields from inside the spool inspector, which are edited on the filament. -->
 			<ExtraFieldsSection entity="filament" extra={filament.extra} onchange={() => {}} readonly />
 		</div>
 	</div>

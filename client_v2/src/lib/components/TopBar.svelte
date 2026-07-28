@@ -4,7 +4,9 @@
 	import SearchBox from './library/SearchBox.svelte';
 	import Button from './Button.svelte';
 	import * as m from '$lib/paraglide/messages';
+	import { auth } from '$lib/stores/auth.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
+	import LogOut from '@lucide/svelte/icons/log-out';
 	import ScanLine from '@lucide/svelte/icons/scan-line';
 	import Search from '@lucide/svelte/icons/search';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
@@ -52,20 +54,44 @@
 		<button class="scan-btn" onclick={onscan} aria-label={m['scanner.title']()} title={m['scanner.title']()}>
 			<ScanLine size={18} />
 		</button>
-		<button
-			class="add-mobile"
-			onclick={onadd}
-			aria-label={m['topbar.addSpools']()}
-			title={m['topbar.addSpools']()}
-		>
-			<Plus size={18} />
-		</button>
+		{#if auth.canManage}
+			<button
+				class="add-mobile"
+				onclick={onadd}
+				aria-label={m['topbar.addSpools']()}
+				title={m['topbar.addSpools']()}
+			>
+				<Plus size={18} />
+			</button>
+		{/if}
 		<div class="search-desktop">
 			<SearchBox />
 		</div>
-		<div class="add-desktop">
-			<Button onclick={onadd}><Plus size={15} /> {m['topbar.addSpools']()}</Button>
-		</div>
+		{#if auth.canManage}
+			<div class="add-desktop">
+				<Button onclick={onadd}><Plus size={15} /> {m['topbar.addSpools']()}</Button>
+			</div>
+		{/if}
+
+		<!-- Only rendered when the server actually enforces auth, so the default
+		     configuration keeps the bar exactly as it was. -->
+		{#if auth.enabled && auth.authenticated}
+			<div class="account">
+				<span class="who" title={m['auth.signedInAs']({ name: auth.displayName })}>
+					{auth.displayName}
+				</span>
+				<button
+					class="signout"
+					onclick={() => auth.signOut()}
+					aria-label={m['auth.signOut']()}
+					title={m['auth.signOut']()}
+				>
+					<LogOut size={16} />
+				</button>
+			</div>
+		{:else if auth.enabled && auth.anonymous}
+			<span class="badge">{m['auth.anonymousBadge']()}</span>
+		{/if}
 
 		<!-- Mobile: the expanded search overlays the row so the typed query is visible. -->
 		<div class="search-overlay" bind:this={overlayEl}>
@@ -217,6 +243,56 @@
 			display: flex;
 			padding: 0 6px 8px;
 			overflow-x: auto;
+		}
+	}
+
+	.account {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin-left: 8px;
+	}
+
+	.who {
+		max-width: 12ch;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		color: var(--text-2);
+		font-size: 0.82rem;
+	}
+
+	.signout {
+		display: grid;
+		place-items: center;
+		/* 44px keeps the mobile a11y audit's tap-target check green. */
+		width: 44px;
+		height: 44px;
+		border: 0;
+		border-radius: var(--radius-sm);
+		background: none;
+		color: var(--text-muted);
+		cursor: pointer;
+	}
+
+	.signout:hover {
+		background: var(--surface-raised);
+		color: var(--text);
+	}
+
+	.badge {
+		margin-left: 8px;
+		padding: 3px 8px;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-sm);
+		color: var(--text-muted);
+		font-size: 0.75rem;
+		white-space: nowrap;
+	}
+
+	@media (max-width: 860px) {
+		.who {
+			display: none;
 		}
 	}
 </style>
