@@ -21,12 +21,17 @@ if __name__ == "__main__":
         print("Failed to build Spoolman tester!")
         sys.exit(1)
 
-    # Support input arguments for running only specific tests
+    # Support input arguments for running only specific tests.
+    #
+    # "sqlite-auth" is runnable but not in the default set. It runs a different suite
+    # (tests_integration/tests_auth) against a server with SPOOLMAN_AUTH_ENABLED, and
+    # nothing in spoolman/auth is database-specific, so there is no reason to pay for it
+    # on every run of the four-database regression sweep.
     if len(sys.argv) > 1:
         targets = sys.argv[1:]
         # Check that all targets are valid
         for target in targets:
-            if target not in ["postgres", "sqlite", "mariadb", "cockroachdb"]:
+            if target not in ["postgres", "sqlite", "mariadb", "cockroachdb", "sqlite-auth"]:
                 print(f"Unknown target: {target}")
                 sys.exit(1)
     else:

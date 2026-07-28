@@ -1,0 +1,24 @@
+version: '3.8'
+# The authentication suite. Deliberately a single SQLite variant rather than another
+# pass over all four databases: nothing in spoolman/auth is database-specific, so
+# re-running the whole regression suite with authentication on would quadruple the CI
+# bill to re-prove the same thing.
+#
+# The tester mounts ./tests_auth -- not ./tests -- at the path the image's fixed
+# entrypoint collects from, so this compose file runs the auth suite and only the auth
+# suite, and the regression runs can never pick these tests up.
+services:
+  spoolman:
+    image: donkie/spoolman:test
+    environment:
+      - SPOOLMAN_LOGGING_LEVEL=INFO
+      - TZ=Europe/Stockholm
+      - SPOOLMAN_AUTH_ENABLED=TRUE
+  tester:
+    image: donkie/spoolman-tester:latest
+    volumes:
+      - ./tests_auth:/tester/tests
+    environment:
+      - DB_TYPE=sqlite
+    depends_on:
+      - spoolman
