@@ -326,6 +326,10 @@ async def find_groups(
         coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight,
         0.0,
     )
+    # ...including its max(..., 0) clamp, so an over-used spool contributes 0 rather than a
+    # negative number and the group total still matches the sum of the per-spool values.
+    # CASE, not func.greatest: greatest() is not portable across all four supported databases.
+    remaining_expr = case((remaining_expr < 0, 0.0), else_=remaining_expr)
     spool_count = func.count().label("spool_count")
     in_use_count = func.sum(case((models.Spool.used_weight > 0, 1), else_=0)).label("in_use_count")
     total_remaining = func.sum(remaining_expr).label("total_remaining_weight")

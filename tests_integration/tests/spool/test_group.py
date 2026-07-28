@@ -107,6 +107,37 @@ def test_group_pagination(group_spools: Fixture):
     assert groups[0]["key"] == "Shelf B"
 
 
+def test_group_total_remaining_clamps_over_used_spool(random_filament: dict[str, Any]):
+    """An over-used spool contributes 0, not a negative, keeping the group total equal to the per-spool sum."""
+    filament_id = random_filament["id"]
+    spool_ids: list[int] = []
+    # One healthy spool (300 g left) and one used past empty (per-spool remaining clamps to 0).
+    for payload in (
+        {"filament_id": filament_id, "initial_weight": 500, "used_weight": 200},
+        {"filament_id": filament_id, "initial_weight": 500, "used_weight": 800},
+    ):
+        result = httpx.post(f"{URL}/api/v1/spool", json=payload)
+        result.raise_for_status()
+        spool_ids.append(result.json()["id"])
+
+    try:
+        result = httpx.get(f"{URL}/api/v1/spool/{spool_ids[1]}")
+        result.raise_for_status()
+        assert result.json()["remaining_weight"] == pytest.approx(0)
+
+        result = httpx.get(
+            f"{URL}/api/v1/spool/group",
+            params={"group_by": "filament", "filament.id": str(filament_id)},
+        )
+        result.raise_for_status()
+        group = result.json()[0]
+        # Without the clamp this would be 300 + (-300) = 0.
+        assert group["total_remaining_weight"] == pytest.approx(300)
+    finally:
+        for spool_id in spool_ids:
+            httpx.delete(f"{URL}/api/v1/spool/{spool_id}").raise_for_status()
+
+
 def test_group_invalid_group_by():
     """An unsupported group_by is rejected by request validation."""
     result = httpx.get(f"{URL}/api/v1/spool/group", params={"group_by": "banana"})
