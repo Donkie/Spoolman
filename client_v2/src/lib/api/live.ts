@@ -102,6 +102,10 @@ class WebSocketLive implements LiveConnection {
 			return;
 		}
 		sock.ws = ws;
+		// This socket's own keepalive handle. Kept local (not just on `sock`) so a
+		// superseded socket can clean up after itself without touching the shared
+		// `sock` state — see the identity guards below.
+		let pingTimer: ReturnType<typeof setInterval> | null = null;
 
 		ws.onmessage = (ev) => {
 			let msg: Record<string, unknown>;
@@ -127,16 +131,30 @@ class WebSocketLive implements LiveConnection {
 			}
 		};
 
+		// A socket can be superseded before its own events land: reconnectAllNow()
+		// opens a replacement while this one is still CLOSING, and the late
+		// onopen/onclose would then clobber the replacement's state (killing its
+		// keepalive, or nulling sock.ws under it). Every handler that touches the
+		// shared `sock` first checks it is still the current socket.
 		ws.onopen = () => {
+			if (sock.ws !== ws) {
+				ws.close(); // superseded while connecting — drop it
+				return;
+			}
 			sock.attempts = 0; // connected — reset backoff
 			// Light keepalive; the server replies {status:"healthy"} which we ignore.
-			sock.pingTimer = setInterval(() => {
+			pingTimer = setInterval(() => {
 				if (ws.readyState === WebSocket.OPEN) ws.send('ping');
 			}, 25000);
+			sock.pingTimer = pingTimer;
 		};
 
 		ws.onclose = () => {
-			if (sock.pingTimer) clearInterval(sock.pingTimer);
+			// Always stop our own keepalive, current socket or not, so a superseded
+			// socket doesn't leak its interval.
+			if (pingTimer) clearInterval(pingTimer);
+			pingTimer = null;
+			if (sock.ws !== ws) return; // a replacement is live — leave it alone
 			sock.pingTimer = null;
 			sock.ws = null;
 			if (!sock.closed && sock.subs.size > 0) this.scheduleReconnect(resource, sock);
