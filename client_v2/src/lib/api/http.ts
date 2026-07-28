@@ -42,6 +42,57 @@ export class HttpError extends Error {
 	}
 }
 
+const SESSION_EXPIRED = 401;
+const FORBIDDEN = 403;
+
+const CSRF_COOKIE = 'spoolman_csrf';
+const CSRF_HEADER = 'X-CSRF-Token';
+
+/** Paths that own their own error handling — a failed sign-in must not read as a sign-out. */
+const AUTH_PATH_PREFIX = '/auth/';
+
+type AuthHandlers = {
+	/** The server says we are not signed in. */
+	unauthorized: () => void;
+	/** The server refused for lack of permission. */
+	forbidden: (detail: string) => void;
+};
+
+let authHandlers: AuthHandlers | null = null;
+
+/**
+ * Register what to do when the server rejects a request on authentication grounds.
+ *
+ * Inverted rather than imported directly: the auth store imports this module, so
+ * reaching back for the store here would be a cycle.
+ */
+export function setAuthHandlers(handlers: AuthHandlers): void {
+	authHandlers = handlers;
+}
+
+/** Read a cookie by name. Only used for the CSRF token, which is deliberately readable. */
+function readCookie(name: string): string {
+	const prefix = name + '=';
+	for (const part of document.cookie.split('; ')) {
+		if (part.startsWith(prefix)) return decodeURIComponent(part.slice(prefix.length));
+	}
+	return '';
+}
+
+/**
+ * Headers for a request that carries a body.
+ *
+ * The session cookie is HttpOnly and travels on its own, but because it is sent
+ * automatically it needs a second factor the browser will not supply cross-site: the
+ * CSRF token, which lives in a readable cookie precisely so it can be echoed here.
+ */
+function writeHeaders(): Record<string, string> {
+	const headers: Record<string, string> = { 'content-type': 'application/json' };
+	const token = readCookie(CSRF_COOKIE);
+	if (token) headers[CSRF_HEADER] = token;
+	return headers;
+}
+
 async function ensureOk(res: Response, method: string, path: string): Promise<Response> {
 	if (!res.ok) {
 		let detail = '';
@@ -49,6 +100,10 @@ async function ensureOk(res: Response, method: string, path: string): Promise<Re
 			detail = (await res.json())?.message ?? '';
 		} catch {
 			/* ignore */
+		}
+		if (!path.startsWith(AUTH_PATH_PREFIX)) {
+			if (res.status === SESSION_EXPIRED) authHandlers?.unauthorized();
+			else if (res.status === FORBIDDEN) authHandlers?.forbidden(detail);
 		}
 		throw new HttpError(`${method} ${path} → ${res.status}${detail ? `: ${detail}` : ''}`, res.status);
 	}
@@ -71,7 +126,11 @@ export async function getList(
 	params: QueryParams = {},
 	signal?: AbortSignal
 ): Promise<RawPage> {
-	const res = await ensureOk(await fetch(API_BASE + path + queryString(params), { signal }), 'GET', path);
+	const res = await ensureOk(
+		await fetch(API_BASE + path + queryString(params), { signal, credentials: 'include' }),
+		'GET',
+		path
+	);
 	const items = (await res.json()) as unknown[];
 	const header = res.headers.get('x-total-count');
 	const total = header != null && header !== '' ? Number(header) : items.length;
@@ -83,7 +142,11 @@ export async function getJson<T = unknown>(
 	params: QueryParams = {},
 	signal?: AbortSignal
 ): Promise<T> {
-	const res = await ensureOk(await fetch(API_BASE + path + queryString(params), { signal }), 'GET', path);
+	const res = await ensureOk(
+		await fetch(API_BASE + path + queryString(params), { signal, credentials: 'include' }),
+		'GET',
+		path
+	);
 	return (await res.json()) as T;
 }
 
@@ -91,7 +154,8 @@ export async function patchJson<T = unknown>(path: string, body: unknown): Promi
 	const res = await ensureOk(
 		await fetch(API_BASE + path, {
 			method: 'PATCH',
-			headers: { 'content-type': 'application/json' },
+			headers: writeHeaders(),
+			credentials: 'include',
 			body: JSON.stringify(body)
 		}),
 		'PATCH',
@@ -104,7 +168,8 @@ export async function putJson<T = unknown>(path: string, body: unknown): Promise
 	const res = await ensureOk(
 		await fetch(API_BASE + path, {
 			method: 'PUT',
-			headers: { 'content-type': 'application/json' },
+			headers: writeHeaders(),
+			credentials: 'include',
 			body: JSON.stringify(body)
 		}),
 		'PUT',
@@ -117,7 +182,8 @@ export async function postJson<T = unknown>(path: string, body: unknown): Promis
 	const res = await ensureOk(
 		await fetch(API_BASE + path, {
 			method: 'POST',
-			headers: { 'content-type': 'application/json' },
+			headers: writeHeaders(),
+			credentials: 'include',
 			body: JSON.stringify(body)
 		}),
 		'POST',
@@ -127,10 +193,18 @@ export async function postJson<T = unknown>(path: string, body: unknown): Promis
 }
 
 export async function deleteResource(path: string): Promise<void> {
-	await ensureOk(await fetch(API_BASE + path, { method: 'DELETE' }), 'DELETE', path);
+	await ensureOk(
+		await fetch(API_BASE + path, { method: 'DELETE', headers: writeHeaders(), credentials: 'include' }),
+		'DELETE',
+		path
+	);
 }
 
 export async function deleteJson<T = unknown>(path: string): Promise<T> {
-	const res = await ensureOk(await fetch(API_BASE + path, { method: 'DELETE' }), 'DELETE', path);
+	const res = await ensureOk(
+		await fetch(API_BASE + path, { method: 'DELETE', headers: writeHeaders(), credentials: 'include' }),
+		'DELETE',
+		path
+	);
 	return (await res.json()) as T;
 }

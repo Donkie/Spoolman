@@ -26,6 +26,8 @@ export interface SubscribeOpts {
 
 export interface LiveConnection {
 	subscribe(resource: Resource, opts: SubscribeOpts, handler: LiveHandler): () => void;
+	/** Reopen sockets that an auth rejection stopped, after signing back in. */
+	rearm(): void;
 }
 
 interface Sub {
@@ -39,6 +41,8 @@ interface ResourceSocket {
 	reconnectTimer: ReturnType<typeof setTimeout> | null;
 	pingTimer: ReturnType<typeof setInterval> | null;
 	closed: boolean;
+	/** Set when the server rejected us on auth grounds; suppresses reconnects until rearm(). */
+	authBlocked: boolean;
 	/** Consecutive failed connects; drives exponential reconnect backoff. */
 	attempts: number;
 }
@@ -51,6 +55,22 @@ interface ResourceSocket {
 // it's back (network 'online' or the tab becoming visible again).
 const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 30000;
+
+// Close codes the server sends after accepting the handshake. 4000 + the HTTP status
+// they stand in for, matching the backend's convention.
+const WS_UNAUTHENTICATED = 4401;
+const WS_FORBIDDEN = 4403;
+
+let authCloseHandler: (() => void) | null = null;
+
+/**
+ * Register what to do when the server closes a socket on authentication grounds.
+ *
+ * Inverted rather than importing the auth store, which would be a cycle.
+ */
+export function setLiveAuthCloseHandler(handler: () => void): void {
+	authCloseHandler = handler;
+}
 
 class WebSocketLive implements LiveConnection {
 	private sockets = new Map<Resource, ResourceSocket>();
@@ -84,6 +104,7 @@ class WebSocketLive implements LiveConnection {
 				reconnectTimer: null,
 				pingTimer: null,
 				closed: false,
+				authBlocked: false,
 				attempts: 0
 			};
 			this.sockets.set(resource, sock);
@@ -135,10 +156,25 @@ class WebSocketLive implements LiveConnection {
 			}, 25000);
 		};
 
-		ws.onclose = () => {
+		ws.onclose = (ev) => {
 			if (sock.pingTimer) clearInterval(sock.pingTimer);
 			sock.pingTimer = null;
 			sock.ws = null;
+
+			// An auth rejection is permanent until something changes, unlike a dropped
+			// backend. Retrying it would hammer the server on a backoff loop that can
+			// never succeed, so stop and let the app react. Subscribers are kept, so
+			// rearm() can bring every view back after a sign-in without re-subscribing.
+			//
+			// This only works because the server accepts the handshake before closing.
+			// A close sent before the accept is turned into an HTTP 403 by uvicorn and
+			// the code never arrives — see spoolman/auth/dependencies.py.
+			if (ev.code === WS_UNAUTHENTICATED || ev.code === WS_FORBIDDEN) {
+				sock.authBlocked = true;
+				authCloseHandler?.();
+				return;
+			}
+
 			if (!sock.closed && sock.subs.size > 0) this.scheduleReconnect(resource, sock);
 		};
 
@@ -146,7 +182,7 @@ class WebSocketLive implements LiveConnection {
 	}
 
 	private scheduleReconnect(resource: Resource, sock: ResourceSocket) {
-		if (sock.reconnectTimer) return;
+		if (sock.reconnectTimer || sock.authBlocked) return;
 		const delay = this.backoffDelay(sock.attempts);
 		sock.attempts++;
 		sock.reconnectTimer = setTimeout(() => {
@@ -166,7 +202,7 @@ class WebSocketLive implements LiveConnection {
 	 *  waiting out its backoff, and reset the backoff so a fresh drop starts fast. */
 	private reconnectAllNow() {
 		for (const [resource, sock] of this.sockets) {
-			if (sock.closed || sock.subs.size === 0) continue;
+			if (sock.closed || sock.authBlocked || sock.subs.size === 0) continue;
 			const rs = sock.ws?.readyState;
 			if (rs === WebSocket.OPEN || rs === WebSocket.CONNECTING) continue;
 			sock.attempts = 0;
@@ -175,6 +211,21 @@ class WebSocketLive implements LiveConnection {
 				sock.reconnectTimer = null;
 			}
 			this.open(resource, sock);
+		}
+	}
+
+	/**
+	 * Retry sockets that were stopped by an auth rejection, after a successful sign-in.
+	 *
+	 * Distinct from teardown(), which drops the map entry: this keeps every existing
+	 * subscriber, so views that were already listening resume without re-subscribing.
+	 */
+	rearm() {
+		for (const [resource, sock] of this.sockets) {
+			if (!sock.authBlocked) continue;
+			sock.authBlocked = false;
+			sock.attempts = 0;
+			if (sock.subs.size > 0) this.open(resource, sock);
 		}
 	}
 

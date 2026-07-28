@@ -1,6 +1,6 @@
 import type { SearchMatch, SearchResults } from './types';
 import type { Filament, Spool, Vendor } from '$lib/types';
-import { API_BASE } from './config';
+import { getJson } from './http';
 import { mapFilament, mapSpool, mapVendor } from './map';
 import { inventory } from '$lib/stores/inventory.svelte';
 
@@ -50,10 +50,10 @@ export async function searchAll(
 	const q = query.trim();
 	if (!q) return EMPTY;
 
-	const params = new URLSearchParams({ q, color_similarity_threshold: String(threshold) });
-	const res = await fetch(`${API_BASE}/search?${params.toString()}`, { signal });
-	if (!res.ok) throw new Error(`GET /search → ${res.status}`);
-	const data = (await res.json()) as Json;
+	// Goes through getJson rather than a bare fetch so it picks up credentials, the
+	// CSRF header and 401/403 handling like every other call. A hand-rolled fetch here
+	// would be an authentication hole that silently returns nothing once auth is on.
+	const data = await getJson<Json>('/search', { q, color_similarity_threshold: threshold }, signal);
 
 	return {
 		spools: (data.spools ?? []).map(mapSpoolHit),
