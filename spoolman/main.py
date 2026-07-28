@@ -1,12 +1,13 @@
 """Main entrypoint to the server."""
 
+import hmac
 import logging
 import subprocess
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import PlainTextResponse, RedirectResponse, Response
@@ -58,6 +59,42 @@ app.add_middleware(GZipMiddleware)
 app.mount(env.get_base_path() + "/api/v1", v1_app)
 
 
+def metrics_access_permitted(request: Request) -> bool:
+    """Check whether a caller may read the metrics endpoint.
+
+    Metrics stay public while authentication is off, so existing Prometheus scrape
+    configs keep working untouched. With authentication on they need a shared token,
+    unless the operator opts back out with SPOOLMAN_METRICS_PUBLIC.
+
+    A shared token rather than a user session, because a scraper is not a browser: it
+    has no way to sign in, and a static bearer is what Prometheus scrape configs express
+    natively. API keys arrive in phase 2 and will be accepted here as well.
+
+    Args:
+        request: The incoming request.
+
+    Returns:
+        bool: Whether to serve the metrics.
+
+    """
+    if not env.is_auth_enabled() or env.is_metrics_public():
+        return True
+
+    expected = env.get_metrics_token()
+    if not expected:
+        return False
+
+    presented = request.headers.get("x-api-key", "")
+    if not presented:
+        authorization = request.headers.get("authorization", "")
+        scheme, _, value = authorization.partition(" ")
+        if scheme.lower() == "bearer":
+            presented = value.strip()
+    if not presented:
+        return False
+    return hmac.compare_digest(presented, expected)
+
+
 # WA for prometheus /metrics bind with SinglePageApp at root
 @app.get(
     env.get_base_path() + "/metrics",
@@ -67,9 +104,11 @@ app.mount(env.get_base_path() + "/api/v1", v1_app)
         "Get app metrics for prometheusIf enabled SPOOLMAN_METRICS_ENABLED returned metrics by Spools and Filaments"
     ),
 )
-def get_metrics() -> bytes:
+def get_metrics(request: Request) -> Response:
     """Return prometheus metrics."""
-    return generate_latest(registry)
+    if not metrics_access_permitted(request):
+        return PlainTextResponse("Unauthorized", status_code=401)
+    return PlainTextResponse(generate_latest(registry))
 
 
 base_path = env.get_base_path()
@@ -127,10 +166,19 @@ else:
 
 def add_cors_middleware() -> None:
     """Add CORS middleware to the FastAPI app based on environment settings."""
-    origins = []
+    origins: list[str] = []
+    origin_regex: str | None = None
     if env.is_debug_mode():
-        logger.warning("Running in debug mode, allowing all origins.")
-        origins = ["*"]
+        # Reflect whatever Origin asked, rather than sending a literal "*".
+        #
+        # allow_credentials=True below makes Starlette emit "*" verbatim, and browsers
+        # reject that outright for any request carrying credentials. Nothing noticed
+        # while the API was anonymous, but it silently breaks cookie-authenticated
+        # requests from the Vite dev server on port 5174 to the backend on 8000, which
+        # is the whole point of debug mode. Echoing the origin is what the wildcard was
+        # already trying to express.
+        logger.warning("Running in debug mode, reflecting all origins.")
+        origin_regex = ".*"
     elif env.is_cors_defined():
         cors_origins = env.get_cors_origin()
         if cors_origins:
@@ -139,12 +187,13 @@ def add_cors_middleware() -> None:
         else:
             logger.warning("CORS origins are not defined, no CORS will be applied.")
 
-    if not origins:
+    if not origins and origin_regex is None:
         return
 
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
+        allow_origin_regex=origin_regex,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -153,6 +202,39 @@ def add_cors_middleware() -> None:
 
 
 add_cors_middleware()
+
+
+def log_auth_status() -> None:
+    """Report the authentication configuration, and warn about combinations that surprise."""
+    if not env.is_auth_enabled():
+        return
+
+    from collections import Counter  # noqa: PLC0415
+
+    from spoolman.api.v1.router import ROUTE_LEVELS  # noqa: PLC0415
+
+    counts = Counter(str(level) for level in ROUTE_LEVELS.values())
+    logger.info(
+        "Authentication is enabled. %d API routes are gated (read: %d, edit: %d, manage: %d).",
+        len(ROUTE_LEVELS),
+        counts.get("read", 0),
+        counts.get("edit", 0),
+        counts.get("manage", 0),
+    )
+
+    if env.is_legacy_client_enabled():
+        # The React client has no sign-in screen and no cookie or CSRF handling, so it
+        # will fail every request with no way for the user to authenticate.
+        logger.warning(
+            "SPOOLMAN_LEGACY_CLIENT is set together with authentication. The legacy client "
+            "does not support signing in and will not work. Unset one of the two.",
+        )
+
+    if env.is_metrics_enabled() and not env.is_metrics_public() and not env.get_metrics_token():
+        logger.warning(
+            "Metrics are enabled but no SPOOLMAN_METRICS_TOKEN is set, so /metrics will "
+            "reject every scrape. Set a token, or set SPOOLMAN_METRICS_PUBLIC=TRUE.",
+        )
 
 
 def add_file_logging() -> None:
@@ -209,6 +291,8 @@ async def startup() -> None:
     schedule = Scheduler()
     database.schedule_tasks(schedule)
     externaldb.schedule_tasks(schedule)
+
+    log_auth_status()
 
     logger.info("Startup complete.")
 
