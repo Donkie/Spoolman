@@ -64,6 +64,8 @@ export function mapSpool(s: Json): Spool {
 		unused: (s.used_weight ?? 0) === 0,
 		remaining: s.remaining_weight ?? 0,
 		initial: s.initial_weight ?? f.weight ?? 0,
+		initialOverride: s.initial_weight ?? undefined,
+		usedWeight: s.used_weight ?? 0,
 		location: s.location ?? '',
 		lot: s.lot_nr ?? '',
 		price: s.price ?? undefined,

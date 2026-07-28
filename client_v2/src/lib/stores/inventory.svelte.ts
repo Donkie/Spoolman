@@ -83,6 +83,28 @@ class Inventory {
 		if (v) this.upsertVendor({ ...v, ...patch });
 	}
 
+	/**
+	 * Recompute the weights of cached spools that inherit them from `f`.
+	 *
+	 * The server does not re-broadcast a filament's spools when the filament changes
+	 * (that fan-out is unbounded — see spoolman/database/filament.py `update`), so a
+	 * filament event is our only signal. Everything else a spool shows about its
+	 * filament resolves through `filamentById` and is already live; the exception is
+	 * a spool with no `initial_weight` of its own, whose initial/remaining weights the
+	 * server derived from `filament.weight`. Mirror `Spool.from_db`'s formula —
+	 * including its clamp at 0 — so an over-used spool doesn't go negative.
+	 */
+	private reweighSpoolsOfFilament(f: Filament) {
+		let changed = false;
+		const next = this.spools.map((s) => {
+			if (s.filamentId !== f.id || s.initialOverride !== undefined) return s;
+			if (s.initial === f.weight) return s;
+			changed = true;
+			return { ...s, initial: f.weight, remaining: Math.max(f.weight - s.usedWeight, 0) };
+		});
+		if (changed) this.spools = next;
+	}
+
 	// --- live events (raw API payload → cache) ------------------------------
 
 	ingest(event: LiveEvent) {
@@ -104,7 +126,9 @@ class Inventory {
 			const id = String(event.id);
 			if (event.type === 'deleted') this.filaments = this.filaments.filter((f) => f.id !== id);
 			else if (payload) {
-				this.upsertFilament(mapFilament(payload));
+				const f = mapFilament(payload);
+				this.upsertFilament(f);
+				this.reweighSpoolsOfFilament(f);
 				const v = payload.vendor as Record<string, unknown> | undefined;
 				if (v) this.upsertVendor(mapVendor(v));
 			}

@@ -190,25 +190,17 @@ async def update(
         else:
             setattr(filament, k, v)
     await db.commit()
+    # A spool's response embeds its filament and carries values derived from it
+    # (remaining_length, and the initial_weight/price fall-backs), so this edit changed
+    # every one of this filament's spool payloads without touching a spool row.
+    # We deliberately do NOT re-broadcast those spools: a filament shared by hundreds of
+    # spools would turn one PATCH into hundreds of ORM loads and websocket frames inside
+    # the request. Subscribers are expected to treat a filament event as invalidating the
+    # spools that reference it and refetch what they still have on screen — see
+    # client_v2/src/lib/stores/inventory.svelte.ts. The same reasoning applies to vendor
+    # updates, which is why there is no vendor-side fan-out either.
     await filament_changed(filament, EventType.UPDATED)
-    # A spool's response carries fields derived from its filament (remaining_length,
-    # and the initial_weight/price fall-backs to the filament's values). Those change
-    # when the filament changes, yet no spool row was touched — so subscribers to the
-    # affected spools would keep stale derived values until each spool is next edited.
-    # Re-broadcast the filament's spools so websocket clients refresh them.
-    await _notify_filament_spools(db, filament_id)
     return filament
-
-
-async def _notify_filament_spools(db: AsyncSession, filament_id: int) -> None:
-    """Emit a spool 'updated' event for every spool belonging to a filament."""
-    # Local import: spool.py imports this module at load time, so importing it at the
-    # top here would be a circular import.
-    from spoolman.database import spool  # noqa: PLC0415
-
-    spools, _ = await spool.find(db=db, filament_id=filament_id, allow_archived=True)
-    for s in spools:
-        await spool.spool_changed(s, EventType.UPDATED)
 
 
 async def delete(db: AsyncSession, filament_id: int) -> None:

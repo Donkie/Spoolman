@@ -56,8 +56,13 @@ export interface Spool {
 	unused: boolean;
 	/** Remaining filament weight in grams. */
 	remaining: number;
-	/** Initial (net) weight in grams. */
+	/** Initial (net) weight in grams; falls back to the filament's weight. */
 	initial: number;
+	/** Per-spool initial-weight override; undefined means `initial` came from the
+	 *  filament and must be recomputed when the filament's weight changes. */
+	initialOverride?: number;
+	/** Filament drawn from this spool so far, in grams. */
+	usedWeight: number;
 	location: string;
 	lot: string;
 	/** Per-spool price override; undefined falls back to the filament's price. */
