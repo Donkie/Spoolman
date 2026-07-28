@@ -40,7 +40,8 @@ router = APIRouter(
         "by its exact id. A query that "
         "is a hex code (e.g. '#ff0000') or a CSS color name (e.g. 'red') additionally runs a "
         "color-similarity search over filaments. Results are categorized by entity and each result "
-        "reports which field matched."
+        "reports which field matched. Archived spools are excluded unless allow_archived is set, "
+        "matching the behavior of the spool endpoint."
     ),
     response_model_exclude_none=True,
 )
@@ -79,12 +80,20 @@ async def search_endpoint(
             le=100,
         ),
     ] = 20,
+    allow_archived: Annotated[
+        bool,
+        Query(
+            title="Allow Archived",
+            description="Whether to include archived spools in the results.",
+        ),
+    ] = False,
 ) -> SearchResults:
     result = await search.search(
         db=db,
         query=query,
         color_similarity_threshold=color_similarity_threshold,
         limit=limit,
+        allow_archived=allow_archived,
     )
     return SearchResults(
         spools=[SearchResultSpool(spool=Spool.from_db(m.spool), match_field=m.match_field) for m in result.spools],
