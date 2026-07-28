@@ -79,3 +79,9 @@ register_setting("locations_spoolorders", SettingType.OBJECT, json.dumps({}))
 # to every client that can read the API. Deployment secrets belong in environment
 # variables; see spoolman/env.py.
 register_setting("auth_anonymous_read", SettingType.BOOLEAN, json.dumps(obj=False))
+
+# How many days of audit log to keep. Zero keeps everything. A setting rather than an
+# environment variable because retention is a policy an administrator revises, not a
+# deployment parameter, and changing it should not need a restart. Not a secret: it says
+# nothing about what is in the log.
+register_setting("auth_audit_retention_days", SettingType.NUMBER, json.dumps(90))

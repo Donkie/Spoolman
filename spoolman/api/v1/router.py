@@ -19,7 +19,20 @@ from spoolman.exceptions import AuthenticationRequiredError, ItemNotFoundError, 
 from spoolman.externaldb import get_external_db_name
 from spoolman.ws import websocket_manager
 
-from . import auth, export, externaldb, field, filament, models, other, search, setting, spool, vendor
+from . import (
+    audit,
+    auth,
+    export,
+    externaldb,
+    field,
+    filament,
+    models,
+    other,
+    search,
+    setting,
+    spool,
+    vendor,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -136,6 +149,7 @@ async def notify(
 
 # Add routers
 app.include_router(auth.router)
+app.include_router(audit.router)
 app.include_router(filament.router)
 app.include_router(spool.router)
 app.include_router(vendor.router)

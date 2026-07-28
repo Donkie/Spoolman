@@ -1,5 +1,6 @@
 """Pydantic data models for typing the FastAPI request/responses."""
 
+import json
 from datetime import UTC, datetime
 from enum import Enum
 from typing import Annotated, Literal
@@ -638,3 +639,51 @@ class PasswordChangeRequest(BaseModel):
         max_length=MAX_PASSWORD_LENGTH,
         description="The new password.",
     )
+
+
+#
+# Authentication, phase 2: the audit log.
+#
+
+MAX_AUDIT_EVENT_LENGTH = 64
+
+
+class AuthAuditEntry(BaseModel):
+    """One line of the audit trail."""
+
+    id: int = Field(description="Unique internal ID of this entry.")
+    date: SpoolmanDateTime = Field(description="When it happened, in UTC.")
+    event: str = Field(description="What happened.", examples=["login.success"])
+    actor_user_id: int | None = Field(default=None, description="Which account acted, if it still exists.")
+    actor_username: str | None = Field(default=None, description="That account's username, resolved for display.")
+    actor_kind: str = Field(description="How the actor was authenticated.", examples=["user"])
+    target: str | None = Field(default=None, description="What was acted on.")
+    ip: str | None = Field(default=None, description="Where the request came from.")
+    user_agent: str | None = Field(default=None, description="What the request identified itself as.")
+    detail: dict | None = Field(default=None, description="Anything else worth keeping.")
+
+    @staticmethod
+    def from_db(entry: models.AuthAuditLog, actor_username: str | None = None) -> AuthAuditEntry:
+        """Create a Pydantic audit entry from a database audit entry."""
+        detail = None
+        if entry.detail:
+            try:
+                parsed = json.loads(entry.detail)
+            except ValueError:
+                # A row written by a future version, or corrupted. Showing the raw text
+                # beats dropping the entry: the point of an audit log is that entries do
+                # not silently vanish.
+                parsed = {"raw": entry.detail}
+            detail = parsed if isinstance(parsed, dict) else {"value": parsed}
+        return AuthAuditEntry(
+            id=entry.id,
+            date=entry.date,
+            event=entry.event,
+            actor_user_id=entry.actor_user_id,
+            actor_username=actor_username,
+            actor_kind=entry.actor_kind,
+            target=entry.target,
+            ip=entry.ip,
+            user_agent=entry.user_agent,
+            detail=detail,
+        )

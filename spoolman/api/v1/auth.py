@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman import env
 from spoolman.auth import cookies
+from spoolman.auth.audit import AuditEvent, record
 from spoolman.auth.dependencies import anonymous_read_enabled, require_user, resolve_principal
 from spoolman.auth.hashing import (
     dummy_verify_async,
@@ -34,6 +35,7 @@ from spoolman.auth.principal import Principal, PrincipalKind
 from spoolman.auth.ratelimit import client_ip, ip_window
 from spoolman.database import auth_session as auth_session_db
 from spoolman.database import auth_user as auth_user_db
+from spoolman.database import models as db_models
 from spoolman.database.database import get_db_session
 
 from . import models
@@ -83,6 +85,15 @@ def _session_info(principal: Principal | None, user: models.AuthUserInfo | None 
         is_owner=principal.is_owner,
         user=user,
     )
+
+
+def _failure_reason(user: db_models.AuthUser | None) -> str:
+    """Say why a sign-in failed before a password was even checked, for the audit log."""
+    if user is None:
+        return "no_such_user"
+    if not user.is_active:
+        return "account_disabled"
+    return "no_password_set"
 
 
 def _throttled(address: str) -> JSONResponse | None:
@@ -187,6 +198,8 @@ async def setup(
         client_ip(request) or "an unknown address",
     )
 
+    await record(request, AuditEvent.INSTANCE_CLAIMED, actor_user_id=user.id, target=user.username)
+
     token, csrf = await _start_session(db=db, request=request, user_id=user.id, remember=False)
     info = _session_info(
         Principal(
@@ -238,12 +251,29 @@ async def login(
         await dummy_verify_async()
         if address:
             ip_window.hit(address)
+        # The audit entry does distinguish these cases, unlike the response. Its readers
+        # are administrators who already know which accounts exist, and "somebody is
+        # trying to sign in to the account you disabled" is exactly what a log is for.
+        await record(
+            request,
+            AuditEvent.LOGIN_FAILURE,
+            actor_user_id=user.id if user is not None else None,
+            target=username,
+            detail={"reason": _failure_reason(user)},
+        )
         return _message(UNAUTHORIZED, INVALID_CREDENTIALS)
 
     if auth_user_db.is_locked(user) and user.locked_until is not None:
         # Deliberately not spending a hash here: the answer is already decided, and
         # burning CPU on locked accounts is a self-inflicted denial of service.
         retry_after = max(int((user.locked_until - datetime.utcnow()).total_seconds()), 1)
+        await record(
+            request,
+            AuditEvent.LOGIN_LOCKED,
+            actor_user_id=user.id,
+            target=username,
+            detail={"retry_after": retry_after},
+        )
         return _message(
             TOO_MANY_REQUESTS,
             "Too many sign-in attempts. Try again shortly.",
@@ -254,9 +284,17 @@ async def login(
         await auth_user_db.record_login_failure(db=db, user=user)
         if address:
             ip_window.hit(address)
+        await record(
+            request,
+            AuditEvent.LOGIN_FAILURE,
+            actor_user_id=user.id,
+            target=username,
+            detail={"reason": "bad_password", "failed_logins": user.failed_logins},
+        )
         return _message(UNAUTHORIZED, INVALID_CREDENTIALS)
 
     await auth_user_db.record_login_success(db=db, user=user)
+    await record(request, AuditEvent.LOGIN_SUCCESS, actor_user_id=user.id, target=user.username)
 
     # Upgrade the stored hash if the cost parameters have been raised since it was made.
     if needs_rehash(user.password_hash):
@@ -298,7 +336,12 @@ async def logout(
     # its cookies cleared.
     token = request.cookies.get(cookies.SESSION_COOKIE, "")
     if token:
+        # Resolved before the revoke, while the token still identifies somebody. A
+        # sign-out that cannot say who signed out is not worth recording.
+        principal = await resolve_principal(request)
         await auth_session_db.revoke_by_token(db, token)
+        if principal is not None and principal.user_id is not None:
+            await record(request, AuditEvent.LOGOUT, principal=principal, target=principal.username)
     response = JSONResponse(content={"message": "Signed out."})
     cookies.clear_session_cookies(response, request)
     return response
@@ -342,6 +385,7 @@ async def get_session(
 )
 async def change_password(
     db: Annotated[AsyncSession, Depends(get_db_session)],
+    request: Request,
     principal: Annotated[Principal, Depends(require_user())],
     body: models.PasswordChangeRequest,
 ) -> Response:
@@ -350,6 +394,13 @@ async def change_password(
 
     user = await auth_user_db.get_by_id(db, principal.user_id)
     if user.password_hash is None or not await verify_password_async(body.current_password, user.password_hash):
+        await record(
+            request,
+            AuditEvent.LOGIN_FAILURE,
+            principal=principal,
+            target=user.username,
+            detail={"reason": "bad_password", "during": "password_change"},
+        )
         return _message(BAD_REQUEST, "The current password is incorrect.")
 
     await auth_user_db.set_password(
@@ -357,4 +408,9 @@ async def change_password(
         user=user,
         password_hash=await hash_password_async(body.new_password),
     )
+    # Other sessions are deliberately left alone. Someone changing their password
+    # routinely does not expect their phone to be signed out; an administrator who
+    # suspects a compromise has "sign out everywhere" for that, and a reset performed
+    # for them revokes everything.
+    await record(request, AuditEvent.PASSWORD_CHANGED, principal=principal, target=user.username)
     return JSONResponse(content={"message": "Password changed."})

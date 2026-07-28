@@ -16,7 +16,7 @@ from scheduler.asyncio.scheduler import Scheduler
 
 from spoolman import env, externaldb
 from spoolman.api.v1.router import app as v1_app
-from spoolman.auth import secret
+from spoolman.auth import audit, secret
 from spoolman.client import SinglePageApplication
 from spoolman.database import database
 from spoolman.prometheus.metrics import registry
@@ -291,6 +291,7 @@ async def startup() -> None:
     schedule = Scheduler()
     database.schedule_tasks(schedule)
     externaldb.schedule_tasks(schedule)
+    audit.schedule_tasks(schedule)
 
     log_auth_status()
 
