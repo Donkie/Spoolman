@@ -3,17 +3,21 @@
 		checked: boolean;
 		onchange?: (checked: boolean) => void;
 		ariaLabel: string | undefined;
+		/** Refuse interaction, for a toggle the server would reject anyway. */
+		disabled?: boolean;
 	}
 
-	let { checked, onchange, ariaLabel }: Props = $props();
+	let { checked, onchange, ariaLabel, disabled = false }: Props = $props();
 </script>
 
 <button
 	class="toggle"
 	class:on={checked}
+	type="button"
 	role="switch"
 	aria-checked={checked}
 	aria-label={ariaLabel}
+	{disabled}
 	onclick={() => onchange?.(!checked)}
 >
 	<span class="knob"></span>
@@ -34,6 +38,10 @@
 	}
 	.toggle.on {
 		background: var(--accent);
+	}
+	.toggle:disabled {
+		opacity: 0.45;
+		cursor: not-allowed;
 	}
 	.knob {
 		position: absolute;

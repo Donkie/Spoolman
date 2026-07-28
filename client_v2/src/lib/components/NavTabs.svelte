@@ -3,13 +3,29 @@
 	import type { Pathname } from '$app/types';
 	import { page } from '$app/stores';
 	import * as m from '$lib/paraglide/messages';
+	import { auth } from '$lib/stores/auth.svelte';
 
-	const tabs = [
+	// `show` decides whether a tab appears at all. Absent means always. The auth tabs
+	// are hidden rather than disabled: with auth off there is no account for /account
+	// to describe and no users for /users to list, so the pages would be empty rather
+	// than merely restricted. This is cosmetic — the server gates the endpoints.
+	interface Tab {
+		href: Pathname;
+		label: () => string;
+		show?: () => boolean;
+	}
+
+	const tabs: Tab[] = [
 		{ href: '/', label: m['nav.library'] },
 		{ href: '/locations', label: m['locations.locations'] },
 		{ href: '/labels', label: m['nav.labels'] },
-		{ href: '/settings', label: m['settings.header'] }
-	] satisfies { href: Pathname; label: () => string }[];
+		{ href: '/settings', label: m['settings.header'] },
+		{ href: '/account', label: m['nav.account'], show: () => auth.enabled && auth.authenticated },
+		{ href: '/users', label: m['nav.users'], show: () => auth.enabled && auth.isAdmin },
+		{ href: '/audit', label: m['nav.audit'], show: () => auth.enabled && auth.isAdmin }
+	];
+
+	let visible = $derived(tabs.filter((tab) => tab.show?.() ?? true));
 
 	// The deploy base path, without its trailing slash (resolve('/') === `${base}/`).
 	const basePath = resolve('/').replace(/\/$/, '');
@@ -22,7 +38,7 @@
 </script>
 
 <nav class="tabs">
-	{#each tabs as tab (tab.href)}
+	{#each visible as tab (tab.href)}
 		<a href={resolve(tab.href)} class="tab" class:active={isActive(tab.href)}>{tab.label()}</a>
 	{/each}
 </nav>

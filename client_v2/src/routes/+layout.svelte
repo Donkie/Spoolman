@@ -7,6 +7,7 @@
 	import Toaster from '$components/Toaster.svelte';
 	import LoginScreen from '$components/auth/LoginScreen.svelte';
 	import SetupScreen from '$components/auth/SetupScreen.svelte';
+	import ForcePasswordChange from '$components/auth/ForcePasswordChange.svelte';
 	import { ui } from '$lib/stores/ui.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { serverInfo } from '$lib/stores/serverInfo.svelte';
@@ -51,7 +52,7 @@
 	// canRead is reactive, signing in re-runs this and everything starts for real; the
 	// returned teardown runs on sign-out.
 	$effect(() => {
-		if (!auth.ready || !auth.canRead) return;
+		if (!auth.ready || !auth.canRead || auth.mustChangePassword) return;
 
 		settings.load();
 		serverInfo.load();
@@ -70,6 +71,10 @@
 	<div class="app"><SetupScreen /></div>
 {:else if !auth.canRead}
 	<div class="app"><LoginScreen /></div>
+{:else if auth.mustChangePassword}
+	<!-- Ahead of the app, not inside it. A temporary password set by an administrator
+	     is one they know, so browsing on it should not be an option. -->
+	<div class="app"><ForcePasswordChange /></div>
 {:else}
 	<div class="app">
 		<TopBar onadd={() => ui.openAddModal()} onscan={() => ui.openScanner()} />
