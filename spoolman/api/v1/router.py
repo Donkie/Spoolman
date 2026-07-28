@@ -5,14 +5,17 @@
 import asyncio
 import logging
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from starlette.requests import Request
 from starlette.responses import Response
 
 from spoolman import env
+from spoolman.auth.coverage import assert_routes_covered
+from spoolman.auth.dependencies import require_level, ws_authenticated
+from spoolman.auth.levels import Level
 from spoolman.database.database import backup_global_db
-from spoolman.exceptions import ItemNotFoundError
+from spoolman.exceptions import AuthenticationRequiredError, ItemNotFoundError, PermissionDeniedError
 from spoolman.externaldb import get_external_db_name
 from spoolman.ws import websocket_manager
 
@@ -44,8 +47,33 @@ async def itemnotfounderror_exception_handler(_request: Request, exc: ItemNotFou
     )
 
 
+# The body shape matches models.Message, the same as every other error this API returns,
+# rather than FastAPI's default {"detail": ...}. Handlers have to be registered on this
+# app and not the outer one: Starlette resolves them from the mounted app that owns the
+# route, which is why the handler above lives here too.
+@app.exception_handler(AuthenticationRequiredError)
+async def authenticationrequirederror_exception_handler(
+    _request: Request,
+    exc: AuthenticationRequiredError,
+) -> Response:
+    logger.debug(exc)
+    return JSONResponse(
+        status_code=401,
+        content={"message": exc.args[0]},
+    )
+
+
+@app.exception_handler(PermissionDeniedError)
+async def permissiondeniederror_exception_handler(_request: Request, exc: PermissionDeniedError) -> Response:
+    logger.debug(exc)
+    return JSONResponse(
+        status_code=403,
+        content={"message": exc.args[0]},
+    )
+
+
 # Add a general info endpoint
-@app.get("/info")
+@app.get("/info", dependencies=[Depends(require_level(Level.READ))])
 async def info() -> models.Info:
     """Return general info about the API."""
     return models.Info(
@@ -75,6 +103,7 @@ async def health() -> models.HealthCheck:
     description="Trigger a database backup. Only applicable for SQLite databases.",
     response_model=models.BackupResponse,
     responses={500: {"model": models.Message}},
+    dependencies=[Depends(require_level(Level.MANAGE))],
 )
 async def backup():  # noqa: ANN201
     """Trigger a database backup."""
@@ -91,10 +120,10 @@ async def backup():  # noqa: ANN201
     "/",
     name="Listen to any changes",
 )
+@ws_authenticated(Level.READ)
 async def notify(
     websocket: WebSocket,
 ) -> None:
-    await websocket.accept()
     websocket_manager.connect((), websocket)
     try:
         while True:
@@ -115,3 +144,22 @@ app.include_router(other.router)
 app.include_router(externaldb.router)
 app.include_router(export.router)
 app.include_router(search.router)
+
+
+# Routes that must stay reachable without credentials.
+#
+# /health is polled by container healthchecks and by the frontend test harness, and is
+# the one endpoint that has to answer before anyone can possibly be signed in. The auth
+# endpoints bootstrap a session, so requiring one would be circular; each performs its
+# own checking. Everything else is gated.
+PUBLIC_ROUTES = frozenset(
+    {
+        ("GET", "/health"),
+    },
+)
+
+# Proving coverage here, at import, is the point: a route added without a gate stops the
+# process immediately rather than quietly serving unauthenticated traffic. This runs
+# before uvicorn binds a port and before migrations, and equally when the module is
+# imported by the docs generator or a test.
+ROUTE_LEVELS = assert_routes_covered(app, PUBLIC_ROUTES)

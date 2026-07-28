@@ -13,6 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.datastructures import QueryParams
 
 from spoolman.api.v1.models import Filament, Message, Spool, SpoolEvent, SpoolGroup, Vendor
+from spoolman.auth.dependencies import require_level, ws_authenticated
+from spoolman.auth.levels import Level
 from spoolman.database import spool
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
@@ -146,6 +148,7 @@ class SpoolMeasureParameters(BaseModel):
         200: {"model": list[Spool]},
         299: {"model": SpoolEvent, "description": "Websocket message"},
     },
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def find(
     *,
@@ -361,10 +364,10 @@ async def find(
     "",
     name="Listen to spool changes",
 )
+@ws_authenticated(Level.READ)
 async def notify_any(
     websocket: WebSocket,
 ) -> None:
-    await websocket.accept()
     websocket_manager.connect(("spool",), websocket)
     try:
         while True:
@@ -390,6 +393,7 @@ async def notify_any(
         200: {"model": list[SpoolGroup]},
         400: {"model": Message},
     },
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def find_groups(
     *,
@@ -551,6 +555,7 @@ async def find_groups(
     ),
     response_model_exclude_none=True,
     responses={404: {"model": Message}, 299: {"model": SpoolEvent, "description": "Websocket message"}},
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -564,11 +569,11 @@ async def get(
     "/{spool_id}",
     name="Listen to spool changes",
 )
+@ws_authenticated(Level.READ)
 async def notify(
     websocket: WebSocket,
     spool_id: int,
 ) -> None:
-    await websocket.accept()
     websocket_manager.connect(("spool", str(spool_id)), websocket)
     try:
         while True:
@@ -592,6 +597,7 @@ async def notify(
     responses={
         400: {"model": Message},
     },
+    dependencies=[Depends(require_level(Level.MANAGE))],
 )
 async def create(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -651,6 +657,7 @@ async def create(  # noqa: ANN201
         400: {"model": Message},
         404: {"model": Message},
     },
+    dependencies=[Depends(require_level(Level.EDIT))],
 )
 async def update(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -693,6 +700,7 @@ async def update(  # noqa: ANN201
     name="Delete spool",
     description="Delete a spool.",
     responses={404: {"model": Message}},
+    dependencies=[Depends(require_level(Level.MANAGE))],
 )
 async def delete(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -714,6 +722,7 @@ async def delete(
         400: {"model": Message},
         404: {"model": Message},
     },
+    dependencies=[Depends(require_level(Level.EDIT))],
 )
 async def use(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -750,6 +759,7 @@ async def use(  # noqa: ANN201
         400: {"model": Message},
         404: {"model": Message},
     },
+    dependencies=[Depends(require_level(Level.EDIT))],
 )
 async def measure(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],

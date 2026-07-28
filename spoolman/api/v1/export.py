@@ -8,6 +8,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from spoolman.auth.dependencies import require_level
+from spoolman.auth.levels import Level
 from spoolman.database import filament, spool, vendor
 from spoolman.database.database import get_db_session
 from spoolman.database.models import Base
@@ -29,6 +31,7 @@ class ExportFormat(Enum):
     "/spools",
     name="Export spools",
     description="Export the list of spools in various formats. Filament and vendor data is included.",
+    dependencies=[Depends(require_level(Level.MANAGE))],
 )
 async def export_spools(
     *,
@@ -47,6 +50,7 @@ async def export_spools(
     "/filaments",
     name="Export filaments",
     description="Export the list of filaments in various formats. Vendor data is included.",
+    dependencies=[Depends(require_level(Level.MANAGE))],
 )
 async def export_filaments(
     *,
@@ -61,6 +65,7 @@ async def export_filaments(
     "/vendors",
     name="Export vendors",
     description="Export the list of vendors in various formats.",
+    dependencies=[Depends(require_level(Level.MANAGE))],
 )
 async def export_vendors(
     *,

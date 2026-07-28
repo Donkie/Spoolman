@@ -10,6 +10,8 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import Message, Vendor, VendorEvent
+from spoolman.auth.dependencies import require_level, ws_authenticated
+from spoolman.auth.levels import Level
 from spoolman.database import vendor
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
@@ -77,6 +79,7 @@ class VendorUpdateParameters(VendorParameters):
         200: {"model": list[Vendor]},
         299: {"model": VendorEvent, "description": "Websocket message"},
     },
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def find(
     request: Request,
@@ -160,10 +163,10 @@ async def find(
     "",
     name="Listen to vendor changes",
 )
+@ws_authenticated(Level.READ)
 async def notify_any(
     websocket: WebSocket,
 ) -> None:
-    await websocket.accept()
     websocket_manager.connect(("vendor",), websocket)
     try:
         while True:
@@ -183,6 +186,7 @@ async def notify_any(
     ),
     response_model_exclude_none=True,
     responses={404: {"model": Message}, 299: {"model": VendorEvent, "description": "Websocket message"}},
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -196,11 +200,11 @@ async def get(
     "/{vendor_id}",
     name="Listen to vendor changes",
 )
+@ws_authenticated(Level.READ)
 async def notify(
     websocket: WebSocket,
     vendor_id: int,
 ) -> None:
-    await websocket.accept()
     websocket_manager.connect(("vendor", str(vendor_id)), websocket)
     try:
         while True:
@@ -218,6 +222,7 @@ async def notify(
     response_model_exclude_none=True,
     response_model=Vendor,
     responses={400: {"model": Message}},
+    dependencies=[Depends(require_level(Level.MANAGE))],
 )
 async def create(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -255,6 +260,7 @@ async def create(  # noqa: ANN201
         400: {"model": Message},
         404: {"model": Message},
     },
+    dependencies=[Depends(require_level(Level.EDIT))],
 )
 async def update(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -286,6 +292,7 @@ async def update(  # noqa: ANN201
         "Delete a vendor. The vendor attribute of any filaments who refer to the deleted vendor will be cleared."
     ),
     responses={404: {"model": Message}},
+    dependencies=[Depends(require_level(Level.MANAGE))],
 )
 async def delete(
     db: Annotated[AsyncSession, Depends(get_db_session)],

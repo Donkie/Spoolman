@@ -11,6 +11,8 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import Filament, FilamentEvent, Message, MultiColorDirection
+from spoolman.auth.dependencies import require_level, ws_authenticated
+from spoolman.auth.levels import Level
 from spoolman.database import filament
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
@@ -198,6 +200,7 @@ class FilamentUpdateParameters(FilamentParameters):
         200: {"model": list[Filament]},
         299: {"model": FilamentEvent, "description": "Websocket message"},
     },
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def find(
     *,
@@ -382,10 +385,10 @@ async def find(
     "",
     name="Listen to filament changes",
 )
+@ws_authenticated(Level.READ)
 async def notify_any(
     websocket: WebSocket,
 ) -> None:
-    await websocket.accept()
     websocket_manager.connect(("filament",), websocket)
     try:
         while True:
@@ -405,6 +408,7 @@ async def notify_any(
     ),
     response_model_exclude_none=True,
     responses={404: {"model": Message}, 299: {"model": FilamentEvent, "description": "Websocket message"}},
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -418,11 +422,11 @@ async def get(
     "/{filament_id}",
     name="Listen to filament changes",
 )
+@ws_authenticated(Level.READ)
 async def notify(
     websocket: WebSocket,
     filament_id: int,
 ) -> None:
-    await websocket.accept()
     websocket_manager.connect(("filament", str(filament_id)), websocket)
     try:
         while True:
@@ -440,6 +444,7 @@ async def notify(
     response_model_exclude_none=True,
     response_model=Filament,
     responses={400: {"model": Message}},
+    dependencies=[Depends(require_level(Level.MANAGE))],
 )
 async def create(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -489,6 +494,7 @@ async def create(  # noqa: ANN201
         400: {"model": Message},
         404: {"model": Message},
     },
+    dependencies=[Depends(require_level(Level.EDIT))],
 )
 async def update(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -522,6 +528,7 @@ async def update(  # noqa: ANN201
         403: {"model": Message},
         404: {"model": Message},
     },
+    dependencies=[Depends(require_level(Level.MANAGE))],
 )
 async def delete(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],

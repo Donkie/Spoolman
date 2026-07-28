@@ -12,9 +12,11 @@ ungated.
 import functools
 import json
 import logging
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import asynccontextmanager
 from typing import Final, ParamSpec, TypeVar
 
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 from starlette.websockets import WebSocket
 
@@ -48,6 +50,31 @@ R = TypeVar("R")
 ANONYMOUS_READ_SETTING: Final = "auth_anonymous_read"
 
 
+@asynccontextmanager
+async def _db_session() -> AsyncIterator[AsyncSession]:
+    """Open a database session outside FastAPI's dependency system.
+
+    ``get_db_session`` is an async generator. Driving it with ``async for`` and then
+    breaking or returning leaves it suspended at its yield, so the ``finally`` that
+    closes the session never runs on the event loop -- the garbage collector reaches it
+    later and SQLAlchemy raises out of a context where it cannot await. Closing the
+    generator explicitly keeps that deterministic.
+
+    Note this skips the generator's own trailing commit, which is deliberate: callers
+    here commit explicitly where they mean to write.
+
+    Yields:
+        AsyncSession: The database session.
+
+    """
+    generator = get_db_session()
+    session = await anext(generator)
+    try:
+        yield session
+    finally:
+        await generator.aclose()
+
+
 async def _anonymous_read_enabled() -> bool:
     """Check the setting that grants unauthenticated read access.
 
@@ -63,7 +90,7 @@ async def _anonymous_read_enabled() -> bool:
 
     definition = parse_setting(ANONYMOUS_READ_SETTING)
     try:
-        async for db in get_db_session():
+        async with _db_session() as db:
             try:
                 row = await setting_db.get(db, definition)
             except ItemNotFoundError:
@@ -73,7 +100,6 @@ async def _anonymous_read_enabled() -> bool:
     except Exception:
         logger.exception("Failed to read the %s setting, denying anonymous access.", ANONYMOUS_READ_SETTING)
         return False
-    return False
 
 
 def _principal_for_user(user: models.AuthUser, session_id: int) -> Principal:
@@ -115,13 +141,12 @@ async def resolve_principal(conn: Request | WebSocket) -> Principal | None:
     principal: Principal | None = None
     token = conn.cookies.get(cookies.SESSION_COOKIE, "")
     if token:
-        async for db in get_db_session():
+        async with _db_session() as db:
             session = await auth_session_db.resolve(db, token)
             if session is not None:
                 user = await auth_user_db.get_by_id(db, session.user_id)
                 if user.is_active:
                     principal = _principal_for_user(user, session.id)
-            break
 
     if principal is None and await _anonymous_read_enabled():
         principal = ANONYMOUS_READER

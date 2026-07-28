@@ -3,9 +3,11 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import FileResponse
 
+from spoolman.auth.dependencies import require_level
+from spoolman.auth.levels import Level
 from spoolman.externaldb import (
     ExternalFilament,
     ExternalMaterial,
@@ -28,6 +30,7 @@ logger = logging.getLogger(__name__)
     name="Get all external filaments",
     response_model_exclude_none=True,
     response_model=list[ExternalFilament],
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def filaments() -> FileResponse:
     """Get all external filaments."""
@@ -38,6 +41,7 @@ async def filaments() -> FileResponse:
     "/filament/search",
     name="Search external filaments",
     response_model_exclude_none=True,
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def search_external_filaments(
     query: Annotated[
@@ -65,6 +69,7 @@ async def search_external_filaments(
     name="Get all external materials",
     response_model_exclude_none=True,
     response_model=list[ExternalMaterial],
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def materials() -> FileResponse:
     """Get all external materials."""

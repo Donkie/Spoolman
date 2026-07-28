@@ -8,6 +8,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import Message
+from spoolman.auth.dependencies import require_level
+from spoolman.auth.levels import Level
 from spoolman.database.database import get_db_session
 from spoolman.database.extra_field_query import find_extra_field_values
 from spoolman.exceptions import ItemNotFoundError
@@ -35,6 +37,7 @@ logger = logging.getLogger(__name__)
     name="Get extra fields",
     description="Get all extra fields for a specific entity type.",
     response_model_exclude_none=True,
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -54,6 +57,7 @@ async def get(
     response_model_exclude_none=True,
     response_model=list[str],
     responses={404: {"model": Message}},
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def get_values(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -76,6 +80,7 @@ async def get_values(
     response_model_exclude_none=True,
     response_model=list[ExtraField],
     responses={400: {"model": Message}},
+    dependencies=[Depends(require_level(Level.MANAGE))],
 )
 async def update(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -105,6 +110,7 @@ async def update(
     response_model_exclude_none=True,
     response_model=list[ExtraField],
     responses={404: {"model": Message}},
+    dependencies=[Depends(require_level(Level.MANAGE))],
 )
 async def delete(
     db: Annotated[AsyncSession, Depends(get_db_session)],

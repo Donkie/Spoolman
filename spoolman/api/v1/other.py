@@ -7,6 +7,8 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field, RootModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from spoolman.auth.dependencies import require_level
+from spoolman.auth.levels import Level
 from spoolman.database import filament, spool
 from spoolman.database.database import get_db_session
 
@@ -39,6 +41,7 @@ router = APIRouter(
             },
         },
     },
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def find_materials(
     *,
@@ -65,6 +68,7 @@ async def find_materials(
             },
         },
     },
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def find_article_numbers(
     *,
@@ -91,6 +95,7 @@ async def find_article_numbers(
             },
         },
     },
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def find_lot_numbers(
     *,
@@ -118,6 +123,7 @@ async def find_lot_numbers(
             },
         },
     },
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def find_locations(
     *,
@@ -136,6 +142,7 @@ class RenameLocationBody(BaseModel):
     description="Rename a spool location. All spools in this location will be moved to the new location.",
     response_model_exclude_none=True,
     response_model=RootModel[str],
+    dependencies=[Depends(require_level(Level.EDIT))],
 )
 async def rename_location(
     location: str,

@@ -15,6 +15,8 @@ from spoolman.api.v1.models import (
     Spool,
     Vendor,
 )
+from spoolman.auth.dependencies import require_level
+from spoolman.auth.levels import Level
 from spoolman.database import search
 from spoolman.database.database import get_db_session
 
@@ -43,6 +45,7 @@ router = APIRouter(
         "reports which field matched."
     ),
     response_model_exclude_none=True,
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def search_endpoint(
     *,

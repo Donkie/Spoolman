@@ -9,6 +9,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import Message, SettingEvent, SettingResponse
+from spoolman.auth.dependencies import require_level, ws_authenticated
+from spoolman.auth.levels import Level
 from spoolman.database import setting
 from spoolman.database.database import get_db_session
 from spoolman.exceptions import ItemNotFoundError
@@ -29,10 +31,10 @@ logger = logging.getLogger(__name__)
     "",
     name="Listen to setting changes",
 )
+@ws_authenticated(Level.READ)
 async def notify_any(
     websocket: WebSocket,
 ) -> None:
-    await websocket.accept()
     websocket_manager.connect(("setting",), websocket)
     try:
         while True:
@@ -54,6 +56,7 @@ async def notify_any(
     response_model_exclude_none=True,
     response_model=SettingResponse,
     responses={404: {"model": Message}, 299: {"model": SettingEvent, "description": "Websocket message"}},
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def get(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -85,6 +88,7 @@ async def get(
     description=("Get all settings, set or not. If the setting has not been set, 'value' will be the default value."),
     response_model_exclude_none=True,
     response_model=dict[str, SettingResponse],
+    dependencies=[Depends(require_level(Level.READ))],
 )
 async def find(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -121,6 +125,7 @@ async def find(
     "/{key}",
     name="Listen to setting changes",
 )
+@ws_authenticated(Level.READ)
 async def notify(
     websocket: WebSocket,
     key: str,
@@ -131,7 +136,6 @@ async def notify(
         await websocket.close(code=4040, reason=str(e))
         return
 
-    await websocket.accept()
     websocket_manager.connect(("setting", str(key)), websocket)
     try:
         while True:
@@ -153,6 +157,7 @@ async def notify(
     response_model_exclude_none=True,
     response_model=SettingResponse,
     responses={404: {"model": Message}},
+    dependencies=[Depends(require_level(Level.MANAGE))],
 )
 async def update(
     db: Annotated[AsyncSession, Depends(get_db_session)],
