@@ -179,6 +179,53 @@ async def find(
     return rows, total
 
 
+# Fields an administrator may change through :func:`update`. A whitelist rather than
+# open setattr, so that a bug or a crafted request in the API layer cannot reach
+# password_hash, is_owner, or the lockout counters.
+UPDATABLE_FIELDS = frozenset({"level", "is_admin", "is_active", "display_name"})
+
+
+async def update(*, db: AsyncSession, user: models.AuthUser, changes: dict[str, object]) -> models.AuthUser:
+    """Apply administrative changes to an account.
+
+    Args:
+        db: The database session.
+        user: The user to modify.
+        changes: Field names and their new values.
+
+    Raises:
+        ValueError: If a field outside :data:`UPDATABLE_FIELDS` is named.
+
+    Returns:
+        models.AuthUser: The modified user.
+
+    """
+    unknown = set(changes) - UPDATABLE_FIELDS
+    if unknown:
+        raise ValueError(f"Cannot update field(s): {', '.join(sorted(unknown))}.")
+    for field, value in changes.items():
+        setattr(user, field, value)
+    await db.commit()
+    return user
+
+
+async def delete_user(*, db: AsyncSession, user: models.AuthUser) -> None:
+    """Remove an account.
+
+    The caller is responsible for clearing what references it first -- sessions, API
+    keys and audit entries all carry a foreign key to this row. Deliberately not done
+    here: the audit log's rows are kept and merely detached, which is a policy decision
+    that belongs with the caller rather than buried in a delete.
+
+    Args:
+        db: The database session.
+        user: The user to remove.
+
+    """
+    await db.delete(user)
+    await db.commit()
+
+
 async def set_password(
     *,
     db: AsyncSession,

@@ -581,6 +581,7 @@ class AuthUserInfo(BaseModel):
     level: str = Field(description="Permission level: read, edit or manage.", examples=["edit"])
     is_admin: bool = Field(description="Whether this user administers other users.")
     is_owner: bool = Field(description="Whether this user owns the instance.")
+    is_active: bool = Field(default=True, description="Whether the account may sign in at all.")
     must_change_password: bool = Field(description="Whether a password change is required.")
 
     @staticmethod
@@ -593,6 +594,7 @@ class AuthUserInfo(BaseModel):
             level=user.level,
             is_admin=user.is_admin,
             is_owner=user.is_owner,
+            is_active=user.is_active,
             must_change_password=user.must_change_password,
         )
 
@@ -644,7 +646,7 @@ class PasswordChangeRequest(BaseModel):
 
 
 #
-# Authentication, phase 2: API keys and the audit log.
+# Authentication, phase 2: API keys, user administration and the audit log.
 #
 
 MAX_KEY_NAME_LENGTH = 64
@@ -717,6 +719,59 @@ class ApiKeyCreateRequest(BaseModel):
         ge=1,
         le=MAX_KEY_EXPIRY_DAYS,
         description="How many days the key should live for. Omit for a key that never expires.",
+    )
+
+
+class AuthUserCreateRequest(BaseModel):
+    """An account for an administrator to create."""
+
+    username: str = Field(min_length=1, max_length=MAX_USERNAME_LENGTH, description="Username, stored lowercased.")
+    password: str | None = Field(
+        default=None,
+        min_length=MIN_PASSWORD_LENGTH,
+        max_length=MAX_PASSWORD_LENGTH,
+        description="Initial password. Omit to have one generated and returned once.",
+    )
+    display_name: str | None = Field(default=None, max_length=MAX_DISPLAY_NAME_LENGTH, description="Friendly name.")
+    level: str = Field(default="read", description="Permission level to grant.", examples=["edit"])
+    is_admin: bool = Field(default=False, description="Whether the account administers other users.")
+    must_change_password: bool = Field(
+        default=True,
+        description="Whether the user must choose a new password at next sign-in.",
+    )
+
+
+class AuthUserUpdateRequest(BaseModel):
+    """Changes to an existing account. Omitted fields are left alone."""
+
+    display_name: str | None = Field(default=None, max_length=MAX_DISPLAY_NAME_LENGTH, description="Friendly name.")
+    level: str | None = Field(default=None, description="Permission level to grant.", examples=["manage"])
+    is_admin: bool | None = Field(default=None, description="Whether the account administers other users.")
+    is_active: bool | None = Field(default=None, description="Whether the account may sign in at all.")
+
+
+class AuthPasswordResetRequest(BaseModel):
+    """An administrator's replacement of somebody else's password."""
+
+    password: str | None = Field(
+        default=None,
+        min_length=MIN_PASSWORD_LENGTH,
+        max_length=MAX_PASSWORD_LENGTH,
+        description="The new password. Omit to have one generated and returned once.",
+    )
+    must_change_password: bool = Field(
+        default=True,
+        description="Whether the user must choose a new password at next sign-in.",
+    )
+
+
+class AuthUserCreated(BaseModel):
+    """A newly created account, with its password if one was generated."""
+
+    user: AuthUserInfo = Field(description="The account.")
+    password: str | None = Field(
+        default=None,
+        description="The generated password, present only when the caller did not supply one. Shown once.",
     )
 
 

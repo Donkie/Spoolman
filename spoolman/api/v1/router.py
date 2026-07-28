@@ -32,6 +32,7 @@ from . import (
     search,
     setting,
     spool,
+    users,
     vendor,
 )
 
@@ -151,6 +152,7 @@ async def notify(
 # Add routers
 app.include_router(auth.router)
 app.include_router(apikey.router)
+app.include_router(users.router)
 app.include_router(audit.router)
 app.include_router(filament.router)
 app.include_router(spool.router)
