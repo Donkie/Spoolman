@@ -113,7 +113,11 @@
 			}
 			e.preventDefault();
 		} else if (e.key === 'Escape') {
+			// Swallow it: an enclosing dialog (AddSpoolModal) closes on any Escape
+			// reaching the window, so without this, dismissing the dropdown would
+			// also discard the whole form.
 			close();
+			e.stopPropagation();
 		}
 	}
 
