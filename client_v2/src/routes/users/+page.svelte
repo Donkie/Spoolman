@@ -2,6 +2,7 @@
 	import Card from '$components/Card.svelte';
 	import Button from '$components/Button.svelte';
 	import Toggle from '$components/Toggle.svelte';
+	import Checkbox from '$components/Checkbox.svelte';
 	import PasswordInput from '$components/auth/PasswordInput.svelte';
 	import SecretReveal from '$components/auth/SecretReveal.svelte';
 	import KeyRound from '@lucide/svelte/icons/key-round';
@@ -336,15 +337,12 @@
 							{/each}
 						</select>
 
-						<label class="check">
-							<input type="checkbox" bind:checked={newIsAdmin} disabled={submitting} />
-							<span>{m['users.admin']()}</span>
-						</label>
-
-						<label class="check">
-							<input type="checkbox" bind:checked={newMustChange} disabled={submitting} />
-							<span>{m['users.mustChangePassword']()}</span>
-						</label>
+						<Checkbox bind:checked={newIsAdmin} disabled={submitting} label={m['users.admin']()} />
+						<Checkbox
+							bind:checked={newMustChange}
+							disabled={submitting}
+							label={m['users.mustChangePassword']()}
+						/>
 
 						{#if formError}<p class="error" role="alert">{formError}</p>{/if}
 
@@ -456,7 +454,7 @@
 	}
 
 	select {
-		height: 34px;
+		height: 44px;
 		padding: 0 8px;
 		border: 1px solid var(--border-input);
 		border-radius: var(--radius-sm);
@@ -478,8 +476,9 @@
 	.icon {
 		display: grid;
 		place-items: center;
-		width: 34px;
-		height: 34px;
+		/* 44px, matching PasswordInput and the rest of the auth surfaces. */
+		width: 44px;
+		height: 44px;
 		border: 0;
 		border-radius: var(--radius-sm);
 		background: none;
@@ -504,14 +503,14 @@
 		gap: 6px;
 		padding: 14px 16px;
 	}
-	.form label:not(.check) {
+	.form label {
 		margin-top: 6px;
 		font-size: 0.8rem;
 		color: var(--text-2);
 	}
 	.form input[type='text'],
 	.form select {
-		height: 40px;
+		height: 44px;
 		padding: 0 10px;
 		border: 1px solid var(--border-input);
 		border-radius: var(--radius-sm);
@@ -524,21 +523,6 @@
 	.form input[type='text']:focus,
 	.form select:focus {
 		border-color: var(--accent);
-	}
-	.check {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		min-height: 44px;
-		cursor: pointer;
-		font-size: 0.85rem;
-		color: var(--text);
-	}
-	.check input {
-		width: 18px;
-		height: 18px;
-		accent-color: var(--accent);
-		cursor: pointer;
 	}
 	.error {
 		margin: 4px 0 0;

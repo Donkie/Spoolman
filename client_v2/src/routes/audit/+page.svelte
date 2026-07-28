@@ -243,7 +243,7 @@
 
 	.filter,
 	.num {
-		height: 34px;
+		height: 44px;
 		padding: 0 8px;
 		border: 1px solid var(--border-input);
 		border-radius: var(--radius-sm);

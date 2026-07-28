@@ -3,7 +3,7 @@
 This is the load-bearing test of the suite. ``spoolman.auth.coverage`` already proves at
 import time that no route was left without a gate, but that is a static check on the
 route table -- it says a dependency is attached, not that the dependency actually
-rejects anybody. This file exercises the real thing over HTTP: 40 gated HTTP routes,
+rejects anybody. This file exercises the real thing over HTTP: every gated HTTP route,
 each of which must answer 401 to a request carrying nothing.
 
 The table below is written out rather than derived, so that adding a route forces a
@@ -57,6 +57,13 @@ GATED_ROUTES: list[tuple[str, str, str]] = [
     # Changing one's own password needs a real signed-in user, not merely read rights,
     # but the level recorded on the gate is read.
     ("POST", "/auth/password", "read"),
+    # The API key routes sit at read for the same reason: their gate is require_user,
+    # which is require_level(read) plus a refusal of anonymous callers and of API keys.
+    # A key that could mint a key would be unrevocable in practice.
+    ("GET", "/auth/apikey", "read"),
+    ("POST", "/auth/apikey", "read"),
+    ("POST", "/auth/apikey/1/revoke", "read"),
+    ("DELETE", "/auth/apikey/1", "read"),
     # -- edit -------------------------------------------------------------------
     ("PATCH", "/filament/1", "edit"),
     ("PATCH", "/spool/1", "edit"),
@@ -80,6 +87,21 @@ GATED_ROUTES: list[tuple[str, str, str]] = [
     ("GET", "/export/spools?fmt=json", "manage"),
     ("GET", "/export/filaments?fmt=json", "manage"),
     ("GET", "/export/vendors?fmt=json", "manage"),
+    # User administration and the audit log are recorded as manage, which is what their
+    # gate enforces; require_admin adds the administrator check on top of it. An
+    # unauthenticated caller is refused by the level gate first, which is what this file
+    # asserts -- the admin half is covered in test_users.py and test_audit.py.
+    ("GET", "/auth/user", "manage"),
+    ("POST", "/auth/user", "manage"),
+    ("GET", "/auth/user/1", "manage"),
+    ("PATCH", "/auth/user/1", "manage"),
+    ("DELETE", "/auth/user/1", "manage"),
+    ("POST", "/auth/user/1/password", "manage"),
+    ("POST", "/auth/user/1/revoke-sessions", "manage"),
+    # The audit log holds addresses, user agents and the list of accounts, so serving it
+    # at read would hand an anonymous browser a map of the instance's users.
+    ("GET", "/auth/audit", "manage"),
+    ("GET", "/auth/audit/events", "manage"),
 ]
 
 # The routes that must stay reachable with no credentials, mirroring PUBLIC_ROUTES in
@@ -113,6 +135,11 @@ def _template(path: str) -> str:
         "/field/spool/some_field/values": "/field/{entity_type}/{key}/values",
         "/field/spool/some_field": "/field/{entity_type}/{key}",
         "/field/spool": "/field/{entity_type}",
+        "/auth/apikey/1/revoke": "/auth/apikey/{key_id}/revoke",
+        "/auth/apikey/1": "/auth/apikey/{key_id}",
+        "/auth/user/1/revoke-sessions": "/auth/user/{user_id}/revoke-sessions",
+        "/auth/user/1/password": "/auth/user/{user_id}/password",
+        "/auth/user/1": "/auth/user/{user_id}",
     }
     return replacements.get(path, path)
 
@@ -132,8 +159,12 @@ def test_gated_route_requires_credentials(anonymous: httpx.Client, method: str, 
 
 
 def test_every_gated_route_is_listed() -> None:
-    """Guard the count, so a route added without a test entry is noticed."""
-    assert len(GATED_ROUTES) == 40
+    """Guard the count, so a route added without a test entry is noticed.
+
+    Phase 1 gated 40 HTTP routes. Phase 2 added thirteen: four for API keys, seven for
+    user administration, two for the audit log.
+    """
+    assert len(GATED_ROUTES) == 53
 
 
 @pytest.mark.parametrize(

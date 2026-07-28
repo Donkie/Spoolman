@@ -53,6 +53,10 @@ OWNER_DISPLAY_NAME = "The Owner"
 # Every failed sign-in answers with this exact text, whatever went wrong.
 INVALID_CREDENTIALS = "Incorrect username or password."
 
+# Password for accounts the tests create for themselves. Long enough to clear the
+# server's ten character minimum.
+READER_PASSWORD = "reader-password-1"
+
 # Websocket close codes, from spoolman.auth.dependencies.
 WS_UNAUTHENTICATED = 4401
 WS_FORBIDDEN = 4403
@@ -221,3 +225,65 @@ def anonymous() -> httpx.Client:
     """Return a client with no credentials at all."""
     with new_client() as client:
         yield client
+
+
+def create_user(
+    admin: httpx.Client,
+    username: str,
+    *,
+    level: str = "read",
+    is_admin: bool = False,
+    password: str | None = None,
+    must_change_password: bool = False,
+) -> tuple[int, str]:
+    """Create an account and return its ID and password.
+
+    Phase 2's answer to what tests_auth could not do before: make a second account
+    without a command line. Every caller picks a username of its own, because the suite
+    shares one server and one database for the whole run.
+
+    Args:
+        admin: A client signed in as an administrator.
+        username: The username to create.
+        level: The permission level to grant.
+        is_admin: Whether the account administers other users.
+        password: The password to set, or None to have one generated.
+        must_change_password: Whether to force a change at first sign-in.
+
+    Returns:
+        tuple: The new user's ID, and the password it can sign in with.
+
+    """
+    response = admin.post(
+        "/auth/user",
+        json={
+            "username": username,
+            "password": password,
+            "level": level,
+            "is_admin": is_admin,
+            "must_change_password": must_change_password,
+        },
+    )
+    assert_code(response, 201)
+    body = response.json()
+    # The server returns a generated password exactly once, here. If one was supplied it
+    # is deliberately absent from the response, so fall back to what the caller sent.
+    return body["user"]["id"], body.get("password") or (password or "")
+
+
+@pytest.fixture
+def reader(owner: httpx.Client) -> Iterator[httpx.Client]:
+    """Return a client signed in as a read-level, non-administrator user.
+
+    This is what test_levels.py's docstring said phase 1 could not build. It exists for
+    exactly one purpose: proving that a low-level *user* is refused, which the anonymous
+    reader could only approximate.
+    """
+    username = f"reader-{int(time.time() * 1000)}"
+    create_user(owner, username, level="read", password=READER_PASSWORD)
+    client, response = login(username=username, password=READER_PASSWORD)
+    assert_code(response, 200)
+    try:
+        yield client
+    finally:
+        client.close()

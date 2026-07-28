@@ -2,6 +2,7 @@
 	import AuthCard from './AuthCard.svelte';
 	import PasswordInput from './PasswordInput.svelte';
 	import Button from '$components/Button.svelte';
+	import Checkbox from '$components/Checkbox.svelte';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { HttpError } from '$lib/api/http';
 	import * as m from '$lib/paraglide/messages';
@@ -65,10 +66,7 @@
 		<label for="login-password">{m['auth.password']()}</label>
 		<PasswordInput id="login-password" bind:value={password} disabled={submitting} />
 
-		<label class="check">
-			<input type="checkbox" bind:checked={remember} disabled={submitting} />
-			<span>{m['auth.rememberMe']()}</span>
-		</label>
+		<Checkbox bind:checked={remember} disabled={submitting} label={m['auth.rememberMe']()} />
 
 		{#if error}
 			<p class="error" role="alert">{error}</p>
@@ -106,7 +104,7 @@
 		color: var(--text-2);
 	}
 
-	label:not(.check) {
+	label {
 		margin-top: 8px;
 	}
 
@@ -123,25 +121,6 @@
 
 	input[type='text']:focus {
 		border-color: var(--accent);
-	}
-
-	.check {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		/* Keeps the row itself at the 44px tap target the a11y audit enforces. */
-		min-height: 44px;
-		margin-top: 4px;
-		cursor: pointer;
-		color: var(--text);
-		font-size: 0.85rem;
-	}
-
-	.check input {
-		width: 18px;
-		height: 18px;
-		accent-color: var(--accent);
-		cursor: pointer;
 	}
 
 	.error {

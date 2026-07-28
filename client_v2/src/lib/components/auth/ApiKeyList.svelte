@@ -309,8 +309,10 @@
 	.icon {
 		display: grid;
 		place-items: center;
-		width: 34px;
-		height: 34px;
+		/* 44px, matching PasswordInput: the auth surfaces are audited against the
+		   advisory thumb-comfort minimum, not just WCAG's 24px. */
+		width: 44px;
+		height: 44px;
 		border: 0;
 		border-radius: var(--radius-sm);
 		background: none;
@@ -342,7 +344,7 @@
 
 	.form input,
 	.form select {
-		height: 40px;
+		height: 44px;
 		padding: 0 10px;
 		border: 1px solid var(--border-input);
 		border-radius: var(--radius-sm);
