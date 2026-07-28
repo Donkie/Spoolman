@@ -75,7 +75,7 @@ async def _db_session() -> AsyncIterator[AsyncSession]:
         await generator.aclose()
 
 
-async def _anonymous_read_enabled() -> bool:
+async def anonymous_read_enabled() -> bool:
     """Check the setting that grants unauthenticated read access.
 
     Fails closed. Any problem reaching the setting -- the database being unavailable,
@@ -148,7 +148,7 @@ async def resolve_principal(conn: Request | WebSocket) -> Principal | None:
                 if user.is_active:
                     principal = _principal_for_user(user, session.id)
 
-    if principal is None and await _anonymous_read_enabled():
+    if principal is None and await anonymous_read_enabled():
         principal = ANONYMOUS_READER
 
     if principal is not None and hasattr(conn, "state"):

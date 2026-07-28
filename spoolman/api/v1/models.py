@@ -533,3 +533,108 @@ class SettingEvent(Event):
 
     payload: SettingKV = Field(description="Updated setting.")
     resource: Literal["setting"] = Field(description="Resource type.")
+
+
+#
+# Authentication.
+#
+# These describe the /auth endpoints. They are additive: nothing above changes shape,
+# and none of this is reachable in a meaningful way unless SPOOLMAN_AUTH_ENABLED is set.
+#
+
+# Short enough to stay usable for a homelab instance, long enough that the lockout in
+# spoolman/database/auth_user.py is the binding constraint rather than the search space.
+MIN_PASSWORD_LENGTH = 10
+MAX_PASSWORD_LENGTH = 1024
+MAX_USERNAME_LENGTH = 64
+MAX_DISPLAY_NAME_LENGTH = 128
+
+
+class AuthOidcConfig(BaseModel):
+    """OIDC provider advertisement. Phase 3; always absent for now."""
+
+    enabled: bool = Field(default=False, description="Whether an OIDC provider is configured.")
+    name: str | None = Field(default=None, description="Display name for the sign-in button.")
+
+
+class AuthConfig(BaseModel):
+    """What a client needs to know before anyone has signed in."""
+
+    enabled: bool = Field(description="Whether authentication is enforced on this instance.")
+    setup_required: bool = Field(
+        description="Whether this instance is unclaimed. When true, anyone may claim ownership.",
+    )
+    anonymous_read: bool = Field(description="Whether unauthenticated clients may read.")
+    oidc: AuthOidcConfig = Field(default_factory=AuthOidcConfig, description="OIDC provider info.")
+    mtls: bool = Field(default=False, description="Whether client certificates are accepted. Phase 5.")
+
+
+class AuthUserInfo(BaseModel):
+    """A user account, as shown to itself or an administrator."""
+
+    id: int = Field(description="Unique internal ID of this user.")
+    username: str = Field(description="Username, stored lowercased.")
+    display_name: str | None = Field(default=None, description="Friendly name, if set.")
+    level: str = Field(description="Permission level: read, edit or manage.", examples=["edit"])
+    is_admin: bool = Field(description="Whether this user administers other users.")
+    is_owner: bool = Field(description="Whether this user owns the instance.")
+    must_change_password: bool = Field(description="Whether a password change is required.")
+
+    @staticmethod
+    def from_db(user: models.AuthUser) -> AuthUserInfo:
+        """Create a Pydantic user object from a database user object."""
+        return AuthUserInfo(
+            id=user.id,
+            username=user.username,
+            display_name=user.display_name,
+            level=user.level,
+            is_admin=user.is_admin,
+            is_owner=user.is_owner,
+            must_change_password=user.must_change_password,
+        )
+
+
+class AuthSessionInfo(BaseModel):
+    """The caller's current standing.
+
+    Always answers rather than rejecting, so a signed-out client can tell "no session"
+    apart from "server unreachable" without treating a 401 as an error.
+    """
+
+    authenticated: bool = Field(description="Whether a user is signed in.")
+    anonymous: bool = Field(description="Whether access comes from the anonymous-read setting.")
+    level: str = Field(description="Effective permission level. 'manage' when auth is disabled.")
+    is_admin: bool = Field(description="Whether the caller administers other users.")
+    is_owner: bool = Field(description="Whether the caller owns the instance.")
+    user: AuthUserInfo | None = Field(default=None, description="The signed-in user, if any.")
+
+
+class LoginRequest(BaseModel):
+    """Credentials for a sign-in attempt."""
+
+    username: str = Field(min_length=1, max_length=MAX_USERNAME_LENGTH, description="Username.")
+    password: str = Field(min_length=1, max_length=MAX_PASSWORD_LENGTH, description="Password.")
+    remember: bool = Field(default=False, description="Whether the session should outlive the browser session.")
+
+
+class SetupRequest(BaseModel):
+    """The owner account to create when claiming an unclaimed instance."""
+
+    username: str = Field(min_length=1, max_length=MAX_USERNAME_LENGTH, description="Username for the owner.")
+    password: str = Field(
+        min_length=MIN_PASSWORD_LENGTH,
+        max_length=MAX_PASSWORD_LENGTH,
+        description="Password for the owner.",
+    )
+    display_name: str | None = Field(default=None, max_length=MAX_DISPLAY_NAME_LENGTH, description="Friendly name.")
+
+
+class PasswordChangeRequest(BaseModel):
+    """A request to replace one's own password."""
+
+    current_password: str = Field(min_length=1, max_length=MAX_PASSWORD_LENGTH, description="The current password.")
+    new_password: str = Field(
+        min_length=MIN_PASSWORD_LENGTH,
+        max_length=MAX_PASSWORD_LENGTH,
+        description="The new password.",
+    )

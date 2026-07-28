@@ -19,7 +19,7 @@ from spoolman.exceptions import AuthenticationRequiredError, ItemNotFoundError, 
 from spoolman.externaldb import get_external_db_name
 from spoolman.ws import websocket_manager
 
-from . import export, externaldb, field, filament, models, other, search, setting, spool, vendor
+from . import auth, export, externaldb, field, filament, models, other, search, setting, spool, vendor
 
 logger = logging.getLogger(__name__)
 
@@ -135,6 +135,7 @@ async def notify(
 
 
 # Add routers
+app.include_router(auth.router)
 app.include_router(filament.router)
 app.include_router(spool.router)
 app.include_router(vendor.router)
@@ -155,6 +156,15 @@ app.include_router(search.router)
 PUBLIC_ROUTES = frozenset(
     {
         ("GET", "/health"),
+        # Signing in is how a credential is obtained, so requiring one would be
+        # circular. Each of these checks for itself: /setup refuses once an account
+        # exists, /login throttles and verifies, /logout and /session are read-only
+        # about the caller and answer honestly when there is no session.
+        ("GET", "/auth/config"),
+        ("POST", "/auth/setup"),
+        ("POST", "/auth/login"),
+        ("POST", "/auth/logout"),
+        ("GET", "/auth/session"),
     },
 )
 

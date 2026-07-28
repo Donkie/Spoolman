@@ -97,10 +97,14 @@ class SlidingWindow:
         self._events.pop(key, None)
 
 
-# Keyed by username, so guessing one account's password does not lock out the instance.
-user_window: Final = SlidingWindow(limit=5, window=timedelta(minutes=15))
-
 # Keyed by client address, to blunt spraying across many usernames from one source.
+#
+# There is deliberately no per-username window here. Per-account throttling is the
+# persisted failed_logins/locked_until pair on auth_user, which is graduated (a minute,
+# doubling to a quarter of an hour) and survives a restart. A second in-memory window
+# keyed by username would shadow that schedule with a flat one and make the graduation
+# unreachable. This window exists for the case the persisted counter cannot see: guesses
+# spread across many usernames, including ones that do not exist.
 ip_window: Final = SlidingWindow(limit=20, window=timedelta(minutes=15))
 
 
