@@ -199,6 +199,12 @@ async def update(
     # spools that reference it and refetch what they still have on screen — see
     # client_v2/src/lib/stores/inventory.svelte.ts. The same reasoning applies to vendor
     # updates, which is why there is no vendor-side fan-out either.
+    #
+    # Note for anyone tempted to re-add it: remaining_length (the field that prompted the
+    # original fan-out) is derived from density and diameter, so a client that renders it
+    # from the filament it already holds — as client_v2 does — recomputes it from the
+    # filament event alone. A client that instead caches the server's computed value does
+    # need to refetch. Either way that is the subscriber's job, not a fan-out here.
     await filament_changed(filament, EventType.UPDATED)
     return filament
 

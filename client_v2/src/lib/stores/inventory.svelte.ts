@@ -88,11 +88,18 @@ class Inventory {
 	 *
 	 * The server does not re-broadcast a filament's spools when the filament changes
 	 * (that fan-out is unbounded — see spoolman/database/filament.py `update`), so a
-	 * filament event is our only signal. Everything else a spool shows about its
-	 * filament resolves through `filamentById` and is already live; the exception is
-	 * a spool with no `initial_weight` of its own, whose initial/remaining weights the
-	 * server derived from `filament.weight`. Mirror `Spool.from_db`'s formula —
-	 * including its clamp at 0 — so an over-used spool doesn't go negative.
+	 * filament event is our only signal.
+	 *
+	 * Only the *stored* weights need this. Remaining length — the value the fan-out
+	 * was originally added for — is not cached at all: SpoolInspector computes it as
+	 * `lengthMeters(spool.remaining, filament)` where `filament` is $derived from this
+	 * cache, so upserting the filament above already refreshes it with the new density
+	 * and diameter. The same goes for every other filament value a spool row shows.
+	 *
+	 * What has nowhere else to come from is a spool with no `initial_weight` of its
+	 * own, whose initial/remaining weights the server derived from `filament.weight`.
+	 * Mirror `Spool.from_db`'s formula — including its clamp at 0 — so an over-used
+	 * spool doesn't go negative.
 	 */
 	private reweighSpoolsOfFilament(f: Filament) {
 		let changed = false;
