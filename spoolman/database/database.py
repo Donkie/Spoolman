@@ -169,6 +169,21 @@ def setup_db(connection_url: URL) -> None:
     __db.connect()
 
 
+def get_engine() -> AsyncEngine:
+    """Get the connected engine.
+
+    Raises:
+        RuntimeError: If the database has not been set up.
+
+    Returns:
+        AsyncEngine: The engine.
+
+    """
+    if __db is None or __db.engine is None:
+        raise RuntimeError("DB is not setup.")
+    return __db.engine
+
+
 async def backup_global_db(num_backups: int = 5) -> Path | None:
     """Backup the database and rotate existing backups.
 
