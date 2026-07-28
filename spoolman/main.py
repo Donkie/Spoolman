@@ -17,6 +17,7 @@ from scheduler.asyncio.scheduler import Scheduler
 from spoolman import env, externaldb
 from spoolman.api.v1.router import app as v1_app
 from spoolman.auth import audit, secret
+from spoolman.auth.levels import Level
 from spoolman.client import SinglePageApplication
 from spoolman.database import database
 from spoolman.prometheus.metrics import registry
@@ -59,16 +60,24 @@ app.add_middleware(GZipMiddleware)
 app.mount(env.get_base_path() + "/api/v1", v1_app)
 
 
-def metrics_access_permitted(request: Request) -> bool:
+async def metrics_access_permitted(request: Request) -> bool:
     """Check whether a caller may read the metrics endpoint.
 
     Metrics stay public while authentication is off, so existing Prometheus scrape
-    configs keep working untouched. With authentication on they need a shared token,
-    unless the operator opts back out with SPOOLMAN_METRICS_PUBLIC.
+    configs keep working untouched. With authentication on, a caller needs either the
+    shared SPOOLMAN_METRICS_TOKEN or an API key, unless the operator opts back out with
+    SPOOLMAN_METRICS_PUBLIC.
 
-    A shared token rather than a user session, because a scraper is not a browser: it
-    has no way to sign in, and a static bearer is what Prometheus scrape configs express
-    natively. API keys arrive in phase 2 and will be accepted here as well.
+    Both, rather than one or the other. The shared token is a deployment-level secret
+    that needs no database and no account, which is what an operator scraping their own
+    instance wants and what survives the database being down. An API key is attributable
+    and revocable through the interface, which is what you want when the scraper belongs
+    to somebody else. Neither is checked before the other for any security reason; the
+    token is simply free to check.
+
+    Only API keys are accepted, not session cookies, so that a signed-in browser tab
+    does not silently make the endpoint readable. See
+    :func:`spoolman.auth.dependencies.api_key_principal`.
 
     Args:
         request: The incoming request.
@@ -80,10 +89,6 @@ def metrics_access_permitted(request: Request) -> bool:
     if not env.is_auth_enabled() or env.is_metrics_public():
         return True
 
-    expected = env.get_metrics_token()
-    if not expected:
-        return False
-
     presented = request.headers.get("x-api-key", "")
     if not presented:
         authorization = request.headers.get("authorization", "")
@@ -92,7 +97,15 @@ def metrics_access_permitted(request: Request) -> bool:
             presented = value.strip()
     if not presented:
         return False
-    return hmac.compare_digest(presented, expected)
+
+    expected = env.get_metrics_token()
+    if expected and hmac.compare_digest(presented, expected):
+        return True
+
+    from spoolman.auth.dependencies import api_key_principal  # noqa: PLC0415
+
+    principal = await api_key_principal(request)
+    return principal is not None and principal.covers(Level.READ)
 
 
 # WA for prometheus /metrics bind with SinglePageApp at root
@@ -104,9 +117,9 @@ def metrics_access_permitted(request: Request) -> bool:
         "Get app metrics for prometheusIf enabled SPOOLMAN_METRICS_ENABLED returned metrics by Spools and Filaments"
     ),
 )
-def get_metrics(request: Request) -> Response:
+async def get_metrics(request: Request) -> Response:
     """Return prometheus metrics."""
-    if not metrics_access_permitted(request):
+    if not await metrics_access_permitted(request):
         return PlainTextResponse("Unauthorized", status_code=401)
     return PlainTextResponse(generate_latest(registry))
 

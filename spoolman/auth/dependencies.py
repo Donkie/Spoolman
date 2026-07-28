@@ -21,9 +21,10 @@ from starlette.requests import Request
 from starlette.websockets import WebSocket
 
 from spoolman import env
-from spoolman.auth import cookies
+from spoolman.auth import apikey, cookies
 from spoolman.auth.levels import Level, parse_level
 from spoolman.auth.principal import ANONYMOUS_READER, UNRESTRICTED, Principal, PrincipalKind
+from spoolman.database import auth_api_key as auth_api_key_db
 from spoolman.database import auth_session as auth_session_db
 from spoolman.database import auth_user as auth_user_db
 from spoolman.database import models
@@ -115,11 +116,65 @@ def _principal_for_user(user: models.AuthUser, session_id: int) -> Principal:
     )
 
 
+def _principal_for_api_key(key: models.AuthApiKey, user: models.AuthUser) -> Principal:
+    """Build a principal from an API key and the user it belongs to.
+
+    A key never carries administrative rights, however senior its owner. Everything
+    behind :func:`require_admin` -- creating users, reading the audit log, minting
+    further keys -- therefore needs a signed-in session. That means a leaked key cannot
+    be used to entrench itself by creating another account or another key, and it keeps
+    the blast radius of the credential that lives in a printer's config file to the data
+    it was issued for.
+    """
+    return Principal(
+        kind=PrincipalKind.APIKEY,
+        level=apikey.effective_level(parse_level(key.level), parse_level(user.level)),
+        user_id=user.id,
+        username=user.username,
+        is_admin=False,
+        is_owner=False,
+        api_key_id=key.id,
+    )
+
+
+async def api_key_principal(conn: Request | WebSocket) -> Principal | None:
+    """Resolve an API key, ignoring every other kind of credential.
+
+    Separate from :func:`resolve_principal` because /metrics needs exactly this and
+    nothing else: a scraper presents a key or a shared token, never a cookie, and
+    honouring a session there would quietly make the endpoint readable by any browser
+    tab that happens to be signed in.
+
+    Args:
+        conn: The request or websocket being authenticated.
+
+    Returns:
+        Optional[Principal]: The principal, or None if no usable key was presented.
+
+    """
+    presented = apikey.presented_key(conn)
+    if not presented:
+        return None
+    async with _db_session() as db:
+        key = await auth_api_key_db.resolve(db, presented)
+        if key is None:
+            return None
+        user = await auth_user_db.get_by_id(db, key.user_id)
+        if not user.is_active:
+            return None
+        return _principal_for_api_key(key, user)
+
+
 async def resolve_principal(conn: Request | WebSocket) -> Principal | None:
     """Work out who is making a request.
 
-    Resolution order is the session cookie, then anonymous read if the setting allows
-    it. API keys and certificates join this list in later phases.
+    Resolution order is the API key header, then the session cookie, then anonymous read
+    if the setting allows it. Certificates join this list in phase 5.
+
+    An explicitly presented key wins over the cookie a browser attaches by itself. The
+    ordering only matters when both are present, which in practice is a signed-in
+    operator testing a key from the browser's console; resolving to the key is what makes
+    that test tell them the truth about what the key can do.
 
     This opens its own short-lived database session rather than depending on
     ``get_db_session``. A route-level dependency is solved before the handler's own
@@ -138,15 +193,17 @@ async def resolve_principal(conn: Request | WebSocket) -> Principal | None:
     if cached is not None:
         return cached
 
-    principal: Principal | None = None
-    token = conn.cookies.get(cookies.SESSION_COOKIE, "")
-    if token:
-        async with _db_session() as db:
-            session = await auth_session_db.resolve(db, token)
-            if session is not None:
-                user = await auth_user_db.get_by_id(db, session.user_id)
-                if user.is_active:
-                    principal = _principal_for_user(user, session.id)
+    principal: Principal | None = await api_key_principal(conn)
+
+    if principal is None:
+        token = conn.cookies.get(cookies.SESSION_COOKIE, "")
+        if token:
+            async with _db_session() as db:
+                session = await auth_session_db.resolve(db, token)
+                if session is not None:
+                    user = await auth_user_db.get_by_id(db, session.user_id)
+                    if user.is_active:
+                        principal = _principal_for_user(user, session.id)
 
     if principal is None and await anonymous_read_enabled():
         principal = ANONYMOUS_READER
@@ -188,6 +245,12 @@ def require_level(
             # 403 rather than 401 on purpose: the credential is valid, so telling the
             # client it is unauthenticated would sign the user out over what is usually
             # a stale tab rather than an attack.
+            #
+            # Only USER is checked. A session cookie is ambient -- the browser attaches
+            # it to a cross-site form post without being asked -- which is the entire
+            # premise of CSRF. An API key is not: it lives in a header that a page on
+            # another origin has no way to set, so demanding a second factor of a
+            # machine credential would only break every non-browser client for nothing.
             raise PermissionDeniedError("CSRF token missing or invalid.")
         return principal
 
@@ -197,6 +260,12 @@ def require_level(
 
 def require_user() -> Callable[[Request], Awaitable[Principal]]:
     """Build a dependency that requires a real signed-in user.
+
+    This is the gate for anything that acts on the account itself -- changing its
+    password, minting or revoking its API keys. An API key is refused even though it
+    belongs to a user, because a credential that can mint another credential can never
+    really be revoked: whoever holds a leaked key would simply issue themselves a fresh
+    one before the original was withdrawn.
 
     Returns:
         Callable: A FastAPI dependency yielding the principal.
@@ -208,6 +277,11 @@ def require_user() -> Callable[[Request], Awaitable[Principal]]:
         principal = await inner(request)
         if principal.kind is PrincipalKind.ANONYMOUS:
             raise AuthenticationRequiredError("Authentication required.")
+        if principal.kind is PrincipalKind.APIKEY:
+            # 403, not 401: the key is a perfectly valid credential, it is simply the
+            # wrong kind for this. Answering 401 would tell the client to go and get a
+            # credential it already has.
+            raise PermissionDeniedError("This operation requires a signed-in user, not an API key.")
         return principal
 
     setattr(gate, AUTH_LEVEL_ATTR, Level.READ)

@@ -7,6 +7,8 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, PlainSerializer
 
+from spoolman.auth import apikey
+from spoolman.auth.levels import parse_level
 from spoolman.database import models
 from spoolman.math import length_from_weight
 from spoolman.settings import SettingDefinition, SettingType
@@ -642,10 +644,80 @@ class PasswordChangeRequest(BaseModel):
 
 
 #
-# Authentication, phase 2: the audit log.
+# Authentication, phase 2: API keys and the audit log.
 #
 
+MAX_KEY_NAME_LENGTH = 64
 MAX_AUDIT_EVENT_LENGTH = 64
+
+# The longest an API key may be issued for. Mirrors
+# spoolman.database.auth_api_key.MAX_EXPIRY_DAYS; validated here so a bad value is a 422
+# from the schema rather than a database error.
+MAX_KEY_EXPIRY_DAYS = 3650
+
+
+class AuthApiKeyInfo(BaseModel):
+    """An API key, as shown to its owner.
+
+    Never carries the secret. The complete key exists in a readable form exactly once,
+    in the response to the request that created it.
+    """
+
+    id: int = Field(description="Unique internal ID of this key.")
+    name: str = Field(description="The label its owner gave it.")
+    level: str = Field(description="Permission level the key was issued with.", examples=["edit"])
+    effective_level: str = Field(
+        description="What the key can actually do right now, after capping against its owner's level.",
+        examples=["read"],
+    )
+    prefix: str = Field(description="The public half of the key, enough to recognise it in a log.")
+    created: SpoolmanDateTime = Field(description="When the key was issued.")
+    expires: SpoolmanDateTime | None = Field(default=None, description="When the key stops working, if ever.")
+    last_used: SpoolmanDateTime | None = Field(
+        default=None,
+        description="When the key was last accepted. Updated at most once every few minutes.",
+    )
+    revoked: bool = Field(description="Whether the key has been withdrawn.")
+    expired: bool = Field(description="Whether the key's expiry has passed.")
+
+    @staticmethod
+    def from_db(key: models.AuthApiKey, owner_level: str) -> AuthApiKeyInfo:
+        """Create a Pydantic API key object from a database API key object."""
+        return AuthApiKeyInfo(
+            id=key.id,
+            name=key.name,
+            level=key.level,
+            effective_level=str(apikey.effective_level(parse_level(key.level), parse_level(owner_level))),
+            prefix=key.prefix,
+            created=key.created,
+            expires=key.expires,
+            last_used=key.last_used,
+            revoked=key.revoked,
+            expired=key.expires is not None and key.expires <= datetime.utcnow(),
+        )
+
+
+class AuthApiKeyCreated(BaseModel):
+    """A newly issued API key, including the secret."""
+
+    key: str = Field(description="The complete key. Shown once and never again; store it now.")
+    info: AuthApiKeyInfo = Field(description="The key's metadata, as it will appear in listings.")
+
+
+class ApiKeyCreateRequest(BaseModel):
+    """A request to issue an API key."""
+
+    name: str = Field(min_length=1, max_length=MAX_KEY_NAME_LENGTH, description="A label, to tell keys apart.")
+    level: str = Field(
+        description="Permission level to issue at. May not exceed the creator's own level.",
+        examples=["edit"],
+    )
+    expires_days: int | None = Field(
+        default=None,
+        ge=1,
+        le=MAX_KEY_EXPIRY_DAYS,
+        description="How many days the key should live for. Omit for a key that never expires.",
+    )
 
 
 class AuthAuditEntry(BaseModel):
