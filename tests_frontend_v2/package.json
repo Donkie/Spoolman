@@ -1,0 +1,15 @@
+{
+  "name": "spoolman-tests-frontend-v2",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Playwright frontend integration tests for the Spoolman Svelte client (client_v2)",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.0"
+  }
+}

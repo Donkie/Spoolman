@@ -2,6 +2,9 @@
 # (client baked in, served on the same origin as the API) backed by a real
 # PostgreSQL database. The frontend integration tests (Playwright) drive this
 # through a browser on the host via the published port.
+#
+# Unlike tests_frontend/docker-compose.yml this does NOT set
+# SPOOLMAN_LEGACY_CLIENT, so the image serves the default (Svelte) client_v2.
 services:
   db:
     image: postgres:16-alpine
@@ -25,15 +28,12 @@ services:
       - SPOOLMAN_DB_USERNAME=spoolman
       - SPOOLMAN_DB_PASSWORD=spoolman
       - SPOOLMAN_LOGGING_LEVEL=INFO
-      # These Playwright tests target the legacy (React) client's DOM. The new
-      # Svelte client is now the default, so pin this suite to the legacy client.
-      # The equivalent suite for the new client lives in ../tests_frontend_v2.
-      - SPOOLMAN_LEGACY_CLIENT=TRUE
       - TZ=Europe/Stockholm
     ports:
       # Host port is configurable so the suite can avoid clashing with a
-      # locally running Spoolman. Container always listens on 8000.
-      - "${SPOOLMAN_HOST_PORT:-8000}:8000"
+      # locally running Spoolman — and defaults one above the legacy suite's
+      # 8000 so both can be up at once. Container always listens on 8000.
+      - "${SPOOLMAN_HOST_PORT:-8001}:8000"
     healthcheck:
       test:
         - "CMD"

@@ -1,9 +1,10 @@
-"""Build and run the Playwright frontend integration tests.
+"""Build and run the Playwright frontend integration tests for client_v2.
 
-Spins up Spoolman from the production image (client baked in) backed by a real
-PostgreSQL database, waits for it to become healthy, then drives the frontend
-through a browser with Playwright. Mirrors tests_integration/run.py, including
-the SPOOLMAN_CONTAINER_ENGINE switch for running under rootless Podman.
+Spins up Spoolman from the production image (clients baked in) backed by a real
+PostgreSQL database, waits for it to become healthy, then drives the Svelte
+frontend through a browser with Playwright. Mirrors tests_frontend/run.py — the
+same suite pointed at the legacy React client — including the
+SPOOLMAN_CONTAINER_ENGINE switch for running under rootless Podman.
 """
 
 # ruff: noqa: T201, INP001
@@ -20,10 +21,11 @@ from pathlib import Path
 ENGINE = os.environ.get("SPOOLMAN_CONTAINER_ENGINE", "docker")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-FRONTEND_DIR = REPO_ROOT / "tests_frontend"
+FRONTEND_DIR = REPO_ROOT / "tests_frontend_v2"
 COMPOSE_FILE = FRONTEND_DIR / "docker-compose.yml"
 
-HOST_PORT = os.environ.get("SPOOLMAN_HOST_PORT", "8000")
+# One above the legacy suite's default so both stacks can be up at once.
+HOST_PORT = os.environ.get("SPOOLMAN_HOST_PORT", "8001")
 BASE_URL = f"http://localhost:{HOST_PORT}"
 HEALTH_URL = f"{BASE_URL}/api/v1/health"
 HEALTH_TIMEOUT = 120
@@ -40,16 +42,15 @@ def die(message: str) -> None:
     sys.exit(1)
 
 
-def build_client() -> None:
-    """Build the production client bundle the image bakes in.
+def build_legacy_client() -> None:
+    """Build the legacy React bundle the image also bakes in.
 
-    Mirrors the CI ``build-client`` job exactly: a dev ``client/dist`` is built
-    with a different (or missing) ``VITE_APIURL`` and would render the "Missing
-    API URL" screen, so we always produce a fresh deployment build where the
-    client talks to the API on the same origin.
+    Not the client under test here, but the Dockerfile copies ``client/dist``
+    unconditionally (it is what SPOOLMAN_LEGACY_CLIENT falls back to), so the
+    image cannot be built without it.
     """
     client_dir = REPO_ROOT / "client"
-    print("Building the production client bundle (VITE_APIURL=/api/v1)...")
+    print("Building the legacy client bundle (VITE_APIURL=/api/v1)...")
     # A stray .env would override .env.production, so remove it like CI does.
     (client_dir / ".env").unlink(missing_ok=True)
     (client_dir / ".env.production").write_text("VITE_APIURL=/api/v1\n")
@@ -60,11 +61,11 @@ def build_client() -> None:
 
 
 def build_client_v2() -> None:
-    """Build the Svelte bundle the image also bakes in.
+    """Build the Svelte client under test.
 
-    Not the client under test here, but the Dockerfile copies ``client_v2/build``
-    unconditionally (it is the default client), so the image cannot be built
-    without it.
+    Mirrors the CI ``build-client`` job: no VITE_APIURL is set, so the client
+    resolves the API relative to its own base path — i.e. same-origin, which is
+    how it is actually deployed.
     """
     client_dir = REPO_ROOT / "client_v2"
     print("Building the client_v2 bundle...")
@@ -94,9 +95,9 @@ def compose(*args: str) -> int:
 
 
 def main() -> None:
-    print(f"Building and running frontend integration tests (engine: {ENGINE})...")
+    print(f"Building and running client_v2 frontend integration tests (engine: {ENGINE})...")
 
-    build_client()
+    build_legacy_client()
     build_client_v2()
 
     print("Building Spoolman image...")
@@ -131,8 +132,8 @@ def main() -> None:
         compose("down", "-v")
 
     if exit_code != 0:
-        die("Frontend integration tests failed!")
-    print("Frontend integration tests passed!")
+        die("client_v2 frontend integration tests failed!")
+    print("client_v2 frontend integration tests passed!")
 
 
 if __name__ == "__main__":

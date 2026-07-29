@@ -56,6 +56,10 @@ help = "Builds Spoolman and runs integration tests on the backend against all su
 cmd = "python tests_frontend/run.py"
 help = "Builds Spoolman and runs Playwright frontend integration tests against a real deployment."
 
+[tool.poe.tasks.itest-frontend-v2]
+cmd = "python tests_frontend_v2/run.py"
+help = "Builds Spoolman and runs Playwright frontend integration tests for client_v2 against a real deployment."
+
 [tool.bumpversion]
 current_version = "0.22.1"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
