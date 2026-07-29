@@ -51,6 +51,7 @@
 <AddSpoolModal
 	open={ui.addModalOpen}
 	presetFilamentId={ui.addModalFilamentId}
+	duplicateFilamentId={ui.addModalDuplicateId}
 	onclose={() => ui.closeAddModal()}
 />
 

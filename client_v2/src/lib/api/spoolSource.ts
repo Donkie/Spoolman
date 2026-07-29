@@ -1,4 +1,4 @@
-import type { Filament, MultiColorDirection, Spool, Vendor } from '$lib/types';
+import type { Extra, Filament, MultiColorDirection, Spool, Vendor } from '$lib/types';
 import type { GroupQuery, GroupSummary, Page, SpoolQuery } from './types';
 import { getList, getJson, patchJson, postJson, putJson, HttpError } from './http';
 import type { QueryParams } from './http';
@@ -41,6 +41,8 @@ export interface NewFilamentDraft {
 	price?: number;
 	articleNumber?: string;
 	comment?: string;
+	/** Custom-field values to carry over (used when duplicating a filament). */
+	extra?: Extra;
 }
 
 // Map a filter chip prop → API query param. Values are quoted for exact match.
@@ -288,6 +290,7 @@ class HttpSpoolSource {
 			price: draft.price || undefined,
 			article_number: draft.articleNumber || undefined,
 			comment: draft.comment || undefined,
+			extra: draft.extra && Object.keys(draft.extra).length ? draft.extra : undefined,
 			...colorFieldsToApi(draft.colors, draft.multiColorDirection)
 		};
 		const created = await postJson<Json>('/filament', body);
