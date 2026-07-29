@@ -175,20 +175,24 @@ def get_materials_file() -> Path:
     return filecache.get_file("materials.json")
 
 
-# In-memory cache of the parsed filament catalog, keyed by the cache file's mtime so it
-# is only re-parsed when a sync rewrites the file.
-_filaments_cache: tuple[float, list[ExternalFilament]] | None = None
+# In-memory cache of the parsed filament catalog, keyed by (mtime, size) of the cache
+# file so it is only re-parsed when a sync rewrites the file. Size is part of the key
+# because mtime alone can miss a rewrite: filesystems with 1-second mtime granularity
+# report the same stamp for two writes within the same second, which would leave us
+# serving the previous catalog until the next sync.
+_filaments_cache: tuple[tuple[float, int], list[ExternalFilament]] | None = None
 
 
 def _load_filaments() -> list[ExternalFilament]:
-    """Load and parse the cached filament catalog, memoized by the file's mtime."""
+    """Load and parse the cached filament catalog, memoized by the file's mtime and size."""
     global _filaments_cache  # noqa: PLW0603
     path = get_filaments_file()
     if not path.exists():
         return []
-    mtime = path.stat().st_mtime
-    if _filaments_cache is None or _filaments_cache[0] != mtime:
-        _filaments_cache = (mtime, _parse_filaments_from_bytes(path.read_bytes()).root)
+    stat = path.stat()
+    key = (stat.st_mtime, stat.st_size)
+    if _filaments_cache is None or _filaments_cache[0] != key:
+        _filaments_cache = (key, _parse_filaments_from_bytes(path.read_bytes()).root)
     return _filaments_cache[1]
 
 
