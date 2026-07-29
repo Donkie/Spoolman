@@ -17,6 +17,7 @@
 	import { spoolSource, type NewFilamentDraft } from '$lib/api/spoolSource';
 	import { fields } from '$lib/stores/fields.svelte';
 	import { externalColors, externalDirection, type ExternalFilament } from '$lib/api/external';
+	import { weightAuto } from '$lib/utils/format';
 	import { loadMaterials, type MaterialSpec } from '$lib/data/materials';
 	import * as m from '$lib/paraglide/messages';
 
@@ -456,6 +457,12 @@
 										<span class="rn">{f.name}</span>
 										<span class="rs">{vendorName(f)} · {f.material}</span>
 									</div>
+									<!-- See the note on the external rows below: weight disambiguates two
+									     otherwise identical entries, so it sits outside the truncating
+									     .res-name. A catalog filament may have no weight recorded (0). -->
+									{#if f.weight}
+										<span class="res-weight">{weightAuto(f.weight)}</span>
+									{/if}
 									<span class="tag in-catalog">{m['add.inCatalog']()}</span>
 								</button>
 							{/each}
@@ -483,6 +490,13 @@
 										<span class="rn">{ext.name}</span>
 										<span class="rs">{ext.manufacturer} · {ext.material}</span>
 									</div>
+									<!-- Weight is part of the identity here: vendors list the same filament in
+									     several sizes, so the rows are otherwise indistinguishable. It sits
+									     outside .res-name so the ellipsis can never eat the one field that
+									     tells two matching results apart. -->
+									{#if ext.weight}
+										<span class="res-weight">{weightAuto(ext.weight)}</span>
+									{/if}
 									<span class="tag external">{serverInfo.externalDbName}</span>
 								</button>
 							{/each}
@@ -634,7 +648,14 @@
 											>{serverInfo.externalDbName}</span
 										>{/if}
 								</div>
-								<div class="cs">{cVendor(chosen)} · {cMaterial(chosen)}</div>
+								<!-- Weight closes the loop on the search rows: it confirms which of several
+								     same-named sizes was picked. This is the filament's full-spool weight, so
+								     it stays put even if the Weight field below is edited for this spool. -->
+								<div class="cs">
+									{cVendor(chosen)} · {cMaterial(chosen)}{cWeight(chosen)
+										? ' · ' + weightAuto(cWeight(chosen))
+										: ''}
+								</div>
 							</div>
 							<button class="change" onclick={() => (step = 1)}>{m['add.change']()}</button>
 						</div>
@@ -928,6 +949,13 @@
 	.rs {
 		color: var(--text-muted);
 		font-size: 12px;
+	}
+	.res-weight {
+		flex: none;
+		white-space: nowrap;
+		font-size: 12px;
+		font-variant-numeric: tabular-nums;
+		color: var(--text);
 	}
 	.tag {
 		font-size: 10.5px;
