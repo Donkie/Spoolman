@@ -1,4 +1,8 @@
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve --
+	   Generic link component: `href` arrives already resolved against the deploy base
+	   path (the params.ts helpers that produce it call resolve()), so resolving it
+	   again here would double-apply the base path. */
 	import * as m from '$lib/paraglide/messages';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';

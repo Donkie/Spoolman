@@ -1,4 +1,7 @@
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve --
+	   Every href below comes from a src/lib/library/params.ts helper, which already
+	   resolves against the deploy base path; resolving again would double-apply it. */
 	import Swatch from '$components/Swatch.svelte';
 	import type { Spool } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
