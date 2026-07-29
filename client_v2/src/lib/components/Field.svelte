@@ -1,12 +1,17 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import * as m from '$lib/paraglide/messages';
+	import { setFieldLabelId } from './fieldLabel';
 
 	// One label/value row inside a <FieldGrid>. Svelte components render without a
 	// wrapper element, so the label and value below become direct grid cells.
 	// `mono` renders the value in the monospace font. `help` adds an ⓘ toggle next
 	// to the label that reveals the explanation under the value, matching the help
 	// toggles in the add-spool form.
+	//
+	// The label cell and the value cell are siblings, so a control in the value cell
+	// gets no implicit label from being nested. Publishing the label's id lets those
+	// controls name themselves — see fieldLabel.ts.
 	let {
 		label,
 		mono = false,
@@ -15,11 +20,18 @@
 	}: { label: string; mono?: boolean; help?: string; children: Snippet } = $props();
 
 	let helpOpen = $state(false);
-	const helpId = $props.id();
+	// One $props.id() per component is all Svelte allows, so suffix it for the two
+	// elements that need to be referenced.
+	const uid = $props.id();
+	const helpId = `${uid}-help`;
+	const labelId = `${uid}-label`;
+	setFieldLabelId(labelId);
 </script>
 
+<!-- The id sits on an inner span holding only the label text: the ⓘ toggle is a
+     sibling, so referencing it would fold "Help" into every control's name. -->
 <span class="k" class:top={helpOpen}
-	>{label}{#if help}<button
+	><span id={labelId}>{label}</span>{#if help}<button
 			type="button"
 			class="help-toggle"
 			aria-label={m['help.help']()}

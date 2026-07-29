@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { portal } from '$lib/actions/portal';
+	import { getFieldLabelId } from './fieldLabel';
 
 	interface Props {
 		value: string | number;
@@ -13,6 +14,8 @@
 		underline?: boolean;
 		/** Fired on every change — typing or picking an option. */
 		oninput?: (value: string) => void;
+		/** Accessible name, for use outside a <Field> or <label> that supplies one. */
+		ariaLabel?: string;
 	}
 
 	let {
@@ -23,9 +26,12 @@
 		invalid = false,
 		disabled = false,
 		underline = false,
-		oninput
+		oninput,
+		ariaLabel
 	}: Props = $props();
 
+	// Named by the enclosing <Field>'s label cell when there is one; see fieldLabel.ts.
+	const fieldLabelId = getFieldLabelId();
 	const listId = $props.id();
 	let open = $state(false);
 	let highlight = $state(-1);
@@ -152,6 +158,8 @@
 	role="combobox"
 	aria-expanded={open}
 	aria-controls={listId}
+	aria-label={ariaLabel}
+	aria-labelledby={ariaLabel ? undefined : fieldLabelId}
 	aria-autocomplete="list"
 	autocomplete="off"
 	onfocus={openList}
