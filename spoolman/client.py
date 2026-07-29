@@ -97,11 +97,29 @@ class SinglePageApplication(StaticFiles):
         # `"/_app/` covers module preloads, stylesheets and the inline `import("/_app/...")`
         # bootstrap calls; `"/favicon` covers the icon link. `base: ""` is SvelteKit's
         # runtime base, which drives client-side routing and the derived API URL.
-        self.tweaked_html = (
-            html.replace('"/_app/', f'"{prefix}/_app/')
-            .replace('"/favicon', f'"{prefix}/favicon')
-            .replace('base: ""', f'base: "{prefix}"')
-        )
+        #
+        # These are blind string replacements against adapter-static's output. If a
+        # SvelteKit upgrade changes how it emits any of them, the replacement silently
+        # becomes a no-op and we ship a fallback document that 404s its assets or routes
+        # against the wrong base — a failure only visible to operators running under a
+        # base path. So require each pattern to actually match, and say which one didn't.
+        replacements = [
+            ('"/_app/', f'"{prefix}/_app/'),
+            ('"/favicon', f'"{prefix}/favicon'),
+            ('base: ""', f'base: "{prefix}"'),
+        ]
+        missing = [old for old, _ in replacements if old not in html]
+        if missing:
+            msg = (
+                f"Could not rewrite the SPA fallback document ({self.fallback_document}) for base path "
+                f"{prefix!r}: expected pattern(s) {missing} not found. The client build is likely from an "
+                f"incompatible SvelteKit version; Spoolman would serve a broken page under a base path."
+            )
+            raise RuntimeError(msg)
+
+        for old, new in replacements:
+            html = html.replace(old, new)
+        self.tweaked_html = html
 
     def file_response(
         self,
