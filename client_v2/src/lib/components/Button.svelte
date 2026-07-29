@@ -57,12 +57,12 @@
 	}
 
 	.primary {
-		background: var(--accent);
+		background: var(--accent-fill);
 		color: #fff;
 		padding: 8px 14px;
 	}
 	.primary:hover {
-		background: var(--accent-hover);
+		background: var(--accent-fill-hover);
 	}
 
 	.outline {
@@ -93,7 +93,7 @@
 		opacity: 0.45;
 	}
 	.primary:disabled:hover {
-		background: var(--accent);
+		background: var(--accent-fill);
 	}
 	.outline:disabled:hover {
 		border-color: var(--border-strong);

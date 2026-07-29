@@ -489,8 +489,8 @@
 		color: var(--text);
 	}
 	.mode-btn.active {
-		background: var(--accent);
-		border-color: var(--accent);
+		background: var(--accent-fill);
+		border-color: var(--accent-fill);
 		color: #fff;
 	}
 	.adjust-row {

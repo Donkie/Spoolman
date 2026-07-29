@@ -471,7 +471,7 @@
 		color: var(--accent-soft);
 	}
 	.day.selected {
-		background: var(--accent);
+		background: var(--accent-fill);
 		color: #fff;
 	}
 	.time-row {
@@ -521,7 +521,7 @@
 	}
 	.done {
 		margin-left: auto;
-		background: var(--accent);
+		background: var(--accent-fill);
 		border: none;
 		color: #fff;
 		font: inherit;
@@ -532,6 +532,6 @@
 		cursor: pointer;
 	}
 	.done:hover {
-		background: var(--accent-hover);
+		background: var(--accent-fill-hover);
 	}
 </style>

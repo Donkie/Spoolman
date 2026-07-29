@@ -219,7 +219,7 @@
 		color: var(--text-2);
 	}
 	.seg-btn.active {
-		background: var(--accent);
+		background: var(--accent-fill);
 		color: #fff;
 	}
 </style>

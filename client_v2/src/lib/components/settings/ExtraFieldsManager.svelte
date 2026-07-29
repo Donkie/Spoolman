@@ -546,11 +546,11 @@
 		color: var(--text-2);
 	}
 	.btn.primary {
-		background: var(--accent);
+		background: var(--accent-fill);
 		color: #fff;
 	}
 	.btn.primary:hover {
-		background: var(--accent-hover);
+		background: var(--accent-fill-hover);
 	}
 	@media (max-width: 620px) {
 		.form {
