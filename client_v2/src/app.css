@@ -24,15 +24,19 @@
 	--border-input: #383838;
 	--hairline: rgba(255, 255, 255, 0.05);
 
-	/* Text — muted/dim/faint are tuned to clear WCAG AA (4.5:1) on the dark
-	 * surfaces they sit on (down to the lightest, surface-raised #2e2e2e) while
-	 * staying monotonic (muted brightest, faint dimmest). See app.css light
-	 * theme for the mirrored values. */
+	/* Text — muted/dim/faint clear WCAG AA (4.5:1) on the dark surfaces they sit on,
+	 * down to the lightest (surface-raised #2e2e2e). #959595 is the darkest gray that
+	 * still clears 4.5:1 there, so faint sits exactly on that floor and the other two
+	 * step up from it in even ~7-point L* increments — the same perceptual spacing the
+	 * pre-AA ramp had, so the muted -> dim -> faint hierarchy stays legible instead of
+	 * collapsing into three near-identical grays. Contrast on #2e2e2e: 7.0 / 5.6 / 4.5.
+	 * Don't darken faint to widen the ramp further; that breaks AA. See the light
+	 * theme below for the mirrored values. */
 	--text: #ececec;
 	--text-2: #c9c9c9;
-	--text-muted: #a0a0a0;
-	--text-dim: #979797;
-	--text-faint: #909090;
+	--text-muted: #bababa;
+	--text-dim: #a7a7a7;
+	--text-faint: #959595;
 
 	/* Accent (warm orange) */
 	--accent: #be682f;
@@ -97,14 +101,17 @@
 	--border-input: #ceccc6;
 	--hairline: rgba(0, 0, 0, 0.06);
 
-	/* Text — muted/dim/faint darkened to clear WCAG AA (4.5:1) on the light
-	 * surfaces they sit on (down to the darkest, surface-sunken #e8e6e2) while
-	 * staying monotonic (muted darkest, faint lightest). */
+	/* Text — mirror of the dark ramp: muted/dim/faint clear WCAG AA (4.5:1) on the
+	 * light surfaces they sit on, down to the darkest (surface-sunken #e8e6e2).
+	 * #676767 is the lightest gray that still clears 4.5:1 there, so faint sits on
+	 * that ceiling and the other two step down from it. The steps are tighter than
+	 * dark (~4.5 L*) because #444444 text-2 caps the range, but they stay clearly
+	 * distinguishable. Contrast on #e8e6e2: 6.3 / 5.4 / 4.5. */
 	--text: #232323;
 	--text-2: #444444;
-	--text-muted: #5f5f5f;
-	--text-dim: #666666;
-	--text-faint: #6d6d6d;
+	--text-muted: #525252;
+	--text-dim: #5c5c5c;
+	--text-faint: #676767;
 
 	/* Accent (warm orange, darkened for contrast on light) */
 	--accent: #b25c26;
