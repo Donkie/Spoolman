@@ -52,6 +52,10 @@ help = "Start Spoolman."
 cmd = "python scripts/stress_seed.py"
 help = "Fill a running dev instance with a large generated dataset. Never point it at real data."
 
+[tool.poe.tasks.demo-seed]
+cmd = "python scripts/demo_seed.py"
+help = "Fill a running dev instance with the curated screenshot inventory. Never point it at real data."
+
 [tool.poe.tasks.itest]
 cmd = "python tests_integration/run.py"
 help = "Builds Spoolman and runs integration tests on the backend against all supported databases."
