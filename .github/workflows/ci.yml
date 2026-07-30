@@ -384,11 +384,11 @@ jobs:
         run: docker compose -f tests_frontend_v2/docker-compose.yml down -v
   #
   # Build arm64 image
-  # Don't run this for pull requests
-  # Only push to buildcache and let release job push to registry
+  # Also exported to a tar so test-multiarch-smoke can boot it under QEMU.
+  # On pull requests we can't push to buildcache (forks don't have registry
+  # write access), so cache-to is skipped and we only read from it.
   #
   build-arm64:
-    if: ${{ github.event_name != 'pull_request' }}
     needs: [build-client]
     runs-on: ubuntu-latest
     permissions:
@@ -423,19 +423,39 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and cache Docker image
+        if: ${{ github.event_name != 'pull_request' }}
         uses: docker/build-push-action@v6.7.0
         with:
           context: .
           platforms: linux/arm64
+          tags: ${{ env.GHCR_IMAGE }}:test-arm64
+          outputs: type=docker,dest=/tmp/spoolman-arm64.tar
           cache-from: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-arm64
           cache-to: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-arm64,mode=max
+
+      # Separate build for pull requests since PRs dont have access to store cache
+      - name: Build and cache Docker image (PR)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: docker/build-push-action@v6.7.0
+        with:
+          context: .
+          platforms: linux/arm64
+          tags: ${{ env.GHCR_IMAGE }}:test-arm64
+          outputs: type=docker,dest=/tmp/spoolman-arm64.tar
+          cache-from: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-arm64
+
+      - name: Upload arm64 image artifact
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: spoolman-image-arm64
+          path: /tmp/spoolman-arm64.tar
   #
   # Build arm/v7 image
-  # Don't run this for pull requests
-  # Only push to buildcache and let release job push to registry
+  # Also exported to a tar so test-multiarch-smoke can boot it under QEMU.
+  # On pull requests we can't push to buildcache (forks don't have registry
+  # write access), so cache-to is skipped and we only read from it.
   #
   build-armv7:
-    if: ${{ github.event_name != 'pull_request' }}
     needs: [build-client]
     runs-on: ubuntu-latest
     permissions:
@@ -470,22 +490,117 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and cache Docker image
+        if: ${{ github.event_name != 'pull_request' }}
         uses: docker/build-push-action@v6.7.0
         with:
           context: .
           platforms: linux/arm/v7
+          tags: ${{ env.GHCR_IMAGE }}:test-armv7
+          outputs: type=docker,dest=/tmp/spoolman-armv7.tar
           cache-from: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-armv7
           cache-to: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-armv7,mode=max
+
+      # Separate build for pull requests since PRs dont have access to store cache
+      - name: Build and cache Docker image (PR)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: docker/build-push-action@v6.7.0
+        with:
+          context: .
+          platforms: linux/arm/v7
+          tags: ${{ env.GHCR_IMAGE }}:test-armv7
+          outputs: type=docker,dest=/tmp/spoolman-armv7.tar
+          cache-from: type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-armv7
+
+      - name: Upload armv7 image artifact
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: spoolman-image-armv7
+          path: /tmp/spoolman-armv7.tar
+  #
+  # Smoke test the arm64 and armv7 images under QEMU emulation: boot the
+  # container with no config (defaults to SQLite, no external DB needed) and
+  # confirm /api/v1/health comes up. Emulated boot (interpreter start +
+  # alembic migrations) is slow, hence the generous retry budget.
+  #
+  test-multiarch-smoke:
+    needs: [build-arm64, build-armv7]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            platform: linux/arm64
+            artifact: spoolman-image-arm64
+            tarball: spoolman-arm64.tar
+          - arch: armv7
+            platform: linux/arm/v7
+            artifact: spoolman-image-armv7
+            tarball: spoolman-armv7.tar
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3.2.0
+
+      - name: Download built image
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: ${{ matrix.artifact }}
+          path: /tmp/spoolman-image
+
+      - name: Load built image
+        run: docker load --input /tmp/spoolman-image/${{ matrix.tarball }}
+
+      - name: Start Spoolman (${{ matrix.arch }}, emulated via QEMU)
+        run: |
+          docker run -d --name spoolman-smoke \
+            --platform ${{ matrix.platform }} \
+            -p 8000:8000 \
+            ${{ env.GHCR_IMAGE }}:test-${{ matrix.arch }}
+
+      - name: Wait for /health endpoint
+        run: |
+          for i in $(seq 1 90); do
+            if curl -fsS http://localhost:8000/api/v1/health; then
+              echo
+              echo "Spoolman (${{ matrix.arch }}) is healthy"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Spoolman (${{ matrix.arch }}) did not become healthy in time" >&2
+          exit 1
+
+      - name: Dump Spoolman logs on failure
+        if: failure()
+        run: docker logs spoolman-smoke
+
+      - name: Stop Spoolman
+        if: always()
+        run: docker rm -f spoolman-smoke
   #
   # Release images GHCR and Docker Hub if tests pass
   # Don't run this for pull requests
   #
   publish-images:
     if: ${{ github.event_name != 'pull_request' }}
-    needs: [test, test-frontend, test-frontend-v2, build-amd64, build-arm64, build-armv7, style, build-client]
+    needs:
+      [
+        test,
+        test-frontend,
+        test-frontend-v2,
+        test-multiarch-smoke,
+        build-amd64,
+        build-arm64,
+        build-armv7,
+        style,
+        build-client,
+      ]
     runs-on: ubuntu-latest
     permissions:
       packages: write
+      # Lets cosign fetch an OIDC token from Github and sign without a private key.
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -551,7 +666,15 @@ jobs:
           echo "GIT_COMMIT=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
           echo "BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "$GITHUB_ENV"
 
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v4.1.2
+        with:
+          # Installer v4+ verifies cosign v3 downloads via the Sigstore bundle
+          # format; pin an explicit, current cosign release for reproducibility.
+          cosign-release: v3.1.1
+
       - name: Build and push Docker images
+        id: build
         uses: docker/build-push-action@v6.7.0
         with:
           context: .
@@ -568,6 +691,24 @@ jobs:
             type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-amd64
             type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-arm64
             type=registry,ref=ghcr.io/${{ env.GHCR_IMAGE }}:buildcache-armv7
+
+      # Sign the manifest by digest rather than by tag: all the tags above point
+      # at the same digest, and the same digest is valid in both registries, so
+      # signing every tag would just repeat the same signature.
+      - name: Sign the published images
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          TAGS: |
+            ${{ steps.meta-ghcr.outputs.tags }}
+            ${{ steps.meta-dh.outputs.tags }}
+        run: |
+          echo "${TAGS}" | while read -r tag; do
+            [ -n "${tag}" ] || continue
+            echo "${tag%:*}"
+          done | sort --unique | while read -r repository; do
+            echo "Signing ${repository}@${DIGEST}"
+            cosign sign --yes "${repository}@${DIGEST}"
+          done
   #
   # Create Github Release if CI was triggered by a tag
   #
