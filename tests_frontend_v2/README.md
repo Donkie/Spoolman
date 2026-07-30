@@ -22,6 +22,15 @@ client. Both complement the backend HTTP suite in
   spools" modal, so one submit creates a manufacturer, a filament and a spool.
   The result is verified back in the library list (group header, spool row,
   remaining weight) and on the dashboard, which groups spools by location.
+- **`tests/legacy-sw.spec.ts`** — the upgrade path off the legacy client's
+  service worker. Everyone who ever opened the old React client has a worker
+  registered at the deploy root whose precache serves the old app shell for all
+  navigations, so unless something answers its update check for `/sw.js` the
+  upgrade is invisible to them. The test stands in a worker that behaves like
+  the old one, proves it does keep serving the old shell, then swaps the real
+  `/sw.js` back in and asserts the new UI returns on its own with the
+  registration and every cache gone. The fix it covers is
+  `client_v2/static/sw.js`.
 
 The tests navigate purely through the UI — the top bar to reach each page, the
 "Add spools" button to reach the create modal. Only the initial "open the app"
