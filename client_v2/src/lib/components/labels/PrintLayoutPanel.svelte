@@ -293,6 +293,11 @@
 
 	const grid = $derived(sheetGrid(layout, design.label));
 
+	// Preview width: PREVIEW_W at most, less if the column is narrower than that.
+	const PREVIEW_W = 260;
+	let previewW = $state(0);
+	const previewFitW = $derived(previewW > 0 ? Math.min(PREVIEW_W, previewW) : PREVIEW_W);
+
 	async function doPrint() {
 		if (bindings.length === 0) return;
 		printing = true;
@@ -634,12 +639,17 @@
 		<div class="col-head"><span>{m['labels.preview']()}</span></div>
 		{#if bindings.length > 0}
 			<div class="preview-wrap">
-				<LabelCanvas
-					{design}
-					binding={bindings[0]}
-					baseUrl={settings.baseUrl}
-					pxPerMm={Math.min(6, 260 / design.label.w)}
-				/>
+				<!-- Full-width measuring box, as in the designer: the preview is capped at
+				     PREVIEW_W but shrinks with the column on a narrow screen rather than
+				     spilling out of it. -->
+				<div class="preview-fit" bind:clientWidth={previewW}>
+					<LabelCanvas
+						{design}
+						binding={bindings[0]}
+						baseUrl={settings.baseUrl}
+						pxPerMm={Math.min(6, previewFitW / design.label.w)}
+					/>
+				</div>
 			</div>
 			<div class="muted small">
 				{kind === 'filament'
@@ -880,6 +890,12 @@
 		padding: 12px;
 		background: var(--surface-2);
 		border-radius: 8px;
+	}
+	.preview-fit {
+		display: flex;
+		justify-content: center;
+		width: 100%;
+		min-width: 0;
 	}
 	.muted {
 		color: var(--text-dim);
