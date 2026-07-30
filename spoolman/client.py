@@ -25,6 +25,29 @@ PathLike = Union[str, "os.PathLike[str]"]
 Scope = MutableMapping[str, Any]
 
 
+def _require_client_build(directory: str) -> None:
+    """Fail with an actionable message when the client bundle hasn't been built.
+
+    Both clients are build artifacts that are not committed. The Docker images and the
+    ``spoolman.zip`` release both ship them pre-built, so this only bites people running
+    from a source checkout — where a ``git pull`` brings new client sources but no
+    bundle, and Spoolman then refuses to start. StaticFiles' own error for this
+    ("Directory 'client_v2/build' does not exist") gives them nothing to act on.
+    """
+    if Path(directory).is_dir():
+        return
+
+    source_dir = Path(directory).parts[0]
+    msg = (
+        f"The web client has not been built: '{directory}' does not exist. Spoolman serves a "
+        f"pre-built client bundle, which is not committed to the repository, so an install from "
+        f"source has to build it once after every upgrade:\n"
+        f"    cd {source_dir} && npm ci && npm run build\n"
+        f"The Docker images and the spoolman.zip release asset already contain it."
+    )
+    raise RuntimeError(msg)
+
+
 class SinglePageApplication(StaticFiles):
     """Serve a single page application.
 
@@ -54,6 +77,7 @@ class SinglePageApplication(StaticFiles):
         rewrite_asset_paths: bool = True,
     ) -> None:
         """Construct."""
+        _require_client_build(directory)
         super().__init__(directory=directory, packages=None, html=True, check_dir=True)
         self.base_path = base_path.removeprefix("/")
         self.fallback_document = fallback_document
