@@ -326,7 +326,7 @@
 				</Field>
 			</FieldGrid>
 
-			<ExtraFieldsSection entity="spool" extra={spool.extra} onchange={extraSaver.change} />
+			<ExtraFieldsSection entity="spool" extra={spool.extra} onchange={extraSaver.change} manage />
 		</div>
 
 		<div class="col">

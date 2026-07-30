@@ -103,7 +103,7 @@
 				</Field>
 			</FieldGrid>
 
-			<ExtraFieldsSection entity="vendor" extra={vendor.extra} onchange={extraSaver.change} />
+			<ExtraFieldsSection entity="vendor" extra={vendor.extra} onchange={extraSaver.change} manage />
 		</div>
 		<div class="col">
 			<SectionLabel>{m['filament.filament']()}</SectionLabel>

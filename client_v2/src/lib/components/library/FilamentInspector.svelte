@@ -309,7 +309,7 @@
 				</Field>
 			</FieldGrid>
 
-			<ExtraFieldsSection entity="filament" extra={filament.extra} onchange={extraSaver.change} />
+			<ExtraFieldsSection entity="filament" extra={filament.extra} onchange={extraSaver.change} manage />
 		</div>
 	</div>
 </div>
