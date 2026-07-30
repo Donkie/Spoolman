@@ -149,8 +149,7 @@ class SpoolSpec:
     location: str | None = None
     lot_nr: str | None = None
     price: float | None = None
-    #: Shown in place of "used N ago" in the list, so keep it under ~20 characters
-    #: or the row truncates it mid-word.
+    #: Free-form note. Only the inspector shows it, so length is unconstrained.
     comment: str | None = None
     dried: bool | None = None
     bought_from: str | None = None
@@ -182,7 +181,7 @@ INVENTORY: list[FilamentSpec] = [
                 price=29.99,
                 dried=True,
                 bought_from="Prusa Shop",
-                comment="Shop orange",
+                comment="House orange - keep one loaded at all times.",
             ),
             SpoolSpec(used=0.931, last_used_h=24 * 12, history_h=24 * 90, location="Shelf B", lot_nr="24C0912"),
             SpoolSpec(used=0.0, location="Dry Box 1", lot_nr="25A2244", price=29.99, bought_from="Prusa Shop"),
@@ -233,6 +232,7 @@ INVENTORY: list[FilamentSpec] = [
                 lot_nr="OV-8842",
                 price=19.99,
                 bought_from="Amazon",
+                comment="Prints fine at 0.28mm draft, good for jigs.",
             ),
             SpoolSpec(used=0.972, last_used_h=24 * 30, history_h=24 * 120, location="Shelf C"),
         ],
@@ -264,7 +264,7 @@ INVENTORY: list[FilamentSpec] = [
                 location="Bambu X1C",
                 price=26.50,
                 bought_from="3DJake",
-                comment="Silk: slow it down",
+                comment="Silk finish - slow it down or it strings.",
             ),
         ],
     ),
@@ -304,7 +304,7 @@ INVENTORY: list[FilamentSpec] = [
                 price=39.99,
                 dried=True,
                 bought_from="Amazon",
-                comment="Dry box only",
+                comment="Only prints reliably from the dry box.",
             ),
         ],
     ),
@@ -359,7 +359,7 @@ INVENTORY: list[FilamentSpec] = [
                 location="Shelf B",
                 price=32.00,
                 bought_from="Local reseller",
-                comment="Saving for badges",
+                comment="Saving the rest for the enclosure badges.",
             ),
         ],
     ),
@@ -383,7 +383,7 @@ INVENTORY: list[FilamentSpec] = [
                 price=34.99,
                 dried=True,
                 bought_from="Amazon",
-                comment="Support interface",
+                comment="Support interface only - it drinks moisture.",
             ),
         ],
     ),
@@ -408,7 +408,7 @@ INVENTORY: list[FilamentSpec] = [
                 price=54.99,
                 dried=True,
                 bought_from="Prusa Shop",
-                comment="Hardened nozzle only",
+                comment="Hardened nozzle only - it eats brass.",
             ),
         ],
     ),
