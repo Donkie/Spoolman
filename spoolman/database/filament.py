@@ -46,7 +46,7 @@ async def create(
     multi_color_hexes: str | None = None,
     multi_color_direction: MultiColorDirection | None = None,
     external_id: str | None = None,
-    extra: dict[str, str] | None = None,
+    extra: dict[str, str | None] | None = None,
 ) -> models.Filament:
     """Add a new filament to the database."""
     vendor_item: models.Vendor | None = None
@@ -74,7 +74,7 @@ async def create(
         multi_color_hexes=multi_color_hexes,
         multi_color_direction=multi_color_direction.value if multi_color_direction is not None else None,
         external_id=external_id,
-        extra=[models.FilamentField(key=k, value=v) for k, v in (extra or {}).items()],
+        extra=[models.FilamentField(key=k, value=v) for k, v in (extra or {}).items() if v is not None],
     )
     db.add(filament)
     await db.commit()
@@ -184,7 +184,12 @@ async def update(
             else:
                 filament.vendor = await vendor.get_by_id(db, v)
         elif k == "extra":
-            filament.extra = [models.FilamentField(key=k, value=v) for k, v in v.items()]
+            # Merged per key, the same as a spool's and a vendor's: only the keys present in
+            # the patch are touched, and a null value means the filament has no value for
+            # that field, so its row is dropped and not re-added — that is how a value that
+            # has been set gets cleared.
+            filament.extra = [f for f in filament.extra if f.key not in v]
+            filament.extra.extend([models.FilamentField(key=k, value=v) for k, v in v.items() if v is not None])
         elif k == "multi_color_direction":
             filament.multi_color_direction = v.value if v is not None else None
         else:

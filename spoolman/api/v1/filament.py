@@ -10,7 +10,13 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman.api.v1.models import Filament, FilamentEvent, Message, MultiColorDirection
+from spoolman.api.v1.models import (
+    Filament,
+    FilamentEvent,
+    Message,
+    MultiColorDirection,
+    extra_fields_request_description,
+)
 from spoolman.database import filament
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
@@ -114,9 +120,9 @@ class FilamentParameters(BaseModel):
         ),
         examples=["polymaker_pla_polysonicblack_1000_175"],
     )
-    extra: dict[str, str] | None = Field(
+    extra: dict[str, str | None] | None = Field(
         None,
-        description="Extra fields for this filament.",
+        description=extra_fields_request_description("filament"),
     )
 
     @field_validator("color_hex")

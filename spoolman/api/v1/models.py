@@ -36,6 +36,23 @@ def _extra_fields_description(entity: str) -> str:
     )
 
 
+def extra_fields_request_description(entity: str) -> str:
+    """Build the description for an entity's ``extra`` field on a create/update request.
+
+    Values are JSON-encoded strings, exactly as in the response. An update merges per key —
+    a field left out of the map keeps whatever it held — and a null value means "no value
+    for this field": nothing is stored, so it clears a value that was previously set. There
+    is no other way to remove one.
+    """
+    return (
+        f"Extra fields for this {entity}. Every value is a JSON-encoded string matching the field's "
+        'configured type, e.g. "42" for an integer field and "\\"hello\\"" for a text field. '
+        "Patching this map merges per key: a field left out of it keeps whatever it held. Pass null "
+        "instead of a string to store no value for the field, which is how a value that has already "
+        "been set is cleared."
+    )
+
+
 class Message(BaseModel):
     message: str = Field()
 

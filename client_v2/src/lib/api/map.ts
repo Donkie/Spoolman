@@ -1,4 +1,12 @@
-import type { Filament, MultiColorDirection, Spool, Vendor } from '$lib/types';
+import type {
+	Filament,
+	FilamentPatch,
+	MultiColorDirection,
+	Spool,
+	SpoolPatch,
+	Vendor,
+	VendorPatch
+} from '$lib/types';
 import type { GroupSummary } from './types';
 import { formatDurationShort, formatShortDate } from '$lib/utils/datetime';
 
@@ -153,7 +161,7 @@ export function colorFieldsToApi(
 	return { color_hex: hexes[0] ?? null, multi_color_hexes: null, multi_color_direction: null };
 }
 
-export function spoolPatchToApi(patch: Partial<Spool>): Json {
+export function spoolPatchToApi(patch: SpoolPatch): Json {
 	const out: Json = {};
 	if ('location' in patch) out.location = patch.location ?? '';
 	if ('lot' in patch) out.lot_nr = patch.lot ?? '';
@@ -167,7 +175,7 @@ export function spoolPatchToApi(patch: Partial<Spool>): Json {
 	return out;
 }
 
-export function filamentPatchToApi(patch: Partial<Filament>): Json {
+export function filamentPatchToApi(patch: FilamentPatch): Json {
 	const out: Json = {};
 	if ('name' in patch) out.name = patch.name;
 	if ('material' in patch) out.material = patch.material;
@@ -188,7 +196,7 @@ export function filamentPatchToApi(patch: Partial<Filament>): Json {
 	return out;
 }
 
-export function vendorPatchToApi(patch: Partial<Vendor>): Json {
+export function vendorPatchToApi(patch: VendorPatch): Json {
 	const out: Json = {};
 	if ('name' in patch) out.name = patch.name;
 	if ('emptyWeight' in patch) out.empty_spool_weight = patch.emptyWeight;

@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman.api.v1.models import Message, Vendor, VendorEvent
+from spoolman.api.v1.models import Message, Vendor, VendorEvent, extra_fields_request_description
 from spoolman.database import vendor
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
@@ -46,9 +46,9 @@ class VendorParameters(BaseModel):
         ),
         examples=["eSun"],
     )
-    extra: dict[str, str] | None = Field(
+    extra: dict[str, str | None] | None = Field(
         None,
-        description="Extra fields for this vendor.",
+        description=extra_fields_request_description("vendor"),
     )
 
 

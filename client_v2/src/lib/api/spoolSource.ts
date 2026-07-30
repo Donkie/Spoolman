@@ -1,4 +1,13 @@
-import type { Extra, Filament, MultiColorDirection, Spool, Vendor } from '$lib/types';
+import type {
+	Extra,
+	Filament,
+	FilamentPatch,
+	MultiColorDirection,
+	Spool,
+	SpoolPatch,
+	Vendor,
+	VendorPatch
+} from '$lib/types';
 import type { GroupField, GroupQuery, GroupSummary, Page, SpoolQuery } from './types';
 import { getList, getJson, patchJson, postJson, putJson, HttpError } from './http';
 import type { QueryParams } from './http';
@@ -346,7 +355,7 @@ class HttpSpoolSource {
 
 	// --- writes -------------------------------------------------------------
 
-	async saveSpool(id: number, patch: Partial<Spool>): Promise<void> {
+	async saveSpool(id: number, patch: SpoolPatch): Promise<void> {
 		const updated = await patchJson<Json>(`/spool/${id}`, spoolPatchToApi(patch));
 		inventory.upsertSpool(mapSpool(updated));
 	}
@@ -374,11 +383,11 @@ class HttpSpoolSource {
 		inventory.upsertSpool(spool);
 		return spool;
 	}
-	async saveFilament(id: string, patch: Partial<Filament>): Promise<void> {
+	async saveFilament(id: string, patch: FilamentPatch): Promise<void> {
 		const updated = await patchJson<Json>(`/filament/${id}`, filamentPatchToApi(patch));
 		inventory.upsertFilament(mapFilament(updated));
 	}
-	async saveVendor(id: string, patch: Partial<Vendor>): Promise<void> {
+	async saveVendor(id: string, patch: VendorPatch): Promise<void> {
 		const updated = await patchJson<Json>(`/vendor/${id}`, vendorPatchToApi(patch));
 		inventory.upsertVendor(mapVendor(updated));
 	}

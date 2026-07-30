@@ -58,7 +58,7 @@ async def create(
     lot_nr: str | None = None,
     comment: str | None = None,
     archived: bool = False,
-    extra: dict[str, str] | None = None,
+    extra: dict[str, str | None] | None = None,
 ) -> models.Spool:
     """Add a new spool to the database. Leave weight empty to assume full spool."""
     filament_item = await filament.get_by_id(db, filament_id)
@@ -101,7 +101,7 @@ async def create(
         lot_nr=lot_nr,
         comment=comment,
         archived=archived,
-        extra=[models.SpoolField(key=k, value=v) for k, v in (extra or {}).items()],
+        extra=[models.SpoolField(key=k, value=v) for k, v in (extra or {}).items() if v is not None],
     )
     db.add(spool)
     await db.commit()
@@ -508,8 +508,12 @@ async def update(
         elif isinstance(v, datetime):
             setattr(spool, k, utc_timezone_naive(v))
         elif k == "extra":
+            # Merged per key, the same as a filament's and a vendor's: only the keys present
+            # in the patch are touched, and a null value means the spool has no value for
+            # that field, so its row is dropped and not re-added — that is how a value that
+            # has been set gets cleared.
             spool.extra = [f for f in spool.extra if f.key not in v]
-            spool.extra.extend([models.SpoolField(key=k, value=v) for k, v in v.items()])
+            spool.extra.extend([models.SpoolField(key=k, value=v) for k, v in v.items() if v is not None])
         else:
             setattr(spool, k, v)
     await db.commit()

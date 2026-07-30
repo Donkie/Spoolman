@@ -12,7 +12,15 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.datastructures import QueryParams
 
-from spoolman.api.v1.models import Filament, Message, Spool, SpoolEvent, SpoolGroup, Vendor
+from spoolman.api.v1.models import (
+    Filament,
+    Message,
+    Spool,
+    SpoolEvent,
+    SpoolGroup,
+    Vendor,
+    extra_fields_request_description,
+)
 from spoolman.database import spool
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
@@ -106,9 +114,9 @@ class SpoolParameters(BaseModel):
         examples=[""],
     )
     archived: bool = Field(default=False, description="Whether this spool is archived and should not be used anymore.")
-    extra: dict[str, str] | None = Field(
+    extra: dict[str, str | None] | None = Field(
         None,
-        description="Extra fields for this spool.",
+        description=extra_fields_request_description("spool"),
     )
 
 

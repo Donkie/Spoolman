@@ -177,8 +177,9 @@
 	}
 
 	const extraSaver = makeExtraSaver(
-		(e) => inventory.patchSpool(spool.id, { extra: e }),
-		(p) => trackSave(spoolSource.saveSpool(spool.id, { extra: p })),
+		() => spool.id,
+		(id, e) => inventory.patchSpool(id, { extra: e }),
+		(id, p) => trackSave(spoolSource.saveSpool(id, { extra: p })),
 		() => spool.extra
 	);
 	$effect(() => () => extraSaver.flush());

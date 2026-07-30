@@ -5,6 +5,12 @@
 /** Custom-field values: field key → JSON-encoded string value. */
 export type Extra = Record<string, string>;
 
+/**
+ * Custom-field values on the way to the server: a JSON-encoded string to store, or null
+ * to store no value — which is the only way to clear one that has been set.
+ */
+export type ExtraPatch = Record<string, string | null>;
+
 /** Layout of a multi-color filament's colors. */
 export type MultiColorDirection = 'coaxial' | 'longitudinal';
 
@@ -83,6 +89,11 @@ export interface Spool {
 	comment: string;
 	extra: Extra;
 }
+
+// Write shapes: a partial entity, except that `extra` may carry nulls to clear values.
+export type VendorPatch = Partial<Omit<Vendor, 'extra'>> & { extra?: ExtraPatch };
+export type FilamentPatch = Partial<Omit<Filament, 'extra'>> & { extra?: ExtraPatch };
+export type SpoolPatch = Partial<Omit<Spool, 'extra'>> & { extra?: ExtraPatch };
 
 export type EntityKind = 'spool' | 'filament' | 'vendor';
 

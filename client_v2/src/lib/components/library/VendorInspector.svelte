@@ -59,8 +59,9 @@
 	}
 
 	const extraSaver = makeExtraSaver(
-		(e) => inventory.patchVendor(vendor.id, { extra: e }),
-		(p) => trackSave(spoolSource.saveVendor(vendor.id, { extra: p })),
+		() => vendor.id,
+		(id, e) => inventory.patchVendor(id, { extra: e }),
+		(id, p) => trackSave(spoolSource.saveVendor(id, { extra: p })),
 		() => vendor.extra
 	);
 	$effect(() => () => extraSaver.flush());

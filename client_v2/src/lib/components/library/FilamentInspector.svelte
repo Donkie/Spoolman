@@ -101,8 +101,9 @@
 	}
 
 	const extraSaver = makeExtraSaver(
-		(e) => inventory.patchFilament(filament.id, { extra: e }),
-		(p) => trackSave(spoolSource.saveFilament(filament.id, { extra: p })),
+		() => filament.id,
+		(id, e) => inventory.patchFilament(id, { extra: e }),
+		(id, p) => trackSave(spoolSource.saveFilament(id, { extra: p })),
 		() => filament.extra
 	);
 	$effect(() => () => extraSaver.flush());
