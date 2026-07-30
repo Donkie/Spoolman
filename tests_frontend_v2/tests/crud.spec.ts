@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { navTab, numberField, openAddSpoolModal, openApp, unique } from "./helpers";
+import { createSpoolViaModal, navTab, openApp, unique } from "./helpers";
 
 /**
  * The core happy path a real user walks on first use. client_v2 folds what the
@@ -16,47 +16,8 @@ test("create a manufacturer, filament and spool through the add-spool modal", as
 
   await openApp(page);
 
-  await test.step("fill in a brand-new filament", async () => {
-    const dialog = await openAddSpoolModal(page);
-
-    // Step 1 offers the local catalog and SpoolmanDB; we take the third path and
-    // describe a filament that exists in neither.
-    await dialog.getByRole("button", { name: /^Create a new filament/ }).click();
-
-    // The new-filament fields have no label/input association usable by
-    // getByLabel (the <label> wraps a custom Combobox and hint text), so they are
-    // located by their placeholders.
-    await dialog.getByPlaceholder("e.g. Polymaker").fill(vendorName);
-    await dialog.getByPlaceholder("e.g. PolyTerra Matte Sage").fill(filamentName);
-    await dialog.getByPlaceholder("PLA", { exact: true }).fill("PLA");
-
-    // A manufacturer that doesn't exist yet is created along with the filament.
-    await expect(dialog.getByText(`New manufacturer “${vendorName}” will be created`)).toBeVisible();
-
-    // Density is required. Picking a known material auto-fills it from
-    // SpoolmanDB's material list, but the tests must not depend on that external
-    // lookup, so set it explicitly under "Advanced specs".
-    await dialog.getByRole("button", { name: /^Advanced specs/ }).click();
-    await numberField(dialog, "Density").fill("1.24");
-    await expect(numberField(dialog, "Diameter")).toHaveValue("1.75");
-  });
-
-  await test.step("fill in the spool details and submit", async () => {
-    const dialog = page.getByRole("dialog");
-
-    await expect(numberField(dialog, "Count")).toHaveValue("1");
-    await numberField(dialog, "Weight").fill("1000");
-    await dialog.getByPlaceholder("e.g. Shelf A").fill(locationName);
-
-    // "Full" is the default fill level; switch to entering how much has already
-    // been used. Its input is the only one in the modal with a "0" placeholder.
-    await dialog.getByRole("button", { name: "Used Weight", exact: true }).click();
-    await dialog.getByPlaceholder("0", { exact: true }).fill("250");
-
-    await dialog.getByRole("button", { name: "Add 1 spool", exact: true }).click();
-
-    // A successful submit closes the modal.
-    await expect(dialog).toBeHidden();
+  await test.step("fill in a brand-new filament and spool, then submit", async () => {
+    await createSpoolViaModal(page, { vendorName, filamentName, locationName, weightG: 1000, usedG: 250 });
   });
 
   await test.step("find the new spool back in the library", async () => {

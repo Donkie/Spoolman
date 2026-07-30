@@ -22,6 +22,32 @@ client. Both complement the backend HTTP suite in
   spools" modal, so one submit creates a manufacturer, a filament and a spool.
   The result is verified back in the library list (group header, spool row,
   remaining weight) and on the dashboard, which groups spools by location.
+- **`tests/search.spec.ts`** — the library's find-things subsystem, all of it new
+  in client_v2 and all of it backed by real API calls: the top-bar cross-entity
+  search (a filament name, a manufacturer name and a location each land in their
+  own section, and a query that matches nothing says so), opening a result into
+  its inspector, grouping by location and by manufacturer, filtering by location
+  and clearing the chip again, and changing the sort. Group/sort/filter live in
+  the URL, so each is also checked to survive a reload.
+- **`tests/labels.spec.ts`** — the label/QR subsystem. A design is created, named
+  and saved, then found again after a reload (designs live in the `label_designs`
+  server setting, not in localStorage), and a label for a real spool is exported
+  through the "Image files" mode and asserted to be a non-trivial PNG — which is
+  the only way to prove the QR encoding, template substitution, logo and mm→pixel
+  maths all ran. The "Print" modes are deliberately not exercised: they open the
+  browser's print dialog, which would stall the session.
+- **`tests/settings.spec.ts`** — the settings page, where two persistence models
+  meet with no visual clue which is which: currency, price rounding and base URL
+  are server settings (checked by reloading), while the theme is per-browser and
+  re-applied by the inline script in `app.html` before first paint. The
+  extra-fields manager is covered end to end — define a spool field, see the
+  library's filter menu pick it up from the field metadata, then delete it again.
+- **`tests/pwa.spec.ts`** — installability. The manifest and its icons are plain
+  files in `client_v2/static/` rather than something a build plugin generates, so
+  the suite checks the deployed artifact: the manifest is served at the deploy
+  root with a type browsers accept, describes a standalone app with a maskable
+  icon, every icon it promises resolves, and its URLs are relative (which is what
+  lets the same file work under `SPOOLMAN_BASE_PATH`).
 - **`tests/legacy-sw.spec.ts`** — the upgrade path off the legacy client's
   service worker. Everyone who ever opened the old React client has a worker
   registered at the deploy root whose precache serves the old app shell for all
@@ -34,9 +60,16 @@ client. Both complement the backend HTTP suite in
 
 The tests navigate purely through the UI — the top bar to reach each page, the
 "Add spools" button to reach the create modal. Only the initial "open the app"
-step uses a direct URL. The app's language is forced to English (see
+step uses a direct URL (and `tests/pwa.spec.ts`, which is about what the server
+serves rather than about the app). The app's language is forced to English (see
 `tests/fixtures.ts`) so the label and button matchers are stable regardless of
 the runner's browser locale.
+
+Each spec creates the data it needs through `createSpoolViaModal` in
+`tests/helpers.ts` rather than leaning on what an earlier spec happened to
+leave behind, so specs can be run individually and in any order. Anything with
+instance-wide reach — a settings value, an extra field, a label design — is put
+back afterwards.
 
 ## Running locally
 
