@@ -1,5 +1,5 @@
 import type { Extra, Filament, MultiColorDirection, Spool, Vendor } from '$lib/types';
-import type { GroupQuery, GroupSummary, Page, SpoolQuery } from './types';
+import type { GroupField, GroupQuery, GroupSummary, Page, SpoolQuery } from './types';
 import { getList, getJson, patchJson, postJson, putJson, HttpError } from './http';
 import type { QueryParams } from './http';
 import {
@@ -416,9 +416,18 @@ class HttpSpoolSource {
 	async locations(): Promise<string[]> {
 		return getJson<string[]>('/location');
 	}
-	/** Rename a location, moving every spool currently in it to the new name. */
-	async renameLocation(current: string, next: string): Promise<void> {
-		await patchJson<string>(`/location/${encodeURIComponent(current)}`, { name: next });
+	/**
+	 * Replace one value of one spool field wherever it occurs, in a single request. Works for
+	 * any field the spool owns, so the dashboard can rename a whole group without paging in its
+	 * members — and without leaving out the ones it never loaded. Returns how many spools held
+	 * the old value.
+	 */
+	async renameFieldValue(field: GroupField, value: string, newValue: string): Promise<number> {
+		const result = await patchJson<{ spools_updated: number }>(`/spool/field/${encodeURIComponent(field)}`, {
+			value,
+			new_value: newValue
+		});
+		return result.spools_updated;
 	}
 	async lotNumbers(): Promise<string[]> {
 		return getJson<string[]>('/lot-number');

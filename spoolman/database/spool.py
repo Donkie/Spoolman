@@ -1,5 +1,6 @@
 """Helper functions for interacting with spool database objects."""
 
+import json
 import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -19,6 +20,7 @@ from spoolman.database.extra_field_query import (
     apply_extra_field_filters_and_sort,
     apply_spool_related_extra_filters,
     extra_field_join,
+    extra_field_value_text,
 )
 from spoolman.database.utils import (
     SortOrder,
@@ -236,15 +238,17 @@ GROUP_BY_COLUMNS = {
     "location": models.Spool.location,
 }
 
-# Prefix of a group_by that names a spool extra field instead of a built-in column.
-EXTRA_GROUP_BY_PREFIX = "extra."
+# Prefix marking a reference to one of the spool's extra fields rather than a built-in column.
+EXTRA_FIELD_PREFIX = "extra."
 
-# Extra fields that can be grouped on. Grouping collects every spool that shares a value, so
-# it only makes sense for the field types whose value is a single repeatable string.
-# Multi-choice is excluded because its value is a JSON *array*: two spools with
-# overlapping-but-unequal selections would land in different groups, and a group key could
-# not be turned back into a value to assign.
-GROUPABLE_EXTRA_FIELD_TYPES = (ExtraFieldType.text, ExtraFieldType.choice)
+# Mirrors the Spool.location column width, so an over-long rename is a 400 and not a 500.
+LOCATION_MAX_LENGTH = 64
+
+# Extra fields whose value is a single plain string, and which can therefore be grouped on and
+# renamed by value. Multi-choice is excluded because its value is a JSON *array*: two spools
+# with overlapping-but-unequal selections are neither the same value nor cleanly different
+# ones, and there is no single value to match or write.
+SINGLE_VALUE_EXTRA_FIELD_TYPES = (ExtraFieldType.text, ExtraFieldType.choice)
 
 
 def _apply_spool_filters(
@@ -290,8 +294,9 @@ async def _resolve_group_by(
     Grouping is either on a built-in column or on one of the spool's extra fields. The latter
     lives in its own table, so it comes with a join the caller has to apply once the SELECT exists.
     """
-    if group_by.startswith(EXTRA_GROUP_BY_PREFIX):
-        join = _extra_field_group_join(await get_extra_fields(db, EntityType.spool), group_by)
+    if group_by.startswith(EXTRA_FIELD_PREFIX):
+        field_key = _extra_field_key(await get_extra_fields(db, EntityType.spool), group_by)
+        join = extra_field_join(EntityType.spool, field_key)
         # The value is the group's title as well; there is no separate entity to name it.
         return join.value, join.value, join
     if group_by in GROUP_BY_COLUMNS:
@@ -304,22 +309,27 @@ async def _resolve_group_by(
         return GROUP_BY_COLUMNS[group_by], title_col, None
     raise ValueError(
         f"Invalid group_by field '{group_by}'. Must be one of {sorted(GROUP_BY_COLUMNS)} "
-        f"or '{EXTRA_GROUP_BY_PREFIX}<spool extra field key>'.",
+        f"or '{EXTRA_FIELD_PREFIX}<spool extra field key>'.",
     )
 
 
-def _extra_field_group_join(spool_fields: Sequence[ExtraField], group_by: str) -> ExtraFieldJoin:
-    """Validate a `group_by=extra.<key>` against the registered spool extra fields."""
-    field_key = group_by[len(EXTRA_GROUP_BY_PREFIX) :]
+def _extra_field_key(spool_fields: Sequence[ExtraField], reference: str) -> str:
+    """Resolve an `extra.<key>` reference to its bare key, rejecting fields that can't carry one.
+
+    Shared by grouping and by renaming a value, which need the same guarantee: the field exists,
+    and one spool has exactly one plain string in it.
+    """
+    field_key = reference[len(EXTRA_FIELD_PREFIX) :]
     field = next((f for f in spool_fields if f.key == field_key), None)
     if field is None:
         raise ValueError(f"Unknown spool extra field '{field_key}'.")
     is_multi_choice = field.field_type == ExtraFieldType.choice and field.multi_choice
-    if field.field_type not in GROUPABLE_EXTRA_FIELD_TYPES or is_multi_choice:
+    if field.field_type not in SINGLE_VALUE_EXTRA_FIELD_TYPES or is_multi_choice:
         raise ValueError(
-            f"Spool extra field '{field_key}' cannot be grouped by. Only single-value text and choice fields can.",
+            f"Spool extra field '{field_key}' does not hold a single plain value. "
+            f"Only text and single-choice fields do.",
         )
-    return extra_field_join(EntityType.spool, field_key)
+    return field_key
 
 
 @dataclass
@@ -747,3 +757,58 @@ async def rename_location(
         sqlalchemy.update(models.Spool).where(models.Spool.location == current_name).values(location=new_name),
     )
     await db.commit()
+
+
+async def rename_field_value(
+    *,
+    db: AsyncSession,
+    field: str,
+    value: str,
+    new_value: str,
+) -> int:
+    """Replace one value of one spool field wherever it occurs, in a single statement.
+
+    rename_location generalised from location to the spool's other string fields, including its
+    custom ones. A client that has grouped spools by a field can rename a whole group this way
+    without reading out its members and patching them one at a time -- which it could only do
+    for the spools it had actually paged in, and not atomically.
+
+    Only fields the SPOOL owns can be renamed. A filament's material or vendor is a property of
+    another entity: rewriting it "for these spools" would change filaments other spools share.
+
+    Archived spools are included -- the value is the value, and skipping them would silently
+    leave half the spools behind.
+
+    Like rename_location, no spool event is broadcast per row. The change is one statement over
+    what may be hundreds of spools, and that fan-out is exactly what the websocket layer avoids
+    elsewhere; other clients pick the change up on their next load.
+
+    Returns the number of spools changed.
+    """
+    if field == "location":
+        if len(new_value) > LOCATION_MAX_LENGTH:
+            raise ValueError(f"A location can be at most {LOCATION_MAX_LENGTH} characters.")
+        stmt = sqlalchemy.update(models.Spool).where(models.Spool.location == value).values(location=new_value)
+    elif field.startswith(EXTRA_FIELD_PREFIX):
+        field_key = _extra_field_key(await get_extra_fields(db, EntityType.spool), field)
+        # Match on the DB-decoded scalar, so which JSON encoding wrote the value doesn't matter;
+        # store the new one the way the rest of the API does.
+        stmt = (
+            sqlalchemy.update(models.SpoolField)
+            .where(
+                sqlalchemy.and_(
+                    models.SpoolField.key == field_key,
+                    extra_field_value_text(models.SpoolField.value) == value,
+                ),
+            )
+            .values(value=json.dumps(new_value, ensure_ascii=False))
+        )
+    else:
+        raise ValueError(
+            f"Cannot rename values of '{field}'. Only fields the spool itself owns can be renamed: "
+            f"location, or '{EXTRA_FIELD_PREFIX}<spool extra field key>'.",
+        )
+
+    result = await db.execute(stmt)
+    await db.commit()
+    return result.rowcount

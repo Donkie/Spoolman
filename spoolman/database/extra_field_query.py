@@ -139,6 +139,15 @@ class ExtraFieldJoin:
         )
 
 
+def extra_field_value_text(column: ColumnElement[str]) -> ColumnElement[str]:
+    """Decode a stored extra-field value to its scalar, as plain TEXT.
+
+    Compare against this rather than a reconstructed JSON string, so matching doesn't depend
+    on how the value was encoded when it was written (quoting, non-ASCII escaping).
+    """
+    return _JsonScalarText(column)
+
+
 def extra_field_join(entity_type: EntityType, field_key: str) -> ExtraFieldJoin:
     """Prepare an extra field to be selected as a column of an entity query.
 
@@ -153,7 +162,7 @@ def extra_field_join(entity_type: EntityType, field_key: str) -> ExtraFieldJoin:
         alias=alias,
         field_key=field_key,
         id_column_name=id_column_name,
-        value=_JsonScalarText(alias.c.value),
+        value=extra_field_value_text(alias.c.value),
     )
 
 

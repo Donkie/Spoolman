@@ -536,14 +536,12 @@
 	}
 
 	/**
-	 * Whether this card's name can be edited here. A fixed choice belongs to the field's
-	 * definition, and a group that holds spools can only be renamed when the backend can move
-	 * them all in one shot (locations) — otherwise it would mean patching every spool in it.
+	 * Whether this card's name can be edited here. "Unassigned" isn't a value, so there is
+	 * nothing to rename; a fixed choice belongs to the field's definition and has to be renamed
+	 * there. Everything else is fair game — the backend moves a whole group in one request.
 	 */
 	function canRename(card: Card): boolean {
-		if (card.key === UNASSIGNED) return false;
-		if (field.choices?.includes(card.key)) return false;
-		return card.total === 0 || field.rename !== undefined;
+		return card.key !== UNASSIGNED && !field.choices?.includes(card.key);
 	}
 
 	function startEdit(card: Card) {
@@ -585,9 +583,13 @@
 		const old = buckets[oldKey];
 		try {
 			if (old && old.total > 0) {
-				await field.rename!(oldKey, newKey);
-				// Carry the loaded page over so the card doesn't have to refetch.
-				buckets[newKey] = { ...old, spools: old.spools.map((s) => field.withValue(s, newKey)) };
+				// One request moves the whole group, including the pages this card never loaded.
+				await field.rename(oldKey, newKey);
+				// Carry the loaded page over so the card doesn't have to refetch, and keep the
+				// shared cache in step so an inspector opened next shows the new value.
+				const moved = old.spools.map((s) => field.withValue(s, newKey));
+				for (const spool of moved) inventory.upsertSpool(spool);
+				buckets[newKey] = { ...old, spools: moved };
 				delete buckets[oldKey];
 			}
 			// Carry the card's custom spool order over to the new key.

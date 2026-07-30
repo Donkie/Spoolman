@@ -35,10 +35,10 @@ export interface DashboardField {
 	/** Write `value` to the spool, updating the cache first. */
 	assign(spool: Spool, value: GroupKey): Promise<void>;
 	/**
-	 * Rename a whole group, moving every spool in it. Only defined where the backend can
-	 * do it in one shot; elsewhere the board only lets empty groups be renamed.
+	 * Give every spool in `from` the value `to`, in one request. Uniform across fields, so a
+	 * group can be renamed whether or not the board has paged its spools in.
 	 */
-	rename?(from: GroupKey, to: GroupKey): Promise<void>;
+	rename(from: GroupKey, to: GroupKey): Promise<void>;
 	/** Fixed set of permitted values (single-choice fields); undefined means free text. */
 	choices?: string[];
 }
@@ -54,7 +54,9 @@ const LOCATION: DashboardField = {
 		inventory.patchSpool(spool.id, { location: value });
 		await spoolSource.saveSpool(spool.id, { location: value });
 	},
-	rename: (from, to) => spoolSource.renameLocation(from, to)
+	rename: async (from, to) => {
+		await spoolSource.renameFieldValue('location', from, to);
+	}
 };
 
 /**
@@ -83,6 +85,9 @@ function extraField(def: FieldDef): DashboardField {
 			const extra = { [def.key]: encode(value) };
 			inventory.patchSpool(spool.id, { extra: { ...spool.extra, ...extra } });
 			await spoolSource.saveSpool(spool.id, { extra });
+		},
+		rename: async (from, to) => {
+			await spoolSource.renameFieldValue(key, from, to);
 		},
 		choices: def.field_type === FieldType.choice ? (def.choices ?? []) : undefined
 	};
