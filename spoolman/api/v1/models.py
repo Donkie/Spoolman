@@ -382,8 +382,8 @@ class SpoolGroup(BaseModel):
         None,
         description=(
             "The group key. For group_by=filament/vendor this is the entity ID as a string; for "
-            "material/location it is the value. Null when the grouped field is unset (e.g. spools "
-            "with no location or a filament with no vendor)."
+            "material/location and extra fields it is the value. Null when the grouped "
+            "field is unset (e.g. spools with no location or a filament with no vendor)."
         ),
         examples=["12"],
     )

@@ -73,3 +73,10 @@ register_setting("base_url", SettingType.STRING, json.dumps(""))
 
 register_setting("locations", SettingType.ARRAY, json.dumps([]))
 register_setting("locations_spoolorders", SettingType.OBJECT, json.dumps({}))
+
+# The dashboard groups spools by a field the user picks (location, lot_nr, material, or a spool
+# extra field), so its layout is stored per field rather than per location like the two settings
+# above. dashboard_groups maps a field key to its ordered group keys ("" being the unset group);
+# dashboard_spoolorders maps a field key to a group key to its ordered spool ids.
+register_setting("dashboard_groups", SettingType.OBJECT, json.dumps({}))
+register_setting("dashboard_spoolorders", SettingType.OBJECT, json.dumps({}))

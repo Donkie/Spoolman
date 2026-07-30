@@ -106,7 +106,10 @@ export function mapGroup(g: Json): GroupSummary {
 		title = g.key ?? 'No location';
 		subtitle = `${g.in_use_count} in use`;
 	} else {
+		// extra.<key>: the key IS the value, and there is no entity to name the group.
+		// The dashboard, which is what groups on these, titles them itself.
 		title = g.key ?? '';
+		subtitle = `${g.spool_count} spool${g.spool_count === 1 ? '' : 's'}`;
 	}
 
 	return {

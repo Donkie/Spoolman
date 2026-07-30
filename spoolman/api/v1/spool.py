@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
@@ -379,11 +379,12 @@ async def notify_any(
     "/group",
     name="Find spool groups",
     description=(
-        "Group spools that match the search query by one axis (filament, vendor, material or "
-        "location) and return per-group aggregates: spool count, in-use count, total remaining "
-        "weight and most recent usage. Pagination is over groups, so a group is never split and "
-        "its aggregates are always complete. Uses the same filters as the spool search endpoint. "
-        "The total number of matching groups is returned in the x-total-count header."
+        "Group spools that match the search query by one axis (filament, vendor, material, "
+        "location, or a spool extra field) and return per-group aggregates: spool count, "
+        "in-use count, total remaining weight and most recent usage. Pagination is over groups, so "
+        "a group is never split and its aggregates are always complete. Uses the same filters as "
+        "the spool search endpoint. The total number of matching groups is returned in the "
+        "x-total-count header."
     ),
     response_model_exclude_none=True,
     responses={
@@ -396,8 +397,15 @@ async def find_groups(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db_session)],
     group_by: Annotated[
-        Literal["filament", "vendor", "material", "location"],
-        Query(title="Group By", description="The field to group spools by."),
+        str,
+        Query(
+            title="Group By",
+            description=(
+                "The field to group spools by: filament, vendor, material, location, or extra.<key> "
+                "for one of the spool's custom fields (text and single-choice fields only)."
+            ),
+            examples=["location", "extra.shelf"],
+        ),
     ],
     filament_name: Annotated[
         str | None,

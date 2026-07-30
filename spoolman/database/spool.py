@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 import sqlalchemy
-from sqlalchemy import case, func
+from sqlalchemy import ColumnElement, case, func
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
@@ -15,8 +15,10 @@ from sqlalchemy.sql.functions import coalesce
 from spoolman.api.v1.models import EventType, Spool, SpoolEvent
 from spoolman.database import filament, models
 from spoolman.database.extra_field_query import (
+    ExtraFieldJoin,
     apply_extra_field_filters_and_sort,
     apply_spool_related_extra_filters,
+    extra_field_join,
 )
 from spoolman.database.utils import (
     SortOrder,
@@ -27,7 +29,7 @@ from spoolman.database.utils import (
     parse_nested_field,
 )
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError, SpoolMeasureError
-from spoolman.extra_field_registry import EntityType
+from spoolman.extra_field_registry import EntityType, ExtraField, ExtraFieldType, get_extra_fields
 from spoolman.math import weight_from_length
 from spoolman.ws import websocket_manager
 
@@ -234,6 +236,16 @@ GROUP_BY_COLUMNS = {
     "location": models.Spool.location,
 }
 
+# Prefix of a group_by that names a spool extra field instead of a built-in column.
+EXTRA_GROUP_BY_PREFIX = "extra."
+
+# Extra fields that can be grouped on. Grouping collects every spool that shares a value, so
+# it only makes sense for the field types whose value is a single repeatable string.
+# Multi-choice is excluded because its value is a JSON *array*: two spools with
+# overlapping-but-unequal selections would land in different groups, and a group key could
+# not be turned back into a value to assign.
+GROUPABLE_EXTRA_FIELD_TYPES = (ExtraFieldType.text, ExtraFieldType.choice)
+
 
 def _apply_spool_filters(
     stmt: sqlalchemy.Select,
@@ -267,6 +279,47 @@ def _apply_spool_filters(
             ),
         )
     return stmt
+
+
+async def _resolve_group_by(
+    db: AsyncSession,
+    group_by: str,
+) -> tuple[ColumnElement, ColumnElement, ExtraFieldJoin | None]:
+    """Resolve a group_by into the column to group on, the column to title groups by, and any join.
+
+    Grouping is either on a built-in column or on one of the spool's extra fields. The latter
+    lives in its own table, so it comes with a join the caller has to apply once the SELECT exists.
+    """
+    if group_by.startswith(EXTRA_GROUP_BY_PREFIX):
+        join = _extra_field_group_join(await get_extra_fields(db, EntityType.spool), group_by)
+        # The value is the group's title as well; there is no separate entity to name it.
+        return join.value, join.value, join
+    if group_by in GROUP_BY_COLUMNS:
+        title_col = {
+            "filament": models.Filament.name,
+            "vendor": models.Vendor.name,
+            "material": models.Filament.material,
+            "location": models.Spool.location,
+        }[group_by]
+        return GROUP_BY_COLUMNS[group_by], title_col, None
+    raise ValueError(
+        f"Invalid group_by field '{group_by}'. Must be one of {sorted(GROUP_BY_COLUMNS)} "
+        f"or '{EXTRA_GROUP_BY_PREFIX}<spool extra field key>'.",
+    )
+
+
+def _extra_field_group_join(spool_fields: Sequence[ExtraField], group_by: str) -> ExtraFieldJoin:
+    """Validate a `group_by=extra.<key>` against the registered spool extra fields."""
+    field_key = group_by[len(EXTRA_GROUP_BY_PREFIX) :]
+    field = next((f for f in spool_fields if f.key == field_key), None)
+    if field is None:
+        raise ValueError(f"Unknown spool extra field '{field_key}'.")
+    is_multi_choice = field.field_type == ExtraFieldType.choice and field.multi_choice
+    if field.field_type not in GROUPABLE_EXTRA_FIELD_TYPES or is_multi_choice:
+        raise ValueError(
+            f"Spool extra field '{field_key}' cannot be grouped by. Only single-value text and choice fields can.",
+        )
+    return extra_field_join(EntityType.spool, field_key)
 
 
 @dataclass
@@ -309,15 +362,7 @@ async def find_groups(
 
     Returns a tuple of the requested page of groups and the total number of matching groups.
     """
-    if group_by not in GROUP_BY_COLUMNS:
-        raise ValueError(f"Invalid group_by field '{group_by}'. Must be one of {sorted(GROUP_BY_COLUMNS)}.")
-    group_col = GROUP_BY_COLUMNS[group_by]
-    title_col = {
-        "filament": models.Filament.name,
-        "vendor": models.Vendor.name,
-        "material": models.Filament.material,
-        "location": models.Spool.location,
-    }[group_by]
+    group_col, title_col, extra_join = await _resolve_group_by(db, group_by)
 
     # Remaining weight is computed (see Spool.from_db); mirror that formula so the sum is correct.
     # The fallback literal is 0.0 (float, not int): the weights are floats, and CockroachDB rejects
@@ -354,6 +399,8 @@ async def find_groups(
         lot_nr=lot_nr,
         allow_archived=allow_archived,
     )
+    if extra_join is not None:
+        stmt = extra_join.apply(stmt, models.Spool.id)
     stmt = await apply_extra_field_filters_and_sort(
         db=db,
         stmt=stmt,
@@ -399,7 +446,8 @@ async def find_groups(
 
     rows = (await db.execute(stmt)).all()
 
-    # Hydrate the grouped entity for the header (filament/vendor); material/location need nothing.
+    # Hydrate the grouped entity for the header (filament/vendor). The value-keyed axes —
+    # material, location, extra fields — are their own header and need nothing.
     keys = [row.group_key for row in rows if row.group_key is not None]
     filament_map: dict[int, models.Filament] = {}
     vendor_map: dict[int, models.Vendor] = {}

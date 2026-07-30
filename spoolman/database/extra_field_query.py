@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import sqlalchemy
-from sqlalchemy import Select
+from sqlalchemy import Alias, ColumnElement, Select
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import FunctionElement
@@ -105,6 +106,55 @@ def _compile_json_array_second_default(element: _JsonArraySecondElement, compile
     (col_expr,) = element.clauses
     col_sql = compiler.process(col_expr, **kw)  # type: ignore[union-attr]
     return f"JSON_EXTRACT({col_sql}, '$[1]')"
+
+
+@dataclass
+class ExtraFieldJoin:
+    """One extra field pulled onto a query as a plain column, ready to group or order by.
+
+    Built by :func:`extra_field_join`, applied with :meth:`apply`. The two steps are separate
+    because the value expression has to exist before the SELECT is constructed, while the join
+    can only be added afterwards.
+    """
+
+    alias: Alias
+    field_key: str
+    id_column_name: str
+    #: The DB-decoded scalar, i.e. the string the user typed rather than its JSON encoding.
+    value: ColumnElement[str]
+
+    def apply(self, stmt: Select, base_id_column: InstrumentedAttribute[int]) -> Select:
+        """Outer-join the field's row onto `stmt`.
+
+        OUTER, so entities with no row for this key survive with a NULL value — the same
+        "unset" bucket a nullable built-in column produces.
+        """
+        return stmt.join(
+            self.alias,
+            sqlalchemy.and_(
+                self.alias.c[self.id_column_name] == base_id_column,
+                self.alias.c.key == self.field_key,
+            ),
+            isouter=True,
+        )
+
+
+def extra_field_join(entity_type: EntityType, field_key: str) -> ExtraFieldJoin:
+    """Prepare an extra field to be selected as a column of an entity query.
+
+    The field table is aliased so it stays a distinct FROM element: the extra-field *filters*
+    reference the un-aliased table inside correlated subqueries, and without the alias those
+    subqueries would correlate to this join instead of standing on their own.
+    """
+    field_table = _get_field_table_for_entity(entity_type)
+    id_column_name = _get_entity_id_column(field_table).key
+    alias = field_table.__table__.alias()
+    return ExtraFieldJoin(
+        alias=alias,
+        field_key=field_key,
+        id_column_name=id_column_name,
+        value=_JsonScalarText(alias.c.value),
+    )
 
 
 def _get_field_table_for_entity(entity_type: EntityType) -> type[models.Base]:

@@ -89,6 +89,10 @@ function sortParam(sort: { field: string; dir: string }[]): string | undefined {
 
 function scopeParams(params: QueryParams, scope: SpoolQuery['groupScope']) {
 	if (!scope) return;
+	// An empty key is the group of spools whose value is unset. Every string-valued
+	// field spells that as an empty filter, which the backend reads as "null or empty"
+	// (and, for an extra field, "no row for this key either").
+	const exact = (v: string) => (v === '' ? '' : quote(v));
 	switch (scope.field) {
 		case 'filament':
 			params['filament.id'] = scope.key;
@@ -97,10 +101,14 @@ function scopeParams(params: QueryParams, scope: SpoolQuery['groupScope']) {
 			params['filament.vendor.id'] = scope.key === '' ? '-1' : scope.key;
 			break;
 		case 'material':
-			params['filament.material'] = scope.key === '' ? '' : quote(scope.key);
+			params['filament.material'] = exact(scope.key);
 			break;
 		case 'location':
-			params['location'] = scope.key === '' ? '' : quote(scope.key);
+			params['location'] = exact(scope.key);
+			break;
+		default:
+			// `extra.<key>`, which is already the query param the backend expects.
+			params[scope.field] = exact(scope.key);
 			break;
 	}
 }
