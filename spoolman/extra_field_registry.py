@@ -129,12 +129,19 @@ def validate_extra_field(field: ExtraFieldParameters) -> None:
             raise ValueError(f"Default value is not valid: {e}") from None
 
 
-def validate_extra_field_dict(all_fields: list[ExtraField], fields_input: dict[str, str]) -> None:
-    """Validate a dict of extra fields."""
+def validate_extra_field_dict(all_fields: list[ExtraField], fields_input: dict[str, str | None]) -> None:
+    """Validate a dict of extra fields.
+
+    A null value means "this entity has no value for the field" — it is stored as no row at
+    all, so it is the way to clear a value that has been set. It is valid for every field
+    type, so there is nothing to check for those keys.
+    """
     all_field_lookup = {field.key: field for field in all_fields}
     for key, value in fields_input.items():
         if key not in all_field_lookup:
             raise ValueError(f"Unknown extra field {key}.")
+        if value is None:
+            continue
         field = all_field_lookup[key]
         try:
             validate_extra_field_value(field, value)

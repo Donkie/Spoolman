@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import Message
 from spoolman.database.database import get_db_session
+from spoolman.database.extra_field_query import find_extra_field_values
 from spoolman.exceptions import ItemNotFoundError
 from spoolman.extra_fields import (
     EntityType,
@@ -40,6 +41,29 @@ async def get(
     entity_type: Annotated[EntityType, Path(description="Entity type this field is for")],
 ) -> list[ExtraField]:
     return await get_extra_fields(db, entity_type)
+
+
+@router.get(
+    "/{entity_type}/{key}/values",
+    name="Get extra field values",
+    description=(
+        "Get all distinct values currently stored for a specific extra field. Intended for "
+        "populating filter option lists for text and choice fields, mirroring the built-in "
+        "distinct-value endpoints such as /material and /location."
+    ),
+    response_model_exclude_none=True,
+    response_model=list[str],
+    responses={404: {"model": Message}},
+)
+async def get_values(
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    entity_type: Annotated[EntityType, Path(description="Entity type this field is for")],
+    key: Annotated[str, Path(min_length=1, max_length=64, pattern="^[a-z0-9_]+$")],
+) -> list[str] | JSONResponse:
+    fields = await get_extra_fields(db, entity_type)
+    if not any(field.key == key for field in fields):
+        return JSONResponse(status_code=404, content=Message(message=f"No extra field with key '{key}'.").dict())
+    return await find_extra_field_values(db=db, entity_type=entity_type, field_key=key)
 
 
 @router.post(

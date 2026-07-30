@@ -50,6 +50,13 @@ jobs:
           cd client
           npm ci
 
+      # lefthook's `ci` hook lints/formats/type-checks client_v2 too, via
+      # hardcoded ./node_modules/.bin/* paths, so its deps must be present.
+      - name: Install client_v2 dependencies
+        run: |
+          cd client_v2
+          npm ci
+
       - name: Run pre-commit
         run: uv run lefthook run ci
   #
@@ -88,30 +95,52 @@ jobs:
           rm -f .env && echo "VITE_APIURL=/api/v1" > .env.production
           npm run build
 
+      # Build the new Svelte client (client_v2), served by default at runtime.
+      # No VITE_APIURL is set: the client resolves the API relative to its base path.
+      - name: Install client_v2 dependencies
+        run: |
+          cd client_v2
+          npm ci
+
+      - name: Build client_v2
+        run: |
+          cd client_v2
+          npm run build
+
       - name: Write build info
         run: |
           echo "GIT_COMMIT=$(git rev-parse --short HEAD)" > build.txt
           echo "BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> build.txt
-  
-      # Remove client source and keep only the built dist
+
+      # Remove client sources and keep only the built output for each client
       - name: Clean
         run: |
           mv client/dist dist
           rm -rf client
           mkdir client
           mv dist client/dist
+          mv client_v2/build build_v2
+          rm -rf client_v2
+          mkdir client_v2
+          mv build_v2 client_v2/build
           rm -rf .git
           rm -rf .venv
 
       - name: Fix permissions
         run: |
           chmod +x scripts/*.sh
-      
+
       - name: Upload client Spoolman artifact
         uses: actions/upload-artifact@v4.4.0
         with:
           name: client
           path: client/dist
+
+      - name: Upload client_v2 Spoolman artifact
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: client_v2
+          path: client_v2/build
 
       - name: Upload full Spoolman artifact
         uses: actions/upload-artifact@v4.4.0
@@ -136,6 +165,12 @@ jobs:
         with:
           name: client
           path: client/dist
+
+      - name: Download client_v2
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: client_v2
+          path: client_v2/build
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.6.1
@@ -302,6 +337,59 @@ jobs:
         if: always()
         run: docker compose -f tests_frontend/docker-compose.yml down -v
   #
+  # Perform frontend (browser) integration tests for client_v2 against the real image
+  #
+  test-frontend-v2:
+    needs: [build-amd64]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download built image
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: spoolman-image
+          path: /tmp/spoolman-image
+
+      - name: Load built image
+        run: docker load --input /tmp/spoolman-image/spoolman.tar
+
+      - name: Install node
+        uses: actions/setup-node@v4.0.3
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: |
+          cd tests_frontend_v2
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Start Spoolman
+        run: docker compose -f tests_frontend_v2/docker-compose.yml up -d --wait
+
+      - name: Run client_v2 frontend integration tests
+        run: |
+          cd tests_frontend_v2
+          npx playwright test
+
+      - name: Dump Spoolman logs on failure
+        if: failure()
+        run: docker compose -f tests_frontend_v2/docker-compose.yml logs spoolman
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: playwright-report-v2
+          path: tests_frontend_v2/playwright-report
+          retention-days: 7
+
+      - name: Stop Spoolman
+        if: always()
+        run: docker compose -f tests_frontend_v2/docker-compose.yml down -v
+  #
   # Build arm64 image
   # Also exported to a tar so test-multiarch-smoke can boot it under QEMU.
   # On pull requests we can't push to buildcache (forks don't have registry
@@ -321,6 +409,12 @@ jobs:
         with:
           name: client
           path: client/dist
+
+      - name: Download client_v2
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: client_v2
+          path: client_v2/build
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.2.0
@@ -382,6 +476,12 @@ jobs:
         with:
           name: client
           path: client/dist
+
+      - name: Download client_v2
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: client_v2
+          path: client_v2/build
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.2.0
@@ -491,7 +591,18 @@ jobs:
   #
   publish-images:
     if: ${{ github.event_name != 'pull_request' }}
-    needs: [test, test-frontend, test-multiarch-smoke, build-amd64, build-arm64, build-armv7, style, build-client]
+    needs:
+      [
+        test,
+        test-frontend,
+        test-frontend-v2,
+        test-multiarch-smoke,
+        build-amd64,
+        build-arm64,
+        build-armv7,
+        style,
+        build-client,
+      ]
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -506,6 +617,12 @@ jobs:
         with:
           name: client
           path: client/dist
+
+      - name: Download client_v2
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: client_v2
+          path: client_v2/build
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.2.0

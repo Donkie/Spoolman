@@ -99,8 +99,29 @@ window.SPOOLMAN_BASE_PATH = "{base_path}";
     )
 
 
-# Mount the client side app
-app.mount(base_path, app=SinglePageApplication(directory="client/dist", base_path=env.get_base_path()))
+# Mount the client side app. The new Svelte client is served by default; set
+# SPOOLMAN_LEGACY_CLIENT to fall back to the old React client.
+if env.is_legacy_client_enabled():
+    logger.info("Serving the legacy (React) client.")
+    app.mount(
+        base_path,
+        app=SinglePageApplication(
+            directory="client/dist",
+            base_path=env.get_base_path(),
+            fallback_document="index.html",
+            rewrite_asset_paths=True,
+        ),
+    )
+else:
+    app.mount(
+        base_path,
+        app=SinglePageApplication(
+            directory="client_v2/build",
+            base_path=env.get_base_path(),
+            fallback_document="200.html",
+            rewrite_asset_paths=False,
+        ),
+    )
 
 
 def add_cors_middleware() -> None:

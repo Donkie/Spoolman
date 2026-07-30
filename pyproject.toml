@@ -48,6 +48,10 @@ help = "Bump Spoolman version."
 cmd = "uvicorn spoolman.main:app"
 help = "Start Spoolman."
 
+[tool.poe.tasks.stress-seed]
+cmd = "python scripts/stress_seed.py"
+help = "Fill a running dev instance with a large generated dataset. Never point it at real data."
+
 [tool.poe.tasks.itest]
 cmd = "python tests_integration/run.py"
 help = "Builds Spoolman and runs integration tests on the backend against all supported databases."
@@ -55,6 +59,10 @@ help = "Builds Spoolman and runs integration tests on the backend against all su
 [tool.poe.tasks.itest-frontend]
 cmd = "python tests_frontend/run.py"
 help = "Builds Spoolman and runs Playwright frontend integration tests against a real deployment."
+
+[tool.poe.tasks.itest-frontend-v2]
+cmd = "python tests_frontend_v2/run.py"
+help = "Builds Spoolman and runs Playwright frontend integration tests for client_v2 against a real deployment."
 
 [tool.bumpversion]
 current_version = "0.22.1"
@@ -70,6 +78,7 @@ replace = 'version = "{new_version}"'
 [tool.ruff]
 line-length = 120
 target-version = "py310"
+extend-exclude = ["client_v2"]
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -100,3 +109,9 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests*/*" = ["ANN201", "ASYNC210", "S101", "PLR2004", "D103", "TID252"]
 "migrations/versions/*" = ["N999"]
+# Developer tooling, not shipped code: stdout is the user interface (T201), the
+# generated test data is deliberately random (S311) and full of literal weights,
+# diameters and counts (PLR2004), and the data generators are long by nature
+# (C901/PLR0912/PLR0915). Everything else — including type annotations — is still
+# enforced.
+"scripts/*" = ["ANN401", "C901", "D102", "D103", "D107", "FBT003", "PLR0912", "PLR0915", "PLR2004", "S311", "T201"]

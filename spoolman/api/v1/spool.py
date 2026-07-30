@@ -5,13 +5,22 @@ import logging
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Path, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.datastructures import QueryParams
 
-from spoolman.api.v1.models import Message, Spool, SpoolEvent
+from spoolman.api.v1.models import (
+    Filament,
+    Message,
+    Spool,
+    SpoolEvent,
+    SpoolGroup,
+    Vendor,
+    extra_fields_request_description,
+)
 from spoolman.database import spool
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import SortOrder
@@ -27,6 +36,27 @@ router = APIRouter(
 )
 
 # ruff: noqa: D103
+
+
+# Query-param prefixes for extra-field filters, longest first so the most specific one wins.
+_EXTRA_FILTER_PREFIXES = (
+    ("filament.vendor.extra.", "vendor"),
+    ("filament.extra.", "filament"),
+    ("extra.", "spool"),
+)
+
+
+def _parse_extra_field_filters(
+    query_params: QueryParams,
+) -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
+    """Split extra-field filter query params into (spool, filament, vendor) dicts keyed by field key."""
+    buckets: dict[str, dict[str, str]] = {"spool": {}, "filament": {}, "vendor": {}}
+    for key, value in query_params.items():
+        for prefix, entity in _EXTRA_FILTER_PREFIXES:
+            if key.startswith(prefix):
+                buckets[entity][key[len(prefix) :]] = value
+                break
+    return buckets["spool"], buckets["filament"], buckets["vendor"]
 
 
 class SpoolParameters(BaseModel):
@@ -84,9 +114,9 @@ class SpoolParameters(BaseModel):
         examples=[""],
     )
     archived: bool = Field(default=False, description="Whether this spool is archived and should not be used anymore.")
-    extra: dict[str, str] | None = Field(
+    extra: dict[str, str | None] | None = Field(
         None,
-        description="Extra fields for this spool.",
+        description=extra_fields_request_description("spool"),
     )
 
 
@@ -200,6 +230,19 @@ async def find(
             ),
         ),
     ] = None,
+    filament_multi_color_direction: Annotated[
+        str | None,
+        Query(
+            alias="filament.multi_color_direction",
+            title="Filament Multi-Color Direction",
+            description=(
+                "Match spools by their filament's multi-color direction, e.g. coaxial or longitudinal. "
+                "Separate multiple terms with a comma. Specify an empty string to match single-color filaments. "
+                "Surround a term with quotes to search for the exact term."
+            ),
+            examples=['"coaxial"', '"longitudinal"'],
+        ),
+    ] = None,
     filament_vendor_name: Annotated[
         str | None,
         Query(
@@ -286,13 +329,9 @@ async def find(
     else:
         filament_vendor_ids = None
 
-    # Extract custom field filters from query parameters
-    extra_field_filters = {}
-    query_params = request.query_params
-    for key, value in query_params.items():
-        if key.startswith("extra."):
-            field_key = key[6:]  # Remove "extra." prefix
-            extra_field_filters[field_key] = value
+    # Extract custom field filters from query parameters. Spool extra fields use `extra.<key>`;
+    # a filament's extra fields use `filament.extra.<key>` and its vendor's `filament.vendor.extra.<key>`.
+    spool_extra, filament_extra, vendor_extra = _parse_extra_field_filters(request.query_params)
 
     try:
         db_items, total_count = await spool.find(
@@ -300,12 +339,15 @@ async def find(
             filament_name=filament_name if filament_name is not None else filament_name_old,
             filament_id=filament_ids,
             filament_material=filament_material if filament_material is not None else filament_material_old,
+            filament_multi_color_direction=filament_multi_color_direction,
             vendor_name=filament_vendor_name if filament_vendor_name is not None else vendor_name_old,
             vendor_id=filament_vendor_ids,
             location=location,
             lot_nr=lot_nr,
             allow_archived=allow_archived,
-            extra_field_filters=extra_field_filters if extra_field_filters else None,
+            extra_field_filters=spool_extra or None,
+            filament_extra_field_filters=filament_extra or None,
+            vendor_extra_field_filters=vendor_extra or None,
             sort_by=sort_by,
             limit=limit,
             offset=offset,
@@ -339,6 +381,234 @@ async def notify_any(
                 await websocket.send_json({"status": "healthy"})
     except WebSocketDisconnect:
         websocket_manager.disconnect(("spool",), websocket)
+
+
+@router.get(
+    "/group",
+    name="Find spool groups",
+    description=(
+        "Group spools that match the search query by one axis (filament, vendor, material, "
+        "location, or a spool extra field) and return per-group aggregates: spool count, "
+        "in-use count, total remaining weight and most recent usage. Pagination is over groups, so "
+        "a group is never split and its aggregates are always complete. Uses the same filters as "
+        "the spool search endpoint. The total number of matching groups is returned in the "
+        "x-total-count header."
+    ),
+    response_model_exclude_none=True,
+    responses={
+        200: {"model": list[SpoolGroup]},
+        400: {"model": Message},
+    },
+)
+async def find_groups(
+    *,
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    group_by: Annotated[
+        str,
+        Query(
+            title="Group By",
+            description=(
+                "The field to group spools by: filament, vendor, material, location, or extra.<key> "
+                "for one of the spool's custom fields (text and single-choice fields only)."
+            ),
+            examples=["location", "extra.shelf"],
+        ),
+    ],
+    filament_name: Annotated[
+        str | None,
+        Query(
+            alias="filament.name",
+            title="Filament Name",
+            description="Partial case-insensitive search term for the filament name. See the spool search endpoint.",
+        ),
+    ] = None,
+    filament_id: Annotated[
+        str | None,
+        Query(
+            alias="filament.id",
+            title="Filament ID",
+            description="Match an exact filament ID. Separate multiple IDs with a comma.",
+            pattern=r"^-?\d+(,-?\d+)*$",
+        ),
+    ] = None,
+    filament_material: Annotated[
+        str | None,
+        Query(
+            alias="filament.material",
+            title="Filament Material",
+            description="Partial case-insensitive search term for the filament material.",
+        ),
+    ] = None,
+    filament_multi_color_direction: Annotated[
+        str | None,
+        Query(
+            alias="filament.multi_color_direction",
+            title="Filament Multi-Color Direction",
+            description=(
+                "Match by the filament's multi-color direction, e.g. coaxial or longitudinal. "
+                "Specify an empty string to match single-color filaments."
+            ),
+            examples=['"coaxial"', '"longitudinal"'],
+        ),
+    ] = None,
+    filament_vendor_name: Annotated[
+        str | None,
+        Query(
+            alias="filament.vendor.name",
+            title="Vendor Name",
+            description="Partial case-insensitive search term for the filament vendor name.",
+        ),
+    ] = None,
+    filament_vendor_id: Annotated[
+        str | None,
+        Query(
+            alias="filament.vendor.id",
+            title="Vendor ID",
+            description=(
+                "Match an exact vendor ID. Separate multiple IDs with a comma. "
+                "Set it to -1 to match spools with filaments with no vendor."
+            ),
+            pattern=r"^-?\d+(,-?\d+)*$",
+        ),
+    ] = None,
+    location: Annotated[
+        str | None,
+        Query(title="Location", description="Partial case-insensitive search term for the spool location."),
+    ] = None,
+    lot_nr: Annotated[
+        str | None,
+        Query(title="Lot/Batch Number", description="Partial case-insensitive search term for the spool lot number."),
+    ] = None,
+    allow_archived: Annotated[
+        bool,
+        Query(title="Allow Archived", description="Whether to include archived spools in the aggregates."),
+    ] = False,
+    sort: Annotated[
+        str | None,
+        Query(
+            title="Sort",
+            description=(
+                'Sort the groups by the given field. Comma-separated "field:direction" items. '
+                "Available fields: group.title, group.total_remaining, group.last_used, "
+                "group.spool_count, group.in_use_count."
+            ),
+            examples=["group.last_used:desc"],
+        ),
+    ] = None,
+    limit: Annotated[
+        int | None,
+        Query(title="Limit", description="Maximum number of groups in the response."),
+    ] = None,
+    offset: Annotated[
+        int,
+        Query(title="Offset", description="Offset in the full group result set if a limit is set."),
+    ] = 0,
+) -> JSONResponse:
+    sort_by: dict[str, SortOrder] = {}
+    if sort is not None:
+        for sort_item in sort.split(","):
+            field, direction = sort_item.split(":")
+            sort_by[field] = SortOrder[direction.upper()]
+
+    filament_ids = [int(item) for item in filament_id.split(",")] if filament_id is not None else None
+    vendor_ids = [int(item) for item in filament_vendor_id.split(",")] if filament_vendor_id is not None else None
+
+    spool_extra, filament_extra, vendor_extra = _parse_extra_field_filters(request.query_params)
+
+    try:
+        groups, total_count = await spool.find_groups(
+            db=db,
+            group_by=group_by,
+            filament_name=filament_name,
+            filament_id=filament_ids,
+            filament_material=filament_material,
+            filament_multi_color_direction=filament_multi_color_direction,
+            vendor_name=filament_vendor_name,
+            vendor_id=vendor_ids,
+            location=location,
+            lot_nr=lot_nr,
+            allow_archived=allow_archived,
+            extra_field_filters=spool_extra or None,
+            filament_extra_field_filters=filament_extra or None,
+            vendor_extra_field_filters=vendor_extra or None,
+            sort_by=sort_by,
+            limit=limit,
+            offset=offset,
+        )
+    except ValueError as e:
+        return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
+
+    content = [
+        SpoolGroup(
+            group_by=group_by,
+            key=None if group.key is None else str(group.key),
+            spool_count=group.spool_count,
+            in_use_count=group.in_use_count,
+            total_remaining_weight=group.total_remaining_weight,
+            last_used=group.last_used,
+            filament=Filament.from_db(group.filament) if group.filament is not None else None,
+            vendor=Vendor.from_db(group.vendor) if group.vendor is not None else None,
+        )
+        for group in groups
+    ]
+    return JSONResponse(
+        content=jsonable_encoder(content, exclude_none=True),
+        headers={"x-total-count": str(total_count)},
+    )
+
+
+class RenameFieldValueParameters(BaseModel):
+    value: str = Field(min_length=1, description="The value to replace.", examples=["Shelf A"])
+    new_value: str = Field(min_length=1, description="The value to replace it with.", examples=["Shelf B"])
+
+
+class RenameFieldValueResult(BaseModel):
+    spools_updated: int = Field(description="How many spools held the old value.", examples=[6])
+
+
+@router.patch(
+    "/field/{field}",
+    name="Rename a spool field value",
+    description=(
+        "Replace one value of one spool field wherever it occurs. The general form of the "
+        "location rename endpoint: it lets a client rename, in a single request, a value shared "
+        "by any number of spools -- including ones it has not loaded. Archived spools are "
+        "included, so no spool is left holding the old value. Renaming onto a value that is "
+        "already in use merges the two. No websocket event is emitted per spool; other clients "
+        "see the change on their next load."
+    ),
+    response_model_exclude_none=True,
+    responses={200: {"model": RenameFieldValueResult}, 400: {"model": Message}},
+)
+async def rename_field_value(
+    *,
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    field: Annotated[
+        str,
+        Path(
+            title="Field",
+            description=(
+                "The spool field to rename a value of: location, or extra.<key> for one of the "
+                "spool's custom text or single-choice fields. Fields belonging to the filament "
+                "or its vendor (material, vendor) cannot be renamed here."
+            ),
+            examples=["location", "extra.shelf"],
+        ),
+    ],
+    body: RenameFieldValueParameters,
+) -> JSONResponse:
+    logger.info('Renaming spool %s "%s" to "%s"', field, body.value, body.new_value)
+    try:
+        updated = await spool.rename_field_value(
+            db=db,
+            field=field,
+            value=body.value,
+            new_value=body.new_value,
+        )
+    except ValueError as e:
+        return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
+    return JSONResponse(content=jsonable_encoder(RenameFieldValueResult(spools_updated=updated)))
 
 
 @router.get(

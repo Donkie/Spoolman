@@ -1,0 +1,184 @@
+import { test, expect } from "./fixtures";
+import { addFilter, createSpoolViaModal, onlyVisible, openApp, openToolbarMenu, searchFor, unique } from "./helpers";
+
+/**
+ * The library's find-things subsystem: the top-bar cross-entity search, and the
+ * toolbar's group / filter / sort controls. All of it is new in client_v2 — the
+ * legacy client had an Ant Design table with per-column filters instead — and
+ * all of it is backed by real API calls (`/search`, the distinct-value endpoints
+ * behind the filter menu, and the sorted/filtered spool query itself), so it can
+ * only be verified against a running backend.
+ *
+ * The specs share one pair of spools created up front, which is why they run
+ * serially: creating them is the slowest part by far, and the assertions are all
+ * read-only.
+ */
+
+// Two spools that differ in every dimension the toolbar can group or filter by.
+const first = {
+  vendorName: unique("SearchVendor"),
+  filamentName: unique("SearchFilament"),
+  locationName: unique("SearchShelf"),
+  material: "PLA",
+  weightG: 1000,
+};
+const second = {
+  vendorName: unique("OtherVendor"),
+  filamentName: unique("OtherFilament"),
+  locationName: unique("OtherShelf"),
+  material: "PETG",
+  weightG: 750,
+};
+
+test.describe.configure({ mode: "serial" });
+
+test("create the spools the search and toolbar tests work with", async ({ page }) => {
+  await openApp(page);
+  await createSpoolViaModal(page, first);
+  await createSpoolViaModal(page, second);
+
+  // Both landed. Checked through the search rather than the list because the list
+  // is paginated: on an instance that already holds a few pages of spools, a new
+  // one is not necessarily on the page you are looking at.
+  for (const { filamentName } of [first, second]) {
+    const panel = await searchFor(page, filamentName);
+    await expect(panel.getByText(filamentName, { exact: true }).first()).toBeVisible();
+  }
+});
+
+test("the top-bar search covers all three entities", async ({ page }) => {
+  await openApp(page);
+
+  await test.step("a filament name lands in the Filaments section", async () => {
+    const panel = await searchFor(page, first.filamentName);
+    await expect(panel.getByText("Filaments", { exact: true })).toBeVisible();
+    await expect(panel.getByText(first.filamentName, { exact: true }).first()).toBeVisible();
+
+    // The other filament is not a match — the search really did filter, rather
+    // than the panel listing everything.
+    await expect(panel.getByText(second.filamentName, { exact: true })).toHaveCount(0);
+  });
+
+  await test.step("a manufacturer name lands in the Manufacturers section", async () => {
+    const panel = await searchFor(page, first.vendorName);
+    await expect(panel.getByText("Manufacturers", { exact: true })).toBeVisible();
+    await expect(panel.getByText(first.vendorName, { exact: true }).first()).toBeVisible();
+  });
+
+  await test.step("a location lands in the Spools section", async () => {
+    // Spools match on their own text — comment, location, lot number and text
+    // extra fields — not on their filament's name, so the location is what finds
+    // an individual spool.
+    const panel = await searchFor(page, first.locationName);
+    await expect(panel.getByText("Spools", { exact: true })).toBeVisible();
+    await expect(panel.getByText(first.locationName, { exact: true })).toBeVisible();
+  });
+});
+
+test("a search that matches nothing says so", async ({ page }) => {
+  await openApp(page);
+
+  const panel = await searchFor(page, unique("NoSuchThing"));
+  await expect(panel.getByText("No matches found")).toBeVisible();
+});
+
+test("opening a search result navigates to its inspector", async ({ page }) => {
+  await openApp(page);
+
+  const panel = await searchFor(page, first.locationName);
+  await panel.getByRole("link").filter({ hasText: first.locationName }).first().click();
+
+  // Results are links, not buttons, so they carry the selection in the URL: the
+  // inspector is a shareable, back-button-able view of the library.
+  await expect(page).toHaveURL(/[?&]sel=spool(:|%3A)\d+/);
+  await expect(panel).toBeHidden();
+});
+
+test("grouping the library by location and by manufacturer", async ({ page }) => {
+  await openApp(page);
+
+  // Narrow the list to this spec's two spools first. The library is paginated, so
+  // on an instance with real data in it an unfiltered assertion about a specific
+  // group would depend on where that group happened to land.
+  await addFilter(page, "Location", first.locationName);
+  await addFilter(page, "Location", second.locationName);
+
+  await test.step("group by location", async () => {
+    const menu = await openToolbarMenu(page, "Group");
+    await menu.getByRole("button", { name: "Location", exact: true }).click();
+
+    // Each spool's location becomes a group header, and the control reports the
+    // mode it is in.
+    await expect(onlyVisible(page.getByRole("button", { name: /^Group:\s*Location/ }))).toBeVisible();
+    await expect(page.getByText(first.locationName, { exact: true }).first()).toBeVisible();
+    await expect(page.getByText(second.locationName, { exact: true }).first()).toBeVisible();
+  });
+
+  await test.step("group by manufacturer", async () => {
+    const menu = await openToolbarMenu(page, "Group");
+    await menu.getByRole("button", { name: "Manufacturer", exact: true }).click();
+
+    await expect(onlyVisible(page.getByRole("button", { name: /^Group:\s*Manufacturer/ }))).toBeVisible();
+    await expect(page.getByText(first.vendorName, { exact: true }).first()).toBeVisible();
+    await expect(page.getByText(second.vendorName, { exact: true }).first()).toBeVisible();
+  });
+
+  await test.step("the grouping survives a reload", async () => {
+    // Group/sort/filter live in the URL, so the view is shareable and a reload
+    // lands on the same list.
+    await page.reload();
+    await expect(onlyVisible(page.getByRole("button", { name: /^Group:\s*Manufacturer/ }))).toBeVisible();
+  });
+});
+
+test("filtering the library by location narrows it, and the chip clears it", async ({ page }) => {
+  await openApp(page);
+
+  await test.step("filter on both spools' locations", async () => {
+    // The Filter menu is two levels: choose the property, then one of its values.
+    // The values come from the backend's distinct-location endpoint, so our new
+    // locations only appear there if the spools really were persisted. Two values
+    // of the same property are an OR, so this narrows the list to exactly ours.
+    await addFilter(page, "Location", first.locationName);
+    await addFilter(page, "Location", second.locationName);
+
+    await expect(page.getByText(first.filamentName, { exact: true })).toBeVisible();
+    await expect(page.getByText(second.filamentName, { exact: true })).toBeVisible();
+  });
+
+  await test.step("clicking a chip removes just that filter", async () => {
+    await page.getByRole("button", { name: `Location: ${second.locationName}` }).click();
+
+    await expect(page.getByRole("button", { name: `Location: ${second.locationName}` })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: `Location: ${first.locationName}` })).toBeVisible();
+
+    await expect(page.getByText(first.filamentName, { exact: true })).toBeVisible();
+    await expect(page.getByText(second.filamentName, { exact: true })).toHaveCount(0);
+  });
+});
+
+test("changing the sort survives a reload and keeps the list working", async ({ page }) => {
+  await openApp(page);
+  await addFilter(page, "Location", first.locationName);
+
+  const menu = await openToolbarMenu(page, "Sort");
+  // The sort menu is built from the spool field metadata fetched over the API and
+  // split into Spool / Filament / Manufacturer / Extra fields sections.
+  await expect(menu.getByText("Filament", { exact: true })).toBeVisible();
+  await menu.getByRole("button", { name: "Material", exact: true }).click();
+
+  await expect(onlyVisible(page.getByRole("button", { name: /^Sort:\s*Material/ }))).toBeVisible();
+
+  // The backend can only order *groups* three ways, so a sort it can't apply to a
+  // grouped list flattens the view rather than showing a silently wrong order.
+  await expect(onlyVisible(page.getByRole("button", { name: /^Group:\s*None/ }))).toBeVisible();
+
+  // A sort key the backend rejects would 400 and drop the list into its error
+  // state, so re-asserting the rows is what proves the query was valid.
+  await expect(page.getByText("Couldn't reach the Spoolman API. Is the backend running?")).toHaveCount(0);
+  await expect(page.getByRole("link").filter({ hasText: first.filamentName })).toHaveCount(1);
+
+  await page.reload();
+  await expect(onlyVisible(page.getByRole("button", { name: /^Sort:\s*Material/ }))).toBeVisible();
+  await expect(page.getByRole("link").filter({ hasText: first.filamentName })).toHaveCount(1);
+});

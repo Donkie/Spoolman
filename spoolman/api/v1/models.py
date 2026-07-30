@@ -36,6 +36,23 @@ def _extra_fields_description(entity: str) -> str:
     )
 
 
+def extra_fields_request_description(entity: str) -> str:
+    """Build the description for an entity's ``extra`` field on a create/update request.
+
+    Values are JSON-encoded strings, exactly as in the response. An update merges per key —
+    a field left out of the map keeps whatever it held — and a null value means "no value
+    for this field": nothing is stored, so it clears a value that was previously set. There
+    is no other way to remove one.
+    """
+    return (
+        f"Extra fields for this {entity}. Every value is a JSON-encoded string matching the field's "
+        'configured type, e.g. "42" for an integer field and "\\"hello\\"" for a text field. '
+        "Patching this map merges per key: a field left out of it keeps whatever it held. Pass null "
+        "instead of a string to store no value for the field, which is how a value that has already "
+        "been set is cleared."
+    )
+
+
 class Message(BaseModel):
     message: str = Field()
 
@@ -366,6 +383,102 @@ class Spool(BaseModel):
         )
 
 
+class SpoolGroup(BaseModel):
+    """A group of spools with server-computed aggregates.
+
+    Returned by the ``/spool/group`` endpoint. Spools are grouped by one axis
+    (``group_by``); the aggregates are computed over the matching spools of each
+    group so the client can paginate whole groups without fetching every spool.
+    """
+
+    group_by: str = Field(
+        description="The field the spools are grouped by.",
+        examples=["filament"],
+    )
+    key: str | None = Field(
+        None,
+        description=(
+            "The group key. For group_by=filament/vendor this is the entity ID as a string; for "
+            "material/location and extra fields it is the value. Null when the grouped "
+            "field is unset (e.g. spools with no location or a filament with no vendor)."
+        ),
+        examples=["12"],
+    )
+    spool_count: int = Field(description="Number of matching spools in this group.", examples=[6])
+    in_use_count: int = Field(
+        description="Number of matching spools that have been used (used_weight > 0).",
+        examples=[2],
+    )
+    total_remaining_weight: float | None = Field(
+        None,
+        description="Sum of remaining filament weight across the group's matching spools, in grams.",
+        examples=[3120.0],
+    )
+    last_used: SpoolmanDateTime | None = Field(
+        None,
+        description="Most recent last_used across the group's matching spools. UTC Timezone.",
+    )
+    filament: Filament | None = Field(
+        None,
+        description="The filament, embedded for group_by=filament so the header needs no extra request.",
+    )
+    vendor: Vendor | None = Field(
+        None,
+        description="The vendor, embedded for group_by=vendor.",
+    )
+
+
+class SearchResultSpool(BaseModel):
+    """A spool that matched a search, with which field matched."""
+
+    spool: Spool = Field(description="The matching spool.")
+    match_field: str = Field(
+        description=(
+            "Which field matched the query: a native field name (e.g. 'comment', 'location', "
+            "'lot_nr'), 'id' for an exact spool-id match, or 'extra.<key>' for an extra field."
+        ),
+        examples=["comment"],
+    )
+
+
+class SearchResultFilament(BaseModel):
+    """A filament that matched a search, with which field matched."""
+
+    filament: Filament = Field(description="The matching filament.")
+    match_field: str = Field(
+        description=(
+            "Which field matched the query: a native field name (e.g. 'name', 'material', "
+            "'article_number', 'comment'), 'color' for a color-similarity match, or 'extra.<key>'."
+        ),
+        examples=["color"],
+    )
+
+
+class SearchResultVendor(BaseModel):
+    """A vendor that matched a search, with which field matched."""
+
+    vendor: Vendor = Field(description="The matching vendor.")
+    match_field: str = Field(
+        description="Which field matched the query: 'name', 'comment', or 'extra.<key>'.",
+        examples=["name"],
+    )
+
+
+class SearchResults(BaseModel):
+    """Categorized results of a cross-entity search."""
+
+    spools: list[SearchResultSpool] = Field(description="Matching spools, best matches first.")
+    filaments: list[SearchResultFilament] = Field(description="Matching filaments, best matches first.")
+    vendors: list[SearchResultVendor] = Field(description="Matching vendors, best matches first.")
+    is_color_query: bool = Field(
+        description=(
+            "Whether the query was recognized as a color (hex code or CSS color name), in which case "
+            "the filament results include color-similarity matches and a threshold slider is relevant."
+        ),
+        examples=[False],
+    )
+
+
 class Info(BaseModel):
     version: str = Field(examples=["0.7.0"])
     debug_mode: bool = Field(examples=[False])
@@ -374,6 +487,10 @@ class Info(BaseModel):
     logs_dir: str = Field(examples=["/home/app/.local/share/spoolman"])
     backups_dir: str = Field(examples=["/home/app/.local/share/spoolman/backups"])
     db_type: str = Field(examples=["sqlite"])
+    external_db_name: str = Field(
+        description="Display name for the external filament library, configurable via EXTERNAL_DB_NAME.",
+        examples=["SpoolmanDB"],
+    )
     git_commit: str | None = Field(None, examples=["a1b2c3d"])
     build_date: SpoolmanDateTime | None = Field(None, examples=["2021-01-01T00:00:00Z"])
 

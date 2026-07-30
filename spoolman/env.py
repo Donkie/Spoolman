@@ -466,3 +466,23 @@ def get_base_path() -> str:
 
     # Ensure it starts with / and does not end with /
     return "/" + path.strip("/")
+
+
+def is_legacy_client_enabled() -> bool:
+    """Get whether the legacy (React) client should be served instead of the new one.
+
+    The new Svelte client is served by default. Set SPOOLMAN_LEGACY_CLIENT to TRUE/1 to
+    fall back to the old React client.
+
+    Returns:
+        bool: Whether the legacy client is enabled.
+
+    """
+    legacy_client = os.getenv("SPOOLMAN_LEGACY_CLIENT", "FALSE").upper()
+    if legacy_client in {"FALSE", "0"}:
+        return False
+    if legacy_client in {"TRUE", "1"}:
+        return True
+    raise ValueError(
+        f"Failed to parse SPOOLMAN_LEGACY_CLIENT variable: Unknown value '{legacy_client}'.",
+    )
