@@ -593,6 +593,7 @@
 					/></label
 				>
 			</div>
+			<p class="help">{m['labels.skipHint']()}</p>
 			<label class="chk"
 				><input
 					type="checkbox"

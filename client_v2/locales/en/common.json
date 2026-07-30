@@ -230,6 +230,7 @@
     "labels.showingSpool": "Showing spool #{{id}}",
     "labels.showingTags": "Fields show as tags until you pick a spool above.",
     "labels.sizeMm": "Size",
+    "labels.skipHint": "Skip Items leaves that many cells blank before the first label, letting you reuse a partly used sheet: count the labels already peeled off, left to right from the top.",
     "labels.stroke": "Stroke",
     "labels.strokeMm": "Stroke",
     "labels.tabDesign": "Design",
