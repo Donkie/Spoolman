@@ -13,7 +13,7 @@ client. Both complement the backend HTTP suite in
 ## What is covered
 
 - **`tests/smoke.spec.ts`** — starting from the app root, clicks through every
-  top-bar tab (locations, labels, settings, back to the library) and confirms
+  top-bar tab (dashboard, labels, settings, back to the library) and confirms
   each page renders inside the app shell with no browser-console errors. A
   second test confirms the library actually reaches the API rather than falling
   into its "couldn't reach the backend" state.
@@ -21,7 +21,7 @@ client. Both complement the backend HTTP suite in
   what the legacy client spread over three create forms into a single "Add
   spools" modal, so one submit creates a manufacturer, a filament and a spool.
   The result is verified back in the library list (group header, spool row,
-  remaining weight) and on the locations page.
+  remaining weight) and on the dashboard, which groups spools by location.
 
 The tests navigate purely through the UI — the top bar to reach each page, the
 "Add spools" button to reach the create modal. Only the initial "open the app"

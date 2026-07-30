@@ -10,7 +10,7 @@ import { navTab, openApp } from "./helpers";
 
 // Navigation destinations in click order, ending back on the Library.
 const destinations: { label: string; title: string }[] = [
-  { label: "Locations", title: "Locations | Spoolman" },
+  { label: "Dashboard", title: "Dashboard | Spoolman" },
   { label: "Labels", title: "Labels | Spoolman" },
   { label: "Settings", title: "Settings | Spoolman" },
   { label: "Library", title: "Library | Spoolman" },

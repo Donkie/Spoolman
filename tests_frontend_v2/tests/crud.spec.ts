@@ -73,8 +73,10 @@ test("create a manufacturer, filament and spool through the add-spool modal", as
     await expect(spoolRow).toContainText("750");
   });
 
-  await test.step("see the spool's location on the locations page", async () => {
-    await navTab(page, "Locations", "Locations | Spoolman");
+  await test.step("see the spool's location on the dashboard", async () => {
+    // The dashboard groups by location out of the box, so the new location is a card
+    // of its own — this is the page the old Locations one became.
+    await navTab(page, "Dashboard", "Dashboard | Spoolman");
     await expect(page.getByText(locationName, { exact: true })).toBeVisible();
   });
 });
