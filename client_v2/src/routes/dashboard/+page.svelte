@@ -12,6 +12,7 @@
 	import { isAbortError } from '$lib/api/http';
 	import { mapSpool } from '$lib/api/map';
 	import { libraryHref } from '$lib/library/params';
+	import { extraFieldsHref } from '$lib/settings/params';
 	import { weightAuto } from '$lib/utils/format';
 	import * as m from '$lib/paraglide/messages';
 	import { dashboardFields, DEFAULT_FIELD_KEY, type DashboardField } from '$lib/dashboard/fields';
@@ -25,6 +26,7 @@
 	import GripVertical from '@lucide/svelte/icons/grip-vertical';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 
 	// The board groups spools into cards by one field and writes that field when a spool is
 	// dragged between them. Which field is a view mode (see $lib/dashboard/fields); the page
@@ -641,9 +643,14 @@
 					{/each}
 					<!-- Location is the only built-in field a spool owns, so with no custom spool
 					     fields defined this menu has a single entry and the view mode looks broken
-					     rather than unused. Say where the other views come from. -->
+					     rather than unused. Say where the other views come from — and link straight
+					     to the manager that defines them, since that is the next step.
+					     extraFieldsHref() already resolves against the deploy base path. -->
 					{#if available.length === 1}
-						<div class="menu-note">{m['dashboard.addFieldHint']()}</div>
+						<a class="menu-note" href={extraFieldsHref('spool')}>
+							{m['dashboard.addFieldHint']()}
+							<ArrowRight size={12} />
+						</a>
 					{/if}
 				</div>
 			{/if}
@@ -860,12 +867,23 @@
 		font-weight: 600;
 	}
 	.menu-note {
+		display: block;
 		border-top: 1px solid var(--border-soft);
 		padding: 8px 14px;
 		max-width: 210px;
 		font-size: 11.5px;
 		line-height: 1.45;
-		color: var(--text-dim);
+		color: var(--accent-link);
+		text-decoration: none;
+	}
+	.menu-note:hover {
+		background: var(--surface-raised);
+		text-decoration: underline;
+	}
+	/* The arrow ends the sentence, so it rides the text baseline rather than being a
+	   flex item (which would stop the note from wrapping as a paragraph). */
+	.menu-note :global(svg) {
+		vertical-align: -2px;
 	}
 	.add {
 		margin-left: auto;
