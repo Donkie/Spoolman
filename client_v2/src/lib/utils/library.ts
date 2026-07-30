@@ -33,7 +33,10 @@ export interface GroupHeaderInfo {
 	badge: string;
 	colors: string[];
 	direction?: MultiColorDirection;
+	/** Aggregate remaining weight across the whole group, formatted. */
 	meta: string;
+	/** How many spools the group holds, formatted ("12 spools"). */
+	count: string;
 }
 
 export function spoolToVM(s: Spool, repo: Repo, lowThreshold: number): SpoolVM {
