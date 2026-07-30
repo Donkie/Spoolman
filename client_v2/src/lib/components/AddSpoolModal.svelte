@@ -202,6 +202,14 @@
 		{ key: 'remaining', labelKey: m['spool.fields.remainingWeight'] },
 		{ key: 'measured', labelKey: m['spool.fields.measuredWeight'] }
 	];
+	// Ballpark empty-spool weights, offered in the Spool Weight help for people who
+	// have no idea what to put there. Deliberately round: they're a starting point
+	// to be corrected by weighing the spool, not a claim about any specific brand.
+	const SPOOL_WEIGHT_PRESETS = [
+		{ weight: 140, label: () => m['add.spoolWeightPreset.cardboard']({ weight: 140 }) },
+		{ weight: 200, label: () => m['add.spoolWeightPreset.plastic']({ weight: 200 }) }
+	];
+
 	let fillHelp = $derived(
 		fillMode === 'used'
 			? m['spool.fieldsHelp.usedWeight']()
@@ -819,9 +827,25 @@
 								invalid={!!errors.spoolWeight}
 							/>
 							{#if openHelp === 'spoolWeight'}
-								<span class="help-popup" id="spoolWeight-help" role="note"
-									>{m['filament.fieldsHelp.spoolWeight']()}</span
-								>
+								<span class="help-popup" id="spoolWeight-help" role="note">
+									{m['filament.fieldsHelp.spoolWeight']()}
+									<!-- Buttons nested in the <label>: a click on interactive content is
+									     not forwarded to the labelled input, so picking a preset doesn't
+									     also yank focus into the weight field. -->
+									<span class="presets">
+										<span class="presets-lead">{m['add.spoolWeightPresetsLead']()}</span>
+										{#each SPOOL_WEIGHT_PRESETS as preset (preset.weight)}
+											<button
+												type="button"
+												class="preset"
+												onclick={() => {
+													spoolWeight = String(preset.weight);
+													openHelp = null;
+												}}>{preset.label()}</button
+											>
+										{/each}
+									</span>
+								</span>
 							{/if}
 							{#if errors.spoolWeight}<span class="err">{errors.spoolWeight}</span>{/if}
 						</label>
@@ -831,14 +855,19 @@
 							{#if errors.price}<span class="err">{errors.price}</span>{/if}
 						</label>
 						<label>{m['spool.fields.lotNr']()}<input class="mono" bind:value={lot} placeholder="—" /></label>
-						<label class="wide"
-							>{m['spool.fields.location']()}<Combobox
+						<label class="wide">
+							{m['spool.fields.location']()}
+							<Combobox
 								value={location}
 								options={locations}
 								placeholder={m['add.locationPlaceholder']()}
 								oninput={(v) => (location = v)}
-							/></label
-						>
+							/>
+							<!-- Always-on rather than behind the ⓘ used elsewhere: "Location" reads as
+							     metadata until you're told it means the physical shelf, and testers
+							     didn't open a popup to find that out. -->
+							<span class="hint">{m['add.locationHint']()}</span>
+						</label>
 					</div>
 
 					<div class="fill">
@@ -1288,6 +1317,30 @@
 	}
 	.hint.accent {
 		color: var(--accent-soft);
+	}
+	.presets {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 6px;
+		margin-top: 8px;
+	}
+	.presets-lead {
+		color: var(--text-faint);
+	}
+	.preset {
+		border: 1px solid var(--border-strong);
+		background: none;
+		border-radius: 999px;
+		padding: 3px 10px;
+		color: var(--accent-link);
+		font-family: inherit;
+		font-size: 11.5px;
+		cursor: pointer;
+	}
+	.preset:hover {
+		border-color: var(--accent);
+		background: var(--accent-wash-soft);
 	}
 	.form textarea {
 		width: 100%;
