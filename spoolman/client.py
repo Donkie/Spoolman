@@ -1,6 +1,7 @@
 """Functions for providing the client interface."""
 
 import logging
+import mimetypes
 import os
 from collections.abc import MutableMapping
 from pathlib import Path
@@ -12,6 +13,13 @@ from starlette.responses import FileResponse, Response
 from starlette.staticfiles import NotModifiedResponse
 
 logger = logging.getLogger(__name__)
+
+# StaticFiles picks the Content-Type from the stdlib mimetypes registry, whose built-in
+# table only learned about .webmanifest in newer Pythons and which otherwise depends on
+# the host's /etc/mime.types — absent in slim container images. Without this the web app
+# manifest would be served as text/plain on some of the interpreters we support, so
+# register it ourselves rather than leaving installability to the environment.
+mimetypes.add_type("application/manifest+json", ".webmanifest")
 
 PathLike = Union[str, "os.PathLike[str]"]
 Scope = MutableMapping[str, Any]
@@ -95,8 +103,11 @@ class SinglePageApplication(StaticFiles):
 
         prefix = f"/{self.base_path}"
         # `"/_app/` covers module preloads, stylesheets and the inline `import("/_app/...")`
-        # bootstrap calls; `"/favicon` covers the icon link. `base: ""` is SvelteKit's
-        # runtime base, which drives client-side routing and the derived API URL.
+        # bootstrap calls; `"/favicon` covers the icon link; `"/manifest.webmanifest` and
+        # `"/apple-touch-icon` cover the PWA install metadata (the manifest's own contents
+        # are base-path agnostic — every URL in it is relative to the manifest itself — so
+        # only the link that points at it needs fixing). `base: ""` is SvelteKit's runtime
+        # base, which drives client-side routing and the derived API URL.
         #
         # These are blind string replacements against adapter-static's output. If a
         # SvelteKit upgrade changes how it emits any of them, the replacement silently
@@ -106,6 +117,8 @@ class SinglePageApplication(StaticFiles):
         replacements = [
             ('"/_app/', f'"{prefix}/_app/'),
             ('"/favicon', f'"{prefix}/favicon'),
+            ('"/apple-touch-icon', f'"{prefix}/apple-touch-icon'),
+            ('"/manifest.webmanifest', f'"{prefix}/manifest.webmanifest'),
             ('base: ""', f'base: "{prefix}"'),
         ]
         missing = [old for old, _ in replacements if old not in html]

@@ -4,10 +4,21 @@
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.svg" />
+		<link rel="apple-touch-icon" href="%sveltekit.assets%/apple-touch-icon-180x180.png" />
+
+		<!-- Installability. The manifest sits at the deploy root and states start_url,
+		     scope and its icon sources relative to itself, so an operator running under
+		     SPOOLMAN_BASE_PATH gets a correctly scoped app without a build-time rebuild.
+		     %sveltekit.assets% is relative on the prerendered documents; on the SPA
+		     fallback (200.html) it is absolute and gets rewritten server-side — see
+		     load_and_rewrite_fallback_base_path in spoolman/client.py. -->
+		<link rel="manifest" href="%sveltekit.assets%/manifest.webmanifest" />
 
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
 		<meta name="theme-color" content="#1f1f1f" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 		<title>Spoolman</title>
 
 		<!-- Resolve the saved color theme before first paint to avoid a flash of the
