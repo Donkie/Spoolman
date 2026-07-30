@@ -791,10 +791,14 @@
 		min-height: 0;
 		padding: 20px 22px 40px;
 	}
+	/* Wraps rather than squeezing: on a phone the row is only wide enough for the title,
+	   the group-by button and "New group", so the drag hint drops onto its own line
+	   instead of being crushed into a one-word-per-line column. */
 	.head {
 		display: flex;
-		align-items: baseline;
-		gap: 12px;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 8px 12px;
 		margin-bottom: 16px;
 	}
 	.title {
@@ -807,7 +811,6 @@
 	}
 	.group-by {
 		position: relative;
-		align-self: center;
 	}
 	.group-btn {
 		display: flex;
@@ -1102,6 +1105,17 @@
 	@media (max-width: 860px) {
 		.ctrl-label {
 			display: none;
+		}
+	}
+	/* Phone: keep the controls together on the first row (title · group-by · new group)
+	   and give the hint the full width of the row below them. */
+	@media (max-width: 640px) {
+		.add {
+			order: 2;
+		}
+		.hint {
+			order: 3;
+			flex-basis: 100%;
 		}
 	}
 </style>
