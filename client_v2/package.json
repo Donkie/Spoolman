@@ -1,7 +1,7 @@
 {
 	"name": "spoolman-client-v2",
 	"private": true,
-	"version": "0.0.1",
+	"version": "0.24.0",
 	"type": "module",
 	"scripts": {
 		"strip-empty-locales": "node scripts/strip-empty-locales.mjs",
