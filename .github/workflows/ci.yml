@@ -14,6 +14,13 @@ permissions:
   contents: read
   packages: read
 
+# A new push to a PR makes the previous run's result irrelevant, so cancel it and
+# let the new one have the runners. Gated on the event: the push triggers are
+# master and v* tags, and a cancelled tag run is a half-published release.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   GHCR_IMAGE: donkie/spoolman
 
