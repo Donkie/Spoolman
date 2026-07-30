@@ -50,6 +50,13 @@ jobs:
           cd client
           npm ci
 
+      # lefthook's `ci` hook lints/formats/type-checks client_v2 too, via
+      # hardcoded ./node_modules/.bin/* paths, so its deps must be present.
+      - name: Install client_v2 dependencies
+        run: |
+          cd client_v2
+          npm ci
+
       - name: Run pre-commit
         run: uv run lefthook run ci
   #
