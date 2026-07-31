@@ -28,6 +28,7 @@ from spoolman.database.utils import (
     add_where_clause_int_opt,
     add_where_clause_str,
     add_where_clause_str_opt,
+    order_by_clauses,
     parse_nested_field,
 )
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError, SpoolMeasureError
@@ -121,7 +122,7 @@ async def get_by_id(db: AsyncSession, spool_id: int) -> models.Spool:
     return spool
 
 
-async def find(  # noqa: C901, PLR0912
+async def find(  # noqa: C901
     *,
     db: AsyncSession,
     filament_name: str | None = None,
@@ -210,10 +211,7 @@ async def find(  # noqa: C901, PLR0912
             else:
                 sorts.append(parse_nested_field(models.Spool, fieldstr))
 
-            if order == SortOrder.ASC:
-                stmt = stmt.order_by(*(f.asc() for f in sorts))
-            elif order == SortOrder.DESC:
-                stmt = stmt.order_by(*(f.desc() for f in sorts))
+            stmt = stmt.order_by(*order_by_clauses(sorts, order))
 
     if limit is not None:
         total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True).order_by(None)
@@ -433,6 +431,9 @@ async def find_groups(
 
     # Group ordering. Every option is an aggregate (or the grouped column), so no non-grouped
     # bare column is referenced — portable across SQLite, PostgreSQL, MySQL and CockroachDB.
+    # Ordering by `group.last_used` ranks each group by its most recently used spool, which is
+    # what a library sorted on "last used" is expected to show; groups holding nothing but
+    # unused spools aggregate to NULL and belong at the bottom, hence order_by_clauses.
     order_exprs = {
         "group.spool_count": spool_count,
         "group.in_use_count": in_use_count,
@@ -446,10 +447,10 @@ async def find_groups(
             expr = order_exprs.get(fieldstr)
             if expr is None:
                 continue
-            stmt = stmt.order_by(expr.asc() if order == SortOrder.ASC else expr.desc())
+            stmt = stmt.order_by(*order_by_clauses([expr], order))
             applied_sort = True
     if not applied_sort:
-        stmt = stmt.order_by(func.min(title_col).asc())
+        stmt = stmt.order_by(*order_by_clauses([func.min(title_col)], SortOrder.ASC))
 
     if limit is not None:
         stmt = stmt.offset(offset).limit(limit)

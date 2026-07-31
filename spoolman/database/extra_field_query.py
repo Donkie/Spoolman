@@ -13,7 +13,7 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import FunctionElement
 
 from spoolman.database import models
-from spoolman.database.utils import LIKE_ESCAPE, SortOrder, escape_like
+from spoolman.database.utils import LIKE_ESCAPE, SortOrder, escape_like, order_by_clauses
 from spoolman.extra_field_registry import EntityType, ExtraField, ExtraFieldType, get_extra_fields
 
 if TYPE_CHECKING:
@@ -528,6 +528,6 @@ def add_order_by_extra_field(
     else:
         sort_expr = value_subq
 
-    if order == SortOrder.ASC:
-        return stmt.order_by(sort_expr.asc())
-    return stmt.order_by(sort_expr.desc())
+    # A spool that has no value for the field yields NULL here, and "not filled in" belongs at
+    # the bottom of the list in both directions -- see order_by_clauses.
+    return stmt.order_by(*order_by_clauses([sort_expr], order))

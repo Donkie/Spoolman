@@ -146,6 +146,56 @@ def test_group_invalid_group_by():
     assert result.status_code == 400
 
 
+@pytest.mark.parametrize("order", ["desc", "asc"])
+def test_group_sort_last_used_puts_unused_groups_last(
+    random_filament: dict[str, Any],
+    random_empty_filament: dict[str, Any],
+    order: str,
+):
+    """A filament whose spools have never been used sorts last, in both directions.
+
+    A group's `last_used` is the max over its spools, so a group of nothing but unused spools
+    aggregates to NULL. PostgreSQL and CockroachDB sort NULLs first on DESC, which floated
+    every never-used filament to the top of the library (#984, #985); SQLite and MariaDB did
+    the same on ASC. "Never used" is the absence of a date, not the newest or the oldest one,
+    so it belongs at the bottom whichever way the list points.
+    """
+    used_id = random_filament["id"]
+    unused_id = random_empty_filament["id"]
+    spool_ids: list[int] = []
+    # The second filament carries no weight, so its spools are created bare -- which is
+    # exactly the case under test: nothing used, nothing dated.
+    for payload in (
+        {"filament_id": used_id, "remaining_weight": 1000},
+        {"filament_id": unused_id},
+        {"filament_id": unused_id},
+    ):
+        result = httpx.post(f"{URL}/api/v1/spool", json=payload)
+        result.raise_for_status()
+        spool_ids.append(result.json()["id"])
+
+    try:
+        # Only the first filament's spool has ever been used, so only its group has a date.
+        result = httpx.put(f"{URL}/api/v1/spool/{spool_ids[0]}/use", json={"use_weight": 100})
+        result.raise_for_status()
+
+        result = httpx.get(
+            f"{URL}/api/v1/spool/group",
+            params={
+                "group_by": "filament",
+                "filament.id": f"{used_id},{unused_id}",
+                "sort": f"group.last_used:{order}",
+            },
+        )
+        result.raise_for_status()
+        groups = result.json()
+        assert [group["key"] for group in groups] == [str(used_id), str(unused_id)]
+        assert groups[1].get("last_used") is None
+    finally:
+        for spool_id in spool_ids:
+            httpx.delete(f"{URL}/api/v1/spool/{spool_id}").raise_for_status()
+
+
 @dataclass
 class ExtraFixture:
     filament_id: int
@@ -192,9 +242,10 @@ def extra_field_spools(random_filament: dict[str, Any]) -> Iterable[ExtraFixture
 def _counts_by_key(groups: list[dict[str, Any]]) -> dict[str | None, int]:
     """Group spool counts keyed by group key.
 
-    Keyed rather than ordered because the databases disagree on where a NULL key sorts
-    (SQLite/MariaDB put it first, PostgreSQL/CockroachDB last), and none of these tests
-    are about that. The dashboard orders its cards from its own saved layout anyway.
+    Keyed rather than ordered because none of these tests are about ordering -- the dashboard
+    orders its cards from its own saved layout anyway. (Group ordering itself no longer varies
+    by database: order_by_clauses puts a NULL key last everywhere, where the four used to
+    disagree.)
     """
     return {group.get("key"): group["spool_count"] for group in groups}
 
