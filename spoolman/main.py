@@ -138,9 +138,12 @@ def add_trusted_origin_middleware() -> None:
 
 
 def add_trusted_host_middleware() -> None:
-    """Refuse requests addressed to a hostname this instance has no reason to answer to."""
-    if security.trusts_all_origins():
-        # Already warned about by trusts_all_origins(); adding the middleware would be a no-op.
+    """Refuse requests addressed to a hostname this instance has no reason to answer to.
+
+    Opt-in, so a deployment that configures nothing is unaffected; see
+    security.is_host_checking_enabled for why this guard alone is not on by default.
+    """
+    if not security.is_host_checking_enabled():
         return
     logger.info("Answering to these hostnames: %s.", security.describe_allowed_hosts())
     app.add_middleware(security.TrustedHostMiddleware)
