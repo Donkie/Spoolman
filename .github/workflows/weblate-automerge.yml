@@ -2,8 +2,8 @@ name: Auto-merge Weblate PRs
 
 # Translations are managed exclusively through Weblate (https://hosted.weblate.org/projects/spoolman/),
 # which opens a pull request for every sync back to this repo (see guard-translations.yml). Those PRs
-# are machine-generated, always scoped to client/public/locales/, and gated by the full CI suite just
-# like any other PR. Rather than hand-merging each one, this workflow turns on GitHub's native
+# are machine-generated, always scoped to a locale tree (client_v2/locales/ today), and gated by the
+# full CI suite just like any other PR. Rather than hand-merging each one, this workflow turns on GitHub's native
 # auto-merge for Weblate-authored PRs so they merge themselves once all required status checks pass.
 #
 # Why auto-merge instead of giving Weblate direct push access to master:
@@ -37,9 +37,14 @@ jobs:
     steps:
       # Defence in depth: don't trust the author alone, trust the diff. Even a compromised Weblate
       # token can only ever get auto-merged if the PR is confined to locale JSON files. Anything
-      # else (a code file, a workflow, a non-.json file, a file outside client/public/locales/)
+      # else (a code file, a workflow, a non-.json file, a file outside the two locale trees)
       # fails this step, auto-merge is never enabled, and the PR waits for a human. The file list is
       # read from the API — this step never checks out or runs PR code, so pull_request_target is safe.
+      #
+      # Both locale trees are allowed. client_v2/locales/ is where translations go now; the legacy
+      # client/public/locales/ tree stays on the list only so that a sync opened before its Weblate
+      # component was locked isn't stranded half-merged. Locking the component, not this allowlist,
+      # is what stops new legacy translations (see guard-translations.yml).
       - name: Verify PR only changes locale JSON files
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -55,15 +60,18 @@ jobs:
             exit 1
           fi
 
-          # Every changed path must be a .json file under client/public/locales/<lang>/.
-          offending="$(printf '%s\n' "$files" | grep -vE '^client/public/locales/[^/]+/.+\.json$' || true)"
+          # Every changed path must be a .json file under client_v2/locales/<lang>/ (active) or
+          # client/public/locales/<lang>/ (legacy, being wound down).
+          offending="$(printf '%s\n' "$files" \
+            | grep -vE '^(client_v2/locales|client/public/locales)/[^/]+/.+\.json$' || true)"
 
           if [ -n "$offending" ]; then
-            echo "::error title=Out-of-scope Weblate PR::PR touches files outside client/public/locales/**/*.json; not auto-merging."
+            echo "::error title=Out-of-scope Weblate PR::PR touches files outside the locale trees; not auto-merging."
             {
               echo "## ❌ Auto-merge blocked: out-of-scope changes"
               echo ""
-              echo "This Weblate PR changes files that are **not** locale JSON under \`client/public/locales/\`:"
+              echo "This Weblate PR changes files that are **not** locale JSON under"
+              echo "\`client_v2/locales/\` or \`client/public/locales/\`:"
               echo ""
               echo '```'
               echo "$offending"
