@@ -305,8 +305,33 @@ def get_allowed_hostnames() -> set[str]:
     return patterns | {_hostname(_authority(origin)) for origin in get_trusted_origins()} - {""}
 
 
+def is_host_checking_enabled() -> bool:
+    """Determine whether the operator has asked for host checking at all.
+
+    Off unless ``SPOOLMAN_ALLOWED_HOSTS`` names at least one host, and off when origin checks are
+    disabled (see :func:`trusts_all_origins`).
+
+    Deliberately opt-in, unlike the origin guard. The only hostname the check can refuse is a
+    registrable public domain, so the deployments it would break by default are exactly the ones
+    behind a reverse proxy on a real domain -- who today configure nothing at all and would get a
+    400 on every request until they found a new environment variable. Meanwhile the deployments
+    rebinding can actually reach are the ones addressed by an IP, a single-label name or
+    ``.local``, which the check never refuses anyway. The group that breaks and the group that
+    gains barely overlap, so defaulting this on would cost far more setup friction than it buys.
+
+    Returns:
+        bool: Whether requests should be checked against the allowed hostnames.
+
+    """
+    if trusts_all_origins():
+        return False
+    return bool(env.get_allowed_hosts())
+
+
 def is_allowed_host(host: str, forwarded_host: str | None = None) -> bool:
     """Determine whether this instance may be addressed by the hostname a request used.
+
+    Always true unless the operator opted in; see :func:`is_host_checking_enabled`.
 
     This is a different axis from :func:`is_trusted_origin`, and it closes a hole that one cannot:
     in a DNS rebinding attack the attacker's page keeps its own name, so ``Origin`` and ``Host``
@@ -314,18 +339,15 @@ def is_allowed_host(host: str, forwarded_host: str | None = None) -> bool:
     name is the victim's Spoolman instance. Checking that the *name* is one this instance could
     plausibly answer to is what breaks that.
 
-    Everything that cannot be pointed at a victim's machine by a stranger is allowed by default,
-    which is nearly every real deployment:
+    Once enabled, everything that cannot be pointed at a victim's machine by a stranger is still
+    allowed without listing it, so the operator only has to name their own domain:
 
     * IP literals. The browser then connected to that address directly, with no name to rebind.
     * Single-label names (``spoolman``, a Docker service name). Not registrable on the public
       internet, so an attacker cannot own one.
     * The non-registrable suffixes in :data:`_LOCAL_HOST_SUFFIXES` (``.local``, ``.lan``, ...).
-    * Anything in :func:`get_allowed_hostnames`.
-
-    What is left over is a registrable public domain the operator never mentioned -- which is both
-    the shape of the attack and, unavoidably, the shape of a reverse proxy on a real domain. Those
-    deployments set ``SPOOLMAN_ALLOWED_HOSTS``.
+    * Anything in :func:`get_allowed_hostnames`, which includes the hostnames inside
+      ``SPOOLMAN_CORS_ORIGIN`` -- an operator who declared an origin declared its hostname too.
 
     Args:
         host: The request's ``Host`` header. An absent one is allowed: browsers always send it,
@@ -338,7 +360,7 @@ def is_allowed_host(host: str, forwarded_host: str | None = None) -> bool:
         bool: Whether every hostname the request claims is allowed.
 
     """
-    if trusts_all_origins():
+    if not is_host_checking_enabled():
         return True
     return all(_is_allowed_hostname(claimed) for claimed in _claimed_hosts(host, forwarded_host))
 
@@ -379,6 +401,9 @@ class TrustedHostMiddleware:
     This is the DNS rebinding guard. Without it, a page on any website can make the browser treat
     that site's own name as Spoolman's -- passing the origin guard, since the page's origin then
     genuinely matches the host it asked for -- and read and write the whole inventory.
+
+    Only installed when the operator opted in via ``SPOOLMAN_ALLOWED_HOSTS``; see
+    :func:`is_host_checking_enabled` for why this one is not on by default.
 
     Applied to every request and handshake, not only the state-changing ones: a rebound name is
     same-origin as far as the browser is concerned, so the attacker can read the responses too.

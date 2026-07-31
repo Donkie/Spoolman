@@ -10,11 +10,52 @@ from spoolman import env, security
 
 @pytest.fixture(autouse=True)
 def _reset_state(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Start every test with nothing configured and a fresh once-only warning."""
-    monkeypatch.delenv("SPOOLMAN_ALLOWED_HOSTS", raising=False)
+    """Start every test with the guard opted into, declaring one domain.
+
+    The guard is off unless SPOOLMAN_ALLOWED_HOSTS names something, so "enabled" and "the
+    operator declared a domain" are the same state; the tests below the "off by default" heading
+    clear it again.
+    """
+    monkeypatch.setenv("SPOOLMAN_ALLOWED_HOSTS", "spoolman.example.com")
     monkeypatch.delenv("SPOOLMAN_CORS_ORIGIN", raising=False)
     monkeypatch.delenv("SPOOLMAN_DEBUG_MODE", raising=False)
     security._warn_all_origins_trusted.cache_clear()  # noqa: SLF001
+
+
+# Off by default. The only hostname the guard can refuse is a registrable public domain, so
+# defaulting it on would break reverse-proxy deployments that configure nothing today, while the
+# deployments rebinding can reach are addressed by IPs and .local names it never refuses anyway.
+
+
+def test_the_guard_is_off_unless_asked_for(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("SPOOLMAN_ALLOWED_HOSTS", raising=False)
+    assert security.is_host_checking_enabled() is False
+    assert security.is_allowed_host("evil.example") is True
+    assert security.is_allowed_host("anything.at.all", forwarded_host="whatever.example") is True
+
+
+def test_a_cors_origin_alone_does_not_turn_the_guard_on(monkeypatch: pytest.MonkeyPatch):
+    """Otherwise setting CORS for a Fluidd instance would silently start refusing your own host."""
+    monkeypatch.delenv("SPOOLMAN_ALLOWED_HOSTS", raising=False)
+    monkeypatch.setenv("SPOOLMAN_CORS_ORIGIN", "https://fluidd.local")
+    assert security.is_host_checking_enabled() is False
+    assert security.is_allowed_host("spoolman.example.com") is True
+
+
+def test_a_blank_setting_does_not_turn_the_guard_on(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("SPOOLMAN_ALLOWED_HOSTS", "  ,  ")
+    assert security.is_host_checking_enabled() is False
+    assert security.is_allowed_host("evil.example") is True
+
+
+def test_asking_for_it_turns_it_on():
+    """The autouse fixture sets the variable, so the rest of this file runs with it enabled."""
+    assert security.is_host_checking_enabled() is True
+
+
+def test_the_opt_out_still_wins(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("SPOOLMAN_CORS_ORIGIN", "*")
+    assert security.is_host_checking_enabled() is False
 
 
 # The attack this exists to stop: the attacker's page keeps its own name, so Origin and Host
@@ -126,12 +167,13 @@ def test_a_wildcard_entry_allows_everything(monkeypatch: pytest.MonkeyPatch):
 
 def test_a_cors_origin_declares_its_hostname_too(monkeypatch: pytest.MonkeyPatch):
     """An operator who declared an origin has necessarily declared the hostname inside it."""
-    monkeypatch.setenv("SPOOLMAN_CORS_ORIGIN", "https://spoolman.example.com:8443")
-    assert security.get_allowed_hostnames() == {"spoolman.example.com"}
-    assert security.is_allowed_host("spoolman.example.com") is True
+    monkeypatch.setenv("SPOOLMAN_CORS_ORIGIN", "https://fluidd.example.com:8443")
+    assert security.get_allowed_hostnames() == {"spoolman.example.com", "fluidd.example.com"}
+    assert security.is_allowed_host("fluidd.example.com") is True
 
 
-def test_no_configuration_declares_no_hostnames():
+def test_no_configuration_declares_no_hostnames(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("SPOOLMAN_ALLOWED_HOSTS", raising=False)
     assert security.get_allowed_hostnames() == set()
 
 

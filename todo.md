@@ -199,11 +199,25 @@ Note that *every* websocket handshake is guarded, not just state-changing ones: 
 exempt from CORS entirely, so an unguarded one leaks reads to any origin. That is the opposite
 of the HTTP rule, where reads are left alone because the same-origin policy already covers them.
 
-## 4. MEDIUM — No `Host` validation → DNS rebinding
+## 4. MEDIUM — No `Host` validation → DNS rebinding — **shipped opt-in**
 
 `Host: attacker.example.com` returns 200 **[confirmed]**. For an unauthenticated LAN service,
 rebinding gives a malicious page genuine same-origin access — full read *and* write, including
 `DELETE` — which bypasses tasks 1-3 entirely.
+
+**Built, but off unless `SPOOLMAN_ALLOWED_HOSTS` is set (Donkie's call).** The default was
+originally on; that was wrong. The only hostname the guard can refuse is a registrable public
+domain, so switching it on by default would have broken every reverse-proxy-on-a-real-domain
+deployment — people who configure *nothing* today — with a 400 on every request until they found
+a new environment variable. Meanwhile the deployments rebinding can actually reach are addressed
+by an IP, a single-label name or `.local`, none of which the guard ever refuses. **The group that
+breaks and the group that gains barely overlap**, which is the tell that the default was wrong:
+it bought little and cost a lot of setup friction, against a payoff for the attacker of reading
+or trashing a filament inventory. Spoolman's priority is that a new user who does not care about
+any of this has nothing to configure.
+
+So rebinding remains an accepted risk in the default configuration. Tasks 1-3 are unaffected and
+stay on by default — those close CSRF and websocket hijacking, which need no setup to guard.
 
 - [x] Add `TrustedHostMiddleware` in `spoolman/main.py`. Written in `spoolman/security.py`
       rather than reusing Starlette's, which matches only literal and `*.`-prefixed patterns and
@@ -216,19 +230,21 @@ rebinding gives a malicious page genuine same-origin access — full read *and* 
       between to rebind, so a public literal is as safe as a LAN one), **any** single-label name
       (`spoolman`, a Docker service name — not registrable), and the non-registrable suffixes
       `.local`, `.localhost`, `.lan`, `.home`, `.home.arpa`, `.internal`. Startup logs the policy.
-- [x] `SPOOLMAN_ALLOWED_HOSTS` added after all — the default *is* too narrow without it. The
-      hostnames inside `SPOOLMAN_CORS_ORIGIN` are folded in, so a deployment that already
-      configured CORS needs nothing new, but a reverse proxy on a real domain never needed CORS
-      and so has nothing to fold in. Hostnames, not origins; `*.example.com` covers the apex too.
-- [x] ~~README:~~ **Wiki** — see the reversal on task 5's README item. Owed there: a reverse proxy
-      on a public hostname must set `SPOOLMAN_ALLOWED_HOSTS`, or requests get a 400 whose body
-      names the variable.
+- [x] `SPOOLMAN_ALLOWED_HOSTS` added, and it doubles as the on switch: naming a host is the only
+      way to enable the guard, so there is never a state where the operator has to think about it
+      without having asked for it. `SPOOLMAN_CORS_ORIGIN` deliberately does **not** turn it on —
+      otherwise setting CORS for a Fluidd instance would silently start refusing your own
+      hostname — but once it is on, the hostnames inside the CORS origins are folded in, so
+      nobody has to write their domain in two variables. Hostnames, not origins; `*.example.com`
+      covers the apex too.
+- [x] ~~README:~~ **Wiki** — see the reversal on task 5's README item. Owed there: what
+      `SPOOLMAN_ALLOWED_HOSTS` is for, and that turning it on means a reverse proxy on a public
+      hostname must list that hostname, or requests get a 400 whose body names the variable.
 
-**This narrows task 0's "reverse proxies — handled, no configuration needed".** That is still
-true of the origin guard, and still true of the host guard for a proxy that rewrites `Host` to a
-service name or IP. It is *not* true for a proxy serving a public domain name: `Host` (or
-`X-Forwarded-Host`) is then that domain, and it must be declared. This is inherent — an instance
-cannot know its own public name — and it is the trade this task always implied.
+**Task 0's "reverse proxies — handled, no configuration needed" still stands**, because the guard
+is off by default. It stops being true only for an operator who opts in and serves a public domain
+name — their `Host` (or `X-Forwarded-Host`) is that domain and must be declared. That is inherent:
+an instance cannot know its own public name. It is now a cost only the people who asked for it pay.
 
 `X-Forwarded-Host` is checked alongside `Host`, because `is_trusted_request` accepts it as this
 instance's identity; leaving it unchecked would hand back the hole. An absent `Host` is allowed:
@@ -237,18 +253,27 @@ browsers always send one, so its absence means a non-browser client, which is no
 Applied to reads as well as writes, unlike the origin guard: a rebound name is same-origin as far
 as the browser is concerned, so the attacker can read the responses too.
 
-Verified against a real uvicorn (`tests/test_host_validation.py`, 50 unit tests, plus raw ASGI
-requests and raw websocket handshakes):
+Verified against a real uvicorn (`tests/test_host_validation.py`, 55 unit tests, plus raw ASGI
+requests and raw websocket handshakes), in both configurations:
 
-| Request | Before | After |
+| Request | Default (unset) | `SPOOLMAN_ALLOWED_HOSTS` set |
 | --- | --- | --- |
+| `GET /spool`, `Host: spoolman.mydomain.com` (proxy user) | 200 | 200 once declared |
 | `GET /spool`, `Host: evil.example` | 200 | 400 |
 | `POST /setting/currency`, `Host` + `Origin` both evil | 200 | 400, value unchanged |
 | `DELETE /spool/1`, `Host` + `Origin` both evil | 200 | 400 |
 | `GET /spool`, `X-Forwarded-Host: evil.example` | 200 | 400 |
 | websocket handshake, `Host: evil.example` | 101 | 403 |
-| `Host:` own IP / `spoolman` / `spoolman.local` / configured domain | 200 | 200 |
+| `Host:` own IP / `spoolman` / `spoolman.local` | 200 | 200 |
 | `POST /setting/currency`, no `Origin` (Moonraker-shaped) | 200 | 200 |
+| cross-origin `POST` (task 1, unrelated guard) | 403 | 403 |
+
+The default column is byte-for-byte what the branch did before this task, including no extra
+startup log line — confirmed against a server started with no host configuration at all.
+
+The integration compose files set `SPOOLMAN_ALLOWED_HOSTS` so the suite exercises the guard; the
+default-off path is covered by the unit tests and by `tests_frontend_v2`, which drives a real
+browser against a Spoolman started with no host configuration.
 
 Note the websocket row: uvicorn renders any close sent before the handshake is accepted as HTTP
 403 regardless of the close code, so `WS_CLOSE_BAD_HOST` (4400) is only visible to a client that
