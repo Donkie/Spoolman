@@ -23,7 +23,7 @@ Spoolman is a self-hosted web service designed to help you efficiently manage yo
   * Search, group and filter your inventory by manufacturer, material, location and more.
   * Add custom fields to tailor information to your specific needs.
   * Design and print labels with QR codes for easy spool identification and tracking.
-  * Contribute to its translation into 18 languages via [Weblate](https://hosted.weblate.org/projects/spoolman/).
+  * Contribute to its translation into 26 languages via [Weblate](https://hosted.weblate.org/projects/spoolman/). Translations are accepted through Weblate only — please don't send them as pull requests, they get overwritten on the next sync.
 * **Database Support**: SQLite, PostgreSQL, MySQL, and CockroachDB.
 * **Multi-Printer Management**: Handles spool updates from several printers simultaneously.
 * **Advanced Monitoring**: Integrate with [Prometheus](https://prometheus.io/) for detailed historical analysis of filament usage, helping you track and optimize your printing processes. See the [Wiki](https://github.com/Donkie/Spoolman/wiki/Filament-Usage-History) for instructions on how to set it up.
