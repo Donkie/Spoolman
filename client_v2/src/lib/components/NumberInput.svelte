@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
+	import { getFieldLabelId } from './fieldLabel';
 	// A themed numeric input. Native spinners are hidden app-wide (see app.css);
 	// this component supplies its own up/down steppers styled to match the dark UI.
 	//
@@ -31,6 +32,8 @@
 		/** Commit-mode only: called instead of `onchange` when the field is left empty,
 		    for fields where blank means "unset" (e.g. a price that falls back to a default). */
 		onclear?: () => void;
+		/** Accessible name, for use outside a <Field> or <label> that supplies one. */
+		ariaLabel?: string;
 	}
 	let {
 		value = $bindable(),
@@ -45,8 +48,12 @@
 		dense = false,
 		disabled = false,
 		onchange,
-		onclear
+		onclear,
+		ariaLabel
 	}: Props = $props();
+
+	// Named by the enclosing <Field>'s label cell when there is one; see fieldLabel.ts.
+	const labelId = getFieldLabelId();
 
 	// Commit mode keeps a local draft so keystrokes don't fire onchange; the controlled
 	// `value` re-seeds it whenever the parent changes it (e.g. a new element is selected).
@@ -98,6 +105,8 @@
 		{step}
 		{placeholder}
 		{disabled}
+		aria-label={ariaLabel}
+		aria-labelledby={ariaLabel ? undefined : labelId}
 		inputmode="decimal"
 	/>
 	{#if unit}<span class="unit">{unit}</span>{/if}

@@ -77,11 +77,17 @@
 		return { spool: s, filament, vendor };
 	});
 
-	// Fit the label into the canvas viewport (with sensible min/max zoom).
+	// Fit the label into the canvas viewport (with sensible min/max zoom). The viewport is
+	// at most VIEW_W wide, but on a narrow screen it is only as wide as the stage actually
+	// is — measured, so the preview scales down to fit instead of being clipped by the
+	// stage's edges (there is no zoom control to recover from that). The 2px/mm floor keeps
+	// an absurdly large label legible; `.stage-area` scrolls in that case.
 	const VIEW_W = 500;
 	const VIEW_H = 340;
+	let stageW = $state(0);
+	const viewW = $derived(stageW > 0 ? Math.min(VIEW_W, stageW) : VIEW_W);
 	const pxPerMm = $derived(
-		Math.max(2, Math.min(14, Math.min(VIEW_W / design.label.w, VIEW_H / design.label.h)))
+		Math.max(2, Math.min(14, Math.min(viewW / design.label.w, VIEW_H / design.label.h)))
 	);
 
 	$effect(() => {
@@ -218,15 +224,19 @@
 				{/if}
 			</select>
 		</div>
-		<LabelCanvas
-			{design}
-			binding={previewBinding}
-			baseUrl={settings.baseUrl}
-			{pxPerMm}
-			interactive
-			bind:selectedId
-			onchange={updateElement}
-		/>
+		<!-- Full-width measuring box: its width comes from the layout (never from the canvas
+		     inside it), so feeding it back into `pxPerMm` can't loop. -->
+		<div class="stage" bind:clientWidth={stageW}>
+			<LabelCanvas
+				{design}
+				binding={previewBinding}
+				baseUrl={settings.baseUrl}
+				{pxPerMm}
+				interactive
+				bind:selectedId
+				onchange={updateElement}
+			/>
+		</div>
 		<div class="hint">
 			{m['labels.canvasHint']()}
 			{previewBinding ? m['labels.showingReal']() : m['labels.showingTags']()}
@@ -323,10 +333,21 @@
 		min-width: 0;
 		overflow: auto;
 	}
+	.stage {
+		display: flex;
+		justify-content: center;
+		width: 100%;
+		min-width: 0;
+	}
 	.preview-bar {
 		display: flex;
 		align-items: center;
+		justify-content: center;
 		gap: 8px;
+		/* Shrinks with the stage instead of pushing it wide (which would scroll the label
+		   out of view on a phone). */
+		width: 100%;
+		min-width: 0;
 		font-size: 11.5px;
 		color: var(--text-dim);
 	}
@@ -338,7 +359,8 @@
 		color: var(--text);
 		font-size: 12px;
 		font-family: inherit;
-		max-width: 260px;
+		flex: 0 1 260px;
+		min-width: 0;
 	}
 	.preview-bar select:focus {
 		outline: none;
@@ -353,5 +375,12 @@
 		border-left: 1px solid var(--border);
 		padding-left: 18px;
 		min-height: 420px;
+	}
+	/* On a phone the stage gives up most of its padding so the label itself gets the width.
+	   Must come after the base `.stage-area` rule: a media query adds no specificity. */
+	@media (max-width: 560px) {
+		.stage-area {
+			padding: 14px 10px;
+		}
 	}
 </style>

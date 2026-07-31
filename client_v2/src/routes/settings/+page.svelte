@@ -9,6 +9,13 @@
 	import * as m from '$lib/paraglide/messages';
 	import { languages } from '$lib/i18n/languages';
 	import { trackSave } from '$lib/utils/autosave';
+	import { page } from '$app/state';
+	import { entityFromUrl, gotoEntity, EXTRA_FIELDS_ANCHOR } from '$lib/settings/params';
+
+	// Which entity's extra fields to show comes from the URL (`?fields=…`), so the
+	// inspectors can link straight at the tab they're about; a URL that says nothing
+	// falls back to spools.
+	let fieldsEntity = $derived(entityFromUrl(page.url.searchParams) ?? 'spool');
 
 	const themeOptions: { value: ThemePref; label: () => string }[] = [
 		{ value: 'system', label: m['settings.appearance.theme.system'] },
@@ -125,14 +132,14 @@
 			</SettingRow>
 		</Card>
 
-		<div class="sec-label">{m['settings.extraFields.tab']()}</div>
+		<div class="sec-label" id={EXTRA_FIELDS_ANCHOR}>{m['settings.extraFields.tab']()}</div>
 		<div class="subtitle sub2">
 			<p>{m['settings.extraFields.description.intro']()}</p>
 			<p>{m['settings.extraFields.description.constraints']()}</p>
 			<p>{m['settings.extraFields.description.keyUsage']()}</p>
 			<p>{m['settings.extraFields.description.tableViews']()}</p>
 		</div>
-		<ExtraFieldsManager />
+		<ExtraFieldsManager entity={fieldsEntity} onentity={gotoEntity} />
 	</div>
 </div>
 
@@ -165,6 +172,9 @@
 		letter-spacing: 0.07em;
 		color: var(--text-dim);
 		padding: 22px 0 8px;
+		/* Deep links (#extra-fields) scroll a section to the top of the page's own
+		   scroller; leave it some air rather than jamming it against the edge. */
+		scroll-margin-top: 16px;
 	}
 	.code,
 	.url,
@@ -219,7 +229,7 @@
 		color: var(--text-2);
 	}
 	.seg-btn.active {
-		background: var(--accent);
+		background: var(--accent-fill);
 		color: #fff;
 	}
 </style>

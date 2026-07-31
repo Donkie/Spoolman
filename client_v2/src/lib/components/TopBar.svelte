@@ -176,7 +176,7 @@
 			height: 44px;
 			border-radius: var(--radius-md);
 			border: none;
-			background: var(--accent);
+			background: var(--accent-fill);
 			color: #fff;
 			cursor: pointer;
 		}

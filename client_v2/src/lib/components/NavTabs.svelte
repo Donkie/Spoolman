@@ -6,7 +6,7 @@
 
 	const tabs = [
 		{ href: '/', label: m['nav.library'] },
-		{ href: '/locations', label: m['locations.locations'] },
+		{ href: '/dashboard', label: m['dashboard.dashboard'] },
 		{ href: '/labels', label: m['nav.labels'] },
 		{ href: '/settings', label: m['settings.header'] }
 	] satisfies { href: Pathname; label: () => string }[];

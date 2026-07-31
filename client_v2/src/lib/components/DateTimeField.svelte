@@ -248,7 +248,12 @@
 			if (root && !root.contains(t) && pop && !pop.contains(t)) close();
 		};
 		const onKey = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') close();
+			if (e.key !== 'Escape') return;
+			// Same reason as Combobox: this listener sits on document, so stopping
+			// propagation here keeps an enclosing dialog's window-level Escape
+			// handler from closing the whole form along with the popover.
+			close();
+			e.stopPropagation();
 		};
 		const onScroll = () => close();
 		document.addEventListener('pointerdown', onDocPointer, true);
@@ -466,7 +471,7 @@
 		color: var(--accent-soft);
 	}
 	.day.selected {
-		background: var(--accent);
+		background: var(--accent-fill);
 		color: #fff;
 	}
 	.time-row {
@@ -516,7 +521,7 @@
 	}
 	.done {
 		margin-left: auto;
-		background: var(--accent);
+		background: var(--accent-fill);
 		border: none;
 		color: #fff;
 		font: inherit;
@@ -527,6 +532,6 @@
 		cursor: pointer;
 	}
 	.done:hover {
-		background: var(--accent-hover);
+		background: var(--accent-fill-hover);
 	}
 </style>

@@ -9,3 +9,6 @@ node_modules
 
 # Generated code (paraglide i18n compiler output — also gitignored)
 src/lib/paraglide
+
+# Local scratch notes (gitignored, never reaches CI — don't fail the local hook)
+docs

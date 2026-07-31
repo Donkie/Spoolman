@@ -27,7 +27,7 @@ services:
       - SPOOLMAN_LOGGING_LEVEL=INFO
       # These Playwright tests target the legacy (React) client's DOM. The new
       # Svelte client is now the default, so pin this suite to the legacy client.
-      # TODO: port these tests to the new client and drop this override.
+      # The equivalent suite for the new client lives in ../tests_frontend_v2.
       - SPOOLMAN_LEGACY_CLIENT=TRUE
       - TZ=Europe/Stockholm
     ports:

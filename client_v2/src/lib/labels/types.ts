@@ -178,11 +178,29 @@ export const DEFAULT_LAYOUT: PrintLayout = {
 	border: 'none'
 };
 
-/** Default text-block template for a fresh spool label (ends in the spool id). */
-export const DEFAULT_SPOOL_TEXT = '**{filament.name}**\n{filament.material}\n#{spool.id}';
-/** Default text-block template for a fresh filament label (a spool id makes no
- * sense here, so it ends in the filament id instead). */
-export const DEFAULT_FILAMENT_TEXT = '**{filament.name}**\n{filament.material}\n#{filament.id}';
+/**
+ * Default "meta" line of a fresh spool label: the material followed by the spool
+ * id. The material sits in a conditional block so the separator disappears along
+ * with it when the filament has no material set.
+ */
+export const DEFAULT_SPOOL_TEXT = '{{filament.material} · }#{spool.id}';
+/** Same line for a fresh filament label — a spool id makes no sense here, so it
+ * ends in the filament id instead. */
+export const DEFAULT_FILAMENT_TEXT = '{{filament.material} · }#{filament.id}';
+
+/**
+ * Spool/filament template pairs that count as "still the default", newest first.
+ * The trailing entries are the defaults shipped by earlier versions, kept so that
+ * designs created before the default was redesigned still get their id line
+ * retargeted when their kind is switched.
+ */
+const DEFAULT_TEXT_PAIRS: Record<LabelKind, string>[] = [
+	{ spool: DEFAULT_SPOOL_TEXT, filament: DEFAULT_FILAMENT_TEXT },
+	{
+		spool: '**{filament.name}**\n{filament.material}\n#{spool.id}',
+		filament: '**{filament.name}**\n{filament.material}\n#{filament.id}'
+	}
+];
 
 /** The default text-block template for a given label kind. */
 export function defaultTextTemplate(kind: LabelKind): string {
@@ -196,17 +214,23 @@ export function defaultTextTemplate(kind: LabelKind): string {
  * and vice versa. Templates the user has edited are left untouched.
  */
 export function setDesignKind(design: LabelDesign, kind: LabelKind): void {
-	const from = defaultTextTemplate(labelKind(design));
-	const to = defaultTextTemplate(kind);
+	const from = labelKind(design);
 	design.kind = kind;
-	if (from !== to) {
-		design.elements = design.elements.map((el) =>
-			el.type === 'text' && el.template === from ? { ...el, template: to } : el
-		);
-	}
+	if (from === kind) return;
+	design.elements = design.elements.map((el) => {
+		if (el.type !== 'text') return el;
+		const pair = DEFAULT_TEXT_PAIRS.find((p) => p[from] === el.template);
+		return pair ? { ...el, template: pair[kind] } : el;
+	});
 }
 
-/** A fresh empty design with a sensible default size and one QR element. */
+/**
+ * A fresh design at a sensible default size, laid out as: QR on the left, and on
+ * the right a manufacturer line, the filament name, a material · id line, and a
+ * colour swatch bar bottom-aligned with the QR. Every text block is a separate
+ * element because styling (size, weight, colour) is per-element — that's what
+ * lets the name read as the headline and the manufacturer as a subtitle.
+ */
 export function newDesign(id: string): LabelDesign {
 	return {
 		id,
@@ -217,18 +241,51 @@ export function newDesign(id: string): LabelDesign {
 		elements: [
 			{ id: `${id}-qr`, type: 'qr', x: 2, y: 2, size: 21, ec: 'H', encoding: 'scheme', logo: true },
 			{
-				id: `${id}-t`,
+				// Conditional block: a filament with no vendor prints nothing here
+				// rather than a stray "?".
+				id: `${id}-vendor`,
 				type: 'text',
 				x: 25,
-				y: 3,
+				y: 2.2,
 				w: 23,
-				fontSize: 3,
+				fontSize: 2.5,
+				bold: false,
+				align: 'left',
+				color: '#555555',
+				wrap: false,
+				template: '{{vendor.name}}'
+			},
+			{
+				// The headline. The only wrapping block, so a long name grows into the
+				// gap above the meta line instead of being clipped.
+				id: `${id}-name`,
+				type: 'text',
+				x: 25,
+				y: 5.4,
+				w: 23,
+				fontSize: 3.2,
 				bold: true,
 				align: 'left',
 				color: '#000000',
 				wrap: true,
+				template: '{filament.name}'
+			},
+			{
+				id: `${id}-meta`,
+				type: 'text',
+				x: 25,
+				y: 15.2,
+				w: 23,
+				fontSize: 2.5,
+				bold: false,
+				align: 'left',
+				color: '#333333',
+				wrap: false,
 				template: DEFAULT_SPOOL_TEXT
-			}
+			},
+			// Bottom-aligned with the QR (both end at y=23) so the label reads as two
+			// balanced columns.
+			{ id: `${id}-swatch`, type: 'swatch', x: 25, y: 19, w: 23, h: 4, radius: 1.2 }
 		]
 	};
 }

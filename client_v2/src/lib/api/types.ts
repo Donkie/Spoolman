@@ -15,8 +15,11 @@ export interface SortField {
 	dir: SortDir;
 }
 
-/** The entity/axis a group is keyed on. */
-export type GroupField = 'filament' | 'vendor' | 'material' | 'location';
+/**
+ * The entity/axis a group is keyed on. These are the API's own `group_by` values, so
+ * they travel to the server unchanged — `extra.<key>` groups on a spool custom field.
+ */
+export type GroupField = 'filament' | 'vendor' | 'material' | 'location' | `extra.${string}`;
 
 /** One group returned by listGroups — the header + server aggregates. */
 export interface GroupSummary {

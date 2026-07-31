@@ -129,6 +129,9 @@ function currentState(): LibraryState {
  */
 function navigate(next: LibraryState, replace = false): void {
 	const qs = serializeState(next);
+	// Both targets are base-path-independent: a bare `?query` resolves against the
+	// current URL, and window.location.pathname already includes the base path.
+	// eslint-disable-next-line svelte/no-navigation-without-resolve
 	goto(qs ? `?${qs}` : window.location.pathname, {
 		replaceState: replace,
 		keepFocus: true,
@@ -270,5 +273,7 @@ export function openSearchResult(kind: EntityKind, id: string): void {
 	}
 	const p = new URLSearchParams();
 	p.set('sel', `${kind}:${id}`);
+	// libraryPath is `resolve('/')`, so the base path is already applied.
+	// eslint-disable-next-line svelte/no-navigation-without-resolve
 	goto(`${libraryPath}?${p.toString()}`, { noScroll: true });
 }

@@ -17,6 +17,7 @@
 	import { spoolSource, type NewFilamentDraft } from '$lib/api/spoolSource';
 	import { fields } from '$lib/stores/fields.svelte';
 	import { externalColors, externalDirection, type ExternalFilament } from '$lib/api/external';
+	import { weightAuto } from '$lib/utils/format';
 	import { loadMaterials, type MaterialSpec } from '$lib/data/materials';
 	import * as m from '$lib/paraglide/messages';
 
@@ -24,9 +25,11 @@
 		open: boolean;
 		/** When set, open straight to step 2 with this local filament chosen. */
 		presetFilamentId?: string | null;
+		/** When set, open straight to step 2 on a new filament copied from this one. */
+		duplicateFilamentId?: string | null;
 		onclose?: () => void;
 	}
-	let { open, presetFilamentId = null, onclose }: Props = $props();
+	let { open, presetFilamentId = null, duplicateFilamentId = null, onclose }: Props = $props();
 
 	// A chosen filament is one from the local catalog, a SpoolmanDB entry, or —
 	// when `creating` — a brand-new filament described by the `nf` form.
@@ -43,6 +46,9 @@
 	let creating = $state(false);
 	let submitting = $state(false);
 	let locations = $state<string[]>([]);
+	// The filament the current new-filament form was copied from, if any. Drives
+	// the "duplicate of X" heading, the rename nudge, and the extra-field carry-over.
+	let cloneSource = $state<Filament | null>(null);
 
 	// New-filament fields + lookups for the combobox / auto-fill.
 	let nf = $state({
@@ -59,6 +65,11 @@
 		comment: ''
 	});
 	let showAdvanced = $state(false);
+	let nameInput = $state<HTMLInputElement | undefined>();
+	// Display-only: an untouched empty name shows the naming guidance rather than
+	// shouting "Required" at a form the user just opened. Submission is unaffected
+	// — `errors`/`canSubmit` still treat the empty name as invalid throughout.
+	let nameTouched = $state(false);
 	let vendorNames = $state<string[]>([]);
 	let materialNames = $state<string[]>([]);
 	let materialSpecs = $state<Record<string, MaterialSpec>>({});
@@ -139,6 +150,9 @@
 			if (presetFilamentId) {
 				const f = inventory.filamentById(presetFilamentId);
 				if (f) choose({ source: 'catalog', filament: f });
+			} else if (duplicateFilamentId) {
+				const f = inventory.filamentById(duplicateFilamentId);
+				if (f) startDuplicate(f);
 			}
 		} else if (!open) {
 			initialized = false;
@@ -150,6 +164,16 @@
 	// (e.g. returning to step 1 from step 2).
 	$effect(() => {
 		if (open && step === 1 && searchInput) searchInput.focus();
+	});
+
+	// When duplicating, the name is the one field that must change, so put the
+	// caret in it (at the end — the colour word is usually a suffix, and the rest
+	// of the name is worth keeping rather than retyping).
+	$effect(() => {
+		if (open && cloneSource && nameInput) {
+			nameInput.focus();
+			nameInput.setSelectionRange(nameInput.value.length, nameInput.value.length);
+		}
 	});
 
 	// --- spool form ---------------------------------------------------------
@@ -178,6 +202,14 @@
 		{ key: 'remaining', labelKey: m['spool.fields.remainingWeight'] },
 		{ key: 'measured', labelKey: m['spool.fields.measuredWeight'] }
 	];
+	// Ballpark empty-spool weights, offered in the Spool Weight help for people who
+	// have no idea what to put there. Deliberately round: they're a starting point
+	// to be corrected by weighing the spool, not a claim about any specific brand.
+	const SPOOL_WEIGHT_PRESETS = [
+		{ weight: 140, label: () => m['add.spoolWeightPreset.cardboard']({ weight: 140 }) },
+		{ weight: 200, label: () => m['add.spoolWeightPreset.plastic']({ weight: 200 }) }
+	];
+
 	let fillHelp = $derived(
 		fillMode === 'used'
 			? m['spool.fieldsHelp.usedWeight']()
@@ -214,6 +246,7 @@
 
 	function choose(c: Choice) {
 		creating = false;
+		cloneSource = null;
 		chosen = c;
 		netWeight = String(cWeight(c) || 1000);
 		const sw = cSpoolWeight(c);
@@ -226,6 +259,8 @@
 
 	function startCreate() {
 		creating = true;
+		cloneSource = null;
+		nameTouched = false;
 		chosen = null;
 		showAdvanced = false;
 		nf = {
@@ -248,6 +283,43 @@
 		step = 2;
 	}
 
+	/**
+	 * Start a new filament copied from an existing one — the "I bought the same
+	 * filament in another colour" case. Everything that describes the *product*
+	 * carries over (manufacturer, material, specs, weights, price, custom fields);
+	 * everything that identifies the *variant* is left for the user: the colour is
+	 * cleared and the article number (a per-colour SKU) is dropped. The name is
+	 * kept as a starting point since it's usually one word away from the new one,
+	 * with a nudge below the field until it's changed.
+	 */
+	function startDuplicate(f: Filament) {
+		creating = true;
+		cloneSource = f;
+		nameTouched = false;
+		chosen = null;
+		// Specs came from a real filament rather than a material guess, so open the
+		// advanced block: it's what makes the copy visibly a copy.
+		showAdvanced = true;
+		nf = {
+			vendorName: inventory.vendorById(f.vendorId)?.name ?? '',
+			name: f.name,
+			material: f.material,
+			colors: [],
+			multiColorDirection: undefined,
+			density: String(f.density),
+			diameter: String(f.diameter),
+			nozzleTemp: f.nozzleTemp ? String(f.nozzleTemp) : '',
+			bedTemp: f.bedTemp ? String(f.bedTemp) : '',
+			articleNumber: '',
+			comment: f.comment
+		};
+		netWeight = String(f.weight || 1000);
+		spoolWeight = f.spoolWeight ? String(f.spoolWeight) : '';
+		price = f.price ? String(f.price) : '';
+		resetSpoolForm();
+		step = 2;
+	}
+
 	// Vendor combobox: reuse an existing vendor if the name matches, else create.
 	let vendorTrimmed = $derived(nf.vendorName.trim());
 	let vendorMatch = $derived(vendorNames.find((v) => v.toLowerCase() === vendorTrimmed.toLowerCase()));
@@ -258,6 +330,10 @@
 				? m['add.vendorHint.existing']({ name: vendorMatch })
 				: m['add.vendorHint.new']({ name: vendorTrimmed })
 	);
+	// Nudge, not an error: Spoolman allows same-named filaments, but keeping the
+	// original's name on a duplicate is almost always an oversight.
+	let nameStillSource = $derived(!!cloneSource && nf.name.trim() === cloneSource.name.trim());
+
 	function onMaterial(v: string) {
 		nf.material = v;
 		const spec = materialSpecs[v.trim().toLowerCase()];
@@ -277,6 +353,8 @@
 		externalResults = [];
 		chosen = null;
 		creating = false;
+		cloneSource = null;
+		nameTouched = false;
 		submitting = false;
 	}
 	function close() {
@@ -289,6 +367,9 @@
 		submitting = true;
 		try {
 			let filamentId: number;
+			// Set when this submit created a filament, so "Add & new" can offer the
+			// next colour of it without going back through search.
+			let created: Filament | null = null;
 			if (creating) {
 				const draft: NewFilamentDraft = {
 					name: nf.name.trim(),
@@ -304,9 +385,13 @@
 					bedTemp: nf.bedTemp ? Number(nf.bedTemp) : undefined,
 					price: parseFloat(price) || undefined,
 					articleNumber: nf.articleNumber.trim() || undefined,
-					comment: nf.comment.trim() || undefined
+					comment: nf.comment.trim() || undefined,
+					// A duplicate carries the original's custom-field values too; they
+					// aren't editable here, so the inspector is where they get adjusted.
+					extra: cloneSource?.extra
 				};
 				const f = await spoolSource.createFilament(draft);
+				created = f;
 				filamentId = Number(f.id);
 			} else if (chosen!.source === 'external') {
 				const imported = await spoolSource.importExternalFilament(chosen!.ext);
@@ -336,7 +421,13 @@
 			if (Object.keys(extraValues).length) body.extra = extraValues;
 
 			for (let i = 0; i < n; i++) await spoolSource.createSpool(body);
-			if (andAnother) {
+			if (andAnother && created) {
+				// Just added a brand-new filament: the overwhelmingly likely next entry
+				// is a sibling of it (the multi-colour shopping trip this flow exists
+				// for), so hand back the same form pre-copied instead of an empty search.
+				reset();
+				startDuplicate(created);
+			} else if (andAnother) {
 				reset();
 				runSearch();
 			} else {
@@ -456,6 +547,12 @@
 										<span class="rn">{f.name}</span>
 										<span class="rs">{vendorName(f)} · {f.material}</span>
 									</div>
+									<!-- See the note on the external rows below: weight disambiguates two
+									     otherwise identical entries, so it sits outside the truncating
+									     .res-name. A catalog filament may have no weight recorded (0). -->
+									{#if f.weight}
+										<span class="res-weight">{weightAuto(f.weight)}</span>
+									{/if}
 									<span class="tag in-catalog">{m['add.inCatalog']()}</span>
 								</button>
 							{/each}
@@ -483,6 +580,13 @@
 										<span class="rn">{ext.name}</span>
 										<span class="rs">{ext.manufacturer} · {ext.material}</span>
 									</div>
+									<!-- Weight is part of the identity here: vendors list the same filament in
+									     several sizes, so the rows are otherwise indistinguishable. It sits
+									     outside .res-name so the ellipsis can never eat the one field that
+									     tells two matching results apart. -->
+									{#if ext.weight}
+										<span class="res-weight">{weightAuto(ext.weight)}</span>
+									{/if}
 									<span class="tag external">{serverInfo.externalDbName}</span>
 								</button>
 							{/each}
@@ -501,9 +605,16 @@
 					{#if creating}
 						<div class="fil-section">
 							<div class="fs-head">
-								<span class="fs-title">{m['add.newFilamentTitle']()}</span>
+								<span class="fs-title"
+									>{cloneSource
+										? m['add.duplicateTitle']({ name: cloneSource.name })
+										: m['add.newFilamentTitle']()}</span
+								>
 								<button class="fs-back" onclick={() => (step = 1)}>{m['add.useExisting']()}</button>
 							</div>
+							{#if cloneSource}
+								<div class="dup-note">{m['add.duplicateNote']()}</div>
+							{/if}
 							<div class="form">
 								<label class="wide">
 									{m['filament.fields.vendor']()}
@@ -523,11 +634,19 @@
 								<label class="wide">
 									{m['filament.fields.name']()} <span class="req">*</span>
 									<input
+										bind:this={nameInput}
 										bind:value={nf.name}
 										placeholder={m['add.filamentNamePlaceholder']()}
-										class:invalid={errors.name}
+										class:invalid={errors.name && nameTouched}
+										oninput={() => (nameTouched = true)}
+										onblur={() => (nameTouched = true)}
 									/>
-									{#if errors.name}<span class="err">{errors.name}</span>{/if}
+									<!-- The rename nudge only outranks the naming hint while the copy
+								     still carries the original's name; after that both cases get the
+								     same advice, since color is what makes a filament name useful. -->
+									{#if errors.name && nameTouched}<span class="err">{errors.name}</span>
+									{:else if nameStillSource}<span class="hint accent">{m['add.duplicateRename']()}</span>
+									{:else}<span class="hint">{m['add.nameHint']()}</span>{/if}
 								</label>
 								<label>
 									{m['filament.fields.material']()}
@@ -587,7 +706,7 @@
 										{#if errors.diameter}<span class="err">{errors.diameter}</span>{/if}
 									</label>
 									<label
-										>{m['filament.fields.settingsBedTemp']()}
+										>{m['filament.fields.settingsExtruderTemp']()}
 										<NumberInput
 											bind:value={nf.nozzleTemp}
 											min={0}
@@ -600,7 +719,7 @@
 										{#if errors.nozzleTemp}<span class="err">{errors.nozzleTemp}</span>{/if}
 									</label>
 									<label
-										>{m['filament.fields.settingsExtruderTemp']()}
+										>{m['filament.fields.settingsBedTemp']()}
 										<NumberInput
 											bind:value={nf.bedTemp}
 											min={0}
@@ -634,8 +753,21 @@
 											>{serverInfo.externalDbName}</span
 										>{/if}
 								</div>
-								<div class="cs">{cVendor(chosen)} · {cMaterial(chosen)}</div>
+								<!-- Weight closes the loop on the search rows: it confirms which of several
+								     same-named sizes was picked. This is the filament's full-spool weight, so
+								     it stays put even if the Weight field below is edited for this spool. -->
+								<div class="cs">
+									{cVendor(chosen)} · {cMaterial(chosen)}{cWeight(chosen)
+										? ' · ' + weightAuto(cWeight(chosen))
+										: ''}
+								</div>
 							</div>
+							<!-- Found the right product but the wrong colour? Branch off it here
+							     rather than backing out and filling a blank form. -->
+							{#if chosen.source === 'catalog'}
+								{@const src = chosen.filament}
+								<button class="change" onclick={() => startDuplicate(src)}>{m['add.duplicate']()}</button>
+							{/if}
 							<button class="change" onclick={() => (step = 1)}>{m['add.change']()}</button>
 						</div>
 						{#if chosen.source === 'external'}
@@ -695,9 +827,25 @@
 								invalid={!!errors.spoolWeight}
 							/>
 							{#if openHelp === 'spoolWeight'}
-								<span class="help-popup" id="spoolWeight-help" role="note"
-									>{m['filament.fieldsHelp.spoolWeight']()}</span
-								>
+								<span class="help-popup" id="spoolWeight-help" role="note">
+									{m['filament.fieldsHelp.spoolWeight']()}
+									<!-- Buttons nested in the <label>: a click on interactive content is
+									     not forwarded to the labelled input, so picking a preset doesn't
+									     also yank focus into the weight field. -->
+									<span class="presets">
+										<span class="presets-lead">{m['add.spoolWeightPresetsLead']()}</span>
+										{#each SPOOL_WEIGHT_PRESETS as preset (preset.weight)}
+											<button
+												type="button"
+												class="preset"
+												onclick={() => {
+													spoolWeight = String(preset.weight);
+													openHelp = null;
+												}}>{preset.label()}</button
+											>
+										{/each}
+									</span>
+								</span>
 							{/if}
 							{#if errors.spoolWeight}<span class="err">{errors.spoolWeight}</span>{/if}
 						</label>
@@ -707,14 +855,19 @@
 							{#if errors.price}<span class="err">{errors.price}</span>{/if}
 						</label>
 						<label>{m['spool.fields.lotNr']()}<input class="mono" bind:value={lot} placeholder="—" /></label>
-						<label class="wide"
-							>{m['spool.fields.location']()}<Combobox
+						<label class="wide">
+							{m['spool.fields.location']()}
+							<Combobox
 								value={location}
 								options={locations}
 								placeholder={m['add.locationPlaceholder']()}
 								oninput={(v) => (location = v)}
-							/></label
-						>
+							/>
+							<!-- Always-on rather than behind the ⓘ used elsewhere: "Location" reads as
+							     metadata until you're told it means the physical shelf, and testers
+							     didn't open a popup to find that out. -->
+							<span class="hint">{m['add.locationHint']()}</span>
+						</label>
 					</div>
 
 					<div class="fill">
@@ -929,6 +1082,13 @@
 		color: var(--text-muted);
 		font-size: 12px;
 	}
+	.res-weight {
+		flex: none;
+		white-space: nowrap;
+		font-size: 12px;
+		font-variant-numeric: tabular-nums;
+		color: var(--text);
+	}
 	.tag {
 		font-size: 10.5px;
 		padding: 1px 7px;
@@ -1035,6 +1195,11 @@
 		background: none;
 		border: none;
 		cursor: pointer;
+	}
+	.dup-note {
+		font-size: 11.5px;
+		color: var(--text-faint);
+		margin-top: 2px;
 	}
 	.sec-divider {
 		height: 1px;
@@ -1152,6 +1317,30 @@
 	}
 	.hint.accent {
 		color: var(--accent-soft);
+	}
+	.presets {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 6px;
+		margin-top: 8px;
+	}
+	.presets-lead {
+		color: var(--text-faint);
+	}
+	.preset {
+		border: 1px solid var(--border-strong);
+		background: none;
+		border-radius: 999px;
+		padding: 3px 10px;
+		color: var(--accent-link);
+		font-family: inherit;
+		font-size: 11.5px;
+		cursor: pointer;
+	}
+	.preset:hover {
+		border-color: var(--accent);
+		background: var(--accent-wash-soft);
 	}
 	.form textarea {
 		width: 100%;

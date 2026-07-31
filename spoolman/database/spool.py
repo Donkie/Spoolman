@@ -1,12 +1,13 @@
 """Helper functions for interacting with spool database objects."""
 
+import json
 import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
 import sqlalchemy
-from sqlalchemy import case, func
+from sqlalchemy import ColumnElement, case, func
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
@@ -15,8 +16,11 @@ from sqlalchemy.sql.functions import coalesce
 from spoolman.api.v1.models import EventType, Spool, SpoolEvent
 from spoolman.database import filament, models
 from spoolman.database.extra_field_query import (
+    ExtraFieldJoin,
     apply_extra_field_filters_and_sort,
     apply_spool_related_extra_filters,
+    extra_field_join,
+    extra_field_value_text,
 )
 from spoolman.database.utils import (
     SortOrder,
@@ -27,7 +31,7 @@ from spoolman.database.utils import (
     parse_nested_field,
 )
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError, SpoolMeasureError
-from spoolman.extra_field_registry import EntityType
+from spoolman.extra_field_registry import EntityType, ExtraField, ExtraFieldType, get_extra_fields
 from spoolman.math import weight_from_length
 from spoolman.ws import websocket_manager
 
@@ -54,7 +58,7 @@ async def create(
     lot_nr: str | None = None,
     comment: str | None = None,
     archived: bool = False,
-    extra: dict[str, str] | None = None,
+    extra: dict[str, str | None] | None = None,
 ) -> models.Spool:
     """Add a new spool to the database. Leave weight empty to assume full spool."""
     filament_item = await filament.get_by_id(db, filament_id)
@@ -97,7 +101,7 @@ async def create(
         lot_nr=lot_nr,
         comment=comment,
         archived=archived,
-        extra=[models.SpoolField(key=k, value=v) for k, v in (extra or {}).items()],
+        extra=[models.SpoolField(key=k, value=v) for k, v in (extra or {}).items() if v is not None],
     )
     db.add(spool)
     await db.commit()
@@ -234,6 +238,18 @@ GROUP_BY_COLUMNS = {
     "location": models.Spool.location,
 }
 
+# Prefix marking a reference to one of the spool's extra fields rather than a built-in column.
+EXTRA_FIELD_PREFIX = "extra."
+
+# Mirrors the Spool.location column width, so an over-long rename is a 400 and not a 500.
+LOCATION_MAX_LENGTH = 64
+
+# Extra fields whose value is a single plain string, and which can therefore be grouped on and
+# renamed by value. Multi-choice is excluded because its value is a JSON *array*: two spools
+# with overlapping-but-unequal selections are neither the same value nor cleanly different
+# ones, and there is no single value to match or write.
+SINGLE_VALUE_EXTRA_FIELD_TYPES = (ExtraFieldType.text, ExtraFieldType.choice)
+
 
 def _apply_spool_filters(
     stmt: sqlalchemy.Select,
@@ -267,6 +283,53 @@ def _apply_spool_filters(
             ),
         )
     return stmt
+
+
+async def _resolve_group_by(
+    db: AsyncSession,
+    group_by: str,
+) -> tuple[ColumnElement, ColumnElement, ExtraFieldJoin | None]:
+    """Resolve a group_by into the column to group on, the column to title groups by, and any join.
+
+    Grouping is either on a built-in column or on one of the spool's extra fields. The latter
+    lives in its own table, so it comes with a join the caller has to apply once the SELECT exists.
+    """
+    if group_by.startswith(EXTRA_FIELD_PREFIX):
+        field_key = _extra_field_key(await get_extra_fields(db, EntityType.spool), group_by)
+        join = extra_field_join(EntityType.spool, field_key)
+        # The value is the group's title as well; there is no separate entity to name it.
+        return join.value, join.value, join
+    if group_by in GROUP_BY_COLUMNS:
+        title_col = {
+            "filament": models.Filament.name,
+            "vendor": models.Vendor.name,
+            "material": models.Filament.material,
+            "location": models.Spool.location,
+        }[group_by]
+        return GROUP_BY_COLUMNS[group_by], title_col, None
+    raise ValueError(
+        f"Invalid group_by field '{group_by}'. Must be one of {sorted(GROUP_BY_COLUMNS)} "
+        f"or '{EXTRA_FIELD_PREFIX}<spool extra field key>'.",
+    )
+
+
+def _extra_field_key(spool_fields: Sequence[ExtraField], reference: str) -> str:
+    """Resolve an `extra.<key>` reference to its bare key, rejecting fields that can't carry one.
+
+    Shared by grouping and by renaming a value, which need the same guarantee: the field exists,
+    and one spool has exactly one plain string in it.
+    """
+    field_key = reference[len(EXTRA_FIELD_PREFIX) :]
+    field = next((f for f in spool_fields if f.key == field_key), None)
+    if field is None:
+        raise ValueError(f"Unknown spool extra field '{field_key}'.")
+    is_multi_choice = field.field_type == ExtraFieldType.choice and field.multi_choice
+    if field.field_type not in SINGLE_VALUE_EXTRA_FIELD_TYPES or is_multi_choice:
+        raise ValueError(
+            f"Spool extra field '{field_key}' does not hold a single plain value. "
+            f"Only text and single-choice fields do.",
+        )
+    return field_key
 
 
 @dataclass
@@ -309,15 +372,7 @@ async def find_groups(
 
     Returns a tuple of the requested page of groups and the total number of matching groups.
     """
-    if group_by not in GROUP_BY_COLUMNS:
-        raise ValueError(f"Invalid group_by field '{group_by}'. Must be one of {sorted(GROUP_BY_COLUMNS)}.")
-    group_col = GROUP_BY_COLUMNS[group_by]
-    title_col = {
-        "filament": models.Filament.name,
-        "vendor": models.Vendor.name,
-        "material": models.Filament.material,
-        "location": models.Spool.location,
-    }[group_by]
+    group_col, title_col, extra_join = await _resolve_group_by(db, group_by)
 
     # Remaining weight is computed (see Spool.from_db); mirror that formula so the sum is correct.
     # The fallback literal is 0.0 (float, not int): the weights are floats, and CockroachDB rejects
@@ -326,6 +381,10 @@ async def find_groups(
         coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight,
         0.0,
     )
+    # ...including its max(..., 0) clamp, so an over-used spool contributes 0 rather than a
+    # negative number and the group total still matches the sum of the per-spool values.
+    # CASE, not func.greatest: greatest() is not portable across all four supported databases.
+    remaining_expr = case((remaining_expr < 0, 0.0), else_=remaining_expr)
     spool_count = func.count().label("spool_count")
     in_use_count = func.sum(case((models.Spool.used_weight > 0, 1), else_=0)).label("in_use_count")
     total_remaining = func.sum(remaining_expr).label("total_remaining_weight")
@@ -350,6 +409,8 @@ async def find_groups(
         lot_nr=lot_nr,
         allow_archived=allow_archived,
     )
+    if extra_join is not None:
+        stmt = extra_join.apply(stmt, models.Spool.id)
     stmt = await apply_extra_field_filters_and_sort(
         db=db,
         stmt=stmt,
@@ -395,7 +456,8 @@ async def find_groups(
 
     rows = (await db.execute(stmt)).all()
 
-    # Hydrate the grouped entity for the header (filament/vendor); material/location need nothing.
+    # Hydrate the grouped entity for the header (filament/vendor). The value-keyed axes —
+    # material, location, extra fields — are their own header and need nothing.
     keys = [row.group_key for row in rows if row.group_key is not None]
     filament_map: dict[int, models.Filament] = {}
     vendor_map: dict[int, models.Vendor] = {}
@@ -446,8 +508,12 @@ async def update(
         elif isinstance(v, datetime):
             setattr(spool, k, utc_timezone_naive(v))
         elif k == "extra":
+            # Merged per key, the same as a filament's and a vendor's: only the keys present
+            # in the patch are touched, and a null value means the spool has no value for
+            # that field, so its row is dropped and not re-added — that is how a value that
+            # has been set gets cleared.
             spool.extra = [f for f in spool.extra if f.key not in v]
-            spool.extra.extend([models.SpoolField(key=k, value=v) for k, v in v.items()])
+            spool.extra.extend([models.SpoolField(key=k, value=v) for k, v in v.items() if v is not None])
         else:
             setattr(spool, k, v)
     await db.commit()
@@ -695,3 +761,58 @@ async def rename_location(
         sqlalchemy.update(models.Spool).where(models.Spool.location == current_name).values(location=new_name),
     )
     await db.commit()
+
+
+async def rename_field_value(
+    *,
+    db: AsyncSession,
+    field: str,
+    value: str,
+    new_value: str,
+) -> int:
+    """Replace one value of one spool field wherever it occurs, in a single statement.
+
+    rename_location generalised from location to the spool's other string fields, including its
+    custom ones. A client that has grouped spools by a field can rename a whole group this way
+    without reading out its members and patching them one at a time -- which it could only do
+    for the spools it had actually paged in, and not atomically.
+
+    Only fields the SPOOL owns can be renamed. A filament's material or vendor is a property of
+    another entity: rewriting it "for these spools" would change filaments other spools share.
+
+    Archived spools are included -- the value is the value, and skipping them would silently
+    leave half the spools behind.
+
+    Like rename_location, no spool event is broadcast per row. The change is one statement over
+    what may be hundreds of spools, and that fan-out is exactly what the websocket layer avoids
+    elsewhere; other clients pick the change up on their next load.
+
+    Returns the number of spools changed.
+    """
+    if field == "location":
+        if len(new_value) > LOCATION_MAX_LENGTH:
+            raise ValueError(f"A location can be at most {LOCATION_MAX_LENGTH} characters.")
+        stmt = sqlalchemy.update(models.Spool).where(models.Spool.location == value).values(location=new_value)
+    elif field.startswith(EXTRA_FIELD_PREFIX):
+        field_key = _extra_field_key(await get_extra_fields(db, EntityType.spool), field)
+        # Match on the DB-decoded scalar, so which JSON encoding wrote the value doesn't matter;
+        # store the new one the way the rest of the API does.
+        stmt = (
+            sqlalchemy.update(models.SpoolField)
+            .where(
+                sqlalchemy.and_(
+                    models.SpoolField.key == field_key,
+                    extra_field_value_text(models.SpoolField.value) == value,
+                ),
+            )
+            .values(value=json.dumps(new_value, ensure_ascii=False))
+        )
+    else:
+        raise ValueError(
+            f"Cannot rename values of '{field}'. Only fields the spool itself owns can be renamed: "
+            f"location, or '{EXTRA_FIELD_PREFIX}<spool extra field key>'.",
+        )
+
+    result = await db.execute(stmt)
+    await db.commit()
+    return result.rowcount

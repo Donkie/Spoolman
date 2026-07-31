@@ -74,11 +74,50 @@
 
 	// The list fetches server-paged data outside the reactive cache, so it keeps
 	// its own subscription: any change may reorder/relabel visible rows.
+	//
+	// Events are COALESCED: one revision bump refetches the group page AND every
+	// visible GroupRow (~1 + pageSize requests). A burst — bulk import, a printer
+	// streaming `use` updates, the initial sync — would otherwise fire that whole
+	// fan-out once per event.
+	//
+	// This is a LEADING-edge throttle, not a trailing debounce: the common case is a
+	// single edit by the user in another tab or a printer reporting one spool, and
+	// that must land immediately — waiting out a quiet period first would make every
+	// isolated change feel laggy. So the first event refetches at once and opens a
+	// cooldown; anything arriving during it is folded into one catch-up refetch when
+	// the cooldown ends. A burst therefore costs one fan-out per window instead of
+	// one per event.
+	//
+	// The window is long enough to swallow the sub-second event storms the fan-out is
+	// there to protect against, and short enough that the catch-up still reads as
+	// "live" rather than as a delayed update.
+	const COALESCE_MS = 300;
+	let cooldown: ReturnType<typeof setTimeout> | undefined;
+	let coalesced = false;
+	function bumpRevision() {
+		if (cooldown) {
+			coalesced = true; // fold into the refetch that fires when the cooldown ends
+			return;
+		}
+		revision++;
+		cooldown = setTimeout(() => {
+			cooldown = undefined;
+			if (coalesced) {
+				coalesced = false;
+				bumpRevision();
+			}
+		}, COALESCE_MS);
+	}
 	$effect(() => {
 		const offs = (['spool', 'filament', 'vendor'] as const).map((resource) =>
-			live.subscribe(resource, {}, () => revision++)
+			live.subscribe(resource, {}, bumpRevision)
 		);
-		return () => offs.forEach((off) => off());
+		return () => {
+			offs.forEach((off) => off());
+			if (cooldown) clearTimeout(cooldown);
+			cooldown = undefined;
+			coalesced = false;
+		};
 	});
 
 	let flatVMs = $derived(flatSpools.map((s) => spoolToVM(s, inventory, settings.lowThreshold)));

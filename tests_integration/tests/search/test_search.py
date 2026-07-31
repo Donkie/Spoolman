@@ -97,10 +97,17 @@ def data() -> Iterable[Fixture]:
     httpx.delete(f"{URL}/api/v1/field/spool/searchchoice").raise_for_status()
 
 
-def _search(query: str, color_similarity_threshold: float | None = None) -> dict[str, Any]:
+def _search(
+    query: str,
+    color_similarity_threshold: float | None = None,
+    *,
+    allow_archived: bool | None = None,
+) -> dict[str, Any]:
     params: dict[str, Any] = {"q": query}
     if color_similarity_threshold is not None:
         params["color_similarity_threshold"] = color_similarity_threshold
+    if allow_archived is not None:
+        params["allow_archived"] = allow_archived
     result = httpx.get(f"{URL}/api/v1/search", params=params)
     result.raise_for_status()
     return result.json()
@@ -195,3 +202,39 @@ def test_search_no_match(data: Fixture):
     assert body["spools"] == []
     assert body["filaments"] == []
     assert body["vendors"] == []
+
+
+@pytest.fixture
+def archived_spool(data: Fixture) -> Iterable[dict[str, Any]]:
+    """Create an archived spool sharing the fixture's searchable location."""
+    result = httpx.post(
+        f"{URL}/api/v1/spool",
+        json={
+            "filament_id": data.filament["id"],
+            "remaining_weight": 1000,
+            "location": SPOOL_LOCATION,
+            "archived": True,
+        },
+    )
+    result.raise_for_status()
+    spool = result.json()
+    yield spool
+    httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
+
+
+def test_search_excludes_archived_spools_by_default(archived_spool: dict[str, Any]):
+    """Archived spools are hidden unless asked for, matching GET /spool."""
+    body = _search(SPOOL_LOCATION)
+    assert not _has(body["spools"], "spool", archived_spool["id"], "location")
+
+
+def test_search_includes_archived_spools_when_allowed(archived_spool: dict[str, Any]):
+    body = _search(SPOOL_LOCATION, allow_archived=True)
+    assert _has(body["spools"], "spool", archived_spool["id"], "location")
+
+
+def test_search_by_id_respects_allow_archived(archived_spool: dict[str, Any]):
+    """The exact-id shortcut must not surface an archived spool either."""
+    spool_id = archived_spool["id"]
+    assert not _has(_search(str(spool_id))["spools"], "spool", spool_id, "id")
+    assert _has(_search(str(spool_id), allow_archived=True)["spools"], "spool", spool_id, "id")

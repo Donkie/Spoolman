@@ -31,13 +31,14 @@ export default ts.config(
 		},
 		rules: {
 			// Typed as `no-undef`; TypeScript already reports undefined identifiers.
-			'no-undef': 'off',
-			// Base-path resolution is centralized in src/lib/library/params.ts helpers
-			// (selectHref/libraryHref/etc. already call resolve() from $app/paths), and
-			// generic components take a pre-resolved href prop. This rule can't see through
-			// those helpers, so it only produces false positives here — and blindly wrapping
-			// call sites in resolve() would double-apply the deploy base path.
-			'svelte/no-navigation-without-resolve': 'off'
+			'no-undef': 'off'
+			// svelte/no-navigation-without-resolve is left ON: it is the only automated guard
+			// against base-path navigation bugs, and those are invisible to anyone developing
+			// at the root path. It can't see through the helpers in src/lib/library/params.ts
+			// (selectHref/libraryHref/... already call resolve() from $app/paths) nor through
+			// components that take an already-resolved href prop, so the files where that is
+			// the case carry a file-level disable naming the reason. Never "fix" one of those
+			// by wrapping the call site in resolve() — that double-applies the base path.
 			// svelte/prefer-svelte-reactivity is left ON to guard against in-place mutation of
 			// reactive Set/Map. The current hits are all transient computation-local collections
 			// and are silenced with per-line eslint-disable comments at each site.
