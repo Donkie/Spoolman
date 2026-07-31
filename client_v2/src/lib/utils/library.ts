@@ -39,6 +39,21 @@ export interface GroupHeaderInfo {
 	count: string;
 }
 
+/**
+ * What a row or header says about a spool's usage: "unused", "used 3 days ago", or a bare
+ * "used" for a spool that has been drawn on but carries no date — one registered part-used,
+ * or adjusted by weight rather than by a print.
+ *
+ * That last case used to read "in use", which claims something Spoolman does not know. There
+ * is no live link to a printer here and no notion of a spool being mounted, so "in use" was
+ * only ever shorthand for "not full"; readers understandably took it to mean "printing right
+ * now" and asked why an unopened spool was busy (#986).
+ */
+export function usageLabel(s: Spool): string {
+	if (s.unused) return m['library.unused']();
+	return s.lastUsedLabel ? m['library.usedAgo']({ time: s.lastUsedLabel }) : m['library.used']();
+}
+
 export function spoolToVM(s: Spool, repo: Repo, lowThreshold: number): SpoolVM {
 	const filament = repo.filamentById(s.filamentId)!;
 	const vendor = repo.vendorOf(filament);
@@ -54,11 +69,7 @@ export function spoolToVM(s: Spool, repo: Repo, lowThreshold: number): SpoolVM {
 		// A spool without a location leaves the column blank rather than showing a
 		// placeholder — the empty box reads more cleanly in a dense list.
 		location: s.location ?? '',
-		rightLabel: s.unused
-			? m['library.unused']()
-			: s.lastUsedLabel
-				? m['library.usedAgo']({ time: s.lastUsedLabel })
-				: m['library.inUse']()
+		rightLabel: usageLabel(s)
 	};
 }
 

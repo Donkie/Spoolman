@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { currency, grams, lengthMeters, pct, weightAuto } from './format';
+import { currency, grams, lengthMeters, pct, roundGrams, weightAuto } from './format';
 import type { Filament } from '$lib/types';
 
 // These format every weight, length and percentage the user sees. The rounding
@@ -59,6 +59,27 @@ describe('weightAuto', () => {
 		expect(weightAuto(1250)).toBe('1.2 kg');
 		expect(weightAuto(1999)).toBe('1.9 kg');
 		expect(weightAuto(2000)).toBe('2 kg');
+	});
+
+	it('does not let float dust drop a full spool below the kg switch point', () => {
+		// What registering a spool by its measured weight leaves behind (#986): the spool is
+		// full, and reading "1000.0 g" beside an identical spool's "1 kg" looks broken.
+		expect(weightAuto(1000 - (1000 + 128.11 - 1128.11))).toBe('1 kg');
+		expect(weightAuto(999.9999999999998)).toBe('1 kg');
+	});
+});
+
+describe('roundGrams', () => {
+	it('snaps float dust to zero', () => {
+		// 1000 + 128.11 - 1128.11 is 2.3e-13, not 0 — the arithmetic behind #986.
+		expect(1000 + 128.11 - 1128.11).not.toBe(0);
+		expect(roundGrams(1000 + 128.11 - 1128.11)).toBe(0);
+	});
+
+	it('keeps weights a scale could actually report', () => {
+		expect(roundGrams(0.5)).toBe(0.5);
+		expect(roundGrams(123.45)).toBe(123.45);
+		expect(roundGrams(1000)).toBe(1000);
 	});
 });
 

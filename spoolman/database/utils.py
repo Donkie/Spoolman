@@ -36,6 +36,39 @@ class SortOrder(Enum):
     DESC = 2
 
 
+def order_by_clauses(
+    exprs: Sequence[Any],
+    order: SortOrder,
+) -> list[Any]:
+    """Build ORDER BY clauses for one sort field, always placing NULLs last.
+
+    The databases disagree on where a NULL goes: SQLite and MySQL treat NULL as the lowest
+    value (so it lands last on DESC, first on ASC), while PostgreSQL and CockroachDB default
+    to NULLS LAST on ASC and NULLS FIRST on DESC. Sorting spools by `last_used:desc` on
+    PostgreSQL therefore floated every never-used spool to the top of the list (#984, #985).
+
+    A NULL means "no value recorded", which belongs at the bottom whichever way the list is
+    pointing, so we order on an explicit "is it null" flag first. It is written as a boolean
+    expression rather than SQLAlchemy's ``nullslast()`` on purpose: that renders a literal
+    NULLS LAST, which MySQL and MariaDB do not support, whereas ``expr IS NULL`` sorts
+    false-before-true on all four supported databases.
+
+    Args:
+        exprs: The expressions to sort by, in priority order. A field usually contributes
+            one; a couple (e.g. `filament.combined_name`) expand to several.
+        order: The requested direction, applied to every expression.
+
+    Returns:
+        list[Any]: Clauses to hand to ``Select.order_by()``.
+
+    """
+    clauses: list[Any] = []
+    for expr in exprs:
+        clauses.append(expr.is_(None).asc())
+        clauses.append(expr.asc() if order == SortOrder.ASC else expr.desc())
+    return clauses
+
+
 def parse_sort(sort: str | None) -> dict[str, SortOrder]:
     """Parse the ``sort`` query parameter into field/direction pairs.
 

@@ -17,7 +17,7 @@
 	import { spoolSource, type NewFilamentDraft } from '$lib/api/spoolSource';
 	import { fields } from '$lib/stores/fields.svelte';
 	import { externalColors, externalDirection, type ExternalFilament } from '$lib/api/external';
-	import { weightAuto } from '$lib/utils/format';
+	import { roundGrams, weightAuto } from '$lib/utils/format';
 	import { loadMaterials, type MaterialSpec } from '$lib/data/materials';
 	import * as m from '$lib/paraglide/messages';
 
@@ -415,7 +415,10 @@
 			if (fillMode === 'used') body.used_weight = Number(fillWeight) || 0;
 			else if (fillMode === 'remaining') body.remaining_weight = Number(fillWeight) || 0;
 			else if (fillMode === 'measured')
-				body.used_weight = Math.max(0, net + spool - (Number(fillWeight) || 0));
+				// Rounded, because this subtraction is where float dust gets born: weighing a full
+				// 1000 g spool on a 128.11 g core gives 1000 + 128.11 − 1128.11 = 2.3e-13, and a
+				// spool created with that much used is not an unused spool any more (#986).
+				body.used_weight = roundGrams(Math.max(0, net + spool - (Number(fillWeight) || 0)));
 			if (firstUsed) body.first_used = firstUsed;
 			if (lastUsed) body.last_used = lastUsed;
 			if (Object.keys(extraValues).length) body.extra = extraValues;

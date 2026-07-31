@@ -64,12 +64,22 @@ export function mapFilament(f: Json): Filament {
 	};
 }
 
+/**
+ * Below this much used, a spool counts as untouched. `used_weight === 0` was too literal a
+ * test: registering a spool by its measured weight computes `net + spool − measured`, and in
+ * floating point a full 1 kg spool on a 128.11 g core lands on 2.3e-13 instead of 0. Such a
+ * spool claimed to be in use the moment it was added (#986). A hundredth of a gram is under
+ * any scale's resolution and under the display's, so nothing real is rounded away here — and
+ * a negative used_weight (filament added back) falls on the unused side too, as it should.
+ */
+const USED_EPSILON_GRAMS = 0.01;
+
 export function mapSpool(s: Json): Spool {
 	const f: Json = s.filament ?? {};
 	return {
 		id: s.id,
 		filamentId: String(f.id ?? ''),
-		unused: (s.used_weight ?? 0) === 0,
+		unused: (s.used_weight ?? 0) < USED_EPSILON_GRAMS,
 		remaining: s.remaining_weight ?? 0,
 		initial: s.initial_weight ?? f.weight ?? 0,
 		initialOverride: s.initial_weight ?? undefined,

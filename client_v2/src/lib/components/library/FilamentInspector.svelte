@@ -26,6 +26,7 @@
 	import { page } from '$app/state';
 	import * as params from '$lib/library/params';
 	import { pct, weightAuto } from '$lib/utils/format';
+	import { usageLabel } from '$lib/utils/library';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { loadMaterials } from '$lib/data/materials';
 	import { live } from '$lib/api/live';
@@ -174,13 +175,7 @@
 				data-sveltekit-noscroll
 			>
 				<span class="id mono">#{s.id}</span>
-				<span class="state"
-					>{s.archived
-						? m['spool.fields.archived']()
-						: s.unused
-							? m['library.unused']()
-							: m['library.inUse']()}</span
-				>
+				<span class="state">{s.archived ? m['spool.fields.archived']() : usageLabel(s)}</span>
 				<span class="barwrap">
 					<ProgressBar
 						value={pct(s.remaining, s.initial)}

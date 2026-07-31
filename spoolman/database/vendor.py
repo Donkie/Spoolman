@@ -14,6 +14,7 @@ from spoolman.database.utils import (
     SortOrder,
     add_where_clause_str,
     add_where_clause_str_opt,
+    order_by_clauses,
     parse_nested_field,
 )
 from spoolman.exceptions import ItemNotFoundError
@@ -92,10 +93,7 @@ async def find(
                 continue
 
             field = parse_nested_field(models.Vendor, fieldstr)
-            if order == SortOrder.ASC:
-                stmt = stmt.order_by(field.asc())
-            elif order == SortOrder.DESC:
-                stmt = stmt.order_by(field.desc())
+            stmt = stmt.order_by(*order_by_clauses([field], order))
 
     if limit is not None:
         total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True).order_by(None)
