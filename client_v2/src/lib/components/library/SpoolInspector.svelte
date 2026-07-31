@@ -23,6 +23,7 @@
 	import { settings } from '$lib/stores/settings.svelte';
 	import * as params from '$lib/library/params';
 	import { lengthMeters, pct, weightAuto } from '$lib/utils/format';
+	import { usageLabel } from '$lib/utils/library';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
 	import { trackSave } from '$lib/utils/autosave';
@@ -209,9 +210,7 @@
 				{#if spool.archived}<span class="arch-badge">{m['spool.fields.archived']()}</span>{/if}
 			</div>
 			<div class="subtitle">
-				{filament.material} · {filament.diameter} mm · {spool.unused
-					? m['library.unused']()
-					: m['library.inUse']()}
+				{filament.material} · {filament.diameter} mm · {usageLabel(spool)}
 			</div>
 		</div>
 		<div class="actions">
