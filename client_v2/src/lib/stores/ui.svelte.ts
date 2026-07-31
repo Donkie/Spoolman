@@ -8,6 +8,8 @@ class UiState {
 	/** "Add spools" modal. `addModalFilamentId` pre-seeds it with a filament. */
 	addModalOpen = $state(false);
 	addModalFilamentId = $state<string | null>(null);
+	/** When set, the modal opens on a new-filament form copied from this filament. */
+	addModalDuplicateId = $state<string | null>(null);
 
 	/** QR-code scanner modal (camera). */
 	scannerOpen = $state(false);
@@ -15,11 +17,23 @@ class UiState {
 	/** Open the Add-spools modal, optionally pre-seeded with a filament. */
 	openAddModal(filamentId?: string) {
 		this.addModalFilamentId = filamentId ?? null;
+		this.addModalDuplicateId = null;
+		this.addModalOpen = true;
+	}
+	/**
+	 * Open the Add-spools modal on a new filament copied from `filamentId` — the
+	 * "same filament, different colour" case, where everything but the name and
+	 * colour carries over.
+	 */
+	openDuplicateModal(filamentId: string) {
+		this.addModalFilamentId = null;
+		this.addModalDuplicateId = filamentId;
 		this.addModalOpen = true;
 	}
 	closeAddModal() {
 		this.addModalOpen = false;
 		this.addModalFilamentId = null;
+		this.addModalDuplicateId = null;
 	}
 
 	openScanner() {

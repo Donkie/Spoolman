@@ -46,7 +46,7 @@ async def create(
     multi_color_hexes: str | None = None,
     multi_color_direction: MultiColorDirection | None = None,
     external_id: str | None = None,
-    extra: dict[str, str] | None = None,
+    extra: dict[str, str | None] | None = None,
 ) -> models.Filament:
     """Add a new filament to the database."""
     vendor_item: models.Vendor | None = None
@@ -74,7 +74,7 @@ async def create(
         multi_color_hexes=multi_color_hexes,
         multi_color_direction=multi_color_direction.value if multi_color_direction is not None else None,
         external_id=external_id,
-        extra=[models.FilamentField(key=k, value=v) for k, v in (extra or {}).items()],
+        extra=[models.FilamentField(key=k, value=v) for k, v in (extra or {}).items() if v is not None],
     )
     db.add(filament)
     await db.commit()
@@ -184,31 +184,34 @@ async def update(
             else:
                 filament.vendor = await vendor.get_by_id(db, v)
         elif k == "extra":
-            filament.extra = [models.FilamentField(key=k, value=v) for k, v in v.items()]
+            # Merged per key, the same as a spool's and a vendor's: only the keys present in
+            # the patch are touched, and a null value means the filament has no value for
+            # that field, so its row is dropped and not re-added — that is how a value that
+            # has been set gets cleared.
+            filament.extra = [f for f in filament.extra if f.key not in v]
+            filament.extra.extend([models.FilamentField(key=k, value=v) for k, v in v.items() if v is not None])
         elif k == "multi_color_direction":
             filament.multi_color_direction = v.value if v is not None else None
         else:
             setattr(filament, k, v)
     await db.commit()
+    # A spool's response embeds its filament and carries values derived from it
+    # (remaining_length, and the initial_weight/price fall-backs), so this edit changed
+    # every one of this filament's spool payloads without touching a spool row.
+    # We deliberately do NOT re-broadcast those spools: a filament shared by hundreds of
+    # spools would turn one PATCH into hundreds of ORM loads and websocket frames inside
+    # the request. Subscribers are expected to treat a filament event as invalidating the
+    # spools that reference it and refetch what they still have on screen — see
+    # client_v2/src/lib/stores/inventory.svelte.ts. The same reasoning applies to vendor
+    # updates, which is why there is no vendor-side fan-out either.
+    #
+    # Note for anyone tempted to re-add it: remaining_length (the field that prompted the
+    # original fan-out) is derived from density and diameter, so a client that renders it
+    # from the filament it already holds — as client_v2 does — recomputes it from the
+    # filament event alone. A client that instead caches the server's computed value does
+    # need to refetch. Either way that is the subscriber's job, not a fan-out here.
     await filament_changed(filament, EventType.UPDATED)
-    # A spool's response carries fields derived from its filament (remaining_length,
-    # and the initial_weight/price fall-backs to the filament's values). Those change
-    # when the filament changes, yet no spool row was touched — so subscribers to the
-    # affected spools would keep stale derived values until each spool is next edited.
-    # Re-broadcast the filament's spools so websocket clients refresh them.
-    await _notify_filament_spools(db, filament_id)
     return filament
-
-
-async def _notify_filament_spools(db: AsyncSession, filament_id: int) -> None:
-    """Emit a spool 'updated' event for every spool belonging to a filament."""
-    # Local import: spool.py imports this module at load time, so importing it at the
-    # top here would be a circular import.
-    from spoolman.database import spool  # noqa: PLC0415
-
-    spools, _ = await spool.find(db=db, filament_id=filament_id, allow_archived=True)
-    for s in spools:
-        await spool.spool_changed(s, EventType.UPDATED)
 
 
 async def delete(db: AsyncSession, filament_id: int) -> None:

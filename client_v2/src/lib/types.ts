@@ -5,6 +5,12 @@
 /** Custom-field values: field key → JSON-encoded string value. */
 export type Extra = Record<string, string>;
 
+/**
+ * Custom-field values on the way to the server: a JSON-encoded string to store, or null
+ * to store no value — which is the only way to clear one that has been set.
+ */
+export type ExtraPatch = Record<string, string | null>;
+
 /** Layout of a multi-color filament's colors. */
 export type MultiColorDirection = 'coaxial' | 'longitudinal';
 
@@ -56,8 +62,13 @@ export interface Spool {
 	unused: boolean;
 	/** Remaining filament weight in grams. */
 	remaining: number;
-	/** Initial (net) weight in grams. */
+	/** Initial (net) weight in grams; falls back to the filament's weight. */
 	initial: number;
+	/** Per-spool initial-weight override; undefined means `initial` came from the
+	 *  filament and must be recomputed when the filament's weight changes. */
+	initialOverride?: number;
+	/** Filament drawn from this spool so far, in grams. */
+	usedWeight: number;
 	location: string;
 	lot: string;
 	/** Per-spool price override; undefined falls back to the filament's price. */
@@ -78,6 +89,11 @@ export interface Spool {
 	comment: string;
 	extra: Extra;
 }
+
+// Write shapes: a partial entity, except that `extra` may carry nulls to clear values.
+export type VendorPatch = Partial<Omit<Vendor, 'extra'>> & { extra?: ExtraPatch };
+export type FilamentPatch = Partial<Omit<Filament, 'extra'>> & { extra?: ExtraPatch };
+export type SpoolPatch = Partial<Omit<Spool, 'extra'>> & { extra?: ExtraPatch };
 
 export type EntityKind = 'spool' | 'filament' | 'vendor';
 

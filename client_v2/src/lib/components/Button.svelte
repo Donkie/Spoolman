@@ -1,4 +1,8 @@
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve --
+	   Generic link component: `href` arrives already resolved against the deploy base
+	   path (the params.ts helpers that produce it call resolve()), so resolving it
+	   again here would double-apply the base path. */
 	import type { Snippet } from 'svelte';
 
 	interface Props {
@@ -53,12 +57,12 @@
 	}
 
 	.primary {
-		background: var(--accent);
+		background: var(--accent-fill);
 		color: #fff;
 		padding: 8px 14px;
 	}
 	.primary:hover {
-		background: var(--accent-hover);
+		background: var(--accent-fill-hover);
 	}
 
 	.outline {
@@ -89,7 +93,7 @@
 		opacity: 0.45;
 	}
 	.primary:disabled:hover {
-		background: var(--accent);
+		background: var(--accent-fill);
 	}
 	.outline:disabled:hover {
 		border-color: var(--border-strong);

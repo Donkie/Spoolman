@@ -82,7 +82,12 @@
 		>
 	{/if}
 {:else if field.field_type === FieldType.text}
-	<input class="edit" value={parsed ?? ''} oninput={(e) => onText(e.currentTarget.value)} />
+	<input
+		class="edit"
+		value={parsed ?? ''}
+		aria-label={field.name}
+		oninput={(e) => onText(e.currentTarget.value)}
+	/>
 {:else if field.field_type === FieldType.integer}
 	<span class="numrow">
 		<input
@@ -90,6 +95,7 @@
 			type="number"
 			step="1"
 			value={parsed ?? ''}
+			aria-label={field.name}
 			oninput={(e) => onInt(e.currentTarget.value)}
 		/>
 		{#if field.unit}<span class="unit">{field.unit}</span>{/if}
@@ -101,6 +107,7 @@
 			type="number"
 			step="any"
 			value={parsed ?? ''}
+			aria-label={field.name}
 			oninput={(e) => onFloat(e.currentTarget.value)}
 		/>
 		{#if field.unit}<span class="unit">{field.unit}</span>{/if}
@@ -113,6 +120,7 @@
 			type="number"
 			step={isInt ? '1' : 'any'}
 			value={lo}
+			aria-label={`${field.name} ${m['settings.extraFields.min']()}`}
 			oninput={(e) => onRange(0, e.currentTarget.value, isInt)}
 			placeholder={m['settings.extraFields.min']()}
 		/>
@@ -122,6 +130,7 @@
 			type="number"
 			step={isInt ? '1' : 'any'}
 			value={hi}
+			aria-label={`${field.name} ${m['settings.extraFields.max']()}`}
 			oninput={(e) => onRange(1, e.currentTarget.value, isInt)}
 			placeholder={m['settings.extraFields.max']()}
 		/>
@@ -130,13 +139,14 @@
 {:else if field.field_type === FieldType.datetime}
 	<DateTimeField value={dtValue} oninput={onDateTime} />
 {:else if field.field_type === FieldType.boolean}
-	<Toggle
-		checked={parsed === true}
-		onchange={(v) => emit(v)}
-		ariaLabel={m['settings.extraFields.fieldType.boolean']()}
-	/>
+	<Toggle checked={parsed === true} onchange={(v) => emit(v)} ariaLabel={field.name} />
 {:else if field.field_type === FieldType.choice && !field.multi_choice}
-	<select class="sel" value={parsed ?? ''} onchange={(e) => emit(e.currentTarget.value || undefined)}>
+	<select
+		class="sel"
+		value={parsed ?? ''}
+		aria-label={field.name}
+		onchange={(e) => emit(e.currentTarget.value || undefined)}
+	>
 		<option value="">—</option>
 		{#each field.choices ?? [] as choice (choice)}
 			<option value={choice}>{choice}</option>

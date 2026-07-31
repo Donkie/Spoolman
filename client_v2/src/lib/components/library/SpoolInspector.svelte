@@ -1,4 +1,7 @@
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve --
+	   Every href below comes from a src/lib/library/params.ts helper, which already
+	   resolves against the deploy base path; resolving again would double-apply it. */
 	import Swatch from '../Swatch.svelte';
 	import Button from '../Button.svelte';
 	import NumberInput from '../NumberInput.svelte';
@@ -174,8 +177,9 @@
 	}
 
 	const extraSaver = makeExtraSaver(
-		(e) => inventory.patchSpool(spool.id, { extra: e }),
-		(p) => trackSave(spoolSource.saveSpool(spool.id, { extra: p })),
+		() => spool.id,
+		(id, e) => inventory.patchSpool(id, { extra: e }),
+		(id, p) => trackSave(spoolSource.saveSpool(id, { extra: p })),
 		() => spool.extra
 	);
 	$effect(() => () => extraSaver.flush());
@@ -323,7 +327,7 @@
 				</Field>
 			</FieldGrid>
 
-			<ExtraFieldsSection entity="spool" extra={spool.extra} onchange={extraSaver.change} />
+			<ExtraFieldsSection entity="spool" extra={spool.extra} onchange={extraSaver.change} manage />
 		</div>
 
 		<div class="col">
@@ -486,8 +490,8 @@
 		color: var(--text);
 	}
 	.mode-btn.active {
-		background: var(--accent);
-		border-color: var(--accent);
+		background: var(--accent-fill);
+		border-color: var(--accent-fill);
 		color: #fff;
 	}
 	.adjust-row {

@@ -24,19 +24,37 @@
 	--border-input: #383838;
 	--hairline: rgba(255, 255, 255, 0.05);
 
-	/* Text — muted/dim/faint are tuned to clear WCAG AA (4.5:1) on the dark
-	 * surfaces they sit on (down to the lightest, surface-raised #2e2e2e) while
-	 * staying monotonic (muted brightest, faint dimmest). See app.css light
-	 * theme for the mirrored values. */
+	/* Text — muted/dim/faint clear WCAG AA (4.5:1) on the dark surfaces they sit on,
+	 * down to the lightest (surface-raised #2e2e2e). #959595 is the darkest gray that
+	 * still clears 4.5:1 there, so faint sits exactly on that floor and the other two
+	 * step up from it in even ~7-point L* increments — the same perceptual spacing the
+	 * pre-AA ramp had, so the muted -> dim -> faint hierarchy stays legible instead of
+	 * collapsing into three near-identical grays. Contrast on #2e2e2e: 7.0 / 5.6 / 4.5.
+	 * Don't darken faint to widen the ramp further; that breaks AA. See the light
+	 * theme below for the mirrored values. */
 	--text: #ececec;
 	--text-2: #c9c9c9;
-	--text-muted: #a0a0a0;
-	--text-dim: #979797;
-	--text-faint: #909090;
+	--text-muted: #bababa;
+	--text-dim: #a7a7a7;
+	--text-faint: #959595;
 
 	/* Accent (warm orange) */
 	--accent: #be682f;
 	--accent-hover: #d47a3b;
+	/* Solid fill behind white text — primary buttons, the active segmented tab,
+	 * the selected calendar day. White on --accent is only 4.03:1, which fails
+	 * WCAG AA, and no foreground fixes it: on #be682f the best any color manages
+	 * is 5.21:1 (pure black), and every readable one is worse than white. So the
+	 * fill gets its own token, darkened just enough to clear 4.5:1 (4.53) at the
+	 * same hue and saturation — 3.3 L* below --accent, which is imperceptible
+	 * beside it. --accent itself is unchanged and still drives links, borders,
+	 * washes and focus rings, where it sits on a dark surface and passes easily.
+	 * Note neither is the Spoolman brand orange #dc7734 (see static/spoolman.svg);
+	 * both themes already ship a darkened adaptation of it, and white on the brand
+	 * orange itself would be 3.12:1. Unlike --accent, the fill DARKENS on hover —
+	 * lightening it would drop back below AA. The light theme already did this. */
+	--accent-fill: #b2612c;
+	--accent-fill-hover: #9b5526;
 	--accent-link: #d0854a;
 	--accent-link-hover: #e09a60;
 	--accent-soft: #e0996a;
@@ -97,18 +115,26 @@
 	--border-input: #ceccc6;
 	--hairline: rgba(0, 0, 0, 0.06);
 
-	/* Text — muted/dim/faint darkened to clear WCAG AA (4.5:1) on the light
-	 * surfaces they sit on (down to the darkest, surface-sunken #e8e6e2) while
-	 * staying monotonic (muted darkest, faint lightest). */
+	/* Text — mirror of the dark ramp: muted/dim/faint clear WCAG AA (4.5:1) on the
+	 * light surfaces they sit on, down to the darkest (surface-sunken #e8e6e2).
+	 * #676767 is the lightest gray that still clears 4.5:1 there, so faint sits on
+	 * that ceiling and the other two step down from it. The steps are tighter than
+	 * dark (~4.5 L*) because #444444 text-2 caps the range, but they stay clearly
+	 * distinguishable. Contrast on #e8e6e2: 6.3 / 5.4 / 4.5. */
 	--text: #232323;
 	--text-2: #444444;
-	--text-muted: #5f5f5f;
-	--text-dim: #666666;
-	--text-faint: #6d6d6d;
+	--text-muted: #525252;
+	--text-dim: #5c5c5c;
+	--text-faint: #676767;
 
 	/* Accent (warm orange, darkened for contrast on light) */
 	--accent: #b25c26;
 	--accent-hover: #9d4f1e;
+	/* Light's accent was already dark enough for white text (4.72:1 / 5.88:1 on
+	 * hover), so the fill tokens just mirror the pair above. They exist here so
+	 * both themes resolve the same variables, not because light needed a change. */
+	--accent-fill: #b25c26;
+	--accent-fill-hover: #9d4f1e;
 	--accent-link: #a9551f;
 	--accent-link-hover: #8f4718;
 	--accent-soft: #95501f;

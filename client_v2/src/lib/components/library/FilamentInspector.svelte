@@ -1,8 +1,12 @@
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve --
+	   Every href below comes from a src/lib/library/params.ts helper, which already
+	   resolves against the deploy base path; resolving again would double-apply it. */
 	import Swatch from '../Swatch.svelte';
 	import ColorEditor from '../ColorEditor.svelte';
 	import Button from '../Button.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
+	import Copy from '@lucide/svelte/icons/copy';
 	import Square from '@lucide/svelte/icons/square';
 	import SquareCheck from '@lucide/svelte/icons/square-check';
 	import EditableField from '../EditableField.svelte';
@@ -97,8 +101,9 @@
 	}
 
 	const extraSaver = makeExtraSaver(
-		(e) => inventory.patchFilament(filament.id, { extra: e }),
-		(p) => trackSave(spoolSource.saveFilament(filament.id, { extra: p })),
+		() => filament.id,
+		(id, e) => inventory.patchFilament(id, { extra: e }),
+		(id, p) => trackSave(spoolSource.saveFilament(id, { extra: p })),
 		() => filament.extra
 	);
 	$effect(() => () => extraSaver.flush());
@@ -130,6 +135,11 @@
 			</div>
 		</div>
 		<div class="add">
+			<!-- Buying the same filament in another colour is the common case, so the
+			     shortcut sits next to the spool action rather than behind a menu. -->
+			<Button variant="outline" onclick={() => ui.openDuplicateModal(filament.id)}
+				><Copy size={15} /> {m['inspector.duplicateFilament']()}</Button
+			>
 			<Button onclick={() => ui.openAddModal(filament.id)}
 				><Plus size={15} /> {m['inspector.addSpoolsOfThis']()}</Button
 			>
@@ -300,7 +310,7 @@
 				</Field>
 			</FieldGrid>
 
-			<ExtraFieldsSection entity="filament" extra={filament.extra} onchange={extraSaver.change} />
+			<ExtraFieldsSection entity="filament" extra={filament.extra} onchange={extraSaver.change} manage />
 		</div>
 	</div>
 </div>
@@ -338,6 +348,9 @@
 		margin-top: 2px;
 	}
 	.add {
+		display: flex;
+		align-items: center;
+		gap: 8px;
 		margin-left: auto;
 		flex: none;
 	}
@@ -416,8 +429,8 @@
 		padding: 4px 20px 24px;
 	}
 	@media (max-width: 620px) {
-		/* Keep the "add spools of this" action reachable on narrow panels by
-		   wrapping it onto its own full-width row instead of hiding it. */
+		/* Keep the header actions reachable on narrow panels by wrapping them onto
+		   their own full-width row instead of hiding them. */
 		.head {
 			flex-wrap: wrap;
 		}
@@ -427,6 +440,7 @@
 		.add {
 			margin-left: 0;
 			flex-basis: 100%;
+			flex-wrap: wrap;
 		}
 	}
 </style>

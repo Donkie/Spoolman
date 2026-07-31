@@ -15,13 +15,17 @@ We also need to stringify them again before sending them back to the API, which 
 the form's onFinish method. Form.Item's normalize should do this, but it doesn't seem to work.
 */
 
+// What the form submits: extra values back as JSON strings, with null for a field left
+// empty — the API merges extra per key, so null is what clears a value.
+type IVendorRequest = Omit<IVendor, "extra"> & { extra?: { [key: string]: string | null } };
+
 export const VendorEdit = () => {
   const t = useTranslate();
   const [messageApi, contextHolder] = message.useMessage();
   const [hasChanged, setHasChanged] = useState(false);
   const extraFields = useGetFields(EntityType.vendor);
 
-  const { formProps, saveButtonProps } = useForm<IVendor, HttpError, IVendor, IVendor>({
+  const { formProps, saveButtonProps } = useForm<IVendor, HttpError, IVendorRequest, IVendor>({
     liveMode: "manual",
     onLiveEvent() {
       // Warn the user if the vendor has been updated since the form was opened

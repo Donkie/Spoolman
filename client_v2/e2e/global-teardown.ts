@@ -5,7 +5,7 @@ import { SURFACES_DIR, REPORT_PATH, TAP_MIN, type SurfaceResult } from './report
 // Runs once after the suite (in the main process, so it survives worker
 // restarts): read every per-surface JSON and render the consolidated report.
 export default async function globalTeardown() {
-	let files: string[] = [];
+	let files: string[];
 	try {
 		files = (await readdir(SURFACES_DIR)).filter((f) => f.endsWith('.json'));
 	} catch {
@@ -22,7 +22,10 @@ export default async function globalTeardown() {
 	}
 	results.sort((a, b) => a.order - b.order);
 
-	const esc = (s: string) => s.replace(/\|/g, '\\|');
+	// Escape backslash and pipe in one pass (escaping them separately would let a
+	// trailing backslash re-escape its own escape and leak the pipe through), and
+	// flatten newlines since they'd break the table row regardless.
+	const esc = (s: string) => s.replace(/[\\|]/g, '\\$&').replace(/\s*[\r\n]+\s*/g, ' ');
 	const lines: string[] = [];
 	lines.push('# Mobile accessibility audit — client_v2');
 	lines.push('');

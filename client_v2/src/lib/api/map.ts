@@ -1,4 +1,12 @@
-import type { Filament, MultiColorDirection, Spool, Vendor } from '$lib/types';
+import type {
+	Filament,
+	FilamentPatch,
+	MultiColorDirection,
+	Spool,
+	SpoolPatch,
+	Vendor,
+	VendorPatch
+} from '$lib/types';
 import type { GroupSummary } from './types';
 import { formatDurationShort, formatShortDate } from '$lib/utils/datetime';
 
@@ -64,6 +72,8 @@ export function mapSpool(s: Json): Spool {
 		unused: (s.used_weight ?? 0) === 0,
 		remaining: s.remaining_weight ?? 0,
 		initial: s.initial_weight ?? f.weight ?? 0,
+		initialOverride: s.initial_weight ?? undefined,
+		usedWeight: s.used_weight ?? 0,
 		location: s.location ?? '',
 		lot: s.lot_nr ?? '',
 		price: s.price ?? undefined,
@@ -81,8 +91,8 @@ export function mapSpool(s: Json): Spool {
 
 export function mapGroup(g: Json): GroupSummary {
 	const field = g.group_by as GroupSummary['field'];
-	let title = '';
-	let subtitle = '';
+	let title: string;
+	let subtitle: string;
 	let badge = '';
 	let colors: string[] = [];
 	let direction: MultiColorDirection | undefined;
@@ -104,7 +114,10 @@ export function mapGroup(g: Json): GroupSummary {
 		title = g.key ?? 'No location';
 		subtitle = `${g.in_use_count} in use`;
 	} else {
+		// extra.<key>: the key IS the value, and there is no entity to name the group.
+		// The dashboard, which is what groups on these, titles them itself.
 		title = g.key ?? '';
+		subtitle = `${g.spool_count} spool${g.spool_count === 1 ? '' : 's'}`;
 	}
 
 	return {
@@ -148,7 +161,7 @@ export function colorFieldsToApi(
 	return { color_hex: hexes[0] ?? null, multi_color_hexes: null, multi_color_direction: null };
 }
 
-export function spoolPatchToApi(patch: Partial<Spool>): Json {
+export function spoolPatchToApi(patch: SpoolPatch): Json {
 	const out: Json = {};
 	if ('location' in patch) out.location = patch.location ?? '';
 	if ('lot' in patch) out.lot_nr = patch.lot ?? '';
@@ -162,7 +175,7 @@ export function spoolPatchToApi(patch: Partial<Spool>): Json {
 	return out;
 }
 
-export function filamentPatchToApi(patch: Partial<Filament>): Json {
+export function filamentPatchToApi(patch: FilamentPatch): Json {
 	const out: Json = {};
 	if ('name' in patch) out.name = patch.name;
 	if ('material' in patch) out.material = patch.material;
@@ -183,7 +196,7 @@ export function filamentPatchToApi(patch: Partial<Filament>): Json {
 	return out;
 }
 
-export function vendorPatchToApi(patch: Partial<Vendor>): Json {
+export function vendorPatchToApi(patch: VendorPatch): Json {
 	const out: Json = {};
 	if ('name' in patch) out.name = patch.name;
 	if ('emptyWeight' in patch) out.empty_spool_weight = patch.emptyWeight;

@@ -1,6 +1,7 @@
 """Functions for providing the client interface."""
 
 import logging
+import mimetypes
 import os
 from collections.abc import MutableMapping
 from pathlib import Path
@@ -13,8 +14,38 @@ from starlette.staticfiles import NotModifiedResponse
 
 logger = logging.getLogger(__name__)
 
+# StaticFiles picks the Content-Type from the stdlib mimetypes registry, whose built-in
+# table only learned about .webmanifest in newer Pythons and which otherwise depends on
+# the host's /etc/mime.types — absent in slim container images. Without this the web app
+# manifest would be served as text/plain on some of the interpreters we support, so
+# register it ourselves rather than leaving installability to the environment.
+mimetypes.add_type("application/manifest+json", ".webmanifest")
+
 PathLike = Union[str, "os.PathLike[str]"]
 Scope = MutableMapping[str, Any]
+
+
+def _require_client_build(directory: str) -> None:
+    """Fail with an actionable message when the client bundle hasn't been built.
+
+    Both clients are build artifacts that are not committed. The Docker images and the
+    ``spoolman.zip`` release both ship them pre-built, so this only bites people running
+    from a source checkout — where a ``git pull`` brings new client sources but no
+    bundle, and Spoolman then refuses to start. StaticFiles' own error for this
+    ("Directory 'client_v2/build' does not exist") gives them nothing to act on.
+    """
+    if Path(directory).is_dir():
+        return
+
+    source_dir = Path(directory).parts[0]
+    msg = (
+        f"The web client has not been built: '{directory}' does not exist. Spoolman serves a "
+        f"pre-built client bundle, which is not committed to the repository, so an install from "
+        f"source has to build it once after every upgrade:\n"
+        f"    cd {source_dir} && npm ci && npm run build\n"
+        f"The Docker images and the spoolman.zip release asset already contain it."
+    )
+    raise RuntimeError(msg)
 
 
 class SinglePageApplication(StaticFiles):
@@ -46,6 +77,7 @@ class SinglePageApplication(StaticFiles):
         rewrite_asset_paths: bool = True,
     ) -> None:
         """Construct."""
+        _require_client_build(directory)
         super().__init__(directory=directory, packages=None, html=True, check_dir=True)
         self.base_path = base_path.removeprefix("/")
         self.fallback_document = fallback_document
@@ -95,13 +127,36 @@ class SinglePageApplication(StaticFiles):
 
         prefix = f"/{self.base_path}"
         # `"/_app/` covers module preloads, stylesheets and the inline `import("/_app/...")`
-        # bootstrap calls; `"/favicon` covers the icon link. `base: ""` is SvelteKit's
-        # runtime base, which drives client-side routing and the derived API URL.
-        self.tweaked_html = (
-            html.replace('"/_app/', f'"{prefix}/_app/')
-            .replace('"/favicon', f'"{prefix}/favicon')
-            .replace('base: ""', f'base: "{prefix}"')
-        )
+        # bootstrap calls; `"/favicon` covers the icon link; `"/manifest.webmanifest` and
+        # `"/apple-touch-icon` cover the PWA install metadata (the manifest's own contents
+        # are base-path agnostic — every URL in it is relative to the manifest itself — so
+        # only the link that points at it needs fixing). `base: ""` is SvelteKit's runtime
+        # base, which drives client-side routing and the derived API URL.
+        #
+        # These are blind string replacements against adapter-static's output. If a
+        # SvelteKit upgrade changes how it emits any of them, the replacement silently
+        # becomes a no-op and we ship a fallback document that 404s its assets or routes
+        # against the wrong base — a failure only visible to operators running under a
+        # base path. So require each pattern to actually match, and say which one didn't.
+        replacements = [
+            ('"/_app/', f'"{prefix}/_app/'),
+            ('"/favicon', f'"{prefix}/favicon'),
+            ('"/apple-touch-icon', f'"{prefix}/apple-touch-icon'),
+            ('"/manifest.webmanifest', f'"{prefix}/manifest.webmanifest'),
+            ('base: ""', f'base: "{prefix}"'),
+        ]
+        missing = [old for old, _ in replacements if old not in html]
+        if missing:
+            msg = (
+                f"Could not rewrite the SPA fallback document ({self.fallback_document}) for base path "
+                f"{prefix!r}: expected pattern(s) {missing} not found. The client build is likely from an "
+                f"incompatible SvelteKit version; Spoolman would serve a broken page under a base path."
+            )
+            raise RuntimeError(msg)
+
+        for old, new in replacements:
+            html = html.replace(old, new)
+        self.tweaked_html = html
 
     def file_response(
         self,

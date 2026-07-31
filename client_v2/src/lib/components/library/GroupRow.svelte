@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { tick, untrack } from 'svelte';
 	import GroupHeader from './GroupHeader.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
 	import SpoolRow from './SpoolRow.svelte';
@@ -14,6 +14,7 @@
 	import { isAbortError } from '$lib/api/http';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
+	import { collapsedGroups, groupId } from '$lib/stores/collapsedGroups.svelte';
 	import { weightAuto } from '$lib/utils/format';
 	import * as m from '$lib/paraglide/messages';
 
@@ -32,6 +33,25 @@
 	let loading = $state(false);
 	let loadingMore = $state(false);
 
+	// The spool list can be folded away behind its header, per group and remembered
+	// across visits (see stores/collapsedGroups).
+	let id = $derived(groupId(group.field, group.key));
+	let collapsed = $derived(collapsedGroups.has(id));
+
+	let el: HTMLDivElement | undefined = $state();
+
+	async function toggle() {
+		const collapsing = !collapsed;
+		collapsedGroups.toggle(id);
+		if (!collapsing) return;
+		// Folding a long group away removes everything you were looking at, and the
+		// browser then clamps the scroller to the shorter content — leaving you
+		// somewhere else in the library entirely. Pull the group you just collapsed
+		// back into view; `nearest` makes this a no-op when it never left.
+		await tick();
+		el?.scrollIntoView({ block: 'nearest' });
+	}
+
 	// The parent's keyed {#each} recreates this component when the group identity
 	// changes, so the loaded window naturally resets; persisting groups keep it.
 
@@ -46,8 +66,15 @@
 	// list has moved on is what makes rapid paging (or navigating away and back)
 	// pile up queries on the server. The effect cleanup cancels this row's request
 	// whenever it is superseded or the row goes away.
+	//
+	// A collapsed group doesn't fetch at all — that is most of the point of
+	// collapsing one on a big library, since the group page's cost is one request
+	// per visible group. Collapsing mid-flight aborts through the cleanup below;
+	// expanding re-runs this effect and the rows arrive then. What was already
+	// loaded is kept, so re-expanding paints immediately and refreshes behind it.
 	let reqId = 0;
 	$effect(() => {
+		if (collapsed) return;
 		const ctrl = new AbortController();
 		void revision; // refetch on live events
 		const want = untrack(() => spools.length) || PAGE;
@@ -107,7 +134,8 @@
 		badge: group.badge,
 		colors: group.colors,
 		direction: group.direction,
-		meta: weightAuto(group.totalRemaining)
+		meta: weightAuto(group.totalRemaining),
+		count: m['library.groupSpools']({ count: group.spoolCount })
 	});
 
 	// A group header links to its entity's inspector only where the group *is* an
@@ -121,22 +149,24 @@
 	);
 </script>
 
-<div>
-	<GroupHeader group={header} sticky href={headerHref} />
-	{#each inUse as vm (vm.spool.id)}
-		<SpoolRow {vm} {showSwatch} indent={26} context={group.field} />
-	{/each}
-	{#if unused.length === 1}
-		<!-- A lone unused spool gains nothing from a collapsing header — it just
-		     adds a click and a row — so render it inline like the used spools. -->
-		<SpoolRow vm={unused[0]} {showSwatch} indent={26} context={group.field} />
-	{:else if unused.length > 1}
-		<UnusedRow {unused} {showSwatch} indent={26} context={group.field} />
-	{/if}
-	{#if moreCount > 0}
-		<button class="more" onclick={loadMore} disabled={loading || loadingMore}
-			><Plus size={13} /> {m['library.showMore']({ count: moreCount })}</button
-		>
+<div bind:this={el}>
+	<GroupHeader group={header} sticky href={headerHref} {collapsed} ontoggle={toggle} />
+	{#if !collapsed}
+		{#each inUse as vm (vm.spool.id)}
+			<SpoolRow {vm} {showSwatch} indent={26} context={group.field} />
+		{/each}
+		{#if unused.length === 1}
+			<!-- A lone unused spool gains nothing from a collapsing header — it just
+			     adds a click and a row — so render it inline like the used spools. -->
+			<SpoolRow vm={unused[0]} {showSwatch} indent={26} context={group.field} />
+		{:else if unused.length > 1}
+			<UnusedRow {unused} {showSwatch} indent={26} context={group.field} />
+		{/if}
+		{#if moreCount > 0}
+			<button class="more" onclick={loadMore} disabled={loading || loadingMore}
+				><Plus size={13} /> {m['library.showMore']({ count: moreCount })}</button
+			>
+		{/if}
 	{/if}
 </div>
 

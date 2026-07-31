@@ -3,16 +3,24 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Path, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.datastructures import QueryParams
 
-from spoolman.api.v1.models import Filament, Message, Spool, SpoolEvent, SpoolGroup, Vendor
+from spoolman.api.v1.models import (
+    Filament,
+    Message,
+    Spool,
+    SpoolEvent,
+    SpoolGroup,
+    Vendor,
+    extra_fields_request_description,
+)
 from spoolman.database import spool
 from spoolman.database.database import get_db_session
 from spoolman.database.utils import parse_sort
@@ -106,9 +114,9 @@ class SpoolParameters(BaseModel):
         examples=[""],
     )
     archived: bool = Field(default=False, description="Whether this spool is archived and should not be used anymore.")
-    extra: dict[str, str] | None = Field(
+    extra: dict[str, str | None] | None = Field(
         None,
-        description="Extra fields for this spool.",
+        description=extra_fields_request_description("spool"),
     )
 
 
@@ -378,11 +386,12 @@ async def notify_any(
     "/group",
     name="Find spool groups",
     description=(
-        "Group spools that match the search query by one axis (filament, vendor, material or "
-        "location) and return per-group aggregates: spool count, in-use count, total remaining "
-        "weight and most recent usage. Pagination is over groups, so a group is never split and "
-        "its aggregates are always complete. Uses the same filters as the spool search endpoint. "
-        "The total number of matching groups is returned in the x-total-count header."
+        "Group spools that match the search query by one axis (filament, vendor, material, "
+        "location, or a spool extra field) and return per-group aggregates: spool count, "
+        "in-use count, total remaining weight and most recent usage. Pagination is over groups, so "
+        "a group is never split and its aggregates are always complete. Uses the same filters as "
+        "the spool search endpoint. The total number of matching groups is returned in the "
+        "x-total-count header."
     ),
     response_model_exclude_none=True,
     responses={
@@ -395,8 +404,15 @@ async def find_groups(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db_session)],
     group_by: Annotated[
-        Literal["filament", "vendor", "material", "location"],
-        Query(title="Group By", description="The field to group spools by."),
+        str,
+        Query(
+            title="Group By",
+            description=(
+                "The field to group spools by: filament, vendor, material, location, or extra.<key> "
+                "for one of the spool's custom fields (text and single-choice fields only)."
+            ),
+            examples=["location", "extra.shelf"],
+        ),
     ],
     filament_name: Annotated[
         str | None,
@@ -538,6 +554,59 @@ async def find_groups(
         content=jsonable_encoder(content, exclude_none=True),
         headers={"x-total-count": str(total_count)},
     )
+
+
+class RenameFieldValueParameters(BaseModel):
+    value: str = Field(min_length=1, description="The value to replace.", examples=["Shelf A"])
+    new_value: str = Field(min_length=1, description="The value to replace it with.", examples=["Shelf B"])
+
+
+class RenameFieldValueResult(BaseModel):
+    spools_updated: int = Field(description="How many spools held the old value.", examples=[6])
+
+
+@router.patch(
+    "/field/{field}",
+    name="Rename a spool field value",
+    description=(
+        "Replace one value of one spool field wherever it occurs. The general form of the "
+        "location rename endpoint: it lets a client rename, in a single request, a value shared "
+        "by any number of spools -- including ones it has not loaded. Archived spools are "
+        "included, so no spool is left holding the old value. Renaming onto a value that is "
+        "already in use merges the two. No websocket event is emitted per spool; other clients "
+        "see the change on their next load."
+    ),
+    response_model_exclude_none=True,
+    responses={200: {"model": RenameFieldValueResult}, 400: {"model": Message}},
+)
+async def rename_field_value(
+    *,
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    field: Annotated[
+        str,
+        Path(
+            title="Field",
+            description=(
+                "The spool field to rename a value of: location, or extra.<key> for one of the "
+                "spool's custom text or single-choice fields. Fields belonging to the filament "
+                "or its vendor (material, vendor) cannot be renamed here."
+            ),
+            examples=["location", "extra.shelf"],
+        ),
+    ],
+    body: RenameFieldValueParameters,
+) -> JSONResponse:
+    logger.info('Renaming spool %s "%s" to "%s"', field, body.value, body.new_value)
+    try:
+        updated = await spool.rename_field_value(
+            db=db,
+            field=field,
+            value=body.value,
+            new_value=body.new_value,
+        )
+    except ValueError as e:
+        return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
+    return JSONResponse(content=jsonable_encoder(RenameFieldValueResult(spools_updated=updated)))
 
 
 @router.get(

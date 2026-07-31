@@ -1,4 +1,8 @@
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve --
+	   Generic link component: `href` arrives already resolved against the deploy base
+	   path (the params.ts helpers that produce it call resolve()), so resolving it
+	   again here would double-apply the base path. */
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	// Inspector breadcrumb trail. The last item is the current entity (rendered
 	// static); earlier items with an `href` are navigable links. A `muted` crumb

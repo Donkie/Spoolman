@@ -18,22 +18,29 @@ function byOrder(list: FieldDef[]): FieldDef[] {
 
 class Fields {
 	private defs = $state<Record<EntityType, FieldDef[]>>({ spool: [], filament: [], vendor: [] });
-	private loaded = new Set<EntityType>();
+	// Reactive so views can wait for the definitions rather than render against an
+	// empty list and then rearrange themselves once they arrive.
+	private loaded = $state<EntityType[]>([]);
 
 	get(entity: EntityType): FieldDef[] {
 		return this.defs[entity] ?? [];
 	}
 
+	/** Whether this entity's definitions are in hand — an empty list is a real answer. */
+	isLoaded(entity: EntityType): boolean {
+		return this.loaded.includes(entity);
+	}
+
 	/** Load once (idempotent). */
 	ensure(entity: EntityType) {
-		if (!this.loaded.has(entity)) void this.load(entity);
+		if (!this.loaded.includes(entity)) void this.load(entity);
 	}
 
 	async load(entity: EntityType) {
 		try {
 			const list = await getFields(entity);
 			this.defs = { ...this.defs, [entity]: byOrder(list) };
-			this.loaded.add(entity);
+			if (!this.loaded.includes(entity)) this.loaded = [...this.loaded, entity];
 		} catch (e) {
 			console.error(`Failed to load ${entity} fields`, e);
 		}

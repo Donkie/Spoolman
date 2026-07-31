@@ -34,8 +34,12 @@
 	let first = $derived(unused[0]);
 	// "Y g each" only makes sense when every collapsed spool shares that weight.
 	// When they differ (rare) we drop the weight rather than quote a misleading
-	// one taken from whichever spool happens to sort first.
-	let sameWeight = $derived(unused.every((vm) => vm.spool.initial === first.spool.initial));
+	// one taken from whichever spool happens to sort first. A weight of 0 means
+	// unknown, not empty — mapSpool falls back to 0 when neither the spool nor its
+	// filament carries one — so that reads as "differ" too rather than "0 g each".
+	let sameWeight = $derived(
+		first.spool.initial > 0 && unused.every((vm) => vm.spool.initial === first.spool.initial)
+	);
 	let location = $derived(first.spool.location || m['library.unassigned']());
 	let sub = $derived(
 		sameWeight

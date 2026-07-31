@@ -33,7 +33,10 @@ export interface GroupHeaderInfo {
 	badge: string;
 	colors: string[];
 	direction?: MultiColorDirection;
+	/** Aggregate remaining weight across the whole group, formatted. */
 	meta: string;
+	/** How many spools the group holds, formatted ("12 spools"). */
+	count: string;
 }
 
 export function spoolToVM(s: Spool, repo: Repo, lowThreshold: number): SpoolVM {
@@ -101,11 +104,16 @@ export function rowIdentity(vm: SpoolVM, ctx: RowContext): RowIdentity {
 /**
  * Distinguish spools of one and the same filament. They're identical except for
  * how they've been used — and #id, fill, weight and location already sit in their
- * own columns — so there's nothing to make a bold title out of. Lead with the
- * usage status as a quiet line; only a comment is worth promoting when present.
+ * own columns — so there's nothing to make a bold title out of. The usage status
+ * is all the row claims; the inspector has the rest.
+ *
+ * The comment deliberately stays out of it. It reads like a label on the handful
+ * of spools whose owner treats it as one, but it's a free-form textarea: people
+ * keep order URLs, multi-line notes and pasted receipts in there. Promoting that
+ * to the row's bold title hands the widest, loudest slot to arbitrary text and
+ * truncates the usage status — the one thing every row can say — to make room.
  */
 function spoolIdentity(vm: SpoolVM): RowIdentity {
-	if (vm.spool.comment) return { title: vm.spool.comment, sub: vm.rightLabel };
 	return { title: '', sub: vm.rightLabel };
 }
 

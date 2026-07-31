@@ -30,6 +30,14 @@ if TYPE_CHECKING:
 # How many candidate rows to pull per entity before ranking and trimming to `limit`.
 # The search box only needs the top handful; this bound keeps ranking cheap while
 # still letting prefix matches win over substring ones within a generous window.
+#
+# The cap is applied to rows ordered by id DESCENDING. Ordering ascending would make
+# the newest rows unreachable once a database has more than _CANDIDATE_CAP matches for
+# a term: only the 200 lowest ids would ever be ranked, so a spool added today could
+# not be found by a query that also matches 200 older ones. Newest-first is the useful
+# bias for an inventory that grows over time -- a spool you just added is the one you
+# are most likely searching for. Ranking below still re-sorts the survivors by match
+# quality, so this only decides *which* rows get ranked, not their final order.
 _CANDIDATE_CAP = 200
 
 # Upper bound on how many whitespace-separated terms we honor, so a pathological
@@ -173,7 +181,13 @@ async def _extra_values(
     return out
 
 
-async def _search_spools(db: AsyncSession, terms: list[str], limit: int) -> list[SpoolMatch]:
+async def _search_spools(
+    db: AsyncSession,
+    terms: list[str],
+    limit: int,
+    *,
+    allow_archived: bool,
+) -> list[SpoolMatch]:
     native_fields = (
         ("comment", models.Spool.comment),
         ("location", models.Spool.location),
@@ -198,9 +212,18 @@ async def _search_spools(db: AsyncSession, terms: list[str], limit: int) -> list
             ),
         )
         .options(*load)
-        .order_by(models.Spool.id)
+        .order_by(models.Spool.id.desc())
         .limit(_CANDIDATE_CAP)
     )
+    if not allow_archived:
+        # archived is nullable with a default of false, so match both false and null
+        # (same clause as spool.find, so /search and /spool agree on what is archived).
+        stmt = stmt.where(
+            or_(
+                models.Spool.archived.is_(False),
+                models.Spool.archived.is_(None),
+            ),
+        )
     rows = (await db.execute(stmt)).unique().scalars().all()
 
     extras = await _extra_values(db, models.SpoolField, models.SpoolField.spool_id, keys, [s.id for s in rows])
@@ -270,7 +293,7 @@ async def _search_filaments(
             ),
         )
         .options(*load)
-        .order_by(models.Filament.id)
+        .order_by(models.Filament.id.desc())
         .limit(_CANDIDATE_CAP)
     )
     rows = (await db.execute(stmt)).unique().scalars().all()
@@ -326,7 +349,7 @@ async def _search_vendors(db: AsyncSession, terms: list[str], limit: int) -> lis
                 ),
             ),
         )
-        .order_by(models.Vendor.id)
+        .order_by(models.Vendor.id.desc())
         .limit(_CANDIDATE_CAP)
     )
     rows = (await db.execute(stmt)).unique().scalars().all()
@@ -380,6 +403,7 @@ async def search(
     query: str,
     color_similarity_threshold: float = 20.0,
     limit: int = 20,
+    allow_archived: bool = False,
 ) -> SearchResult:
     """Run a cross-entity search for ``query`` and return categorized, annotated results."""
     q = query.strip()
@@ -392,7 +416,7 @@ async def search(
 
     color_hits = await _color_matches(db, color_hex, color_similarity_threshold, limit) if color_hex else []
 
-    spools = await _search_spools(db, terms, limit)
+    spools = await _search_spools(db, terms, limit, allow_archived=allow_archived)
     filaments = await _search_filaments(db, terms, limit, color_hits)
     vendors = await _search_vendors(db, terms, limit)
 
@@ -402,7 +426,8 @@ async def search(
         spool = await db.get(
             models.Spool, spool_id, options=[joinedload(models.Spool.filament).joinedload(models.Filament.vendor)]
         )
-        if spool is not None:
+        # An archived spool stays hidden here too, so /search and /spool agree.
+        if spool is not None and (allow_archived or not spool.archived):
             spools = [m for m in spools if m.spool.id != spool_id]  # drop weaker text match
             spools.insert(0, SpoolMatch(spool=spool, match_field="id"))
             spools = spools[:limit]

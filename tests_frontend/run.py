@@ -59,6 +59,21 @@ def build_client() -> None:
         die("Failed to build the client!")
 
 
+def build_client_v2() -> None:
+    """Build the Svelte bundle the image also bakes in.
+
+    Not the client under test here, but the Dockerfile copies ``client_v2/build``
+    unconditionally (it is the default client), so the image cannot be built
+    without it.
+    """
+    client_dir = REPO_ROOT / "client_v2"
+    print("Building the client_v2 bundle...")
+    if not (client_dir / "node_modules").exists() and run(["npm", "ci"], cwd=client_dir) != 0:
+        die("Failed to install client_v2 dependencies!")
+    if run(["npm", "run", "build"], cwd=client_dir) != 0:
+        die("Failed to build client_v2!")
+
+
 def wait_for_health() -> None:
     print(f"Waiting for Spoolman to become healthy at {HEALTH_URL} ...")
     deadline = time.monotonic() + HEALTH_TIMEOUT
@@ -82,6 +97,7 @@ def main() -> None:
     print(f"Building and running frontend integration tests (engine: {ENGINE})...")
 
     build_client()
+    build_client_v2()
 
     print("Building Spoolman image...")
     if run([ENGINE, "build", "-t", "donkie/spoolman:test", "."], cwd=REPO_ROOT) != 0:

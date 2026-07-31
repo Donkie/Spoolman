@@ -1,5 +1,14 @@
-import type { Filament, MultiColorDirection, Spool, Vendor } from '$lib/types';
-import type { GroupQuery, GroupSummary, Page, SpoolQuery } from './types';
+import type {
+	Extra,
+	Filament,
+	FilamentPatch,
+	MultiColorDirection,
+	Spool,
+	SpoolPatch,
+	Vendor,
+	VendorPatch
+} from '$lib/types';
+import type { GroupField, GroupQuery, GroupSummary, Page, SpoolQuery } from './types';
 import { getList, getJson, patchJson, postJson, putJson, HttpError } from './http';
 import type { QueryParams } from './http';
 import {
@@ -41,6 +50,8 @@ export interface NewFilamentDraft {
 	price?: number;
 	articleNumber?: string;
 	comment?: string;
+	/** Custom-field values to carry over (used when duplicating a filament). */
+	extra?: Extra;
 }
 
 // Map a filter chip prop → API query param. Values are quoted for exact match.
@@ -87,6 +98,10 @@ function sortParam(sort: { field: string; dir: string }[]): string | undefined {
 
 function scopeParams(params: QueryParams, scope: SpoolQuery['groupScope']) {
 	if (!scope) return;
+	// An empty key is the group of spools whose value is unset. Every string-valued
+	// field spells that as an empty filter, which the backend reads as "null or empty"
+	// (and, for an extra field, "no row for this key either").
+	const exact = (v: string) => (v === '' ? '' : quote(v));
 	switch (scope.field) {
 		case 'filament':
 			params['filament.id'] = scope.key;
@@ -95,10 +110,14 @@ function scopeParams(params: QueryParams, scope: SpoolQuery['groupScope']) {
 			params['filament.vendor.id'] = scope.key === '' ? '-1' : scope.key;
 			break;
 		case 'material':
-			params['filament.material'] = scope.key === '' ? '' : quote(scope.key);
+			params['filament.material'] = exact(scope.key);
 			break;
 		case 'location':
-			params['location'] = scope.key === '' ? '' : quote(scope.key);
+			params['location'] = exact(scope.key);
+			break;
+		default:
+			// `extra.<key>`, which is already the query param the backend expects.
+			params[scope.field] = exact(scope.key);
 			break;
 	}
 }
@@ -288,6 +307,7 @@ class HttpSpoolSource {
 			price: draft.price || undefined,
 			article_number: draft.articleNumber || undefined,
 			comment: draft.comment || undefined,
+			extra: draft.extra && Object.keys(draft.extra).length ? draft.extra : undefined,
 			...colorFieldsToApi(draft.colors, draft.multiColorDirection)
 		};
 		const created = await postJson<Json>('/filament', body);
@@ -335,7 +355,7 @@ class HttpSpoolSource {
 
 	// --- writes -------------------------------------------------------------
 
-	async saveSpool(id: number, patch: Partial<Spool>): Promise<void> {
+	async saveSpool(id: number, patch: SpoolPatch): Promise<void> {
 		const updated = await patchJson<Json>(`/spool/${id}`, spoolPatchToApi(patch));
 		inventory.upsertSpool(mapSpool(updated));
 	}
@@ -363,11 +383,11 @@ class HttpSpoolSource {
 		inventory.upsertSpool(spool);
 		return spool;
 	}
-	async saveFilament(id: string, patch: Partial<Filament>): Promise<void> {
+	async saveFilament(id: string, patch: FilamentPatch): Promise<void> {
 		const updated = await patchJson<Json>(`/filament/${id}`, filamentPatchToApi(patch));
 		inventory.upsertFilament(mapFilament(updated));
 	}
-	async saveVendor(id: string, patch: Partial<Vendor>): Promise<void> {
+	async saveVendor(id: string, patch: VendorPatch): Promise<void> {
 		const updated = await patchJson<Json>(`/vendor/${id}`, vendorPatchToApi(patch));
 		inventory.upsertVendor(mapVendor(updated));
 	}
@@ -405,9 +425,18 @@ class HttpSpoolSource {
 	async locations(): Promise<string[]> {
 		return getJson<string[]>('/location');
 	}
-	/** Rename a location, moving every spool currently in it to the new name. */
-	async renameLocation(current: string, next: string): Promise<void> {
-		await patchJson<string>(`/location/${encodeURIComponent(current)}`, { name: next });
+	/**
+	 * Replace one value of one spool field wherever it occurs, in a single request. Works for
+	 * any field the spool owns, so the dashboard can rename a whole group without paging in its
+	 * members — and without leaving out the ones it never loaded. Returns how many spools held
+	 * the old value.
+	 */
+	async renameFieldValue(field: GroupField, value: string, newValue: string): Promise<number> {
+		const result = await patchJson<{ spools_updated: number }>(`/spool/field/${encodeURIComponent(field)}`, {
+			value,
+			new_value: newValue
+		});
+		return result.spools_updated;
 	}
 	async lotNumbers(): Promise<string[]> {
 		return getJson<string[]>('/lot-number');

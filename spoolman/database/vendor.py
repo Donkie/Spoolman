@@ -30,7 +30,7 @@ async def create(
     comment: str | None = None,
     empty_spool_weight: float | None = None,
     external_id: str | None = None,
-    extra: dict[str, str] | None = None,
+    extra: dict[str, str | None] | None = None,
 ) -> models.Vendor:
     """Add a new vendor to the database."""
     vendor = models.Vendor(
@@ -39,7 +39,7 @@ async def create(
         comment=comment,
         empty_spool_weight=empty_spool_weight,
         external_id=external_id,
-        extra=[models.VendorField(key=k, value=v) for k, v in (extra or {}).items()],
+        extra=[models.VendorField(key=k, value=v) for k, v in (extra or {}).items() if v is not None],
     )
     db.add(vendor)
     await db.commit()
@@ -123,7 +123,12 @@ async def update(
     vendor = await get_by_id(db, vendor_id)
     for k, v in data.items():
         if k == "extra":
-            vendor.extra = [models.VendorField(key=k, value=v) for k, v in v.items()]
+            # Merged per key, the same as a spool's and a filament's: only the keys present
+            # in the patch are touched, and a null value means the vendor has no value for
+            # that field, so its row is dropped and not re-added — that is how a value that
+            # has been set gets cleared.
+            vendor.extra = [f for f in vendor.extra if f.key not in v]
+            vendor.extra.extend([models.VendorField(key=k, value=v) for k, v in v.items() if v is not None])
         else:
             setattr(vendor, k, v)
     await db.commit()

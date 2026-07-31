@@ -135,7 +135,7 @@ async function audit(page: Page, testInfo: TestInfo, label: string) {
 
 const STATIC_ROUTES: { path: string; label: string }[] = [
 	{ path: '/', label: 'library (home)' },
-	{ path: '/locations', label: 'locations' },
+	{ path: '/dashboard', label: 'dashboard' },
 	{ path: '/labels', label: 'labels' },
 	{ path: '/settings', label: 'settings' }
 ];

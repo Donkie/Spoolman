@@ -30,7 +30,13 @@
 		[FieldType.integer_range]: m['settings.extraFields.fieldType.integerRange']
 	};
 
-	let entity = $state<EntityType>('spool');
+	interface Props {
+		/** Which entity's fields to manage — owned by the page, which keeps it in the URL. */
+		entity: EntityType;
+		onentity: (entity: EntityType) => void;
+	}
+	let { entity, onentity }: Props = $props();
+
 	// Human label for the currently-selected entity, for messages/headings.
 	const entityLabel = $derived(
 		ENTITIES.find((e) => e.key === entity)?.label() ?? m['library.section.spool']()
@@ -39,6 +45,16 @@
 		fields.ensure(entity);
 	});
 	let defs = $derived(fields.get(entity));
+
+	// The editor edits ONE entity's field; switching tabs (or arriving on a
+	// different tab through the URL) leaves it pointing at fields that are no
+	// longer on screen, so put it away rather than let a save land on the wrong
+	// entity.
+	$effect(() => {
+		void entity;
+		editing = false;
+		error = '';
+	});
 
 	// Editor state ----------------------------------------------------------
 	let editing = $state(false);
@@ -199,7 +215,7 @@
 
 <div class="tabs">
 	{#each ENTITIES as e (e.key)}
-		<button class="tab" class:active={entity === e.key} onclick={() => (entity = e.key)}>{e.label()}</button>
+		<button class="tab" class:active={entity === e.key} onclick={() => onentity(e.key)}>{e.label()}</button>
 	{/each}
 </div>
 
@@ -546,11 +562,11 @@
 		color: var(--text-2);
 	}
 	.btn.primary {
-		background: var(--accent);
+		background: var(--accent-fill);
 		color: #fff;
 	}
 	.btn.primary:hover {
-		background: var(--accent-hover);
+		background: var(--accent-fill-hover);
 	}
 	@media (max-width: 620px) {
 		.form {
