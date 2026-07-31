@@ -10,6 +10,26 @@ from sqlalchemy.orm import attributes
 
 from spoolman.database import models
 
+# Escape character for LIKE patterns. Deliberately not backslash: a backslash ESCAPE clause is
+# ambiguous under MySQL/MariaDB string parsing. '/' renders safely on all four dialects.
+LIKE_ESCAPE = "/"
+
+
+def escape_like(value: str) -> str:
+    """Escape LIKE wildcards so user input is matched literally, not as a wildcard pattern.
+
+    Pair it with ``escape=LIKE_ESCAPE`` on the ``like``/``ilike`` call, or the escape character
+    means nothing to the database and the wildcards are still live.
+
+    Args:
+        value: The raw user input to be embedded in a LIKE pattern.
+
+    Returns:
+        str: The input with the escape character and both wildcards escaped.
+
+    """
+    return value.replace(LIKE_ESCAPE, LIKE_ESCAPE * 2).replace("%", f"{LIKE_ESCAPE}%").replace("_", f"{LIKE_ESCAPE}_")
+
 
 class SortOrder(Enum):
     ASC = 1

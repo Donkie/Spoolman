@@ -391,23 +391,42 @@ return 200. No unhandled exceptions in the server log.
 
 ## 9. LOW — Information disclosure
 
-- [ ] `/api/v1/info` (`spoolman/api/v1/router.py:48`) returns absolute host filesystem paths
-      (`data_dir`, `logs_dir`, `backups_dir`) to anyone. Decide whether the client actually
-      needs them; if it only needs "are backups on", drop the paths or gate them behind debug
-      mode.
-- [ ] `/metrics` is unauthenticated and, when `SPOOLMAN_METRICS_ENABLED`, exposes vendor and
-      filament names, colors and per-spool prices
-      (`spoolman/prometheus/metrics.py`). Document that it must not be exposed publicly;
-      consider a bind-address or token option.
+- [x] `/api/v1/info` paths — **decided: keep them, no code change.** The audit asked whether the
+      client needs them. It does: both clients render them (`client/src/components/version.tsx`,
+      `client_v2/src/lib/api/info.ts`), so dropping or debug-gating them is a visible regression
+      in two UIs *and* removes response fields from a v1 endpoint, which N1 forbids outright.
+      Weighed against that, the disclosure buys an attacker almost nothing here — anyone who can
+      read `/info` can already read the whole inventory, since nothing is authenticated, and the
+      audit separately confirmed there is no path traversal to chain the paths into. Recorded so
+      this is not re-raised as an oversight.
+- [x] `/metrics` — **decided: no token or bind-address option; warn instead.** It is already
+      opt-in (`SPOOLMAN_METRICS_ENABLED` defaults to FALSE), so nobody is exposed without asking.
+      An auth token would be the only authentication anywhere in the product, on its least
+      important endpoint, and a second bind address means a second server to run and support;
+      both are a poor trade for a project whose stated position is "no auth, protect it at the
+      network". What was missing is that an operator enabling it has no idea *what* it publishes,
+      so `database.py` now logs a warning naming the data (vendor and filament names, colors,
+      per-spool prices) when metrics are switched on. Same pattern as the `CORS_ORIGIN=*` warning.
+- [ ] **Wiki**, owed: that `/metrics` is unauthenticated and what it exposes.
 
 ## 10. Minor
 
-- [ ] `spoolman/main.py:91` guards the `config.js` base-path interpolation against `"` but not
-      `\` — a backslash-terminated base path escapes the JS string literal. Operator-controlled
-      so not attacker-reachable, but tighten it (JSON-encode the value instead of hand-quoting).
-- [ ] `spoolman/database/search.py:123` (`_term_clause`) does not escape LIKE wildcards, unlike
-      `extra_field_query.py` which does — `%` in a search query matches everything. Consistency,
-      not a vulnerability.
+- [x] `config.js` base path is now `json.dumps`'d instead of hand-quoted, so the backslash case
+      the `"` check missed cannot escape the JS string literal. The old check also *refused to
+      serve* on a quote; encoding correctly means a legal base path containing one now works.
+      Test: `tests/test_configjs.py`, driving the real endpoint.
+- [x] `search.py` now escapes LIKE wildcards via the shared `escape_like`/`LIKE_ESCAPE`, which
+      moved from `extra_field_query.py` into `database/utils.py` so both use one implementation
+      rather than two that can drift. Two call sites, not the one the audit listed: `_term_clause`
+      *and* the extra-field EXISTS clause at `search.py:163`. Test: `tests/test_like_escaping.py`.
+- [ ] **Not done, needs your call — `add_where_clause_str` / `add_where_clause_str_opt`
+      (`database/utils.py:125,148`) have the same unescaped `ilike`.** These back the v1 list
+      filters (`?filament.name=...`), so escaping them changes what an existing endpoint returns:
+      today `_` is a single-character wildcard, so `?filament.name=PLA_Basic` also matches
+      `PLAxBasic`. Escaping makes it literal — strictly more correct, and it would still find the
+      row the user meant — but it is a behavior change on API v1, which per change-control needs
+      your sign-off rather than a quiet fix. Left alone deliberately; `search.py` was the audit's
+      item and is a newer endpoint with no such expectations.
 
 ---
 
