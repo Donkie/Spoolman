@@ -2,7 +2,7 @@
   "name": "spoolman-ui",
   "version": "0.25.0",
   "engines": {
-    "node": "20.x"
+    "node": "^20.19 || ^22.12 || >=24"
   },
   "private": true,
   "type": "module",

@@ -37,7 +37,7 @@ jobs:
       - name: Install node
         uses: actions/setup-node@v4.0.3
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -79,7 +79,7 @@ jobs:
       - name: Install node
         uses: actions/setup-node@v4.0.3
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -312,7 +312,7 @@ jobs:
       - name: Install node
         uses: actions/setup-node@v4.0.3
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install Playwright
         run: |
@@ -365,7 +365,7 @@ jobs:
       - name: Install node
         uses: actions/setup-node@v4.0.3
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install Playwright
         run: |
