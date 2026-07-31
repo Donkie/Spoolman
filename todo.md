@@ -231,9 +231,15 @@ says nothing about `CORS_ORIGIN`, authentication, or reverse-proxy hardening.
       point for someone who set `*` to make a cross-origin client work.
 - [x] Log a prominent startup warning when debug mode is on, or when `CORS_ORIGIN=*` — done in
       task 0 via `trusts_all_origins()`, which both guards fire through.
-- [x] README: new `## Security` section. The README has no config reference at all (that lives
-      in the Wiki), so this documents the no-auth property as the headline fact it is, plus
-      `SPOOLMAN_CORS_ORIGIN`, the `*` warning, and the reverse-proxy `Host` requirement.
+- [ ] ~~README: new `## Security` section documenting the no-auth property, `SPOOLMAN_CORS_ORIGIN`,
+      the `*` warning, and the reverse-proxy `Host` requirement.~~ **Reversed (Donkie's call).**
+      Reverted; the README is back to master's. Config and deployment guidance belongs in the
+      Wiki, and duplicating it here gives it two homes that drift apart.
+      **Still owed, in the Wiki:** the no-auth property, `SPOOLMAN_CORS_ORIGIN` (including that
+      `*` and `SPOOLMAN_DEBUG_MODE` disable origin checks entirely), and the reverse-proxy
+      requirement to forward the original host (`proxy_set_header Host $host`,
+      `ProxyPreserveHost On`, or `X-Forwarded-Host`). The reverted section's text is in the
+      branch history if it is worth reusing.
 
 Verified against a real server with `SPOOLMAN_CORS_ORIGIN=*`:
 
