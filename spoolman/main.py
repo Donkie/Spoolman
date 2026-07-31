@@ -1,5 +1,6 @@
 """Main entrypoint to the server."""
 
+import json
 import logging
 import subprocess
 from logging.handlers import TimedRotatingFileHandler
@@ -88,12 +89,12 @@ if base_path != "":
 @app.get(env.get_base_path() + "/config.js")
 def get_configjs() -> Response:
     """Return a dynamic js config file."""
-    if '"' in base_path:
-        raise ValueError("Base path contains quotes, which are not allowed.")
-
+    # JSON-encode rather than hand-quoting. Checking for `"` alone missed the backslash, which a
+    # base path ending in one would use to escape the closing quote and break out of the literal.
+    # JSON is a subset of JS here, so json.dumps produces a correct JS string literal.
     return Response(
         content=f"""
-window.SPOOLMAN_BASE_PATH = "{base_path}";
+window.SPOOLMAN_BASE_PATH = {json.dumps(base_path)};
 """,
         media_type="text/javascript",
     )

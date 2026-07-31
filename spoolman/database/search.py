@@ -21,6 +21,7 @@ from sqlalchemy.orm import InstrumentedAttribute, joinedload
 from spoolman.colors import resolve_color
 from spoolman.database import filament as filament_db
 from spoolman.database import models
+from spoolman.database.utils import LIKE_ESCAPE, escape_like
 from spoolman.extra_field_registry import EntityType, ExtraFieldType, get_extra_fields
 from spoolman.math import delta_e, hex_to_rgb, rgb_to_lab
 
@@ -127,8 +128,12 @@ def _term_clause(
     columns: list[InstrumentedAttribute],
     extra_exists: ColumnElement | None,
 ) -> ColumnElement:
-    """Build the SQL predicate for a single term: it must appear in any searchable column."""
-    clauses = [col.ilike(f"%{term}%") for col in columns]
+    """Build the SQL predicate for a single term: it must appear in any searchable column.
+
+    Wildcards in the term are escaped, so a query of "%" looks for a literal percent sign
+    instead of matching every row -- matching the extra-field filters, which already do this.
+    """
+    clauses = [col.ilike(f"%{escape_like(term)}%", escape=LIKE_ESCAPE) for col in columns]
     if extra_exists is not None:
         clauses.append(extra_exists)
     return or_(*clauses)
@@ -155,7 +160,7 @@ def _extra_exists(
         .where(
             owner_col == owner_id_col,
             field_model.key.in_(keys),
-            field_model.value.ilike(f"%{term}%"),
+            field_model.value.ilike(f"%{escape_like(term)}%", escape=LIKE_ESCAPE),
         )
         .exists()
     )

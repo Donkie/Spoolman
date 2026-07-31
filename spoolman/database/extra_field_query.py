@@ -13,7 +13,7 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import FunctionElement
 
 from spoolman.database import models
-from spoolman.database.utils import SortOrder
+from spoolman.database.utils import LIKE_ESCAPE, SortOrder, escape_like
 from spoolman.extra_field_registry import EntityType, ExtraField, ExtraFieldType, get_extra_fields
 
 if TYPE_CHECKING:
@@ -188,18 +188,6 @@ def _get_entity_id_column(field_table: type[models.Base]) -> InstrumentedAttribu
     raise ValueError(f"Unknown field table: {field_table}")
 
 
-# Escape character for LIKE patterns. Deliberately not backslash: a backslash ESCAPE clause is
-# ambiguous under MySQL/MariaDB string parsing. '/' renders safely on all four dialects.
-_LIKE_ESCAPE = "/"
-
-
-def _escape_like(value: str) -> str:
-    """Escape LIKE wildcards so user input is matched literally, not as a wildcard pattern."""
-    return (
-        value.replace(_LIKE_ESCAPE, _LIKE_ESCAPE * 2).replace("%", f"{_LIKE_ESCAPE}%").replace("_", f"{_LIKE_ESCAPE}_")
-    )
-
-
 def _parse_boolean_filter(value: str) -> bool:
     """Parse a boolean filter using explicit true/false tokens only."""
     normalized = value.strip().lower()
@@ -372,7 +360,7 @@ def add_where_clause_extra_field(  # noqa: C901, PLR0912, PLR0915
             field_condition = (
                 decoded == parsed_value
                 if exact_match
-                else decoded.ilike(f"%{_escape_like(parsed_value)}%", escape=_LIKE_ESCAPE)
+                else decoded.ilike(f"%{escape_like(parsed_value)}%", escape=LIKE_ESCAPE)
             )
         elif field_type == ExtraFieldType.integer:
             if ":" in parsed_value:
@@ -424,7 +412,7 @@ def add_where_clause_extra_field(  # noqa: C901, PLR0912, PLR0915
                 # substring. json.dumps gives the exact quoted, escaped form the array element
                 # is stored as, and LIKE wildcards in the token are escaped.
                 token = json.dumps(parsed_value, ensure_ascii=False)
-                field_condition = field_table.value.like(f"%{_escape_like(token)}%", escape=_LIKE_ESCAPE)
+                field_condition = field_table.value.like(f"%{escape_like(token)}%", escape=LIKE_ESCAPE)
             else:
                 # Compare against the DB-decoded scalar, independent of JSON encoding.
                 field_condition = _JsonScalarText(field_table.value) == parsed_value

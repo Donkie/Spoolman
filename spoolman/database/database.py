@@ -260,6 +260,13 @@ def schedule_tasks(scheduler: Scheduler) -> None:
     if __db is None:
         raise RuntimeError("DB is not setup.")
     if env.is_metrics_enabled():
+        # /metrics is unauthenticated like the rest of the API, but unlike the rest of it this is
+        # opt-in, so the operator is here on purpose and can be told what they just published.
+        logger.warning(
+            "Metrics are enabled, so /metrics serves your vendor and filament names, colors and "
+            "per-spool prices to anyone who can reach it, with no authentication. Keep it off the "
+            "public internet, or put it behind your reverse proxy's authentication.",
+        )
         logger.info("Scheduling automatic metric collection.")
         # Run every minute, may be needs specify timer
         scheduler.minutely(datetime.time(second=0), _metrics)  # type: ignore[arg-type]
