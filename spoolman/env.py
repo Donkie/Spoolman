@@ -277,6 +277,42 @@ def get_cors_origin() -> list[str] | None:
     return origins
 
 
+def get_allowed_hosts_raw() -> str | None:
+    """Get the unparsed value of the allowed-hosts environment variable.
+
+    Useful for logging, so that a typo in the operator's configuration stays visible.
+
+    Returns:
+        Optional[str]: The raw environment variable value, or None if it was not set.
+
+    """
+    return os.getenv("SPOOLMAN_ALLOWED_HOSTS")
+
+
+def get_allowed_hosts() -> list[str] | None:
+    """Get the extra hostnames this instance may be addressed by, from environment variables.
+
+    The variable holds a comma-separated list of hostnames -- not origins, so no scheme and no
+    port. A leading ``*.`` matches any subdomain, and a bare ``*`` matches everything. Entries are
+    trimmed and lower-cased, and empty entries and duplicates are dropped.
+
+    Returns None if no environment variable was set.
+
+    Returns:
+        Optional[list[str]]: The normalized hostnames.
+
+    """
+    raw = get_allowed_hosts_raw()
+    if raw is None:
+        return None
+    hosts: list[str] = []
+    for entry in raw.split(","):
+        host = entry.strip().rstrip(".").lower()
+        if host and host not in hosts:
+            hosts.append(host)
+    return hosts
+
+
 def is_automatic_backup_enabled() -> bool:
     """Get whether automatic backup is enabled from environment variables.
 

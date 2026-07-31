@@ -137,6 +137,15 @@ def add_trusted_origin_middleware() -> None:
     app.add_middleware(security.TrustedOriginMiddleware)
 
 
+def add_trusted_host_middleware() -> None:
+    """Refuse requests addressed to a hostname this instance has no reason to answer to."""
+    if security.trusts_all_origins():
+        # Already warned about by trusts_all_origins(); adding the middleware would be a no-op.
+        return
+    logger.info("Answering to these hostnames: %s.", security.describe_allowed_hosts())
+    app.add_middleware(security.TrustedHostMiddleware)
+
+
 def add_cors_middleware() -> None:
     """Add CORS middleware to the FastAPI app based on environment settings."""
     origins = []
@@ -177,9 +186,11 @@ def add_cors_middleware() -> None:
     )
 
 
-# Order matters: middleware added last is outermost, so CORS wraps the origin guard. That way a
-# legitimate cross-origin client can actually read the 403 body instead of an opaque CORS error.
+# Order matters: middleware added last is outermost. CORS wraps both guards, so that a legitimate
+# cross-origin client can read the 403 body instead of an opaque CORS error, and the host guard
+# wraps the origin guard, because a rebound host makes the origin check agree with the attacker.
 add_trusted_origin_middleware()
+add_trusted_host_middleware()
 add_cors_middleware()
 
 
