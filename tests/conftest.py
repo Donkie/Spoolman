@@ -1,9 +1,10 @@
 """Session-wide setup for the unit tests.
 
-Importing ``spoolman.main`` (or anything that reads ``env.get_data_dir()``) creates the data
-directory as a side effect, which would otherwise be the *real* one -- a developer running
-``poe test`` would find the suite reaching into the same directory as their live instance.
-Point the directories at a throwaway location before any test module is imported.
+``env.get_data_dir()`` and its siblings create their directory as a side effect of being called,
+so any test that reaches one -- directly, or by importing a module that does -- would otherwise
+touch the same directory as the developer's live instance. Point them somewhere disposable
+before any test module is imported. Nothing depends on this today; it is here so that the first
+test that does cannot quietly reach into real data.
 """
 
 import os

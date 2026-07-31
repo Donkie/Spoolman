@@ -1,6 +1,5 @@
 """Main entrypoint to the server."""
 
-import json
 import logging
 import subprocess
 from logging.handlers import TimedRotatingFileHandler
@@ -16,7 +15,7 @@ from scheduler.asyncio.scheduler import Scheduler
 
 from spoolman import env, externaldb, security
 from spoolman.api.v1.router import app as v1_app
-from spoolman.client import SinglePageApplication
+from spoolman.client import SinglePageApplication, render_config_js
 from spoolman.database import database
 from spoolman.prometheus.metrics import registry
 
@@ -89,15 +88,7 @@ if base_path != "":
 @app.get(env.get_base_path() + "/config.js")
 def get_configjs() -> Response:
     """Return a dynamic js config file."""
-    # JSON-encode rather than hand-quoting. Checking for `"` alone missed the backslash, which a
-    # base path ending in one would use to escape the closing quote and break out of the literal.
-    # JSON is a subset of JS here, so json.dumps produces a correct JS string literal.
-    return Response(
-        content=f"""
-window.SPOOLMAN_BASE_PATH = {json.dumps(base_path)};
-""",
-        media_type="text/javascript",
-    )
+    return Response(content=render_config_js(base_path), media_type="text/javascript")
 
 
 # Mount the client side app. The new Svelte client is served by default; set

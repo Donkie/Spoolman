@@ -1,5 +1,6 @@
 """Functions for providing the client interface."""
 
+import json
 import logging
 import mimetypes
 import os
@@ -46,6 +47,29 @@ def _require_client_build(directory: str) -> None:
         f"The Docker images and the spoolman.zip release asset already contain it."
     )
     raise RuntimeError(msg)
+
+
+def render_config_js(base_path: str) -> str:
+    """Build the dynamic config.js body, which hands the base path to the client at runtime.
+
+    JSON-encoded rather than hand-quoted. Rejecting a `"` was not enough on its own: a base path
+    ending in a backslash would use it to escape the closing quote and break out of the string
+    literal. JSON string syntax is a subset of JavaScript's, so json.dumps produces a correct JS
+    literal for any input.
+
+    Lives here rather than beside its endpoint in main.py so it can be tested without importing
+    main, which builds the SPA handler at module level and therefore needs a built client bundle.
+
+    Args:
+        base_path: The configured base path, e.g. ``/spoolman`` or ``""``.
+
+    Returns:
+        str: The JavaScript body to serve.
+
+    """
+    return f"""
+window.SPOOLMAN_BASE_PATH = {json.dumps(base_path)};
+"""
 
 
 class SinglePageApplication(StaticFiles):
