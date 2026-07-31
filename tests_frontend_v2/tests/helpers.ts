@@ -95,6 +95,8 @@ export interface NewSpool {
   weightG?: number;
   /** How much of it has already been used, in grams. Omit for a full spool. */
   usedG?: number;
+  /** Values for the filament's extra fields, keyed by their display name. */
+  filamentExtra?: Record<string, string>;
 }
 
 /**
@@ -109,7 +111,7 @@ export interface NewSpool {
  * their own on top.
  */
 export async function createSpoolViaModal(page: Page, spool: NewSpool): Promise<void> {
-  const { vendorName, filamentName, locationName, material = "PLA", weightG = 1000, usedG } = spool;
+  const { vendorName, filamentName, locationName, material = "PLA", weightG = 1000, usedG, filamentExtra } = spool;
 
   const dialog = await openAddSpoolModal(page);
 
@@ -133,6 +135,12 @@ export async function createSpoolViaModal(page: Page, spool: NewSpool): Promise<
   await dialog.getByRole("button", { name: /^Advanced specs/ }).click();
   await numberField(dialog, "Density").fill("1.24");
   await expect(numberField(dialog, "Diameter")).toHaveValue("1.75");
+
+  // Extra fields defined for filaments get their own section in the same form.
+  // Their inputs carry the field's display name as an aria-label.
+  for (const [name, value] of Object.entries(filamentExtra ?? {})) {
+    await dialog.getByLabel(name, { exact: true }).fill(value);
+  }
 
   await expect(numberField(dialog, "Count")).toHaveValue("1");
   await numberField(dialog, "Weight").fill(String(weightG));
