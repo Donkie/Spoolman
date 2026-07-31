@@ -91,8 +91,8 @@ export function mapSpool(s: Json): Spool {
 
 export function mapGroup(g: Json): GroupSummary {
 	const field = g.group_by as GroupSummary['field'];
-	let title = '';
-	let subtitle = '';
+	let title: string;
+	let subtitle: string;
 	let badge = '';
 	let colors: string[] = [];
 	let direction: MultiColorDirection | undefined;

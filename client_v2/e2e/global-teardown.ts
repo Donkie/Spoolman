@@ -5,7 +5,7 @@ import { SURFACES_DIR, REPORT_PATH, TAP_MIN, type SurfaceResult } from './report
 // Runs once after the suite (in the main process, so it survives worker
 // restarts): read every per-surface JSON and render the consolidated report.
 export default async function globalTeardown() {
-	let files: string[] = [];
+	let files: string[];
 	try {
 		files = (await readdir(SURFACES_DIR)).filter((f) => f.endsWith('.json'));
 	} catch {
