@@ -1,11 +1,16 @@
-"""Integration tests: cross-origin requests and websockets are refused.
+"""Integration tests: cross-origin requests, and requests addressed to a foreign host, are refused.
 
 Spoolman has no authentication, so without an origin check any website the user happens to visit
 can make their browser write to a Spoolman instance it can reach -- a cross-origin form post
 needs no CORS preflight -- and can open a websocket to it, since websockets are exempt from CORS
 entirely.
 
-The server under test runs with no SPOOLMAN_CORS_ORIGIN, so the policy is "same origin only".
+The host check closes what the origin check cannot: under DNS rebinding the attacker's page keeps
+its own name, so Origin and Host agree with each other and the origin check trusts them both.
+
+The server under test runs with no SPOOLMAN_CORS_ORIGIN, so the origin policy is "same origin
+only", and with SPOOLMAN_ALLOWED_HOSTS=spoolman.example.com so that both sides of the host check
+are exercised.
 """
 
 import asyncio
@@ -111,6 +116,54 @@ def test_forwarded_host_does_not_admit_a_foreign_origin():
         },
     )
     assert result.status_code == 403
+
+
+def test_rebound_host_is_refused():
+    """A public domain the operator never declared, which is what rebinding delivers."""
+    result = httpx.get(f"{URL}/api/v1/spool", headers={"Host": "evil.example"})
+    assert result.status_code == 400
+
+
+def test_rebound_host_is_refused_even_with_a_matching_origin():
+    """The origin check trusts this pair; only the host check refuses it."""
+    result = httpx.post(
+        f"{URL}/api/v1/setting/currency",
+        json='"HAX"',
+        headers={"Host": "evil.example", "Origin": "https://evil.example"},
+    )
+    assert result.status_code == 400
+
+
+def test_rebound_forwarded_host_is_refused():
+    result = httpx.get(f"{URL}/api/v1/spool", headers={"X-Forwarded-Host": "evil.example"})
+    assert result.status_code == 400
+
+
+def test_own_host_is_allowed():
+    """The tester reaches Spoolman by its single-label compose service name."""
+    result = httpx.get(f"{URL}/api/v1/spool", headers={"Host": OWN_HOST})
+    assert result.status_code == 200
+
+
+def test_configured_host_is_allowed():
+    result = httpx.get(f"{URL}/api/v1/spool", headers={"Host": "spoolman.example.com"})
+    assert result.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_rebound_websocket_is_refused():
+    """Note the client library sends its own Host, so the rebound name goes in X-Forwarded-Host.
+
+    Both are checked, and uvicorn renders any close sent before the handshake is accepted as an
+    HTTP 403 whatever close code we used -- the same status the origin guard produces.
+    """
+    with pytest.raises(InvalidStatus) as excinfo:
+        async with connect(
+            f"{WS_URL}/api/v1/spool",
+            additional_headers={"X-Forwarded-Host": "evil.example"},
+        ):
+            pass
+    assert excinfo.value.response.status_code == 403
 
 
 @pytest.mark.asyncio
