@@ -759,18 +759,20 @@
 							>
 								<Swatch colors={f.colors} direction={f.multiColorDirection} size={22} radius={5} />
 								<div class="chip-info">
+									<!-- The optional parts are built as one expression rather than wrapped in
+									     an {#if}: at a block edge Svelte trims the adjacent whitespace, which ran
+									     the separator into the neighbouring word ("Bambu Lab -Bambu Green",
+									     "1 kg- Last used 2 days ago"). -->
 									<div class="chip-title">
 										<span class="chip-id mono">#{s.id}</span>
-										{#if v.name !== '?'}{v.name} -
-										{/if}{f.name}
+										{v.name === '?' ? f.name : `${v.name} - ${f.name}`}
 									</div>
 									<div class="chip-subtitle">
 										{f.material} -
 										<span class:low={settings.isLow(s.remaining, s.unused)}>{weightAuto(s.remaining)}</span>
-										/ {weightAuto(f.weight)}{#if s.lastUsedLabel}
-											- {m['dashboard.lastUsed']({
-												time: s.lastUsedLabel
-											})}{/if}
+										/ {weightAuto(f.weight)}{s.lastUsedLabel
+											? ` - ${m['dashboard.lastUsed']({ time: s.lastUsedLabel })}`
+											: ''}
 									</div>
 								</div>
 							</a>

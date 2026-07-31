@@ -19,6 +19,13 @@ Also available as `uv run poe demo-seed <args>`.
 
 Only ever point this at a development instance: --purge deletes *all* vendors, filaments
 and spools on the target, not just the ones it created.
+
+Label designs are deliberately not seeded here. They live in the `label_designs` server
+setting as a blob of a client-side schema ($lib/labels/types.ts), so writing one from
+Python would duplicate that schema and rot the moment it changes. For the label-designer
+screenshot, click "Create your first label" in the client instead -- that runs the app's
+own newDesign() -- and pick a spool under "Preview with" so the fields resolve. The
+setting survives --purge, so a re-seed keeps whatever design you made.
 """
 
 from __future__ import annotations

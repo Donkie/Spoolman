@@ -38,6 +38,17 @@ Spoolman is a self-hosted web service designed to help you efficiently manage yo
 **Web client preview:**
 ![The Spoolman web client, showing the spool library with a spool's details open alongside it](.github/media/client-screenshot.png)
 
+<table>
+  <tr>
+    <td width="50%"><img alt="The Spoolman dashboard, showing spools as draggable cards grouped by storage location" src=".github/media/dashboard-screenshot.png"></td>
+    <td width="50%"><img alt="The Spoolman label designer, showing a 50 by 25 mm spool label with a QR code, filament name and colour swatch" src=".github/media/label-designer-screenshot.png"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Dashboard — spools as cards, grouped by location or any other field. Drag one to move it.</sub></td>
+    <td align="center"><sub>Label designer — QR labels built from any spool, filament or vendor field.</sub></td>
+  </tr>
+</table>
+
 ## Installation
 Please see the [Installation page on the Wiki](https://github.com/Donkie/Spoolman/wiki/Installation) for details how to install Spoolman.
 
