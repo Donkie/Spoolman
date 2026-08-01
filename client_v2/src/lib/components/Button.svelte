@@ -6,7 +6,7 @@
 	import type { Snippet } from 'svelte';
 
 	interface Props {
-		variant?: 'primary' | 'outline' | 'ghost';
+		variant?: 'primary' | 'outline' | 'ghost' | 'danger';
 		type?: 'button' | 'submit';
 		onclick?: (e: MouseEvent) => void;
 		/** When set the button navigates: it renders as a real `<a href>` link
@@ -85,6 +85,20 @@
 	}
 	.ghost:hover {
 		color: var(--text);
+	}
+
+	/* Confirming a delete. Filled rather than outlined so the irreversible action
+	   never looks like the quiet way out of a dialog. */
+	.danger {
+		background: var(--danger);
+		color: #fff;
+		padding: 8px 14px;
+	}
+	.danger:hover {
+		background: var(--danger-soft);
+	}
+	.danger:disabled:hover {
+		background: var(--danger);
 	}
 
 	.btn:disabled,

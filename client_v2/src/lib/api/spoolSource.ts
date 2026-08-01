@@ -9,7 +9,7 @@ import type {
 	VendorPatch
 } from '$lib/types';
 import type { GroupField, GroupQuery, GroupSummary, Page, SpoolQuery } from './types';
-import { getList, getJson, patchJson, postJson, putJson, HttpError } from './http';
+import { getList, getJson, patchJson, postJson, putJson, deleteResource, HttpError } from './http';
 import type { QueryParams } from './http';
 import {
 	mapFilament,
@@ -394,6 +394,40 @@ class HttpSpoolSource {
 	async createSpool(body: Json): Promise<Spool> {
 		const created = await postJson<Json>('/spool', body);
 		return cacheSpools([created])[0];
+	}
+
+	// --- deletes ------------------------------------------------------------
+	// Each drops the entity from the cache itself rather than waiting for the
+	// websocket to echo it back, so the list and inspector update at once (and
+	// still do when live updates are unavailable).
+
+	/**
+	 * How many spools reference this filament, archived ones included — the number
+	 * that decides whether the API will let it be deleted. Asks for one row and
+	 * reads X-Total-Count rather than paging the spools in.
+	 */
+	async countSpoolsOfFilament(id: string, signal?: AbortSignal): Promise<number> {
+		const { total } = await getList(
+			'/spool',
+			{ 'filament.id': id, allow_archived: 'true', limit: 1 },
+			signal
+		);
+		return total;
+	}
+
+	/** Delete a filament. Rejects with a 403 HttpError if it still has spools. */
+	async deleteFilament(id: string): Promise<void> {
+		await deleteResource(`/filament/${id}`);
+		inventory.removeFilament(id);
+	}
+
+	/**
+	 * Delete a manufacturer. Its filaments are NOT deleted — the server clears
+	 * their vendor and leaves them in the catalog, which `removeVendor` mirrors.
+	 */
+	async deleteVendor(id: string): Promise<void> {
+		await deleteResource(`/vendor/${id}`);
+		inventory.removeVendor(id);
 	}
 
 	// --- filter option lists -----------------------------------------------

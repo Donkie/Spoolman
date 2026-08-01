@@ -7,6 +7,12 @@ import type { Extra, ExtraPatch } from '$lib/types';
 export interface Saver<Id, Patch> {
 	push(id: Id, patch: Patch): void;
 	flush(): void;
+	/**
+	 * Drop the pending patch without sending it. For when the entity being edited
+	 * is about to be deleted: flushing would PATCH a row that is on its way out,
+	 * and the unmount flush would then fail with a 404 the user can do nothing about.
+	 */
+	cancel(): void;
 }
 
 // Extra-field saver: optimistically applies each keystroke to the cache (so the
@@ -26,19 +32,29 @@ export function makeExtraSaver<Id>(
 	persist: (id: Id, patch: ExtraPatch) => void,
 	getCurrent: () => Extra,
 	delay = 500
-): { change: (key: string, json: string | undefined) => void; flush: () => void } {
+): { change: (key: string, json: string | undefined) => void; flush: () => void; cancel: () => void } {
 	let pending: { id: Id; patch: ExtraPatch } | null = null;
 	let timer: ReturnType<typeof setTimeout> | null = null;
 
-	function flush() {
+	function stop() {
 		if (timer) {
 			clearTimeout(timer);
 			timer = null;
 		}
+	}
+
+	function flush() {
+		stop();
 		if (!pending) return;
 		const { id, patch } = pending;
 		pending = null;
 		persist(id, patch);
+	}
+
+	/** See {@link Saver.cancel}. */
+	function cancel() {
+		stop();
+		pending = null;
 	}
 
 	function change(key: string, json: string | undefined) {
@@ -54,7 +70,7 @@ export function makeExtraSaver<Id>(
 		timer = setTimeout(flush, delay);
 	}
 
-	return { change, flush };
+	return { change, flush, cancel };
 }
 
 export function makeSaver<Id, Patch extends object>(
@@ -65,16 +81,26 @@ export function makeSaver<Id, Patch extends object>(
 	let pending: Partial<Patch> = {};
 	let timer: ReturnType<typeof setTimeout> | null = null;
 
-	function flush() {
+	function stop() {
 		if (timer) {
 			clearTimeout(timer);
 			timer = null;
 		}
+	}
+
+	function flush() {
+		stop();
 		if (currentId !== null && Object.keys(pending).length > 0) {
 			const patch = pending as Patch;
 			pending = {};
 			save(currentId, patch);
 		}
+	}
+
+	/** See {@link Saver.cancel}. */
+	function cancel() {
+		stop();
+		pending = {};
 	}
 
 	function push(id: Id, patch: Patch) {
@@ -85,5 +111,5 @@ export function makeSaver<Id, Patch extends object>(
 		timer = setTimeout(flush, delay);
 	}
 
-	return { push, flush };
+	return { push, flush, cancel };
 }
