@@ -5,7 +5,6 @@
 	import Swatch from '../Swatch.svelte';
 	import MaterialBadge from '../MaterialBadge.svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
-	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import Factory from '@lucide/svelte/icons/factory';
 	import type { GroupHeaderInfo } from '$lib/utils/library';
 	import * as m from '$lib/paraglide/messages';
@@ -60,13 +59,9 @@
 	<div class="body">
 		<div class="line">
 			<!-- A group header reads as a heading, and headings don't normally lead
-			     anywhere — so the link has to say so itself. The title takes the
-			     underline+colour every link gets on hover, and the arrow (a different
-			     glyph to the disclosure chevron, which means something else entirely)
-			     stays faintly visible at rest: hover is the one affordance a touch
-			     user never sees, and they are a good share of who couldn't find this. -->
+			     anywhere — so the link has to say so itself, by taking the underline
+			     and colour every link gets on hover. -->
 			<span class="title">{group.title}</span>
-			{#if href}<span class="go" aria-hidden="true"><ArrowRight size={12} /></span>{/if}
 			{#if group.badge}<MaterialBadge label={group.badge} />{/if}
 		</div>
 		{#if group.vendorName || group.subtitle}
@@ -179,17 +174,6 @@
 		color: var(--accent-link);
 		text-decoration: underline;
 		text-underline-offset: 2px;
-	}
-	.go {
-		display: inline-flex;
-		flex: none;
-		align-self: center;
-		color: var(--accent-link);
-		opacity: 0.35;
-		transition: opacity 0.12s ease;
-	}
-	.main:hover ~ .body .go {
-		opacity: 1;
 	}
 	.sub {
 		display: flex;
