@@ -31,6 +31,9 @@ export interface GroupHeaderInfo {
 	title: string;
 	subtitle: string;
 	badge: string;
+	/** Filament groups: the manufacturer's name, rendered as a link to it when the
+	 *  header also gets a `vendorHref` (and as a muted note when it can't be). */
+	vendorName?: string;
 	colors: string[];
 	direction?: MultiColorDirection;
 	/** Aggregate remaining weight across the whole group, formatted. */

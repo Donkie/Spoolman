@@ -29,6 +29,10 @@ export interface GroupSummary {
 	title: string;
 	subtitle: string;
 	badge: string;
+	/** Filament groups only: the manufacturer, so the header can link to it.
+	 *  Both absent when the filament has no manufacturer set. */
+	vendorId?: string;
+	vendorName?: string;
 	colors: string[];
 	/** Multi-color layout, when grouping by a single filament; undefined otherwise. */
 	direction?: MultiColorDirection;

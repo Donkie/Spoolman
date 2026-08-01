@@ -106,11 +106,19 @@ export function mapGroup(g: Json): GroupSummary {
 	let badge = '';
 	let colors: string[] = [];
 	let direction: MultiColorDirection | undefined;
+	// Filament groups carry their manufacturer separately from the subtitle text
+	// so the header can render it as a link to the vendor (see GroupHeader).
+	let vendorId: string | undefined;
+	let vendorName: string | undefined;
 
 	if (field === 'filament' && g.filament) {
 		const f: Json = g.filament;
 		title = f.name ?? '(unnamed filament)';
-		subtitle = `${f.vendor?.name ?? 'No manufacturer'} · ${f.diameter} mm`;
+		subtitle = `${f.diameter} mm`;
+		if (f.vendor) {
+			vendorId = String(f.vendor.id);
+			vendorName = f.vendor.name ?? '(unnamed manufacturer)';
+		}
 		badge = f.material ?? '';
 		colors = colorsFromApi(f);
 		direction = f.multi_color_direction ?? undefined;
@@ -136,6 +144,8 @@ export function mapGroup(g: Json): GroupSummary {
 		title,
 		subtitle,
 		badge,
+		vendorId,
+		vendorName,
 		colors,
 		direction,
 		spoolCount: g.spool_count ?? 0,
