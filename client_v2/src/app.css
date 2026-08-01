@@ -67,6 +67,7 @@
 	/* Status */
 	--danger: #c4503a;
 	--danger-soft: #d98a7a;
+	--danger-wash: rgba(196, 80, 58, 0.14);
 	--success: #6bb26b;
 	--success-border: #3f6b3f;
 	--unused-bg: #33302c;
@@ -147,6 +148,7 @@
 	/* Status */
 	--danger: #b7402c;
 	--danger-soft: #a8462f;
+	--danger-wash: rgba(183, 64, 44, 0.1);
 	--success: #3d7a3d;
 	--success-border: #a9c9a9;
 	--unused-bg: #f1e9df;

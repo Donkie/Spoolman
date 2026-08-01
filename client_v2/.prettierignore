@@ -10,5 +10,11 @@ node_modules
 # Generated code (paraglide i18n compiler output — also gitignored)
 src/lib/paraglide
 
+# Written into the inlang project by the compiler; everything but settings.json
+# there is gitignored, so compiling before linting must not fail the check.
+project.inlang/.meta.json
+project.inlang/README.md
+project.inlang/cache
+
 # Local scratch notes (gitignored, never reaches CI — don't fail the local hook)
 docs

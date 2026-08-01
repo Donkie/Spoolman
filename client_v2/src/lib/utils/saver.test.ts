@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { makeExtraSaver } from './saver';
+import { makeExtraSaver, makeSaver } from './saver';
 import type { Extra, ExtraPatch } from '$lib/types';
 
 // The extra saver is what turns an inspector edit into a PATCH, so these cover the two
@@ -95,5 +95,56 @@ describe('makeExtraSaver', () => {
 		const h = harness({ shelf: '"A"' });
 		h.saver.flush();
 		expect(h.persisted).toEqual([]);
+	});
+});
+
+// Deleting the entity being edited is the one case where a pending patch must NOT
+// be sent: the row is on its way out, so the PATCH could only come back 404 and
+// toast an error the user can do nothing about.
+describe('cancel', () => {
+	it('drops a pending extra-field patch, and the unmount flush finds nothing', () => {
+		const h = harness({ shelf: '"A"' });
+		h.saver.change('shelf', '"B"');
+		h.saver.cancel();
+		h.saver.flush();
+		expect(h.persisted).toEqual([]);
+	});
+
+	it('stops the extra-field debounce that was already scheduled', () => {
+		vi.useFakeTimers();
+		try {
+			const h = harness({ shelf: '"A"' });
+			h.saver.change('shelf', '"B"');
+			h.saver.cancel();
+			vi.advanceTimersByTime(100);
+			expect(h.persisted).toEqual([]);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('drops a pending field patch and stops its debounce', () => {
+		vi.useFakeTimers();
+		try {
+			const saved: { id: number; patch: { name?: string } }[] = [];
+			const saver = makeSaver<number, { name: string }>((id, patch) => saved.push({ id, patch }), 10);
+			saver.push(1, { name: 'renamed' });
+			saver.cancel();
+			vi.advanceTimersByTime(100);
+			saver.flush();
+			expect(saved).toEqual([]);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('leaves the saver usable afterwards', () => {
+		const saved: { id: number; patch: { name?: string } }[] = [];
+		const saver = makeSaver<number, { name: string }>((id, patch) => saved.push({ id, patch }), 10);
+		saver.push(1, { name: 'dropped' });
+		saver.cancel();
+		saver.push(2, { name: 'kept' });
+		saver.flush();
+		expect(saved).toEqual([{ id: 2, patch: { name: 'kept' } }]);
 	});
 });

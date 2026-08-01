@@ -69,6 +69,32 @@ class Inventory {
 		for (const v of list) this.upsertVendor(v);
 	}
 
+	// --- removals -----------------------------------------------------------
+	// Used both by live `deleted` events and by our own deletes, so a delete made
+	// here drops out of every view immediately instead of waiting for the round
+	// trip through the websocket.
+
+	removeSpool(id: number) {
+		this.spools = this.spools.filter((s) => s.id !== id);
+	}
+	removeFilament(id: string) {
+		this.filaments = this.filaments.filter((f) => f.id !== id);
+	}
+	/**
+	 * Drop a vendor and clear it off every cached filament that referenced it.
+	 *
+	 * The server does the same on its side — filament.vendor_id is nullable, so a
+	 * filament outlives its manufacturer with the field set to null — but it does
+	 * not broadcast those filaments (see spoolman/database/vendor.py `delete`).
+	 * This is the cache's only chance to stop pointing at a vendor that is gone.
+	 */
+	removeVendor(id: string) {
+		this.vendors = this.vendors.filter((v) => v.id !== id);
+		if (this.filaments.some((f) => f.vendorId === id)) {
+			this.filaments = this.filaments.map((f) => (f.vendorId === id ? { ...f, vendorId: '' } : f));
+		}
+	}
+
 	/** Patch a cached spool in place (optimistic local edit). */
 	patchSpool(id: number, patch: Partial<Spool>) {
 		const s = this.spoolById(id);
@@ -118,7 +144,7 @@ class Inventory {
 		const payload = event.payload;
 		if (event.resource === 'spool') {
 			const id = Number(event.id);
-			if (event.type === 'deleted') this.spools = this.spools.filter((s) => s.id !== id);
+			if (event.type === 'deleted') this.removeSpool(id);
 			else if (payload) {
 				this.upsertSpool(mapSpool(payload));
 				// Spool payloads embed their filament (+ vendor); keep those fresh too.
@@ -131,7 +157,7 @@ class Inventory {
 			}
 		} else if (event.resource === 'filament') {
 			const id = String(event.id);
-			if (event.type === 'deleted') this.filaments = this.filaments.filter((f) => f.id !== id);
+			if (event.type === 'deleted') this.removeFilament(id);
 			else if (payload) {
 				const f = mapFilament(payload);
 				this.upsertFilament(f);
@@ -141,7 +167,7 @@ class Inventory {
 			}
 		} else if (event.resource === 'vendor') {
 			const id = String(event.id);
-			if (event.type === 'deleted') this.vendors = this.vendors.filter((v) => v.id !== id);
+			if (event.type === 'deleted') this.removeVendor(id);
 			else if (payload) this.upsertVendor(mapVendor(payload));
 		}
 	}

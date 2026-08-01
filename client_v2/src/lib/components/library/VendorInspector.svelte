@@ -3,6 +3,9 @@
 	   Every href below comes from a src/lib/library/params.ts helper, which already
 	   resolves against the deploy base path; resolving again would double-apply it. */
 	import Swatch from '../Swatch.svelte';
+	import Button from '../Button.svelte';
+	import ConfirmDialog from '../ConfirmDialog.svelte';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import EditableField from '../EditableField.svelte';
 	import NumberInput from '../NumberInput.svelte';
 	import SectionLabel from '../SectionLabel.svelte';
@@ -14,6 +17,9 @@
 	import { page } from '$app/state';
 	import * as params from '$lib/library/params';
 	import { spoolSource } from '$lib/api/spoolSource';
+	import { live } from '$lib/api/live';
+	import { classifyDeleteFailure, planVendorDelete } from '$lib/library/deletion';
+	import { toasts } from '$lib/stores/toasts.svelte';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
 	import { trackSave } from '$lib/utils/autosave';
 	import * as m from '$lib/paraglide/messages';
@@ -25,8 +31,15 @@
 	// re-trigger this effect in an infinite loop.
 	let vendorId = $derived(vendor.id);
 	let filaments = $state<Filament[]>([]);
+	// Bumped by live filament events. The list below is fetched server-side rather
+	// than read from the cache, so it needs an explicit nudge — and the delete
+	// dialog counts these filaments, so a stale count would misstate what a delete
+	// is about to orphan.
+	let revision = $state(0);
+	$effect(() => live.subscribe('filament', {}, () => revision++));
 	$effect(() => {
 		const id = vendorId;
+		void revision;
 		let cancelled = false;
 		spoolSource
 			.listFilamentsByVendor(id)
@@ -65,6 +78,50 @@
 		() => vendor.extra
 	);
 	$effect(() => () => extraSaver.flush());
+
+	// --- delete -------------------------------------------------------------
+
+	// Unlike a filament, a manufacturer can always be deleted — its filaments are
+	// not deleted with it, they are left without a manufacturer. That is easy to
+	// mistake for "delete everything from this brand", so the dialog says it
+	// outright rather than asking a bare "are you sure?".
+	let plan = $derived(planVendorDelete(filaments.length));
+
+	let confirmOpen = $state(false);
+	let deleting = $state(false);
+
+	let confirmLines = $derived(
+		plan.orphaned > 0
+			? [
+					m['inspector.delete.vendorBody']({ name: vendor.name }),
+					m['inspector.delete.vendorOrphans']({ count: plan.orphaned })
+				]
+			: [m['inspector.delete.vendorBody']({ name: vendor.name })]
+	);
+
+	async function remove() {
+		deleting = true;
+		// The pending edit belongs to a vendor that is about to stop existing.
+		saver.cancel();
+		extraSaver.cancel();
+		try {
+			await spoolSource.deleteVendor(vendor.id);
+			toasts.success(m['inspector.delete.vendorDone']());
+			params.clearSelection();
+		} catch (e) {
+			console.error('Failed to delete manufacturer', e);
+			if (classifyDeleteFailure(e) === 'gone') {
+				toasts.error(m['inspector.delete.errorGone']());
+				inventory.removeVendor(vendor.id);
+				params.clearSelection();
+			} else {
+				toasts.error(m['inspector.delete.errorUnknown']());
+			}
+		} finally {
+			deleting = false;
+			confirmOpen = false;
+		}
+	}
 </script>
 
 <div class="insp">
@@ -78,7 +135,26 @@
 				})}
 			</div>
 		</div>
+		<div class="actions">
+			<Button
+				variant="danger-ghost"
+				title={m['inspector.delete.vendor']()}
+				ariaLabel={m['inspector.delete.vendor']()}
+				disabled={deleting}
+				onclick={() => (confirmOpen = true)}><Trash2 size={15} /></Button
+			>
+		</div>
 	</div>
+
+	<ConfirmDialog
+		open={confirmOpen}
+		busy={deleting}
+		title={m['inspector.delete.vendorTitle']()}
+		lines={confirmLines}
+		confirmLabel={deleting ? m['inspector.delete.deleting']() : m['buttons.delete']()}
+		onconfirm={remove}
+		onclose={() => (confirmOpen = false)}
+	/>
 
 	<div class="grid">
 		<div class="col">
@@ -154,6 +230,10 @@
 		font-size: 12px;
 		color: var(--text-muted);
 		margin-top: 2px;
+	}
+	.actions {
+		margin-left: auto;
+		flex: none;
 	}
 	.grid {
 		display: grid;
