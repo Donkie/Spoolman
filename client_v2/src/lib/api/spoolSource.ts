@@ -415,6 +415,16 @@ class HttpSpoolSource {
 		return total;
 	}
 
+	/**
+	 * Delete a spool. Nothing references a spool, so this always succeeds — it is
+	 * also the only way to free a filament for deletion, since archiving is just a
+	 * flag and the foreign key still holds.
+	 */
+	async deleteSpool(id: number): Promise<void> {
+		await deleteResource(`/spool/${id}`);
+		inventory.removeSpool(id);
+	}
+
 	/** Delete a filament. Rejects with a 403 HttpError if it still has spools. */
 	async deleteFilament(id: string): Promise<void> {
 		await deleteResource(`/filament/${id}`);

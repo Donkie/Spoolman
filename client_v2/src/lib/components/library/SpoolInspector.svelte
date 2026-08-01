@@ -4,6 +4,7 @@
 	   resolves against the deploy base path; resolving again would double-apply it. */
 	import Swatch from '../Swatch.svelte';
 	import Button from '../Button.svelte';
+	import ConfirmDialog from '../ConfirmDialog.svelte';
 	import NumberInput from '../NumberInput.svelte';
 	import EditableField from '../EditableField.svelte';
 	import Combobox from '../Combobox.svelte';
@@ -12,6 +13,7 @@
 	import Archive from '@lucide/svelte/icons/archive';
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import DateTimeField from '../DateTimeField.svelte';
 	import SectionLabel from '../SectionLabel.svelte';
 	import ExtraFieldsSection from '../ExtraFieldsSection.svelte';
@@ -25,6 +27,8 @@
 	import { lengthMeters, pct, weightAuto } from '$lib/utils/format';
 	import { usageLabel } from '$lib/utils/library';
 	import { spoolSource } from '$lib/api/spoolSource';
+	import { classifyDeleteFailure } from '$lib/library/deletion';
+	import { toasts } from '$lib/stores/toasts.svelte';
 	import { makeSaver, makeExtraSaver } from '$lib/utils/saver';
 	import { trackSave } from '$lib/utils/autosave';
 	import { page } from '$app/state';
@@ -184,6 +188,48 @@
 		() => spool.extra
 	);
 	$effect(() => () => extraSaver.flush());
+
+	// --- delete -------------------------------------------------------------
+
+	// Nothing references a spool, so unlike a filament this can never be refused.
+	// It is also what unblocks deleting a filament, since archiving leaves the
+	// foreign key in place. Warn when there is filament left on it, because at that
+	// point archiving is almost certainly what was meant.
+	let confirmOpen = $state(false);
+	let deleting = $state(false);
+
+	let confirmLines = $derived(
+		spool.remaining > 0
+			? [
+					m['inspector.delete.spoolBody']({ id: spool.id, name: filament.name }),
+					m['inspector.delete.spoolRemaining']({ weight: weightAuto(spool.remaining) })
+				]
+			: [m['inspector.delete.spoolBody']({ id: spool.id, name: filament.name })]
+	);
+
+	async function remove() {
+		deleting = true;
+		// The pending edit belongs to a spool that is about to stop existing.
+		saver.cancel();
+		extraSaver.cancel();
+		try {
+			await spoolSource.deleteSpool(spool.id);
+			toasts.success(m['inspector.delete.spoolDone']());
+			params.clearSelection();
+		} catch (e) {
+			console.error('Failed to delete spool', e);
+			if (classifyDeleteFailure(e) === 'gone') {
+				toasts.error(m['inspector.delete.errorGone']());
+				inventory.removeSpool(spool.id);
+				params.clearSelection();
+			} else {
+				toasts.error(m['inspector.delete.errorUnknown']());
+			}
+		} finally {
+			deleting = false;
+			confirmOpen = false;
+		}
+	}
 </script>
 
 <div class="insp">
@@ -232,8 +278,27 @@
 					<span class="btn-label">{m['buttons.unArchive']()}</span>
 				{:else}<Archive size={15} /> <span class="btn-label">{m['buttons.archive']()}</span>{/if}
 			</Button>
+			<!-- Set apart from the things you do to a spool you are keeping. -->
+			<span class="sep" aria-hidden="true"></span>
+			<Button
+				variant="danger-ghost"
+				title={m['inspector.delete.spool']()}
+				ariaLabel={m['inspector.delete.spool']()}
+				disabled={deleting}
+				onclick={() => (confirmOpen = true)}><Trash2 size={15} /></Button
+			>
 		</div>
 	</div>
+
+	<ConfirmDialog
+		open={confirmOpen}
+		busy={deleting}
+		title={m['inspector.delete.spoolTitle']()}
+		lines={confirmLines}
+		confirmLabel={deleting ? m['inspector.delete.deleting']() : m['buttons.delete']()}
+		onconfirm={remove}
+		onclose={() => (confirmOpen = false)}
+	/>
 
 	<div class="gauge">
 		<div class="gauge-line">
@@ -421,6 +486,12 @@
 		display: flex;
 		gap: 8px;
 		flex: none;
+	}
+	.sep {
+		width: 1px;
+		align-self: stretch;
+		margin: 4px 0 4px 2px;
+		background: var(--border);
 	}
 
 	.gauge {

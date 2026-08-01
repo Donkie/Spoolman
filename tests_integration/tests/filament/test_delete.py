@@ -97,6 +97,37 @@ def test_delete_filament_with_archived_spools(random_filament: dict[str, Any]):
         httpx.delete(f"{URL}/api/v1/spool/{spool['id']}")
 
 
+def test_delete_filament_after_deleting_its_spools():
+    """Test that removing a filament's spools is what makes the filament deletable.
+
+    This is the whole escape route the client points users at, so pin the sequence:
+    refused while a spool exists, allowed once it is gone. Owns its filament rather
+    than taking the fixture, since it deletes it for good.
+    """
+    # Setup
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={"name": "Filament Z", "density": 1.25, "diameter": 1.75, "weight": 1000},
+    )
+    result.raise_for_status()
+    filament = result.json()
+
+    result = httpx.post(
+        f"{URL}/api/v1/spool",
+        json={"filament_id": filament["id"], "remaining_weight": 1000},
+    )
+    result.raise_for_status()
+    spool = result.json()
+
+    # Execute + verify: blocked, then unblocked by deleting the spool.
+    assert httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").status_code == 403
+
+    httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
+
+    httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()
+    assert httpx.get(f"{URL}/api/v1/filament/{filament['id']}").status_code == 404
+
+
 def test_delete_filament_not_found():
     """Test deleting a filament that does not exist."""
     # Execute
