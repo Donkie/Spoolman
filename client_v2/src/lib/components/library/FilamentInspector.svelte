@@ -20,6 +20,7 @@
 	import Breadcrumbs from '../Breadcrumbs.svelte';
 	import FieldGrid from '../FieldGrid.svelte';
 	import Field from '../Field.svelte';
+	import VendorSection from './VendorSection.svelte';
 	import type { Filament, Spool } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
@@ -396,13 +397,23 @@
 						oninput={(v) => set({ articleNumber: v })}
 					/>
 				</Field>
+				{#if filament.externalId}
+					<Field label={m['filament.fields.externalId']()} mono>{filament.externalId}</Field>
+				{/if}
 				<Field label={m['filament.fields.registered']()}>{filament.registeredLabel}</Field>
 				<Field label={m['filament.fields.comment']()}>
-					<EditableField value={filament.comment} oninput={(v) => set({ comment: v })} />
+					<EditableField value={filament.comment} linkify oninput={(v) => set({ comment: v })} />
 				</Field>
 			</FieldGrid>
 
 			<ExtraFieldsSection entity="filament" extra={filament.extra} onchange={extraSaver.change} manage />
+		</div>
+
+		<div class="col">
+			<VendorSection
+				{vendor}
+				href={vendor ? params.selectHref(page.url.searchParams, 'vendor', vendor.id) : undefined}
+			/>
 		</div>
 	</div>
 </div>
@@ -523,10 +534,19 @@
 		color: var(--text-dim);
 		flex: none;
 	}
+	/* Specs on the left, the manufacturer's own fields on the right — same split as
+	   the manufacturer view, which puts its filament list in the second column. */
 	.grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0 32px;
 		padding: 4px 20px 24px;
+		align-items: start;
 	}
 	@media (max-width: 620px) {
+		.grid {
+			grid-template-columns: 1fr;
+		}
 		/* Keep the header actions reachable on narrow panels by wrapping them onto
 		   their own full-width row instead of hiding them. */
 		.head {

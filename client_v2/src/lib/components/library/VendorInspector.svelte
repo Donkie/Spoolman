@@ -174,9 +174,12 @@
 						onchange={(v) => set({ emptyWeight: Math.round(v) })}
 					/>
 				</Field>
+				{#if vendor.externalId}
+					<Field label={m['vendor.fields.externalId']()} mono>{vendor.externalId}</Field>
+				{/if}
 				<Field label={m['vendor.fields.registered']()}>{vendor.registeredLabel}</Field>
 				<Field label={m['vendor.fields.comment']()}>
-					<EditableField value={vendor.comment} oninput={(v) => set({ comment: v })} />
+					<EditableField value={vendor.comment} linkify oninput={(v) => set({ comment: v })} />
 				</Field>
 			</FieldGrid>
 

@@ -161,6 +161,8 @@
     "inspector.noExtraFields": "None yet — add your own fields to track anything Spoolman doesn't.",
     "inspector.ofRemaining": "of {{weight}} remaining · {{length}} m",
     "inspector.openFilament": "Open filament",
+    "inspector.openLink": "Open {{url}} in a new tab",
+    "inspector.openManufacturer": "Open manufacturer",
     "inspector.specs": "Specs — edit in place",
     "inspector.spoolsCount": "Spools · {{count}}",
     "inspector.spoolsTotalRemaining": "{{weight}} total",

@@ -20,6 +20,8 @@
 	import Breadcrumbs from '../Breadcrumbs.svelte';
 	import FieldGrid from '../FieldGrid.svelte';
 	import Field from '../Field.svelte';
+	import LinkedText from '../LinkedText.svelte';
+	import VendorSection from './VendorSection.svelte';
 	import type { Filament, Spool } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
@@ -387,7 +389,7 @@
 					<DateTimeField value={spool.lastUsed} oninput={(iso) => set({ lastUsed: iso })} />
 				</Field>
 				<Field label={m['spool.fields.comment']()}>
-					<EditableField value={spool.comment} oninput={(v) => set({ comment: v })} />
+					<EditableField value={spool.comment} linkify oninput={(v) => set({ comment: v })} />
 				</Field>
 			</FieldGrid>
 
@@ -425,14 +427,30 @@
 				<Field label={m['filament.fields.weight']()} help={m['filament.fieldsHelp.weight']()} mono
 					>{filament.weight} g</Field
 				>
-				{#if filament.spoolWeight}
-					<Field label={m['filament.fields.spoolWeight']()} help={m['filament.fieldsHelp.spoolWeight']()} mono
-						>{filament.spoolWeight} g</Field
-					>
+				<Field label={m['filament.fields.spoolWeight']()} help={m['filament.fieldsHelp.spoolWeight']()} mono
+					>{filament.spoolWeight != null ? `${filament.spoolWeight} g` : '—'}</Field
+				>
+				<Field label={m['filament.fields.price']()} mono>{settings.formatPrice(filament.price)}</Field>
+				<Field
+					label={m['filament.fields.articleNumber']()}
+					help={m['filament.fieldsHelp.articleNumber']()}
+					mono>{filament.articleNumber || '—'}</Field
+				>
+				{#if filament.externalId}
+					<Field label={m['filament.fields.externalId']()} mono>{filament.externalId}</Field>
 				{/if}
+				<Field label={m['filament.fields.registered']()}>{filament.registeredLabel}</Field>
+				<Field label={m['filament.fields.comment']()}><LinkedText text={filament.comment} /></Field>
+				<!-- The filament's own custom fields, as further rows of this grid: a
+				     second "Extra fields" heading here would read as a peer of FILAMENT
+				     and MANUFACTURER rather than as more of the filament. -->
+				<ExtraFieldsSection entity="filament" extra={filament.extra} onchange={() => {}} readonly headless />
 			</FieldGrid>
 
-			<ExtraFieldsSection entity="filament" extra={filament.extra} onchange={() => {}} readonly />
+			<VendorSection
+				{vendor}
+				href={vendor ? params.selectHref(page.url.searchParams, 'vendor', vendor.id) : undefined}
+			/>
 		</div>
 	</div>
 </div>

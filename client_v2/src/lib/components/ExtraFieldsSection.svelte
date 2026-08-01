@@ -22,8 +22,16 @@
 		 * another entity, where an empty section is just noise.
 		 */
 		manage?: boolean;
+		/**
+		 * Emit only the field rows — no section header, no grid of its own — so the
+		 * caller can drop them straight into its own <FieldGrid>. Used by the
+		 * read-only mirrors of another entity, where a second "Extra fields" heading
+		 * in the same panel reads as a peer section rather than as more of the
+		 * entity above it (#992).
+		 */
+		headless?: boolean;
 	}
-	let { entity, extra, onchange, readonly = false, manage = false }: Props = $props();
+	let { entity, extra, onchange, readonly = false, manage = false, headless = false }: Props = $props();
 
 	$effect(() => {
 		fields.ensure(entity);
@@ -43,20 +51,21 @@
 	>
 {/snippet}
 
-{#if show}
+{#snippet rows()}
+	{#each defs as f (f.key)}
+		<Field label={f.name}>
+			<ExtraFieldInput field={f} value={extra[f.key]} onchange={(json) => onchange(f.key, json)} {readonly} />
+		</Field>
+	{/each}
+{/snippet}
+
+{#if headless}
+	{@render rows()}
+{:else if show}
 	<SectionLabel right={manage ? manageLink : undefined}>{m['settings.extraFields.tab']()}</SectionLabel>
 	{#if defs.length}
 		<FieldGrid>
-			{#each defs as f (f.key)}
-				<Field label={f.name}>
-					<ExtraFieldInput
-						field={f}
-						value={extra[f.key]}
-						onchange={(json) => onchange(f.key, json)}
-						{readonly}
-					/>
-				</Field>
-			{/each}
+			{@render rows()}
 		</FieldGrid>
 	{:else}
 		<div class="none">{m['inspector.noExtraFields']()}</div>
