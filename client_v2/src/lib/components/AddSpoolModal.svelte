@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import Swatch from './Swatch.svelte';
 	import ColorEditor from './ColorEditor.svelte';
 	import Button from './Button.svelte';
@@ -16,6 +17,7 @@
 	import { serverInfo } from '$lib/stores/serverInfo.svelte';
 	import { spoolSource, type NewFilamentDraft } from '$lib/api/spoolSource';
 	import { fields } from '$lib/stores/fields.svelte';
+	import type { EntityType } from '$lib/api/fields';
 	import { externalColors, externalDirection, type ExternalFilament } from '$lib/api/external';
 	import { roundGrams, weightAuto } from '$lib/utils/format';
 	import { loadMaterials, type MaterialSpec } from '$lib/data/materials';
@@ -64,6 +66,9 @@
 		articleNumber: '',
 		comment: ''
 	});
+	// Custom-field values for the filament being created. Separate from the spool's
+	// `extraValues` below: the two entities have their own field definitions.
+	let filamentExtra = $state<Extra>({});
 	let showAdvanced = $state(false);
 	let nameInput = $state<HTMLInputElement | undefined>();
 	// Display-only: an untouched empty name shows the naming guidance rather than
@@ -135,6 +140,7 @@
 			initialized = true;
 			runSearch();
 			fields.ensure('spool');
+			fields.ensure('filament');
 			spoolSource
 				.locations()
 				.then((l) => (locations = l))
@@ -220,16 +226,37 @@
 					: ''
 	);
 
-	function seedExtraDefaults(): Extra {
-		const out: Extra = {};
-		for (const f of fields.get('spool')) if (f.default_value != null) out[f.key] = f.default_value;
+	/** `current` with a default filled in for every field it doesn't already carry. */
+	function withDefaults(entity: EntityType, current: Extra): Extra {
+		const out = { ...current };
+		for (const f of fields.get(entity))
+			if (f.default_value != null && !(f.key in out)) out[f.key] = f.default_value;
 		return out;
 	}
-	function setExtra(key: string, json: string | undefined) {
-		const next = { ...extraValues };
+	// Definitions are fetched on open, so they can land after the form is already on
+	// screen — opening straight into a preset or a duplicate leaves no time for the
+	// request. Top up the defaults when they arrive; anything already there, seeded
+	// or typed, is left alone. The writes are untracked so this doesn't re-run itself.
+	$effect(() => {
+		fields.get('spool');
+		fields.get('filament');
+		untrack(() => {
+			extraValues = withDefaults('spool', extraValues);
+			filamentExtra = withDefaults('filament', filamentExtra);
+		});
+	});
+
+	function setExtraOn(current: Extra, key: string, json: string | undefined): Extra {
+		const next = { ...current };
 		if (json === undefined) delete next[key];
 		else next[key] = json;
-		extraValues = next;
+		return next;
+	}
+	function setExtra(key: string, json: string | undefined) {
+		extraValues = setExtraOn(extraValues, key, json);
+	}
+	function setFilamentExtra(key: string, json: string | undefined) {
+		filamentExtra = setExtraOn(filamentExtra, key, json);
 	}
 
 	function resetSpoolForm() {
@@ -241,7 +268,7 @@
 		fillWeight = '';
 		firstUsed = undefined;
 		lastUsed = undefined;
-		extraValues = seedExtraDefaults();
+		extraValues = withDefaults('spool', {});
 	}
 
 	function choose(c: Choice) {
@@ -276,6 +303,7 @@
 			articleNumber: '',
 			comment: ''
 		};
+		filamentExtra = withDefaults('filament', {});
 		netWeight = '1000';
 		spoolWeight = '';
 		price = '';
@@ -286,10 +314,11 @@
 	/**
 	 * Start a new filament copied from an existing one — the "I bought the same
 	 * filament in another colour" case. Everything that describes the *product*
-	 * carries over (manufacturer, material, specs, weights, price, custom fields);
-	 * everything that identifies the *variant* is left for the user: the colour is
-	 * cleared and the article number (a per-colour SKU) is dropped. The name is
-	 * kept as a starting point since it's usually one word away from the new one,
+	 * carries over (manufacturer, material, specs, weights, price, custom fields — all
+	 * of it still editable in the form); everything that identifies the *variant* is
+	 * left for the user: the colour is cleared and the article number (a per-colour
+	 * SKU) is dropped. The name is kept as a starting point since it's usually one
+	 * word away from the new one,
 	 * with a nudge below the field until it's changed.
 	 */
 	function startDuplicate(f: Filament) {
@@ -313,6 +342,7 @@
 			articleNumber: '',
 			comment: f.comment
 		};
+		filamentExtra = withDefaults('filament', { ...f.extra });
 		netWeight = String(f.weight || 1000);
 		spoolWeight = f.spoolWeight ? String(f.spoolWeight) : '';
 		price = f.price ? String(f.price) : '';
@@ -386,9 +416,7 @@
 					price: parseFloat(price) || undefined,
 					articleNumber: nf.articleNumber.trim() || undefined,
 					comment: nf.comment.trim() || undefined,
-					// A duplicate carries the original's custom-field values too; they
-					// aren't editable here, so the inspector is where they get adjusted.
-					extra: cloneSource?.extra
+					extra: filamentExtra
 				};
 				const f = await spoolSource.createFilament(draft);
 				created = f;
@@ -744,6 +772,10 @@
 									</label>
 								</div>
 							{/if}
+							<!-- Outside the advanced block: a custom field only exists because
+							     someone defined it, so it isn't an advanced detail to them. The
+							     section renders nothing when no filament fields are defined. -->
+							<ExtraFieldsSection entity="filament" extra={filamentExtra} onchange={setFilamentExtra} />
 						</div>
 						<div class="sec-divider"></div>
 					{:else if chosen}
