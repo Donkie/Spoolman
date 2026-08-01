@@ -47,9 +47,10 @@
 		{/if}
 		<Field label={m['vendor.fields.registered']()}>{vendor.registeredLabel}</Field>
 		<Field label={m['vendor.fields.comment']()}><LinkedText text={vendor.comment} /></Field>
+		<!-- Rows of this same grid rather than their own headed section — see the
+		     `headless` prop's note in ExtraFieldsSection. -->
+		<ExtraFieldsSection entity="vendor" extra={vendor.extra} onchange={() => {}} readonly headless />
 	</FieldGrid>
-
-	<ExtraFieldsSection entity="vendor" extra={vendor.extra} onchange={() => {}} readonly />
 {:else}
 	<div class="none">{m['add.noManufacturer']()}</div>
 {/if}

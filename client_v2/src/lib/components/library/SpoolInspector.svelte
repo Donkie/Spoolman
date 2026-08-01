@@ -376,9 +376,11 @@
 				{/if}
 				<Field label={m['filament.fields.registered']()}>{filament.registeredLabel}</Field>
 				<Field label={m['filament.fields.comment']()}><LinkedText text={filament.comment} /></Field>
+				<!-- The filament's own custom fields, as further rows of this grid: a
+				     second "Extra fields" heading here would read as a peer of FILAMENT
+				     and MANUFACTURER rather than as more of the filament. -->
+				<ExtraFieldsSection entity="filament" extra={filament.extra} onchange={() => {}} readonly headless />
 			</FieldGrid>
-
-			<ExtraFieldsSection entity="filament" extra={filament.extra} onchange={() => {}} readonly />
 
 			<VendorSection
 				{vendor}
