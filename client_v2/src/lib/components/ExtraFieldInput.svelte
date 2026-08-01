@@ -2,6 +2,8 @@
 	import { FieldType, NUMERIC_FIELD_TYPES, type FieldDef } from '$lib/api/fields';
 	import Toggle from './Toggle.svelte';
 	import DateTimeField from './DateTimeField.svelte';
+	import EditableField from './EditableField.svelte';
+	import LinkedText from './LinkedText.svelte';
 	import { formatDateTime } from '$lib/utils/datetime';
 	import * as m from '$lib/paraglide/messages';
 
@@ -76,18 +78,15 @@
 		<span>{parsed === true ? m.yes() : m.no()}</span>
 	{:else if field.field_type === FieldType.choice && field.multi_choice}
 		<span>{selected.length ? selected.join(', ') : '—'}</span>
+	{:else if field.field_type === FieldType.text}
+		<LinkedText text={parsed !== undefined && parsed !== '' ? withUnit(String(parsed)) : ''} />
 	{:else}
 		<span class:mono={NUMERIC_FIELD_TYPES.has(field.field_type)}
 			>{parsed !== undefined && parsed !== '' ? withUnit(String(parsed)) : '—'}</span
 		>
 	{/if}
 {:else if field.field_type === FieldType.text}
-	<input
-		class="edit"
-		value={parsed ?? ''}
-		aria-label={field.name}
-		oninput={(e) => onText(e.currentTarget.value)}
-	/>
+	<EditableField value={parsed ?? ''} placeholder="" ariaLabel={field.name} linkify oninput={onText} />
 {:else if field.field_type === FieldType.integer}
 	<span class="numrow">
 		<input
