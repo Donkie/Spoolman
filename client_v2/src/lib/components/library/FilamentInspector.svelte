@@ -206,20 +206,28 @@
 			</div>
 		</div>
 		<div class="add">
-			<!-- Buying the same filament in another colour is the common case, so the
-			     shortcut sits next to the spool action rather than behind a menu. -->
-			<Button variant="outline" onclick={() => ui.openDuplicateModal(filament.id)}
-				><Copy size={15} /> {m['inspector.duplicateFilament']()}</Button
-			>
 			<Button onclick={() => ui.openAddModal(filament.id)}
 				><Plus size={15} /> {m['inspector.addSpoolsOfThis']()}</Button
 			>
-			<!-- Stays enabled when spools block the delete: the dialog then explains why,
-			     which a greyed-out button never could. -->
+			<!-- Duplicating and deleting are occasional, so they sit apart as quiet icons
+			     and leave the end of the row to the one action this panel is really for.
+			     Buying the same filament in another colour is common enough to stay a
+			     shortcut here rather than hide behind a menu. Delete stays enabled when
+			     spools block it: the dialog then explains why, which a greyed-out button
+			     never could. -->
+			<span class="sep" aria-hidden="true"></span>
 			<Button
-				variant="outline"
+				variant="ghost"
+				title={m['inspector.duplicateFilament']()}
+				ariaLabel={m['inspector.duplicateFilament']()}
+				onclick={() => ui.openDuplicateModal(filament.id)}><Copy size={15} /></Button
+			>
+			<Button
+				variant="danger-ghost"
+				title={m['inspector.delete.filament']()}
+				ariaLabel={m['inspector.delete.filament']()}
 				disabled={spoolCount === null || deleting}
-				onclick={() => (confirmOpen = true)}><Trash2 size={15} /> {m['buttons.delete']()}</Button
+				onclick={() => (confirmOpen = true)}><Trash2 size={15} /></Button
 			>
 		</div>
 	</div>
@@ -437,6 +445,12 @@
 		gap: 8px;
 		margin-left: auto;
 		flex: none;
+	}
+	.sep {
+		width: 1px;
+		align-self: stretch;
+		margin: 4px 0 4px 2px;
+		background: var(--border);
 	}
 	.spools {
 		display: flex;

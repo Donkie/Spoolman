@@ -136,8 +136,12 @@
 			</div>
 		</div>
 		<div class="actions">
-			<Button variant="outline" disabled={deleting} onclick={() => (confirmOpen = true)}
-				><Trash2 size={15} /> {m['buttons.delete']()}</Button
+			<Button
+				variant="danger-ghost"
+				title={m['inspector.delete.vendor']()}
+				ariaLabel={m['inspector.delete.vendor']()}
+				disabled={deleting}
+				onclick={() => (confirmOpen = true)}><Trash2 size={15} /></Button
 			>
 		</div>
 	</div>

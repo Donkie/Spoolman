@@ -6,13 +6,15 @@
 	import type { Snippet } from 'svelte';
 
 	interface Props {
-		variant?: 'primary' | 'outline' | 'ghost' | 'danger';
+		variant?: 'primary' | 'outline' | 'ghost' | 'danger' | 'danger-ghost';
 		type?: 'button' | 'submit';
 		onclick?: (e: MouseEvent) => void;
 		/** When set the button navigates: it renders as a real `<a href>` link
 		 *  (middle-click / copy-link work) instead of a `<button>`. */
 		href?: string;
 		title?: string;
+		/** Accessible name. Required when the content is an icon with no text. */
+		ariaLabel?: string;
 		disabled?: boolean;
 		children: Snippet;
 	}
@@ -23,17 +25,18 @@
 		onclick,
 		href,
 		title,
+		ariaLabel,
 		disabled = false,
 		children
 	}: Props = $props();
 </script>
 
 {#if href}
-	<a class="btn {variant}" class:disabled {href} {title} {onclick}>
+	<a class="btn {variant}" class:disabled {href} {title} aria-label={ariaLabel} {onclick}>
 		{@render children()}
 	</a>
 {:else}
-	<button class="btn {variant}" {type} {onclick} {title} {disabled}>
+	<button class="btn {variant}" {type} {onclick} {title} aria-label={ariaLabel} {disabled}>
 		{@render children()}
 	</button>
 {/if}
@@ -77,14 +80,23 @@
 		border-color: var(--accent);
 	}
 
-	.ghost {
+	/* Occasional actions that sit apart from the one button a panel is really for
+	   (duplicate, delete). They recede until you reach for them, and only take on
+	   weight — or colour — under the cursor. */
+	.ghost,
+	.danger-ghost {
 		background: none;
-		color: var(--text-2);
-		padding: 6px 10px;
+		color: var(--text-dim);
+		padding: 7px 9px;
 		font-weight: 500;
 	}
 	.ghost:hover {
 		color: var(--text);
+		background: var(--surface-raised);
+	}
+	.danger-ghost:hover {
+		color: var(--danger);
+		background: var(--danger-wash);
 	}
 
 	/* Confirming a delete. Filled rather than outlined so the irreversible action
