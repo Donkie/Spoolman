@@ -100,10 +100,25 @@ export interface SearchMatch<T> {
 	matchField: string;
 }
 
+/** One of a matched filament's spools, in the fields a shortcut pill shows. */
+export interface FilamentSpoolHit {
+	id: number;
+	remainingWeight?: number;
+	location?: string;
+	archived: boolean;
+}
+
+/** A filament search hit, plus the spools offered as shortcuts beneath it. */
+export interface FilamentSearchMatch extends SearchMatch<Filament> {
+	spools: FilamentSpoolHit[];
+	/** Total spools of this filament, of which `spools` holds at most the first few. */
+	spoolCount: number;
+}
+
 /** Categorized results of a cross-entity search. */
 export interface SearchResults {
 	spools: SearchMatch<Spool>[];
-	filaments: SearchMatch<Filament>[];
+	filaments: FilamentSearchMatch[];
 	vendors: SearchMatch<Vendor>[];
 	/** True when the query was recognized as a color (a threshold slider is relevant). */
 	isColorQuery: boolean;

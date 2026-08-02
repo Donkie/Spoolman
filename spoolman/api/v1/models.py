@@ -2,13 +2,18 @@
 
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 
 from pydantic import BaseModel, Field, PlainSerializer
 
 from spoolman.database import models
 from spoolman.math import length_from_weight
 from spoolman.settings import SettingDefinition, SettingType
+
+if TYPE_CHECKING:
+    # Only for typing: spoolman.database.search reaches spoolman.database.filament,
+    # which imports this module, so importing it for real would be circular.
+    from spoolman.database import search
 
 
 def datetime_to_str(dt: datetime) -> str:
@@ -19,6 +24,31 @@ def datetime_to_str(dt: datetime) -> str:
 
 
 SpoolmanDateTime = Annotated[datetime, PlainSerializer(datetime_to_str)]
+
+
+def _sanitize_color_hex(value: str | None) -> str | None:
+    """Normalize a color code read from the database.
+
+    Older releases could store a value with a leading ``#`` (see #780). Strip it and
+    drop anything that still isn't a valid 6 or 8 character code, so that one bad row
+    doesn't make the whole filament list unserializable.
+    """
+    if not value:
+        return None
+    clr = value.upper().removeprefix("#")
+    if len(clr) not in (6, 8) or any(c not in "0123456789ABCDEF" for c in clr):
+        return None
+    return clr
+
+
+def _sanitize_multi_color_hexes(value: str | None) -> str | None:
+    """Normalize a comma-separated list of color codes read from the database."""
+    if not value:
+        return None
+    colors = [c for c in (_sanitize_color_hex(part) for part in value.split(",")) if c is not None]
+    if len(colors) < 2:  # noqa: PLR2004
+        return None
+    return ",".join(colors)
 
 
 def _extra_fields_description(entity: str) -> str:
@@ -242,8 +272,8 @@ class Filament(BaseModel):
             comment=item.comment,
             settings_extruder_temp=item.settings_extruder_temp,
             settings_bed_temp=item.settings_bed_temp,
-            color_hex=item.color_hex,
-            multi_color_hexes=item.multi_color_hexes,
+            color_hex=_sanitize_color_hex(item.color_hex),
+            multi_color_hexes=_sanitize_multi_color_hexes(item.multi_color_hexes),
             multi_color_direction=(
                 MultiColorDirection(item.multi_color_direction) if item.multi_color_direction is not None else None
             ),
@@ -441,6 +471,44 @@ class SearchResultSpool(BaseModel):
     )
 
 
+class SearchResultFilamentSpool(BaseModel):
+    """A spool of a filament that matched a search, in the fields needed to offer it as a shortcut."""
+
+    id: int = Field(description="Unique internal ID of this spool of filament.")
+    remaining_weight: float | None = Field(
+        default=None,
+        ge=0,
+        description=(
+            "Estimated remaining weight of filament on the spool in grams. "
+            "Only set if the spool or its filament type has a weight set."
+        ),
+        examples=[500.6],
+    )
+    location: str | None = Field(
+        None,
+        max_length=64,
+        description="Where this spool can be found.",
+        examples=["Shelf A"],
+    )
+    archived: bool = Field(description="Whether this spool is archived and should not be used anymore.")
+
+    @staticmethod
+    def from_db(item: "search.FilamentSpool", filament_weight: float | None) -> "SearchResultFilamentSpool":
+        """Create the compact spool object, deriving its weight the way `Spool.from_db` does."""
+        remaining_weight: float | None = None
+        if item.initial_weight is not None:
+            remaining_weight = max(item.initial_weight - item.used_weight, 0)
+        elif filament_weight is not None:
+            remaining_weight = max(filament_weight - item.used_weight, 0)
+
+        return SearchResultFilamentSpool(
+            id=item.id,
+            remaining_weight=remaining_weight,
+            location=item.location,
+            archived=item.archived,
+        )
+
+
 class SearchResultFilament(BaseModel):
     """A filament that matched a search, with which field matched."""
 
@@ -451,6 +519,22 @@ class SearchResultFilament(BaseModel):
             "'article_number', 'comment'), 'color' for a color-similarity match, or 'extra.<key>'."
         ),
         examples=["color"],
+    )
+    spools: list[SearchResultFilamentSpool] | None = Field(
+        default=None,
+        description=(
+            "The filament's first spools, oldest id first, so a filament hit can be followed "
+            "straight to one of its spools. Only present if spools_per_filament was requested. "
+            "Obeys allow_archived like the rest of the response."
+        ),
+    )
+    spool_count: int | None = Field(
+        default=None,
+        description=(
+            "How many spools this filament has in total, of which `spools` holds at most "
+            "spools_per_filament. Only present if spools_per_filament was requested."
+        ),
+        examples=[3],
     )
 
 

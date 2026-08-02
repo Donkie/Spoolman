@@ -102,12 +102,15 @@ def _search(
     color_similarity_threshold: float | None = None,
     *,
     allow_archived: bool | None = None,
+    spools_per_filament: int | None = None,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {"q": query}
     if color_similarity_threshold is not None:
         params["color_similarity_threshold"] = color_similarity_threshold
     if allow_archived is not None:
         params["allow_archived"] = allow_archived
+    if spools_per_filament is not None:
+        params["spools_per_filament"] = spools_per_filament
     result = httpx.get(f"{URL}/api/v1/search", params=params)
     result.raise_for_status()
     return result.json()
@@ -238,3 +241,85 @@ def test_search_by_id_respects_allow_archived(archived_spool: dict[str, Any]):
     spool_id = archived_spool["id"]
     assert not _has(_search(str(spool_id))["spools"], "spool", spool_id, "id")
     assert _has(_search(str(spool_id), allow_archived=True)["spools"], "spool", spool_id, "id")
+
+
+# --- spools attached to filament results (issue #993) -------------------------------
+
+
+@pytest.fixture
+def extra_spools(data: Fixture) -> Iterable[list[dict[str, Any]]]:
+    """Two more spools of the fixture's filament, so it has three in total."""
+    spools = []
+    for _ in range(2):
+        result = httpx.post(
+            f"{URL}/api/v1/spool",
+            json={"filament_id": data.filament["id"], "remaining_weight": 600},
+        )
+        result.raise_for_status()
+        spools.append(result.json())
+    yield spools
+    for spool in spools:
+        httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
+
+
+def _filament_hit(body: dict[str, Any], filament_id: int) -> dict[str, Any]:
+    return next(i for i in body["filaments"] if i["filament"]["id"] == filament_id)
+
+
+def test_filament_spools_omitted_by_default(data: Fixture, extra_spools: list[dict[str, Any]]):
+    """Not asking for spools leaves the response exactly as it was before."""
+    assert extra_spools  # the filament does have spools to omit
+    hit = _filament_hit(_search(FILAMENT_NAME), data.filament["id"])
+    assert "spools" not in hit
+    assert "spool_count" not in hit
+
+
+def test_filament_spools_returned_when_requested(data: Fixture, extra_spools: list[dict[str, Any]]):
+    """A filament hit carries its spools, oldest id first, plus the total count."""
+    hit = _filament_hit(_search(FILAMENT_NAME, spools_per_filament=5), data.filament["id"])
+    expected = sorted([data.spool["id"], *(s["id"] for s in extra_spools)])
+    assert [s["id"] for s in hit["spools"]] == expected
+    assert hit["spool_count"] == 3
+
+
+def test_filament_spools_have_remaining_weight(data: Fixture, extra_spools: list[dict[str, Any]]):
+    """The compact spool derives the same remaining weight the spool endpoint reports."""
+    hit = _filament_hit(_search(FILAMENT_NAME, spools_per_filament=5), data.filament["id"])
+    by_id = {s["id"]: s for s in hit["spools"]}
+    assert by_id[data.spool["id"]]["remaining_weight"] == pytest.approx(1000)
+    assert by_id[extra_spools[0]["id"]]["remaining_weight"] == pytest.approx(600)
+
+
+def test_filament_spools_location(data: Fixture):
+    hit = _filament_hit(_search(FILAMENT_NAME, spools_per_filament=5), data.filament["id"])
+    assert hit["spools"][0]["location"] == SPOOL_LOCATION
+
+
+def test_filament_spools_respect_the_requested_count(data: Fixture, extra_spools: list[dict[str, Any]]):
+    """Only the first N come back, but the count still reports every spool."""
+    assert extra_spools
+    hit = _filament_hit(_search(FILAMENT_NAME, spools_per_filament=2), data.filament["id"])
+    assert len(hit["spools"]) == 2
+    assert hit["spool_count"] == 3
+
+
+def test_filament_spools_zero_means_omitted(data: Fixture):
+    hit = _filament_hit(_search(FILAMENT_NAME, spools_per_filament=0), data.filament["id"])
+    assert "spools" not in hit
+
+
+def test_filament_spools_exclude_archived_by_default(data: Fixture, archived_spool: dict[str, Any]):
+    """An archived spool must not be offered as a shortcut, nor counted."""
+    hit = _filament_hit(_search(FILAMENT_NAME, spools_per_filament=10), data.filament["id"])
+    assert archived_spool["id"] not in [s["id"] for s in hit["spools"]]
+    assert hit["spool_count"] == 1
+
+
+def test_filament_spools_include_archived_when_allowed(data: Fixture, archived_spool: dict[str, Any]):
+    hit = _filament_hit(
+        _search(FILAMENT_NAME, allow_archived=True, spools_per_filament=10),
+        data.filament["id"],
+    )
+    archived = next(s for s in hit["spools"] if s["id"] == archived_spool["id"])
+    assert archived["archived"] is True
+    assert hit["spool_count"] == 2

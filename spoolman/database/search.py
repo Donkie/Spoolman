@@ -64,9 +64,24 @@ class SpoolMatch:
 
 
 @dataclass
+class FilamentSpool:
+    """A spool of a matched filament, in the few raw columns a search result needs."""
+
+    id: int
+    initial_weight: float | None
+    used_weight: float
+    location: str | None
+    archived: bool
+
+
+@dataclass
 class FilamentMatch:
     filament: models.Filament
     match_field: str
+    # Both stay None unless the caller asked for spools, so "not requested" is
+    # distinguishable from "this filament has no spools".
+    spools: list[FilamentSpool] | None = None
+    spool_count: int | None = None
 
 
 @dataclass
@@ -332,6 +347,76 @@ async def _search_filaments(
     return [FilamentMatch(filament=filaments[fid], match_field=field) for fid, (field, _rank) in ordered]
 
 
+async def _attach_filament_spools(
+    db: AsyncSession,
+    matches: list[FilamentMatch],
+    per_filament: int,
+    *,
+    allow_archived: bool,
+) -> None:
+    """Annotate each filament match with its first few spools, and how many it has in total.
+
+    A filament hit answers "you own this filament"; the spools answer "and here is
+    the one to click". Searching a filament name is the common way to reach a spool
+    (issue #993), and without this the search box can only offer the filament.
+
+    One query fetches the few scalar columns of every spool of every matched filament,
+    then the rows are grouped, counted and trimmed in Python. That is bounded by the
+    spools of at most ``limit`` filaments -- a handful of rows for any real inventory --
+    and it keeps the exact total for free. The portable alternative for a per-group
+    limit is a window function, which is deliberately avoided: this has to behave
+    identically on SQLite, PostgreSQL, MySQL/MariaDB and CockroachDB.
+
+    Spools are ordered by id, so the "first" spools are the oldest ones, the same
+    numbering the user sees on the spool itself. Ordering by ``last_used`` would read
+    better but sorts nulls differently across those four databases.
+    """
+    if not matches or per_filament <= 0:
+        return
+
+    by_id = {m.filament.id: m for m in matches}
+    stmt = (
+        select(
+            models.Spool.filament_id,
+            models.Spool.id,
+            models.Spool.initial_weight,
+            models.Spool.used_weight,
+            models.Spool.location,
+            models.Spool.archived,
+        )
+        .where(models.Spool.filament_id.in_(by_id.keys()))
+        .order_by(models.Spool.id)
+    )
+    if not allow_archived:
+        # Same archived clause as everywhere else here, so the pills can't offer a
+        # spool that the spool section of the very same response is hiding.
+        stmt = stmt.where(
+            or_(
+                models.Spool.archived.is_(False),
+                models.Spool.archived.is_(None),
+            ),
+        )
+
+    counts: dict[int, int] = dict.fromkeys(by_id, 0)
+    spools: dict[int, list[FilamentSpool]] = {fid: [] for fid in by_id}
+    for filament_id, spool_id, initial_weight, used_weight, location, archived in (await db.execute(stmt)).all():
+        counts[filament_id] += 1
+        if len(spools[filament_id]) < per_filament:
+            spools[filament_id].append(
+                FilamentSpool(
+                    id=spool_id,
+                    initial_weight=initial_weight,
+                    used_weight=used_weight,
+                    location=location,
+                    archived=bool(archived),
+                ),
+            )
+
+    for filament_id, match in by_id.items():
+        match.spools = spools[filament_id]
+        match.spool_count = counts[filament_id]
+
+
 async def _search_vendors(db: AsyncSession, terms: list[str], limit: int) -> list[VendorMatch]:
     native_fields = (
         ("name", models.Vendor.name),
@@ -409,6 +494,7 @@ async def search(
     color_similarity_threshold: float = 20.0,
     limit: int = 20,
     allow_archived: bool = False,
+    spools_per_filament: int = 0,
 ) -> SearchResult:
     """Run a cross-entity search for ``query`` and return categorized, annotated results."""
     q = query.strip()
@@ -424,6 +510,9 @@ async def search(
     spools = await _search_spools(db, terms, limit, allow_archived=allow_archived)
     filaments = await _search_filaments(db, terms, limit, color_hits)
     vendors = await _search_vendors(db, terms, limit)
+
+    # After trimming to `limit`, so we only fetch spools for filaments we return.
+    await _attach_filament_spools(db, filaments, spools_per_filament, allow_archived=allow_archived)
 
     # Numeric query: surface the spool with that exact id at the very top.
     if q.isdigit():

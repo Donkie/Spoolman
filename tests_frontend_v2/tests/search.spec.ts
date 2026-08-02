@@ -75,6 +75,36 @@ test("the top-bar search covers all three entities", async ({ page }) => {
   });
 });
 
+test("a filament result offers its spools as shortcuts", async ({ page }) => {
+  // Issue #993: a spool only matches on its own text, so searching a filament
+  // name used to be a dead end — the hit named the filament you own but gave no
+  // way to reach any of its spools. Each filament hit now carries the first few.
+  const many = {
+    vendorName: unique("PillVendor"),
+    filamentName: unique("PillFilament"),
+    locationName: unique("PillShelf"),
+    count: 6,
+  };
+
+  await openApp(page);
+  await createSpoolViaModal(page, many);
+
+  const panel = await searchFor(page, many.filamentName);
+  await expect(panel.getByText(many.filamentName, { exact: true })).toBeVisible();
+
+  // Six spools, five pills: the rest are behind an overflow link to the filament,
+  // which lists all of them.
+  const pills = panel.locator(".pills a:not(.more)");
+  await expect(pills).toHaveCount(5);
+  await expect(pills.first()).toHaveText(/^#\d+/);
+  await expect(panel.locator(".pills a.more")).toHaveText("+1 more");
+
+  // The point of the whole thing: one click from a filament name to a spool.
+  await pills.first().click();
+  await expect(page).toHaveURL(/[?&]sel=spool(:|%3A)\d+/);
+  await expect(panel).toBeHidden();
+});
+
 test("a search that matches nothing says so", async ({ page }) => {
   await openApp(page);
 
