@@ -142,7 +142,7 @@ class FilamentParameters(BaseModel):
         if len(clr) not in (6, 8):
             raise ValueError("Color code must be 6 or 8 characters long.")
 
-        return v
+        return v.removeprefix("#")
 
     @field_validator("multi_color_hexes")
     @classmethod
@@ -150,6 +150,7 @@ class FilamentParameters(BaseModel):
         """Validate the multi_color_hexes field."""
         if not v:
             return None
+        colors = []
         for clr_raw in v.split(","):
             clr = clr_raw.upper()
             clr = clr.removeprefix("#")
@@ -161,7 +162,9 @@ class FilamentParameters(BaseModel):
             if len(clr) not in (6, 8):
                 raise ValueError("Color code must be 6 or 8 characters long.")
 
-        return v
+            colors.append(clr_raw.removeprefix("#"))
+
+        return ",".join(colors)
 
     @model_validator(mode="after")  # type: ignore[]
     def validate(self) -> "FilamentParameters":
