@@ -356,6 +356,7 @@
             "boolean_true": "Yes",
             "boolean_false": "No",
             "choices_missing_error": "You cannot remove choices. The following choices are missing: {{choices}}",
+            "choices_reorder_hint": "Drag, or use the arrow keys, to reorder this choice.",
             "non_unique_key_error": "The key must be unique.",
             "key_not_changed": "Please change the key to something else.",
             "delete_confirm": "Delete field {{name}}?",

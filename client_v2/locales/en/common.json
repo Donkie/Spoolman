@@ -417,6 +417,7 @@
     "settings.extraFields.params.name": "Name",
     "settings.extraFields.params.order": "Order",
     "settings.extraFields.params.unit": "Unit",
+    "settings.extraFields.reorderChoice": "Drag, or use the arrow keys, to reorder this choice.",
     "settings.extraFields.saveField": "Save field",
     "settings.extraFields.tab": "Extra Fields",
     "settings.general.baseUrl.label": "Base URL",
