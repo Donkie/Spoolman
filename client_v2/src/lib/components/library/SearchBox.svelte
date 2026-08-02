@@ -282,10 +282,17 @@
 								size={20}
 							/>
 							<span class="text">
-								<span class="title">{filament.entity.name}</span>
+								<!-- Material sits with the name because it describes the filament, unlike
+								     the trailing "matched" tag which describes the search hit. Two chips
+								     of the same shape side by side read as the same kind of fact. -->
+								<span class="line">
+									<span class="title">{filament.entity.name}</span>
+									{#if filament.entity.material}
+										<MaterialBadge label={filament.entity.material} variant="outline" />
+									{/if}
+								</span>
 								{#if vendor?.name}<span class="sub">{vendor.name}</span>{/if}
 							</span>
-							{#if filament.entity.material}<MaterialBadge label={filament.entity.material} />{/if}
 							<span class="match">{matchLabel('filament', filament.matchField)}</span>
 						</a>
 					{/each}
@@ -411,12 +418,22 @@
 		flex-direction: column;
 		line-height: 1.25;
 	}
+	.line {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		min-width: 0;
+	}
 	.title {
 		font-size: 12.5px;
 		font-weight: 600;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+	/* A long name yields to the material chip rather than pushing it out of the row. */
+	.line .title {
+		min-width: 0;
 	}
 	.sub {
 		font-size: 11px;
