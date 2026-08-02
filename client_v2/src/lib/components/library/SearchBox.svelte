@@ -12,6 +12,7 @@
 	import { page } from '$app/state';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { fields } from '$lib/stores/fields.svelte';
+	import { weightAuto } from '$lib/utils/format';
 	import type { EntityKind } from '$lib/types';
 	import * as m from '$lib/paraglide/messages';
 
@@ -100,14 +101,34 @@
 	interface FlatItem {
 		kind: EntityKind;
 		id: string;
+		/** Unique per row. A spool can be both its own result and a pill under a
+		 *  filament, so kind+id alone would highlight two rows at once. */
+		key: string;
 	}
 
 	let flat = $derived<FlatItem[]>(
 		results
 			? [
-					...results.spools.map((m) => ({ kind: 'spool' as const, id: String(m.entity.id) })),
-					...results.filaments.map((m) => ({ kind: 'filament' as const, id: m.entity.id })),
-					...results.vendors.map((m) => ({ kind: 'vendor' as const, id: m.entity.id }))
+					...results.spools.map((m) => ({
+						kind: 'spool' as const,
+						id: String(m.entity.id),
+						key: `spool:${m.entity.id}`
+					})),
+					// Each filament is followed by its spool pills, so arrowing down walks
+					// from the filament straight into its spools.
+					...results.filaments.flatMap((m) => [
+						{ kind: 'filament' as const, id: m.entity.id, key: `filament:${m.entity.id}` },
+						...m.spools.map((s) => ({
+							kind: 'spool' as const,
+							id: String(s.id),
+							key: `filament:${m.entity.id}/spool:${s.id}`
+						}))
+					]),
+					...results.vendors.map((m) => ({
+						kind: 'vendor' as const,
+						id: m.entity.id,
+						key: `vendor:${m.entity.id}`
+					}))
 				]
 			: []
 	);
@@ -194,9 +215,9 @@
 		return matchField in MATCH_LABEL[kind] ? MATCH_LABEL[kind][matchField]() : matchField;
 	}
 
-	// The flat index of an item, so hover/selection highlight lines up with keyboard nav.
-	function indexOf(kind: EntityKind, id: string): number {
-		return flat.findIndex((f) => f.kind === kind && f.id === id);
+	// The flat index of a row, so hover/selection highlight lines up with keyboard nav.
+	function indexOf(key: string): number {
+		return flat.findIndex((f) => f.key === key);
 	}
 </script>
 
@@ -239,7 +260,7 @@
 						{@const filament = inventory.filamentById(spool.entity.filamentId)}
 						<a
 							class="result"
-							class:active={activeIndex === indexOf('spool', String(spool.entity.id))}
+							class:active={activeIndex === indexOf(`spool:${spool.entity.id}`)}
 							href={searchResultHref(
 								page.url.searchParams,
 								page.url.pathname,
@@ -266,7 +287,7 @@
 						{@const vendor = inventory.vendorById(filament.entity.vendorId)}
 						<a
 							class="result"
-							class:active={activeIndex === indexOf('filament', filament.entity.id)}
+							class:active={activeIndex === indexOf(`filament:${filament.entity.id}`)}
 							href={searchResultHref(
 								page.url.searchParams,
 								page.url.pathname,
@@ -295,6 +316,44 @@
 							</span>
 							<span class="match">{matchLabel('filament', filament.matchField)}</span>
 						</a>
+						<!-- Shortcut straight to a spool of this filament (#993). Sibling of the
+						     result anchor rather than inside it: an <a> may not nest. -->
+						{#if filament.spools.length}
+							<div class="pills">
+								{#each filament.spools as s (s.id)}
+									<a
+										class="pill"
+										class:active={activeIndex === indexOf(`filament:${filament.entity.id}/spool:${s.id}`)}
+										class:archived={s.archived}
+										href={searchResultHref(page.url.searchParams, page.url.pathname, 'spool', String(s.id))}
+										title={s.location ?? undefined}
+										data-sveltekit-noscroll
+										onclick={onResultClick}
+									>
+										<span class="mono">#{s.id}</span>
+										{#if s.remainingWeight !== undefined}<span class="pill-weight"
+												>{weightAuto(s.remainingWeight)}</span
+											>{/if}
+									</a>
+								{/each}
+								{#if filament.spoolCount > filament.spools.length}
+									<!-- The filament page lists them all, so send the overflow there. -->
+									<a
+										class="pill more"
+										href={searchResultHref(
+											page.url.searchParams,
+											page.url.pathname,
+											'filament',
+											filament.entity.id
+										)}
+										data-sveltekit-noscroll
+										onclick={onResultClick}
+									>
+										{m['search.moreSpools']({ count: filament.spoolCount - filament.spools.length })}
+									</a>
+								{/if}
+							</div>
+						{/if}
 					{/each}
 				{/if}
 
@@ -303,7 +362,7 @@
 					{#each results.vendors as vendor (vendor.entity.id)}
 						<a
 							class="result"
-							class:active={activeIndex === indexOf('vendor', vendor.entity.id)}
+							class:active={activeIndex === indexOf(`vendor:${vendor.entity.id}`)}
 							href={searchResultHref(page.url.searchParams, page.url.pathname, 'vendor', vendor.entity.id)}
 							data-sveltekit-noscroll
 							onclick={onResultClick}
@@ -456,5 +515,44 @@
 		width: 20px;
 		text-align: center;
 		flex: none;
+	}
+	/* Indented to line up with the filament's title, so the pills read as belonging
+	   to the result above rather than as results of their own. */
+	.pills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
+		padding: 0 12px 7px 41px;
+	}
+	.pill {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 5px;
+		padding: 2px 7px;
+		border: 1px solid var(--hairline);
+		border-radius: 999px;
+		background: var(--surface-raised);
+		color: var(--text-dim);
+		font-size: 11px;
+		text-decoration: none;
+		white-space: nowrap;
+	}
+	.pill:hover,
+	.pill.active {
+		border-color: var(--border-strong);
+		background: var(--surface-2);
+		color: var(--text);
+	}
+	.pill .mono {
+		font-size: 11px;
+	}
+	.pill-weight {
+		color: var(--text-muted);
+	}
+	.pill.archived {
+		opacity: 0.55;
+	}
+	.pill.more {
+		border-style: dashed;
 	}
 </style>

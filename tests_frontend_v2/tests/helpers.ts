@@ -97,6 +97,8 @@ export interface NewSpool {
   usedG?: number;
   /** Values for the filament's extra fields, keyed by their display name. */
   filamentExtra?: Record<string, string>;
+  /** How many identical spools of the filament to create. Defaults to one. */
+  count?: number;
 }
 
 /**
@@ -111,7 +113,16 @@ export interface NewSpool {
  * their own on top.
  */
 export async function createSpoolViaModal(page: Page, spool: NewSpool): Promise<void> {
-  const { vendorName, filamentName, locationName, material = "PLA", weightG = 1000, usedG, filamentExtra } = spool;
+  const {
+    vendorName,
+    filamentName,
+    locationName,
+    material = "PLA",
+    weightG = 1000,
+    usedG,
+    filamentExtra,
+    count = 1,
+  } = spool;
 
   const dialog = await openAddSpoolModal(page);
 
@@ -143,6 +154,7 @@ export async function createSpoolViaModal(page: Page, spool: NewSpool): Promise<
   }
 
   await expect(numberField(dialog, "Count")).toHaveValue("1");
+  if (count !== 1) await numberField(dialog, "Count").fill(String(count));
   await numberField(dialog, "Weight").fill(String(weightG));
   await dialog.getByPlaceholder("e.g. Shelf A").fill(locationName);
 
@@ -153,7 +165,8 @@ export async function createSpoolViaModal(page: Page, spool: NewSpool): Promise<
     await dialog.getByPlaceholder("0", { exact: true }).fill(String(usedG));
   }
 
-  await dialog.getByRole("button", { name: "Add 1 spool", exact: true }).click();
+  const submitLabel = count === 1 ? "Add 1 spool" : `Add ${count} spools`;
+  await dialog.getByRole("button", { name: submitLabel, exact: true }).click();
 
   // A successful submit closes the modal.
   await expect(dialog).toBeHidden();

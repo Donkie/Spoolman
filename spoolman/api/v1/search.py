@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from spoolman.api.v1.models import (
     Filament,
     SearchResultFilament,
+    SearchResultFilamentSpool,
     SearchResults,
     SearchResultSpool,
     SearchResultVendor,
@@ -41,7 +42,8 @@ router = APIRouter(
         "is a hex code (e.g. '#ff0000') or a CSS color name (e.g. 'red') additionally runs a "
         "color-similarity search over filaments. Results are categorized by entity and each result "
         "reports which field matched. Archived spools are excluded unless allow_archived is set, "
-        "matching the behavior of the spool endpoint."
+        "matching the behavior of the spool endpoint. Set spools_per_filament to also get each "
+        "matching filament's first few spools, so a filament hit leads straight to a spool."
     ),
     response_model_exclude_none=True,
 )
@@ -87,6 +89,18 @@ async def search_endpoint(
             description="Whether to include archived spools in the results.",
         ),
     ] = False,
+    spools_per_filament: Annotated[
+        int,
+        Query(
+            title="Spools Per Filament",
+            description=(
+                "How many of each matching filament's spools to include with it, so a filament hit "
+                "can be followed straight to one of its spools. 0 (the default) omits them entirely."
+            ),
+            ge=0,
+            le=10,
+        ),
+    ] = 0,
 ) -> SearchResults:
     result = await search.search(
         db=db,
@@ -94,11 +108,21 @@ async def search_endpoint(
         color_similarity_threshold=color_similarity_threshold,
         limit=limit,
         allow_archived=allow_archived,
+        spools_per_filament=spools_per_filament,
     )
     return SearchResults(
         spools=[SearchResultSpool(spool=Spool.from_db(m.spool), match_field=m.match_field) for m in result.spools],
         filaments=[
-            SearchResultFilament(filament=Filament.from_db(m.filament), match_field=m.match_field)
+            SearchResultFilament(
+                filament=Filament.from_db(m.filament),
+                match_field=m.match_field,
+                spools=(
+                    None
+                    if m.spools is None
+                    else [SearchResultFilamentSpool.from_db(s, m.filament.weight) for s in m.spools]
+                ),
+                spool_count=m.spool_count,
+            )
             for m in result.filaments
         ],
         vendors=[
