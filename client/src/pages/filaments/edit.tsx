@@ -19,6 +19,10 @@ We also need to stringify them again before sending them back to the API, which 
 the form's onFinish method. Form.Item's normalize should do this, but it doesn't seem to work.
 */
 
+// What the form submits: extra values back as JSON strings, with null for a field left
+// empty — the API merges extra per key, so null is what clears a value.
+type IFilamentRequest = Omit<IFilament, "extra"> & { extra?: { [key: string]: string | null } };
+
 export const FilamentEdit = () => {
   const t = useTranslate();
   const [messageApi, contextHolder] = message.useMessage();
@@ -27,7 +31,7 @@ export const FilamentEdit = () => {
   const currency = useCurrency();
   const [colorType, setColorType] = useState<"single" | "multi">("single");
 
-  const { formProps, saveButtonProps } = useForm<IFilament, HttpError, IFilament, IFilament>({
+  const { formProps, saveButtonProps } = useForm<IFilament, HttpError, IFilamentRequest, IFilament>({
     liveMode: "manual",
     onLiveEvent() {
       // Warn the user if the filament has been updated since the form was opened

@@ -4,16 +4,22 @@ import asyncio
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman.api.v1.models import Filament, FilamentEvent, Message, MultiColorDirection
+from spoolman.api.v1.models import (
+    Filament,
+    FilamentEvent,
+    Message,
+    MultiColorDirection,
+    extra_fields_request_description,
+)
 from spoolman.database import filament
 from spoolman.database.database import get_db_session
-from spoolman.database.utils import SortOrder
+from spoolman.database.utils import parse_sort
 from spoolman.exceptions import ItemDeleteError
 from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
 from spoolman.ws import websocket_manager
@@ -114,9 +120,9 @@ class FilamentParameters(BaseModel):
         ),
         examples=["polymaker_pla_polysonicblack_1000_175"],
     )
-    extra: dict[str, str] | None = Field(
+    extra: dict[str, str | None] | None = Field(
         None,
-        description="Extra fields for this filament.",
+        description=extra_fields_request_description("filament"),
     )
 
     @field_validator("color_hex")
@@ -201,6 +207,7 @@ class FilamentUpdateParameters(FilamentParameters):
 )
 async def find(
     *,
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db_session)],
     vendor_name_old: Annotated[
         str | None,
@@ -279,7 +286,7 @@ async def find(
         str | None,
         Query(
             title="Filament Color",
-            description="Match filament by similar color. Slow operation!",
+            description="Match filament by similar color.",
         ),
     ] = None,
     color_similarity_threshold: Annotated[
@@ -320,11 +327,10 @@ async def find(
     ] = None,
     offset: Annotated[int, Query(title="Offset", description="Offset in the full result set if a limit is set.")] = 0,
 ) -> JSONResponse:
-    sort_by: dict[str, SortOrder] = {}
-    if sort is not None:
-        for sort_item in sort.split(","):
-            field, direction = sort_item.split(":")
-            sort_by[field] = SortOrder[direction.upper()]
+    try:
+        sort_by = parse_sort(sort)
+    except ValueError as e:
+        return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     vendor_id = vendor_id if vendor_id is not None else vendor_id_old
     if vendor_id is not None:
@@ -333,28 +339,39 @@ async def find(
         vendor_ids = None
 
     if color_hex is not None:
-        matched_filaments = await filament.find_by_color(
+        filter_by_ids = await filament.find_by_color(
             db=db,
             color_query_hex=color_hex,
             similarity_threshold=color_similarity_threshold,
         )
-        filter_by_ids = [db_filament.id for db_filament in matched_filaments]
     else:
         filter_by_ids = None
 
-    db_items, total_count = await filament.find(
-        db=db,
-        ids=filter_by_ids,
-        vendor_name=vendor_name if vendor_name is not None else vendor_name_old,
-        vendor_id=vendor_ids,
-        name=name,
-        material=material,
-        article_number=article_number,
-        external_id=external_id,
-        sort_by=sort_by,
-        limit=limit,
-        offset=offset,
-    )
+    # Extract custom field filters from query parameters
+    extra_field_filters = {}
+    query_params = request.query_params
+    for key, value in query_params.items():
+        if key.startswith("extra."):
+            field_key = key[6:]  # Remove "extra." prefix
+            extra_field_filters[field_key] = value
+
+    try:
+        db_items, total_count = await filament.find(
+            db=db,
+            ids=filter_by_ids,
+            vendor_name=vendor_name if vendor_name is not None else vendor_name_old,
+            vendor_id=vendor_ids,
+            name=name,
+            material=material,
+            article_number=article_number,
+            external_id=external_id,
+            extra_field_filters=extra_field_filters if extra_field_filters else None,
+            sort_by=sort_by,
+            limit=limit,
+            offset=offset,
+        )
+    except ValueError as e:
+        return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
     # Set x-total-count header for pagination
     return JSONResponse(

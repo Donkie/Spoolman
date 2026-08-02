@@ -113,3 +113,89 @@ def test_set_big_value():
         json="",
     )
     result.raise_for_status()
+
+
+def test_set_setting_rejects_text_plain():
+    """A text/plain body is what <form enctype="text/plain"> sends, and used to be accepted.
+
+    FastAPI only JSON-parses application/*json; anything else reached the endpoint's bare `str`
+    body as raw bytes, which lax-mode Pydantic coerced. That made every setting writable by any
+    website the user happened to visit.
+    """
+    result = httpx.post(
+        f"{URL}/api/v1/setting/currency",
+        content='name="US=D"',
+        headers={"Content-Type": "text/plain;charset=UTF-8"},
+    )
+    assert result.status_code == 415
+
+    # Verify nothing was written.
+    result = httpx.get(f"{URL}/api/v1/setting/currency")
+    result.raise_for_status()
+    assert result.json()["is_set"] is False
+
+
+def test_set_setting_rejects_form_encodings():
+    """The other two encodings an HTML form can send must be refused as well."""
+    for content_type in ("application/x-www-form-urlencoded", "multipart/form-data; boundary=x"):
+        result = httpx.post(
+            f"{URL}/api/v1/setting/currency",
+            content="a=b",
+            headers={"Content-Type": content_type},
+        )
+        assert result.status_code == 415, content_type
+
+
+def test_set_setting_accepts_json_with_a_charset():
+    """A charset parameter on the content type must not break real clients."""
+    result = httpx.post(
+        f"{URL}/api/v1/setting/currency",
+        content=json.dumps('"SEK"'),
+        headers={"Content-Type": "application/json;charset=utf-8"},
+    )
+    result.raise_for_status()
+    assert result.json()["value"] == '"SEK"'
+
+    # Cleanup
+    httpx.post(f"{URL}/api/v1/setting/currency", json="").raise_for_status()
+
+
+def test_set_malformed_extra_fields_does_not_wedge_the_field_endpoint():
+    """A malformed extra_fields_* write used to be accepted and then 500 every /field read."""
+    result = httpx.post(
+        f"{URL}/api/v1/setting/extra_fields_spool",
+        json=json.dumps([{"key": "nope"}]),
+    )
+    assert result.status_code == 400
+
+    result = httpx.get(f"{URL}/api/v1/field/spool")
+    assert result.status_code == 200
+
+
+def test_set_extra_fields_rejects_a_mismatched_entity_type():
+    result = httpx.post(
+        f"{URL}/api/v1/setting/extra_fields_spool",
+        json=json.dumps(
+            [{"key": "batch", "entity_type": "vendor", "name": "Batch", "field_type": "text"}],
+        ),
+    )
+    assert result.status_code == 400
+
+
+def test_set_extra_fields_refreshes_the_field_endpoint():
+    """The registry caches extra fields, and this write path did not invalidate that cache."""
+    try:
+        result = httpx.post(
+            f"{URL}/api/v1/setting/extra_fields_spool",
+            json=json.dumps(
+                [{"key": "batch", "entity_type": "spool", "name": "Batch", "field_type": "text"}],
+            ),
+        )
+        result.raise_for_status()
+
+        # Without cache invalidation this only showed up after a restart.
+        result = httpx.get(f"{URL}/api/v1/field/spool")
+        result.raise_for_status()
+        assert [field["key"] for field in result.json()] == ["batch"]
+    finally:
+        httpx.post(f"{URL}/api/v1/setting/extra_fields_spool", json=json.dumps([])).raise_for_status()

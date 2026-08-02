@@ -7,6 +7,19 @@ from sqlalchemy import ForeignKey, Integer, String, Text
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
+# The three `extra` collections below MUST NOT go back to lazy="joined".
+#
+# A spool listing joins spool -> filament -> vendor, so joined eager loading of all
+# three `extra` collections multiplies their rows together: with ~12 spool, ~9
+# filament and ~9 vendor extra fields, one spool costs ~1000 result rows. Measured
+# on a 4911-spool database, a single `GET /spool?limit=30` made SQLite materialize
+# 35674 wide rows and took 431 ms (1358 ms at limit=100) — most of it spent in
+# SQLAlchemy de-duplicating those rows back into 30 objects.
+#
+# selectin loading fetches each collection in one extra `WHERE id IN (...)` query
+# instead, so nothing multiplies: the same request drops to 12 ms / 23 ms (5
+# queries instead of 2) with byte-identical responses.
+
 
 class Base(AsyncAttrs, DeclarativeBase):
     pass
@@ -25,7 +38,7 @@ class Vendor(Base):
     extra: Mapped[list["VendorField"]] = relationship(
         back_populates="vendor",
         cascade="save-update, merge, delete, delete-orphan",
-        lazy="joined",
+        lazy="selectin",
     )
 
 
@@ -55,7 +68,7 @@ class Filament(Base):
     extra: Mapped[list["FilamentField"]] = relationship(
         back_populates="filament",
         cascade="save-update, merge, delete, delete-orphan",
-        lazy="joined",
+        lazy="selectin",
     )
 
 
@@ -79,7 +92,7 @@ class Spool(Base):
     extra: Mapped[list["SpoolField"]] = relationship(
         back_populates="spool",
         cascade="save-update, merge, delete, delete-orphan",
-        lazy="joined",
+        lazy="selectin",
     )
 
 

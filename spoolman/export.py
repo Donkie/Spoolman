@@ -13,6 +13,29 @@ if TYPE_CHECKING:
 
 banned_attrs = {"awaitable_attrs", "metadata", "registry", "spools", "filaments"}
 
+# A spreadsheet treats a cell starting with any of these as a formula, so a vendor named
+# `=cmd|' /C calc'!A0` executes when the export is opened (CWE-1236). Prefixing with a single
+# quote makes the spreadsheet read it as literal text; the quote is not part of the value.
+FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def escape_csv_value(value: Any) -> Any:  # noqa: ANN401
+    """Neutralize a value that a spreadsheet would otherwise interpret as a formula.
+
+    Only strings are escaped. Numbers reach the writer as numeric types, so a negative number
+    cannot be mistaken for a formula and must not grow a stray quote.
+
+    Args:
+        value: The cell value.
+
+    Returns:
+        Any: The value, prefixed with a single quote if it would be read as a formula.
+
+    """
+    if isinstance(value, str) and value.startswith(FORMULA_PREFIXES):
+        return "'" + value
+    return value
+
 
 async def flatten_sqlalchemy_object(obj: models.Base, parent_key: str = "", sep: str = ".") -> dict[str, Any]:
     """Recursively flattens a SQLAlchemy object into a dictionary with dot-separated keys."""
@@ -50,11 +73,12 @@ async def dump_as_csv(sqlalchemy_objects: Iterable[models.Base], writer: "Suppor
 
     headers = sorted(headers)  # Sort headers for consistent column ordering
 
-    # Write to CSV
+    # Write to CSV. Header names need no escaping: they are either fixed attribute names or
+    # extra-field keys, which are constrained to ^[a-z0-9_]+$.
     csv_writer = csv.DictWriter(writer, fieldnames=headers)
     csv_writer.writeheader()
     for flattened_obj in all_flattened:
-        csv_writer.writerow(flattened_obj)
+        csv_writer.writerow({key: escape_csv_value(value) for key, value in flattened_obj.items()})
 
 
 async def dump_as_json(sqlalchemy_objects: Iterable[models.Base], writer: "SupportsWrite[str]") -> None:

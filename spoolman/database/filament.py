@@ -12,15 +12,18 @@ from sqlalchemy.orm import contains_eager, joinedload
 
 from spoolman.api.v1.models import EventType, Filament, FilamentEvent, MultiColorDirection
 from spoolman.database import models, vendor
+from spoolman.database.extra_field_query import apply_extra_field_filters_and_sort
 from spoolman.database.utils import (
     SortOrder,
     add_where_clause_int_in,
     add_where_clause_int_opt,
     add_where_clause_str,
     add_where_clause_str_opt,
+    order_by_clauses,
     parse_nested_field,
 )
 from spoolman.exceptions import ItemDeleteError, ItemNotFoundError
+from spoolman.extra_field_registry import EntityType
 from spoolman.math import delta_e, hex_to_rgb, rgb_to_lab
 from spoolman.ws import websocket_manager
 
@@ -44,7 +47,7 @@ async def create(
     multi_color_hexes: str | None = None,
     multi_color_direction: MultiColorDirection | None = None,
     external_id: str | None = None,
-    extra: dict[str, str] | None = None,
+    extra: dict[str, str | None] | None = None,
 ) -> models.Filament:
     """Add a new filament to the database."""
     vendor_item: models.Vendor | None = None
@@ -72,7 +75,7 @@ async def create(
         multi_color_hexes=multi_color_hexes,
         multi_color_direction=multi_color_direction.value if multi_color_direction is not None else None,
         external_id=external_id,
-        extra=[models.FilamentField(key=k, value=v) for k, v in (extra or {}).items()],
+        extra=[models.FilamentField(key=k, value=v) for k, v in (extra or {}).items() if v is not None],
     )
     db.add(filament)
     await db.commit()
@@ -102,6 +105,7 @@ async def find(
     material: str | None = None,
     article_number: str | None = None,
     external_id: str | None = None,
+    extra_field_filters: dict[str, str] | None = None,
     sort_by: dict[str, SortOrder] | None = None,
     limit: int | None = None,
     offset: int = 0,
@@ -129,19 +133,28 @@ async def find(
 
     total_count = None
 
-    if limit is not None:
-        total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True)
-        total_count = (await db.execute(total_count_stmt)).scalar()
-
-        stmt = stmt.offset(offset).limit(limit)
+    stmt = await apply_extra_field_filters_and_sort(
+        db=db,
+        stmt=stmt,
+        base_obj=models.Filament,
+        entity_type=EntityType.filament,
+        extra_field_filters=extra_field_filters,
+        sort_by=sort_by,
+    )
 
     if sort_by is not None:
         for fieldstr, order in sort_by.items():
+            # Check if this is a custom field sort
+            if fieldstr.startswith("extra."):
+                continue
+
             field = parse_nested_field(models.Filament, fieldstr)
-            if order == SortOrder.ASC:
-                stmt = stmt.order_by(field.asc())
-            elif order == SortOrder.DESC:
-                stmt = stmt.order_by(field.desc())
+            stmt = stmt.order_by(*order_by_clauses([field], order))
+
+    if limit is not None:
+        total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True).order_by(None)
+        total_count = (await db.execute(total_count_stmt)).scalar()
+        stmt = stmt.offset(offset).limit(limit)
 
     rows = await db.execute(
         stmt,
@@ -169,12 +182,32 @@ async def update(
             else:
                 filament.vendor = await vendor.get_by_id(db, v)
         elif k == "extra":
-            filament.extra = [models.FilamentField(key=k, value=v) for k, v in v.items()]
+            # Merged per key, the same as a spool's and a vendor's: only the keys present in
+            # the patch are touched, and a null value means the filament has no value for
+            # that field, so its row is dropped and not re-added — that is how a value that
+            # has been set gets cleared.
+            filament.extra = [f for f in filament.extra if f.key not in v]
+            filament.extra.extend([models.FilamentField(key=k, value=v) for k, v in v.items() if v is not None])
         elif k == "multi_color_direction":
             filament.multi_color_direction = v.value if v is not None else None
         else:
             setattr(filament, k, v)
     await db.commit()
+    # A spool's response embeds its filament and carries values derived from it
+    # (remaining_length, and the initial_weight/price fall-backs), so this edit changed
+    # every one of this filament's spool payloads without touching a spool row.
+    # We deliberately do NOT re-broadcast those spools: a filament shared by hundreds of
+    # spools would turn one PATCH into hundreds of ORM loads and websocket frames inside
+    # the request. Subscribers are expected to treat a filament event as invalidating the
+    # spools that reference it and refetch what they still have on screen — see
+    # client_v2/src/lib/stores/inventory.svelte.ts. The same reasoning applies to vendor
+    # updates, which is why there is no vendor-side fan-out either.
+    #
+    # Note for anyone tempted to re-add it: remaining_length (the field that prompted the
+    # original fan-out) is derived from density and diameter, so a client that renders it
+    # from the filament it already holds — as client_v2 does — recomputes it from the
+    # filament event alone. A client that instead caches the server's computed value does
+    # need to refetch. Either way that is the subscriber's job, not a fan-out here.
     await filament_changed(filament, EventType.UPDATED)
     return filament
 
@@ -196,6 +229,7 @@ async def clear_extra_field(db: AsyncSession, key: str) -> None:
     await db.execute(
         sqlalchemy.delete(models.FilamentField).where(models.FilamentField.key == key),
     )
+    await db.commit()
 
 
 logger = logging.getLogger(__name__)
@@ -226,33 +260,41 @@ async def find_by_color(
     db: AsyncSession,
     color_query_hex: str,
     similarity_threshold: float = 25,
-) -> list[models.Filament]:
-    """Find a list of filament objects by similarity to a color.
+) -> list[int]:
+    """Find the ids of filaments whose color is similar to the given color.
 
-    This performs a server-side search, where all filaments are loaded into memory, making it not so efficient.
+    Only the id and color columns are read from the database, so the whole catalog can be scanned
+    cheaply without instantiating full ORM objects (or their vendor joins); callers load the full
+    rows for just the matched ids. Multi-color filaments match if any of their colors is similar.
+
     The similarity threshold is a value between 0 and 100, where 0 means the colors must be identical and 100 means
     pretty much all colors are considered similar.
     """
-    filaments, _ = await find(db=db)
-
     color_query_lab = rgb_to_lab(hex_to_rgb(color_query_hex))
 
-    found_filaments: list[models.Filament] = []
-    for filament in filaments:
-        if filament.color_hex is not None:
-            colors = [filament.color_hex]
-        elif filament.multi_color_hexes is not None:
-            colors = filament.multi_color_hexes.split(",")
+    stmt = select(
+        models.Filament.id,
+        models.Filament.color_hex,
+        models.Filament.multi_color_hexes,
+    )
+    rows = (await db.execute(stmt)).all()
+
+    matched_ids: list[int] = []
+    for filament_id, color_hex, multi_color_hexes in rows:
+        if color_hex is not None:
+            colors = [color_hex]
+        elif multi_color_hexes is not None:
+            colors = multi_color_hexes.split(",")
         else:
             continue
 
         for color in colors:
             color_lab = rgb_to_lab(hex_to_rgb(color))
             if delta_e(color_query_lab, color_lab) <= similarity_threshold:
-                found_filaments.append(filament)
+                matched_ids.append(filament_id)
                 break
 
-    return found_filaments
+    return matched_ids
 
 
 async def filament_changed(filament: models.Filament, typ: EventType) -> None:

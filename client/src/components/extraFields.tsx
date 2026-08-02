@@ -187,16 +187,20 @@ export function ParsedExtras<T extends { extra?: { [key: string]: string } }>(
 
 /**
  * Convert the JSON-parsed value extra key-values of an entity to their string values.
+ *
+ * A field the user left empty has no value, which travels as an explicit null: the API
+ * merges `extra` per key, so a key simply left out of the map would keep whatever it
+ * already held instead of being cleared.
  * @param obj
  * @returns
  */
 export function StringifiedExtras<T extends { extra?: { [key: string]: unknown } }>(
   obj: T,
-): Omit<T, "extra"> & { extra?: { [key: string]: string } } {
+): Omit<T, "extra"> & { extra?: { [key: string]: string | null } } {
   if (obj.extra) {
-    const newExtra: { [key: string]: string } = {};
+    const newExtra: { [key: string]: string | null } = {};
     Object.entries(obj.extra).forEach(([key, value]) => {
-      newExtra[key] = JSON.stringify(value);
+      newExtra[key] = value === undefined ? null : JSON.stringify(value);
     });
     return {
       ...obj,

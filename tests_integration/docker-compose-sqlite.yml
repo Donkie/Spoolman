@@ -4,6 +4,9 @@ services:
     image: donkie/spoolman:test
     environment:
       - SPOOLMAN_LOGGING_LEVEL=INFO
+      # The host guard refuses public domain names it was not told about; the security
+      # tests need one that is allowed as well as one that is not.
+      - SPOOLMAN_ALLOWED_HOSTS=spoolman.example.com
       - TZ=Europe/Stockholm
   tester:
     image: donkie/spoolman-tester:latest

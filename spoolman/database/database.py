@@ -1,12 +1,15 @@
 """SQLAlchemy database setup."""
 
 import datetime
+import filecmp
 import logging
 import shutil
 import sqlite3
+import time
 from collections.abc import AsyncGenerator
 from os import PathLike
 from pathlib import Path
+from typing import NamedTuple
 
 from scheduler.asyncio.scheduler import Scheduler
 from sqlalchemy import URL
@@ -16,6 +19,25 @@ from spoolman import env
 from spoolman.prometheus.metrics import filament_metrics, spool_metrics
 
 logger = logging.getLogger(__name__)
+
+# Rotating the backup history is destructive: it deletes the oldest restore point. Enough calls in
+# quick succession therefore leave nothing but snapshots of the damage, which is what made a
+# bodyless cross-origin form post to /backup worth defending against. Cheap second layer behind
+# the origin guard: refuse to rotate more often than this, and hand back the newest backup instead.
+MIN_SECONDS_BETWEEN_ROTATIONS = 5 * 60
+
+# Name of the newest backup. Older ones get a .1 ... .N suffix.
+BACKUP_NAME = "spoolman.db"
+
+
+class BackupResult(NamedTuple):
+    """The outcome of a backup request."""
+
+    path: Path | None
+    """The newest backup, or None if the database cannot be backed up."""
+
+    created: bool
+    """Whether a new backup was written. False when an existing one was reused."""
 
 
 def get_connection_url() -> URL:
@@ -61,6 +83,9 @@ class Database:
     def __init__(self, connection_url: URL) -> None:
         """Construct the Database wrapper and set config parameters."""
         self.connection_url = connection_url
+        # Monotonic timestamp of the last rotation, for the rate limit. Process-local, which is
+        # fine: Spoolman is single-instance, and a restart erring towards one extra backup is safe.
+        self._last_rotation: float | None = None
 
     def is_file_based_sqlite(self) -> bool:
         """Return True if the database is file based."""
@@ -109,49 +134,76 @@ class Database:
 
         logger.info("Backup complete.")
 
+    def _rotate(self, backup_folder: Path, num_backups: int) -> None:
+        """Shift the backup history down by one, discarding the oldest."""
+        oldest = backup_folder.joinpath(f"{BACKUP_NAME}.{num_backups}")
+        if oldest.exists():
+            logger.info("Deleting oldest backup %s", oldest)
+            oldest.unlink()
+
+        for i in range(num_backups - 1, -1, -1):
+            backup_path = backup_folder.joinpath(BACKUP_NAME if i == 0 else f"{BACKUP_NAME}.{i}")
+            if backup_path.exists():
+                logger.debug("Rotating backup %s to %s", backup_path, backup_folder.joinpath(f"{BACKUP_NAME}.{i + 1}"))
+                shutil.move(backup_path, backup_folder.joinpath(f"{BACKUP_NAME}.{i + 1}"))
+
     def backup_and_rotate(
         self,
         backup_folder: str | PathLike[str],
         num_backups: int = 5,
-    ) -> Path | None:
+    ) -> BackupResult:
         """Backup the database and rotate existing backups.
+
+        Rotation is skipped, and the newest existing backup returned instead, when it happened
+        very recently or when the database has not changed since. Both guard the restore history:
+        rotation discards the oldest snapshot, so repeated calls would otherwise walk the whole
+        history off the end and leave only copies of the current state.
 
         Args:
             backup_folder: The folder to store the backups in.
             num_backups: The number of backups to keep.
 
         Returns:
-            The path to the created backup or None if no backup was created.
+            BackupResult: The newest backup and whether it was created by this call.
 
         """
         if not self.is_file_based_sqlite() or self.connection_url.database is None:
             logger.info("Skipping backup as the database is not SQLite.")
-            return None
+            return BackupResult(None, created=False)
 
         backup_folder = Path(backup_folder)
         backup_folder.mkdir(parents=True, exist_ok=True)
+        newest = backup_folder.joinpath(BACKUP_NAME)
 
-        # Delete oldest backup
-        backup_path = backup_folder.joinpath(f"spoolman.db.{num_backups}")
-        if backup_path.exists():
-            logger.info("Deleting oldest backup %s", backup_path)
-            backup_path.unlink()
+        if newest.exists() and self._last_rotation is not None:
+            since_last = time.monotonic() - self._last_rotation
+            if since_last < MIN_SECONDS_BETWEEN_ROTATIONS:
+                logger.info(
+                    "Skipping backup rotation, the last one was %.0f seconds ago. Returning %s.",
+                    since_last,
+                    newest,
+                )
+                return BackupResult(newest, created=False)
 
-        # Rotate existing backups
-        for i in range(num_backups - 1, -1, -1):
-            if i == 0:
-                backup_path = backup_folder.joinpath("spoolman.db")
-            else:
-                backup_path = backup_folder.joinpath(f"spoolman.db.{i}")
-            if backup_path.exists():
-                logger.debug("Rotating backup %s to %s", backup_path, backup_folder.joinpath(f"spoolman.db.{i + 1}"))
-                shutil.move(backup_path, backup_folder.joinpath(f"spoolman.db.{i + 1}"))
+        # Write the snapshot first and compare it against the newest backup, rather than comparing
+        # the live database file. Under WAL the live file does not yet contain recent commits,
+        # so comparing it would skip backups that were genuinely needed.
+        pending = backup_folder.joinpath(f"{BACKUP_NAME}.pending")
+        pending.unlink(missing_ok=True)
+        try:
+            self.backup(pending)
 
-        # Create new backup
-        backup_path = backup_folder.joinpath("spoolman.db")
-        self.backup(backup_path)
+            if newest.exists() and filecmp.cmp(pending, newest, shallow=False):
+                logger.info("Database is unchanged since %s, keeping the existing backup history.", newest)
+                return BackupResult(newest, created=False)
 
-        return backup_path
+            self._rotate(backup_folder, num_backups)
+            shutil.move(pending, newest)
+        finally:
+            pending.unlink(missing_ok=True)
+
+        self._last_rotation = time.monotonic()
+        return BackupResult(newest, created=True)
 
 
 __db: Database | None = None
@@ -169,11 +221,11 @@ def setup_db(connection_url: URL) -> None:
     __db.connect()
 
 
-async def backup_global_db(num_backups: int = 5) -> Path | None:
+async def backup_global_db(num_backups: int = 5) -> BackupResult:
     """Backup the database and rotate existing backups.
 
     Returns:
-        The path to the created backup or None if no backup was created.
+        BackupResult: The newest backup and whether it was created by this call.
 
     """
     if __db is None:
@@ -181,7 +233,7 @@ async def backup_global_db(num_backups: int = 5) -> Path | None:
     return __db.backup_and_rotate(env.get_backups_dir(), num_backups=num_backups)
 
 
-async def _backup_task() -> Path | None:
+async def _backup_task() -> BackupResult:
     """Perform scheduled backup of the database."""
     logger.info("Performing scheduled database backup.")
     if __db is None:
@@ -208,6 +260,13 @@ def schedule_tasks(scheduler: Scheduler) -> None:
     if __db is None:
         raise RuntimeError("DB is not setup.")
     if env.is_metrics_enabled():
+        # /metrics is unauthenticated like the rest of the API, but unlike the rest of it this is
+        # opt-in, so the operator is here on purpose and can be told what they just published.
+        logger.warning(
+            "Metrics are enabled, so /metrics serves your vendor and filament names, colors and "
+            "per-spool prices to anyone who can reach it, with no authentication. Keep it off the "
+            "public internet, or put it behind your reverse proxy's authentication.",
+        )
         logger.info("Scheduling automatic metric collection.")
         # Run every minute, may be needs specify timer
         scheduler.minutely(datetime.time(second=0), _metrics)  # type: ignore[arg-type]

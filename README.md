@@ -20,8 +20,9 @@ Spoolman is a self-hosted web service designed to help you efficiently manage yo
 * **Central Filament Database**: A community-supported database of manufacturers and filaments simplify adding new spools to your inventory. Contribute by heading to [SpoolmanDB](https://github.com/Donkie/SpoolmanDB).
 * **Web-Based Client**: Spoolman includes a built-in web client that lets you manage data effortlessly:
   * View, create, edit, and delete filament data.
+  * Search, group and filter your inventory by manufacturer, material, location and more.
   * Add custom fields to tailor information to your specific needs.
-  * Print labels with QR codes for easy spool identification and tracking.
+  * Design and print labels with QR codes for easy spool identification and tracking.
   * Contribute to its translation into 18 languages via [Weblate](https://hosted.weblate.org/projects/spoolman/).
 * **Database Support**: SQLite, PostgreSQL, MySQL, and CockroachDB.
 * **Multi-Printer Management**: Handles spool updates from several printers simultaneously.
@@ -32,9 +33,26 @@ Spoolman is a self-hosted web service designed to help you efficiently manage yo
   * [OctoPrint](https://github.com/mdziekon/octoprint-spoolman)
   * [OctoEverywhere](https://octoeverywhere.com/spoolman?source=github_spoolman)
   * [Home Assistant](https://github.com/Disane87/spoolman-homeassistant)
+  * [MCP Server](https://github.com/Disane87/spoolman-mcp) - Manage your filament inventory through AI assistants like Claude using the Model Context Protocol
 
 **Web client preview:**
-![image](https://github.com/Donkie/Spoolman/assets/2332094/33928d5e-440f-4445-aca9-456c4370ad0d)
+![The Spoolman web client, showing the spool library with a spool's details open alongside it](.github/media/client-screenshot.png)
+
+<table>
+  <tr>
+    <td width="50%"><img alt="The Spoolman dashboard, showing spools as draggable cards grouped by storage location" src=".github/media/dashboard-screenshot.png"></td>
+    <td width="50%"><img alt="The Spoolman label designer, showing a 50 by 25 mm spool label with a QR code, filament name and colour swatch" src=".github/media/label-designer-screenshot.png"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Dashboard — spools as cards, grouped by location or any other field. Drag one to move it.</sub></td>
+    <td align="center"><sub>Label designer — QR labels built from any spool, filament or vendor field.</sub></td>
+  </tr>
+</table>
 
 ## Installation
 Please see the [Installation page on the Wiki](https://github.com/Donkie/Spoolman/wiki/Installation) for details how to install Spoolman.
+
+If the new client misbehaves on your setup, set `SPOOLMAN_LEGACY_CLIENT=TRUE` to go back to
+the previous one. Both ship in every release and talk to the same API, so your data is
+untouched either way — but please [report the problem](https://github.com/Donkie/Spoolman/issues)
+so it can be fixed.

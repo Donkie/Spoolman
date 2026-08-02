@@ -1,0 +1,280 @@
+import type { Filament, MultiColorDirection, Spool, Vendor } from '$lib/types';
+import type { GroupField } from '$lib/api/types';
+import type { FieldDef } from '$lib/api/fields';
+import { pct, weightAuto } from './format';
+import * as m from '$lib/paraglide/messages';
+
+// Client-side concerns ONLY: turning a spool into a row view-model, and the
+// metadata that drives the sort/filter menus. Grouping, filtering, sorting,
+// aggregation and pagination all happen server-side (see api/*).
+
+interface Repo {
+	spools: Spool[];
+	filamentById(id: string): Filament | undefined;
+	vendorOf(f: Filament): Vendor;
+}
+
+export interface SpoolVM {
+	spool: Spool;
+	filament: Filament;
+	vendor: Vendor;
+	idLabel: string;
+	pctValue: number;
+	low: boolean;
+	remLabel: string;
+	location: string;
+	rightLabel: string;
+}
+
+/** Minimal shape a group header renders from (GroupSummary satisfies it). */
+export interface GroupHeaderInfo {
+	title: string;
+	subtitle: string;
+	badge: string;
+	colors: string[];
+	direction?: MultiColorDirection;
+	/** Aggregate remaining weight across the whole group, formatted. */
+	meta: string;
+	/** How many spools the group holds, formatted ("12 spools"). */
+	count: string;
+}
+
+/**
+ * What a row or header says about a spool's usage: "unused", "used 3 days ago", or a bare
+ * "used" for a spool that has been drawn on but carries no date — one registered part-used,
+ * or adjusted by weight rather than by a print.
+ *
+ * That last case used to read "in use", which claims something Spoolman does not know. There
+ * is no live link to a printer here and no notion of a spool being mounted, so "in use" was
+ * only ever shorthand for "not full"; readers understandably took it to mean "printing right
+ * now" and asked why an unopened spool was busy (#986).
+ */
+export function usageLabel(s: Spool): string {
+	if (s.unused) return m['library.unused']();
+	return s.lastUsedLabel ? m['library.usedAgo']({ time: s.lastUsedLabel }) : m['library.used']();
+}
+
+export function spoolToVM(s: Spool, repo: Repo, lowThreshold: number): SpoolVM {
+	const filament = repo.filamentById(s.filamentId)!;
+	const vendor = repo.vendorOf(filament);
+	const low = !s.unused && s.remaining <= lowThreshold;
+	return {
+		spool: s,
+		filament,
+		vendor,
+		idLabel: '#' + s.id,
+		pctValue: pct(s.remaining, s.initial),
+		low,
+		remLabel: weightAuto(s.remaining),
+		// A spool without a location leaves the column blank rather than showing a
+		// placeholder — the empty box reads more cleanly in a dense list.
+		location: s.location ?? '',
+		rightLabel: usageLabel(s)
+	};
+}
+
+// --- contextual row identity ---------------------------------------------
+
+/** How a spool row is being listed: flat, or nested under a group of some axis. */
+export type RowContext = GroupField | 'flat';
+
+export interface RowIdentity {
+	title: string;
+	sub: string;
+}
+
+/**
+ * The two-line label a SpoolRow shows for its name column. In the flat view a
+ * spool has to identify itself in full. Under a group, whatever the group axis
+ * already implies (and shows in the sticky header) is redundant on every row and
+ * only causes truncation — so we drop it and surface the part that actually
+ * distinguishes this spool instead.
+ */
+export function rowIdentity(vm: SpoolVM, ctx: RowContext): RowIdentity {
+	const { vendor, filament } = vm;
+	const dims = `${filament.material} · ${filament.diameter} mm`;
+	switch (ctx) {
+		case 'vendor':
+			// Header shows the manufacturer; identify by the filament alone.
+			return { title: filament.name, sub: dims };
+		case 'material':
+			// Header shows the material; keep maker + name, drop the implied material.
+			return { title: `${vendor.name} ${filament.name}`, sub: `${filament.diameter} mm` };
+		case 'filament':
+			// The whole filament (maker, name, material, colour) is in the header —
+			// nothing about it distinguishes these spools, so identify the instance.
+			return spoolIdentity(vm);
+		case 'location':
+		case 'flat':
+		default:
+			// Nothing about the filament is implied — show it in full.
+			return { title: `${vendor.name} ${filament.name}`, sub: dims };
+	}
+}
+
+/**
+ * Distinguish spools of one and the same filament. They're identical except for
+ * how they've been used — and #id, fill, weight and location already sit in their
+ * own columns — so there's nothing to make a bold title out of. The usage status
+ * is all the row claims; the inspector has the rest.
+ *
+ * The comment deliberately stays out of it. It reads like a label on the handful
+ * of spools whose owner treats it as one, but it's a free-form textarea: people
+ * keep order URLs, multi-line notes and pasted receipts in there. Promoting that
+ * to the row's bold title hands the widest, loudest slot to arbitrary text and
+ * truncates the usage status — the one thing every row can say — to make room.
+ */
+function spoolIdentity(vm: SpoolVM): RowIdentity {
+	return { title: '', sub: vm.rightLabel };
+}
+
+/**
+ * A filament's human label, "<manufacturer> <name>" (e.g. "3DJAKE Dark Grey"),
+ * matching how rows identify a filament elsewhere. Falls back to material or the
+ * id when name/vendor are blank. Used by the filament filter menu and its chips.
+ */
+export function filamentLabel(filament: Filament, vendor: Vendor): string {
+	const parts = [vendor.name, filament.name].map((s) => s?.trim()).filter(Boolean);
+	if (parts.length) return parts.join(' ');
+	return filament.material?.trim() || `#${filament.id}`;
+}
+
+// --- sort menu metadata ---------------------------------------------------
+
+export interface SortDef {
+	/** Backend sort field path — also the value stored in the URL's `sort` param. */
+	key: string;
+	labelKey: () => string;
+	section: 'spool' | 'filament' | 'vendor' | 'extra';
+	unit?: string;
+	/**
+	 * Group-aggregate field to order groups by in grouped mode, where the backend
+	 * exposes one. Sorts without a group aggregate fall back to ordering groups by
+	 * title (the within-group spool order still follows `key`).
+	 */
+	groupField?: string;
+}
+
+/**
+ * The fixed sort fields, each keyed by the exact backend field path it maps to
+ * (see the Spoolman /spool sort docs). This is the single source of truth for
+ * both the sort menu (ListToolbar) and the query builders (api/query.ts) — they
+ * must never drift, hence one list.
+ */
+export const FIXED_SORTS: SortDef[] = [
+	// Spool
+	{ key: 'last_used', labelKey: m['spool.fields.lastUsed'], section: 'spool', groupField: 'group.last_used' },
+	{ key: 'first_used', labelKey: m['spool.fields.firstUsed'], section: 'spool' },
+	{ key: 'registered', labelKey: m['spool.fields.registered'], section: 'spool' },
+	{
+		key: 'remaining_weight',
+		labelKey: m['spool.fields.remainingWeight'],
+		section: 'spool',
+		unit: 'g',
+		groupField: 'group.total_remaining'
+	},
+	{ key: 'used_weight', labelKey: m['spool.fields.usedWeight'], section: 'spool', unit: 'g' },
+	{ key: 'price', labelKey: m['spool.fields.price'], section: 'spool' },
+	{ key: 'location', labelKey: m['spool.fields.location'], section: 'spool' },
+	{ key: 'lot_nr', labelKey: m['spool.fields.lotNr'], section: 'spool' },
+	// Filament
+	{ key: 'filament.name', labelKey: m['filament.fields.name'], section: 'filament' },
+	{ key: 'filament.material', labelKey: m['filament.fields.material'], section: 'filament' },
+	{ key: 'filament.color_hex', labelKey: m['filament.fields.colorHex'], section: 'filament' },
+	{ key: 'filament.diameter', labelKey: m['filament.fields.diameter'], section: 'filament', unit: 'mm' },
+	{ key: 'filament.density', labelKey: m['filament.fields.density'], section: 'filament' },
+	{
+		key: 'filament.settings_extruder_temp',
+		labelKey: m['filament.fields.settingsExtruderTemp'],
+		section: 'filament',
+		unit: '°C'
+	},
+	{
+		key: 'filament.settings_bed_temp',
+		labelKey: m['filament.fields.settingsBedTemp'],
+		section: 'filament',
+		unit: '°C'
+	},
+	{ key: 'filament.weight', labelKey: m['filament.fields.weight'], section: 'filament', unit: 'g' },
+	{ key: 'filament.price', labelKey: m['filament.fields.price'], section: 'filament' },
+	// Vendor
+	{ key: 'filament.vendor.name', labelKey: m['filament.fields.vendor'], section: 'vendor' }
+];
+
+const FIXED_SORT_KEYS = new Set(FIXED_SORTS.map((s) => s.key));
+
+// The sort key that reduces to each grouping axis's own title. Grouping by X and
+// sorting by X's name are the same operation on the group list, so this key maps
+// to the backend's `group.title` (alphabetical) ordering for that axis.
+const AXIS_NAME_SORT: Record<string, string> = {
+	filament: 'filament.name',
+	vendor: 'filament.vendor.name',
+	material: 'filament.material',
+	location: 'location'
+};
+
+// Text/name sorts read naturally A→Z; numeric, weight and date sorts default to
+// most / most-recent first. Consulted when a sort key is first selected.
+const ASC_DEFAULT_SORTS = new Set([
+	'filament.name',
+	'filament.material',
+	'filament.vendor.name',
+	'location',
+	'lot_nr'
+]);
+
+/** Default direction (ascending?) for a freshly-selected sort key. */
+export function defaultSortAsc(sortKey: string): boolean {
+	return ASC_DEFAULT_SORTS.has(sortKey);
+}
+
+/**
+ * Whether a sort key produces a coherent GROUP ordering under `group`. The
+ * backend can order groups only three ways — by title, total remaining weight,
+ * or last used — so exactly the axis's own name, `remaining_weight` and
+ * `last_used` keep a grouped list honest. Every other sort is a per-spool
+ * ranking that only means something in the flat list, so selecting one flattens
+ * the view (see params.setSortKey). `group === 'none'` is always orderable.
+ */
+export function isGroupOrderable(sortKey: string, group: string): boolean {
+	if (group === 'none') return true;
+	return sortKey === 'last_used' || sortKey === 'remaining_weight' || sortKey === AXIS_NAME_SORT[group];
+}
+
+/**
+ * All available sort options: the fixed fields above plus the spool's custom
+ * extra fields (queried from the backend). Every extra-field type is sortable.
+ */
+export function sortDefs(extraSpoolFields: FieldDef[] = []): SortDef[] {
+	const extra: SortDef[] = extraSpoolFields.map((f) => ({
+		key: `extra.${f.key}`,
+		labelKey: () => f.name,
+		section: 'extra',
+		unit: f.unit ?? undefined
+	}));
+	return [...FIXED_SORTS, ...extra];
+}
+
+/**
+ * Resolve a URL sort key to a backend sort field. Fixed keys and `extra.*` keys
+ * pass through unchanged (the backend safely ignores an unknown extra key);
+ * anything else — e.g. a stale bookmarked key from an older client — falls back
+ * to the default sort so we never send an invalid field (which would 400).
+ */
+export function resolveSortField(sortKey: string): string {
+	if (FIXED_SORT_KEYS.has(sortKey) || sortKey.startsWith('extra.')) return sortKey;
+	return 'last_used';
+}
+
+/**
+ * The group-aggregate ordering field for a sort key under `group`, if the
+ * backend supports one. The axis's own name resolves to `group.title` (the
+ * alphabetical group ordering); `last_used` / `remaining_weight` carry their
+ * aggregate in FIXED_SORTS. Anything else returns undefined — callers fall back
+ * to `group.title`, though the grouped view only ever holds orderable sorts
+ * (see isGroupOrderable).
+ */
+export function resolveGroupSortField(sortKey: string, group: string): string | undefined {
+	if (sortKey === AXIS_NAME_SORT[group]) return 'group.title';
+	return FIXED_SORTS.find((s) => s.key === sortKey)?.groupField;
+}

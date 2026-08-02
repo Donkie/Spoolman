@@ -1,0 +1,11 @@
+{
+    "buttons.archive": "Archivovať",
+    "buttons.cancel": "Zrušiť",
+    "buttons.clear": "Vyčistiť",
+    "buttons.delete": "Zmazať",
+    "buttons.edit": "Editovať",
+    "buttons.filter": "Filter",
+    "buttons.save": "Uložiť",
+    "buttons.showArchived": "Zobraziť Archivované",
+    "notifications.error": "Chyba (status code: {{statusCode}})"
+}

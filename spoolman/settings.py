@@ -64,6 +64,7 @@ def parse_setting(key: str) -> SettingDefinition:
 register_setting("currency", SettingType.STRING, json.dumps("EUR"))
 register_setting("round_prices", SettingType.BOOLEAN, json.dumps(obj=False))
 register_setting("print_presets", SettingType.ARRAY, json.dumps([]))
+register_setting("label_designs", SettingType.ARRAY, json.dumps([]))
 
 register_setting("extra_fields_vendor", SettingType.ARRAY, json.dumps([]))
 register_setting("extra_fields_filament", SettingType.ARRAY, json.dumps([]))
@@ -72,3 +73,10 @@ register_setting("base_url", SettingType.STRING, json.dumps(""))
 
 register_setting("locations", SettingType.ARRAY, json.dumps([]))
 register_setting("locations_spoolorders", SettingType.OBJECT, json.dumps({}))
+
+# The dashboard groups spools by a field the user picks (location, lot_nr, material, or a spool
+# extra field), so its layout is stored per field rather than per location like the two settings
+# above. dashboard_groups maps a field key to its ordered group keys ("" being the unset group);
+# dashboard_spoolorders maps a field key to a group key to its ordered spool ids.
+register_setting("dashboard_groups", SettingType.OBJECT, json.dumps({}))
+register_setting("dashboard_spoolorders", SettingType.OBJECT, json.dumps({}))

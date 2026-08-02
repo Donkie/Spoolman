@@ -1,0 +1,235 @@
+<script lang="ts">
+	import Toggle from '$components/Toggle.svelte';
+	import Card from '$components/Card.svelte';
+	import SettingRow from '$components/settings/SettingRow.svelte';
+	import ExtraFieldsManager from '$components/settings/ExtraFieldsManager.svelte';
+	import { settings } from '$lib/stores/settings.svelte';
+	import { theme, type ThemePref } from '$lib/stores/theme.svelte';
+	import { locales, getLocale, setLocale, isLocale } from '$lib/paraglide/runtime.js';
+	import * as m from '$lib/paraglide/messages';
+	import { languages } from '$lib/i18n/languages';
+	import { trackSave } from '$lib/utils/autosave';
+	import { page } from '$app/state';
+	import { entityFromUrl, gotoEntity, EXTRA_FIELDS_ANCHOR } from '$lib/settings/params';
+
+	// Which entity's extra fields to show comes from the URL (`?fields=…`), so the
+	// inspectors can link straight at the tab they're about; a URL that says nothing
+	// falls back to spools.
+	let fieldsEntity = $derived(entityFromUrl(page.url.searchParams) ?? 'spool');
+
+	const themeOptions: { value: ThemePref; label: () => string }[] = [
+		{ value: 'system', label: m['settings.appearance.theme.system'] },
+		{ value: 'light', label: m['settings.appearance.theme.light'] },
+		{ value: 'dark', label: m['settings.appearance.theme.dark'] }
+	];
+
+	function saveCurrency(v: string) {
+		const code = v.trim().toUpperCase();
+		if (/^[A-Z]{3}$/.test(code)) trackSave(settings.setCurrency(code));
+	}
+	function saveBaseUrl(v: string) {
+		trackSave(settings.setBaseUrl(v.trim()));
+	}
+
+	let localeData = locales.map((code) => {
+		return {
+			code,
+			langData: languages[code]
+		};
+	});
+</script>
+
+<svelte:head>
+	<title>{m['documentTitle.settings.list']()}</title>
+</svelte:head>
+
+<div class="page scroll-y">
+	<div class="wrap">
+		<div class="title">{m['settings.header']()}</div>
+
+		<div class="sec-label">{m['settings.appearance.tab']()}</div>
+		<Card divided>
+			<SettingRow title={m['settings.appearance.theme.label']()} desc={m['settings.appearance.theme.desc']()}>
+				<div class="seg" role="group" aria-label={m['settings.appearance.theme.label']()}>
+					{#each themeOptions as opt (opt.value)}
+						<button
+							type="button"
+							class="seg-btn"
+							class:active={theme.pref === opt.value}
+							aria-pressed={theme.pref === opt.value}
+							onclick={() => theme.setPref(opt.value)}
+						>
+							{opt.label()}
+						</button>
+					{/each}
+				</div>
+			</SettingRow>
+			<SettingRow title={m['settings.language.label']()} desc={m['settings.language.desc']()}>
+				<select
+					class="lang"
+					aria-label={m['settings.language.label']()}
+					value={getLocale()}
+					onchange={(e) => {
+						if (isLocale(e.currentTarget.value)) setLocale(e.currentTarget.value);
+					}}
+				>
+					{#each localeData as locale (locale.code)}
+						<option value={locale.code}>{locale.langData.name}</option>
+					{/each}
+				</select>
+			</SettingRow>
+		</Card>
+
+		<div class="sec-label">{m['settings.general.tab']()}</div>
+		<Card divided>
+			<SettingRow title={m['settings.general.currency.label']()} desc={m['settings.general.currency.desc']()}>
+				<input
+					class="code mono"
+					aria-label={m['settings.general.currency.label']()}
+					value={settings.currency}
+					maxlength="3"
+					onchange={(e) => saveCurrency(e.currentTarget.value)}
+				/>
+			</SettingRow>
+			<SettingRow
+				title={m['settings.general.roundPrices.label']()}
+				desc={m['settings.general.roundPrices.tooltip']()}
+			>
+				<Toggle
+					checked={settings.roundPrices}
+					onchange={(v) => trackSave(settings.setRoundPrices(v))}
+					ariaLabel={m['settings.general.roundPrices.label']()}
+				/>
+			</SettingRow>
+			<SettingRow
+				title={m['settings.general.baseUrl.label']()}
+				desc={m['settings.general.baseUrl.tooltip']()}
+			>
+				<input
+					class="url"
+					aria-label={m['settings.general.baseUrl.label']()}
+					value={settings.baseUrl}
+					placeholder="https://spoolman.example.com"
+					onchange={(e) => saveBaseUrl(e.currentTarget.value)}
+				/>
+			</SettingRow>
+		</Card>
+
+		<div class="sec-label">{m['settings.library.tab']()}</div>
+		<Card divided>
+			<SettingRow
+				title={m['settings.library.lowThreshold.label']()}
+				desc={m['settings.library.lowThreshold.desc']()}
+			>
+				<input
+					class="num mono"
+					type="number"
+					aria-label={m['settings.library.lowThreshold.label']()}
+					value={settings.lowThreshold}
+					oninput={(e) => settings.setLowThreshold(Number(e.currentTarget.value) || 0)}
+				/>
+				<span class="unit">g</span>
+			</SettingRow>
+		</Card>
+
+		<div class="sec-label" id={EXTRA_FIELDS_ANCHOR}>{m['settings.extraFields.tab']()}</div>
+		<div class="subtitle sub2">
+			<p>{m['settings.extraFields.description.intro']()}</p>
+			<p>{m['settings.extraFields.description.constraints']()}</p>
+			<p>{m['settings.extraFields.description.keyUsage']()}</p>
+			<p>{m['settings.extraFields.description.tableViews']()}</p>
+		</div>
+		<ExtraFieldsManager entity={fieldsEntity} onentity={gotoEntity} />
+	</div>
+</div>
+
+<style>
+	.page {
+		flex: 1;
+		min-height: 0;
+		padding: 22px 24px 48px;
+	}
+	.wrap {
+		max-width: 680px;
+		margin: 0 auto;
+	}
+	.title {
+		font-weight: 700;
+		font-size: 16px;
+	}
+	.subtitle {
+		font-size: 12px;
+		color: var(--text-dim);
+		margin-top: 3px;
+	}
+	.sub2 {
+		margin-bottom: 10px;
+		line-height: 1.5;
+	}
+	.sec-label {
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		color: var(--text-dim);
+		padding: 22px 0 8px;
+		/* Deep links (#extra-fields) scroll a section to the top of the page's own
+		   scroller; leave it some air rather than jamming it against the edge. */
+		scroll-margin-top: 16px;
+	}
+	.code,
+	.url,
+	.num,
+	.lang {
+		background: var(--input-bg);
+		border: 1px solid var(--border-input);
+		border-radius: var(--radius);
+		color: var(--text);
+		padding: 6px 10px;
+		font-size: 12.5px;
+	}
+	.lang {
+		min-width: 160px;
+	}
+	.code {
+		width: 70px;
+		text-align: center;
+		text-transform: uppercase;
+	}
+	.url {
+		width: 260px;
+		max-width: 45vw;
+	}
+	.num {
+		width: 70px;
+		text-align: right;
+	}
+	.unit {
+		font-size: 12px;
+		color: var(--text-dim);
+	}
+	.seg {
+		display: inline-flex;
+		gap: 2px;
+		padding: 2px;
+		background: var(--input-bg);
+		border: 1px solid var(--border-input);
+		border-radius: var(--radius);
+	}
+	.seg-btn {
+		background: none;
+		border: none;
+		color: var(--text-muted);
+		padding: 5px 12px;
+		font-size: 12.5px;
+		font-weight: 500;
+		border-radius: var(--radius-sm);
+		cursor: pointer;
+	}
+	.seg-btn:hover {
+		color: var(--text-2);
+	}
+	.seg-btn.active {
+		background: var(--accent-fill);
+		color: #fff;
+	}
+</style>

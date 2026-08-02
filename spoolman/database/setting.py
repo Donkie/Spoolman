@@ -30,6 +30,9 @@ async def update(
         last_updated=datetime.utcnow().replace(microsecond=0),
     )
     await db.merge(setting)
+    # Commit before notifying so the setting is durable and visible to subsequent
+    # requests; post-commit notification must be the last, infallible step.
+    await db.commit()
     await setting_changed(definition, value, EventType.UPDATED)
 
 
@@ -52,6 +55,9 @@ async def delete(db: AsyncSession, definition: SettingDefinition) -> None:
     """Delete a setting from the database."""
     setting = await get(db, definition)
     await db.delete(setting)
+    # Commit before notifying so the deletion is durable and visible to subsequent
+    # requests; post-commit notification must be the last, infallible step.
+    await db.commit()
     await setting_changed(definition, None, EventType.DELETED)
 
 
