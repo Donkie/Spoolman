@@ -1,4 +1,5 @@
 import { API_BASE } from './config';
+import { recoverFromUnauthorized } from './auth';
 
 // Thin fetch wrappers around the Spoolman REST API.
 
@@ -42,8 +43,16 @@ export class HttpError extends Error {
 	}
 }
 
+// Methods we're willing to answer a 401 with a page reload. A reload throws away
+// whatever is on screen, which is a fine trade for a list that failed to load and
+// a bad one for a half-filled form: the user would lose what they typed to a
+// login redirect. Mutations therefore surface their 401 as an ordinary error and
+// let the user copy their work out before dealing with it. See ./auth.ts.
+const RELOAD_ON_401 = new Set(['GET', 'HEAD']);
+
 async function ensureOk(res: Response, method: string, path: string): Promise<Response> {
 	if (!res.ok) {
+		if (res.status === 401 && RELOAD_ON_401.has(method)) recoverFromUnauthorized();
 		let detail = '';
 		try {
 			detail = (await res.json())?.message ?? '';
