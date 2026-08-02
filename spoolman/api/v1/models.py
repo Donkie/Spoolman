@@ -21,6 +21,31 @@ def datetime_to_str(dt: datetime) -> str:
 SpoolmanDateTime = Annotated[datetime, PlainSerializer(datetime_to_str)]
 
 
+def _sanitize_color_hex(value: str | None) -> str | None:
+    """Normalize a color code read from the database.
+
+    Older releases could store a value with a leading ``#`` (see #780). Strip it and
+    drop anything that still isn't a valid 6 or 8 character code, so that one bad row
+    doesn't make the whole filament list unserializable.
+    """
+    if not value:
+        return None
+    clr = value.upper().removeprefix("#")
+    if len(clr) not in (6, 8) or any(c not in "0123456789ABCDEF" for c in clr):
+        return None
+    return clr
+
+
+def _sanitize_multi_color_hexes(value: str | None) -> str | None:
+    """Normalize a comma-separated list of color codes read from the database."""
+    if not value:
+        return None
+    colors = [c for c in (_sanitize_color_hex(part) for part in value.split(",")) if c is not None]
+    if len(colors) < 2:  # noqa: PLR2004
+        return None
+    return ",".join(colors)
+
+
 def _extra_fields_description(entity: str) -> str:
     r"""Build the description for an entity's ``extra`` field.
 
@@ -242,8 +267,8 @@ class Filament(BaseModel):
             comment=item.comment,
             settings_extruder_temp=item.settings_extruder_temp,
             settings_bed_temp=item.settings_bed_temp,
-            color_hex=item.color_hex,
-            multi_color_hexes=item.multi_color_hexes,
+            color_hex=_sanitize_color_hex(item.color_hex),
+            multi_color_hexes=_sanitize_multi_color_hexes(item.multi_color_hexes),
             multi_color_direction=(
                 MultiColorDirection(item.multi_color_direction) if item.multi_color_direction is not None else None
             ),
