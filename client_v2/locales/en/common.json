@@ -364,6 +364,7 @@
     "scanner.starting": "Starting camera...",
     "scanner.title": "QR Code Scanner",
     "search.colorHint": "Color names must be entered in English.",
+    "search.moreSpools": "+{{count}} more",
     "search.noResults": "No matches found",
     "search.searching": "Searching...",
     "search.section.filaments": "Filaments",
