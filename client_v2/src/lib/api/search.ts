@@ -1,6 +1,6 @@
 import type { FilamentSearchMatch, FilamentSpoolHit, SearchMatch, SearchResults } from './types';
 import type { Spool, Vendor } from '$lib/types';
-import { API_BASE } from './config';
+import { getJson } from './http';
 import { mapFilament, mapSpool, mapVendor } from './map';
 import { inventory } from '$lib/stores/inventory.svelte';
 
@@ -72,14 +72,15 @@ export async function searchAll(
 	const q = query.trim();
 	if (!q) return EMPTY;
 
-	const params = new URLSearchParams({
-		q,
-		color_similarity_threshold: String(threshold),
-		spools_per_filament: String(SPOOLS_PER_FILAMENT)
-	});
-	const res = await fetch(`${API_BASE}/search?${params.toString()}`, { signal });
-	if (!res.ok) throw new Error(`GET /search → ${res.status}`);
-	const data = (await res.json()) as Json;
+	const data = await getJson<Json>(
+		'/search',
+		{
+			q,
+			color_similarity_threshold: threshold,
+			spools_per_filament: SPOOLS_PER_FILAMENT
+		},
+		signal
+	);
 
 	return {
 		spools: (data.spools ?? []).map(mapSpoolHit),

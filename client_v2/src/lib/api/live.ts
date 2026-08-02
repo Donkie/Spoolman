@@ -1,4 +1,5 @@
 import { wsUrl } from './config';
+import { getJson } from './http';
 
 // Live-update connection backed by the Spoolman WebSocket API. One socket per
 // resource (`/api/v1/spool`, `/filament`, `/vendor`) is shared by every
@@ -51,6 +52,27 @@ interface ResourceSocket {
 // it's back (network 'online' or the tab becoming visible again).
 const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 30000;
+
+// A handshake refused by a forward-auth proxy looks exactly like a backend that
+// is down: the browser's WebSocket API gives us no HTTP status for a failed
+// upgrade, just a close event. So when a socket dies without ever having opened,
+// we ask the same question over HTTP, where the answer is legible — and if that
+// answer is 401, http.ts reloads the page (see ./auth.ts). Any other outcome,
+// including the backend being genuinely down, is ignored here and left to the
+// reconnect backoff.
+const AUTH_PROBE_MIN_INTERVAL_MS = 10000;
+let lastAuthProbeAt = 0;
+
+function probeAuth(): void {
+	const now = Date.now();
+	// The three resource sockets go down together and back off independently;
+	// one probe answers for all of them.
+	if (now - lastAuthProbeAt < AUTH_PROBE_MIN_INTERVAL_MS) return;
+	lastAuthProbeAt = now;
+	getJson('/info').catch(() => {
+		/* backend down, or a 401 that has already triggered the reload */
+	});
+}
 
 class WebSocketLive implements LiveConnection {
 	private sockets = new Map<Resource, ResourceSocket>();
@@ -106,6 +128,9 @@ class WebSocketLive implements LiveConnection {
 		// superseded socket can clean up after itself without touching the shared
 		// `sock` state — see the identity guards below.
 		let pingTimer: ReturnType<typeof setInterval> | null = null;
+		// Whether this socket ever completed its handshake, which is what tells a
+		// refused connection apart from a dropped one.
+		let opened = false;
 
 		ws.onmessage = (ev) => {
 			let msg: Record<string, unknown>;
@@ -137,6 +162,7 @@ class WebSocketLive implements LiveConnection {
 		// keepalive, or nulling sock.ws under it). Every handler that touches the
 		// shared `sock` first checks it is still the current socket.
 		ws.onopen = () => {
+			opened = true;
 			if (sock.ws !== ws) {
 				ws.close(); // superseded while connecting — drop it
 				return;
@@ -157,7 +183,13 @@ class WebSocketLive implements LiveConnection {
 			if (sock.ws !== ws) return; // a replacement is live — leave it alone
 			sock.pingTimer = null;
 			sock.ws = null;
-			if (!sock.closed && sock.subs.size > 0) this.scheduleReconnect(resource, sock);
+			if (!sock.closed && sock.subs.size > 0) {
+				// Refused rather than dropped — ask HTTP whether it's an auth problem.
+				// A socket that had been open and then died gets checked on its next
+				// failed reconnect instead, which is one backoff step away.
+				if (!opened) probeAuth();
+				this.scheduleReconnect(resource, sock);
+			}
 		};
 
 		ws.onerror = () => ws.close();
