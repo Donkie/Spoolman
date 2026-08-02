@@ -51,8 +51,13 @@
 		font: inherit;
 		text-decoration: none;
 	}
+	/* Underlined on hover, not just recoloured: a crumb is a short piece of dim
+	   text in a corner, and colour alone left people reading it as a caption rather
+	   than as the way to the manufacturer (#989). */
 	.crumb:hover {
 		color: var(--accent-link-hover);
+		text-decoration: underline;
+		text-underline-offset: 2px;
 	}
 	.current {
 		color: var(--text-2);

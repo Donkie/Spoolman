@@ -132,6 +132,9 @@
 		title: group.title,
 		subtitle: group.subtitle,
 		badge: group.badge,
+		// Filament groups always name their manufacturer — as a link where there is
+		// one to link to, and otherwise as a note that there isn't.
+		vendorName: group.field === 'filament' ? (group.vendorName ?? m['add.noManufacturer']()) : undefined,
 		colors: group.colors,
 		direction: group.direction,
 		meta: weightAuto(group.totalRemaining),
@@ -147,10 +150,19 @@
 				? params.selectHrefFromState(libraryState, 'vendor', group.key)
 				: undefined
 	);
+
+	// The second destination in a filament header: its manufacturer. This is the
+	// only route to a vendor that doesn't go through a menu, the search box, or an
+	// inspector you had to know to open first (#989).
+	let vendorHref = $derived(
+		group.field === 'filament' && group.vendorId
+			? params.selectHrefFromState(libraryState, 'vendor', group.vendorId)
+			: undefined
+	);
 </script>
 
 <div bind:this={el}>
-	<GroupHeader group={header} sticky href={headerHref} {collapsed} ontoggle={toggle} />
+	<GroupHeader group={header} sticky href={headerHref} {vendorHref} {collapsed} ontoggle={toggle} />
 	{#if !collapsed}
 		{#each inUse as vm (vm.spool.id)}
 			<SpoolRow {vm} {showSwatch} indent={26} context={group.field} />

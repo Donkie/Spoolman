@@ -290,6 +290,8 @@
     "library.nUnused": "×{{count}} unused",
     "library.noLocation": "no location",
     "library.noValues": "No values",
+    "library.openGroup": "Open {{name}}",
+    "library.openManufacturer": "Open manufacturer {{name}}",
     "library.section.extra": "Extra fields",
     "library.section.filament": "Filament",
     "library.section.spool": "Spool",

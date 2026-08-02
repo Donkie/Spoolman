@@ -57,8 +57,14 @@ jobs:
           #
           # --diff-filter=MD keeps only Modified and Deleted paths: edits to files that ALREADY exist
           # on the base branch. Added (A) files are handled separately per client below.
-          edited="$(git diff --no-renames --diff-filter=MD --name-only "$BASE_SHA" "$HEAD_SHA" || true)"
-          added="$(git diff --no-renames --diff-filter=A --name-only "$BASE_SHA" "$HEAD_SHA" || true)"
+          # Three dots, not two. `git diff A B` compares the two trees as they stand, so every
+          # commit that landed on the base branch after this PR forked shows up as if the PR had
+          # changed it -- a Weblate sync merging to master made unrelated PRs fail with
+          # "client_v2/locales/sv/common.json" in the offending list. `git diff A...B` diffs from
+          # the MERGE BASE instead, which is exactly "what this PR changed" and stays correct no
+          # matter how far master has moved on.
+          edited="$(git diff --no-renames --diff-filter=MD --name-only "$BASE_SHA...$HEAD_SHA" || true)"
+          added="$(git diff --no-renames --diff-filter=A --name-only "$BASE_SHA...$HEAD_SHA" || true)"
 
           # Active client: edits to existing non-English files are blocked, new languages are fine.
           offending_v2="$(printf '%s\n' "$edited" \
