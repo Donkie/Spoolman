@@ -72,6 +72,10 @@ const PATH_MAP: Record<string, string> = {
 	remaining_weight: 'spool.remaining',
 	initial_weight: 'spool.initial',
 	used_weight: 'spool.used',
+	// v1 offered the spool's own tare weight as a bare `spool_weight`. It had no v2
+	// equivalent until the spool gained the field back (#1013), so a migrated design
+	// using it resolved to "?".
+	spool_weight: 'spool.spoolWeight',
 	// Filament
 	'filament.spool_weight': 'filament.spoolWeight',
 	'filament.settings_extruder_temp': 'filament.nozzleTemp',

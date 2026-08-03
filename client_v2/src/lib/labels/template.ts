@@ -39,7 +39,10 @@ const RESOLVERS: Record<string, (b: LabelBinding) => string | number | null | un
 	'spool.remaining': (b) => fmtNum(b.spool?.remaining),
 	'spool.initial': (b) => fmtNum(b.spool?.initial),
 	'spool.used': (b) => (b.spool ? fmtNum(b.spool.initial - b.spool.remaining) : null),
+	// Both of these fall back to the filament, the way the spool itself does: a
+	// `spool.*` token has to print the figure that actually applies to that spool.
 	'spool.price': (b) => fmtNum(b.spool?.price ?? b.filament?.price),
+	'spool.spoolWeight': (b) => fmtNum(b.spool?.spoolWeight ?? b.filament?.spoolWeight),
 	'spool.registered': (b) => b.spool?.registeredLabel,
 	'spool.firstUsed': (b) => b.spool?.firstUsedLabel,
 	'spool.lastUsed': (b) => b.spool?.lastUsedLabel,
@@ -149,6 +152,7 @@ const FIXED_GROUPS: PlaceholderGroup[] = [
 			{ token: 'spool.remaining', labelKey: m['labels.fields.remainingG'] },
 			{ token: 'spool.initial', labelKey: m['labels.fields.initialG'] },
 			{ token: 'spool.used', labelKey: m['spool.fields.usedWeight'] },
+			{ token: 'spool.spoolWeight', labelKey: m['spool.fields.spoolWeight'] },
 			{ token: 'spool.price', labelKey: m['spool.fields.price'] },
 			{ token: 'spool.registered', labelKey: m['spool.fields.registered'] },
 			{ token: 'spool.firstUsed', labelKey: m['spool.fields.firstUsed'] },
