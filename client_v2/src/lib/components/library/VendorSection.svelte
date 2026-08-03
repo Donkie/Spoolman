@@ -8,6 +8,7 @@
 	import LinkedText from '../LinkedText.svelte';
 	import ExtraFieldsSection from '../ExtraFieldsSection.svelte';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import OverrideMark from './OverrideMark.svelte';
 	import type { Vendor } from '$lib/types';
 	import * as m from '$lib/paraglide/messages';
 
@@ -20,8 +21,15 @@
 		vendor: Vendor | undefined;
 		/** Link to the manufacturer's own detail view. */
 		href?: string;
+		/**
+		 * Set when a nearer level holds an empty-spool weight of its own, in which
+		 * case this one applies to nothing here. Already-phrased, because which level
+		 * wins depends on where this section is shown: under a filament only the
+		 * filament can shadow it, under a spool either can. See OverrideMark.
+		 */
+		emptyWeightShadowedBy?: string;
 	}
-	let { vendor, href }: Props = $props();
+	let { vendor, href, emptyWeightShadowedBy }: Props = $props();
 </script>
 
 {#snippet open()}
@@ -39,9 +47,14 @@
 	     wraps to two lines in the default 120px label column. -->
 	<FieldGrid labelWidth="140px">
 		<Field label={m['vendor.fields.name']()}>{vendor.name}</Field>
-		<Field label={m['vendor.fields.emptySpoolWeight']()} help={m['vendor.fieldsHelp.emptySpoolWeight']()} mono
-			>{vendor.emptyWeight} g</Field
+		<Field
+			label={m['vendor.fields.emptySpoolWeight']()}
+			help={m['vendor.fieldsHelp.emptySpoolWeight']()}
+			mono
 		>
+			<span class:shadowed={emptyWeightShadowedBy}>{vendor.emptyWeight} g</span>
+			{#if emptyWeightShadowedBy}<OverrideMark label={emptyWeightShadowedBy} />{/if}
+		</Field>
 		{#if vendor.externalId}
 			<Field label={m['vendor.fields.externalId']()} mono>{vendor.externalId}</Field>
 		{/if}
@@ -67,5 +80,13 @@
 	.none {
 		font-size: 12px;
 		color: var(--text-dim);
+	}
+	/* A value another level has replaced: struck through rather than hidden, so the
+	   inherited chain stays readable while making clear it is not what applies. */
+	.shadowed {
+		color: var(--text-dim);
+		text-decoration: line-through;
+		text-decoration-thickness: 1px;
+		opacity: 0.7;
 	}
 </style>

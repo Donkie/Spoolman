@@ -73,6 +73,10 @@ export interface Spool {
 	lot: string;
 	/** Per-spool price override; undefined falls back to the filament's price. */
 	price?: number;
+	/** Per-spool empty-spool (tare) weight override, in grams; undefined falls back
+	 *  to the filament's. This is what `PUT /spool/{id}/measure` subtracts from a
+	 *  reading off the scale, so a wrong one misstates how much filament is left. */
+	spoolWeight?: number;
 	/** ISO timestamp of first use, if any. */
 	firstUsed?: string;
 	/** ISO timestamp of most recent use, if any. */

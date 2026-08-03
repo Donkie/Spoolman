@@ -87,6 +87,7 @@ export function mapSpool(s: Json): Spool {
 		location: s.location ?? '',
 		lot: s.lot_nr ?? '',
 		price: s.price ?? undefined,
+		spoolWeight: s.spool_weight ?? undefined,
 		firstUsed: s.first_used ?? undefined,
 		lastUsed: s.last_used ?? undefined,
 		firstUsedLabel: formatShortDate(s.first_used),
@@ -198,7 +199,11 @@ export function spoolPatchToApi(patch: SpoolPatch): Json {
 	// The spool's own full weight. `initial` is the effective one (the filament's
 	// when the spool has none), so writing it is what turns the fallback into a
 	// value the spool keeps for itself — which is the point when its filament changes.
-	if ('initial' in patch) out.initial_weight = patch.initial;
+	// A blank one travels as an explicit null: that is what hands the field back to
+	// the filament, and `undefined` would be dropped by JSON.stringify instead.
+	if ('initial' in patch) out.initial_weight = patch.initial ?? null;
+	// Likewise the tare weight — blank means "use the filament's".
+	if ('spoolWeight' in patch) out.spool_weight = patch.spoolWeight ?? null;
 	if ('extra' in patch) out.extra = patch.extra;
 	return out;
 }

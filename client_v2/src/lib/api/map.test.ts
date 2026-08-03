@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { spoolPatchToApi } from './map';
+import { mapSpool, spoolPatchToApi } from './map';
 
 // The client models a spool's filament as a string id (ids are strings across the
 // reactive cache), but PATCH /spool/{id} takes a number and rejects an explicit
@@ -35,5 +35,64 @@ describe('spoolPatchToApi — filament', () => {
 			filament_id: 7,
 			initial_weight: 750
 		});
+	});
+});
+
+// Full weight, tare weight and price live on both a spool and its filament, and
+// the spool's own value wins. #1013: a spool kept the tare weight it was created
+// with while the panel showed the filament's newer one, and neither the value nor
+// a way to correct it survived the trip through this layer.
+describe('spoolPatchToApi — values a spool can override', () => {
+	it('sends a per-spool tare weight as spool_weight', () => {
+		expect(spoolPatchToApi({ spoolWeight: 261 })).toEqual({ spool_weight: 261 });
+	});
+
+	it('leaves the overridable fields out of patches that do not touch them', () => {
+		expect(spoolPatchToApi({ location: 'Shelf A' })).toEqual({ location: 'Shelf A' });
+	});
+
+	// A blank field means "go back to following the filament". `undefined` would be
+	// dropped by JSON.stringify, leaving the stale value in place — exactly the bug.
+	it.each([
+		['spoolWeight', 'spool_weight'],
+		['initial', 'initial_weight'],
+		['price', 'price']
+	])('clears %s with an explicit null', (domain, api) => {
+		expect(spoolPatchToApi({ [domain]: undefined })).toEqual({ [api]: null });
+	});
+
+	it('carries several overrides in one request', () => {
+		expect(spoolPatchToApi({ initial: 1000, spoolWeight: 261, price: 24.5 })).toEqual({
+			initial_weight: 1000,
+			spool_weight: 261,
+			price: 24.5
+		});
+	});
+});
+
+describe('mapSpool — inherited vs. own values', () => {
+	const api = (spool: Record<string, unknown>) => ({
+		id: 1,
+		used_weight: 100,
+		filament: { id: 9, weight: 1000, spool_weight: 261, price: 20 },
+		...spool
+	});
+
+	it("keeps the spool's own values distinct from the filament's", () => {
+		const s = mapSpool(api({ initial_weight: 750, spool_weight: 132, price: 18 }));
+		expect(s.initialOverride).toBe(750);
+		expect(s.spoolWeight).toBe(132);
+		expect(s.price).toBe(18);
+	});
+
+	// The panel has to be able to tell "no value of its own" from "a value that
+	// happens to equal the filament's": only the first follows a filament edit.
+	it('leaves them undefined when the spool has none, without borrowing the filament’s', () => {
+		const s = mapSpool(api({ initial_weight: null, spool_weight: null, price: null }));
+		expect(s.initialOverride).toBeUndefined();
+		expect(s.spoolWeight).toBeUndefined();
+		expect(s.price).toBeUndefined();
+		// The effective full weight still falls back, since that is what the gauge shows.
+		expect(s.initial).toBe(1000);
 	});
 });
