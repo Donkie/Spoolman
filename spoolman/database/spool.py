@@ -684,6 +684,13 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
     if initial_weight is None or initial_weight == 0:
         raise SpoolMeasureError("Initial weight is not set.")
 
+    # Neither the spool nor its filament knows what an empty spool weighs. Unlike a
+    # missing initial weight that is not fatal — it just means the reading is taken
+    # as the filament alone — so treat the tare as zero rather than raising a
+    # TypeError out of the arithmetic below (which surfaced as a bare 500).
+    if spool_weight is None:
+        spool_weight = 0
+
     initial_gross_weight = initial_weight + spool_weight
 
     # if the measurement is greater than the initial weight, set the initial weight to the measurement
