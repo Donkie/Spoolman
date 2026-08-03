@@ -378,7 +378,7 @@
 						onchange={(v) => set({ spoolWeight: v })}
 						onclear={() => set({ spoolWeight: undefined })}
 					/>
-					{#if tareOverride}<OverrideMark dominant label={tareOverride} />{/if}
+					{#if tareOverride}<OverrideMark label={tareOverride} />{/if}
 				</Field>
 				<Field label={m['filament.fields.settingsExtruderTemp']()}>
 					<NumberInput

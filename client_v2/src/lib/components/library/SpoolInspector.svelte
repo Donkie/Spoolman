@@ -77,8 +77,8 @@
 	// Only where the two actually disagree, though. Merely *having* a value of its
 	// own is already visible — the field holds a number instead of showing the
 	// filament's as its placeholder — and the API gives every spool it creates a copy
-	// of the filament's figures, so marking those too would put a chip on almost
-	// every spool and teach everyone to stop reading them.
+	// of the filament's figures, so marking those too would annotate almost every
+	// spool and teach everyone to stop reading the marks.
 	const grams = (n: number) => `${n} g`;
 	const differs = (own: number | undefined, inherited: number | undefined) =>
 		own != null && inherited != null && own !== inherited;
@@ -467,7 +467,7 @@
 						onchange={(v) => setFullWeight(v)}
 						onclear={() => setFullWeight(undefined)}
 					/>
-					{#if weightOverride}<OverrideMark dominant label={weightOverride} />{/if}
+					{#if weightOverride}<OverrideMark label={weightOverride} />{/if}
 				</Field>
 				<Field label={m['spool.fields.spoolWeight']()} help={m['spool.fieldsHelp.spoolWeight']()}>
 					<NumberInput
@@ -483,7 +483,7 @@
 						onchange={(v) => set({ spoolWeight: v })}
 						onclear={() => set({ spoolWeight: undefined })}
 					/>
-					{#if tareOverride}<OverrideMark dominant label={tareOverride} />{/if}
+					{#if tareOverride}<OverrideMark label={tareOverride} />{/if}
 				</Field>
 				<Field label={m['spool.fields.price']()} help={m['spool.fieldsHelp.price']()}>
 					<NumberInput
@@ -498,7 +498,7 @@
 						onchange={(v) => set({ price: v })}
 						onclear={() => set({ price: undefined })}
 					/>
-					{#if priceOverride}<OverrideMark dominant label={priceOverride} />{/if}
+					{#if priceOverride}<OverrideMark label={priceOverride} />{/if}
 				</Field>
 				<Field label={m['spool.fields.registered']()}>{spool.registeredLabel}</Field>
 				<Field label={m['spool.fields.firstUsed']()}>
