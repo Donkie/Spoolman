@@ -21,6 +21,11 @@
 	// collapsed into a single summary row. Clicking can't know *which* instance
 	// the user wants, so instead of selecting one it expands to reveal the
 	// individual spools, each selectable and distinguishable by its #id.
+	//
+	// "of one filament" is a hard precondition, not a description: the name, swatch
+	// and "N g each" all come from `unused[0]` and are claimed for the whole pile.
+	// Callers listing a multi-filament group must bucket first — see
+	// groupUnusedByFilament (#1012).
 	let expanded = $state(false);
 
 	// Under the filament group the used SpoolRows have shed their #id-column
