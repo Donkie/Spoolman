@@ -13,6 +13,7 @@
 	import Archive from '@lucide/svelte/icons/archive';
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import ArrowLeftRight from '@lucide/svelte/icons/arrow-left-right';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import DateTimeField from '../DateTimeField.svelte';
 	import SectionLabel from '../SectionLabel.svelte';
@@ -22,6 +23,7 @@
 	import Field from '../Field.svelte';
 	import LinkedText from '../LinkedText.svelte';
 	import VendorSection from './VendorSection.svelte';
+	import ChangeFilamentModal from './ChangeFilamentModal.svelte';
 	import type { Filament, Spool } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
@@ -200,6 +202,12 @@
 	let confirmOpen = $state(false);
 	let deleting = $state(false);
 
+	// --- change filament ----------------------------------------------------
+	// Kept out of the inline-edit path: swapping the filament moves the spool's
+	// full weight with it, so it gets a dialog that says what will happen instead
+	// of a debounced autosave (#1010).
+	let changeFilamentOpen = $state(false);
+
 	let confirmLines = $derived(
 		spool.remaining > 0
 			? [
@@ -302,6 +310,13 @@
 		onclose={() => (confirmOpen = false)}
 	/>
 
+	<ChangeFilamentModal
+		open={changeFilamentOpen}
+		{spool}
+		current={filament}
+		onclose={() => (changeFilamentOpen = false)}
+	/>
+
 	<div class="gauge">
 		<div class="gauge-line">
 			<span class="big mono">{weightAuto(spool.remaining)}</span>
@@ -400,12 +415,17 @@
 			<SectionLabel>
 				{m['library.section.filament']()}
 				{#snippet right()}
-					<a
-						class="link"
-						href={params.selectHref(page.url.searchParams, 'filament', filament.id)}
-						data-sveltekit-keepfocus
-						data-sveltekit-noscroll>{m['inspector.openFilament']()} <ArrowRight size={13} /></a
-					>
+					<span class="sec-actions">
+						<button class="link" onclick={() => (changeFilamentOpen = true)}
+							><ArrowLeftRight size={13} /> {m['changeFilament.action']()}</button
+						>
+						<a
+							class="link"
+							href={params.selectHref(page.url.searchParams, 'filament', filament.id)}
+							data-sveltekit-keepfocus
+							data-sveltekit-noscroll>{m['inspector.openFilament']()} <ArrowRight size={13} /></a
+						>
+					</span>
 				{/snippet}
 			</SectionLabel>
 			<FieldGrid>
@@ -623,6 +643,11 @@
 		padding: 0;
 		font: inherit;
 		text-decoration: none;
+	}
+	.sec-actions {
+		display: inline-flex;
+		align-items: center;
+		gap: 14px;
 	}
 
 	@container (max-width: 760px) {

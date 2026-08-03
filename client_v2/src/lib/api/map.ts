@@ -183,6 +183,10 @@ export function colorFieldsToApi(
 
 export function spoolPatchToApi(patch: SpoolPatch): Json {
 	const out: Json = {};
+	// Re-pointing a spool at another filament. The API takes a numeric id and
+	// rejects a null one, so an empty/absent value is left out of the request
+	// entirely rather than sent as a clear.
+	if ('filamentId' in patch && patch.filamentId) out.filament_id = Number(patch.filamentId);
 	if ('location' in patch) out.location = patch.location ?? '';
 	if ('lot' in patch) out.lot_nr = patch.lot ?? '';
 	if ('price' in patch) out.price = patch.price ?? null;
@@ -191,6 +195,10 @@ export function spoolPatchToApi(patch: SpoolPatch): Json {
 	if ('comment' in patch) out.comment = patch.comment ?? '';
 	if ('archived' in patch) out.archived = patch.archived;
 	if ('remaining' in patch) out.remaining_weight = patch.remaining;
+	// The spool's own full weight. `initial` is the effective one (the filament's
+	// when the spool has none), so writing it is what turns the fallback into a
+	// value the spool keeps for itself — which is the point when its filament changes.
+	if ('initial' in patch) out.initial_weight = patch.initial;
 	if ('extra' in patch) out.extra = patch.extra;
 	return out;
 }
