@@ -14,7 +14,7 @@ from ..conftest import URL
 @pytest.mark.asyncio
 async def test_use_weight_websocket_has_weight_delta(random_filament: dict[str, Any]):
     """Test websocket payload extras for spool weight usage."""
-    #Setup
+    # Setup
     result = httpx.post(
         f"{URL}/api/v1/spool",
         json={"filament_id": random_filament["id"], "remaining_weight": 1000},
@@ -32,20 +32,20 @@ async def test_use_weight_websocket_has_weight_delta(random_filament: dict[str, 
             check = json.loads(await asyncio.wait_for(ws.recv(), timeout=2))
             assert check["status"] == "healthy"
 
-            #execute
+            # Execute
             r = httpx.put(f"{URL}/api/v1/spool/{spool_id}/use", json={"use_weight": use_weight})
             r.raise_for_status()
             raw = await asyncio.wait_for(ws.recv(), timeout=5)
             evt = json.loads(raw)
-            #verify
+            # Verify
             assert evt["resource"] == "spool"
             assert evt["type"] == "updated"
             assert evt["payload"]["id"] == spool_id
             assert evt["payload_extras"]["weight_delta"] == pytest.approx(use_weight)
             assert "event_delta" not in evt["payload"].get("extra", {})
-            #cleanup-ws
+            # Cleanup websocket.
             await ws.close(code=1000)
             await asyncio.sleep(0.6)
     finally:
-        #cleanup
+        # Cleanup.
         httpx.delete(f"{URL}/api/v1/spool/{spool_id}").raise_for_status()
