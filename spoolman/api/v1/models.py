@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, PlainSerializer
 
@@ -539,7 +539,7 @@ class SpoolEvent(Event):
 
     payload: Spool = Field(description="Updated spool.")
     resource: Literal["spool"] = Field(description="Resource type.")
-    payload_extras: dict[str, float] | None = Field(
+    payload_extras: dict[str, Any] | None = Field(
         default=None,
         description="Payload extra fields outside of core Spool model",
     )
