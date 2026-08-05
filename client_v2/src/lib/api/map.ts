@@ -87,6 +87,7 @@ export function mapSpool(s: Json): Spool {
 		location: s.location ?? '',
 		lot: s.lot_nr ?? '',
 		price: s.price ?? undefined,
+		spoolWeight: s.spool_weight ?? undefined,
 		firstUsed: s.first_used ?? undefined,
 		lastUsed: s.last_used ?? undefined,
 		firstUsedLabel: formatShortDate(s.first_used),
@@ -106,11 +107,19 @@ export function mapGroup(g: Json): GroupSummary {
 	let badge = '';
 	let colors: string[] = [];
 	let direction: MultiColorDirection | undefined;
+	// Filament groups carry their manufacturer separately from the subtitle text
+	// so the header can render it as a link to the vendor (see GroupHeader).
+	let vendorId: string | undefined;
+	let vendorName: string | undefined;
 
 	if (field === 'filament' && g.filament) {
 		const f: Json = g.filament;
 		title = f.name ?? '(unnamed filament)';
-		subtitle = `${f.vendor?.name ?? 'No manufacturer'} · ${f.diameter} mm`;
+		subtitle = `${f.diameter} mm`;
+		if (f.vendor) {
+			vendorId = String(f.vendor.id);
+			vendorName = f.vendor.name ?? '(unnamed manufacturer)';
+		}
 		badge = f.material ?? '';
 		colors = colorsFromApi(f);
 		direction = f.multi_color_direction ?? undefined;
@@ -136,6 +145,8 @@ export function mapGroup(g: Json): GroupSummary {
 		title,
 		subtitle,
 		badge,
+		vendorId,
+		vendorName,
 		colors,
 		direction,
 		spoolCount: g.spool_count ?? 0,
@@ -173,6 +184,10 @@ export function colorFieldsToApi(
 
 export function spoolPatchToApi(patch: SpoolPatch): Json {
 	const out: Json = {};
+	// Re-pointing a spool at another filament. The API takes a numeric id and
+	// rejects a null one, so an empty/absent value is left out of the request
+	// entirely rather than sent as a clear.
+	if ('filamentId' in patch && patch.filamentId) out.filament_id = Number(patch.filamentId);
 	if ('location' in patch) out.location = patch.location ?? '';
 	if ('lot' in patch) out.lot_nr = patch.lot ?? '';
 	if ('price' in patch) out.price = patch.price ?? null;
@@ -181,6 +196,14 @@ export function spoolPatchToApi(patch: SpoolPatch): Json {
 	if ('comment' in patch) out.comment = patch.comment ?? '';
 	if ('archived' in patch) out.archived = patch.archived;
 	if ('remaining' in patch) out.remaining_weight = patch.remaining;
+	// The spool's own full weight. `initial` is the effective one (the filament's
+	// when the spool has none), so writing it is what turns the fallback into a
+	// value the spool keeps for itself — which is the point when its filament changes.
+	// A blank one travels as an explicit null: that is what hands the field back to
+	// the filament, and `undefined` would be dropped by JSON.stringify instead.
+	if ('initial' in patch) out.initial_weight = patch.initial ?? null;
+	// Likewise the tare weight — blank means "use the filament's".
+	if ('spoolWeight' in patch) out.spool_weight = patch.spoolWeight ?? null;
 	if ('extra' in patch) out.extra = patch.extra;
 	return out;
 }

@@ -25,6 +25,13 @@ describe('migrateTemplate', () => {
 		expect(migrateTemplate('{filament.spool_weight}')).toBe('{filament.spoolWeight}');
 	});
 
+	// v1's two tare weights are different fields, and a label that printed the
+	// spool's own must not silently start printing its filament's (#1013).
+	it("keeps the spool's own tare weight apart from its filament's", () => {
+		expect(migrateTemplate('{spool_weight}')).toBe('{spool.spoolWeight}');
+		expect(migrateTemplate('{filament.spool_weight}')).toBe('{filament.spoolWeight}');
+	});
+
 	it('leaves paths that are already identical in both versions', () => {
 		for (const t of ['{filament.name}', '{filament.material}', '{filament.density}']) {
 			expect(migrateTemplate(t)).toBe(t);

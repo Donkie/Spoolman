@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { usageLabel } from './library';
+import { groupUnusedByFilament, usageLabel } from './library';
+import type { SpoolVM } from './library';
 import { mapSpool } from '$lib/api/map';
 
 // The usage status is the one thing every spool row claims, and #986 was it claiming the
@@ -43,5 +44,48 @@ describe('usageLabel', () => {
 		// The old fallback here was "in use", which reads as "printing right now" — something
 		// Spoolman has no way of knowing (#986).
 		expect(usageLabel(spool({}))).toBe('used');
+	});
+});
+
+// A collapsed "×N unused" row speaks for its whole pile with one filament's name, swatch and
+// weight, so the pile has to BE one filament. Under a vendor/material/location group it isn't,
+// which is what #1012 reported: five different SUNLU woods filed under "Wood Cherry".
+describe('groupUnusedByFilament', () => {
+	const vm = (id: number, filamentId: string) => ({ spool: { id, filamentId } }) as SpoolVM;
+	const ids = (buckets: SpoolVM[][]) => buckets.map((b) => b.map((v) => v.spool.id));
+
+	it('keeps one filament as a single bucket', () => {
+		expect(ids(groupUnusedByFilament([vm(1, 'a'), vm(2, 'a'), vm(3, 'a')]))).toEqual([[1, 2, 3]]);
+	});
+
+	it('splits a vendor group that spans several filaments', () => {
+		const buckets = groupUnusedByFilament([vm(168, 'cherry'), vm(169, 'maple'), vm(170, 'walnut')]);
+		expect(ids(buckets)).toEqual([[168], [169], [170]]);
+	});
+
+	it('collects a filament whose spools are interleaved with others', () => {
+		// Sorting by last-used interleaves filaments freely; each still gets exactly one row.
+		const buckets = groupUnusedByFilament([
+			vm(117, 'jade'),
+			vm(92, 'black'),
+			vm(119, 'jade'),
+			vm(176, 'tan'),
+			vm(177, 'tan'),
+			vm(178, 'black')
+		]);
+		expect(ids(buckets)).toEqual([
+			[117, 119],
+			[92, 178],
+			[176, 177]
+		]);
+	});
+
+	it('orders buckets by where each filament first appears', () => {
+		// The backend sort drives the list; bucketing must not reshuffle it.
+		expect(ids(groupUnusedByFilament([vm(3, 'z'), vm(1, 'a'), vm(2, 'z')]))).toEqual([[3, 2], [1]]);
+	});
+
+	it('handles an empty pile', () => {
+		expect(groupUnusedByFilament([])).toEqual([]);
 	});
 });

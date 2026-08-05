@@ -2,7 +2,11 @@ import { useGetSetting } from "./querySettings";
 
 export function useCurrency() {
   const { data: currency } = useGetSetting("currency");
-  return JSON.parse(currency?.value ?? '"EUR"');
+  try {
+    return JSON.parse(currency?.value ?? '"EUR"');
+  } catch {
+    return "EUR";
+  }
 }
 
 export function getCurrencySymbol(locale: string | undefined, currency: string) {
@@ -20,7 +24,12 @@ export function getCurrencySymbol(locale: string | undefined, currency: string) 
 
 export function useCurrencyFormatter() {
   const currency = useCurrency();
-  const roundPrices = JSON.parse(useGetSetting("round_prices").data?.value ?? "false");
+  let roundPrices = false;
+  try {
+    roundPrices = JSON.parse(useGetSetting("round_prices").data?.value ?? "false");
+  } catch {
+    roundPrices = false;
+  }
 
   return new Intl.NumberFormat(undefined, {
     style: "currency",

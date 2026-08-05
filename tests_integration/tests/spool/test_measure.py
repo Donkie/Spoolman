@@ -206,3 +206,38 @@ def test_measure_spool_empty(random_empty_filament: dict[str, Any], measurements
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
+
+
+def test_measure_spool_without_spool_weight(random_empty_filament: dict[str, Any]):
+    """Test measuring a spool when nothing in the chain knows the empty spool weight."""
+    # Setup: neither the filament nor the spool has a spool_weight, which is the state
+    # a spool lands in when its own tare weight is cleared to follow a filament that
+    # has none. The reading is then the filament alone, with no tare to subtract.
+    start_weight = 1000
+    result = httpx.post(
+        f"{URL}/api/v1/spool",
+        json={
+            "filament_id": random_empty_filament["id"],
+            "initial_weight": start_weight,
+        },
+    )
+    result.raise_for_status()
+    spool = result.json()
+    assert "spool_weight" not in spool
+
+    # Execute
+    result = httpx.put(
+        f"{URL}/api/v1/spool/{spool['id']}/measure",
+        json={
+            "weight": 400,
+        },
+    )
+    result.raise_for_status()
+
+    # Verify
+    spool = result.json()
+    assert spool["used_weight"] == pytest.approx(600)
+    assert spool["remaining_weight"] == pytest.approx(400)
+
+    # Clean up
+    httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()

@@ -78,6 +78,12 @@ ci:
             run: ./node_modules/.bin/prettier --check .
           - name: Run type check on client_v2 files
             root: "client_v2/"
-            # See the ci hook's copy of this job for why paraglide runs first.
+            # See the pre-commit copy of this job for why paraglide runs first.
             run: npm run paraglide && ./node_modules/.bin/svelte-kit sync && ./node_modules/.bin/svelte-check --tsconfig ./tsconfig.json
+          - name: Run unit tests on client_v2 files
+            root: "client_v2/"
+            # Mirrors the backend's pytest job above. Kept to the ci hook only, so
+            # committing stays fast; these are pure unit tests over src/**/*.test.ts,
+            # not the browser suite in tests_frontend_v2/.
+            run: ./node_modules/.bin/vitest run
 

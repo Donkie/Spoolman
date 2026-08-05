@@ -21,6 +21,7 @@
 	import FieldGrid from '../FieldGrid.svelte';
 	import Field from '../Field.svelte';
 	import VendorSection from './VendorSection.svelte';
+	import OverrideMark from './OverrideMark.svelte';
 	import type { Filament, Spool } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
@@ -45,6 +46,22 @@
 	// Undefined when the filament has no manufacturer set (or it isn't cached yet) —
 	// the display falls back to a plain "no manufacturer" note instead of a link.
 	let vendor = $derived(inventory.vendorById(filament.vendorId));
+
+	// Empty-spool weight is the one field this filament shares with its
+	// manufacturer, whose value seeds a new filament and is then left behind. Mark
+	// both ends of the disagreement so the number in force is never ambiguous —
+	// same treatment the spool panel gives the fields it shares with a filament.
+	let tareShadowsVendor = $derived(
+		filament.spoolWeight != null && !!vendor?.emptyWeight && filament.spoolWeight !== vendor.emptyWeight
+	);
+	let tareOverride = $derived(
+		tareShadowsVendor
+			? m['inspector.override.overridesManufacturer']({ value: `${vendor!.emptyWeight} g` })
+			: undefined
+	);
+	let vendorTareShadowedBy = $derived(
+		tareShadowsVendor ? m['inspector.override.byFilament']({ value: `${filament.spoolWeight} g` }) : undefined
+	);
 
 	// Material suggestions for the picker below. Unlike AddSpoolModal we only use the
 	// names for autocomplete — editing an existing filament's material must NOT touch
@@ -344,6 +361,9 @@
 						onchange={(v) => set({ weight: v || filament.weight })}
 					/>
 				</Field>
+				<!-- The manufacturer's empty-spool weight is what a new filament of theirs
+				     starts from, so name it as the default here and mark the row when this
+				     filament has since gone its own way. -->
 				<Field label={m['filament.fields.spoolWeight']()} help={m['filament.fieldsHelp.spoolWeight']()}>
 					<NumberInput
 						dense
@@ -351,11 +371,14 @@
 						unit="g"
 						step={10}
 						min={0}
-						placeholder="—"
+						placeholder={vendor?.emptyWeight
+							? m['inspector.defaultFrom.manufacturer']({ value: String(vendor.emptyWeight) })
+							: '—'}
 						value={filament.spoolWeight ?? ''}
 						onchange={(v) => set({ spoolWeight: v })}
 						onclear={() => set({ spoolWeight: undefined })}
 					/>
+					{#if tareOverride}<OverrideMark label={tareOverride} />{/if}
 				</Field>
 				<Field label={m['filament.fields.settingsExtruderTemp']()}>
 					<NumberInput
@@ -413,6 +436,7 @@
 			<VendorSection
 				{vendor}
 				href={vendor ? params.selectHref(page.url.searchParams, 'vendor', vendor.id) : undefined}
+				emptyWeightShadowedBy={vendorTareShadowedBy}
 			/>
 		</div>
 	</div>

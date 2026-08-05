@@ -8,7 +8,7 @@
 	import type { GroupSummary } from '$lib/api/types';
 	import type { LibraryState } from '$lib/library/params';
 	import * as params from '$lib/library/params';
-	import { spoolToVM } from '$lib/utils/library';
+	import { groupUnusedByFilament, spoolToVM } from '$lib/utils/library';
 	import { buildScopedSpoolQuery } from '$lib/api/query';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { isAbortError } from '$lib/api/http';
@@ -122,8 +122,12 @@
 	let inUse = $derived(
 		spools.filter((s) => !s.unused).map((s) => spoolToVM(s, inventory, settings.lowThreshold))
 	);
-	let unused = $derived(
-		spools.filter((s) => s.unused).map((s) => spoolToVM(s, inventory, settings.lowThreshold))
+	// One collapsed summary row per filament: the row speaks for its whole pile
+	// ("Jade White ×6, 1000 g each"), which only holds within a single filament.
+	let unusedByFilament = $derived(
+		groupUnusedByFilament(
+			spools.filter((s) => s.unused).map((s) => spoolToVM(s, inventory, settings.lowThreshold))
+		)
 	);
 	let moreCount = $derived(group.spoolCount - spools.length);
 	let showSwatch = $derived(group.field !== 'filament');
@@ -132,6 +136,9 @@
 		title: group.title,
 		subtitle: group.subtitle,
 		badge: group.badge,
+		// Filament groups always name their manufacturer — as a link where there is
+		// one to link to, and otherwise as a note that there isn't.
+		vendorName: group.field === 'filament' ? (group.vendorName ?? m['add.noManufacturer']()) : undefined,
 		colors: group.colors,
 		direction: group.direction,
 		meta: weightAuto(group.totalRemaining),
@@ -147,21 +154,32 @@
 				? params.selectHrefFromState(libraryState, 'vendor', group.key)
 				: undefined
 	);
+
+	// The second destination in a filament header: its manufacturer. This is the
+	// only route to a vendor that doesn't go through a menu, the search box, or an
+	// inspector you had to know to open first (#989).
+	let vendorHref = $derived(
+		group.field === 'filament' && group.vendorId
+			? params.selectHrefFromState(libraryState, 'vendor', group.vendorId)
+			: undefined
+	);
 </script>
 
 <div bind:this={el}>
-	<GroupHeader group={header} sticky href={headerHref} {collapsed} ontoggle={toggle} />
+	<GroupHeader group={header} sticky href={headerHref} {vendorHref} {collapsed} ontoggle={toggle} />
 	{#if !collapsed}
 		{#each inUse as vm (vm.spool.id)}
 			<SpoolRow {vm} {showSwatch} indent={26} context={group.field} />
 		{/each}
-		{#if unused.length === 1}
-			<!-- A lone unused spool gains nothing from a collapsing header — it just
-			     adds a click and a row — so render it inline like the used spools. -->
-			<SpoolRow vm={unused[0]} {showSwatch} indent={26} context={group.field} />
-		{:else if unused.length > 1}
-			<UnusedRow {unused} {showSwatch} indent={26} context={group.field} />
-		{/if}
+		{#each unusedByFilament as unused (unused[0].spool.id)}
+			{#if unused.length === 1}
+				<!-- A lone unused spool gains nothing from a collapsing header — it just
+				     adds a click and a row — so render it inline like the used spools. -->
+				<SpoolRow vm={unused[0]} {showSwatch} indent={26} context={group.field} />
+			{:else}
+				<UnusedRow {unused} {showSwatch} indent={26} context={group.field} />
+			{/if}
+		{/each}
 		{#if moreCount > 0}
 			<button class="more" onclick={loadMore} disabled={loading || loadingMore}
 				><Plus size={13} /> {m['library.showMore']({ count: moreCount })}</button

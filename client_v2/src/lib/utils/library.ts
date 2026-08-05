@@ -31,6 +31,9 @@ export interface GroupHeaderInfo {
 	title: string;
 	subtitle: string;
 	badge: string;
+	/** Filament groups: the manufacturer's name, rendered as a link to it when the
+	 *  header also gets a `vendorHref` (and as a muted note when it can't be). */
+	vendorName?: string;
 	colors: string[];
 	direction?: MultiColorDirection;
 	/** Aggregate remaining weight across the whole group, formatted. */
@@ -71,6 +74,28 @@ export function spoolToVM(s: Spool, repo: Repo, lowThreshold: number): SpoolVM {
 		location: s.location ?? '',
 		rightLabel: usageLabel(s)
 	};
+}
+
+/**
+ * Split a group's unused spools into one bucket per filament, in the order each
+ * filament first appears (so the backend's sort still drives the layout).
+ *
+ * An unused pile only collapses into a summary row because every spool in it is
+ * interchangeable — same filament, so one name, one swatch and one "N g each"
+ * describe them all. That holds by construction under the filament group, but a
+ * vendor/material/location group spans many filaments, and collapsing those into
+ * a single row files them all under whichever filament happened to sort first
+ * (issue #1012). Bucketing keeps each summary row honest about what it contains.
+ */
+export function groupUnusedByFilament(unused: SpoolVM[]): SpoolVM[][] {
+	const buckets = new Map<string, SpoolVM[]>();
+	for (const vm of unused) {
+		const key = vm.spool.filamentId;
+		const bucket = buckets.get(key);
+		if (bucket) bucket.push(vm);
+		else buckets.set(key, [vm]);
+	}
+	return [...buckets.values()];
 }
 
 // --- contextual row identity ---------------------------------------------

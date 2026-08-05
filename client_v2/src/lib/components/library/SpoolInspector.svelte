@@ -13,6 +13,7 @@
 	import Archive from '@lucide/svelte/icons/archive';
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import ArrowLeftRight from '@lucide/svelte/icons/arrow-left-right';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import DateTimeField from '../DateTimeField.svelte';
 	import SectionLabel from '../SectionLabel.svelte';
@@ -22,6 +23,8 @@
 	import Field from '../Field.svelte';
 	import LinkedText from '../LinkedText.svelte';
 	import VendorSection from './VendorSection.svelte';
+	import ChangeFilamentModal from './ChangeFilamentModal.svelte';
+	import OverrideMark from './OverrideMark.svelte';
 	import type { Filament, Spool } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
@@ -61,6 +64,57 @@
 	// the display falls back to a plain "no manufacturer" note instead of a link.
 	let vendor = $derived(inventory.vendorById(filament.vendorId));
 	let used = $derived(spool.initial - spool.remaining);
+
+	// --- inherited fields ---------------------------------------------------
+	// Full weight, tare weight and price each exist on both a spool and its
+	// filament, and the spool's own value wins wherever it has one. Which of the
+	// two is actually in force used to be invisible here — the case behind #1013,
+	// where a spool kept the tare weight it was created with, this panel showed the
+	// filament's newer one, and "adjust by measured weight" subtracted neither of
+	// the numbers on screen. So both ends are marked: the spool's fields say what
+	// they shadow, and the filament's below say what applies instead.
+	//
+	// Only where the two actually disagree, though. Merely *having* a value of its
+	// own is already visible — the field holds a number instead of showing the
+	// filament's as its placeholder — and the API gives every spool it creates a copy
+	// of the filament's figures, so marking those too would annotate almost every
+	// spool and teach everyone to stop reading the marks.
+	const grams = (n: number) => `${n} g`;
+	const differs = (own: number | undefined, inherited: number | undefined) =>
+		own != null && inherited != null && own !== inherited;
+
+	let weightOverride = $derived(
+		differs(spool.initialOverride, filament.weight)
+			? m['inspector.override.overridesFilament']({ value: grams(filament.weight) })
+			: undefined
+	);
+	let tareOverride = $derived(
+		differs(spool.spoolWeight, filament.spoolWeight)
+			? m['inspector.override.overridesFilament']({ value: grams(filament.spoolWeight!) })
+			: undefined
+	);
+	let priceOverride = $derived(
+		differs(spool.price, filament.price)
+			? m['inspector.override.overridesFilament']({ value: settings.formatPrice(filament.price) })
+			: undefined
+	);
+	/** The same three disagreements, phrased for the filament's own rows below. */
+	let shadowedBySpool = $derived({
+		weight: weightOverride ? grams(spool.initialOverride!) : undefined,
+		tare: tareOverride ? grams(spool.spoolWeight!) : undefined,
+		price: priceOverride ? settings.formatPrice(spool.price!) : undefined
+	});
+	// The manufacturer's empty-spool weight seeds new filaments rather than being a
+	// live fallback, so its row names whichever nearer level holds the value that
+	// ends up applying — this spool's if it has one, otherwise the filament's.
+	let effectiveTare = $derived(spool.spoolWeight ?? filament.spoolWeight);
+	let vendorTareShadowedBy = $derived(
+		!differs(effectiveTare, vendor?.emptyWeight)
+			? undefined
+			: spool.spoolWeight != null
+				? m['inspector.override.bySpool']({ value: grams(spool.spoolWeight) })
+				: m['inspector.override.byFilament']({ value: grams(filament.spoolWeight!) })
+	);
 
 	// Existing locations for the location picker: pick an existing one from the
 	// dropdown or type a new one. Merge the server's configured locations with the
@@ -183,6 +237,25 @@
 		saver.push(spool.id, patch);
 	}
 
+	/**
+	 * Set (or, with `undefined`, clear) the spool's own full weight.
+	 *
+	 * Not a plain `set`: the gauge and the remaining weight are computed from the
+	 * *effective* full weight, so the cache needs those refreshed too — mirroring
+	 * `Spool.from_db`'s formula, clamp included, the same way the filament fan-out
+	 * in the inventory store does. Only the override itself is sent, because
+	 * `remaining` maps to `remaining_weight`, which would rewrite the used weight.
+	 */
+	function setFullWeight(v: number | undefined) {
+		const effective = v ?? filament.weight;
+		inventory.patchSpool(spool.id, {
+			initialOverride: v,
+			initial: effective,
+			remaining: Math.max(effective - spool.usedWeight, 0)
+		});
+		saver.push(spool.id, { initial: v });
+	}
+
 	const extraSaver = makeExtraSaver(
 		() => spool.id,
 		(id, e) => inventory.patchSpool(id, { extra: e }),
@@ -199,6 +272,12 @@
 	// point archiving is almost certainly what was meant.
 	let confirmOpen = $state(false);
 	let deleting = $state(false);
+
+	// --- change filament ----------------------------------------------------
+	// Kept out of the inline-edit path: swapping the filament moves the spool's
+	// full weight with it, so it gets a dialog that says what will happen instead
+	// of a debounced autosave (#1010).
+	let changeFilamentOpen = $state(false);
 
 	let confirmLines = $derived(
 		spool.remaining > 0
@@ -302,6 +381,13 @@
 		onclose={() => (confirmOpen = false)}
 	/>
 
+	<ChangeFilamentModal
+		open={changeFilamentOpen}
+		{spool}
+		current={filament}
+		onclose={() => (changeFilamentOpen = false)}
+	/>
+
 	<div class="gauge">
 		<div class="gauge-line">
 			<span class="big mono">{weightAuto(spool.remaining)}</span>
@@ -367,19 +453,52 @@
 				<Field label={m['spool.fields.lotNr']()} help={m['spool.fieldsHelp.lotNr']()}>
 					<EditableField value={spool.lot} mono oninput={(v) => set({ lot: v })} />
 				</Field>
+				<!-- Blank in any of the three below means "follow the filament", which is
+				     what `onclear` restores; the placeholder is the value that then applies. -->
+				<Field label={m['spool.fields.weight']()} help={m['spool.fieldsHelp.weight']()}>
+					<NumberInput
+						dense
+						width="285px"
+						unit="g"
+						step={50}
+						min={0}
+						placeholder={m['inspector.defaultFrom.filament']({ value: String(filament.weight) })}
+						value={spool.initialOverride ?? ''}
+						onchange={(v) => setFullWeight(v)}
+						onclear={() => setFullWeight(undefined)}
+					/>
+					{#if weightOverride}<OverrideMark label={weightOverride} />{/if}
+				</Field>
+				<Field label={m['spool.fields.spoolWeight']()} help={m['spool.fieldsHelp.spoolWeight']()}>
+					<NumberInput
+						dense
+						width="285px"
+						unit="g"
+						step={10}
+						min={0}
+						placeholder={filament.spoolWeight != null
+							? m['inspector.defaultFrom.filament']({ value: String(filament.spoolWeight) })
+							: '—'}
+						value={spool.spoolWeight ?? ''}
+						onchange={(v) => set({ spoolWeight: v })}
+						onclear={() => set({ spoolWeight: undefined })}
+					/>
+					{#if tareOverride}<OverrideMark label={tareOverride} />{/if}
+				</Field>
 				<Field label={m['spool.fields.price']()} help={m['spool.fieldsHelp.price']()}>
 					<NumberInput
 						dense
-						width="240px"
+						width="285px"
 						unit={settings.currencySymbol}
 						min={0}
-						placeholder={m['inspector.filamentDefault']({
-							price: settings.formatPriceValue(filament.price)
+						placeholder={m['inspector.defaultFrom.filament']({
+							value: settings.formatPriceValue(filament.price)
 						})}
 						value={spool.price ?? ''}
 						onchange={(v) => set({ price: v })}
 						onclear={() => set({ price: undefined })}
 					/>
+					{#if priceOverride}<OverrideMark label={priceOverride} />{/if}
 				</Field>
 				<Field label={m['spool.fields.registered']()}>{spool.registeredLabel}</Field>
 				<Field label={m['spool.fields.firstUsed']()}>
@@ -400,12 +519,17 @@
 			<SectionLabel>
 				{m['library.section.filament']()}
 				{#snippet right()}
-					<a
-						class="link"
-						href={params.selectHref(page.url.searchParams, 'filament', filament.id)}
-						data-sveltekit-keepfocus
-						data-sveltekit-noscroll>{m['inspector.openFilament']()} <ArrowRight size={13} /></a
-					>
+					<span class="sec-actions">
+						<button class="link" onclick={() => (changeFilamentOpen = true)}
+							><ArrowLeftRight size={13} /> {m['changeFilament.action']()}</button
+						>
+						<a
+							class="link"
+							href={params.selectHref(page.url.searchParams, 'filament', filament.id)}
+							data-sveltekit-keepfocus
+							data-sveltekit-noscroll>{m['inspector.openFilament']()} <ArrowRight size={13} /></a
+						>
+					</span>
 				{/snippet}
 			</SectionLabel>
 			<FieldGrid>
@@ -424,13 +548,29 @@
 				<Field label={m['filament.fields.density']()} mono>{filament.density} g/cm³</Field>
 				<Field label={m['filament.fields.settingsExtruderTemp']()} mono>{filament.nozzleTemp} °C</Field>
 				<Field label={m['filament.fields.settingsBedTemp']()} mono>{filament.bedTemp} °C</Field>
-				<Field label={m['filament.fields.weight']()} help={m['filament.fieldsHelp.weight']()} mono
-					>{filament.weight} g</Field
-				>
-				<Field label={m['filament.fields.spoolWeight']()} help={m['filament.fieldsHelp.spoolWeight']()} mono
-					>{filament.spoolWeight != null ? `${filament.spoolWeight} g` : '—'}</Field
-				>
-				<Field label={m['filament.fields.price']()} mono>{settings.formatPrice(filament.price)}</Field>
+				<!-- These three are the filament's side of the overridable fields above.
+				     A value the spool has replaced is dimmed and says which one applies,
+				     so this column can never be read as the figure in use. -->
+				<Field label={m['filament.fields.weight']()} help={m['filament.fieldsHelp.weight']()} mono>
+					<span class:shadowed={shadowedBySpool.weight}>{filament.weight} g</span>
+					{#if shadowedBySpool.weight}
+						<OverrideMark label={m['inspector.override.bySpool']({ value: shadowedBySpool.weight })} />
+					{/if}
+				</Field>
+				<Field label={m['filament.fields.spoolWeight']()} help={m['filament.fieldsHelp.spoolWeight']()} mono>
+					<span class:shadowed={shadowedBySpool.tare}
+						>{filament.spoolWeight != null ? `${filament.spoolWeight} g` : '—'}</span
+					>
+					{#if shadowedBySpool.tare}
+						<OverrideMark label={m['inspector.override.bySpool']({ value: shadowedBySpool.tare })} />
+					{/if}
+				</Field>
+				<Field label={m['filament.fields.price']()} mono>
+					<span class:shadowed={shadowedBySpool.price}>{settings.formatPrice(filament.price)}</span>
+					{#if shadowedBySpool.price}
+						<OverrideMark label={m['inspector.override.bySpool']({ value: shadowedBySpool.price })} />
+					{/if}
+				</Field>
 				<Field
 					label={m['filament.fields.articleNumber']()}
 					help={m['filament.fieldsHelp.articleNumber']()}
@@ -450,6 +590,7 @@
 			<VendorSection
 				{vendor}
 				href={vendor ? params.selectHref(page.url.searchParams, 'vendor', vendor.id) : undefined}
+				emptyWeightShadowedBy={vendorTareShadowedBy}
 			/>
 		</div>
 	</div>
@@ -498,6 +639,14 @@
 		font-size: 12px;
 		color: var(--text-muted);
 		margin-top: 2px;
+	}
+	/* A filament value this spool has replaced: struck through rather than hidden,
+	   so the inherited chain stays readable while making clear it is not in force. */
+	.shadowed {
+		color: var(--text-dim);
+		text-decoration: line-through;
+		text-decoration-thickness: 1px;
+		opacity: 0.7;
 	}
 	.actions {
 		margin-left: auto;
@@ -623,6 +772,11 @@
 		padding: 0;
 		font: inherit;
 		text-decoration: none;
+	}
+	.sec-actions {
+		display: inline-flex;
+		align-items: center;
+		gap: 14px;
 	}
 
 	@container (max-width: 760px) {

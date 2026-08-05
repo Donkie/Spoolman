@@ -12,6 +12,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import Plus from '@lucide/svelte/icons/plus';
 	import X from '@lucide/svelte/icons/x';
+	import GripVertical from '@lucide/svelte/icons/grip-vertical';
 
 	const ENTITIES: { key: EntityType; label: () => string }[] = [
 		{ key: 'spool', label: m['library.section.spool'] },
@@ -142,6 +143,38 @@
 	function removeChoice(c: string) {
 		if (!isNew && originalChoices.includes(c)) return; // append-only
 		choices = choices.filter((x) => x !== c);
+	}
+
+	// Choices may not be removed once saved, but their order is free to change —
+	// it is the order they are offered in wherever the field is used.
+	let draggedChoice = $state<string | null>(null);
+
+	function moveChoice(choice: string, before: string) {
+		const next = [...choices];
+		const from = next.indexOf(choice);
+		const to = next.indexOf(before);
+		if (from === -1 || to === -1 || from === to) return;
+		next.splice(from, 1);
+		next.splice(to, 0, choice);
+		choices = next;
+	}
+
+	function moveChoiceBy(choice: string, offset: number) {
+		const to = choices.indexOf(choice) + offset;
+		if (to < 0 || to >= choices.length) return;
+		moveChoice(choice, choices[to]);
+	}
+
+	function onChoiceDragOver(e: DragEvent, target: string) {
+		if (draggedChoice === null) return;
+		e.preventDefault();
+		moveChoice(draggedChoice, target);
+	}
+
+	function onGripKeydown(e: KeyboardEvent, choice: string) {
+		if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+		e.preventDefault();
+		moveChoiceBy(choice, e.key === 'ArrowLeft' ? -1 : 1);
 	}
 
 	async function save() {
@@ -303,7 +336,24 @@
 					<span>{m['settings.extraFields.params.choices']()}</span>
 					<div class="chips">
 						{#each choices as c (c)}
-							<span class="chip">
+							<span
+								class="chip"
+								class:dragging={draggedChoice === c}
+								role="group"
+								aria-label={c}
+								ondragover={(e) => onChoiceDragOver(e, c)}
+							>
+								<button
+									class="chip-grip"
+									draggable="true"
+									ondragstart={() => (draggedChoice = c)}
+									ondragend={() => (draggedChoice = null)}
+									onkeydown={(e) => onGripKeydown(e, c)}
+									title={m['settings.extraFields.reorderChoice']()}
+									aria-label={m['settings.extraFields.reorderChoice']()}
+								>
+									<GripVertical size={11} />
+								</button>
 								{c}
 								{#if isNew || !originalChoices.includes(c)}
 									<button class="chip-x" onclick={() => removeChoice(c)} aria-label={m['common.remove']()}
@@ -519,6 +569,17 @@
 		border-radius: var(--radius-sm);
 		padding: 2px 7px;
 		font-size: 12px;
+	}
+	.chip.dragging {
+		opacity: 0.4;
+	}
+	.chip-grip {
+		display: inline-flex;
+		background: none;
+		border: none;
+		color: var(--accent-muted);
+		cursor: grab;
+		padding: 0;
 	}
 	.chip-x {
 		background: none;
