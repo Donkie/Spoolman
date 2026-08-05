@@ -236,6 +236,13 @@ GROUP_BY_COLUMNS = {
     "location": models.Spool.location,
 }
 
+# The two axes keyed by an entity id rather than by a value, and the column that names each
+# group. The rest are their own title.
+ENTITY_GROUP_BY_TITLES = {
+    "filament": models.Filament.name,
+    "vendor": models.Vendor.name,
+}
+
 # Prefix marking a reference to one of the spool's extra fields rather than a built-in column.
 EXTRA_FIELD_PREFIX = "extra."
 
@@ -283,6 +290,18 @@ def _apply_spool_filters(
     return stmt
 
 
+def _blank_as_null(col: ColumnElement) -> ColumnElement:
+    """Fold an empty string into NULL, so a value-keyed axis has ONE "no value" group.
+
+    A spool with no value for a string field can spell that as NULL or as an empty string, and
+    the two are distinct to the database — left alone they become two groups the client can only
+    render as the same "unassigned" one. Filtering already treats both as unset (see
+    add_where_clause_str_opt and the empty branch of add_where_clause_extra_field), so grouping
+    has to agree or a group's count will not match the spools that group's filter returns.
+    """
+    return func.nullif(col, "")
+
+
 async def _resolve_group_by(
     db: AsyncSession,
     group_by: str,
@@ -296,15 +315,15 @@ async def _resolve_group_by(
         field_key = _extra_field_key(await get_extra_fields(db, EntityType.spool), group_by)
         join = extra_field_join(EntityType.spool, field_key)
         # The value is the group's title as well; there is no separate entity to name it.
-        return join.value, join.value, join
+        col = _blank_as_null(join.value)
+        return col, col, join
+    if group_by in ENTITY_GROUP_BY_TITLES:
+        # Keyed by entity id, which has no blank spelling; the entity names the group.
+        return GROUP_BY_COLUMNS[group_by], ENTITY_GROUP_BY_TITLES[group_by], None
     if group_by in GROUP_BY_COLUMNS:
-        title_col = {
-            "filament": models.Filament.name,
-            "vendor": models.Vendor.name,
-            "material": models.Filament.material,
-            "location": models.Spool.location,
-        }[group_by]
-        return GROUP_BY_COLUMNS[group_by], title_col, None
+        # material/location: the value is the group's title, and a blank one is no value.
+        col = _blank_as_null(GROUP_BY_COLUMNS[group_by])
+        return col, col, None
     raise ValueError(
         f"Invalid group_by field '{group_by}'. Must be one of {sorted(GROUP_BY_COLUMNS)} "
         f"or '{EXTRA_FIELD_PREFIX}<spool extra field key>'.",

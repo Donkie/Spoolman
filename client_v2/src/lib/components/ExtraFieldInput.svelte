@@ -31,7 +31,11 @@
 	const emit = (v: unknown) => onchange(v === undefined ? undefined : JSON.stringify(v));
 
 	function onText(v: string) {
-		emit(v);
+		// Emptying the box clears the field rather than storing an empty string. A field
+		// holding "" is not distinguishable from an unset one anywhere it is read — it renders
+		// as em-dash, groups as "unassigned" and matches the unset filter — so storing one only
+		// creates a value that looks unset but isn't. Single-choice below does the same.
+		emit(v === '' ? undefined : v);
 	}
 	function onInt(v: string) {
 		emit(v.trim() === '' ? undefined : Math.round(Number(v)));

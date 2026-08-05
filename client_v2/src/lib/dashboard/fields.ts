@@ -1,4 +1,4 @@
-import type { Spool } from '$lib/types';
+import type { Extra, Spool } from '$lib/types';
 import type { GroupField } from '$lib/api/types';
 import { FieldType, type FieldDef } from '$lib/api/fields';
 import { spoolSource } from '$lib/api/spoolSource';
@@ -61,12 +61,23 @@ const LOCATION: DashboardField = {
 
 /**
  * Extra-field values are stored JSON-encoded; the group key is the decoded string.
- * Clearing writes JSON null rather than dropping the key: the API patches the extra map
- * key by key, so an omitted key would leave the old value in place.
+ *
+ * Clearing sends JSON null for the key rather than leaving the key out: the API patches the
+ * extra map key by key, so an omitted key would keep the old value. It has to be a real null
+ * and not the string 'null' — every value in the map is validated as a JSON-encoded *string*,
+ * and the string 'null' is rejected with a 400, which is what made dragging a spool onto the
+ * unassigned card fail on every extra-field board. Locally there is no null to store, so the
+ * board's own copy of the spool drops the key instead.
  */
 function extraField(def: FieldDef): DashboardField {
 	const key = `extra.${def.key}` as GroupField;
-	const encode = (value: GroupKey) => (value === '' ? 'null' : JSON.stringify(value));
+	const encode = (value: GroupKey) => (value === '' ? null : JSON.stringify(value));
+	const applied = (extra: Extra, value: GroupKey): Extra => {
+		const next = { ...extra };
+		if (value === '') delete next[def.key];
+		else next[def.key] = JSON.stringify(value);
+		return next;
+	};
 	return {
 		key,
 		label: def.name,
@@ -80,11 +91,10 @@ function extraField(def: FieldDef): DashboardField {
 				return '';
 			}
 		},
-		withValue: (spool, value) => ({ ...spool, extra: { ...spool.extra, [def.key]: encode(value) } }),
+		withValue: (spool, value) => ({ ...spool, extra: applied(spool.extra, value) }),
 		async assign(spool, value) {
-			const extra = { [def.key]: encode(value) };
-			inventory.patchSpool(spool.id, { extra: { ...spool.extra, ...extra } });
-			await spoolSource.saveSpool(spool.id, { extra });
+			inventory.patchSpool(spool.id, { extra: applied(spool.extra, value) });
+			await spoolSource.saveSpool(spool.id, { extra: { [def.key]: encode(value) } });
 		},
 		rename: async (from, to) => {
 			await spoolSource.renameFieldValue(key, from, to);
