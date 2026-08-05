@@ -337,6 +337,11 @@ def add_where_clause_extra_field(  # noqa: C901, PLR0912, PLR0915
             empty_conditions = [
                 field_table.value.is_(None),
                 field_table.value == "null",
+                # A stored empty string is unset too, the same way `location=` matches both NULL
+                # and '' on a built-in string column (add_where_clause_str_opt). Clearing a text
+                # box writes one of these, and without this they would be counted in the "no
+                # value" group by group_by but missing from the listing of that same group.
+                field_table.value == json.dumps(""),
             ]
             if field_type == ExtraFieldType.boolean:
                 empty_conditions.append(field_table.value == json.dumps(bool(0)))

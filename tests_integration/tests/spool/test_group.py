@@ -322,6 +322,96 @@ def test_group_by_extra_field_scope_matches_spool_search(extra_field_spools: Ext
     assert len(result.json()) == 1
 
 
+def test_group_by_extra_field_unset_spellings_are_one_group(random_filament: dict[str, Any]):
+    """Every way of spelling "no value" is the same group, and that group's filter returns all of it.
+
+    A spool can carry no row for the field, a row holding JSON null, or a row holding the empty
+    string that clearing a text box writes. All three read as unset, so they have to group
+    together AND come back from the empty filter that scopes the group — issue #1019, where the
+    dashboard counted 11 unassigned spools and then listed 3 of them.
+    """
+    field_key = f"printer_{uuid.uuid4().hex[:8]}"
+    httpx.post(
+        f"{URL}/api/v1/field/spool/{field_key}",
+        json={"name": "Printer", "field_type": "text"},
+    ).raise_for_status()
+
+    filament_id = random_filament["id"]
+    spool_ids: list[int] = []
+    try:
+        # No row for the field at all.
+        result = httpx.post(f"{URL}/api/v1/spool", json={"filament_id": filament_id})
+        result.raise_for_status()
+        spool_ids.append(result.json()["id"])
+        # A row that was set and then cleared with a null, dropping it.
+        for cleared in (None, ""):
+            result = httpx.post(
+                f"{URL}/api/v1/spool",
+                json={"filament_id": filament_id, "extra": {field_key: json.dumps("Prusa")}},
+            )
+            result.raise_for_status()
+            spool_id = result.json()["id"]
+            spool_ids.append(spool_id)
+            value = None if cleared is None else json.dumps(cleared)
+            httpx.patch(f"{URL}/api/v1/spool/{spool_id}", json={"extra": {field_key: value}}).raise_for_status()
+        # One spool that really is assigned, as a control.
+        result = httpx.post(
+            f"{URL}/api/v1/spool",
+            json={"filament_id": filament_id, "extra": {field_key: json.dumps("Prusa")}},
+        )
+        result.raise_for_status()
+        spool_ids.append(result.json()["id"])
+
+        result = httpx.get(
+            f"{URL}/api/v1/spool/group",
+            params={"group_by": f"extra.{field_key}", "filament.id": str(filament_id)},
+        )
+        result.raise_for_status()
+        # One unset group, not one per spelling — the client keys them all as "unassigned".
+        assert _counts_by_key(result.json()) == {None: 3, "Prusa": 1}
+
+        result = httpx.get(
+            f"{URL}/api/v1/spool",
+            params={f"extra.{field_key}": "", "filament.id": str(filament_id)},
+        )
+        result.raise_for_status()
+        assert len(result.json()) == 3
+        assert result.headers["x-total-count"] == "3"
+    finally:
+        for spool_id in spool_ids:
+            httpx.delete(f"{URL}/api/v1/spool/{spool_id}").raise_for_status()
+        httpx.delete(f"{URL}/api/v1/field/spool/{field_key}").raise_for_status()
+
+
+def test_group_by_location_blank_and_null_are_one_group(random_filament: dict[str, Any]):
+    """A blank location groups with an absent one, the same as the extra-field case above."""
+    filament_id = random_filament["id"]
+    spool_ids: list[int] = []
+    try:
+        for payload in (
+            {"filament_id": filament_id},
+            {"filament_id": filament_id, "location": ""},
+            {"filament_id": filament_id, "location": "Shelf A"},
+        ):
+            result = httpx.post(f"{URL}/api/v1/spool", json=payload)
+            result.raise_for_status()
+            spool_ids.append(result.json()["id"])
+
+        result = httpx.get(
+            f"{URL}/api/v1/spool/group",
+            params={"group_by": "location", "filament.id": str(filament_id)},
+        )
+        result.raise_for_status()
+        assert _counts_by_key(result.json()) == {None: 2, "Shelf A": 1}
+
+        result = httpx.get(f"{URL}/api/v1/spool", params={"location": "", "filament.id": str(filament_id)})
+        result.raise_for_status()
+        assert len(result.json()) == 2
+    finally:
+        for spool_id in spool_ids:
+            httpx.delete(f"{URL}/api/v1/spool/{spool_id}").raise_for_status()
+
+
 def test_group_by_unknown_extra_field():
     """Grouping by an extra field that isn't registered is a client error."""
     result = httpx.get(f"{URL}/api/v1/spool/group", params={"group_by": "extra.does_not_exist"})
