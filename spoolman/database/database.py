@@ -103,6 +103,15 @@ class Database:
         connect_args = {}
         if self.connection_url.drivername == "sqlite+aiosqlite":
             connect_args["timeout"] = 60
+        if self.connection_url.drivername == "cockroachdb+asyncpg":
+            # CockroachDB expands SERIAL primary keys to "DEFAULT unique_rowid()" by default,
+            # which generates 64-bit IDs. JavaScript numbers are only exact up to 2^53, so the
+            # web UI silently rounds such IDs and every follow-up request 404s (#797).
+            # Sequence-backed SERIAL gives ordinary small IDs instead. This is sent in the
+            # connection's startup packet rather than issued as a SET statement because it must
+            # be in force whenever DDL runs: the Alembic migrations that create the tables build
+            # their connection through this method too.
+            connect_args["server_settings"] = {"serial_normalization": "sql_sequence_cached"}
         connection_options = {}
         if self.connection_url.drivername == "mysql+aiomysql":
             connection_options["pool_recycle"] = 3600
