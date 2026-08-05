@@ -19,8 +19,8 @@ on:
       - reopened
       - synchronize
 
-# contents+pull-requests write let the built-in GITHUB_TOKEN enable auto-merge and perform the squash
-# merge. The token is not a ruleset bypass actor and doesn't need to be: with 0 required approvals it
+# contents+pull-requests write let the built-in GITHUB_TOKEN enable auto-merge and perform the merge.
+# The token is not a ruleset bypass actor and doesn't need to be: with 0 required approvals it
 # satisfies the branch requirements once the required checks go green, exactly like a manual merge.
 permissions:
   contents: write
@@ -89,5 +89,25 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
-        # Squash is the only merge method the repo and the master ruleset allow.
-        run: gh pr merge --auto --squash "$PR_URL"
+        # Merge commit, NOT squash. This is load-bearing for Weblate, not a style preference.
+        #
+        # Weblate keeps its own clone of this repo and rebases it onto master to pick up our changes.
+        # A squash merge replaces the Weblate commits with one brand-new commit that has a different
+        # hash AND, when the PR held more than one commit, a different patch-id than any of them. The
+        # rebase therefore can't tell that the work already landed, replays each original commit on top
+        # of a master that already contains those very strings, and dies on a content conflict:
+        #
+        #   Rebasing (1/3)
+        #   CONFLICT (content): Merge conflict in client_v2/locales/ru/common.json
+        #
+        # From then on Weblate can't merge upstream and stops syncing until someone resets it by hand
+        # (this happened with PR #1004, which squashed two Russian commits into one). Weblate's own
+        # docs are explicit: "Do not squash merge it. Squash merging creates a new commit instead of
+        # preserving the Weblate commits, so Weblate might not recognize that its local commits are
+        # already included upstream and might need a repository reset to recover."
+        #
+        # A merge commit keeps every Weblate commit reachable with its original hash, so the rebase
+        # sees them as already upstream and drops them silently. Nothing else forces squash here:
+        # the repo has allow_merge_commit enabled and the master ruleset carries no linear-history
+        # rule, and human PRs are merge-committed too.
+        run: gh pr merge --auto --merge "$PR_URL"
