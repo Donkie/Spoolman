@@ -8,6 +8,7 @@
 	import LinkedText from '../LinkedText.svelte';
 	import ExtraFieldsSection from '../ExtraFieldsSection.svelte';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import ArrowLeftRight from '@lucide/svelte/icons/arrow-left-right';
 	import OverrideMark from './OverrideMark.svelte';
 	import type { Vendor } from '$lib/types';
 	import * as m from '$lib/paraglide/messages';
@@ -28,17 +29,38 @@
 		 * filament can shadow it, under a spool either can. See OverrideMark.
 		 */
 		emptyWeightShadowedBy?: string;
+		/**
+		 * Open the change-manufacturer dialog. Passed only under a filament, which is
+		 * the entity that owns the link. A spool shows this section too, but reaches
+		 * its manufacturer *through* its filament — changing it there would silently
+		 * re-file every other spool of that filament as well, so the action is left
+		 * out and the spool's own "change filament" is the way to move it.
+		 */
+		onchange?: () => void;
 	}
-	let { vendor, href, emptyWeightShadowedBy }: Props = $props();
+	let { vendor, href, emptyWeightShadowedBy, onchange }: Props = $props();
+
+	// The section is headed even when there is nothing to open (no manufacturer yet),
+	// because that is exactly when "Change" is the point of the header.
+	let hasActions = $derived(!!onchange || !!(vendor && href));
 </script>
 
-{#snippet open()}
-	<a class="link" {href} data-sveltekit-keepfocus data-sveltekit-noscroll
-		>{m['inspector.openManufacturer']()} <ArrowRight size={13} /></a
-	>
+{#snippet actions()}
+	<span class="sec-actions">
+		{#if onchange}
+			<button class="link" onclick={onchange}
+				><ArrowLeftRight size={13} /> {m['changeVendor.action']()}</button
+			>
+		{/if}
+		{#if vendor && href}
+			<a class="link" {href} data-sveltekit-keepfocus data-sveltekit-noscroll
+				>{m['inspector.openManufacturer']()} <ArrowRight size={13} /></a
+			>
+		{/if}
+	</span>
 {/snippet}
 
-<SectionLabel right={vendor && href ? open : undefined}>
+<SectionLabel right={hasActions ? actions : undefined}>
 	{m['library.section.vendor']()}
 </SectionLabel>
 
@@ -76,6 +98,18 @@
 		font-size: 11.5px;
 		color: var(--accent-link);
 		text-decoration: none;
+		/* The "change" affordance is a button, the "open" one a link; reset the
+		   button's own furniture so the pair reads as one row of section actions. */
+		background: none;
+		border: none;
+		padding: 0;
+		cursor: pointer;
+		font-family: inherit;
+	}
+	.sec-actions {
+		display: inline-flex;
+		align-items: center;
+		gap: 14px;
 	}
 	.none {
 		font-size: 12px;

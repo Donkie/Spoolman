@@ -316,6 +316,21 @@ class HttpSpoolSource {
 		return f;
 	}
 
+	/**
+	 * Every manufacturer, ordered by name and cached.
+	 *
+	 * Unlike filaments there is no `/vendor` search endpoint and no external
+	 * manufacturer catalog to page through, but the list is small — a manufacturer
+	 * covers a whole brand, so even a large library has a few dozen — so the
+	 * pickers fetch it whole and filter it in the browser.
+	 */
+	async listVendors(signal?: AbortSignal): Promise<Vendor[]> {
+		const items = await getJson<Json[]>('/vendor', {}, signal);
+		const vendors = items.map(mapVendor);
+		inventory.upsertVendors(vendors);
+		return vendors.sort((a, b) => a.name.localeCompare(b.name));
+	}
+
 	async listFilamentsByVendor(vendorId: string): Promise<Filament[]> {
 		const items = await getJson<Json[]>('/filament', { 'vendor.id': vendorId });
 		const filaments = items.map((f) => {
@@ -385,6 +400,10 @@ class HttpSpoolSource {
 	}
 	async saveFilament(id: string, patch: FilamentPatch): Promise<void> {
 		const updated = await patchJson<Json>(`/filament/${id}`, filamentPatchToApi(patch));
+		// The response embeds the manufacturer, which this patch may just have
+		// changed — cache it too, so a filament re-filed under one the cache has
+		// never seen resolves to a name rather than to nothing.
+		if (updated.vendor) inventory.upsertVendor(mapVendor(updated.vendor));
 		inventory.upsertFilament(mapFilament(updated));
 	}
 	async saveVendor(id: string, patch: VendorPatch): Promise<void> {
@@ -486,12 +505,8 @@ class HttpSpoolSource {
 		return getJson<string[]>('/lot-number');
 	}
 	async vendorNames(): Promise<string[]> {
-		const vendors = await getJson<Json[]>('/vendor');
-		inventory.upsertVendors(vendors.map(mapVendor));
-		return vendors
-			.map((v) => v.name)
-			.filter(Boolean)
-			.sort();
+		const vendors = await this.listVendors();
+		return vendors.map((v) => v.name).filter(Boolean);
 	}
 }
 
