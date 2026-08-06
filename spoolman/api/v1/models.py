@@ -623,7 +623,7 @@ class SpoolEvent(Event):
 
     payload: Spool = Field(description="Updated spool.")
     resource: Literal["spool"] = Field(description="Resource type.")
-    payload_extras: dict[str, Any] | None = Field(
+    payload_extras: dict[str, str] | None = Field(
         default=None,
         description="Payload extra fields outside of core Spool model",
     )
