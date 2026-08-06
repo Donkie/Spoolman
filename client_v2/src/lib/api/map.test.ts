@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mapSpool, spoolPatchToApi } from './map';
+import { filamentPatchToApi, mapSpool, spoolPatchToApi } from './map';
 
 // The client models a spool's filament as a string id (ids are strings across the
 // reactive cache), but PATCH /spool/{id} takes a number and rejects an explicit
@@ -34,6 +34,33 @@ describe('spoolPatchToApi — filament', () => {
 		expect(spoolPatchToApi({ filamentId: '7', initial: 750 })).toEqual({
 			filament_id: 7,
 			initial_weight: 750
+		});
+	});
+});
+
+// A filament's manufacturer is the same kind of link one level up, but with the
+// opposite null rule: PATCH /filament/{id} clears the link on an explicit null
+// (spoolman/database/filament.py `update`), and that is the only way to put a
+// filament back to having no manufacturer. Dropping the key instead would make
+// "no manufacturer" silently do nothing.
+describe('filamentPatchToApi — manufacturer', () => {
+	it('sends the manufacturer as a numeric vendor_id', () => {
+		expect(filamentPatchToApi({ vendorId: '42' })).toEqual({ vendor_id: 42 });
+	});
+
+	it('leaves vendor_id out of patches that do not touch the manufacturer', () => {
+		expect(filamentPatchToApi({ name: 'PolyTerra Sage' })).toEqual({ name: 'PolyTerra Sage' });
+	});
+
+	it('clears the manufacturer with an explicit null', () => {
+		expect(filamentPatchToApi({ vendorId: '' })).toEqual({ vendor_id: null });
+		expect(filamentPatchToApi({ vendorId: undefined })).toEqual({ vendor_id: null });
+	});
+
+	it('carries the manufacturer alongside other edited fields', () => {
+		expect(filamentPatchToApi({ vendorId: '7', comment: 'rebranded' })).toEqual({
+			vendor_id: 7,
+			comment: 'rebranded'
 		});
 	});
 });

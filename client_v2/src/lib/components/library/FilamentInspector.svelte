@@ -21,6 +21,7 @@
 	import FieldGrid from '../FieldGrid.svelte';
 	import Field from '../Field.svelte';
 	import VendorSection from './VendorSection.svelte';
+	import ChangeVendorModal from './ChangeVendorModal.svelte';
 	import OverrideMark from './OverrideMark.svelte';
 	import type { Filament, Spool } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
@@ -157,6 +158,13 @@
 	let confirmOpen = $state(false);
 	let deleting = $state(false);
 
+	// --- change manufacturer -------------------------------------------------
+	// Kept out of the inline-edit path, like the spool's change-filament: the
+	// manufacturer is a link to another entity (possibly one that has to be created
+	// first), and it carries the empty-spool weight this filament may be inheriting,
+	// so it gets a dialog that says what will happen instead of a debounced autosave.
+	let changeVendorOpen = $state(false);
+
 	let confirmLines = $derived(
 		plan.allowed
 			? [m['inspector.delete.filamentBody']({ name: filament.name })]
@@ -260,6 +268,13 @@
 		confirmLabel={deleting ? m['inspector.delete.deleting']() : m['buttons.delete']()}
 		onconfirm={plan.allowed ? remove : undefined}
 		onclose={() => (confirmOpen = false)}
+	/>
+
+	<ChangeVendorModal
+		open={changeVendorOpen}
+		{filament}
+		current={vendor}
+		onclose={() => (changeVendorOpen = false)}
 	/>
 
 	<SectionLabel>
@@ -437,6 +452,7 @@
 				{vendor}
 				href={vendor ? params.selectHref(page.url.searchParams, 'vendor', vendor.id) : undefined}
 				emptyWeightShadowedBy={vendorTareShadowedBy}
+				onchange={() => (changeVendorOpen = true)}
 			/>
 		</div>
 	</div>

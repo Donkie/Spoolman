@@ -211,6 +211,12 @@ export function spoolPatchToApi(patch: SpoolPatch): Json {
 export function filamentPatchToApi(patch: FilamentPatch): Json {
 	const out: Json = {};
 	if ('name' in patch) out.name = patch.name;
+	// Re-filing a filament under another manufacturer. Unlike a spool's filament,
+	// this link is genuinely optional: the API clears it on an explicit null (see
+	// spoolman/database/filament.py `update`), so a blank value is sent as null
+	// rather than dropped — that is how a filament goes back to having no
+	// manufacturer at all.
+	if ('vendorId' in patch) out.vendor_id = patch.vendorId ? Number(patch.vendorId) : null;
 	if ('material' in patch) out.material = patch.material;
 	// Colours and direction always travel together (the inspector pushes both), so
 	// keying off `colors` keeps the single/multi request self-consistent.

@@ -3,7 +3,8 @@
 CockroachDB expands SERIAL primary keys to "DEFAULT unique_rowid()" out of the box, which
 generates 64-bit IDs. JavaScript numbers are only exact up to 2^53, so the web UI silently
 rounded such IDs and every follow-up request 404'd (#797). Spoolman therefore asks CockroachDB
-to normalize SERIAL to an ordinary cached sequence instead. The setting only takes effect at
+to normalize SERIAL to an ordinary sequence instead (uncached, so IDs stay in insertion
+order). The setting only takes effect at
 CREATE TABLE time, so it has to ride along on every connection the app opens -- including the
 one the Alembic migrations run through, which is built by the same Database.connect().
 """
@@ -32,7 +33,7 @@ def connect_kwargs(monkeypatch: pytest.MonkeyPatch, drivername: str) -> dict[str
 
 def test_cockroachdb_serial_normalization_is_sequence_backed(monkeypatch: pytest.MonkeyPatch):
     kwargs = connect_kwargs(monkeypatch, "cockroachdb+asyncpg")
-    assert kwargs["connect_args"]["server_settings"] == {"serial_normalization": "sql_sequence_cached"}
+    assert kwargs["connect_args"]["server_settings"] == {"serial_normalization": "sql_sequence"}
 
 
 def test_other_databases_get_no_server_settings(monkeypatch: pytest.MonkeyPatch):
