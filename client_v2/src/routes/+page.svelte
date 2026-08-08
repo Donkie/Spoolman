@@ -3,7 +3,9 @@
 	import Inspector from '$components/library/Inspector.svelte';
 	import DetailPane from '$components/DetailPane.svelte';
 	import Splitter from '$components/Splitter.svelte';
-	import { clearSelection } from '$lib/library/params';
+	import { afterNavigate, goto } from '$app/navigation';
+	import { page } from '$app/state';
+	import { clearSelection, rememberedViewHref } from '$lib/library/params';
 	import {
 		listWidth,
 		clampListWidth,
@@ -31,6 +33,28 @@
 	let available = $state(0);
 	let width = $derived(clampListWidth(listWidth.px, available));
 	let maxWidth = $derived(available > 0 ? Math.max(LIST_MIN, available - DETAIL_MIN) : width);
+
+	// ARRIVING at the Library on a URL that names no grouping or sort — the nav
+	// tab, the logo, a bookmark of the root, a QR code's `?sel=` — means "however
+	// I had it last". Restoring that is a real navigation to the URL that spells
+	// the view out, replacing the history entry so Back still leaves the Library
+	// in one step. Doing it here rather than in the load keeps the load a pure
+	// function of the URL, which is what SvelteKit's per-URL caching assumes.
+	//
+	// Only on arrival, though. A `goto` is one of the params.* helpers acting on a
+	// choice the user just made — including the choice of the *default* view,
+	// which is exactly the bare URL — and a `popstate` is Back or Forward, whose
+	// whole job is to show the view that history recorded rather than the newest
+	// preference. Restoring on either would overrule the user, and skipping them
+	// is also what makes a loop impossible.
+	afterNavigate(({ type }) => {
+		if (type === 'goto' || type === 'popstate') return;
+		const href = rememberedViewHref(page.url);
+		// Base-path-independent already: the href is built from page.url.pathname,
+		// which carries the deploy base path.
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		if (href) void goto(href, { replaceState: true, keepFocus: true, noScroll: true });
+	});
 </script>
 
 <svelte:head>

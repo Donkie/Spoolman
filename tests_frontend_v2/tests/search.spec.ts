@@ -170,6 +170,23 @@ test("grouping the library by location and by manufacturer", async ({ page }) =>
 
     await expect(onlyVisible(page.getByRole("button", { name: /^Group:\s*Manufacturer/ }))).toBeVisible();
     await expect(page.getByRole("button", { name: `Location: ${first.locationName}` })).toHaveCount(0);
+
+    // Restored by NAVIGATING to the URL that spells the view out, not by holding
+    // it off to one side: the address bar still describes what is on screen, so
+    // the view stays linkable.
+    await expect(page).toHaveURL(/[?&]group=vendor/);
+  });
+
+  await test.step("and the default grouping is still selectable afterwards", async () => {
+    // The restored view had to become a real URL for this to work. While it was
+    // only implied, choosing the default grouping serialised back to the very
+    // same bare URL, and an unchanged URL doesn't re-run the load — so the
+    // control silently refused to move.
+    const menu = await openToolbarMenu(page, "Group");
+    await menu.getByRole("button", { name: "Filament", exact: true }).click();
+
+    await expect(onlyVisible(page.getByRole("button", { name: /^Group:\s*Filament/ }))).toBeVisible();
+    await expect(page).not.toHaveURL(/[?&]group=/);
   });
 });
 

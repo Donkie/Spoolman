@@ -14,9 +14,10 @@ import { rememberedView, rememberView } from './viewPrefs';
 // serialisation is canonical (defaults omitted), so an untouched view has a
 // clean, bookmarkable URL and every distinct view maps to exactly one string.
 //
-// The one thing the URL doesn't decide on its own is the grouping and sort of a
-// URL that mentions neither: those fall back to the browser's remembered view
-// rather than to the shipped defaults (see viewPrefs, and #1036).
+// That stays true of the remembered view too (#1036): arriving on a URL that
+// mentions neither grouping nor sort doesn't quietly parse the preference into
+// the state, it navigates to the URL that spells the preference out (see
+// rememberedViewHref and viewPrefs). The address bar keeps describing the view.
 
 export type GroupMode = 'filament' | 'vendor' | 'material' | 'location' | 'none';
 
@@ -41,7 +42,9 @@ const GROUP_MODES: GroupMode[] = ['filament', 'vendor', 'material', 'location', 
 const ENTITY_KINDS: EntityKind[] = ['spool', 'filament', 'vendor'];
 
 /** The params that spell out how the list is laid out, as opposed to what it
- *  holds. A URL naming none of them defers to the remembered view. */
+ *  holds. A URL naming none of them is the one that defers to the remembered
+ *  view; naming any of them describes a view of its own, which is taken whole so
+ *  a stored grouping never gets spliced onto a link's sort. */
 const VIEW_PARAMS = ['group', 'sort', 'dir'];
 
 const DEFAULTS = {
@@ -72,29 +75,22 @@ function parsePositiveInt(value: string | null, fallback: number): number {
 }
 
 /**
- * How the list is laid out: what the URL says, or — when it says nothing about
- * grouping or sorting — what this browser was last left looking at. The
- * remembered view is taken whole, so a stored group never gets paired with a
- * URL's sort behind the user's back.
+ * Parse a URL's query params into the canonical Library state (the load fn's
+ * job). A pure function of the URL, deliberately: SvelteKit caches and preloads
+ * load results per URL, so a state that also depended on the remembered view
+ * would be served stale after that preference changed (see rememberedViewHref).
  */
-function parseView(params: URLSearchParams): Pick<LibraryState, 'group' | 'sortKey' | 'sortAsc'> {
-	const stored = VIEW_PARAMS.some((p) => params.has(p)) ? null : rememberedView();
-	const rawGroup = (stored ? stored.group : params.get('group')) as GroupMode | null;
-	return {
-		group: rawGroup && GROUP_MODES.includes(rawGroup) ? rawGroup : DEFAULTS.group,
-		sortKey: (stored ? stored.sortKey : params.get('sort')) ?? DEFAULTS.sortKey,
-		sortAsc: stored ? stored.sortAsc : params.get('dir') === 'asc'
-	};
-}
-
-/** Parse a URL's query params into the canonical Library state (the load fn's job). */
 export function parseLibraryState(params: URLSearchParams): LibraryState {
+	const group = params.get('group') as GroupMode | null;
+
 	const sel = params.get('sel');
 	const si = sel ? sel.indexOf(':') : -1;
 	const kind = si > 0 ? (sel!.slice(0, si) as EntityKind) : null;
 	const selection = kind && ENTITY_KINDS.includes(kind) ? { kind, id: sel!.slice(si + 1) } : null;
 
-	const { group: rawGroup, sortKey, sortAsc } = parseView(params);
+	const rawGroup = group && GROUP_MODES.includes(group) ? group : DEFAULTS.group;
+	const sortKey = params.get('sort') ?? DEFAULTS.sortKey;
+	const sortAsc = params.get('dir') === 'asc';
 	// Enforce the grouped-view invariant: a group can only be ordered by a
 	// group-orderable sort. A hand-crafted or stale URL pairing a grouping with a
 	// per-spool sort renders flat, honouring the more specific sort intent. (Our
@@ -141,6 +137,47 @@ function serializeState(s: LibraryState): string {
 /** Current Library state read straight off the address bar (for the nav helpers). */
 function currentState(): LibraryState {
 	return parseLibraryState(new URLSearchParams(window.location.search));
+}
+
+/**
+ * Where entering the Library on `url` should actually land: the same view with
+ * the remembered grouping and sort spelled out in the query string, or null when
+ * the URL already describes a view (or there's nothing worth restoring). The
+ * Library page navigates there on entry, replacing the history entry — see
+ * routes/+page.svelte.
+ *
+ * Restoring the view by rewriting the URL, rather than by quietly parsing the
+ * preference into the state, is what keeps the whole thing coherent. The address
+ * bar always spells out what's on screen, so the view stays linkable; the load
+ * function stays a pure function of the URL, so SvelteKit's per-URL load cache
+ * can't serve a state built from a preference that has since changed; and every
+ * distinct view keeps a distinct URL, so picking the *default* grouping is a real
+ * navigation rather than a no-op against an unchanged bare URL.
+ */
+export function rememberedViewHref(url: URL): string | null {
+	if (VIEW_PARAMS.some((p) => url.searchParams.has(p))) return null;
+
+	const stored = rememberedView();
+	if (!stored) return null;
+
+	// A grouping that no longer exists is as good as nothing stored, and a view
+	// that matches the shipped one is already what the bare URL means.
+	const group = GROUP_MODES.includes(stored.group as GroupMode)
+		? (stored.group as GroupMode)
+		: DEFAULTS.group;
+	if (
+		group === DEFAULTS.group &&
+		stored.sortKey === DEFAULTS.sortKey &&
+		stored.sortAsc === DEFAULTS.sortAsc
+	) {
+		return null;
+	}
+
+	// Everything the URL *does* say (a selection, filters, archived spools) is
+	// kept; only the layout comes from the preference.
+	const state = parseLibraryState(url.searchParams);
+	const qs = serializeState({ ...state, group, sortKey: stored.sortKey, sortAsc: stored.sortAsc });
+	return `${url.pathname}?${qs}`;
 }
 
 /**

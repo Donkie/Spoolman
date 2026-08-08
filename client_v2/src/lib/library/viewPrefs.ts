@@ -6,9 +6,15 @@
 // address bar carries it. Every other route links back to a bare `/`, so a trip
 // to Settings, the nav tab, or a bookmark used to hand back the factory view and
 // a user who works grouped by location had to re-pick it several times a day
-// (#1036). A URL that says nothing about the view now means "however I had it
-// last" rather than "however it ships"; one that does say something still wins
-// outright, so a link shows its recipient what its sender saw.
+// (#1036). Arriving on a URL that says nothing about the view now means "however
+// I had it last"; one that does say something still wins outright, so a link
+// shows its recipient what its sender saw.
+//
+// The preference is applied by NAVIGATING to the URL that spells it out (see
+// params.rememberedViewHref), never by parsing it into the state behind the
+// URL's back. Everything downstream — linkability, SvelteKit's per-URL load
+// cache, one URL per distinct view — depends on the address bar being the whole
+// truth about what's on screen.
 //
 // Only grouping and sort are remembered. Filters, search and archived-visibility
 // hide spools, and a hidden filter silently restored days later reads as missing
@@ -18,7 +24,7 @@ const KEY = 'spoolman-v2-library-view';
 
 /**
  * A remembered view. `group` is whatever was stored rather than a GroupMode:
- * this module only guarantees the shape, and params.parseLibraryState has the
+ * this module only guarantees the shape, and params.rememberedViewHref has the
  * final say on whether the string names a grouping that still exists.
  */
 export interface StoredView {
