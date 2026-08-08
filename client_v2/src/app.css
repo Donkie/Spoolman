@@ -92,6 +92,9 @@
 
 	/* Layout */
 	--topbar-h: 53px;
+	/* Library list column. The Library page overrides this per-instance from the
+	   remembered width (stores/listWidth, LIST_DEFAULT must match this); the value
+	   here is what the pane is styled with until that lands. */
 	--list-w: 470px;
 }
 

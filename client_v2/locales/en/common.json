@@ -335,6 +335,7 @@
     "library.noValues": "No values",
     "library.openGroup": "Open {{name}}",
     "library.openManufacturer": "Open manufacturer {{name}}",
+    "library.resizeList": "Resize the list (double-click to reset)",
     "library.section.extra": "Extra fields",
     "library.section.filament": "Filament",
     "library.section.spool": "Spool",
