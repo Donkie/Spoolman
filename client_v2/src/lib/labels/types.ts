@@ -3,6 +3,8 @@
 // on paper (mm→px at the printer's DPI). Designs are persisted as a JSON array in
 // the `label_designs` server setting (see $lib/api/labelDesigns).
 
+import { DEFAULT_EXPORT_FORMAT, type ExportFormatId } from './export';
+
 export type ElementType = 'qr' | 'text' | 'swatch' | 'rect';
 
 /**
@@ -120,9 +122,15 @@ export type PaperName = 'A4' | 'A3' | 'A5' | 'Letter' | 'Legal' | 'custom';
 export interface PrintLayout {
 	/**
 	 * `sheet` tiles many labels on one page; `label` prints one label per page;
-	 * `image` skips the printer entirely and downloads the labels as PNG files.
+	 * `image` skips the printer entirely and downloads the labels as files.
 	 */
 	mode: 'sheet' | 'label' | 'image';
+	/**
+	 * Which file format `image` mode saves. Ids come from the export registry
+	 * (see $lib/labels/export) and are resolved leniently, so a design saved by a
+	 * newer client naming a format this build lacks falls back to PNG.
+	 */
+	exportFormat: ExportFormatId;
 	/**
 	 * Raster resolution in dots per inch for both printing and image export.
 	 * Matching the printer's native density is what keeps small labels sharp:
@@ -165,6 +173,7 @@ export interface PrintLayout {
 
 export const DEFAULT_LAYOUT: PrintLayout = {
 	mode: 'sheet',
+	exportFormat: DEFAULT_EXPORT_FORMAT,
 	dpi: 300,
 	paper: 'A4',
 	custom: { w: 50, h: 25 },

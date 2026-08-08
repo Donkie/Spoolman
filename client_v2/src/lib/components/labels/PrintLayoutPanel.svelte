@@ -6,7 +6,8 @@
 	import { labelKind, type LabelDesign } from '$lib/labels/types';
 	import type { LabelBinding } from '$lib/labels/template';
 	import { PAPER_NAMES, paperSize, sheetGrid } from '$lib/labels/paper';
-	import { printLabels, saveLabelImages, ZIP_THRESHOLD } from '$lib/labels/print';
+	import { printLabels, exportLabels, ZIP_THRESHOLD } from '$lib/labels/print';
+	import { EXPORT_FORMATS, resolveExportFormat } from '$lib/labels/export';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { searchAll } from '$lib/api/search';
 	import { isAbortError } from '$lib/api/http';
@@ -310,13 +311,17 @@
 		}
 	}
 
-	async function doSaveImages() {
+	// The format the file export writes, resolved leniently so a design saved by a
+	// newer client naming an unknown format still renders a valid picker state.
+	const exportFormat = $derived(resolveExportFormat(layout.exportFormat));
+
+	async function doExport() {
 		if (bindings.length === 0) return;
 		saving = true;
 		try {
-			await saveLabelImages({ design, bindings, layout, baseUrl: settings.baseUrl });
+			await exportLabels({ design, bindings, layout, baseUrl: settings.baseUrl });
 		} catch (e) {
-			console.error('Save as image failed', e);
+			console.error('Label export failed', e);
 		} finally {
 			saving = false;
 		}
@@ -628,9 +633,17 @@
 				{m['labels.onePerLabel']({ w: design.label.w, h: design.label.h })}
 			</div>
 		{:else}
-			<!-- Image export has no page geometry to configure: the file *is* the label.
+			<!-- File export has no page geometry to configure: the file *is* the label.
 			     Copies are omitted too, since the files would be byte-identical. -->
-			<p class="help">{m['labels.imageDesc']({ w: design.label.w, h: design.label.h })}</p>
+			<label class="fld"
+				>{m['labels.exportFormat']()}
+				<select bind:value={layout.exportFormat}>
+					{#each EXPORT_FORMATS as f (f.id)}
+						<option value={f.id}>{f.label()}</option>
+					{/each}
+				</select></label
+			>
+			<p class="help">{exportFormat.description({ w: design.label.w, h: design.label.h })}</p>
 			<div class="grid-info">{m['labels.imageZipNote']({ threshold: ZIP_THRESHOLD })}</div>
 		{/if}
 	</div>
@@ -663,8 +676,10 @@
 		{/if}
 		<div class="print-btn">
 			{#if layout.mode === 'image'}
-				<Button onclick={doSaveImages} disabled={bindings.length === 0 || saving}>
-					{saving ? m['labels.preparing']() : m['printing.generic.saveAsImage']()}
+				<Button onclick={doExport} disabled={bindings.length === 0 || saving}>
+					{saving
+						? m['labels.preparing']()
+						: m['labels.saveAsFormat']({ format: exportFormat.extension.toUpperCase() })}
 				</Button>
 			{:else}
 				<Button onclick={doPrint} disabled={bindings.length === 0 || printing}>
