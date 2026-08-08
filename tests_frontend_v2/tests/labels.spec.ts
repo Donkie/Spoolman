@@ -1,4 +1,4 @@
-import { stat } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { test, expect } from "./fixtures";
 import { createSpoolViaModal, navTab, onlyVisible, openApp, unique } from "./helpers";
 
@@ -10,10 +10,10 @@ import { createSpoolViaModal, navTab, onlyVisible, openApp, unique } from "./hel
  *
  * Two things here can only be proven against a real deployment: that a design
  * survives a round trip through the backend, and that the renderer actually
- * produces a PNG for a real spool (QR encoding, template substitution, the logo
- * and the mm→pixel maths all run for that one click). We exercise the "Image
- * files" output rather than "Print" on purpose — printing opens the browser's
- * print dialog, which would block the session.
+ * produces a file for a real spool (QR encoding, template substitution, the logo
+ * and the mm→pixel maths all run for that one click). We exercise the "Files"
+ * output rather than "Print" on purpose — printing opens the browser's print
+ * dialog, which would block the session.
  */
 
 const spool = {
@@ -79,7 +79,7 @@ test("create a label design and persist it to the server", async ({ page }) => {
   });
 });
 
-test("render a label for a real spool and download it as a PNG", async ({ page }) => {
+test("render a label for a real spool and download it as a PNG and an AML file", async ({ page }) => {
   await openApp(page);
   await navTab(page, "Labels", "Labels | Spoolman");
 
@@ -93,13 +93,15 @@ test("render a label for a real spool and download it as a PNG", async ({ page }
     await expect(page.getByText("1 spool selected")).toBeVisible();
   });
 
-  await test.step("export it as an image", async () => {
-    // "Image files" writes PNGs straight to disk. The other two modes go through
-    // window.print(), whose dialog would stall the browser session.
-    await page.getByRole("button", { name: "Image files", exact: true }).click();
+  // "Files" writes straight to disk. The other two modes go through
+  // window.print(), whose dialog would stall the browser session.
+  await page.getByRole("button", { name: "Files", exact: true }).click();
+
+  await test.step("export it as a PNG", async () => {
+    await page.getByLabel("File format").selectOption({ label: "PNG image" });
 
     const downloadPromise = page.waitForEvent("download");
-    await page.getByRole("button", { name: "Save as Image" }).click();
+    await page.getByRole("button", { name: "Save as PNG" }).click();
     const download = await downloadPromise;
 
     // One file per selected spool, named after the spool it belongs to.
@@ -111,6 +113,38 @@ test("render a label for a real spool and download it as a PNG", async ({ page }
     expect(path).not.toBeNull();
     const { size } = await stat(path!);
     expect(size).toBeGreaterThan(1000);
+
+    // The resolution the layout asked for is stamped into the file, so the label
+    // lands at its designed physical size instead of being read back as 96 dpi.
+    const png = await readFile(path!);
+    const phys = png.indexOf("pHYs");
+    expect(phys).toBeGreaterThan(0);
+    // pHYs payload: pixels per metre on X, then Y. 300 dpi = 11811 px/m.
+    expect(png.readUInt32BE(phys + 4)).toBe(11811);
+    expect(png.readUInt32BE(phys + 8)).toBe(11811);
+  });
+
+  await test.step("export the same label as an AML file", async () => {
+    await page.getByLabel("File format").selectOption({ label: "AML label file" });
+
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Save as AML" }).click();
+    const download = await downloadPromise;
+
+    expect(download.suggestedFilename()).toMatch(/^spoolman-spool-label-\d+\.aml$/);
+
+    const path = await download.path();
+    expect(path).not.toBeNull();
+    const aml = await readFile(path!, "utf8");
+
+    // The document the printer apps expect, carrying the label's physical size in
+    // mm and the rendered raster as one embedded image.
+    expect(aml).toContain('<LPAPI version="1.3">');
+    expect(aml).toMatch(/<labelWidth>[\d.]+<\/labelWidth>/);
+    expect(aml).toMatch(/<labelHeight>[\d.]+<\/labelHeight>/);
+    const content = /<content>([A-Za-z0-9+/=]+)<\/content>/.exec(aml);
+    expect(content, "AML should embed the label raster").not.toBeNull();
+    expect(content![1].length).toBeGreaterThan(1000);
   });
 });
 

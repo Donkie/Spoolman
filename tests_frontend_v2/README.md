@@ -32,10 +32,11 @@ client. Both complement the backend HTTP suite in
 - **`tests/labels.spec.ts`** — the label/QR subsystem. A design is created, named
   and saved, then found again after a reload (designs live in the `label_designs`
   server setting, not in localStorage), and a label for a real spool is exported
-  through the "Image files" mode and asserted to be a non-trivial PNG — which is
-  the only way to prove the QR encoding, template substitution, logo and mm→pixel
-  maths all ran. The "Print" modes are deliberately not exercised: they open the
-  browser's print dialog, which would stall the session.
+  through the "Files" mode in both formats: a non-trivial PNG carrying the layout's
+  resolution in its `pHYs` chunk, and an AML document embedding the same raster —
+  which is the only way to prove the QR encoding, template substitution, logo and
+  mm→pixel maths all ran. The "Print" modes are deliberately not exercised: they
+  open the browser's print dialog, which would stall the session.
 - **`tests/settings.spec.ts`** — the settings page, where two persistence models
   meet with no visual clue which is which: currency, price rounding and base URL
   are server settings (checked by reloading), while the theme is per-browser and
