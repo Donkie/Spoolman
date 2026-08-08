@@ -5,6 +5,7 @@
 	import EditableField from './EditableField.svelte';
 	import LinkedText from './LinkedText.svelte';
 	import { formatDateTime } from '$lib/utils/datetime';
+	import { numericInput, parseDecimal } from '$lib/utils/numeric';
 	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
@@ -37,11 +38,28 @@
 		// creates a value that looks unset but isn't. Single-choice below does the same.
 		emit(v === '' ? undefined : v);
 	}
+	// The numeric fields are text inputs guarded by `numericInput` so a decimal comma
+	// is accepted and letters can't be typed at all; `parseDecimal` reads either
+	// separator. What the user typed is kept in `drafts` and shown back for as long as
+	// it means the same number as the stored value — otherwise emitting "1," (which
+	// stores 1) would immediately rewrite the box to "1" and eat the comma mid-typing.
+	let drafts = $state<Record<string, string>>({});
+	function shown(key: string, stored: unknown): string {
+		const value = stored === undefined || stored === null ? '' : String(stored);
+		const draft = drafts[key];
+		return draft !== undefined && parseDecimal(draft) === parseDecimal(value) ? draft : value;
+	}
+	function typed(key: string, raw: string): string {
+		drafts[key] = raw;
+		return raw;
+	}
+
 	function onInt(v: string) {
-		emit(v.trim() === '' ? undefined : Math.round(Number(v)));
+		const n = parseDecimal(v);
+		emit(n === null ? undefined : Math.round(n));
 	}
 	function onFloat(v: string) {
-		emit(v.trim() === '' ? undefined : Number(v));
+		emit(parseDecimal(v) ?? undefined);
 	}
 
 	// Ranges: [low, high], each number-or-null.
@@ -49,8 +67,8 @@
 	let hi = $derived(Array.isArray(parsed) ? (parsed[1] ?? '') : '');
 	function onRange(which: 0 | 1, raw: string, isInt: boolean) {
 		const cur: [unknown, unknown] = Array.isArray(parsed) ? [parsed[0], parsed[1]] : [null, null];
-		const n = raw.trim() === '' ? null : isInt ? Math.round(Number(raw)) : Number(raw);
-		cur[which] = n;
+		const parsedNum = parseDecimal(raw);
+		cur[which] = parsedNum === null ? null : isInt ? Math.round(parsedNum) : parsedNum;
 		if (cur[0] === null && cur[1] === null) emit(undefined);
 		else emit(cur);
 	}
@@ -95,11 +113,12 @@
 	<span class="numrow">
 		<input
 			class="edit mono"
-			type="number"
-			step="1"
-			value={parsed ?? ''}
+			type="text"
+			inputmode="decimal"
+			use:numericInput
+			value={shown('int', parsed)}
 			aria-label={field.name}
-			oninput={(e) => onInt(e.currentTarget.value)}
+			oninput={(e) => onInt(typed('int', e.currentTarget.value))}
 		/>
 		{#if field.unit}<span class="unit">{field.unit}</span>{/if}
 	</span>
@@ -107,11 +126,12 @@
 	<span class="numrow">
 		<input
 			class="edit mono"
-			type="number"
-			step="any"
-			value={parsed ?? ''}
+			type="text"
+			inputmode="decimal"
+			use:numericInput
+			value={shown('float', parsed)}
 			aria-label={field.name}
-			oninput={(e) => onFloat(e.currentTarget.value)}
+			oninput={(e) => onFloat(typed('float', e.currentTarget.value))}
 		/>
 		{#if field.unit}<span class="unit">{field.unit}</span>{/if}
 	</span>
@@ -120,21 +140,23 @@
 	<span class="numrow">
 		<input
 			class="edit mono narrow"
-			type="number"
-			step={isInt ? '1' : 'any'}
-			value={lo}
+			type="text"
+			inputmode="decimal"
+			use:numericInput
+			value={shown('lo', lo)}
 			aria-label={`${field.name} ${m['settings.extraFields.min']()}`}
-			oninput={(e) => onRange(0, e.currentTarget.value, isInt)}
+			oninput={(e) => onRange(0, typed('lo', e.currentTarget.value), isInt)}
 			placeholder={m['settings.extraFields.min']()}
 		/>
 		<span class="dash">–</span>
 		<input
 			class="edit mono narrow"
-			type="number"
-			step={isInt ? '1' : 'any'}
-			value={hi}
+			type="text"
+			inputmode="decimal"
+			use:numericInput
+			value={shown('hi', hi)}
 			aria-label={`${field.name} ${m['settings.extraFields.max']()}`}
-			oninput={(e) => onRange(1, e.currentTarget.value, isInt)}
+			oninput={(e) => onRange(1, typed('hi', e.currentTarget.value), isInt)}
 			placeholder={m['settings.extraFields.max']()}
 		/>
 		{#if field.unit}<span class="unit">{field.unit}</span>{/if}

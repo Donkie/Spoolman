@@ -9,6 +9,7 @@
 		type FieldParams
 	} from '$lib/api/fields';
 	import { fields } from '$lib/stores/fields.svelte';
+	import { numericInput, parseDecimal } from '$lib/utils/numeric';
 	import * as m from '$lib/paraglide/messages';
 	import Plus from '@lucide/svelte/icons/plus';
 	import X from '@lucide/svelte/icons/x';
@@ -65,7 +66,10 @@
 
 	let key = $state('');
 	let name = $state('');
-	let order = $state(0);
+	// The order box is a plain text field (numeric fields accept a decimal comma and
+	// refuse letters — see $lib/utils/numeric.ts); `order` is the whole number it means.
+	let orderText = $state('0');
+	let order = $derived(Math.max(0, Math.round(parseDecimal(orderText) ?? 0)));
 	let fieldType = $state<FieldType>(FieldType.text);
 	let unit = $state('');
 	let defaultJson = $state<string | undefined>(undefined);
@@ -95,7 +99,7 @@
 		error = '';
 		key = '';
 		name = '';
-		order = Math.max(0, ...defs.map((f) => f.order)) + 1;
+		orderText = String(Math.max(0, ...defs.map((f) => f.order)) + 1);
 		fieldType = FieldType.text;
 		unit = '';
 		defaultJson = undefined;
@@ -111,7 +115,7 @@
 		error = '';
 		key = f.key;
 		name = f.name;
-		order = f.order;
+		orderText = String(f.order);
 		fieldType = f.field_type;
 		unit = f.unit ?? '';
 		defaultJson = f.default_value ?? undefined;
@@ -205,7 +209,7 @@
 
 		const params: FieldParams = {
 			name: name.trim(),
-			order: Math.max(0, Math.round(order)),
+			order,
 			field_type: fieldType,
 			unit: showsUnit && unit.trim() ? unit.trim() : null,
 			default_value: defaultJson ?? null,
@@ -301,7 +305,13 @@
 			</label>
 			<label class="fld">
 				<span>{m['settings.extraFields.params.order']()}</span>
-				<input class="in mono" type="number" min="0" bind:value={order} />
+				<input
+					class="in mono"
+					type="text"
+					inputmode="numeric"
+					use:numericInput={{ negative: false }}
+					bind:value={orderText}
+				/>
 			</label>
 			<label class="fld wide">
 				<span>{m['settings.extraFields.params.name']()}</span>

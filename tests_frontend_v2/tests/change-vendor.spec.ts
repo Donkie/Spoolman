@@ -56,8 +56,8 @@ test("change which manufacturer a filament is filed under", async ({ page }) => 
     await expect(page).toHaveURL(/[?&]sel=vendor(:|%3A)\d+/);
 
     const saved = patched(page, "vendor");
-    await inspector.getByRole("spinbutton", { name: "Empty Spool Weight" }).fill("250");
-    await inspector.getByRole("spinbutton", { name: "Empty Spool Weight" }).blur();
+    await inspector.getByRole("textbox", { name: "Empty Spool Weight" }).fill("250");
+    await inspector.getByRole("textbox", { name: "Empty Spool Weight" }).blur();
     await saved;
   });
 

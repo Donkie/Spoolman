@@ -1,8 +1,12 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import * as m from '$lib/paraglide/messages';
 	import { getFieldLabelId } from './fieldLabel';
-	// A themed numeric input. Native spinners are hidden app-wide (see app.css);
-	// this component supplies its own up/down steppers styled to match the dark UI.
+	import { normalizeDecimal, numericInput, parseDecimal } from '$lib/utils/numeric';
+	// A themed numeric input. It is a text input rather than `type="number"`: that
+	// lets it accept a decimal comma ("1,75") as well as a point, and lets it refuse
+	// letters outright instead of silently reporting an unparseable value as empty.
+	// See $lib/utils/numeric.ts. Steppers are ours too, styled to match the dark UI.
 	//
 	// Two usage modes:
 	//   1. String/bindable (default): `bind:value` with a string; updates live on input.
@@ -55,13 +59,24 @@
 	// Named by the enclosing <Field>'s label cell when there is one; see fieldLabel.ts.
 	const labelId = getFieldLabelId();
 
-	// Commit mode keeps a local draft so keystrokes don't fire onchange; the controlled
-	// `value` re-seeds it whenever the parent changes it (e.g. a new element is selected).
-	let draft = $state('');
+	// What the parent sees is always canonical (a dot, or a number). What the user
+	// sees is the text they typed, kept here as a draft — that's how a decimal comma,
+	// and a half-finished "1," or "", survive a round trip through the parent.
+	// The draft is dropped as soon as the parent moves the value somewhere the draft
+	// doesn't mean (a clamp, a preset button, another element selected); a value that
+	// merely echoes back what was typed leaves it alone. In commit mode the draft is
+	// also what defers `onchange` until blur or a step.
+	let draft = $state<string | null>(null);
+	const external = $derived(value == null ? '' : String(value));
+	const shown = $derived(draft ?? external);
 	$effect(() => {
-		if (onchange) draft = String(value ?? '');
+		const incoming = external;
+		untrack(() => {
+			if (draft !== null && parseDecimal(draft) !== parseDecimal(incoming)) draft = null;
+		});
 	});
-	const shown = $derived(onchange ? draft : String(value ?? ''));
+	// A minus sign is only offered where a negative value is actually allowed.
+	const negative = $derived(min == null || min < 0);
 
 	function clamp(n: number): number {
 		if (min != null && n < min) n = min;
@@ -69,45 +84,54 @@
 		return n;
 	}
 	function onInput(v: string) {
-		if (onchange) draft = v;
-		else value = v;
+		draft = v;
+		if (!onchange) value = normalizeDecimal(v);
 	}
 	function commit() {
 		if (!onchange) return;
-		if (onclear && draft.trim() === '') onclear();
-		else onchange(clamp(parseFloat(draft) || 0));
+		const raw = (draft ?? external).trim();
+		if (onclear && raw === '') onclear();
+		else onchange(clamp(parseDecimal(raw) ?? 0));
 	}
 	function bump(dir: 1 | -1) {
-		const cur = parseFloat(shown);
-		const base = Number.isFinite(cur) ? cur : (min ?? 0);
+		const base = parseDecimal(shown) ?? min ?? 0;
 		let next = clamp(base + dir * step);
 		next = Math.round(next * 1e6) / 1e6; // trim float noise
-		if (onchange) {
-			draft = String(next);
-			onchange(next);
-		} else {
-			value = String(next);
+		draft = String(next);
+		if (onchange) onchange(next);
+		else value = String(next);
+	}
+	// A text input has no native stepping, so keep the arrow keys a number input gave us.
+	function onKeydown(e: KeyboardEvent) {
+		if (e.key === 'ArrowUp') {
+			e.preventDefault();
+			bump(1);
+		} else if (e.key === 'ArrowDown') {
+			e.preventDefault();
+			bump(-1);
 		}
 	}
 </script>
 
 <div class="ni" class:spaced class:invalid class:dense class:disabled style:width>
-	<!-- value/oninput (not bind:value) so the value stays a string — Svelte would
-	     otherwise coerce a type=number binding to a number. -->
+	<!-- value/oninput (not bind:value) so the value stays a string, and so the draft
+	     above decides what is displayed. `numericInput` filters the keystrokes; min,
+	     max and step are enforced by this component, not by the browser. -->
 	<input
 		class="mono"
-		type="number"
+		type="text"
+		use:numericInput={{ negative }}
 		value={shown}
 		oninput={(e) => onInput(e.currentTarget.value)}
 		onchange={commit}
-		{min}
-		{max}
-		{step}
+		onkeydown={onKeydown}
 		{placeholder}
 		{disabled}
 		aria-label={ariaLabel}
 		aria-labelledby={ariaLabel ? undefined : labelId}
 		inputmode="decimal"
+		autocomplete="off"
+		spellcheck="false"
 	/>
 	{#if unit}<span class="unit">{unit}</span>{/if}
 	<div class="spin">
