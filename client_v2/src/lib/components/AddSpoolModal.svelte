@@ -20,6 +20,7 @@
 	import type { EntityType } from '$lib/api/fields';
 	import { externalColors, externalDirection, type ExternalFilament } from '$lib/api/external';
 	import { roundGrams, weightAuto } from '$lib/utils/format';
+	import { parseDecimal } from '$lib/utils/numeric';
 	import { loadMaterials, type MaterialSpec } from '$lib/data/materials';
 	import * as m from '$lib/paraglide/messages';
 
@@ -482,8 +483,8 @@
 	) {
 		const t = v.trim();
 		if (t === '') return required ? m['validation.required']() : '';
-		const n = Number(t);
-		if (!Number.isFinite(n)) return m['validation.mustBeNumber']();
+		const n = parseDecimal(t);
+		if (n === null) return m['validation.mustBeNumber']();
 		if (gt != null && n <= gt) return m['validation.mustBeGt']({ value: gt });
 		if (min != null && n < min) return m['validation.mustBeMin']({ value: min });
 		if (max != null && n > max) return m['validation.mustBeMax']({ value: max });
@@ -886,7 +887,7 @@
 						</label>
 						<label
 							>{m['filament.fields.price']()} <span class="u">{settings.currency}</span>
-							<input class="mono" bind:value={price} placeholder="—" class:invalid={errors.price} />
+							<NumberInput bind:value={price} min={0} placeholder="—" spaced invalid={!!errors.price} />
 							{#if errors.price}<span class="err">{errors.price}</span>{/if}
 						</label>
 						<label>{m['spool.fields.lotNr']()}<input class="mono" bind:value={lot} placeholder="—" /></label>

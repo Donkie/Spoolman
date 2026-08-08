@@ -36,7 +36,7 @@ test("a spool keeps a tare weight of its own, and says when it overrides the fil
   await expect(page).toHaveURL(/[?&]sel=spool(:|%3A)\d+/);
 
   const inspector = page.locator(".insp");
-  const spoolTare = inspector.getByRole("spinbutton", { name: "Spool Weight" });
+  const spoolTare = inspector.getByRole("textbox", { name: "Spool Weight" });
 
   await test.step("give this spool a tare weight of its own", async () => {
     const saved = patched(page, "spool");
@@ -50,7 +50,7 @@ test("a spool keeps a tare weight of its own, and says when it overrides the fil
   await test.step("correcting the filament leaves this spool on its own figure", async () => {
     await inspector.getByRole("link", { name: /Open filament/ }).click();
     await expect(page).toHaveURL(/[?&]sel=filament(:|%3A)\d+/);
-    const filamentTare = inspector.getByRole("spinbutton", { name: "Spool Weight" });
+    const filamentTare = inspector.getByRole("textbox", { name: "Spool Weight" });
     const saved = patched(page, "filament");
     await filamentTare.fill("261");
     await filamentTare.blur();

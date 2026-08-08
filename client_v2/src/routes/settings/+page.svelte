@@ -9,6 +9,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { languages } from '$lib/i18n/languages';
 	import { trackSave } from '$lib/utils/autosave';
+	import { numericInput, parseDecimal } from '$lib/utils/numeric';
 	import { page } from '$app/state';
 	import { entityFromUrl, gotoEntity, EXTRA_FIELDS_ANCHOR } from '$lib/settings/params';
 
@@ -29,6 +30,24 @@
 	}
 	function saveBaseUrl(v: string) {
 		trackSave(settings.setBaseUrl(v.trim()));
+	}
+
+	// The threshold box takes either decimal separator (see $lib/utils/numeric.ts).
+	// What was typed stays on screen for as long as the stored number is still the
+	// one it produced, so storing the canonical 1.5 doesn't rewrite a typed "1,5"
+	// mid-keystroke — and an emptied box doesn't immediately refill itself with the
+	// 0 it stores, which would leave the next digits typed after a stray zero.
+	let thresholdDraft = $state<string | null>(null);
+	let thresholdStored = $state(0);
+	let thresholdText = $derived(
+		thresholdDraft !== null && thresholdStored === settings.lowThreshold
+			? thresholdDraft
+			: String(settings.lowThreshold)
+	);
+	function saveThreshold(v: string) {
+		thresholdDraft = v;
+		thresholdStored = parseDecimal(v) ?? 0;
+		settings.setLowThreshold(thresholdStored);
 	}
 
 	let localeData = locales.map((code) => {
@@ -123,10 +142,12 @@
 			>
 				<input
 					class="num mono"
-					type="number"
+					type="text"
+					inputmode="decimal"
+					use:numericInput={{ negative: false }}
 					aria-label={m['settings.library.lowThreshold.label']()}
-					value={settings.lowThreshold}
-					oninput={(e) => settings.setLowThreshold(Number(e.currentTarget.value) || 0)}
+					value={thresholdText}
+					oninput={(e) => saveThreshold(e.currentTarget.value)}
 				/>
 				<span class="unit">g</span>
 			</SettingRow>
