@@ -2,6 +2,7 @@ import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 import type { EntityKind, Selection } from '$lib/types';
 import { isGroupOrderable, defaultSortAsc } from '$lib/utils/library';
+import { rememberedView, rememberView } from './viewPrefs';
 
 // The Library view's entire query state lives in the URL — this module is the
 // single place that translates between the query string and a typed
@@ -12,6 +13,10 @@ import { isGroupOrderable, defaultSortAsc } from '$lib/utils/library';
 // helpers below, each of which rewrites the query string and navigates. The
 // serialisation is canonical (defaults omitted), so an untouched view has a
 // clean, bookmarkable URL and every distinct view maps to exactly one string.
+//
+// The one thing the URL doesn't decide on its own is the grouping and sort of a
+// URL that mentions neither: those fall back to the browser's remembered view
+// rather than to the shipped defaults (see viewPrefs, and #1036).
 
 export type GroupMode = 'filament' | 'vendor' | 'material' | 'location' | 'none';
 
@@ -34,6 +39,10 @@ export interface LibraryState {
 
 const GROUP_MODES: GroupMode[] = ['filament', 'vendor', 'material', 'location', 'none'];
 const ENTITY_KINDS: EntityKind[] = ['spool', 'filament', 'vendor'];
+
+/** The params that spell out how the list is laid out, as opposed to what it
+ *  holds. A URL naming none of them defers to the remembered view. */
+const VIEW_PARAMS = ['group', 'sort', 'dir'];
 
 const DEFAULTS = {
 	group: 'filament' as GroupMode,
@@ -62,17 +71,30 @@ function parsePositiveInt(value: string | null, fallback: number): number {
 	return Number.isInteger(n) && n > 0 ? n : fallback;
 }
 
+/**
+ * How the list is laid out: what the URL says, or — when it says nothing about
+ * grouping or sorting — what this browser was last left looking at. The
+ * remembered view is taken whole, so a stored group never gets paired with a
+ * URL's sort behind the user's back.
+ */
+function parseView(params: URLSearchParams): Pick<LibraryState, 'group' | 'sortKey' | 'sortAsc'> {
+	const stored = VIEW_PARAMS.some((p) => params.has(p)) ? null : rememberedView();
+	const rawGroup = (stored ? stored.group : params.get('group')) as GroupMode | null;
+	return {
+		group: rawGroup && GROUP_MODES.includes(rawGroup) ? rawGroup : DEFAULTS.group,
+		sortKey: (stored ? stored.sortKey : params.get('sort')) ?? DEFAULTS.sortKey,
+		sortAsc: stored ? stored.sortAsc : params.get('dir') === 'asc'
+	};
+}
+
 /** Parse a URL's query params into the canonical Library state (the load fn's job). */
 export function parseLibraryState(params: URLSearchParams): LibraryState {
-	const group = params.get('group') as GroupMode | null;
-
 	const sel = params.get('sel');
 	const si = sel ? sel.indexOf(':') : -1;
 	const kind = si > 0 ? (sel!.slice(0, si) as EntityKind) : null;
 	const selection = kind && ENTITY_KINDS.includes(kind) ? { kind, id: sel!.slice(si + 1) } : null;
 
-	const rawGroup = group && GROUP_MODES.includes(group) ? group : DEFAULTS.group;
-	const sortKey = params.get('sort') ?? DEFAULTS.sortKey;
+	const { group: rawGroup, sortKey, sortAsc } = parseView(params);
 	// Enforce the grouped-view invariant: a group can only be ordered by a
 	// group-orderable sort. A hand-crafted or stale URL pairing a grouping with a
 	// per-spool sort renders flat, honouring the more specific sort intent. (Our
@@ -81,7 +103,7 @@ export function parseLibraryState(params: URLSearchParams): LibraryState {
 		selection,
 		group: isGroupOrderable(sortKey, rawGroup) ? rawGroup : 'none',
 		sortKey,
-		sortAsc: params.get('dir') === 'asc',
+		sortAsc,
 		filters: parseFilters(params.getAll('f')),
 		showArchived: params.get('arch') === '1',
 		page: parsePositiveInt(params.get('page'), DEFAULTS.page),
@@ -128,6 +150,14 @@ function currentState(): LibraryState {
  * box focused and the list from jumping.
  */
 function navigate(next: LibraryState, replace = false): void {
+	// Remember the layout the user is navigating to, so returning to the Library
+	// from another page restores it. Recorded here rather than in setGroup /
+	// setSortKey so it always matches the view actually shown, including
+	// setGroup's fallback to the default sort. Back/forward doesn't come through
+	// here: stepping through history replays old views without redefining what
+	// "the Library" means next time it's opened fresh.
+	rememberView({ group: next.group, sortKey: next.sortKey, sortAsc: next.sortAsc });
+
 	const qs = serializeState(next);
 	// Both targets are base-path-independent: a bare `?query` resolves against the
 	// current URL, and window.location.pathname already includes the base path.
