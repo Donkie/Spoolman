@@ -383,8 +383,9 @@
             "non_unique_key_error": "Tento klíč musí být jedinečný.",
             "key_not_changed": "Změňte prosím klíč na jiný.",
             "delete_confirm": "Smazat pole {{name}}?",
-            "description": "<p>Zde můžete přidat další vlastní pole k subjektům.</p><p>Jakmile je pole přidáno, nemůžete změnit jeho klíč ani typ a u polí typu výběr nemůžete odebrat volby ani změnit stav více voleb. Pokud pole odstraníte, budou odstraněna přidružená data pro všechny subjekty.</p><p>Klíčové je, jako co ostatní programy čtou/zapisují data, takže pokud má být vaše vlastní pole integrováno s programem třetí strany, ujistěte se, že je správně nastaveno. Výchozí hodnota se použije pouze pro nové položky.</p><p>Výstupní pole nelze v zobrazeních tabulky řadit ani filtrovat.</p>",
-            "delete_confirm_description": "Tím se odstraní pole a všechna související data pro všechny subjekty."
+            "description": "<p>Zde můžete přidat další vlastní pole k subjektům.</p><p>Jakmile je pole přidáno, nelze změnit jeho klíč ani typ; u polí typu „výběr“ nelze odstranit možnosti ani změnit nastavení pro více výběrů. Pokud pole odstraníte, budou smazána související data u všech subjektů.</p><p>Klíč určuje, pod jakým názvem budou data čtena a zapisována jinými programy, takže pokud má být vaše vlastní pole integrováno s programem třetí strany ujistěte se, že je správně nastaveno. Výchozí hodnota se použije pouze u nových položek.</p><p>Vlastní pole lze zobrazit a seřadit v tabulkových zobrazeních. Pole s výběrem a logická pole zde také nabízejí možnosti filtrování a všechny typy vlastních polí podporují filtrování podle prázdných hodnot.</p>",
+            "delete_confirm_description": "Tím se odstraní pole a všechna související data pro všechny subjekty.",
+            "choices_reorder_hint": "Přetažením nebo pomocí šipek můžete změnit pořadí této volby."
         },
         "header": "Nastavení",
         "general": {
