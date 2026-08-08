@@ -532,4 +532,18 @@
 			left: auto;
 		}
 	}
+
+	/* The same trade on a desktop where the list has been dragged narrow (#1034).
+	   That's the pane's width, not the window's, so it's a container query — the
+	   list pane declares the container (see routes/+page.svelte). Without this the
+	   Group/Sort cluster, which can't shrink, runs into the Filter chip. */
+	@container (max-width: 460px) {
+		.ctrl-label {
+			display: none;
+		}
+		.group-menu {
+			right: 14px;
+			left: auto;
+		}
+	}
 </style>
