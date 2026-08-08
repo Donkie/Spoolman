@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { addFilter, createSpoolViaModal, onlyVisible, openApp, openToolbarMenu, searchFor, unique } from "./helpers";
+import { addFilter, createSpoolViaModal, navTab, onlyVisible, openApp, openToolbarMenu, searchFor, unique } from "./helpers";
 
 /**
  * The library's find-things subsystem: the top-bar cross-entity search, and the
@@ -158,6 +158,35 @@ test("grouping the library by location and by manufacturer", async ({ page }) =>
     // lands on the same list.
     await page.reload();
     await expect(onlyVisible(page.getByRole("button", { name: /^Group:\s*Manufacturer/ }))).toBeVisible();
+  });
+
+  await test.step("and survives leaving the library and coming back", async () => {
+    // The nav tab links to a bare `/`, which carries no view state at all, so the
+    // grouping comes back from the browser's remembered view instead (#1036).
+    // The filters deliberately do not come back: they hide spools, and one
+    // silently restored later reads as missing data rather than as a preference.
+    await navTab(page, "Settings", "Settings | Spoolman");
+    await navTab(page, "Library", "Library | Spoolman");
+
+    await expect(onlyVisible(page.getByRole("button", { name: /^Group:\s*Manufacturer/ }))).toBeVisible();
+    await expect(page.getByRole("button", { name: `Location: ${first.locationName}` })).toHaveCount(0);
+
+    // Restored by NAVIGATING to the URL that spells the view out, not by holding
+    // it off to one side: the address bar still describes what is on screen, so
+    // the view stays linkable.
+    await expect(page).toHaveURL(/[?&]group=vendor/);
+  });
+
+  await test.step("and the default grouping is still selectable afterwards", async () => {
+    // The restored view had to become a real URL for this to work. While it was
+    // only implied, choosing the default grouping serialised back to the very
+    // same bare URL, and an unchanged URL doesn't re-run the load — so the
+    // control silently refused to move.
+    const menu = await openToolbarMenu(page, "Group");
+    await menu.getByRole("button", { name: "Filament", exact: true }).click();
+
+    await expect(onlyVisible(page.getByRole("button", { name: /^Group:\s*Filament/ }))).toBeVisible();
+    await expect(page).not.toHaveURL(/[?&]group=/);
   });
 });
 

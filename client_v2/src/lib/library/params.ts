@@ -2,6 +2,7 @@ import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 import type { EntityKind, Selection } from '$lib/types';
 import { isGroupOrderable, defaultSortAsc } from '$lib/utils/library';
+import { rememberedView, rememberView } from './viewPrefs';
 
 // The Library view's entire query state lives in the URL — this module is the
 // single place that translates between the query string and a typed
@@ -12,6 +13,11 @@ import { isGroupOrderable, defaultSortAsc } from '$lib/utils/library';
 // helpers below, each of which rewrites the query string and navigates. The
 // serialisation is canonical (defaults omitted), so an untouched view has a
 // clean, bookmarkable URL and every distinct view maps to exactly one string.
+//
+// That stays true of the remembered view too (#1036): arriving on a URL that
+// mentions neither grouping nor sort doesn't quietly parse the preference into
+// the state, it navigates to the URL that spells the preference out (see
+// rememberedViewHref and viewPrefs). The address bar keeps describing the view.
 
 export type GroupMode = 'filament' | 'vendor' | 'material' | 'location' | 'none';
 
@@ -34,6 +40,12 @@ export interface LibraryState {
 
 const GROUP_MODES: GroupMode[] = ['filament', 'vendor', 'material', 'location', 'none'];
 const ENTITY_KINDS: EntityKind[] = ['spool', 'filament', 'vendor'];
+
+/** The params that spell out how the list is laid out, as opposed to what it
+ *  holds. A URL naming none of them is the one that defers to the remembered
+ *  view; naming any of them describes a view of its own, which is taken whole so
+ *  a stored grouping never gets spliced onto a link's sort. */
+const VIEW_PARAMS = ['group', 'sort', 'dir'];
 
 const DEFAULTS = {
 	group: 'filament' as GroupMode,
@@ -62,7 +74,12 @@ function parsePositiveInt(value: string | null, fallback: number): number {
 	return Number.isInteger(n) && n > 0 ? n : fallback;
 }
 
-/** Parse a URL's query params into the canonical Library state (the load fn's job). */
+/**
+ * Parse a URL's query params into the canonical Library state (the load fn's
+ * job). A pure function of the URL, deliberately: SvelteKit caches and preloads
+ * load results per URL, so a state that also depended on the remembered view
+ * would be served stale after that preference changed (see rememberedViewHref).
+ */
 export function parseLibraryState(params: URLSearchParams): LibraryState {
 	const group = params.get('group') as GroupMode | null;
 
@@ -73,6 +90,7 @@ export function parseLibraryState(params: URLSearchParams): LibraryState {
 
 	const rawGroup = group && GROUP_MODES.includes(group) ? group : DEFAULTS.group;
 	const sortKey = params.get('sort') ?? DEFAULTS.sortKey;
+	const sortAsc = params.get('dir') === 'asc';
 	// Enforce the grouped-view invariant: a group can only be ordered by a
 	// group-orderable sort. A hand-crafted or stale URL pairing a grouping with a
 	// per-spool sort renders flat, honouring the more specific sort intent. (Our
@@ -81,7 +99,7 @@ export function parseLibraryState(params: URLSearchParams): LibraryState {
 		selection,
 		group: isGroupOrderable(sortKey, rawGroup) ? rawGroup : 'none',
 		sortKey,
-		sortAsc: params.get('dir') === 'asc',
+		sortAsc,
 		filters: parseFilters(params.getAll('f')),
 		showArchived: params.get('arch') === '1',
 		page: parsePositiveInt(params.get('page'), DEFAULTS.page),
@@ -122,12 +140,61 @@ function currentState(): LibraryState {
 }
 
 /**
+ * Where entering the Library on `url` should actually land: the same view with
+ * the remembered grouping and sort spelled out in the query string, or null when
+ * the URL already describes a view (or there's nothing worth restoring). The
+ * Library page navigates there on entry, replacing the history entry — see
+ * routes/+page.svelte.
+ *
+ * Restoring the view by rewriting the URL, rather than by quietly parsing the
+ * preference into the state, is what keeps the whole thing coherent. The address
+ * bar always spells out what's on screen, so the view stays linkable; the load
+ * function stays a pure function of the URL, so SvelteKit's per-URL load cache
+ * can't serve a state built from a preference that has since changed; and every
+ * distinct view keeps a distinct URL, so picking the *default* grouping is a real
+ * navigation rather than a no-op against an unchanged bare URL.
+ */
+export function rememberedViewHref(url: URL): string | null {
+	if (VIEW_PARAMS.some((p) => url.searchParams.has(p))) return null;
+
+	const stored = rememberedView();
+	if (!stored) return null;
+
+	// A grouping that no longer exists is as good as nothing stored, and a view
+	// that matches the shipped one is already what the bare URL means.
+	const group = GROUP_MODES.includes(stored.group as GroupMode)
+		? (stored.group as GroupMode)
+		: DEFAULTS.group;
+	if (
+		group === DEFAULTS.group &&
+		stored.sortKey === DEFAULTS.sortKey &&
+		stored.sortAsc === DEFAULTS.sortAsc
+	) {
+		return null;
+	}
+
+	// Everything the URL *does* say (a selection, filters, archived spools) is
+	// kept; only the layout comes from the preference.
+	const state = parseLibraryState(url.searchParams);
+	const qs = serializeState({ ...state, group, sortKey: stored.sortKey, sortAsc: stored.sortAsc });
+	return `${url.pathname}?${qs}`;
+}
+
+/**
  * Navigate to a new Library state. `replace` swaps the current history entry
  * (used for search, so typing doesn't spam history); otherwise a new entry is
  * pushed so back/forward steps through views. keepFocus/noScroll keep the search
  * box focused and the list from jumping.
  */
 function navigate(next: LibraryState, replace = false): void {
+	// Remember the layout the user is navigating to, so returning to the Library
+	// from another page restores it. Recorded here rather than in setGroup /
+	// setSortKey so it always matches the view actually shown, including
+	// setGroup's fallback to the default sort. Back/forward doesn't come through
+	// here: stepping through history replays old views without redefining what
+	// "the Library" means next time it's opened fresh.
+	rememberView({ group: next.group, sortKey: next.sortKey, sortAsc: next.sortAsc });
+
 	const qs = serializeState(next);
 	// Both targets are base-path-independent: a bare `?query` resolves against the
 	// current URL, and window.location.pathname already includes the base path.
