@@ -1,7 +1,18 @@
-import { NumberFieldProps } from "@refinedev/antd/dist/components/fields/types";
 import { Typography } from "antd";
+import type { TextProps } from "antd/lib/typography/Text";
+import type { ReactNode } from "react";
 
 const { Text } = Typography;
+
+/**
+ * Mirror of @refinedev/antd's NumberFieldProps. That package only exports the type from a
+ * deep path which isn't listed in its exports map, so it can't be imported directly.
+ */
+type NumberFieldProps = TextProps & {
+  value: ReactNode;
+  locale?: string | string[];
+  options?: Intl.NumberFormatOptions;
+};
 
 function toLocaleStringSupportsOptions() {
   return !!(typeof Intl == "object" && Intl && typeof Intl.NumberFormat == "function");
