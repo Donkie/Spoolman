@@ -1,4 +1,10 @@
-"""Integration tests for the spool search endpoint's date-range filters."""
+"""Integration tests for the spool search endpoint's datetime filters.
+
+The value grammar is the one the extra-field datetime filters have used since v0.26.0:
+`<start>|<end>` with either end optional, a bare timestamp for an exact match, an empty value for
+"no timestamp at all", and commas to OR several of those together. These tests pin that down for
+the built-in columns so the two can't drift apart.
+"""
 
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -14,6 +20,9 @@ from ..conftest import URL, assert_lists_compatible
 OLD = "2023-01-01T00:00:00Z"
 MIDDLE = "2023-06-01T00:00:00Z"
 RECENT = "2024-01-01T00:00:00Z"
+
+BETWEEN_OLD_AND_MIDDLE = "2023-03-01T00:00:00Z"
+BETWEEN_MIDDLE_AND_RECENT = "2023-09-01T00:00:00Z"
 
 
 @dataclass
@@ -55,87 +64,65 @@ def find(filament_id: int, **params: str) -> list[dict[str, Any]]:
     return result.json()
 
 
-def test_find_spools_last_used_after(dated_spools: Fixture):
-    found = find(dated_spools.filament_id, last_used_after="2023-03-01T00:00:00Z")
+def test_find_spools_last_used_from(dated_spools: Fixture):
+    found = find(dated_spools.filament_id, last_used=f"{BETWEEN_OLD_AND_MIDDLE}|")
     assert_lists_compatible(found, (dated_spools.middle, dated_spools.recent))
 
 
-def test_find_spools_last_used_before(dated_spools: Fixture):
-    found = find(dated_spools.filament_id, last_used_before="2023-03-01T00:00:00Z")
+def test_find_spools_last_used_until(dated_spools: Fixture):
+    found = find(dated_spools.filament_id, last_used=f"|{BETWEEN_OLD_AND_MIDDLE}")
     assert_lists_compatible(found, (dated_spools.old,))
 
 
 def test_find_spools_last_used_between(dated_spools: Fixture):
-    found = find(
-        dated_spools.filament_id,
-        last_used_after="2023-03-01T00:00:00Z",
-        last_used_before="2023-09-01T00:00:00Z",
-    )
+    found = find(dated_spools.filament_id, last_used=f"{BETWEEN_OLD_AND_MIDDLE}|{BETWEEN_MIDDLE_AND_RECENT}")
     assert_lists_compatible(found, (dated_spools.middle,))
 
 
-def test_find_spools_first_used_after(dated_spools: Fixture):
+def test_find_spools_first_used_from(dated_spools: Fixture):
     """The same filtering exists for first_used, on its own column."""
-    found = find(dated_spools.filament_id, first_used_after="2023-03-01T00:00:00Z")
+    found = find(dated_spools.filament_id, first_used=f"{BETWEEN_OLD_AND_MIDDLE}|")
     assert_lists_compatible(found, (dated_spools.middle, dated_spools.recent))
 
 
-@pytest.mark.parametrize("param", ["last_used_after", "last_used_before"])
-def test_find_spools_date_filter_excludes_never_used(dated_spools: Fixture, param: str):
-    """A spool that has never been used matches neither end of a range.
+def test_find_spools_last_used_exact(dated_spools: Fixture):
+    """A bare timestamp matches that instant exactly, as it does for a datetime extra field."""
+    found = find(dated_spools.filament_id, last_used=MIDDLE)
+    assert_lists_compatible(found, (dated_spools.middle,))
 
-    It has no last_used at all, so it is not "used since March" and not "used before March"
-    either -- an absent date is not an early one.
-    """
-    found = find(dated_spools.filament_id, **{param: "2023-03-01T00:00:00Z"})
-    assert all(spool["id"] != dated_spools.never_used["id"] for spool in found)
+
+def test_find_spools_last_used_comma_ors_ranges(dated_spools: Fixture):
+    """Comma-separated parts are OR-ed, matching every other filter on this endpoint."""
+    found = find(dated_spools.filament_id, last_used=f"|{BETWEEN_OLD_AND_MIDDLE},{BETWEEN_MIDDLE_AND_RECENT}|")
+    assert_lists_compatible(found, (dated_spools.old, dated_spools.recent))
 
 
 def test_find_spools_never_used(dated_spools: Fixture):
-    """`last_used_unset` is how the never-used spools are reached, since no bound can."""
-    found = find(dated_spools.filament_id, last_used_unset="true")
+    """An empty value means "no timestamp at all", exactly as it does for `location` or an extra field.
+
+    It is also the only way to reach these spools: a NULL matches no bound, so a spool that has
+    never been used is neither used since March nor used before March.
+    """
+    found = find(dated_spools.filament_id, last_used="")
     assert_lists_compatible(found, (dated_spools.never_used,))
-
-
-def test_find_spools_ever_used(dated_spools: Fixture):
-    """And its complement: false selects exactly the spools that do carry a timestamp."""
-    found = find(dated_spools.filament_id, last_used_unset="false")
-    assert_lists_compatible(found, (dated_spools.old, dated_spools.middle, dated_spools.recent))
 
 
 def test_find_spools_never_first_used(dated_spools: Fixture):
-    """first_used has the same filter, on its own column."""
-    found = find(dated_spools.filament_id, first_used_unset="true")
+    found = find(dated_spools.filament_id, first_used="")
     assert_lists_compatible(found, (dated_spools.never_used,))
 
 
-def test_find_spool_groups_count_never_used(dated_spools: Fixture):
-    """The grouped view answers it too, so a "never used" group count is real."""
-    result = httpx.get(
-        f"{URL}/api/v1/spool/group",
-        params={
-            "group_by": "filament",
-            "filament.id": str(dated_spools.filament_id),
-            "last_used_unset": "true",
-        },
-    )
-    result.raise_for_status()
-    groups = result.json()
-
-    assert len(groups) == 1
-    assert groups[0]["spool_count"] == 1
+@pytest.mark.parametrize("value", [f"{BETWEEN_OLD_AND_MIDDLE}|", f"|{BETWEEN_OLD_AND_MIDDLE}"])
+def test_find_spools_range_excludes_never_used(dated_spools: Fixture, value: str):
+    """A spool with no timestamp falls outside every range, in either direction."""
+    found = find(dated_spools.filament_id, last_used=value)
+    assert all(spool["id"] != dated_spools.never_used["id"] for spool in found)
 
 
 def test_find_spools_date_bounds_are_inclusive(dated_spools: Fixture):
     """A bound exactly on a spool's timestamp includes that spool, from either side."""
-    assert_lists_compatible(
-        find(dated_spools.filament_id, last_used_after=RECENT),
-        (dated_spools.recent,),
-    )
-    assert_lists_compatible(
-        find(dated_spools.filament_id, last_used_before=OLD),
-        (dated_spools.old,),
-    )
+    assert_lists_compatible(find(dated_spools.filament_id, last_used=f"{RECENT}|"), (dated_spools.recent,))
+    assert_lists_compatible(find(dated_spools.filament_id, last_used=f"|{OLD}"), (dated_spools.old,))
 
 
 def test_find_spools_date_filter_honours_utc_offset(dated_spools: Fixture):
@@ -145,18 +132,15 @@ def test_find_spools_date_filter_honours_utc_offset(dated_spools: Fixture):
     inclusive lower bound keeps it. Read as naive UTC it would be two hours later and drop it.
     """
     assert_lists_compatible(
-        find(dated_spools.filament_id, last_used_after="2023-06-01T02:00:00+02:00"),
+        find(dated_spools.filament_id, last_used="2023-06-01T02:00:00+02:00|"),
         (dated_spools.middle, dated_spools.recent),
     )
 
 
 def test_find_spools_registered_range(dated_spools: Fixture):
     """Registered is set by the server at creation, so every fixture spool is in "recent"."""
-    found = find(dated_spools.filament_id, registered_after="2020-01-01T00:00:00Z")
-    assert len(found) == 4
-
-    found = find(dated_spools.filament_id, registered_before="2020-01-01T00:00:00Z")
-    assert found == []
+    assert len(find(dated_spools.filament_id, registered="2020-01-01T00:00:00Z|")) == 4
+    assert find(dated_spools.filament_id, registered="|2020-01-01T00:00:00Z") == []
 
 
 def test_find_spool_groups_share_the_date_filters(dated_spools: Fixture):
@@ -166,7 +150,7 @@ def test_find_spool_groups_share_the_date_filters(dated_spools: Fixture):
         params={
             "group_by": "filament",
             "filament.id": str(dated_spools.filament_id),
-            "last_used_after": "2023-03-01T00:00:00Z",
+            "last_used": f"{BETWEEN_OLD_AND_MIDDLE}|",
         },
     )
     result.raise_for_status()
@@ -176,9 +160,24 @@ def test_find_spool_groups_share_the_date_filters(dated_spools: Fixture):
     assert groups[0]["spool_count"] == 2
 
 
-def test_find_spools_rejects_a_malformed_date(dated_spools: Fixture):
+def test_find_spool_groups_count_never_used(dated_spools: Fixture):
+    result = httpx.get(
+        f"{URL}/api/v1/spool/group",
+        params={"group_by": "filament", "filament.id": str(dated_spools.filament_id), "last_used": ""},
+    )
+    result.raise_for_status()
+    groups = result.json()
+
+    assert len(groups) == 1
+    assert groups[0]["spool_count"] == 1
+
+
+@pytest.mark.parametrize("value", ["yesterday", "yesterday|", "|yesterday", "|", "2023-13-45T00:00:00Z|"])
+def test_find_spools_rejects_a_malformed_date(dated_spools: Fixture, value: str):
+    """Bad input is a 400 with a message, the same as every other unparseable filter here."""
     result = httpx.get(
         f"{URL}/api/v1/spool",
-        params={"filament.id": str(dated_spools.filament_id), "last_used_after": "yesterday"},
+        params={"filament.id": str(dated_spools.filament_id), "last_used": value},
     )
-    assert result.status_code == 422
+    assert result.status_code == 400
+    assert "last_used" in result.json()["message"]

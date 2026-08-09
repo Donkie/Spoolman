@@ -59,46 +59,37 @@ def _parse_extra_field_filters(
     return buckets["spool"], buckets["filament"], buckets["vendor"]
 
 
-def _date_query(field: str, title: str, *, after: bool) -> Query:
-    """Build the Query() for one end of a date-range filter on `field`."""
-    bound = "at or after" if after else "at or before"
-    return Query(
-        title=f"{title} {'After' if after else 'Before'}",
-        description=(
-            f"Only match spools whose {field} timestamp is {bound} this point in time. "
-            "Both ends are optional, so this can express an open-ended range. Spools with no "
-            f"{field} timestamp never match. Accepts an ISO 8601 datetime; a value with no UTC "
-            "offset is interpreted as UTC."
-        ),
-        examples=["2024-05-01T00:00:00Z", "2024-05-01T00:00:00+02:00"],
-    )
+def _date_query(field: str, title: str) -> Query:
+    """Build the Query() for a datetime filter on `field`.
 
-
-def _unset_query(field: str, title: str) -> Query:
-    """Build the Query() for the "has no timestamp at all" filter on `field`."""
+    Deliberately one parameter per field taking a range, rather than a pair of `_after`/`_before`
+    parameters: this is the same value grammar the extra-field datetime filters have used since
+    v0.26.0, so a built-in timestamp and a custom one are filtered identically, and a new
+    filterable column costs one parameter instead of three.
+    """
     return Query(
-        title=f"{title} Unset",
+        title=title,
         description=(
-            f"Match only spools that have no {field} timestamp (true), or only those that have "
-            f"one (false). A spool with no {field} matches no date bound, so this is the only "
-            "way to select those spools."
+            f"Filter by the spool's {field} timestamp. Give an inclusive range as "
+            f"`<start>|<end>` (ISO 8601; either end may be omitted to leave it open), a bare "
+            f"timestamp to match it exactly, or an empty string to match spools that have no "
+            f"{field} timestamp at all. Separate multiple of these with a comma to OR them. A "
+            "timestamp with no UTC offset is interpreted as UTC."
         ),
+        examples=[
+            "2024-05-01T00:00:00Z|",
+            "|2024-05-01T00:00:00Z",
+            "2024-05-01T00:00:00Z|2024-06-01T00:00:00Z",
+            "",
+        ],
     )
 
 
 # The date filters, shared verbatim by the spool search and the group endpoints so the two accept
-# exactly the same query. Naming them here keeps eight near-identical Query() blocks out of both
-# signatures.
-FirstUsedAfter = Annotated[datetime | None, _date_query("first_used", "First Used", after=True)]
-FirstUsedBefore = Annotated[datetime | None, _date_query("first_used", "First Used", after=False)]
-LastUsedAfter = Annotated[datetime | None, _date_query("last_used", "Last Used", after=True)]
-LastUsedBefore = Annotated[datetime | None, _date_query("last_used", "Last Used", after=False)]
-RegisteredAfter = Annotated[datetime | None, _date_query("registered", "Registered", after=True)]
-RegisteredBefore = Annotated[datetime | None, _date_query("registered", "Registered", after=False)]
-# Only the two usage timestamps get an "unset" filter; registered is set at creation and a spool
-# never lacks one.
-FirstUsedUnset = Annotated[bool | None, _unset_query("first_used", "First Used")]
-LastUsedUnset = Annotated[bool | None, _unset_query("last_used", "Last Used")]
+# exactly the same query.
+FirstUsedFilter = Annotated[str | None, _date_query("first_used", "First Used")]
+LastUsedFilter = Annotated[str | None, _date_query("last_used", "Last Used")]
+RegisteredFilter = Annotated[str | None, _date_query("registered", "Registered")]
 
 
 class SpoolParameters(BaseModel):
@@ -337,14 +328,9 @@ async def find(
         bool,
         Query(title="Allow Archived", description="Whether to include archived spools in the search results."),
     ] = False,
-    first_used_after: FirstUsedAfter = None,
-    first_used_before: FirstUsedBefore = None,
-    last_used_after: LastUsedAfter = None,
-    last_used_before: LastUsedBefore = None,
-    registered_after: RegisteredAfter = None,
-    registered_before: RegisteredBefore = None,
-    first_used_unset: FirstUsedUnset = None,
-    last_used_unset: LastUsedUnset = None,
+    first_used: FirstUsedFilter = None,
+    last_used: LastUsedFilter = None,
+    registered: RegisteredFilter = None,
     sort: Annotated[
         str | None,
         Query(
@@ -382,12 +368,6 @@ async def find(
     # a filament's extra fields use `filament.extra.<key>` and its vendor's `filament.vendor.extra.<key>`.
     spool_extra, filament_extra, vendor_extra = _parse_extra_field_filters(request.query_params)
 
-    date_filters = spool.SpoolDateFilters(
-        first_used=spool.DateRange(first_used_after, first_used_before, first_used_unset),
-        last_used=spool.DateRange(last_used_after, last_used_before, last_used_unset),
-        registered=spool.DateRange(registered_after, registered_before),
-    )
-
     try:
         db_items, total_count = await spool.find(
             db=db,
@@ -400,7 +380,9 @@ async def find(
             location=location,
             lot_nr=lot_nr,
             allow_archived=allow_archived,
-            date_filters=date_filters,
+            first_used=first_used,
+            last_used=last_used,
+            registered=registered,
             extra_field_filters=spool_extra or None,
             filament_extra_field_filters=filament_extra or None,
             vendor_extra_field_filters=vendor_extra or None,
@@ -540,14 +522,9 @@ async def find_groups(
         bool,
         Query(title="Allow Archived", description="Whether to include archived spools in the aggregates."),
     ] = False,
-    first_used_after: FirstUsedAfter = None,
-    first_used_before: FirstUsedBefore = None,
-    last_used_after: LastUsedAfter = None,
-    last_used_before: LastUsedBefore = None,
-    registered_after: RegisteredAfter = None,
-    registered_before: RegisteredBefore = None,
-    first_used_unset: FirstUsedUnset = None,
-    last_used_unset: LastUsedUnset = None,
+    first_used: FirstUsedFilter = None,
+    last_used: LastUsedFilter = None,
+    registered: RegisteredFilter = None,
     sort: Annotated[
         str | None,
         Query(
@@ -579,12 +556,6 @@ async def find_groups(
 
     spool_extra, filament_extra, vendor_extra = _parse_extra_field_filters(request.query_params)
 
-    date_filters = spool.SpoolDateFilters(
-        first_used=spool.DateRange(first_used_after, first_used_before, first_used_unset),
-        last_used=spool.DateRange(last_used_after, last_used_before, last_used_unset),
-        registered=spool.DateRange(registered_after, registered_before),
-    )
-
     try:
         groups, total_count = await spool.find_groups(
             db=db,
@@ -598,7 +569,9 @@ async def find_groups(
             location=location,
             lot_nr=lot_nr,
             allow_archived=allow_archived,
-            date_filters=date_filters,
+            first_used=first_used,
+            last_used=last_used,
+            registered=registered,
             extra_field_filters=spool_extra or None,
             filament_extra_field_filters=filament_extra or None,
             vendor_extra_field_filters=vendor_extra or None,

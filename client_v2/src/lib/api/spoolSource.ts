@@ -87,18 +87,19 @@ function quote(v: string): string {
 function applyFilters(params: QueryParams, filters: Record<string, string[]>) {
 	for (const [prop, values] of Object.entries(filters)) {
 		if (!values.length) continue;
-		// A date filter is a range rather than a set of values: it becomes a pair of
-		// absolute `<field>_after` / `<field>_before` bounds, resolved here — at
-		// request time — so a relative range like "the last 24 hours" is measured
-		// from now on every fetch rather than from whenever the chip was created.
-		// "Never" isn't a range at all and asks `<field>_unset` instead.
+		// A date filter is a range rather than a set of values, and the API spells one
+		// as `<field>=<start>|<end>` with either end optional — the same grammar its
+		// datetime extra-field filters take. An empty value asks for "no timestamp at
+		// all", the way an empty value means "unset" for every other filter here.
+		//
+		// The bounds are resolved at request time, so a relative range like "the last
+		// 24 hours" is measured from now on every fetch rather than from whenever the
+		// chip was created.
 		if (isDateFilterProp(prop)) {
 			const filter = parseDateFilter(values[values.length - 1]);
 			if (!filter) continue;
 			const { after, before, unset } = resolveDateFilter(filter);
-			if (after) params[`${prop}_after`] = after;
-			if (before) params[`${prop}_before`] = before;
-			if (unset) params[`${prop}_unset`] = 'true';
+			params[prop] = unset ? '' : `${after ?? ''}|${before ?? ''}`;
 			continue;
 		}
 		const key = filterParam(prop);
