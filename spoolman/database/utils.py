@@ -1,6 +1,7 @@
 """Utility functions for the database module."""
 
 from collections.abc import Sequence
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, TypeVar
 
@@ -181,6 +182,99 @@ def add_where_clause_str(
 
         stmt = stmt.where(sqlalchemy.or_(*conditions))
     return stmt
+
+
+# Separates the two ends of a datetime range. Not ':', which ISO 8601 timestamps are full of —
+# the same reason the extra-field datetime filters use this character (see add_where_clause_extra_field).
+DATETIME_RANGE_SEPARATOR = "|"
+
+
+def split_datetime_range_filter(value: str, field_name: str) -> tuple[str, str] | None:
+    """Split a `<start>|<end>` datetime filter into its two ends, or None if it isn't a range.
+
+    Either end may be empty, leaving that side open; a range with neither end asks nothing and is
+    rejected. Shared by the built-in datetime columns and the datetime extra fields so that the
+    one documented grammar is parsed in exactly one place. Only the parsing is common: what each
+    caller then does with the ends differs, because a typed column is compared as a datetime while
+    an extra field is compared as its decoded JSON text (see add_where_clause_extra_field).
+    """
+    if DATETIME_RANGE_SEPARATOR not in value:
+        return None
+    start, _, end = value.partition(DATETIME_RANGE_SEPARATOR)
+    if not start and not end:
+        raise ValueError(
+            f"Invalid datetime range filter for '{field_name}': '{value}'. "
+            f"Expected '<start>{DATETIME_RANGE_SEPARATOR}<end>' with at least one end given.",
+        )
+    return start, end
+
+
+def parse_datetime_filter_bound(raw: str, field_name: str) -> datetime:
+    """Parse one ISO 8601 bound into the UTC-naive form the datetime columns store."""
+    text = raw.strip()
+    # fromisoformat only learned to read a 'Z' suffix in 3.11, and we still support 3.10.
+    if text[-1:] in ("Z", "z"):
+        text = text[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        raise ValueError(
+            f"Invalid datetime '{raw}' for '{field_name}'. Expected an ISO 8601 datetime, e.g. 2024-05-01T00:00:00Z.",
+        ) from None
+    if parsed.tzinfo is None:
+        # No offset given, so it is already UTC — which is what the columns hold. Note that
+        # astimezone() must not be used here: on a naive datetime it assumes the server's local
+        # time and would silently shift the bound by the host's UTC offset.
+        return parsed
+    return parsed.astimezone(tz=timezone.utc).replace(tzinfo=None)
+
+
+def add_where_clause_datetime_opt(
+    stmt: Select,
+    field: attributes.InstrumentedAttribute[datetime | None],
+    value: str | None,
+) -> Select:
+    """Add a where clause for an optional datetime field.
+
+    The value grammar is the one the extra-field datetime filters already use, so a built-in
+    timestamp and a custom one answer the same question the same way:
+
+    * ``<start>|<end>`` — inclusive range; either end may be omitted to leave it open.
+    * ``<timestamp>`` — exact match.
+    * ``""`` (empty) — the field is unset, matching how an empty value means "no value" for
+      string columns and extra fields alike. A NULL matches no bound (ordinary SQL comparison
+      semantics: a spool that has never been used was not used before yesterday either), so this
+      is the only way to select those rows.
+    * Several of the above, comma-separated, are OR-ed together.
+    """
+    if value is None:
+        return stmt
+
+    conditions = []
+    for raw_part in value.split(","):
+        if len(raw_part) == 0:
+            conditions.append(field.is_(None))
+            continue
+
+        # Quotes mean "exact" for the string filters. A typed column is always matched exactly,
+        # so they carry no meaning here, but they are accepted and stripped so that a caller can
+        # spell every filter the same way.
+        value_part = raw_part[1:-1] if len(raw_part) > 1 and raw_part[0] == '"' == raw_part[-1] else raw_part
+
+        ends = split_datetime_range_filter(value_part, field.key)
+        if ends is None:
+            conditions.append(field == parse_datetime_filter_bound(value_part, field.key))
+            continue
+
+        start_str, end_str = ends
+        bounds = []
+        if start_str:
+            bounds.append(field >= parse_datetime_filter_bound(start_str, field.key))
+        if end_str:
+            bounds.append(field <= parse_datetime_filter_bound(end_str, field.key))
+        conditions.append(sqlalchemy.and_(*bounds))
+
+    return stmt.where(sqlalchemy.or_(*conditions))
 
 
 def add_where_clause_int(
