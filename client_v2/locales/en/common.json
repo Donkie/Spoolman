@@ -31,7 +31,7 @@
     "add.searchPlaceholder": "Search your catalog and {{name}}...",
     "add.searching": "Searching...",
     "add.section.manufacturer": "Manufacturer",
-    "add.section.manufacturerNote": "Its own record, shared by every filament from this brand.",
+    "add.section.manufacturerNote": "Who makes the filament. Added once, then reused for all their filaments.",
     "add.section.filament": "Filament",
     "add.section.filamentNote": "The product on the spool — one entry per color.",
     "add.section.spool": "Spool",
