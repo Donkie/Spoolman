@@ -2,6 +2,7 @@ import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 import type { EntityKind, Selection } from '$lib/types';
 import { isGroupOrderable, defaultSortAsc } from '$lib/utils/library';
+import { isDateFilterProp, parseDateRange } from './dateFilter';
 import { rememberedView, rememberView } from './viewPrefs';
 
 // The Library view's entire query state lives in the URL — this module is the
@@ -57,16 +58,23 @@ const DEFAULTS = {
 };
 
 function parseFilters(raw: string[]): FilterChip[] {
-	return raw
-		.map((entry) => {
-			const i = entry.indexOf(':');
-			if (i < 0) return null;
-			return {
-				prop: decodeURIComponent(entry.slice(0, i)),
-				value: decodeURIComponent(entry.slice(i + 1))
-			};
-		})
-		.filter((f): f is FilterChip => f !== null && f.prop !== '');
+	return (
+		raw
+			.map((entry) => {
+				const i = entry.indexOf(':');
+				if (i < 0) return null;
+				return {
+					prop: decodeURIComponent(entry.slice(0, i)),
+					value: decodeURIComponent(entry.slice(i + 1))
+				};
+			})
+			.filter((f): f is FilterChip => f !== null && f.prop !== '')
+			// A date chip carries a range in its value (see dateFilter). One that doesn't
+			// parse is dropped rather than passed on: an unreadable chip would narrow the
+			// list by a rule nothing on screen can explain, or be sent to the backend as
+			// an invalid bound.
+			.filter((f) => !isDateFilterProp(f.prop) || parseDateRange(f.value) !== null)
+	);
 }
 
 function parsePositiveInt(value: string | null, fallback: number): number {
@@ -235,6 +243,18 @@ export function toggleFilter(prop: string, value: string): void {
 	const filters = has
 		? s.filters.filter((f) => !(f.prop === prop && f.value === value))
 		: [...s.filters, { prop, value }];
+	navigate({ ...s, filters, page: DEFAULTS.page });
+}
+
+/**
+ * Set a filter that can only hold one value at a time, replacing whatever the
+ * prop already carried. Date ranges work this way: two ranges on one field would
+ * read as an intersection nobody asked for, and the API takes a single pair of
+ * bounds per field anyway, so picking a new range means picking a new range.
+ */
+export function setFilter(prop: string, value: string): void {
+	const s = currentState();
+	const filters = [...s.filters.filter((f) => f.prop !== prop), { prop, value }];
 	navigate({ ...s, filters, page: DEFAULTS.page });
 }
 

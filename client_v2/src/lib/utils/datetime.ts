@@ -22,14 +22,14 @@ function dateFmt(key: string, opts: Intl.DateTimeFormatOptions): Intl.DateTimeFo
 	return f;
 }
 
-function unitFmt(unit: string): Intl.NumberFormat {
+function unitFmt(unit: string, unitDisplay: 'short' | 'long' = 'short'): Intl.NumberFormat {
 	const loc = dateLocale();
-	const cacheKey = `${loc}|${unit}`;
+	const cacheKey = `${loc}|${unit}|${unitDisplay}`;
 	let f = unitFmts.get(cacheKey);
 	if (!f) {
 		// 'short' (not 'narrow'): narrow collapses minute and month to the same
 		// "5m" in English, so "used 5m ago" would be ambiguous.
-		f = new Intl.NumberFormat(loc, { style: 'unit', unit, unitDisplay: 'short' });
+		f = new Intl.NumberFormat(loc, { style: 'unit', unit, unitDisplay });
 		unitFmts.set(cacheKey, f);
 	}
 	return f;
@@ -55,6 +55,23 @@ export function formatDateTime(iso: string | null | undefined): string {
 	const datePart = dateFmt('date', { month: 'short', day: 'numeric', year: 'numeric' }).format(d);
 	const timePart = dateFmt('time', { hour: '2-digit', minute: '2-digit' }).format(d);
 	return `${datePart}  ${timePart}`;
+}
+
+/**
+ * Calendar date (`YYYY-MM-DD`, as typed into a date input) → localized date like
+ * "Jan 14, 2026". Read as a local calendar day, not as a UTC instant: `new
+ * Date('2026-01-14')` is midnight *UTC*, which renders as the 13th anywhere west
+ * of Greenwich.
+ */
+export function formatCalendarDate(ymd: string): string {
+	const [y, m, d] = ymd.split('-').map(Number);
+	if (!y || !m || !d) return ymd;
+	return dateFmt('date', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(y, m - 1, d));
+}
+
+/** A localized duration magnitude spelled out in full: "24 hours", "6 months". */
+export function formatSpan(amount: number, unit: 'hour' | 'day' | 'month' | 'year'): string {
+	return unitFmt(unit, 'long').format(amount);
 }
 
 /** ISO timestamp → short localized date like "Jan 14" (month + day, no year). */

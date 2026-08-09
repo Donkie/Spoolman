@@ -91,6 +91,31 @@ describe('parseLibraryState', () => {
 		});
 	});
 
+	it('keeps a date filter whose range it can read', async () => {
+		vi.resetModules();
+		stub(null);
+		const { parseLibraryState } = await import('./params');
+
+		expect(parseLibraryState(new URLSearchParams('f=last_used%3A-24h..')).filters).toEqual([
+			{ prop: 'last_used', value: '-24h..' }
+		]);
+	});
+
+	it('drops a date filter it cannot read, rather than filtering by something invisible', async () => {
+		// Hand-edited or written by an older/newer client. An unreadable range would
+		// otherwise reach the API as a bad bound, or narrow the list by a rule the
+		// chip can't spell out.
+		vi.resetModules();
+		stub(null);
+		const { parseLibraryState } = await import('./params');
+
+		expect(parseLibraryState(new URLSearchParams('f=last_used%3Ayesterday')).filters).toEqual([]);
+		// Non-date filters are untouched by that rule.
+		expect(parseLibraryState(new URLSearchParams('f=location%3AShelf A')).filters).toEqual([
+			{ prop: 'location', value: 'Shelf A' }
+		]);
+	});
+
 	it('keeps the grouped-view invariant over a remembered per-spool sort', async () => {
 		// A stale entry can't be allowed to produce a grouped list ordered by
 		// something that can't order groups, so the href it yields has to parse

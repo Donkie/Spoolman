@@ -1,6 +1,15 @@
 <script lang="ts">
 	import * as params from '$lib/library/params';
 	import type { GroupMode, LibraryState } from '$lib/library/params';
+	import {
+		dateRangeLabel,
+		formatDateRange,
+		isDateFilterProp,
+		olderThan,
+		parseDateRange,
+		withinLast,
+		type DateFilterProp
+	} from '$lib/library/dateFilter';
 	import { sortDefs, filamentLabel, type SortDef } from '$lib/utils/library';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { inventory } from '$lib/stores/inventory.svelte';
@@ -41,33 +50,43 @@
 		value: string;
 		label: string;
 	}
-	interface FilterCategory {
-		/** Filter prop: a fixed category name, or `extra.<key>` for a custom field. */
-		key: string;
-		label: () => string;
-		load: () => Promise<FilterOption[]>;
-	}
+	// Most filters pick from a set of values the API can enumerate; a date filter
+	// picks a range instead, so it gets a panel of its own rather than an option
+	// list (see library/dateFilter for the grammar behind it).
+	type FilterCategory =
+		| {
+				kind: 'values';
+				/** Filter prop: a fixed category name, or `extra.<key>` for a custom field. */
+				key: string;
+				label: () => string;
+				load: () => Promise<FilterOption[]>;
+		  }
+		| { kind: 'date'; key: DateFilterProp; label: () => string };
 
 	const asOption = (v: string): FilterOption => ({ value: v, label: v });
 
 	// Fixed categories the API can serve (options fetched lazily on open).
 	const BASE_FILTERS: FilterCategory[] = [
 		{
+			kind: 'values',
 			key: 'filament',
 			label: m['spool.fields.filament'],
 			load: async () => spoolSource.filamentOptions()
 		},
 		{
+			kind: 'values',
 			key: 'material',
 			label: m['spool.fields.material'],
 			load: async () => (await spoolSource.materials()).map(asOption)
 		},
 		{
+			kind: 'values',
 			key: 'vendor',
 			label: m['filament.fields.vendor'],
 			load: async () => (await spoolSource.vendorNames()).map(asOption)
 		},
 		{
+			kind: 'values',
 			key: 'direction',
 			label: m['filament.fields.colorType'],
 			// Fixed set: single-color (no direction, sent as an empty string) plus the
@@ -79,16 +98,43 @@
 			]
 		},
 		{
+			kind: 'values',
 			key: 'location',
 			label: m['spool.fields.location'],
 			load: async () => (await spoolSource.locations()).map(asOption)
 		},
 		{
+			kind: 'values',
 			key: 'lot',
 			label: m['spool.fields.lotNr'],
 			load: async () => (await spoolSource.lotNumbers()).map(asOption)
 		}
 	];
+
+	// The spool timestamps that can be filtered by range.
+	const DATE_FILTERS: FilterCategory[] = [
+		{ kind: 'date', key: 'last_used', label: m['spool.fields.lastUsed'] },
+		{ kind: 'date', key: 'first_used', label: m['spool.fields.firstUsed'] },
+		{ kind: 'date', key: 'registered', label: m['spool.fields.registered'] }
+	];
+
+	// One-click ranges, covering the questions actually asked of a filament
+	// library: what have I used recently, and what has been sitting untouched.
+	// Each is a chip value in its own right, so its label comes from the same
+	// place the chip's does.
+	const DATE_PRESETS: string[] = [
+		withinLast(24, 'h'),
+		withinLast(7, 'd'),
+		withinLast(30, 'd'),
+		withinLast(6, 'm'),
+		olderThan(6, 'm'),
+		olderThan(1, 'y')
+	];
+
+	function rangeLabel(value: string): string {
+		const range = parseDateRange(value);
+		return range ? dateRangeLabel(range) : value;
+	}
 
 	// Extra fields we can offer a discrete option list for: text, choice and
 	// boolean. (Numeric / range / datetime fields have no natural value picker, so
@@ -126,13 +172,14 @@
 				.get(entity)
 				.filter((f) => FILTERABLE_EXTRA_TYPES.includes(f.field_type))
 				.map((f) => ({
+					kind: 'values' as const,
 					key: `${prefix}${f.key}`,
 					label: () => (qualifier ? `${qualifier()} · ${f.name}` : f.name),
 					load: () => loadExtraOptions(entity, f)
 				}))
 		)
 	);
-	let filterCategories = $derived([...BASE_FILTERS, ...extraFilters]);
+	let filterCategories = $derived([...BASE_FILTERS, ...DATE_FILTERS, ...extraFilters]);
 
 	// Resolve a filter prop back to the extra-field entity + definition it came from.
 	function extraFieldFor(prop: string): { entity: EntityType; def: FieldDef } | undefined {
@@ -145,22 +192,45 @@
 		return undefined;
 	}
 
-	// Two-level filter menu: pick a property, then a value.
+	// Two-level filter menu: pick a property, then a value (or, for a date, a range).
 	let filterProp = $state<string | null>(null);
 	let options = $state<FilterOption[]>([]);
 	let optionsLoading = $state(false);
+	// The custom range's two ends, as `YYYY-MM-DD` from the date inputs. An empty
+	// end is an open one, which is the point of having two separate fields.
+	let customFrom = $state('');
+	let customTo = $state('');
 
-	async function openProp(key: string) {
-		filterProp = key;
+	let customRange = $derived.by(() => {
+		const range = parseDateRange(`${customFrom}..${customTo}`);
+		// ISO dates compare correctly as strings. An end before the start can only
+		// ever match nothing, so it doesn't get to be applied.
+		if (customFrom && customTo && customFrom > customTo) return null;
+		return range;
+	});
+
+	async function openProp(category: FilterCategory) {
+		filterProp = category.key;
+		if (category.kind === 'date') {
+			customFrom = '';
+			customTo = '';
+			return;
+		}
 		options = [];
 		optionsLoading = true;
 		try {
-			options = await filterCategories.find((c) => c.key === key)!.load();
+			options = await category.load();
 		} catch (err) {
 			console.error('Failed to load filter options', err);
 		} finally {
 			optionsLoading = false;
 		}
+	}
+
+	function applyRange(value: string) {
+		// One range per field: picking another replaces it rather than intersecting.
+		params.setFilter(filterProp!, value);
+		close();
 	}
 
 	let sorts = $derived(sortDefs(fields.get('spool')));
@@ -180,6 +250,9 @@
 	function chipLabel(prop: string, value: string): string {
 		const c = filterCategories.find((x) => x.key === prop);
 		const label = c?.label() ?? prop;
+		// Date filters hold a range, whose value is grammar rather than something to
+		// show ("-24h.." reads as "Last 24 hours").
+		if (isDateFilterProp(prop)) return `${label}: ${rangeLabel(value)}`;
 		// Filament filters store the numeric id; show the filament's name instead.
 		if (prop === 'filament') {
 			const fil = inventory.filamentById(value);
@@ -270,7 +343,7 @@
 			{#if !filterProp}
 				<div class="menu-title">{m['library.filterBy']()}</div>
 				{#each filterCategories as c (c.key)}
-					<button class="menu-item" onclick={() => openProp(c.key)}>
+					<button class="menu-item" onclick={() => openProp(c)}>
 						<span class="mi-label">{c.label()}</span>
 						<span class="mi-meta"><ChevronRight size={14} /></span>
 					</button>
@@ -295,7 +368,34 @@
 				<button class="menu-title back" onclick={() => (filterProp = null)}
 					><ChevronLeft size={14} /> {c ? c.label() : ''}</button
 				>
-				{#if optionsLoading}
+				{#if c?.kind === 'date'}
+					{#each DATE_PRESETS as preset (preset)}
+						<button class="menu-item" onclick={() => applyRange(preset)}>
+							<span class="mi-label">{rangeLabel(preset)}</span>
+						</button>
+					{/each}
+					<div class="menu-sep"></div>
+					<div class="menu-title">{m['library.dateFilter.customRange']()}</div>
+					<!-- Native date inputs: they already localize their display, open the
+					     platform's own picker, and hand back exactly the `YYYY-MM-DD` the
+					     range grammar wants. Leaving an end empty leaves it open. -->
+					<div class="date-row">
+						<label class="date-field">
+							<span class="date-label">{m['library.dateFilter.from']()}</span>
+							<input class="date-input" type="date" bind:value={customFrom} />
+						</label>
+						<label class="date-field">
+							<span class="date-label">{m['library.dateFilter.to']()}</span>
+							<input class="date-input" type="date" bind:value={customTo} />
+						</label>
+						<button
+							class="chip active apply"
+							disabled={!customRange}
+							onclick={() => customRange && applyRange(formatDateRange(customRange))}
+							>{m['buttons.apply']()}</button
+						>
+					</div>
+				{:else if optionsLoading}
 					<div class="menu-item"><span class="mi-label">{m.loading()}…</span></div>
 				{:else if options.length === 0}
 					<div class="menu-item"><span class="mi-label mi-meta">{m['library.noValues']()}</span></div>
@@ -431,6 +531,50 @@
 	}
 	.x {
 		color: var(--accent-muted);
+	}
+
+	/* Custom date range, at the foot of a date filter's menu. */
+	.date-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		gap: 8px;
+		padding: 4px 14px 12px;
+	}
+	.date-field {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+	}
+	.date-label {
+		font-size: 10.5px;
+		color: var(--text-dim);
+	}
+	.date-input {
+		background: var(--input-bg);
+		border: 1px solid var(--border-input);
+		border-radius: var(--radius-sm);
+		color: var(--text-2);
+		font-family: inherit;
+		font-size: 12px;
+		padding: 4px 6px;
+		/* The browser draws the calendar glyph and the picker popup itself, and it
+		   colors them from color-scheme, not from our tokens. Without this the dark
+		   theme gets a near-black icon on a near-black field and a white popup. */
+		color-scheme: dark;
+	}
+	:global(:root[data-theme='light']) .date-input {
+		color-scheme: light;
+	}
+	.date-input:focus-visible {
+		outline: 1px solid var(--accent);
+	}
+	.apply {
+		cursor: pointer;
+	}
+	.apply:disabled {
+		cursor: default;
+		opacity: 0.5;
 	}
 	.link-btn {
 		font-size: 12px;

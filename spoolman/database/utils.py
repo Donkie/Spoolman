@@ -1,6 +1,7 @@
 """Utility functions for the database module."""
 
 from collections.abc import Sequence
+from datetime import datetime
 from enum import Enum
 from typing import Any, TypeVar
 
@@ -180,6 +181,27 @@ def add_where_clause_str(
                 conditions.append(field.ilike(f"%{value_part}%"))
 
         stmt = stmt.where(sqlalchemy.or_(*conditions))
+    return stmt
+
+
+def add_where_clause_datetime(
+    stmt: Select,
+    field: attributes.InstrumentedAttribute[datetime | None],
+    after: datetime | None,
+    before: datetime | None,
+) -> Select:
+    """Add an inclusive [after, before] range filter on a datetime field. Either end may be open.
+
+    Both bounds must already be UTC and timezone-naive, matching how the columns are stored.
+
+    Rows whose field is NULL never match, by ordinary SQL comparison semantics: "used since
+    yesterday" cannot be true of a spool that has never been used, and neither can "used before
+    yesterday".
+    """
+    if after is not None:
+        stmt = stmt.where(field >= after)
+    if before is not None:
+        stmt = stmt.where(field <= before)
     return stmt
 
 

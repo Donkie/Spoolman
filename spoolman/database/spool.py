@@ -24,6 +24,7 @@ from spoolman.database.extra_field_query import (
 )
 from spoolman.database.utils import (
     SortOrder,
+    add_where_clause_datetime,
     add_where_clause_int,
     add_where_clause_int_opt,
     add_where_clause_str,
@@ -42,6 +43,39 @@ logger = logging.getLogger(__name__)
 def utc_timezone_naive(dt: datetime) -> datetime:
     """Convert a datetime object to UTC and remove timezone info."""
     return dt.astimezone(tz=timezone.utc).replace(tzinfo=None)
+
+
+def _incoming_utc_naive(dt: datetime | None) -> datetime | None:
+    """Normalise a datetime coming in from the API to the UTC-naive form the columns store.
+
+    An offset-aware value is converted; a naive one is taken to already be UTC. Note that
+    utc_timezone_naive cannot do that second part: astimezone() reads a naive datetime as the
+    server's *local* time, which would silently shift every bound by the host's UTC offset.
+    """
+    if dt is None or dt.tzinfo is None:
+        return dt
+    return utc_timezone_naive(dt)
+
+
+@dataclass(frozen=True)
+class DateRange:
+    """An inclusive [after, before] filter on one datetime column. Either end may be left open."""
+
+    after: datetime | None = None
+    before: datetime | None = None
+
+
+@dataclass(frozen=True)
+class SpoolDateFilters:
+    """The date-range filters a spool search accepts, one per timestamp a spool carries.
+
+    Grouped into one argument rather than six keyword arguments because they travel together
+    through find/find_groups/_apply_spool_filters unchanged.
+    """
+
+    first_used: DateRange = DateRange()
+    last_used: DateRange = DateRange()
+    registered: DateRange = DateRange()
 
 
 async def create(
@@ -134,6 +168,7 @@ async def find(  # noqa: C901
     location: str | None = None,
     lot_nr: str | None = None,
     allow_archived: bool = False,
+    date_filters: SpoolDateFilters | None = None,
     extra_field_filters: dict[str, str] | None = None,
     filament_extra_field_filters: dict[str, str] | None = None,
     vendor_extra_field_filters: dict[str, str] | None = None,
@@ -159,6 +194,7 @@ async def find(  # noqa: C901
         location=location,
         lot_nr=lot_nr,
         allow_archived=allow_archived,
+        date_filters=date_filters,
     ).options(contains_eager(models.Spool.filament).contains_eager(models.Filament.vendor))
 
     total_count = None
@@ -268,6 +304,7 @@ def _apply_spool_filters(
     location: str | None = None,
     lot_nr: str | None = None,
     allow_archived: bool = False,
+    date_filters: SpoolDateFilters | None = None,
 ) -> sqlalchemy.Select:
     """Apply the standard spool joins and where-clauses shared by find and find_groups."""
     stmt = stmt.join(models.Spool.filament, isouter=True).join(models.Filament.vendor, isouter=True)
@@ -279,6 +316,18 @@ def _apply_spool_filters(
     stmt = add_where_clause_str_opt(stmt, models.Filament.multi_color_direction, filament_multi_color_direction)
     stmt = add_where_clause_str_opt(stmt, models.Spool.location, location)
     stmt = add_where_clause_str_opt(stmt, models.Spool.lot_nr, lot_nr)
+    if date_filters is not None:
+        for column, date_range in (
+            (models.Spool.first_used, date_filters.first_used),
+            (models.Spool.last_used, date_filters.last_used),
+            (models.Spool.registered, date_filters.registered),
+        ):
+            stmt = add_where_clause_datetime(
+                stmt,
+                column,
+                _incoming_utc_naive(date_range.after),
+                _incoming_utc_naive(date_range.before),
+            )
     if not allow_archived:
         # archived is nullable with a default of false, so match both false and null.
         stmt = stmt.where(
@@ -375,6 +424,7 @@ async def find_groups(
     location: str | None = None,
     lot_nr: str | None = None,
     allow_archived: bool = False,
+    date_filters: SpoolDateFilters | None = None,
     extra_field_filters: dict[str, str] | None = None,
     filament_extra_field_filters: dict[str, str] | None = None,
     vendor_extra_field_filters: dict[str, str] | None = None,
@@ -425,6 +475,7 @@ async def find_groups(
         location=location,
         lot_nr=lot_nr,
         allow_archived=allow_archived,
+        date_filters=date_filters,
     )
     if extra_join is not None:
         stmt = extra_join.apply(stmt, models.Spool.id)

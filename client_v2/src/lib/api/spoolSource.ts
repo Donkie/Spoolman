@@ -22,6 +22,7 @@ import {
 	colorFieldsToApi
 } from './map';
 import { inventory } from '$lib/stores/inventory.svelte';
+import { isDateFilterProp, parseDateRange, resolveDateRange } from '$lib/library/dateFilter';
 import { filamentLabel } from '$lib/utils/library';
 import type { EntityType } from './fields';
 import { type ExternalFilament } from './external';
@@ -85,8 +86,21 @@ function quote(v: string): string {
 
 function applyFilters(params: QueryParams, filters: Record<string, string[]>) {
 	for (const [prop, values] of Object.entries(filters)) {
+		if (!values.length) continue;
+		// A date filter is a range rather than a set of values: it becomes a pair of
+		// absolute `<field>_after` / `<field>_before` bounds, resolved here — at
+		// request time — so a relative range like "the last 24 hours" is measured
+		// from now on every fetch rather than from whenever the chip was created.
+		if (isDateFilterProp(prop)) {
+			const range = parseDateRange(values[values.length - 1]);
+			if (!range) continue;
+			const { after, before } = resolveDateRange(range);
+			if (after) params[`${prop}_after`] = after;
+			if (before) params[`${prop}_before`] = before;
+			continue;
+		}
 		const key = filterParam(prop);
-		if (!key || !values.length) continue;
+		if (!key) continue;
 		const encode = UNQUOTED_FILTERS.has(prop) ? (v: string) => v : quote;
 		params[key] = values.map(encode).join(',');
 	}
