@@ -7,7 +7,8 @@ import * as m from '$lib/paraglide/messages';
 // A range lives in the URL as one ordinary filter chip whose value is
 // `<from>..<to>` — either end may be empty, meaning open — and each end is
 // either a calendar date (`2026-01-14`, read as a day in the viewer's own
-// timezone) or an offset back from now (`-24h`, `-7d`).
+// timezone) or an offset back from now (`-24h`, `-6m`). The one value that is
+// not a range is `never`, for spools carrying no such timestamp at all.
 //
 // Relative ends stay relative all the way into the URL rather than being
 // resolved to an instant when the chip is made. "Used in the last 24 hours" is a
@@ -15,8 +16,8 @@ import * as m from '$lib/paraglide/messages';
 // it against the current time; freezing it at pick time would quietly turn it
 // into "used since yesterday lunchtime" and drift further every day.
 //
-// Only the resolution to absolute instants (resolveDateRange) is sent to the
-// backend, which takes plain ISO bounds and knows nothing about this grammar.
+// Only the resolution (resolveDateFilter) reaches the backend, which takes plain
+// ISO bounds and a null test, and knows nothing about this grammar.
 
 /** The spool timestamps the Library can filter on. Each is a backend column name. */
 export const DATE_FILTER_PROPS = ['last_used', 'first_used', 'registered'] as const;
@@ -44,16 +45,29 @@ export interface DateRange {
 	to: DateBound | null;
 }
 
+/**
+ * What a date chip holds: a range, or "this spool has no such timestamp at all".
+ *
+ * The second is a different question, not a wider range — no bound can reach a
+ * spool that has never been used, however far back it goes — so it gets its own
+ * shape rather than an ever-earlier `from`.
+ */
+export type DateFilter = ({ kind: 'range' } & DateRange) | { kind: 'unset' };
+
 /** What the API wants: absolute ISO instants, either side optional. */
-export interface ResolvedDateRange {
+export interface ResolvedDateFilter {
 	after?: string;
 	before?: string;
+	unset?: boolean;
 }
 
 const RELATIVE_RE = /^-(\d{1,5})([hdmy])$/;
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 const SEPARATOR = '..';
+
+/** Chip value for "no timestamp at all". Spelled out so the URL stays readable. */
+export const NEVER = 'never';
 
 /** Whether `raw` is a real calendar date — the regex alone accepts 2026-02-31. */
 function isCalendarDate(raw: string): boolean {
@@ -73,21 +87,21 @@ function parseBound(raw: string): DateBound | null | 'invalid' {
 }
 
 /**
- * Parse a chip value into a range, or null if it isn't one. Anything the URL can
- * carry reaches this — hand-edited, or written by a client that spelled the
- * grammar differently — so a malformed value is rejected rather than guessed at,
- * and its chip is then dropped instead of narrowing the list by something the
- * user can't see. A range with both ends open filters nothing, so it's rejected
- * too.
+ * Parse a chip value, or null if it isn't one. Anything the URL can carry reaches
+ * this — hand-edited, or written by a client that spelled the grammar differently
+ * — so a malformed value is rejected rather than guessed at, and its chip is then
+ * dropped instead of narrowing the list by something the user can't see. A range
+ * with both ends open filters nothing, so it's rejected too.
  */
-export function parseDateRange(value: string): DateRange | null {
+export function parseDateFilter(value: string): DateFilter | null {
+	if (value === NEVER) return { kind: 'unset' };
 	const i = value.indexOf(SEPARATOR);
 	if (i < 0) return null;
 	const from = parseBound(value.slice(0, i));
 	const to = parseBound(value.slice(i + SEPARATOR.length));
 	if (from === 'invalid' || to === 'invalid') return null;
 	if (from === null && to === null) return null;
-	return { from, to };
+	return { kind: 'range', from, to };
 }
 
 function formatBound(bound: DateBound | null): string {
@@ -95,19 +109,20 @@ function formatBound(bound: DateBound | null): string {
 	return bound.kind === 'date' ? bound.value : `-${bound.amount}${bound.unit}`;
 }
 
-/** Encode a range back to its chip value. Inverse of {@link parseDateRange}. */
-export function formatDateRange(range: DateRange): string {
-	return `${formatBound(range.from)}${SEPARATOR}${formatBound(range.to)}`;
+/** Encode a filter back to its chip value. Inverse of {@link parseDateFilter}. */
+export function formatDateFilter(filter: DateFilter): string {
+	if (filter.kind === 'unset') return NEVER;
+	return `${formatBound(filter.from)}${SEPARATOR}${formatBound(filter.to)}`;
 }
 
 /** Chip value for the "within the last N units" shape, the presets' form. */
 export function withinLast(amount: number, unit: RelativeUnit): string {
-	return formatDateRange({ from: { kind: 'relative', amount, unit }, to: null });
+	return formatDateFilter({ kind: 'range', from: { kind: 'relative', amount, unit }, to: null });
 }
 
 /** Chip value for the "nothing since N units ago" shape. */
 export function olderThan(amount: number, unit: RelativeUnit): string {
-	return formatDateRange({ from: null, to: { kind: 'relative', amount, unit } });
+	return formatDateFilter({ kind: 'range', from: null, to: { kind: 'relative', amount, unit } });
 }
 
 const MS: Partial<Record<RelativeUnit, number>> = { h: 3_600_000, d: 86_400_000 };
@@ -143,11 +158,12 @@ function resolveBound(bound: DateBound, end: 'from' | 'to', now: Date): Date {
 	return end === 'from' ? new Date(y, mo - 1, d, 0, 0, 0, 0) : new Date(y, mo - 1, d, 23, 59, 59, 999);
 }
 
-/** Resolve a range to the absolute ISO bounds the API filters on. */
-export function resolveDateRange(range: DateRange, now: Date = new Date()): ResolvedDateRange {
-	const resolved: ResolvedDateRange = {};
-	if (range.from) resolved.after = resolveBound(range.from, 'from', now).toISOString();
-	if (range.to) resolved.before = resolveBound(range.to, 'to', now).toISOString();
+/** Resolve a filter to the query the API takes: absolute ISO bounds, or the null test. */
+export function resolveDateFilter(filter: DateFilter, now: Date = new Date()): ResolvedDateFilter {
+	if (filter.kind === 'unset') return { unset: true };
+	const resolved: ResolvedDateFilter = {};
+	if (filter.from) resolved.after = resolveBound(filter.from, 'from', now).toISOString();
+	if (filter.to) resolved.before = resolveBound(filter.to, 'to', now).toISOString();
 	return resolved;
 }
 
@@ -170,12 +186,17 @@ function boundText(bound: DateBound): string {
 }
 
 /**
- * The human reading of a range, for the filter chip and the menu. The two
- * one-ended relative shapes get their own phrasing because they are the common
- * ones and "since 24 hours ago" is a clumsy way to say "last 24 hours".
+ * The human reading of a filter, for the chip and the menu. The two one-ended
+ * relative shapes get their own phrasing because they are the common ones and
+ * "since 24 hours ago" is a clumsy way to say "last 24 hours".
  */
-export function dateRangeLabel(range: DateRange): string {
-	const { from, to } = range;
+export function dateFilterLabel(filter: DateFilter): string {
+	// Deliberately "Never", not "unused": the library already calls a spool unused
+	// when no weight has come off it, which is a different claim. A spool can be
+	// unused and still carry a last_used date (someone corrected its weight), and
+	// can have used weight but no date at all.
+	if (filter.kind === 'unset') return m['library.dateFilter.never']();
+	const { from, to } = filter;
 	if (from?.kind === 'relative' && !to) {
 		return m['library.dateFilter.last']({ span: spanText(from) });
 	}

@@ -2,11 +2,12 @@
 	import * as params from '$lib/library/params';
 	import type { GroupMode, LibraryState } from '$lib/library/params';
 	import {
-		dateRangeLabel,
-		formatDateRange,
+		dateFilterLabel,
+		formatDateFilter,
 		isDateFilterProp,
+		NEVER,
 		olderThan,
-		parseDateRange,
+		parseDateFilter,
 		withinLast,
 		type DateFilterProp
 	} from '$lib/library/dateFilter';
@@ -61,7 +62,7 @@
 				label: () => string;
 				load: () => Promise<FilterOption[]>;
 		  }
-		| { kind: 'date'; key: DateFilterProp; label: () => string };
+		| { kind: 'date'; key: DateFilterProp; label: () => string; neverable: boolean };
 
 	const asOption = (v: string): FilterOption => ({ value: v, label: v });
 
@@ -111,11 +112,13 @@
 		}
 	];
 
-	// The spool timestamps that can be filtered by range.
+	// The spool timestamps that can be filtered by range. `neverable` marks the two
+	// a spool can simply lack, which are the ones worth offering a "Never" for;
+	// every spool has a registered date.
 	const DATE_FILTERS: FilterCategory[] = [
-		{ kind: 'date', key: 'last_used', label: m['spool.fields.lastUsed'] },
-		{ kind: 'date', key: 'first_used', label: m['spool.fields.firstUsed'] },
-		{ kind: 'date', key: 'registered', label: m['spool.fields.registered'] }
+		{ kind: 'date', key: 'last_used', label: m['spool.fields.lastUsed'], neverable: true },
+		{ kind: 'date', key: 'first_used', label: m['spool.fields.firstUsed'], neverable: true },
+		{ kind: 'date', key: 'registered', label: m['spool.fields.registered'], neverable: false }
 	];
 
 	// One-click ranges, covering the questions actually asked of a filament
@@ -132,8 +135,8 @@
 	];
 
 	function rangeLabel(value: string): string {
-		const range = parseDateRange(value);
-		return range ? dateRangeLabel(range) : value;
+		const filter = parseDateFilter(value);
+		return filter ? dateFilterLabel(filter) : value;
 	}
 
 	// Extra fields we can offer a discrete option list for: text, choice and
@@ -202,11 +205,12 @@
 	let customTo = $state('');
 
 	let customRange = $derived.by(() => {
-		const range = parseDateRange(`${customFrom}..${customTo}`);
+		const parsed = parseDateFilter(`${customFrom}..${customTo}`);
 		// ISO dates compare correctly as strings. An end before the start can only
 		// ever match nothing, so it doesn't get to be applied.
 		if (customFrom && customTo && customFrom > customTo) return null;
-		return range;
+		// Always a range, never "never" — the value being parsed has two ends.
+		return parsed?.kind === 'range' ? parsed : null;
 	});
 
 	async function openProp(category: FilterCategory) {
@@ -374,6 +378,13 @@
 							<span class="mi-label">{rangeLabel(preset)}</span>
 						</button>
 					{/each}
+					{#if c.neverable}
+						<!-- The opposite question to any range: spools carrying no such date at
+						     all, which no bound can reach however far back it goes. -->
+						<button class="menu-item" onclick={() => applyRange(NEVER)}>
+							<span class="mi-label">{rangeLabel(NEVER)}</span>
+						</button>
+					{/if}
 					<div class="menu-sep"></div>
 					<div class="menu-title">{m['library.dateFilter.customRange']()}</div>
 					<!-- Native date inputs: they already localize their display, open the
@@ -391,7 +402,7 @@
 						<button
 							class="chip active apply"
 							disabled={!customRange}
-							onclick={() => customRange && applyRange(formatDateRange(customRange))}
+							onclick={() => customRange && applyRange(formatDateFilter(customRange))}
 							>{m['buttons.apply']()}</button
 						>
 					</div>

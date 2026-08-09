@@ -91,6 +91,41 @@ def test_find_spools_date_filter_excludes_never_used(dated_spools: Fixture, para
     assert all(spool["id"] != dated_spools.never_used["id"] for spool in found)
 
 
+def test_find_spools_never_used(dated_spools: Fixture):
+    """`last_used_unset` is how the never-used spools are reached, since no bound can."""
+    found = find(dated_spools.filament_id, last_used_unset="true")
+    assert_lists_compatible(found, (dated_spools.never_used,))
+
+
+def test_find_spools_ever_used(dated_spools: Fixture):
+    """And its complement: false selects exactly the spools that do carry a timestamp."""
+    found = find(dated_spools.filament_id, last_used_unset="false")
+    assert_lists_compatible(found, (dated_spools.old, dated_spools.middle, dated_spools.recent))
+
+
+def test_find_spools_never_first_used(dated_spools: Fixture):
+    """first_used has the same filter, on its own column."""
+    found = find(dated_spools.filament_id, first_used_unset="true")
+    assert_lists_compatible(found, (dated_spools.never_used,))
+
+
+def test_find_spool_groups_count_never_used(dated_spools: Fixture):
+    """The grouped view answers it too, so a "never used" group count is real."""
+    result = httpx.get(
+        f"{URL}/api/v1/spool/group",
+        params={
+            "group_by": "filament",
+            "filament.id": str(dated_spools.filament_id),
+            "last_used_unset": "true",
+        },
+    )
+    result.raise_for_status()
+    groups = result.json()
+
+    assert len(groups) == 1
+    assert groups[0]["spool_count"] == 1
+
+
 def test_find_spools_date_bounds_are_inclusive(dated_spools: Fixture):
     """A bound exactly on a spool's timestamp includes that spool, from either side."""
     assert_lists_compatible(

@@ -74,15 +74,31 @@ def _date_query(field: str, title: str, *, after: bool) -> Query:
     )
 
 
-# The date-range filters, shared verbatim by the spool search and the group endpoints so the two
-# accept exactly the same query. Naming them here keeps six near-identical Query() blocks out of
-# both signatures.
+def _unset_query(field: str, title: str) -> Query:
+    """Build the Query() for the "has no timestamp at all" filter on `field`."""
+    return Query(
+        title=f"{title} Unset",
+        description=(
+            f"Match only spools that have no {field} timestamp (true), or only those that have "
+            f"one (false). A spool with no {field} matches no date bound, so this is the only "
+            "way to select those spools."
+        ),
+    )
+
+
+# The date filters, shared verbatim by the spool search and the group endpoints so the two accept
+# exactly the same query. Naming them here keeps eight near-identical Query() blocks out of both
+# signatures.
 FirstUsedAfter = Annotated[datetime | None, _date_query("first_used", "First Used", after=True)]
 FirstUsedBefore = Annotated[datetime | None, _date_query("first_used", "First Used", after=False)]
 LastUsedAfter = Annotated[datetime | None, _date_query("last_used", "Last Used", after=True)]
 LastUsedBefore = Annotated[datetime | None, _date_query("last_used", "Last Used", after=False)]
 RegisteredAfter = Annotated[datetime | None, _date_query("registered", "Registered", after=True)]
 RegisteredBefore = Annotated[datetime | None, _date_query("registered", "Registered", after=False)]
+# Only the two usage timestamps get an "unset" filter; registered is set at creation and a spool
+# never lacks one.
+FirstUsedUnset = Annotated[bool | None, _unset_query("first_used", "First Used")]
+LastUsedUnset = Annotated[bool | None, _unset_query("last_used", "Last Used")]
 
 
 class SpoolParameters(BaseModel):
@@ -327,6 +343,8 @@ async def find(
     last_used_before: LastUsedBefore = None,
     registered_after: RegisteredAfter = None,
     registered_before: RegisteredBefore = None,
+    first_used_unset: FirstUsedUnset = None,
+    last_used_unset: LastUsedUnset = None,
     sort: Annotated[
         str | None,
         Query(
@@ -365,8 +383,8 @@ async def find(
     spool_extra, filament_extra, vendor_extra = _parse_extra_field_filters(request.query_params)
 
     date_filters = spool.SpoolDateFilters(
-        first_used=spool.DateRange(first_used_after, first_used_before),
-        last_used=spool.DateRange(last_used_after, last_used_before),
+        first_used=spool.DateRange(first_used_after, first_used_before, first_used_unset),
+        last_used=spool.DateRange(last_used_after, last_used_before, last_used_unset),
         registered=spool.DateRange(registered_after, registered_before),
     )
 
@@ -528,6 +546,8 @@ async def find_groups(
     last_used_before: LastUsedBefore = None,
     registered_after: RegisteredAfter = None,
     registered_before: RegisteredBefore = None,
+    first_used_unset: FirstUsedUnset = None,
+    last_used_unset: LastUsedUnset = None,
     sort: Annotated[
         str | None,
         Query(
@@ -560,8 +580,8 @@ async def find_groups(
     spool_extra, filament_extra, vendor_extra = _parse_extra_field_filters(request.query_params)
 
     date_filters = spool.SpoolDateFilters(
-        first_used=spool.DateRange(first_used_after, first_used_before),
-        last_used=spool.DateRange(last_used_after, last_used_before),
+        first_used=spool.DateRange(first_used_after, first_used_before, first_used_unset),
+        last_used=spool.DateRange(last_used_after, last_used_before, last_used_unset),
         registered=spool.DateRange(registered_after, registered_before),
     )
 

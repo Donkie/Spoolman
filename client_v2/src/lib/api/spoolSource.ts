@@ -22,7 +22,7 @@ import {
 	colorFieldsToApi
 } from './map';
 import { inventory } from '$lib/stores/inventory.svelte';
-import { isDateFilterProp, parseDateRange, resolveDateRange } from '$lib/library/dateFilter';
+import { isDateFilterProp, parseDateFilter, resolveDateFilter } from '$lib/library/dateFilter';
 import { filamentLabel } from '$lib/utils/library';
 import type { EntityType } from './fields';
 import { type ExternalFilament } from './external';
@@ -91,12 +91,14 @@ function applyFilters(params: QueryParams, filters: Record<string, string[]>) {
 		// absolute `<field>_after` / `<field>_before` bounds, resolved here — at
 		// request time — so a relative range like "the last 24 hours" is measured
 		// from now on every fetch rather than from whenever the chip was created.
+		// "Never" isn't a range at all and asks `<field>_unset` instead.
 		if (isDateFilterProp(prop)) {
-			const range = parseDateRange(values[values.length - 1]);
-			if (!range) continue;
-			const { after, before } = resolveDateRange(range);
+			const filter = parseDateFilter(values[values.length - 1]);
+			if (!filter) continue;
+			const { after, before, unset } = resolveDateFilter(filter);
 			if (after) params[`${prop}_after`] = after;
 			if (before) params[`${prop}_before`] = before;
+			if (unset) params[`${prop}_unset`] = 'true';
 			continue;
 		}
 		const key = filterParam(prop);

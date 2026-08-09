@@ -2,7 +2,7 @@ import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 import type { EntityKind, Selection } from '$lib/types';
 import { isGroupOrderable, defaultSortAsc } from '$lib/utils/library';
-import { isDateFilterProp, parseDateRange } from './dateFilter';
+import { isDateFilterProp, parseDateFilter } from './dateFilter';
 import { rememberedView, rememberView } from './viewPrefs';
 
 // The Library view's entire query state lives in the URL — this module is the
@@ -69,11 +69,11 @@ function parseFilters(raw: string[]): FilterChip[] {
 				};
 			})
 			.filter((f): f is FilterChip => f !== null && f.prop !== '')
-			// A date chip carries a range in its value (see dateFilter). One that doesn't
-			// parse is dropped rather than passed on: an unreadable chip would narrow the
-			// list by a rule nothing on screen can explain, or be sent to the backend as
-			// an invalid bound.
-			.filter((f) => !isDateFilterProp(f.prop) || parseDateRange(f.value) !== null)
+			// A date chip carries a range (or "never") in its value (see dateFilter). One
+			// that doesn't parse is dropped rather than passed on: an unreadable chip would
+			// narrow the list by a rule nothing on screen can explain, or be sent to the
+			// backend as an invalid bound.
+			.filter((f) => !isDateFilterProp(f.prop) || parseDateFilter(f.value) !== null)
 	);
 }
 

@@ -189,19 +189,24 @@ def add_where_clause_datetime(
     field: attributes.InstrumentedAttribute[datetime | None],
     after: datetime | None,
     before: datetime | None,
+    *,
+    unset: bool | None = None,
 ) -> Select:
     """Add an inclusive [after, before] range filter on a datetime field. Either end may be open.
 
     Both bounds must already be UTC and timezone-naive, matching how the columns are stored.
 
-    Rows whose field is NULL never match, by ordinary SQL comparison semantics: "used since
-    yesterday" cannot be true of a spool that has never been used, and neither can "used before
-    yesterday".
+    Rows whose field is NULL never match a bound, by ordinary SQL comparison semantics: "used
+    since yesterday" cannot be true of a spool that has never been used, and neither can "used
+    before yesterday". Those rows are therefore only reachable through `unset`, which selects
+    exactly them when True and exactly their complement when False.
     """
     if after is not None:
         stmt = stmt.where(field >= after)
     if before is not None:
         stmt = stmt.where(field <= before)
+    if unset is not None:
+        stmt = stmt.where(field.is_(None) if unset else field.is_not(None))
     return stmt
 
 

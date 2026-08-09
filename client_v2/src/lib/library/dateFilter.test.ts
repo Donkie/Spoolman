@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
-	formatDateRange,
+	formatDateFilter,
 	isDateFilterProp,
 	olderThan,
-	parseDateRange,
-	resolveDateRange,
+	parseDateFilter,
+	resolveDateFilter,
 	withinLast
 } from './dateFilter';
 
@@ -14,44 +14,54 @@ import {
 // against the clock at request time, which is what keeps "the last 24 hours"
 // meaning the last 24 hours on every fetch rather than on the day it was picked.
 
-describe('parseDateRange', () => {
+describe('parseDateFilter', () => {
 	it('reads a relative lower bound', () => {
-		expect(parseDateRange('-24h..')).toEqual({
+		expect(parseDateFilter('-24h..')).toEqual({
+			kind: 'range',
 			from: { kind: 'relative', amount: 24, unit: 'h' },
 			to: null
 		});
 	});
 
 	it('reads a relative upper bound', () => {
-		expect(parseDateRange('..-90d')).toEqual({
+		expect(parseDateFilter('..-90d')).toEqual({
+			kind: 'range',
 			from: null,
 			to: { kind: 'relative', amount: 90, unit: 'd' }
 		});
 	});
 
 	it('reads a two-ended calendar range', () => {
-		expect(parseDateRange('2026-01-14..2026-02-01')).toEqual({
+		expect(parseDateFilter('2026-01-14..2026-02-01')).toEqual({
+			kind: 'range',
 			from: { kind: 'date', value: '2026-01-14' },
 			to: { kind: 'date', value: '2026-02-01' }
 		});
 	});
 
 	it('reads an open-ended calendar range', () => {
-		expect(parseDateRange('2026-01-14..')).toEqual({
+		expect(parseDateFilter('2026-01-14..')).toEqual({
+			kind: 'range',
 			from: { kind: 'date', value: '2026-01-14' },
 			to: null
 		});
 	});
 
 	it('reads the calendar units', () => {
-		expect(parseDateRange('-6m..')).toEqual({
+		expect(parseDateFilter('-6m..')).toEqual({
+			kind: 'range',
 			from: { kind: 'relative', amount: 6, unit: 'm' },
 			to: null
 		});
-		expect(parseDateRange('..-1y')).toEqual({
+		expect(parseDateFilter('..-1y')).toEqual({
+			kind: 'range',
 			from: null,
 			to: { kind: 'relative', amount: 1, unit: 'y' }
 		});
+	});
+
+	it('reads "never" as its own thing, not a range', () => {
+		expect(parseDateFilter('never')).toEqual({ kind: 'unset' });
 	});
 
 	it.each([
@@ -63,17 +73,23 @@ describe('parseDateRange', () => {
 		['an unknown unit', '-2w..'],
 		['free text', 'yesterday..today']
 	])('rejects %s', (_case, value) => {
-		expect(parseDateRange(value)).toBeNull();
+		expect(parseDateFilter(value)).toBeNull();
 	});
 });
 
-describe('formatDateRange', () => {
-	it.each(['-24h..', '..-90d', '-6m..', '..-1y', '2026-01-14..2026-02-01', '2026-01-14..', '..2026-02-01'])(
-		'round-trips %s',
-		(value) => {
-			expect(formatDateRange(parseDateRange(value)!)).toBe(value);
-		}
-	);
+describe('formatDateFilter', () => {
+	it.each([
+		'-24h..',
+		'..-90d',
+		'-6m..',
+		'..-1y',
+		'2026-01-14..2026-02-01',
+		'2026-01-14..',
+		'..2026-02-01',
+		'never'
+	])('round-trips %s', (value) => {
+		expect(formatDateFilter(parseDateFilter(value)!)).toBe(value);
+	});
 
 	it('builds the preset shapes', () => {
 		expect(withinLast(24, 'h')).toBe('-24h..');
@@ -81,51 +97,58 @@ describe('formatDateRange', () => {
 	});
 });
 
-describe('resolveDateRange', () => {
+describe('resolveDateFilter', () => {
 	const now = new Date('2026-03-10T12:00:00Z');
 
 	it('measures a relative bound back from the given moment', () => {
-		expect(resolveDateRange(parseDateRange('-24h..')!, now)).toEqual({
+		expect(resolveDateFilter(parseDateFilter('-24h..')!, now)).toEqual({
 			after: '2026-03-09T12:00:00.000Z'
 		});
-		expect(resolveDateRange(parseDateRange('..-7d')!, now)).toEqual({
+		expect(resolveDateFilter(parseDateFilter('..-7d')!, now)).toEqual({
 			before: '2026-03-03T12:00:00.000Z'
 		});
 	});
 
 	it('re-measures a relative bound against the current moment', () => {
 		const later = new Date(now.getTime() + 3_600_000);
-		const first = resolveDateRange(parseDateRange('-24h..')!, now).after;
-		const second = resolveDateRange(parseDateRange('-24h..')!, later).after;
+		const first = resolveDateFilter(parseDateFilter('-24h..')!, now).after;
+		const second = resolveDateFilter(parseDateFilter('-24h..')!, later).after;
 		expect(second).not.toBe(first);
 	});
 
 	it('steps a month bound back on the calendar, not by a fixed number of days', () => {
-		const { after } = resolveDateRange(parseDateRange('-6m..')!, new Date(2026, 2, 10, 12, 0, 0));
+		const { after } = resolveDateFilter(parseDateFilter('-6m..')!, new Date(2026, 2, 10, 12, 0, 0));
 		expect(new Date(after!)).toEqual(new Date(2025, 8, 10, 12, 0, 0));
 	});
 
 	it('clamps a month step onto a shorter month instead of overshooting it', () => {
 		// One month back from March 31st is "Feb 31" to JS, i.e. March 3rd — a bound
 		// *later* than the month it was aiming at, which would drop a month's spools.
-		const { after } = resolveDateRange(parseDateRange('-1m..')!, new Date(2026, 2, 31, 9, 0, 0));
+		const { after } = resolveDateFilter(parseDateFilter('-1m..')!, new Date(2026, 2, 31, 9, 0, 0));
 		expect(new Date(after!)).toEqual(new Date(2026, 1, 28, 9, 0, 0));
 	});
 
 	it('steps a year bound back on the calendar', () => {
-		const { before } = resolveDateRange(parseDateRange('..-1y')!, new Date(2026, 2, 10, 12, 0, 0));
+		const { before } = resolveDateFilter(parseDateFilter('..-1y')!, new Date(2026, 2, 10, 12, 0, 0));
 		expect(new Date(before!)).toEqual(new Date(2025, 2, 10, 12, 0, 0));
 	});
 
 	it('leaves an open end unbounded', () => {
-		expect(resolveDateRange(parseDateRange('-24h..')!, now).before).toBeUndefined();
-		expect(resolveDateRange(parseDateRange('..-7d')!, now).after).toBeUndefined();
+		expect(resolveDateFilter(parseDateFilter('-24h..')!, now).before).toBeUndefined();
+		expect(resolveDateFilter(parseDateFilter('..-7d')!, now).after).toBeUndefined();
+	});
+
+	it('turns "never" into the null test, with no bounds at all', () => {
+		// A bound would be wrong rather than merely redundant here: a spool with no
+		// timestamp fails every comparison, so any bound sent alongside would empty
+		// the result instead of selecting exactly those spools.
+		expect(resolveDateFilter(parseDateFilter('never')!, now)).toEqual({ unset: true });
 	});
 
 	it('covers a single calendar day from its first to its last millisecond', () => {
 		// Local time, as the date input meant it — so the assertion has to be in
 		// local time too, or it only passes in the timezone it was written in.
-		const { after, before } = resolveDateRange(parseDateRange('2026-01-14..2026-01-14')!, now);
+		const { after, before } = resolveDateFilter(parseDateFilter('2026-01-14..2026-01-14')!, now);
 		expect(new Date(after!)).toEqual(new Date(2026, 0, 14, 0, 0, 0, 0));
 		expect(new Date(before!)).toEqual(new Date(2026, 0, 14, 23, 59, 59, 999));
 	});

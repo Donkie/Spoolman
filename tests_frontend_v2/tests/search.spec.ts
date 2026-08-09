@@ -278,6 +278,33 @@ test("filtering the library by a date range", async ({ page }) => {
     await expect(page.getByRole("button", { name: /^Registered:/ })).toHaveCount(0);
     await expect(page.getByText(first.filamentName, { exact: true })).toBeVisible();
   });
+
+  await test.step("Last Used offers Never, which no range could express", async () => {
+    // These spools have never been used, so they have no last_used at all — a
+    // state no bound can select, however far back it reaches.
+    const menu = await openToolbarMenu(page, "Filter");
+    await menu.getByRole("button", { name: "Last Used", exact: true }).click();
+    await menu.getByRole("button", { name: "Never", exact: true }).click();
+
+    await expect(page.getByRole("button", { name: "Last Used: Never" })).toBeVisible();
+    await expect(page.getByText(first.filamentName, { exact: true })).toBeVisible();
+  });
+
+  await test.step("and a range on the same field excludes them again", async () => {
+    const menu = await openToolbarMenu(page, "Filter");
+    await menu.getByRole("button", { name: "Last Used", exact: true }).click();
+    await menu.getByRole("button", { name: "Last 24 hours", exact: true }).click();
+
+    await expect(page.getByRole("button", { name: "Last Used: Last 24 hours" })).toBeVisible();
+    await expect(page.getByText(first.filamentName, { exact: true })).toHaveCount(0);
+  });
+
+  await test.step("Registered has no Never — every spool has one", async () => {
+    const menu = await openToolbarMenu(page, "Filter");
+    await menu.getByRole("button", { name: "Registered", exact: true }).click();
+
+    await expect(menu.getByRole("button", { name: "Never", exact: true })).toHaveCount(0);
+  });
 });
 
 test("changing the sort survives a reload and keeps the list working", async ({ page }) => {

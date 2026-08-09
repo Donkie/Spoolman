@@ -59,10 +59,16 @@ def _incoming_utc_naive(dt: datetime | None) -> datetime | None:
 
 @dataclass(frozen=True)
 class DateRange:
-    """An inclusive [after, before] filter on one datetime column. Either end may be left open."""
+    """A filter on one datetime column: an inclusive [after, before] range, either end open.
+
+    `unset` asks the opposite kind of question — whether the column holds a timestamp at all —
+    and is the only way to reach the rows where it does not, since a NULL matches no bound.
+    True selects them, False their complement, None leaves it alone.
+    """
 
     after: datetime | None = None
     before: datetime | None = None
+    unset: bool | None = None
 
 
 @dataclass(frozen=True)
@@ -327,6 +333,7 @@ def _apply_spool_filters(
                 column,
                 _incoming_utc_naive(date_range.after),
                 _incoming_utc_naive(date_range.before),
+                unset=date_range.unset,
             )
     if not allow_archived:
         # archived is nullable with a default of false, so match both false and null.

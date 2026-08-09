@@ -327,6 +327,7 @@
     "library.dateFilter.customRange": "Custom range",
     "library.dateFilter.from": "From",
     "library.dateFilter.last": "Last {{span}}",
+    "library.dateFilter.never": "Never",
     "library.dateFilter.olderThan": "Older than {{span}}",
     "library.dateFilter.since": "Since {{date}}",
     "library.dateFilter.to": "To (optional)",
