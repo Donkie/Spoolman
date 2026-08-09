@@ -361,6 +361,9 @@
 				? m['add.vendorHint.existing']({ name: vendorMatch })
 				: m['add.vendorHint.new']({ name: vendorTrimmed })
 	);
+	// Accents the manufacturer hint when the typed name will create a second record
+	// alongside the filament, rather than link an existing one.
+	let vendorIsNew = $derived(vendorTrimmed !== '' && !vendorMatch);
 	// Nudge, not an error: Spoolman allows same-named filaments, but keeping the
 	// original's name on a duplicate is almost always an oversight.
 	let nameStillSource = $derived(!!cloneSource && nf.name.trim() === cloneSource.name.trim());
@@ -551,7 +554,9 @@
 			<div class="modal-head">
 				<span class="title">{m['topbar.addSpools']()}</span>
 				{#if step === 2}
-					<span class="step-hint">{m['add.step2']()}</span>
+					<!-- Creating a filament puts manufacturer and filament fields on this step
+					     too, so the hint can't call the whole step "spool details". -->
+					<span class="step-hint">{creating ? m['add.step2New']() : m['add.step2']()}</span>
 				{/if}
 				<button class="x" onclick={close} aria-label={m['buttons.close']()}><X size={16} /></button>
 			</div>
@@ -633,36 +638,49 @@
 				</div>
 			{:else}
 				<div class="body">
-					<!-- Filament section: chosen card, or inline new-filament fields -->
+					<!-- Step 2 can create up to three records at once, so it is laid out as one
+					     block per entity — manufacturer, filament, spool — each with its own
+					     heading. Without that, the fields read as one flat form and there is no
+					     way to tell which record any given field lands on (#1038). The two
+					     new-record blocks are accent-bordered cards; the spool block is the
+					     plain remainder of the form, since a spool is always being created and
+					     needs no such emphasis. -->
 					{#if creating}
-						<div class="fil-section">
+						<!-- Manufacturer: its own record, so its own card — a vendor combobox
+						     sitting among the filament fields, quietly creating a second entity,
+						     was the most confusing part of the flow. -->
+						<section class="new-section man-section">
+							<label class="ent-field">
+								<span class="ent-label">{m['add.section.manufacturer']()}</span>
+								<span class="ent-note">{m['add.section.manufacturerNote']()}</span>
+								<Combobox
+									value={nf.vendorName}
+									options={vendorNames}
+									placeholder={m['add.manufacturerPlaceholder']()}
+									invalid={!!errors.vendor}
+									oninput={(v) => (nf.vendorName = v)}
+								/>
+								{#if errors.vendor}
+									<span class="err">{errors.vendor}</span>
+								{:else}
+									<span class="hint" class:accent={vendorIsNew}>{vendorHint}</span>
+								{/if}
+							</label>
+						</section>
+						<section class="new-section">
 							<div class="fs-head">
-								<span class="fs-title"
-									>{cloneSource
-										? m['add.duplicateTitle']({ name: cloneSource.name })
-										: m['add.newFilamentTitle']()}</span
-								>
+								<span class="ent-label">{m['add.section.filament']()}</span>
 								<button class="fs-back" onclick={() => (step = 1)}>{m['add.useExisting']()}</button>
 							</div>
-							{#if cloneSource}
-								<div class="dup-note">{m['add.duplicateNote']()}</div>
-							{/if}
+							<div class="fs-title">
+								{cloneSource
+									? m['add.duplicateTitle']({ name: cloneSource.name })
+									: m['add.newFilamentTitle']()}
+							</div>
+							<div class="ent-note">
+								{cloneSource ? m['add.duplicateNote']() : m['add.section.filamentNote']()}
+							</div>
 							<div class="form">
-								<label class="wide">
-									{m['filament.fields.vendor']()}
-									<Combobox
-										value={nf.vendorName}
-										options={vendorNames}
-										placeholder={m['add.manufacturerPlaceholder']()}
-										invalid={!!errors.vendor}
-										oninput={(v) => (nf.vendorName = v)}
-									/>
-									{#if errors.vendor}
-										<span class="err">{errors.vendor}</span>
-									{:else}
-										<span class="hint" class:accent={vendorTrimmed && !vendorMatch}>{vendorHint}</span>
-									{/if}
-								</label>
 								<label class="wide">
 									{m['filament.fields.name']()} <span class="req">*</span>
 									<input
@@ -777,9 +795,11 @@
 							     someone defined it, so it isn't an advanced detail to them. The
 							     section renders nothing when no filament fields are defined. -->
 							<ExtraFieldsSection entity="filament" extra={filamentExtra} onchange={setFilamentExtra} />
-						</div>
-						<div class="sec-divider"></div>
+						</section>
 					{:else if chosen}
+						<!-- No card here: the chosen-filament row is already a self-contained
+						     bordered block, so it only needs the heading that names the entity. -->
+						<div class="ent-label standalone">{m['add.section.filament']()}</div>
 						<div class="chosen">
 							<Swatch colors={cColors(chosen)} direction={cDirection(chosen)} size={24} radius={6} />
 							<div class="chosen-name">
@@ -812,6 +832,16 @@
 					{/if}
 
 					<!-- Spool section -->
+					<div class="sec-divider"></div>
+					<div class="ent-label standalone">{m['add.section.spool']()}</div>
+					<div class="ent-note">{m['add.section.spoolNote']()}</div>
+					{#if creating}
+						<!-- Weight, spool weight and price below are written to the new filament as
+						     well as to the spool, which is the one place in this layout where a
+						     field genuinely belongs to two records. Say so rather than let the
+						     heading imply the filament is unaffected. -->
+						<div class="ent-note shared">{m['add.section.spoolSharedNote']()}</div>
+					{/if}
 					<div class="form">
 						<label
 							>{m['add.count']()}
@@ -1209,38 +1239,69 @@
 		font-size: 11.5px;
 		color: var(--accent-muted-2);
 	}
-	.fil-section {
+	/* One card per record this flow will create. Whether the manufacturer is a new
+	   one or an existing one being linked is left to the accent hint under the
+	   field: --accent-border is lighter than --border-strong in the light theme, so
+	   swapping borders to mark "new" would read as less emphasis, not more. */
+	.new-section {
 		background: var(--surface);
 		border: 1px solid var(--accent-border);
 		border-radius: var(--radius-md);
 		padding: 12px 14px;
 	}
+	.man-section + .new-section {
+		margin-top: 10px;
+	}
+	/* The manufacturer block holds a single field, so its heading is that field's
+	   <label> — one accessible name, no heading/label echo. */
+	.ent-field {
+		display: block;
+	}
+	.ent-label {
+		display: block;
+		font-size: 11px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		color: var(--text-dim);
+	}
+	.ent-label.standalone {
+		margin-bottom: 6px;
+	}
+	.ent-note {
+		display: block;
+		font-size: 11.5px;
+		color: var(--text-faint);
+		margin: 2px 0 8px;
+	}
+	.ent-note.shared {
+		color: var(--accent-muted-2);
+	}
 	.fs-head {
 		display: flex;
 		align-items: baseline;
 		gap: 10px;
-		margin-bottom: 4px;
 	}
 	.fs-title {
 		font-weight: 600;
 		font-size: 13px;
+		margin-top: 2px;
 	}
 	.fs-back {
+		margin-left: auto;
 		font-size: 12px;
 		color: var(--accent-link);
 		background: none;
 		border: none;
 		cursor: pointer;
 	}
-	.dup-note {
-		font-size: 11.5px;
-		color: var(--text-faint);
-		margin-top: 2px;
-	}
+	/* Separates the records being created from the spool block. Deliberately
+	   heavier than --border-soft, which was invisible against the light theme's
+	   card backgrounds and left the two blocks looking like one run of fields. */
 	.sec-divider {
 		height: 1px;
-		background: var(--border-soft);
-		margin: 16px 0 4px;
+		background: var(--border);
+		margin: 16px 0 12px;
 	}
 	.color-editor-wrap {
 		margin-top: 6px;
