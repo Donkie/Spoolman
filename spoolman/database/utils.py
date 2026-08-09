@@ -189,6 +189,26 @@ def add_where_clause_str(
 DATETIME_RANGE_SEPARATOR = "|"
 
 
+def split_datetime_range_filter(value: str, field_name: str) -> tuple[str, str] | None:
+    """Split a `<start>|<end>` datetime filter into its two ends, or None if it isn't a range.
+
+    Either end may be empty, leaving that side open; a range with neither end asks nothing and is
+    rejected. Shared by the built-in datetime columns and the datetime extra fields so that the
+    one documented grammar is parsed in exactly one place. Only the parsing is common: what each
+    caller then does with the ends differs, because a typed column is compared as a datetime while
+    an extra field is compared as its decoded JSON text (see add_where_clause_extra_field).
+    """
+    if DATETIME_RANGE_SEPARATOR not in value:
+        return None
+    start, _, end = value.partition(DATETIME_RANGE_SEPARATOR)
+    if not start and not end:
+        raise ValueError(
+            f"Invalid datetime range filter for '{field_name}': '{value}'. "
+            f"Expected '<start>{DATETIME_RANGE_SEPARATOR}<end>' with at least one end given.",
+        )
+    return start, end
+
+
 def parse_datetime_filter_bound(raw: str, field_name: str) -> datetime:
     """Parse one ISO 8601 bound into the UTC-naive form the datetime columns store."""
     text = raw.strip()
@@ -241,21 +261,18 @@ def add_where_clause_datetime_opt(
         # spell every filter the same way.
         value_part = raw_part[1:-1] if len(raw_part) > 1 and raw_part[0] == '"' == raw_part[-1] else raw_part
 
-        if DATETIME_RANGE_SEPARATOR in value_part:
-            start_str, end_str = value_part.split(DATETIME_RANGE_SEPARATOR, 1)
-            bounds = []
-            if start_str:
-                bounds.append(field >= parse_datetime_filter_bound(start_str, field.key))
-            if end_str:
-                bounds.append(field <= parse_datetime_filter_bound(end_str, field.key))
-            if not bounds:
-                raise ValueError(
-                    f"Invalid datetime range filter for '{field.key}': '{raw_part}'. "
-                    f"Expected '<start>{DATETIME_RANGE_SEPARATOR}<end>' with at least one end given.",
-                )
-            conditions.append(sqlalchemy.and_(*bounds))
-        else:
+        ends = split_datetime_range_filter(value_part, field.key)
+        if ends is None:
             conditions.append(field == parse_datetime_filter_bound(value_part, field.key))
+            continue
+
+        start_str, end_str = ends
+        bounds = []
+        if start_str:
+            bounds.append(field >= parse_datetime_filter_bound(start_str, field.key))
+        if end_str:
+            bounds.append(field <= parse_datetime_filter_bound(end_str, field.key))
+        conditions.append(sqlalchemy.and_(*bounds))
 
     return stmt.where(sqlalchemy.or_(*conditions))
 
