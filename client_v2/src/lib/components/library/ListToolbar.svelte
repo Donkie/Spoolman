@@ -12,6 +12,8 @@
 		type DateFilterProp
 	} from '$lib/library/dateFilter';
 	import { sortDefs, filamentLabel, type SortDef } from '$lib/utils/library';
+	import { filterByQuery, matchesTerms, searchTerms } from '$lib/utils/match';
+	import MenuSearch from '../MenuSearch.svelte';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { fields } from '$lib/stores/fields.svelte';
@@ -33,11 +35,25 @@
 	type Menu = 'filter' | 'group' | 'sort' | null;
 	let open = $state<Menu>(null);
 
+	// A menu's search box narrows whichever list it is sitting on. It belongs to
+	// that list and not to the menu, so it resets on every move between lists —
+	// opening a menu, stepping into a filter property, stepping back out.
+	let menuQuery = $state('');
+
+	/**
+	 * Lists shorter than this fit on screen at a glance, where a search box is one
+	 * more thing to read rather than a way through. The number is the point at
+	 * which scanning stops being instant, not a hard limit on anything.
+	 */
+	const SEARCHABLE_MIN = 8;
+
 	function toggle(m: Menu) {
 		open = open === m ? null : m;
+		menuQuery = '';
 	}
 	function close() {
 		open = null;
+		menuQuery = '';
 	}
 
 	// Extra-field definitions (of all three entities) feed the sort and filter menus.
@@ -215,6 +231,8 @@
 
 	async function openProp(category: FilterCategory) {
 		filterProp = category.key;
+		// The query that found this property says nothing about its values.
+		menuQuery = '';
 		if (category.kind === 'date') {
 			customFrom = '';
 			customTo = '';
@@ -296,6 +314,45 @@
 			(s) => s.items.length
 		)
 	);
+
+	// --- searchable menus (issue #1045) -------------------------------------
+	//
+	// Three of these lists grow without bound: the filter properties and the sort
+	// fields both take on every custom extra field defined, and a filter's values
+	// are whatever the library holds — every filament, every location, every lot
+	// number. Each gets a search box once it is long enough to be worth one; the
+	// group menu has five fixed entries and never does.
+	//
+	// Whether the box shows is decided by the FULL list, never the narrowed one,
+	// so it can't vanish under the cursor the moment a query gets specific.
+
+	let visibleCategories = $derived(filterByQuery(filterCategories, menuQuery, (c) => c.label()));
+	let archivedMatches = $derived(matchesTerms(m['buttons.showArchived'](), searchTerms(menuQuery)));
+	let visibleOptions = $derived(filterByQuery(options, menuQuery, (o) => o.label));
+	let visibleSortSections = $derived(
+		sortSections
+			.map((sec) => ({ ...sec, items: filterByQuery(sec.items, menuQuery, (it) => it.labelKey()) }))
+			.filter((sec) => sec.items.length)
+	);
+
+	// Enter takes the first entry still standing — the one the user has usually
+	// typed enough to be alone on the list.
+	function chooseFirstCategory() {
+		const first = visibleCategories[0];
+		if (first) openProp(first);
+	}
+	function chooseFirstOption() {
+		const first = visibleOptions[0];
+		if (!first) return;
+		params.toggleFilter(filterProp!, first.value);
+		close();
+	}
+	function chooseFirstSort() {
+		const first = visibleSortSections[0]?.items[0];
+		if (!first) return;
+		params.setSortKey(first.key);
+		close();
+	}
 </script>
 
 <svelte:window onclick={close} />
@@ -346,31 +403,50 @@
 		<div class="menu filter-menu">
 			{#if !filterProp}
 				<div class="menu-title">{m['library.filterBy']()}</div>
-				{#each filterCategories as c (c.key)}
+				{#if filterCategories.length >= SEARCHABLE_MIN}
+					<MenuSearch
+						value={menuQuery}
+						oninput={(v) => (menuQuery = v)}
+						onclear={() => (menuQuery = '')}
+						onclose={close}
+						onenter={chooseFirstCategory}
+					/>
+				{/if}
+				{#each visibleCategories as c (c.key)}
 					<button class="menu-item" onclick={() => openProp(c)}>
 						<span class="mi-label">{c.label()}</span>
 						<span class="mi-meta"><ChevronRight size={14} /></span>
 					</button>
 				{/each}
-				<div class="menu-sep"></div>
-				<button
-					class="menu-item"
-					role="menuitemcheckbox"
-					aria-checked={libraryState.showArchived}
-					onclick={() => {
-						params.setShowArchived(!libraryState.showArchived);
-						close();
-					}}
-				>
-					<span class="mi-check"
-						>{#if libraryState.showArchived}<SquareCheck size={15} />{:else}<Square size={15} />{/if}</span
+				<!-- Archived is a filter of sorts, so it answers to the same search box; a
+				     query it doesn't match takes it off the list like any other entry. -->
+				{#if archivedMatches}
+					{#if visibleCategories.length}<div class="menu-sep"></div>{/if}
+					<button
+						class="menu-item"
+						role="menuitemcheckbox"
+						aria-checked={libraryState.showArchived}
+						onclick={() => {
+							params.setShowArchived(!libraryState.showArchived);
+							close();
+						}}
 					>
-					<span class="mi-label">{m['buttons.showArchived']()}</span>
-				</button>
+						<span class="mi-check"
+							>{#if libraryState.showArchived}<SquareCheck size={15} />{:else}<Square size={15} />{/if}</span
+						>
+						<span class="mi-label">{m['buttons.showArchived']()}</span>
+					</button>
+				{:else if !visibleCategories.length}
+					<div class="menu-item"><span class="mi-label mi-meta">{m['search.noResults']()}</span></div>
+				{/if}
 			{:else}
 				{@const c = filterCategories.find((x) => x.key === filterProp)}
-				<button class="menu-title back" onclick={() => (filterProp = null)}
-					><ChevronLeft size={14} /> {c ? c.label() : ''}</button
+				<button
+					class="menu-title back"
+					onclick={() => {
+						filterProp = null;
+						menuQuery = '';
+					}}><ChevronLeft size={14} /> {c ? c.label() : ''}</button
 				>
 				{#if c?.kind === 'date'}
 					{#each DATE_PRESETS as preset (preset)}
@@ -411,7 +487,18 @@
 				{:else if options.length === 0}
 					<div class="menu-item"><span class="mi-label mi-meta">{m['library.noValues']()}</span></div>
 				{:else}
-					{#each options as opt (opt.value)}
+					<!-- The list a filament, location or lot-number filter offers is as long as
+					     the library is big, which is the case this issue was opened for. -->
+					{#if options.length >= SEARCHABLE_MIN}
+						<MenuSearch
+							value={menuQuery}
+							oninput={(v) => (menuQuery = v)}
+							onclear={() => (menuQuery = '')}
+							onclose={close}
+							onenter={chooseFirstOption}
+						/>
+					{/if}
+					{#each visibleOptions as opt (opt.value)}
 						<button
 							class="menu-item"
 							onclick={() => {
@@ -421,6 +508,8 @@
 						>
 							<span class="mi-label">{opt.label}</span>
 						</button>
+					{:else}
+						<div class="menu-item"><span class="mi-label mi-meta">{m['search.noResults']()}</span></div>
 					{/each}
 				{/if}
 			{/if}
@@ -446,7 +535,16 @@
 
 	{#if open === 'sort'}
 		<div class="menu sort-menu">
-			{#each sortSections as sec (sec.key)}
+			{#if sorts.length >= SEARCHABLE_MIN}
+				<MenuSearch
+					value={menuQuery}
+					oninput={(v) => (menuQuery = v)}
+					onclear={() => (menuQuery = '')}
+					onclose={close}
+					onenter={chooseFirstSort}
+				/>
+			{/if}
+			{#each visibleSortSections as sec (sec.key)}
 				<div class="menu-title">{sec.labelKey()}</div>
 				{#each sec.items as it (it.key)}
 					<button
@@ -464,6 +562,8 @@
 						{#if it.unit}<span class="mi-meta">{it.unit}</span>{/if}
 					</button>
 				{/each}
+			{:else}
+				<div class="menu-item"><span class="mi-label mi-meta">{m['search.noResults']()}</span></div>
 			{/each}
 		</div>
 	{/if}
