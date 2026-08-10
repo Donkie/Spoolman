@@ -1,5 +1,14 @@
 import { test, expect } from "./fixtures";
-import { createSpoolViaModal, navTab, openApp, searchFor, unique } from "./helpers";
+import {
+  createSpoolViaModal,
+  navTab,
+  numberField,
+  openAddSpoolModal,
+  openApp,
+  searchFor,
+  unique,
+  weightPresets,
+} from "./helpers";
 
 /**
  * The core happy path a real user walks on first use. client_v2 folds what the
@@ -39,6 +48,66 @@ test("create a manufacturer, filament and spool through the add-spool modal", as
     // of its own — this is the page the old Locations one became.
     await navTab(page, "Dashboard", "Dashboard | Spoolman");
     await expect(page.getByText(locationName, { exact: true })).toBeVisible();
+  });
+});
+
+/**
+ * Nearly every spool is one of a handful of roll sizes, so the weight field
+ * offers them as one-click shortcuts rather than making everyone type four
+ * digits (#1051). The picked size has to reach the created spool, and the row
+ * has to keep saying which size is currently in the field.
+ */
+test("a roll size can be picked from the weight field's shortcuts", async ({ page }) => {
+  const vendorName = unique("Vendor");
+  const filamentName = unique("Filament");
+  const locationName = unique("Shelf");
+
+  await openApp(page);
+
+  const dialog = await openAddSpoolModal(page);
+  await dialog.getByRole("button", { name: /^Create a new filament/ }).click();
+  const presets = weightPresets(dialog);
+
+  await test.step("the row reflects the weight the field starts on", async () => {
+    // A new filament starts at the size that dominates the catalog, so that
+    // shortcut — and only it — is marked as the one in play.
+    await expect(numberField(dialog, "Weight")).toHaveValue("1000");
+    await expect(presets.getByRole("button", { name: "1 kg", exact: true })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(presets.getByRole("button", { name: "500 g", exact: true })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+
+  await test.step("typing a size of its own leaves no shortcut marked", async () => {
+    await numberField(dialog, "Weight").fill("1234");
+    await expect(presets.getByRole("button", { name: "1 kg", exact: true })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+
+  await test.step("clicking a shortcut creates the spool at that size", async () => {
+    // Start over from a clean modal — the checks above left a made-up weight in
+    // the field — and go through it with the weight set only by the click, so
+    // the library row proves the picked size was what got submitted.
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+
+    await createSpoolViaModal(page, {
+      vendorName,
+      filamentName,
+      locationName,
+      weightG: 500,
+      weightPreset: "500 g",
+    });
+
+    const spoolRow = page.getByRole("link").filter({ hasText: locationName });
+    await expect(spoolRow).toHaveCount(1);
+    await expect(spoolRow).toContainText("500");
   });
 });
 

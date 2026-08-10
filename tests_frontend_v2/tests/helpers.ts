@@ -84,6 +84,16 @@ export function numberField(dialog: Locator, label: string): Locator {
     .first();
 }
 
+/**
+ * The row of roll-size shortcuts under the add-spool modal's Weight field.
+ *
+ * They are plain buttons inside the field's <label>, grouped and named so they
+ * can be reached without depending on the modal's markup.
+ */
+export function weightPresets(dialog: Locator): Locator {
+  return dialog.getByRole("group", { name: "Common roll sizes" });
+}
+
 /** A spool to create through the add-spool modal, together with its filament and vendor. */
 export interface NewSpool {
   vendorName: string;
@@ -93,6 +103,12 @@ export interface NewSpool {
   material?: string;
   /** Net filament weight, in grams. */
   weightG?: number;
+  /**
+   * Set the weight by clicking one of the roll-size shortcuts under the field
+   * (e.g. "500 g", "1 kg") instead of typing it. Must name the same size as
+   * `weightG`, which is still what the result is asserted against.
+   */
+  weightPreset?: string;
   /** How much of it has already been used, in grams. Omit for a full spool. */
   usedG?: number;
   /** Values for the filament's extra fields, keyed by their display name. */
@@ -119,6 +135,7 @@ export async function createSpoolViaModal(page: Page, spool: NewSpool): Promise<
     locationName,
     material = "PLA",
     weightG = 1000,
+    weightPreset,
     usedG,
     filamentExtra,
     count = 1,
@@ -155,7 +172,12 @@ export async function createSpoolViaModal(page: Page, spool: NewSpool): Promise<
 
   await expect(numberField(dialog, "Count")).toHaveValue("1");
   if (count !== 1) await numberField(dialog, "Count").fill(String(count));
-  await numberField(dialog, "Weight").fill(String(weightG));
+  if (weightPreset) {
+    await weightPresets(dialog).getByRole("button", { name: weightPreset, exact: true }).click();
+    await expect(numberField(dialog, "Weight")).toHaveValue(String(weightG));
+  } else {
+    await numberField(dialog, "Weight").fill(String(weightG));
+  }
   await dialog.getByPlaceholder("e.g. Shelf A").fill(locationName);
 
   if (usedG !== undefined) {

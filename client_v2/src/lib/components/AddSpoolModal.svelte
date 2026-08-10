@@ -216,6 +216,12 @@
 		{ weight: 140, label: () => m['add.spoolWeightPreset.cardboard']({ weight: 140 }) },
 		{ weight: 200, label: () => m['add.spoolWeightPreset.plastic']({ weight: 200 }) }
 	];
+	// The roll sizes worth a one-click shortcut, taken from the weights actually sold
+	// in the SpoolmanDB catalog: 1 kg is half of it and every brand in it sells one,
+	// with 750 g, 500 g, 250 g and the 2–3 kg bulk rolls making up most of the rest.
+	// Listed by size rather than popularity so the row reads as a scale; anything
+	// else is still typed into the field next to them.
+	const NET_WEIGHT_PRESETS = [250, 500, 750, 1000, 2000, 3000];
 
 	let fillHelp = $derived(
 		fillMode === 'used'
@@ -866,6 +872,22 @@
 								spaced
 								invalid={!!errors.netWeight}
 							/>
+							<!-- Out in the open rather than behind the ⓘ used elsewhere: nearly every
+							     spool is one of these few sizes, so this is the fast path through the
+							     field, not an explanation of it. Buttons nested in the <label> are safe —
+							     a click on interactive content isn't forwarded to the labelled input, so
+							     picking a size doesn't also yank focus into the weight field. -->
+							<span class="presets" role="group" aria-label={m['add.weightPresets']()}>
+								{#each NET_WEIGHT_PRESETS as preset (preset)}
+									<button
+										type="button"
+										class="preset"
+										class:on={Number(netWeight) === preset}
+										aria-pressed={Number(netWeight) === preset}
+										onclick={() => (netWeight = String(preset))}>{weightAuto(preset)}</button
+									>
+								{/each}
+							</span>
 							{#if openHelp === 'weight'}
 								<span class="help-popup" id="weight-help" role="note"
 									>{m['filament.fieldsHelp.weight']()}</span
@@ -1439,6 +1461,13 @@
 		border-color: var(--accent);
 		background: var(--accent-wash-soft);
 	}
+	/* The size the field currently holds, so the row doubles as a readout of which
+	   preset (if any) is in play. */
+	.preset.on {
+		border-color: var(--accent);
+		background: var(--accent-wash);
+		color: var(--text);
+	}
 	.form textarea {
 		width: 100%;
 		border: 1px solid var(--border-strong);
@@ -1525,6 +1554,15 @@
 	@media (max-width: 620px) {
 		.form {
 			grid-template-columns: 1fr 1fr;
+		}
+		/* A 23px-tall pill is a fine mouse target and a poor thumb one. On phones
+		   give them the same 44px height the segmented controls in this modal use —
+		   the roll sizes are the fast path through the weight field, so they have to
+		   be hittable without aiming. */
+		.preset {
+			min-height: 44px;
+			padding: 3px 14px;
+			font-size: 12.5px;
 		}
 	}
 </style>
