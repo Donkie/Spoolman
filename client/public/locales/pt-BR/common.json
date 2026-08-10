@@ -354,7 +354,8 @@
             "non_unique_key_error": "A chave deve ser única.",
             "key_not_changed": "Por favor, escolha outra chave.",
             "delete_confirm": "Apagar o campo {{name}}?",
-            "delete_confirm_description": "Isso excluirá o campo e todos os dados associados em todas as entidades."
+            "delete_confirm_description": "Isso excluirá o campo e todos os dados associados em todas as entidades.",
+            "choices_reorder_hint": "Arraste, ou use as setas direcionais, para reordenar essa opção."
         }
     },
     "documentTitle": {
@@ -396,5 +397,11 @@
         "new_location": "Novo Local",
         "no_location": "Sem Local",
         "no_locations_help": "Esta página permite que você organize seus carretéis em locais, adicione alguns carretéis para começar!"
+    },
+    "theme": {
+        "label": "Tema",
+        "system": "Sistema",
+        "light": "Claro",
+        "dark": "Escuro"
     }
 }
