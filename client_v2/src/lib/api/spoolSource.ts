@@ -53,6 +53,8 @@ export interface NewFilamentDraft {
 	comment?: string;
 	/** Custom-field values to carry over (used when duplicating a filament). */
 	extra?: Extra;
+	/** Custom-field values for the manufacturer, applied only if it is created here. */
+	vendorExtra?: Extra;
 }
 
 // Map a filter chip prop → API query param. Values are quoted for exact match.
@@ -293,8 +295,13 @@ class HttpSpoolSource {
 		return f;
 	}
 
-	/** Find a vendor by (case-insensitive) name or create it; returns its id. */
-	async getOrCreateVendor(name: string): Promise<number | undefined> {
+	/**
+	 * Find a vendor by (case-insensitive) name or create it; returns its id.
+	 *
+	 * `extra` only applies to a vendor this call creates — matching an existing
+	 * name links that record, it never edits it.
+	 */
+	async getOrCreateVendor(name: string, extra?: Extra): Promise<number | undefined> {
 		const trimmed = name.trim();
 		if (!trimmed) return undefined;
 		const all = await getJson<Json[]>('/vendor');
@@ -303,14 +310,17 @@ class HttpSpoolSource {
 			inventory.upsertVendor(mapVendor(match));
 			return match.id;
 		}
-		const created = await postJson<Json>('/vendor', { name: trimmed });
+		const created = await postJson<Json>('/vendor', {
+			name: trimmed,
+			extra: extra && Object.keys(extra).length ? extra : undefined
+		});
 		inventory.upsertVendor(mapVendor(created));
 		return created.id;
 	}
 
 	/** Create a brand-new filament (and its vendor if needed) from a draft. */
 	async createFilament(draft: NewFilamentDraft): Promise<Filament> {
-		const vendorId = await this.getOrCreateVendor(draft.vendorName);
+		const vendorId = await this.getOrCreateVendor(draft.vendorName, draft.vendorExtra);
 		const body: Json = {
 			name: draft.name || undefined,
 			material: draft.material || undefined,

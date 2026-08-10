@@ -70,6 +70,9 @@
 	// Custom-field values for the filament being created. Separate from the spool's
 	// `extraValues` below: the two entities have their own field definitions.
 	let filamentExtra = $state<Extra>({});
+	// Same, for a manufacturer this form creates. Only ever sent when the typed name
+	// is a new one — linking an existing manufacturer must not edit its fields.
+	let vendorExtra = $state<Extra>({});
 	let showAdvanced = $state(false);
 	let nameInput = $state<HTMLInputElement | undefined>();
 	// Display-only: an untouched empty name shows the naming guidance rather than
@@ -142,6 +145,7 @@
 			runSearch();
 			fields.ensure('spool');
 			fields.ensure('filament');
+			fields.ensure('vendor');
 			spoolSource
 				.locations()
 				.then((l) => (locations = l))
@@ -241,9 +245,11 @@
 	$effect(() => {
 		fields.get('spool');
 		fields.get('filament');
+		fields.get('vendor');
 		untrack(() => {
 			extraValues = withDefaults('spool', extraValues);
 			filamentExtra = withDefaults('filament', filamentExtra);
+			vendorExtra = withDefaults('vendor', vendorExtra);
 		});
 	});
 
@@ -258,6 +264,9 @@
 	}
 	function setFilamentExtra(key: string, json: string | undefined) {
 		filamentExtra = setExtraOn(filamentExtra, key, json);
+	}
+	function setVendorExtra(key: string, json: string | undefined) {
+		vendorExtra = setExtraOn(vendorExtra, key, json);
 	}
 
 	function resetSpoolForm() {
@@ -305,6 +314,7 @@
 			comment: ''
 		};
 		filamentExtra = withDefaults('filament', {});
+		vendorExtra = withDefaults('vendor', {});
 		netWeight = '1000';
 		spoolWeight = '';
 		price = '';
@@ -344,6 +354,9 @@
 			comment: f.comment
 		};
 		filamentExtra = withDefaults('filament', { ...f.extra });
+		// Not copied from the source's manufacturer: a duplicate keeps that same
+		// manufacturer record, and these values only ever reach a newly created one.
+		vendorExtra = withDefaults('vendor', {});
 		netWeight = String(f.weight || 1000);
 		spoolWeight = f.spoolWeight ? String(f.spoolWeight) : '';
 		price = f.price ? String(f.price) : '';
@@ -420,7 +433,10 @@
 					price: parseFloat(price) || undefined,
 					articleNumber: nf.articleNumber.trim() || undefined,
 					comment: nf.comment.trim() || undefined,
-					extra: filamentExtra
+					extra: filamentExtra,
+					// Dropped when the typed name matches an existing manufacturer —
+					// which is also when the inputs below aren't shown.
+					vendorExtra: vendorIsNew ? vendorExtra : undefined
 				};
 				const f = await spoolSource.createFilament(draft);
 				created = f;
@@ -666,6 +682,12 @@
 									<span class="hint" class:accent={vendorIsNew}>{vendorHint}</span>
 								{/if}
 							</label>
+							<!-- Outside the <label> above: these are inputs of their own, and only
+							     shown while the typed name will create a manufacturer. Linking an
+							     existing one must not offer to rewrite its custom fields (#1055). -->
+							{#if vendorIsNew}
+								<ExtraFieldsSection entity="vendor" extra={vendorExtra} onchange={setVendorExtra} />
+							{/if}
 						</section>
 						<section class="new-section">
 							<div class="fs-head">
