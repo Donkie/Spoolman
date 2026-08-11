@@ -147,6 +147,7 @@
     "filament.fields.material": "Material",
     "filament.fields.multiColor": "Multi",
     "filament.fields.name": "Name",
+    "filament.fields.opacity": "Opacity",
     "filament.fields.price": "Price",
     "filament.fields.registered": "Registered",
     "filament.fields.removeColor": "Remove color",
