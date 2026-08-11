@@ -96,9 +96,11 @@
 	}
 	// Transparent-to-opaque gradient over a checkerboard, so the slider previews
 	// what it controls. Falls back to grey until the row holds a real colour.
+	// `border-box no-repeat` keeps the gradient from tiling a hairline of full
+	// colour under the border at the transparent end — see ALPHA_CHECKER.
 	function alphaTrack(h: string): string {
 		const rgb = normalizeHex(h)?.slice(0, 6) ?? '9AA0A6';
-		return `background:linear-gradient(to right,#${rgb}00,#${rgb}FF),${ALPHA_CHECKER}`;
+		return `background:linear-gradient(to right,#${rgb}00,#${rgb}FF) border-box no-repeat,${ALPHA_CHECKER}`;
 	}
 	function addColor() {
 		list.push('');

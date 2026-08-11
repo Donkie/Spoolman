@@ -45,9 +45,17 @@ export function withAlpha(h: string, alpha: number): string {
  * transparent instead of as a different color. Deliberately theme-independent
  * (the usual white/grey of every color picker) and composited over white, which
  * also previews how the filament looks against a printed label.
+ *
+ * Every layer is anchored to the border box. A `background` shorthand resets
+ * `background-origin` to the padding box, so on a bordered element the layers
+ * would be sized to the padding box but painted out under the border — and
+ * since backgrounds repeat, the strip under the border shows the far edge of
+ * the next tile. On a colour gradient that is a hairline of full-opacity colour
+ * down the transparent end, visible wherever the border doesn't perfectly cover
+ * it (Firefox at fractional display scaling).
  */
 export const ALPHA_CHECKER =
-	'conic-gradient(#cfcfcf 0 25%, #0000 0 50%, #cfcfcf 0 75%, #0000 0) 0 0/6px 6px, #fff';
+	'conic-gradient(#cfcfcf 0 25%, #0000 0 50%, #cfcfcf 0 75%, #0000 0) 0 0/6px 6px border-box, #fff';
 
 export function hexRgb(h: string): [number, number, number] {
 	let s = (h || '#888').replace('#', '');
