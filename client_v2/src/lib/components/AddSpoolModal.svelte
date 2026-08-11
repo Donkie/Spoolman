@@ -71,10 +71,6 @@
 	// `extraValues` below: the two entities have their own field definitions.
 	let filamentExtra = $state<Extra>({});
 	let showAdvanced = $state(false);
-	// Whether the spool's paperwork (lot number, dates, comment) is folded out. Kept
-	// across an "add and new" on purpose: someone entering lot numbers is entering
-	// them for the whole box of spools, not just the first one.
-	let showSpoolDetails = $state(false);
 	let nameInput = $state<HTMLInputElement | undefined>();
 	// Display-only: an untouched empty name shows the naming guidance rather than
 	// shouting "Required" at a form the user just opened. Submission is unaffected
@@ -942,8 +938,11 @@
 						{/if}
 					</div>
 
-					<div class="form">
-						<label class="wide">
+					<!-- Which spool, and where it lives: the lot number is the one identifier a
+					     spool carries of its own, so it sits with the shelf rather than with the
+					     money. -->
+					<div class="form where">
+						<label>
 							{m['spool.fields.location']()}
 							<Combobox
 								value={location}
@@ -956,6 +955,7 @@
 							     didn't open a popup to find that out. -->
 							<span class="hint">{m['add.locationHint']()}</span>
 						</label>
+						<label>{m['spool.fields.lotNr']()}<input class="mono" bind:value={lot} placeholder="—" /></label>
 					</div>
 
 					<div class="form money">
@@ -1008,44 +1008,27 @@
 						</label>
 					</div>
 
-					<!-- Everything below is either already right or not known yet: a lot number means
-					     squinting at the sticker, and a spool being added the day it arrives has no
-					     usage history and nothing to say about itself. Folded away so the form ends
-					     at the last question most people actually answer, in the same disclosure the
-					     filament half above uses for its specs. -->
-					<button class="adv-toggle" onclick={() => (showSpoolDetails = !showSpoolDetails)}>
-						{#if showSpoolDetails}<ChevronDown size={14} />{:else}<ChevronRight size={14} />{/if}
-						{m['add.spoolDetails']()}
-						{#if !showSpoolDetails}<span class="adv-note">{m['add.spoolDetailsNote']()}</span>{/if}
-					</button>
-					{#if showSpoolDetails}
-						<div class="form">
-							<label>{m['spool.fields.lotNr']()}<input class="mono" bind:value={lot} placeholder="—" /></label
-							>
-						</div>
+					<div class="form dates">
+						<label class="date-label"
+							>{m['spool.fields.firstUsed']()}<DateTimeField
+								value={firstUsed}
+								oninput={(iso) => (firstUsed = iso)}
+							/></label
+						>
+						<label class="date-label"
+							>{m['spool.fields.lastUsed']()}<DateTimeField
+								value={lastUsed}
+								oninput={(iso) => (lastUsed = iso)}
+							/></label
+						>
+					</div>
 
-						<div class="form dates">
-							<label class="date-label"
-								>{m['spool.fields.firstUsed']()}<DateTimeField
-									value={firstUsed}
-									oninput={(iso) => (firstUsed = iso)}
-								/></label
-							>
-							<label class="date-label"
-								>{m['spool.fields.lastUsed']()}<DateTimeField
-									value={lastUsed}
-									oninput={(iso) => (lastUsed = iso)}
-								/></label
-							>
-						</div>
-
-						<div class="form comment-row">
-							<label class="wide"
-								>{m['spool.fields.comment']()}<textarea rows="2" bind:value={comment} placeholder="—"
-								></textarea></label
-							>
-						</div>
-					{/if}
+					<div class="form comment-row">
+						<label class="wide"
+							>{m['spool.fields.comment']()}<textarea rows="2" bind:value={comment} placeholder="—"
+							></textarea></label
+						>
+					</div>
 
 					<ExtraFieldsSection entity="spool" extra={extraValues} onchange={setExtra} />
 
@@ -1393,6 +1376,10 @@
 	/* Count takes only what it needs; the weight and its roll sizes take the rest. */
 	.form.headline {
 		grid-template-columns: auto 1fr;
+	}
+	/* The shelf gets the room; the lot number is a short code. */
+	.form.where {
+		grid-template-columns: 2fr 1fr;
 	}
 	/* The weight field and its roll sizes on one line, so the sizes read as
 	   alternatives to typing in it rather than as a second control stacked

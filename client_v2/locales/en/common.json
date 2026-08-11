@@ -37,8 +37,6 @@
     "add.section.spool": "Spool",
     "add.section.spoolNote": "The physical spools going into your inventory.",
     "add.section.spoolSharedNote": "Weight, spool weight and price are also saved as the new filament’s defaults.",
-    "add.spoolDetails": "More details",
-    "add.spoolDetailsNote": "lot number, usage dates, comment",
     "add.spoolWeightPreset.cardboard": "Cardboard {{weight}} g",
     "add.spoolWeightPreset.plastic": "Plastic {{weight}} g",
     "add.spoolWeightPresetsLead": "Start from a typical spool:",

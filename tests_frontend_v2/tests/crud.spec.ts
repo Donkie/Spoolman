@@ -54,9 +54,8 @@ test("create a manufacturer, filament and spool through the add-spool modal", as
 /**
  * Nearly every spool is one of a handful of roll sizes, so the weight field
  * offers them as shortcuts beside it rather than making everyone type four
- * digits (#1051). The picked size has to reach the created spool, the row has to
- * keep saying which size is in the field, and the paperwork below it stays
- * folded away until someone asks for it.
+ * digits (#1051). The picked size has to reach the created spool, and the row
+ * has to keep saying which size is currently in the field.
  */
 test("a roll size can be picked from the shortcuts beside the weight field", async ({ page }) => {
   const vendorName = unique("Vendor");
@@ -89,15 +88,6 @@ test("a roll size can be picked from the shortcuts beside the weight field", asy
       "aria-pressed",
       "false",
     );
-  });
-
-  await test.step("the paperwork stays folded until asked for", async () => {
-    // Lot number, dates and comment are empty on a spool being added the day it
-    // arrives, so they start collapsed rather than padding out the form.
-    const lotNr = dialog.getByText("Lot Nr", { exact: true });
-    await expect(lotNr).toBeHidden();
-    await dialog.getByRole("button", { name: /More details/ }).click();
-    await expect(lotNr).toBeVisible();
   });
 
   await test.step("clicking a shortcut creates the spool at that size", async () => {
