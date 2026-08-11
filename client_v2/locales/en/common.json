@@ -50,6 +50,7 @@
     "add.vendorHint.existing": "Using existing manufacturer “{{name}}”",
     "add.vendorHint.new": "New manufacturer “{{name}}” will be created",
     "add.vendorHint.optional": "Optional — leave blank for no manufacturer",
+    "add.weightPresets": "Common roll sizes",
     "add.yourCatalog": "Your catalog",
     "buttons.apply": "Apply",
     "buttons.archive": "Archive",

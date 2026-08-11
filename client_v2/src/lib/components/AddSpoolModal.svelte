@@ -216,6 +216,12 @@
 		{ weight: 140, label: () => m['add.spoolWeightPreset.cardboard']({ weight: 140 }) },
 		{ weight: 200, label: () => m['add.spoolWeightPreset.plastic']({ weight: 200 }) }
 	];
+	// The roll sizes worth a one-click shortcut, taken from the weights actually sold
+	// in the SpoolmanDB catalog: 1 kg is half of it and every brand in it sells one,
+	// with 750 g, 500 g, 250 g and the 2–3 kg bulk rolls making up most of the rest.
+	// Listed by size rather than popularity so the row reads as a scale; anything
+	// else is still typed into the field next to them.
+	const NET_WEIGHT_PRESETS = [250, 500, 750, 1000, 2000, 3000];
 
 	let fillHelp = $derived(
 		fillMode === 'used'
@@ -842,10 +848,20 @@
 						     heading imply the filament is unaffected. -->
 						<div class="ent-note shared">{m['add.section.spoolSharedNote']()}</div>
 					{/if}
-					<div class="form">
+					<!-- The spool fields run from what you can answer with the roll in your hand
+					     to what you'd have to go look up: how many, how big, how full, where it
+					     lives — then the numbers off the product page, then paperwork almost
+					     nobody fills in for a fresh spool. Everything down to Location is picked
+					     rather than typed, which is what keeps the common case to a few taps. -->
+					<div class="form headline">
+						<!-- How many and how big, on the line that answers "what am I adding": both
+						     are known at a glance, and the count stays narrow and quiet because it
+						     is 1 nearly every time. Its old neighbour, the empty-spool weight, moved
+						     down to the numbers that come off a product page — sitting between two
+						     weights was what made this row read as three of the same question. -->
 						<label
 							>{m['add.count']()}
-							<NumberInput bind:value={count} min={1} step={1} spaced invalid={!!errors.count} />
+							<NumberInput bind:value={count} min={1} step={1} width="76px" spaced invalid={!!errors.count} />
 							{#if errors.count}<span class="err">{errors.count}</span>{/if}
 						</label>
 						<label
@@ -858,14 +874,34 @@
 								aria-expanded={openHelp === 'weight'}
 								onclick={() => (openHelp = openHelp === 'weight' ? null : 'weight')}>ⓘ</button
 							>
-							<NumberInput
-								bind:value={netWeight}
-								min={0}
-								step={50}
-								unit="g"
-								spaced
-								invalid={!!errors.netWeight}
-							/>
+							<!-- Sizes beside the field, not under it: they're alternatives to typing
+							     in it, and on one line the whole "how big is it" question answers
+							     itself without growing the form. Out in the open rather than behind
+							     the ⓘ used elsewhere, because this is the fast path through the
+							     field, not an explanation of it. Buttons nested in the <label> are
+							     safe — a click on interactive content isn't forwarded to the labelled
+							     input, so picking a size doesn't also yank focus into the field. -->
+							<span class="pick-line">
+								<NumberInput
+									bind:value={netWeight}
+									min={0}
+									step={50}
+									unit="g"
+									width="112px"
+									invalid={!!errors.netWeight}
+								/>
+								<span class="presets" role="group" aria-label={m['add.weightPresets']()}>
+									{#each NET_WEIGHT_PRESETS as preset (preset)}
+										<button
+											type="button"
+											class="preset"
+											class:on={Number(netWeight) === preset}
+											aria-pressed={Number(netWeight) === preset}
+											onclick={() => (netWeight = String(preset))}>{weightAuto(preset)}</button
+										>
+									{/each}
+								</span>
+							</span>
 							{#if openHelp === 'weight'}
 								<span class="help-popup" id="weight-help" role="note"
 									>{m['filament.fieldsHelp.weight']()}</span
@@ -873,6 +909,56 @@
 							{/if}
 							{#if errors.netWeight}<span class="err">{errors.netWeight}</span>{/if}
 						</label>
+					</div>
+
+					<div class="fill">
+						<div class="fill-label">{m['add.fillLevel']()}</div>
+						<div class="seg">
+							{#each FILL_MODES as fill_mode (fill_mode.key)}
+								<button
+									class="seg-btn"
+									class:active={fillMode === fill_mode.key}
+									onclick={() => (fillMode = fill_mode.key)}>{fill_mode.labelKey()}</button
+								>
+							{/each}
+						</div>
+						{#if fillMode !== 'full'}
+							<div class="fill-input">
+								<NumberInput
+									bind:value={fillWeight}
+									min={0}
+									step={10}
+									unit="g"
+									placeholder="0"
+									width="130px"
+									invalid={!!errors.fillWeight}
+								/>
+								<span class="fill-help">{errors.fillWeight || fillHelp}</span>
+							</div>
+						{/if}
+					</div>
+
+					<!-- Which spool, and where it lives: the lot number is the one identifier a
+					     spool carries of its own, so it sits with the shelf rather than with the
+					     money. -->
+					<div class="form where">
+						<label>
+							{m['spool.fields.location']()}
+							<Combobox
+								value={location}
+								options={locations}
+								placeholder={m['add.locationPlaceholder']()}
+								oninput={(v) => (location = v)}
+							/>
+							<!-- Always-on rather than behind the ⓘ used elsewhere: "Location" reads as
+							     metadata until you're told it means the physical shelf, and testers
+							     didn't open a popup to find that out. -->
+							<span class="hint">{m['add.locationHint']()}</span>
+						</label>
+						<label>{m['spool.fields.lotNr']()}<input class="mono" bind:value={lot} placeholder="—" /></label>
+					</div>
+
+					<div class="form money">
 						<label
 							>{m['filament.fields.spoolWeight']()}
 							<button
@@ -920,47 +1006,6 @@
 							<NumberInput bind:value={price} min={0} placeholder="—" spaced invalid={!!errors.price} />
 							{#if errors.price}<span class="err">{errors.price}</span>{/if}
 						</label>
-						<label>{m['spool.fields.lotNr']()}<input class="mono" bind:value={lot} placeholder="—" /></label>
-						<label class="wide">
-							{m['spool.fields.location']()}
-							<Combobox
-								value={location}
-								options={locations}
-								placeholder={m['add.locationPlaceholder']()}
-								oninput={(v) => (location = v)}
-							/>
-							<!-- Always-on rather than behind the ⓘ used elsewhere: "Location" reads as
-							     metadata until you're told it means the physical shelf, and testers
-							     didn't open a popup to find that out. -->
-							<span class="hint">{m['add.locationHint']()}</span>
-						</label>
-					</div>
-
-					<div class="fill">
-						<div class="fill-label">{m['add.fillLevel']()}</div>
-						<div class="seg">
-							{#each FILL_MODES as fill_mode (fill_mode.key)}
-								<button
-									class="seg-btn"
-									class:active={fillMode === fill_mode.key}
-									onclick={() => (fillMode = fill_mode.key)}>{fill_mode.labelKey()}</button
-								>
-							{/each}
-						</div>
-						{#if fillMode !== 'full'}
-							<div class="fill-input">
-								<NumberInput
-									bind:value={fillWeight}
-									min={0}
-									step={10}
-									unit="g"
-									placeholder="0"
-									width="130px"
-									invalid={!!errors.fillWeight}
-								/>
-								<span class="fill-help">{errors.fillWeight || fillHelp}</span>
-							</div>
-						{/if}
 					</div>
 
 					<div class="form dates">
@@ -1328,6 +1373,27 @@
 		gap: 12px;
 		margin-top: 14px;
 	}
+	/* Count takes only what it needs; the weight and its roll sizes take the rest. */
+	.form.headline {
+		grid-template-columns: auto 1fr;
+	}
+	/* The shelf gets the room; the lot number is a short code. */
+	.form.where {
+		grid-template-columns: 2fr 1fr;
+	}
+	/* The weight field and its roll sizes on one line, so the sizes read as
+	   alternatives to typing in it rather than as a second control stacked
+	   underneath — and so offering them costs the form no height. */
+	.pick-line {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-top: 5px;
+	}
+	.pick-line .presets {
+		margin-top: 0;
+	}
 	.form label {
 		display: block;
 		font-size: 11.5px;
@@ -1439,6 +1505,13 @@
 		border-color: var(--accent);
 		background: var(--accent-wash-soft);
 	}
+	/* The size the field currently holds, so the row doubles as a readout of which
+	   preset (if any) is in play. */
+	.preset.on {
+		border-color: var(--accent);
+		background: var(--accent-wash);
+		color: var(--text);
+	}
 	.form textarea {
 		width: 100%;
 		border: 1px solid var(--border-strong);
@@ -1525,6 +1598,15 @@
 	@media (max-width: 620px) {
 		.form {
 			grid-template-columns: 1fr 1fr;
+		}
+		/* A 23px-tall pill is a fine mouse target and a poor thumb one. On phones
+		   give them the same 44px height the segmented controls in this modal use —
+		   the roll sizes are the fast path through the weight field, so they have to
+		   be hittable without aiming. */
+		.preset {
+			min-height: 44px;
+			padding: 3px 14px;
+			font-size: 12.5px;
 		}
 	}
 </style>
