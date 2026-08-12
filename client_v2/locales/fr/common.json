@@ -1,6 +1,9 @@
 {
-    "add.addAndNew": "",
-    "add.adding": "",
+    "add.addAndNew": "Ajouter & nouveau",
+    "add.addN_many": "Ajouter {{count}} bobines",
+    "add.addN_one": "Ajouter {{count}} bobine",
+    "add.addN_other": "Ajouter {{count}} bobines",
+    "add.adding": "Ajout...",
     "add.advanced": "",
     "add.advancedNote": "",
     "add.change": "",
