@@ -1,7 +1,7 @@
 {
     "add.addAndNew": "Hinzufügen & neu",
-    "add.addN_one": "Füge {{count}} Spule hinzu",
-    "add.addN_other": "Füge {{count}} Spulen hinzu",
+    "add.addN_one": "{{count}} Spule hinzufügen",
+    "add.addN_other": "{{count}} Spulen hinzufügen",
     "add.adding": "Hinzufügen...",
     "add.advanced": "Erweiterte Spezifikation",
     "add.advancedNote": "Dichte, Durchmesser, Temperaturen (autom. von Material gesetzt)",
@@ -76,6 +76,7 @@
     "changeFilament.now": "Momentan",
     "changeFilament.pickBelow": "Wähle ein Filament von unten",
     "changeFilament.title": "Ändere Filament",
+    "changeFilament.weightFollows": "Diese Spule hat selbst kein volles Gewicht, deshalb wird die des Filaments verwendet: {{full}}, damit bleiben {{remaining}} nachdem {{used}} verwendet wurden.",
     "changeVendor.action": "Ändern",
     "changeVendor.apply": "Ändere Hersteller",
     "changeVendor.applying": "Ändere...",
