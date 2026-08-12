@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { untrack, tick } from 'svelte';
 	import Swatch from './Swatch.svelte';
 	import ColorEditor from './ColorEditor.svelte';
 	import Button from './Button.svelte';
@@ -75,10 +75,14 @@
 	let vendorExtra = $state<Extra>({});
 	let showAdvanced = $state(false);
 	let nameInput = $state<HTMLInputElement | undefined>();
-	// Display-only: an untouched empty name shows the naming guidance rather than
-	// shouting "Required" at a form the user just opened. Submission is unaffected
-	// — `errors`/`canSubmit` still treat the empty name as invalid throughout.
-	let nameTouched = $state(false);
+	let modalEl = $state<HTMLDivElement | undefined>();
+	// When to *show* an error, as opposed to have one: a field is revealed once the
+	// user has left it, and everything is revealed once Add has been pressed. A form
+	// you just opened stays quiet instead of shouting "Required" at fields you were
+	// on your way to filling in. `errors` below is unaffected — it always describes
+	// the form as it stands.
+	let touched = $state<Record<string, boolean>>({});
+	let attempted = $state(false);
 	let vendorNames = $state<string[]>([]);
 	let materialNames = $state<string[]>([]);
 	let materialSpecs = $state<Record<string, MaterialSpec>>({});
@@ -275,6 +279,12 @@
 		vendorExtra = setExtraOn(vendorExtra, key, json);
 	}
 
+	/** Back to a quiet form: nothing revealed until the user leaves a field or submits. */
+	function clearValidation() {
+		touched = {};
+		attempted = false;
+	}
+
 	function resetSpoolForm() {
 		count = '1';
 		location = '';
@@ -285,6 +295,9 @@
 		firstUsed = undefined;
 		lastUsed = undefined;
 		extraValues = withDefaults('spool', {});
+		// Every route into step 2 lands here, so this is where the form goes quiet
+		// again: pick a different filament and you start over, not mid-argument.
+		clearValidation();
 	}
 
 	function choose(c: Choice) {
@@ -303,7 +316,6 @@
 	function startCreate() {
 		creating = true;
 		cloneSource = null;
-		nameTouched = false;
 		chosen = null;
 		showAdvanced = false;
 		nf = {
@@ -341,7 +353,6 @@
 	function startDuplicate(f: Filament) {
 		creating = true;
 		cloneSource = f;
-		nameTouched = false;
 		chosen = null;
 		// Specs came from a real filament rather than a material guess, so open the
 		// advanced block: it's what makes the copy visibly a copy.
@@ -407,7 +418,7 @@
 		chosen = null;
 		creating = false;
 		cloneSource = null;
-		nameTouched = false;
+		clearValidation();
 		submitting = false;
 	}
 	function close() {
@@ -416,7 +427,16 @@
 	}
 
 	async function submit(andAnother = false) {
-		if (!canSubmit) return;
+		if (submitting || !(creating || chosen)) return;
+		// The button stays clickable while the form is incomplete: a dead button
+		// answers "why can't I add this?" with silence. Pressing it instead marks
+		// every outstanding error visible and takes you to the first one — opening
+		// the section hiding it, scrolling it into view and focusing it.
+		if (firstProblem) {
+			attempted = true;
+			await focusField(firstProblem);
+			return;
+		}
 		submitting = true;
 		try {
 			let filamentId: number;
@@ -502,6 +522,11 @@
 	// Mirrors the filament creation API (spoolman/api/v1/filament.py):
 	// density & diameter are required and must be > 0; name/material ≤ 64 chars;
 	// weight > 0, spool_weight/price ≥ 0; color_hex must be 6 or 8 hex chars.
+	// Material is the one field this form is stricter about than the API, which
+	// accepts a null one. Leaving it blank is nearly always an oversight, and it
+	// takes density down with it: density is only prefilled for a material we
+	// recognise, so a blank material surfaced as "Density is required" — an error
+	// on the field the user didn't fill in *because of* the field they did miss.
 	function numErr(
 		v: string,
 		{ required = false, min, max, gt }: { required?: boolean; min?: number; max?: number; gt?: number } = {}
@@ -522,7 +547,8 @@
 		if (creating) {
 			if (nf.name.trim().length === 0) e.name = m['validation.required']();
 			else if (nf.name.trim().length > 64) e.name = m['validation.maxChars']({ max: 64 });
-			if (nf.material.trim().length > 64) e.material = m['validation.maxChars']({ max: 64 });
+			if (nf.material.trim().length === 0) e.material = m['validation.required']();
+			else if (nf.material.trim().length > 64) e.material = m['validation.maxChars']({ max: 64 });
 			if (nf.vendorName.trim().length > 64) e.vendor = m['validation.maxChars']({ max: 64 });
 			e.density = numErr(nf.density, { required: true, gt: 0 });
 			e.diameter = numErr(nf.diameter, { required: true, gt: 0 });
@@ -557,7 +583,52 @@
 		for (const k of Object.keys(e)) if (!e[k]) delete e[k];
 		return e;
 	});
-	let canSubmit = $derived((creating || !!chosen) && Object.keys(errors).length === 0);
+
+	// --- pointing at what's wrong -------------------------------------------
+	// The fields that can carry an error, in the order they appear on the form, so
+	// pressing Add sends you to the first one you'd have reached by reading down.
+	// Anything not listed falls back to whatever the error map yields, so a new
+	// error can never make Add silently do nothing.
+	const FIELD_ORDER = [
+		'vendor',
+		'name',
+		'material',
+		'colorHex',
+		'density',
+		'diameter',
+		'nozzleTemp',
+		'bedTemp',
+		'count',
+		'netWeight',
+		'fillWeight',
+		'spoolWeight',
+		'price'
+	];
+	// Fields inside the collapsed "Advanced specs" block. An error in here is
+	// invisible until the block is opened — the one case where the form really could
+	// look complete and still refuse to submit — so jumping to one has to open it.
+	const ADVANCED_KEYS = new Set(['density', 'diameter', 'nozzleTemp', 'bedTemp']);
+
+	let firstProblem = $derived(FIELD_ORDER.find((k) => errors[k]) ?? Object.keys(errors)[0]);
+
+	function touch(key: string) {
+		touched[key] = true;
+	}
+	/** The error to display for a field — empty until that field is revealed. */
+	function err(key: string): string {
+		return attempted || touched[key] ? (errors[key] ?? '') : '';
+	}
+
+	/** Scroll a field into view and put focus in it, opening its section if needed. */
+	async function focusField(key: string) {
+		if (ADVANCED_KEYS.has(key)) showAdvanced = true;
+		await tick();
+		const host = modalEl?.querySelector<HTMLElement>(`[data-field="${key}"]`);
+		if (!host) return;
+		host.scrollIntoView({ block: 'center', behavior: 'smooth' });
+		// preventScroll: the smooth scroll above is already on its way there.
+		host.querySelector<HTMLElement>('input, textarea, select')?.focus({ preventScroll: true });
+	}
 </script>
 
 <svelte:window
@@ -566,13 +637,18 @@
 	}}
 />
 
+<!-- The one marker for "this must be filled in", used on every required field and
+     on nothing else. It is decoration: the control itself carries aria-required, so
+     screen readers hear the requirement rather than an asterisk. -->
+{#snippet req()}<span class="req" title={m['validation.required']()} aria-hidden="true">*</span>{/snippet}
+
 {#if open}
 	<div class="overlay">
 		<!-- Click-outside catcher: a sibling of the modal (not a parent) so it doesn't
 		     nest the modal's interactive controls inside an interactive element.
 		     Keyboard close is handled by the window Escape listener above. -->
 		<button class="backdrop" tabindex="-1" aria-hidden="true" onclick={close}></button>
-		<div class="modal" role="dialog" aria-modal="true" tabindex="-1">
+		<div class="modal" role="dialog" aria-modal="true" tabindex="-1" bind:this={modalEl}>
 			<div class="modal-head">
 				<span class="title">{m['topbar.addSpools']()}</span>
 				{#if step === 2}
@@ -672,18 +748,18 @@
 						     sitting among the filament fields, quietly creating a second entity,
 						     was the most confusing part of the flow. -->
 						<section class="new-section man-section">
-							<label class="ent-field">
+							<label class="ent-field" data-field="vendor" onfocusout={() => touch('vendor')}>
 								<span class="ent-label">{m['add.section.manufacturer']()}</span>
 								<span class="ent-note">{m['add.section.manufacturerNote']()}</span>
 								<Combobox
 									value={nf.vendorName}
 									options={vendorNames}
 									placeholder={m['add.manufacturerPlaceholder']()}
-									invalid={!!errors.vendor}
+									invalid={!!err('vendor')}
 									oninput={(v) => (nf.vendorName = v)}
 								/>
-								{#if errors.vendor}
-									<span class="err">{errors.vendor}</span>
+								{#if err('vendor')}
+									<span class="err">{err('vendor')}</span>
 								{:else}
 									<span class="hint" class:accent={vendorIsNew}>{vendorHint}</span>
 								{/if}
@@ -709,35 +785,38 @@
 								{cloneSource ? m['add.duplicateNote']() : m['add.section.filamentNote']()}
 							</div>
 							<div class="form">
-								<label class="wide">
-									{m['filament.fields.name']()} <span class="req">*</span>
+								<label class="wide" data-field="name" onfocusout={() => touch('name')}>
+									{m['filament.fields.name']()}
+									{@render req()}
 									<input
 										bind:this={nameInput}
 										bind:value={nf.name}
 										placeholder={m['add.filamentNamePlaceholder']()}
-										class:invalid={errors.name && nameTouched}
-										oninput={() => (nameTouched = true)}
-										onblur={() => (nameTouched = true)}
+										aria-required="true"
+										aria-invalid={!!err('name')}
+										class:invalid={!!err('name')}
 									/>
 									<!-- The rename nudge only outranks the naming hint while the copy
 								     still carries the original's name; after that both cases get the
 								     same advice, since color is what makes a filament name useful. -->
-									{#if errors.name && nameTouched}<span class="err">{errors.name}</span>
+									{#if err('name')}<span class="err">{err('name')}</span>
 									{:else if nameStillSource}<span class="hint accent">{m['add.duplicateRename']()}</span>
 									{:else}<span class="hint">{m['add.nameHint']()}</span>{/if}
 								</label>
-								<label>
+								<label data-field="material" onfocusout={() => touch('material')}>
 									{m['filament.fields.material']()}
+									{@render req()}
 									<Combobox
 										value={nf.material}
 										options={materialNames}
 										placeholder="PLA"
-										invalid={!!errors.material}
+										required
+										invalid={!!err('material')}
 										oninput={onMaterial}
 									/>
-									{#if errors.material}<span class="err">{errors.material}</span>{/if}
+									{#if err('material')}<span class="err">{err('material')}</span>{/if}
 								</label>
-								<label class="color-field wide">
+								<label class="color-field wide" data-field="colorHex" onfocusout={() => touch('colorHex')}>
 									{m['filament.fields.colorHex']()}
 									<div class="color-editor-wrap">
 										<ColorEditor
@@ -749,7 +828,7 @@
 											}}
 										/>
 									</div>
-									{#if errors.colorHex}<span class="err">{errors.colorHex}</span>{/if}
+									{#if err('colorHex')}<span class="err">{err('colorHex')}</span>{/if}
 								</label>
 							</div>
 							<button class="adv-toggle" onclick={() => (showAdvanced = !showAdvanced)}>
@@ -759,31 +838,35 @@
 							</button>
 							{#if showAdvanced}
 								<div class="form">
-									<label
-										>{m['filament.fields.density']()} <span class="req">*</span>
+									<label data-field="density" onfocusout={() => touch('density')}
+										>{m['filament.fields.density']()}
+										{@render req()}
 										<NumberInput
 											bind:value={nf.density}
 											min={0}
 											step={0.01}
 											unit="g/cm³"
 											spaced
-											invalid={!!errors.density}
+											required
+											invalid={!!err('density')}
 										/>
-										{#if errors.density}<span class="err">{errors.density}</span>{/if}
+										{#if err('density')}<span class="err">{err('density')}</span>{/if}
 									</label>
-									<label
-										>{m['filament.fields.diameter']()} <span class="req">*</span>
+									<label data-field="diameter" onfocusout={() => touch('diameter')}
+										>{m['filament.fields.diameter']()}
+										{@render req()}
 										<NumberInput
 											bind:value={nf.diameter}
 											min={0}
 											step={0.05}
 											unit="mm"
 											spaced
-											invalid={!!errors.diameter}
+											required
+											invalid={!!err('diameter')}
 										/>
-										{#if errors.diameter}<span class="err">{errors.diameter}</span>{/if}
+										{#if err('diameter')}<span class="err">{err('diameter')}</span>{/if}
 									</label>
-									<label
+									<label data-field="nozzleTemp" onfocusout={() => touch('nozzleTemp')}
 										>{m['filament.fields.settingsExtruderTemp']()}
 										<NumberInput
 											bind:value={nf.nozzleTemp}
@@ -792,11 +875,11 @@
 											unit="°C"
 											placeholder="—"
 											spaced
-											invalid={!!errors.nozzleTemp}
+											invalid={!!err('nozzleTemp')}
 										/>
-										{#if errors.nozzleTemp}<span class="err">{errors.nozzleTemp}</span>{/if}
+										{#if err('nozzleTemp')}<span class="err">{err('nozzleTemp')}</span>{/if}
 									</label>
-									<label
+									<label data-field="bedTemp" onfocusout={() => touch('bedTemp')}
 										>{m['filament.fields.settingsBedTemp']()}
 										<NumberInput
 											bind:value={nf.bedTemp}
@@ -805,9 +888,9 @@
 											unit="°C"
 											placeholder="—"
 											spaced
-											invalid={!!errors.bedTemp}
+											invalid={!!err('bedTemp')}
 										/>
-										{#if errors.bedTemp}<span class="err">{errors.bedTemp}</span>{/if}
+										{#if err('bedTemp')}<span class="err">{err('bedTemp')}</span>{/if}
 									</label>
 									<label>
 										{m['filament.fields.articleNumber']()}
@@ -881,12 +964,21 @@
 						     is 1 nearly every time. Its old neighbour, the empty-spool weight, moved
 						     down to the numbers that come off a product page — sitting between two
 						     weights was what made this row read as three of the same question. -->
-						<label
+						<label data-field="count" onfocusout={() => touch('count')}
 							>{m['add.count']()}
-							<NumberInput bind:value={count} min={1} step={1} width="76px" spaced invalid={!!errors.count} />
-							{#if errors.count}<span class="err">{errors.count}</span>{/if}
+							{@render req()}
+							<NumberInput
+								bind:value={count}
+								min={1}
+								step={1}
+								width="76px"
+								spaced
+								required
+								invalid={!!err('count')}
+							/>
+							{#if err('count')}<span class="err">{err('count')}</span>{/if}
 						</label>
-						<label
+						<label data-field="netWeight" onfocusout={() => touch('netWeight')}
 							>{m['filament.fields.weight']()}
 							<button
 								type="button"
@@ -910,7 +1002,7 @@
 									step={50}
 									unit="g"
 									width="112px"
-									invalid={!!errors.netWeight}
+									invalid={!!err('netWeight')}
 								/>
 								<span class="presets" role="group" aria-label={m['add.weightPresets']()}>
 									{#each NET_WEIGHT_PRESETS as preset (preset)}
@@ -929,7 +1021,7 @@
 									>{m['filament.fieldsHelp.weight']()}</span
 								>
 							{/if}
-							{#if errors.netWeight}<span class="err">{errors.netWeight}</span>{/if}
+							{#if err('netWeight')}<span class="err">{err('netWeight')}</span>{/if}
 						</label>
 					</div>
 
@@ -945,7 +1037,7 @@
 							{/each}
 						</div>
 						{#if fillMode !== 'full'}
-							<div class="fill-input">
+							<div class="fill-input" data-field="fillWeight" onfocusout={() => touch('fillWeight')}>
 								<NumberInput
 									bind:value={fillWeight}
 									min={0}
@@ -953,9 +1045,12 @@
 									unit="g"
 									placeholder="0"
 									width="130px"
-									invalid={!!errors.fillWeight}
+									invalid={!!err('fillWeight')}
+									ariaLabel={m['add.fillLevel']()}
 								/>
-								<span class="fill-help">{errors.fillWeight || fillHelp}</span>
+								<span class="fill-help" class:is-error={!!err('fillWeight')}
+									>{err('fillWeight') || fillHelp}</span
+								>
 							</div>
 						{/if}
 					</div>
@@ -981,7 +1076,7 @@
 					</div>
 
 					<div class="form money">
-						<label
+						<label data-field="spoolWeight" onfocusout={() => touch('spoolWeight')}
 							>{m['filament.fields.spoolWeight']()}
 							<button
 								type="button"
@@ -998,7 +1093,7 @@
 								unit="g"
 								placeholder="—"
 								spaced
-								invalid={!!errors.spoolWeight}
+								invalid={!!err('spoolWeight')}
 							/>
 							{#if openHelp === 'spoolWeight'}
 								<span class="help-popup" id="spoolWeight-help" role="note">
@@ -1021,12 +1116,12 @@
 									</span>
 								</span>
 							{/if}
-							{#if errors.spoolWeight}<span class="err">{errors.spoolWeight}</span>{/if}
+							{#if err('spoolWeight')}<span class="err">{err('spoolWeight')}</span>{/if}
 						</label>
-						<label
+						<label data-field="price" onfocusout={() => touch('price')}
 							>{m['filament.fields.price']()} <span class="u">{settings.currency}</span>
-							<NumberInput bind:value={price} min={0} placeholder="—" spaced invalid={!!errors.price} />
-							{#if errors.price}<span class="err">{errors.price}</span>{/if}
+							<NumberInput bind:value={price} min={0} placeholder="—" spaced invalid={!!err('price')} />
+							{#if err('price')}<span class="err">{err('price')}</span>{/if}
 						</label>
 					</div>
 
@@ -1057,10 +1152,10 @@
 					<div class="submit-row">
 						<div class="summary">{summary}</div>
 						<div class="actions">
-							<Button variant="outline" disabled={!canSubmit || submitting} onclick={() => submit(true)}
+							<Button variant="outline" disabled={submitting} onclick={() => submit(true)}
 								>{m['add.addAndNew']()}</Button
 							>
-							<Button disabled={!canSubmit || submitting} onclick={() => submit(false)}>
+							<Button disabled={submitting} onclick={() => submit(false)}>
 								{submitting ? m['add.adding']() : m['add.addN']({ count: countN })}
 							</Button>
 						</div>
@@ -1600,6 +1695,9 @@
 	.fill-help {
 		font-size: 11.5px;
 		color: var(--text-faint);
+	}
+	.fill-help.is-error {
+		color: var(--danger-soft);
 	}
 	.submit-row {
 		display: flex;
