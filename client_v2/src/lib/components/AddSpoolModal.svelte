@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { untrack, tick } from 'svelte';
 	import Swatch from './Swatch.svelte';
 	import ColorEditor from './ColorEditor.svelte';
 	import Button from './Button.svelte';
@@ -10,6 +10,7 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import ExtraFieldsSection from './ExtraFieldsSection.svelte';
 	import type { Filament, Extra, MultiColorDirection } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
@@ -72,10 +73,14 @@
 	let filamentExtra = $state<Extra>({});
 	let showAdvanced = $state(false);
 	let nameInput = $state<HTMLInputElement | undefined>();
-	// Display-only: an untouched empty name shows the naming guidance rather than
-	// shouting "Required" at a form the user just opened. Submission is unaffected
-	// — `errors`/`canSubmit` still treat the empty name as invalid throughout.
-	let nameTouched = $state(false);
+	let modalEl = $state<HTMLDivElement | undefined>();
+	// When to *show* an error, as opposed to have one: a field is revealed once the
+	// user has left it, and everything is revealed once Add has been pressed. A form
+	// you just opened stays quiet instead of shouting "Required" at fields you were
+	// on your way to filling in. `errors` below is unaffected — it always describes
+	// the form as it stands.
+	let touched = $state<Record<string, boolean>>({});
+	let attempted = $state(false);
 	let vendorNames = $state<string[]>([]);
 	let materialNames = $state<string[]>([]);
 	let materialSpecs = $state<Record<string, MaterialSpec>>({});
@@ -260,6 +265,12 @@
 		filamentExtra = setExtraOn(filamentExtra, key, json);
 	}
 
+	/** Back to a quiet form: nothing revealed until the user leaves a field or submits. */
+	function clearValidation() {
+		touched = {};
+		attempted = false;
+	}
+
 	function resetSpoolForm() {
 		count = '1';
 		location = '';
@@ -270,6 +281,9 @@
 		firstUsed = undefined;
 		lastUsed = undefined;
 		extraValues = withDefaults('spool', {});
+		// Every route into step 2 lands here, so this is where the form goes quiet
+		// again: pick a different filament and you start over, not mid-argument.
+		clearValidation();
 	}
 
 	function choose(c: Choice) {
@@ -288,7 +302,6 @@
 	function startCreate() {
 		creating = true;
 		cloneSource = null;
-		nameTouched = false;
 		chosen = null;
 		showAdvanced = false;
 		nf = {
@@ -325,7 +338,6 @@
 	function startDuplicate(f: Filament) {
 		creating = true;
 		cloneSource = f;
-		nameTouched = false;
 		chosen = null;
 		// Specs came from a real filament rather than a material guess, so open the
 		// advanced block: it's what makes the copy visibly a copy.
@@ -388,7 +400,7 @@
 		chosen = null;
 		creating = false;
 		cloneSource = null;
-		nameTouched = false;
+		clearValidation();
 		submitting = false;
 	}
 	function close() {
@@ -397,7 +409,16 @@
 	}
 
 	async function submit(andAnother = false) {
-		if (!canSubmit) return;
+		if (submitting || !(creating || chosen)) return;
+		// The button stays clickable while the form is incomplete: a dead button
+		// answers "why can't I add this?" with silence. Pressing it instead reveals
+		// every outstanding error at once, opens the section hiding one, lists them
+		// above the button, and drops the caret in the first field to fix.
+		if (problems.length > 0) {
+			attempted = true;
+			await focusField(problems[0].key);
+			return;
+		}
 		submitting = true;
 		try {
 			let filamentId: number;
@@ -535,7 +556,64 @@
 		for (const k of Object.keys(e)) if (!e[k]) delete e[k];
 		return e;
 	});
-	let canSubmit = $derived((creating || !!chosen) && Object.keys(errors).length === 0);
+
+	// --- telling the user what is missing -----------------------------------
+	// Every field that can carry an error, in the order it appears on the form, so
+	// the summary reads top-to-bottom like the form does. Keys not listed here still
+	// show up in the summary — under their raw key rather than a label — so a new
+	// error can never block submission invisibly.
+	const FIELD_LABELS: { key: string; label: () => string }[] = [
+		{ key: 'vendor', label: m['filament.fields.vendor'] },
+		{ key: 'name', label: m['filament.fields.name'] },
+		{ key: 'material', label: m['filament.fields.material'] },
+		{ key: 'colorHex', label: m['filament.fields.colorHex'] },
+		{ key: 'density', label: m['filament.fields.density'] },
+		{ key: 'diameter', label: m['filament.fields.diameter'] },
+		{ key: 'nozzleTemp', label: m['filament.fields.settingsExtruderTemp'] },
+		{ key: 'bedTemp', label: m['filament.fields.settingsBedTemp'] },
+		{ key: 'count', label: m['add.count'] },
+		{ key: 'netWeight', label: m['filament.fields.weight'] },
+		{ key: 'spoolWeight', label: m['filament.fields.spoolWeight'] },
+		{ key: 'price', label: m['filament.fields.price'] },
+		{ key: 'fillWeight', label: m['add.fillLevel'] }
+	];
+	// Fields inside the collapsed "Advanced specs" block. An error in here is
+	// invisible until the block is opened — the one case where the form really could
+	// look complete and still refuse to submit — so both the summary and the toggle
+	// have to account for it.
+	const ADVANCED_KEYS = new Set(['density', 'diameter', 'nozzleTemp', 'bedTemp']);
+
+	let problems = $derived.by(() => {
+		const listed = new Set(FIELD_LABELS.map((f) => f.key));
+		const out = FIELD_LABELS.filter((f) => errors[f.key]).map((f) => ({
+			key: f.key,
+			label: f.label(),
+			msg: errors[f.key]
+		}));
+		for (const k of Object.keys(errors)) if (!listed.has(k)) out.push({ key: k, label: k, msg: errors[k] });
+		return out;
+	});
+	// Shown next to the collapsed toggle so a hidden problem is still countable.
+	let advancedProblems = $derived(problems.filter((p) => ADVANCED_KEYS.has(p.key)).length);
+
+	function touch(key: string) {
+		touched[key] = true;
+	}
+	/** The error to display for a field — empty until that field is revealed. */
+	function err(key: string): string {
+		return attempted || touched[key] ? (errors[key] ?? '') : '';
+	}
+
+	/** Scroll a field into view and put focus in it, opening its section if needed. */
+	async function focusField(key: string) {
+		if (ADVANCED_KEYS.has(key)) showAdvanced = true;
+		await tick();
+		const host = modalEl?.querySelector<HTMLElement>(`[data-field="${key}"]`);
+		if (!host) return;
+		host.scrollIntoView({ block: 'center', behavior: 'smooth' });
+		// preventScroll: the smooth scroll above is already on its way there.
+		host.querySelector<HTMLElement>('input, textarea, select')?.focus({ preventScroll: true });
+	}
 </script>
 
 <svelte:window
@@ -544,19 +622,26 @@
 	}}
 />
 
+<!-- The one marker for "this must be filled in", used on every required field and
+     on nothing else. It is decoration: the control itself carries aria-required, so
+     screen readers hear the requirement rather than an asterisk. -->
+{#snippet req()}<span class="req" title={m['validation.required']()} aria-hidden="true">*</span>{/snippet}
+
 {#if open}
 	<div class="overlay">
 		<!-- Click-outside catcher: a sibling of the modal (not a parent) so it doesn't
 		     nest the modal's interactive controls inside an interactive element.
 		     Keyboard close is handled by the window Escape listener above. -->
 		<button class="backdrop" tabindex="-1" aria-hidden="true" onclick={close}></button>
-		<div class="modal" role="dialog" aria-modal="true" tabindex="-1">
+		<div class="modal" role="dialog" aria-modal="true" tabindex="-1" bind:this={modalEl}>
 			<div class="modal-head">
 				<span class="title">{m['topbar.addSpools']()}</span>
 				{#if step === 2}
 					<!-- Creating a filament puts manufacturer and filament fields on this step
 					     too, so the hint can't call the whole step "spool details". -->
 					<span class="step-hint">{creating ? m['add.step2New']() : m['add.step2']()}</span>
+					<!-- Says what the asterisks mean, once, where they're first seen. -->
+					<span class="req-legend">{@render req()} {m['add.requiredLegend']()}</span>
 				{/if}
 				<button class="x" onclick={close} aria-label={m['buttons.close']()}><X size={16} /></button>
 			</div>
@@ -650,18 +735,18 @@
 						     sitting among the filament fields, quietly creating a second entity,
 						     was the most confusing part of the flow. -->
 						<section class="new-section man-section">
-							<label class="ent-field">
+							<label class="ent-field" data-field="vendor" onfocusout={() => touch('vendor')}>
 								<span class="ent-label">{m['add.section.manufacturer']()}</span>
 								<span class="ent-note">{m['add.section.manufacturerNote']()}</span>
 								<Combobox
 									value={nf.vendorName}
 									options={vendorNames}
 									placeholder={m['add.manufacturerPlaceholder']()}
-									invalid={!!errors.vendor}
+									invalid={!!err('vendor')}
 									oninput={(v) => (nf.vendorName = v)}
 								/>
-								{#if errors.vendor}
-									<span class="err">{errors.vendor}</span>
+								{#if err('vendor')}
+									<span class="err">{err('vendor')}</span>
 								{:else}
 									<span class="hint" class:accent={vendorIsNew}>{vendorHint}</span>
 								{/if}
@@ -681,35 +766,36 @@
 								{cloneSource ? m['add.duplicateNote']() : m['add.section.filamentNote']()}
 							</div>
 							<div class="form">
-								<label class="wide">
-									{m['filament.fields.name']()} <span class="req">*</span>
+								<label class="wide" data-field="name" onfocusout={() => touch('name')}>
+									{m['filament.fields.name']()}
+									{@render req()}
 									<input
 										bind:this={nameInput}
 										bind:value={nf.name}
 										placeholder={m['add.filamentNamePlaceholder']()}
-										class:invalid={errors.name && nameTouched}
-										oninput={() => (nameTouched = true)}
-										onblur={() => (nameTouched = true)}
+										aria-required="true"
+										aria-invalid={!!err('name')}
+										class:invalid={!!err('name')}
 									/>
 									<!-- The rename nudge only outranks the naming hint while the copy
 								     still carries the original's name; after that both cases get the
 								     same advice, since color is what makes a filament name useful. -->
-									{#if errors.name && nameTouched}<span class="err">{errors.name}</span>
+									{#if err('name')}<span class="err">{err('name')}</span>
 									{:else if nameStillSource}<span class="hint accent">{m['add.duplicateRename']()}</span>
 									{:else}<span class="hint">{m['add.nameHint']()}</span>{/if}
 								</label>
-								<label>
+								<label data-field="material" onfocusout={() => touch('material')}>
 									{m['filament.fields.material']()}
 									<Combobox
 										value={nf.material}
 										options={materialNames}
 										placeholder="PLA"
-										invalid={!!errors.material}
+										invalid={!!err('material')}
 										oninput={onMaterial}
 									/>
-									{#if errors.material}<span class="err">{errors.material}</span>{/if}
+									{#if err('material')}<span class="err">{err('material')}</span>{/if}
 								</label>
-								<label class="color-field wide">
+								<label class="color-field wide" data-field="colorHex" onfocusout={() => touch('colorHex')}>
 									{m['filament.fields.colorHex']()}
 									<div class="color-editor-wrap">
 										<ColorEditor
@@ -721,41 +807,52 @@
 											}}
 										/>
 									</div>
-									{#if errors.colorHex}<span class="err">{errors.colorHex}</span>{/if}
+									{#if err('colorHex')}<span class="err">{err('colorHex')}</span>{/if}
 								</label>
 							</div>
 							<button class="adv-toggle" onclick={() => (showAdvanced = !showAdvanced)}>
 								{#if showAdvanced}<ChevronDown size={14} />{:else}<ChevronRight size={14} />{/if}
 								{m['add.advanced']()}
-								{#if !showAdvanced}<span class="adv-note">{m['add.advancedNote']()}</span>{/if}
+								<!-- A collapsed section can hide a required field (density is only
+								     prefilled for known materials), so count what's wrong inside it
+								     rather than let the block look settled. -->
+								{#if !showAdvanced && attempted && advancedProblems > 0}
+									<span class="adv-badge">{m['add.problems']({ count: advancedProblems })}</span>
+								{:else if !showAdvanced}
+									<span class="adv-note">{m['add.advancedNote']()}</span>
+								{/if}
 							</button>
 							{#if showAdvanced}
 								<div class="form">
-									<label
-										>{m['filament.fields.density']()} <span class="req">*</span>
+									<label data-field="density" onfocusout={() => touch('density')}
+										>{m['filament.fields.density']()}
+										{@render req()}
 										<NumberInput
 											bind:value={nf.density}
 											min={0}
 											step={0.01}
 											unit="g/cm³"
 											spaced
-											invalid={!!errors.density}
+											required
+											invalid={!!err('density')}
 										/>
-										{#if errors.density}<span class="err">{errors.density}</span>{/if}
+										{#if err('density')}<span class="err">{err('density')}</span>{/if}
 									</label>
-									<label
-										>{m['filament.fields.diameter']()} <span class="req">*</span>
+									<label data-field="diameter" onfocusout={() => touch('diameter')}
+										>{m['filament.fields.diameter']()}
+										{@render req()}
 										<NumberInput
 											bind:value={nf.diameter}
 											min={0}
 											step={0.05}
 											unit="mm"
 											spaced
-											invalid={!!errors.diameter}
+											required
+											invalid={!!err('diameter')}
 										/>
-										{#if errors.diameter}<span class="err">{errors.diameter}</span>{/if}
+										{#if err('diameter')}<span class="err">{err('diameter')}</span>{/if}
 									</label>
-									<label
+									<label data-field="nozzleTemp" onfocusout={() => touch('nozzleTemp')}
 										>{m['filament.fields.settingsExtruderTemp']()}
 										<NumberInput
 											bind:value={nf.nozzleTemp}
@@ -764,11 +861,11 @@
 											unit="°C"
 											placeholder="—"
 											spaced
-											invalid={!!errors.nozzleTemp}
+											invalid={!!err('nozzleTemp')}
 										/>
-										{#if errors.nozzleTemp}<span class="err">{errors.nozzleTemp}</span>{/if}
+										{#if err('nozzleTemp')}<span class="err">{err('nozzleTemp')}</span>{/if}
 									</label>
-									<label
+									<label data-field="bedTemp" onfocusout={() => touch('bedTemp')}
 										>{m['filament.fields.settingsBedTemp']()}
 										<NumberInput
 											bind:value={nf.bedTemp}
@@ -777,9 +874,9 @@
 											unit="°C"
 											placeholder="—"
 											spaced
-											invalid={!!errors.bedTemp}
+											invalid={!!err('bedTemp')}
 										/>
-										{#if errors.bedTemp}<span class="err">{errors.bedTemp}</span>{/if}
+										{#if err('bedTemp')}<span class="err">{err('bedTemp')}</span>{/if}
 									</label>
 									<label>
 										{m['filament.fields.articleNumber']()}
@@ -843,12 +940,13 @@
 						<div class="ent-note shared">{m['add.section.spoolSharedNote']()}</div>
 					{/if}
 					<div class="form">
-						<label
+						<label data-field="count" onfocusout={() => touch('count')}
 							>{m['add.count']()}
-							<NumberInput bind:value={count} min={1} step={1} spaced invalid={!!errors.count} />
-							{#if errors.count}<span class="err">{errors.count}</span>{/if}
+							{@render req()}
+							<NumberInput bind:value={count} min={1} step={1} spaced required invalid={!!err('count')} />
+							{#if err('count')}<span class="err">{err('count')}</span>{/if}
 						</label>
-						<label
+						<label data-field="netWeight" onfocusout={() => touch('netWeight')}
 							>{m['filament.fields.weight']()}
 							<button
 								type="button"
@@ -864,16 +962,16 @@
 								step={50}
 								unit="g"
 								spaced
-								invalid={!!errors.netWeight}
+								invalid={!!err('netWeight')}
 							/>
 							{#if openHelp === 'weight'}
 								<span class="help-popup" id="weight-help" role="note"
 									>{m['filament.fieldsHelp.weight']()}</span
 								>
 							{/if}
-							{#if errors.netWeight}<span class="err">{errors.netWeight}</span>{/if}
+							{#if err('netWeight')}<span class="err">{err('netWeight')}</span>{/if}
 						</label>
-						<label
+						<label data-field="spoolWeight" onfocusout={() => touch('spoolWeight')}
 							>{m['filament.fields.spoolWeight']()}
 							<button
 								type="button"
@@ -890,7 +988,7 @@
 								unit="g"
 								placeholder="—"
 								spaced
-								invalid={!!errors.spoolWeight}
+								invalid={!!err('spoolWeight')}
 							/>
 							{#if openHelp === 'spoolWeight'}
 								<span class="help-popup" id="spoolWeight-help" role="note">
@@ -913,12 +1011,12 @@
 									</span>
 								</span>
 							{/if}
-							{#if errors.spoolWeight}<span class="err">{errors.spoolWeight}</span>{/if}
+							{#if err('spoolWeight')}<span class="err">{err('spoolWeight')}</span>{/if}
 						</label>
-						<label
+						<label data-field="price" onfocusout={() => touch('price')}
 							>{m['filament.fields.price']()} <span class="u">{settings.currency}</span>
-							<NumberInput bind:value={price} min={0} placeholder="—" spaced invalid={!!errors.price} />
-							{#if errors.price}<span class="err">{errors.price}</span>{/if}
+							<NumberInput bind:value={price} min={0} placeholder="—" spaced invalid={!!err('price')} />
+							{#if err('price')}<span class="err">{err('price')}</span>{/if}
 						</label>
 						<label>{m['spool.fields.lotNr']()}<input class="mono" bind:value={lot} placeholder="—" /></label>
 						<label class="wide">
@@ -948,7 +1046,7 @@
 							{/each}
 						</div>
 						{#if fillMode !== 'full'}
-							<div class="fill-input">
+							<div class="fill-input" data-field="fillWeight" onfocusout={() => touch('fillWeight')}>
 								<NumberInput
 									bind:value={fillWeight}
 									min={0}
@@ -956,9 +1054,12 @@
 									unit="g"
 									placeholder="0"
 									width="130px"
-									invalid={!!errors.fillWeight}
+									invalid={!!err('fillWeight')}
+									ariaLabel={m['add.fillLevel']()}
 								/>
-								<span class="fill-help">{errors.fillWeight || fillHelp}</span>
+								<span class="fill-help" class:is-error={!!err('fillWeight')}
+									>{err('fillWeight') || fillHelp}</span
+								>
 							</div>
 						{/if}
 					</div>
@@ -987,13 +1088,36 @@
 
 					<ExtraFieldsSection entity="spool" extra={extraValues} onchange={setExtra} />
 
+					<!-- Appears only once Add has been pressed, then stays as a live checklist:
+					     rows disappear as they're fixed. Each row jumps to its field, which is
+					     the whole point — reading "Density: Required" is no help if you can't
+					     find Density. -->
+					{#if attempted && problems.length > 0}
+						<div class="problems" role="alert">
+							<div class="p-head">
+								<TriangleAlert size={14} />
+								{m['add.problemsLead']({ count: problems.length })}
+							</div>
+							<ul class="p-list">
+								{#each problems as p (p.key)}
+									<li>
+										<button type="button" class="p-item" onclick={() => focusField(p.key)}>
+											<span class="p-name">{p.label}</span>
+											<span class="p-msg">{p.msg}</span>
+										</button>
+									</li>
+								{/each}
+							</ul>
+						</div>
+					{/if}
+
 					<div class="submit-row">
 						<div class="summary">{summary}</div>
 						<div class="actions">
-							<Button variant="outline" disabled={!canSubmit || submitting} onclick={() => submit(true)}
+							<Button variant="outline" disabled={submitting} onclick={() => submit(true)}
 								>{m['add.addAndNew']()}</Button
 							>
-							<Button disabled={!canSubmit || submitting} onclick={() => submit(false)}>
+							<Button disabled={submitting} onclick={() => submit(false)}>
 								{submitting ? m['add.adding']() : m['add.addN']({ count: countN })}
 							</Button>
 						</div>
@@ -1041,7 +1165,10 @@
 	.modal-head {
 		display: flex;
 		align-items: center;
-		gap: 10px;
+		/* Wraps rather than squeezes: the step hint and the asterisk legend both sit
+		   here, and on a phone they don't fit on one line next to the title. */
+		flex-wrap: wrap;
+		gap: 4px 10px;
 		padding: 16px 20px 0;
 		flex: none;
 	}
@@ -1052,6 +1179,11 @@
 	.step-hint {
 		font-size: 11.5px;
 		color: var(--text-dim);
+	}
+	.req-legend {
+		font-size: 11.5px;
+		color: var(--text-faint);
+		white-space: nowrap;
 	}
 	.x {
 		margin-left: auto;
@@ -1322,6 +1454,13 @@
 	.adv-note {
 		color: var(--text-faint);
 	}
+	.adv-badge {
+		border: 1px solid var(--danger);
+		border-radius: 999px;
+		padding: 1px 8px;
+		font-size: 11px;
+		color: var(--danger-soft);
+	}
 	.form {
 		display: grid;
 		grid-template-columns: 1fr 1fr 1fr;
@@ -1505,6 +1644,64 @@
 	.fill-help {
 		font-size: 11.5px;
 		color: var(--text-faint);
+	}
+	.fill-help.is-error {
+		color: var(--danger-soft);
+	}
+	.problems {
+		margin-top: 18px;
+		padding: 10px 12px;
+		border: 1px solid var(--danger);
+		border-radius: var(--radius-md);
+		background: var(--surface-2);
+	}
+	.p-head {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--danger-soft);
+	}
+	.p-list {
+		list-style: none;
+		margin: 6px 0 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+	.p-item {
+		display: flex;
+		align-items: baseline;
+		gap: 8px;
+		width: 100%;
+		/* Tall enough to be a comfortable tap target on the phone layout. */
+		min-height: 26px;
+		padding: 4px 6px;
+		margin-left: -6px;
+		border: none;
+		border-radius: var(--radius);
+		background: none;
+		color: inherit;
+		font-family: inherit;
+		font-size: 12px;
+		text-align: left;
+		cursor: pointer;
+	}
+	.p-item:hover {
+		background: var(--surface-raised);
+	}
+	.p-name {
+		font-weight: 600;
+		color: var(--text-2);
+		/* Reads as the link it is: clicking jumps to the field. */
+		text-decoration: underline;
+		text-decoration-style: dotted;
+		text-underline-offset: 2px;
+	}
+	.p-msg {
+		color: var(--text-muted);
 	}
 	.submit-row {
 		display: flex;

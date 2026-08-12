@@ -161,6 +161,7 @@
 	aria-label={ariaLabel}
 	aria-labelledby={ariaLabel ? undefined : fieldLabelId}
 	aria-autocomplete="list"
+	aria-invalid={invalid ? 'true' : undefined}
 	autocomplete="off"
 	onfocus={openList}
 	onclick={openList}

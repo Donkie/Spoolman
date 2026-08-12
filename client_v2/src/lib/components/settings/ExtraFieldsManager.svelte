@@ -10,10 +10,12 @@
 	} from '$lib/api/fields';
 	import { fields } from '$lib/stores/fields.svelte';
 	import { numericInput, parseDecimal } from '$lib/utils/numeric';
+	import { tick } from 'svelte';
 	import * as m from '$lib/paraglide/messages';
 	import Plus from '@lucide/svelte/icons/plus';
 	import X from '@lucide/svelte/icons/x';
 	import GripVertical from '@lucide/svelte/icons/grip-vertical';
+	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 
 	const ENTITIES: { key: EntityType; label: () => string }[] = [
 		{ key: 'spool', label: m['library.section.spool'] },
@@ -56,13 +58,18 @@
 		void entity;
 		editing = false;
 		error = '';
+		errorField = null;
 	});
 
 	// Editor state ----------------------------------------------------------
 	let editing = $state(false);
 	let isNew = $state(false);
 	let error = $state('');
+	// Which field the current error belongs to, so it can be outlined and focused
+	// instead of leaving the reader to match a message to a box.
+	let errorField = $state<string | null>(null);
 	let saving = $state(false);
+	let editorEl = $state<HTMLDivElement | undefined>();
 
 	let key = $state('');
 	let name = $state('');
@@ -97,6 +104,7 @@
 		isNew = true;
 		editing = true;
 		error = '';
+		errorField = null;
 		key = '';
 		name = '';
 		orderText = String(Math.max(0, ...defs.map((f) => f.order)) + 1);
@@ -113,6 +121,7 @@
 		isNew = false;
 		editing = true;
 		error = '';
+		errorField = null;
 		key = f.key;
 		name = f.name;
 		orderText = String(f.order);
@@ -128,6 +137,7 @@
 	function cancel() {
 		editing = false;
 		error = '';
+		errorField = null;
 	}
 
 	function onTypeChange(t: FieldType) {
@@ -181,28 +191,36 @@
 		moveChoiceBy(choice, e.key === 'ArrowLeft' ? -1 : 1);
 	}
 
+	/** Report a problem against the field it belongs to, and put the caret there. */
+	function fail(field: string, message: string) {
+		error = message;
+		errorField = field;
+		tick().then(() => editorEl?.querySelector<HTMLElement>(`[data-field="${field}"] input`)?.focus());
+	}
+
 	async function save() {
 		error = '';
+		errorField = null;
 		if (!/^[a-z0-9_]+$/.test(key)) {
-			error = m['settings.extraFields.errors.keyFormat']();
+			fail('key', m['settings.extraFields.errors.keyFormat']());
 			return;
 		}
 		if (isNew && defs.some((f) => f.key === key)) {
-			error = m['settings.extraFields.nonUniqueKeyError']();
+			fail('key', m['settings.extraFields.nonUniqueKeyError']());
 			return;
 		}
 		if (!name.trim()) {
-			error = m['settings.extraFields.errors.nameRequired']();
+			fail('name', m['settings.extraFields.errors.nameRequired']());
 			return;
 		}
 		if (isChoice && choices.length === 0) {
-			error = m['settings.extraFields.errors.choiceNeeded']();
+			fail('choices', m['settings.extraFields.errors.choiceNeeded']());
 			return;
 		}
 		if (!isNew && isChoice) {
 			const missing = originalChoices.filter((c) => !choices.includes(c));
 			if (missing.length) {
-				error = m['settings.extraFields.errors.choicesRemoved']({ choices: missing.join(', ') });
+				fail('choices', m['settings.extraFields.errors.choicesRemoved']({ choices: missing.join(', ') }));
 				return;
 			}
 		}
@@ -250,6 +268,9 @@
 	}
 </script>
 
+<!-- Same marker, same meaning, as the add-spool form: required, and nothing else. -->
+{#snippet req()}<span class="req" title={m['validation.required']()} aria-hidden="true">*</span>{/snippet}
+
 <div class="tabs">
 	{#each ENTITIES as e (e.key)}
 		<button class="tab" class:active={entity === e.key} onclick={() => onentity(e.key)}>{e.label()}</button>
@@ -292,16 +313,26 @@
 </Card>
 
 {#if editing}
-	<div class="editor">
+	<div class="editor" bind:this={editorEl}>
 		<div class="editor-title">
 			{isNew
 				? m['settings.extraFields.editorNew']({ entity: entityLabel })
 				: m['settings.extraFields.editorEdit']({ entity: entityLabel })}
+			<!-- Same asterisk convention as the add-spool form, explained the same way. -->
+			<span class="req-legend">{@render req()} {m['add.requiredLegend']()}</span>
 		</div>
 		<div class="form">
-			<label class="fld">
-				<span>{m['settings.extraFields.params.key']()}</span>
-				<input class="in mono" bind:value={key} disabled={!isNew} placeholder="lower_snake_case" />
+			<label class="fld" data-field="key">
+				<span>{m['settings.extraFields.params.key']()} {@render req()}</span>
+				<input
+					class="in mono"
+					class:invalid={errorField === 'key'}
+					bind:value={key}
+					disabled={!isNew}
+					aria-required="true"
+					aria-invalid={errorField === 'key'}
+					placeholder="lower_snake_case"
+				/>
 			</label>
 			<label class="fld">
 				<span>{m['settings.extraFields.params.order']()}</span>
@@ -313,9 +344,16 @@
 					bind:value={orderText}
 				/>
 			</label>
-			<label class="fld wide">
-				<span>{m['settings.extraFields.params.name']()}</span>
-				<input class="in" bind:value={name} placeholder={m['settings.extraFields.namePlaceholder']()} />
+			<label class="fld wide" data-field="name">
+				<span>{m['settings.extraFields.params.name']()} {@render req()}</span>
+				<input
+					class="in"
+					class:invalid={errorField === 'name'}
+					bind:value={name}
+					aria-required="true"
+					aria-invalid={errorField === 'name'}
+					placeholder={m['settings.extraFields.namePlaceholder']()}
+				/>
 			</label>
 			<label class="fld">
 				<span>{m['settings.extraFields.params.fieldType']()}</span>
@@ -342,9 +380,9 @@
 					<span>{m['settings.extraFields.multiple']()}</span>
 					<input type="checkbox" bind:checked={multiChoice} disabled={!isNew} />
 				</label>
-				<div class="fld wide">
-					<span>{m['settings.extraFields.params.choices']()}</span>
-					<div class="chips">
+				<div class="fld wide" data-field="choices">
+					<span>{m['settings.extraFields.params.choices']()} {@render req()}</span>
+					<div class="chips" class:invalid={errorField === 'choices'}>
 						{#each choices as c (c)}
 							<span
 								class="chip"
@@ -400,7 +438,14 @@
 			</div>
 		</div>
 
-		{#if error}<div class="error">{error}</div>{/if}
+		<!-- Save is never disabled: pressing it is how you find out what's missing,
+		     and the message names the field it came from. -->
+		{#if error}
+			<div class="error" role="alert">
+				<TriangleAlert size={13} />
+				<span>{error}</span>
+			</div>
+		{/if}
 
 		<div class="editor-actions">
 			<button class="btn ghost" onclick={cancel}>{m['buttons.cancel']()}</button>
@@ -550,6 +595,19 @@
 	.in:disabled {
 		opacity: 0.55;
 	}
+	.in.invalid,
+	.chips.invalid {
+		border-color: var(--danger);
+	}
+	.req {
+		color: var(--accent-soft);
+	}
+	.req-legend {
+		margin-left: 8px;
+		font-size: 11.5px;
+		font-weight: 400;
+		color: var(--text-faint);
+	}
 	.def-input {
 		background: var(--input-bg);
 		border: 1px solid var(--border-input);
@@ -608,6 +666,9 @@
 		font-size: 12.5px;
 	}
 	.error {
+		display: flex;
+		align-items: center;
+		gap: 7px;
 		margin-top: 10px;
 		color: var(--danger-soft);
 		font-size: 12px;
