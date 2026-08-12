@@ -10,7 +10,6 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
-	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import ExtraFieldsSection from './ExtraFieldsSection.svelte';
 	import type { Filament, Extra, MultiColorDirection } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
@@ -411,12 +410,12 @@
 	async function submit(andAnother = false) {
 		if (submitting || !(creating || chosen)) return;
 		// The button stays clickable while the form is incomplete: a dead button
-		// answers "why can't I add this?" with silence. Pressing it instead reveals
-		// every outstanding error at once, opens the section hiding one, lists them
-		// above the button, and drops the caret in the first field to fix.
-		if (problems.length > 0) {
+		// answers "why can't I add this?" with silence. Pressing it instead marks
+		// every outstanding error visible and takes you to the first one — opening
+		// the section hiding it, scrolling it into view and focusing it.
+		if (firstProblem) {
 			attempted = true;
-			await focusField(problems[0].key);
+			await focusField(firstProblem);
 			return;
 		}
 		submitting = true;
@@ -557,44 +556,32 @@
 		return e;
 	});
 
-	// --- telling the user what is missing -----------------------------------
-	// Every field that can carry an error, in the order it appears on the form, so
-	// the summary reads top-to-bottom like the form does. Keys not listed here still
-	// show up in the summary — under their raw key rather than a label — so a new
-	// error can never block submission invisibly.
-	const FIELD_LABELS: { key: string; label: () => string }[] = [
-		{ key: 'vendor', label: m['filament.fields.vendor'] },
-		{ key: 'name', label: m['filament.fields.name'] },
-		{ key: 'material', label: m['filament.fields.material'] },
-		{ key: 'colorHex', label: m['filament.fields.colorHex'] },
-		{ key: 'density', label: m['filament.fields.density'] },
-		{ key: 'diameter', label: m['filament.fields.diameter'] },
-		{ key: 'nozzleTemp', label: m['filament.fields.settingsExtruderTemp'] },
-		{ key: 'bedTemp', label: m['filament.fields.settingsBedTemp'] },
-		{ key: 'count', label: m['add.count'] },
-		{ key: 'netWeight', label: m['filament.fields.weight'] },
-		{ key: 'spoolWeight', label: m['filament.fields.spoolWeight'] },
-		{ key: 'price', label: m['filament.fields.price'] },
-		{ key: 'fillWeight', label: m['add.fillLevel'] }
+	// --- pointing at what's wrong -------------------------------------------
+	// The fields that can carry an error, in the order they appear on the form, so
+	// pressing Add sends you to the first one you'd have reached by reading down.
+	// Anything not listed falls back to whatever the error map yields, so a new
+	// error can never make Add silently do nothing.
+	const FIELD_ORDER = [
+		'vendor',
+		'name',
+		'material',
+		'colorHex',
+		'density',
+		'diameter',
+		'nozzleTemp',
+		'bedTemp',
+		'count',
+		'netWeight',
+		'spoolWeight',
+		'price',
+		'fillWeight'
 	];
 	// Fields inside the collapsed "Advanced specs" block. An error in here is
 	// invisible until the block is opened — the one case where the form really could
-	// look complete and still refuse to submit — so both the summary and the toggle
-	// have to account for it.
+	// look complete and still refuse to submit — so jumping to one has to open it.
 	const ADVANCED_KEYS = new Set(['density', 'diameter', 'nozzleTemp', 'bedTemp']);
 
-	let problems = $derived.by(() => {
-		const listed = new Set(FIELD_LABELS.map((f) => f.key));
-		const out = FIELD_LABELS.filter((f) => errors[f.key]).map((f) => ({
-			key: f.key,
-			label: f.label(),
-			msg: errors[f.key]
-		}));
-		for (const k of Object.keys(errors)) if (!listed.has(k)) out.push({ key: k, label: k, msg: errors[k] });
-		return out;
-	});
-	// Shown next to the collapsed toggle so a hidden problem is still countable.
-	let advancedProblems = $derived(problems.filter((p) => ADVANCED_KEYS.has(p.key)).length);
+	let firstProblem = $derived(FIELD_ORDER.find((k) => errors[k]) ?? Object.keys(errors)[0]);
 
 	function touch(key: string) {
 		touched[key] = true;
@@ -640,8 +627,6 @@
 					<!-- Creating a filament puts manufacturer and filament fields on this step
 					     too, so the hint can't call the whole step "spool details". -->
 					<span class="step-hint">{creating ? m['add.step2New']() : m['add.step2']()}</span>
-					<!-- Says what the asterisks mean, once, where they're first seen. -->
-					<span class="req-legend">{@render req()} {m['add.requiredLegend']()}</span>
 				{/if}
 				<button class="x" onclick={close} aria-label={m['buttons.close']()}><X size={16} /></button>
 			</div>
@@ -813,14 +798,7 @@
 							<button class="adv-toggle" onclick={() => (showAdvanced = !showAdvanced)}>
 								{#if showAdvanced}<ChevronDown size={14} />{:else}<ChevronRight size={14} />{/if}
 								{m['add.advanced']()}
-								<!-- A collapsed section can hide a required field (density is only
-								     prefilled for known materials), so count what's wrong inside it
-								     rather than let the block look settled. -->
-								{#if !showAdvanced && attempted && advancedProblems > 0}
-									<span class="adv-badge">{m['add.problems']({ count: advancedProblems })}</span>
-								{:else if !showAdvanced}
-									<span class="adv-note">{m['add.advancedNote']()}</span>
-								{/if}
+								{#if !showAdvanced}<span class="adv-note">{m['add.advancedNote']()}</span>{/if}
 							</button>
 							{#if showAdvanced}
 								<div class="form">
@@ -1088,29 +1066,6 @@
 
 					<ExtraFieldsSection entity="spool" extra={extraValues} onchange={setExtra} />
 
-					<!-- Appears only once Add has been pressed, then stays as a live checklist:
-					     rows disappear as they're fixed. Each row jumps to its field, which is
-					     the whole point — reading "Density: Required" is no help if you can't
-					     find Density. -->
-					{#if attempted && problems.length > 0}
-						<div class="problems" role="alert">
-							<div class="p-head">
-								<TriangleAlert size={14} />
-								{m['add.problemsLead']({ count: problems.length })}
-							</div>
-							<ul class="p-list">
-								{#each problems as p (p.key)}
-									<li>
-										<button type="button" class="p-item" onclick={() => focusField(p.key)}>
-											<span class="p-name">{p.label}</span>
-											<span class="p-msg">{p.msg}</span>
-										</button>
-									</li>
-								{/each}
-							</ul>
-						</div>
-					{/if}
-
 					<div class="submit-row">
 						<div class="summary">{summary}</div>
 						<div class="actions">
@@ -1165,10 +1120,7 @@
 	.modal-head {
 		display: flex;
 		align-items: center;
-		/* Wraps rather than squeezes: the step hint and the asterisk legend both sit
-		   here, and on a phone they don't fit on one line next to the title. */
-		flex-wrap: wrap;
-		gap: 4px 10px;
+		gap: 10px;
 		padding: 16px 20px 0;
 		flex: none;
 	}
@@ -1179,11 +1131,6 @@
 	.step-hint {
 		font-size: 11.5px;
 		color: var(--text-dim);
-	}
-	.req-legend {
-		font-size: 11.5px;
-		color: var(--text-faint);
-		white-space: nowrap;
 	}
 	.x {
 		margin-left: auto;
@@ -1454,13 +1401,6 @@
 	.adv-note {
 		color: var(--text-faint);
 	}
-	.adv-badge {
-		border: 1px solid var(--danger);
-		border-radius: 999px;
-		padding: 1px 8px;
-		font-size: 11px;
-		color: var(--danger-soft);
-	}
 	.form {
 		display: grid;
 		grid-template-columns: 1fr 1fr 1fr;
@@ -1647,61 +1587,6 @@
 	}
 	.fill-help.is-error {
 		color: var(--danger-soft);
-	}
-	.problems {
-		margin-top: 18px;
-		padding: 10px 12px;
-		border: 1px solid var(--danger);
-		border-radius: var(--radius-md);
-		background: var(--surface-2);
-	}
-	.p-head {
-		display: flex;
-		align-items: center;
-		gap: 7px;
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--danger-soft);
-	}
-	.p-list {
-		list-style: none;
-		margin: 6px 0 0;
-		padding: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-	.p-item {
-		display: flex;
-		align-items: baseline;
-		gap: 8px;
-		width: 100%;
-		/* Tall enough to be a comfortable tap target on the phone layout. */
-		min-height: 26px;
-		padding: 4px 6px;
-		margin-left: -6px;
-		border: none;
-		border-radius: var(--radius);
-		background: none;
-		color: inherit;
-		font-family: inherit;
-		font-size: 12px;
-		text-align: left;
-		cursor: pointer;
-	}
-	.p-item:hover {
-		background: var(--surface-raised);
-	}
-	.p-name {
-		font-weight: 600;
-		color: var(--text-2);
-		/* Reads as the link it is: clicking jumps to the field. */
-		text-decoration: underline;
-		text-decoration-style: dotted;
-		text-underline-offset: 2px;
-	}
-	.p-msg {
-		color: var(--text-muted);
 	}
 	.submit-row {
 		display: flex;

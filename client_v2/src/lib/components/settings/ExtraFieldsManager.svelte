@@ -15,7 +15,6 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import X from '@lucide/svelte/icons/x';
 	import GripVertical from '@lucide/svelte/icons/grip-vertical';
-	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 
 	const ENTITIES: { key: EntityType; label: () => string }[] = [
 		{ key: 'spool', label: m['library.section.spool'] },
@@ -318,8 +317,6 @@
 			{isNew
 				? m['settings.extraFields.editorNew']({ entity: entityLabel })
 				: m['settings.extraFields.editorEdit']({ entity: entityLabel })}
-			<!-- Same asterisk convention as the add-spool form, explained the same way. -->
-			<span class="req-legend">{@render req()} {m['add.requiredLegend']()}</span>
 		</div>
 		<div class="form">
 			<label class="fld" data-field="key">
@@ -439,13 +436,8 @@
 		</div>
 
 		<!-- Save is never disabled: pressing it is how you find out what's missing,
-		     and the message names the field it came from. -->
-		{#if error}
-			<div class="error" role="alert">
-				<TriangleAlert size={13} />
-				<span>{error}</span>
-			</div>
-		{/if}
+		     and the field it came from is outlined and focused. -->
+		{#if error}<div class="error" role="alert">{error}</div>{/if}
 
 		<div class="editor-actions">
 			<button class="btn ghost" onclick={cancel}>{m['buttons.cancel']()}</button>
@@ -602,12 +594,6 @@
 	.req {
 		color: var(--accent-soft);
 	}
-	.req-legend {
-		margin-left: 8px;
-		font-size: 11.5px;
-		font-weight: 400;
-		color: var(--text-faint);
-	}
 	.def-input {
 		background: var(--input-bg);
 		border: 1px solid var(--border-input);
@@ -666,9 +652,6 @@
 		font-size: 12.5px;
 	}
 	.error {
-		display: flex;
-		align-items: center;
-		gap: 7px;
 		margin-top: 10px;
 		color: var(--danger-soft);
 		font-size: 12px;
