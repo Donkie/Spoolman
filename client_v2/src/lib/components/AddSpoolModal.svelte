@@ -500,6 +500,11 @@
 	// Mirrors the filament creation API (spoolman/api/v1/filament.py):
 	// density & diameter are required and must be > 0; name/material ≤ 64 chars;
 	// weight > 0, spool_weight/price ≥ 0; color_hex must be 6 or 8 hex chars.
+	// Material is the one field this form is stricter about than the API, which
+	// accepts a null one. Leaving it blank is nearly always an oversight, and it
+	// takes density down with it: density is only prefilled for a material we
+	// recognise, so a blank material surfaced as "Density is required" — an error
+	// on the field the user didn't fill in *because of* the field they did miss.
 	function numErr(
 		v: string,
 		{ required = false, min, max, gt }: { required?: boolean; min?: number; max?: number; gt?: number } = {}
@@ -520,7 +525,8 @@
 		if (creating) {
 			if (nf.name.trim().length === 0) e.name = m['validation.required']();
 			else if (nf.name.trim().length > 64) e.name = m['validation.maxChars']({ max: 64 });
-			if (nf.material.trim().length > 64) e.material = m['validation.maxChars']({ max: 64 });
+			if (nf.material.trim().length === 0) e.material = m['validation.required']();
+			else if (nf.material.trim().length > 64) e.material = m['validation.maxChars']({ max: 64 });
 			if (nf.vendorName.trim().length > 64) e.vendor = m['validation.maxChars']({ max: 64 });
 			e.density = numErr(nf.density, { required: true, gt: 0 });
 			e.diameter = numErr(nf.diameter, { required: true, gt: 0 });
@@ -771,10 +777,12 @@
 								</label>
 								<label data-field="material" onfocusout={() => touch('material')}>
 									{m['filament.fields.material']()}
+									{@render req()}
 									<Combobox
 										value={nf.material}
 										options={materialNames}
 										placeholder="PLA"
+										required
 										invalid={!!err('material')}
 										oninput={onMaterial}
 									/>
