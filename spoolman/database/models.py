@@ -94,6 +94,14 @@ class Spool(Base):
         cascade="save-update, merge, delete, delete-orphan",
         lazy="selectin",
     )
+    # selectin for the same reason as `extra` above: a spool listing already joins
+    # filament and vendor, and a joined collection here would multiply against the
+    # extra-field rows.
+    tags: Mapped[list["SpoolTag"]] = relationship(
+        back_populates="spool",
+        cascade="save-update, merge, delete, delete-orphan",
+        lazy="selectin",
+    )
 
 
 class Setting(Base):
@@ -129,3 +137,27 @@ class SpoolField(Base):
     spool: Mapped["Spool"] = relationship(back_populates="extra")
     key: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
     value: Mapped[str] = mapped_column(Text())
+
+
+class SpoolTag(Base):
+    """A physical NFC/RFID tag linked to a spool.
+
+    Many tags per spool is a real case rather than a hypothetical: copying a Prusa NFC-V
+    tag's payload onto an NTAG215 so a PN532 can read it leaves one spool carrying two
+    physical tags with two different UIDs (#776).
+
+    The unique index on `uid` is the point of the table -- one tag, one spool, enforced.
+    It only means that because every write goes through `spoolman.tags.normalize_uid`;
+    see the module docstring there.
+    """
+
+    __tablename__ = "spool_tag"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    spool_id: Mapped[int] = mapped_column(ForeignKey("spool.id"), index=True)
+    spool: Mapped["Spool"] = relationship(back_populates="tags")
+    uid: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    # Free-ish string (openprinttag, ntag, bambu, ...) rather than an enum: informational
+    # in phase 1, and new tag types appear faster than migrations should.
+    format: Mapped[str | None] = mapped_column(String(32))
+    added: Mapped[datetime] = mapped_column()

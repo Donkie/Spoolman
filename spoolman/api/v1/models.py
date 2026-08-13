@@ -87,6 +87,17 @@ class Message(BaseModel):
     message: str = Field()
 
 
+class TagConflictMessage(Message):
+    """A tag UID is already linked to a different spool.
+
+    Subclasses Message so the `message` key is where it is in every other error body, and
+    adds the conflicting spool's ID so a client can offer to move the tag there instead of
+    making the user go and find it.
+    """
+
+    spool_id: int = Field(description="The spool the tag is already linked to.", examples=[42])
+
+
 class SettingResponse(BaseModel):
     value: str = Field(description="Setting value.")
     is_set: bool = Field(description="Whether the setting has been set. If false, 'value' contains the default value.")
@@ -282,6 +293,32 @@ class Filament(BaseModel):
         )
 
 
+class SpoolTag(BaseModel):
+    """A physical NFC/RFID tag linked to a spool."""
+
+    uid: str = Field(
+        description=(
+            "The tag's hardware UID, normalized to uppercase hexadecimal with separators "
+            "stripped. Unique across all spools: one tag identifies exactly one spool."
+        ),
+        examples=["04A2B3C4D5E6F7"],
+    )
+    format: str | None = Field(
+        None,
+        description=(
+            "What kind of tag this is, e.g. openprinttag, ntag, bambu, tigertag. "
+            "Informational, free-form, and not validated against a fixed list."
+        ),
+        examples=["ntag"],
+    )
+    added: SpoolmanDateTime = Field(description="When the tag was linked to the spool. UTC Timezone.")
+
+    @staticmethod
+    def from_db(item: models.SpoolTag) -> "SpoolTag":
+        """Create a new Pydantic spool tag object from a database spool tag object."""
+        return SpoolTag(uid=item.uid, format=item.format, added=item.added)
+
+
 class Spool(BaseModel):
     id: int = Field(description="Unique internal ID of this spool of filament.")
     registered: SpoolmanDateTime = Field(description="When the spool was registered in the database. UTC Timezone.")
@@ -362,6 +399,13 @@ class Spool(BaseModel):
     extra: dict[str, str] = Field(
         description=_extra_fields_description("spool"),
     )
+    tags: list[SpoolTag] = Field(
+        default_factory=list,
+        description=(
+            "NFC/RFID tags linked to this spool. A spool can carry more than one tag, e.g. when a "
+            "vendor tag has been copied onto a blank sticker. Empty if none are linked."
+        ),
+    )
 
     @staticmethod
     def from_db(item: models.Spool) -> "Spool":
@@ -410,6 +454,7 @@ class Spool(BaseModel):
             comment=item.comment,
             archived=item.archived if item.archived is not None else False,
             extra={field.key: field.value for field in item.extra},
+            tags=[SpoolTag.from_db(tag) for tag in item.tags],
         )
 
 
@@ -563,6 +608,69 @@ class SearchResults(BaseModel):
     )
 
 
+class TagScan(BaseModel):
+    """One tag read reported by a reader-side agent.
+
+    Scans are ephemeral: they are broadcast to the scan websockets and never stored. The
+    match is resolved server-side and included, so an agent that ignores websockets
+    entirely can use the scan endpoint as a one-shot lookup.
+    """
+
+    uid: str = Field(
+        description="The scanned tag's UID, normalized to uppercase hexadecimal with separators stripped.",
+        examples=["04A2B3C4D5E6F7"],
+    )
+    reader_id: str = Field(
+        description=(
+            "Which reader reported the scan. Either the id the agent sent, or one derived from its "
+            "network address when it sent none."
+        ),
+        examples=["printer-voron"],
+    )
+    name: str | None = Field(
+        None,
+        description="Human-readable name for the reader, if it sent one.",
+        examples=["Voron spool holder"],
+    )
+    format: str | None = Field(
+        None,
+        description="What kind of tag this is, if the agent could tell.",
+        examples=["ntag"],
+    )
+    payload_b64: str | None = Field(
+        None,
+        description=(
+            "The tag's raw contents, base64-encoded, if the agent read them. Carried through "
+            "untouched: Spoolman does not decode tag contents."
+        ),
+    )
+    matched_spool_id: int | None = Field(
+        None,
+        description="The spool this tag is linked to, or null if the tag is not known to Spoolman.",
+        examples=[42],
+    )
+    spool: Spool | None = Field(
+        None,
+        description="The matched spool, so a client needs no follow-up request. Null if the tag is unknown.",
+    )
+
+
+class TagReader(BaseModel):
+    """A reader that has reported a scan recently.
+
+    The registry is in-memory and is not persisted: a reader reappears the moment it
+    scans again, and the list is empty after a restart until one does.
+    """
+
+    reader_id: str = Field(description="The reader's id.", examples=["printer-voron"])
+    name: str | None = Field(
+        None,
+        description="Human-readable name for the reader, if it has sent one.",
+        examples=["Voron spool holder"],
+    )
+    last_seen: SpoolmanDateTime = Field(description="When this reader last reported a scan. UTC Timezone.")
+
+
 class Info(BaseModel):
     version: str = Field(examples=["0.7.0"])
     debug_mode: bool = Field(examples=[False])
@@ -607,6 +715,9 @@ class EventType(str, Enum):
     ADDED = "added"
     UPDATED = "updated"
     DELETED = "deleted"
+    # Only ever emitted on the dedicated scan websockets (see TagScanEvent), never on the
+    # entity ones, so no existing consumer can receive it.
+    SCANNED = "scanned"
 
 
 class Event(BaseModel):
@@ -644,3 +755,15 @@ class SettingEvent(Event):
 
     payload: SettingKV = Field(description="Updated setting.")
     resource: Literal["setting"] = Field(description="Resource type.")
+
+
+class TagScanEvent(Event):
+    """A tag was scanned by a reader.
+
+    Travels ONLY on the dedicated scan websockets, which are a separate subscription tree
+    from the entity ones. It therefore never reaches the root /api/v1/ websocket, whose
+    subscribers asked to hear about changes to data -- and a scan changes nothing.
+    """
+
+    payload: TagScan = Field(description="The scan.")
+    resource: Literal["tag_scan"] = Field(description="Resource type.")
