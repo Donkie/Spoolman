@@ -23,8 +23,10 @@
 		width?: string;
 		/** Add the 5px top margin used by form fields under their label. */
 		spaced?: boolean;
-		/** Render with an error outline. */
+		/** Render with an error outline. Also announced via aria-invalid. */
 		invalid?: boolean;
+		/** Announce the field as required. The visible marker is the caller's `*`. */
+		required?: boolean;
 		/** Optional unit shown inside the input on the right (e.g. "mm", "g"). */
 		unit?: string;
 		/** Compact sizing for dense side panels (smaller font/padding). */
@@ -48,6 +50,7 @@
 		width = '100%',
 		spaced = false,
 		invalid = false,
+		required = false,
 		unit,
 		dense = false,
 		disabled = false,
@@ -129,6 +132,8 @@
 		{disabled}
 		aria-label={ariaLabel}
 		aria-labelledby={ariaLabel ? undefined : labelId}
+		aria-required={required ? 'true' : undefined}
+		aria-invalid={invalid ? 'true' : undefined}
 		inputmode="decimal"
 		autocomplete="off"
 		spellcheck="false"

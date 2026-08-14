@@ -13,7 +13,13 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import FunctionElement
 
 from spoolman.database import models
-from spoolman.database.utils import LIKE_ESCAPE, SortOrder, escape_like, order_by_clauses
+from spoolman.database.utils import (
+    LIKE_ESCAPE,
+    SortOrder,
+    escape_like,
+    order_by_clauses,
+    split_datetime_range_filter,
+)
 from spoolman.extra_field_registry import EntityType, ExtraField, ExtraFieldType, get_extra_fields
 
 if TYPE_CHECKING:
@@ -423,22 +429,25 @@ def add_where_clause_extra_field(  # noqa: C901, PLR0912, PLR0915
                 field_condition = _JsonScalarText(field_table.value) == parsed_value
         elif field_type == ExtraFieldType.datetime:
             # Compare decoded ISO-8601 strings. Both bounds and stored values are the frontend's
-            # canonical toISOString() output, so lexicographic comparison is chronological.
+            # canonical toISOString() output, so lexicographic comparison is chronological. That
+            # assumption is what makes this differ from the built-in datetime columns, which parse
+            # the bound and compare real datetimes: here an equivalent spelling of the same instant
+            # (a UTC offset, or a missing '.000') compares as a different string.
+            #
+            # The *grammar* is shared even though the comparison is not, so the split comes from
+            # the same helper the built-in columns use (see add_where_clause_datetime_opt).
             decoded = _JsonScalarText(field_table.value)
-            if "|" in parsed_value:
-                start_str, end_str = parsed_value.split("|", 1)
+            ends = split_datetime_range_filter(parsed_value, field_key)
+            if ends is None:
+                field_condition = decoded == parsed_value
+            else:
+                start_str, end_str = ends
                 dt_conditions = []
                 if start_str:
                     dt_conditions.append(decoded >= start_str)
                 if end_str:
                     dt_conditions.append(decoded <= end_str)
-                if not dt_conditions:
-                    raise ValueError(
-                        f"Invalid datetime range filter for '{field_key}': {parsed_value}. Expected '<start>|<end>'."
-                    )
                 field_condition = sqlalchemy.and_(*dt_conditions)
-            else:
-                field_condition = decoded == parsed_value
         elif field_type in (ExtraFieldType.integer_range, ExtraFieldType.float_range):
             if ":" not in parsed_value:
                 raise ValueError(

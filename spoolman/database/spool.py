@@ -24,6 +24,7 @@ from spoolman.database.extra_field_query import (
 )
 from spoolman.database.utils import (
     SortOrder,
+    add_where_clause_datetime_opt,
     add_where_clause_int,
     add_where_clause_int_opt,
     add_where_clause_str,
@@ -141,6 +142,9 @@ async def find(  # noqa: C901
     lot_nr: str | None = None,
     tag: str | None = None,
     allow_archived: bool = False,
+    first_used: str | None = None,
+    last_used: str | None = None,
+    registered: str | None = None,
     extra_field_filters: dict[str, str] | None = None,
     filament_extra_field_filters: dict[str, str] | None = None,
     vendor_extra_field_filters: dict[str, str] | None = None,
@@ -167,6 +171,9 @@ async def find(  # noqa: C901
         lot_nr=lot_nr,
         tag=tag,
         allow_archived=allow_archived,
+        first_used=first_used,
+        last_used=last_used,
+        registered=registered,
     ).options(contains_eager(models.Spool.filament).contains_eager(models.Filament.vendor))
 
     total_count = None
@@ -277,6 +284,9 @@ def _apply_spool_filters(
     lot_nr: str | None = None,
     tag: str | None = None,
     allow_archived: bool = False,
+    first_used: str | None = None,
+    last_used: str | None = None,
+    registered: str | None = None,
 ) -> sqlalchemy.Select:
     """Apply the standard spool joins and where-clauses shared by find and find_groups."""
     stmt = stmt.join(models.Spool.filament, isouter=True).join(models.Filament.vendor, isouter=True)
@@ -296,6 +306,9 @@ def _apply_spool_filters(
     stmt = add_where_clause_str_opt(stmt, models.Filament.multi_color_direction, filament_multi_color_direction)
     stmt = add_where_clause_str_opt(stmt, models.Spool.location, location)
     stmt = add_where_clause_str_opt(stmt, models.Spool.lot_nr, lot_nr)
+    stmt = add_where_clause_datetime_opt(stmt, models.Spool.first_used, first_used)
+    stmt = add_where_clause_datetime_opt(stmt, models.Spool.last_used, last_used)
+    stmt = add_where_clause_datetime_opt(stmt, models.Spool.registered, registered)
     if not allow_archived:
         # archived is nullable with a default of false, so match both false and null.
         stmt = stmt.where(
@@ -392,6 +405,9 @@ async def find_groups(
     location: str | None = None,
     lot_nr: str | None = None,
     allow_archived: bool = False,
+    first_used: str | None = None,
+    last_used: str | None = None,
+    registered: str | None = None,
     extra_field_filters: dict[str, str] | None = None,
     filament_extra_field_filters: dict[str, str] | None = None,
     vendor_extra_field_filters: dict[str, str] | None = None,
@@ -422,14 +438,16 @@ async def find_groups(
     spool_count = func.count().label("spool_count")
     in_use_count = func.sum(case((models.Spool.used_weight > 0, 1), else_=0)).label("in_use_count")
     total_remaining = func.sum(remaining_expr).label("total_remaining_weight")
-    last_used = func.max(models.Spool.last_used).label("last_used")
+    # Named apart from the `last_used` filter parameter above: this is the group's aggregate, and
+    # letting it shadow the parameter would hand a SQL expression to the filter builder.
+    last_used_agg = func.max(models.Spool.last_used).label("last_used")
 
     stmt = sqlalchemy.select(
         group_col.label("group_key"),
         spool_count,
         in_use_count,
         total_remaining,
-        last_used,
+        last_used_agg,
     )
     stmt = _apply_spool_filters(
         stmt,
@@ -442,6 +460,9 @@ async def find_groups(
         location=location,
         lot_nr=lot_nr,
         allow_archived=allow_archived,
+        first_used=first_used,
+        last_used=last_used,
+        registered=registered,
     )
     if extra_join is not None:
         stmt = extra_join.apply(stmt, models.Spool.id)
@@ -474,7 +495,7 @@ async def find_groups(
         "group.spool_count": spool_count,
         "group.in_use_count": in_use_count,
         "group.total_remaining": total_remaining,
-        "group.last_used": last_used,
+        "group.last_used": last_used_agg,
         "group.title": func.min(title_col),
     }
     applied_sort = False

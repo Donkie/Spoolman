@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSpoolViaModal, openApp, searchFor, unique } from "./helpers";
+import { createSpoolViaModal, numberField, openApp, searchFor, unique } from "./helpers";
 
 /**
  * Re-pointing a spool at a different filament (issue #1010).
@@ -86,5 +86,95 @@ test("change which filament a spool holds, keeping the spool itself", async ({ p
     await page.reload();
     await expect(inspector).toContainText(newFilament);
     await expect(inspector.locator(".idmono").first()).toHaveText(spoolId);
+  });
+});
+
+/**
+ * Refilling a slot with a filament that isn't catalogued yet — the follow-up on
+ * issue #1010, and the ordinary case for anyone whose spool numbers are shelf
+ * positions: the roll that goes into slot #13 is usually one they have never
+ * bought before. Without this path the only way through is to add a spool in
+ * order to mint the filament and then delete it again, which hands out exactly
+ * the new spool id the feature exists to avoid.
+ *
+ * So the load-bearing assertion is the count: the library still holds the one
+ * spool we started with.
+ */
+test("create a brand-new filament while changing what a spool holds", async ({ page }) => {
+  const vendorName = unique("Vendor");
+  const oldFilament = unique("OldFilament");
+  const locationName = unique("Shelf");
+  // Entered nowhere else: these exist only in the change dialog's own form.
+  const newVendor = unique("FreshVendor");
+  const newFilament = unique("FreshFilament");
+
+  await openApp(page);
+  await createSpoolViaModal(page, { vendorName, filamentName: oldFilament, locationName, weightG: 1000, usedG: 250 });
+
+  const countSpools = () => page.evaluate(async () => ((await (await fetch("/api/v1/spool")).json()) as []).length);
+  const spoolsBefore = await countSpools();
+
+  const panel = await searchFor(page, locationName);
+  await panel.getByRole("link").filter({ hasText: locationName }).first().click();
+  const inspector = page.locator(".insp");
+  const spoolId = (await inspector.locator(".idmono").first().innerText()).trim();
+
+  await test.step("describe a filament that exists in neither source", async () => {
+    await inspector.getByRole("button", { name: "Change", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+
+    await dialog.getByRole("button", { name: /^Create a new filament/ }).click();
+    // The form replaces the picker rather than stacking on top of it.
+    await expect(dialog.locator("input.search-big")).toBeHidden();
+
+    // A form you just opened says nothing; pressing the button on an empty one
+    // reveals what is outstanding and takes you to the first of it, rather than
+    // going dead. Same contract as the add-spool form it shares its cards with.
+    await expect(dialog.locator(".err")).toHaveCount(0);
+    await dialog.getByRole("button", { name: "Change filament", exact: true }).click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator(".err").first()).toBeVisible();
+    await expect(dialog.getByPlaceholder("e.g. PolyTerra Matte Sage")).toBeFocused();
+
+    await dialog.getByPlaceholder("e.g. Polymaker").fill(newVendor);
+    await dialog.getByPlaceholder("e.g. PolyTerra Matte Sage").fill(newFilament);
+    await dialog.getByPlaceholder("PLA", { exact: true }).fill("ABS");
+    await expect(dialog.getByText(`New manufacturer “${newVendor}” will be created`)).toBeVisible();
+
+    // No spool is being created here, so the filament's own weight sits on this
+    // form. 600 g of it, against the 250 g already used, leaves 350 g.
+    await numberField(dialog, "Weight").fill("600");
+
+    // Density is required, and must not depend on the SpoolmanDB lookup.
+    await dialog.getByRole("button", { name: /^Advanced specs/ }).click();
+    await numberField(dialog, "Density").fill("1.04");
+
+    // The spool carries the old filament's 1000 g as its own full weight, so the
+    // dialog offers the new figure instead and says what it leaves.
+    await expect(dialog.getByRole("checkbox")).toBeChecked();
+    await expect(dialog).toContainText("350 g");
+
+    await dialog.getByRole("button", { name: "Change filament", exact: true }).click();
+    await expect(dialog).toBeHidden();
+  });
+
+  await test.step("the spool now holds it, and no second spool was minted", async () => {
+    await expect(inspector).toContainText(newFilament);
+    await expect(inspector).not.toContainText(oldFilament);
+    await expect(inspector.locator(".idmono").first()).toHaveText(spoolId);
+    await expect(inspector.locator(".gauge")).toContainText("350");
+    expect(await countSpools()).toBe(spoolsBefore);
+  });
+
+  await test.step("the filament and its manufacturer became real records", async () => {
+    await page.reload();
+    await expect(inspector).toContainText(newFilament);
+    // Reachable through the same search as everything else, i.e. it landed in the
+    // catalog rather than living only on this spool.
+    const results = await searchFor(page, newFilament);
+    await expect(results.getByRole("link").filter({ hasText: newFilament }).first()).toBeVisible();
+    const vendorResults = await searchFor(page, newVendor);
+    await expect(vendorResults.getByRole("link").filter({ hasText: newVendor }).first()).toBeVisible();
   });
 });

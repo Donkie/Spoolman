@@ -216,6 +216,97 @@ test("filtering the library by location narrows it, and the chip clears it", asy
   });
 });
 
+test("filtering the library by a date range", async ({ page }) => {
+  await openApp(page);
+
+  // Pin the list to this spec's spools first; the library is paginated.
+  await addFilter(page, "Location", first.locationName);
+
+  const openDateMenu = async () => {
+    const menu = await openToolbarMenu(page, "Filter");
+    await menu.getByRole("button", { name: "Registered", exact: true }).click();
+    return menu;
+  };
+
+  await test.step("a preset range narrows the list", async () => {
+    // These spools were created seconds ago, so "the last 24 hours" keeps them and
+    // "older than a year" cannot. Registered is the one timestamp every spool has.
+    const menu = await openDateMenu();
+    await menu.getByRole("button", { name: "Last 24 hours", exact: true }).click();
+
+    await expect(page.getByRole("button", { name: "Registered: Last 24 hours" })).toBeVisible();
+    await expect(page.getByText(first.filamentName, { exact: true })).toBeVisible();
+  });
+
+  await test.step("the range stays relative across a reload", async () => {
+    // The URL carries the range itself, not the instant it resolved to, so a
+    // reloaded (or shared) view re-asks the question against the current clock.
+    await expect(page).toHaveURL(/registered(:|%3A)-24h/);
+    await page.reload();
+
+    await expect(page.getByRole("button", { name: "Registered: Last 24 hours" })).toBeVisible();
+    await expect(page.getByText(first.filamentName, { exact: true })).toBeVisible();
+  });
+
+  await test.step("picking another range replaces it instead of stacking", async () => {
+    const menu = await openDateMenu();
+    await menu.getByRole("button", { name: "Older than 1 year", exact: true }).click();
+
+    await expect(page.getByRole("button", { name: "Registered: Older than 1 year" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Registered: Last 24 hours" })).toHaveCount(0);
+    // Nothing this new can be a year old, so the list empties out.
+    await expect(page.getByText(first.filamentName, { exact: true })).toHaveCount(0);
+  });
+
+  await test.step("a custom range with an open end", async () => {
+    // Leaving the "to" field empty is what makes the range open-ended, which is
+    // the whole reason the custom range is two separate fields.
+    const menu = await openDateMenu();
+    await menu.locator('input[type="date"]').first().fill("2020-01-01");
+    await menu.getByRole("button", { name: "Apply", exact: true }).click();
+
+    // The date is rendered through Intl, so its order is the locale's business
+    // ("Jan 1, 2020" / "1 Jan 2020"); only the phrasing around it is ours.
+    const chip = page.getByRole("button", { name: /^Registered: Since .*2020/ });
+    await expect(chip).toBeVisible();
+    await expect(page.getByText(first.filamentName, { exact: true })).toBeVisible();
+  });
+
+  await test.step("the chip clears the range again", async () => {
+    await page.getByRole("button", { name: /^Registered: Since .*2020/ }).click();
+
+    await expect(page.getByRole("button", { name: /^Registered:/ })).toHaveCount(0);
+    await expect(page.getByText(first.filamentName, { exact: true })).toBeVisible();
+  });
+
+  await test.step("Last Used offers Never, which no range could express", async () => {
+    // These spools have never been used, so they have no last_used at all — a
+    // state no bound can select, however far back it reaches.
+    const menu = await openToolbarMenu(page, "Filter");
+    await menu.getByRole("button", { name: "Last Used", exact: true }).click();
+    await menu.getByRole("button", { name: "Never", exact: true }).click();
+
+    await expect(page.getByRole("button", { name: "Last Used: Never" })).toBeVisible();
+    await expect(page.getByText(first.filamentName, { exact: true })).toBeVisible();
+  });
+
+  await test.step("and a range on the same field excludes them again", async () => {
+    const menu = await openToolbarMenu(page, "Filter");
+    await menu.getByRole("button", { name: "Last Used", exact: true }).click();
+    await menu.getByRole("button", { name: "Last 24 hours", exact: true }).click();
+
+    await expect(page.getByRole("button", { name: "Last Used: Last 24 hours" })).toBeVisible();
+    await expect(page.getByText(first.filamentName, { exact: true })).toHaveCount(0);
+  });
+
+  await test.step("Registered has no Never — every spool has one", async () => {
+    const menu = await openToolbarMenu(page, "Filter");
+    await menu.getByRole("button", { name: "Registered", exact: true }).click();
+
+    await expect(menu.getByRole("button", { name: "Never", exact: true })).toHaveCount(0);
+  });
+});
+
 test("changing the sort survives a reload and keeps the list working", async ({ page }) => {
   await openApp(page);
   await addFilter(page, "Location", first.locationName);

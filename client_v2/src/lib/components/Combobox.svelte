@@ -8,6 +8,8 @@
 		placeholder?: string;
 		mono?: boolean;
 		invalid?: boolean;
+		/** Announce the field as required. The visible marker is the caller's `*`. */
+		required?: boolean;
 		disabled?: boolean;
 		/** Dashed-underline style (matches EditableField) instead of the bordered
 		 *  box style used in forms. */
@@ -24,6 +26,7 @@
 		placeholder = '',
 		mono = false,
 		invalid = false,
+		required = false,
 		disabled = false,
 		underline = false,
 		oninput,
@@ -161,6 +164,8 @@
 	aria-label={ariaLabel}
 	aria-labelledby={ariaLabel ? undefined : fieldLabelId}
 	aria-autocomplete="list"
+	aria-invalid={invalid ? 'true' : undefined}
+	aria-required={required ? 'true' : undefined}
 	autocomplete="off"
 	onfocus={openList}
 	onclick={openList}

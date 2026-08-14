@@ -3,11 +3,15 @@
 	import X from '@lucide/svelte/icons/x';
 	import type { MultiColorDirection } from '$lib/types';
 	import * as m from '$lib/paraglide/messages';
+	import { ALPHA_CHECKER, alphaOf, normalizeHex, withAlpha } from '$lib/utils/color';
+	import NumberInput from './NumberInput.svelte';
 
 	// Editor for a filament's colour(s): a single colour, or a multi-colour list
-	// with a coaxial/longitudinal direction. Emits the full colour state on every
-	// change via `onchange`. It keeps its own working list, so the parent should
-	// remount it (`{#key ...}`) when switching to a different filament.
+	// with a coaxial/longitudinal direction. Each colour also carries an opacity,
+	// stored as the hex code's alpha channel (#RRGGBBAA) for translucent
+	// filaments. Emits the full colour state on every change via `onchange`. It
+	// keeps its own working list, so the parent should remount it (`{#key ...}`)
+	// when switching to a different filament.
 	interface Props {
 		colors: string[];
 		direction?: MultiColorDirection;
@@ -69,8 +73,34 @@
 		emit();
 	}
 	function pick(i: number, v: string) {
-		list[i] = v.replace(/^#/, '').toUpperCase();
+		// The native picker only knows RGB, so carry the row's alpha over rather
+		// than silently making a translucent filament opaque.
+		list[i] = withAlpha(v, alphaOf(list[i])).replace(/^#/, '');
 		emit();
+	}
+
+	// Opacity is expressed as a percentage in the UI but lives in the hex code's
+	// alpha byte; a partial or empty row has no alpha to speak of and reads as
+	// fully opaque.
+	function opacityOf(h: string): number {
+		return Math.round((alphaOf(h) / 255) * 100);
+	}
+	function hasColor(h: string): boolean {
+		return normalizeHex(h) !== null;
+	}
+	function setOpacity(i: number, pct: number) {
+		if (!Number.isFinite(pct) || !hasColor(list[i])) return;
+		const clamped = Math.max(0, Math.min(100, pct));
+		list[i] = withAlpha(list[i], (clamped / 100) * 255).replace(/^#/, '');
+		emit();
+	}
+	// Transparent-to-opaque gradient over a checkerboard, so the slider previews
+	// what it controls. Falls back to grey until the row holds a real colour.
+	// `border-box no-repeat` keeps the gradient from tiling a hairline of full
+	// colour under the border at the transparent end — see ALPHA_CHECKER.
+	function alphaTrack(h: string): string {
+		const rgb = normalizeHex(h)?.slice(0, 6) ?? '9AA0A6';
+		return `background:linear-gradient(to right,#${rgb}00,#${rgb}FF) border-box no-repeat,${ALPHA_CHECKER}`;
 	}
 	function addColor() {
 		list.push('');
@@ -100,29 +130,62 @@
 	<div class="rows">
 		{#each list as c, i (i)}
 			<div class="color-row">
-				<input
-					class="color-pick"
-					type="color"
-					value={pickerValue(c)}
-					oninput={(e) => pick(i, e.currentTarget.value)}
-					aria-label={m['add.pickColor']()}
-				/>
-				<input
-					class="mono hex"
-					value={c}
-					oninput={(e) => setColor(i, e.currentTarget.value)}
-					placeholder="hex"
-					maxlength="9"
-				/>
-				{#if multi}
-					<button
-						class="rm"
-						type="button"
-						onclick={() => removeColor(i)}
-						disabled={list.length <= 1}
-						aria-label={m['filament.fields.removeColor']()}><X size={14} /></button
-					>
-				{/if}
+				<!-- Colour and opacity are grouped so that a narrow pane wraps the
+				     opacity controls as a whole, instead of stranding the remove
+				     button on a line of its own. -->
+				<span class="color-main">
+					<input
+						class="color-pick"
+						type="color"
+						value={pickerValue(c)}
+						oninput={(e) => pick(i, e.currentTarget.value)}
+						aria-label={m['add.pickColor']()}
+					/>
+					<input
+						class="mono hex"
+						value={c}
+						oninput={(e) => setColor(i, e.currentTarget.value)}
+						placeholder="hex"
+						maxlength="9"
+					/>
+					{#if multi}
+						<button
+							class="rm"
+							type="button"
+							onclick={() => removeColor(i)}
+							disabled={list.length <= 1}
+							aria-label={m['filament.fields.removeColor']()}><X size={14} /></button
+						>
+					{/if}
+				</span>
+				<span class="alpha">
+					<input
+						class="alpha-slider"
+						type="range"
+						min="0"
+						max="100"
+						step="1"
+						value={opacityOf(c)}
+						disabled={!hasColor(c)}
+						style={alphaTrack(c)}
+						oninput={(e) => setOpacity(i, e.currentTarget.valueAsNumber)}
+						aria-label={m['filament.fields.opacity']()}
+						title={m['filament.fields.opacity']()}
+					/>
+					<NumberInput
+						dense
+						width="84px"
+						unit="%"
+						min={0}
+						max={100}
+						step={5}
+						value={opacityOf(c)}
+						disabled={!hasColor(c)}
+						ariaLabel={m['filament.fields.opacity']()}
+						onchange={(v) => setOpacity(i, v)}
+						onclear={() => setOpacity(i, 100)}
+					/>
+				</span>
 			</div>
 		{/each}
 	</div>
@@ -214,6 +277,15 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
+		/* The opacity group drops to its own line rather than squeezing the hex
+		   field when the inspector pane is narrow. */
+		flex-wrap: wrap;
+	}
+	.color-main {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		flex: 1 1 auto;
 	}
 	.color-pick {
 		flex: none;
@@ -237,7 +309,7 @@
 		border-radius: 4px;
 	}
 	.hex {
-		flex: 1;
+		flex: 0 1 110px;
 		min-width: 0;
 		max-width: 180px;
 		border: 1px solid var(--border-strong);
@@ -250,6 +322,54 @@
 	.hex:focus {
 		border-color: var(--accent);
 		outline: none;
+	}
+	.alpha {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		flex: 1 1 140px;
+		min-width: 140px;
+	}
+	.alpha-slider {
+		appearance: none;
+		-webkit-appearance: none;
+		flex: 1;
+		min-width: 48px;
+		/* Tall enough to be a comfortable tap target, and to line up with the hex
+		   field next to it, rather than the hairline track of a typical alpha
+		   slider. The track gradient itself is set inline, per colour. */
+		height: 24px;
+		padding: 0;
+		border: 1px solid var(--border-strong);
+		border-radius: 7px;
+		cursor: pointer;
+	}
+	.alpha-slider:disabled {
+		opacity: 0.4;
+		cursor: default;
+	}
+	.alpha-slider::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background: #fff;
+		border: 1px solid rgba(0, 0, 0, 0.5);
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+		cursor: inherit;
+	}
+	.alpha-slider::-moz-range-thumb {
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background: #fff;
+		border: 1px solid rgba(0, 0, 0, 0.5);
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+		cursor: inherit;
+	}
+	.alpha-slider:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
 	}
 	.rm {
 		flex: none;

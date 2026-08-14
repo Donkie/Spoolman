@@ -1,27 +1,34 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { untrack, tick } from 'svelte';
 	import Swatch from './Swatch.svelte';
-	import ColorEditor from './ColorEditor.svelte';
 	import Button from './Button.svelte';
 	import NumberInput from './NumberInput.svelte';
 	import Combobox from './Combobox.svelte';
 	import DateTimeField from './DateTimeField.svelte';
 	import X from '@lucide/svelte/icons/x';
 	import Plus from '@lucide/svelte/icons/plus';
-	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import ExtraFieldsSection from './ExtraFieldsSection.svelte';
+	import NewFilamentCards from './NewFilamentCards.svelte';
 	import type { Filament, Extra, MultiColorDirection } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { serverInfo } from '$lib/stores/serverInfo.svelte';
-	import { spoolSource, type NewFilamentDraft } from '$lib/api/spoolSource';
+	import { spoolSource } from '$lib/api/spoolSource';
 	import { fields } from '$lib/stores/fields.svelte';
 	import type { EntityType } from '$lib/api/fields';
 	import { externalColors, externalDirection, type ExternalFilament } from '$lib/api/external';
 	import { roundGrams, weightAuto } from '$lib/utils/format';
-	import { parseDecimal } from '$lib/utils/numeric';
-	import { loadMaterials, type MaterialSpec } from '$lib/data/materials';
+	import { numErr } from '$lib/utils/validate';
+	import {
+		FILAMENT_ADVANCED_KEYS,
+		FILAMENT_FIELD_ORDER,
+		emptyFilamentDraft,
+		filamentDraftErrors,
+		filamentDraftFrom,
+		filamentWeightsFrom,
+		toNewFilamentDraft,
+		type FilamentDraft
+	} from '$lib/filament/draft';
 	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
@@ -53,32 +60,27 @@
 	// the "duplicate of X" heading, the rename nudge, and the extra-field carry-over.
 	let cloneSource = $state<Filament | null>(null);
 
-	// New-filament fields + lookups for the combobox / auto-fill.
-	let nf = $state({
-		vendorName: '',
-		name: '',
-		material: '',
-		colors: [] as string[],
-		multiColorDirection: undefined as MultiColorDirection | undefined,
-		density: '',
-		diameter: '1.75',
-		nozzleTemp: '',
-		bedTemp: '',
-		articleNumber: '',
-		comment: ''
-	});
+	// New-filament fields, drawn by NewFilamentCards. The weight/spool weight/price
+	// this flow would put on the filament are `netWeight`/`spoolWeight`/`price`
+	// below: they are written to the spool too, so they live in the spool block.
+	let nf = $state<FilamentDraft>(emptyFilamentDraft());
 	// Custom-field values for the filament being created. Separate from the spool's
 	// `extraValues` below: the two entities have their own field definitions.
 	let filamentExtra = $state<Extra>({});
+	// Same, for a manufacturer this form creates. Only ever sent when the typed name
+	// is a new one — linking an existing manufacturer must not edit its fields.
+	let vendorExtra = $state<Extra>({});
+	// Reported back by NewFilamentCards, which owns the manufacturer list.
+	let vendorIsNew = $state(false);
 	let showAdvanced = $state(false);
-	let nameInput = $state<HTMLInputElement | undefined>();
-	// Display-only: an untouched empty name shows the naming guidance rather than
-	// shouting "Required" at a form the user just opened. Submission is unaffected
-	// — `errors`/`canSubmit` still treat the empty name as invalid throughout.
-	let nameTouched = $state(false);
-	let vendorNames = $state<string[]>([]);
-	let materialNames = $state<string[]>([]);
-	let materialSpecs = $state<Record<string, MaterialSpec>>({});
+	let modalEl = $state<HTMLDivElement | undefined>();
+	// When to *show* an error, as opposed to have one: a field is revealed once the
+	// user has left it, and everything is revealed once Add has been pressed. A form
+	// you just opened stays quiet instead of shouting "Required" at fields you were
+	// on your way to filling in. `errors` below is unaffected — it always describes
+	// the form as it stands.
+	let touched = $state<Record<string, boolean>>({});
+	let attempted = $state(false);
 
 	// --- display helpers for a chosen (existing) filament ------------------
 	function cName(c: Choice) {
@@ -142,18 +144,11 @@
 			runSearch();
 			fields.ensure('spool');
 			fields.ensure('filament');
+			fields.ensure('vendor');
 			spoolSource
 				.locations()
 				.then((l) => (locations = l))
 				.catch(() => {});
-			spoolSource
-				.vendorNames()
-				.then((vn) => (vendorNames = vn))
-				.catch(() => {});
-			loadMaterials().then(({ names, specs }) => {
-				materialNames = names;
-				materialSpecs = specs;
-			});
 			if (presetFilamentId) {
 				const f = inventory.filamentById(presetFilamentId);
 				if (f) choose({ source: 'catalog', filament: f });
@@ -171,16 +166,6 @@
 	// (e.g. returning to step 1 from step 2).
 	$effect(() => {
 		if (open && step === 1 && searchInput) searchInput.focus();
-	});
-
-	// When duplicating, the name is the one field that must change, so put the
-	// caret in it (at the end — the colour word is usually a suffix, and the rest
-	// of the name is worth keeping rather than retyping).
-	$effect(() => {
-		if (open && cloneSource && nameInput) {
-			nameInput.focus();
-			nameInput.setSelectionRange(nameInput.value.length, nameInput.value.length);
-		}
 	});
 
 	// --- spool form ---------------------------------------------------------
@@ -216,6 +201,12 @@
 		{ weight: 140, label: () => m['add.spoolWeightPreset.cardboard']({ weight: 140 }) },
 		{ weight: 200, label: () => m['add.spoolWeightPreset.plastic']({ weight: 200 }) }
 	];
+	// The roll sizes worth a one-click shortcut, taken from the weights actually sold
+	// in the SpoolmanDB catalog: 1 kg is half of it and every brand in it sells one,
+	// with 750 g, 500 g, 250 g and the 2–3 kg bulk rolls making up most of the rest.
+	// Listed by size rather than popularity so the row reads as a scale; anything
+	// else is still typed into the field next to them.
+	const NET_WEIGHT_PRESETS = [250, 500, 750, 1000, 2000, 3000];
 
 	let fillHelp = $derived(
 		fillMode === 'used'
@@ -241,9 +232,11 @@
 	$effect(() => {
 		fields.get('spool');
 		fields.get('filament');
+		fields.get('vendor');
 		untrack(() => {
 			extraValues = withDefaults('spool', extraValues);
 			filamentExtra = withDefaults('filament', filamentExtra);
+			vendorExtra = withDefaults('vendor', vendorExtra);
 		});
 	});
 
@@ -259,6 +252,15 @@
 	function setFilamentExtra(key: string, json: string | undefined) {
 		filamentExtra = setExtraOn(filamentExtra, key, json);
 	}
+	function setVendorExtra(key: string, json: string | undefined) {
+		vendorExtra = setExtraOn(vendorExtra, key, json);
+	}
+
+	/** Back to a quiet form: nothing revealed until the user leaves a field or submits. */
+	function clearValidation() {
+		touched = {};
+		attempted = false;
+	}
 
 	function resetSpoolForm() {
 		count = '1';
@@ -270,6 +272,9 @@
 		firstUsed = undefined;
 		lastUsed = undefined;
 		extraValues = withDefaults('spool', {});
+		// Every route into step 2 lands here, so this is where the form goes quiet
+		// again: pick a different filament and you start over, not mid-argument.
+		clearValidation();
 	}
 
 	function choose(c: Choice) {
@@ -288,23 +293,11 @@
 	function startCreate() {
 		creating = true;
 		cloneSource = null;
-		nameTouched = false;
 		chosen = null;
 		showAdvanced = false;
-		nf = {
-			vendorName: '',
-			name: query.trim(),
-			material: '',
-			colors: [],
-			multiColorDirection: undefined,
-			density: '',
-			diameter: '1.75',
-			nozzleTemp: '',
-			bedTemp: '',
-			articleNumber: '',
-			comment: ''
-		};
+		nf = emptyFilamentDraft(query.trim());
 		filamentExtra = withDefaults('filament', {});
+		vendorExtra = withDefaults('vendor', {});
 		netWeight = '1000';
 		spoolWeight = '';
 		price = '';
@@ -325,56 +318,21 @@
 	function startDuplicate(f: Filament) {
 		creating = true;
 		cloneSource = f;
-		nameTouched = false;
 		chosen = null;
 		// Specs came from a real filament rather than a material guess, so open the
 		// advanced block: it's what makes the copy visibly a copy.
 		showAdvanced = true;
-		nf = {
-			vendorName: inventory.vendorById(f.vendorId)?.name ?? '',
-			name: f.name,
-			material: f.material,
-			colors: [],
-			multiColorDirection: undefined,
-			density: String(f.density),
-			diameter: String(f.diameter),
-			nozzleTemp: f.nozzleTemp ? String(f.nozzleTemp) : '',
-			bedTemp: f.bedTemp ? String(f.bedTemp) : '',
-			articleNumber: '',
-			comment: f.comment
-		};
+		nf = filamentDraftFrom(f, inventory.vendorById(f.vendorId)?.name ?? '');
 		filamentExtra = withDefaults('filament', { ...f.extra });
-		netWeight = String(f.weight || 1000);
-		spoolWeight = f.spoolWeight ? String(f.spoolWeight) : '';
-		price = f.price ? String(f.price) : '';
+		// Not copied from the source's manufacturer: a duplicate keeps that same
+		// manufacturer record, and these values only ever reach a newly created one.
+		vendorExtra = withDefaults('vendor', {});
+		const w = filamentWeightsFrom(f);
+		netWeight = w.weight;
+		spoolWeight = w.spoolWeight;
+		price = w.price;
 		resetSpoolForm();
 		step = 2;
-	}
-
-	// Vendor combobox: reuse an existing vendor if the name matches, else create.
-	let vendorTrimmed = $derived(nf.vendorName.trim());
-	let vendorMatch = $derived(vendorNames.find((v) => v.toLowerCase() === vendorTrimmed.toLowerCase()));
-	let vendorHint = $derived(
-		vendorTrimmed === ''
-			? m['add.vendorHint.optional']()
-			: vendorMatch
-				? m['add.vendorHint.existing']({ name: vendorMatch })
-				: m['add.vendorHint.new']({ name: vendorTrimmed })
-	);
-	// Nudge, not an error: Spoolman allows same-named filaments, but keeping the
-	// original's name on a duplicate is almost always an oversight.
-	let nameStillSource = $derived(!!cloneSource && nf.name.trim() === cloneSource.name.trim());
-
-	function onMaterial(v: string) {
-		nf.material = v;
-		const spec = materialSpecs[v.trim().toLowerCase()];
-		// Only prefill when the material is a known one; typing a custom material
-		// leaves density/temps untouched.
-		if (spec) {
-			nf.density = String(spec.density);
-			if (spec.nozzle != null) nf.nozzleTemp = String(spec.nozzle);
-			if (spec.bed != null) nf.bedTemp = String(spec.bed);
-		}
 	}
 
 	function reset() {
@@ -385,7 +343,7 @@
 		chosen = null;
 		creating = false;
 		cloneSource = null;
-		nameTouched = false;
+		clearValidation();
 		submitting = false;
 	}
 	function close() {
@@ -394,7 +352,16 @@
 	}
 
 	async function submit(andAnother = false) {
-		if (!canSubmit) return;
+		if (submitting || !(creating || chosen)) return;
+		// The button stays clickable while the form is incomplete: a dead button
+		// answers "why can't I add this?" with silence. Pressing it instead marks
+		// every outstanding error visible and takes you to the first one — opening
+		// the section hiding it, scrolling it into view and focusing it.
+		if (firstProblem) {
+			attempted = true;
+			await focusField(firstProblem);
+			return;
+		}
 		submitting = true;
 		try {
 			let filamentId: number;
@@ -402,22 +369,13 @@
 			// next colour of it without going back through search.
 			let created: Filament | null = null;
 			if (creating) {
-				const draft: NewFilamentDraft = {
-					name: nf.name.trim(),
-					vendorName: nf.vendorName.trim(),
-					material: nf.material.trim(),
-					density: Number(nf.density),
-					diameter: Number(nf.diameter) || 1.75,
-					weight: Number(netWeight) || undefined,
-					spoolWeight: Number(spoolWeight) || undefined,
-					colors: nf.colors,
-					multiColorDirection: nf.multiColorDirection,
-					nozzleTemp: nf.nozzleTemp ? Number(nf.nozzleTemp) : undefined,
-					bedTemp: nf.bedTemp ? Number(nf.bedTemp) : undefined,
-					price: parseFloat(price) || undefined,
-					articleNumber: nf.articleNumber.trim() || undefined,
-					comment: nf.comment.trim() || undefined,
-					extra: filamentExtra
+				// Weight/spool weight/price come from the spool block: this flow writes
+				// each of them to both records.
+				const draft = {
+					...toNewFilamentDraft(nf, { weight: netWeight, spoolWeight, price }, filamentExtra),
+					// Dropped when the typed name matches an existing manufacturer —
+					// which is also when the inputs for it aren't shown.
+					vendorExtra: vendorIsNew ? vendorExtra : undefined
 				};
 				const f = await spoolSource.createFilament(draft);
 				created = f;
@@ -474,37 +432,12 @@
 	let summary = $derived(chosen || creating ? m['add.summary']({ count: countN }) : '');
 
 	// --- validation ---------------------------------------------------------
-	// Mirrors the filament creation API (spoolman/api/v1/filament.py):
-	// density & diameter are required and must be > 0; name/material ≤ 64 chars;
-	// weight > 0, spool_weight/price ≥ 0; color_hex must be 6 or 8 hex chars.
-	function numErr(
-		v: string,
-		{ required = false, min, max, gt }: { required?: boolean; min?: number; max?: number; gt?: number } = {}
-	) {
-		const t = v.trim();
-		if (t === '') return required ? m['validation.required']() : '';
-		const n = parseDecimal(t);
-		if (n === null) return m['validation.mustBeNumber']();
-		if (gt != null && n <= gt) return m['validation.mustBeGt']({ value: gt });
-		if (min != null && n < min) return m['validation.mustBeMin']({ value: min });
-		if (max != null && n > max) return m['validation.mustBeMax']({ value: max });
-		return '';
-	}
-	const HEX_RE = /^#?[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/;
-
+	// The filament half lives in filamentDraftErrors() — including the one rule
+	// this client is stricter about than the API, a required material. The spool
+	// fields below mirror the spool creation API (spoolman/api/v1/spool.py):
+	// weight > 0, spool_weight/price ≥ 0, and a fill amount that fits inside them.
 	let errors = $derived.by(() => {
-		const e: Record<string, string> = {};
-		if (creating) {
-			if (nf.name.trim().length === 0) e.name = m['validation.required']();
-			else if (nf.name.trim().length > 64) e.name = m['validation.maxChars']({ max: 64 });
-			if (nf.material.trim().length > 64) e.material = m['validation.maxChars']({ max: 64 });
-			if (nf.vendorName.trim().length > 64) e.vendor = m['validation.maxChars']({ max: 64 });
-			e.density = numErr(nf.density, { required: true, gt: 0 });
-			e.diameter = numErr(nf.diameter, { required: true, gt: 0 });
-			e.nozzleTemp = numErr(nf.nozzleTemp, { min: 0 });
-			e.bedTemp = numErr(nf.bedTemp, { min: 0 });
-			if (nf.colors.some((c) => c.trim() && !HEX_RE.test(c.trim()))) e.colorHex = m['validation.hexDigits']();
-		}
+		const e: Record<string, string> = creating ? filamentDraftErrors(nf) : {};
 		e.count = numErr(count, { required: true, gt: 0 });
 		e.netWeight = numErr(netWeight, { gt: 0 });
 		e.spoolWeight = numErr(spoolWeight, { min: 0 });
@@ -532,7 +465,38 @@
 		for (const k of Object.keys(e)) if (!e[k]) delete e[k];
 		return e;
 	});
-	let canSubmit = $derived((creating || !!chosen) && Object.keys(errors).length === 0);
+
+	// --- pointing at what's wrong -------------------------------------------
+	// The fields that can carry an error, in the order they appear on the form, so
+	// pressing Add sends you to the first one you'd have reached by reading down.
+	// The filament half comes from the shared card component; the spool fields this
+	// modal draws itself follow. Anything not listed falls back to whatever the
+	// error map yields, so a new error can never make Add silently do nothing.
+	const FIELD_ORDER = [...FILAMENT_FIELD_ORDER, 'count', 'netWeight', 'fillWeight', 'spoolWeight', 'price'];
+	// This modal draws the weight trio in its own spool block, so the only fields
+	// hidden behind the disclosure are the filament specs.
+	const ADVANCED_KEYS = new Set(FILAMENT_ADVANCED_KEYS);
+
+	let firstProblem = $derived(FIELD_ORDER.find((k) => errors[k]) ?? Object.keys(errors)[0]);
+
+	function touch(key: string) {
+		touched[key] = true;
+	}
+	/** The error to display for a field — empty until that field is revealed. */
+	function err(key: string): string {
+		return attempted || touched[key] ? (errors[key] ?? '') : '';
+	}
+
+	/** Scroll a field into view and put focus in it, opening its section if needed. */
+	async function focusField(key: string) {
+		if (ADVANCED_KEYS.has(key)) showAdvanced = true;
+		await tick();
+		const host = modalEl?.querySelector<HTMLElement>(`[data-field="${key}"]`);
+		if (!host) return;
+		host.scrollIntoView({ block: 'center', behavior: 'smooth' });
+		// preventScroll: the smooth scroll above is already on its way there.
+		host.querySelector<HTMLElement>('input, textarea, select')?.focus({ preventScroll: true });
+	}
 </script>
 
 <svelte:window
@@ -541,17 +505,24 @@
 	}}
 />
 
+<!-- The one marker for "this must be filled in", used on every required field and
+     on nothing else. It is decoration: the control itself carries aria-required, so
+     screen readers hear the requirement rather than an asterisk. -->
+{#snippet req()}<span class="req" title={m['validation.required']()} aria-hidden="true">*</span>{/snippet}
+
 {#if open}
 	<div class="overlay">
 		<!-- Click-outside catcher: a sibling of the modal (not a parent) so it doesn't
 		     nest the modal's interactive controls inside an interactive element.
 		     Keyboard close is handled by the window Escape listener above. -->
 		<button class="backdrop" tabindex="-1" aria-hidden="true" onclick={close}></button>
-		<div class="modal" role="dialog" aria-modal="true" tabindex="-1">
+		<div class="modal" role="dialog" aria-modal="true" tabindex="-1" bind:this={modalEl}>
 			<div class="modal-head">
 				<span class="title">{m['topbar.addSpools']()}</span>
 				{#if step === 2}
-					<span class="step-hint">{m['add.step2']()}</span>
+					<!-- Creating a filament puts manufacturer and filament fields on this step
+					     too, so the hint can't call the whole step "spool details". -->
+					<span class="step-hint">{creating ? m['add.step2New']() : m['add.step2']()}</span>
 				{/if}
 				<button class="x" onclick={close} aria-label={m['buttons.close']()}><X size={16} /></button>
 			</div>
@@ -633,153 +604,32 @@
 				</div>
 			{:else}
 				<div class="body">
-					<!-- Filament section: chosen card, or inline new-filament fields -->
+					<!-- Step 2 can create up to three records at once, so it is laid out as one
+					     block per entity — manufacturer, filament, spool — each with its own
+					     heading. Without that, the fields read as one flat form and there is no
+					     way to tell which record any given field lands on (#1038). The two
+					     new-record blocks are accent-bordered cards; the spool block is the
+					     plain remainder of the form, since a spool is always being created and
+					     needs no such emphasis. -->
 					{#if creating}
-						<div class="fil-section">
-							<div class="fs-head">
-								<span class="fs-title"
-									>{cloneSource
-										? m['add.duplicateTitle']({ name: cloneSource.name })
-										: m['add.newFilamentTitle']()}</span
-								>
-								<button class="fs-back" onclick={() => (step = 1)}>{m['add.useExisting']()}</button>
-							</div>
-							{#if cloneSource}
-								<div class="dup-note">{m['add.duplicateNote']()}</div>
-							{/if}
-							<div class="form">
-								<label class="wide">
-									{m['filament.fields.vendor']()}
-									<Combobox
-										value={nf.vendorName}
-										options={vendorNames}
-										placeholder={m['add.manufacturerPlaceholder']()}
-										invalid={!!errors.vendor}
-										oninput={(v) => (nf.vendorName = v)}
-									/>
-									{#if errors.vendor}
-										<span class="err">{errors.vendor}</span>
-									{:else}
-										<span class="hint" class:accent={vendorTrimmed && !vendorMatch}>{vendorHint}</span>
-									{/if}
-								</label>
-								<label class="wide">
-									{m['filament.fields.name']()} <span class="req">*</span>
-									<input
-										bind:this={nameInput}
-										bind:value={nf.name}
-										placeholder={m['add.filamentNamePlaceholder']()}
-										class:invalid={errors.name && nameTouched}
-										oninput={() => (nameTouched = true)}
-										onblur={() => (nameTouched = true)}
-									/>
-									<!-- The rename nudge only outranks the naming hint while the copy
-								     still carries the original's name; after that both cases get the
-								     same advice, since color is what makes a filament name useful. -->
-									{#if errors.name && nameTouched}<span class="err">{errors.name}</span>
-									{:else if nameStillSource}<span class="hint accent">{m['add.duplicateRename']()}</span>
-									{:else}<span class="hint">{m['add.nameHint']()}</span>{/if}
-								</label>
-								<label>
-									{m['filament.fields.material']()}
-									<Combobox
-										value={nf.material}
-										options={materialNames}
-										placeholder="PLA"
-										invalid={!!errors.material}
-										oninput={onMaterial}
-									/>
-									{#if errors.material}<span class="err">{errors.material}</span>{/if}
-								</label>
-								<label class="color-field wide">
-									{m['filament.fields.colorHex']()}
-									<div class="color-editor-wrap">
-										<ColorEditor
-											colors={nf.colors}
-											direction={nf.multiColorDirection}
-											onchange={(v) => {
-												nf.colors = v.colors;
-												nf.multiColorDirection = v.direction;
-											}}
-										/>
-									</div>
-									{#if errors.colorHex}<span class="err">{errors.colorHex}</span>{/if}
-								</label>
-							</div>
-							<button class="adv-toggle" onclick={() => (showAdvanced = !showAdvanced)}>
-								{#if showAdvanced}<ChevronDown size={14} />{:else}<ChevronRight size={14} />{/if}
-								{m['add.advanced']()}
-								{#if !showAdvanced}<span class="adv-note">{m['add.advancedNote']()}</span>{/if}
-							</button>
-							{#if showAdvanced}
-								<div class="form">
-									<label
-										>{m['filament.fields.density']()} <span class="req">*</span>
-										<NumberInput
-											bind:value={nf.density}
-											min={0}
-											step={0.01}
-											unit="g/cm³"
-											spaced
-											invalid={!!errors.density}
-										/>
-										{#if errors.density}<span class="err">{errors.density}</span>{/if}
-									</label>
-									<label
-										>{m['filament.fields.diameter']()} <span class="req">*</span>
-										<NumberInput
-											bind:value={nf.diameter}
-											min={0}
-											step={0.05}
-											unit="mm"
-											spaced
-											invalid={!!errors.diameter}
-										/>
-										{#if errors.diameter}<span class="err">{errors.diameter}</span>{/if}
-									</label>
-									<label
-										>{m['filament.fields.settingsExtruderTemp']()}
-										<NumberInput
-											bind:value={nf.nozzleTemp}
-											min={0}
-											step={5}
-											unit="°C"
-											placeholder="—"
-											spaced
-											invalid={!!errors.nozzleTemp}
-										/>
-										{#if errors.nozzleTemp}<span class="err">{errors.nozzleTemp}</span>{/if}
-									</label>
-									<label
-										>{m['filament.fields.settingsBedTemp']()}
-										<NumberInput
-											bind:value={nf.bedTemp}
-											min={0}
-											step={5}
-											unit="°C"
-											placeholder="—"
-											spaced
-											invalid={!!errors.bedTemp}
-										/>
-										{#if errors.bedTemp}<span class="err">{errors.bedTemp}</span>{/if}
-									</label>
-									<label>
-										{m['filament.fields.articleNumber']()}
-										<input class="mono" bind:value={nf.articleNumber} placeholder="—" />
-									</label>
-									<label class="wide">
-										{m['filament.fields.comment']()}
-										<input bind:value={nf.comment} placeholder="—" />
-									</label>
-								</div>
-							{/if}
-							<!-- Outside the advanced block: a custom field only exists because
-							     someone defined it, so it isn't an advanced detail to them. The
-							     section renders nothing when no filament fields are defined. -->
-							<ExtraFieldsSection entity="filament" extra={filamentExtra} onchange={setFilamentExtra} />
-						</div>
-						<div class="sec-divider"></div>
+						<NewFilamentCards
+							bind:draft={nf}
+							{err}
+							{touch}
+							extra={filamentExtra}
+							onextra={setFilamentExtra}
+							{vendorExtra}
+							onVendorExtra={setVendorExtra}
+							bind:vendorIsNew
+							bind:showAdvanced
+							{cloneSource}
+							backLabel={m['add.useExisting']()}
+							onback={() => (step = 1)}
+						/>
 					{:else if chosen}
+						<!-- No card here: the chosen-filament row is already a self-contained
+						     bordered block, so it only needs the heading that names the entity. -->
+						<div class="ent-label standalone">{m['add.section.filament']()}</div>
 						<div class="chosen">
 							<Swatch colors={cColors(chosen)} direction={cDirection(chosen)} size={24} radius={6} />
 							<div class="chosen-name">
@@ -812,13 +662,42 @@
 					{/if}
 
 					<!-- Spool section -->
-					<div class="form">
-						<label
+					<div class="sec-divider"></div>
+					<div class="ent-label standalone">{m['add.section.spool']()}</div>
+					<div class="ent-note">{m['add.section.spoolNote']()}</div>
+					{#if creating}
+						<!-- Weight, spool weight and price below are written to the new filament as
+						     well as to the spool, which is the one place in this layout where a
+						     field genuinely belongs to two records. Say so rather than let the
+						     heading imply the filament is unaffected. -->
+						<div class="ent-note shared">{m['add.section.spoolSharedNote']()}</div>
+					{/if}
+					<!-- The spool fields run from what you can answer with the roll in your hand
+					     to what you'd have to go look up: how many, how big, how full, where it
+					     lives — then the numbers off the product page, then paperwork almost
+					     nobody fills in for a fresh spool. Everything down to Location is picked
+					     rather than typed, which is what keeps the common case to a few taps. -->
+					<div class="form headline">
+						<!-- How many and how big, on the line that answers "what am I adding": both
+						     are known at a glance, and the count stays narrow and quiet because it
+						     is 1 nearly every time. Its old neighbour, the empty-spool weight, moved
+						     down to the numbers that come off a product page — sitting between two
+						     weights was what made this row read as three of the same question. -->
+						<label data-field="count" onfocusout={() => touch('count')}
 							>{m['add.count']()}
-							<NumberInput bind:value={count} min={1} step={1} spaced invalid={!!errors.count} />
-							{#if errors.count}<span class="err">{errors.count}</span>{/if}
+							{@render req()}
+							<NumberInput
+								bind:value={count}
+								min={1}
+								step={1}
+								width="76px"
+								spaced
+								required
+								invalid={!!err('count')}
+							/>
+							{#if err('count')}<span class="err">{err('count')}</span>{/if}
 						</label>
-						<label
+						<label data-field="netWeight" onfocusout={() => touch('netWeight')}
 							>{m['filament.fields.weight']()}
 							<button
 								type="button"
@@ -828,22 +707,95 @@
 								aria-expanded={openHelp === 'weight'}
 								onclick={() => (openHelp = openHelp === 'weight' ? null : 'weight')}>ⓘ</button
 							>
-							<NumberInput
-								bind:value={netWeight}
-								min={0}
-								step={50}
-								unit="g"
-								spaced
-								invalid={!!errors.netWeight}
-							/>
+							<!-- Sizes beside the field, not under it: they're alternatives to typing
+							     in it, and on one line the whole "how big is it" question answers
+							     itself without growing the form. Out in the open rather than behind
+							     the ⓘ used elsewhere, because this is the fast path through the
+							     field, not an explanation of it. Buttons nested in the <label> are
+							     safe — a click on interactive content isn't forwarded to the labelled
+							     input, so picking a size doesn't also yank focus into the field. -->
+							<span class="pick-line">
+								<NumberInput
+									bind:value={netWeight}
+									min={0}
+									step={50}
+									unit="g"
+									width="112px"
+									invalid={!!err('netWeight')}
+								/>
+								<span class="presets" role="group" aria-label={m['add.weightPresets']()}>
+									{#each NET_WEIGHT_PRESETS as preset (preset)}
+										<button
+											type="button"
+											class="preset"
+											class:on={Number(netWeight) === preset}
+											aria-pressed={Number(netWeight) === preset}
+											onclick={() => (netWeight = String(preset))}>{weightAuto(preset)}</button
+										>
+									{/each}
+								</span>
+							</span>
 							{#if openHelp === 'weight'}
 								<span class="help-popup" id="weight-help" role="note"
 									>{m['filament.fieldsHelp.weight']()}</span
 								>
 							{/if}
-							{#if errors.netWeight}<span class="err">{errors.netWeight}</span>{/if}
+							{#if err('netWeight')}<span class="err">{err('netWeight')}</span>{/if}
 						</label>
-						<label
+					</div>
+
+					<div class="fill">
+						<div class="fill-label">{m['add.fillLevel']()}</div>
+						<div class="seg">
+							{#each FILL_MODES as fill_mode (fill_mode.key)}
+								<button
+									class="seg-btn"
+									class:active={fillMode === fill_mode.key}
+									onclick={() => (fillMode = fill_mode.key)}>{fill_mode.labelKey()}</button
+								>
+							{/each}
+						</div>
+						{#if fillMode !== 'full'}
+							<div class="fill-input" data-field="fillWeight" onfocusout={() => touch('fillWeight')}>
+								<NumberInput
+									bind:value={fillWeight}
+									min={0}
+									step={10}
+									unit="g"
+									placeholder="0"
+									width="130px"
+									invalid={!!err('fillWeight')}
+									ariaLabel={m['add.fillLevel']()}
+								/>
+								<span class="fill-help" class:is-error={!!err('fillWeight')}
+									>{err('fillWeight') || fillHelp}</span
+								>
+							</div>
+						{/if}
+					</div>
+
+					<!-- Which spool, and where it lives: the lot number is the one identifier a
+					     spool carries of its own, so it sits with the shelf rather than with the
+					     money. -->
+					<div class="form where">
+						<label>
+							{m['spool.fields.location']()}
+							<Combobox
+								value={location}
+								options={locations}
+								placeholder={m['add.locationPlaceholder']()}
+								oninput={(v) => (location = v)}
+							/>
+							<!-- Always-on rather than behind the ⓘ used elsewhere: "Location" reads as
+							     metadata until you're told it means the physical shelf, and testers
+							     didn't open a popup to find that out. -->
+							<span class="hint">{m['add.locationHint']()}</span>
+						</label>
+						<label>{m['spool.fields.lotNr']()}<input class="mono" bind:value={lot} placeholder="—" /></label>
+					</div>
+
+					<div class="form money">
+						<label data-field="spoolWeight" onfocusout={() => touch('spoolWeight')}
 							>{m['filament.fields.spoolWeight']()}
 							<button
 								type="button"
@@ -860,7 +812,7 @@
 								unit="g"
 								placeholder="—"
 								spaced
-								invalid={!!errors.spoolWeight}
+								invalid={!!err('spoolWeight')}
 							/>
 							{#if openHelp === 'spoolWeight'}
 								<span class="help-popup" id="spoolWeight-help" role="note">
@@ -883,54 +835,13 @@
 									</span>
 								</span>
 							{/if}
-							{#if errors.spoolWeight}<span class="err">{errors.spoolWeight}</span>{/if}
+							{#if err('spoolWeight')}<span class="err">{err('spoolWeight')}</span>{/if}
 						</label>
-						<label
+						<label data-field="price" onfocusout={() => touch('price')}
 							>{m['filament.fields.price']()} <span class="u">{settings.currency}</span>
-							<NumberInput bind:value={price} min={0} placeholder="—" spaced invalid={!!errors.price} />
-							{#if errors.price}<span class="err">{errors.price}</span>{/if}
+							<NumberInput bind:value={price} min={0} placeholder="—" spaced invalid={!!err('price')} />
+							{#if err('price')}<span class="err">{err('price')}</span>{/if}
 						</label>
-						<label>{m['spool.fields.lotNr']()}<input class="mono" bind:value={lot} placeholder="—" /></label>
-						<label class="wide">
-							{m['spool.fields.location']()}
-							<Combobox
-								value={location}
-								options={locations}
-								placeholder={m['add.locationPlaceholder']()}
-								oninput={(v) => (location = v)}
-							/>
-							<!-- Always-on rather than behind the ⓘ used elsewhere: "Location" reads as
-							     metadata until you're told it means the physical shelf, and testers
-							     didn't open a popup to find that out. -->
-							<span class="hint">{m['add.locationHint']()}</span>
-						</label>
-					</div>
-
-					<div class="fill">
-						<div class="fill-label">{m['add.fillLevel']()}</div>
-						<div class="seg">
-							{#each FILL_MODES as fill_mode (fill_mode.key)}
-								<button
-									class="seg-btn"
-									class:active={fillMode === fill_mode.key}
-									onclick={() => (fillMode = fill_mode.key)}>{fill_mode.labelKey()}</button
-								>
-							{/each}
-						</div>
-						{#if fillMode !== 'full'}
-							<div class="fill-input">
-								<NumberInput
-									bind:value={fillWeight}
-									min={0}
-									step={10}
-									unit="g"
-									placeholder="0"
-									width="130px"
-									invalid={!!errors.fillWeight}
-								/>
-								<span class="fill-help">{errors.fillWeight || fillHelp}</span>
-							</div>
-						{/if}
 					</div>
 
 					<div class="form dates">
@@ -960,10 +871,10 @@
 					<div class="submit-row">
 						<div class="summary">{summary}</div>
 						<div class="actions">
-							<Button variant="outline" disabled={!canSubmit || submitting} onclick={() => submit(true)}
+							<Button variant="outline" disabled={submitting} onclick={() => submit(true)}
 								>{m['add.addAndNew']()}</Button
 							>
-							<Button disabled={!canSubmit || submitting} onclick={() => submit(false)}>
+							<Button disabled={submitting} onclick={() => submit(false)}>
 								{submitting ? m['add.adding']() : m['add.addN']({ count: countN })}
 							</Button>
 						</div>
@@ -1209,63 +1120,60 @@
 		font-size: 11.5px;
 		color: var(--accent-muted-2);
 	}
-	.fil-section {
-		background: var(--surface);
-		border: 1px solid var(--accent-border);
-		border-radius: var(--radius-md);
-		padding: 12px 14px;
-	}
-	.fs-head {
-		display: flex;
-		align-items: baseline;
-		gap: 10px;
-		margin-bottom: 4px;
-	}
-	.fs-title {
+	.ent-label {
+		display: block;
+		font-size: 11px;
 		font-weight: 600;
-		font-size: 13px;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		color: var(--text-dim);
 	}
-	.fs-back {
-		font-size: 12px;
-		color: var(--accent-link);
-		background: none;
-		border: none;
-		cursor: pointer;
+	.ent-label.standalone {
+		margin-bottom: 6px;
 	}
-	.dup-note {
+	.ent-note {
+		display: block;
 		font-size: 11.5px;
 		color: var(--text-faint);
-		margin-top: 2px;
+		margin: 2px 0 8px;
 	}
+	.ent-note.shared {
+		color: var(--accent-muted-2);
+	}
+	/* Separates the records being created from the spool block. Deliberately
+	   heavier than --border-soft, which was invisible against the light theme's
+	   card backgrounds and left the two blocks looking like one run of fields. */
 	.sec-divider {
 		height: 1px;
-		background: var(--border-soft);
-		margin: 16px 0 4px;
-	}
-	.color-editor-wrap {
-		margin-top: 6px;
-	}
-	.adv-toggle {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		margin-top: 12px;
-		background: none;
-		border: none;
-		color: var(--accent-link);
-		font-size: 12px;
-		cursor: pointer;
-		font-family: inherit;
-		padding: 0;
-	}
-	.adv-note {
-		color: var(--text-faint);
+		background: var(--border);
+		margin: 16px 0 12px;
 	}
 	.form {
 		display: grid;
 		grid-template-columns: 1fr 1fr 1fr;
 		gap: 12px;
 		margin-top: 14px;
+	}
+	/* Count takes only what it needs; the weight and its roll sizes take the rest. */
+	.form.headline {
+		grid-template-columns: auto 1fr;
+	}
+	/* The shelf gets the room; the lot number is a short code. */
+	.form.where {
+		grid-template-columns: 2fr 1fr;
+	}
+	/* The weight field and its roll sizes on one line, so the sizes read as
+	   alternatives to typing in it rather than as a second control stacked
+	   underneath — and so offering them costs the form no height. */
+	.pick-line {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-top: 5px;
+	}
+	.pick-line .presets {
+		margin-top: 0;
 	}
 	.form label {
 		display: block;
@@ -1290,9 +1198,6 @@
 	}
 	.form input:focus {
 		border-color: var(--accent);
-	}
-	.form input.invalid {
-		border-color: var(--danger);
 	}
 	.err {
 		display: block;
@@ -1351,9 +1256,6 @@
 		/* Flows inline in the form, so it wraps and stays inside the modal on mobile. */
 		max-width: 100%;
 	}
-	.hint.accent {
-		color: var(--accent-soft);
-	}
 	.presets {
 		display: flex;
 		flex-wrap: wrap;
@@ -1377,6 +1279,13 @@
 	.preset:hover {
 		border-color: var(--accent);
 		background: var(--accent-wash-soft);
+	}
+	/* The size the field currently holds, so the row doubles as a readout of which
+	   preset (if any) is in play. */
+	.preset.on {
+		border-color: var(--accent);
+		background: var(--accent-wash);
+		color: var(--text);
 	}
 	.form textarea {
 		width: 100%;
@@ -1445,6 +1354,9 @@
 		font-size: 11.5px;
 		color: var(--text-faint);
 	}
+	.fill-help.is-error {
+		color: var(--danger-soft);
+	}
 	.submit-row {
 		display: flex;
 		align-items: center;
@@ -1464,6 +1376,15 @@
 	@media (max-width: 620px) {
 		.form {
 			grid-template-columns: 1fr 1fr;
+		}
+		/* A 23px-tall pill is a fine mouse target and a poor thumb one. On phones
+		   give them the same 44px height the segmented controls in this modal use —
+		   the roll sizes are the fast path through the weight field, so they have to
+		   be hittable without aiming. */
+		.preset {
+			min-height: 44px;
+			padding: 3px 14px;
+			font-size: 12.5px;
 		}
 	}
 </style>

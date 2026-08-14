@@ -22,6 +22,7 @@ import {
 	colorFieldsToApi
 } from './map';
 import { inventory } from '$lib/stores/inventory.svelte';
+import { isDateFilterProp, parseDateFilter, resolveDateFilter } from '$lib/library/dateFilter';
 import { filamentLabel } from '$lib/utils/library';
 import type { EntityType } from './fields';
 import { type ExternalFilament } from './external';
@@ -52,6 +53,8 @@ export interface NewFilamentDraft {
 	comment?: string;
 	/** Custom-field values to carry over (used when duplicating a filament). */
 	extra?: Extra;
+	/** Custom-field values for the manufacturer, applied only if it is created here. */
+	vendorExtra?: Extra;
 }
 
 // Map a filter chip prop → API query param. Values are quoted for exact match.
@@ -85,8 +88,24 @@ function quote(v: string): string {
 
 function applyFilters(params: QueryParams, filters: Record<string, string[]>) {
 	for (const [prop, values] of Object.entries(filters)) {
+		if (!values.length) continue;
+		// A date filter is a range rather than a set of values, and the API spells one
+		// as `<field>=<start>|<end>` with either end optional — the same grammar its
+		// datetime extra-field filters take. An empty value asks for "no timestamp at
+		// all", the way an empty value means "unset" for every other filter here.
+		//
+		// The bounds are resolved at request time, so a relative range like "the last
+		// 24 hours" is measured from now on every fetch rather than from whenever the
+		// chip was created.
+		if (isDateFilterProp(prop)) {
+			const filter = parseDateFilter(values[values.length - 1]);
+			if (!filter) continue;
+			const { after, before, unset } = resolveDateFilter(filter);
+			params[prop] = unset ? '' : `${after ?? ''}|${before ?? ''}`;
+			continue;
+		}
 		const key = filterParam(prop);
-		if (!key || !values.length) continue;
+		if (!key) continue;
 		const encode = UNQUOTED_FILTERS.has(prop) ? (v: string) => v : quote;
 		params[key] = values.map(encode).join(',');
 	}
@@ -276,8 +295,13 @@ class HttpSpoolSource {
 		return f;
 	}
 
-	/** Find a vendor by (case-insensitive) name or create it; returns its id. */
-	async getOrCreateVendor(name: string): Promise<number | undefined> {
+	/**
+	 * Find a vendor by (case-insensitive) name or create it; returns its id.
+	 *
+	 * `extra` only applies to a vendor this call creates — matching an existing
+	 * name links that record, it never edits it.
+	 */
+	async getOrCreateVendor(name: string, extra?: Extra): Promise<number | undefined> {
 		const trimmed = name.trim();
 		if (!trimmed) return undefined;
 		const all = await getJson<Json[]>('/vendor');
@@ -286,14 +310,17 @@ class HttpSpoolSource {
 			inventory.upsertVendor(mapVendor(match));
 			return match.id;
 		}
-		const created = await postJson<Json>('/vendor', { name: trimmed });
+		const created = await postJson<Json>('/vendor', {
+			name: trimmed,
+			extra: extra && Object.keys(extra).length ? extra : undefined
+		});
 		inventory.upsertVendor(mapVendor(created));
 		return created.id;
 	}
 
 	/** Create a brand-new filament (and its vendor if needed) from a draft. */
 	async createFilament(draft: NewFilamentDraft): Promise<Filament> {
-		const vendorId = await this.getOrCreateVendor(draft.vendorName);
+		const vendorId = await this.getOrCreateVendor(draft.vendorName, draft.vendorExtra);
 		const body: Json = {
 			name: draft.name || undefined,
 			material: draft.material || undefined,
