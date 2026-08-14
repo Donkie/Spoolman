@@ -1,16 +1,4 @@
-"""Tag scan relay endpoints.
-
-Spoolman never talks to reader hardware; the reader talks to Spoolman. The reader is almost
-never on the Spoolman host -- Spoolman runs in Docker on a NAS while the tag gets tapped at the
-printer -- so the contract between the two is one plain HTTP POST per tap, with no auth, no
-handshake, no inbound port on the device and no library. Anything that can POST JSON qualifies,
-which is why Node-RED, Home Assistant, a shell script and a microcontroller are all first-class
-here without Spoolman shipping code for any of them.
-
-What the relay adds on top of a lookup is decoupling *where the reader is* from *where the user
-is looking*: the scan is broadcast to browsers that subscribed to that reader, so tapping a tag
-at the printer can drive a page open on a desk across the house.
-"""
+"""Tag scan relay endpoints."""
 
 import asyncio
 import logging
@@ -50,11 +38,9 @@ class TagScanParameters(BaseModel):
         min_length=1,
         max_length=UID_MAX_LENGTH * 2,  # room for separators; the normalized UID is what must fit
         description=(
-            "The scanned tag's UID, in whatever shape the reader reports it. Any separator style, "
-            "any case: the server normalizes it, which is why an ESPHome device sending 04-a2-b3 "
-            "and a phone sending 04:A2:B3 identify the same tag."
+            "The scanned tag's UID, case insensitive. Separators can be included if desired but are not necessary."
         ),
-        examples=["04-A2-B3-C4-D5-E6-F7"],
+        examples=["04-A2-B3-C4-D5-E6-F7", "04a2b3c4d5e6f7"],
     )
     reader_id: str | None = Field(
         None,
@@ -62,7 +48,7 @@ class TagScanParameters(BaseModel):
         description=(
             "A stable, operator-chosen id for this reader, e.g. the device hostname. Browsers "
             "subscribe by it, so it is what binds a screen to a reader. If omitted, one is derived "
-            "from the client's network address, which works but breaks on DHCP churn."
+            "from the client's network address."
         ),
         examples=["printer-voron"],
     )
