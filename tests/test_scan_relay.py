@@ -12,8 +12,9 @@ import pytest
 
 from spoolman.scanrelay import MAX_READERS, READER_ID_PATTERN, ScanRelay, derive_reader_id
 
-# The relay compares datetimes it is given against each other only, so the tzinfo here is
-# just to keep the value unambiguous; the server passes naive UTC, as the rest of the code does.
+# Aware, matching the relay's own clock. Injected time and the relay's default must agree:
+# register() writes last_seen and readers() prunes against it, so a naive value here would
+# only pass because these tests inject every clock -- see the internal-consistency test below.
 T0 = datetime(2026, 8, 13, 12, 0, 0, tzinfo=timezone.utc)
 
 
@@ -103,6 +104,22 @@ def test_registry_is_capped(relay: ScanRelay):
     # The least recently seen are the ones dropped.
     assert readers[0].reader_id == f"reader-{MAX_READERS + 19}"
     assert {r.reader_id for r in readers} == {f"reader-{i}" for i in range(20, MAX_READERS + 20)}
+
+
+def test_the_relays_own_clock_is_internally_consistent():
+    """Exercise the default `now` on every method, which the injected-time tests never do.
+
+    Each method reaching for its own clock is exactly where a naive/aware mismatch hides: the
+    stored last_seen and the pruning cutoff are compared, so one clock disagreeing with the
+    others makes GET /tag/reader raise rather than return.
+    """
+    relay = ScanRelay()
+    relay.register("desk", "Desk reader")
+    assert relay.should_broadcast("04A2", "desk") is True
+    assert relay.should_broadcast("04A2", "desk") is False
+
+    listed = relay.readers()
+    assert [r.reader_id for r in listed] == ["desk"]
 
 
 @pytest.mark.parametrize(

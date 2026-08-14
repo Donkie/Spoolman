@@ -14,7 +14,7 @@ whose whole lifetime is "a few seconds" or "until the next restart".
 import re
 import threading
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # Readers poll continuously -- nfc2klipper re-reads a tag for as long as it sits on the
 # reader -- so the same UID fires over and over. Suppressing repeats server-side, before the
@@ -87,7 +87,10 @@ class ScanRelay:
 
     def register(self, reader_id: str, name: str | None, now: datetime | None = None) -> None:
         """Record that a reader reported a scan just now."""
-        now = now or datetime.utcnow()
+        # Aware, like the other two clocks in this class. They all end up compared against each
+        # other -- register writes last_seen, readers() prunes on it -- and mixing one naive
+        # clock in raises "can't compare offset-naive and offset-aware datetimes".
+        now = now or datetime.now(tz=timezone.utc)
         with self._lock:
             # Popping first re-inserts at the end, so the dict stays ordered least- to
             # most-recently-seen and eviction can drop from the front.
@@ -109,7 +112,7 @@ class ScanRelay:
         Only the fan-out is debounced. The caller still answers the device on every POST: a
         de-duplicated scan must not look to the device like a failed lookup.
         """
-        now = now or datetime.utcnow()
+        now = now or datetime.now(tz=timezone.utc)
         key = (uid, reader_id)
         with self._lock:
             self._prune_debounce(now)
@@ -127,7 +130,7 @@ class ScanRelay:
         Eviction happens here rather than on a timer: there is no background task to start, no
         lifecycle hook to register, and nothing to shut down cleanly.
         """
-        now = now or datetime.utcnow()
+        now = now or datetime.now(tz=timezone.utc)
         with self._lock:
             self._prune_readers(now)
             return sorted(self._readers.values(), key=lambda reader: reader.last_seen, reverse=True)
