@@ -693,7 +693,6 @@ class HealthCheck(BaseModel):
 
 class BackupResponse(BaseModel):
     path: str = Field(
-        default=None,
         description="Path to the created backup file.",
         examples=["/home/app/.local/share/spoolman/backups/spoolman.db"],
     )
