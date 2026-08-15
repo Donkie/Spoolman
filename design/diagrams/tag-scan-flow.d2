@@ -1,0 +1,122 @@
+# Source for the "How it fits together" diagram on the Tag scanners wiki page.
+#
+# Render:
+#
+#   d2 --theme 0 --pad 20 \
+#      design/diagrams/tag-scan-flow.d2 design/diagrams/tag-scan-flow.svg
+#
+# Deliberately a single theme rather than `--dark-theme`. That flag does work,
+# and it bakes a prefers-color-scheme media query into the SVG, but the query
+# only survives if whatever embeds the file leaves the internal stylesheet
+# intact -- which GitHub's image pipeline is not guaranteed to do. If it were
+# stripped, the light theme would win and dark-blue arrows would sit on a
+# near-black page. So every colour that matters is pinned below to a value that
+# reads on both a white and a dark background, and the picture looks the same
+# everywhere instead of relying on that.
+#
+# The point the picture has to make is the direction of initiation: the reader
+# starts every exchange, and each arrow leaving Spoolman is a reply or a
+# broadcast. Spoolman never reaches for hardware. The dashed edge is the reply
+# to the POST, which is why it runs backwards up the page.
+#
+# Two things not to relitigate:
+#
+#   - The flow is vertical because d2 0.7.1 ignores `direction` on a nested
+#     container (verified: a -> b -> c inside a `direction: right` container
+#     still stacks). An L-shape is therefore not reachable without hand-placing
+#     nodes, and one flat axis is the only other option.
+#   - Width comes from the node labels, not the layout. Keeping each subtitle on
+#     a single line is what holds this near square instead of the 1:2.4 column
+#     the same graph produces with narrow labels.
+#
+#   - Labels are plain strings with \n, not |md| blocks. Markdown labels collapse
+#     single newlines and d2 mis-measures their width, silently truncating the
+#     last word.
+
+direction: down
+
+classes: {
+  node: {
+    style: {
+      stroke-width: 2
+      border-radius: 8
+      font-size: 16
+      shadow: true
+      # Pinned, and it has to be. The fills below are fixed light pastels, but
+      # the *text* colour comes from the active theme, so under --dark-theme d2
+      # paints it pale lavender on a pale yellow box and the labels vanish.
+      # Fixing both ends keeps the boxes identical in light and dark; only the
+      # arrows and their labels follow the theme, and those sit on the page
+      # background where following it is the right behaviour.
+      font-color: "#1f2937"
+    }
+  }
+  # Edges are pinned to one mid-slate that carries on both a white and a
+  # near-black page. Nothing here is left to the theme, so the SVG renders
+  # identically wherever it is embedded -- see the header note.
+  reply: {
+    style: {
+      stroke-width: 2
+      stroke-dash: 4
+      font-size: 13
+      stroke: "#64748b"
+      font-color: "#64748b"
+    }
+  }
+  call: {
+    style: {
+      stroke-width: 2
+      font-size: 13
+      stroke: "#64748b"
+      font-color: "#64748b"
+    }
+  }
+}
+
+tag: "Tag on the spool" {
+  class: node
+  style: {
+    fill: "#fef3c7"
+    stroke: "#b45309"
+  }
+}
+
+reader: "Reader\nESP32 · phone · Raspberry Pi · Node-RED · Home Assistant" {
+  class: node
+  style: {
+    fill: "#dbeafe"
+    stroke: "#1d4ed8"
+  }
+}
+
+spoolman: "Spoolman\nwhich spool has this tag UID?" {
+  class: node
+  style: {
+    fill: "#dcfce7"
+    stroke: "#15803d"
+  }
+}
+
+browser: "Your browser\npaired with the reader, and listening" {
+  class: node
+  style: {
+    fill: "#ede9fe"
+    stroke: "#6d28d9"
+  }
+}
+
+tag -> reader: "tap" {
+  class: call
+}
+
+reader -> spoolman: "POST /api/v1/tag/scan" {
+  class: call
+}
+
+spoolman -> reader: "matched_spool_id" {
+  class: reply
+}
+
+spoolman -> browser: "the scan, over a websocket" {
+  class: call
+}

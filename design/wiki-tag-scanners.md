@@ -1,8 +1,18 @@
+<!--
+  Source for https://github.com/Donkie/Spoolman/wiki/Tag-scanners
+
+  Publishing this page also means copying design/diagrams/tag-scan-flow.svg into the
+  wiki repository next to it: the image is referenced page-relative, which is how the
+  GitHub wiki serves its own assets, and the link is dead without it. The diagram is
+  generated from design/diagrams/tag-scan-flow.d2 -- edit that and re-render, never
+  the SVG by hand.
+-->
+
 # Tag scanners
 
 Spoolman can identify a spool from an NFC or RFID tag stuck to it. Tap the tag on a reader by your
-printer and Spoolman knows which spool it is — which means your browser can jump straight to it, and
-any other software you run can ask "which spool is this?" and get an answer.
+printer and Spoolman knows which spool it is. Your browser can jump straight to it, and any other
+software you run can ask "which spool is this?" and get an answer.
 
 This page covers what the feature does, how to set it up, how to build a reader, and how to wire it
 into other software.
@@ -14,7 +24,7 @@ into other software.
 ## What it does
 
 - **Link physical tags to spools.** A spool can carry several tags, and a tag identifies exactly one
-  spool. Nothing is written to the tag — Spoolman only reads its UID.
+  spool. Nothing is written to the tag, Spoolman only reads its UID.
 - **Look a spool up by tag,** from the UI or from any program: `GET /api/v1/spool?tag=<uid>`.
 - **Tap a tag anywhere, act on it anywhere else.** A reader at the printer can drive the browser on
   your desk, or a wall tablet, or nothing at all.
@@ -22,34 +32,26 @@ into other software.
   hardware UID, which every tag has. Blank NTAG stickers, Prusament tags, Bambu, Creality and Qidi
   tags all have one, even where their contents are encrypted or signed.
 
-What it does *not* do yet is read a tag's *contents* — tapping a new Prusament will not create the
+What it does *not* do yet is read a tag's *contents*. Tapping a new Prusament will not create the
 vendor, filament and spool for you with the right material and colour. That needs a decoder for each
-tag format and is planned separately.
+tag format and is planned for the future.
 
 ## How it fits together
 
 **Spoolman never talks to reader hardware. The reader talks to Spoolman.**
 
-That is the important thing to understand, and it is why setup is simple. Spoolman usually runs in
-Docker on a NAS or a server in a cupboard, while the tag gets tapped at the printer. Rather than
-Spoolman reaching out to USB devices it cannot see, a reader reports what it read by making **one
-HTTP POST**:
+This is key: Spoolman usually runs in Docker on a NAS or somewhere on your network, while the tag
+gets tapped at the printer. Spoolman doesn't reach out to USB devices—instead, a reader reports
+what it read by making **one HTTP POST**:
 
-```
-   [ tag ] --tap--> [ reader: ESP32, phone, Pi, Node-RED ]
-                             |
-                             |  POST /api/v1/tag/scan  {"uid": "...", "reader_id": "..."}
-                             v
-                        [ Spoolman ] --- resolves the UID to a spool
-                             |
-                             |  broadcasts the scan over a websocket
-                             v
-                  [ your browser, if it is listening ]
-```
+![A tag is tapped on a reader. The reader POSTs the UID to Spoolman, which answers with the matching spool id and broadcasts the scan to any paired browser.](tag-scan-flow.svg)
 
-So a "tag scanner" is anything that can make an HTTP request. There is no pairing handshake, no
-device registration, no library to install, and no inbound port on the reader. A device that has
-never talked to Spoolman before works on its first tap.
+A "tag scanner" is anything that can make an HTTP request. No pairing handshake, no device
+registration, no library to install, no inbound port on the reader. A brand new device works on
+its first tap.
+
+The dashed arrow is the reply to that POST, and it is optional: Spoolman hands the reader the
+matching spool id, which is handy for lighting an LED, but a device is free to ignore it entirely.
 
 ---
 
@@ -69,11 +71,11 @@ Spoolman answers with the match:
 {"uid":"04A2B3C4D5E6F7","reader_id":"desk","name":"Desk reader","matched_spool_id":null}
 ```
 
-`matched_spool_id` is `null` because nothing is linked to that tag yet. Link it (below), run the same
-command again, and you get the spool back — and any browser you have paired will open it.
+`matched_spool_id` is `null` because nothing is linked to that tag yet. Link it (below), run the
+same command again, and you get the spool back. Any browser you have paired will open it.
 
-If you have the Spoolman source checked out, it also ships a small interactive fake reader, which
-beats retyping curl lines:
+If you have the Spoolman source checked out, there's also a small interactive fake reader to avoid
+retyping curl lines:
 
 ```sh
 python scripts/fake_reader.py                 # interactive: type UIDs to "tap" them
@@ -81,15 +83,15 @@ python scripts/fake_reader.py 04:a2:b3:c4     # one tap, then exit
 python scripts/fake_reader.py --new           # invent a blank tag's UID and tap it
 ```
 
-It needs only the Python standard library, and it writes nothing and deletes nothing, so it is safe
-to point at a real instance with `--url http://spoolman.local:7912`.
+It only uses Python's standard library and doesn't write or delete anything, so it's safe to point
+at a real instance with `--url http://spoolman.local:7912`.
 
 ---
 
 ## Linking a tag to a spool
 
 Open a spool in the library, find the **Tags** section in its inspector, and click **Add tag**. The
-dialog gives you three ways to provide the UID — use whichever suits where you are:
+dialog has three ways to provide the UID. Pick whichever works for you:
 
 1. **Tap it on a reader.** While the dialog is open it listens for scans, so tapping the tag on your
    reader fills the field in. The dialog says which reader it is waiting for.
@@ -118,8 +120,7 @@ Any tag with a UID, which in practice is all of them:
 | Prusament / OpenPrintTag | Yes, by UID | These are ISO15693 (NFC-V) tags and need a reader that supports it — see the hardware table. |
 | TigerTag | Yes, by UID | |
 
-Because identification is by UID, a vendor tag you cannot write to works exactly as well as a blank
-sticker you can.
+Since identification is just the UID, a locked vendor tag works just as well as a blank sticker.
 
 ---
 
@@ -129,9 +130,9 @@ sticker you can.
 the server, so every device you open Spoolman on chooses for itself.
 
 **Auto-navigate** — *"Automatically navigate in this web browser to a spool that gets read by a tag
-reader."* Off by default. Turn it on and a tap opens that spool in this browser. It only ever
-navigates on a match, and it holds off while you have a dialog open or are typing in a field, so a
-tap in the next room cannot throw away what you were doing.
+reader."* Off by default. Turn it on and a tap opens that spool in this browser. It only navigates
+on a match and stays quiet while you have a dialog open or are typing, so a tap in the next room
+won't interrupt your work.
 
 **Tag Reader** — which reader this browser listens to. By default it listens to all of them, which is
 right if you only have one. To bind this browser to one specific reader:
@@ -142,11 +143,11 @@ right if you only have one. To bind this browser to one specific reader:
 
 **Use any reader** undoes the pairing.
 
-The reader you are paired with is also the reader the *Add tag* dialog listens to.
+The reader you're paired with is also the one the *Add tag* dialog listens to.
 
-> **Recent readers is empty after a restart.** The list of readers is kept in memory only — nothing
-> about your readers is stored in the database. A reader reappears in the list the moment it scans
-> something. This is not an error; it is why pairing by tapping is the primary route.
+> **Recent readers is empty after a restart.** The list of readers lives in memory only. Nothing
+> about your readers is stored in the database. A reader reappears the moment it scans something.
+> This is why pairing by tapping works even after a restart.
 
 Typical setups this gives you:
 
@@ -182,7 +183,7 @@ you can always type a UID, or tap on a reader.
 ## Building a reader
 
 The reference reader is an ESP32 with an NFC module, running ESPHome. It costs about ten euros and
-the firmware is about thirty lines, only one of which is Spoolman-specific.
+the firmware is around thirty lines, with just one line specific to Spoolman.
 
 ### Hardware
 
@@ -195,14 +196,14 @@ the firmware is about thirty lines, only one of which is Spoolman-specific.
 | USB power supply | | |
 | An LED (optional) | | Feedback that the tap registered. |
 
-The important buying decision is **ISO15693**. PN532 and RC522 read ISO14443A, which covers NTAG,
-MIFARE, Bambu, Creality, Qidi and TigerTag — the large majority of what people tag spools with. They
-**cannot** read the NFC-V tags on new Prusament spools, no matter what firmware you run. If Prusa
-tags matter to you, buy a PN5180 and expect to do more work.
+The key choice is **ISO15693** support. PN532 and RC522 read ISO14443A, which handles NTAG,
+MIFARE, Bambu, Creality, Qidi and TigerTag—most of what people tag spools with. They **cannot**
+read the NFC-V tags on new Prusament spools, no matter what firmware you use. If you need Prusament
+tags, get a PN5180 and be prepared to put in more work.
 
 ### ESPHome
 
-This is the whole device. Substitute your own reader name and Spoolman address.
+Here's the complete device config. Substitute your own reader name and Spoolman address.
 
 ```yaml
 esphome:
@@ -257,9 +258,9 @@ Notes:
 
 #### Adding a status LED
 
-Reading the reply tells you whether the tag is known, which is the difference between a device people
-trust and one people tap twice. Spoolman always answers with `matched_spool_id` — a number if the tag
-is linked to a spool, `null` if it is not — so a substring test on the body is enough:
+Reading the response tells you if a tag is known. That's the difference between a device people
+trust and one people tap repeatedly. Spoolman always returns `matched_spool_id`: a number if the
+tag is linked, or `null` if not. A simple substring check on the response body is enough:
 
 ```yaml
 output:
@@ -299,7 +300,7 @@ pn532_i2c:
 
 ### Home Assistant
 
-If your reader is already in Home Assistant, you do not need a second device. An ESPHome reader can
+If your reader is already in Home Assistant, you don't need a second device. An ESPHome reader can
 report tags to Home Assistant with `homeassistant.tag_scanned`, and an automation can forward them
 to Spoolman.
 
@@ -339,16 +340,15 @@ automation:
           reader_id: "ha-{{ trigger.event.data.device_id }}"
 ```
 
-> **A caveat worth knowing.** `tag_id` is the hardware UID when the scan comes from an ESPHome reader
-> using `homeassistant.tag_scanned`. It is **not** the hardware UID when the scan comes from the Home
-> Assistant companion app — there, Home Assistant writes its own identifier into the tag and reports
-> that instead. Both are hexadecimal, so Spoolman will happily accept either, but they are different
-> values for the same physical tag. Link tags from the same source you intend to scan them with, or
-> the lookup will not match.
+> **Watch out.** `tag_id` is the hardware UID when the scan comes from an ESPHome reader using
+> `homeassistant.tag_scanned`. It's **not** the hardware UID when the scan comes from the Home
+> Assistant companion app. The companion app uses an identifier Home Assistant wrote to the tag
+> instead. Both are hex, so Spoolman accepts both, but they're different values for the same physical
+> tag. Link tags from the same source you'll scan them with, or the lookup won't match.
 
 ### Raspberry Pi, or any machine with a USB reader
 
-If you already have a Pi at the printer, there is no firmware to flash. With
+If you already have a Pi at the printer, you don't need firmware. With
 [nfcpy](https://nfcpy.readthedocs.io/) and a supported reader:
 
 ```python
@@ -373,18 +373,17 @@ with nfc.ContactlessFrontend("usb") as clf:
 
 ### Anything else
 
-A reader is one HTTP POST, so a Node-RED flow of three nodes, a shell script in a loop, a Tasker
-task on a phone, or an ESP32 running hand-written Arduino code are all equally valid. There is
-nothing to implement beyond the request.
+A reader is just one HTTP POST. A Node-RED flow, a shell script, a Tasker task on a phone, or
+custom Arduino code all work. There's nothing else to implement.
 
 ### What makes a well-behaved reader
 
 | | |
 |---|---|
-| **Send a stable `reader_id`** | It is what a browser pairs with. The hostname is a good default. |
-| **Survive Spoolman being down** | Fire and forget. A reader that blocks, retries in a tight loop, or reboots because the server is restarting is worse than one that quietly drops the scan. |
-| **Don't poll faster than about 1 Hz** | Readers re-detect a tag that is sitting still. Spoolman de-duplicates repeats, so nothing breaks, but slower polling keeps the logs readable. |
-| **Nothing else** | No discovery, no registration, no device-side state. |
+| **Send a stable `reader_id`** | This is what a browser pairs with. The hostname works well. |
+| **Survive Spoolman being down** | Fire and forget. Don't block or retry in a tight loop if the server is down. |
+| **Don't poll faster than about 1 Hz** | Readers re-read a tag sitting on them. Spoolman deduplicates, but slower polling keeps logs cleaner. |
+| **Nothing else** | No discovery, no registration, no device state. |
 
 ---
 
@@ -392,8 +391,8 @@ nothing to implement beyond the request.
 
 ### Set the active spool in Klipper when a tag is tapped
 
-This is the most-asked-for use of the feature: tap a spool's tag at the printer and have Moonraker
-set it as the active spool, so usage is tracked against the right one.
+This is a common use case: tap a spool's tag at the printer and have Moonraker set it as active
+so usage gets tracked correctly.
 
 Spoolman resolves the tag; Moonraker gets told the id. On the machine with the reader:
 
@@ -431,17 +430,16 @@ with nfc.ContactlessFrontend("usb") as clf:
         clf.connect(rdwr={"on-connect": on_connect})
 ```
 
-The same two steps work from a Home Assistant automation, a Node-RED flow, or anything else: POST the
-UID to Spoolman, read `matched_spool_id`, POST that to Moonraker's
-`/server/spoolman/spool_id`. Because Spoolman does the lookup, the tag itself never has to contain a
-spool id — which is what makes this work with vendor tags you cannot write to.
+The same two steps work from a Home Assistant automation, a Node-RED flow, or anything else: POST
+the UID to Spoolman, read `matched_spool_id`, POST that to Moonraker's `/server/spoolman/spool_id`.
+Since Spoolman does the lookup, the tag doesn't need to store a spool id. This is why it works
+with vendor tags you can't write to.
 
 ### Existing projects
 
-Several community projects already read tags and talk to Spoolman. All of them predate this feature
-and worked around the missing lookup by writing a Spoolman id *into* the tag, or by storing the UID
-in an extra field and filtering on it. They keep working exactly as they did; the tag endpoints give
-them a shorter path if their authors want it.
+Several community projects already read tags and talk to Spoolman. Most of them predate this feature
+and worked around it by writing a Spoolman id to the tag or storing the UID in an extra field. They
+still work the same way. The tag endpoints just give them a shorter path if they want to use it.
 
 | Project | What it is | How it relates |
 |---|---|---|
@@ -450,147 +448,50 @@ them a shorter path if their authors want it.
 | [OpenSpool](https://github.com/spuder/OpenSpool) | ESP32 + PN532, ESPHome, talks to Bambu printers over MQTT | One extra `http_request.post` alongside the MQTT publish is enough to tell Spoolman too. |
 | [SpoolCompanion](https://github.com/V-aruu/SpoolCompanion) | Android app | Picks a spool and writes its identifiers to a tag, for use with nfc2klipper. |
 
-If you maintain one of these, the contract you want is
-[`POST /api/v1/tag/scan`](#the-device-contract) — it does the lookup and drives the browser in one
-request.
+If you maintain one of these, the endpoint to use is [`POST /api/v1/tag/scan`](#the-device-contract).
+It does the lookup and drives the browser in a single request.
 
 ### Extra fields still work
 
-Nothing here replaces spool extra fields. If you keep a UID in one today, filtering on it keeps
-working:
+Nothing here replaces spool extra fields. If you store a UID in one, filtering still works:
 
 ```http
 GET /api/v1/spool?extra.nfc_id=04A2B3C4
 ```
 
-Two differences are worth knowing if you are choosing between them. A linked tag is **unique and
-indexed** — two spools cannot claim the same tag, and the lookup is an exact match on an index
-rather than a case-insensitive substring search. And an extra-field filter is only applied if that
-extra field has actually been defined in Settings; filtering on a key that does not exist is
-silently ignored and returns *every* spool, which is an easy way to think a lookup succeeded when it
-did not.
+A few differences if you're deciding between them. A linked tag is **unique and indexed**. Two
+spools can't claim the same tag, and the lookup is exact rather than a case-insensitive substring
+search. Extra-field filters only work if that field is defined in Settings. Filtering on a key
+that doesn't exist silently returns every spool, which looks like a match but isn't.
 
 ---
 
 ## The device contract
 
-Everything a reader needs, in full.
-
-### Report a scan
-
-```http
-POST /api/v1/tag/scan
-Content-Type: application/json
-
-{"uid": "04-A2-B3-C4-D5-E6-F7", "reader_id": "printer-voron", "name": "Voron spool holder"}
-```
-
-Only `uid` is required. `format` (`ntag`, `bambu`, `prusa`, …) and `payload_b64` are accepted and
-carried through untouched; Spoolman does not decode tag contents.
-
-A match returns the whole spool, so nothing needs a follow-up request:
-
-```json
-{"uid":"04A2B3C4D5E6F7","reader_id":"printer-voron","matched_spool_id":1,"spool":{"id":1, "...": "..."}}
-```
-
-No match:
-
-```json
-{"uid":"DEADBEEF","reader_id":"printer-voron","matched_spool_id":null}
-```
-
-`matched_spool_id` is always present in this response — `null` means "no spool has this tag", which is
-an answer, not a failure. A device is free to ignore the body entirely.
-
-### Look up a spool by tag
-
-```http
-GET /api/v1/spool?tag=04-a2-b3-c4-d5-e6-f7
-```
-
-Returns the standard spool list — zero or one result, never more. Composes with the other filters,
-including `allow_archived`, so an archived spool's tag is not found unless you ask for archived
-spools. A UID that is not hexadecimal is a `400`, not an empty list.
-
-### Link and unlink
-
-```http
-POST   /api/v1/spool/{id}/tag     {"uid": "...", "format": "ntag"}   → 201
-DELETE /api/v1/spool/{id}/tag/{uid}                                  → 204
-```
-
-Linking a UID that another spool already holds returns `409` with that spool's id in the body, so a
-client can offer to move it:
-
-```json
-{"message":"Tag 04A2B3C4D5E6F7 is already linked to spool 1.","spool_id":1}
-```
-
-Re-linking a tag to the spool that already has it succeeds and changes nothing.
-
-Both emit the normal spool `updated` event, so open browsers refresh on their own.
-
-### Listen for scans
-
-```
-WS /api/v1/tag/scan               every reader
-WS /api/v1/tag/scan/{reader_id}   one reader
-```
-
-Events look like this — the same payload as the POST response, wrapped:
-
-```json
-{
-  "type": "scanned",
-  "resource": "tag_scan",
-  "date": "2026-08-15T09:02:43Z",
-  "payload": {"uid": "04A2B3C4D5E6F7", "reader_id": "printer-voron", "matched_spool_id": 1, "spool": {"...": "..."}}
-}
-```
-
-Note one difference from the POST response: in the websocket event, `matched_spool_id` is *omitted*
-when the tag is unknown rather than being sent as `null`. Test for its presence, not for `null`.
-
-Send any text frame as a keepalive and you get `{"status":"healthy"}` back, same as Spoolman's other
-websockets. Scan events travel on their own socket and never appear on the entity streams
-(`/api/v1/`, `/api/v1/spool`, …), so nothing that consumes those is affected.
-
-### List recently seen readers
-
-```http
-GET /api/v1/tag/reader
-→ [{"reader_id": "printer-voron", "name": "Voron spool holder", "last_seen": "2026-08-15T09:02:22Z"}]
-```
-
-In memory only, most recent first, empty after a restart.
+See the [tag API documentation](https://donkie.github.io/Spoolman/#tag/tag) for the complete
+endpoint reference including request/response formats, status codes, and all parameters.
 
 ---
 
 ## Things to know
 
-**Scans are never stored.** A scan is broadcast to whoever is listening and then it is gone. There is
-no scan history, and no record of which reader saw which tag when. Only the tag-to-spool link is
-stored.
+**Scans are never stored.** A scan is broadcast and then gone. No scan history, no record of which
+reader saw which tag when. Only the tag-to-spool link is stored.
 
-**Repeated scans are de-duplicated.** Readers re-read a tag that is left sitting on them, so the same
-UID from the same reader within 3 seconds is broadcast once. The HTTP response is unaffected — every
-POST gets its answer, so a de-duplicated scan never looks to the device like a failed lookup.
+**Repeated scans are de-duplicated.** Readers re-read a tag sitting on them, so the same UID from
+the same reader within 3 seconds is broadcast once. Every POST still gets an answer, so the device
+never sees a de-duplicated scan as a failed lookup.
 
-**There is no authentication.** Spoolman has none anywhere, and the tag endpoints are the same:
-anything on your network can report a scan and make a paired browser navigate. The worst that does is
-move someone's page — a scan writes nothing. Keep Spoolman off the open internet, as
-[the security page](https://github.com/Donkie/Spoolman/wiki/Security) already advises. An
-unguessable `reader_id` makes it slightly harder to target a specific browser; it is not a password
-and should not be treated as one.
+**There is no authentication.** Spoolman has none, and the tag endpoints are the same. Anything on
+your network can report a scan and navigate a paired browser. Worst case, it moves someone's page.
+Scans don't write. Keep Spoolman off the open internet, as the [security page](https://github.com/Donkie/Spoolman/wiki/Security) advises. An unguessable `reader_id` makes it harder to target a specific browser. It's not a password.
 
-**Reader state is per server process.** The recently-seen list and the de-duplication window live in
-memory in one process. If you have deliberately run Spoolman with multiple workers, each has its own,
-and you will see readers come and go. The stock configuration runs a single process and is fine.
+**Reader state is per server process.** The recently-seen list and de-duplication window live in
+memory. If you run Spoolman with multiple workers, each has its own, and readers come and go. The
+default config is a single process and works fine.
 
-**Tag contents are not read.** Spoolman uses the UID and nothing else. A tag's payload can be sent
-along in `payload_b64` and is passed through to listeners untouched, but Spoolman does not decode it,
-and it does not write to tags at all.
+**Tag contents are not read.** Spoolman uses the UID only. Payloads can be sent in `payload_b64`
+and passed to listeners unchanged, but Spoolman doesn't decode them or write to tags.
 
 ---
 
@@ -598,12 +499,12 @@ and it does not write to tags at all.
 
 | Symptom | Likely cause |
 |---|---|
-| **"Read a tag with this phone" is missing** | Not Chrome on Android, or Spoolman is not being served over HTTPS. Both are required and neither can be worked around. |
-| **The button is there but reading fails** | NFC is off in system settings, the site was denied NFC permission, or another app is holding the reader. |
-| **Nothing appears in Recent readers** | The list is in memory and empties on restart. Tap a tag; the reader appears immediately. If it does not, the reader is not reaching Spoolman — check its logs for the POST. |
-| **A tap does nothing in the browser** | Auto-navigate is off by default (Settings → Tag Scanning). It also only fires on a *known* tag, and stays quiet while a dialog is open or you are typing. |
-| **The wrong browser jumps to the spool** | Every browser listens to all readers until you pair it. Use **Pair by tapping** on the ones that should be selective. |
-| **`400` "not a valid tag UID"** | The UID has non-hexadecimal characters in it. Some readers report a decimal number or an NDEF text record rather than the UID — send the hardware UID. |
-| **The reader gets `200` but the tag is never found** | The UID being sent is not the one that was linked. This is the usual sign of two sources reporting different identifiers for one tag, such as a Home Assistant companion-app tag id versus a hardware UID. Look the tag up with `GET /api/v1/spool?tag=<uid>` to see which one Spoolman knows. |
-| **Prusament tags are not detected at all** | A PN532 or RC522 cannot read ISO15693/NFC-V tags. You need a PN5180. |
-| **Tags read on the bench but not in the printer** | Metal detunes the antenna. Move the reader away from the frame and any motors. |
+| **"Read a tag with this phone" is missing** | Not Chrome on Android, or Spoolman isn't being served over HTTPS. Both are required. |
+| **The button is there but reading fails** | NFC is off, the site was denied permission, or another app is using the reader. |
+| **Nothing appears in Recent readers** | The list is in memory and clears on restart. Tap a tag and it appears immediately. If not, the reader isn't reaching Spoolman. Check its logs for the POST. |
+| **A tap does nothing in the browser** | Auto-navigate is off by default (Settings → Tag Scanning). It also only works on known tags and stays quiet while a dialog is open or you're typing. |
+| **The wrong browser jumps to the spool** | Every browser listens to all readers until you pair it. Use **Pair by tapping** for selective ones. |
+| **`400` "not a valid tag UID"** | The UID has non-hex characters. Some readers send decimal or an NDEF text record instead of the UID. Send the hardware UID. |
+| **The reader gets `200` but the tag is never found** | The UID sent isn't the one that was linked. Usually means two sources report different identifiers for the same tag (Home Assistant companion app ID vs. hardware UID). Look it up with `GET /api/v1/spool?tag=<uid>` to see which one Spoolman knows. |
+| **Prusament tags are not detected at all** | A PN532 or RC522 can't read ISO15693/NFC-V tags. You need a PN5180. |
+| **Tags read on the bench but not in the printer** | Metal detunes the antenna. Move the reader away from the frame and motors. |
