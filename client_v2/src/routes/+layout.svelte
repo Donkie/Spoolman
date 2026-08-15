@@ -10,7 +10,13 @@
 	import { serverInfo } from '$lib/stores/serverInfo.svelte';
 	import { theme } from '$lib/stores/theme.svelte';
 	import { startLiveSync } from '$lib/api/liveSync';
+	import { scanRelay } from '$lib/api/scanRelay';
+	import { scanner } from '$lib/stores/scanner.svelte';
+	import { toasts } from '$lib/stores/toasts.svelte';
 	import { getLocale, getTextDirection } from '$lib/paraglide/runtime';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import * as m from '$lib/paraglide/messages';
 	import type { Snippet } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();
@@ -38,6 +44,34 @@
 		serverInfo.load();
 
 		return startLiveSync();
+	});
+
+	// The one place a scanned tag is allowed to move this browser.
+	//
+	// Exactly one subscription, and it lives here rather than in whichever
+	// component happens to care, because two mounted components reacting to the
+	// same scan is how one tap becomes two navigations. Dialogs that need scans
+	// (AddTagModal) subscribe for their own purposes but never navigate.
+	//
+	// It exists only while auto-navigate is on, which also means a browser that
+	// isn't using NFC holds no relay socket at all. Re-runs when the paired reader
+	// changes, moving the subscription to the new pool.
+	$effect(() => {
+		if (!scanner.autoNavigate) return;
+		return scanRelay.subscribe(scanner.pool, (scan) => {
+			scanner.receive(scan);
+			if (!scan.spool) {
+				// An unknown tag has nowhere to navigate to, and silently ignoring it
+				// would look like the tap failed. Say what was read and where to link
+				// it — repeats coalesce, and the relay already debounces a reader that
+				// re-reads a tag left sitting on it. Not an error: tapping a tag no
+				// spool claims yet is how enrolling one starts.
+				toasts.info(m['tags.scan.unknown']({ uid: scan.uid }));
+				return;
+			}
+			if (!scanner.mayNavigate(document.activeElement, ui.addModalOpen || ui.scannerOpen)) return;
+			goto(resolve(`/?sel=spool:${scan.spool.id}`));
+		});
 	});
 </script>
 
