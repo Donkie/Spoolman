@@ -16,7 +16,8 @@ actually does, where the design doc has drifted from the tree, and what is still
 | Branch | `worktree-nfc-design-docs`, pushed |
 | Commits | `f261dee` websocket broadcast fix, `de533bc` NFC phase 1 backend |
 | Verified | 506 integration tests on sqlite / postgres / mariadb / cockroachdb; 264 unit tests; ruff clean; migration proven byte-lossless on a populated database, upgrade and downgrade |
-| Not started | Everything under `client_v2/`, the docs page, the reference firmware, and the #783 action links |
+| Client | Built. 274 client unit tests, `npm run check` clean, lint clean, and 48/48 Playwright against a production build served same-origin on a fresh database |
+| Not started | The docs page, the reference firmware, and the #783 action links |
 
 The migration is `migrations/versions/2026_08_13_1000-fe4970567bb3_spool_tags.py`. It runs on server
 startup like every other one; there is nothing to do by hand.
@@ -206,18 +207,38 @@ Playwright tests should drive.
 
 ---
 
-## Still open
+## Was open, now decided
 
-- **Where the "link a tag" entry point lives.** The design doc names an `AddTagModal` but not what
-  opens it. The inspector's action-button hierarchy has one accent CTA and quiet icons behind a
-  separator, so this is probably a quiet action, not a second CTA.
-- **What an unknown scanned UID offers.** Design says "link this tag to a spool" and explicitly not
-  navigation. Which spool — the selected one, or a picker? Undecided.
-- **Whether the reader picker ships at all in phase 1**, or whether tap-to-pair alone is enough and
-  `GET /tag/reader` stays an API-only affordance until someone asks.
-- **Playwright coverage depth.** The design asks for pairing and auto-navigate; both are drivable
-  with plain POSTs. Worth deciding whether the Web NFC path gets any automated cover at all — it
-  probably cannot, and that is fine if it is stated.
+The frontend is built. These are the answers it went with, and why.
+
+- **The "link a tag" entry point is a section action, not a header button.** `TagsSection` puts
+  *Add tag* in its `SectionLabel`'s right slot, the same quiet-link shape the Filament section
+  already uses for *Change* / *Open filament*. The inspector header keeps its one accent CTA.
+- **An unknown scanned UID is reported, not routed.** It raises a toast naming the UID and saying to
+  open the spool and use *Add tag* — no picker, no navigation. The dialog subscribes to the relay
+  while it is open, so the follow-up tap fills the field: the instruction in the toast is the whole
+  flow. A picker would be a second way to choose a spool when the app already has one.
+- **The reader picker ships**, under the pairing row in Settings, listing what `GET /tag/reader`
+  knows and offering *Use this one*. It cost about thirty lines and it is the only answer for a
+  reader in another room. Its empty state explains the registry is per-process rather than reporting
+  an error.
+- **Playwright covers everything except Web NFC**, in `tests_frontend_v2/tests/tags.spec.ts` — six
+  specs: link by typed UID, tap-to-fill, the move-a-taken-tag path, auto-navigate, the unknown-tag
+  toast, and pairing. Web NFC gets no automated cover and cannot: there is no way to present a
+  physical tag to headless Chromium. What *is* asserted is that the control is absent there, which
+  is the failure mode that would otherwise reach a desktop user.
+
+## Two things the next session should not rediscover
+
+**Playwright for client_v2 lives in `tests_frontend_v2/`, not `client_v2/e2e/`.** The design doc says
+the latter; that directory holds only the a11y audit (`npm run audit:a11y`). The real suite is a
+separate package with its own config, run against a deployed instance on `SPOOLMAN_BASE_URL`.
+
+**Do not increment a `$state` counter from inside an `$effect`.** `scanner.suppress()` originally did,
+and `this.#suppressions++` reads the rune as well as writing it — so the dialog's open-effect
+depended on its own write and re-ran until Svelte killed it with `effect_update_depth_exceeded`,
+opening and closing a websocket on every pass. The counter is deliberately a plain field now; nothing
+renders from it. The symptom to recognise is a flood of `WebSocket ... Insufficient resources`.
 
 ---
 
