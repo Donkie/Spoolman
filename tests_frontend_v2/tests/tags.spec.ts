@@ -303,7 +303,7 @@ test("a reader is paired by tapping a tag on it", async ({ page, request }) => {
   await navTab(page, "Settings", "Settings | Spoolman");
   await page.getByLabel("Open the spool a scanned tag belongs to").click();
 
-  await expect(page.getByText("Listening to every reader.")).toBeVisible();
+  await expect(page.getByText(/Scans from any reader/)).toBeVisible();
   await page.getByRole("button", { name: "Pair by tapping" }).click();
   await expect(page.getByText("Tap a tag on the reader you want...")).toBeVisible();
 
@@ -312,7 +312,7 @@ test("a reader is paired by tapping a tag on it", async ({ page, request }) => {
     request,
     uid,
     async () => {
-      await expect(page.getByText("Only this reader opens spools on this screen.")).toBeVisible({
+      await expect(page.getByText(/Only scans from this reader/)).toBeVisible({
         timeout: 1500,
       });
     },
@@ -335,6 +335,6 @@ test("a reader is paired by tapping a tag on it", async ({ page, request }) => {
     await expect(page.getByTitle(readerId)).toHaveText(readerId);
   });
 
-  await page.getByRole("button", { name: "Listen to all" }).click();
-  await expect(page.getByText("Listening to every reader.")).toBeVisible();
+  await page.getByRole("button", { name: "Use any reader" }).click();
+  await expect(page.getByText(/Scans from any reader/)).toBeVisible();
 });
