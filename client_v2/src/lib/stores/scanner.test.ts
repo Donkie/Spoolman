@@ -114,24 +114,60 @@ describe('scanner pairing', () => {
 	it('narrows to the reader it was paired with, and widens again on unpair', () => {
 		scanner.pair('printer-voron', 'Voron spool holder');
 		expect(scanner.pool).toBe('printer-voron');
-		expect(scanner.pairedReaderName).toBe('Voron spool holder');
+		expect(scanner.pairedLabel).toBe('Voron spool holder');
 		scanner.unpair();
 		expect(scanner.pool).toBeNull();
-		expect(scanner.pairedReaderName).toBeNull();
+		expect(scanner.pairedLabel).toBeNull();
 	});
 
 	// Readers derive an id from their address when they send none, so a great many
 	// of them are called `ip-192-168-1-50` and only the name is worth showing.
-	it('picks up a renamed reader from its own scans', () => {
+	it('picks up a reader name from its own scans', () => {
 		scanner.pair('ip-192-168-1-50');
-		expect(scanner.pairedReaderName).toBeNull();
+		expect(scanner.pairedLabel).toBe('ip-192-168-1-50');
 		scanner.receive({ uid: '04A2B3C4', readerId: 'ip-192-168-1-50', name: 'Shelf reader' });
-		expect(scanner.pairedReaderName).toBe('Shelf reader');
+		expect(scanner.pairedLabel).toBe('Shelf reader');
+	});
+});
+
+// The bug this shape exists to prevent. A reader's name belongs to the reader and
+// is tracked by the server, which keeps the last name each one gave -- while a scan
+// event carries only the name *that* scan sent. Storing a copy at pairing time made
+// the two ways of pairing disagree about the same reader: tapping a tag on an agent
+// that had stopped sending its name showed the bare id, while picking that reader
+// out of the recently-seen list showed its name.
+describe('scanner reader names', () => {
+	beforeEach(() => scanner.unpair());
+
+	it('calls a reader the same thing however you paired with it', () => {
+		// Whichever route learned the name, both end up asking the same question.
+		scanner.learnReaders([{ readerId: 'desk', name: 'Desk reader' }]);
+
+		scanner.pair('desk', 'Desk reader'); // picked out of the recently-seen list
+		const viaList = scanner.pairedLabel;
+
+		scanner.unpair();
+		scanner.pair('desk'); // paired by tapping a scan that carried no name
+		expect(scanner.pairedLabel).toBe(viaList);
+		expect(scanner.pairedLabel).toBe('Desk reader');
 	});
 
-	it('does not take a name from a reader it is not paired with', () => {
-		scanner.pair('desk', 'Desk reader');
-		scanner.receive({ uid: '04A2B3C4', readerId: 'other', name: 'Someone else' });
-		expect(scanner.pairedReaderName).toBe('Desk reader');
+	it('does not let a nameless scan blank a name already known', () => {
+		scanner.learnReaders([{ readerId: 'desk', name: 'Desk reader' }]);
+		scanner.receive({ uid: '04A2B3C4', readerId: 'desk' });
+		expect(scanner.readerLabel('desk')).toBe('Desk reader');
+	});
+
+	// Its own id: the store is a session-long singleton and learned names stay
+	// learned, which is the point of them, so a shared one would be answered by
+	// whatever an earlier test taught it.
+	it('falls back to the id, which is the honest answer when nobody knows a name', () => {
+		expect(scanner.readerLabel('ip-10-0-0-9')).toBe('ip-10-0-0-9');
+	});
+
+	it('keeps readers apart', () => {
+		scanner.learnReaders([{ readerId: 'desk', name: 'Desk reader' }, { readerId: 'bench' }]);
+		expect(scanner.readerLabel('desk')).toBe('Desk reader');
+		expect(scanner.readerLabel('bench')).toBe('bench');
 	});
 });

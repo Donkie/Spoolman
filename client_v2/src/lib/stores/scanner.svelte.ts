@@ -1,13 +1,22 @@
-import type { TagScan } from '$lib/api/scanRelay';
+import { listReaders, type TagScan } from '$lib/api/scanRelay';
 
 // Which NFC reader this browser listens to, and whether a scan is allowed to
 // navigate it. Per-browser, persisted to localStorage next to the other local
 // preferences (theme, list width, collapsed groups) — pairing is a property of
 // this screen sitting next to that reader, not of the account or the server, and
 // the relay is stateless about it: pooling comes from the socket path alone.
+//
+// The reader *id* is what gets persisted, and nothing else about the reader. Its
+// friendly name belongs to the reader and is tracked by the server, which keeps
+// the last one each reader gave; a copy saved here at pairing time would be a
+// second source of truth for something that changes without us. It drifted in
+// exactly the way you would expect: the server remembers the name from a reader's
+// last named scan, while a scan event carries only the name *that* scan sent, so
+// pairing by tapping an agent that had stopped sending its name stored nothing and
+// showed the bare id, while the same reader in the recently-seen list still showed
+// its name. Names are therefore read, never stored — see `readerLabel`.
 
 const READER_KEY = 'spoolman-v2-scanner-reader';
-const READER_NAME_KEY = 'spoolman-v2-scanner-reader-name';
 const AUTO_NAVIGATE_KEY = 'spoolman-v2-scanner-auto-navigate';
 
 function read(key: string): string | null {
@@ -71,12 +80,18 @@ class ScannerState {
 	 *  rather than an unconfigured state: most people have exactly one reader, and
 	 *  pairing only starts to matter once there are two. */
 	pairedReaderId = $state<string | null>(null);
-	/** The paired reader's friendly name, remembered so the settings page can name
-	 *  it before that reader has scanned again this session. */
-	pairedReaderName = $state<string | null>(null);
 	/** Whether a scan matching a spool navigates this browser to it. Off by
 	 *  default — a page that navigates itself unasked is hostile. */
 	autoNavigate = $state(false);
+
+	/**
+	 * Reader id → the friendly name that reader last gave, from the server's
+	 * registry and from scans as they arrive. In memory only: it mirrors state the
+	 * server keeps in memory too, and is empty after either end restarts, at which
+	 * point nobody knows the name and the id is the honest thing to show.
+	 */
+	#names = $state<Record<string, string>>({});
+	#loadingNames: Promise<void> | null = null;
 
 	/**
 	 * Outstanding `suppress()` holds. Auto-navigate stands down while any are open.
@@ -92,13 +107,54 @@ class ScannerState {
 
 	constructor() {
 		this.pairedReaderId = read(READER_KEY);
-		this.pairedReaderName = read(READER_NAME_KEY);
 		this.autoNavigate = read(AUTO_NAVIGATE_KEY) === 'true';
 	}
 
 	/** The pool to subscribe to: the paired reader, or null for all of them. */
 	get pool(): string | null {
 		return this.pairedReaderId;
+	}
+
+	/**
+	 * What to call a reader on screen: the name it last gave, or its id.
+	 *
+	 * The id is a perfectly good name when there is no better one — an agent that
+	 * sends none is given `ip-192-168-1-50`, which at least says which box it is.
+	 */
+	readerLabel(readerId: string): string {
+		return this.#names[readerId] ?? readerId;
+	}
+
+	/** What to call the paired reader, or null when listening to all of them. */
+	get pairedLabel(): string | null {
+		return this.pairedReaderId === null ? null : this.readerLabel(this.pairedReaderId);
+	}
+
+	/** Take note of the names in the server's reader registry. */
+	learnReaders(readers: { readerId: string; name?: string }[]) {
+		for (const reader of readers) {
+			if (reader.name) this.#names[reader.readerId] = reader.name;
+		}
+	}
+
+	/**
+	 * Make sure reader names have been fetched at least once this session.
+	 *
+	 * Anything that displays a reader calls this; the in-flight promise is shared so
+	 * a settings page and an open dialog don't both ask. Failure is silent by
+	 * design — not knowing a reader's friendly name costs the id being shown, which
+	 * is what happens after a server restart anyway.
+	 */
+	ensureReaderNames(): Promise<void> {
+		this.#loadingNames ??= listReaders()
+			.then((readers) => this.learnReaders(readers))
+			.catch(() => {
+				/* the id is a fine label */
+			})
+			.finally(() => {
+				this.#loadingNames = null;
+			});
+		return this.#loadingNames;
 	}
 
 	get suppressed(): boolean {
@@ -125,20 +181,21 @@ class ScannerState {
 		};
 	}
 
-	/** Pair with a reader, remembering its friendly name for display. */
+	/**
+	 * Pair with a reader. A name, if the caller happens to have one, is learned like
+	 * any other — not stored alongside the pairing, which is what let the two ways of
+	 * pairing disagree about what the same reader was called.
+	 */
 	pair(readerId: string, name?: string) {
 		this.pairedReaderId = readerId;
-		this.pairedReaderName = name ?? null;
+		if (name) this.#names[readerId] = name;
 		write(READER_KEY, readerId);
-		write(READER_NAME_KEY, name ?? null);
 	}
 
 	/** Go back to listening to every reader. */
 	unpair() {
 		this.pairedReaderId = null;
-		this.pairedReaderName = null;
 		write(READER_KEY, null);
-		write(READER_NAME_KEY, null);
 	}
 
 	setAutoNavigate(on: boolean) {
@@ -151,11 +208,11 @@ class ScannerState {
 	 * caller's business, and only the root layout ever navigates on it.
 	 */
 	receive(scan: TagScan) {
-		// A paired reader that renames itself should not keep showing its old name.
-		if (scan.readerId === this.pairedReaderId && scan.name && scan.name !== this.pairedReaderName) {
-			this.pairedReaderName = scan.name;
-			write(READER_NAME_KEY, scan.name);
-		}
+		// A scan that names its reader is the freshest word on the subject. One that
+		// doesn't says nothing about the name rather than that there isn't one — the
+		// server's registry keeps the last name a reader gave for exactly that reason,
+		// and blanking it here on a trimmed-down agent's scan would undo that.
+		if (scan.name) this.#names[scan.readerId] = scan.name;
 	}
 
 	/**

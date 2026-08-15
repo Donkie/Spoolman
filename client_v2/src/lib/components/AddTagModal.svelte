@@ -234,7 +234,13 @@
 		}
 	}
 
-	let readerLabel = $derived(scanner.pairedReaderName ?? scanner.pairedReaderId);
+	// Naming the reader you are waiting on needs the server's registry, since the
+	// store keeps no copy of reader names; until it arrives the id stands in.
+	$effect(() => {
+		if (open && scanner.pool !== null) scanner.ensureReaderNames();
+	});
+
+	let readerLabel = $derived(scanner.pairedLabel);
 </script>
 
 <svelte:window

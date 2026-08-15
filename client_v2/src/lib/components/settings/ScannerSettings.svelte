@@ -46,6 +46,9 @@
 		loadingReaders = true;
 		try {
 			readers = await listReaders(signal);
+			// The registry is the authority on what a reader is called; the store keeps
+			// no copy of its own, so this is where the paired reader's label comes from.
+			scanner.learnReaders(readers);
 		} catch (err) {
 			if (isAbortError(err, signal)) return; // navigated away mid-request
 			readers = []; // registry unreachable — the empty-state copy still applies
@@ -60,7 +63,7 @@
 		return () => ac.abort();
 	});
 
-	let pairedLabel = $derived(scanner.pairedReaderName ?? scanner.pairedReaderId);
+	let pairedLabel = $derived(scanner.pairedLabel);
 	// A reader that has scanned since the server started is described by that
 	// registry entry, which is fresher than whatever was stored at pairing time.
 	let others = $derived(readers.filter((r) => r.readerId !== scanner.pairedReaderId));
