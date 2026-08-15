@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { isTypingTarget, scanner } from './scanner.svelte';
+import { isBrowsableRoute, isTypingTarget, scanner } from './scanner.svelte';
 
 // A tag tapped in the next room fires with no warning, so what stops a scan from
 // yanking the browser somewhere is the only thing standing between "handy" and
@@ -22,6 +22,29 @@ describe('isTypingTarget', () => {
 		expect(isTypingTarget(el('DIV'))).toBe(false);
 		expect(isTypingTarget(el('BUTTON'))).toBe(false);
 		expect(isTypingTarget(null)).toBe(false);
+	});
+});
+
+// Pairing a reader is done by tapping a tag on it, and that tap reaches the
+// auto-navigate subscription too — so without this, setting a reader up threw you
+// off the settings page the instant it worked.
+describe('isBrowsableRoute', () => {
+	it('lets the inventory pages react to a scan', () => {
+		expect(isBrowsableRoute('/')).toBe(true);
+		expect(isBrowsableRoute('/dashboard')).toBe(true);
+	});
+
+	it('leaves pages you are working on alone', () => {
+		expect(isBrowsableRoute('/settings')).toBe(false);
+		expect(isBrowsableRoute('/labels')).toBe(false);
+	});
+
+	// Route ids, not pathnames: an instance under SPOOLMAN_BASE_PATH serves the
+	// library from e.g. /spoolman/, which would never equal "/".
+	it('treats an unresolved route as not browsable', () => {
+		expect(isBrowsableRoute(null)).toBe(false);
+		expect(isBrowsableRoute(undefined)).toBe(false);
+		expect(isBrowsableRoute('/spoolman/')).toBe(false);
 	});
 });
 

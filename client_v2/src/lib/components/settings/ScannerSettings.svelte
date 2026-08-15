@@ -80,15 +80,18 @@
 
 	<SettingRow
 		title={m['settings.scanner.reader.label']()}
-		desc={pairedLabel
-			? m['settings.scanner.reader.pairedDesc']({ reader: pairedLabel })
-			: m['settings.scanner.reader.anyDesc']()}
+		desc={pairedLabel ? m['settings.scanner.reader.pairedDesc']() : m['settings.scanner.reader.anyDesc']()}
 	>
 		{#if pairing}
 			<span class="waiting">{m['settings.scanner.waiting']()}</span>
 			<Button variant="ghost" onclick={() => (pairing = false)}>{m['buttons.cancel']()}</Button>
 		{:else}
 			{#if scanner.pairedReaderId}
+				<!-- The reader's own name, set apart from the prose. Ids are frequently
+				     things like `ip-192-168-1-50` or a bare `desk`, which read as a typo
+				     mid-sentence rather than as the name of a device. The raw id stays
+				     reachable on hover for when a friendly name hides it. -->
+				<span class="reader-chip mono" title={scanner.pairedReaderId}>{pairedLabel}</span>
 				<Button variant="ghost" onclick={() => scanner.unpair()}>{m['settings.scanner.unpair']()}</Button>
 			{/if}
 			<Button
@@ -133,6 +136,18 @@
 	.waiting {
 		font-size: 12px;
 		color: var(--text-muted);
+	}
+	.reader-chip {
+		font-size: 12px;
+		color: var(--text);
+		background: var(--surface-sunken);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-sm);
+		padding: 3px 8px;
+		max-width: 220px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 	.known {
 		margin-top: 14px;

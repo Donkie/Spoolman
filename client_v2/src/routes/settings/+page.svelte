@@ -4,6 +4,7 @@
 	import SettingRow from '$components/settings/SettingRow.svelte';
 	import ExtraFieldsManager from '$components/settings/ExtraFieldsManager.svelte';
 	import ScannerSettings from '$components/settings/ScannerSettings.svelte';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { theme, type ThemePref } from '$lib/stores/theme.svelte';
 	import { locales, getLocale, setLocale, isLocale } from '$lib/paraglide/runtime.js';
@@ -18,6 +19,11 @@
 	// inspectors can link straight at the tab they're about; a URL that says nothing
 	// falls back to spools.
 	let fieldsEntity = $derived(entityFromUrl(page.url.searchParams) ?? 'spool');
+
+	// Setting a reader up is a hardware topic — which board, which firmware, how it
+	// reaches an instance behind a reverse proxy — so it lives in the wiki, where it
+	// can be corrected and extended without a release.
+	const SCANNER_WIKI_URL = 'https://github.com/Donkie/Spoolman/wiki/Tag-scanners';
 
 	const themeOptions: { value: ThemePref; label: () => string }[] = [
 		{ value: 'system', label: m['settings.appearance.theme.system'] },
@@ -156,7 +162,13 @@
 
 		<div class="sec-label">{m['settings.scanner.tab']()}</div>
 		<div class="subtitle sub2">
-			<p>{m['settings.scanner.description']()}</p>
+			<!-- How a reader reaches Spoolman is a topic, not a caption: it needs
+			     wiring diagrams and firmware, which belong in the wiki rather than in
+			     a paragraph nobody reads twice. -->
+			<a class="doclink" href={SCANNER_WIKI_URL} target="_blank" rel="noopener noreferrer">
+				{m['settings.scanner.docs']()}
+				<ArrowRight size={13} />
+			</a>
 		</div>
 		<ScannerSettings />
 
@@ -193,6 +205,16 @@
 	.sub2 {
 		margin-bottom: 10px;
 		line-height: 1.5;
+	}
+	.doclink {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		color: var(--accent-link);
+		text-decoration: none;
+	}
+	.doclink:hover {
+		text-decoration: underline;
 	}
 	.sec-label {
 		font-size: 11px;

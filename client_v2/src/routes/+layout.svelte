@@ -11,11 +11,12 @@
 	import { theme } from '$lib/stores/theme.svelte';
 	import { startLiveSync } from '$lib/api/liveSync';
 	import { scanRelay } from '$lib/api/scanRelay';
-	import { scanner } from '$lib/stores/scanner.svelte';
+	import { scanner, isBrowsableRoute } from '$lib/stores/scanner.svelte';
 	import { toasts } from '$lib/stores/toasts.svelte';
 	import { getLocale, getTextDirection } from '$lib/paraglide/runtime';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import * as m from '$lib/paraglide/messages';
 	import type { Snippet } from 'svelte';
 
@@ -60,6 +61,11 @@
 		if (!scanner.autoNavigate) return;
 		return scanRelay.subscribe(scanner.pool, (scan) => {
 			scanner.receive(scan);
+			// Read inside the handler, never in the effect body: depending on the route
+			// here would tear the socket down and rebuild it on every navigation.
+			// A page you are configuring reacts to nothing — not even the toast, which
+			// during pairing would explain how to link the tag you just tapped to pair.
+			if (!isBrowsableRoute(page.route.id)) return;
 			if (!scan.spool) {
 				// An unknown tag has nowhere to navigate to, and silently ignoring it
 				// would look like the tap failed. Say what was read and where to link

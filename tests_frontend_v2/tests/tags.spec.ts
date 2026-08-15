@@ -245,6 +245,17 @@ test("a scanned tag opens its spool once auto-navigate is switched on", async ({
   await autoNavigate.click();
   await expect(autoNavigate).toHaveAttribute("aria-checked", "true");
 
+  await test.step("the settings page itself does not react", async () => {
+    // Only the browsing pages do. Otherwise setting a scanner up would throw you
+    // off the page you were setting it up on -- which is exactly what pairing does,
+    // since the tag tapped to pair is delivered here too.
+    const before = page.url();
+    await scan(request, uid);
+    await page.waitForTimeout(1000);
+    expect(page.url()).toBe(before);
+  });
+
+  await navTab(page, "Library", "Library | Spoolman");
   await scanUntil(request, uid, async () => {
     await expect(page).toHaveURL(new RegExp(`sel=spool(:|%3A)${id}`), { timeout: 1500 });
   });
@@ -259,6 +270,8 @@ test("an unknown tag reports itself instead of navigating", async ({ page, reque
   await openApp(page);
   await navTab(page, "Settings", "Settings | Spoolman");
   await page.getByLabel("Open the spool a scanned tag belongs to").click();
+  // Back to a page that reacts to scans at all -- Settings deliberately doesn't.
+  await navTab(page, "Library", "Library | Spoolman");
 
   const before = page.url();
   const unknown = uniqueUid();
@@ -275,26 +288,51 @@ test("an unknown tag reports itself instead of navigating", async ({ page, reque
  */
 test("a reader is paired by tapping a tag on it", async ({ page, request }) => {
   const readerId = `bench-${Date.now().toString(36)}`;
+  const uid = uniqueUid();
 
   await openApp(page);
+  // Link the tag first, so the tap used for pairing is one that *would* navigate
+  // if the settings page reacted to scans. Pairing with an unknown tag would pass
+  // this test for the wrong reason.
+  const { inspector, id } = await createAndOpenSpool(page);
+  const dialog = await openAddTag(inspector);
+  await dialog.getByLabel("Tag UID").fill(uid);
+  await dialog.getByRole("button", { name: "Link tag" }).click();
+  await expect(dialog).toBeHidden();
+
   await navTab(page, "Settings", "Settings | Spoolman");
+  await page.getByLabel("Open the spool a scanned tag belongs to").click();
 
   await expect(page.getByText("Listening to every reader.")).toBeVisible();
   await page.getByRole("button", { name: "Pair by tapping" }).click();
   await expect(page.getByText("Tap a tag on the reader you want...")).toBeVisible();
 
+  const settingsUrl = page.url();
   await scanUntil(
     request,
-    uniqueUid(),
+    uid,
     async () => {
-      await expect(page.getByText(`Listening to ${readerId} only.`)).toBeVisible({ timeout: 1500 });
+      await expect(page.getByText("Only this reader opens spools on this screen.")).toBeVisible({
+        timeout: 1500,
+      });
     },
     { readerId },
   );
 
+  await test.step("the reader is named as a name, not as a word in a sentence", async () => {
+    await expect(page.getByTitle(readerId)).toHaveText(readerId);
+  });
+
+  await test.step("and pairing did not throw us off the page we paired on", async () => {
+    // The tap that pairs is delivered to the auto-navigate subscription as well,
+    // so this used to pair the reader and immediately navigate to spool #id.
+    expect(page.url()).toBe(settingsUrl);
+    await expect(page).not.toHaveURL(new RegExp(`sel=spool(:|%3A)${id}`));
+  });
+
   await test.step("the pairing is this browser's own, and survives a reload", async () => {
     await page.reload();
-    await expect(page.getByText(`Listening to ${readerId} only.`)).toBeVisible();
+    await expect(page.getByTitle(readerId)).toHaveText(readerId);
   });
 
   await page.getByRole("button", { name: "Listen to all" }).click();

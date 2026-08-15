@@ -30,6 +30,25 @@ function write(key: string, value: string | null) {
 }
 
 /**
+ * The routes a scan is allowed to act on: the two that are for browsing an
+ * inventory, which is the only place being moved to a spool is what you wanted.
+ *
+ * Settings and the label designer are work you are in the middle of, and a tag
+ * tapped in the next room must not throw it away. Pairing made that concrete —
+ * the tap that pairs a reader is delivered to the page listening for it *and* to
+ * the auto-navigate subscription, so setting a reader up would immediately
+ * navigate away from the screen you set it up on.
+ *
+ * Route ids rather than pathnames, because a deployment under SPOOLMAN_BASE_PATH
+ * prefixes every path and would fail an equality test on "/".
+ */
+const BROWSABLE_ROUTES = new Set(['/', '/dashboard']);
+
+export function isBrowsableRoute(routeId: string | null | undefined): boolean {
+	return routeId != null && BROWSABLE_ROUTES.has(routeId);
+}
+
+/**
  * Whether the element holding focus is one a stray navigation would interrupt.
  *
  * The reason this matters is that a tag tapped in the next room fires here with
