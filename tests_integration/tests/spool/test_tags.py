@@ -1,6 +1,6 @@
 """Integration tests: linking physical NFC/RFID tags to spools, and looking a spool up by one.
 
-The point of the `spool_tag` table is that one tag identifies exactly one spool, enforced by the
+The point of the `tag` table is that one tag identifies exactly one thing, enforced by the
 database rather than by whichever client wrote last. These tests pin that from both ends: the
 409 that stops a second spool claiming a tag, and the normalization that stops the same physical
 tag being linked twice under two spellings.

@@ -88,14 +88,23 @@ class Message(BaseModel):
 
 
 class TagConflictMessage(Message):
-    """A tag UID is already linked to a different spool.
+    """A tag UID is already linked to something else.
 
     Subclasses Message so the `message` key is where it is in every other error body, and
     adds the conflicting spool's ID so a client can offer to move the tag there instead of
     making the user go and find it.
+
+    `spool_id` is optional because a tag identifies one thing and that thing is not always
+    a spool -- see `models.Tag`. It is absent when the UID is held by something else, in
+    which case `message` still says what; a client that cannot offer "move it here" without
+    an id should fall back to reporting the message.
     """
 
-    spool_id: int = Field(description="The spool the tag is already linked to.", examples=[42])
+    spool_id: int | None = Field(
+        None,
+        description="The spool the tag is already linked to, if it is a spool that holds it.",
+        examples=[42],
+    )
 
 
 class SettingResponse(BaseModel):

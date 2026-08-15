@@ -293,10 +293,14 @@ def _apply_spool_filters(
     if tag is not None:
         # An inner join rather than a subquery, so the list query and the count query stay
         # in sync automatically: they share this builder. `uid` is unique, so at most one
-        # spool_tag row can match and the join cannot multiply result rows -- which is why
-        # the contains_eager chain for filament/vendor is unaffected.
-        stmt = stmt.join(models.SpoolTag, models.SpoolTag.spool_id == models.Spool.id).where(
-            models.SpoolTag.uid == normalize_uid(tag),
+        # tag row can match and the join cannot multiply result rows -- which is why the
+        # contains_eager chain for filament/vendor is unaffected.
+        #
+        # The join condition also does the filtering: a tag that points at something other
+        # than a spool has a null `spool_id`, which matches no spool, so such a UID finds
+        # nothing here rather than finding the wrong thing.
+        stmt = stmt.join(models.Tag, models.Tag.spool_id == models.Spool.id).where(
+            models.Tag.uid == normalize_uid(tag),
         )
     stmt = add_where_clause_int(stmt, models.Spool.filament_id, filament_id)
     stmt = add_where_clause_int_opt(stmt, models.Filament.vendor_id, vendor_id)

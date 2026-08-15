@@ -1,6 +1,6 @@
 """Tests for tag UID normalization.
 
-The unique index on `spool_tag.uid` only means "one tag, one spool" because every write goes
+The unique index on `tag.uid` only means "one tag, one thing" because every write goes
 through `normalize_uid`. These pin the shapes real readers produce, so a change that stopped
 collapsing one of them would show up here rather than as two spools quietly claiming the same
 physical tag.

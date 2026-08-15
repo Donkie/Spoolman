@@ -66,13 +66,18 @@ two physical tags with two different UIDs.
 In `spoolman/database/models.py`, alongside `SpoolField` (`models.py:125`):
 
 ```python
-class SpoolTag(Base):
-    __tablename__ = "spool_tag"
+class Tag(Base):
+    __tablename__ = "tag"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    spool_id: Mapped[int] = mapped_column(ForeignKey("spool.id"), index=True)
-    spool: Mapped["Spool"] = relationship(back_populates="tags")
     uid: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    target_type: Mapped[str] = mapped_column(String(16))
+    spool_id: Mapped[int | None] = mapped_column(ForeignKey("spool.id"), index=True)
+    spool: Mapped["Spool | None"] = relationship(back_populates="tags")
+    filament_id: Mapped[int | None] = mapped_column(
+        ForeignKey("filament.id", ondelete="CASCADE"), index=True
+    )
+    target_value: Mapped[str | None] = mapped_column(String(64))
     format: Mapped[str | None] = mapped_column(String(32))
     added: Mapped[datetime] = mapped_column()
 ```
@@ -84,12 +89,42 @@ class SpoolTag(Base):
 - `format` — nullable free-ish string (`openprinttag`, `opentag3d`, `ntag`, `bambu`, `tigertag`,
   `qidi`). Informational in Phase 1; Phase 2 uses it. Not an enum in the DB — new tag types appear
   faster than migrations should.
-- Unique index on `uid` is the point of the whole table: one tag, one spool, enforced.
+- Unique index on `uid` is the point of the whole table: one physical tag identifies exactly one
+  thing, enforced.
+
+### Why the table is wider than "spool tags"
+
+Only spools are tagged in Phase 1, and only `POST /spool/{id}/tag` exists. The *table* is general
+because the expensive half of this decision is the one that cannot be revisited cheaply: renaming a
+table, dropping a NOT NULL and adding a discriminator all mean altering a populated table on four
+databases, whereas adding an endpoint later is additive and free. The shape was settled before
+release, while the migration had shipped to nobody.
+
+Two kinds of target, and the difference is the whole reason for the shape:
+
+- **Targets that are rows** — a spool, later a filament — get real foreign keys, so the database
+  keeps referential integrity and cascades deletes. A tag row orphaned by a deleted spool is exactly
+  the class of silent rot this project cannot afford.
+- **Targets that are not rows** — a *location* is a `String(64)` on `Spool`, not a table, so a tag
+  meaning "show me Shelf A" can only ever carry the value. `target_value` holds it, and a new kind of
+  this sort (a saved search, say) costs **no migration at all**: only a new `target_type` string.
+
+`target_type` names which is in force rather than leaving readers to infer it from whichever column
+is non-null — a kind that populates neither would otherwise be unreadable.
+
+**No CHECK constraint** enforces "exactly one target". No migration in this tree uses one, and MySQL
+below 8.0.16 parses and silently ignores them, so a CHECK here would be real on three databases out
+of four. `spoolman/database/tag.py` is the single write path instead — the same argument, and the
+same module, as `normalize_uid`.
+
+**`filament_id` has no ORM relationship yet.** Nothing writes filament tags, and a `selectin`
+collection on `Filament` would add a query to every filament listing for rows that cannot exist.
+`ON DELETE CASCADE` holds integrity meanwhile; the relationship arrives with the feature.
 
 On `Spool`, add the relationship following the `extra` convention at `models.py:94`:
 
 ```python
-tags: Mapped[list["SpoolTag"]] = relationship(
+tags: Mapped[list["Tag"]] = relationship(
     back_populates="spool",
     cascade="save-update, merge, delete, delete-orphan",
     lazy="selectin",
@@ -519,7 +554,7 @@ data model, endpoints and protocol above are the spec; this is the file layout a
 | `spoolman/database/tag.py` | `link()`, `unlink()`, `find_spool_by_uid()` | Follows `database/spool.py` conventions: `AsyncSession` first, raising `ItemNotFoundError` / `ItemCreateError` from `exceptions.py`. Kept out of `spool.py`, which is already ~800 lines and the largest module in the tree. |
 | `spoolman/scanrelay.py` | Debounce cache and reader registry, as a class | Relay state is not database state and not HTTP state. Isolating it means the debounce window and registry eviction are testable without a socket or a session. |
 | `spoolman/api/v1/tag.py` | `/tag/scan` POST, `/tag/reader` GET, the two scan websockets | Mirrors the one-router-per-resource layout of `spool.py` / `vendor.py` / `field.py`. Thin: it validates, delegates, and broadcasts. |
-| `migrations/versions/<rev>_spool_tags.py` | CREATE TABLE + indexes | — |
+| `migrations/versions/<rev>_tags.py` | CREATE TABLE + indexes | — |
 
 `database/tag.py` imports `spool.spool_changed` to emit the update event. One direction only, so no
 import cycle; the reverse (spool.py knowing about tags) is not needed because the relationship is
@@ -529,7 +564,7 @@ declared on the ORM model.
 
 | File | Change |
 |---|---|
-| `spoolman/database/models.py` | `SpoolTag` ORM class next to `SpoolField` (`models.py:125`); `Spool.tags` relationship with `lazy="selectin"`. |
+| `spoolman/database/models.py` | `Tag` ORM class next to `SpoolField` (`models.py:125`); `Spool.tags` relationship with `lazy="selectin"`. |
 | `spoolman/api/v1/models.py` | `SpoolTag` response model; `tags` field on `Spool` (`models.py:285`); `SCANNED` on `EventType` (`models.py:604`); `TagScanEvent(Event)` with `resource: Literal["tag_scan"]`. |
 | `spoolman/database/spool.py` | `find()` gains a `tag: str \| None` kwarg, applied inside `_apply_spool_filters` (`spool.py:259`). |
 | `spoolman/api/v1/spool.py` | `tag` query param wired into the `find` handler; `POST /spool/{id}/tag` and `DELETE /spool/{id}/tag/{uid}` on the existing router. |
@@ -546,7 +581,7 @@ differently-shaped UID.
 
 **`?tag=` is a join, not a subquery.** Added in `_apply_spool_filters` so the list query and the
 count query stay in sync automatically — they share that builder. Because `uid` is unique, at most
-one `spool_tag` row can match, so a plain join cannot multiply result rows and the existing
+one `tag` row can match, so a plain join cannot multiply result rows and the existing
 `contains_eager` chain for filament/vendor is unaffected.
 
 **Link and unlink emit `SpoolEvent`, not a new event type.** They mutate a spool as far as any client

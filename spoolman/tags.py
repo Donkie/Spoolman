@@ -8,20 +8,31 @@ colon-separated lowercase, ESPHome emits ``04-a2-b3``, nfcpy hands you raw bytes
 most scripts ``.hex()`` into unseparated lowercase.
 
 ``normalize_uid`` collapses all of those to one canonical spelling so that the unique
-index on ``spool_tag.uid`` actually means "one tag, one spool". Without it the same
-physical tag could be linked to three spools under three spellings and no constraint
-would notice.
+index on ``tag.uid`` actually means "one physical tag identifies one thing". Without it
+the same physical tag could be linked to three spools under three spellings and no
+constraint would notice.
 
 Pure module: no database, no FastAPI. Same shape as ``colors.py`` and ``math.py``.
 """
 
 import re
 
-# Mirrors the SpoolTag.uid column width, so an over-long UID is a 400 and not a 500.
+# Mirrors the Tag.uid column width, so an over-long UID is a 400 and not a 500.
 UID_MAX_LENGTH = 64
 
-# Mirrors the SpoolTag.format column width.
+# Mirrors the Tag.format column width.
 FORMAT_MAX_LENGTH = 32
+
+# What a tag points at, stored in `Tag.target_type`. Only TARGET_SPOOL is ever written
+# today; the other two are named here because the column exists for them, and a reserved
+# name is cheaper to honour than one invented later by two people differently.
+#
+# TARGET_SPOOL and TARGET_FILAMENT address a row, and carry a foreign key. TARGET_LOCATION
+# addresses a value: a location is a string on a spool rather than a table, so such a tag
+# means "the spools whose location is this" and lives in `Tag.target_value`.
+TARGET_SPOOL = "spool"
+TARGET_FILAMENT = "filament"
+TARGET_LOCATION = "location"
 
 # Tag formats Spoolman knows the name of. Deliberately NOT an enum and NOT enforced:
 # `format` is informational in phase 1, new tag types appear faster than migrations
