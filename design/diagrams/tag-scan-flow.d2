@@ -5,55 +5,96 @@
 #   d2 --theme 0 --pad 20 \
 #      design/diagrams/tag-scan-flow.d2 design/diagrams/tag-scan-flow.svg
 #
-# Deliberately a single theme rather than `--dark-theme`. That flag does work,
-# and it bakes a prefers-color-scheme media query into the SVG, but the query
-# only survives if whatever embeds the file leaves the internal stylesheet
-# intact -- which GitHub's image pipeline is not guaranteed to do. If it were
-# stripped, the light theme would win and dark-blue arrows would sit on a
-# near-black page. So every colour that matters is pinned below to a value that
-# reads on both a white and a dark background, and the picture looks the same
-# everywhere instead of relying on that.
-#
 # The point the picture has to make is the direction of initiation: the reader
 # starts every exchange, and each arrow leaving Spoolman is a reply or a
 # broadcast. Spoolman never reaches for hardware. The dashed edge is the reply
 # to the POST, which is why it runs backwards up the page.
 #
-# Two things not to relitigate:
+# ---------------------------------------------------------------------------
+# How the two-tier boxes are built, and why not the obvious way. All of this is
+# measured against d2 v0.7.1; recheck the render if you move versions.
 #
-#   - The flow is vertical because d2 0.7.1 ignores `direction` on a nested
-#     container (verified: a -> b -> c inside a `direction: right` container
-#     still stacks). An L-shape is therefore not reachable without hand-placing
-#     nodes, and one flat axis is the only other option.
-#   - Width comes from the node labels, not the layout. Keeping each subtitle on
-#     a single line is what holds this near square instead of the 1:2.4 column
-#     the same graph produces with narrow labels.
+# Each box is a CONTAINER whose own label is the title, pulled inside the box
+# with `label.near: top-center`, holding one borderless child node that is the
+# subtitle. It looks like a hack and it is the only one of four approaches that
+# actually works:
 #
-#   - Labels are plain strings with \n, not |md| blocks. Markdown labels collapse
-#     single newlines and d2 mis-measures their width, silently truncating the
-#     last word.
+#   - `|md|` labels give real heading/body hierarchy and are the obvious
+#     answer. They are also unusable here: d2 CLIPS md text to a computed box in
+#     both dimensions and no `width:`/`height:` will grow the clip region. Every
+#     subtitle lost its tail -- "stuck on the spool" rendered as "stuck on the",
+#     "which spool has this UID?" as "which spool has this". Silently, with no
+#     warning. A `<br/>` makes it worse: the text rewraps narrower and the whole
+#     second line disappears. (An md box also drops its stroke and corner radius
+#     unless you additionally state `shape: rectangle`.)
+#
+#     Worth knowing how this hides from you: an md label is emitted as a
+#     `<foreignObject>` of HTML, and the browser clips it at render. The full
+#     string is still sitting in the SVG, so grepping the file for your text
+#     finds it and proves nothing. Either look at the picture, or assert the
+#     mechanism is absent:
+#
+#         grep -c foreignObject design/diagrams/tag-scan-flow.svg   # must be 0
+#
+#     Plain labels, as used here, emit ordinary <text> and cannot clip this way.
+#   - `shape: sql_table` and `shape: class` both measure text correctly, but
+#     they render as database/UML furniture: a monospaced dark row, a `+`
+#     visibility marker, and the node key showing through as the header.
+#   - A plain "\n" label measures correctly and cannot vary size or weight
+#     between its lines, so there is no hierarchy to be had.
+#
+# The container route measures like any normal label, so the subtitles are
+# whatever length they need to be.
+#
+# Deliberately a single theme rather than `--dark-theme`. That flag does work,
+# and it bakes a prefers-color-scheme media query into the SVG, but the query
+# only survives if whatever embeds the file leaves the internal stylesheet
+# intact -- which GitHub's image pipeline is not guaranteed to do. If it were
+# stripped, the light theme would win and dark-blue arrows would sit on a
+# near-black page. So the canvas is white and every colour is pinned, and the
+# picture looks the same wherever it lands.
+#
+# Layout is vertical because d2 0.7.1 ignores `direction` on a nested container
+# (verified: a -> b -> c inside a `direction: right` container still stacks), so
+# an L-shape is not reachable without hand-placing nodes.
+# ---------------------------------------------------------------------------
 
 direction: down
 
 classes: {
+  # The box: a container carrying the title, with the label brought inside.
   node: {
+    label.near: top-center
     style: {
       stroke-width: 2
       border-radius: 8
-      font-size: 16
+      font-size: 18
+      bold: true
       shadow: true
-      # Pinned, and it has to be. The fills below are fixed light pastels, but
-      # the *text* colour comes from the active theme, so under --dark-theme d2
-      # paints it pale lavender on a pale yellow box and the labels vanish.
-      # Fixing both ends keeps the boxes identical in light and dark; only the
-      # arrows and their labels follow the theme, and those sit on the page
-      # background where following it is the right behaviour.
-      font-color: "#1f2937"
     }
   }
-  # Edges are pinned to one mid-slate that carries on both a white and a
-  # near-black page. Nothing here is left to the theme, so the SVG renders
-  # identically wherever it is embedded -- see the header note.
+  # A box with nothing to add underneath its title. Same look, but a plain node
+  # rather than a container, which is a third of the height: container padding
+  # is not adjustable (`height:` is rejected outright by dagre and silently
+  # ignored by elk), so the only way to spend less of it is to not open one.
+  leaf: {
+    style: {
+      stroke-width: 2
+      border-radius: 8
+      font-size: 18
+      bold: true
+      shadow: true
+    }
+  }
+  # The subtitle: a child with no box of its own, so only its text shows.
+  sub: {
+    style: {
+      fill: transparent
+      stroke-width: 0
+      font-size: 14
+      bold: false
+    }
+  }
   reply: {
     style: {
       stroke-width: 2
@@ -74,34 +115,50 @@ classes: {
 }
 
 tag: "Tag on the spool" {
-  class: node
+  class: leaf
   style: {
     fill: "#fef3c7"
     stroke: "#b45309"
+    font-color: "#78350f"
   }
 }
 
-reader: "Reader\nESP32 · phone · Raspberry Pi · Node-RED · Home Assistant" {
+reader: Reader {
   class: node
   style: {
     fill: "#dbeafe"
     stroke: "#1d4ed8"
+    font-color: "#1e3a8a"
+  }
+  sub: "ESP32 · phone · Raspberry Pi · Node-RED · Home Assistant" {
+    class: sub
+    style.font-color: "#1e40af"
   }
 }
 
-spoolman: "Spoolman\nwhich spool has this tag UID?" {
+spoolman: Spoolman {
   class: node
   style: {
     fill: "#dcfce7"
     stroke: "#15803d"
+    font-color: "#14532d"
+  }
+  sub: "which spool has this tag UID?" {
+    class: sub
+    style.font-color: "#166534"
   }
 }
 
-browser: "Your browser\npaired with the reader, and listening" {
+browser: Your browser {
   class: node
   style: {
     fill: "#ede9fe"
     stroke: "#6d28d9"
+    font-color: "#4c1d95"
+  }
+  sub: "paired with the reader, and listening" {
+    class: sub
+    style.font-color: "#5b21b6"
   }
 }
 
