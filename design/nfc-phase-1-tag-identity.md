@@ -1,6 +1,8 @@
 # NFC Phase 1 — Tag identity, lookup, and the scan relay
 
-Status: design, not yet implemented.
+Status: implemented. This document is the design as built, kept for the reasoning behind the
+decisions rather than as a plan; the endpoint reference that users need lives in
+[`wiki-tag-scanners.md`](./wiki-tag-scanners.md) and the generated API docs.
 Companion document: [`nfc-phase-2-openprinttag.md`](./nfc-phase-2-openprinttag.md).
 
 ---
@@ -353,9 +355,13 @@ Guard rails, all of which matter:
 
 Spoolman ships with no authentication. Any device on the LAN can POST a scan and make paired
 browsers navigate. The blast radius is navigation only — no data is written by a scan — but it
-should be stated plainly in the docs rather than discovered. An unguessable `reader_id` acts as a
-weak shared secret for users who care; do not present it as a real one. This is consistent with the
-existing threat model, where anyone on the LAN can already `DELETE` a spool.
+should be stated plainly in the docs rather than discovered. This is consistent with the existing
+threat model, where anyone on the LAN can already `DELETE` a spool.
+
+An earlier draft of this section offered an unguessable `reader_id` as a weak shared secret for
+users who care. Shipping the reader registry killed that idea and the docs should not repeat it:
+`GET /api/v1/tag/reader` hands every recently-seen reader id to any caller, because that is what
+the "choose a reader" picker reads. The obscurity is worth nothing, so do not offer it.
 
 ---
 
@@ -609,7 +615,7 @@ builds the response. No background task, no lifecycle hook, nothing to shut down
 | `client_v2/src/lib/api/scanRelay.ts` | The scan websocket client: connect, resubscribe, reconnect. |
 | `client_v2/src/lib/stores/scanner.svelte.ts` | Paired `reader_id`, auto-navigate toggle, most recent scan. localStorage-backed, following `theme.svelte.ts`. |
 | `client_v2/src/lib/utils/nfc.ts` | Web NFC wrapper plus the `'NDEFReader' in window` capability check, so no component touches the API directly. |
-| `client_v2/src/lib/components/library/TagsSection.svelte` | The inspector's tag list and unlink control, modeled on `ExtraFieldsSection.svelte`. |
+| `client_v2/src/lib/components/TagsSection.svelte` | The inspector's tag list and unlink control, modeled on `ExtraFieldsSection.svelte`. |
 | `client_v2/src/lib/components/AddTagModal.svelte` | Link a tag by relay scan, by Web NFC, or by typing a UID. |
 | `client_v2/src/lib/components/settings/ScannerSettings.svelte` | Pair by tap, show current pairing, unpair, auto-navigate toggle. |
 

@@ -484,7 +484,11 @@ never sees a de-duplicated scan as a failed lookup.
 
 **There is no authentication.** Spoolman has none, and the tag endpoints are the same. Anything on
 your network can report a scan and navigate a paired browser. Worst case, it moves someone's page.
-Scans don't write. Keep Spoolman off the open internet, as the [security page](https://github.com/Donkie/Spoolman/wiki/Security) advises. An unguessable `reader_id` makes it harder to target a specific browser. It's not a password.
+Scans don't write. Keep Spoolman off the open internet, as the [security page](https://github.com/Donkie/Spoolman/wiki/Security) advises.
+
+Do not treat a hard-to-guess `reader_id` as any kind of secret. `GET /api/v1/tag/reader` lists every
+reader that has scanned recently, by id and name, to anyone who can reach the API, which is what
+makes the "choose a reader" picker work. Guessing is not required.
 
 **Reader state is per server process.** The recently-seen list and de-duplication window live in
 memory. If you run Spoolman with multiple workers, each has its own, and readers come and go. The
