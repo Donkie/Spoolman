@@ -226,6 +226,14 @@
 		return parsed?.kind === 'range' ? parsed : null;
 	});
 
+	// The values this property already filters by. A filter's chip sits in the
+	// toolbar behind the open menu, which is no help when the list is long and the
+	// menu covers it, so the list says so itself (#1090). Values only: a date
+	// filter holds one range at a time, so its presets are a choice, not a set.
+	let activeValues = $derived(
+		new Set(libraryState.filters.filter((f) => f.prop === filterProp).map((f) => f.value))
+	);
+
 	async function openProp(category: FilterCategory) {
 		filterProp = category.key;
 		// The query that found this property says nothing about its values.
@@ -346,7 +354,6 @@
 		const first = visibleOptions[0];
 		if (!first) return;
 		params.toggleFilter(filterProp!, first.value);
-		close();
 	}
 	function chooseFirstSort() {
 		const first = visibleSortSections[0]?.items[0];
@@ -499,14 +506,20 @@
 							onenter={chooseFirstOption}
 						/>
 					{/if}
+					<!-- A value row is a checkbox, not a command: it reads as on or off, and
+					     picking one leaves the menu open so the next one is a click away
+					     (#1090, #1089). Escape and a click outside still close it. -->
 					{#each visibleOptions as opt (opt.value)}
+						{@const checked = activeValues.has(opt.value)}
 						<button
 							class="menu-item"
-							onclick={() => {
-								params.toggleFilter(filterProp!, opt.value);
-								close();
-							}}
+							role="menuitemcheckbox"
+							aria-checked={checked}
+							onclick={() => params.toggleFilter(filterProp!, opt.value)}
 						>
+							<span class="mi-check"
+								>{#if checked}<SquareCheck size={15} />{:else}<Square size={15} />{/if}</span
+							>
 							{#if opt.colors}<Swatch
 									colors={opt.colors}
 									direction={opt.direction}
