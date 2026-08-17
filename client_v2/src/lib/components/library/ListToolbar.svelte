@@ -11,9 +11,10 @@
 		withinLast,
 		type DateFilterProp
 	} from '$lib/library/dateFilter';
-	import { sortDefs, filamentLabel, type SortDef } from '$lib/utils/library';
+	import { sortDefs, filamentLabel, type FilterOption, type SortDef } from '$lib/utils/library';
 	import { filterByQuery, matchesTerms, searchTerms } from '$lib/utils/match';
 	import MenuSearch from '../MenuSearch.svelte';
+	import Swatch from '../Swatch.svelte';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { fields } from '$lib/stores/fields.svelte';
@@ -63,10 +64,6 @@
 		fields.ensure('vendor');
 	});
 
-	interface FilterOption {
-		value: string;
-		label: string;
-	}
 	// Most filters pick from a set of values the API can enumerate; a date filter
 	// picks a range instead, so it gets a panel of its own rather than an option
 	// list (see library/dateFilter for the grammar behind it).
@@ -328,7 +325,11 @@
 
 	let visibleCategories = $derived(filterByQuery(filterCategories, menuQuery, (c) => c.label()));
 	let archivedMatches = $derived(matchesTerms(m['buttons.showArchived'](), searchTerms(menuQuery)));
-	let visibleOptions = $derived(filterByQuery(options, menuQuery, (o) => o.label));
+	// An option's secondary text is on screen, so it has to be searchable: typing
+	// "petg" against a list that visibly says PETG must not come back empty.
+	let visibleOptions = $derived(
+		filterByQuery(options, menuQuery, (o) => (o.meta ? `${o.label} ${o.meta}` : o.label))
+	);
 	let visibleSortSections = $derived(
 		sortSections
 			.map((sec) => ({ ...sec, items: filterByQuery(sec.items, menuQuery, (it) => it.labelKey()) }))
@@ -506,7 +507,15 @@
 								close();
 							}}
 						>
-							<span class="mi-label">{opt.label}</span>
+							{#if opt.colors}<Swatch
+									colors={opt.colors}
+									direction={opt.direction}
+									size={16}
+									radius={4}
+								/>{/if}
+							<span class="mi-label"
+								>{opt.label}{#if opt.meta}<span class="mi-sub">{opt.meta}</span>{/if}</span
+							>
 						</button>
 					{:else}
 						<div class="menu-item"><span class="mi-label mi-meta">{m['search.noResults']()}</span></div>
@@ -768,6 +777,14 @@
 	.mi-meta {
 		color: var(--text-faint);
 		font-size: 11px;
+	}
+	/* Sits with the label rather than off at the row's right edge: it's there to
+	   qualify the name it follows, which is the whole point when two filaments
+	   share one. */
+	.mi-sub {
+		color: var(--text-muted);
+		font-size: 11px;
+		margin-left: 6px;
 	}
 	.mi-dir {
 		color: var(--accent-muted);
