@@ -114,7 +114,7 @@ classes: {
   }
 }
 
-tag: "Tag on the spool" {
+tag: "Tag" {
   class: leaf
   style: {
     fill: "#fef3c7"
@@ -123,7 +123,7 @@ tag: "Tag on the spool" {
   }
 }
 
-reader: Reader {
+reader: Tag Reader {
   class: node
   style: {
     fill: "#dbeafe"
@@ -136,7 +136,7 @@ reader: Reader {
   }
 }
 
-spoolman: Spoolman {
+spoolman: Spoolman Server {
   class: node
   style: {
     fill: "#dcfce7"
@@ -149,7 +149,7 @@ spoolman: Spoolman {
   }
 }
 
-browser: Your browser {
+browser: Web Browser {
   class: node
   style: {
     fill: "#ede9fe"
@@ -174,6 +174,6 @@ spoolman -> reader: "matched_spool_id" {
   class: reply
 }
 
-spoolman -> browser: "the scan, over a websocket" {
+spoolman -> browser: "websocket notify" {
   class: call
 }
