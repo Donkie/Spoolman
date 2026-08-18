@@ -527,12 +527,12 @@ async def find_groups(
         Query(
             title="Include Empty",
             description=(
-                "Return matching filaments that hold no matching spools as groups of zero, instead "
-                "of omitting them. Only valid together with group_by=filament; any other axis is "
-                "keyed by a value read off the spools themselves and has no empty groups to list. "
-                "Note that spool-level filters (location, lot_nr, the date filters, spool extra "
-                "fields) still restrict which spools are counted, so with one of those active "
-                "every filament without a matching spool comes back as empty."
+                "Also return matching filaments that hold no matching spools, as groups of zero, "
+                "instead of omitting them. Only valid together with group_by=filament: every "
+                "other axis is keyed by a value read off the spools themselves and so has no "
+                "empty groups to list. Filters on the spools themselves (location, lot_nr, the "
+                "date filters, spool extra fields) are rejected in combination with it, since a "
+                "filament with no spools has no value for them."
             ),
         ),
     ] = False,

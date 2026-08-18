@@ -47,8 +47,12 @@ function isSpoolScopedFilter(prop: string): boolean {
  * Ask "which of these are at Shelf A" and a filament with no spools has no
  * answer: it isn't anywhere. Including it would flood that view with every
  * filament in the catalogue instead of showing the handful actually on the
- * shelf. Archived is not one of these: hiding archived spools is the default
- * view, and a filament whose only spools are archived genuinely has none to use.
+ * shelf. The API says the same and rejects that combination outright, so this
+ * is the client keeping off a 400 rather than a preference of its own; the two
+ * lists of spool-scoped filters have to stay in step.
+ *
+ * Archived is not one of them: hiding archived spools is the default view, and
+ * a filament whose only spools are archived genuinely has none to print with.
  */
 function wantsEmptyGroups(state: LibraryState): boolean {
 	return state.group === 'filament' && !state.filters.some((f) => isSpoolScopedFilter(f.prop));

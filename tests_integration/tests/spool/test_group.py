@@ -656,6 +656,54 @@ def test_include_empty_rejected_for_other_group_by():
         assert result.status_code == 400, group_by
 
 
+def test_include_empty_rejected_with_spool_level_filters(empty_group_filaments: EmptyFixture):
+    """Asking for filaments with no spools AND filtering on the spools is a contradiction.
+
+    Answering it either way is worse than refusing: the filter would delete every empty group,
+    silently making the flag a no-op, or be dropped, returning the whole catalogue as empty.
+    """
+    for params in (
+        {"location": '"Shelf A"'},
+        {"lot_nr": '"B12"'},
+        {"first_used": "2024-05-01T00:00:00Z|"},
+        {"last_used": "2024-05-01T00:00:00Z|"},
+        {"registered": "2024-05-01T00:00:00Z|"},
+    ):
+        result = httpx.get(
+            f"{URL}/api/v1/spool/group",
+            params={"group_by": "filament", "include_empty": "true", **params},
+        )
+        assert result.status_code == 400, params
+
+    # A spool extra field is spool-level too, whatever it is called.
+    field_key = f"opened_{uuid.uuid4().hex[:8]}"
+    httpx.post(
+        f"{URL}/api/v1/field/spool/{field_key}",
+        json={"name": "Opened", "field_type": "text"},
+    ).raise_for_status()
+    try:
+        result = httpx.get(
+            f"{URL}/api/v1/spool/group",
+            params={"group_by": "filament", "include_empty": "true", f"extra.{field_key}": '"yes"'},
+        )
+        assert result.status_code == 400
+    finally:
+        httpx.delete(f"{URL}/api/v1/field/spool/{field_key}").raise_for_status()
+
+    # Archiving is the exception: it is the default view, and a filament whose every spool is
+    # archived genuinely has none to print with, so it belongs in the list as an empty group.
+    result = httpx.get(
+        f"{URL}/api/v1/spool/group",
+        params={
+            "group_by": "filament",
+            "include_empty": "true",
+            "filament.id": _all_ids(empty_group_filaments),
+        },
+    )
+    result.raise_for_status()
+    assert _group_by_key(result.json())[str(empty_group_filaments.archived_only_id)]["spool_count"] == 0
+
+
 def test_group_by_ungroupable_extra_field():
     """Numeric and multi-choice fields hold no single repeatable value, so they can't be grouped by."""
     numeric_key = f"count_{uuid.uuid4().hex[:8]}"
