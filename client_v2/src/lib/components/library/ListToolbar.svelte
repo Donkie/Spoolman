@@ -526,8 +526,11 @@
 									size={16}
 									radius={4}
 								/>{/if}
+							<!-- The gap is a real space, not just margin: it is what separates the
+							     two halves in the row's accessible name, which would otherwise be
+							     read out as one run-together word. -->
 							<span class="mi-label"
-								>{opt.label}{#if opt.meta}<span class="mi-sub">{opt.meta}</span>{/if}</span
+								>{opt.label}{#if opt.meta}&nbsp;<span class="mi-sub">{opt.meta}</span>{/if}</span
 							>
 						</button>
 					{:else}
@@ -797,7 +800,6 @@
 	.mi-sub {
 		color: var(--text-muted);
 		font-size: 11px;
-		margin-left: 6px;
 	}
 	.mi-dir {
 		color: var(--accent-muted);

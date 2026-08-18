@@ -232,6 +232,13 @@ export async function openToolbarMenu(page: Page, name: "Filter" | "Group" | "So
 export async function addFilter(page: Page, property: string, value: string): Promise<void> {
   const menu = await openToolbarMenu(page, "Filter");
   await menu.getByRole("button", { name: property, exact: true }).click();
-  await menu.getByRole("button", { name: value, exact: true }).click();
+  // A value is a checkbox rather than a plain entry: it carries whether it is
+  // already applied, and picking one leaves the menu open so several can be
+  // picked in a row (#1090, #1089).
+  await menu.getByRole("menuitemcheckbox", { name: value, exact: true }).click();
   await expect(page.getByRole("button", { name: `${property}: ${value}` })).toBeVisible();
+  // Which means this has to close it again: every caller expects to be handed a
+  // toolbar with nothing covering it, and two of these calls run back to back.
+  await onlyVisible(page.getByRole("button", { name: /^Filter$/ })).click();
+  await expect(menu).toBeHidden();
 }
