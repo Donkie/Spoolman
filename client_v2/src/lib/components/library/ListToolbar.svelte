@@ -393,10 +393,24 @@
 			><span class="ctrl-label">{m['library.groupBy']()}: </span>{groupLabel}
 			<ChevronDown size={13} /></button
 		>
-		<button class="chip active sort" onclick={() => toggle('sort')}>
-			<span class="ctrl-label">{m['library.sortBy']()}: </span>{activeSort.labelKey()}
-			{#if libraryState.sortAsc}<ArrowUp size={12} />{:else}<ArrowDown size={12} />{/if}
-		</button>
+		<!-- One chip, two controls (#1091): the field opens the menu, the arrow only
+		     flips the direction. Reversing an order used to mean reopening the menu
+		     and hunting down the field that was already selected. A divider and a
+		     hover of its own say the arrow is clickable; buttons can't nest, so the
+		     chip itself is the wrapper and the padding lives on the two halves. -->
+		<div class="chip active sort">
+			<button class="sort-field" onclick={() => toggle('sort')}>
+				<span class="ctrl-label">{m['library.sortBy']()}: </span>{activeSort.labelKey()}
+			</button>
+			<button
+				class="sort-dir-btn"
+				title={m['library.reverseSort']()}
+				aria-label={m['library.reverseSort']()}
+				onclick={() => params.toggleSortDir()}
+			>
+				{#if libraryState.sortAsc}<ArrowUp size={12} />{:else}<ArrowDown size={12} />{/if}
+			</button>
+		</div>
 	</div>
 
 	{#if open === 'filter'}
@@ -625,6 +639,45 @@
 		background: var(--accent-wash);
 		border: 1px solid var(--accent-border);
 		color: var(--accent-soft);
+	}
+	/* The chip is only the frame now; each half carries the padding so a click
+	   anywhere in it still lands on the control that half belongs to. They
+	   STRETCH to fill it, which matters on mobile: the shared `.chip` rule in
+	   app.css grows the chip to a 44px tap target, and centred children would
+	   leave that as a 44px frame around two 20px buttons. It also runs the
+	   divider the full height of the chip, which is what makes the pair read as
+	   one segmented control rather than two things that happen to be adjacent. */
+	.chip.sort {
+		padding: 0;
+		gap: 0;
+		align-items: stretch;
+	}
+	.chip.sort > button {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 4px 9px;
+		background: none;
+		border: none;
+		color: inherit;
+		font-family: inherit;
+		font-size: 11.5px;
+		white-space: nowrap;
+		cursor: pointer;
+	}
+	.chip.sort > button:hover {
+		color: var(--accent-link);
+	}
+	.chip.sort > button:focus-visible {
+		outline: 1px solid var(--accent);
+		outline-offset: -1px;
+	}
+	.chip.sort > .sort-field {
+		padding-right: 7px;
+	}
+	.chip.sort > .sort-dir-btn {
+		border-left: 1px solid var(--accent-border);
+		padding-left: 7px;
 	}
 	.menu-sep {
 		height: 1px;

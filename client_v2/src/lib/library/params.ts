@@ -237,6 +237,17 @@ export function setSortKey(key: string): void {
 	navigate({ ...s, sortKey: key, sortAsc, group, page: DEFAULTS.page });
 }
 
+/**
+ * Flip the current sort's direction, leaving the field alone (#1091).
+ *
+ * Re-selecting the active key already means "flip" (see setSortKey), so this is
+ * that call named for what the toolbar's arrow does — and it keeps the arrow
+ * from having to know that reselecting a key is how you reverse a sort.
+ */
+export function toggleSortDir(): void {
+	setSortKey(currentState().sortKey);
+}
+
 export function toggleFilter(prop: string, value: string): void {
 	const s = currentState();
 	const has = s.filters.some((f) => f.prop === prop && f.value === value);
