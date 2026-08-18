@@ -240,7 +240,7 @@ test("a scanned tag opens its spool once auto-navigate is switched on", async ({
     await expect(page.getByRole("button", { name: "Read a tag with this phone" })).toHaveCount(0);
   });
 
-  const autoNavigate = page.getByLabel("Open the spool a scanned tag belongs to");
+  const autoNavigate = page.getByLabel("Auto-navigate");
   await expect(autoNavigate).toHaveAttribute("aria-checked", "false");
   await autoNavigate.click();
   await expect(autoNavigate).toHaveAttribute("aria-checked", "true");
@@ -269,7 +269,7 @@ test("a scanned tag opens its spool once auto-navigate is switched on", async ({
 test("an unknown tag reports itself instead of navigating", async ({ page, request }) => {
   await openApp(page);
   await navTab(page, "Settings", "Settings | Spoolman");
-  await page.getByLabel("Open the spool a scanned tag belongs to").click();
+  await page.getByLabel("Auto-navigate").click();
   // Back to a page that reacts to scans at all -- Settings deliberately doesn't.
   await navTab(page, "Library", "Library | Spoolman");
 
@@ -301,11 +301,11 @@ test("a reader is paired by tapping a tag on it", async ({ page, request }) => {
   await expect(dialog).toBeHidden();
 
   await navTab(page, "Settings", "Settings | Spoolman");
-  await page.getByLabel("Open the spool a scanned tag belongs to").click();
+  await page.getByLabel("Auto-navigate").click();
 
   await expect(page.getByText(/Scans from any reader/)).toBeVisible();
   await page.getByRole("button", { name: "Pair by tapping" }).click();
-  await expect(page.getByText("Tap a tag on the reader you want...")).toBeVisible();
+  await expect(page.getByText("Tap any tag on the reader you want...")).toBeVisible();
 
   const settingsUrl = page.url();
   await scanUntil(
