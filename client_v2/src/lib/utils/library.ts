@@ -164,6 +164,24 @@ export function filamentLabel(filament: Filament, vendor: Vendor): string {
 	return filament.material?.trim() || `#${filament.id}`;
 }
 
+// --- filter menu metadata -------------------------------------------------
+
+/**
+ * One value on the filter menu's second level. Most properties enumerate bare
+ * strings, where the value is the whole story; a filament is a thing with a look
+ * and a material, and two of them can share a name (#1087, #1088). So an option
+ * carries whatever it has beyond its label and the menu draws what it finds,
+ * which keeps the option list one type however it was built.
+ */
+export interface FilterOption {
+	value: string;
+	label: string;
+	/** Secondary text shown beside the label, and searched along with it. */
+	meta?: string;
+	colors?: string[];
+	direction?: MultiColorDirection;
+}
+
 // --- sort menu metadata ---------------------------------------------------
 
 export interface SortDef {

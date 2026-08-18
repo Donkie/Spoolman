@@ -23,7 +23,7 @@ import {
 } from './map';
 import { inventory } from '$lib/stores/inventory.svelte';
 import { isDateFilterProp, parseDateFilter, resolveDateFilter } from '$lib/library/dateFilter';
-import { filamentLabel } from '$lib/utils/library';
+import { filamentLabel, type FilterOption } from '$lib/utils/library';
 import type { EntityType } from './fields';
 import { type ExternalFilament } from './external';
 import { searchAll } from './search';
@@ -492,20 +492,30 @@ class HttpSpoolSource {
 		return getJson<string[]>('/material');
 	}
 	/**
-	 * Every filament as a `{ value: id, label }` option for the "filament" filter,
-	 * so a spool listing can be narrowed to one specific filament (e.g. a given
-	 * colour from a given manufacturer). Filaments are cached so the chosen chip
-	 * can render its label from the reactive store.
+	 * Every filament as an option for the "filament" filter, so a spool listing can
+	 * be narrowed to one specific filament (e.g. a given colour from a given
+	 * manufacturer). Each option carries the filament's colours and material as
+	 * well as its label, since the menu shows all three. Filaments are cached so
+	 * the chosen chip can render its label from the reactive store.
 	 */
-	async filamentOptions(): Promise<{ value: string; label: string }[]> {
+	async filamentOptions(): Promise<FilterOption[]> {
 		const items = await getJson<Json[]>('/filament');
 		const filaments = items.map((f) => {
 			if (f.vendor) inventory.upsertVendor(mapVendor(f.vendor));
 			return mapFilament(f);
 		});
 		inventory.upsertFilaments(filaments);
+		// The label already carries the manufacturer, so the material is what's left
+		// to tell two same-named filaments apart; the colors are what the eye goes
+		// to first. Both are free here — this fetches whole filaments anyway.
 		return filaments
-			.map((f) => ({ value: f.id, label: filamentLabel(f, inventory.vendorOf(f)) }))
+			.map((f) => ({
+				value: f.id,
+				label: filamentLabel(f, inventory.vendorOf(f)),
+				meta: f.material,
+				colors: f.colors,
+				direction: f.multiColorDirection
+			}))
 			.sort((a, b) => a.label.localeCompare(b.label));
 	}
 	/** Distinct values currently stored for a scalar extra field (text/single-choice). */
