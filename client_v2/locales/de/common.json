@@ -98,6 +98,7 @@
     "changeVendor.now": "Momentan",
     "changeVendor.pickBelow": "Wähle einen Hersteller von unten",
     "changeVendor.searchPlaceholder": "Suche oder nenne einen Hersteller",
+    "changeVendor.tareFollows": "Nach der Änderung sind es {{value}}, was dem Gewicht einer leeren Spule entspricht, wenn man eine misst.",
     "changeVendor.title": "Ändere Hersteller",
     "changeVendor.willBeCreated": "Wird erzeugt",
     "common.decrement": "Verringern",
