@@ -1,6 +1,7 @@
 import type { GroupField, GroupQuery, GroupSummary, SortField, SpoolQuery } from './types';
 import type { LibraryState } from '$lib/library/params';
 import { resolveSortField, resolveGroupSortField } from '$lib/utils/library';
+import { isDateFilterProp } from '$lib/library/dateFilter';
 import { settings } from '$lib/stores/settings.svelte';
 
 // Translates the URL-borne LibraryState into concrete /spool and /spool/group
@@ -19,6 +20,40 @@ function currentFilters(state: LibraryState): Record<string, string[]> {
 	return filters;
 }
 
+/**
+ * Filter props that describe a SPOOL rather than the filament it is of.
+ *
+ * The distinction only matters for empty filament groups (see includeEmpty
+ * below). Everything not listed here — filament, material, vendor, direction,
+ * and the `filament.extra.` / `filament.vendor.extra.` fields — is a fact about
+ * the filament, which a filament with no spools still has.
+ */
+function isSpoolScopedFilter(prop: string): boolean {
+	if (prop === 'location' || prop === 'lot') return true;
+	if (isDateFilterProp(prop)) return true;
+	// `extra.<key>` is the spool's own custom field; the filament's and the
+	// vendor's are prefixed, so a bare `extra.` is the spool-scoped one.
+	return prop.startsWith('extra.');
+}
+
+/**
+ * Whether to ask for filaments that have no spools at all (#1092).
+ *
+ * A filament you own nothing of is exactly the one to re-order, and leaving it
+ * out of the list makes a filtered library look fully stocked. So it is listed
+ * as a group of zero — but only while every active filter is one the *filament*
+ * can answer.
+ *
+ * Ask "which of these are at Shelf A" and a filament with no spools has no
+ * answer: it isn't anywhere. Including it would flood that view with every
+ * filament in the catalogue instead of showing the handful actually on the
+ * shelf. Archived is not one of these: hiding archived spools is the default
+ * view, and a filament whose only spools are archived genuinely has none to use.
+ */
+function wantsEmptyGroups(state: LibraryState): boolean {
+	return state.group === 'filament' && !state.filters.some((f) => isSpoolScopedFilter(f.prop));
+}
+
 /** Page-of-groups query (grouped mode). */
 export function buildGroupQuery(state: LibraryState, signal?: AbortSignal): GroupQuery {
 	const field = state.group as GroupField;
@@ -29,6 +64,7 @@ export function buildGroupQuery(state: LibraryState, signal?: AbortSignal): Grou
 		filters: currentFilters(state),
 		sort: [{ field: groupField, dir }],
 		allowArchived: state.showArchived,
+		includeEmpty: wantsEmptyGroups(state),
 		limit: state.pageSize,
 		offset: (state.page - 1) * state.pageSize,
 		lowThreshold: settings.lowThreshold,

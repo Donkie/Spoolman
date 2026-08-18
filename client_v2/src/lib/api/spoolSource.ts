@@ -166,7 +166,8 @@ class HttpSpoolSource {
 			sort: sortParam(query.sort),
 			limit: query.limit,
 			offset: query.offset,
-			allow_archived: query.allowArchived ? 'true' : undefined
+			allow_archived: query.allowArchived ? 'true' : undefined,
+			include_empty: query.includeEmpty ? 'true' : undefined
 		};
 		applyFilters(params, query.filters);
 

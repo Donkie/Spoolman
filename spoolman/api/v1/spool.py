@@ -522,6 +522,20 @@ async def find_groups(
         bool,
         Query(title="Allow Archived", description="Whether to include archived spools in the aggregates."),
     ] = False,
+    include_empty: Annotated[
+        bool,
+        Query(
+            title="Include Empty",
+            description=(
+                "Return matching filaments that hold no matching spools as groups of zero, instead "
+                "of omitting them. Only valid together with group_by=filament; any other axis is "
+                "keyed by a value read off the spools themselves and has no empty groups to list. "
+                "Note that spool-level filters (location, lot_nr, the date filters, spool extra "
+                "fields) still restrict which spools are counted, so with one of those active "
+                "every filament without a matching spool comes back as empty."
+            ),
+        ),
+    ] = False,
     first_used: FirstUsedFilter = None,
     last_used: LastUsedFilter = None,
     registered: RegisteredFilter = None,
@@ -578,6 +592,7 @@ async def find_groups(
             sort_by=sort_by,
             limit=limit,
             offset=offset,
+            include_empty=include_empty,
         )
     except ValueError as e:
         return JSONResponse(status_code=400, content=Message(message=str(e)).dict())

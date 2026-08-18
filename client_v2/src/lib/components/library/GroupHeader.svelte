@@ -7,6 +7,7 @@
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Factory from '@lucide/svelte/icons/factory';
 	import type { GroupHeaderInfo } from '$lib/utils/library';
+	import { onTruncated } from '$lib/actions/truncated';
 	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
@@ -21,10 +22,36 @@
 		sticky?: boolean;
 		/** Whether the group's spools are folded away behind this header. */
 		collapsed?: boolean;
+		/** The group holds no spools at all — it is the header and nothing else
+		 *  (#1092). It says so in place of the aggregates, which are all zero, and
+		 *  drops the disclosure since there is nothing behind it to fold. */
+		outOfStock?: boolean;
 		ontoggle?: () => void;
 	}
 
-	let { group, href, vendorHref, sticky = false, collapsed = false, ontoggle }: Props = $props();
+	let {
+		group,
+		href,
+		vendorHref,
+		sticky = false,
+		collapsed = false,
+		outOfStock = false,
+		ontoggle
+	}: Props = $props();
+
+	// Whichever of the two lines is currently cut off, spelled out on hover (#1093).
+	// It hangs off the row rather than off the truncated span itself: the entity
+	// link below covers the whole header, so the span is never what the pointer is
+	// over. The manufacturer link and the disclosure carry titles of their own,
+	// which take precedence over this one where they overlap it.
+	let titleCut = $state(false);
+	let subCut = $state(false);
+	// Stable callbacks: an inline closure would be a new parameter on every render.
+	const markTitle = (cut: boolean) => (titleCut = cut);
+	const markSub = (cut: boolean) => (subCut = cut);
+	let fullText = $derived(
+		[titleCut ? group.title : '', subCut ? group.subtitle : ''].filter(Boolean).join(' · ') || undefined
+	);
 </script>
 
 <!-- The row is three controls, not one: the body opens the group's entity (where it
@@ -39,7 +66,7 @@
      the two links being siblings. That is also what makes `.main:hover` mean
      "anywhere on the row except the other two controls", which is the precision the
      hover affordance below needs. -->
-<div class="header" class:sticky class:link={href}>
+<div class="header" class:sticky class:link={href} title={fullText}>
 	{#if href}
 		<!-- The entity link is an overlay covering the whole row, not a box around the
 		     title: it has to be a sibling of the manufacturer link (anchors can't
@@ -61,7 +88,7 @@
 			<!-- A group header reads as a heading, and headings don't normally lead
 			     anywhere — so the link has to say so itself, by taking the underline
 			     and colour every link gets on hover. -->
-			<span class="title">{group.title}</span>
+			<span class="title" use:onTruncated={markTitle}>{group.title}</span>
 			{#if group.badge}<MaterialBadge label={group.badge} />{/if}
 		</div>
 		{#if group.vendorName || group.subtitle}
@@ -85,7 +112,7 @@
 					<span class="vendor-none">{group.vendorName}</span>
 				{/if}
 				{#if group.vendorName && group.subtitle}<span class="dot" aria-hidden="true">·</span>{/if}
-				{#if group.subtitle}<span class="stext">{group.subtitle}</span>{/if}
+				{#if group.subtitle}<span class="stext" use:onTruncated={markSub}>{group.subtitle}</span>{/if}
 			</div>
 		{/if}
 	</div>
@@ -93,20 +120,32 @@
 	     them: what it holds, and how much of it. The count is also what says the
 	     rows below are ALL of this group's spools, not the first few. -->
 	<div class="meta">
-		<span class="weight">{group.meta}</span>
-		<span class="count">{group.count}</span>
+		{#if outOfStock}
+			<!-- "0 g / 0 spools" is true but reads like any other quiet number, and the
+			     whole point of listing this group is that it should catch the eye. -->
+			<span class="oos">{m['library.outOfStock']()}</span>
+		{:else}
+			<span class="weight">{group.meta}</span>
+			<span class="count">{group.count}</span>
+		{/if}
 	</div>
-	<button
-		class="disc"
-		type="button"
-		aria-expanded={!collapsed}
-		aria-label={collapsed ? m['library.expandGroup']() : m['library.collapseGroup']()}
-		onclick={ontoggle}
-	>
-		<!-- The glyph turns, not the button: rotating the control itself would swing
-		     its box (and hit area) out past the edge of the row. -->
-		<span class="chev" class:open={!collapsed}><ChevronRight size={15} /></span>
-	</button>
+	{#if !outOfStock}
+		<button
+			class="disc"
+			type="button"
+			aria-expanded={!collapsed}
+			aria-label={collapsed ? m['library.expandGroup']() : m['library.collapseGroup']()}
+			onclick={ontoggle}
+		>
+			<!-- The glyph turns, not the button: rotating the control itself would swing
+			     its box (and hit area) out past the edge of the row. -->
+			<span class="chev" class:open={!collapsed}><ChevronRight size={15} /></span>
+		</button>
+	{:else}
+		<!-- Keeps the header's right edge lined up with the ones that do have a
+		     disclosure, so the column of aggregates doesn't jog in and out. -->
+		<span class="disc-spacer" aria-hidden="true"></span>
+	{/if}
 </div>
 
 <style>
@@ -236,6 +275,22 @@
 	.count {
 		font-size: 10.5px;
 		color: var(--text-faint);
+	}
+	/* Outlined rather than filled: it marks a shopping-list entry, not a failure,
+	   and a solid danger block on every out-of-stock row would shout down the rest
+	   of the library. */
+	.oos {
+		font-size: 9.5px;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--danger-soft);
+		border: 1px solid var(--danger-soft);
+		border-radius: var(--radius-sm);
+		padding: 1px 5px;
+	}
+	.disc-spacer {
+		flex: none;
+		width: 34px;
 	}
 	/* Full-height so the hit target is the whole right edge of the header — far
 	   easier to hit on a phone than the glyph, without drawing a heavier control.
