@@ -197,4 +197,15 @@ class Tag(Base):
     # Free-ish string (openprinttag, ntag, bambu, ...) rather than an enum: informational
     # in phase 1, and new tag types appear faster than migrations should.
     format: Mapped[str | None] = mapped_column(String(32))
+    # Where phase 2 records a tag's decoded instance identity, so that rescanning a tag
+    # updates the spool it already created instead of making a second one. Nothing writes
+    # it yet -- it is here for the same reason the other unused columns are, that the
+    # table is the expensive half to change once it is populated on four databases, while
+    # the endpoint that fills it is additive and free.
+    #
+    # Indexed for that lookup and deliberately NOT unique. `uid` already enforces that one
+    # physical tag identifies one thing, and copying a tag's payload onto a second sticker
+    # (the case in the class docstring) can legitimately put one instance identity on two
+    # rows that point at the same spool -- which a unique constraint would reject.
+    instance_uuid: Mapped[str | None] = mapped_column(String(64), index=True)
     added: Mapped[datetime] = mapped_column()
