@@ -39,10 +39,14 @@ function isSpoolScopedFilter(prop: string): boolean {
 /**
  * Whether to ask for filaments that have no spools at all (#1092).
  *
- * A filament you own nothing of is exactly the one to re-order, and leaving it
- * out of the list makes a filtered library look fully stocked. So it is listed
- * as a group of zero — but only while every active filter is one the *filament*
- * can answer.
+ * Off unless the user asked for it (see params.showEmpty). Finding a spool to
+ * print with is the daily job, and a filament you own none of cannot serve it;
+ * how many such rows there would be depends on how big a catalogue you keep, so
+ * it is not a default that can be right for everyone. Asked for once, it is
+ * remembered (see viewPrefs).
+ *
+ * Even then it is only sent while every active filter is one the *filament* can
+ * answer.
  *
  * Ask "which of these are at Shelf A" and a filament with no spools has no
  * answer: it isn't anywhere. Including it would flood that view with every
@@ -55,7 +59,9 @@ function isSpoolScopedFilter(prop: string): boolean {
  * a filament whose only spools are archived genuinely has none to print with.
  */
 function wantsEmptyGroups(state: LibraryState): boolean {
-	return state.group === 'filament' && !state.filters.some((f) => isSpoolScopedFilter(f.prop));
+	return (
+		state.showEmpty && state.group === 'filament' && !state.filters.some((f) => isSpoolScopedFilter(f.prop))
+	);
 }
 
 /** Page-of-groups query (grouped mode). */

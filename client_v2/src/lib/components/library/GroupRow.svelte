@@ -38,10 +38,10 @@
 	let id = $derived(groupId(group.field, group.key));
 	let collapsed = $derived(collapsedGroups.has(id));
 
-	// A filament the library holds no spools of, listed so that "I am out of this"
-	// is visible rather than silently absent (#1092). There is nothing under the
-	// header, so there is nothing to fetch, fold or page through either.
-	let outOfStock = $derived(group.spoolCount === 0);
+	// A filament the library holds no spools of, listed so that "I have none of
+	// this" is visible rather than silently absent (#1092). There is nothing under
+	// the header, so there is nothing to fetch, fold or page through either.
+	let noSpools = $derived(group.spoolCount === 0);
 
 	let el: HTMLDivElement | undefined = $state();
 
@@ -79,7 +79,7 @@
 	// loaded is kept, so re-expanding paints immediately and refreshes behind it.
 	let reqId = 0;
 	$effect(() => {
-		if (collapsed || outOfStock) return;
+		if (collapsed || noSpools) return;
 		const ctrl = new AbortController();
 		void revision; // refetch on live events
 		const want = untrack(() => spools.length) || PAGE;
@@ -177,10 +177,10 @@
 		href={headerHref}
 		{vendorHref}
 		{collapsed}
-		{outOfStock}
+		{noSpools}
 		ontoggle={toggle}
 	/>
-	{#if !collapsed && !outOfStock}
+	{#if !collapsed && !noSpools}
 		{#each inUse as vm (vm.spool.id)}
 			<SpoolRow {vm} {showSwatch} indent={26} context={group.field} />
 		{/each}

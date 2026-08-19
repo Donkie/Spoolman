@@ -25,7 +25,7 @@
 		/** The group holds no spools at all — it is the header and nothing else
 		 *  (#1092). It says so in place of the aggregates, which are all zero, and
 		 *  drops the disclosure since there is nothing behind it to fold. */
-		outOfStock?: boolean;
+		noSpools?: boolean;
 		ontoggle?: () => void;
 	}
 
@@ -35,7 +35,7 @@
 		vendorHref,
 		sticky = false,
 		collapsed = false,
-		outOfStock = false,
+		noSpools = false,
 		ontoggle
 	}: Props = $props();
 
@@ -120,16 +120,18 @@
 	     them: what it holds, and how much of it. The count is also what says the
 	     rows below are ALL of this group's spools, not the first few. -->
 	<div class="meta">
-		{#if outOfStock}
+		{#if noSpools}
 			<!-- "0 g / 0 spools" is true but reads like any other quiet number, and the
-			     whole point of listing this group is that it should catch the eye. -->
-			<span class="oos">{m['library.outOfStock']()}</span>
+			     whole point of listing this group is that it should catch the eye. It
+			     says no spools rather than out of stock: Spoolman knows what you have
+			     recorded, not what is on your shelf. -->
+			<span class="no-spools">{m['library.noSpools']()}</span>
 		{:else}
 			<span class="weight">{group.meta}</span>
 			<span class="count">{group.count}</span>
 		{/if}
 	</div>
-	{#if !outOfStock}
+	{#if !noSpools}
 		<button
 			class="disc"
 			type="button"
@@ -279,7 +281,7 @@
 	/* Outlined rather than filled: it marks a shopping-list entry, not a failure,
 	   and a solid danger block on every out-of-stock row would shout down the rest
 	   of the library. */
-	.oos {
+	.no-spools {
 		font-size: 9.5px;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;

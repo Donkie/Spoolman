@@ -328,6 +328,13 @@
 
 	let visibleCategories = $derived(filterByQuery(filterCategories, menuQuery, (c) => c.label()));
 	let archivedMatches = $derived(matchesTerms(m['buttons.showArchived'](), searchTerms(menuQuery)));
+	// Only offered where it means something: the empty groups are filaments, so
+	// there is nowhere to put them in a list grouped by anything else. Folded into
+	// the match itself rather than tested at the row, so that a search matching
+	// nothing else still falls through to "no results" instead of an empty menu.
+	let noSpoolsMatches = $derived(
+		libraryState.group === 'filament' && matchesTerms(m['buttons.showNoSpools'](), searchTerms(menuQuery))
+	);
 	let visibleOptions = $derived(filterByQuery(options, menuQuery, (o) => o.label));
 	let visibleSortSections = $derived(
 		sortSections
@@ -384,6 +391,14 @@
 		{#if libraryState.showArchived}
 			<button class="chip active" onclick={() => params.setShowArchived(false)}>
 				{m['spool.fields.archived']()} <span class="x"><X size={12} /></span>
+			</button>
+		{/if}
+		<!-- So is showing the filaments you hold no spools of: it widens the list
+		     rather than narrowing it, but it is still a deviation from the default
+		     view, so it says so and can be dismissed from here (#1092). -->
+		{#if libraryState.showEmpty}
+			<button class="chip active" onclick={() => params.setShowEmpty(false)}>
+				{m['library.noSpools']()} <span class="x"><X size={12} /></span>
 			</button>
 		{/if}
 	</div>
@@ -450,7 +465,25 @@
 						>
 						<span class="mi-label">{m['buttons.showArchived']()}</span>
 					</button>
-				{:else if !visibleCategories.length}
+				{/if}
+				{#if noSpoolsMatches}
+					{#if visibleCategories.length && !archivedMatches}<div class="menu-sep"></div>{/if}
+					<button
+						class="menu-item"
+						role="menuitemcheckbox"
+						aria-checked={libraryState.showEmpty}
+						onclick={() => {
+							params.setShowEmpty(!libraryState.showEmpty);
+							close();
+						}}
+					>
+						<span class="mi-check"
+							>{#if libraryState.showEmpty}<SquareCheck size={15} />{:else}<Square size={15} />{/if}</span
+						>
+						<span class="mi-label">{m['buttons.showNoSpools']()}</span>
+					</button>
+				{/if}
+				{#if !archivedMatches && !noSpoolsMatches && !visibleCategories.length}
 					<div class="menu-item"><span class="mi-label mi-meta">{m['search.noResults']()}</span></div>
 				{/if}
 			{:else}
