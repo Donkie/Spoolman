@@ -8,7 +8,7 @@
     },
     "buttons": {
         "edit": "Edytuj",
-        "unArchive": "Odarchiwizuj",
+        "unArchive": "Przywróć",
         "cancel": "Anuluj",
         "create": "Utwórz",
         "save": "Zapisz",
@@ -56,7 +56,7 @@
             "first_used": "Pierwsze użycie",
             "last_used": "Ostatnie użycie",
             "comment": "Komentarz",
-            "archived": "Zarchiwizowano",
+            "archived": "Zarchiwizowana",
             "used_weight": "Zużyta waga",
             "registered": "Zarejestrowano",
             "measured_weight": "Zmierzona waga",
@@ -111,7 +111,7 @@
         "importProgress": "Importowanie: {{processed}}/{{total}}",
         "error": "Błąd (kod statusu: {{statusCode}})",
         "createError": "Wystąpił błąd podczas tworzenia {{resource}} (kod statusu: {{statusCode}})",
-        "saveSuccessful": "Pomyślnie zapisano!",
+        "saveSuccessful": "Zapisano pomyślnie!",
         "validationError": "Błąd walidacji: {{error}}"
     },
     "loading": "Wczytywanie",
@@ -125,38 +125,38 @@
     "printing": {
         "generic": {
             "title": "Drukowanie",
-            "helpMargin": "Marginesy powinny być skonfigurowane tak, aby pasowały do papieru etykietowego i drukarki, ich zmiana wpłynie na rozmiar całej siatki.",
-            "helpPrinterMargin": "Bezpieczna strefa powinna być ustawiona tak, aby znajdowała się jak najbliżej krawędzi papieru, na którym drukarka może drukować, zmiana tych ustawień nie wpłynie na całą siatkę.",
+            "helpMargin": "Marginesy powinny odpowiadać papierowi etykiet i drukarce — ich zmiana wpływa na rozmiar całej siatki.",
+            "helpPrinterMargin": "Strefę bezpieczną ustaw na to, jak blisko krawędzi papieru drukarka jeszcze drukuje. Zmiana tych wartości nie wpływa na całą siatkę.",
             "print": "Drukuj",
             "columns": "Kolumny",
             "rows": "Wiersze",
             "paperSize": "Rozmiar papieru",
-            "customSize": "Niestandardowy",
+            "customSize": "Własny",
             "dimensions": "Wymiary",
             "showBorder": "Pokaż obramowanie",
             "previewScale": "Skala podglądu",
-            "skipItems": "Pomiń elementy",
+            "skipItems": "Pomiń pozycje",
             "contentSettings": "Ustawienia zawartości",
             "layoutSettings": "Ustawienia układu",
-            "verticalSpacing": "Pionowy odstęp",
-            "marginLeft": "Lewy margines",
-            "marginRight": "Prawy margines",
-            "marginTop": "Górny margines",
-            "marginBottom": "Dolny margines",
-            "printerMarginLeft": "Bezpieczna strefa po lewej",
-            "printerMarginRight": "Bezpieczna strefa po prawej",
-            "printerMarginTop": "Bezpieczna strefa od góry",
+            "verticalSpacing": "Odstęp pionowy",
+            "marginLeft": "Margines lewy",
+            "marginRight": "Margines prawy",
+            "marginTop": "Margines górny",
+            "marginBottom": "Margines dolny",
+            "printerMarginLeft": "Strefa bezpieczna lewo",
+            "printerMarginRight": "Strefa bezpieczna prawo",
+            "printerMarginTop": "Strefa bezpieczna góra",
             "borders": {
                 "none": "Brak",
                 "border": "Obwódka",
                 "grid": "Siatka"
             },
-            "description": "Dostosuj poniższe ustawienia, aby uzyskać pożądany układ wydruku. Należy pamiętać, że drukarki i system operacyjny mogą stosować własne marginesy i skalowanie, więc może być konieczne wykonanie kilku prób i błędów, zanim wszystko będzie prawidłowe. Przed wydrukowaniem etykiet przetestuj je na zwykłym papierze.",
-            "horizontalSpacing": "Poziomy odstęp",
-            "printerMarginBottom": "Bezpieczna strefa od dołu",
+            "description": "Dopasuj ustawienia poniżej, aby uzyskać właściwy układ wydruku. Pamiętaj, że drukarka i system mogą dodać własne marginesy i skalowanie, więc zwykle trzeba trochę poeksperymentować. Przetestuj na zwykłej kartce, zanim zujesz właściwe etykiety.",
+            "horizontalSpacing": "Odstęp poziomy",
+            "printerMarginBottom": "Strefa bezpieczna dół",
             "newSetting": "Nowe",
             "defaultSettings": "Domyślne",
-            "itemCopies": "Skopiuj element",
+            "itemCopies": "Kopie pozycji",
             "settings": "Presety",
             "saveAsImage": "Zapisz jako obraz",
             "duplicateSettings": "Zduplikuj",
@@ -186,12 +186,12 @@
             "template": "Wzór etykiety",
             "useHTTPUrl": {
                 "preview": "Podgląd:",
-                "label": "Link kodu QR",
+                "label": "Link w kodzie QR",
                 "options": {
-                    "default": "Domyślne",
+                    "default": "Domyślny",
                     "url": "URL"
                 },
-                "tooltip": "Zostanie użyty link który będzie działał tylko gdy zostanie zeskanowany przez funkcję skanowania Spoolmana (Domyślna opcja). Link URL używa bazowego URL ustawionego w ustawieniach lub aktualnego URL strony jeżeli nie jest ustawiony w ustawieniach."
+                "tooltip": "Użyje zastrzeżonego linku, który zadziała tylko po zeskanowaniu za pomocą funkcji skanowania w Spoolman (domyślnie). Opcja URL używa podstawowego adresu URL określonego w ustawieniach lub, jeśli nie jest ustawiony, adresu URL bieżącej strony."
             },
             "showQRCode": "Drukuj kod QR",
             "showQRCodeMode": {
@@ -216,13 +216,13 @@
         "title": "Skaner kodów QR",
         "error": {
             "notAllowed": "Nie zezwolono na dostęp do kamery.",
-            "insecureContext": "Strona nie jest dostarczana przez HTTPS.",
-            "streamApiNotSupported": "Przeglądarka nie obsługuje API MediaStream.",
+            "insecureContext": "Strona nie jest serwowana przez HTTPS.",
+            "streamApiNotSupported": "Przeglądarka nie obsługuje MediaStream API.",
             "notReadable": "Kamera jest niedostępna do odczytu.",
             "notFound": "Nie znaleziono kamery.",
             "unknown": "Wystąpił nieznany błąd. ({{error}})"
         },
-        "description": "Zeskanuj kod QR Spoolman, aby wyświetlić szczegółowe informacje o szpuli."
+        "description": "Zeskanuj kod QR Spoolmana, aby zobaczyć szczegóły szpuli."
     },
     "filament": {
         "filament": "Filamenty",
@@ -248,7 +248,7 @@
             "single_color": "Pojedynczy",
             "multi_color": "Wielo",
             "longitudinal": "Wzdłużny",
-            "coaxial": "Koekstrudowany"
+            "coaxial": "Współwytłaczany"
         },
         "fields_help": {
             "material": "Np. PLA, ABS, PETG itp.",
@@ -348,7 +348,7 @@
         "help": "Pomoc",
         "description": "<title>Pomoc</title><p>Oto kilka wskazówek na początek.</p><p>Spoolman przechowuje 3 różne typy danych:</p><itemsHelp/><p>Aby dodać nową szpulę do bazy danych, zacznij od utworzenia obiektu <filamentCreateLink>Filament</filamentCreateLink>. Gdy już to zrobisz, przejdź do utworzenia obiektu <spoolCreateLink>Szpula</spoolCreateLink> dla tej konkretnej szpuli. Jeśli później zdobędziesz dodatkowe szpule tego samego filamentu, po prostu wygeneruj dodatkowe obiekty Szpula i ponownie użyj tego samego obiektu Filament.</p><p>Opcjonalnie możesz także wygenerować obiekt <vendorCreateLink>Producent</vendorCreateLink> dla firmy produkującej filament, jeśli chcesz śledzić te informacje.</p><p>Masz możliwość połączenia innych usług drukarek 3D ze Spoolmanem, takich jak Moonraker, który może automatycznie monitorować zużycie filamentu i aktualizować obiekty Szpula. Wskazówki dotyczące konfiguracji można znaleźć w <readmeLink>Spoolman README</readmeLink>.</p>"
     },
-    "kofi": "Daj napiwek na Ko-fi",
+    "kofi": "Wesprzyj mnie na Ko-fi",
     "home": {
         "home": "Strona główna",
         "welcome": "Witaj w instancji Spoolman!",
@@ -395,11 +395,12 @@
                 "boolean": "Wartość logiczna"
             },
             "non_unique_key_error": "Klucz musi być unikalny.",
-            "description": "<p>Tutaj możesz dodać dodatkowe pola niestandardowe do swoich podmiotów.</p><p>Po dodaniu pola nie można zmienić jego klucza ani typu, a w przypadku pól typu wyboru nie można usunąć wyborów ani zmienić stanu wielokrotnego wyboru. Jeśli usuniesz pole, powiązane dane dla wszystkich podmiotów zostaną usunięte.</p><p>Klucz jest tym, co inne programy odczytują/zapisują jako dane, więc jeśli twoje niestandardowe pole ma być zintegrowane z programem innej firmy, upewnij się, że ustawiłeś je poprawnie. Wartość domyślna jest stosowana tylko do nowych elementów.</p><p>Dodatkowych pól nie można sortować ani filtrować w widokach tabeli.</p>",
+            "description": "<p>Tutaj możesz dodać dodatkowe pola niestandardowe do swoich encji.</p><p>Po dodaniu pola nie można zmienić jego klucza ani typu, a w przypadku pól typu „wybór” nie można usuwać opcji ani zmieniać ustawienia wielu wyborów. Usunięcie pola spowoduje usunięcie powiązanych danych dla wszystkich encji.</p><p>Klucz jest wartością, którą inne programy odczytują i zapisują jako dane, więc jeśli Twoje pole niestandardowe ma integrować się z programem zewnętrznym, upewnij się, że jest ustawione poprawnie. Wartość domyślna jest stosowana tylko do nowych elementów.</p><p>Pola dodatkowe można wyświetlać i sortować w widokach tabeli. Pola typu „wybór” i logiczne (boolean) udostępniają tam również opcje filtrowania, a wszystkie typy pól dodatkowych obsługują filtrowanie wartości pustych.</p>",
             "choices_missing_error": "Nie możesz usunąc możliwośći wyboru. Ten wybór nie istnieje: {{choices}}",
             "key_not_changed": "Zmień klucz na inny.",
             "delete_confirm": "Usunąć pole {{name}}?",
-            "delete_confirm_description": "Ta akcja usunie wszystkie pola i powiązane z nimi dane dla wszystkich obiektów."
+            "delete_confirm_description": "Ta akcja usunie wszystkie pola i powiązane z nimi dane dla wszystkich obiektów.",
+            "choices_reorder_hint": "Przeciągnij lub użyj klawiszy strzałek, aby zmienić kolejność tej opcji."
         },
         "header": "Ustawienia"
     },
@@ -408,5 +409,11 @@
         "new_location": "Nowa lokalizacja",
         "no_location": "Brak lokalizacji",
         "no_locations_help": "Ta strona pozwala uporządkować szpule w lokalizacjach, dodaj kilka szpul aby rozpocząć!"
+    },
+    "theme": {
+        "label": "Motyw",
+        "system": "System",
+        "light": "Jasny",
+        "dark": "Ciemny"
     }
 }
