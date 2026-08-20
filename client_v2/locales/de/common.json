@@ -99,6 +99,7 @@
     "changeVendor.pickBelow": "Wähle einen Hersteller von unten",
     "changeVendor.searchPlaceholder": "Suche oder nenne einen Hersteller",
     "changeVendor.tareFollows": "Nach der Änderung sind es {{value}}, was dem Gewicht einer leeren Spule entspricht, wenn man eine misst.",
+    "changeVendor.tareGone": "Dieses Filament hat kein eigenes Spulenleergewicht und übernimmt das des Herstellers {{current}}. Nach der Änderung gibt es keins zu übernehmen, bis du dem Filament eines gibst.",
     "changeVendor.title": "Ändere Hersteller",
     "changeVendor.willBeCreated": "Wird erzeugt",
     "common.decrement": "Verringern",
