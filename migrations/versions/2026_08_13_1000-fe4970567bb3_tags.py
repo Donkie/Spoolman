@@ -39,7 +39,6 @@ def upgrade() -> None:
         sa.Column("filament_id", sa.Integer(), nullable=True),
         sa.Column("target_value", sa.String(length=64), nullable=True),
         sa.Column("format", sa.String(length=32), nullable=True),
-        sa.Column("instance_uuid", sa.String(length=64), nullable=True),
         sa.Column("added", sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(
             ["spool_id"],
@@ -60,14 +59,10 @@ def upgrade() -> None:
     # The whole point of the table: one physical tag means exactly one thing, enforced by
     # the database rather than by whichever client happened to write last.
     op.create_index(op.f("ix_tag_uid"), "tag", ["uid"], unique=True)
-    # Not unique: see models.Tag. A payload copied onto a second sticker can carry one
-    # instance identity on two rows, both pointing at the same spool.
-    op.create_index(op.f("ix_tag_instance_uuid"), "tag", ["instance_uuid"], unique=False)
 
 
 def downgrade() -> None:
     """Perform the downgrade."""
-    op.drop_index(op.f("ix_tag_instance_uuid"), table_name="tag")
     op.drop_index(op.f("ix_tag_uid"), table_name="tag")
     op.drop_index(op.f("ix_tag_filament_id"), table_name="tag")
     op.drop_index(op.f("ix_tag_spool_id"), table_name="tag")
