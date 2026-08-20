@@ -4,6 +4,7 @@
 	import SpoolRow from './SpoolRow.svelte';
 	import type { RowContext, SpoolVM } from '$lib/utils/library';
 	import { isSelected } from '$lib/library/params';
+	import { truncTitle } from '$lib/actions/truncated';
 	import { page } from '$app/state';
 	import * as m from '$lib/paraglide/messages';
 
@@ -94,7 +95,7 @@
 				opacity={0.75}
 			/>
 		{/if}
-		<span class="label">
+		<span class="label" use:truncTitle>
 			<span class="fname">{first.filament.name}</span>
 			<span class="badge mono">{m['library.nUnused']({ count: unused.length })}</span>
 		</span>

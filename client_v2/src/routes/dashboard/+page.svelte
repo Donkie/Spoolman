@@ -12,6 +12,7 @@
 	import { isAbortError } from '$lib/api/http';
 	import { mapSpool } from '$lib/api/map';
 	import { libraryHref } from '$lib/library/params';
+	import { truncTitle } from '$lib/actions/truncated';
 	import { extraFieldsHref } from '$lib/settings/params';
 	import { weightAuto } from '$lib/utils/format';
 	import * as m from '$lib/paraglide/messages';
@@ -763,11 +764,11 @@
 									     an {#if}: at a block edge Svelte trims the adjacent whitespace, which ran
 									     the separator into the neighbouring word ("Bambu Lab -Bambu Green",
 									     "1 kg- Last used 2 days ago"). -->
-									<div class="chip-title">
+									<div class="chip-title" use:truncTitle>
 										<span class="chip-id mono">#{s.id}</span>
 										{v.name === '?' ? f.name : `${v.name} - ${f.name}`}
 									</div>
-									<div class="chip-subtitle">
+									<div class="chip-subtitle" use:truncTitle>
 										{f.material} -
 										<span class:low={settings.isLow(s.remaining, s.unused)}>{weightAuto(s.remaining)}</span>
 										/ {weightAuto(f.weight)}{s.lastUsedLabel

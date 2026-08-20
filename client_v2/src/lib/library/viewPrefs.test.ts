@@ -12,8 +12,25 @@ describe('parseStoredView', () => {
 		expect(parseStoredView('{"group":"location","sort":"name","asc":true}')).toEqual({
 			group: 'location',
 			sortKey: 'name',
-			sortAsc: true
+			sortAsc: true,
+			showEmpty: false
 		});
+	});
+
+	it('reads back the show-no-spools flag when one was stored', () => {
+		expect(parseStoredView('{"group":"filament","sort":"name","asc":true,"empty":true}')).toEqual({
+			group: 'filament',
+			sortKey: 'name',
+			sortAsc: true,
+			showEmpty: true
+		});
+	});
+
+	it('treats an entry written before the flag existed as having it off', () => {
+		// Every browser that used the Library before #1092 holds a three-field entry.
+		// Rejecting those would throw away a grouping the user picked long ago, the
+		// first time they loaded a build that knows about the flag.
+		expect(parseStoredView('{"group":"location","sort":"name","asc":false}')?.showEmpty).toBe(false);
 	});
 
 	it('has nothing to restore for a browser that never stored one', () => {
@@ -36,7 +53,8 @@ describe('parseStoredView', () => {
 		expect(parseStoredView('{"group":"colour","sort":"name","asc":false}')).toEqual({
 			group: 'colour',
 			sortKey: 'name',
-			sortAsc: false
+			sortAsc: false,
+			showEmpty: false
 		});
 	});
 });

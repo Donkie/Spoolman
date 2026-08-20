@@ -16,9 +16,12 @@
 // cache, one URL per distinct view — depends on the address bar being the whole
 // truth about what's on screen.
 //
-// Only grouping and sort are remembered. Filters, search and archived-visibility
-// hide spools, and a hidden filter silently restored days later reads as missing
-// data rather than as a preference.
+// Only grouping and sort are remembered, plus the one toggle that ADDS rows
+// (showEmpty). Filters, search and archived-visibility hide spools, and a hidden
+// filter silently restored days later reads as missing data rather than as a
+// preference. Showing filaments you own no spools of cannot produce that
+// confusion -- restoring it can only put more on screen, never less -- so it is
+// remembered while the hiding toggles still are not.
 
 const KEY = 'spoolman-v2-library-view';
 
@@ -31,6 +34,7 @@ export interface StoredView {
 	group: string;
 	sortKey: string;
 	sortAsc: boolean;
+	showEmpty: boolean;
 }
 
 /** Rebuild a stored view from its JSON, or null if there isn't a usable one. */
@@ -39,11 +43,15 @@ export function parseStoredView(raw: string | null): StoredView | null {
 	try {
 		const parsed: unknown = JSON.parse(raw);
 		if (typeof parsed !== 'object' || parsed === null) return null;
-		const { group, sort, asc } = parsed as Record<string, unknown>;
+		const { group, sort, asc, empty } = parsed as Record<string, unknown>;
 		if (typeof group !== 'string' || typeof sort !== 'string' || typeof asc !== 'boolean') {
 			return null;
 		}
-		return { group, sortKey: sort, sortAsc: asc };
+		// `empty` arrived after this key shipped, so an entry written by an older
+		// build simply has no such field. Treating that as "off" keeps those
+		// entries valid; rejecting them would throw away a grouping the user
+		// picked long ago the first time they loaded a new version.
+		return { group, sortKey: sort, sortAsc: asc, showEmpty: empty === true };
 	} catch {
 		// Corrupt entry: the shipped view is no worse than what a first-time
 		// visitor gets.
@@ -67,7 +75,13 @@ export function rememberedView(): StoredView | null {
 /** Record the view the user just navigated to, so the next bare URL restores it. */
 export function rememberView(view: StoredView): void {
 	const prev = rememberedView();
-	if (prev && prev.group === view.group && prev.sortKey === view.sortKey && prev.sortAsc === view.sortAsc) {
+	if (
+		prev &&
+		prev.group === view.group &&
+		prev.sortKey === view.sortKey &&
+		prev.sortAsc === view.sortAsc &&
+		prev.showEmpty === view.showEmpty
+	) {
 		// Selecting a spool or turning a page navigates too; only the changes that
 		// actually move the view are worth a synchronous localStorage write.
 		return;
@@ -89,7 +103,15 @@ function read(): string | null {
 function write(view: StoredView): void {
 	if (typeof localStorage === 'undefined') return;
 	try {
-		localStorage.setItem(KEY, JSON.stringify({ group: view.group, sort: view.sortKey, asc: view.sortAsc }));
+		localStorage.setItem(
+			KEY,
+			JSON.stringify({
+				group: view.group,
+				sort: view.sortKey,
+				asc: view.sortAsc,
+				empty: view.showEmpty
+			})
+		);
 	} catch {
 		/* nothing to do — remembering the view is a convenience, not a requirement */
 	}
