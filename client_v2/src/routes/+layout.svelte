@@ -4,11 +4,13 @@
 	import Footer from '$components/Footer.svelte';
 	import AddSpoolModal from '$components/AddSpoolModal.svelte';
 	import QrScannerModal from '$components/QrScannerModal.svelte';
+	import NfcScannerModal from '$components/NfcScannerModal.svelte';
 	import Toaster from '$components/Toaster.svelte';
 	import { ui } from '$lib/stores/ui.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { serverInfo } from '$lib/stores/serverInfo.svelte';
 	import { theme } from '$lib/stores/theme.svelte';
+	import { nfcState } from '$lib/stores/nfc.svelte';
 	import { startLiveSync } from '$lib/api/liveSync';
 	import { getLocale, getTextDirection } from '$lib/paraglide/runtime';
 	import type { Snippet } from 'svelte';
@@ -36,13 +38,18 @@
 	$effect(() => {
 		settings.load();
 		serverInfo.load();
+		nfcState.refresh();
 
 		return startLiveSync();
 	});
 </script>
 
 <div class="app">
-	<TopBar onadd={() => ui.openAddModal()} onscan={() => ui.openScanner()} />
+	<TopBar
+		onadd={() => ui.openAddModal()}
+		onscan={() => ui.openScanner()}
+		onnfcscan={() => ui.openNfcScanner()}
+	/>
 
 	<main>{@render children()}</main>
 	<Footer />
@@ -56,6 +63,8 @@
 />
 
 <QrScannerModal open={ui.scannerOpen} onclose={() => ui.closeScanner()} />
+
+<NfcScannerModal open={ui.nfcScannerOpen} onclose={() => ui.closeNfcScanner()} />
 
 <Toaster />
 

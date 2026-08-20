@@ -284,7 +284,6 @@
     "labels.hintNowrap": "Tekst zostaje w jednej linii; wszystko poza szerokością jest obcinane.",
     "labels.hintSwatch": "Wypełniane kolorem(-ami) filamentu szpuli przy druku.",
     "labels.hintWrap": "Owiń pole, aby ukryć je, gdy jest puste:",
-    "labels.imageDesc": "",
     "labels.imageZipNote": "Powyżej {{threshold}} etykiet pliki są pakowane do jednego ZIP-a.",
     "labels.insertField": "Wstaw pole",
     "labels.kind.qr": "Kod QR",

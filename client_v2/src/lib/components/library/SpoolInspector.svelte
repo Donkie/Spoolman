@@ -24,7 +24,11 @@
 	import LinkedText from '../LinkedText.svelte';
 	import VendorSection from './VendorSection.svelte';
 	import ChangeFilamentModal from './ChangeFilamentModal.svelte';
+	import NfcBindModal from './NfcBindModal.svelte';
+	import NfcWriteModal from './NfcWriteModal.svelte';
 	import OverrideMark from './OverrideMark.svelte';
+	import Nfc from '@lucide/svelte/icons/nfc';
+	import Link from '@lucide/svelte/icons/link';
 	import type { Filament, Spool } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
@@ -279,6 +283,13 @@
 	// of a debounced autosave (#1010).
 	let changeFilamentOpen = $state(false);
 
+	// --- NFC bind / write -----------------------------------------------------
+	// Always offered, regardless of detected hardware: the write modal's
+	// "download raw binary" option works with neither a server reader nor Web
+	// NFC, and each modal disables the paths that don't apply.
+	let nfcBindOpen = $state(false);
+	let nfcWriteOpen = $state(false);
+
 	let confirmLines = $derived(
 		spool.remaining > 0
 			? [
@@ -359,6 +370,12 @@
 					<span class="btn-label">{m['buttons.unArchive']()}</span>
 				{:else}<Archive size={15} /> <span class="btn-label">{m['buttons.archive']()}</span>{/if}
 			</Button>
+			<Button variant="outline" onclick={() => (nfcBindOpen = true)} title={m['nfc.bindButton']()}
+				><Link size={15} /> <span class="btn-label">{m['nfc.bindButton']()}</span></Button
+			>
+			<Button variant="outline" onclick={() => (nfcWriteOpen = true)} title={m['nfc.encodeButton']()}
+				><Nfc size={15} /> <span class="btn-label">{m['nfc.encodeButton']()}</span></Button
+			>
 			<!-- Set apart from the things you do to a spool you are keeping. -->
 			<span class="sep" aria-hidden="true"></span>
 			<Button
@@ -387,6 +404,10 @@
 		current={filament}
 		onclose={() => (changeFilamentOpen = false)}
 	/>
+
+	<NfcBindModal open={nfcBindOpen} {spool} onclose={() => (nfcBindOpen = false)} />
+
+	<NfcWriteModal open={nfcWriteOpen} {spool} {filament} onclose={() => (nfcWriteOpen = false)} />
 
 	<div class="gauge">
 		<div class="gauge-line">
