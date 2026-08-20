@@ -72,7 +72,8 @@ instance/
 
 # Sphinx documentation
 docs/_build/
-docs/
+!docs/RELEASE_NOTES.md
+!docs/SESSION_LOG.md
 
 # PyBuilder
 .pybuilder/

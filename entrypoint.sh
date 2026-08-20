@@ -44,6 +44,11 @@ if [ "$(id -g app)" -ne "$PGID" ]; then
         fail "Failed to update app GID to $PGID"
 fi
 
+# Fix USB device permissions for NFC reader access
+if [ -d /dev/bus/usb ]; then
+    chmod -R o+rw /dev/bus/usb/ 2>/dev/null || true
+fi
+
 if [ "$(id -u)" -eq 0 ]; then
     exec gosu "app" "$0" "$@"
     # NOT REACHABLE

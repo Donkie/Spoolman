@@ -6,6 +6,7 @@ import React, { useContext } from "react";
 import { ColorModeContext, ThemePreference } from "../../contexts/color-mode";
 
 import { languages } from "../../i18n";
+import NfcScannerModal from "../nfcScannerModal";
 import QRCodeScannerModal from "../qrCodeScanner";
 
 const { useToken } = theme;
@@ -69,6 +70,7 @@ export const Header = ({ sticky }: RefineThemedLayoutHeaderProps) => {
           onChange={(value) => setPreference(value as ThemePreference)}
         />
         <QRCodeScannerModal />
+        <NfcScannerModal />
       </Space>
     </AntdLayout.Header>
   );

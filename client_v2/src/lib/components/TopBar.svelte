@@ -6,16 +6,19 @@
 	import * as m from '$lib/paraglide/messages';
 	import Plus from '@lucide/svelte/icons/plus';
 	import ScanLine from '@lucide/svelte/icons/scan-line';
+	import Nfc from '@lucide/svelte/icons/nfc';
 	import Search from '@lucide/svelte/icons/search';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import { afterNavigate } from '$app/navigation';
+	import { nfcState } from '$lib/stores/nfc.svelte';
 
 	interface Props {
 		onadd?: () => void;
 		onscan?: () => void;
+		onnfcscan?: () => void;
 	}
 
-	let { onadd, onscan }: Props = $props();
+	let { onadd, onscan, onnfcscan }: Props = $props();
 
 	// On mobile the search field would otherwise need its own row. Instead it
 	// collapses to a single icon in the top row and, when tapped, expands into a
@@ -52,6 +55,16 @@
 		<button class="scan-btn" onclick={onscan} aria-label={m['scanner.title']()} title={m['scanner.title']()}>
 			<ScanLine size={18} />
 		</button>
+		{#if nfcState.available}
+			<button
+				class="scan-btn"
+				onclick={onnfcscan}
+				aria-label={m['nfc.scanTitle']()}
+				title={m['nfc.scanTitle']()}
+			>
+				<Nfc size={18} />
+			</button>
+		{/if}
 		<button
 			class="add-mobile"
 			onclick={onadd}

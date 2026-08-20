@@ -14,6 +14,9 @@ class UiState {
 	/** QR-code scanner modal (camera). */
 	scannerOpen = $state(false);
 
+	/** NFC tag scanner modal. */
+	nfcScannerOpen = $state(false);
+
 	/** Open the Add-spools modal, optionally pre-seeded with a filament. */
 	openAddModal(filamentId?: string) {
 		this.addModalFilamentId = filamentId ?? null;
@@ -41,6 +44,13 @@ class UiState {
 	}
 	closeScanner() {
 		this.scannerOpen = false;
+	}
+
+	openNfcScanner() {
+		this.nfcScannerOpen = true;
+	}
+	closeNfcScanner() {
+		this.nfcScannerOpen = false;
 	}
 }
 

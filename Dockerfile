@@ -22,7 +22,7 @@ WORKDIR /home/app/spoolman
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked --no-install-project
+    uv sync --locked --no-install-project --extra nfc
 
 # Copy and install app. No --chown here: the "app" user only exists in the
 # runner stage, and Podman (unlike Docker/BuildKit) refuses to resolve it. Final
@@ -31,7 +31,7 @@ COPY migrations /home/app/spoolman/migrations
 COPY spoolman /home/app/spoolman/spoolman
 COPY alembic.ini README.md uv.lock pyproject.toml /home/app/spoolman/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked
+    uv sync --locked --extra nfc
 
 # greenlet ships no 32-bit ARM wheel, so on armv7 it is compiled from source.
 # setuptools links the C++ extension with gcc, which leaves libstdc++ out of the
@@ -52,9 +52,10 @@ LABEL org.opencontainers.image.source=https://github.com/Donkie/Spoolman
 LABEL org.opencontainers.image.description="Keep track of your inventory of 3D-printer filament spools."
 LABEL org.opencontainers.image.licenses=MIT
 
-# Install gosu for privilege dropping
+# Install gosu for privilege dropping and libusb for NFC reader support
 RUN apt-get update && apt-get install -y \
     gosu \
+    libusb-1.0-0 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
