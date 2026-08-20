@@ -270,6 +270,7 @@
     "labels.hintNowrap": "ข้อความจะอยู่บรรทัดเดียว ส่วนที่เกินความกว้างจะถูกตัดออก",
     "labels.hintSwatch": "จะเติมด้วยสีเส้นพลาสติกของม้วนนั้นในขณะพิมพ์",
     "labels.hintWrap": "ครอบฟิลด์เพื่อซ่อนเมื่อไม่มีข้อมูล:",
+    "labels.imageDesc": "",
     "labels.imageZipNote": "ฉลากที่มากกว่า {{threshold}} รายการจะถูกส่งออกเป็นไฟล์ zipไฟล์เดียว",
     "labels.insertField": "แทรกฟิลด์",
     "labels.kind.qr": "QR code",
