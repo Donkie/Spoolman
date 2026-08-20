@@ -1,4 +1,4 @@
-import { PlusOutlined } from "@ant-design/icons";
+import { HolderOutlined, PlusOutlined } from "@ant-design/icons";
 import { useTranslate } from "@refinedev/core";
 import {
   Button,
@@ -12,6 +12,7 @@ import {
   Select,
   Space,
   Table,
+  Tag,
   message,
 } from "antd";
 import { FormItemProps, Rule } from "antd/es/form";
@@ -20,7 +21,9 @@ import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import { Trans } from "react-i18next";
 import { useParams } from "react-router";
 import { DateTimePicker } from "../../components/dateTimePicker";
@@ -53,6 +56,92 @@ const canEditField = (dataIndex: string, isNew: boolean) => {
     return true;
   }
   return dataIndex !== "key" && dataIndex !== "field_type" && dataIndex !== "multi_choice";
+};
+
+const CHOICE_DRAG_TYPE = "extraFieldChoice";
+
+interface ChoiceDragItem {
+  choice: string;
+}
+
+interface DraggableChoiceTagProps {
+  label: React.ReactNode;
+  value: string;
+  closable: boolean;
+  onClose: (e?: React.MouseEvent<HTMLElement>) => void;
+  form: FormInstance;
+}
+
+/**
+ * A tag in the choices editor that can be dragged, or arrow-keyed, to a new position.
+ * The order of the choices is the order they're presented in wherever the field is used,
+ * so it's the choices form value itself that gets reordered.
+ */
+const DraggableChoiceTag = ({ label, value, closable, onClose, form }: DraggableChoiceTagProps) => {
+  const t = useTranslate();
+  const ref = useRef<HTMLSpanElement>(null);
+
+  // Choices are unique, so a choice's own value identifies its position.
+  const moveChoice = (choice: string, before: string) => {
+    const choices: string[] = [...(form.getFieldValue("choices") || [])];
+    const from = choices.indexOf(choice);
+    const to = choices.indexOf(before);
+    if (from === -1 || to === -1 || from === to) {
+      return;
+    }
+    choices.splice(from, 1);
+    choices.splice(to, 0, choice);
+    form.setFieldValue("choices", choices);
+  };
+
+  const moveChoiceBy = (offset: number) => {
+    const choices: string[] = form.getFieldValue("choices") || [];
+    const to = choices.indexOf(value) + offset;
+    if (to < 0 || to >= choices.length) {
+      return;
+    }
+    moveChoice(value, choices[to]);
+  };
+
+  const [{ isDragging }, drag] = useDrag<ChoiceDragItem, void, { isDragging: boolean }>({
+    type: CHOICE_DRAG_TYPE,
+    item: { choice: value },
+    collect: (monitor) => ({ isDragging: monitor.isDragging() }),
+  });
+
+  const [, drop] = useDrop<ChoiceDragItem>({
+    accept: CHOICE_DRAG_TYPE,
+    hover: (item) => moveChoice(item.choice, value),
+  });
+
+  drag(drop(ref));
+
+  return (
+    <span
+      ref={ref}
+      // rc-select wraps every custom tag in a span that preventDefaults mousedown,
+      // which stops the browser from ever starting a drag. Keep the event away from it.
+      onMouseDown={(e) => e.stopPropagation()}
+      style={{ display: "inline-flex", opacity: isDragging ? 0.4 : 1 }}
+    >
+      <Tag
+        closable={closable}
+        onClose={onClose}
+        tabIndex={0}
+        title={t("settings.extra_fields.choices_reorder_hint")}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+            e.preventDefault();
+            moveChoiceBy(e.key === "ArrowLeft" ? -1 : 1);
+          }
+        }}
+        style={{ marginInlineEnd: 4, cursor: "grab", userSelect: "none" }}
+      >
+        <HolderOutlined style={{ marginInlineEnd: 4 }} />
+        {label}
+      </Tag>
+    </span>
+  );
 };
 
 const EditableCell = ({ record, editing, dataIndex, children, form, ...restProps }: EditableCellProps) => {
@@ -221,7 +310,22 @@ const EditableCell = ({ record, editing, dataIndex, children, form, ...restProps
     }
   } else if (dataIndex === "choices") {
     if (fieldType === FieldType.choice) {
-      inputNode = <Select mode="tags" tokenSeparators={[","]} open={false} />;
+      inputNode = (
+        <Select
+          mode="tags"
+          tokenSeparators={[","]}
+          open={false}
+          tagRender={(props) => (
+            <DraggableChoiceTag
+              label={props.label}
+              value={props.value}
+              closable={props.closable}
+              onClose={props.onClose}
+              form={form}
+            />
+          )}
+        />
+      );
       rules.push({
         required: true,
         min: 1,
@@ -608,18 +712,20 @@ export function ExtraFieldsSettings() {
         }}
       />
       <Form form={form} component={false} disabled={isSubmitting}>
-        <Table
-          components={{
-            body: {
-              cell: EditableCell,
-            },
-          }}
-          columns={mergedColumns}
-          dataSource={tableFields}
-          loading={fields.isLoading}
-          rowClassName="editable-row"
-          pagination={false}
-        />
+        <DndProvider backend={HTML5Backend}>
+          <Table
+            components={{
+              body: {
+                cell: EditableCell,
+              },
+            }}
+            columns={mergedColumns}
+            dataSource={tableFields}
+            loading={fields.isLoading}
+            rowClassName="editable-row"
+            pagination={false}
+          />
+        </DndProvider>
       </Form>
       {newField == null && (
         <Flex justify="center">

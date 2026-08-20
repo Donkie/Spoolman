@@ -1,39 +1,60 @@
 import { ConfigProvider, theme } from "antd";
 import { createContext, PropsWithChildren, useEffect, useState } from "react";
 
+export type ThemePreference = "system" | "light" | "dark";
+type ResolvedMode = "light" | "dark";
+
 type ColorModeContextType = {
-  mode: string;
-  setMode: (mode: string) => void;
+  // The effective theme actually applied ("light" | "dark").
+  mode: ResolvedMode;
+  // The user's chosen preference; "system" follows the OS/browser setting live.
+  preference: ThemePreference;
+  setPreference: (preference: ThemePreference) => void;
 };
 
 export const ColorModeContext = createContext<ColorModeContextType>({} as ColorModeContextType);
 
+const DARK_MEDIA_QUERY = "(prefers-color-scheme: dark)";
+
+const isThemePreference = (value: string | null): value is ThemePreference =>
+  value === "system" || value === "light" || value === "dark";
+
+const getSystemMode = (): ResolvedMode => (window?.matchMedia(DARK_MEDIA_QUERY).matches ? "dark" : "light");
+
 export const ColorModeContextProvider = ({ children }: PropsWithChildren) => {
-  const colorModeFromLocalStorage = localStorage.getItem("colorMode");
-  const isSystemPreferenceDark = window?.matchMedia("(prefers-color-scheme: dark)").matches;
+  // Legacy versions stored the resolved "light"/"dark" here, which are still valid
+  // preference values, so existing users keep whatever they had. New/unset installs
+  // default to "system" so the app follows the OS/browser theme (issue #947).
+  const storedPreference = localStorage.getItem("colorMode");
+  const [preference, setPreferenceState] = useState<ThemePreference>(
+    isThemePreference(storedPreference) ? storedPreference : "system",
+  );
 
-  const systemPreference = isSystemPreferenceDark ? "dark" : "light";
-  const [mode, setMode] = useState(colorModeFromLocalStorage || systemPreference);
+  const [systemMode, setSystemMode] = useState<ResolvedMode>(getSystemMode);
 
+  // Keep tracking the OS/browser theme so "system" reacts to changes at runtime.
   useEffect(() => {
-    window.localStorage.setItem("colorMode", mode);
-  }, [mode]);
+    const media = window.matchMedia(DARK_MEDIA_QUERY);
+    const handler = (event: MediaQueryListEvent) => setSystemMode(event.matches ? "dark" : "light");
+    media.addEventListener("change", handler);
+    return () => media.removeEventListener("change", handler);
+  }, []);
 
-  const setColorMode = () => {
-    if (mode === "light") {
-      setMode("dark");
-    } else {
-      setMode("light");
-    }
+  const setPreference = (next: ThemePreference) => {
+    setPreferenceState(next);
+    window.localStorage.setItem("colorMode", next);
   };
+
+  const mode: ResolvedMode = preference === "system" ? systemMode : preference;
 
   const { darkAlgorithm, defaultAlgorithm } = theme;
 
   return (
     <ColorModeContext.Provider
       value={{
-        setMode: setColorMode,
         mode,
+        preference,
+        setPreference,
       }}
     >
       <ConfigProvider

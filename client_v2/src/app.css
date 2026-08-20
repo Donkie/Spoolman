@@ -1,0 +1,297 @@
+/*
+ * Global design tokens for the Spoolman v2 frontend.
+ * Palette, spacing and type scale are derived from the design prototype
+ * (dark theme, IBM Plex, warm orange accent). Values live as CSS custom
+ * properties so components stay declarative; the light theme is applied by
+ * overriding these under :root[data-theme='light'] below. Components should
+ * always reference tokens (never raw hex) so both themes stay in sync.
+ */
+
+:root {
+	/* Surfaces */
+	--bg: #1f1f1f;
+	--bg-app: #1f1f1f;
+	--surface: #252525;
+	--surface-2: #262626;
+	--surface-raised: #2e2e2e;
+	--surface-sunken: #1c1c1c;
+	--input-bg: #1a1a1a;
+
+	/* Borders */
+	--border: #333;
+	--border-soft: #2b2b2b;
+	--border-strong: #3d3d3d;
+	--border-input: #383838;
+	--hairline: rgba(255, 255, 255, 0.05);
+
+	/* Text — muted/dim/faint clear WCAG AA (4.5:1) on the dark surfaces they sit on,
+	 * down to the lightest (surface-raised #2e2e2e). #959595 is the darkest gray that
+	 * still clears 4.5:1 there, so faint sits exactly on that floor and the other two
+	 * step up from it in even ~7-point L* increments — the same perceptual spacing the
+	 * pre-AA ramp had, so the muted -> dim -> faint hierarchy stays legible instead of
+	 * collapsing into three near-identical grays. Contrast on #2e2e2e: 7.0 / 5.6 / 4.5.
+	 * Don't darken faint to widen the ramp further; that breaks AA. See the light
+	 * theme below for the mirrored values. */
+	--text: #ececec;
+	--text-2: #c9c9c9;
+	--text-muted: #bababa;
+	--text-dim: #a7a7a7;
+	--text-faint: #959595;
+
+	/* Accent (warm orange) */
+	--accent: #be682f;
+	--accent-hover: #d47a3b;
+	/* Solid fill behind white text — primary buttons, the active segmented tab,
+	 * the selected calendar day. White on --accent is only 4.03:1, which fails
+	 * WCAG AA, and no foreground fixes it: on #be682f the best any color manages
+	 * is 5.21:1 (pure black), and every readable one is worse than white. So the
+	 * fill gets its own token, darkened just enough to clear 4.5:1 (4.53) at the
+	 * same hue and saturation — 3.3 L* below --accent, which is imperceptible
+	 * beside it. --accent itself is unchanged and still drives links, borders,
+	 * washes and focus rings, where it sits on a dark surface and passes easily.
+	 * Note neither is the Spoolman brand orange #dc7734 (see static/spoolman.svg);
+	 * both themes already ship a darkened adaptation of it, and white on the brand
+	 * orange itself would be 3.12:1. Unlike --accent, the fill DARKENS on hover —
+	 * lightening it would drop back below AA. The light theme already did this. */
+	--accent-fill: #b2612c;
+	--accent-fill-hover: #9b5526;
+	--accent-link: #d0854a;
+	--accent-link-hover: #e09a60;
+	--accent-soft: #e0996a;
+	--accent-muted: #8a6a4d;
+	--accent-muted-2: #b8a68f;
+	--accent-wash: rgba(190, 104, 47, 0.14);
+	--accent-wash-soft: rgba(190, 104, 47, 0.06);
+	--accent-border: #4a4239;
+
+	/* Status */
+	--danger: #c4503a;
+	--danger-soft: #d98a7a;
+	--danger-wash: rgba(196, 80, 58, 0.14);
+	--success: #6bb26b;
+	--success-border: #3f6b3f;
+	--unused-bg: #33302c;
+	--unused-border: #4a4239;
+	--unused-text: #d0a479;
+
+	/* Controls (toggle/progress tracks, scrollbars, color-swatch chrome) */
+	--track: #3a3a3a;
+	--swatch-border: #363636;
+	--swatch-border-hover: #4a4a4a;
+
+	/* Typography */
+	--font-sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+	--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+	/* Radii */
+	--radius-sm: 5px;
+	--radius: 6px;
+	--radius-md: 8px;
+	--radius-lg: 10px;
+	--radius-xl: 12px;
+
+	/* Layout */
+	--topbar-h: 53px;
+	/* Library list column. The Library page overrides this per-instance from the
+	   remembered width (stores/listWidth, LIST_DEFAULT must match this); the value
+	   here is what the pane is styled with until that lands. */
+	--list-w: 470px;
+}
+
+/* Light theme — overrides only the color tokens; layout/type/radii are shared.
+ * Surfaces run light-to-white as they rise (sunken < bg < surface < raised),
+ * mirroring the dark scale in reverse. The warm-orange accent is nudged darker
+ * so it keeps enough contrast on light backgrounds. */
+:root[data-theme='light'] {
+	/* Surfaces */
+	--bg: #f2f1ee;
+	--bg-app: #f2f1ee;
+	--surface: #f8f7f5;
+	--surface-2: #f5f4f1;
+	--surface-raised: #ffffff;
+	--surface-sunken: #e8e6e2;
+	--input-bg: #ffffff;
+
+	/* Borders */
+	--border: #d8d6d1;
+	--border-soft: #e4e2dd;
+	--border-strong: #c4c2bc;
+	--border-input: #ceccc6;
+	--hairline: rgba(0, 0, 0, 0.06);
+
+	/* Text — mirror of the dark ramp: muted/dim/faint clear WCAG AA (4.5:1) on the
+	 * light surfaces they sit on, down to the darkest (surface-sunken #e8e6e2).
+	 * #676767 is the lightest gray that still clears 4.5:1 there, so faint sits on
+	 * that ceiling and the other two step down from it. The steps are tighter than
+	 * dark (~4.5 L*) because #444444 text-2 caps the range, but they stay clearly
+	 * distinguishable. Contrast on #e8e6e2: 6.3 / 5.4 / 4.5. */
+	--text: #232323;
+	--text-2: #444444;
+	--text-muted: #525252;
+	--text-dim: #5c5c5c;
+	--text-faint: #676767;
+
+	/* Accent (warm orange, darkened for contrast on light) */
+	--accent: #b25c26;
+	--accent-hover: #9d4f1e;
+	/* Light's accent was already dark enough for white text (4.72:1 / 5.88:1 on
+	 * hover), so the fill tokens just mirror the pair above. They exist here so
+	 * both themes resolve the same variables, not because light needed a change. */
+	--accent-fill: #b25c26;
+	--accent-fill-hover: #9d4f1e;
+	--accent-link: #a9551f;
+	--accent-link-hover: #8f4718;
+	--accent-soft: #95501f;
+	--accent-muted: #8a5a2a;
+	--accent-muted-2: #916433;
+	--accent-wash: rgba(178, 92, 38, 0.12);
+	--accent-wash-soft: rgba(178, 92, 38, 0.05);
+	--accent-border: #e2d3c4;
+
+	/* Status */
+	--danger: #b7402c;
+	--danger-soft: #a8462f;
+	--danger-wash: rgba(183, 64, 44, 0.1);
+	--success: #3d7a3d;
+	--success-border: #a9c9a9;
+	--unused-bg: #f1e9df;
+	--unused-border: #e0d2be;
+	--unused-text: #8a5a2a;
+
+	/* Controls */
+	--track: #c8c6bf;
+	--swatch-border: #d6d4cf;
+	--swatch-border-hover: #b4b2ac;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	height: 100%;
+}
+
+body {
+	background: var(--bg);
+	color: var(--text);
+	font-family: var(--font-sans);
+	font-size: 13px;
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+}
+
+a {
+	color: var(--accent-link);
+	text-decoration: none;
+}
+a:hover {
+	color: var(--accent-link-hover);
+}
+
+input,
+select,
+button,
+textarea {
+	font-family: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+	outline: none;
+	border-color: var(--accent);
+}
+
+::placeholder {
+	color: var(--text-faint);
+}
+
+/* Hide the browser-default number spinners everywhere — they never match the
+ * dark theme. Fields that want steppers use the themed NumberInput component. */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+input[type='number'] {
+	-moz-appearance: textfield;
+	appearance: textfield;
+}
+
+/* Slim, unobtrusive scrollbars to match the dense dark UI */
+.scroll-y {
+	overflow-y: auto;
+	min-height: 0;
+	scrollbar-width: thin;
+	scrollbar-color: var(--track) transparent;
+}
+.scroll-y::-webkit-scrollbar {
+	width: 8px;
+}
+.scroll-y::-webkit-scrollbar-thumb {
+	background: var(--track);
+	border-radius: 4px;
+}
+
+.mono {
+	font-family: var(--font-mono);
+}
+
+/* Lucide icons inherit text colour (stroke=currentColor) and sit on the text
+   baseline nicely with a slight nudge; flex containers override as needed. */
+.lucide {
+	display: inline-block;
+	vertical-align: -0.15em;
+	flex: none;
+}
+
+/* --- Mobile touch targets --------------------------------------------------
+ * At the phone breakpoint (the same <=860px the app already uses to switch to
+ * its mobile chrome) the shared interactive primitives are grown to a
+ * comfortable ~44px tap target (Apple HIG) — well above the 24px WCAG 2.2
+ * target-size floor. Desktop keeps its denser sizing untouched.
+ *
+ * This lives in global CSS, not per-component, on purpose: these semantic class
+ * names stay addressable from here even under Svelte's scoped styling (the scope
+ * hash is *added* to a component's own selectors, so an unscoped `.chip` rule
+ * still matches its elements). And because `min-height` is a cross-property
+ * constraint, it clamps the element no matter what `height`/`padding` a
+ * component set, regardless of selector specificity — so one rule reliably
+ * raises every instance of a primitive.
+ *
+ * Square icon buttons that must also grow horizontally (TopBar scan/add) and the
+ * stacked number steppers (which can't each reach 44px inside one input) are
+ * handled in their own components. Intentionally-dense inline editors in the
+ * inspector are left as-is by design. */
+@media (max-width: 860px) {
+	.btn,
+	.chip,
+	.link-btn,
+	.seg-btn,
+	.tab,
+	.logo,
+	.kofi,
+	.crumb,
+	.arch-toggle,
+	.spool-row,
+	.divider,
+	.res-item,
+	.add-btn,
+	.grabber,
+	select,
+	.search input {
+		min-height: 44px;
+	}
+	/* Keep the grabber's grip centred once min-height adds vertical slack. */
+	.grabber {
+		align-items: center;
+	}
+	/* The Ko-fi button collapses to an icon-only square under 560px; keep it a
+	   full tap target in both dimensions. */
+	.kofi {
+		min-width: 44px;
+	}
+}

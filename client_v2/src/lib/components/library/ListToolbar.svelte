@@ -1,0 +1,836 @@
+<script lang="ts">
+	import * as params from '$lib/library/params';
+	import type { GroupMode, LibraryState } from '$lib/library/params';
+	import {
+		dateFilterLabel,
+		formatDateFilter,
+		isDateFilterProp,
+		NEVER,
+		olderThan,
+		parseDateFilter,
+		withinLast,
+		type DateFilterProp
+	} from '$lib/library/dateFilter';
+	import { sortDefs, filamentLabel, type FilterOption, type SortDef } from '$lib/utils/library';
+	import { filterByQuery, matchesTerms, searchTerms } from '$lib/utils/match';
+	import MenuSearch from '../MenuSearch.svelte';
+	import Swatch from '../Swatch.svelte';
+	import { spoolSource } from '$lib/api/spoolSource';
+	import { inventory } from '$lib/stores/inventory.svelte';
+	import { fields } from '$lib/stores/fields.svelte';
+	import { FieldType, type FieldDef, type EntityType } from '$lib/api/fields';
+	import * as m from '$lib/paraglide/messages';
+	import Plus from '@lucide/svelte/icons/plus';
+	import X from '@lucide/svelte/icons/x';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import ArrowUp from '@lucide/svelte/icons/arrow-up';
+	import ArrowDown from '@lucide/svelte/icons/arrow-down';
+	import Square from '@lucide/svelte/icons/square';
+	import SquareCheck from '@lucide/svelte/icons/square-check';
+
+	// Named libraryState, not `state`, to avoid shadowing the $state rune.
+	let { libraryState }: { libraryState: LibraryState } = $props();
+
+	type Menu = 'filter' | 'group' | 'sort' | null;
+	let open = $state<Menu>(null);
+
+	// A menu's search box narrows whichever list it is sitting on. It belongs to
+	// that list and not to the menu, so it resets on every move between lists —
+	// opening a menu, stepping into a filter property, stepping back out.
+	let menuQuery = $state('');
+
+	/**
+	 * Lists shorter than this fit on screen at a glance, where a search box is one
+	 * more thing to read rather than a way through. The number is the point at
+	 * which scanning stops being instant, not a hard limit on anything.
+	 */
+	const SEARCHABLE_MIN = 8;
+
+	function toggle(m: Menu) {
+		open = open === m ? null : m;
+		menuQuery = '';
+	}
+	function close() {
+		open = null;
+		menuQuery = '';
+	}
+
+	// Extra-field definitions (of all three entities) feed the sort and filter menus.
+	$effect(() => {
+		fields.ensure('spool');
+		fields.ensure('filament');
+		fields.ensure('vendor');
+	});
+
+	// Most filters pick from a set of values the API can enumerate; a date filter
+	// picks a range instead, so it gets a panel of its own rather than an option
+	// list (see library/dateFilter for the grammar behind it).
+	type FilterCategory =
+		| {
+				kind: 'values';
+				/** Filter prop: a fixed category name, or `extra.<key>` for a custom field. */
+				key: string;
+				label: () => string;
+				load: () => Promise<FilterOption[]>;
+		  }
+		| { kind: 'date'; key: DateFilterProp; label: () => string; neverable: boolean };
+
+	const asOption = (v: string): FilterOption => ({ value: v, label: v });
+
+	// Fixed categories the API can serve (options fetched lazily on open).
+	const BASE_FILTERS: FilterCategory[] = [
+		{
+			kind: 'values',
+			key: 'filament',
+			label: m['spool.fields.filament'],
+			load: async () => spoolSource.filamentOptions()
+		},
+		{
+			kind: 'values',
+			key: 'material',
+			label: m['spool.fields.material'],
+			load: async () => (await spoolSource.materials()).map(asOption)
+		},
+		{
+			kind: 'values',
+			key: 'vendor',
+			label: m['filament.fields.vendor'],
+			load: async () => (await spoolSource.vendorNames()).map(asOption)
+		},
+		{
+			kind: 'values',
+			key: 'direction',
+			label: m['filament.fields.colorType'],
+			// Fixed set: single-color (no direction, sent as an empty string) plus the
+			// two multi-color directions the backend recognises.
+			load: async () => [
+				{ value: '', label: m['filament.fields.singleColor']() },
+				{ value: 'coaxial', label: m['filament.fields.coaxial']() },
+				{ value: 'longitudinal', label: m['filament.fields.longitudinal']() }
+			]
+		},
+		{
+			kind: 'values',
+			key: 'location',
+			label: m['spool.fields.location'],
+			load: async () => (await spoolSource.locations()).map(asOption)
+		},
+		{
+			kind: 'values',
+			key: 'lot',
+			label: m['spool.fields.lotNr'],
+			load: async () => (await spoolSource.lotNumbers()).map(asOption)
+		}
+	];
+
+	// The spool timestamps that can be filtered by range. `neverable` marks the two
+	// a spool can simply lack, which are the ones worth offering a "Never" for;
+	// every spool has a registered date.
+	const DATE_FILTERS: FilterCategory[] = [
+		{ kind: 'date', key: 'last_used', label: m['spool.fields.lastUsed'], neverable: true },
+		{ kind: 'date', key: 'first_used', label: m['spool.fields.firstUsed'], neverable: true },
+		{ kind: 'date', key: 'registered', label: m['spool.fields.registered'], neverable: false }
+	];
+
+	// One-click ranges, covering the questions actually asked of a filament
+	// library: what have I used recently, and what has been sitting untouched.
+	// Each is a chip value in its own right, so its label comes from the same
+	// place the chip's does.
+	const DATE_PRESETS: string[] = [
+		withinLast(24, 'h'),
+		withinLast(7, 'd'),
+		withinLast(30, 'd'),
+		withinLast(6, 'm'),
+		olderThan(6, 'm'),
+		olderThan(1, 'y')
+	];
+
+	function rangeLabel(value: string): string {
+		const filter = parseDateFilter(value);
+		return filter ? dateFilterLabel(filter) : value;
+	}
+
+	// Extra fields we can offer a discrete option list for: text, choice and
+	// boolean. (Numeric / range / datetime fields have no natural value picker, so
+	// they're not offered as filters here.)
+	const FILTERABLE_EXTRA_TYPES = [FieldType.text, FieldType.choice, FieldType.boolean];
+
+	// A spool can be filtered by its own extra fields, its filament's, and its
+	// vendor's. Each entity's fields carry the query-param prefix the backend wants
+	// and an entity qualifier so equally-named fields stay distinguishable.
+	const EXTRA_SCOPES: { entity: EntityType; prefix: string; qualifier: (() => string) | null }[] = [
+		{ entity: 'spool', prefix: 'extra.', qualifier: null },
+		{ entity: 'filament', prefix: 'filament.extra.', qualifier: m['library.section.filament'] },
+		{ entity: 'vendor', prefix: 'filament.vendor.extra.', qualifier: m['library.section.vendor'] }
+	];
+
+	// Build the option list for one extra field. Boolean → yes/no; multi-choice →
+	// its defined choices; text and single-choice → the distinct values actually in
+	// use, fetched from the backend (mirrors how /material et al. work).
+	async function loadExtraOptions(entity: EntityType, f: FieldDef): Promise<FilterOption[]> {
+		if (f.field_type === FieldType.boolean) {
+			return [
+				{ value: 'true', label: m['settings.extraFields.booleanTrue']() },
+				{ value: 'false', label: m['settings.extraFields.booleanFalse']() }
+			];
+		}
+		if (f.field_type === FieldType.choice && f.multi_choice) {
+			return (f.choices ?? []).map(asOption);
+		}
+		return (await spoolSource.extraFieldValues(entity, f.key)).map(asOption);
+	}
+
+	let extraFilters = $derived<FilterCategory[]>(
+		EXTRA_SCOPES.flatMap(({ entity, prefix, qualifier }) =>
+			fields
+				.get(entity)
+				.filter((f) => FILTERABLE_EXTRA_TYPES.includes(f.field_type))
+				.map((f) => ({
+					kind: 'values' as const,
+					key: `${prefix}${f.key}`,
+					label: () => (qualifier ? `${qualifier()} · ${f.name}` : f.name),
+					load: () => loadExtraOptions(entity, f)
+				}))
+		)
+	);
+	let filterCategories = $derived([...BASE_FILTERS, ...DATE_FILTERS, ...extraFilters]);
+
+	// Resolve a filter prop back to the extra-field entity + definition it came from.
+	function extraFieldFor(prop: string): { entity: EntityType; def: FieldDef } | undefined {
+		for (const { entity, prefix } of EXTRA_SCOPES) {
+			if (prop.startsWith(prefix)) {
+				const def = fields.get(entity).find((f) => f.key === prop.slice(prefix.length));
+				return def ? { entity, def } : undefined;
+			}
+		}
+		return undefined;
+	}
+
+	// Two-level filter menu: pick a property, then a value (or, for a date, a range).
+	let filterProp = $state<string | null>(null);
+	let options = $state<FilterOption[]>([]);
+	let optionsLoading = $state(false);
+	// The custom range's two ends, as `YYYY-MM-DD` from the date inputs. An empty
+	// end is an open one, which is the point of having two separate fields.
+	let customFrom = $state('');
+	let customTo = $state('');
+
+	let customRange = $derived.by(() => {
+		const parsed = parseDateFilter(`${customFrom}..${customTo}`);
+		// ISO dates compare correctly as strings. An end before the start can only
+		// ever match nothing, so it doesn't get to be applied.
+		if (customFrom && customTo && customFrom > customTo) return null;
+		// Always a range, never "never" — the value being parsed has two ends.
+		return parsed?.kind === 'range' ? parsed : null;
+	});
+
+	// The values this property already filters by. A filter's chip sits in the
+	// toolbar behind the open menu, which is no help when the list is long and the
+	// menu covers it, so the list says so itself (#1090). Values only: a date
+	// filter holds one range at a time, so its presets are a choice, not a set.
+	let activeValues = $derived(
+		new Set(libraryState.filters.filter((f) => f.prop === filterProp).map((f) => f.value))
+	);
+
+	async function openProp(category: FilterCategory) {
+		filterProp = category.key;
+		// The query that found this property says nothing about its values.
+		menuQuery = '';
+		if (category.kind === 'date') {
+			customFrom = '';
+			customTo = '';
+			return;
+		}
+		options = [];
+		optionsLoading = true;
+		try {
+			options = await category.load();
+		} catch (err) {
+			console.error('Failed to load filter options', err);
+		} finally {
+			optionsLoading = false;
+		}
+	}
+
+	function applyRange(value: string) {
+		// One range per field: picking another replaces it rather than intersecting.
+		params.setFilter(filterProp!, value);
+		close();
+	}
+
+	let sorts = $derived(sortDefs(fields.get('spool')));
+	let activeSort = $derived(sorts.find((s) => s.key === libraryState.sortKey) ?? sorts[0]);
+
+	const groupOptions: { key: GroupMode; labelKey: () => string }[] = [
+		{ key: 'filament', labelKey: m['spool.fields.filament'] },
+		{ key: 'vendor', labelKey: m['filament.fields.vendor'] },
+		{ key: 'material', labelKey: m['spool.fields.material'] },
+		{ key: 'location', labelKey: m['spool.fields.location'] },
+		{ key: 'none', labelKey: m['library.groupNone'] }
+	];
+	let groupLabel = $derived(
+		groupOptions.find((g) => g.key === libraryState.group)?.labelKey() ?? m['spool.fields.filament']
+	);
+
+	function chipLabel(prop: string, value: string): string {
+		const c = filterCategories.find((x) => x.key === prop);
+		const label = c?.label() ?? prop;
+		// Date filters hold a range, whose value is grammar rather than something to
+		// show ("-24h.." reads as "Last 24 hours").
+		if (isDateFilterProp(prop)) return `${label}: ${rangeLabel(value)}`;
+		// Filament filters store the numeric id; show the filament's name instead.
+		if (prop === 'filament') {
+			const fil = inventory.filamentById(value);
+			return `${label}: ${fil ? filamentLabel(fil, inventory.vendorOf(fil)) : '#' + value}`;
+		}
+		// Multi-color direction stores the raw enum value (empty = single color);
+		// show its localized label.
+		if (prop === 'direction') {
+			const dir =
+				value === 'coaxial'
+					? m['filament.fields.coaxial']()
+					: value === 'longitudinal'
+						? m['filament.fields.longitudinal']()
+						: m['filament.fields.singleColor']();
+			return `${label}: ${dir}`;
+		}
+		// Boolean extra fields store true/false but display Yes/No.
+		const def = extraFieldFor(prop)?.def;
+		if (def?.field_type === FieldType.boolean) {
+			const yn =
+				value === 'true' ? m['settings.extraFields.booleanTrue']() : m['settings.extraFields.booleanFalse']();
+			return `${label}: ${yn}`;
+		}
+		if (!c) return value;
+		return `${label}: ${value}`;
+	}
+
+	// Sort options grouped by section for the sort dropdown.
+	const SORT_SECTIONS: { key: SortDef['section']; labelKey: () => string }[] = [
+		{ key: 'spool', labelKey: m['library.section.spool'] },
+		{ key: 'filament', labelKey: m['library.section.filament'] },
+		{ key: 'vendor', labelKey: m['library.section.vendor'] },
+		{ key: 'extra', labelKey: m['library.section.extra'] }
+	];
+	let sortSections = $derived(
+		SORT_SECTIONS.map((sec) => ({ ...sec, items: sorts.filter((s) => s.section === sec.key) })).filter(
+			(s) => s.items.length
+		)
+	);
+
+	// --- searchable menus (issue #1045) -------------------------------------
+	//
+	// Three of these lists grow without bound: the filter properties and the sort
+	// fields both take on every custom extra field defined, and a filter's values
+	// are whatever the library holds — every filament, every location, every lot
+	// number. Each gets a search box once it is long enough to be worth one; the
+	// group menu has five fixed entries and never does.
+	//
+	// Whether the box shows is decided by the FULL list, never the narrowed one,
+	// so it can't vanish under the cursor the moment a query gets specific.
+
+	let visibleCategories = $derived(filterByQuery(filterCategories, menuQuery, (c) => c.label()));
+	let archivedMatches = $derived(matchesTerms(m['buttons.showArchived'](), searchTerms(menuQuery)));
+	// An option's secondary text is on screen, so it has to be searchable: typing
+	// "petg" against a list that visibly says PETG must not come back empty.
+	let visibleOptions = $derived(
+		filterByQuery(options, menuQuery, (o) => (o.meta ? `${o.label} ${o.meta}` : o.label))
+	);
+	let visibleSortSections = $derived(
+		sortSections
+			.map((sec) => ({ ...sec, items: filterByQuery(sec.items, menuQuery, (it) => it.labelKey()) }))
+			.filter((sec) => sec.items.length)
+	);
+
+	// Enter takes the first entry still standing — the one the user has usually
+	// typed enough to be alone on the list.
+	function chooseFirstCategory() {
+		const first = visibleCategories[0];
+		if (first) openProp(first);
+	}
+	function chooseFirstOption() {
+		const first = visibleOptions[0];
+		if (!first) return;
+		params.toggleFilter(filterProp!, first.value);
+	}
+	function chooseFirstSort() {
+		const first = visibleSortSections[0]?.items[0];
+		if (!first) return;
+		params.setSortKey(first.key);
+		close();
+	}
+</script>
+
+<svelte:window onclick={close} />
+
+<div
+	class="toolbar"
+	onclick={(e) => e.stopPropagation()}
+	onkeydown={(e) => e.stopPropagation()}
+	role="toolbar"
+	tabindex="-1"
+>
+	<!-- Filters flow and wrap here; the Group/Sort cluster stays pinned top-right. -->
+	<div class="filters">
+		<button
+			class="chip add-filter"
+			onclick={() => {
+				toggle('filter');
+				filterProp = null;
+			}}><Plus size={13} /> {m['buttons.filter']()}</button
+		>
+
+		{#each libraryState.filters as f (f.prop + f.value)}
+			<button class="chip active" onclick={() => params.removeFilter(f.prop, f.value)}>
+				{chipLabel(f.prop, f.value)} <span class="x"><X size={12} /></span>
+			</button>
+		{/each}
+
+		<!-- Archived is a filter; when on it shows as a dismissible chip like the rest. -->
+		{#if libraryState.showArchived}
+			<button class="chip active" onclick={() => params.setShowArchived(false)}>
+				{m['spool.fields.archived']()} <span class="x"><X size={12} /></span>
+			</button>
+		{/if}
+	</div>
+
+	<div class="controls">
+		<button class="link-btn" onclick={() => toggle('group')}
+			><span class="ctrl-label">{m['library.groupBy']()}: </span>{groupLabel}
+			<ChevronDown size={13} /></button
+		>
+		<button class="chip active sort" onclick={() => toggle('sort')}>
+			<span class="ctrl-label">{m['library.sortBy']()}: </span>{activeSort.labelKey()}
+			{#if libraryState.sortAsc}<ArrowUp size={12} />{:else}<ArrowDown size={12} />{/if}
+		</button>
+	</div>
+
+	{#if open === 'filter'}
+		<div class="menu filter-menu">
+			{#if !filterProp}
+				<div class="menu-title">{m['library.filterBy']()}</div>
+				{#if filterCategories.length >= SEARCHABLE_MIN}
+					<MenuSearch
+						value={menuQuery}
+						oninput={(v) => (menuQuery = v)}
+						onclear={() => (menuQuery = '')}
+						onclose={close}
+						onenter={chooseFirstCategory}
+					/>
+				{/if}
+				{#each visibleCategories as c (c.key)}
+					<button class="menu-item" onclick={() => openProp(c)}>
+						<span class="mi-label">{c.label()}</span>
+						<span class="mi-meta"><ChevronRight size={14} /></span>
+					</button>
+				{/each}
+				<!-- Archived is a filter of sorts, so it answers to the same search box; a
+				     query it doesn't match takes it off the list like any other entry. -->
+				{#if archivedMatches}
+					{#if visibleCategories.length}<div class="menu-sep"></div>{/if}
+					<button
+						class="menu-item"
+						role="menuitemcheckbox"
+						aria-checked={libraryState.showArchived}
+						onclick={() => {
+							params.setShowArchived(!libraryState.showArchived);
+							close();
+						}}
+					>
+						<span class="mi-check"
+							>{#if libraryState.showArchived}<SquareCheck size={15} />{:else}<Square size={15} />{/if}</span
+						>
+						<span class="mi-label">{m['buttons.showArchived']()}</span>
+					</button>
+				{:else if !visibleCategories.length}
+					<div class="menu-item"><span class="mi-label mi-meta">{m['search.noResults']()}</span></div>
+				{/if}
+			{:else}
+				{@const c = filterCategories.find((x) => x.key === filterProp)}
+				<button
+					class="menu-title back"
+					onclick={() => {
+						filterProp = null;
+						menuQuery = '';
+					}}><ChevronLeft size={14} /> {c ? c.label() : ''}</button
+				>
+				{#if c?.kind === 'date'}
+					{#each DATE_PRESETS as preset (preset)}
+						<button class="menu-item" onclick={() => applyRange(preset)}>
+							<span class="mi-label">{rangeLabel(preset)}</span>
+						</button>
+					{/each}
+					{#if c.neverable}
+						<!-- The opposite question to any range: spools carrying no such date at
+						     all, which no bound can reach however far back it goes. -->
+						<button class="menu-item" onclick={() => applyRange(NEVER)}>
+							<span class="mi-label">{rangeLabel(NEVER)}</span>
+						</button>
+					{/if}
+					<div class="menu-sep"></div>
+					<div class="menu-title">{m['library.dateFilter.customRange']()}</div>
+					<!-- Native date inputs: they already localize their display, open the
+					     platform's own picker, and hand back exactly the `YYYY-MM-DD` the
+					     range grammar wants. Leaving an end empty leaves it open. -->
+					<div class="date-row">
+						<label class="date-field">
+							<span class="date-label">{m['library.dateFilter.from']()}</span>
+							<input class="date-input" type="date" bind:value={customFrom} />
+						</label>
+						<label class="date-field">
+							<span class="date-label">{m['library.dateFilter.to']()}</span>
+							<input class="date-input" type="date" bind:value={customTo} />
+						</label>
+						<button
+							class="chip active apply"
+							disabled={!customRange}
+							onclick={() => customRange && applyRange(formatDateFilter(customRange))}
+							>{m['buttons.apply']()}</button
+						>
+					</div>
+				{:else if optionsLoading}
+					<div class="menu-item"><span class="mi-label">{m.loading()}…</span></div>
+				{:else if options.length === 0}
+					<div class="menu-item"><span class="mi-label mi-meta">{m['library.noValues']()}</span></div>
+				{:else}
+					<!-- The list a filament, location or lot-number filter offers is as long as
+					     the library is big, which is the case this issue was opened for. -->
+					{#if options.length >= SEARCHABLE_MIN}
+						<MenuSearch
+							value={menuQuery}
+							oninput={(v) => (menuQuery = v)}
+							onclear={() => (menuQuery = '')}
+							onclose={close}
+							onenter={chooseFirstOption}
+						/>
+					{/if}
+					<!-- A value row is a checkbox, not a command: it reads as on or off, and
+					     picking one leaves the menu open so the next one is a click away
+					     (#1090, #1089). Escape and a click outside still close it. -->
+					{#each visibleOptions as opt (opt.value)}
+						{@const checked = activeValues.has(opt.value)}
+						<button
+							class="menu-item"
+							role="menuitemcheckbox"
+							aria-checked={checked}
+							onclick={() => params.toggleFilter(filterProp!, opt.value)}
+						>
+							<span class="mi-check"
+								>{#if checked}<SquareCheck size={15} />{:else}<Square size={15} />{/if}</span
+							>
+							{#if opt.colors}<Swatch
+									colors={opt.colors}
+									direction={opt.direction}
+									size={16}
+									radius={4}
+								/>{/if}
+							<!-- The gap is a real space, not just margin: it is what separates the
+							     two halves in the row's accessible name, which would otherwise be
+							     read out as one run-together word. -->
+							<span class="mi-label"
+								>{opt.label}{#if opt.meta}&nbsp;<span class="mi-sub">{opt.meta}</span>{/if}</span
+							>
+						</button>
+					{:else}
+						<div class="menu-item"><span class="mi-label mi-meta">{m['search.noResults']()}</span></div>
+					{/each}
+				{/if}
+			{/if}
+		</div>
+	{/if}
+
+	{#if open === 'group'}
+		<div class="menu group-menu">
+			{#each groupOptions as g (g.key)}
+				<button
+					class="menu-item"
+					class:sel={libraryState.group === g.key}
+					onclick={() => {
+						params.setGroup(g.key);
+						close();
+					}}
+				>
+					<span class="mi-label">{g.labelKey()}</span>
+				</button>
+			{/each}
+		</div>
+	{/if}
+
+	{#if open === 'sort'}
+		<div class="menu sort-menu">
+			{#if sorts.length >= SEARCHABLE_MIN}
+				<MenuSearch
+					value={menuQuery}
+					oninput={(v) => (menuQuery = v)}
+					onclear={() => (menuQuery = '')}
+					onclose={close}
+					onenter={chooseFirstSort}
+				/>
+			{/if}
+			{#each visibleSortSections as sec (sec.key)}
+				<div class="menu-title">{sec.labelKey()}</div>
+				{#each sec.items as it (it.key)}
+					<button
+						class="menu-item"
+						class:sel={libraryState.sortKey === it.key}
+						onclick={() => {
+							params.setSortKey(it.key);
+							close();
+						}}
+					>
+						<span class="mi-label">{it.labelKey()}</span>
+						{#if libraryState.sortKey === it.key}<span class="mi-dir"
+								>{#if libraryState.sortAsc}<ArrowUp size={12} />{:else}<ArrowDown size={12} />{/if}</span
+							>{/if}
+						{#if it.unit}<span class="mi-meta">{it.unit}</span>{/if}
+					</button>
+				{/each}
+			{:else}
+				<div class="menu-item"><span class="mi-label mi-meta">{m['search.noResults']()}</span></div>
+			{/each}
+		</div>
+	{/if}
+</div>
+
+<style>
+	.toolbar {
+		display: flex;
+		gap: 6px 10px;
+		padding: 10px 14px;
+		border-bottom: 1px solid var(--border-soft);
+		/* Top-align so the Group/Sort cluster stays on the first row while filter
+		   chips wrap onto additional rows below. */
+		align-items: flex-start;
+		position: relative;
+		flex: none;
+	}
+	.filters {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		align-items: center;
+		/* Take the free space and wrap internally; min-width:0 lets it actually
+		   shrink/wrap instead of shoving the controls onto a new row. */
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+	.controls {
+		display: flex;
+		gap: 6px;
+		align-items: center;
+		flex: none;
+	}
+	.chip {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 4px 9px;
+		border-radius: var(--radius-sm);
+		font-size: 11.5px;
+		cursor: pointer;
+		user-select: none;
+		white-space: nowrap;
+		border: 1px solid transparent;
+		background: none;
+		color: inherit;
+		font-family: inherit;
+	}
+	.add-filter {
+		border: 1px dashed var(--border-strong);
+		color: var(--text-muted);
+		padding: 4px 10px;
+	}
+	.add-filter:hover {
+		border-color: var(--accent);
+		color: var(--accent-link);
+	}
+	.chip.active {
+		background: var(--accent-wash);
+		border: 1px solid var(--accent-border);
+		color: var(--accent-soft);
+	}
+	.menu-sep {
+		height: 1px;
+		background: var(--border-soft);
+		margin: 4px 0;
+	}
+	.mi-check {
+		flex: none;
+		font-size: 12.5px;
+		color: var(--text-dim);
+		width: 15px;
+	}
+	.menu-item[aria-checked='true'] .mi-check {
+		color: var(--accent-soft);
+	}
+	.x {
+		color: var(--accent-muted);
+	}
+
+	/* Custom date range, at the foot of a date filter's menu. */
+	.date-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		gap: 8px;
+		padding: 4px 14px 12px;
+	}
+	.date-field {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+	}
+	.date-label {
+		font-size: 10.5px;
+		color: var(--text-dim);
+	}
+	.date-input {
+		background: var(--input-bg);
+		border: 1px solid var(--border-input);
+		border-radius: var(--radius-sm);
+		color: var(--text-2);
+		font-family: inherit;
+		font-size: 12px;
+		padding: 4px 6px;
+		/* The browser draws the calendar glyph and the picker popup itself, and it
+		   colors them from color-scheme, not from our tokens. Without this the dark
+		   theme gets a near-black icon on a near-black field and a white popup. */
+		color-scheme: dark;
+	}
+	:global(:root[data-theme='light']) .date-input {
+		color-scheme: light;
+	}
+	.date-input:focus-visible {
+		outline: 1px solid var(--accent);
+	}
+	.apply {
+		cursor: pointer;
+	}
+	.apply:disabled {
+		cursor: default;
+		opacity: 0.5;
+	}
+	.link-btn {
+		font-size: 12px;
+		color: var(--accent-soft);
+		cursor: pointer;
+		white-space: nowrap;
+		padding: 4px 6px;
+		background: none;
+		border: none;
+		font-family: inherit;
+	}
+
+	.menu {
+		position: absolute;
+		top: 44px;
+		z-index: 30;
+		background: var(--surface-2);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-md);
+		overflow: hidden;
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+		min-width: 180px;
+		max-height: 60vh;
+		overflow-y: auto;
+	}
+	.filter-menu {
+		left: 14px;
+	}
+	.group-menu {
+		right: 120px;
+		min-width: 150px;
+	}
+	.sort-menu {
+		right: 14px;
+		min-width: 220px;
+	}
+	.menu-title {
+		padding: 7px 12px 3px;
+		font-size: 10.5px;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		color: var(--text-dim);
+		background: none;
+		border: none;
+		width: 100%;
+		text-align: left;
+	}
+	.menu-title.back {
+		cursor: pointer;
+		color: var(--accent-soft);
+		font-size: 12px;
+		padding: 8px 12px;
+		text-transform: none;
+	}
+	.menu-item {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 8px 14px;
+		font-size: 12.5px;
+		cursor: pointer;
+		color: var(--text-2);
+		background: none;
+		border: none;
+		width: 100%;
+		text-align: left;
+		font-family: inherit;
+	}
+	.menu-item:hover {
+		background: var(--surface-raised);
+	}
+	.menu-item.sel {
+		color: var(--accent-soft);
+		font-weight: 600;
+	}
+	.mi-label {
+		flex: 1;
+		white-space: nowrap;
+	}
+	.mi-meta {
+		color: var(--text-faint);
+		font-size: 11px;
+	}
+	/* Sits with the label rather than off at the row's right edge: it's there to
+	   qualify the name it follows, which is the whole point when two filaments
+	   share one. */
+	.mi-sub {
+		color: var(--text-muted);
+		font-size: 11px;
+	}
+	.mi-dir {
+		color: var(--accent-muted);
+		font-size: 11px;
+	}
+
+	@media (max-width: 860px) {
+		/* Keep the Group/Sort controls available on mobile, but drop their
+		   "Group by:"/"Sort by:" prefixes to save horizontal space, and anchor
+		   both menus to the right edge so they stay aligned when the buttons
+		   shrink. */
+		.ctrl-label {
+			display: none;
+		}
+		.group-menu {
+			right: 14px;
+			left: auto;
+		}
+	}
+
+	/* The same trade on a desktop where the list has been dragged narrow (#1034).
+	   That's the pane's width, not the window's, so it's a container query — the
+	   list pane declares the container (see routes/+page.svelte). Without this the
+	   Group/Sort cluster, which can't shrink, runs into the Filter chip. */
+	@container (max-width: 460px) {
+		.ctrl-label {
+			display: none;
+		}
+		.group-menu {
+			right: 14px;
+			left: auto;
+		}
+	}
+</style>

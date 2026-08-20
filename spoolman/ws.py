@@ -62,7 +62,11 @@ class SubscriptionTree:
                 websocket.client_state == WebSocketState.CONNECTED
                 and websocket.application_state == WebSocketState.CONNECTED
             ):
-                await websocket.send_text(evt.json())
+                # exclude_none mirrors the REST endpoints' response_model_exclude_none=True so that
+                # websocket payloads and REST responses have an identical shape. Without this, unset
+                # fields arrive as explicit `null` over the websocket but are omitted over REST, which
+                # trips up clients that distinguish the two (e.g. the spool list's price fallback).
+                await websocket.send_text(evt.json(exclude_none=True))
 
         # Send the message further down the tree
         if len(path) > 0 and path[0] in self.children:

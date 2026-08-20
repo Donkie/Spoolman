@@ -1,0 +1,14 @@
+node_modules
+/build
+/.svelte-kit
+/package
+.env
+.env.*
+!.env.example
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Playwright a11y audit output
+/playwright-report
+/test-results
+/a11y-report.md

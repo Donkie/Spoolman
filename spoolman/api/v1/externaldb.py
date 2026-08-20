@@ -2,12 +2,19 @@
 
 import json
 import logging
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from fastapi.responses import FileResponse, JSONResponse
 
 from spoolman.env import is_tigertag_enabled
-from spoolman.externaldb import ExternalFilament, ExternalMaterial, get_filaments_file, get_materials_file
+from spoolman.externaldb import (
+    ExternalFilament,
+    ExternalMaterial,
+    get_filaments_file,
+    get_materials_file,
+    search_filaments,
+)
 from spoolman.tigertagdb import get_tigertag_filaments_file
 
 router = APIRouter(
@@ -54,6 +61,32 @@ async def filaments() -> JSONResponse:
             logger.exception("Failed to load TigerTag filaments")
 
     return JSONResponse(content=merged)
+
+
+@router.get(
+    "/filament/search",
+    name="Search external filaments",
+    response_model_exclude_none=True,
+)
+async def search_external_filaments(
+    query: Annotated[
+        str,
+        Query(
+            description="Search query, matched word-by-word against manufacturer, name and material.",
+            examples=["polymaker pla"],
+        ),
+    ],
+    limit: Annotated[
+        int,
+        Query(ge=1, le=100, description="Maximum number of results to return."),
+    ] = 20,
+) -> list[ExternalFilament]:
+    """Search the external filament catalog.
+
+    Filters server-side so clients don't have to download the entire catalog just to
+    search it.
+    """
+    return search_filaments(query, limit)
 
 
 @router.get(

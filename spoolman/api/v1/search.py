@@ -1,0 +1,132 @@
+"""Cross-entity search endpoint."""
+
+import logging
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from spoolman.api.v1.models import (
+    Filament,
+    SearchResultFilament,
+    SearchResultFilamentSpool,
+    SearchResults,
+    SearchResultSpool,
+    SearchResultVendor,
+    Spool,
+    Vendor,
+)
+from spoolman.database import search
+from spoolman.database.database import get_db_session
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter(
+    prefix="/search",
+    tags=["search"],
+)
+
+# ruff: noqa: D103
+
+
+@router.get(
+    "",
+    name="Search",
+    description=(
+        "Search across spools, filaments and vendors in a single request. The query is split on "
+        "whitespace into terms, and an entity matches only if every term is found case-insensitively "
+        "in one of its text fields (or its text/choice extra fields, or - for filaments - its "
+        "vendor's name); different terms may match different fields, so 'bambu petg-cf' finds the "
+        "PETG-CF filaments made by Bambu Lab. A purely numeric query additionally matches a spool "
+        "by its exact id. A query that "
+        "is a hex code (e.g. '#ff0000') or a CSS color name (e.g. 'red') additionally runs a "
+        "color-similarity search over filaments. Results are categorized by entity and each result "
+        "reports which field matched. Archived spools are excluded unless allow_archived is set, "
+        "matching the behavior of the spool endpoint. Set spools_per_filament to also get each "
+        "matching filament's first few spools, so a filament hit leads straight to a spool."
+    ),
+    response_model_exclude_none=True,
+)
+async def search_endpoint(
+    *,
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+    query: Annotated[
+        str,
+        Query(
+            alias="q",
+            title="Query",
+            description="The search query.",
+            min_length=1,
+            examples=["red"],
+        ),
+    ],
+    color_similarity_threshold: Annotated[
+        float,
+        Query(
+            title="Color Similarity Threshold",
+            description=(
+                "The similarity threshold for color matching, when the query is a color. "
+                "A value between 0.0-100.0, where 0 means match only exactly the same color."
+            ),
+            ge=0.0,
+            le=100.0,
+            examples=[20.0],
+        ),
+    ] = 20.0,
+    limit: Annotated[
+        int,
+        Query(
+            title="Limit",
+            description="Maximum number of results per category (spools, filaments, vendors).",
+            ge=1,
+            le=100,
+        ),
+    ] = 20,
+    allow_archived: Annotated[
+        bool,
+        Query(
+            title="Allow Archived",
+            description="Whether to include archived spools in the results.",
+        ),
+    ] = False,
+    spools_per_filament: Annotated[
+        int,
+        Query(
+            title="Spools Per Filament",
+            description=(
+                "How many of each matching filament's spools to include with it, so a filament hit "
+                "can be followed straight to one of its spools. 0 (the default) omits them entirely."
+            ),
+            ge=0,
+            le=10,
+        ),
+    ] = 0,
+) -> SearchResults:
+    result = await search.search(
+        db=db,
+        query=query,
+        color_similarity_threshold=color_similarity_threshold,
+        limit=limit,
+        allow_archived=allow_archived,
+        spools_per_filament=spools_per_filament,
+    )
+    return SearchResults(
+        spools=[SearchResultSpool(spool=Spool.from_db(m.spool), match_field=m.match_field) for m in result.spools],
+        filaments=[
+            SearchResultFilament(
+                filament=Filament.from_db(m.filament),
+                match_field=m.match_field,
+                spools=(
+                    None
+                    if m.spools is None
+                    else [SearchResultFilamentSpool.from_db(s, m.filament.weight) for s in m.spools]
+                ),
+                spool_count=m.spool_count,
+            )
+            for m in result.filaments
+        ],
+        vendors=[
+            SearchResultVendor(vendor=Vendor.from_db(m.vendor), match_field=m.match_field) for m in result.vendors
+        ],
+        is_color_query=result.is_color_query,
+    )

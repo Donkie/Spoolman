@@ -1,0 +1,107 @@
+// Domain types — the camelCase, string-id shapes the components use. The API
+// layer (src/lib/api/map.ts) maps the Spoolman REST shape to these. `extra`
+// holds custom-field values as JSON-encoded strings keyed by field key.
+
+/** Custom-field values: field key → JSON-encoded string value. */
+export type Extra = Record<string, string>;
+
+/**
+ * Custom-field values on the way to the server: a JSON-encoded string to store, or null
+ * to store no value — which is the only way to clear one that has been set.
+ */
+export type ExtraPatch = Record<string, string | null>;
+
+/** Layout of a multi-color filament's colors. */
+export type MultiColorDirection = 'coaxial' | 'longitudinal';
+
+export interface Vendor {
+	id: string;
+	name: string;
+	/** Empty spool weight in grams. */
+	emptyWeight: number;
+	comment: string;
+	/** SpoolmanDB id if this vendor was imported from the external database. */
+	externalId?: string;
+	/** Human label for registration date, e.g. "Jan 14". */
+	registeredLabel: string;
+	extra: Extra;
+}
+
+export interface Filament {
+	id: string;
+	vendorId: string;
+	name: string;
+	material: string;
+	/** One or more hex colors; multiple means a multi-color/gradient swatch. */
+	colors: string[];
+	/** Layout of a multi-color filament; undefined for single-color filaments. */
+	multiColorDirection?: MultiColorDirection;
+	diameter: number;
+	density: number;
+	nozzleTemp: number;
+	bedTemp: number;
+	/** Net weight of a full spool in grams. */
+	weight: number;
+	/** Empty spool (tare) weight in grams, if known. */
+	spoolWeight?: number;
+	price: number;
+	/** Manufacturer article/SKU number. */
+	articleNumber?: string;
+	comment: string;
+	/** SpoolmanDB id if this filament was imported from the external database. */
+	externalId?: string;
+	/** Human label for registration date, e.g. "Jan 14". */
+	registeredLabel: string;
+	extra: Extra;
+}
+
+export interface Spool {
+	id: number;
+	filamentId: string;
+	/** Unused = never drawn from (used_weight is 0), still at full weight. */
+	unused: boolean;
+	/** Remaining filament weight in grams. */
+	remaining: number;
+	/** Initial (net) weight in grams; falls back to the filament's weight. */
+	initial: number;
+	/** Per-spool initial-weight override; undefined means `initial` came from the
+	 *  filament and must be recomputed when the filament's weight changes. */
+	initialOverride?: number;
+	/** Filament drawn from this spool so far, in grams. */
+	usedWeight: number;
+	location: string;
+	lot: string;
+	/** Per-spool price override; undefined falls back to the filament's price. */
+	price?: number;
+	/** Per-spool empty-spool (tare) weight override, in grams; undefined falls back
+	 *  to the filament's. This is what `PUT /spool/{id}/measure` subtracts from a
+	 *  reading off the scale, so a wrong one misstates how much filament is left. */
+	spoolWeight?: number;
+	/** ISO timestamp of first use, if any. */
+	firstUsed?: string;
+	/** ISO timestamp of most recent use, if any. */
+	lastUsed?: string;
+	/** Human label for when it was first used, e.g. "Jan 14". Empty = never. */
+	firstUsedLabel: string;
+	/** Human label for when it was last used, e.g. "2 d". Empty = never. */
+	lastUsedLabel: string;
+	/** ISO timestamp of when the spool was registered/added. */
+	registered?: string;
+	/** Human label for registration date, e.g. "Jan 14". */
+	registeredLabel: string;
+	archived: boolean;
+	comment: string;
+	extra: Extra;
+}
+
+// Write shapes: a partial entity, except that `extra` may carry nulls to clear values.
+export type VendorPatch = Partial<Omit<Vendor, 'extra'>> & { extra?: ExtraPatch };
+export type FilamentPatch = Partial<Omit<Filament, 'extra'>> & { extra?: ExtraPatch };
+export type SpoolPatch = Partial<Omit<Spool, 'extra'>> & { extra?: ExtraPatch };
+
+export type EntityKind = 'spool' | 'filament' | 'vendor';
+
+export interface Selection {
+	kind: EntityKind;
+	id: string;
+}

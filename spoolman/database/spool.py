@@ -1,11 +1,13 @@
 """Helper functions for interacting with spool database objects."""
 
+import json
 import logging
 from collections.abc import Sequence
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
 import sqlalchemy
-from sqlalchemy import case, func
+from sqlalchemy import ColumnElement, case, func
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
@@ -13,15 +15,25 @@ from sqlalchemy.sql.functions import coalesce
 
 from spoolman.api.v1.models import EventType, Spool, SpoolEvent
 from spoolman.database import filament, models
+from spoolman.database.extra_field_query import (
+    ExtraFieldJoin,
+    apply_extra_field_filters_and_sort,
+    apply_spool_related_extra_filters,
+    extra_field_join,
+    extra_field_value_text,
+)
 from spoolman.database.utils import (
     SortOrder,
+    add_where_clause_datetime_opt,
     add_where_clause_int,
     add_where_clause_int_opt,
     add_where_clause_str,
     add_where_clause_str_opt,
+    order_by_clauses,
     parse_nested_field,
 )
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError, SpoolMeasureError
+from spoolman.extra_field_registry import EntityType, ExtraField, ExtraFieldType, get_extra_fields
 from spoolman.math import weight_from_length
 from spoolman.ws import websocket_manager
 
@@ -48,7 +60,7 @@ async def create(
     lot_nr: str | None = None,
     comment: str | None = None,
     archived: bool = False,
-    extra: dict[str, str] | None = None,
+    extra: dict[str, str | None] | None = None,
 ) -> models.Spool:
     """Add a new spool to the database. Leave weight empty to assume full spool."""
     filament_item = await filament.get_by_id(db, filament_id)
@@ -91,7 +103,7 @@ async def create(
         lot_nr=lot_nr,
         comment=comment,
         archived=archived,
-        extra=[models.SpoolField(key=k, value=v) for k, v in (extra or {}).items()],
+        extra=[models.SpoolField(key=k, value=v) for k, v in (extra or {}).items() if v is not None],
     )
     db.add(spool)
     await db.commit()
@@ -111,17 +123,24 @@ async def get_by_id(db: AsyncSession, spool_id: int) -> models.Spool:
     return spool
 
 
-async def find(  # noqa: C901, PLR0912
+async def find(  # noqa: C901
     *,
     db: AsyncSession,
     filament_name: str | None = None,
     filament_id: int | Sequence[int] | None = None,
     filament_material: str | None = None,
+    filament_multi_color_direction: str | None = None,
     vendor_name: str | None = None,
     vendor_id: int | Sequence[int] | None = None,
     location: str | None = None,
     lot_nr: str | None = None,
     allow_archived: bool = False,
+    first_used: str | None = None,
+    last_used: str | None = None,
+    registered: str | None = None,
+    extra_field_filters: dict[str, str] | None = None,
+    filament_extra_field_filters: dict[str, str] | None = None,
+    vendor_extra_field_filters: dict[str, str] | None = None,
     sort_by: dict[str, SortOrder] | None = None,
     limit: int | None = None,
     offset: int = 0,
@@ -133,46 +152,53 @@ async def find(  # noqa: C901, PLR0912
 
     Returns a tuple containing the list of items and the total count of matching items.
     """
-    stmt = (
-        sqlalchemy.select(models.Spool)
-        .join(models.Spool.filament, isouter=True)
-        .join(models.Filament.vendor, isouter=True)
-        .options(contains_eager(models.Spool.filament).contains_eager(models.Filament.vendor))
-    )
-
-    stmt = add_where_clause_int(stmt, models.Spool.filament_id, filament_id)
-    stmt = add_where_clause_int_opt(stmt, models.Filament.vendor_id, vendor_id)
-    stmt = add_where_clause_str(stmt, models.Vendor.name, vendor_name)
-    stmt = add_where_clause_str_opt(stmt, models.Filament.name, filament_name)
-    stmt = add_where_clause_str_opt(stmt, models.Filament.material, filament_material)
-    stmt = add_where_clause_str_opt(stmt, models.Spool.location, location)
-    stmt = add_where_clause_str_opt(stmt, models.Spool.lot_nr, lot_nr)
-
-    if not allow_archived:
-        # Since the archived field is nullable, and default is false, we need to check for both false or null
-        stmt = stmt.where(
-            sqlalchemy.or_(
-                models.Spool.archived.is_(False),
-                models.Spool.archived.is_(None),
-            ),
-        )
+    stmt = _apply_spool_filters(
+        sqlalchemy.select(models.Spool),
+        filament_name=filament_name,
+        filament_id=filament_id,
+        filament_material=filament_material,
+        filament_multi_color_direction=filament_multi_color_direction,
+        vendor_name=vendor_name,
+        vendor_id=vendor_id,
+        location=location,
+        lot_nr=lot_nr,
+        allow_archived=allow_archived,
+        first_used=first_used,
+        last_used=last_used,
+        registered=registered,
+    ).options(contains_eager(models.Spool.filament).contains_eager(models.Filament.vendor))
 
     total_count = None
 
-    if limit is not None:
-        total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True)
-        total_count = (await db.execute(total_count_stmt)).scalar()
-
-        stmt = stmt.offset(offset).limit(limit)
+    stmt = await apply_extra_field_filters_and_sort(
+        db=db,
+        stmt=stmt,
+        base_obj=models.Spool,
+        entity_type=EntityType.spool,
+        extra_field_filters=extra_field_filters,
+        sort_by=sort_by,
+    )
+    stmt = await apply_spool_related_extra_filters(
+        db=db,
+        stmt=stmt,
+        filament_filters=filament_extra_field_filters,
+        vendor_filters=vendor_extra_field_filters,
+    )
 
     if sort_by is not None:
         for fieldstr, order in sort_by.items():
+            # Check if this is a custom field sort
+            if fieldstr.startswith("extra."):
+                continue
+
             sorts = []
             if fieldstr == "remaining_weight":
-                sorts.append(coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight)
+                sorts.append(
+                    coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight,
+                )
             elif fieldstr == "remaining_length":
-                # Simplified weight -> length formula. Absolute value is not correct but the proportionality is still
-                # kept, which means the sort order is correct.
+                # Simplified weight -> length formula. Absolute value is not correct but the proportionality
+                # is still kept, which means the sort order is correct.
                 sorts.append(
                     (coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight)
                     / models.Filament.density
@@ -192,10 +218,12 @@ async def find(  # noqa: C901, PLR0912
             else:
                 sorts.append(parse_nested_field(models.Spool, fieldstr))
 
-            if order == SortOrder.ASC:
-                stmt = stmt.order_by(*(f.asc() for f in sorts))
-            elif order == SortOrder.DESC:
-                stmt = stmt.order_by(*(f.desc() for f in sorts))
+            stmt = stmt.order_by(*order_by_clauses(sorts, order))
+
+    if limit is not None:
+        total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True).order_by(None)
+        total_count = (await db.execute(total_count_stmt)).scalar()
+        stmt = stmt.offset(offset).limit(limit)
 
     rows = await db.execute(
         stmt,
@@ -206,6 +234,297 @@ async def find(  # noqa: C901, PLR0912
         total_count = len(result)
 
     return result, total_count
+
+
+GROUP_BY_COLUMNS = {
+    "filament": models.Spool.filament_id,
+    "vendor": models.Filament.vendor_id,
+    "material": models.Filament.material,
+    "location": models.Spool.location,
+}
+
+# The two axes keyed by an entity id rather than by a value, and the column that names each
+# group. The rest are their own title.
+ENTITY_GROUP_BY_TITLES = {
+    "filament": models.Filament.name,
+    "vendor": models.Vendor.name,
+}
+
+# Prefix marking a reference to one of the spool's extra fields rather than a built-in column.
+EXTRA_FIELD_PREFIX = "extra."
+
+# Mirrors the Spool.location column width, so an over-long rename is a 400 and not a 500.
+LOCATION_MAX_LENGTH = 64
+
+# Extra fields whose value is a single plain string, and which can therefore be grouped on and
+# renamed by value. Multi-choice is excluded because its value is a JSON *array*: two spools
+# with overlapping-but-unequal selections are neither the same value nor cleanly different
+# ones, and there is no single value to match or write.
+SINGLE_VALUE_EXTRA_FIELD_TYPES = (ExtraFieldType.text, ExtraFieldType.choice)
+
+
+def _apply_spool_filters(
+    stmt: sqlalchemy.Select,
+    *,
+    filament_name: str | None = None,
+    filament_id: int | Sequence[int] | None = None,
+    filament_material: str | None = None,
+    filament_multi_color_direction: str | None = None,
+    vendor_name: str | None = None,
+    vendor_id: int | Sequence[int] | None = None,
+    location: str | None = None,
+    lot_nr: str | None = None,
+    allow_archived: bool = False,
+    first_used: str | None = None,
+    last_used: str | None = None,
+    registered: str | None = None,
+) -> sqlalchemy.Select:
+    """Apply the standard spool joins and where-clauses shared by find and find_groups."""
+    stmt = stmt.join(models.Spool.filament, isouter=True).join(models.Filament.vendor, isouter=True)
+    stmt = add_where_clause_int(stmt, models.Spool.filament_id, filament_id)
+    stmt = add_where_clause_int_opt(stmt, models.Filament.vendor_id, vendor_id)
+    stmt = add_where_clause_str(stmt, models.Vendor.name, vendor_name)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.name, filament_name)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.material, filament_material)
+    stmt = add_where_clause_str_opt(stmt, models.Filament.multi_color_direction, filament_multi_color_direction)
+    stmt = add_where_clause_str_opt(stmt, models.Spool.location, location)
+    stmt = add_where_clause_str_opt(stmt, models.Spool.lot_nr, lot_nr)
+    stmt = add_where_clause_datetime_opt(stmt, models.Spool.first_used, first_used)
+    stmt = add_where_clause_datetime_opt(stmt, models.Spool.last_used, last_used)
+    stmt = add_where_clause_datetime_opt(stmt, models.Spool.registered, registered)
+    if not allow_archived:
+        # archived is nullable with a default of false, so match both false and null.
+        stmt = stmt.where(
+            sqlalchemy.or_(
+                models.Spool.archived.is_(False),
+                models.Spool.archived.is_(None),
+            ),
+        )
+    return stmt
+
+
+def _blank_as_null(col: ColumnElement) -> ColumnElement:
+    """Fold an empty string into NULL, so a value-keyed axis has ONE "no value" group.
+
+    A spool with no value for a string field can spell that as NULL or as an empty string, and
+    the two are distinct to the database — left alone they become two groups the client can only
+    render as the same "unassigned" one. Filtering already treats both as unset (see
+    add_where_clause_str_opt and the empty branch of add_where_clause_extra_field), so grouping
+    has to agree or a group's count will not match the spools that group's filter returns.
+    """
+    return func.nullif(col, "")
+
+
+async def _resolve_group_by(
+    db: AsyncSession,
+    group_by: str,
+) -> tuple[ColumnElement, ColumnElement, ExtraFieldJoin | None]:
+    """Resolve a group_by into the column to group on, the column to title groups by, and any join.
+
+    Grouping is either on a built-in column or on one of the spool's extra fields. The latter
+    lives in its own table, so it comes with a join the caller has to apply once the SELECT exists.
+    """
+    if group_by.startswith(EXTRA_FIELD_PREFIX):
+        field_key = _extra_field_key(await get_extra_fields(db, EntityType.spool), group_by)
+        join = extra_field_join(EntityType.spool, field_key)
+        # The value is the group's title as well; there is no separate entity to name it.
+        col = _blank_as_null(join.value)
+        return col, col, join
+    if group_by in ENTITY_GROUP_BY_TITLES:
+        # Keyed by entity id, which has no blank spelling; the entity names the group.
+        return GROUP_BY_COLUMNS[group_by], ENTITY_GROUP_BY_TITLES[group_by], None
+    if group_by in GROUP_BY_COLUMNS:
+        # material/location: the value is the group's title, and a blank one is no value.
+        col = _blank_as_null(GROUP_BY_COLUMNS[group_by])
+        return col, col, None
+    raise ValueError(
+        f"Invalid group_by field '{group_by}'. Must be one of {sorted(GROUP_BY_COLUMNS)} "
+        f"or '{EXTRA_FIELD_PREFIX}<spool extra field key>'.",
+    )
+
+
+def _extra_field_key(spool_fields: Sequence[ExtraField], reference: str) -> str:
+    """Resolve an `extra.<key>` reference to its bare key, rejecting fields that can't carry one.
+
+    Shared by grouping and by renaming a value, which need the same guarantee: the field exists,
+    and one spool has exactly one plain string in it.
+    """
+    field_key = reference[len(EXTRA_FIELD_PREFIX) :]
+    field = next((f for f in spool_fields if f.key == field_key), None)
+    if field is None:
+        raise ValueError(f"Unknown spool extra field '{field_key}'.")
+    is_multi_choice = field.field_type == ExtraFieldType.choice and field.multi_choice
+    if field.field_type not in SINGLE_VALUE_EXTRA_FIELD_TYPES or is_multi_choice:
+        raise ValueError(
+            f"Spool extra field '{field_key}' does not hold a single plain value. "
+            f"Only text and single-choice fields do.",
+        )
+    return field_key
+
+
+@dataclass
+class SpoolGroupResult:
+    """One aggregated spool group, with the grouped entity hydrated for its header."""
+
+    key: object
+    spool_count: int
+    in_use_count: int
+    total_remaining_weight: float
+    last_used: datetime | None
+    filament: models.Filament | None
+    vendor: models.Vendor | None
+
+
+async def find_groups(
+    *,
+    db: AsyncSession,
+    group_by: str,
+    filament_name: str | None = None,
+    filament_id: int | Sequence[int] | None = None,
+    filament_material: str | None = None,
+    filament_multi_color_direction: str | None = None,
+    vendor_name: str | None = None,
+    vendor_id: int | Sequence[int] | None = None,
+    location: str | None = None,
+    lot_nr: str | None = None,
+    allow_archived: bool = False,
+    first_used: str | None = None,
+    last_used: str | None = None,
+    registered: str | None = None,
+    extra_field_filters: dict[str, str] | None = None,
+    filament_extra_field_filters: dict[str, str] | None = None,
+    vendor_extra_field_filters: dict[str, str] | None = None,
+    sort_by: dict[str, SortOrder] | None = None,
+    limit: int | None = None,
+    offset: int = 0,
+) -> tuple[list[SpoolGroupResult], int]:
+    """Group matching spools by one axis and return per-group aggregates.
+
+    Aggregation, group ordering and pagination happen in the database. Pagination is over
+    groups, so a group is never split across pages and its aggregates are always complete.
+
+    Returns a tuple of the requested page of groups and the total number of matching groups.
+    """
+    group_col, title_col, extra_join = await _resolve_group_by(db, group_by)
+
+    # Remaining weight is computed (see Spool.from_db); mirror that formula so the sum is correct.
+    # The fallback literal is 0.0 (float, not int): the weights are floats, and CockroachDB rejects
+    # a COALESCE that mixes a float expression with an int literal ("incompatible COALESCE expressions").
+    remaining_expr = coalesce(
+        coalesce(models.Spool.initial_weight, models.Filament.weight) - models.Spool.used_weight,
+        0.0,
+    )
+    # ...including its max(..., 0) clamp, so an over-used spool contributes 0 rather than a
+    # negative number and the group total still matches the sum of the per-spool values.
+    # CASE, not func.greatest: greatest() is not portable across all four supported databases.
+    remaining_expr = case((remaining_expr < 0, 0.0), else_=remaining_expr)
+    spool_count = func.count().label("spool_count")
+    in_use_count = func.sum(case((models.Spool.used_weight > 0, 1), else_=0)).label("in_use_count")
+    total_remaining = func.sum(remaining_expr).label("total_remaining_weight")
+    # Named apart from the `last_used` filter parameter above: this is the group's aggregate, and
+    # letting it shadow the parameter would hand a SQL expression to the filter builder.
+    last_used_agg = func.max(models.Spool.last_used).label("last_used")
+
+    stmt = sqlalchemy.select(
+        group_col.label("group_key"),
+        spool_count,
+        in_use_count,
+        total_remaining,
+        last_used_agg,
+    )
+    stmt = _apply_spool_filters(
+        stmt,
+        filament_name=filament_name,
+        filament_id=filament_id,
+        filament_material=filament_material,
+        filament_multi_color_direction=filament_multi_color_direction,
+        vendor_name=vendor_name,
+        vendor_id=vendor_id,
+        location=location,
+        lot_nr=lot_nr,
+        allow_archived=allow_archived,
+        first_used=first_used,
+        last_used=last_used,
+        registered=registered,
+    )
+    if extra_join is not None:
+        stmt = extra_join.apply(stmt, models.Spool.id)
+    stmt = await apply_extra_field_filters_and_sort(
+        db=db,
+        stmt=stmt,
+        base_obj=models.Spool,
+        entity_type=EntityType.spool,
+        extra_field_filters=extra_field_filters,
+        sort_by=None,
+    )
+    stmt = await apply_spool_related_extra_filters(
+        db=db,
+        stmt=stmt,
+        filament_filters=filament_extra_field_filters,
+        vendor_filters=vendor_extra_field_filters,
+    )
+    stmt = stmt.group_by(group_col)
+
+    # Total number of matching groups (before pagination).
+    count_stmt = sqlalchemy.select(func.count()).select_from(stmt.order_by(None).subquery())
+    total_count = (await db.execute(count_stmt)).scalar_one()
+
+    # Group ordering. Every option is an aggregate (or the grouped column), so no non-grouped
+    # bare column is referenced — portable across SQLite, PostgreSQL, MySQL and CockroachDB.
+    # Ordering by `group.last_used` ranks each group by its most recently used spool, which is
+    # what a library sorted on "last used" is expected to show; groups holding nothing but
+    # unused spools aggregate to NULL and belong at the bottom, hence order_by_clauses.
+    order_exprs = {
+        "group.spool_count": spool_count,
+        "group.in_use_count": in_use_count,
+        "group.total_remaining": total_remaining,
+        "group.last_used": last_used_agg,
+        "group.title": func.min(title_col),
+    }
+    applied_sort = False
+    if sort_by:
+        for fieldstr, order in sort_by.items():
+            expr = order_exprs.get(fieldstr)
+            if expr is None:
+                continue
+            stmt = stmt.order_by(*order_by_clauses([expr], order))
+            applied_sort = True
+    if not applied_sort:
+        stmt = stmt.order_by(*order_by_clauses([func.min(title_col)], SortOrder.ASC))
+
+    if limit is not None:
+        stmt = stmt.offset(offset).limit(limit)
+
+    rows = (await db.execute(stmt)).all()
+
+    # Hydrate the grouped entity for the header (filament/vendor). The value-keyed axes —
+    # material, location, extra fields — are their own header and need nothing.
+    keys = [row.group_key for row in rows if row.group_key is not None]
+    filament_map: dict[int, models.Filament] = {}
+    vendor_map: dict[int, models.Vendor] = {}
+    if group_by == "filament" and keys:
+        fstmt = (
+            sqlalchemy.select(models.Filament)
+            .where(models.Filament.id.in_(keys))
+            .options(joinedload(models.Filament.vendor))
+        )
+        filament_map = {f.id: f for f in (await db.execute(fstmt)).unique().scalars().all()}
+    elif group_by == "vendor" and keys:
+        vstmt = sqlalchemy.select(models.Vendor).where(models.Vendor.id.in_(keys))
+        vendor_map = {v.id: v for v in (await db.execute(vstmt)).unique().scalars().all()}
+
+    return [
+        SpoolGroupResult(
+            key=row.group_key,
+            spool_count=int(row.spool_count or 0),
+            in_use_count=int(row.in_use_count or 0),
+            total_remaining_weight=float(row.total_remaining_weight or 0),
+            last_used=row.last_used,
+            filament=filament_map.get(row.group_key) if group_by == "filament" else None,
+            vendor=vendor_map.get(row.group_key) if group_by == "vendor" else None,
+        )
+        for row in rows
+    ], total_count
 
 
 async def update(
@@ -230,8 +549,12 @@ async def update(
         elif isinstance(v, datetime):
             setattr(spool, k, utc_timezone_naive(v))
         elif k == "extra":
+            # Merged per key, the same as a filament's and a vendor's: only the keys present
+            # in the patch are touched, and a null value means the spool has no value for
+            # that field, so its row is dropped and not re-added — that is how a value that
+            # has been set gets cleared.
             spool.extra = [f for f in spool.extra if f.key not in v]
-            spool.extra.extend([models.SpoolField(key=k, value=v) for k, v in v.items()])
+            spool.extra.extend([models.SpoolField(key=k, value=v) for k, v in v.items() if v is not None])
         else:
             setattr(spool, k, v)
     await db.commit()
@@ -242,8 +565,11 @@ async def update(
 async def delete(db: AsyncSession, spool_id: int) -> None:
     """Delete a spool object."""
     spool = await get_by_id(db, spool_id)
-    await spool_changed(spool, EventType.DELETED)
     await db.delete(spool)
+    # Commit before notifying so the deletion is durable and visible to subsequent
+    # requests; post-commit notification must be the last, infallible step.
+    await db.commit()
+    await spool_changed(spool, EventType.DELETED)
 
 
 async def clear_extra_field(db: AsyncSession, key: str) -> None:
@@ -251,6 +577,7 @@ async def clear_extra_field(db: AsyncSession, key: str) -> None:
     await db.execute(
         sqlalchemy.delete(models.SpoolField).where(models.SpoolField.key == key),
     )
+    await db.commit()
 
 
 async def use_weight_safe(db: AsyncSession, spool_id: int, weight: float) -> None:
@@ -397,6 +724,13 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
     if initial_weight is None or initial_weight == 0:
         raise SpoolMeasureError("Initial weight is not set.")
 
+    # Neither the spool nor its filament knows what an empty spool weighs. Unlike a
+    # missing initial weight that is not fatal — it just means the reading is taken
+    # as the filament alone — so treat the tare as zero rather than raising a
+    # TypeError out of the arithmetic below (which surfaced as a bare 500).
+    if spool_weight is None:
+        spool_weight = 0
+
     initial_gross_weight = initial_weight + spool_weight
 
     # if the measurement is greater than the initial weight, set the initial weight to the measurement
@@ -474,3 +808,59 @@ async def rename_location(
     await db.execute(
         sqlalchemy.update(models.Spool).where(models.Spool.location == current_name).values(location=new_name),
     )
+    await db.commit()
+
+
+async def rename_field_value(
+    *,
+    db: AsyncSession,
+    field: str,
+    value: str,
+    new_value: str,
+) -> int:
+    """Replace one value of one spool field wherever it occurs, in a single statement.
+
+    rename_location generalised from location to the spool's other string fields, including its
+    custom ones. A client that has grouped spools by a field can rename a whole group this way
+    without reading out its members and patching them one at a time -- which it could only do
+    for the spools it had actually paged in, and not atomically.
+
+    Only fields the SPOOL owns can be renamed. A filament's material or vendor is a property of
+    another entity: rewriting it "for these spools" would change filaments other spools share.
+
+    Archived spools are included -- the value is the value, and skipping them would silently
+    leave half the spools behind.
+
+    Like rename_location, no spool event is broadcast per row. The change is one statement over
+    what may be hundreds of spools, and that fan-out is exactly what the websocket layer avoids
+    elsewhere; other clients pick the change up on their next load.
+
+    Returns the number of spools changed.
+    """
+    if field == "location":
+        if len(new_value) > LOCATION_MAX_LENGTH:
+            raise ValueError(f"A location can be at most {LOCATION_MAX_LENGTH} characters.")
+        stmt = sqlalchemy.update(models.Spool).where(models.Spool.location == value).values(location=new_value)
+    elif field.startswith(EXTRA_FIELD_PREFIX):
+        field_key = _extra_field_key(await get_extra_fields(db, EntityType.spool), field)
+        # Match on the DB-decoded scalar, so which JSON encoding wrote the value doesn't matter;
+        # store the new one the way the rest of the API does.
+        stmt = (
+            sqlalchemy.update(models.SpoolField)
+            .where(
+                sqlalchemy.and_(
+                    models.SpoolField.key == field_key,
+                    extra_field_value_text(models.SpoolField.value) == value,
+                ),
+            )
+            .values(value=json.dumps(new_value, ensure_ascii=False))
+        )
+    else:
+        raise ValueError(
+            f"Cannot rename values of '{field}'. Only fields the spool itself owns can be renamed: "
+            f"location, or '{EXTRA_FIELD_PREFIX}<spool extra field key>'.",
+        )
+
+    result = await db.execute(stmt)
+    await db.commit()
+    return result.rowcount

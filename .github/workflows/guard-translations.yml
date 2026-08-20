@@ -1,0 +1,149 @@
+name: Guard Translations
+
+# Translations are managed exclusively through Weblate (https://hosted.weblate.org/projects/spoolman/).
+# Only the "en" source locale is edited by hand in this repo; every other language is written back
+# by the Weblate bot. This workflow fails any PR (except Weblate's own) that hand-edits a non-English
+# translation file, so manual edits don't get overwritten and lost on the next Weblate sync.
+#
+# Two clients, two different rules:
+#
+#   client_v2/locales/           — the ACTIVE translation target. Weblate translates this one.
+#                                  MODIFY/DELETE of an existing non-English file is blocked; ADDING a
+#                                  brand-new language file is allowed, because bootstrapping a language
+#                                  also needs two hand-written code entries (see NEW_LANGUAGE_HOWTO
+#                                  below) that only a human PR can add.
+#
+#   client/public/locales/       — the LEGACY React client, CLOSED to translation work. Its Weblate
+#                                  component is locked, so nothing new arrives from translators and
+#                                  the files here are frozen at whatever shipped. Any change to a
+#                                  non-English file is blocked, including adding a new language:
+#                                  effort spent there is effort not spent on the client users get.
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+# NOTE: no `paths:` filter on purpose. If this check is marked "Required" in branch
+# protection, a paths filter would leave PRs that don't touch locales stuck "pending"
+# forever (the check would never post a status). Instead we always run and pass fast
+# when nothing offending changed.
+
+permissions:
+  contents: read
+
+jobs:
+  guard-translations:
+    runs-on: ubuntu-latest
+    # Skip the guard for Weblate's own translation-sync PRs.
+    if: github.event.pull_request.user.login != 'weblate'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for manual non-English translation changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          # --no-renames turns any rename into a delete + add pair, so a "renamed" (i.e. rewritten)
+          # existing file still trips the delete rule and can't be smuggled through as a fresh add.
+          #
+          # --diff-filter=MD keeps only Modified and Deleted paths: edits to files that ALREADY exist
+          # on the base branch. Added (A) files are handled separately per client below.
+          # Three dots, not two. `git diff A B` compares the two trees as they stand, so every
+          # commit that landed on the base branch after this PR forked shows up as if the PR had
+          # changed it -- a Weblate sync merging to master made unrelated PRs fail with
+          # "client_v2/locales/sv/common.json" in the offending list. `git diff A...B` diffs from
+          # the MERGE BASE instead, which is exactly "what this PR changed" and stays correct no
+          # matter how far master has moved on.
+          edited="$(git diff --no-renames --diff-filter=MD --name-only "$BASE_SHA...$HEAD_SHA" || true)"
+          added="$(git diff --no-renames --diff-filter=A --name-only "$BASE_SHA...$HEAD_SHA" || true)"
+
+          # Active client: edits to existing non-English files are blocked, new languages are fine.
+          offending_v2="$(printf '%s\n' "$edited" \
+            | grep -E '^client_v2/locales/[^/]+/' \
+            | grep -vE '^client_v2/locales/en/' \
+            || true)"
+
+          # Legacy client: every non-English change is blocked, adds included.
+          offending_legacy="$(printf '%s\n' "$edited" "$added" \
+            | grep -E '^client/public/locales/[^/]+/' \
+            | grep -vE '^client/public/locales/en/' \
+            || true)"
+
+          if [ -z "$offending_v2" ] && [ -z "$offending_legacy" ]; then
+            echo "No manual edits to non-English translation files detected. ✅"
+            exit 0
+          fi
+
+          echo "::error title=Manual translation edits are not allowed::This PR hand-edits non-English translation files. See the job summary for details."
+
+          {
+            echo "## ❌ Manual translation edits detected"
+            echo ""
+
+            if [ -n "$offending_v2" ]; then
+              echo "### Existing translations edited by hand"
+              echo ""
+              echo "This PR modifies or deletes existing non-English translation files:"
+              echo ""
+              echo '```'
+              echo "$offending_v2"
+              echo '```'
+              echo ""
+              echo "Every language except the English source (\`client_v2/locales/en/common.json\`) is"
+              echo "managed **exclusively through Weblate**. A manual edit here will be **silently"
+              echo "overwritten and lost** the next time Weblate syncs — so we don't accept them."
+              echo ""
+              echo "**What to do instead:**"
+              echo ""
+              echo "- **To fix or improve a translation:** contribute it through Weblate at"
+              echo "  <https://hosted.weblate.org/projects/spoolman/>. It's free, requires no coding,"
+              echo "  and your change flows back into the repo automatically."
+              echo "- **To add or change a user-facing string:** edit **only**"
+              echo "  \`client_v2/locales/en/common.json\`. Weblate picks up the new keys and exposes"
+              echo "  them to translators. Revert your changes to every other language and push again."
+              echo "- **To add a brand-new language:** that IS allowed here — new files aren't blocked,"
+              echo "  only edits to existing ones. A new language needs two code entries as well:"
+              echo "  the locale code in \`client_v2/project.inlang/settings.json\` (so paraglide compiles"
+              echo "  it) and an endonym in \`client_v2/src/lib/i18n/languages.ts\` (so it appears in the"
+              echo "  language picker). Without both, the translation file is built but unreachable."
+              echo ""
+            fi
+
+            if [ -n "$offending_legacy" ]; then
+              echo "### Legacy client translations are closed"
+              echo ""
+              echo "This PR changes non-English translation files of the **legacy React client**:"
+              echo ""
+              echo '```'
+              echo "$offending_legacy"
+              echo '```'
+              echo ""
+              echo "\`client/public/locales/\` belongs to the old client, which is only kept around for"
+              echo "the \`SPOOLMAN_LEGACY_CLIENT\` fallback. Its Weblate component is **locked** and its"
+              echo "translations are frozen — nothing here reaches the UI that users get by default."
+              echo ""
+              echo "**Translate \`client_v2\` instead:** the same strings, in the client everyone actually"
+              echo "sees, at <https://hosted.weblate.org/projects/spoolman/>."
+              echo ""
+            fi
+
+            echo "> If you believe a file genuinely needs a manual change (e.g. a structural fix),"
+            echo "> please explain it in a PR comment so a maintainer can review."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo ""
+          echo "Offending files:"
+          # Plain `if` rather than `[ -n … ] && echo …`: under `set -e` a false test makes the
+          # whole && list return non-zero and abort the step, which would skip the second echo.
+          if [ -n "$offending_v2" ]; then echo "$offending_v2"; fi
+          if [ -n "$offending_legacy" ]; then echo "$offending_legacy"; fi
+          exit 1

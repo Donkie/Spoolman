@@ -19,17 +19,21 @@ logger = logging.getLogger(__name__)
 
 
 DEFAULT_EXTERNAL_DB_URL = "https://donkie.github.io/SpoolmanDB/"
+DEFAULT_EXTERNAL_DB_NAME = "SpoolmanDB"
 DEFAULT_SYNC_INTERVAL = 3600
 
 controller = hishel.Controller(allow_stale=True)
 try:
     cache_path = get_cache_dir() / "hishel"
     cache_storage = hishel.AsyncFileStorage(base_path=cache_path)
-except PermissionError:
+except PermissionError as exc:
+    # Take the path from the exception rather than from cache_path: the data
+    # directory is created while cache_path is being evaluated, so when that is
+    # what fails, cache_path is never bound.
     logger.warning(
         "Failed to setup disk-based cache due to permission error. Ensure the path %s is writable. "
         "Using in-memory cache instead as fallback.",
-        str(cache_path.resolve()),
+        exc.filename or "of the Spoolman data directory",
     )
     cache_storage = hishel.AsyncInMemoryStorage()
 
@@ -125,6 +129,15 @@ def get_external_db_url() -> str:
     return os.getenv("EXTERNAL_DB_URL", DEFAULT_EXTERNAL_DB_URL)
 
 
+def get_external_db_name() -> str:
+    """Get the display name for the external filament library. Defaults to DEFAULT_EXTERNAL_DB_NAME.
+
+    Operators can point EXTERNAL_DB_URL at their own catalog; this lets them label it accordingly
+    in the UI instead of showing the "SpoolmanDB" default.
+    """
+    return os.getenv("EXTERNAL_DB_NAME", DEFAULT_EXTERNAL_DB_NAME)
+
+
 def get_external_db_sync_interval() -> int:
     """Get the external database sync interval from environment variables. Defaults to DEFAULT_SYNC_INTERVAL."""
     return int(os.getenv("EXTERNAL_DB_SYNC_INTERVAL", DEFAULT_SYNC_INTERVAL))
@@ -166,6 +179,49 @@ def get_materials_file() -> Path:
     return filecache.get_file("materials.json")
 
 
+# In-memory cache of the parsed filament catalog, keyed by (mtime, size) of the cache
+# file so it is only re-parsed when a sync rewrites the file. Size is part of the key
+# because mtime alone can miss a rewrite: filesystems with 1-second mtime granularity
+# report the same stamp for two writes within the same second, which would leave us
+# serving the previous catalog until the next sync.
+_filaments_cache: tuple[tuple[float, int], list[ExternalFilament]] | None = None
+
+
+def _load_filaments() -> list[ExternalFilament]:
+    """Load and parse the cached filament catalog, memoized by the file's mtime and size."""
+    global _filaments_cache  # noqa: PLW0603
+    path = get_filaments_file()
+    if not path.exists():
+        return []
+    stat = path.stat()
+    key = (stat.st_mtime, stat.st_size)
+    if _filaments_cache is None or _filaments_cache[0] != key:
+        _filaments_cache = (key, _parse_filaments_from_bytes(path.read_bytes()).root)
+    return _filaments_cache[1]
+
+
+def search_filaments(query: str, limit: int) -> list[ExternalFilament]:
+    """Search the external filament catalog server-side.
+
+    Keeps the same semantics as the client-side search it replaces: the query is split
+    into whitespace-separated words and every word must appear (case-insensitively) as a
+    substring of the filament's "manufacturer name material" text. Results preserve
+    catalog order and are capped at `limit`, so the entire catalog never has to be sent
+    to the client.
+    """
+    words = query.lower().split()
+    if not words:
+        return []
+    results: list[ExternalFilament] = []
+    for filament in _load_filaments():
+        haystack = f"{filament.manufacturer} {filament.name} {filament.material}".lower()
+        if all(word in haystack for word in words):
+            results.append(filament)
+            if len(results) >= limit:
+                break
+    return results
+
+
 async def _sync() -> None:
     logger.info("Syncing external DB.")
 
@@ -202,6 +258,6 @@ def schedule_tasks(scheduler: Scheduler) -> None:
 
     sync_interval = get_external_db_sync_interval()
     if sync_interval > 0:
-        scheduler.cyclic(datetime.timedelta(seconds=DEFAULT_SYNC_INTERVAL), _sync)  # type: ignore[arg-type]
+        scheduler.cyclic(datetime.timedelta(seconds=sync_interval), _sync)  # type: ignore[arg-type]
     else:
         logger.info("Sync interval is 0, skipping periodic sync of external db.")

@@ -1,0 +1,1390 @@
+<script lang="ts">
+	import { untrack, tick } from 'svelte';
+	import Swatch from './Swatch.svelte';
+	import Button from './Button.svelte';
+	import NumberInput from './NumberInput.svelte';
+	import Combobox from './Combobox.svelte';
+	import DateTimeField from './DateTimeField.svelte';
+	import X from '@lucide/svelte/icons/x';
+	import Plus from '@lucide/svelte/icons/plus';
+	import ExtraFieldsSection from './ExtraFieldsSection.svelte';
+	import NewFilamentCards from './NewFilamentCards.svelte';
+	import type { Filament, Extra, MultiColorDirection } from '$lib/types';
+	import { inventory } from '$lib/stores/inventory.svelte';
+	import { settings } from '$lib/stores/settings.svelte';
+	import { serverInfo } from '$lib/stores/serverInfo.svelte';
+	import { spoolSource } from '$lib/api/spoolSource';
+	import { fields } from '$lib/stores/fields.svelte';
+	import type { EntityType } from '$lib/api/fields';
+	import { externalColors, externalDirection, type ExternalFilament } from '$lib/api/external';
+	import { roundGrams, weightAuto } from '$lib/utils/format';
+	import { numErr } from '$lib/utils/validate';
+	import {
+		FILAMENT_ADVANCED_KEYS,
+		FILAMENT_FIELD_ORDER,
+		emptyFilamentDraft,
+		filamentDraftErrors,
+		filamentDraftFrom,
+		filamentWeightsFrom,
+		toNewFilamentDraft,
+		type FilamentDraft
+	} from '$lib/filament/draft';
+	import * as m from '$lib/paraglide/messages';
+
+	interface Props {
+		open: boolean;
+		/** When set, open straight to step 2 with this local filament chosen. */
+		presetFilamentId?: string | null;
+		/** When set, open straight to step 2 on a new filament copied from this one. */
+		duplicateFilamentId?: string | null;
+		onclose?: () => void;
+	}
+	let { open, presetFilamentId = null, duplicateFilamentId = null, onclose }: Props = $props();
+
+	// A chosen filament is one from the local catalog, a SpoolmanDB entry, or —
+	// when `creating` — a brand-new filament described by the `nf` form.
+	type Choice = { source: 'catalog'; filament: Filament } | { source: 'external'; ext: ExternalFilament };
+
+	let step = $state<1 | 2>(1);
+	let query = $state('');
+	let searchInput = $state<HTMLInputElement | undefined>();
+	let localResults = $state<Filament[]>([]);
+	let externalResults = $state<ExternalFilament[]>([]);
+	let searching = $state(false);
+	let extError = $state(false);
+	let chosen = $state<Choice | null>(null);
+	let creating = $state(false);
+	let submitting = $state(false);
+	let locations = $state<string[]>([]);
+	// The filament the current new-filament form was copied from, if any. Drives
+	// the "duplicate of X" heading, the rename nudge, and the extra-field carry-over.
+	let cloneSource = $state<Filament | null>(null);
+
+	// New-filament fields, drawn by NewFilamentCards. The weight/spool weight/price
+	// this flow would put on the filament are `netWeight`/`spoolWeight`/`price`
+	// below: they are written to the spool too, so they live in the spool block.
+	let nf = $state<FilamentDraft>(emptyFilamentDraft());
+	// Custom-field values for the filament being created. Separate from the spool's
+	// `extraValues` below: the two entities have their own field definitions.
+	let filamentExtra = $state<Extra>({});
+	// Same, for a manufacturer this form creates. Only ever sent when the typed name
+	// is a new one — linking an existing manufacturer must not edit its fields.
+	let vendorExtra = $state<Extra>({});
+	// Reported back by NewFilamentCards, which owns the manufacturer list.
+	let vendorIsNew = $state(false);
+	let showAdvanced = $state(false);
+	let modalEl = $state<HTMLDivElement | undefined>();
+	// When to *show* an error, as opposed to have one: a field is revealed once the
+	// user has left it, and everything is revealed once Add has been pressed. A form
+	// you just opened stays quiet instead of shouting "Required" at fields you were
+	// on your way to filling in. `errors` below is unaffected — it always describes
+	// the form as it stands.
+	let touched = $state<Record<string, boolean>>({});
+	let attempted = $state(false);
+
+	// --- display helpers for a chosen (existing) filament ------------------
+	function cName(c: Choice) {
+		return c.source === 'catalog' ? c.filament.name : c.ext.name;
+	}
+	function cVendor(c: Choice) {
+		return c.source === 'catalog'
+			? (inventory.vendorById(c.filament.vendorId)?.name ?? m['add.noManufacturer']())
+			: c.ext.manufacturer;
+	}
+	function cMaterial(c: Choice) {
+		return c.source === 'catalog' ? c.filament.material : c.ext.material;
+	}
+	function cColors(c: Choice) {
+		return c.source === 'catalog' ? c.filament.colors : externalColors(c.ext);
+	}
+	function cDirection(c: Choice): MultiColorDirection | undefined {
+		return c.source === 'catalog' ? c.filament.multiColorDirection : externalDirection(c.ext);
+	}
+	function cWeight(c: Choice) {
+		return c.source === 'catalog' ? c.filament.weight : c.ext.weight;
+	}
+	function cSpoolWeight(c: Choice): number | undefined {
+		if (c.source === 'external') return c.ext.spool_weight;
+		return c.filament.spoolWeight ?? inventory.vendorById(c.filament.vendorId)?.emptyWeight;
+	}
+	function cPrice(c: Choice): number | undefined {
+		return c.source === 'catalog' ? c.filament.price : undefined;
+	}
+	function vendorName(f: Filament): string {
+		return inventory.vendorById(f.vendorId)?.name ?? m['add.noManufacturer']();
+	}
+
+	// --- search -------------------------------------------------------------
+	let searchTimer: ReturnType<typeof setTimeout> | undefined;
+	function onSearch(v: string) {
+		query = v;
+		clearTimeout(searchTimer);
+		searchTimer = setTimeout(runSearch, 250);
+	}
+	async function runSearch() {
+		searching = true;
+		extError = false;
+		const [local, external] = await Promise.allSettled([
+			spoolSource.searchFilaments(query.trim()),
+			spoolSource.searchExternalFilaments(query.trim())
+		]);
+		localResults = local.status === 'fulfilled' ? local.value : [];
+		if (external.status === 'fulfilled') externalResults = external.value;
+		else {
+			externalResults = [];
+			extError = true;
+		}
+		searching = false;
+	}
+
+	let initialized = false;
+	$effect(() => {
+		if (open && !initialized) {
+			initialized = true;
+			runSearch();
+			fields.ensure('spool');
+			fields.ensure('filament');
+			fields.ensure('vendor');
+			spoolSource
+				.locations()
+				.then((l) => (locations = l))
+				.catch(() => {});
+			if (presetFilamentId) {
+				const f = inventory.filamentById(presetFilamentId);
+				if (f) choose({ source: 'catalog', filament: f });
+			} else if (duplicateFilamentId) {
+				const f = inventory.filamentById(duplicateFilamentId);
+				if (f) startDuplicate(f);
+			}
+		} else if (!open) {
+			initialized = false;
+		}
+	});
+
+	// Focus the search box whenever the search step is showing, so you can open
+	// the modal and start typing immediately. Re-runs when the input remounts
+	// (e.g. returning to step 1 from step 2).
+	$effect(() => {
+		if (open && step === 1 && searchInput) searchInput.focus();
+	});
+
+	// --- spool form ---------------------------------------------------------
+	type FillMode = 'full' | 'used' | 'remaining' | 'measured';
+	let count = $state('1');
+	let countN = $derived(Math.max(1, Math.floor(Number(count) || 1)));
+	let netWeight = $state('');
+	let spoolWeight = $state('');
+	let price = $state('');
+	let location = $state('');
+	let lot = $state('');
+	let comment = $state('');
+	let fillMode = $state<FillMode>('full');
+	let fillWeight = $state('');
+
+	// Which field's help popup is currently expanded (null = none).
+	let openHelp = $state<string | null>(null);
+	// Nullable ISO timestamps, driven by the custom DateTimeField picker.
+	let firstUsed = $state<string | undefined>(undefined);
+	let lastUsed = $state<string | undefined>(undefined);
+	let extraValues = $state<Extra>({});
+
+	const FILL_MODES: { key: FillMode; labelKey: () => string }[] = [
+		{ key: 'full', labelKey: m['add.fill.full'] },
+		{ key: 'used', labelKey: m['spool.fields.usedWeight'] },
+		{ key: 'remaining', labelKey: m['spool.fields.remainingWeight'] },
+		{ key: 'measured', labelKey: m['spool.fields.measuredWeight'] }
+	];
+	// Ballpark empty-spool weights, offered in the Spool Weight help for people who
+	// have no idea what to put there. Deliberately round: they're a starting point
+	// to be corrected by weighing the spool, not a claim about any specific brand.
+	const SPOOL_WEIGHT_PRESETS = [
+		{ weight: 140, label: () => m['add.spoolWeightPreset.cardboard']({ weight: 140 }) },
+		{ weight: 200, label: () => m['add.spoolWeightPreset.plastic']({ weight: 200 }) }
+	];
+	// The roll sizes worth a one-click shortcut, taken from the weights actually sold
+	// in the SpoolmanDB catalog: 1 kg is half of it and every brand in it sells one,
+	// with 750 g, 500 g, 250 g and the 2–3 kg bulk rolls making up most of the rest.
+	// Listed by size rather than popularity so the row reads as a scale; anything
+	// else is still typed into the field next to them.
+	const NET_WEIGHT_PRESETS = [250, 500, 750, 1000, 2000, 3000];
+
+	let fillHelp = $derived(
+		fillMode === 'used'
+			? m['spool.fieldsHelp.usedWeight']()
+			: fillMode === 'remaining'
+				? m['spool.fieldsHelp.remainingWeight']()
+				: fillMode === 'measured'
+					? m['spool.fieldsHelp.measuredWeight']()
+					: ''
+	);
+
+	/** `current` with a default filled in for every field it doesn't already carry. */
+	function withDefaults(entity: EntityType, current: Extra): Extra {
+		const out = { ...current };
+		for (const f of fields.get(entity))
+			if (f.default_value != null && !(f.key in out)) out[f.key] = f.default_value;
+		return out;
+	}
+	// Definitions are fetched on open, so they can land after the form is already on
+	// screen — opening straight into a preset or a duplicate leaves no time for the
+	// request. Top up the defaults when they arrive; anything already there, seeded
+	// or typed, is left alone. The writes are untracked so this doesn't re-run itself.
+	$effect(() => {
+		fields.get('spool');
+		fields.get('filament');
+		fields.get('vendor');
+		untrack(() => {
+			extraValues = withDefaults('spool', extraValues);
+			filamentExtra = withDefaults('filament', filamentExtra);
+			vendorExtra = withDefaults('vendor', vendorExtra);
+		});
+	});
+
+	function setExtraOn(current: Extra, key: string, json: string | undefined): Extra {
+		const next = { ...current };
+		if (json === undefined) delete next[key];
+		else next[key] = json;
+		return next;
+	}
+	function setExtra(key: string, json: string | undefined) {
+		extraValues = setExtraOn(extraValues, key, json);
+	}
+	function setFilamentExtra(key: string, json: string | undefined) {
+		filamentExtra = setExtraOn(filamentExtra, key, json);
+	}
+	function setVendorExtra(key: string, json: string | undefined) {
+		vendorExtra = setExtraOn(vendorExtra, key, json);
+	}
+
+	/** Back to a quiet form: nothing revealed until the user leaves a field or submits. */
+	function clearValidation() {
+		touched = {};
+		attempted = false;
+	}
+
+	function resetSpoolForm() {
+		count = '1';
+		location = '';
+		lot = '';
+		comment = '';
+		fillMode = 'full';
+		fillWeight = '';
+		firstUsed = undefined;
+		lastUsed = undefined;
+		extraValues = withDefaults('spool', {});
+		// Every route into step 2 lands here, so this is where the form goes quiet
+		// again: pick a different filament and you start over, not mid-argument.
+		clearValidation();
+	}
+
+	function choose(c: Choice) {
+		creating = false;
+		cloneSource = null;
+		chosen = c;
+		netWeight = String(cWeight(c) || 1000);
+		const sw = cSpoolWeight(c);
+		spoolWeight = sw ? String(sw) : '';
+		const p = cPrice(c);
+		price = p ? String(p) : '';
+		resetSpoolForm();
+		step = 2;
+	}
+
+	function startCreate() {
+		creating = true;
+		cloneSource = null;
+		chosen = null;
+		showAdvanced = false;
+		nf = emptyFilamentDraft(query.trim());
+		filamentExtra = withDefaults('filament', {});
+		vendorExtra = withDefaults('vendor', {});
+		netWeight = '1000';
+		spoolWeight = '';
+		price = '';
+		resetSpoolForm();
+		step = 2;
+	}
+
+	/**
+	 * Start a new filament copied from an existing one — the "I bought the same
+	 * filament in another colour" case. Everything that describes the *product*
+	 * carries over (manufacturer, material, specs, weights, price, custom fields — all
+	 * of it still editable in the form); everything that identifies the *variant* is
+	 * left for the user: the colour is cleared and the article number (a per-colour
+	 * SKU) is dropped. The name is kept as a starting point since it's usually one
+	 * word away from the new one,
+	 * with a nudge below the field until it's changed.
+	 */
+	function startDuplicate(f: Filament) {
+		creating = true;
+		cloneSource = f;
+		chosen = null;
+		// Specs came from a real filament rather than a material guess, so open the
+		// advanced block: it's what makes the copy visibly a copy.
+		showAdvanced = true;
+		nf = filamentDraftFrom(f, inventory.vendorById(f.vendorId)?.name ?? '');
+		filamentExtra = withDefaults('filament', { ...f.extra });
+		// Not copied from the source's manufacturer: a duplicate keeps that same
+		// manufacturer record, and these values only ever reach a newly created one.
+		vendorExtra = withDefaults('vendor', {});
+		const w = filamentWeightsFrom(f);
+		netWeight = w.weight;
+		spoolWeight = w.spoolWeight;
+		price = w.price;
+		resetSpoolForm();
+		step = 2;
+	}
+
+	function reset() {
+		step = 1;
+		query = '';
+		localResults = [];
+		externalResults = [];
+		chosen = null;
+		creating = false;
+		cloneSource = null;
+		clearValidation();
+		submitting = false;
+	}
+	function close() {
+		reset();
+		onclose?.();
+	}
+
+	async function submit(andAnother = false) {
+		if (submitting || !(creating || chosen)) return;
+		// The button stays clickable while the form is incomplete: a dead button
+		// answers "why can't I add this?" with silence. Pressing it instead marks
+		// every outstanding error visible and takes you to the first one — opening
+		// the section hiding it, scrolling it into view and focusing it.
+		if (firstProblem) {
+			attempted = true;
+			await focusField(firstProblem);
+			return;
+		}
+		submitting = true;
+		try {
+			let filamentId: number;
+			// Set when this submit created a filament, so "Add & new" can offer the
+			// next colour of it without going back through search.
+			let created: Filament | null = null;
+			if (creating) {
+				// Weight/spool weight/price come from the spool block: this flow writes
+				// each of them to both records.
+				const draft = {
+					...toNewFilamentDraft(nf, { weight: netWeight, spoolWeight, price }, filamentExtra),
+					// Dropped when the typed name matches an existing manufacturer —
+					// which is also when the inputs for it aren't shown.
+					vendorExtra: vendorIsNew ? vendorExtra : undefined
+				};
+				const f = await spoolSource.createFilament(draft);
+				created = f;
+				filamentId = Number(f.id);
+			} else if (chosen!.source === 'external') {
+				const imported = await spoolSource.importExternalFilament(chosen!.ext);
+				filamentId = Number(imported.id);
+			} else {
+				filamentId = Number(chosen!.filament.id);
+			}
+
+			const n = countN;
+			const net = Number(netWeight) || 0;
+			const spool = Number(spoolWeight) || 0;
+			const body: Record<string, unknown> = {
+				filament_id: filamentId,
+				initial_weight: Number(netWeight) || undefined,
+				spool_weight: Number(spoolWeight) || undefined,
+				price: parseFloat(price) || undefined,
+				location: location.trim() || undefined,
+				lot_nr: lot.trim() || undefined,
+				comment: comment.trim() || undefined
+			};
+			if (fillMode === 'used') body.used_weight = Number(fillWeight) || 0;
+			else if (fillMode === 'remaining') body.remaining_weight = Number(fillWeight) || 0;
+			else if (fillMode === 'measured')
+				// Rounded, because this subtraction is where float dust gets born: weighing a full
+				// 1000 g spool on a 128.11 g core gives 1000 + 128.11 − 1128.11 = 2.3e-13, and a
+				// spool created with that much used is not an unused spool any more (#986).
+				body.used_weight = roundGrams(Math.max(0, net + spool - (Number(fillWeight) || 0)));
+			if (firstUsed) body.first_used = firstUsed;
+			if (lastUsed) body.last_used = lastUsed;
+			if (Object.keys(extraValues).length) body.extra = extraValues;
+
+			for (let i = 0; i < n; i++) await spoolSource.createSpool(body);
+			if (andAnother && created) {
+				// Just added a brand-new filament: the overwhelmingly likely next entry
+				// is a sibling of it (the multi-colour shopping trip this flow exists
+				// for), so hand back the same form pre-copied instead of an empty search.
+				reset();
+				startDuplicate(created);
+			} else if (andAnother) {
+				reset();
+				runSearch();
+			} else {
+				close();
+			}
+		} catch (e) {
+			console.error('Failed to add spools', e);
+			submitting = false;
+		}
+	}
+
+	let summary = $derived(chosen || creating ? m['add.summary']({ count: countN }) : '');
+
+	// --- validation ---------------------------------------------------------
+	// The filament half lives in filamentDraftErrors() — including the one rule
+	// this client is stricter about than the API, a required material. The spool
+	// fields below mirror the spool creation API (spoolman/api/v1/spool.py):
+	// weight > 0, spool_weight/price ≥ 0, and a fill amount that fits inside them.
+	let errors = $derived.by(() => {
+		const e: Record<string, string> = creating ? filamentDraftErrors(nf) : {};
+		e.count = numErr(count, { required: true, gt: 0 });
+		e.netWeight = numErr(netWeight, { gt: 0 });
+		e.spoolWeight = numErr(spoolWeight, { min: 0 });
+		e.price = numErr(price, { min: 0 });
+		if (fillMode !== 'full') {
+			// Cross-check the fill amount against the net/empty-spool weights above.
+			// Only applies the upper bound when those weights are themselves valid so
+			// we don't cascade an unrelated error into this field.
+			const netN = Number(netWeight);
+			const netValid = netWeight.trim() !== '' && Number.isFinite(netN) && netN > 0;
+			const spoolN = Number.isFinite(Number(spoolWeight)) ? Number(spoolWeight) : 0;
+			if (fillMode === 'measured') {
+				// Weight on the scale = filament left + empty spool, so it can be at most
+				// net+spool (full) and at least the empty-spool weight (nothing left).
+				e.fillWeight = numErr(fillWeight, {
+					min: spoolN,
+					max: netValid ? netN + spoolN : undefined
+				});
+			} else {
+				// used/remaining are amounts of filament, capped at the net weight.
+				e.fillWeight = numErr(fillWeight, { min: 0, max: netValid ? netN : undefined });
+			}
+		}
+		// Drop empty (no-error) entries.
+		for (const k of Object.keys(e)) if (!e[k]) delete e[k];
+		return e;
+	});
+
+	// --- pointing at what's wrong -------------------------------------------
+	// The fields that can carry an error, in the order they appear on the form, so
+	// pressing Add sends you to the first one you'd have reached by reading down.
+	// The filament half comes from the shared card component; the spool fields this
+	// modal draws itself follow. Anything not listed falls back to whatever the
+	// error map yields, so a new error can never make Add silently do nothing.
+	const FIELD_ORDER = [...FILAMENT_FIELD_ORDER, 'count', 'netWeight', 'fillWeight', 'spoolWeight', 'price'];
+	// This modal draws the weight trio in its own spool block, so the only fields
+	// hidden behind the disclosure are the filament specs.
+	const ADVANCED_KEYS = new Set(FILAMENT_ADVANCED_KEYS);
+
+	let firstProblem = $derived(FIELD_ORDER.find((k) => errors[k]) ?? Object.keys(errors)[0]);
+
+	function touch(key: string) {
+		touched[key] = true;
+	}
+	/** The error to display for a field — empty until that field is revealed. */
+	function err(key: string): string {
+		return attempted || touched[key] ? (errors[key] ?? '') : '';
+	}
+
+	/** Scroll a field into view and put focus in it, opening its section if needed. */
+	async function focusField(key: string) {
+		if (ADVANCED_KEYS.has(key)) showAdvanced = true;
+		await tick();
+		const host = modalEl?.querySelector<HTMLElement>(`[data-field="${key}"]`);
+		if (!host) return;
+		host.scrollIntoView({ block: 'center', behavior: 'smooth' });
+		// preventScroll: the smooth scroll above is already on its way there.
+		host.querySelector<HTMLElement>('input, textarea, select')?.focus({ preventScroll: true });
+	}
+</script>
+
+<svelte:window
+	onkeydown={(e) => {
+		if (open && e.key === 'Escape') close();
+	}}
+/>
+
+<!-- The one marker for "this must be filled in", used on every required field and
+     on nothing else. It is decoration: the control itself carries aria-required, so
+     screen readers hear the requirement rather than an asterisk. -->
+{#snippet req()}<span class="req" title={m['validation.required']()} aria-hidden="true">*</span>{/snippet}
+
+{#if open}
+	<div class="overlay">
+		<!-- Click-outside catcher: a sibling of the modal (not a parent) so it doesn't
+		     nest the modal's interactive controls inside an interactive element.
+		     Keyboard close is handled by the window Escape listener above. -->
+		<button class="backdrop" tabindex="-1" aria-hidden="true" onclick={close}></button>
+		<div class="modal" role="dialog" aria-modal="true" tabindex="-1" bind:this={modalEl}>
+			<div class="modal-head">
+				<span class="title">{m['topbar.addSpools']()}</span>
+				{#if step === 2}
+					<!-- Creating a filament puts manufacturer and filament fields on this step
+					     too, so the hint can't call the whole step "spool details". -->
+					<span class="step-hint">{creating ? m['add.step2New']() : m['add.step2']()}</span>
+				{/if}
+				<button class="x" onclick={close} aria-label={m['buttons.close']()}><X size={16} /></button>
+			</div>
+
+			{#if step === 1}
+				<div class="body">
+					<input
+						bind:this={searchInput}
+						class="search-big"
+						value={query}
+						oninput={(e) => onSearch(e.currentTarget.value)}
+						placeholder={m['add.searchPlaceholder']({ name: serverInfo.externalDbName })}
+					/>
+					<div class="results">
+						<div class="res-hdr">{m['add.yourCatalog']()}</div>
+						{#if searching && localResults.length === 0}
+							<div class="res-note">{m['add.searching']()}</div>
+						{:else if localResults.length === 0}
+							<div class="res-note">{m['add.noCatalog']()}</div>
+						{:else}
+							{#each localResults as f (f.id)}
+								<button class="res-item" onclick={() => choose({ source: 'catalog', filament: f })}>
+									<Swatch colors={f.colors} direction={f.multiColorDirection} size={18} radius={5} />
+									<div class="res-name">
+										<span class="rn">{f.name}</span>
+										<span class="rs">{vendorName(f)} · {f.material}</span>
+									</div>
+									<!-- See the note on the external rows below: weight disambiguates two
+									     otherwise identical entries, so it sits outside the truncating
+									     .res-name. A catalog filament may have no weight recorded (0). -->
+									{#if f.weight}
+										<span class="res-weight">{weightAuto(f.weight)}</span>
+									{/if}
+									<span class="tag in-catalog">{m['add.inCatalog']()}</span>
+								</button>
+							{/each}
+						{/if}
+
+						<div class="res-hdr"><span class="hdr-note">{serverInfo.externalDbName}</span></div>
+						{#if extError}
+							<div class="res-note">{m['add.dbUnavailable']({ name: serverInfo.externalDbName })}</div>
+						{:else if searching && externalResults.length === 0}
+							<div class="res-note">{m['add.searching']()}</div>
+						{:else if externalResults.length === 0}
+							<div class="res-note">
+								{query.trim() ? m['add.typeToSearchMatches']() : m['add.typeToSearchAll']()}
+							</div>
+						{:else}
+							{#each externalResults as ext (ext.id)}
+								<button class="res-item" onclick={() => choose({ source: 'external', ext })}>
+									<Swatch
+										colors={externalColors(ext)}
+										direction={externalDirection(ext)}
+										size={18}
+										radius={5}
+									/>
+									<div class="res-name">
+										<span class="rn">{ext.name}</span>
+										<span class="rs">{ext.manufacturer} · {ext.material}</span>
+									</div>
+									<!-- Weight is part of the identity here: vendors list the same filament in
+									     several sizes, so the rows are otherwise indistinguishable. It sits
+									     outside .res-name so the ellipsis can never eat the one field that
+									     tells two matching results apart. -->
+									{#if ext.weight}
+										<span class="res-weight">{weightAuto(ext.weight)}</span>
+									{/if}
+									<span class="tag external">{serverInfo.externalDbName}</span>
+								</button>
+							{/each}
+						{/if}
+					</div>
+
+					<button class="create-new" onclick={startCreate}>
+						<span class="cn-plus"><Plus size={16} /></span>
+						<span>{m['add.createNew']()}</span>
+						<span class="cn-sub">{m['add.createNewSub']({ name: serverInfo.externalDbName })}</span>
+					</button>
+				</div>
+			{:else}
+				<div class="body">
+					<!-- Step 2 can create up to three records at once, so it is laid out as one
+					     block per entity — manufacturer, filament, spool — each with its own
+					     heading. Without that, the fields read as one flat form and there is no
+					     way to tell which record any given field lands on (#1038). The two
+					     new-record blocks are accent-bordered cards; the spool block is the
+					     plain remainder of the form, since a spool is always being created and
+					     needs no such emphasis. -->
+					{#if creating}
+						<NewFilamentCards
+							bind:draft={nf}
+							{err}
+							{touch}
+							extra={filamentExtra}
+							onextra={setFilamentExtra}
+							{vendorExtra}
+							onVendorExtra={setVendorExtra}
+							bind:vendorIsNew
+							bind:showAdvanced
+							{cloneSource}
+							backLabel={m['add.useExisting']()}
+							onback={() => (step = 1)}
+						/>
+					{:else if chosen}
+						<!-- No card here: the chosen-filament row is already a self-contained
+						     bordered block, so it only needs the heading that names the entity. -->
+						<div class="ent-label standalone">{m['add.section.filament']()}</div>
+						<div class="chosen">
+							<Swatch colors={cColors(chosen)} direction={cDirection(chosen)} size={24} radius={6} />
+							<div class="chosen-name">
+								<div class="cn">
+									{cName(chosen)}
+									{#if chosen.source === 'external'}<span class="tag external sm"
+											>{serverInfo.externalDbName}</span
+										>{/if}
+								</div>
+								<!-- Weight closes the loop on the search rows: it confirms which of several
+								     same-named sizes was picked. This is the filament's full-spool weight, so
+								     it stays put even if the Weight field below is edited for this spool. -->
+								<div class="cs">
+									{cVendor(chosen)} · {cMaterial(chosen)}{cWeight(chosen)
+										? ' · ' + weightAuto(cWeight(chosen))
+										: ''}
+								</div>
+							</div>
+							<!-- Found the right product but the wrong colour? Branch off it here
+							     rather than backing out and filling a blank form. -->
+							{#if chosen.source === 'catalog'}
+								{@const src = chosen.filament}
+								<button class="change" onclick={() => startDuplicate(src)}>{m['add.duplicate']()}</button>
+							{/if}
+							<button class="change" onclick={() => (step = 1)}>{m['add.change']()}</button>
+						</div>
+						{#if chosen.source === 'external'}
+							<div class="import-note">{m['add.importNote']()}</div>
+						{/if}
+					{/if}
+
+					<!-- Spool section -->
+					<div class="sec-divider"></div>
+					<div class="ent-label standalone">{m['add.section.spool']()}</div>
+					<div class="ent-note">{m['add.section.spoolNote']()}</div>
+					{#if creating}
+						<!-- Weight, spool weight and price below are written to the new filament as
+						     well as to the spool, which is the one place in this layout where a
+						     field genuinely belongs to two records. Say so rather than let the
+						     heading imply the filament is unaffected. -->
+						<div class="ent-note shared">{m['add.section.spoolSharedNote']()}</div>
+					{/if}
+					<!-- The spool fields run from what you can answer with the roll in your hand
+					     to what you'd have to go look up: how many, how big, how full, where it
+					     lives — then the numbers off the product page, then paperwork almost
+					     nobody fills in for a fresh spool. Everything down to Location is picked
+					     rather than typed, which is what keeps the common case to a few taps. -->
+					<div class="form headline">
+						<!-- How many and how big, on the line that answers "what am I adding": both
+						     are known at a glance, and the count stays narrow and quiet because it
+						     is 1 nearly every time. Its old neighbour, the empty-spool weight, moved
+						     down to the numbers that come off a product page — sitting between two
+						     weights was what made this row read as three of the same question. -->
+						<label data-field="count" onfocusout={() => touch('count')}
+							>{m['add.count']()}
+							{@render req()}
+							<NumberInput
+								bind:value={count}
+								min={1}
+								step={1}
+								width="76px"
+								spaced
+								required
+								invalid={!!err('count')}
+							/>
+							{#if err('count')}<span class="err">{err('count')}</span>{/if}
+						</label>
+						<label data-field="netWeight" onfocusout={() => touch('netWeight')}
+							>{m['filament.fields.weight']()}
+							<button
+								type="button"
+								class="help-toggle"
+								aria-label={m['help.help']()}
+								aria-controls="weight-help"
+								aria-expanded={openHelp === 'weight'}
+								onclick={() => (openHelp = openHelp === 'weight' ? null : 'weight')}>ⓘ</button
+							>
+							<!-- Sizes beside the field, not under it: they're alternatives to typing
+							     in it, and on one line the whole "how big is it" question answers
+							     itself without growing the form. Out in the open rather than behind
+							     the ⓘ used elsewhere, because this is the fast path through the
+							     field, not an explanation of it. Buttons nested in the <label> are
+							     safe — a click on interactive content isn't forwarded to the labelled
+							     input, so picking a size doesn't also yank focus into the field. -->
+							<span class="pick-line">
+								<NumberInput
+									bind:value={netWeight}
+									min={0}
+									step={50}
+									unit="g"
+									width="112px"
+									invalid={!!err('netWeight')}
+								/>
+								<span class="presets" role="group" aria-label={m['add.weightPresets']()}>
+									{#each NET_WEIGHT_PRESETS as preset (preset)}
+										<button
+											type="button"
+											class="preset"
+											class:on={Number(netWeight) === preset}
+											aria-pressed={Number(netWeight) === preset}
+											onclick={() => (netWeight = String(preset))}>{weightAuto(preset)}</button
+										>
+									{/each}
+								</span>
+							</span>
+							{#if openHelp === 'weight'}
+								<span class="help-popup" id="weight-help" role="note"
+									>{m['filament.fieldsHelp.weight']()}</span
+								>
+							{/if}
+							{#if err('netWeight')}<span class="err">{err('netWeight')}</span>{/if}
+						</label>
+					</div>
+
+					<div class="fill">
+						<div class="fill-label">{m['add.fillLevel']()}</div>
+						<div class="seg">
+							{#each FILL_MODES as fill_mode (fill_mode.key)}
+								<button
+									class="seg-btn"
+									class:active={fillMode === fill_mode.key}
+									onclick={() => (fillMode = fill_mode.key)}>{fill_mode.labelKey()}</button
+								>
+							{/each}
+						</div>
+						{#if fillMode !== 'full'}
+							<div class="fill-input" data-field="fillWeight" onfocusout={() => touch('fillWeight')}>
+								<NumberInput
+									bind:value={fillWeight}
+									min={0}
+									step={10}
+									unit="g"
+									placeholder="0"
+									width="130px"
+									invalid={!!err('fillWeight')}
+									ariaLabel={m['add.fillLevel']()}
+								/>
+								<span class="fill-help" class:is-error={!!err('fillWeight')}
+									>{err('fillWeight') || fillHelp}</span
+								>
+							</div>
+						{/if}
+					</div>
+
+					<!-- Which spool, and where it lives: the lot number is the one identifier a
+					     spool carries of its own, so it sits with the shelf rather than with the
+					     money. -->
+					<div class="form where">
+						<label>
+							{m['spool.fields.location']()}
+							<Combobox
+								value={location}
+								options={locations}
+								placeholder={m['add.locationPlaceholder']()}
+								oninput={(v) => (location = v)}
+							/>
+							<!-- Always-on rather than behind the ⓘ used elsewhere: "Location" reads as
+							     metadata until you're told it means the physical shelf, and testers
+							     didn't open a popup to find that out. -->
+							<span class="hint">{m['add.locationHint']()}</span>
+						</label>
+						<label>{m['spool.fields.lotNr']()}<input class="mono" bind:value={lot} placeholder="—" /></label>
+					</div>
+
+					<div class="form money">
+						<label data-field="spoolWeight" onfocusout={() => touch('spoolWeight')}
+							>{m['filament.fields.spoolWeight']()}
+							<button
+								type="button"
+								class="help-toggle"
+								aria-label={m['help.help']()}
+								aria-controls="spoolWeight-help"
+								aria-expanded={openHelp === 'spoolWeight'}
+								onclick={() => (openHelp = openHelp === 'spoolWeight' ? null : 'spoolWeight')}>ⓘ</button
+							>
+							<NumberInput
+								bind:value={spoolWeight}
+								min={0}
+								step={10}
+								unit="g"
+								placeholder="—"
+								spaced
+								invalid={!!err('spoolWeight')}
+							/>
+							{#if openHelp === 'spoolWeight'}
+								<span class="help-popup" id="spoolWeight-help" role="note">
+									{m['filament.fieldsHelp.spoolWeight']()}
+									<!-- Buttons nested in the <label>: a click on interactive content is
+									     not forwarded to the labelled input, so picking a preset doesn't
+									     also yank focus into the weight field. -->
+									<span class="presets">
+										<span class="presets-lead">{m['add.spoolWeightPresetsLead']()}</span>
+										{#each SPOOL_WEIGHT_PRESETS as preset (preset.weight)}
+											<button
+												type="button"
+												class="preset"
+												onclick={() => {
+													spoolWeight = String(preset.weight);
+													openHelp = null;
+												}}>{preset.label()}</button
+											>
+										{/each}
+									</span>
+								</span>
+							{/if}
+							{#if err('spoolWeight')}<span class="err">{err('spoolWeight')}</span>{/if}
+						</label>
+						<label data-field="price" onfocusout={() => touch('price')}
+							>{m['filament.fields.price']()} <span class="u">{settings.currency}</span>
+							<NumberInput bind:value={price} min={0} placeholder="—" spaced invalid={!!err('price')} />
+							{#if err('price')}<span class="err">{err('price')}</span>{/if}
+						</label>
+					</div>
+
+					<div class="form dates">
+						<label class="date-label"
+							>{m['spool.fields.firstUsed']()}<DateTimeField
+								value={firstUsed}
+								oninput={(iso) => (firstUsed = iso)}
+							/></label
+						>
+						<label class="date-label"
+							>{m['spool.fields.lastUsed']()}<DateTimeField
+								value={lastUsed}
+								oninput={(iso) => (lastUsed = iso)}
+							/></label
+						>
+					</div>
+
+					<div class="form comment-row">
+						<label class="wide"
+							>{m['spool.fields.comment']()}<textarea rows="2" bind:value={comment} placeholder="—"
+							></textarea></label
+						>
+					</div>
+
+					<ExtraFieldsSection entity="spool" extra={extraValues} onchange={setExtra} />
+
+					<div class="submit-row">
+						<div class="summary">{summary}</div>
+						<div class="actions">
+							<Button variant="outline" disabled={submitting} onclick={() => submit(true)}
+								>{m['add.addAndNew']()}</Button
+							>
+							<Button disabled={submitting} onclick={() => submit(false)}>
+								{submitting ? m['add.adding']() : m['add.addN']({ count: countN })}
+							</Button>
+						</div>
+					</div>
+				</div>
+			{/if}
+		</div>
+	</div>
+{/if}
+
+<style>
+	.overlay {
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.6);
+		z-index: 50;
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		padding: 8vh 16px 16px;
+	}
+	.backdrop {
+		position: fixed;
+		inset: 0;
+		border: none;
+		margin: 0;
+		padding: 0;
+		background: transparent;
+		cursor: default;
+	}
+	.modal {
+		position: relative;
+		z-index: 1;
+		width: 640px;
+		max-width: 100%;
+		max-height: 84vh;
+		display: flex;
+		flex-direction: column;
+		background: var(--bg);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-xl);
+		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+		overflow: hidden;
+	}
+	.modal-head {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 16px 20px 0;
+		flex: none;
+	}
+	.title {
+		font-weight: 700;
+		font-size: 16px;
+	}
+	.step-hint {
+		font-size: 11.5px;
+		color: var(--text-dim);
+	}
+	.x {
+		margin-left: auto;
+		color: var(--text-dim);
+		cursor: pointer;
+		font-size: 15px;
+		padding: 4px 8px;
+		background: none;
+		border: none;
+	}
+	.x:hover {
+		color: var(--text);
+	}
+	.body {
+		padding: 14px 20px 20px;
+		overflow-y: auto;
+	}
+	.search-big {
+		width: 100%;
+		background: var(--input-bg);
+		border: 1px solid var(--accent);
+		border-radius: var(--radius-md);
+		padding: 11px 14px;
+		font-size: 14px;
+		color: var(--text);
+		box-shadow: 0 0 0 3px rgba(190, 104, 47, 0.15);
+	}
+	.results {
+		margin-top: 8px;
+		background: var(--surface-2);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-md);
+		overflow: hidden;
+		max-height: 40vh;
+		overflow-y: auto;
+	}
+	.res-hdr {
+		display: flex;
+		align-items: baseline;
+		gap: 8px;
+		padding: 7px 14px;
+		font-size: 10.5px;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		color: var(--text-dim);
+		background: var(--surface);
+		border-top: 1px solid var(--border);
+		position: sticky;
+		top: 0;
+		/* Sit above scrolling rows: their swatches are position:relative, so
+		   without this the header's opaque background hides the row text but the
+		   positioned swatch still paints on top of the sticky header. */
+		z-index: 1;
+	}
+	.hdr-note {
+		text-transform: none;
+		letter-spacing: 0;
+		color: var(--text-faint);
+	}
+	.res-note {
+		padding: 10px 14px;
+		font-size: 12px;
+		color: var(--text-dim);
+		border-top: 1px solid var(--border-soft);
+	}
+	.res-item {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 10px 14px;
+		cursor: pointer;
+		border: none;
+		border-top: 1px solid var(--border-soft);
+		background: none;
+		color: inherit;
+		width: 100%;
+		text-align: left;
+		font-family: inherit;
+	}
+	.res-item:hover {
+		background: var(--surface-raised);
+	}
+	.res-name {
+		flex: 1;
+		min-width: 0;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.rn {
+		font-weight: 600;
+	}
+	.rs {
+		color: var(--text-muted);
+		font-size: 12px;
+	}
+	.res-weight {
+		flex: none;
+		white-space: nowrap;
+		font-size: 12px;
+		font-variant-numeric: tabular-nums;
+		color: var(--text);
+	}
+	.tag {
+		font-size: 10.5px;
+		padding: 1px 7px;
+		border-radius: 8px;
+		flex: none;
+		white-space: nowrap;
+	}
+	.tag.in-catalog {
+		background: var(--surface-raised);
+		color: var(--text-2);
+	}
+	.tag.external {
+		background: var(--accent-wash);
+		border: 1px solid var(--accent-border);
+		color: var(--accent-soft);
+	}
+	.tag.sm {
+		margin-left: 6px;
+	}
+	.create-new {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		width: 100%;
+		margin-top: 10px;
+		padding: 11px 14px;
+		border: 1px dashed var(--accent-border);
+		border-radius: var(--radius-md);
+		background: none;
+		color: var(--accent-link);
+		cursor: pointer;
+		font-family: inherit;
+		font-size: 13px;
+		text-align: left;
+	}
+	.create-new:hover {
+		border-color: var(--accent);
+		background: var(--accent-wash-soft);
+	}
+	.cn-plus {
+		font-size: 15px;
+		flex: none;
+	}
+	.cn-sub {
+		margin-left: auto;
+		color: var(--text-faint);
+		font-size: 11.5px;
+	}
+	.chosen {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		background: var(--surface-2);
+		border: 1px solid var(--swatch-border);
+		border-radius: var(--radius-md);
+		padding: 10px 14px;
+	}
+	.chosen-name {
+		flex: 1;
+		min-width: 0;
+	}
+	.cn {
+		font-weight: 600;
+	}
+	.cs {
+		font-size: 11.5px;
+		color: var(--text-muted);
+	}
+	.change {
+		font-size: 12px;
+		color: var(--accent-link);
+		cursor: pointer;
+		background: none;
+		border: none;
+	}
+	.import-note {
+		margin-top: 10px;
+		padding: 8px 12px;
+		border: 1px solid var(--unused-bg);
+		background: var(--accent-wash-soft);
+		border-radius: var(--radius);
+		font-size: 11.5px;
+		color: var(--accent-muted-2);
+	}
+	.ent-label {
+		display: block;
+		font-size: 11px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		color: var(--text-dim);
+	}
+	.ent-label.standalone {
+		margin-bottom: 6px;
+	}
+	.ent-note {
+		display: block;
+		font-size: 11.5px;
+		color: var(--text-faint);
+		margin: 2px 0 8px;
+	}
+	.ent-note.shared {
+		color: var(--accent-muted-2);
+	}
+	/* Separates the records being created from the spool block. Deliberately
+	   heavier than --border-soft, which was invisible against the light theme's
+	   card backgrounds and left the two blocks looking like one run of fields. */
+	.sec-divider {
+		height: 1px;
+		background: var(--border);
+		margin: 16px 0 12px;
+	}
+	.form {
+		display: grid;
+		grid-template-columns: 1fr 1fr 1fr;
+		gap: 12px;
+		margin-top: 14px;
+	}
+	/* Count takes only what it needs; the weight and its roll sizes take the rest. */
+	.form.headline {
+		grid-template-columns: auto 1fr;
+	}
+	/* The shelf gets the room; the lot number is a short code. */
+	.form.where {
+		grid-template-columns: 2fr 1fr;
+	}
+	/* The weight field and its roll sizes on one line, so the sizes read as
+	   alternatives to typing in it rather than as a second control stacked
+	   underneath — and so offering them costs the form no height. */
+	.pick-line {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-top: 5px;
+	}
+	.pick-line .presets {
+		margin-top: 0;
+	}
+	.form label {
+		display: block;
+		font-size: 11.5px;
+		color: var(--text-muted);
+	}
+	.form label.wide {
+		grid-column: 1 / -1;
+	}
+	.u {
+		color: var(--text-faint);
+	}
+	.form input {
+		width: 100%;
+		border: 1px solid var(--border-strong);
+		background: none;
+		border-radius: 7px;
+		padding: 9px 12px;
+		color: var(--text);
+		font-size: 13px;
+		margin-top: 5px;
+	}
+	.form input:focus {
+		border-color: var(--accent);
+	}
+	.err {
+		display: block;
+		margin-top: 4px;
+		font-size: 11px;
+		color: var(--danger-soft);
+	}
+	.req {
+		color: var(--accent-soft);
+	}
+	.hint {
+		display: block;
+		margin-top: 4px;
+		font-size: 11px;
+		color: var(--text-faint);
+	}
+	.help-toggle {
+		position: relative;
+		border: none;
+		background: none;
+		padding: 0;
+		margin-left: 2px;
+		font-size: 12px;
+		/* Keep the line box the same height as plain-text labels so grid rows
+		   with a help button stay aligned with those without one. */
+		line-height: 1;
+		color: var(--text-faint);
+		cursor: pointer;
+		vertical-align: middle;
+	}
+	.help-toggle::before {
+		/* Roomy tap target on touch, laid out over the glyph so it doesn't
+		   affect the inline height of the label. */
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 32px;
+		height: 32px;
+		transform: translate(-50%, -50%);
+	}
+	.help-toggle:hover,
+	.help-toggle[aria-expanded='true'] {
+		color: var(--accent-soft);
+	}
+	.help-popup {
+		display: block;
+		margin-top: 6px;
+		padding: 8px 10px;
+		border-radius: 7px;
+		background: var(--surface-2, rgba(127, 127, 127, 0.12));
+		border: 1px solid var(--border-strong);
+		font-size: 11.5px;
+		line-height: 1.45;
+		color: var(--text-muted);
+		/* Flows inline in the form, so it wraps and stays inside the modal on mobile. */
+		max-width: 100%;
+	}
+	.presets {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 6px;
+		margin-top: 8px;
+	}
+	.presets-lead {
+		color: var(--text-faint);
+	}
+	.preset {
+		border: 1px solid var(--border-strong);
+		background: none;
+		border-radius: 999px;
+		padding: 3px 10px;
+		color: var(--accent-link);
+		font-family: inherit;
+		font-size: 11.5px;
+		cursor: pointer;
+	}
+	.preset:hover {
+		border-color: var(--accent);
+		background: var(--accent-wash-soft);
+	}
+	/* The size the field currently holds, so the row doubles as a readout of which
+	   preset (if any) is in play. */
+	.preset.on {
+		border-color: var(--accent);
+		background: var(--accent-wash);
+		color: var(--text);
+	}
+	.form textarea {
+		width: 100%;
+		border: 1px solid var(--border-strong);
+		background: none;
+		border-radius: 7px;
+		padding: 9px 12px;
+		color: var(--text);
+		font-size: 13px;
+		font-family: inherit;
+		margin-top: 5px;
+		resize: vertical;
+	}
+	.form textarea:focus {
+		border-color: var(--accent);
+	}
+	.comment-row {
+		grid-template-columns: 1fr;
+	}
+	.dates {
+		grid-template-columns: 1fr 1fr;
+	}
+	/* Give the custom DateTimeField trigger the same top gap as text inputs. */
+	.date-label :global(.dtf) {
+		margin-top: 8px;
+	}
+	.fill {
+		margin-top: 14px;
+	}
+	.fill-label {
+		font-size: 11.5px;
+		color: var(--text-muted);
+		margin-bottom: 6px;
+	}
+	.seg {
+		display: inline-flex;
+		border: 1px solid var(--border-strong);
+		border-radius: 7px;
+		overflow: hidden;
+	}
+	.seg-btn {
+		padding: 7px 14px;
+		background: none;
+		border: none;
+		border-right: 1px solid var(--border-strong);
+		color: var(--text-2);
+		font-size: 12.5px;
+		cursor: pointer;
+		font-family: inherit;
+	}
+	.seg-btn:last-child {
+		border-right: none;
+	}
+	.seg-btn.active {
+		background: var(--accent-wash);
+		color: var(--accent-soft);
+		font-weight: 600;
+	}
+	.fill-input {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-top: 10px;
+	}
+	.fill-help {
+		font-size: 11.5px;
+		color: var(--text-faint);
+	}
+	.fill-help.is-error {
+		color: var(--danger-soft);
+	}
+	.submit-row {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		margin-top: 18px;
+	}
+	.summary {
+		flex: 1;
+		font-size: 12px;
+		color: var(--text-muted);
+	}
+	.actions {
+		display: flex;
+		gap: 8px;
+		flex: none;
+	}
+	@media (max-width: 620px) {
+		.form {
+			grid-template-columns: 1fr 1fr;
+		}
+		/* A 23px-tall pill is a fine mouse target and a poor thumb one. On phones
+		   give them the same 44px height the segmented controls in this modal use —
+		   the roll sizes are the fast path through the weight field, so they have to
+		   be hittable without aiming. */
+		.preset {
+			min-height: 44px;
+			padding: 3px 14px;
+			font-size: 12.5px;
+		}
+	}
+</style>

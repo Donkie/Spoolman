@@ -1,6 +1,7 @@
 """Utility functions for the database module."""
 
 from collections.abc import Sequence
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, TypeVar
 
@@ -10,27 +11,125 @@ from sqlalchemy.orm import attributes
 
 from spoolman.database import models
 
+# Escape character for LIKE patterns. Deliberately not backslash: a backslash ESCAPE clause is
+# ambiguous under MySQL/MariaDB string parsing. '/' renders safely on all four dialects.
+LIKE_ESCAPE = "/"
+
+
+def escape_like(value: str) -> str:
+    """Escape LIKE wildcards so user input is matched literally, not as a wildcard pattern.
+
+    Pair it with ``escape=LIKE_ESCAPE`` on the ``like``/``ilike`` call, or the escape character
+    means nothing to the database and the wildcards are still live.
+
+    Args:
+        value: The raw user input to be embedded in a LIKE pattern.
+
+    Returns:
+        str: The input with the escape character and both wildcards escaped.
+
+    """
+    return value.replace(LIKE_ESCAPE, LIKE_ESCAPE * 2).replace("%", f"{LIKE_ESCAPE}%").replace("_", f"{LIKE_ESCAPE}_")
+
 
 class SortOrder(Enum):
     ASC = 1
     DESC = 2
 
 
+def order_by_clauses(
+    exprs: Sequence[Any],
+    order: SortOrder,
+) -> list[Any]:
+    """Build ORDER BY clauses for one sort field, always placing NULLs last.
+
+    The databases disagree on where a NULL goes: SQLite and MySQL treat NULL as the lowest
+    value (so it lands last on DESC, first on ASC), while PostgreSQL and CockroachDB default
+    to NULLS LAST on ASC and NULLS FIRST on DESC. Sorting spools by `last_used:desc` on
+    PostgreSQL therefore floated every never-used spool to the top of the list (#984, #985).
+
+    A NULL means "no value recorded", which belongs at the bottom whichever way the list is
+    pointing, so we order on an explicit "is it null" flag first. It is written as a boolean
+    expression rather than SQLAlchemy's ``nullslast()`` on purpose: that renders a literal
+    NULLS LAST, which MySQL and MariaDB do not support, whereas ``expr IS NULL`` sorts
+    false-before-true on all four supported databases.
+
+    Args:
+        exprs: The expressions to sort by, in priority order. A field usually contributes
+            one; a couple (e.g. `filament.combined_name`) expand to several.
+        order: The requested direction, applied to every expression.
+
+    Returns:
+        list[Any]: Clauses to hand to ``Select.order_by()``.
+
+    """
+    clauses: list[Any] = []
+    for expr in exprs:
+        clauses.append(expr.is_(None).asc())
+        clauses.append(expr.asc() if order == SortOrder.ASC else expr.desc())
+    return clauses
+
+
+def parse_sort(sort: str | None) -> dict[str, SortOrder]:
+    """Parse the ``sort`` query parameter into field/direction pairs.
+
+    Shared by the spool, filament and vendor endpoints, which each used to do this inline with a
+    bare ``split(":")`` -- so ``?sort=name`` raised "not enough values to unpack" and
+    ``?sort=name:sideways`` a KeyError, both surfacing as a 500.
+
+    Args:
+        sort: The raw parameter, e.g. ``name:asc,filament.material:desc``. May be None.
+
+    Returns:
+        dict[str, SortOrder]: Field name to direction, empty if nothing was requested.
+
+    Raises:
+        ValueError: If an entry has no direction, or a direction that is not asc/desc.
+
+    """
+    sort_by: dict[str, SortOrder] = {}
+    if sort is None:
+        return sort_by
+
+    for sort_item in sort.split(","):
+        item = sort_item.strip()
+        if not item:
+            continue
+
+        field, separator, direction = item.partition(":")
+        if not separator:
+            raise ValueError(f"Invalid sort '{item}', expected the form 'field:asc' or 'field:desc'.")
+        if not field:
+            raise ValueError(f"Invalid sort '{item}', no field name was given.")
+        try:
+            sort_by[field] = SortOrder[direction.strip().upper()]
+        except KeyError:
+            raise ValueError(
+                f"Invalid sort direction '{direction}' for field '{field}', expected 'asc' or 'desc'.",
+            ) from None
+
+    return sort_by
+
+
 def parse_nested_field(base_obj: type[models.Base], field: str) -> attributes.InstrumentedAttribute[Any]:
     """Parse a nested field string into a sqlalchemy field object."""
     fields = field.split(".")
-    if not hasattr(base_obj, fields[0]):
-        raise ValueError(f"Invalid field name '{field}', '{fields[0]}' is not a valid field on '{base_obj.__name__}'.")
 
-    if fields[0] == "filament" and len(fields) == 1:
-        raise ValueError("No field specified for filament")
-    if fields[0] == "filament":
+    if fields[0] == "filament" and hasattr(base_obj, "filament"):
+        if len(fields) == 1:
+            raise ValueError("No field specified for filament")
         return parse_nested_field(models.Filament, ".".join(fields[1:]))
 
-    if fields[0] == "vendor" and len(fields) == 1:
-        raise ValueError("No field specified for vendor")
-    if fields[0] == "vendor":
+    if fields[0] == "vendor" and hasattr(base_obj, "vendor"):
+        if len(fields) == 1:
+            raise ValueError("No field specified for vendor")
         return parse_nested_field(models.Vendor, ".".join(fields[1:]))
+
+    # Only mapped columns, not any attribute that happens to exist. `hasattr` also accepted
+    # `metadata`, `registry` and relationships, which then reached order_by() and blew up there --
+    # `?sort=metadata:asc` raised "'MetaData' object has no attribute 'asc'" as a 500.
+    if fields[0] not in sqlalchemy.inspect(base_obj).columns:
+        raise ValueError(f"Invalid field name '{field}', '{fields[0]}' is not a valid field on '{base_obj.__name__}'.")
 
     if len(fields) > 1:
         raise ValueError(f"Field '{fields[0]}' does not have any nested fields")
@@ -83,6 +182,99 @@ def add_where_clause_str(
 
         stmt = stmt.where(sqlalchemy.or_(*conditions))
     return stmt
+
+
+# Separates the two ends of a datetime range. Not ':', which ISO 8601 timestamps are full of —
+# the same reason the extra-field datetime filters use this character (see add_where_clause_extra_field).
+DATETIME_RANGE_SEPARATOR = "|"
+
+
+def split_datetime_range_filter(value: str, field_name: str) -> tuple[str, str] | None:
+    """Split a `<start>|<end>` datetime filter into its two ends, or None if it isn't a range.
+
+    Either end may be empty, leaving that side open; a range with neither end asks nothing and is
+    rejected. Shared by the built-in datetime columns and the datetime extra fields so that the
+    one documented grammar is parsed in exactly one place. Only the parsing is common: what each
+    caller then does with the ends differs, because a typed column is compared as a datetime while
+    an extra field is compared as its decoded JSON text (see add_where_clause_extra_field).
+    """
+    if DATETIME_RANGE_SEPARATOR not in value:
+        return None
+    start, _, end = value.partition(DATETIME_RANGE_SEPARATOR)
+    if not start and not end:
+        raise ValueError(
+            f"Invalid datetime range filter for '{field_name}': '{value}'. "
+            f"Expected '<start>{DATETIME_RANGE_SEPARATOR}<end>' with at least one end given.",
+        )
+    return start, end
+
+
+def parse_datetime_filter_bound(raw: str, field_name: str) -> datetime:
+    """Parse one ISO 8601 bound into the UTC-naive form the datetime columns store."""
+    text = raw.strip()
+    # fromisoformat only learned to read a 'Z' suffix in 3.11, and we still support 3.10.
+    if text[-1:] in ("Z", "z"):
+        text = text[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        raise ValueError(
+            f"Invalid datetime '{raw}' for '{field_name}'. Expected an ISO 8601 datetime, e.g. 2024-05-01T00:00:00Z.",
+        ) from None
+    if parsed.tzinfo is None:
+        # No offset given, so it is already UTC — which is what the columns hold. Note that
+        # astimezone() must not be used here: on a naive datetime it assumes the server's local
+        # time and would silently shift the bound by the host's UTC offset.
+        return parsed
+    return parsed.astimezone(tz=timezone.utc).replace(tzinfo=None)
+
+
+def add_where_clause_datetime_opt(
+    stmt: Select,
+    field: attributes.InstrumentedAttribute[datetime | None],
+    value: str | None,
+) -> Select:
+    """Add a where clause for an optional datetime field.
+
+    The value grammar is the one the extra-field datetime filters already use, so a built-in
+    timestamp and a custom one answer the same question the same way:
+
+    * ``<start>|<end>`` — inclusive range; either end may be omitted to leave it open.
+    * ``<timestamp>`` — exact match.
+    * ``""`` (empty) — the field is unset, matching how an empty value means "no value" for
+      string columns and extra fields alike. A NULL matches no bound (ordinary SQL comparison
+      semantics: a spool that has never been used was not used before yesterday either), so this
+      is the only way to select those rows.
+    * Several of the above, comma-separated, are OR-ed together.
+    """
+    if value is None:
+        return stmt
+
+    conditions = []
+    for raw_part in value.split(","):
+        if len(raw_part) == 0:
+            conditions.append(field.is_(None))
+            continue
+
+        # Quotes mean "exact" for the string filters. A typed column is always matched exactly,
+        # so they carry no meaning here, but they are accepted and stripped so that a caller can
+        # spell every filter the same way.
+        value_part = raw_part[1:-1] if len(raw_part) > 1 and raw_part[0] == '"' == raw_part[-1] else raw_part
+
+        ends = split_datetime_range_filter(value_part, field.key)
+        if ends is None:
+            conditions.append(field == parse_datetime_filter_bound(value_part, field.key))
+            continue
+
+        start_str, end_str = ends
+        bounds = []
+        if start_str:
+            bounds.append(field >= parse_datetime_filter_bound(start_str, field.key))
+        if end_str:
+            bounds.append(field <= parse_datetime_filter_bound(end_str, field.key))
+        conditions.append(sqlalchemy.and_(*bounds))
+
+    return stmt.where(sqlalchemy.or_(*conditions))
 
 
 def add_where_clause_int(

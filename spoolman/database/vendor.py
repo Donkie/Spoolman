@@ -9,8 +9,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import EventType, Vendor, VendorEvent
 from spoolman.database import models
-from spoolman.database.utils import SortOrder, add_where_clause_str, add_where_clause_str_opt
+from spoolman.database.extra_field_query import apply_extra_field_filters_and_sort
+from spoolman.database.utils import (
+    SortOrder,
+    add_where_clause_str,
+    add_where_clause_str_opt,
+    order_by_clauses,
+    parse_nested_field,
+)
 from spoolman.exceptions import ItemNotFoundError
+from spoolman.extra_field_registry import EntityType
 from spoolman.ws import websocket_manager
 
 logger = logging.getLogger(__name__)
@@ -23,7 +31,7 @@ async def create(
     comment: str | None = None,
     empty_spool_weight: float | None = None,
     external_id: str | None = None,
-    extra: dict[str, str] | None = None,
+    extra: dict[str, str | None] | None = None,
 ) -> models.Vendor:
     """Add a new vendor to the database."""
     vendor = models.Vendor(
@@ -32,7 +40,7 @@ async def create(
         comment=comment,
         empty_spool_weight=empty_spool_weight,
         external_id=external_id,
-        extra=[models.VendorField(key=k, value=v) for k, v in (extra or {}).items()],
+        extra=[models.VendorField(key=k, value=v) for k, v in (extra or {}).items() if v is not None],
     )
     db.add(vendor)
     await db.commit()
@@ -53,6 +61,7 @@ async def find(
     db: AsyncSession,
     name: str | None = None,
     external_id: str | None = None,
+    extra_field_filters: dict[str, str] | None = None,
     sort_by: dict[str, SortOrder] | None = None,
     limit: int | None = None,
     offset: int = 0,
@@ -68,19 +77,28 @@ async def find(
 
     total_count = None
 
-    if limit is not None:
-        total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True)
-        total_count = (await db.execute(total_count_stmt)).scalar()
-
-        stmt = stmt.offset(offset).limit(limit)
+    stmt = await apply_extra_field_filters_and_sort(
+        db=db,
+        stmt=stmt,
+        base_obj=models.Vendor,
+        entity_type=EntityType.vendor,
+        extra_field_filters=extra_field_filters,
+        sort_by=sort_by,
+    )
 
     if sort_by is not None:
         for fieldstr, order in sort_by.items():
-            field = getattr(models.Vendor, fieldstr)
-            if order == SortOrder.ASC:
-                stmt = stmt.order_by(field.asc())
-            elif order == SortOrder.DESC:
-                stmt = stmt.order_by(field.desc())
+            # Check if this is a custom field sort
+            if fieldstr.startswith("extra."):
+                continue
+
+            field = parse_nested_field(models.Vendor, fieldstr)
+            stmt = stmt.order_by(*order_by_clauses([field], order))
+
+    if limit is not None:
+        total_count_stmt = stmt.with_only_columns(func.count(), maintain_column_froms=True).order_by(None)
+        total_count = (await db.execute(total_count_stmt)).scalar()
+        stmt = stmt.offset(offset).limit(limit)
 
     rows = await db.execute(
         stmt,
@@ -103,7 +121,12 @@ async def update(
     vendor = await get_by_id(db, vendor_id)
     for k, v in data.items():
         if k == "extra":
-            vendor.extra = [models.VendorField(key=k, value=v) for k, v in v.items()]
+            # Merged per key, the same as a spool's and a filament's: only the keys present
+            # in the patch are touched, and a null value means the vendor has no value for
+            # that field, so its row is dropped and not re-added — that is how a value that
+            # has been set gets cleared.
+            vendor.extra = [f for f in vendor.extra if f.key not in v]
+            vendor.extra.extend([models.VendorField(key=k, value=v) for k, v in v.items() if v is not None])
         else:
             setattr(vendor, k, v)
     await db.commit()
@@ -115,6 +138,9 @@ async def delete(db: AsyncSession, vendor_id: int) -> None:
     """Delete a vendor object."""
     vendor = await get_by_id(db, vendor_id)
     await db.delete(vendor)
+    # Commit before notifying so the deletion is durable and visible to subsequent
+    # requests; post-commit notification must be the last, infallible step.
+    await db.commit()
     await vendor_changed(vendor, EventType.DELETED)
 
 
@@ -123,6 +149,7 @@ async def clear_extra_field(db: AsyncSession, key: str) -> None:
     await db.execute(
         sqlalchemy.delete(models.VendorField).where(models.VendorField.key == key),
     )
+    await db.commit()
 
 
 async def vendor_changed(vendor: models.Vendor, typ: EventType) -> None:
