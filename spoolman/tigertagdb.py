@@ -3,7 +3,7 @@
 import datetime
 import json
 import logging
-from typing import Optional
+from pathlib import Path
 from urllib.parse import urljoin
 
 import httpx
@@ -18,6 +18,9 @@ logger = logging.getLogger(__name__)
 
 TIGERTAG_CACHE_FILE = "tigertag_filaments.json"
 TIGERTAG_BRANDS_CACHE_FILE = "tigertag_brands.json"
+
+# TigerTag returns an 8-char RGBA hex string; Spoolman only stores RGB.
+_RGBA_HEX_LEN = 8
 TIGERTAG_MATERIALS_CACHE_FILE = "tigertag_materials.json"
 
 
@@ -33,24 +36,24 @@ class TigerTagMaterial(BaseModel):
 
     id_type: int
     name: str
-    density: Optional[float] = None
+    density: float | None = None
 
 
 class TigerTagProduct(BaseModel):
     """A filament product from the TigerTag API."""
 
     id: int
-    product_type: Optional[str] = None
-    brand: Optional[str] = None
-    title: Optional[str] = None
-    material: Optional[str] = None
-    color: Optional[str] = None
-    color_info: Optional[dict] = None
-    measure: Optional[str] = None
-    sku: Optional[str] = None
+    product_type: str | None = None
+    brand: str | None = None
+    title: str | None = None
+    material: str | None = None
+    color: str | None = None
+    color_info: dict | None = None
+    measure: str | None = None
+    sku: str | None = None
 
 
-def _parse_weight_from_measure(measure: Optional[str]) -> float:
+def _parse_weight_from_measure(measure: str | None) -> float:
     """Parse weight in grams from measure string like '1 kg' or '500 g'."""
     if not measure:
         return 1000.0
@@ -76,8 +79,7 @@ def _to_external_filament(product: TigerTagProduct) -> ExternalFilament:
     color_hex = None
     if product.color:
         hex_str = product.color.lstrip("#")
-        # TigerTag returns 8-char RGBA hex, Spoolman expects 6-char RGB
-        if len(hex_str) == 8:
+        if len(hex_str) == _RGBA_HEX_LEN:
             hex_str = hex_str[:6]
         color_hex = hex_str
 
@@ -181,19 +183,26 @@ async def _sync_tigertag() -> None:
     try:
         materials_list = await _fetch_materials(base_url)
         filecache.update_file(
-            TIGERTAG_MATERIALS_CACHE_FILE, json.dumps(materials_list, ensure_ascii=False).encode("utf-8"),
+            TIGERTAG_MATERIALS_CACHE_FILE,
+            json.dumps(materials_list, ensure_ascii=False).encode("utf-8"),
         )
         logger.info("TigerTag materials synced: %d", len(materials_list))
     except Exception:
         logger.exception("Failed to sync TigerTag materials")
 
 
-def get_tigertag_filaments_file():
+def get_tigertag_filaments_file() -> Path:
     """Get the path to the cached TigerTag filaments file."""
     return filecache.get_file(TIGERTAG_CACHE_FILE)
 
 
-def lookup_brand_name(id_brand: int) -> Optional[str]:
+# A cache miss/corrupt cache file must fall through to the tag's raw data rather
+# than raise, so these three lookups deliberately swallow anything that can go
+# wrong reading and parsing the file (missing file, truncated JSON, wrong shape).
+_CACHE_LOOKUP_ERRORS = (OSError, ValueError, KeyError, TypeError)
+
+
+def lookup_brand_name(id_brand: int) -> str | None:
     """Look up a brand name by its TigerTag numeric ID from the cached brand list.
 
     Brand API returns: [{"id": 19961, "name": "Rosa3D", "type_ids": [142]}, ...]
@@ -203,12 +212,12 @@ def lookup_brand_name(id_brand: int) -> Optional[str]:
         for entry in data:
             if entry.get("id") == id_brand:
                 return entry.get("name")
-    except Exception:
+    except _CACHE_LOOKUP_ERRORS:
         logger.debug("Could not look up TigerTag brand %d from cache", id_brand)
     return None
 
 
-def lookup_material_name(id_material: int) -> Optional[str]:
+def lookup_material_name(id_material: int) -> str | None:
     """Look up a material name by its TigerTag numeric ID from the cached material list.
 
     Material API returns: [{"id": 38219, "label": "PLA", "density": 1.24, ...}, ...]
@@ -218,12 +227,12 @@ def lookup_material_name(id_material: int) -> Optional[str]:
         for entry in data:
             if entry.get("id") == id_material:
                 return entry.get("label")
-    except Exception:
+    except _CACHE_LOOKUP_ERRORS:
         logger.debug("Could not look up TigerTag material %d from cache", id_material)
     return None
 
 
-def lookup_material_density(id_material: int) -> Optional[float]:
+def lookup_material_density(id_material: int) -> float | None:
     """Look up material density by its TigerTag numeric ID from the cached material list."""
     try:
         data = json.loads(filecache.get_file_contents(TIGERTAG_MATERIALS_CACHE_FILE))
@@ -232,12 +241,12 @@ def lookup_material_density(id_material: int) -> Optional[float]:
                 density = entry.get("density")
                 if density is not None:
                     return float(density)
-    except Exception:
+    except _CACHE_LOOKUP_ERRORS:
         logger.debug("Could not look up TigerTag material density %d from cache", id_material)
     return None
 
 
-async def lookup_product_by_tag(nfc_tag_uid: str, id_product: int) -> Optional[ExternalFilament]:
+async def lookup_product_by_tag(nfc_tag_uid: str, id_product: int) -> ExternalFilament | None:
     """Look up a TigerTag product via the real-time API using tag UID + product_id.
 
     The tag stores a small product_id (e.g. 28) which is different from the API's
@@ -259,17 +268,21 @@ async def lookup_product_by_tag(nfc_tag_uid: str, id_product: int) -> Optional[E
             data = response.json()
 
         product = TigerTagProduct(**data)
-        ext = _to_external_filament(product)
-        logger.info("TigerTag API resolved product_id=%d → %s (%s)", id_product, ext.name, ext.manufacturer)
-        return ext
     except httpx.HTTPStatusError as e:
-        if e.response.status_code == 404:
+        if e.response.status_code == httpx.codes.NOT_FOUND:
             logger.debug("TigerTag product_id=%d not found via API (uid=%s)", id_product, nfc_tag_uid)
         else:
             logger.warning("TigerTag API error for product_id=%d: %s", id_product, e)
-    except Exception:
-        logger.debug("TigerTag API lookup failed for product_id=%d", id_product, exc_info=True)
-    return None
+        return None
+    except (httpx.HTTPError, ValueError) as e:
+        # ValueError covers a non-JSON body or a JSON body that doesn't match
+        # TigerTagProduct's schema (pydantic raises ValidationError, a ValueError subclass).
+        logger.debug("TigerTag API lookup failed for product_id=%d: %s", id_product, e)
+        return None
+    else:
+        ext = _to_external_filament(product)
+        logger.info("TigerTag API resolved product_id=%d → %s (%s)", id_product, ext.name, ext.manufacturer)
+        return ext
 
 
 def schedule_tasks(scheduler: Scheduler) -> None:

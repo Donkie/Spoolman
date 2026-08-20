@@ -10,7 +10,7 @@ Based on the OpenPrintTag specification: https://specs.openprinttag.org
 import io
 import logging
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import cbor2
 
@@ -110,6 +110,14 @@ META_AUX_REGION_SIZE = 3
 # Aux section field keys
 AUX_CONSUMED_WEIGHT = 0
 
+# NFC-V Type 5 Tag TLV block tags (ISO/IEC 15693 capability container)
+_TLV_NDEF_MESSAGE = 0x03
+_TLV_TERMINATOR = 0xFE
+_TLV_THREE_BYTE_LENGTH = 0xFF
+
+# NDEF record TNF (Type Name Format): Media-type, per RFC 2046
+_NDEF_TNF_MEDIA_TYPE = 0x02
+
 
 @dataclass
 class OpenPrintTagData:
@@ -134,7 +142,7 @@ class OpenPrintTagData:
     density: float | None = None
     filament_diameter: float | None = None  # defaults to 1.75 if absent
 
-    # Weights (grams)
+    # Weights, in grams
     nominal_netto_full_weight: float | None = None
     actual_netto_full_weight: float | None = None
     empty_container_weight: float | None = None
@@ -228,7 +236,7 @@ def _find_ndef_payload(raw_bytes: bytes) -> bytes | None:
         tag = raw_bytes[pos]
         pos += 1
 
-        if tag == 0xFE:  # terminator
+        if tag == _TLV_TERMINATOR:
             break
         if tag == 0x00:  # null TLV, no length
             continue
@@ -238,13 +246,13 @@ def _find_ndef_payload(raw_bytes: bytes) -> bytes | None:
         tlv_len = raw_bytes[pos]
         pos += 1
 
-        if tlv_len == 0xFF:  # 3-byte length format
+        if tlv_len == _TLV_THREE_BYTE_LENGTH:
             if pos + 2 > len(raw_bytes):
                 break
             tlv_len = (raw_bytes[pos] << 8) | raw_bytes[pos + 1]
             pos += 2
 
-        if tag == 0x03:  # NDEF message TLV
+        if tag == _TLV_NDEF_MESSAGE:
             ndef_data = raw_bytes[pos : pos + tlv_len]
             return _parse_ndef_records(ndef_data)
 
@@ -268,6 +276,20 @@ def _parse_ndef_records(ndef_data: bytes) -> bytes | None:
     return None
 
 
+def _read_ndef_length(ndef_data: bytes, pos: int, *, short_record: bool) -> tuple[int, int] | None:
+    """Read an NDEF length field (1 byte for a short record, 4 bytes otherwise).
+
+    Returns (length, new_pos), or None if the buffer is truncated.
+    """
+    if short_record:
+        if pos >= len(ndef_data):
+            return None
+        return ndef_data[pos], pos + 1
+    if pos + 4 > len(ndef_data):
+        return None
+    return int.from_bytes(ndef_data[pos : pos + 4], "big"), pos + 4
+
+
 def _parse_ndef_manual(ndef_data: bytes) -> bytes | None:
     """Minimal NDEF record parser for application/vnd.openprinttag.
 
@@ -280,11 +302,9 @@ def _parse_ndef_manual(ndef_data: bytes) -> bytes | None:
         header = ndef_data[pos]
         pos += 1
 
-        mb = bool(header & 0x80)  # noqa: F841
-        me = bool(header & 0x40)
-        cf = bool(header & 0x20)
-        sr = bool(header & 0x10)
-        il = bool(header & 0x08)
+        message_end = bool(header & 0x40)
+        short_record = bool(header & 0x10)
+        id_present = bool(header & 0x08)
         tnf = header & 0x07
 
         if pos >= len(ndef_data):
@@ -292,19 +312,13 @@ def _parse_ndef_manual(ndef_data: bytes) -> bytes | None:
         type_length = ndef_data[pos]
         pos += 1
 
-        if sr:
-            if pos >= len(ndef_data):
-                break
-            payload_length = ndef_data[pos]
-            pos += 1
-        else:
-            if pos + 4 > len(ndef_data):
-                break
-            payload_length = int.from_bytes(ndef_data[pos : pos + 4], "big")
-            pos += 4
+        length_result = _read_ndef_length(ndef_data, pos, short_record=short_record)
+        if length_result is None:
+            break
+        payload_length, pos = length_result
 
         id_length = 0
-        if il:
+        if id_present:
             if pos >= len(ndef_data):
                 break
             id_length = ndef_data[pos]
@@ -318,11 +332,10 @@ def _parse_ndef_manual(ndef_data: bytes) -> bytes | None:
         payload = ndef_data[pos : pos + payload_length]
         pos += payload_length
 
-        # TNF 0x02 = Media-type (RFC 2046)
-        if tnf == 0x02 and record_type == OPENPRINTTAG_MIME.encode("ascii"):
+        if tnf == _NDEF_TNF_MEDIA_TYPE and record_type == OPENPRINTTAG_MIME.encode("ascii"):
             return bytes(payload)
 
-        if me:
+        if message_end:
             break
 
     return None
@@ -365,15 +378,37 @@ def decode_nfcv_memory(raw_bytes: bytes, nfc_tag_uid: bytes | None = None) -> Op
             aux_data, _ = _decode_cbor_map(payload[aux_offset:])
             if AUX_CONSUMED_WEIGHT in aux_data:
                 data.consumed_weight = float(aux_data[AUX_CONSUMED_WEIGHT])
-        except Exception:
+        except (cbor2.CBORDecodeError, TypeError, ValueError):
             logger.debug("Could not decode aux section")
 
     return data
 
 
-def _populate_main_fields(data: OpenPrintTagData, main: dict) -> None:
-    """Populate OpenPrintTagData from the decoded main CBOR map."""
-    # UUIDs (stored as CBOR byte strings)
+# (main-section CBOR key, OpenPrintTagData attribute, value caster) for every field
+# that's a plain cast with no further lookup. UUIDs, the two enum-mapped fields, and
+# the color all need extra logic and are handled separately in _populate_main_fields.
+_SIMPLE_MAIN_FIELDS: list[tuple[int, str, type]] = [
+    (MF_GTIN, "gtin", int),
+    (MF_MATERIAL_NAME, "material_name", str),
+    (MF_BRAND_NAME, "brand_name", str),
+    (MF_DENSITY, "density", float),
+    (MF_FILAMENT_DIAMETER, "filament_diameter", float),
+    (MF_NOMINAL_NETTO_FULL_WEIGHT, "nominal_netto_full_weight", float),
+    (MF_ACTUAL_NETTO_FULL_WEIGHT, "actual_netto_full_weight", float),
+    (MF_EMPTY_CONTAINER_WEIGHT, "empty_container_weight", float),
+    (MF_MIN_PRINT_TEMPERATURE, "min_print_temperature", int),
+    (MF_MAX_PRINT_TEMPERATURE, "max_print_temperature", int),
+    (MF_PREHEAT_TEMPERATURE, "preheat_temperature", int),
+    (MF_MIN_BED_TEMPERATURE, "min_bed_temperature", int),
+    (MF_MAX_BED_TEMPERATURE, "max_bed_temperature", int),
+    (MF_DRYING_TEMPERATURE, "drying_temperature", int),
+    (MF_DRYING_TIME, "drying_time", int),
+    (MF_MANUFACTURED_DATE, "manufactured_date", int),
+]
+
+
+def _populate_main_uuids(data: OpenPrintTagData, main: dict) -> None:
+    """Populate the CBOR-byte-string UUID fields from the decoded main CBOR map."""
     if MF_INSTANCE_UUID in main:
         data.instance_uuid = _parse_uuid(main[MF_INSTANCE_UUID])
     if MF_PACKAGE_UUID in main:
@@ -383,59 +418,22 @@ def _populate_main_fields(data: OpenPrintTagData, main: dict) -> None:
     if MF_BRAND_UUID in main:
         data.brand_uuid = _parse_uuid(main[MF_BRAND_UUID])
 
-    # Identifiers
-    if MF_GTIN in main:
-        data.gtin = int(main[MF_GTIN])
 
-    # Material classification
+def _populate_main_fields(data: OpenPrintTagData, main: dict) -> None:
+    """Populate OpenPrintTagData from the decoded main CBOR map."""
+    for key, attr, caster in _SIMPLE_MAIN_FIELDS:
+        if key in main:
+            setattr(data, attr, caster(main[key]))
+
+    _populate_main_uuids(data, main)
+
     if MF_MATERIAL_CLASS in main:
         data.material_class = MATERIAL_CLASS_MAP.get(main[MF_MATERIAL_CLASS], f"unknown_{main[MF_MATERIAL_CLASS]}")
     if MF_MATERIAL_TYPE in main:
         data.material_type = MATERIAL_TYPE_MAP.get(main[MF_MATERIAL_TYPE], f"unknown_{main[MF_MATERIAL_TYPE]}")
 
-    # Strings
-    if MF_MATERIAL_NAME in main:
-        data.material_name = str(main[MF_MATERIAL_NAME])
-    if MF_BRAND_NAME in main:
-        data.brand_name = str(main[MF_BRAND_NAME])
-
-    # Physical properties
-    if MF_DENSITY in main:
-        data.density = float(main[MF_DENSITY])
-    if MF_FILAMENT_DIAMETER in main:
-        data.filament_diameter = float(main[MF_FILAMENT_DIAMETER])
-
-    # Weights
-    if MF_NOMINAL_NETTO_FULL_WEIGHT in main:
-        data.nominal_netto_full_weight = float(main[MF_NOMINAL_NETTO_FULL_WEIGHT])
-    if MF_ACTUAL_NETTO_FULL_WEIGHT in main:
-        data.actual_netto_full_weight = float(main[MF_ACTUAL_NETTO_FULL_WEIGHT])
-    if MF_EMPTY_CONTAINER_WEIGHT in main:
-        data.empty_container_weight = float(main[MF_EMPTY_CONTAINER_WEIGHT])
-
-    # Color
     if MF_PRIMARY_COLOR in main:
         data.primary_color_hex = _parse_color_rgba(main[MF_PRIMARY_COLOR])
-
-    # Temperatures
-    if MF_MIN_PRINT_TEMPERATURE in main:
-        data.min_print_temperature = int(main[MF_MIN_PRINT_TEMPERATURE])
-    if MF_MAX_PRINT_TEMPERATURE in main:
-        data.max_print_temperature = int(main[MF_MAX_PRINT_TEMPERATURE])
-    if MF_PREHEAT_TEMPERATURE in main:
-        data.preheat_temperature = int(main[MF_PREHEAT_TEMPERATURE])
-    if MF_MIN_BED_TEMPERATURE in main:
-        data.min_bed_temperature = int(main[MF_MIN_BED_TEMPERATURE])
-    if MF_MAX_BED_TEMPERATURE in main:
-        data.max_bed_temperature = int(main[MF_MAX_BED_TEMPERATURE])
-    if MF_DRYING_TEMPERATURE in main:
-        data.drying_temperature = int(main[MF_DRYING_TEMPERATURE])
-    if MF_DRYING_TIME in main:
-        data.drying_time = int(main[MF_DRYING_TIME])
-
-    # Dates
-    if MF_MANUFACTURED_DATE in main:
-        data.manufactured_date = int(main[MF_MANUFACTURED_DATE])
 
 
 def encode_aux_consumed_weight(payload: bytes, consumed_weight: float) -> bytes:
@@ -449,7 +447,7 @@ def encode_aux_consumed_weight(payload: bytes, consumed_weight: float) -> bytes:
         Updated payload bytes with the aux section modified.
 
     """
-    meta, meta_size = _decode_cbor_map(payload)
+    meta, _meta_size = _decode_cbor_map(payload)
     aux_offset = meta.get(META_AUX_REGION_OFFSET)
     if aux_offset is None:
         raise ValueError("Tag has no aux region")
@@ -461,8 +459,8 @@ def encode_aux_consumed_weight(payload: bytes, consumed_weight: float) -> bytes:
 
     # Read existing aux data to preserve unknown fields
     try:
-        aux_data, _ = _decode_cbor_map(payload[aux_offset:aux_offset + aux_size])
-    except Exception:
+        aux_data, _ = _decode_cbor_map(payload[aux_offset : aux_offset + aux_size])
+    except (cbor2.CBORDecodeError, TypeError, ValueError):
         aux_data = {}
 
     aux_data[AUX_CONSUMED_WEIGHT] = consumed_weight
@@ -473,6 +471,6 @@ def encode_aux_consumed_weight(payload: bytes, consumed_weight: float) -> bytes:
 
     result = bytearray(payload)
     # Zero the aux region, then write new data
-    result[aux_offset:aux_offset + aux_size] = b"\x00" * aux_size
-    result[aux_offset:aux_offset + len(new_aux)] = new_aux
+    result[aux_offset : aux_offset + aux_size] = b"\x00" * aux_size
+    result[aux_offset : aux_offset + len(new_aux)] = new_aux
     return bytes(result)

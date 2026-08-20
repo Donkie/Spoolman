@@ -109,32 +109,46 @@ export function decodeTigerTag(buf: ArrayBuffer): TigerTagBinaryData {
   const BE = false; // DataView littleEndian=false → big-endian
 
   let offset = 0;
-  const id_tigertag = view.getUint32(offset, BE); offset += 4;
-  const id_product = view.getUint32(offset, BE); offset += 4;
-  const id_material = view.getUint16(offset, BE); offset += 2;
-  const id_aspect = view.getUint8(offset); offset += 1;  // aspect_1
+  const id_tigertag = view.getUint32(offset, BE);
+  offset += 4;
+  const id_product = view.getUint32(offset, BE);
+  offset += 4;
+  const id_material = view.getUint16(offset, BE);
+  offset += 2;
+  const id_aspect = view.getUint8(offset);
+  offset += 1; // aspect_1
   offset += 1; // aspect_2, skip
-  const id_type = view.getUint8(offset); offset += 1;
-  const id_diameter = view.getUint8(offset); offset += 1;
-  const id_brand = view.getUint16(offset, BE); offset += 2;
+  const id_type = view.getUint8(offset);
+  offset += 1;
+  const id_diameter = view.getUint8(offset);
+  offset += 1;
+  const id_brand = view.getUint16(offset, BE);
+  offset += 2;
 
   // Color packed as uint32 BE: R<<24 | G<<16 | B<<8 | A
-  const colorVal = view.getUint32(offset, BE); offset += 4;
+  const colorVal = view.getUint32(offset, BE);
+  offset += 4;
   const color_r = (colorVal >>> 24) & 0xff;
   const color_g = (colorVal >>> 16) & 0xff;
   const color_b = (colorVal >>> 8) & 0xff;
   const color_a = colorVal & 0xff;
 
   // Weight + unit packed as uint32 BE: weight in upper 24 bits, unit in lower 8
-  const weightUnit = view.getUint32(offset, BE); offset += 4;
+  const weightUnit = view.getUint32(offset, BE);
+  offset += 4;
   const weight = (weightUnit >>> 8) & 0xffffff;
 
-  const nozzle_temp = view.getUint16(offset, BE); offset += 2;
-  const nozzle_temp_max = view.getUint16(offset, BE); offset += 2;
-  const drying_temp = view.getUint8(offset); offset += 1;
-  const drying_duration = view.getUint8(offset); offset += 1;
+  const nozzle_temp = view.getUint16(offset, BE);
+  offset += 2;
+  const nozzle_temp_max = view.getUint16(offset, BE);
+  offset += 2;
+  const drying_temp = view.getUint8(offset);
+  offset += 1;
+  const drying_duration = view.getUint8(offset);
+  offset += 1;
   offset += 2; // reserved
-  const timestamp = view.getUint32(offset, BE); offset += 4;
+  const timestamp = view.getUint32(offset, BE);
+  offset += 4;
 
   // Bed temp at offset 36-37
   let bed_temp = 0;
@@ -160,10 +174,27 @@ export function decodeTigerTag(buf: ArrayBuffer): TigerTagBinaryData {
   }
 
   return {
-    id_tigertag, id_product, id_material, id_diameter, id_aspect, id_type, id_brand,
-    color_r, color_g, color_b, color_a, weight,
-    nozzle_temp, nozzle_temp_max, bed_temp, bed_temp_max,
-    drying_temp, drying_duration, timestamp, emoji, user_message,
+    id_tigertag,
+    id_product,
+    id_material,
+    id_diameter,
+    id_aspect,
+    id_type,
+    id_brand,
+    color_r,
+    color_g,
+    color_b,
+    color_a,
+    weight,
+    nozzle_temp,
+    nozzle_temp_max,
+    bed_temp,
+    bed_temp_max,
+    drying_temp,
+    drying_duration,
+    timestamp,
+    emoji,
+    user_message,
   };
 }
 
@@ -178,30 +209,49 @@ export function encodeTigerTag(data: TigerTagBinaryData): ArrayBuffer {
 
   let offset = 0;
 
-  view.setUint32(offset, data.id_tigertag >>> 0, BE); offset += 4;
-  view.setUint32(offset, data.id_product >>> 0, BE); offset += 4;
-  view.setUint16(offset, data.id_material & 0xffff, BE); offset += 2;
-  view.setUint8(offset, data.id_aspect & 0xff); offset += 1; // aspect_1
-  view.setUint8(offset, 0); offset += 1; // aspect_2
-  view.setUint8(offset, data.id_type & 0xff); offset += 1;
-  view.setUint8(offset, data.id_diameter & 0xff); offset += 1;
-  view.setUint16(offset, data.id_brand & 0xffff, BE); offset += 2;
+  view.setUint32(offset, data.id_tigertag >>> 0, BE);
+  offset += 4;
+  view.setUint32(offset, data.id_product >>> 0, BE);
+  offset += 4;
+  view.setUint16(offset, data.id_material & 0xffff, BE);
+  offset += 2;
+  view.setUint8(offset, data.id_aspect & 0xff);
+  offset += 1; // aspect_1
+  view.setUint8(offset, 0);
+  offset += 1; // aspect_2
+  view.setUint8(offset, data.id_type & 0xff);
+  offset += 1;
+  view.setUint8(offset, data.id_diameter & 0xff);
+  offset += 1;
+  view.setUint16(offset, data.id_brand & 0xffff, BE);
+  offset += 2;
 
   // Color packed as uint32 BE: R<<24 | G<<16 | B<<8 | A
-  const colorVal = ((data.color_r & 0xff) << 24) | ((data.color_g & 0xff) << 16) |
-                   ((data.color_b & 0xff) << 8) | (data.color_a & 0xff);
-  view.setUint32(offset, colorVal >>> 0, BE); offset += 4;
+  const colorVal =
+    ((data.color_r & 0xff) << 24) |
+    ((data.color_g & 0xff) << 16) |
+    ((data.color_b & 0xff) << 8) |
+    (data.color_a & 0xff);
+  view.setUint32(offset, colorVal >>> 0, BE);
+  offset += 4;
 
   // Weight + unit BE: weight<<8 | unit (unit=1 for grams)
   const weightUnit = ((data.weight & 0xffffff) << 8) | 1;
-  view.setUint32(offset, weightUnit >>> 0, BE); offset += 4;
+  view.setUint32(offset, weightUnit >>> 0, BE);
+  offset += 4;
 
-  view.setUint16(offset, data.nozzle_temp & 0xffff, BE); offset += 2;
-  view.setUint16(offset, (data.nozzle_temp_max || 0) & 0xffff, BE); offset += 2;
-  view.setUint8(offset, data.drying_temp & 0xff); offset += 1;
-  view.setUint8(offset, data.drying_duration & 0xff); offset += 1;
-  view.setUint16(offset, 0, BE); offset += 2; // reserved
-  view.setUint32(offset, data.timestamp >>> 0, BE); offset += 4;
+  view.setUint16(offset, data.nozzle_temp & 0xffff, BE);
+  offset += 2;
+  view.setUint16(offset, (data.nozzle_temp_max || 0) & 0xffff, BE);
+  offset += 2;
+  view.setUint8(offset, data.drying_temp & 0xff);
+  offset += 1;
+  view.setUint8(offset, data.drying_duration & 0xff);
+  offset += 1;
+  view.setUint16(offset, 0, BE);
+  offset += 2; // reserved
+  view.setUint32(offset, data.timestamp >>> 0, BE);
+  offset += 4;
 
   // Bed temp at offset 36-37
   view.setUint8(BED_TEMP_OFFSET, data.bed_temp & 0xff);

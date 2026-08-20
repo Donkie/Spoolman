@@ -1,9 +1,10 @@
 """NFC tag reader/writer API endpoints."""
 
 import base64
+import binascii
 import json
 import logging
-from typing import Annotated, Optional
+from typing import TYPE_CHECKING, Annotated
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
@@ -14,15 +15,19 @@ from spoolman.database import filament as filament_db
 from spoolman.database import spool as spool_db
 from spoolman.database import vendor as vendor_db
 from spoolman.database.database import get_db_session
-from spoolman.database.models import Filament, Vendor
+from spoolman.database.models import Filament, Spool
 from spoolman.env import is_nfc_enabled
+
+if TYPE_CHECKING:
+    from spoolman.externaldb import ExternalFilament
+    from spoolman.nfc_service import NfcService
+    from spoolman.tigertag_codec import TigerTagData
 
 router = APIRouter(
     prefix="/nfc",
     tags=["nfc"],
 )
 
-# ruff: noqa: D103,B008
 
 logger = logging.getLogger(__name__)
 
@@ -69,12 +74,12 @@ class NfcReadResponse(BaseModel):
     """Response for NFC read endpoint."""
 
     success: bool
-    tag_format: Optional[str] = None
-    tag_data: Optional[TigerTagDataResponse] = None
-    qidi_data: Optional[QidiTagDataResponse] = None
-    spool_id: Optional[int] = None
-    nfc_tag_uid: Optional[str] = None
-    raw_data_b64: Optional[str] = None
+    tag_format: str | None = None
+    tag_data: TigerTagDataResponse | None = None
+    qidi_data: QidiTagDataResponse | None = None
+    spool_id: int | None = None
+    nfc_tag_uid: str | None = None
+    raw_data_b64: str | None = None
     message: str = ""
 
 
@@ -98,21 +103,24 @@ class NfcWriteRequest(BaseModel):
 
     spool_id: int = Field(description="The spool ID to encode onto the NFC tag.")
     tag_format: str = Field(default="tigertag", description="Tag format to write: 'tigertag' or 'qidi'.")
-    user_message: str = Field(default="", max_length=28, description="Optional user message (max 28 chars, TigerTag only).")
+    user_message: str = Field(
+        default="",
+        max_length=28,
+        description="Optional user message (max 28 chars, TigerTag only).",
+    )
 
 
 class NfcWriteResponse(BaseModel):
     """Response for NFC write endpoint."""
 
     success: bool
-    nfc_tag_uid: Optional[str] = None
+    nfc_tag_uid: str | None = None
     message: str = ""
 
 
 @router.get(
     "/status",
     name="Get NFC reader status",
-    response_model=NfcStatusResponse,
 )
 async def nfc_status() -> NfcStatusResponse:
     """Get the status of the server-side NFC reader."""
@@ -131,7 +139,6 @@ async def nfc_status() -> NfcStatusResponse:
 @router.post(
     "/read",
     name="Read NFC tag",
-    response_model=NfcReadResponse,
 )
 async def nfc_read(
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -154,7 +161,7 @@ async def nfc_read(
 
         if result.tag_type == "mifare_classic":
             return await _handle_qidi_read(db, result.data, uid_hex)
-        # Default: NTAG213 (TigerTag)
+        # Anything else is assumed to be an NTAG213 TigerTag.
         return await _handle_tigertag_read(db, result.data, uid_hex)
 
     except Exception:
@@ -163,7 +170,9 @@ async def nfc_read(
 
 
 async def _handle_tigertag_read(
-    db: AsyncSession, raw_data: bytes, uid_hex: str | None,
+    db: AsyncSession,
+    raw_data: bytes,
+    uid_hex: str | None,
 ) -> NfcReadResponse:
     """Process a TigerTag NTAG213 read result."""
     from spoolman.tigertag_codec import TIGERTAG_PRO_V1, decode_ntag213  # noqa: PLC0415
@@ -204,10 +213,12 @@ async def _handle_tigertag_read(
 
 
 async def _handle_qidi_read(
-    db: AsyncSession, raw_data: bytes, uid_hex: str | None,
+    db: AsyncSession,
+    raw_data: bytes,
+    uid_hex: str | None,
 ) -> NfcReadResponse:
     """Process a Qidi MIFARE Classic read result."""
-    from spoolman.qidi_codec import decode_qidi_block, is_valid_qidi_block  # noqa: PLC0415
+    from spoolman.qidi_codec import decode_qidi_block  # noqa: PLC0415
     from spoolman.qidi_lookup import find_spool_by_qidi_tag  # noqa: PLC0415
 
     if not raw_data:
@@ -247,7 +258,6 @@ async def _handle_qidi_read(
 @router.post(
     "/write",
     name="Write NFC tag",
-    response_model=NfcWriteResponse,
 )
 async def nfc_write(
     request: NfcWriteRequest,
@@ -264,7 +274,6 @@ async def nfc_write(
         from sqlalchemy import select  # noqa: PLC0415
         from sqlalchemy.orm import selectinload  # noqa: PLC0415
 
-        from spoolman.database.models import Filament, Spool  # noqa: PLC0415
         from spoolman.nfc_service import nfc_service  # noqa: PLC0415
 
         # Fetch the spool
@@ -288,7 +297,7 @@ async def nfc_write(
         return NfcWriteResponse(success=False, message="Failed to write NFC tag.")
 
 
-async def _handle_tigertag_write(nfc_service, spool, user_message: str) -> NfcWriteResponse:
+async def _handle_tigertag_write(nfc_service: "NfcService", spool: Spool, user_message: str) -> NfcWriteResponse:
     """Write TigerTag format to NTAG213."""
     from spoolman.tigertag_codec import encode_ntag213  # noqa: PLC0415
     from spoolman.tigertag_lookup import map_spool_to_tigertag  # noqa: PLC0415
@@ -303,7 +312,7 @@ async def _handle_tigertag_write(nfc_service, spool, user_message: str) -> NfcWr
     return NfcWriteResponse(success=False, message="Failed to write tag. Ensure NTAG213 tag is placed on reader.")
 
 
-async def _handle_qidi_write(nfc_service, spool) -> NfcWriteResponse:
+async def _handle_qidi_write(nfc_service: "NfcService", spool: Spool) -> NfcWriteResponse:
     """Write Qidi format to MIFARE Classic 1K."""
     from spoolman.qidi_codec import encode_qidi_block  # noqa: PLC0415
     from spoolman.qidi_lookup import map_spool_to_qidi  # noqa: PLC0415
@@ -324,7 +333,6 @@ async def _handle_qidi_write(nfc_service, spool) -> NfcWriteResponse:
 @router.post(
     "/encode",
     name="Encode spool as TigerTag binary",
-    response_model=NfcEncodeResponse,
 )
 async def nfc_encode(
     request: NfcEncodeRequest,
@@ -338,7 +346,6 @@ async def nfc_encode(
         from sqlalchemy import select  # noqa: PLC0415
         from sqlalchemy.orm import selectinload  # noqa: PLC0415
 
-        from spoolman.database.models import Filament, Spool  # noqa: PLC0415
         from spoolman.tigertag_codec import encode_ntag213  # noqa: PLC0415
         from spoolman.tigertag_lookup import map_spool_to_tigertag  # noqa: PLC0415
 
@@ -375,39 +382,39 @@ async def nfc_encode(
 class OpenPrintTagDataResponse(BaseModel):
     """Decoded OpenPrintTag data from an NFC-V tag."""
 
-    instance_uuid: Optional[str] = None
-    package_uuid: Optional[str] = None
-    brand_uuid: Optional[str] = None
-    material_uuid: Optional[str] = None
-    brand_name: Optional[str] = None
-    material_name: Optional[str] = None
-    material_type: Optional[str] = None
-    material_class: Optional[str] = None
-    primary_color_hex: Optional[str] = None
-    density: Optional[float] = None
-    filament_diameter: Optional[float] = None
-    nominal_netto_full_weight: Optional[float] = None
-    actual_netto_full_weight: Optional[float] = None
-    empty_container_weight: Optional[float] = None
-    consumed_weight: Optional[float] = None
-    min_print_temperature: Optional[int] = None
-    max_print_temperature: Optional[int] = None
-    min_bed_temperature: Optional[int] = None
-    max_bed_temperature: Optional[int] = None
-    drying_temperature: Optional[int] = None
-    drying_time: Optional[int] = None
+    instance_uuid: str | None = None
+    package_uuid: str | None = None
+    brand_uuid: str | None = None
+    material_uuid: str | None = None
+    brand_name: str | None = None
+    material_name: str | None = None
+    material_type: str | None = None
+    material_class: str | None = None
+    primary_color_hex: str | None = None
+    density: float | None = None
+    filament_diameter: float | None = None
+    nominal_netto_full_weight: float | None = None
+    actual_netto_full_weight: float | None = None
+    empty_container_weight: float | None = None
+    consumed_weight: float | None = None
+    min_print_temperature: int | None = None
+    max_print_temperature: int | None = None
+    min_bed_temperature: int | None = None
+    max_bed_temperature: int | None = None
+    drying_temperature: int | None = None
+    drying_time: int | None = None
 
 
 class NfcLookupRequest(BaseModel):
     """Request body for looking up a spool from external NFC data."""
 
-    raw_data_b64: Optional[str] = Field(default=None, description="Base64-encoded raw tag memory.")
-    id_product: Optional[int] = Field(default=None, description="TigerTag product/spool ID to look up directly.")
-    tag_type: Optional[str] = Field(
+    raw_data_b64: str | None = Field(default=None, description="Base64-encoded raw tag memory.")
+    id_product: int | None = Field(default=None, description="TigerTag product/spool ID to look up directly.")
+    tag_type: str | None = Field(
         default=None,
         description="Tag type: 'tigertag', 'openprinttag', 'qidi', or null for auto-detect.",
     )
-    nfc_tag_uid: Optional[str] = Field(default=None, description="Hex-encoded NFC tag UID (for binding/UUID derivation).")
+    nfc_tag_uid: str | None = Field(default=None, description="Hex-encoded NFC tag UID (for binding/UUID derivation).")
     auto_create: bool = Field(default=False, description="Auto-create spool if no match found.")
 
 
@@ -415,23 +422,27 @@ class NfcLookupResponse(BaseModel):
     """Response for NFC lookup endpoint."""
 
     success: bool
-    spool_id: Optional[int] = None
-    tag_format: Optional[str] = None
-    tag_data: Optional[TigerTagDataResponse] = None
-    openprinttag_data: Optional[OpenPrintTagDataResponse] = None
-    qidi_data: Optional[QidiTagDataResponse] = None
+    spool_id: int | None = None
+    tag_format: str | None = None
+    tag_data: TigerTagDataResponse | None = None
+    openprinttag_data: OpenPrintTagDataResponse | None = None
+    qidi_data: QidiTagDataResponse | None = None
     message: str = ""
+
+
+# NFC-V capability containers start with this byte.
+_NFCV_CAPABILITY_CONTAINER_MAGIC = 0xE1
+# A Qidi MIFARE Classic payload is exactly one 16-byte block.
+_QIDI_BLOCK_SIZE = 16
 
 
 def _detect_tag_format(raw_data: bytes, tag_type: str | None) -> str:
     """Auto-detect tag format from raw bytes, or use explicit tag_type."""
     if tag_type in ("tigertag", "tigertag+", "openprinttag", "qidi"):
         return tag_type
-    # NFC-V capability container starts with 0xE1
-    if len(raw_data) >= 1 and raw_data[0] == 0xE1:
+    if len(raw_data) >= 1 and raw_data[0] == _NFCV_CAPABILITY_CONTAINER_MAGIC:
         return "openprinttag"
-    # Check for Qidi format: exactly 16 bytes, bytes 3-15 zero, valid codes
-    if len(raw_data) == 16:
+    if len(raw_data) == _QIDI_BLOCK_SIZE:
         from spoolman.qidi_codec import is_valid_qidi_block  # noqa: PLC0415
 
         if is_valid_qidi_block(raw_data):
@@ -439,9 +450,34 @@ def _detect_tag_format(raw_data: bytes, tag_type: str | None) -> str:
     return "tigertag"
 
 
+async def _resolve_tigertag_ext_filament(
+    nfc_tag_uid: str | None,
+    tag_data: "TigerTagData",
+) -> "ExternalFilament | None":
+    """Resolve TigerTag product data via the real-time API, falling back to the product cache.
+
+    Returns None if neither source has a match — the caller then falls back to raw tag data.
+    """
+    ext_filament = None
+
+    # Strategy 1: Real-time TigerTag API lookup (tag UID + product_id)
+    if nfc_tag_uid and tag_data.id_product > 0:
+        from spoolman.tigertagdb import lookup_product_by_tag  # noqa: PLC0415
+
+        ext_filament = await lookup_product_by_tag(nfc_tag_uid, tag_data.id_product)
+
+    # Strategy 2: Product cache (by internal API id)
+    if ext_filament is None and tag_data.id_product > 0:
+        ext_filament = _lookup_tigertag_product(tag_data.id_product)
+
+    return ext_filament
+
+
 async def _create_spool_from_tigertag(
-    db: AsyncSession, tag_data, nfc_tag_uid: str | None = None,
-) -> "Spool":
+    db: AsyncSession,
+    tag_data: "TigerTagData",
+    nfc_tag_uid: str | None = None,
+) -> Spool:
     """Create a filament and spool from decoded TigerTag data.
 
     Resolution order for filament data:
@@ -464,17 +500,7 @@ async def _create_spool_from_tigertag(
     if existing_filament:
         filament_id = existing_filament.id
     else:
-        ext_filament = None
-
-        # Strategy 1: Real-time TigerTag API lookup (tag UID + product_id)
-        if nfc_tag_uid and tag_data.id_product > 0:
-            from spoolman.tigertagdb import lookup_product_by_tag  # noqa: PLC0415
-
-            ext_filament = await lookup_product_by_tag(nfc_tag_uid, tag_data.id_product)
-
-        # Strategy 2: Product cache (by internal API id)
-        if ext_filament is None and tag_data.id_product > 0:
-            ext_filament = _lookup_tigertag_product(tag_data.id_product)
+        ext_filament = await _resolve_tigertag_ext_filament(nfc_tag_uid, tag_data)
 
         if ext_filament:
             vendor_id = await _find_or_create_vendor(db, ext_filament.manufacturer)
@@ -494,7 +520,11 @@ async def _create_spool_from_tigertag(
             filament_id = db_filament.id
         else:
             # Strategy 3: Resolve brand/material names from TigerTag API caches
-            from spoolman.tigertagdb import lookup_brand_name, lookup_material_density, lookup_material_name  # noqa: PLC0415
+            from spoolman.tigertagdb import (  # noqa: PLC0415
+                lookup_brand_name,
+                lookup_material_density,
+                lookup_material_name,
+            )
 
             brand_name = lookup_brand_name(tag_data.id_brand) if tag_data.id_brand > 0 else None
             material_name = lookup_material_name(tag_data.id_material) if tag_data.id_material > 0 else None
@@ -545,7 +575,6 @@ async def _create_spool_from_tigertag(
 @router.post(
     "/lookup",
     name="Look up spool from NFC tag data",
-    response_model=NfcLookupResponse,
 )
 async def nfc_lookup(
     request: NfcLookupRequest,
@@ -569,20 +598,24 @@ async def nfc_lookup(
 
     try:
         raw_data = base64.b64decode(request.raw_data_b64)
-    except Exception:
+    except binascii.Error:
         return NfcLookupResponse(success=False, message="Invalid base64 in raw_data_b64.")
 
     tag_format = _detect_tag_format(raw_data, request.tag_type)
 
     if tag_format == "openprinttag":
-        return await _lookup_openprinttag(db, raw_data, request.nfc_tag_uid, request.auto_create)
+        return await _lookup_openprinttag(db, raw_data, request.nfc_tag_uid, auto_create=request.auto_create)
     if tag_format == "qidi":
-        return await _lookup_qidi(db, raw_data, request.nfc_tag_uid, request.auto_create)
-    return await _lookup_tigertag(db, raw_data, request.nfc_tag_uid, request.auto_create)
+        return await _lookup_qidi(db, raw_data, request.nfc_tag_uid, auto_create=request.auto_create)
+    return await _lookup_tigertag(db, raw_data, request.nfc_tag_uid, auto_create=request.auto_create)
 
 
 async def _lookup_tigertag(
-    db: AsyncSession, raw_data: bytes, nfc_tag_uid: str | None = None, auto_create: bool = False,
+    db: AsyncSession,
+    raw_data: bytes,
+    nfc_tag_uid: str | None = None,
+    *,
+    auto_create: bool = False,
 ) -> NfcLookupResponse:
     """Handle TigerTag lookup from raw binary data."""
     try:
@@ -656,12 +689,19 @@ async def _lookup_tigertag_by_id(db: AsyncSession, id_product: int) -> NfcLookup
 
 
 async def _lookup_openprinttag(
-    db: AsyncSession, raw_data: bytes, nfc_tag_uid_hex: str | None, auto_create: bool,
+    db: AsyncSession,
+    raw_data: bytes,
+    nfc_tag_uid_hex: str | None,
+    *,
+    auto_create: bool,
 ) -> NfcLookupResponse:
     """Handle OpenPrintTag lookup from raw NFC-V memory."""
     try:
         from spoolman.openprinttag_codec import decode_nfcv_memory  # noqa: PLC0415
-        from spoolman.openprinttag_lookup import create_spool_from_openprinttag, find_spool_by_openprinttag  # noqa: PLC0415
+        from spoolman.openprinttag_lookup import (  # noqa: PLC0415
+            create_spool_from_openprinttag,
+            find_spool_by_openprinttag,
+        )
 
         nfc_uid = bytes.fromhex(nfc_tag_uid_hex) if nfc_tag_uid_hex else None
         tag_data = decode_nfcv_memory(raw_data, nfc_tag_uid=nfc_uid)
@@ -711,11 +751,19 @@ async def _lookup_openprinttag(
         )
     except Exception:
         logger.exception("Error in OpenPrintTag lookup")
-        return NfcLookupResponse(success=False, tag_format="openprinttag", message="Failed to decode OpenPrintTag data.")
+        return NfcLookupResponse(
+            success=False,
+            tag_format="openprinttag",
+            message="Failed to decode OpenPrintTag data.",
+        )
 
 
 async def _lookup_qidi(
-    db: AsyncSession, raw_data: bytes, nfc_tag_uid_hex: str | None, auto_create: bool,
+    db: AsyncSession,
+    raw_data: bytes,
+    nfc_tag_uid_hex: str | None,
+    *,
+    auto_create: bool,
 ) -> NfcLookupResponse:
     """Handle Qidi tag lookup from raw MIFARE Classic block data."""
     try:
@@ -761,27 +809,26 @@ class NfcBindRequest(BaseModel):
     """Request body for binding an NFC tag to an existing spool."""
 
     spool_id: int = Field(description="The spool ID to bind the tag to.")
-    raw_data_b64: Optional[str] = Field(default=None, description="Base64-encoded raw tag memory.")
-    tag_type: Optional[str] = Field(default=None, description="Tag type: 'tigertag', 'qidi', or null for auto-detect.")
+    raw_data_b64: str | None = Field(default=None, description="Base64-encoded raw tag memory.")
+    tag_type: str | None = Field(default=None, description="Tag type: 'tigertag', 'qidi', or null for auto-detect.")
     id_product: int = Field(default=0, description="TigerTag product ID (used with timestamp for manual binding).")
     timestamp: int = Field(default=0, description="TigerTag timestamp (seconds since 2000-01-01).")
-    nfc_tag_uid: Optional[str] = Field(default=None, description="Hex-encoded NFC tag UID.")
+    nfc_tag_uid: str | None = Field(default=None, description="Hex-encoded NFC tag UID.")
 
 
 class NfcBindResponse(BaseModel):
     """Response for NFC bind endpoint."""
 
     success: bool
-    nfc_tag_id: Optional[str] = None
-    tag_data: Optional[TigerTagDataResponse] = None
-    qidi_data: Optional[QidiTagDataResponse] = None
+    nfc_tag_id: str | None = None
+    tag_data: TigerTagDataResponse | None = None
+    qidi_data: QidiTagDataResponse | None = None
     message: str = ""
 
 
 @router.post(
     "/bind",
     name="Bind NFC tag to existing spool",
-    response_model=NfcBindResponse,
 )
 async def nfc_bind(
     request: NfcBindRequest,
@@ -794,8 +841,6 @@ async def nfc_bind(
     """
     try:
         from sqlalchemy.orm import selectinload  # noqa: PLC0415
-
-        from spoolman.database.models import Spool, SpoolField  # noqa: PLC0415
 
         # Fetch the spool with extra fields loaded
         stmt = (
@@ -811,10 +856,13 @@ async def nfc_bind(
         if spool is None:
             return NfcBindResponse(success=False, message=f"Spool with ID {request.spool_id} not found.")
 
-        # Determine tag type
+        # Determine tag type. An explicit tag_type wins; otherwise a bare UID with no
+        # raw payload and no TigerTag product ID implies a Qidi UID-only binding.
         tag_type = request.tag_type
-        if tag_type == "qidi" or (tag_type is None and request.nfc_tag_uid and not request.raw_data_b64 and request.id_product == 0):
-            # Qidi binding by UID
+        looks_like_qidi_uid = (
+            tag_type is None and request.nfc_tag_uid and not request.raw_data_b64 and request.id_product == 0
+        )
+        if tag_type == "qidi" or looks_like_qidi_uid:
             return await _bind_qidi(db, spool, request)
 
         # TigerTag binding
@@ -825,7 +873,7 @@ async def nfc_bind(
         return NfcBindResponse(success=False, message="Failed to bind NFC tag to spool.")
 
 
-async def _bind_tigertag(db: AsyncSession, spool, request: NfcBindRequest) -> NfcBindResponse:
+async def _bind_tigertag(db: AsyncSession, spool: Spool, request: NfcBindRequest) -> NfcBindResponse:
     """Handle TigerTag binding."""
     from spoolman.database.models import SpoolField  # noqa: PLC0415
     from spoolman.tigertag_codec import TigerTagData, decode_ntag213  # noqa: PLC0415
@@ -835,7 +883,7 @@ async def _bind_tigertag(db: AsyncSession, spool, request: NfcBindRequest) -> Nf
     if request.raw_data_b64:
         try:
             raw_data = base64.b64decode(request.raw_data_b64)
-        except Exception:
+        except binascii.Error:
             return NfcBindResponse(success=False, message="Invalid base64 in raw_data_b64.")
         tag_data = decode_ntag213(raw_data)
         tag_response = TigerTagDataResponse(
@@ -870,11 +918,7 @@ async def _bind_tigertag(db: AsyncSession, spool, request: NfcBindRequest) -> Nf
         )
 
     # Check if another spool is already bound to this tag
-    existing_stmt = (
-        select(SpoolField)
-        .where(SpoolField.key == "nfc_tag_id")
-        .where(SpoolField.value == nfc_tag_id)
-    )
+    existing_stmt = select(SpoolField).where(SpoolField.key == "nfc_tag_id").where(SpoolField.value == nfc_tag_id)
     existing_result = await db.execute(existing_stmt)
     existing_binding = existing_result.scalar_one_or_none()
     if existing_binding and existing_binding.spool_id != request.spool_id:
@@ -899,7 +943,7 @@ async def _bind_tigertag(db: AsyncSession, spool, request: NfcBindRequest) -> Nf
     )
 
 
-async def _bind_qidi(db: AsyncSession, spool, request: NfcBindRequest) -> NfcBindResponse:
+async def _bind_qidi(db: AsyncSession, spool: Spool, request: NfcBindRequest) -> NfcBindResponse:
     """Handle Qidi tag binding by UID."""
     from spoolman.database.models import SpoolField  # noqa: PLC0415
     from spoolman.qidi_lookup import _make_nfc_tag_id, bind_spool_to_qidi_tag  # noqa: PLC0415
@@ -913,11 +957,7 @@ async def _bind_qidi(db: AsyncSession, spool, request: NfcBindRequest) -> NfcBin
     nfc_tag_id = _make_nfc_tag_id(request.nfc_tag_uid)
 
     # Check if another spool is already bound to this tag
-    existing_stmt = (
-        select(SpoolField)
-        .where(SpoolField.key == "nfc_tag_id")
-        .where(SpoolField.value == nfc_tag_id)
-    )
+    existing_stmt = select(SpoolField).where(SpoolField.key == "nfc_tag_id").where(SpoolField.value == nfc_tag_id)
     existing_result = await db.execute(existing_stmt)
     existing_binding = existing_result.scalar_one_or_none()
     if existing_binding and existing_binding.spool_id != request.spool_id:
@@ -943,8 +983,9 @@ async def _bind_qidi(db: AsyncSession, spool, request: NfcBindRequest) -> NfcBin
                 color_name=tag_data.color_name,
                 color_hex=tag_data.color_hex,
             )
-        except Exception:
-            pass  # Non-fatal: we can still bind without decoded data
+        except (binascii.Error, ValueError):
+            # Non-fatal: we can still bind without decoded data.
+            logger.debug("Could not decode Qidi tag data for spool %d bind", request.spool_id)
 
     bound = await bind_spool_to_qidi_tag(db, spool, request.nfc_tag_uid)
     if bound:
@@ -985,18 +1026,18 @@ class NfcCreateFromTagRequest(BaseModel):
     material_code: int = Field(default=0, description="Qidi material code (1-50).")
     color_code: int = Field(default=0, description="Qidi color code (1-24).")
     # Common
-    nfc_tag_uid: Optional[str] = Field(default=None, description="Hex-encoded NFC tag UID.")
+    nfc_tag_uid: str | None = Field(default=None, description="Hex-encoded NFC tag UID.")
 
 
 class NfcCreateFromTagResponse(BaseModel):
     """Response for creating a spool from tag data."""
 
     success: bool
-    spool_id: Optional[int] = None
+    spool_id: int | None = None
     message: str = ""
 
 
-async def _find_or_create_vendor(db, name: str) -> int:
+async def _find_or_create_vendor(db: AsyncSession, name: str) -> int:
     """Find a vendor by name or create one."""
     vendors, _ = await vendor_db.find(db=db, name=name)
     if vendors:
@@ -1005,14 +1046,14 @@ async def _find_or_create_vendor(db, name: str) -> int:
     return new_vendor.id
 
 
-async def _find_filament_by_external_id(db, external_id: str) -> Optional[Filament]:
+async def _find_filament_by_external_id(db: AsyncSession, external_id: str) -> Filament | None:
     """Find an existing filament by external_id."""
     stmt = select(Filament).where(Filament.external_id == external_id)
     result = await db.execute(stmt)
     return result.unique().scalar_one_or_none()
 
 
-def _lookup_tigertag_product(id_product: int):
+def _lookup_tigertag_product(id_product: int) -> "ExternalFilament | None":
     """Look up a product in the TigerTag external DB cache. Returns ExternalFilament or None."""
     try:
         from spoolman import filecache  # noqa: PLC0415
@@ -1025,7 +1066,7 @@ def _lookup_tigertag_product(id_product: int):
                 from spoolman.externaldb import ExternalFilament  # noqa: PLC0415
 
                 return ExternalFilament(**f)
-    except Exception:
+    except (OSError, ValueError, KeyError, TypeError):
         logger.debug("Could not look up TigerTag product %d in cache", id_product)
     return None
 
@@ -1033,7 +1074,6 @@ def _lookup_tigertag_product(id_product: int):
 @router.post(
     "/create-from-tag",
     name="Create spool from tag data",
-    response_model=NfcCreateFromTagResponse,
 )
 async def nfc_create_from_tag(
     request: NfcCreateFromTagRequest,
@@ -1054,7 +1094,8 @@ async def nfc_create_from_tag(
 
 
 async def _create_from_tigertag_tag(
-    db: AsyncSession, request: NfcCreateFromTagRequest,
+    db: AsyncSession,
+    request: NfcCreateFromTagRequest,
 ) -> NfcCreateFromTagResponse:
     """Create spool from TigerTag data."""
     from spoolman.tigertag_codec import TigerTagData  # noqa: PLC0415
@@ -1086,7 +1127,8 @@ async def _create_from_tigertag_tag(
 
 
 async def _create_from_qidi_tag(
-    db: AsyncSession, request: NfcCreateFromTagRequest,
+    db: AsyncSession,
+    request: NfcCreateFromTagRequest,
 ) -> NfcCreateFromTagResponse:
     """Create spool from Qidi tag data."""
     from spoolman.qidi_codec import QidiTagData  # noqa: PLC0415

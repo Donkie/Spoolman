@@ -6,7 +6,6 @@ Provides functions to:
 """
 
 import logging
-from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,7 +20,7 @@ from spoolman.openprinttag_codec import OpenPrintTagData
 logger = logging.getLogger(__name__)
 
 
-async def find_spool_by_openprinttag(db: AsyncSession, tag_data: OpenPrintTagData) -> Optional[Spool]:
+async def find_spool_by_openprinttag(db: AsyncSession, tag_data: OpenPrintTagData) -> Spool | None:
     """Find a Spoolman spool matching OpenPrintTag data.
 
     Matching strategy (in order):
@@ -114,7 +113,7 @@ async def _create_spool_for_filament(db: AsyncSession, filament_id: int, tag_dat
     )
 
 
-async def _find_spool_by_filament_external_id(db: AsyncSession, external_id: str) -> Optional[Spool]:
+async def _find_spool_by_filament_external_id(db: AsyncSession, external_id: str) -> Spool | None:
     """Find the most recent non-archived spool whose filament has the given external_id."""
     stmt = (
         select(Spool)

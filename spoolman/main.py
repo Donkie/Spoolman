@@ -242,7 +242,7 @@ async def startup() -> None:
     # Initialize NFC service if enabled
     if env.is_nfc_enabled():
         try:
-            from spoolman.nfc_service import nfc_service
+            from spoolman.nfc_service import nfc_service  # noqa: PLC0415
 
             nfc_service.initialize()
             logger.info("NFC service initialized: %s", nfc_service.get_status())

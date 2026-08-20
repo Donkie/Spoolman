@@ -263,13 +263,7 @@ const NfcBindModal: React.FC<NfcBindModalProps> = ({ spool, visible, onClose, on
   }, [spool, hasScannedTag, scannedTagFormat, scannedTagUid, scannedTagData, scannedRawB64, bindMutation, onBound]);
 
   return (
-    <Modal
-      open={visible}
-      destroyOnClose
-      onCancel={handleClose}
-      footer={null}
-      title={t("nfc.bind_title")}
-    >
+    <Modal open={visible} destroyOnClose onCancel={handleClose} footer={null} title={t("nfc.bind_title")}>
       <Space direction="vertical" style={{ width: "100%" }} size="middle">
         <Text>{t("nfc.bind_description")}</Text>
 
@@ -291,17 +285,10 @@ const NfcBindModal: React.FC<NfcBindModalProps> = ({ spool, visible, onClose, on
           <>
             {mode === "server" && (
               <Space direction="vertical" style={{ width: "100%" }} align="center">
-                <Button
-                  type="primary"
-                  onClick={handleServerRead}
-                  loading={nfcReadMutation.isPending}
-                  size="large"
-                >
+                <Button type="primary" onClick={handleServerRead} loading={nfcReadMutation.isPending} size="large">
                   {nfcReadMutation.isPending ? t("nfc.reading") : t("nfc.scan_title")}
                 </Button>
-                {nfcReadMutation.isError && (
-                  <Alert type="error" message={t("nfc.error.read_failed")} showIcon />
-                )}
+                {nfcReadMutation.isError && <Alert type="error" message={t("nfc.error.read_failed")} showIcon />}
               </Space>
             )}
 
@@ -333,15 +320,8 @@ const NfcBindModal: React.FC<NfcBindModalProps> = ({ spool, visible, onClose, on
             ) : null}
 
             <Space style={{ width: "100%", justifyContent: "center" }}>
-              <Button onClick={resetState}>
-                {t("nfc.bind_scan_again")}
-              </Button>
-              <Button
-                type="primary"
-                icon={<LinkOutlined />}
-                onClick={handleBind}
-                loading={bindMutation.isPending}
-              >
+              <Button onClick={resetState}>{t("nfc.bind_scan_again")}</Button>
+              <Button type="primary" icon={<LinkOutlined />} onClick={handleBind} loading={bindMutation.isPending}>
                 {bindMutation.isPending ? t("nfc.bind_binding") : t("nfc.bind_button")}
               </Button>
             </Space>
@@ -352,9 +332,7 @@ const NfcBindModal: React.FC<NfcBindModalProps> = ({ spool, visible, onClose, on
             {bindMutation.isSuccess && !bindMutation.data?.success && (
               <Alert type="error" message={bindMutation.data?.message || t("nfc.bind_error")} showIcon />
             )}
-            {bindMutation.isError && (
-              <Alert type="error" message={t("nfc.bind_error")} showIcon />
-            )}
+            {bindMutation.isError && <Alert type="error" message={t("nfc.bind_error")} showIcon />}
           </Space>
         )}
       </Space>

@@ -222,9 +222,7 @@ const NfcWriteModal: React.FC<NfcWriteModalProps> = ({ spool, visible, onClose }
           </div>
         )}
 
-        {tagFormat === "qidi" && mode === "server" && (
-          <Alert type="info" message={t("nfc.qidi_write_info")} showIcon />
-        )}
+        {tagFormat === "qidi" && mode === "server" && <Alert type="info" message={t("nfc.qidi_write_info")} showIcon />}
 
         {mode === "server" && (nfcWriteMutation.isPending || browserWriting) && (
           <Spin tip={t("nfc.place_tag")}>
@@ -251,21 +249,13 @@ const NfcWriteModal: React.FC<NfcWriteModalProps> = ({ spool, visible, onClose }
         )}
 
         {mode === "browser" && browserResult && (
-          <Alert
-            type={browserResult.success ? "success" : "error"}
-            message={browserResult.message}
-            showIcon
-          />
+          <Alert type={browserResult.success ? "success" : "error"} message={browserResult.message} showIcon />
         )}
 
         {mode === "browser" && (
           <>
             <Alert type="warning" message={t("nfc.browser_ndef_warning")} showIcon />
-            <Button
-              icon={<DownloadOutlined />}
-              onClick={handleDownloadBinary}
-              loading={nfcEncodeMutation.isPending}
-            >
+            <Button icon={<DownloadOutlined />} onClick={handleDownloadBinary} loading={nfcEncodeMutation.isPending}>
               {t("nfc.download_raw_binary")}
             </Button>
           </>

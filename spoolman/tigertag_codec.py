@@ -9,7 +9,6 @@ Based on the TigerTag RFID Guide specification.
 import logging
 import struct
 from dataclasses import dataclass
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +22,17 @@ TIGERTAG_INIT = 0x6C41A2E1  # TigerTag Init — blank/uninitialized (decimal 181
 
 # All valid TigerTag magic numbers (for detection)
 TIGERTAG_MAGIC_NUMBERS = {TIGERTAG_MAKER_V1, TIGERTAG_PRO_V1}
+
+# Hex color string lengths: RGB (no alpha) vs RGBA.
+_RGB_HEX_LEN = 6
+_RGBA_HEX_LEN = 8
+
+# TigerTag diameter IDs. 1/2 are the common Maker values; 56/57 are equivalent
+# IDs seen from some product/API sources for the same two diameters.
+_DIAMETER_ID_175 = 1
+_DIAMETER_ID_285 = 2
+_DIAMETER_ID_175_ALT = 56
+_DIAMETER_ID_285_ALT = 57
 
 
 def is_tigertag(magic: int) -> bool:
@@ -76,11 +86,11 @@ class TigerTagData:
     def color_hex(self, value: str) -> None:
         """Set color from hex string."""
         value = value.lstrip("#")
-        if len(value) == 6:
+        if len(value) == _RGB_HEX_LEN:
             self.color_r = int(value[0:2], 16)
             self.color_g = int(value[2:4], 16)
             self.color_b = int(value[4:6], 16)
-        elif len(value) == 8:
+        elif len(value) == _RGBA_HEX_LEN:
             self.color_r = int(value[0:2], 16)
             self.color_g = int(value[2:4], 16)
             self.color_b = int(value[4:6], 16)
@@ -89,14 +99,9 @@ class TigerTagData:
     @property
     def diameter_mm(self) -> float:
         """Get diameter in mm from the diameter ID."""
-        if self.id_diameter == 1:
+        if self.id_diameter in (_DIAMETER_ID_175, _DIAMETER_ID_175_ALT):
             return 1.75
-        if self.id_diameter == 2:
-            return 2.85
-        # TigerTag uses larger IDs — look up common ones
-        if self.id_diameter == 56:
-            return 1.75
-        if self.id_diameter == 57:
+        if self.id_diameter in (_DIAMETER_ID_285, _DIAMETER_ID_285_ALT):
             return 2.85
         return 0.0
 
@@ -175,7 +180,7 @@ def decode_ntag213(raw_bytes: bytes) -> TigerTagData:
         id_product=values[1],
         id_material=values[2],
         id_aspect=values[3],  # aspect_1
-        # values[4] = aspect_2, ignored
+        # index 4 is aspect_2, ignored
         id_type=values[5],
         id_diameter=values[6],
         id_brand=values[7],
@@ -188,7 +193,7 @@ def decode_ntag213(raw_bytes: bytes) -> TigerTagData:
         nozzle_temp_max=values[11],
         drying_temp=values[12],
         drying_duration=values[13],
-        # values[14] = reserved
+        # index 14 is reserved
         timestamp=values[15],
     )
 

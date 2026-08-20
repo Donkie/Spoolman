@@ -8,7 +8,6 @@ Provides functions to:
 """
 
 import logging
-from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -66,8 +65,9 @@ async def find_spool_by_qidi_tag(
     db: AsyncSession,
     tag_data: QidiTagData,
     tag_uid_hex: str | None = None,
+    *,
     auto_bind: bool = True,
-) -> Optional[Spool]:
+) -> Spool | None:
     """Find a Spoolman spool matching a Qidi tag.
 
     Matching strategies (tried in order):
@@ -85,6 +85,7 @@ async def find_spool_by_qidi_tag(
 
     Returns:
         The matched spool, or None if no match found.
+
     """
     # Strategy 1: Exact match by UID binding
     if tag_uid_hex:
@@ -142,6 +143,7 @@ def map_spool_to_qidi(spool: Spool) -> QidiTagData:
 
     Returns:
         QidiTagData ready for encoding.
+
     """
     filament = spool.filament
     data = QidiTagData()

@@ -1,6 +1,5 @@
 import { useTranslate } from "@refinedev/core";
 import { Form, Modal, Select, Tag } from "antd";
-import React from "react";
 import { Trans } from "react-i18next";
 import { formatFilamentLabel } from "../pages/spools/functions";
 import { searchMatches } from "../utils/filtering";
@@ -23,7 +22,7 @@ export function FilamentImportModal(props: {
         item.manufacturer,
         item.material,
         item.weight,
-        item.spool_type
+        item.spool_type,
       );
       const sourceTag =
         item.source === "tigertag" ? (

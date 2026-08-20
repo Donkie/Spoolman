@@ -3,7 +3,14 @@ import { useTranslate } from "@refinedev/core";
 import { Alert, Button, Descriptions, FloatButton, Modal, Segmented, Space, Spin, Typography } from "antd";
 import React, { useCallback, useState } from "react";
 import { useNavigate } from "react-router";
-import { QidiTagData, TigerTagData, isWebNfcSupported, useNfcCreateFromTag, useNfcRead, useNfcStatus } from "../utils/nfc";
+import {
+  QidiTagData,
+  TigerTagData,
+  isWebNfcSupported,
+  useNfcCreateFromTag,
+  useNfcRead,
+  useNfcStatus,
+} from "../utils/nfc";
 import { decodeTigerTag, isTigerTag } from "../utils/tigertagCodec";
 
 const { Text } = Typography;
@@ -305,24 +312,13 @@ const NfcScannerModal: React.FC = () => {
 
           {mode === "server" && (
             <Space direction="vertical" style={{ width: "100%" }} align="center">
-              <Button
-                type="primary"
-                onClick={handleServerRead}
-                loading={nfcReadMutation.isPending}
-                size="large"
-              >
+              <Button type="primary" onClick={handleServerRead} loading={nfcReadMutation.isPending} size="large">
                 {nfcReadMutation.isPending ? t("nfc.reading") : t("nfc.scan_title")}
               </Button>
               {nfcReadMutation.isSuccess && !nfcReadMutation.data?.spool_id && !unmatchedTagData && (
-                <Alert
-                  type="warning"
-                  message={nfcReadMutation.data?.message || t("nfc.no_match")}
-                  showIcon
-                />
+                <Alert type="warning" message={nfcReadMutation.data?.message || t("nfc.no_match")} showIcon />
               )}
-              {nfcReadMutation.isError && (
-                <Alert type="error" message={t("nfc.error.read_failed")} showIcon />
-              )}
+              {nfcReadMutation.isError && <Alert type="error" message={t("nfc.error.read_failed")} showIcon />}
             </Space>
           )}
 
@@ -337,9 +333,7 @@ const NfcScannerModal: React.FC = () => {
                   {t("nfc.scan_title")}
                 </Button>
               )}
-              {browserError && !unmatchedTagData && (
-                <Alert type="error" message={browserError} showIcon />
-              )}
+              {browserError && !unmatchedTagData && <Alert type="error" message={browserError} showIcon />}
             </Space>
           )}
 
@@ -352,12 +346,7 @@ const NfcScannerModal: React.FC = () => {
               ) : unmatchedTagData ? (
                 <TagDataSummary tagData={unmatchedTagData} t={t} />
               ) : null}
-              <Button
-                type="primary"
-                onClick={handleCreateFromTag}
-                loading={createFromTagMutation.isPending}
-                block
-              >
+              <Button type="primary" onClick={handleCreateFromTag} loading={createFromTagMutation.isPending} block>
                 {createFromTagMutation.isPending ? t("nfc.creating_spool") : t("nfc.create_from_tag")}
               </Button>
               {createFromTagMutation.isSuccess && createFromTagMutation.data?.success && (
@@ -365,11 +354,7 @@ const NfcScannerModal: React.FC = () => {
               )}
               {(createFromTagMutation.isError ||
                 (createFromTagMutation.isSuccess && !createFromTagMutation.data?.success)) && (
-                <Alert
-                  type="error"
-                  message={createFromTagMutation.data?.message || t("nfc.create_error")}
-                  showIcon
-                />
+                <Alert type="error" message={createFromTagMutation.data?.message || t("nfc.create_error")} showIcon />
               )}
             </Space>
           )}

@@ -33,6 +33,14 @@ QIDI_KEY_CUSTOM = bytes([0xD3, 0xF7, 0xD3, 0xF7, 0xD3, 0xF7])
 QIDI_KEY_DEFAULT = bytes([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
 QIDI_KEYS = [QIDI_KEY_CUSTOM, QIDI_KEY_DEFAULT]
 
+# The 3 payload bytes (material, color, manufacturer) that decode_qidi_block needs;
+# is_valid_qidi_block additionally checks that the full MIFARE_BLOCK_SIZE-byte block
+# is present and its padding is zeroed.
+_QIDI_PAYLOAD_BYTES = 3
+_MAX_MATERIAL_CODE = 50
+_MAX_COLOR_CODE = 24
+_RGB_HEX_LEN = 6
+
 # Material code -> (name, Spoolman material string)
 MATERIAL_CODE_MAP: dict[int, tuple[str, str]] = {
     1: ("PLA", "PLA"),
@@ -145,9 +153,10 @@ def decode_qidi_block(raw_bytes: bytes) -> QidiTagData:
 
     Raises:
         ValueError: If the data is too short.
+
     """
-    if len(raw_bytes) < 3:
-        raise ValueError(f"Data too short: expected at least 3 bytes, got {len(raw_bytes)}")
+    if len(raw_bytes) < _QIDI_PAYLOAD_BYTES:
+        raise ValueError(f"Data too short: expected at least {_QIDI_PAYLOAD_BYTES} bytes, got {len(raw_bytes)}")
 
     logger.info(
         "Qidi raw block: %s",
@@ -166,6 +175,7 @@ def encode_qidi_block(data: QidiTagData) -> bytes:
 
     Returns:
         bytes: 16 bytes to write to MIFARE Classic block 4.
+
     """
     block = bytearray(MIFARE_BLOCK_SIZE)
     block[0] = data.material_code & 0xFF
@@ -181,18 +191,18 @@ def is_valid_qidi_block(raw_bytes: bytes) -> bool:
     Validates: bytes 3-15 are all zero, material code 1-50,
     color code 1-24, manufacturer code == 1.
     """
-    if len(raw_bytes) < 16:
+    if len(raw_bytes) < MIFARE_BLOCK_SIZE:
         return False
 
     # Check padding bytes are zero
-    if any(b != 0 for b in raw_bytes[3:16]):
+    if any(b != 0 for b in raw_bytes[_QIDI_PAYLOAD_BYTES:MIFARE_BLOCK_SIZE]):
         return False
 
     material = raw_bytes[0]
     color = raw_bytes[1]
     manufacturer = raw_bytes[2]
 
-    return 1 <= material <= 50 and 1 <= color <= 24 and manufacturer == 1
+    return 1 <= material <= _MAX_MATERIAL_CODE and 1 <= color <= _MAX_COLOR_CODE and manufacturer == 1
 
 
 def material_code_from_name(name: str) -> int | None:
@@ -210,7 +220,7 @@ def color_code_from_hex(hex_color: str) -> int | None:
     Exact match first, then Euclidean distance in RGB space.
     """
     hex_color = hex_color.lstrip("#").lower()
-    if len(hex_color) < 6:
+    if len(hex_color) < _RGB_HEX_LEN:
         return None
 
     target_r = int(hex_color[0:2], 16)

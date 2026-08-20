@@ -1,4 +1,11 @@
-import { InboxOutlined, LinkOutlined, PrinterOutlined, ToTopOutlined, ToolOutlined, WifiOutlined } from "@ant-design/icons";
+import {
+  InboxOutlined,
+  LinkOutlined,
+  PrinterOutlined,
+  ToTopOutlined,
+  ToolOutlined,
+  WifiOutlined,
+} from "@ant-design/icons";
 import { DateField, NumberField, Show, TextField } from "@refinedev/antd";
 import { useInvalidate, useShow, useTranslate } from "@refinedev/core";
 import { Button, Modal, Typography } from "antd";
@@ -145,18 +152,10 @@ export const SpoolShow = () => {
           </Button>
           {showNfcButton && (
             <>
-              <Button
-                type="primary"
-                icon={<LinkOutlined />}
-                onClick={() => setNfcBindModalVisible(true)}
-              >
+              <Button type="primary" icon={<LinkOutlined />} onClick={() => setNfcBindModalVisible(true)}>
                 {t("nfc.bind_button")}
               </Button>
-              <Button
-                type="primary"
-                icon={<WifiOutlined />}
-                onClick={() => setNfcWriteModalVisible(true)}
-              >
+              <Button type="primary" icon={<WifiOutlined />} onClick={() => setNfcWriteModalVisible(true)}>
                 {t("nfc.encode_button")}
               </Button>
             </>
@@ -179,11 +178,7 @@ export const SpoolShow = () => {
             onClose={() => setNfcBindModalVisible(false)}
             onBound={() => invalidate({ resource: "spool", id: record?.id, invalidates: ["detail"] })}
           />
-          <NfcWriteModal
-            spool={record}
-            visible={nfcWriteModalVisible}
-            onClose={() => setNfcWriteModalVisible(false)}
-          />
+          <NfcWriteModal spool={record} visible={nfcWriteModalVisible} onClose={() => setNfcWriteModalVisible(false)} />
         </>
       )}
     >

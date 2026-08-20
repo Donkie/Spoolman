@@ -9,13 +9,12 @@ Provides functions to:
 import json
 import logging
 import time
-from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from spoolman.database.models import Filament, Spool, SpoolField, Vendor
+from spoolman.database.models import Filament, Spool, SpoolField
 from spoolman.tigertag_codec import TigerTagData
 
 logger = logging.getLogger(__name__)
@@ -65,8 +64,9 @@ async def bind_spool_to_tigertag(db: AsyncSession, spool: Spool, tag_data: Tiger
 async def find_spool_by_tigertag(
     db: AsyncSession,
     tag_data: TigerTagData,
+    *,
     auto_bind: bool = True,
-) -> Optional[Spool]:
+) -> Spool | None:
     """Find a Spoolman spool matching decoded TigerTag data.
 
     Matching strategies (tried in order):
@@ -147,11 +147,32 @@ async def find_spool_by_tigertag(
     return None
 
 
+# How close an actual filament diameter (mm) must be to a standard size to count as it.
+_DIAMETER_TOLERANCE_MM = 0.1
+
+
+def _lookup_id_by_name(name_map: dict[str, int], name: str) -> int:
+    """Case-insensitive value lookup by name. Returns 0 (TigerTag's "unset" ID) if not found."""
+    target = name.lower()
+    for key, value in name_map.items():
+        if key.lower() == target:
+            return value
+    return 0
+
+
+def _classify_tigertag_diameter(diameter: float) -> int:
+    """Map an actual filament diameter (mm) to a TigerTag diameter ID (0 if neither standard size)."""
+    if abs(diameter - 1.75) < _DIAMETER_TOLERANCE_MM:
+        return 1
+    if abs(diameter - 2.85) < _DIAMETER_TOLERANCE_MM:
+        return 2
+    return 0
+
+
 def map_spool_to_tigertag(
     spool: Spool,
-    brand_map: Optional[dict[str, int]] = None,
-    material_map: Optional[dict[str, int]] = None,
-    diameter_map: Optional[float] = None,
+    brand_map: dict[str, int] | None = None,
+    material_map: dict[str, int] | None = None,
 ) -> TigerTagData:
     """Map a Spoolman spool/filament to TigerTag binary data.
 
@@ -159,7 +180,6 @@ def map_spool_to_tigertag(
         spool: The Spoolman spool to encode.
         brand_map: Optional mapping of brand name -> TigerTag brand ID.
         material_map: Optional mapping of material name -> TigerTag material type ID.
-        diameter_map: Not used, diameter is determined from filament data.
 
     Returns:
         TigerTagData: The TigerTag data ready for encoding.
@@ -181,28 +201,14 @@ def map_spool_to_tigertag(
     else:
         data.id_product = spool.id
 
-    # Brand ID lookup
     if brand_map and filament.vendor and filament.vendor.name:
-        vendor_name = filament.vendor.name.lower()
-        for name, brand_id in brand_map.items():
-            if name.lower() == vendor_name:
-                data.id_brand = brand_id
-                break
+        data.id_brand = _lookup_id_by_name(brand_map, filament.vendor.name)
 
-    # Material ID lookup
     if material_map and filament.material:
-        material_name = filament.material.lower()
-        for name, material_id in material_map.items():
-            if name.lower() == material_name:
-                data.id_material = material_id
-                break
+        data.id_material = _lookup_id_by_name(material_map, filament.material)
 
-    # Diameter
     if filament.diameter:
-        if abs(filament.diameter - 1.75) < 0.1:
-            data.id_diameter = 1
-        elif abs(filament.diameter - 2.85) < 0.1:
-            data.id_diameter = 2
+        data.id_diameter = _classify_tigertag_diameter(filament.diameter)
 
     # Color
     if filament.color_hex:
@@ -240,6 +246,7 @@ def _load_tigertag_brand_map() -> dict[str, int]:
                 # We don't have direct brand IDs in the filament cache,
                 # so this mapping is approximate
                 pass
-        return brand_map
-    except Exception:
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
         return {}
+    else:
+        return brand_map
