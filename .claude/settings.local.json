@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "WebSearch",
-      "WebFetch(domain:doc.tigertag.io)",
-      "WebFetch(domain:github.com)"
-    ]
-  }
-}
