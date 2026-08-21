@@ -376,15 +376,16 @@
                 "boolean": "Booleano",
                 "choice": "Opção"
             },
-            "key_not_changed": "Por favor, mude a chave por outra.",
+            "key_not_changed": "Por favor, altere a chave para algo diferente.",
             "delete_confirm": "Apagar o campo {{name}}?",
-            "delete_confirm_description": "Isto irá apagar o campo e todos os dados associados em todas as entidades.",
+            "delete_confirm_description": "Isto irá apagar o campo e todos os dados associados a todas as entidades.",
             "description": "<p>Aqui pode adicionar campos personalizados extras às suas entidades.</p><p>Uma vez que um campo é adicionado, não se pode alterar sua chave ou tipo, e para campos do tipo \"opção\" não se pode remover as opções ou alterar o estado da múltipla opção. Se remover um campo, os dados associados para todas as entidades serão excluídos.</p><p>A chave é como outros programas leem/gravam os dados, portanto, se o seu campo personalizado se destina a integrar com um programa de terceiros, certifique-se de defini-lo corretamente. O valor padrão só é aplicado a novos itens.</p><p>Campos extras não podem ser ordenados ou filtrados nas visualizações de tabela.</p>",
             "choices_missing_error": "Não pode remover as opções. As seguintes opções serão perdidas: {{choices}}",
             "tab": "Campos Extras",
             "boolean_true": "Sim",
             "boolean_false": "Não",
-            "non_unique_key_error": "A chave deve ser única."
+            "non_unique_key_error": "A chave deve ser única.",
+            "choices_reorder_hint": "Arraste ou use as setas para reordenar esta escolha."
         },
         "settings": "Configurações",
         "header": "Configurações",
@@ -408,5 +409,11 @@
         "new_location": "Novo Local",
         "no_location": "Sem Local",
         "no_locations_help": "Esta página permite organizar as suas bobines em locais, adicione algumas bobines para começar!"
+    },
+    "theme": {
+        "label": "Tema",
+        "system": "Sistema",
+        "light": "Claro",
+        "dark": "Escuro"
     }
 }
