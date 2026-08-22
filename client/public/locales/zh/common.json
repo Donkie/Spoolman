@@ -269,10 +269,16 @@
         "form": {
             "filament_updated": "自您打开此页面以来，此耗材已被其他人/事物更新。保存将覆盖这些更改！",
             "import_external_description": "在列表中选择一种耗材以自动填充耗材创建表单中的详细信息。这将覆盖您在表单中输入的任何数据。<br><br>如果有必要，在您点击“确定”时将自动创建一个制造商对象。",
-            "import_external": "从外部导入"
+            "import_external": "从外部导入",
+            "import_3dfp": "3D Filament Profiles ID",
+            "import_3dfp_help": "通过从 3dfilamentprofiles.com 获取数据自动填写信息",
+            "import_3dfp_placeholder": "例如 12875",
+            "import_3dfp_success": "成功从 3dfilamentprofiles.com 获取耗材信息",
+            "import_3dfp_error": "从 3dfilamentprofiles.com 获取耗材数据失败"
         },
         "buttons": {
-            "add_spool": "添加料盘"
+            "add_spool": "添加料盘",
+            "fetch": "获取"
         }
     },
     "vendor": {
