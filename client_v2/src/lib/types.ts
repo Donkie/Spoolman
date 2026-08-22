@@ -14,6 +14,22 @@ export type ExtraPatch = Record<string, string | null>;
 /** Layout of a multi-color filament's colors. */
 export type MultiColorDirection = 'coaxial' | 'longitudinal';
 
+/**
+ * A physical NFC/RFID tag linked to a spool. The UID is the tag's hardware
+ * serial, normalized by the server — always render the one it returns rather
+ * than the one you sent, since any separator spelling maps to the same tag.
+ *
+ * There is deliberately no row id on the wire: `uid` is globally unique and is
+ * what you link, unlink and look up by.
+ */
+export interface SpoolTag {
+	uid: string;
+	/** Tag hardware type, e.g. "ntag". Informational, and often absent. */
+	format?: string;
+	/** ISO timestamp of when the tag was linked. */
+	added: string;
+}
+
 export interface Vendor {
 	id: string;
 	name: string;
@@ -91,13 +107,17 @@ export interface Spool {
 	registeredLabel: string;
 	archived: boolean;
 	comment: string;
+	/** Linked NFC/RFID tags. Always present; empty when the spool has none. */
+	tags: SpoolTag[];
 	extra: Extra;
 }
 
 // Write shapes: a partial entity, except that `extra` may carry nulls to clear values.
 export type VendorPatch = Partial<Omit<Vendor, 'extra'>> & { extra?: ExtraPatch };
 export type FilamentPatch = Partial<Omit<Filament, 'extra'>> & { extra?: ExtraPatch };
-export type SpoolPatch = Partial<Omit<Spool, 'extra'>> & { extra?: ExtraPatch };
+// Tags are not part of a spool PATCH — they are linked and unlinked through
+// their own endpoints (see api/tags.ts), so they stay out of the write shape.
+export type SpoolPatch = Partial<Omit<Spool, 'extra' | 'tags'>> & { extra?: ExtraPatch };
 
 export type EntityKind = 'spool' | 'filament' | 'vendor';
 

@@ -7,7 +7,11 @@
 // successful!" refreshes the existing toast's timer instead of stacking a new
 // one, which keeps rapid editing from turning into a wall of notifications.
 
-export type ToastKind = 'success' | 'error';
+// `info` is for things that are neither an achievement nor a failure and still
+// need saying — a tag scanned that no spool claims, which is the ordinary first
+// step of enrolling one. Reporting that as an error would put a red warning on a
+// working flow, and as a success would tick a green check at nothing happening.
+export type ToastKind = 'success' | 'error' | 'info';
 
 export interface Toast {
 	id: number;
@@ -28,7 +32,9 @@ class ToastState {
 
 	/** Show `message`, or refresh the timer if it's already the newest toast. */
 	show(kind: ToastKind, message: string) {
-		const ttl = kind === 'error' ? ERROR_MS : SUCCESS_MS;
+		// A confirmation is read at a glance; anything else is read properly, and an
+		// instruction the user has to act on outlives the two seconds a tick gets.
+		const ttl = kind === 'success' ? SUCCESS_MS : ERROR_MS;
 		const newest = this.items[this.items.length - 1];
 		if (newest && newest.kind === kind && newest.message === message) {
 			this.#arm(newest.id, ttl);
@@ -46,6 +52,10 @@ class ToastState {
 
 	error(message: string) {
 		this.show('error', message);
+	}
+
+	info(message: string) {
+		this.show('info', message);
 	}
 
 	dismiss(id: number) {

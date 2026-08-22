@@ -35,6 +35,7 @@ from spoolman.database.utils import (
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError, SpoolMeasureError
 from spoolman.extra_field_registry import EntityType, ExtraField, ExtraFieldType, get_extra_fields
 from spoolman.math import weight_from_length
+from spoolman.tags import normalize_uid
 from spoolman.ws import websocket_manager
 
 logger = logging.getLogger(__name__)
@@ -104,6 +105,11 @@ async def create(
         comment=comment,
         archived=archived,
         extra=[models.SpoolField(key=k, value=v) for k, v in (extra or {}).items() if v is not None],
+        # Explicitly empty rather than left unset: a selectin collection that was never
+        # populated is *unloaded* on the persistent object after the commit below, so
+        # Spool.from_db would emit a lazy SELECT from async code and raise MissingGreenlet.
+        # A new spool has no tags, and saying so costs nothing.
+        tags=[],
     )
     db.add(spool)
     await db.commit()
@@ -134,6 +140,7 @@ async def find(  # noqa: C901
     vendor_id: int | Sequence[int] | None = None,
     location: str | None = None,
     lot_nr: str | None = None,
+    tag: str | None = None,
     allow_archived: bool = False,
     first_used: str | None = None,
     last_used: str | None = None,
@@ -162,6 +169,7 @@ async def find(  # noqa: C901
         vendor_id=vendor_id,
         location=location,
         lot_nr=lot_nr,
+        tag=tag,
         allow_archived=allow_archived,
         first_used=first_used,
         last_used=last_used,
@@ -274,6 +282,7 @@ def _apply_spool_filters(
     vendor_id: int | Sequence[int] | None = None,
     location: str | None = None,
     lot_nr: str | None = None,
+    tag: str | None = None,
     allow_archived: bool = False,
     first_used: str | None = None,
     last_used: str | None = None,
@@ -281,6 +290,18 @@ def _apply_spool_filters(
 ) -> sqlalchemy.Select:
     """Apply the standard spool joins and where-clauses shared by find and find_groups."""
     stmt = stmt.join(models.Spool.filament, isouter=True).join(models.Filament.vendor, isouter=True)
+    if tag is not None:
+        # An inner join rather than a subquery, so the list query and the count query stay
+        # in sync automatically: they share this builder. `uid` is unique, so at most one
+        # tag row can match and the join cannot multiply result rows -- which is why the
+        # contains_eager chain for filament/vendor is unaffected.
+        #
+        # The join condition also does the filtering: a tag that points at something other
+        # than a spool has a null `spool_id`, which matches no spool, so such a UID finds
+        # nothing here rather than finding the wrong thing.
+        stmt = stmt.join(models.Tag, models.Tag.spool_id == models.Spool.id).where(
+            models.Tag.uid == normalize_uid(tag),
+        )
     stmt = add_where_clause_int(stmt, models.Spool.filament_id, filament_id)
     stmt = add_where_clause_int_opt(stmt, models.Filament.vendor_id, vendor_id)
     stmt = add_where_clause_str(stmt, models.Vendor.name, vendor_name)

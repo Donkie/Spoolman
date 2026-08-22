@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSpoolViaModal, openApp, unique } from "./helpers";
+import { createSpoolViaModal, openApp, searchFor, unique } from "./helpers";
 
 /**
  * Translucent filaments (#1059). The legacy client could set a filament's alpha
@@ -17,7 +17,12 @@ test("a filament's colour can be made translucent, and stays translucent", async
   await createSpoolViaModal(page, { vendorName, filamentName, locationName });
 
   await test.step("open the new filament in the inspector", async () => {
-    await page.getByRole("link", { name: `Open ${filamentName}` }).click();
+    // Reached through search rather than by looking for its group header in the
+    // list: the library pages at 20 groups, and a brand-new filament is only on
+    // the first page while the instance holds fewer than that. Every spec adds a
+    // filament, so that assumption expires as the suite grows.
+    const panel = await searchFor(page, filamentName);
+    await panel.getByRole("link").filter({ hasText: filamentName }).first().click();
     // The inspector's title is a styled div, not a heading.
     await expect(page.locator(".head .title")).toContainText(filamentName);
   });
