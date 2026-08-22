@@ -262,7 +262,7 @@
     "labels.filamentsSelected_one": "{{count}} Filament ausgewählt",
     "labels.filamentsSelected_other": "{{count}} Filamente ausgewählt",
     "labels.fill": "",
-    "labels.fitWidth": "",
+    "labels.fitWidth": "Breite den Spalten anpassen",
     "labels.fitWidthHint": "",
     "labels.fontMm": "Schriftart",
     "labels.gridInfo": "{{cols}} × {{rows}} = {{perPage}} Etiketten / Seite",
