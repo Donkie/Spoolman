@@ -14,8 +14,7 @@
 	import { scanner, isBrowsableRoute } from '$lib/stores/scanner.svelte';
 	import { toasts } from '$lib/stores/toasts.svelte';
 	import { getLocale, getTextDirection } from '$lib/paraglide/runtime';
-	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
+	import { openSearchResult } from '$lib/library/params';
 	import { page } from '$app/state';
 	import * as m from '$lib/paraglide/messages';
 	import type { Snippet } from 'svelte';
@@ -76,7 +75,14 @@
 				return;
 			}
 			if (!scanner.mayNavigate(document.activeElement, ui.addModalOpen || ui.scannerOpen)) return;
-			goto(resolve(`/?sel=spool:${scan.spool.id}`));
+			// The same navigation a picked search result gets, and for the same reason:
+			// on the Library it merges the selection into the view you are already in,
+			// so a tap reveals the spool without throwing away the grouping, sort and
+			// filters you had set up; from anywhere else it opens the Library on just
+			// that spool. The inspector resolves a selection by id on its own, so the
+			// spool still opens when the active filters exclude it from the list behind
+			// it -- a scan answers "where is this spool", never "is it in this view".
+			openSearchResult('spool', String(scan.spool.id));
 		});
 	});
 </script>
