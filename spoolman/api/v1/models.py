@@ -323,7 +323,7 @@ class SpoolTag(BaseModel):
     added: SpoolmanDateTime = Field(description="When the tag was linked to the spool. UTC Timezone.")
 
     @staticmethod
-    def from_db(item: models.SpoolTag) -> "SpoolTag":
+    def from_db(item: models.Tag) -> "SpoolTag":
         """Create a new Pydantic spool tag object from a database spool tag object."""
         return SpoolTag(uid=item.uid, format=item.format, added=item.added)
 
