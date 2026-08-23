@@ -46,7 +46,7 @@
         "saveSuccessful": "Save successful!",
         "validationError": "Validation error: {{error}}"
     },
-    "kofi": "Tip me on Ko-fi",
+    "sponsor": "Sponsor me on GitHub",
     "loading": "Loading",
     "version": "Version",
     "unknown": "Unknown",

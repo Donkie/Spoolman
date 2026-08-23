@@ -12,6 +12,7 @@ Spoolman is a self-hosted web service designed to help you efficiently manage yo
 
 [![Static Badge](https://img.shields.io/badge/Spoolman%20Wiki-blue?link=https%3A%2F%2Fgithub.com%2FDonkie%2FSpoolman%2Fwiki)](https://github.com/Donkie/Spoolman/wiki)
 [![GitHub Release](https://img.shields.io/github/v/release/Donkie/Spoolman)](https://github.com/Donkie/Spoolman/releases)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/Donkie?logo=githubsponsors&logoColor=EA4AAA&color=EA4AAA)](https://github.com/sponsors/Donkie)
 
 ### Features
 * **Filament Management**: Keep comprehensive records of filament types, manufacturers, and individual spools.
