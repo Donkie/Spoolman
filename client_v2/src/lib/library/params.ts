@@ -35,6 +35,8 @@ export interface LibraryState {
 	filters: FilterChip[];
 	/** Include archived spools in the listing (and group aggregates). */
 	showArchived: boolean;
+	/** Also list filaments you hold no spools of, when grouping by filament. */
+	showEmpty: boolean;
 	page: number;
 	pageSize: number;
 }
@@ -46,13 +48,14 @@ const ENTITY_KINDS: EntityKind[] = ['spool', 'filament', 'vendor'];
  *  holds. A URL naming none of them is the one that defers to the remembered
  *  view; naming any of them describes a view of its own, which is taken whole so
  *  a stored grouping never gets spliced onto a link's sort. */
-const VIEW_PARAMS = ['group', 'sort', 'dir'];
+const VIEW_PARAMS = ['group', 'sort', 'dir', 'empty'];
 
 const DEFAULTS = {
 	group: 'filament' as GroupMode,
 	sortKey: 'last_used',
 	sortAsc: false,
 	showArchived: false,
+	showEmpty: false,
 	page: 1,
 	pageSize: 20
 };
@@ -110,6 +113,7 @@ export function parseLibraryState(params: URLSearchParams): LibraryState {
 		sortAsc,
 		filters: parseFilters(params.getAll('f')),
 		showArchived: params.get('arch') === '1',
+		showEmpty: params.get('empty') === '1',
 		page: parsePositiveInt(params.get('page'), DEFAULTS.page),
 		pageSize: parsePositiveInt(params.get('size'), DEFAULTS.pageSize)
 	};
@@ -136,6 +140,7 @@ function serializeState(s: LibraryState): string {
 		p.append('f', `${encodeURIComponent(f.prop)}:${encodeURIComponent(f.value)}`);
 	}
 	if (s.showArchived !== DEFAULTS.showArchived) p.set('arch', s.showArchived ? '1' : '0');
+	if (s.showEmpty !== DEFAULTS.showEmpty) p.set('empty', s.showEmpty ? '1' : '0');
 	if (s.page !== DEFAULTS.page) p.set('page', String(s.page));
 	if (s.pageSize !== DEFAULTS.pageSize) p.set('size', String(s.pageSize));
 	if (s.selection) p.set('sel', `${s.selection.kind}:${s.selection.id}`);
@@ -176,7 +181,8 @@ export function rememberedViewHref(url: URL): string | null {
 	if (
 		group === DEFAULTS.group &&
 		stored.sortKey === DEFAULTS.sortKey &&
-		stored.sortAsc === DEFAULTS.sortAsc
+		stored.sortAsc === DEFAULTS.sortAsc &&
+		stored.showEmpty === DEFAULTS.showEmpty
 	) {
 		return null;
 	}
@@ -184,7 +190,13 @@ export function rememberedViewHref(url: URL): string | null {
 	// Everything the URL *does* say (a selection, filters, archived spools) is
 	// kept; only the layout comes from the preference.
 	const state = parseLibraryState(url.searchParams);
-	const qs = serializeState({ ...state, group, sortKey: stored.sortKey, sortAsc: stored.sortAsc });
+	const qs = serializeState({
+		...state,
+		group,
+		sortKey: stored.sortKey,
+		sortAsc: stored.sortAsc,
+		showEmpty: stored.showEmpty
+	});
 	return `${url.pathname}?${qs}`;
 }
 
@@ -201,7 +213,12 @@ function navigate(next: LibraryState, replace = false): void {
 	// setGroup's fallback to the default sort. Back/forward doesn't come through
 	// here: stepping through history replays old views without redefining what
 	// "the Library" means next time it's opened fresh.
-	rememberView({ group: next.group, sortKey: next.sortKey, sortAsc: next.sortAsc });
+	rememberView({
+		group: next.group,
+		sortKey: next.sortKey,
+		sortAsc: next.sortAsc,
+		showEmpty: next.showEmpty
+	});
 
 	const qs = serializeState(next);
 	// Both targets are base-path-independent: a bare `?query` resolves against the
@@ -237,6 +254,17 @@ export function setSortKey(key: string): void {
 	navigate({ ...s, sortKey: key, sortAsc, group, page: DEFAULTS.page });
 }
 
+/**
+ * Flip the current sort's direction, leaving the field alone (#1091).
+ *
+ * Re-selecting the active key already means "flip" (see setSortKey), so this is
+ * that call named for what the toolbar's arrow does — and it keeps the arrow
+ * from having to know that reselecting a key is how you reverse a sort.
+ */
+export function toggleSortDir(): void {
+	setSortKey(currentState().sortKey);
+}
+
 export function toggleFilter(prop: string, value: string): void {
 	const s = currentState();
 	const has = s.filters.some((f) => f.prop === prop && f.value === value);
@@ -256,6 +284,10 @@ export function setFilter(prop: string, value: string): void {
 	const s = currentState();
 	const filters = [...s.filters.filter((f) => f.prop !== prop), { prop, value }];
 	navigate({ ...s, filters, page: DEFAULTS.page });
+}
+
+export function setShowEmpty(showEmpty: boolean): void {
+	navigate({ ...currentState(), showEmpty, page: DEFAULTS.page });
 }
 
 export function setShowArchived(showArchived: boolean): void {

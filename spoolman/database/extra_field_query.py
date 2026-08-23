@@ -266,13 +266,21 @@ async def apply_spool_related_extra_filters(
     stmt: Select,
     filament_filters: dict[str, str] | None,
     vendor_filters: dict[str, str] | None,
+    link_column: InstrumentedAttribute[int] | None = None,
 ) -> Select:
     """Filter a spool query by extra fields that live on the spool's filament or its vendor.
 
     Spool extra fields are handled by apply_extra_field_filters_and_sort; this handles the two
     related entities, linking through Spool.filament_id (a spool matches when its filament — or that
     filament's vendor — matches the extra-field condition).
+
+    Both conditions are ultimately expressed as a set of filament ids, so `link_column` can name
+    any column holding one. It defaults to Spool.filament_id — the spool query this was written
+    for — and is Filament.id for the query that lists filaments themselves, empty ones included
+    (see find_groups' include_empty).
     """
+    link = models.Spool.filament_id if link_column is None else link_column
+
     if filament_filters:
         fields = {f.key: f for f in await get_extra_fields(db, EntityType.filament)}
         for field_key, value in filament_filters.items():
@@ -281,7 +289,7 @@ async def apply_spool_related_extra_filters(
                 continue
             stmt = add_where_clause_extra_field(
                 stmt=stmt,
-                link_column=models.Spool.filament_id,
+                link_column=link,
                 id_select=sqlalchemy.select(models.FilamentField.filament_id),
                 field_table=models.FilamentField,
                 field_key=field_key,
@@ -305,7 +313,7 @@ async def apply_spool_related_extra_filters(
             )
             stmt = add_where_clause_extra_field(
                 stmt=stmt,
-                link_column=models.Spool.filament_id,
+                link_column=link,
                 id_select=id_select,
                 field_table=models.VendorField,
                 field_key=field_key,

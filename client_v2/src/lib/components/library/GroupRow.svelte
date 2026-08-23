@@ -38,6 +38,11 @@
 	let id = $derived(groupId(group.field, group.key));
 	let collapsed = $derived(collapsedGroups.has(id));
 
+	// A filament the library holds no spools of, listed so that "I have none of
+	// this" is visible rather than silently absent (#1092). There is nothing under
+	// the header, so there is nothing to fetch, fold or page through either.
+	let noSpools = $derived(group.spoolCount === 0);
+
 	let el: HTMLDivElement | undefined = $state();
 
 	async function toggle() {
@@ -74,7 +79,7 @@
 	// loaded is kept, so re-expanding paints immediately and refreshes behind it.
 	let reqId = 0;
 	$effect(() => {
-		if (collapsed) return;
+		if (collapsed || noSpools) return;
 		const ctrl = new AbortController();
 		void revision; // refetch on live events
 		const want = untrack(() => spools.length) || PAGE;
@@ -166,8 +171,16 @@
 </script>
 
 <div bind:this={el}>
-	<GroupHeader group={header} sticky href={headerHref} {vendorHref} {collapsed} ontoggle={toggle} />
-	{#if !collapsed}
+	<GroupHeader
+		group={header}
+		sticky
+		href={headerHref}
+		{vendorHref}
+		{collapsed}
+		{noSpools}
+		ontoggle={toggle}
+	/>
+	{#if !collapsed && !noSpools}
 		{#each inUse as vm (vm.spool.id)}
 			<SpoolRow {vm} {showSwatch} indent={26} context={group.field} />
 		{/each}
