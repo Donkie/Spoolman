@@ -74,6 +74,9 @@ export interface GroupQuery {
 	sort: SortField[];
 	/** Include archived spools in the group aggregates (default: excluded). */
 	allowArchived?: boolean;
+	/** List matching filaments that hold no matching spools as groups of zero
+	 *  (filament grouping only; see buildGroupQuery). */
+	includeEmpty?: boolean;
 	limit: number;
 	offset: number;
 	lowThreshold: number;

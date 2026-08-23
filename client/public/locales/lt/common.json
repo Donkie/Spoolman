@@ -354,7 +354,8 @@
             "non_unique_key_error": "Raktas turi būti unukalus.",
             "key_not_changed": "Prašome pakeisti raktą į ką nors kitą.",
             "delete_confirm": "Šalinti lauką {{name}}?",
-            "delete_confirm_description": "Tai ištrins lauką ir visus susijusius duomenis visiems objektams."
+            "delete_confirm_description": "Tai ištrins lauką ir visus susijusius duomenis visiems objektams.",
+            "choices_reorder_hint": "Temkite arba naudokite rodyklių klavišus, kad pakeistumėte eilės tvarką."
         }
     },
     "documentTitle": {
@@ -396,5 +397,10 @@
         "new_location": "Nauja vieta",
         "no_location": "Be vietos",
         "no_locations_help": "Šiame puslapyje galite tvarkyti rites pagal vietas, pridėkite keletą ričių, kad pradėtumėte!"
+    },
+    "theme": {
+        "label": "Tema",
+        "system": "Sistema",
+        "dark": "Tamsus"
     }
 }

@@ -11,9 +11,10 @@
 		withinLast,
 		type DateFilterProp
 	} from '$lib/library/dateFilter';
-	import { sortDefs, filamentLabel, type SortDef } from '$lib/utils/library';
+	import { sortDefs, filamentLabel, type FilterOption, type SortDef } from '$lib/utils/library';
 	import { filterByQuery, matchesTerms, searchTerms } from '$lib/utils/match';
 	import MenuSearch from '../MenuSearch.svelte';
+	import Swatch from '../Swatch.svelte';
 	import { spoolSource } from '$lib/api/spoolSource';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { fields } from '$lib/stores/fields.svelte';
@@ -63,10 +64,6 @@
 		fields.ensure('vendor');
 	});
 
-	interface FilterOption {
-		value: string;
-		label: string;
-	}
 	// Most filters pick from a set of values the API can enumerate; a date filter
 	// picks a range instead, so it gets a panel of its own rather than an option
 	// list (see library/dateFilter for the grammar behind it).
@@ -229,6 +226,14 @@
 		return parsed?.kind === 'range' ? parsed : null;
 	});
 
+	// The values this property already filters by. A filter's chip sits in the
+	// toolbar behind the open menu, which is no help when the list is long and the
+	// menu covers it, so the list says so itself (#1090). Values only: a date
+	// filter holds one range at a time, so its presets are a choice, not a set.
+	let activeValues = $derived(
+		new Set(libraryState.filters.filter((f) => f.prop === filterProp).map((f) => f.value))
+	);
+
 	async function openProp(category: FilterCategory) {
 		filterProp = category.key;
 		// The query that found this property says nothing about its values.
@@ -328,7 +333,18 @@
 
 	let visibleCategories = $derived(filterByQuery(filterCategories, menuQuery, (c) => c.label()));
 	let archivedMatches = $derived(matchesTerms(m['buttons.showArchived'](), searchTerms(menuQuery)));
-	let visibleOptions = $derived(filterByQuery(options, menuQuery, (o) => o.label));
+	// Only offered where it means something: the empty groups are filaments, so
+	// there is nowhere to put them in a list grouped by anything else. Folded into
+	// the match itself rather than tested at the row, so that a search matching
+	// nothing else still falls through to "no results" instead of an empty menu.
+	let noSpoolsMatches = $derived(
+		libraryState.group === 'filament' && matchesTerms(m['buttons.showNoSpools'](), searchTerms(menuQuery))
+	);
+	// An option's secondary text is on screen, so it has to be searchable: typing
+	// "petg" against a list that visibly says PETG must not come back empty.
+	let visibleOptions = $derived(
+		filterByQuery(options, menuQuery, (o) => (o.meta ? `${o.label} ${o.meta}` : o.label))
+	);
 	let visibleSortSections = $derived(
 		sortSections
 			.map((sec) => ({ ...sec, items: filterByQuery(sec.items, menuQuery, (it) => it.labelKey()) }))
@@ -345,7 +361,6 @@
 		const first = visibleOptions[0];
 		if (!first) return;
 		params.toggleFilter(filterProp!, first.value);
-		close();
 	}
 	function chooseFirstSort() {
 		const first = visibleSortSections[0]?.items[0];
@@ -386,6 +401,14 @@
 				{m['spool.fields.archived']()} <span class="x"><X size={12} /></span>
 			</button>
 		{/if}
+		<!-- So is showing the filaments you hold no spools of: it widens the list
+		     rather than narrowing it, but it is still a deviation from the default
+		     view, so it says so and can be dismissed from here (#1092). -->
+		{#if libraryState.showEmpty}
+			<button class="chip active" onclick={() => params.setShowEmpty(false)}>
+				{m['library.noSpools']()} <span class="x"><X size={12} /></span>
+			</button>
+		{/if}
 	</div>
 
 	<div class="controls">
@@ -393,10 +416,24 @@
 			><span class="ctrl-label">{m['library.groupBy']()}: </span>{groupLabel}
 			<ChevronDown size={13} /></button
 		>
-		<button class="chip active sort" onclick={() => toggle('sort')}>
-			<span class="ctrl-label">{m['library.sortBy']()}: </span>{activeSort.labelKey()}
-			{#if libraryState.sortAsc}<ArrowUp size={12} />{:else}<ArrowDown size={12} />{/if}
-		</button>
+		<!-- One chip, two controls (#1091): the field opens the menu, the arrow only
+		     flips the direction. Reversing an order used to mean reopening the menu
+		     and hunting down the field that was already selected. A divider and a
+		     hover of its own say the arrow is clickable; buttons can't nest, so the
+		     chip itself is the wrapper and the padding lives on the two halves. -->
+		<div class="chip active sort">
+			<button class="sort-field" onclick={() => toggle('sort')}>
+				<span class="ctrl-label">{m['library.sortBy']()}: </span>{activeSort.labelKey()}
+			</button>
+			<button
+				class="sort-dir-btn"
+				title={m['library.reverseSort']()}
+				aria-label={m['library.reverseSort']()}
+				onclick={() => params.toggleSortDir()}
+			>
+				{#if libraryState.sortAsc}<ArrowUp size={12} />{:else}<ArrowDown size={12} />{/if}
+			</button>
+		</div>
 	</div>
 
 	{#if open === 'filter'}
@@ -436,7 +473,25 @@
 						>
 						<span class="mi-label">{m['buttons.showArchived']()}</span>
 					</button>
-				{:else if !visibleCategories.length}
+				{/if}
+				{#if noSpoolsMatches}
+					{#if visibleCategories.length && !archivedMatches}<div class="menu-sep"></div>{/if}
+					<button
+						class="menu-item"
+						role="menuitemcheckbox"
+						aria-checked={libraryState.showEmpty}
+						onclick={() => {
+							params.setShowEmpty(!libraryState.showEmpty);
+							close();
+						}}
+					>
+						<span class="mi-check"
+							>{#if libraryState.showEmpty}<SquareCheck size={15} />{:else}<Square size={15} />{/if}</span
+						>
+						<span class="mi-label">{m['buttons.showNoSpools']()}</span>
+					</button>
+				{/if}
+				{#if !archivedMatches && !noSpoolsMatches && !visibleCategories.length}
 					<div class="menu-item"><span class="mi-label mi-meta">{m['search.noResults']()}</span></div>
 				{/if}
 			{:else}
@@ -498,15 +553,32 @@
 							onenter={chooseFirstOption}
 						/>
 					{/if}
+					<!-- A value row is a checkbox, not a command: it reads as on or off, and
+					     picking one leaves the menu open so the next one is a click away
+					     (#1090, #1089). Escape and a click outside still close it. -->
 					{#each visibleOptions as opt (opt.value)}
+						{@const checked = activeValues.has(opt.value)}
 						<button
 							class="menu-item"
-							onclick={() => {
-								params.toggleFilter(filterProp!, opt.value);
-								close();
-							}}
+							role="menuitemcheckbox"
+							aria-checked={checked}
+							onclick={() => params.toggleFilter(filterProp!, opt.value)}
 						>
-							<span class="mi-label">{opt.label}</span>
+							<span class="mi-check"
+								>{#if checked}<SquareCheck size={15} />{:else}<Square size={15} />{/if}</span
+							>
+							{#if opt.colors}<Swatch
+									colors={opt.colors}
+									direction={opt.direction}
+									size={16}
+									radius={4}
+								/>{/if}
+							<!-- The gap is a real space, not just margin: it is what separates the
+							     two halves in the row's accessible name, which would otherwise be
+							     read out as one run-together word. -->
+							<span class="mi-label"
+								>{opt.label}{#if opt.meta}&nbsp;<span class="mi-sub">{opt.meta}</span>{/if}</span
+							>
 						</button>
 					{:else}
 						<div class="menu-item"><span class="mi-label mi-meta">{m['search.noResults']()}</span></div>
@@ -625,6 +697,45 @@
 		background: var(--accent-wash);
 		border: 1px solid var(--accent-border);
 		color: var(--accent-soft);
+	}
+	/* The chip is only the frame now; each half carries the padding so a click
+	   anywhere in it still lands on the control that half belongs to. They
+	   STRETCH to fill it, which matters on mobile: the shared `.chip` rule in
+	   app.css grows the chip to a 44px tap target, and centred children would
+	   leave that as a 44px frame around two 20px buttons. It also runs the
+	   divider the full height of the chip, which is what makes the pair read as
+	   one segmented control rather than two things that happen to be adjacent. */
+	.chip.sort {
+		padding: 0;
+		gap: 0;
+		align-items: stretch;
+	}
+	.chip.sort > button {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 4px 9px;
+		background: none;
+		border: none;
+		color: inherit;
+		font-family: inherit;
+		font-size: 11.5px;
+		white-space: nowrap;
+		cursor: pointer;
+	}
+	.chip.sort > button:hover {
+		color: var(--accent-link);
+	}
+	.chip.sort > button:focus-visible {
+		outline: 1px solid var(--accent);
+		outline-offset: -1px;
+	}
+	.chip.sort > .sort-field {
+		padding-right: 7px;
+	}
+	.chip.sort > .sort-dir-btn {
+		border-left: 1px solid var(--accent-border);
+		padding-left: 7px;
 	}
 	.menu-sep {
 		height: 1px;
@@ -767,6 +878,13 @@
 	}
 	.mi-meta {
 		color: var(--text-faint);
+		font-size: 11px;
+	}
+	/* Sits with the label rather than off at the row's right edge: it's there to
+	   qualify the name it follows, which is the whole point when two filaments
+	   share one. */
+	.mi-sub {
+		color: var(--text-muted);
 		font-size: 11px;
 	}
 	.mi-dir {
