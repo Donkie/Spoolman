@@ -273,7 +273,7 @@ input[type='number'] {
 	.seg-btn,
 	.tab,
 	.logo,
-	.kofi,
+	.sponsor,
 	.crumb,
 	.arch-toggle,
 	.spool-row,
@@ -289,9 +289,9 @@ input[type='number'] {
 	.grabber {
 		align-items: center;
 	}
-	/* The Ko-fi button collapses to an icon-only square under 560px; keep it a
+	/* The sponsor button collapses to an icon-only square under 560px; keep it a
 	   full tap target in both dimensions. */
-	.kofi {
+	.sponsor {
 		min-width: 44px;
 	}
 }
