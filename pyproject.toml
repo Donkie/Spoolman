@@ -60,6 +60,10 @@ help = "Fill a running dev instance with a large generated dataset. Never point 
 cmd = "python scripts/demo_seed.py"
 help = "Fill a running dev instance with the curated screenshot inventory. Never point it at real data."
 
+[tool.poe.tasks.fake-reader]
+cmd = "python scripts/fake_reader.py"
+help = "Act as an NFC tag reader against a running instance, so the tag features need no hardware."
+
 [tool.poe.tasks.itest]
 cmd = "python tests_integration/run.py"
 help = "Builds Spoolman and runs integration tests on the backend against all supported databases."

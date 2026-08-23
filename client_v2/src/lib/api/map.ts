@@ -96,6 +96,15 @@ export function mapSpool(s: Json): Spool {
 		registeredLabel: formatShortDate(s.registered),
 		archived: s.archived ?? false,
 		comment: s.comment ?? '',
+		// The API always sends `tags`, but a spool that predates a server upgrade
+		// mid-session (or a fixture) may not, so an absent one reads as none.
+		// `format` is omitted rather than nulled when unset — the API excludes
+		// nulls — which is why it maps to undefined instead of being tested for null.
+		tags: ((s.tags ?? []) as Json[]).map((t) => ({
+			uid: t.uid,
+			format: t.format ?? undefined,
+			added: t.added
+		})),
 		extra: s.extra ?? {}
 	};
 }

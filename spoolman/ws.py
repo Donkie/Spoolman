@@ -45,32 +45,56 @@ class SubscriptionTree:
 
     async def send(self, path: tuple[str, ...], evt: Event) -> None:
         """Send a message to all websockets in this branch of the tree."""
-        # Broadcast to all subscribers on this level
-        for websocket in self.subscribers:
+        # Broadcast to all subscribers on this level.
+        #
+        # Every subscriber is isolated from every other one, which is load-bearing rather than
+        # defensive. The state check below is not enough on its own: a socket can start closing
+        # between it and the send, and starlette then raises ("connection is closing"). That
+        # exception used to escape this loop, so ONE dying subscriber silently starved every
+        # other subscriber in the pool -- on the shared tree that means a browser tab being
+        # closed could stop Moonraker hearing about a spool. Iterating a snapshot matters for
+        # the same reason: dropping a dead subscriber mutates the set being walked.
+        for websocket in list(self.subscribers):
             if (
                 websocket.client_state == WebSocketState.DISCONNECTED  # noqa: PLR1714
                 or websocket.application_state == WebSocketState.DISCONNECTED
             ):
                 # A bad disconnection may have occurred
-                self.remove(path, websocket)
-                logger.info(
-                    "Forcing disconnection of client %s on pool %s",
-                    websocket.client.host if websocket.client else "?",
-                    ",".join(path),
-                )
+                self._drop(websocket, path)
             elif (
                 websocket.client_state == WebSocketState.CONNECTED
                 and websocket.application_state == WebSocketState.CONNECTED
             ):
-                # exclude_none mirrors the REST endpoints' response_model_exclude_none=True so that
-                # websocket payloads and REST responses have an identical shape. Without this, unset
-                # fields arrive as explicit `null` over the websocket but are omitted over REST, which
-                # trips up clients that distinguish the two (e.g. the spool list's price fallback).
-                await websocket.send_text(evt.json(exclude_none=True))
+                try:
+                    # exclude_none mirrors the REST endpoints' response_model_exclude_none=True so
+                    # that websocket payloads and REST responses have an identical shape. Without
+                    # this, unset fields arrive as explicit `null` over the websocket but are
+                    # omitted over REST, which trips up clients that distinguish the two (e.g. the
+                    # spool list's price fallback).
+                    await websocket.send_text(evt.json(exclude_none=True))
+                except Exception:  # noqa: BLE001 -- any write failure means this subscriber is gone
+                    logger.debug("Dropping a subscriber that could not be written to", exc_info=True)
+                    self._drop(websocket, path)
 
         # Send the message further down the tree
         if len(path) > 0 and path[0] in self.children:
             await self.children[path[0]].send(path[1:], evt)
+
+    def _drop(self, websocket: WebSocket, path: tuple[str, ...]) -> None:
+        """Drop a subscriber of THIS node that can no longer be written to.
+
+        Deliberately not `self.remove(path, websocket)`: by the time send() is walking a node,
+        `path` is the part of the route still to be traversed, not the pool the socket
+        subscribed with, so `remove` would descend into a child and look in the wrong set --
+        leaving the dead socket in place to fail again on the next event, and raising KeyError
+        of its own. `discard` also makes the drop idempotent.
+        """
+        self.subscribers.discard(websocket)
+        logger.info(
+            "Forcing disconnection of client %s on pool %s",
+            websocket.client.host if websocket.client else "?",
+            ",".join(path),
+        )
 
 
 class WebsocketManager:
@@ -104,3 +128,16 @@ class WebsocketManager:
 
 
 websocket_manager = WebsocketManager()
+
+# Tag scans get their own manager, and therefore their own subscription tree, rather than a
+# new resource in the one above.
+#
+# SubscriptionTree.send broadcasts to subscribers at every level along the path, and the root
+# endpoint /api/v1/ subscribes with pool () -- "listen to any changes". Putting scans in the
+# shared tree would push a novel resource into every existing root consumer's stream, which is
+# an API v1 compatibility problem for no benefit: a scan is not a change to any data, and the
+# clients that want scans want to filter them by reader rather than by entity.
+#
+# Pools here are (reader_id,) with () meaning "every reader", so the tree's propagate-along-the-
+# path behaviour gives "follow all readers" for free.
+scan_websocket_manager = WebsocketManager()

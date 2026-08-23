@@ -9,6 +9,7 @@
 	// are dismissible on click) take pointer events.
 	import Check from '@lucide/svelte/icons/check';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
+	import Info from '@lucide/svelte/icons/info';
 	import { fly } from 'svelte/transition';
 	import { toasts } from '$lib/stores/toasts.svelte';
 </script>
@@ -20,8 +21,11 @@
 			transition:fly={{ y: 12, duration: 150 }}
 			onclick={() => toasts.dismiss(toast.id)}
 		>
+			<!-- `info` keeps the neutral base styling; only the icon distinguishes it. -->
 			{#if toast.kind === 'error'}
 				<TriangleAlert size={15} />
+			{:else if toast.kind === 'info'}
+				<Info size={15} />
 			{:else}
 				<Check size={15} />
 			{/if}

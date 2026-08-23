@@ -123,3 +123,31 @@ describe('mapSpool — inherited vs. own values', () => {
 		expect(s.initial).toBe(1000);
 	});
 });
+
+// `tags` is always on the wire, but `format` is omitted rather than nulled when
+// unset (the API excludes nulls), so the mapping has to read absence — not null —
+// as "no format". Getting this backwards would render the string "null" as a
+// badge on every tag a reader didn't name.
+describe('mapSpool — tags', () => {
+	const api = (tags: unknown) => ({ id: 1, used_weight: 0, filament: { id: 9 }, tags });
+
+	it('maps a linked tag, keeping the canonical UID the server returned', () => {
+		const s = mapSpool(api([{ uid: '04A2B3C4', format: 'ntag', added: '2026-08-13T10:00:00Z' }]));
+		expect(s.tags).toEqual([{ uid: '04A2B3C4', format: 'ntag', added: '2026-08-13T10:00:00Z' }]);
+	});
+
+	it('reads an omitted format as no format rather than as a value', () => {
+		const s = mapSpool(api([{ uid: '04A2B3C4', added: '2026-08-13T10:00:00Z' }]));
+		expect(s.tags[0].format).toBeUndefined();
+	});
+
+	it('gives an untagged spool an empty list', () => {
+		expect(mapSpool(api([])).tags).toEqual([]);
+	});
+
+	// Fixtures and a server upgraded under a long-lived tab can both produce a
+	// spool with no `tags` key at all; every consumer indexes into it.
+	it('gives a spool without the key an empty list rather than undefined', () => {
+		expect(mapSpool({ id: 1, used_weight: 0, filament: { id: 9 } }).tags).toEqual([]);
+	});
+});

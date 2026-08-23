@@ -36,7 +36,15 @@ export function isAbortError(e: unknown, signal?: AbortSignal): boolean {
 export class HttpError extends Error {
 	constructor(
 		message: string,
-		readonly status: number
+		readonly status: number,
+		/**
+		 * The parsed error body, when there was one. Most failures need nothing
+		 * beyond the status, but a few carry a field the UI can act on rather than
+		 * merely report — linking a tag another spool already holds answers 409
+		 * with the `spool_id` that holds it, which is what lets the client offer to
+		 * move it without first going and looking the tag up.
+		 */
+		readonly body?: Record<string, unknown>
 	) {
 		super(message);
 		this.name = 'HttpError';
@@ -53,13 +61,14 @@ const RELOAD_ON_401 = new Set(['GET', 'HEAD']);
 async function ensureOk(res: Response, method: string, path: string): Promise<Response> {
 	if (!res.ok) {
 		if (res.status === 401 && RELOAD_ON_401.has(method)) recoverFromUnauthorized();
-		let detail = '';
+		let body: Record<string, unknown> | undefined;
 		try {
-			detail = (await res.json())?.message ?? '';
+			body = (await res.json()) as Record<string, unknown>;
 		} catch {
-			/* ignore */
+			/* no body, or not JSON */
 		}
-		throw new HttpError(`${method} ${path} → ${res.status}${detail ? `: ${detail}` : ''}`, res.status);
+		const detail = typeof body?.message === 'string' ? body.message : '';
+		throw new HttpError(`${method} ${path} → ${res.status}${detail ? `: ${detail}` : ''}`, res.status, body);
 	}
 	return res;
 }
