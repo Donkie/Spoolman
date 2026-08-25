@@ -5,7 +5,7 @@ same as every other file in this directory. Decoding itself is not gated by that
 only the auto-create/link side effect is -- so `decoded` is exercised here regardless, and
 this file is also where the "off by default" half of the opt-in contract gets pinned: a
 `create: true` request against a deployment that never opted in must still do nothing. See
-tests_integration/tests/tag_autocreate/ for the enabled half, in its own compose stack.
+tests_integration/tests_tagcreate/ for the enabled half, in its own compose stack.
 """
 
 import base64
