@@ -1,0 +1,26 @@
+version: '3.8'
+# Separate stack from docker-compose-sqlite.yml (and the other DB-type composes): this is
+# the one deployment in CI with SPOOLMAN_TAG_AUTO_CREATE_ENABLED=TRUE, so the opt-in
+# create-and-link path in POST /tag/scan has somewhere to actually run end-to-end. Every
+# other compose file in this suite leaves it unset (off), which is the default a real
+# deployment gets and is what tests_integration/tests/tag/test_scan_decode.py exercises.
+# SQLite only: this is about the app-level opt-in gate, not DB-backend coverage.
+services:
+  spoolman:
+    image: donkie/spoolman:test
+    environment:
+      - SPOOLMAN_LOGGING_LEVEL=INFO
+      - SPOOLMAN_ALLOWED_HOSTS=spoolman.example.com
+      - SPOOLMAN_TAG_AUTO_CREATE_ENABLED=TRUE
+      - TZ=Europe/Stockholm
+  tester:
+    image: donkie/spoolman-tester:latest
+    # Overrides the image's default `pytest tests` entrypoint to run only the
+    # auto-create-specific tests -- the rest of tests/ assumes the feature is off.
+    entrypoint: ["pytest", "--exitfirst", "tests/tag_autocreate"]
+    volumes:
+      - ./tests:/tester/tests
+    environment:
+      - DB_TYPE=sqlite
+    depends_on:
+      - spoolman

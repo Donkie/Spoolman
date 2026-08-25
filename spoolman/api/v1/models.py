@@ -617,6 +617,45 @@ class SearchResults(BaseModel):
     )
 
 
+class TagDecodedInfo(BaseModel):
+    """A best-effort read of a scanned tag's own contents, for a format Spoolman can decode.
+
+    Purely informational. Nothing here is applied to any spool automatically -- in
+    particular `consumed_weight_g` is shown so a person can act on it, but a tag's
+    self-reported usage is never trusted enough to silently overwrite tracked weight.
+    Confirm it via a `measure` or `use` call on the matched spool if it should.
+    """
+
+    material_type: str | None = Field(None, examples=["PLA"])
+    material_name: str | None = Field(None, examples=["PLA Galaxy Black"])
+    brand_name: str | None = Field(None, examples=["Prusament"])
+    color_hex: str | None = Field(None, examples=["1122FF"])
+    diameter_mm: float | None = Field(None, examples=[1.75])
+    density_g_cm3: float | None = Field(None, examples=[1.24])
+    net_weight_g: float | None = Field(
+        None,
+        description="Full net filament weight the tag reports, before any use.",
+        examples=[1000.0],
+    )
+    empty_container_weight_g: float | None = Field(
+        None,
+        description="Tare weight of the empty spool, if the tag carries one.",
+        examples=[140.0],
+    )
+    consumed_weight_g: float | None = Field(
+        None,
+        description=(
+            "Weight already used from this spool, per the tag. Informational only -- see the "
+            "class docstring; this is never applied to the spool automatically."
+        ),
+        examples=[123.4],
+    )
+    external_id: str | None = Field(
+        None,
+        description="A stable id for this specific roll/instance, if the tag carries or implies one.",
+    )
+
+
 class TagScan(BaseModel):
     """One tag read reported by a reader-side agent.
 
@@ -650,7 +689,8 @@ class TagScan(BaseModel):
         None,
         description=(
             "The tag's raw contents, base64-encoded, if the agent read them. Carried through "
-            "untouched: Spoolman does not decode tag contents."
+            "untouched into the broadcast. For a format Spoolman can decode (see `decoded`), it is "
+            "also decoded server-side; that never changes what is broadcast here."
         ),
     )
     matched_spool_id: int | None = Field(
@@ -661,6 +701,23 @@ class TagScan(BaseModel):
     spool: Spool | None = Field(
         None,
         description="The matched spool, so a client needs no follow-up request. Null if the tag is unknown.",
+    )
+    decoded: TagDecodedInfo | None = Field(
+        None,
+        description=(
+            "The tag's own contents, decoded server-side, if `format` names a format Spoolman knows "
+            "how to read and `payload_b64` parsed successfully. Null otherwise -- including for a "
+            "recognized but unparseable payload, which is not reported as an error."
+        ),
+    )
+    created: bool = Field(
+        default=False,
+        description=(
+            "Whether this scan just created a new spool from decoded tag contents and linked the tag "
+            "to it. Only possible when the request set `create: true` on an otherwise-unmatched tag, "
+            "the server has tag auto-create enabled, and the tag decoded successfully."
+        ),
+        examples=[False],
     )
 
 
