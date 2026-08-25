@@ -90,7 +90,9 @@ class TagScanParameters(BaseModel):
         "Scans are ephemeral -- broadcast only, never stored. Repeated identical scans from the "
         "same reader within a few seconds are broadcast once, because readers re-detect a tag that "
         "is sitting still; the response is unaffected, so a de-duplicated scan never looks to the "
-        "device like a failed lookup."
+        "device like a failed lookup. A scan that resolves to a different spool than the last one "
+        "-- because the tag has just been linked, unlinked, or moved -- is never de-duplicated, so "
+        "an agent that links a tag can re-report the scan and have the correction go out at once."
     ),
     responses={
         200: {"model": TagScan},
@@ -129,7 +131,7 @@ async def scan(
         spool=Spool.from_db(db_spool) if db_spool is not None else None,
     )
 
-    if scan_relay.should_broadcast(uid, reader_id):
+    if scan_relay.should_broadcast(uid, reader_id, result.matched_spool_id):
         await _broadcast(result)
 
     content = jsonable_encoder(result, exclude_none=True)

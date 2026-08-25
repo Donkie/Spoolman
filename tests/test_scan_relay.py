@@ -24,35 +24,70 @@ def relay() -> ScanRelay:
 
 
 def test_first_scan_broadcasts(relay: ScanRelay):
-    assert relay.should_broadcast("04A2", "desk", now=T0) is True
+    assert relay.should_broadcast("04A2", "desk", None, now=T0) is True
 
 
 def test_repeat_within_the_window_is_suppressed(relay: ScanRelay):
     """A reader re-reads a tag that is sitting still; subscribers should see one event."""
-    relay.should_broadcast("04A2", "desk", now=T0)
-    assert relay.should_broadcast("04A2", "desk", now=T0 + timedelta(seconds=1)) is False
-    assert relay.should_broadcast("04A2", "desk", now=T0 + timedelta(seconds=2.9)) is False
+    relay.should_broadcast("04A2", "desk", 7, now=T0)
+    assert relay.should_broadcast("04A2", "desk", 7, now=T0 + timedelta(seconds=1)) is False
+    assert relay.should_broadcast("04A2", "desk", 7, now=T0 + timedelta(seconds=2.9)) is False
 
 
 def test_repeat_after_the_window_broadcasts_again(relay: ScanRelay):
     """Tapping the same tag again later is a new scan, not a duplicate."""
-    relay.should_broadcast("04A2", "desk", now=T0)
-    assert relay.should_broadcast("04A2", "desk", now=T0 + timedelta(seconds=4)) is True
+    relay.should_broadcast("04A2", "desk", 7, now=T0)
+    assert relay.should_broadcast("04A2", "desk", 7, now=T0 + timedelta(seconds=4)) is True
 
 
 def test_debounce_is_per_uid_and_per_reader(relay: ScanRelay):
     """Two readers tapping at once, or one reader seeing two tags, are distinct scans."""
-    relay.should_broadcast("04A2", "desk", now=T0)
-    assert relay.should_broadcast("04A2", "printer", now=T0) is True
-    assert relay.should_broadcast("B1C2", "desk", now=T0) is True
+    relay.should_broadcast("04A2", "desk", None, now=T0)
+    assert relay.should_broadcast("04A2", "printer", None, now=T0) is True
+    assert relay.should_broadcast("B1C2", "desk", None, now=T0) is True
+
+
+def test_a_changed_match_is_not_a_repeat(relay: ScanRelay):
+    """The correction after a tag is linked must go out, not wait for the window (#1115).
+
+    An agent taps an unlinked tag, links it in its own UI, then re-reports the scan so the
+    paired browser learns the tag is known. Keyed on `(uid, reader)` alone, that second scan
+    looked like a duplicate of the first and the browser kept showing "unknown tag".
+    """
+    assert relay.should_broadcast("04A2", "desk", None, now=T0) is True
+    assert relay.should_broadcast("04A2", "desk", 7, now=T0 + timedelta(seconds=1)) is True
+
+
+def test_a_repeat_of_an_unlinked_tag_is_still_suppressed(relay: ScanRelay):
+    """The reason the debounce exists survives the fix: the key stays `(uid, reader, None)`."""
+    relay.should_broadcast("04A2", "desk", None, now=T0)
+    assert relay.should_broadcast("04A2", "desk", None, now=T0 + timedelta(seconds=1)) is False
+
+
+def test_repeats_of_the_corrected_match_are_suppressed(relay: ScanRelay):
+    """A tag left sitting on the reader after being linked is still one event, not a stream."""
+    relay.should_broadcast("04A2", "desk", None, now=T0)
+    relay.should_broadcast("04A2", "desk", 7, now=T0 + timedelta(seconds=1))
+    assert relay.should_broadcast("04A2", "desk", 7, now=T0 + timedelta(seconds=1.5)) is False
+
+
+def test_losing_a_match_is_also_a_change(relay: ScanRelay):
+    """Unlinking is the same event in reverse: the browser has to hear it lost its spool."""
+    relay.should_broadcast("04A2", "desk", 7, now=T0)
+    assert relay.should_broadcast("04A2", "desk", None, now=T0 + timedelta(seconds=1)) is True
+
+
+def test_a_tag_moved_to_another_spool_is_a_change(relay: ScanRelay):
+    relay.should_broadcast("04A2", "desk", 7, now=T0)
+    assert relay.should_broadcast("04A2", "desk", 8, now=T0 + timedelta(seconds=1)) is True
 
 
 def test_debounce_entries_are_pruned(relay: ScanRelay):
     """The cache does not grow without bound as tags come and go."""
     for i in range(50):
-        relay.should_broadcast(f"UID{i:04X}", "desk", now=T0)
+        relay.should_broadcast(f"UID{i:04X}", "desk", None, now=T0)
     assert len(relay._last_broadcast) == 50  # noqa: SLF001
-    relay.should_broadcast("LATER", "desk", now=T0 + timedelta(seconds=30))
+    relay.should_broadcast("LATER", "desk", None, now=T0 + timedelta(seconds=30))
     assert len(relay._last_broadcast) == 1  # noqa: SLF001
 
 
@@ -115,8 +150,8 @@ def test_the_relays_own_clock_is_internally_consistent():
     """
     relay = ScanRelay()
     relay.register("desk", "Desk reader")
-    assert relay.should_broadcast("04A2", "desk") is True
-    assert relay.should_broadcast("04A2", "desk") is False
+    assert relay.should_broadcast("04A2", "desk", None) is True
+    assert relay.should_broadcast("04A2", "desk", None) is False
 
     listed = relay.readers()
     assert [r.reader_id for r in listed] == ["desk"]

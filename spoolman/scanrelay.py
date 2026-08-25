@@ -19,7 +19,7 @@ from datetime import datetime, timedelta, timezone
 # Readers poll continuously -- nfc2klipper re-reads a tag for as long as it sits on the
 # reader -- so the same UID fires over and over. Suppressing repeats server-side, before the
 # broadcast, means every subscriber benefits and no device has to be well-behaved for the UI
-# to be.
+# to be. Only a scan that resolves the same way is a repeat; see should_broadcast.
 DEBOUNCE_WINDOW = timedelta(seconds=3)
 
 # How long a reader stays listed after its last scan. Long, because the list exists to fill a
@@ -77,8 +77,10 @@ class ScanRelay:
         """Initialize an empty relay."""
         self.debounce_window = debounce_window
         self.reader_ttl = reader_ttl
-        # (uid, reader_id) -> when it was last broadcast.
-        self._last_broadcast: dict[tuple[str, str], datetime] = {}
+        # (uid, reader_id, matched_spool_id) -> when it was last broadcast. The match is part
+        # of the key because it is part of the answer: a repeat is only a repeat while the scan
+        # still resolves to the same thing.
+        self._last_broadcast: dict[tuple[str, str, int | None], datetime] = {}
         self._readers: dict[str, Reader] = {}
         # Scans arrive on the event loop, but the loop is not the only thing that can touch
         # this: pruning walks the dicts while a scan may be inserting into them. A plain lock
@@ -106,14 +108,25 @@ class ScanRelay:
             while len(self._readers) > MAX_READERS:
                 self._readers.pop(next(iter(self._readers)))
 
-    def should_broadcast(self, uid: str, reader_id: str, now: datetime | None = None) -> bool:
+    def should_broadcast(
+        self,
+        uid: str,
+        reader_id: str,
+        matched_spool_id: int | None,
+        now: datetime | None = None,
+    ) -> bool:
         """Whether this scan is new enough to broadcast, recording it if so.
 
         Only the fan-out is debounced. The caller still answers the device on every POST: a
         de-duplicated scan must not look to the device like a failed lookup.
+
+        `matched_spool_id` is required rather than optional so that a future call site cannot
+        quietly reintroduce the bug this argument exists to fix (#1115): a tag scanned before it
+        was linked, then linked and scanned again, used to be suppressed as a duplicate, leaving
+        every subscriber that trusts the broadcast still showing "unknown tag".
         """
         now = now or datetime.now(tz=timezone.utc)
-        key = (uid, reader_id)
+        key = (uid, reader_id, matched_spool_id)
         with self._lock:
             self._prune_debounce(now)
             last = self._last_broadcast.get(key)

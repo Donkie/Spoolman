@@ -172,6 +172,42 @@ async def test_debounce_suppresses_the_broadcast_not_the_response(random_filamen
 
 
 @pytest.mark.asyncio
+async def test_a_scan_corrected_by_a_link_is_not_debounced(random_filament: dict[str, Any]):
+    """The end-to-end shape of #1115.
+
+    An agent taps an unlinked tag, links it in its own UI, and re-reports the same scan so the
+    paired browser hears the correction. That second scan lands well inside the debounce window
+    and used to be dropped, leaving every subscriber that trusts the broadcast still showing an
+    unknown tag until the window elapsed.
+    """
+    uid, reader_id = _uid(), _reader_id()
+
+    result = httpx.post(f"{URL}/api/v1/spool", json={"filament_id": random_filament["id"]})
+    result.raise_for_status()
+    spool = result.json()
+    try:
+        async with connect(f"{WS_URL}/api/v1/tag/scan/{reader_id}") as ws:
+            await asyncio.sleep(0.2)
+
+            _scan(uid, reader_id).raise_for_status()
+            unknown = json.loads(await asyncio.wait_for(ws.recv(), timeout=RECV_TIMEOUT_S))
+            # Omitted rather than null: broadcasts are serialized with exclude_none, the same
+            # shape the REST endpoints use. Either way the browser has been told "no match".
+            assert unknown["payload"].get("matched_spool_id") is None
+
+            httpx.post(f"{URL}/api/v1/spool/{spool['id']}/tag", json={"uid": uid}).raise_for_status()
+
+            # No sleep: the point is that the correction goes out inside the debounce window.
+            _scan(uid, reader_id).raise_for_status()
+            corrected = json.loads(await asyncio.wait_for(ws.recv(), timeout=RECV_TIMEOUT_S))
+
+        assert corrected["payload"]["matched_spool_id"] == spool["id"]
+        assert corrected["payload"]["spool"]["id"] == spool["id"]
+    finally:
+        httpx.delete(f"{URL}/api/v1/spool/{spool['id']}")
+
+
+@pytest.mark.asyncio
 async def test_distinct_tags_from_one_reader_are_not_debounced():
     """Debouncing is per (uid, reader): moving from one spool to the next is two scans."""
     reader_id = _reader_id()
