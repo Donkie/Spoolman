@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman import env, tag_decode
+from spoolman import tag_decode
 from spoolman.api.v1.models import EventType, Message, Spool, TagDecodedInfo, TagReader, TagScan, TagScanEvent
 from spoolman.database import tag as tag_db
 from spoolman.database.database import get_db_session
@@ -84,10 +84,8 @@ class TagScanParameters(BaseModel):
         default=False,
         description=(
             "If the tag is not linked to anything and its contents decode successfully, create a "
-            "spool from the decoded contents and link this tag to it. Off by default, and only takes "
-            "effect at all if the server has tag auto-create enabled (SPOOLMAN_TAG_AUTO_CREATE_ENABLED) "
-            "-- a deployment that has not opted in ignores this flag entirely. Never overwrites or "
-            "relinks an already-matched tag."
+            "spool from the decoded contents and link this tag to it. Off by default -- a plain scan "
+            "never creates anything. Never overwrites or relinks an already-matched tag."
         ),
         examples=[False],
     )
@@ -143,7 +141,7 @@ async def scan(
     decoded = _decode_payload(body.format, body.payload_b64, uid)
 
     created = False
-    if db_spool is None and body.create and decoded is not None and env.is_tag_auto_create_enabled():
+    if db_spool is None and body.create and decoded is not None:
         try:
             db_spool = await tag_db.create_spool_from_decoded_tag(
                 db=db,

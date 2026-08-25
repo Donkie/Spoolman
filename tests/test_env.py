@@ -46,26 +46,3 @@ def test_get_cors_origin_drops_empty_and_duplicate_entries(monkeypatch: pytest.M
 def test_get_cors_origin_raw_is_unparsed(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("SPOOLMAN_CORS_ORIGIN", " https://a.local, https://b.local ")
     assert env.get_cors_origin_raw() == " https://a.local, https://b.local "
-
-
-def test_tag_auto_create_defaults_off(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("SPOOLMAN_TAG_AUTO_CREATE_ENABLED", raising=False)
-    assert env.is_tag_auto_create_enabled() is False
-
-
-@pytest.mark.parametrize("raw", ["TRUE", "true", "1"])
-def test_tag_auto_create_enabled(monkeypatch: pytest.MonkeyPatch, raw: str):
-    monkeypatch.setenv("SPOOLMAN_TAG_AUTO_CREATE_ENABLED", raw)
-    assert env.is_tag_auto_create_enabled() is True
-
-
-@pytest.mark.parametrize("raw", ["FALSE", "false", "0"])
-def test_tag_auto_create_disabled(monkeypatch: pytest.MonkeyPatch, raw: str):
-    monkeypatch.setenv("SPOOLMAN_TAG_AUTO_CREATE_ENABLED", raw)
-    assert env.is_tag_auto_create_enabled() is False
-
-
-def test_tag_auto_create_unparseable_raises(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setenv("SPOOLMAN_TAG_AUTO_CREATE_ENABLED", "maybe")
-    with pytest.raises(ValueError, match="SPOOLMAN_TAG_AUTO_CREATE_ENABLED"):
-        env.is_tag_auto_create_enabled()

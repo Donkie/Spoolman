@@ -1,11 +1,8 @@
 """Integration tests for tag-content decoding on POST /tag/scan.
 
-Runs against the default deployment (SPOOLMAN_TAG_AUTO_CREATE_ENABLED unset, i.e. off),
-same as every other file in this directory. Decoding itself is not gated by that setting --
-only the auto-create/link side effect is -- so `decoded` is exercised here regardless, and
-this file is also where the "off by default" half of the opt-in contract gets pinned: a
-`create: true` request against a deployment that never opted in must still do nothing. See
-tests_integration/tests_tagcreate/ for the enabled half, in its own compose stack.
+Decoding happens on every scan that carries a known `format` and a parseable
+`payload_b64`, matched or not -- `decoded` is populated regardless. The create-and-link
+side effect gated behind `create: true` is a separate concern; see test_scan_create.py.
 """
 
 import base64
@@ -111,30 +108,3 @@ def test_scan_decodes_even_when_the_tag_is_already_matched(random_filament: dict
         assert body["created"] is False
     finally:
         httpx.delete(f"{URL}/api/v1/spool/{spool['id']}")
-
-
-def test_create_flag_does_nothing_when_the_server_has_not_opted_in():
-    """The other half of "opt-in": `create: true` alone, without the server-side gate, is inert."""
-    uid = _uid()
-    payload = _payload_b64({MF_MATERIAL_TYPE: MATERIAL_TYPE_PLA})
-
-    result = httpx.post(
-        f"{URL}/api/v1/tag/scan",
-        json={
-            "uid": uid,
-            "reader_id": _reader_id(),
-            "format": "openprinttag",
-            "payload_b64": payload,
-            "create": True,
-        },
-    )
-    assert_httpx_success(result)
-
-    body = result.json()
-    assert body["created"] is False
-    assert body["matched_spool_id"] is None
-
-    # And nothing was actually created or linked -- the UID is still free.
-    listing = httpx.get(f"{URL}/api/v1/spool", params={"tag": uid})
-    assert_httpx_success(listing)
-    assert listing.json() == []

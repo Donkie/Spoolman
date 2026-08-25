@@ -714,8 +714,8 @@ class TagScan(BaseModel):
         default=False,
         description=(
             "Whether this scan just created a new spool from decoded tag contents and linked the tag "
-            "to it. Only possible when the request set `create: true` on an otherwise-unmatched tag, "
-            "the server has tag auto-create enabled, and the tag decoded successfully."
+            "to it. Only possible when the request set `create: true` on an otherwise-unmatched, "
+            "successfully decoded tag."
         ),
         examples=[False],
     )
