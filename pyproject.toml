@@ -24,6 +24,10 @@ dependencies = [
     "httpx~=0.28",
     "hishel~=0.1",
     "aiomysql[rsa]~=0.3",
+    # spoolman.database.tag imports spoolman.tag_decode, which imports the OpenPrintTag
+    # codec unconditionally to decode POST /tag/scan payloads -- that module is on the
+    # import path of every startup, not just tests, so this has to be a real dependency.
+    "cbor2>=5.4",
 ]
 requires-python = ">=3.10"
 
@@ -34,9 +38,6 @@ dev = [
     "pytest-asyncio~=1.4.0",
     "httpx~=0.28.1",
     "poethepoet>=0.40.0",
-    # Dev/test only: the OpenPrintTag codec needs it to decode CBOR, but nothing
-    # in core imports the codec yet, so it isn't a production dependency here.
-    "cbor2>=5.4",
 ]
 
 [tool.poe.tasks.generate-docs]

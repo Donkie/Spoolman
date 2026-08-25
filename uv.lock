@@ -1230,6 +1230,7 @@ dependencies = [
     { name = "aiomysql", extra = ["rsa"] },
     { name = "alembic" },
     { name = "asyncpg" },
+    { name = "cbor2" },
     { name = "fastapi" },
     { name = "hishel" },
     { name = "httptools", marker = "platform_machine != 'armv7l'" },
@@ -1249,7 +1250,6 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "cbor2" },
     { name = "httpx" },
     { name = "poethepoet" },
     { name = "pytest" },
@@ -1262,6 +1262,7 @@ requires-dist = [
     { name = "aiomysql", extras = ["rsa"], specifier = "~=0.3" },
     { name = "alembic", specifier = "~=1.15" },
     { name = "asyncpg", specifier = "~=0.30" },
+    { name = "cbor2", specifier = ">=5.4" },
     { name = "fastapi", specifier = "~=0.115" },
     { name = "hishel", specifier = "~=0.1" },
     { name = "httptools", marker = "platform_machine != 'armv7l'", specifier = ">=0.6.4" },
@@ -1281,7 +1282,6 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "cbor2", specifier = ">=5.4" },
     { name = "httpx", specifier = "~=0.28.1" },
     { name = "poethepoet", specifier = ">=0.40.0" },
     { name = "pytest", specifier = "~=9.1.1" },
