@@ -27,7 +27,11 @@ dependencies = [
     # spoolman.database.tag imports spoolman.tag_decode, which imports the OpenPrintTag
     # codec unconditionally to decode POST /tag/scan payloads -- that module is on the
     # import path of every startup, not just tests, so this has to be a real dependency.
-    "cbor2>=5.4",
+    # Capped below 6: cbor2 6.x moved its accelerated extension to a Rust build
+    # (setuptools-rust) instead of plain setuptools/C. PyPI ships no armv7 wheel for any
+    # cbor2 version, so armv7 always builds from sdist, and the build image (see the
+    # greenlet/armv7 patchelf step in the Dockerfile) has a C toolchain but no Rust one.
+    "cbor2>=5.4,<6",
 ]
 requires-python = ">=3.10"
 

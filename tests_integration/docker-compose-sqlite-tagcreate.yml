@@ -15,11 +15,13 @@ services:
       - TZ=Europe/Stockholm
   tester:
     image: donkie/spoolman-tester:latest
-    # Overrides the image's default `pytest tests` entrypoint to run only the
-    # auto-create-specific tests -- the rest of tests/ assumes the feature is off.
-    entrypoint: ["pytest", "--exitfirst", "tests/tag_autocreate"]
+    # Overrides the image's default `pytest tests` entrypoint and mount: this stack only
+    # ever runs tests_tagcreate, not the regular tests/ suite -- tests/ assumes the
+    # feature is off, and mounting it here too would run those tests against a server
+    # they weren't written for.
+    entrypoint: ["pytest", "--exitfirst", "tests_tagcreate"]
     volumes:
-      - ./tests:/tester/tests
+      - ./tests_tagcreate:/tester/tests_tagcreate
     environment:
       - DB_TYPE=sqlite
     depends_on:
