@@ -111,7 +111,7 @@ async def test_reuses_an_existing_vendor_with_an_exact_name_match(db: AsyncSessi
 
 @pytest.mark.asyncio
 async def test_does_not_substring_match_an_existing_vendor(db: AsyncSession):
-    """"Prusa" existing must not swallow a new "Prusament" -- exact match only."""
+    """An existing "Prusa" vendor must not swallow a new "Prusament" -- exact match only."""
     short = await create_spool_from_decoded_tag(
         db=db,
         uid=_uid("1"),
