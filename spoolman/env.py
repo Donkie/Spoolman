@@ -542,6 +542,27 @@ def get_base_path() -> str:
     return "/" + path.strip("/")
 
 
+def is_tag_auto_create_enabled() -> bool:
+    """Get whether a tag scan is allowed to auto-create and bind a spool from decoded contents.
+
+    Off by default. This is a deployment-wide gate, not the only opt-in: even when it is
+    enabled, POST /tag/scan still only creates a spool for a request that also sets
+    `create: true`, so a bare scan from an unmodified reader never does. See spoolman/api/v1/tag.py.
+
+    Returns:
+        bool: Whether tag auto-create is enabled.
+
+    """
+    value = os.getenv("SPOOLMAN_TAG_AUTO_CREATE_ENABLED", "FALSE").upper()
+    if value in {"FALSE", "0"}:
+        return False
+    if value in {"TRUE", "1"}:
+        return True
+    raise ValueError(
+        f"Failed to parse SPOOLMAN_TAG_AUTO_CREATE_ENABLED variable: Unknown value '{value}'.",
+    )
+
+
 def is_legacy_client_enabled() -> bool:
     """Get whether the legacy (React) client should be served instead of the new one.
 

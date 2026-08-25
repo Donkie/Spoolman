@@ -291,6 +291,37 @@ jobs:
           up-flags: "--abort-on-container-exit"
           down-flags: "--volumes"
   #
+  # Perform integration tests for the opt-in tag-auto-create feature, enabled.
+  # Separate job (not folded into the dbtype matrix above): every compose file that job
+  # uses leaves SPOOLMAN_TAG_AUTO_CREATE_ENABLED unset, which is what a real deployment
+  # gets by default -- this is the one job that turns it on, so the create-and-link path
+  # has somewhere to run end-to-end instead of only being covered at the unit level.
+  #
+  test-tag-autocreate:
+    needs: [build-amd64, build-tester]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download built images
+        uses: actions/download-artifact@v4.1.7
+        with:
+          pattern: spoolman*-image
+          path: /tmp
+
+      - name: Load built images
+        run: |
+          docker load --input /tmp/spoolman-image/spoolman.tar
+          docker load --input /tmp/spoolman-tester-image/spoolman-tester.tar
+
+      - name: Perform integration tests
+        uses: hoverkraft-tech/compose-action@v2.0.1
+        with:
+          compose-file: "./tests_integration/docker-compose-sqlite-tagcreate.yml"
+          up-flags: "--abort-on-container-exit"
+          down-flags: "--volumes"
+  #
   # Perform frontend (browser) integration tests against the real image
   #
   test-frontend:
