@@ -771,7 +771,7 @@
 									<div class="chip-subtitle" use:truncTitle>
 										{f.material} -
 										<span class:low={settings.isLow(s.remaining, s.unused)}>{weightAuto(s.remaining)}</span>
-										/ {weightAuto(f.weight)}{s.lastUsedLabel
+										/ {weightAuto(s.initial)}{s.lastUsedLabel
 											? ` - ${m['dashboard.lastUsed']({ time: s.lastUsedLabel })}`
 											: ''}
 									</div>
