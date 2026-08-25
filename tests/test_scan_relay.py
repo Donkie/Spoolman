@@ -122,6 +122,32 @@ def test_a_new_name_replaces_the_old_one(relay: ScanRelay):
     assert relay.readers(now=T0 + timedelta(minutes=2))[0].name == "Bench reader"
 
 
+def test_reader_remembers_the_last_uid_it_reported(relay: ScanRelay):
+    """What is on the reader right now, so a client can offer it instead of asking for a tap."""
+    relay.register("desk", "Desk reader", "04A2B3C4", now=T0)
+    assert relay.readers(now=T0)[0].last_uid == "04A2B3C4"
+
+
+def test_a_new_scan_replaces_the_remembered_uid(relay: ScanRelay):
+    """One UID, not a history: this answers "what is on the reader", not "what has been"."""
+    relay.register("desk", None, "04A2B3C4", now=T0)
+    relay.register("desk", None, "0455667788", now=T0 + timedelta(minutes=1))
+    assert relay.readers(now=T0 + timedelta(minutes=2))[0].last_uid == "0455667788"
+
+
+def test_reader_keeps_its_uid_when_a_later_register_omits_one(relay: ScanRelay):
+    """Same rule as the name, so registering for another reason cannot blank it."""
+    relay.register("desk", None, "04A2B3C4", now=T0)
+    relay.register("desk", "Desk reader", now=T0 + timedelta(minutes=1))
+    assert relay.readers(now=T0 + timedelta(minutes=2))[0].last_uid == "04A2B3C4"
+
+
+def test_reader_that_has_not_scanned_has_no_uid(relay: ScanRelay):
+    """Null rather than an empty string: "nothing seen yet" is not "seen nothing"."""
+    relay.register("desk", "Desk reader", now=T0)
+    assert relay.readers(now=T0)[0].last_uid is None
+
+
 def test_readers_past_their_ttl_are_evicted_on_read(relay: ScanRelay):
     """Eviction happens as the response is built: no background task, nothing to shut down."""
     relay.register("desk", None, now=T0)

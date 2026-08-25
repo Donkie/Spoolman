@@ -119,7 +119,7 @@ async def scan(
 
     db_spool = await tag_db.find_spool_by_uid(db, uid)
 
-    scan_relay.register(reader_id, body.name)
+    scan_relay.register(reader_id, body.name, uid)
 
     result = TagScan(
         uid=uid,
@@ -172,7 +172,12 @@ async def _broadcast(result: TagScan) -> None:
 )
 async def readers() -> list[TagReader]:
     return [
-        TagReader(reader_id=reader.reader_id, name=reader.name, last_seen=reader.last_seen)
+        TagReader(
+            reader_id=reader.reader_id,
+            name=reader.name,
+            last_seen=reader.last_seen,
+            last_uid=reader.last_uid,
+        )
         for reader in scan_relay.readers()
     ]
 

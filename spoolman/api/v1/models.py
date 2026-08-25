@@ -678,6 +678,15 @@ class TagReader(BaseModel):
         examples=["Voron spool holder"],
     )
     last_seen: SpoolmanDateTime = Field(description="When this reader last reported a scan. UTC Timezone.")
+    last_uid: str | None = Field(
+        None,
+        description=(
+            "The last tag UID this reader reported, normalized. Lets a client offer what is "
+            "already on the reader instead of waiting for another tap. Null if the reader has "
+            "not scanned since the server started."
+        ),
+        examples=["04A2B3C4D5E6F7"],
+    )
 
 
 class Info(BaseModel):
