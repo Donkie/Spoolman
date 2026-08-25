@@ -14,7 +14,7 @@ from typing import Any
 
 import httpx
 
-from .._openprinttag_fixtures import (
+from ._openprinttag_fixtures import (
     MATERIAL_TYPE_PLA,
     MF_BRAND_NAME,
     MF_MATERIAL_TYPE,
@@ -22,7 +22,7 @@ from .._openprinttag_fixtures import (
     MF_PRIMARY_COLOR,
     build_openprinttag,
 )
-from ..conftest import URL, assert_httpx_success
+from .conftest import URL, assert_httpx_success
 
 
 def _uid() -> str:
