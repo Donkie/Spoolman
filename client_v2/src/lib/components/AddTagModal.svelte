@@ -320,7 +320,7 @@
 									uid: lastSeenOffer.uid
 								})}
 							</span>
-							<button class="link" onclick={() => (uid = lastSeenOffer.uid)}>
+							<button class="link act" onclick={() => (uid = lastSeenOffer.uid)}>
 								{m['tags.modal.useLastSeen']()}
 							</button>
 						</div>
@@ -505,6 +505,12 @@
 	}
 	.link:hover {
 		text-decoration: underline;
+	}
+	/* The offer is the action in its row rather than an alternative route like
+	   the phone reader, so it carries the weight a UID gets elsewhere. */
+	.link.act {
+		font-weight: 600;
+		white-space: nowrap;
 	}
 	.err {
 		margin-top: 10px;
