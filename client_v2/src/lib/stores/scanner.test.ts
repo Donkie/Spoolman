@@ -157,6 +157,46 @@ describe('scanner reader names', () => {
 		scanner.receive({ uid: '04A2B3C4', readerId: 'desk' });
 		expect(scanner.readerLabel('desk')).toBe('Desk reader');
 	});
+});
+
+// What is already lying on the reader, so the Add-tag dialog can offer it rather
+// than ask for another tap. On a scale that tap means lifting the spool off the
+// pad and putting it back, which reads as the dialog not working.
+describe('scanner last seen uid', () => {
+	beforeEach(() => scanner.unpair());
+
+	it('answers with what the paired reader last read', () => {
+		scanner.learnReaders([
+			{ readerId: 'printer', name: 'Voron', lastUid: '0455667788' },
+			{ readerId: 'desk', name: 'Desk reader', lastUid: '04A2B3C4' }
+		]);
+		scanner.pair('desk');
+		expect(scanner.listeningLastSeen).toEqual({ uid: '04A2B3C4', label: 'Desk reader' });
+	});
+
+	it('takes the most recent reader while listening to all of them', () => {
+		// The server lists them most recently seen first, and that order is the
+		// answer: it is the reader the person most likely just used.
+		scanner.learnReaders([
+			{ readerId: 'desk', name: 'Desk reader', lastUid: '04A2B3C4' },
+			{ readerId: 'printer', name: 'Voron', lastUid: '0455667788' }
+		]);
+		expect(scanner.listeningLastSeen).toEqual({ uid: '04A2B3C4', label: 'Desk reader' });
+	});
+
+	it('offers nothing when the paired reader has not scanned', () => {
+		scanner.learnReaders([
+			{ readerId: 'desk', name: 'Desk reader' },
+			{ readerId: 'printer', name: 'Voron', lastUid: '0455667788' }
+		]);
+		scanner.pair('desk');
+		expect(scanner.listeningLastSeen).toBeNull();
+	});
+
+	it('offers nothing after a server restart, when no reader has scanned yet', () => {
+		scanner.learnReaders([{ readerId: 'desk', name: 'Desk reader' }]);
+		expect(scanner.listeningLastSeen).toBeNull();
+	});
 
 	// Its own id: the store is a session-long singleton and learned names stay
 	// learned, which is the point of them, so a shared one would be answered by

@@ -18,6 +18,7 @@
 	import Nfc from '@lucide/svelte/icons/nfc';
 	import Smartphone from '@lucide/svelte/icons/smartphone';
 	import Radio from '@lucide/svelte/icons/radio';
+	import History from '@lucide/svelte/icons/history';
 	import type { Spool } from '$lib/types';
 	import { linkTag, unlinkTag, findSpoolByTag, asTagConflict, isBadUid } from '$lib/api/tags';
 	import { scanRelay } from '$lib/api/scanRelay';
@@ -241,6 +242,14 @@
 	});
 
 	let readerLabel = $derived(scanner.pairedLabel);
+	// What the reader we listen to already has on it. Offered instead of asking
+	// for another tap, which on a scale means lifting the spool off the pad and
+	// putting it back. Hidden once it is what the field already holds, so it
+	// never sits there as a no-op.
+	let lastSeen = $derived(scanner.listeningLastSeen);
+	let lastSeenOffer = $derived(
+		lastSeen && lastSeen.uid.toUpperCase() !== uid.trim().toUpperCase() ? lastSeen : null
+	);
 </script>
 
 <svelte:window
@@ -302,6 +311,20 @@
 							{/if}
 						</span>
 					</div>
+					{#if lastSeenOffer}
+						<div class="way">
+							<History size={14} class="way-ico" />
+							<span>
+								{m['tags.modal.lastSeenOn']({
+									reader: lastSeenOffer.label,
+									uid: lastSeenOffer.uid
+								})}
+							</span>
+							<button class="link" onclick={() => (uid = lastSeenOffer.uid)}>
+								{m['tags.modal.useLastSeen']()}
+							</button>
+						</div>
+					{/if}
 					{#if canReadHere}
 						<div class="way">
 							<Smartphone size={14} class="way-ico" />
