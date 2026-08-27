@@ -18,6 +18,7 @@ export const languages: Record<string, LanguageMeta> = {
 	pl: { name: 'Polski', code: 'pl-PL' },
 	ru: { name: 'Русский', code: 'ru-RU' },
 	cs: { name: 'Česky', code: 'cs-CZ' },
+	sk: { name: 'Slovenčina', code: 'sk-SK' },
 	'nb-NO': { name: 'Norsk bokmål', code: 'nb-NO' },
 	nl: { name: 'Nederlands', code: 'nl-NL' },
 	fr: { name: 'Français', code: 'fr-FR' },
