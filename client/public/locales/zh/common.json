@@ -21,10 +21,10 @@
         "undo": "撤销",
         "import": "导入",
         "clone": "克隆",
-        "archive": "存档",
-        "unArchive": "取消存档",
+        "archive": "归档",
+        "unArchive": "解除归档",
         "hideArchived": "隐藏存档",
-        "showArchived": "显示存档",
+        "showArchived": "显示已归档项",
         "notAccessTitle": "您没有访问权限",
         "hideColumns": "隐藏列",
         "clearFilters": "清除筛选器",
@@ -34,7 +34,7 @@
     "warnWhenUnsavedChanges": "您确定要离开吗？您有未保存的更改。",
     "notifications": {
         "success": "操作成功",
-        "error": "出现错误 (状态码：{{statusCode}})",
+        "error": "发生错误 (状态码：{{statusCode}})",
         "undoable": "您有 {{seconds}} 秒可以撤销。",
         "createSuccess": "成功创建 {{resource}}",
         "createError": "创建 {{resource}} 时出现错误 (状态码：{{statusCode}})",
@@ -60,30 +60,30 @@
     "printing": {
         "generic": {
             "title": "打印中",
-            "description": "调整以下设置以获得所需的打印布局。请记住，打印机和您的操作系统可能会应用自己的边距和缩放，因此您可能需要多次尝试后才能正确打印。在实际标签上打印之前，请在一张普通纸上进行测试。",
-            "helpMargin": "页边距应设置为与您的标签纸和打印机相匹配，更改这些将影响整个网格的大小。",
-            "helpPrinterMargin": "安全区应设置为打印机可以打印的离纸张边缘距离，更改这些不会影响整个网格。",
+            "description": "在下方微调设置以获取理想的打印布局。请注意，打印机驱动和操作系统可能会自动应用边距与缩放，因此您可能需要进行几次试打印。建议在正式打印前先用普通纸测试。",
+            "helpMargin": "页边距应与您的标签纸和打印机相匹配，修改此项会影响整个标签网格的位置。",
+            "helpPrinterMargin": "安全打印区域应设置为打印机允许贴近纸张边缘打印的极限距离，修改此项不会改变标签网格的位置。",
             "print": "打印",
-            "columns": "行",
+            "columns": "列数",
             "rows": "列",
             "paperSize": "纸张尺寸",
-            "customSize": "自定义",
-            "dimensions": "尺寸标注",
+            "customSize": "自定义尺寸",
+            "dimensions": "尺寸规格",
             "showBorder": "显示边框",
             "previewScale": "预览比例",
-            "skipItems": "跳过项目",
+            "skipItems": "跳过初始格子数",
             "contentSettings": "内容设置",
             "layoutSettings": "布局设置",
-            "horizontalSpacing": "水平间距",
-            "verticalSpacing": "垂直间距",
-            "marginLeft": "左边界",
-            "marginRight": "右边界",
-            "marginTop": "上边界",
-            "marginBottom": "下边界",
-            "printerMarginLeft": "安全区左侧",
-            "printerMarginRight": "安全区右侧",
-            "printerMarginTop": "安全区顶部",
-            "printerMarginBottom": "安全区底部",
+            "horizontalSpacing": "列间距 (水平)",
+            "verticalSpacing": "行间距 (垂直)",
+            "marginLeft": "左边距",
+            "marginRight": "右边距",
+            "marginTop": "上边距",
+            "marginBottom": "下边距",
+            "printerMarginLeft": "左侧安全区域",
+            "printerMarginRight": "右侧安全区域",
+            "printerMarginTop": "顶部安全区域",
+            "printerMarginBottom": "底部安全区域",
             "borders": {
                 "none": "无",
                 "border": "外边框",
@@ -97,7 +97,7 @@
             "deleteSettingsConfirm": "确定删除此预设吗？",
             "saveAsImage": "保存为图片",
             "newSetting": "新增",
-            "itemCopies": "复制项目",
+            "itemCopies": "单个标签打印份数",
             "duplicateSettings": "复制",
             "deleteSettings": "删除当前预设"
         },
@@ -127,11 +127,11 @@
             },
             "templateHelp": "使用 {} 将料盘的值插入为文本。例如，{id} 将被替换为料盘的ID，或者 {filament.material} 将被替换为料盘的材质。如果某个值缺失，将用 \"?\" 替代。可以使用第二组 {} 来删除缺失值相关的内容。此外，任意位于两组 {} 之间的文本，如果值缺失，将被一同删除。例如，{Lot Nr: {lot_nr}} 只有在料盘存在批号时才会显示标签内容。用双星号 ** 包裹文本可以将其加粗。点击按钮查看所有可用的标签列表。",
             "useHTTPUrl": {
-                "tooltip": "将使用专有链接（默认情况下，仅能通过 **Spoolman** 的扫描功能访问）。URL 将使用设置中指定的基础 URL；如果未设置基础 URL，则使用当前页面的 URL。",
-                "label": "二维码链接",
+                "tooltip": "将使用专有链接，该链接仅在通过 Spoolman 的内置扫描功能扫描时生效（默认）。URL 将使用设置中指定的基准 URL；若未设置，则使用当前页面的 URL。",
+                "label": "二维码编码内容",
                 "options": {
-                    "default": "默认",
-                    "url": "URL"
+                    "default": "默认（Spoolman 专属格式）",
+                    "url": "标准网页 URL"
                 },
                 "preview": "预览："
             }
@@ -142,42 +142,42 @@
             "showArchived": "显示存档",
             "noSpoolsSelected": "您尚未选择任何料盘。",
             "selectAll": "选择/取消选择全部",
-            "selectedTotal_other": "已选择{{count}}个料盘"
+            "selectedTotal_other": "已选择 {{count}} 卷耗材"
         }
     },
     "scanner": {
-        "title": "扫码二维码",
-        "description": "扫描Spoolman二维码，查看有关料盘的详细信息。",
+        "title": "二维码扫描器",
+        "description": "扫描 Spoolman 专属二维码以快速查看该耗材卷的详细信息。",
         "error": {
-            "notAllowed": "您不被允许访问相机。",
-            "insecureContext": "该页面不是通过HTTPS传输。",
-            "streamApiNotSupported": "浏览器不支持MediaStream API。",
+            "notAllowed": "您尚未授权允许使用摄像头。",
+            "insecureContext": "当前页面未通过安全的 HTTPS 协议提供服务。",
+            "streamApiNotSupported": "当前浏览器不支持 MediaStream API 视频流。",
             "notReadable": "相机不可读。",
-            "notFound": "没有找到相机。",
-            "unknown": "发生未知错误。({{error}})"
+            "notFound": "未检测到可用摄像头。",
+            "unknown": "发生未知错误。（{{error}}）"
         }
     },
     "spool": {
-        "spool": "料盘",
+        "spool": "耗材卷",
         "fields": {
-            "id": "编号",
+            "id": "编号 (ID)",
             "filament_name": "耗材",
-            "filament": "耗材",
-            "material": "材料",
+            "filament": "耗材规格",
+            "material": "材质",
             "weight_to_use": "重量",
             "used_weight": "已用重量",
             "remaining_weight": "剩余重量",
             "measured_weight": "净重",
             "used_length": "已用长度",
             "remaining_length": "剩余长度",
-            "location": "位置",
+            "location": "存放位置",
             "lot_nr": "批号",
             "first_used": "首次使用",
             "last_used": "最后使用",
-            "registered": "登记时间",
+            "registered": "录入时间",
             "comment": "备注",
-            "archived": "存档",
-            "price": "价格",
+            "archived": "已归档",
+            "price": "采购价格",
             "spool_weight": "空料盘重量",
             "initial_weight": "初始重量",
             "filament_internal": "内部",
@@ -224,20 +224,20 @@
         }
     },
     "filament": {
-        "filament": "耗材",
+        "filament": "耗材规格",
         "fields": {
-            "id": "编号",
+            "id": "ID",
             "vendor_name": "制造商",
-            "vendor": "制造商",
+            "vendor": "厂商",
             "name": "名称",
-            "material": "材料",
+            "material": "材质",
             "price": "价格",
             "density": "密度",
-            "diameter": "直径",
-            "weight": "重量",
+            "diameter": "线径",
+            "weight": "耗材净重",
             "spool_weight": "料盘重量",
             "article_number": "产品编号",
-            "registered": "登记时间",
+            "registered": "录入时间",
             "comment": "备注",
             "settings_extruder_temp": "挤出头温度",
             "settings_bed_temp": "热床温度",
@@ -245,8 +245,8 @@
             "spools": "显示料盘",
             "external_id": "外部ID",
             "multi_color": "多色",
-            "longitudinal": "纵向",
-            "coaxial": "共挤出",
+            "longitudinal": "纵向渐变",
+            "coaxial": "双色共挤",
             "single_color": "单色"
         },
         "fields_help": {
@@ -278,9 +278,9 @@
     "vendor": {
         "vendor": "制造商",
         "fields": {
-            "id": "编号",
-            "name": "名称",
-            "registered": "登记时间",
+            "id": "ID",
+            "name": "厂商名称",
+            "registered": "录入时间",
             "comment": "备注",
             "external_id": "外部ID",
             "empty_spool_weight": "空料盘重量"
@@ -340,8 +340,8 @@
     "kofi": "在Ko-fi上给我打赏一点小费",
     "home": {
         "home": "主页",
-        "welcome": "",
-        "description": ""
+        "welcome": "欢迎使用您的 Spoolman 实例！",
+        "description": "看来您尚未添加任何耗材。请参阅 <helpPageLink> 帮助页面 </helpPageLink> ，了解入门指南。"
     },
     "help": {
         "help": "帮助",
@@ -367,7 +367,7 @@
                 "choice": "选项"
             },
             "delete_confirm_description": "这将删除该字段以及所有实体的关联数据。",
-            "description": "<p>这里你可以为你的实体添加额外的自定义字段。</p><p>一旦添加了字段，就无法更改其键或类型；对于选择类型字段，无法删除选项或更改多选状态。如果删除字段，则所有实体的相关数据将被删除。</p><p>键是其他程序读取/写入数据的标识，因此，如果你的自定义字段需要与第三方程序集成，请确保设置正确。默认值仅适用于新项目。</p><p>额外字段在表视图中无法进行排序或过滤。</p>",
+            "description": "<p>您可以在此处为不同的实体对象添加自定义扩展字段。</p><p>字段一旦添加，其键名 (Key) 和数据类型将无法修改；对于单选/多选字段，已有的选项将无法删除，也无法更改其多选状态。如果您删除某个字段，所有对应实体中存储的该字段数据都将被永久抹除。</p><p>键名 (Key) 是第三方程序读取/写入数据时使用的唯一标识。如果您需要将自定义字段与第三方程序集成，请务必设置正确的键名。默认值仅应用于新建的项目。</p><p>扩展字段可以显示在表格视图中并支持排序。单选框与布尔值字段还提供相应的筛选选项，且所有扩展字段类型均支持筛选空值。</p>",
             "params": {
                 "name": "名称",
                 "field_type": "类型",
@@ -383,13 +383,14 @@
             "choices_missing_error": "您无法删除选择。以下选项丢失：{{choices}}",
             "non_unique_key_error": "键必须是唯一的。",
             "key_not_changed": "请将键改成其他的。",
-            "delete_confirm": "删除字段 {{name}}？"
+            "delete_confirm": "删除字段 {{name}}？",
+            "choices_reorder_hint": "拖动或使用方向键来重新排列此选项的顺序。"
         },
-        "header": "设置",
+        "header": "系统设置",
         "general": {
-            "tab": "常规",
+            "tab": "常规设置",
             "currency": {
-                "label": "货币"
+                "label": "货币单位"
             },
             "base_url": {
                 "label": "基础URL",
@@ -406,5 +407,12 @@
         "locations": "位置",
         "new_location": "新位置",
         "no_location": "没有位置"
+    },
+    "sponsor": "在 GitHub 上赞助项目",
+    "theme": {
+        "label": "主题",
+        "system": "系统",
+        "light": "明亮",
+        "dark": "暗黑"
     }
 }
