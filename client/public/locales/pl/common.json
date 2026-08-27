@@ -199,7 +199,7 @@
                 "withIcon": "Z ikoną",
                 "simple": "Proste"
             },
-            "templateHelp": "Użyj {}, aby wstawić wartości obiektu szpuli jako tekst. Na przykład {id} zostanie zastąpione identyfikatorem szpuli lub {filament.material} zostanie zastąpione materiałem szpuli. jeśli brakuje wartości, zostanie ona zastąpiona „?”. Drugi zestaw {} może być użyty do usunięcia tego. Ponadto każdy tekst między zestawami {} zostanie usunięty, jeśli brakuje wartości. Na przykład {Lot Nr: {lot_nr}} pokaże etykietę tylko wtedy, gdy szpula ma numer partii. Otocz tekst podwójną gwiazdką **, aby go pogrubić. Kliknij przycisk, aby wyświetlić listę wszystkich dostępnych tagów."
+            "templateHelp": "Użyj {} do wprowadzenia wartości elementu szpuli jako tekst. Na przykład, {id} zostanie zastąpione przez id szpuli lub {filament.material} zostanie zastąpione przez materiał szpuli. Jeżeli brakuje wartości, to zostanie ona zastąpiona znakiem \"?\". Drugi zestaw {} można użyć, aby usunąć brakujące wartości. Dodatkowo każdy tekst między znakami {} będzie usunięty jeżeli brakuje wartości. Na przykład {Numer partii: {lot_nr}} pokaże etykietę wtedy gdy szpula będzie miała numer partii. Otocz tekst gwiazdkami by go pogrubić. Kliknij na przycisk by zobaczyć listę dostępnych znaczników."
         },
         "spoolSelect": {
             "title": "Wybierz szpule",
