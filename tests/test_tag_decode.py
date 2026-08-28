@@ -8,14 +8,18 @@ cases are that module's job, not this one's.
 import uuid
 
 import cbor2
+import httpx
 import pytest
 
+from spoolman import env, tigertagdb
+from spoolman.externaldb import ExternalFilament
 from spoolman.tags import decode as tag_decode
 from spoolman.tags import openprinttag as openprinttag_codec
 from spoolman.tags.decode import (
     DecodedTag,
     approximate_density,
     decode,
+    decode_async,
     density_or_fallback,
 )
 from spoolman.tags.openprinttag import (
@@ -191,6 +195,179 @@ def test_decode_tigertag_non_gram_unit_is_none_not_a_scaled_value() -> None:
     assert result.weight is None
 
 
+def _tigertag_raw(**kwargs: object) -> bytes:
+    kwargs.setdefault("id_tigertag", TIGERTAG_MAKER_V1)
+    kwargs.setdefault("color_r", 0x11)
+    kwargs.setdefault("color_g", 0x22)
+    kwargs.setdefault("color_b", 0x33)
+    return encode_ntag213(TigerTagData(**kwargs))  # type: ignore[arg-type]
+
+
+# --- decode() / decode_async() with the external-DB add-on enabled -----------------
+#
+# tag_decode never imports spoolman.tigertagdb unless env.is_tigertag_enabled() says so
+# (see _decode_tigertag_raw et al.'s docstrings) -- these tests monkeypatch that flag plus
+# tigertagdb's lookup functions directly, rather than exercising the real cache/API, since
+# tigertagdb's own behavior is covered by tests/test_tigertagdb.py.
+
+
+def test_decode_tigertag_addon_disabled_leaves_names_unresolved(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(env, "is_tigertag_enabled", lambda: False)
+    monkeypatch.setattr(tigertagdb, "lookup_material_name", lambda _id: pytest.fail("should not be called"))
+
+    result = decode("tigertag", _tigertag_raw(id_material=38219))
+    assert result is not None
+    assert result.material is None
+    assert result.vendor_name is None
+
+
+def test_decode_tigertag_addon_enabled_resolves_names_from_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(env, "is_tigertag_enabled", lambda: True)
+    monkeypatch.setattr(
+        tigertagdb,
+        "lookup_material_name",
+        lambda id_material: "PLA" if id_material == 38219 else None,
+    )
+    monkeypatch.setattr(tigertagdb, "lookup_brand_name", lambda id_brand: "Rosa3D" if id_brand == 19961 else None)
+    monkeypatch.setattr(
+        tigertagdb,
+        "lookup_material_density",
+        lambda id_material: 1.24 if id_material == 38219 else None,
+    )
+
+    result = decode("tigertag", _tigertag_raw(id_material=38219, id_brand=19961))
+    assert result is not None
+    assert result.material == "PLA"
+    assert result.name == "PLA"
+    assert result.vendor_name == "Rosa3D"
+    assert result.density == 1.24
+    # Physical properties still come straight off the tag, never the catalog.
+    assert result.color_hex == "112233"
+
+
+@pytest.mark.asyncio
+async def test_decode_async_addon_disabled_matches_sync_decode(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(env, "is_tigertag_enabled", lambda: False)
+    raw = _tigertag_raw(id_material=38219)
+
+    assert await decode_async("tigertag", raw, uid="04A2B3C4") == decode("tigertag", raw)
+
+
+@pytest.mark.asyncio
+async def test_decode_async_prefers_live_product_lookup(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(env, "is_tigertag_enabled", lambda: True)
+    monkeypatch.setattr(tigertagdb, "lookup_material_density", lambda _id: 1.24)
+
+    async def _fake_lookup(uid: str, id_product: int) -> ExternalFilament:
+        assert uid == "04A2B3C4"
+        assert id_product == 28
+        return ExternalFilament(
+            id="tigertag_28",
+            manufacturer="Rosa3D",
+            name="Rosa3D PLA Starter",
+            material="PLA",
+            density=1.24,
+            weight=1000,
+            diameter=1.75,
+            source="tigertag",
+        )
+
+    monkeypatch.setattr(tigertagdb, "lookup_product_by_tag", _fake_lookup)
+    monkeypatch.setattr(
+        tigertagdb,
+        "lookup_brand_name",
+        lambda _id: pytest.fail("cached fallback should not run when the live lookup succeeds"),
+    )
+
+    result = await decode_async("tigertag", _tigertag_raw(id_product=28), uid="04A2B3C4")
+    assert result is not None
+    assert result.material == "PLA"
+    assert result.name == "Rosa3D PLA Starter"
+    assert result.vendor_name == "Rosa3D"
+    assert result.density == 1.24
+    # Physical properties still come straight off the tag, never the live API response.
+    assert result.color_hex == "112233"
+
+
+@pytest.mark.asyncio
+async def test_decode_async_falls_back_to_cache_when_live_lookup_finds_nothing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(env, "is_tigertag_enabled", lambda: True)
+
+    async def _fake_lookup(_uid: str, _id_product: int) -> None:
+        return None
+
+    monkeypatch.setattr(tigertagdb, "lookup_product_by_tag", _fake_lookup)
+    monkeypatch.setattr(tigertagdb, "lookup_material_name", lambda _id: "PLA")
+    monkeypatch.setattr(tigertagdb, "lookup_brand_name", lambda _id: "Rosa3D")
+    monkeypatch.setattr(tigertagdb, "lookup_material_density", lambda _id: 1.24)
+
+    result = await decode_async("tigertag", _tigertag_raw(id_product=28), uid="04A2B3C4")
+    assert result is not None
+    assert result.material == "PLA"
+    assert result.vendor_name == "Rosa3D"
+
+
+@pytest.mark.asyncio
+async def test_decode_async_falls_back_to_cache_when_live_lookup_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(env, "is_tigertag_enabled", lambda: True)
+
+    async def _fake_lookup(_uid: str, _id_product: int) -> None:
+        raise httpx.ConnectError("no route to host")
+
+    monkeypatch.setattr(tigertagdb, "lookup_product_by_tag", _fake_lookup)
+    monkeypatch.setattr(tigertagdb, "lookup_material_name", lambda _id: "PLA")
+    monkeypatch.setattr(tigertagdb, "lookup_brand_name", lambda _id: None)
+    monkeypatch.setattr(tigertagdb, "lookup_material_density", lambda _id: 1.24)
+
+    result = await decode_async("tigertag", _tigertag_raw(id_product=28), uid="04A2B3C4")
+    assert result is not None
+    assert result.material == "PLA"
+
+
+@pytest.mark.asyncio
+async def test_decode_async_skips_live_lookup_without_a_product_id(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(env, "is_tigertag_enabled", lambda: True)
+    monkeypatch.setattr(
+        tigertagdb,
+        "lookup_product_by_tag",
+        lambda *_a, **_k: pytest.fail("should not be called without a product id"),
+    )
+    monkeypatch.setattr(tigertagdb, "lookup_material_name", lambda _id: "PLA")
+    monkeypatch.setattr(tigertagdb, "lookup_brand_name", lambda _id: None)
+    monkeypatch.setattr(tigertagdb, "lookup_material_density", lambda _id: None)
+
+    result = await decode_async("tigertag", _tigertag_raw(id_product=0), uid="04A2B3C4")
+    assert result is not None
+    assert result.material == "PLA"
+
+
+@pytest.mark.asyncio
+async def test_decode_async_skips_live_lookup_without_a_uid(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(env, "is_tigertag_enabled", lambda: True)
+    monkeypatch.setattr(
+        tigertagdb,
+        "lookup_product_by_tag",
+        lambda *_a, **_k: pytest.fail("should not be called without a uid"),
+    )
+    monkeypatch.setattr(tigertagdb, "lookup_material_name", lambda _id: "PLA")
+    monkeypatch.setattr(tigertagdb, "lookup_brand_name", lambda _id: None)
+    monkeypatch.setattr(tigertagdb, "lookup_material_density", lambda _id: None)
+
+    result = await decode_async("tigertag", _tigertag_raw(id_product=28), uid=None)
+    assert result is not None
+    assert result.material == "PLA"
+
+
+@pytest.mark.asyncio
+async def test_decode_async_non_tigertag_format_is_unaffected(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(env, "is_tigertag_enabled", lambda: True)
+    raw = _build_openprinttag({MF_MATERIAL_TYPE: 0})
+
+    assert await decode_async("openprinttag", raw) == decode("openprinttag", raw)
+
+
 # --- density fallback --------------------------------------------------------------
 
 
@@ -232,7 +409,8 @@ def test_any_codec_failure_is_a_soft_fail(monkeypatch: pytest.MonkeyPatch) -> No
     assert tag_decode.decode("openprinttag", b"\x00", uid_bytes=b"\x04\xa2") is None
 
 
-def test_odd_length_uid_still_decodes_without_an_instance_uid(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.asyncio
+async def test_odd_length_uid_still_decodes_without_an_instance_uid(monkeypatch: pytest.MonkeyPatch) -> None:
     """A UID that fromhex rejects must not turn the decode into a 500. normalize_uid stops odd lengths earlier."""
     import base64  # noqa: PLC0415
 
@@ -241,12 +419,18 @@ def test_odd_length_uid_still_decodes_without_an_instance_uid(monkeypatch: pytes
 
     seen = {}
 
-    def fake_decode(_tag_format: str, _raw: bytes, uid_bytes: bytes | None = None) -> None:
+    async def fake_decode_async(
+        _tag_format: str,
+        _raw: bytes,
+        uid_bytes: bytes | None = None,
+        uid: str | None = None,
+    ) -> None:
         seen["uid_bytes"] = uid_bytes
+        seen["uid"] = uid
 
-    monkeypatch.setattr(tag_decode, "decode", fake_decode)
+    monkeypatch.setattr(tag_decode, "decode_async", fake_decode_async)
     payload_b64 = base64.b64encode(b"\x00").decode()
-    assert tag_api._decode_payload("openprinttag", payload_b64, "ABC") is None  # noqa: SLF001
+    assert await tag_api._decode_payload("openprinttag", payload_b64, "ABC") is None  # noqa: SLF001
     assert seen["uid_bytes"] is None
 
 
