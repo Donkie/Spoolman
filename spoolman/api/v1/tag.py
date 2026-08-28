@@ -173,7 +173,7 @@ async def scan(
     db_spool = target if isinstance(target, models.Spool) else None
     db_filament = target if isinstance(target, models.Filament) else None
 
-    decoded = _decode_payload(body.format, body.payload_b64, uid)
+    decoded = await _decode_payload(body.format, body.payload_b64, uid)
 
     created = False
     # A tag can identify a filament as well as a spool; either counts as already linked. Creating
@@ -232,12 +232,17 @@ async def scan(
     return JSONResponse(content=content)
 
 
-def _decode_payload(tag_format: str | None, payload_b64: str | None, uid: str) -> tag_decode.DecodedTag | None:
+async def _decode_payload(tag_format: str | None, payload_b64: str | None, uid: str) -> tag_decode.DecodedTag | None:
     """Decode a scan's payload, if both a format and a payload were given.
 
     Soft-fails on everything: a missing field, invalid base64, an unknown format or an
     unparseable payload for a known one all return None. Decoding is enrichment of a scan,
     never a reason to fail one -- see the class docstring on TagDecodedInfo.
+
+    Async (rather than the plain `tag_decode.decode()` most callers want) so a TigerTag
+    scan can await a live per-tag catalog lookup when the external-DB add-on is enabled --
+    see `tag_decode.decode_async`. Every other format, and TigerTag with the add-on off,
+    take the same path `decode()` would; the `await` costs nothing extra there.
     """
     if tag_format is None or payload_b64 is None:
         return None
@@ -253,7 +258,7 @@ def _decode_payload(tag_format: str | None, payload_b64: str | None, uid: str) -
         uid_bytes: bytes | None = bytes.fromhex(uid)
     except ValueError:
         uid_bytes = None
-    return tag_decode.decode(tag_format, raw, uid_bytes=uid_bytes)
+    return await tag_decode.decode_async(tag_format, raw, uid_bytes=uid_bytes, uid=uid)
 
 
 def _decoded_response(decoded: tag_decode.DecodedTag | None) -> TagDecodedInfo | None:
