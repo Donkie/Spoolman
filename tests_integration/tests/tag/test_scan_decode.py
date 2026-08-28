@@ -22,6 +22,7 @@ from .._openprinttag_fixtures import (
     REAL_PRUSA_TEST01_TAG_UID_HEX,
     build_openprinttag,
 )
+from .._tigertag_fixtures import TIGERTAG_INIT, build_tigertag
 from ..conftest import URL, assert_httpx_success
 
 
@@ -166,3 +167,35 @@ def test_scan_decodes_a_real_prusa_test_vector_with_derived_instance_id():
     assert decoded["spool_weight"] == 280.0
     assert decoded["color_hex"] == "3d3e3d"
     assert decoded["instance_uuid"] == "bf63e92d-9ca5-53d7-9fab-ffdd0240c585"
+
+
+# --- TigerTag ---------------------------------------------------------------------
+
+
+def test_scan_decodes_a_tigertag():
+    payload = base64.b64encode(build_tigertag(id_diameter=1, weight=1000, color_hex="112233")).decode("ascii")
+    result = httpx.post(
+        f"{URL}/api/v1/tag/scan",
+        json={"uid": _uid(), "reader_id": _reader_id(), "format": "tigertag", "payload_b64": payload},
+    )
+    assert_httpx_success(result)
+
+    decoded = result.json()["decoded"]
+    assert decoded["color_hex"] == "112233"
+    assert decoded["diameter"] == 1.75
+    assert decoded["weight"] == 1000.0
+    assert decoded["material_class"] == "FFF"
+    # id_material/id_brand need the optional external-DB addon to resolve to names.
+    assert decoded.get("material") is None
+    assert decoded.get("vendor_name") is None
+
+
+def test_scan_with_a_blank_tigertag_has_no_decoded_field():
+    """TIGERTAG_INIT marks an uninitialized tag -- nothing usable to surface."""
+    payload = base64.b64encode(build_tigertag(id_tigertag=TIGERTAG_INIT)).decode("ascii")
+    result = httpx.post(
+        f"{URL}/api/v1/tag/scan",
+        json={"uid": _uid(), "reader_id": _reader_id(), "format": "tigertag", "payload_b64": payload},
+    )
+    assert_httpx_success(result)
+    assert "decoded" not in result.json()

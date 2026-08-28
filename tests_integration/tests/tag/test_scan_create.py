@@ -19,6 +19,7 @@ from .._openprinttag_fixtures import (
     MF_PRIMARY_COLOR,
     build_openprinttag,
 )
+from .._tigertag_fixtures import build_tigertag
 from ..conftest import URL, assert_httpx_success
 
 
@@ -141,3 +142,35 @@ def test_create_true_with_an_undecodable_payload_creates_nothing():
     listing = httpx.get(f"{URL}/api/v1/spool", params={"tag": uid})
     assert_httpx_success(listing)
     assert listing.json() == []
+
+
+def test_create_true_on_an_unmatched_tigertag_creates_and_links_a_spool_without_names():
+    """Verify auto-create still works without the external-DB addon.
+
+    TigerTag's material/brand are catalog IDs, not names -- material/vendor still get
+    created (no addon needed to make a usable spool), just without a name.
+    """
+    uid = _uid()
+    payload = base64.b64encode(build_tigertag(id_diameter=1, weight=1000, color_hex="112233")).decode("ascii")
+
+    result = httpx.post(
+        f"{URL}/api/v1/tag/scan",
+        json={
+            "uid": uid,
+            "reader_id": _reader_id(),
+            "format": "tigertag",
+            "payload_b64": payload,
+            "create": True,
+        },
+    )
+    assert_httpx_success(result)
+    body = result.json()
+    try:
+        assert body["created"] is True
+        assert body["spool"]["filament"].get("material") is None
+        assert body["spool"]["filament"].get("vendor") is None
+        assert body["spool"]["filament"]["diameter"] == 1.75
+        assert body["spool"]["filament"]["weight"] == 1000.0
+        assert body["spool"]["filament"]["color_hex"] == "112233"
+    finally:
+        _delete_created_spool(body["spool"])
