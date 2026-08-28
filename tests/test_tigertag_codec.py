@@ -2,7 +2,7 @@
 
 import pytest
 
-from spoolman.tigertag_codec import (
+from spoolman.tags.tigertag import (
     NTAG213_USER_BYTES,
     TIGERTAG_INIT,
     TIGERTAG_MAKER_V1,
