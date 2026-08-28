@@ -1,6 +1,8 @@
 """Tag scan relay endpoints."""
 
 import asyncio
+import base64
+import binascii
 import logging
 from datetime import datetime
 from typing import Annotated
@@ -11,9 +13,11 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman.api.v1.models import EventType, Message, Spool, TagReader, TagScan, TagScanEvent
+from spoolman import tag_decode
+from spoolman.api.v1.models import EventType, Message, Spool, TagDecodedInfo, TagReader, TagScan, TagScanEvent
 from spoolman.database import tag as tag_db
 from spoolman.database.database import get_db_session
+from spoolman.exceptions import ItemCreateError, TagConflictError
 from spoolman.scanrelay import READER_ID_PATTERN, derive_reader_id, scan_relay
 from spoolman.tags import FORMAT_MAX_LENGTH, KNOWN_FORMATS, UID_MAX_LENGTH, normalize_uid
 from spoolman.ws import scan_websocket_manager
@@ -72,8 +76,18 @@ class TagScanParameters(BaseModel):
         max_length=PAYLOAD_MAX_LENGTH,
         description=(
             "The tag's raw contents, base64-encoded, if the agent read them. Accepted and carried "
-            "into the broadcast untouched; Spoolman does not decode tag contents."
+            "into the broadcast untouched. If `format` names a format Spoolman knows how to read, "
+            "it is also decoded server-side and returned in `decoded`."
         ),
+    )
+    create: bool = Field(
+        default=False,
+        description=(
+            "If the tag is not linked to anything and its contents decode successfully, create a "
+            "spool from the decoded contents and link this tag to it. Off by default -- a plain scan "
+            "never creates anything. Never overwrites or relinks an already-matched tag."
+        ),
+        examples=[False],
     )
 
 
@@ -92,7 +106,12 @@ class TagScanParameters(BaseModel):
         "is sitting still; the response is unaffected, so a de-duplicated scan never looks to the "
         "device like a failed lookup. A scan that resolves to a different spool than the last one "
         "-- because the tag has just been linked, unlinked, or moved -- is never de-duplicated, so "
-        "an agent that links a tag can re-report the scan and have the correction go out at once."
+        "an agent that links a tag can re-report the scan and have the correction go out at once.\n\n"
+        "If `format` and `payload_b64` are given and Spoolman knows how to read that format, the "
+        "payload is also decoded and returned in `decoded` -- see its own description for what is, "
+        "and is not, done with it automatically. Setting `create: true` additionally allows an "
+        "unmatched tag to create and link a spool from that decoded data (see `create`'s "
+        "description)."
     ),
     responses={
         200: {"model": TagScan},
@@ -119,6 +138,25 @@ async def scan(
 
     db_spool = await tag_db.find_spool_by_uid(db, uid)
 
+    decoded = _decode_payload(body.format, body.payload_b64, uid)
+
+    created = False
+    if db_spool is None and body.create and decoded is not None:
+        try:
+            db_spool = await tag_db.create_spool_from_decoded_tag(
+                db=db,
+                uid=uid,
+                tag_format=body.format,
+                decoded=decoded,
+            )
+            created = True
+        except TagConflictError:
+            # Lost a race with a concurrent scan of the same tag; report the winner as an
+            # ordinary match rather than surfacing a conflict for a create nobody asked to see.
+            db_spool = await tag_db.find_spool_by_uid(db, uid)
+        except ItemCreateError:
+            logger.exception("Failed to auto-create a spool from decoded tag %s", uid)
+
     scan_relay.register(reader_id, body.name)
 
     result = TagScan(
@@ -129,6 +167,8 @@ async def scan(
         payload_b64=body.payload_b64,
         matched_spool_id=db_spool.id if db_spool is not None else None,
         spool=Spool.from_db(db_spool) if db_spool is not None else None,
+        decoded=_decoded_response(decoded),
+        created=created,
     )
 
     if scan_relay.should_broadcast(uid, reader_id, result.matched_spool_id):
@@ -139,6 +179,39 @@ async def scan(
     # and it has to be able to see it. Everything else may be omitted.
     content.setdefault("matched_spool_id", None)
     return JSONResponse(content=content)
+
+
+def _decode_payload(tag_format: str | None, payload_b64: str | None, uid: str) -> tag_decode.DecodedTag | None:
+    """Decode a scan's payload, if both a format and a payload were given.
+
+    Soft-fails on everything: a missing field, invalid base64, an unknown format or an
+    unparseable payload for a known one all return None. Decoding is enrichment of a scan,
+    never a reason to fail one -- see the class docstring on TagDecodedInfo.
+    """
+    if tag_format is None or payload_b64 is None:
+        return None
+    try:
+        raw = base64.b64decode(payload_b64, validate=True)
+    except binascii.Error:
+        return None
+    return tag_decode.decode(tag_format, raw, uid_bytes=bytes.fromhex(uid))
+
+
+def _decoded_response(decoded: tag_decode.DecodedTag | None) -> TagDecodedInfo | None:
+    if decoded is None:
+        return None
+    return TagDecodedInfo(
+        material_type=decoded.material_type,
+        material_name=decoded.material_name,
+        brand_name=decoded.brand_name,
+        color_hex=decoded.color_hex,
+        diameter_mm=decoded.diameter_mm,
+        density_g_cm3=decoded.density_g_cm3,
+        net_weight_g=decoded.net_weight_g,
+        empty_container_weight_g=decoded.empty_container_weight_g,
+        consumed_weight_g=decoded.consumed_weight_g,
+        external_id=decoded.external_id,
+    )
 
 
 async def _broadcast(result: TagScan) -> None:
