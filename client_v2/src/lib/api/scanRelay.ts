@@ -248,6 +248,12 @@ export interface KnownReader {
 	name?: string;
 	/** ISO timestamp of the last scan this reader sent. */
 	lastSeen: string;
+	/**
+	 * The last UID this reader reported, or undefined if it has not scanned since
+	 * the server started. Lets a dialog offer what is already on the reader rather
+	 * than waiting for another tap.
+	 */
+	lastUid?: string;
 }
 
 /**
@@ -263,6 +269,7 @@ export async function listReaders(signal?: AbortSignal): Promise<KnownReader[]> 
 	return rows.map((r) => ({
 		readerId: r.reader_id,
 		name: r.name ?? undefined,
-		lastSeen: r.last_seen
+		lastSeen: r.last_seen,
+		lastUid: r.last_uid ?? undefined
 	}));
 }

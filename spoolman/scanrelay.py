@@ -64,6 +64,14 @@ class Reader:
     reader_id: str
     name: str | None
     last_seen: datetime
+    # The last UID this reader reported, so the Add-tag dialog can offer what is
+    # already sitting on the reader instead of asking for another tap. A scale
+    # holds a spool on its pad to weigh it; making the user lift it and put it
+    # back just to fill in a field is the kind of thing that reads as broken.
+    #
+    # One UID, not a history: this is "what is on the reader", not a log. It
+    # lives and dies with the registry entry, which is in memory only.
+    last_uid: str | None = None
 
 
 class ScanRelay:
@@ -87,7 +95,13 @@ class ScanRelay:
         # is enough and is never held across an await.
         self._lock = threading.Lock()
 
-    def register(self, reader_id: str, name: str | None, now: datetime | None = None) -> None:
+    def register(
+        self,
+        reader_id: str,
+        name: str | None,
+        uid: str | None = None,
+        now: datetime | None = None,
+    ) -> None:
         """Record that a reader reported a scan just now."""
         # Aware, like the other two clocks in this class. They all end up compared against each
         # other -- register writes last_seen, readers() prunes on it -- and mixing one naive
@@ -103,6 +117,9 @@ class ScanRelay:
                 reader_id=reader_id,
                 name=name if name is not None else (existing.name if existing else None),
                 last_seen=now,
+                # Same rule as the name: a caller that does not pass one keeps what the
+                # reader last reported, so registering for another reason cannot blank it.
+                last_uid=uid if uid is not None else (existing.last_uid if existing else None),
             )
             self._prune_readers(now)
             while len(self._readers) > MAX_READERS:

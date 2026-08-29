@@ -91,6 +91,10 @@ class ScannerState {
 	 * point nobody knows the name and the id is the honest thing to show.
 	 */
 	#names = $state<Record<string, string>>({});
+	// What each reader last reported, newest reader first. Only ever filled from
+	// the server's registry, which is in-memory there: this is "what is on the
+	// reader", not a scan history, and it is empty after a server restart.
+	#lastSeen = $state<{ readerId: string; uid: string }[]>([]);
 	#loadingNames: Promise<void> | null = null;
 
 	/**
@@ -131,10 +135,32 @@ class ScannerState {
 	}
 
 	/** Take note of the names in the server's reader registry. */
-	learnReaders(readers: { readerId: string; name?: string }[]) {
+	learnReaders(readers: { readerId: string; name?: string; lastUid?: string }[]) {
 		for (const reader of readers) {
 			if (reader.name) this.#names[reader.readerId] = reader.name;
 		}
+		// Order is the server's: most recently seen first. It decides which reader
+		// answers when this browser is listening to all of them.
+		this.#lastSeen = readers
+			.filter((reader) => reader.lastUid)
+			.map((reader) => ({ readerId: reader.readerId, uid: reader.lastUid as string }));
+	}
+
+	/**
+	 * The tag already sitting on the reader this browser listens to, if there is
+	 * one. A scale holds a spool on its pad to weigh it, so asking for another tap
+	 * means lifting it and putting it back; offering what was just seen is the
+	 * same identity without the dance.
+	 *
+	 * Paired to one reader, that reader answers or nothing does. Listening to all
+	 * of them, the most recently seen one wins, which is the one the person most
+	 * likely just used.
+	 */
+	get listeningLastSeen(): { uid: string; label: string } | null {
+		const paired = this.pairedReaderId;
+		const hit =
+			paired === null ? this.#lastSeen[0] : this.#lastSeen.find((reader) => reader.readerId === paired);
+		return hit ? { uid: hit.uid, label: this.readerLabel(hit.readerId) } : null;
 	}
 
 	/**
