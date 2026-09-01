@@ -16,10 +16,14 @@ jobs:
   sponsorkit:
     runs-on: ubuntu-latest
     steps:
+      # Checks out with the PAT rather than the default GITHUB_TOKEN: the commit
+      # step below pushes straight to master, and the ruleset there only lets a
+      # bypass-capable actor through.
       - name: Checkout
         uses: actions/checkout@v7
         with:
           persist-credentials: true
+          token: ${{ secrets.PAT }}
 
       - name: Setup Node
         uses: actions/setup-node@v7
