@@ -1,0 +1,9 @@
+{
+  "name": "spoolman-sponsorkit",
+  "private": true,
+  "description": "Generates the sponsors image rendered in the README. Run by .github/workflows/sponsors.yml.",
+  "type": "module",
+  "devDependencies": {
+    "sponsorkit": "18.0.0"
+  }
+}

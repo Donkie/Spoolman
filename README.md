@@ -57,3 +57,10 @@ If the new client misbehaves on your setup, set `SPOOLMAN_LEGACY_CLIENT=TRUE` to
 the previous one. Both ship in every release and talk to the same API, so your data is
 untouched either way — but please [report the problem](https://github.com/Donkie/Spoolman/issues)
 so it can be fixed.
+
+## Sponsors
+Spoolman is developed and maintained in my spare time. If it is useful to you, consider [sponsoring the project](https://github.com/sponsors/Donkie).
+
+<a href="https://github.com/sponsors/Donkie">
+  <img alt="The people currently sponsoring Spoolman" src=".github/media/sponsors.svg">
+</a>
