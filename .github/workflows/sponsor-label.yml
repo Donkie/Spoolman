@@ -1,0 +1,77 @@
+name: Label sponsor issues
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+concurrency:
+  group: sponsor-label-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label the issue if its author is a sponsor
+        uses: actions/github-script@v9
+        with:
+          # The sponsorship lookup is viewer-relative: it answers "is this person
+          # sponsoring *me*" for whoever owns the token. GITHUB_TOKEN's viewer is
+          # the Actions bot, which nobody sponsors, so it always comes back empty.
+          # It has to be the PAT, and reading privacyLevel needs its read:user scope.
+          github-token: ${{ secrets.PAT }}
+          script: |
+            // The Supporter tier and up. Below this, no tag was promised.
+            const MIN_MONTHLY_DOLLARS = 10
+            const LABEL = 'sponsor'
+
+            const issue = context.payload.issue
+            const author = issue.user.login
+            if (author.endsWith('[bot]')) return
+
+            const query = `query($login: String!) {
+              user(login: $login) {
+                sponsorshipForViewerAsSponsorable(activeOnly: true) {
+                  privacyLevel
+                  tier { monthlyPriceInDollars }
+                }
+              }
+            }`
+
+            let sponsorship
+            try {
+              const data = await github.graphql(query, { login: author })
+              sponsorship = data.user?.sponsorshipForViewerAsSponsorable
+            } catch (error) {
+              // Deleted accounts and app logins never resolve to a user.
+              core.info(`Could not look up ${author}: ${error.message}`)
+              return
+            }
+
+            if (!sponsorship) {
+              core.info(`${author} is not an active sponsor`)
+              return
+            }
+
+            const dollars = sponsorship.tier.monthlyPriceInDollars
+            if (dollars < MIN_MONTHLY_DOLLARS) {
+              core.info(`${author} sponsors at $${dollars}, below the $${MIN_MONTHLY_DOLLARS} tier`)
+              return
+            }
+
+            // A private sponsor chose not to be listed publicly. This label is
+            // public, so applying it would out them; skip rather than disclose.
+            if (sponsorship.privacyLevel === 'PRIVATE') {
+              core.info(`${author} sponsors privately, leaving the issue unlabelled`)
+              return
+            }
+
+            await github.rest.issues.addLabels({
+              ...context.repo,
+              issue_number: issue.number,
+              labels: [LABEL],
+            })
+            core.info(`Labelled #${issue.number}, opened by $${dollars}/month sponsor ${author}`)
