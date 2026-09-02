@@ -16,11 +16,19 @@ text {
 }
 </style>
 <text x="400" y="40" text-anchor="middle" class="sponsorkit-tier-title">Supporters</text><a href="https://github.com/marko-p" class="sponsorkit-link" target="_blank" id="marko-p">
-  <text x="400" y="133" text-anchor="middle" class="sponsorkit-name" fill="currentColor">marko-p</text>
+  <text x="360" y="133" text-anchor="middle" class="sponsorkit-name" fill="currentColor">marko-p</text>
   
   <clipPath id="c0">
-    <rect x="375" y="65" width="50" height="50" rx="25" ry="25" />
+    <rect x="335" y="65" width="50" height="50" rx="25" ry="25" />
   </clipPath>
-  <image x="375" y="65" width="50" height="50" href="data:image/webp;base64,UklGRtIBAABXRUJQVlA4IMYBAABwDQCdASpQAFAAPl0ojkWjoqEdbDQAOAXEsgBkDELGpKsFXfX1S/UBtm/Eg9ZPo//SA9Un0AKtQA42uXnr7NGq14fnKqAKWifgtAJKaGODm1DKqW1JC7w48iNqbR3EsZATHUiQiiAqaWRyc8N5cjpRFSLMAAD++LxD4g2y/4OWQs5nyxE4mqVuPu7/I+5SujmdcC45tAmqYHZ2gdczvCgVNQpllSNIw2yeTkDYN32j0a6AQ9X1emvkndKJ6EYr11vguW/ETlM8zLOlnjGXYE0SWqgylFWx0LOB8AmIYPCcaMPhEiSuv3vwJH/MGwNCm8ozigt1S4p6QFOml1r/Du6VbH/lNxoQp+iitZsJ0PuEO5C8oYLEZzrr2+4aAOdeIg9VBqV5JhRgBrlJLwAoL/3UmeHU/r7RxRYDwA65FtvkN9Qsv4TyDbvHhz59AHOFEVJvOzcxx+v6v6nzqZWJOmEOG3mkGSTfrNY3xRKqJvPvj7Wo7jCOEcqccpNX5TJ/yzeF+4h48fYT2mRgM+w+bkqM6Rb/mwnZannvnJqc7WPUNP2kvHJn/TqFl7UAOrJbPlznsMtCORpct0p/JeCcHjK+sCmNGAAA" clip-path="url(#c0)"/>
+  <image x="335" y="65" width="50" height="50" href="data:image/webp;base64,UklGRtIBAABXRUJQVlA4IMYBAABwDQCdASpQAFAAPl0ojkWjoqEdbDQAOAXEsgBkDELGpKsFXfX1S/UBtm/Eg9ZPo//SA9Un0AKtQA42uXnr7NGq14fnKqAKWifgtAJKaGODm1DKqW1JC7w48iNqbR3EsZATHUiQiiAqaWRyc8N5cjpRFSLMAAD++LxD4g2y/4OWQs5nyxE4mqVuPu7/I+5SujmdcC45tAmqYHZ2gdczvCgVNQpllSNIw2yeTkDYN32j0a6AQ9X1emvkndKJ6EYr11vguW/ETlM8zLOlnjGXYE0SWqgylFWx0LOB8AmIYPCcaMPhEiSuv3vwJH/MGwNCm8ozigt1S4p6QFOml1r/Du6VbH/lNxoQp+iitZsJ0PuEO5C8oYLEZzrr2+4aAOdeIg9VBqV5JhRgBrlJLwAoL/3UmeHU/r7RxRYDwA65FtvkN9Qsv4TyDbvHhz59AHOFEVJvOzcxx+v6v6nzqZWJOmEOG3mkGSTfrNY3xRKqJvPvj7Wo7jCOEcqccpNX5TJ/yzeF+4h48fYT2mRgM+w+bkqM6Rb/mwnZannvnJqc7WPUNP2kvHJn/TqFl7UAOrJbPlznsMtCORpct0p/JeCcHjK+sCmNGAAA" clip-path="url(#c0)"/>
+</a>
+<a href="https://github.com/swtaylor" class="sponsorkit-link" target="_blank" id="swtaylor">
+  <text x="440" y="133" text-anchor="middle" class="sponsorkit-name" fill="currentColor">Scott</text>
+  
+  <clipPath id="c1">
+    <rect x="415" y="65" width="50" height="50" rx="25" ry="25" />
+  </clipPath>
+  <image x="415" y="65" width="50" height="50" href="data:image/webp;base64,UklGRpoEAABXRUJQVlA4II4EAABQFgCdASpQAFAAPmkqkUWkIqGXrAdgQAaEsYBhWgnHTNnEshj28rNZ+GmOXmp93KFPcld/L/07TSyJCfZvbGHb5moRzw0e45eO2MkuhDHxKdpqpve1uYdG0BsLtaR1qQkiaMCv1f1r0sWQvsyKv+yTj4NBtLITGsATKV0IENN3Bl8f6aAHqFPbX/IIwHqJ5dhsp8hpZiO3hdsJnuJjXBSNoo/ohDiJMtm1nZDTgJRCWMgANxShzJ+lEFPAAP79QB9OMqjqK/Wb/XKJUhuVyjCLtjHwBkqY5p46HUIIHw/VhGYrttpwJLsPtJ3UJc+EdV/S8DwYN/yByU6U0rMLIGZSGqa2ErEr7V4GGC9IxFbTvXtQDpVVaddvvt0O1HhsxCFwCfsVJwpY1+j6FX0BkGY97/sXD6e4FiqF4u1+mgpFo5AvXaoOAnyAXGYvs9mrbX7kY2vf2rzqVsTsXUDRBIdM9zf8QYGvyqij+qJIWtiJDJtziH6+PIJPNyYaF3dIun0bWAOTdHDJDIxzmdua4QIZ3+SGIdZ6zj9igFRf/D/OkJzQCGsrZMNHiAul/RsCjH5bv2NQCrlcm8Tek/Bol07kSj6qBCsK/tnGmvsT5mrYoWbQsc4tflV2jYurFzbXEjfmMJTron7S5k+b88/hOxLGsnpY7GN+cajmuqSNIAdZ5Es22QFpRJOcqh4DbtElMbp4JmiIP45o+v5aoyEyIsS6tJ/LWKnofIE+2BdiITSXHMzWWzLZ4yBVsG5jcvHbzsqFp9QFsEMe6GYubnNwvK+3uPptk8jnZN/0geWJiLFMxprrPEhv3N3VEKZ1n4yf3EoOYfywMYJ8syuqMKLLH7PB7tDql0Qxsl77fR4fURVBPGgoHbDUjrhRmEeoMSuuWD6FfZ2sx4D8aLlWKdTcRjMO7i2yNb+apfklcWh9CkNjigw1K6OlcaslrUAguez3uDHP3/e0RlxlD9oXf2i7bPFmeW32p6/krBex+5LE4YroYFb6azBBWEixY90qpd5zwSzarPhNoxV4gRRgKTbMmmIQBTtNa7l3sPIIf0znFnxX+RXwIzLmfRPY66VGkoxV5zEcJwTYngDDe8zfqp4uBhCEIq76aOUn/Kf6ydnnBwkv9EvRuTQ5wEh7jIfn74wudig9529et3sKwVIC/3DyAKgOvwkmC2wiuE/MdSRyVEgJfYBkOWSn8IJEl+ZBUelXSxrKGBeAn3CJUN7vn0hBYCKhrVCuYqCQxB4RtM9ewors7V6olzJUbu6E8WazDVYTU69/pqNi1eOfeYqbv3/il9BdKqx1InGxSUo06kUmrmTyn6cmrDkyIUYrAOttFM6Sy9SKCxPlXgDG3YV1NWmkW8vZQli8jp71xHO/80aXNIOPq4kWo3h4dKuH3JF6yDQVpAN3PJb6rD5ZE8m6JN4hbYWXPjH5YnM0xk8X7xJCgZyaSgFgvc5CeJSohiXsOdwanYvLqgpgjznJYJw+YLcVlbPsLGeg0I1HVpaxWt8Sds1iBtQ+I5ZF2VWTAbdhn9vK+oC8c498LHPQiREbCHMgAA==" clip-path="url(#c1)"/>
 </a>
 </svg>
