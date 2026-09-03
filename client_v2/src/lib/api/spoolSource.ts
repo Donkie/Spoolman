@@ -234,7 +234,7 @@ class HttpSpoolSource {
 		return filaments.map((m) => m.entity).slice(0, limit);
 	}
 
-	async searchExternalFilaments(query: string, limit = 8): Promise<ExternalFilament[]> {
+	async searchExternalFilaments(query: string, limit = 100): Promise<ExternalFilament[]> {
 		// Filtering happens server-side (/external/filament/search) so the whole catalog
 		// — thousands of entries — never has to be downloaded to the client.
 		const q = query.trim();
