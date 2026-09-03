@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 from scheduler.asyncio.scheduler import Scheduler
-from sqlalchemy import URL
+from sqlalchemy import URL, event
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from spoolman import env
@@ -29,6 +29,16 @@ MIN_SECONDS_BETWEEN_ROTATIONS = 5 * 60
 
 # Name of the newest backup. Older ones get a .1 ... .N suffix.
 BACKUP_NAME = "spoolman.db"
+
+
+def _unicode_lower(value: str | None) -> str | None:
+    """Lowercase SQLite text using Python's Unicode support."""
+    return value.lower() if value is not None else None
+
+
+def _register_sqlite_functions(connection: sqlite3.Connection, _: object) -> None:
+    """Replace SQLite's ASCII-only lower function for each pooled connection."""
+    connection.create_function("lower", 1, _unicode_lower, deterministic=True)
 
 
 class BackupResult(NamedTuple):
@@ -113,6 +123,8 @@ class Database:
             pool_pre_ping=True,
             **connection_options,
         )
+        if self.connection_url.drivername == "sqlite+aiosqlite":
+            event.listen(self.engine.sync_engine, "connect", _register_sqlite_functions)
         self.session_maker = async_sessionmaker(self.engine, autocommit=False, autoflush=True, expire_on_commit=False)
 
     def backup(self, target_path: str | PathLike[str]) -> None:
