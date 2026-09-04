@@ -10,6 +10,7 @@
 	import Combobox from '../Combobox.svelte';
 	import Scale from '@lucide/svelte/icons/scale';
 	import Printer from '@lucide/svelte/icons/printer';
+	import QrCode from '@lucide/svelte/icons/qr-code';
 	import Archive from '@lucide/svelte/icons/archive';
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
@@ -25,6 +26,7 @@
 	import LinkedText from '../LinkedText.svelte';
 	import VendorSection from './VendorSection.svelte';
 	import ChangeFilamentModal from './ChangeFilamentModal.svelte';
+	import OpenSpoolQrModal from './OpenSpoolQrModal.svelte';
 	import OverrideMark from './OverrideMark.svelte';
 	import type { Filament, Spool } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
@@ -279,6 +281,7 @@
 	// full weight with it, so it gets a dialog that says what will happen instead
 	// of a debounced autosave (#1010).
 	let changeFilamentOpen = $state(false);
+	let openSpoolQrOpen = $state(false);
 
 	let confirmLines = $derived(
 		spool.remaining > 0
@@ -351,6 +354,9 @@
 				title={m['printing.qrcode.button']()}
 				><Printer size={15} /> <span class="btn-label">{m['printing.qrcode.button']()}</span></Button
 			>
+			<Button variant="outline" onclick={() => (openSpoolQrOpen = true)} title="OpenSpool QR"
+				><QrCode size={15} /> <span class="btn-label">OpenSpool QR</span></Button
+			>
 			<Button
 				variant="outline"
 				onclick={toggleArchived}
@@ -387,6 +393,14 @@
 		{spool}
 		current={filament}
 		onclose={() => (changeFilamentOpen = false)}
+	/>
+
+	<OpenSpoolQrModal
+		open={openSpoolQrOpen}
+		{spool}
+		{filament}
+		{vendor}
+		onclose={() => (openSpoolQrOpen = false)}
 	/>
 
 	<div class="gauge">
