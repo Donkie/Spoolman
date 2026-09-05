@@ -199,21 +199,36 @@ def _load_filaments() -> list[ExternalFilament]:
     return _filaments_cache[1]
 
 
+def _searchable_filament_text(filament: ExternalFilament) -> str:
+    """Build the text matched by external filament search."""
+    terms = [
+        filament.id,
+        filament.manufacturer,
+        filament.name,
+        filament.material,
+        str(filament.weight),
+        f"{filament.weight:g}g",
+        str(filament.diameter),
+    ]
+    kg = filament.weight / 1000
+    terms.extend((f"{kg:g}kg", f"{kg:g} kg"))
+    return " ".join(terms).lower()
+
+
 def search_filaments(query: str, limit: int) -> list[ExternalFilament]:
     """Search the external filament catalog server-side.
 
     Keeps the same semantics as the client-side search it replaces: the query is split
     into whitespace-separated words and every word must appear (case-insensitively) as a
-    substring of the filament's "manufacturer name material" text. Results preserve
-    catalog order and are capped at `limit`, so the entire catalog never has to be sent
-    to the client.
+    substring of the filament's searchable text. Results preserve catalog order and are
+    capped at `limit`, so the entire catalog never has to be sent to the client.
     """
     words = query.lower().split()
     if not words:
         return []
     results: list[ExternalFilament] = []
     for filament in _load_filaments():
-        haystack = f"{filament.manufacturer} {filament.name} {filament.material}".lower()
+        haystack = _searchable_filament_text(filament)
         if all(word in haystack for word in words):
             results.append(filament)
             if len(results) >= limit:
