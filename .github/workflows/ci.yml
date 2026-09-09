@@ -3,7 +3,13 @@ name: CI
 on:
   push:
     branches:
-      - master
+      # Every branch builds, so a fix can be handed to a bug reporter as a Docker
+      # image before it merges (see publish-images). Weblate pushes locale-only
+      # commits constantly and dependabot's branches arrive as PRs anyway, so
+      # neither is worth a full multi-arch run.
+      - "**"
+      - "!weblate*"
+      - "!dependabot/**"
     tags:
       - "v*"
   pull_request:
@@ -14,12 +20,12 @@ permissions:
   contents: read
   packages: read
 
-# A new push to a PR makes the previous run's result irrelevant, so cancel it and
-# let the new one have the runners. Gated on the event: the push triggers are
-# master and v* tags, and a cancelled tag run is a half-published release.
+# A new push makes the previous run's result irrelevant, so cancel it and let the
+# new one have the runners. Master and tags are exempt: both publish images, and a
+# cancelled run there is a half-published release.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' && !startsWith(github.ref, 'refs/tags/') }}
 
 env:
   GHCR_IMAGE: donkie/spoolman
@@ -644,6 +650,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # The trailing type=ref,event=branch is what gives an unmerged branch a
+      # pullable image (ghcr.io/donkie/spoolman:my-branch) for a bug reporter to
+      # test. It is GHCR-only and skips master (already published as :edge), so
+      # Docker Hub keeps carrying nothing but :edge and tagged releases.
       - name: Extract metadata (tags, labels) for GHCR
         id: meta-ghcr
         uses: docker/metadata-action@v5.5.1
@@ -655,6 +665,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
+            type=ref,event=branch,enable=${{ github.ref_name != 'master' }}
 
       - name: Extract metadata (tags, labels) for Docker Hub
         id: meta-dh
