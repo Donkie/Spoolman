@@ -6,7 +6,7 @@
 	import LabelCanvas from './LabelCanvas.svelte';
 	import { labelKind, type LabelDesign } from '$lib/labels/types';
 	import type { LabelBinding } from '$lib/labels/template';
-	import { PAPER_NAMES, paperSize, sheetGrid } from '$lib/labels/paper';
+	import { PAPER_NAMES, layoutMargin, paperSize, sheetGrid } from '$lib/labels/paper';
 	import { printLabels, exportLabels, ZIP_THRESHOLD } from '$lib/labels/print';
 	import { EXPORT_FORMATS, resolveExportFormat } from '$lib/labels/export';
 	import { spoolSource } from '$lib/api/spoolSource';
@@ -360,7 +360,9 @@
 	}
 
 	function setMargin(k: 't' | 'b' | 'l' | 'r', v: number) {
-		layout.margin = { ...layout.margin, [k]: v };
+		// Negative margins anchor the grid off the paper: the labels get clipped and
+		// the safe-zone inset (safe - margin) balloons past the label itself.
+		layout.margin = { ...layout.margin, [k]: Math.max(0, v) };
 	}
 	function setSafe(k: 't' | 'b' | 'l' | 'r', v: number) {
 		layout.safe = { ...layout.safe, [k]: Math.max(0, v) };
@@ -371,7 +373,8 @@
 	// the design (the button only touches width, per its label).
 	function fitLabelWidth() {
 		const page = paperSize(layout);
-		const usableW = page.w - layout.margin.l - layout.margin.r;
+		const margin = layoutMargin(layout);
+		const usableW = page.w - margin.l - margin.r;
 		const cols = Math.max(1, Math.round(layout.columns));
 		const w = (usableW - (cols - 1) * layout.spacing.h) / cols;
 		if (w > 0) design.label = { ...design.label, w: Math.round(w * 10) / 10 };
@@ -560,6 +563,7 @@
 				<label class="fld"
 					>{m['printing.generic.marginTop']()}<NumberInput
 						dense
+						min={0}
 						unit="mm"
 						value={layout.margin.t}
 						onchange={(v) => setMargin('t', v)}
@@ -568,6 +572,7 @@
 				<label class="fld"
 					>{m['printing.generic.marginBottom']()}<NumberInput
 						dense
+						min={0}
 						unit="mm"
 						value={layout.margin.b}
 						onchange={(v) => setMargin('b', v)}
@@ -576,6 +581,7 @@
 				<label class="fld"
 					>{m['printing.generic.marginLeft']()}<NumberInput
 						dense
+						min={0}
 						unit="mm"
 						value={layout.margin.l}
 						onchange={(v) => setMargin('l', v)}
@@ -584,6 +590,7 @@
 				<label class="fld"
 					>{m['printing.generic.marginRight']()}<NumberInput
 						dense
+						min={0}
 						unit="mm"
 						value={layout.margin.r}
 						onchange={(v) => setMargin('r', v)}
