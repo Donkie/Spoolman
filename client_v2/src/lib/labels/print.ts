@@ -3,7 +3,7 @@ import { labelKind, type LabelDesign, type PrintLayout } from './types';
 import type { LabelBinding } from './template';
 import { elementToShape, qrLogoBox } from './render';
 import { getLogoImage } from './logo';
-import { paperSize, sheetGrid, pxPerMmForDpi } from './paper';
+import { layoutMargin, paperSize, sheetGrid, pxPerMmForDpi } from './paper';
 import { resolveExportFormat, type ExportedFile, type RenderedLabel } from './export';
 
 // Renders a design to high-DPI raster images and lays them out for printing.
@@ -259,7 +259,14 @@ function labelImg(url: string, w: number, h: number, inset?: Inset): HTMLImageEl
 	const l = inset?.l ?? 0;
 	// Shrink and offset the raster to keep the whole label inside the printable
 	// area of an edge cell; interior cells get no inset and render at full size.
-	img.style.cssText = `width:${w - l - r}mm;height:${h - t - b}mm;margin:${t}mm ${r}mm ${b}mm ${l}mm;display:block;`;
+	// The raster has a fixed aspect ratio, so the inset box gets `object-fit:
+	// contain` — sizing width and height independently would squash the label
+	// (a 1.5mm top/bottom safe-zone on a 34mm label is a 9% vertical squeeze).
+	// Clamped so a box that an over-large inset drove negative just disappears
+	// instead of falling back to the intrinsic size.
+	const boxW = Math.max(0, w - l - r);
+	const boxH = Math.max(0, h - t - b);
+	img.style.cssText = `width:${boxW}mm;height:${boxH}mm;object-fit:contain;margin:${t}mm ${r}mm ${b}mm ${l}mm;display:block;`;
 	return img;
 }
 
@@ -282,6 +289,7 @@ function buildSheetPages(
 ) {
 	const grid = sheetGrid(layout, design.label);
 	const page = paperSize(layout);
+	const margin = layoutMargin(layout);
 	const { w: lw, h: lh } = design.label;
 
 	// The label size is fixed by the design, so we place those fixed-size labels on
@@ -309,13 +317,13 @@ function buildSheetPages(
 			if (!url) continue;
 			const col = i % grid.cols;
 			const row = Math.floor(i / grid.cols);
-			const x = layout.margin.l + col * (lw + layout.spacing.h);
-			const y = layout.margin.t + row * (lh + layout.spacing.v);
+			const x = margin.l + col * (lw + layout.spacing.h);
+			const y = margin.t + row * (lh + layout.spacing.v);
 			const inset: Inset = {
-				l: col === 0 ? overSafe(layout.safe.l, layout.margin.l) : 0,
-				r: col === lastCol ? overSafe(layout.safe.r, layout.margin.r) : 0,
-				t: row === 0 ? overSafe(layout.safe.t, layout.margin.t) : 0,
-				b: row === lastRow ? overSafe(layout.safe.b, layout.margin.b) : 0
+				l: col === 0 ? overSafe(layout.safe.l, margin.l) : 0,
+				r: col === lastCol ? overSafe(layout.safe.r, margin.r) : 0,
+				t: row === 0 ? overSafe(layout.safe.t, margin.t) : 0,
+				b: row === lastRow ? overSafe(layout.safe.b, margin.b) : 0
 			};
 			const cell = document.createElement('div');
 			cell.style.cssText =
