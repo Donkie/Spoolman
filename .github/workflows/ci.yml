@@ -35,6 +35,11 @@ jobs:
   # Linting
   #
   style:
+    # Same-repo branches already got a full run from the push trigger, so skip the
+    # duplicate pull_request run. Forks still need it: a fork's push fires no event
+    # here. Skipping the three jobs that have no `needs` cascades to every other
+    # job, since a skipped dependency skips its dependents.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -77,6 +82,11 @@ jobs:
   # This is done on native hardware to speed things up, vite is very slow on emulated hardware
   #
   build-client:
+    # Same-repo branches already got a full run from the push trigger, so skip the
+    # duplicate pull_request run. Forks still need it: a fork's push fires no event
+    # here. Skipping the three jobs that have no `needs` cascades to every other
+    # job, since a skipped dependency skips its dependents.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -224,6 +234,11 @@ jobs:
   # Build tester image for integration tests
   #
   build-tester:
+    # Same-repo branches already got a full run from the push trigger, so skip the
+    # duplicate pull_request run. Forks still need it: a fork's push fires no event
+    # here. Skipping the three jobs that have no `needs` cascades to every other
+    # job, since a skipped dependency skips its dependents.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     runs-on: ubuntu-latest
     permissions:
       packages: write
