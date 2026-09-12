@@ -328,16 +328,24 @@ class OpenPrintTagData:
         return None
 
 
-def _parse_color_rgba(data: bytes) -> str | None:
-    """Convert RGBA byte string to hex color (RGB only, drop alpha)."""
-    if len(data) >= 3:  # noqa: PLR2004
+def _parse_color_rgba(data: object) -> str | None:
+    """Convert RGBA byte string to hex color (RGB only, drop alpha).
+
+    `data` is whatever CBOR decoded the field to -- for truncated/corrupt tag memory
+    that's still syntactically valid CBOR, that can be any type, not just bytes, so the
+    type is checked before anything that assumes a byte string (starting with `len`).
+    """
+    if isinstance(data, (bytes, bytearray)) and len(data) >= 3:  # noqa: PLR2004
         return f"{data[0]:02x}{data[1]:02x}{data[2]:02x}"
     return None
 
 
-def _parse_uuid(data: bytes) -> str | None:
-    """Convert CBOR byte string to UUID string."""
-    if len(data) == 16:  # noqa: PLR2004
+def _parse_uuid(data: object) -> str | None:
+    """Convert CBOR byte string to UUID string.
+
+    See `_parse_color_rgba` docstring for why `data`'s type is checked first.
+    """
+    if isinstance(data, (bytes, bytearray)) and len(data) == 16:  # noqa: PLR2004
         return str(uuid.UUID(bytes=bytes(data)))
     return None
 
