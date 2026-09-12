@@ -61,3 +61,32 @@ def build_openprinttag(main: dict, aux: dict | None = None) -> bytes:
     payload = _cbor_payload(main, aux)
     ndef = _ndef_short_record("application/vnd.openprinttag", payload)
     return _nfcv_memory(ndef)
+
+
+# Real (not synthetic) OpenPrintTag dumps, base64 of the raw NFC-V memory image, taken
+# from Prusa's own spec repo (github.com/OpenPrintTag/openprinttag-specification, MIT
+# licensed) rather than built by build_openprinttag() above -- see
+# tests/fixtures/openprinttag/README.md in the main test package for the same files and
+# full provenance. Embedded as base64 here, rather than duplicated as binary files, since
+# this package only ships its own .py sources into the spoolman-tester container.
+
+# docs_src/sample_data/sample_tag.bin
+REAL_PRUSA_SAMPLE_TAG_B64 = (
+    "4UAmAQP/ASfCHAAAAQVhcHBsaWNhdGlvbi92bmQub3BlbnByaW50dGFnoQIY4r8AUEc7uM3hKUW4"
+    "n8/aHDrdnEcHYTEIAAkACnBQTEEgR2FsYXh5IEJsYWNrC2lQcnVzYW1lbnQOGmessxoQGQPoERkD"
+    "9BIYZBNDPT49GBv5MmYYHJ8X/xgiGM0YIxjcGCQYqhglGCgYJhg8GCgYKBgpFBgqGEv/AAAAAAAA"
+    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKAAAAAAAAAAAAAAAAAAAAAA"
+    "AAAAAAAAAAAAAAAAAAAAAAAA/g=="
+)
+
+# tests/encode_decode/01_data.bin, with its declared test_config.tag_uid (01_input.yaml)
+REAL_PRUSA_TEST01_B64 = (
+    "4UAnAQP/AS+RARdVBDNkdGFnLm9yZy9zLzMzNGM1NGYwODhSHPVhcHBsaWNhdGlvbi92bmQub3Bl"
+    "bnByaW50dGFnoQIY0r8EGwAAB9D8q0X5BWozMzRjNTRmMDg4CAAJAAp2UExBIFBydXNhIEdhbGF4"
+    "eSBCbGFjawtpUHJ1c2FtZW50Dhpo08fXEBkD6BEZA/QSGQEYE0Q9Pj3/GByfF/8YHfk89hgiGM0Y"
+    "IxjhGCQYqhglGCgYJhg8GCcSGCgYKBgpFBgqGEAYKxjIGCwYZBgtGDQYOJ8AAf8YO4MYMvpBNMzN"
+    "+kMBTM0YPGkyNzAgMzAgMjD/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAA"
+    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD+"
+)
+REAL_PRUSA_TEST01_TAG_UID_HEX = "E0040108662F6FBC"
