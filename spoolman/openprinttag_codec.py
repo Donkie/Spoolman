@@ -70,6 +70,89 @@ MATERIAL_CLASS_MAP: dict[int, str] = {
     1: "SLA",
 }
 
+# Material tags enum (key -> name) from tags_enum.yaml. Keys 18, 25, 26 are deprecated
+# and deliberately absent -- an unrecognized key (deprecated or simply newer than this
+# table) falls back to "unknown_<n>", same as material type/class.
+TAG_MAP: dict[int, str] = {
+    0: "filtration_recommended",
+    1: "biocompatible",
+    2: "antibacterial",
+    3: "air_filtering",
+    4: "abrasive",
+    5: "foaming",
+    6: "self_extinguishing",
+    7: "paramagnetic",
+    8: "radiation_shielding",
+    9: "high_temperature",
+    10: "esd_safe",
+    11: "conductive",
+    12: "blend",
+    13: "water_soluble",
+    14: "ipa_soluble",
+    15: "limonene_soluble",
+    16: "matte",
+    17: "silk",
+    19: "translucent",
+    20: "transparent",
+    21: "iridescent",
+    22: "pearlescent",
+    23: "glitter",
+    24: "glow_in_the_dark",
+    27: "temperature_color_change",
+    28: "gradual_color_change",
+    29: "coextruded",
+    30: "contains_carbon",
+    31: "contains_carbon_fiber",
+    32: "contains_carbon_nano_tubes",
+    33: "contains_glass",
+    34: "contains_glass_fiber",
+    35: "contains_kevlar",
+    36: "contains_stone",
+    37: "contains_magnetite",
+    38: "contains_organic_material",
+    39: "contains_cork",
+    40: "contains_wax",
+    41: "contains_wood",
+    42: "contains_bamboo",
+    43: "contains_pine",
+    44: "contains_ceramic",
+    45: "contains_boron_carbide",
+    46: "contains_metal",
+    47: "contains_bronze",
+    48: "contains_iron",
+    49: "contains_steel",
+    50: "contains_silver",
+    51: "contains_copper",
+    52: "contains_aluminium",
+    53: "contains_brass",
+    54: "contains_tungsten",
+    55: "imitates_wood",
+    56: "imitates_metal",
+    57: "imitates_marble",
+    58: "imitates_stone",
+    59: "lithophane",
+    60: "recycled",
+    61: "home_compostable",
+    62: "industrially_compostable",
+    63: "bio_based",
+    64: "low_outgassing",
+    65: "without_pigments",
+    66: "contains_algae",
+    67: "castable",
+    68: "contains_ptfe",
+    69: "limited_edition",
+    70: "emi_shielding",
+    71: "high_speed",
+    72: "contains_graphene",
+}
+
+# Material certifications enum (key -> name) from material_certifications_enum.yaml
+MATERIAL_CERTIFICATIONS_MAP: dict[int, str] = {
+    0: "ul_2818",
+    1: "ul_94_v0",
+    2: "ul_2904",
+}
+
 # UUID namespaces for deriving UUIDs from other fields
 UUID_NS_BRAND = uuid.UUID("5269dfb7-1559-440a-85be-aba5f3eff2d2")
 UUID_NS_MATERIAL = uuid.UUID("616fc86d-7d99-4953-96c7-46d2836b9be9")
@@ -82,6 +165,7 @@ MF_PACKAGE_UUID = 1
 MF_MATERIAL_UUID = 2
 MF_BRAND_UUID = 3
 MF_GTIN = 4
+MF_BRAND_SPECIFIC_INSTANCE_ID = 5
 MF_MATERIAL_CLASS = 8
 MF_MATERIAL_TYPE = 9
 MF_MATERIAL_NAME = 10
@@ -91,6 +175,7 @@ MF_NOMINAL_NETTO_FULL_WEIGHT = 16
 MF_ACTUAL_NETTO_FULL_WEIGHT = 17
 MF_EMPTY_CONTAINER_WEIGHT = 18
 MF_PRIMARY_COLOR = 19
+MF_TAGS = 28
 MF_DENSITY = 29
 MF_FILAMENT_DIAMETER = 30
 MF_MIN_PRINT_TEMPERATURE = 34
@@ -98,8 +183,18 @@ MF_MAX_PRINT_TEMPERATURE = 35
 MF_PREHEAT_TEMPERATURE = 36
 MF_MIN_BED_TEMPERATURE = 37
 MF_MAX_BED_TEMPERATURE = 38
+MF_MIN_CHAMBER_TEMPERATURE = 39
+MF_MAX_CHAMBER_TEMPERATURE = 40
+MF_CHAMBER_TEMPERATURE = 41
+MF_CONTAINER_WIDTH = 42
+MF_CONTAINER_OUTER_DIAMETER = 43
+MF_CONTAINER_INNER_DIAMETER = 44
+MF_CONTAINER_HOLE_DIAMETER = 45
+MF_CERTIFICATIONS = 56
 MF_DRYING_TEMPERATURE = 57
 MF_DRYING_TIME = 58
+MF_PRIMARY_COLOR_LAB = 59
+MF_PRIMARY_COLOR_RAL = 60
 
 # Meta section field keys
 META_MAIN_REGION_OFFSET = 0
@@ -131,12 +226,15 @@ class OpenPrintTagData:
 
     # Identifiers
     gtin: int | None = None
+    brand_specific_instance_id: str | None = None
 
     # Material info
     material_class: str | None = None  # "FFF" or "SLA"
     material_type: str | None = None  # e.g. "PLA", "PETG"
     material_name: str | None = None  # e.g. "PLA Galaxy Black"
     brand_name: str | None = None  # e.g. "Prusament"
+    tags: list[str] | None = None  # e.g. ["glitter", "contains_carbon_fiber"]
+    certifications: list[str] | None = None  # e.g. ["ul_2818"]
 
     # Physical properties
     density: float | None = None
@@ -148,8 +246,10 @@ class OpenPrintTagData:
     empty_container_weight: float | None = None
     consumed_weight: float | None = None  # from aux section
 
-    # Color as hex string (without #)
+    # Color as hex string (without #), and as measured CIE L*a*b* / RAL, if present
     primary_color_hex: str | None = None
+    primary_color_lab: list[float] | None = None  # [L*, a*, b*]
+    primary_color_ral: str | None = None
 
     # Temperatures (°C)
     min_print_temperature: int | None = None
@@ -157,8 +257,17 @@ class OpenPrintTagData:
     preheat_temperature: int | None = None
     min_bed_temperature: int | None = None
     max_bed_temperature: int | None = None
+    min_chamber_temperature: int | None = None
+    max_chamber_temperature: int | None = None
+    chamber_temperature: int | None = None
     drying_temperature: int | None = None
     drying_time: int | None = None  # minutes
+
+    # Container dimensions (mm)
+    container_width: int | None = None
+    container_outer_diameter: int | None = None
+    container_inner_diameter: int | None = None
+    container_hole_diameter: int | None = None
 
     # Dates
     manufactured_date: int | None = None  # unix timestamp
@@ -193,6 +302,28 @@ class OpenPrintTagData:
             return self.brand_uuid
         if self.brand_name:
             derived = uuid.uuid5(UUID_NS_BRAND, self.brand_name.encode("utf-8"))
+            return str(derived)
+        return None
+
+    @property
+    def effective_material_uuid(self) -> str | None:
+        """Get material UUID, deriving from brand UUID + material_name if not explicit."""
+        if self.material_uuid:
+            return self.material_uuid
+        brand_uuid = self.effective_brand_uuid
+        if brand_uuid and self.material_name:
+            derived = uuid.uuid5(UUID_NS_MATERIAL, uuid.UUID(brand_uuid).bytes + self.material_name.encode("utf-8"))
+            return str(derived)
+        return None
+
+    @property
+    def effective_package_uuid(self) -> str | None:
+        """Get package UUID, deriving from brand UUID + GTIN if not explicit."""
+        if self.package_uuid:
+            return self.package_uuid
+        brand_uuid = self.effective_brand_uuid
+        if brand_uuid and self.gtin is not None:
+            derived = uuid.uuid5(UUID_NS_PACKAGE, uuid.UUID(brand_uuid).bytes + str(self.gtin).encode("utf-8"))
             return str(derived)
         return None
 
@@ -389,6 +520,7 @@ def decode_nfcv_memory(raw_bytes: bytes, nfc_tag_uid: bytes | None = None) -> Op
 # the color all need extra logic and are handled separately in _populate_main_fields.
 _SIMPLE_MAIN_FIELDS: list[tuple[int, str, type]] = [
     (MF_GTIN, "gtin", int),
+    (MF_BRAND_SPECIFIC_INSTANCE_ID, "brand_specific_instance_id", str),
     (MF_MATERIAL_NAME, "material_name", str),
     (MF_BRAND_NAME, "brand_name", str),
     (MF_DENSITY, "density", float),
@@ -396,11 +528,19 @@ _SIMPLE_MAIN_FIELDS: list[tuple[int, str, type]] = [
     (MF_NOMINAL_NETTO_FULL_WEIGHT, "nominal_netto_full_weight", float),
     (MF_ACTUAL_NETTO_FULL_WEIGHT, "actual_netto_full_weight", float),
     (MF_EMPTY_CONTAINER_WEIGHT, "empty_container_weight", float),
+    (MF_PRIMARY_COLOR_RAL, "primary_color_ral", str),
     (MF_MIN_PRINT_TEMPERATURE, "min_print_temperature", int),
     (MF_MAX_PRINT_TEMPERATURE, "max_print_temperature", int),
     (MF_PREHEAT_TEMPERATURE, "preheat_temperature", int),
     (MF_MIN_BED_TEMPERATURE, "min_bed_temperature", int),
     (MF_MAX_BED_TEMPERATURE, "max_bed_temperature", int),
+    (MF_MIN_CHAMBER_TEMPERATURE, "min_chamber_temperature", int),
+    (MF_MAX_CHAMBER_TEMPERATURE, "max_chamber_temperature", int),
+    (MF_CHAMBER_TEMPERATURE, "chamber_temperature", int),
+    (MF_CONTAINER_WIDTH, "container_width", int),
+    (MF_CONTAINER_OUTER_DIAMETER, "container_outer_diameter", int),
+    (MF_CONTAINER_INNER_DIAMETER, "container_inner_diameter", int),
+    (MF_CONTAINER_HOLE_DIAMETER, "container_hole_diameter", int),
     (MF_DRYING_TEMPERATURE, "drying_temperature", int),
     (MF_DRYING_TIME, "drying_time", int),
     (MF_MANUFACTURED_DATE, "manufactured_date", int),
@@ -434,6 +574,13 @@ def _populate_main_fields(data: OpenPrintTagData, main: dict) -> None:
 
     if MF_PRIMARY_COLOR in main:
         data.primary_color_hex = _parse_color_rgba(main[MF_PRIMARY_COLOR])
+    if MF_PRIMARY_COLOR_LAB in main:
+        data.primary_color_lab = [float(v) for v in main[MF_PRIMARY_COLOR_LAB]]
+
+    if MF_TAGS in main:
+        data.tags = [TAG_MAP.get(t, f"unknown_{t}") for t in main[MF_TAGS]]
+    if MF_CERTIFICATIONS in main:
+        data.certifications = [MATERIAL_CERTIFICATIONS_MAP.get(c, f"unknown_{c}") for c in main[MF_CERTIFICATIONS]]
 
 
 def encode_aux_consumed_weight(payload: bytes, consumed_weight: float) -> bytes:

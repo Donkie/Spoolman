@@ -17,6 +17,9 @@ from .._openprinttag_fixtures import (
     MF_MATERIAL_TYPE,
     MF_NOMINAL_NETTO_FULL_WEIGHT,
     MF_PRIMARY_COLOR,
+    REAL_PRUSA_SAMPLE_TAG_B64,
+    REAL_PRUSA_TEST01_B64,
+    REAL_PRUSA_TEST01_TAG_UID_HEX,
     build_openprinttag,
 )
 from ..conftest import URL, assert_httpx_success
@@ -108,3 +111,58 @@ def test_scan_decodes_even_when_the_tag_is_already_matched(random_filament: dict
         assert body["created"] is False
     finally:
         httpx.delete(f"{URL}/api/v1/spool/{spool['id']}")
+
+
+# --- Real Prusa fixtures ---------------------------------------------------------
+# See tests/fixtures/openprinttag/README.md (main test package) for provenance: real
+# OpenPrintTag wire dumps from Prusa's own spec repo, not built by build_openprinttag()
+# above. These are the only tests here that exercise a real tag's long-form NDEF record
+# and 3-byte TLV length over the actual /tag/scan endpoint.
+
+
+def test_scan_decodes_a_real_prusa_sample_tag():
+    result = httpx.post(
+        f"{URL}/api/v1/tag/scan",
+        json={
+            "uid": _uid(),
+            "reader_id": _reader_id(),
+            "format": "openprinttag",
+            "payload_b64": REAL_PRUSA_SAMPLE_TAG_B64,
+        },
+    )
+    assert_httpx_success(result)
+
+    decoded = result.json()["decoded"]
+    assert decoded["material_type"] == "PLA"
+    assert decoded["brand_name"] == "Prusament"
+    assert decoded["material_name"] == "PLA Galaxy Black"
+    assert decoded["net_weight_g"] == 1012.0
+    assert decoded["empty_container_weight_g"] == 100.0
+    assert decoded["color_hex"] == "3d3e3d"
+
+
+def test_scan_decodes_a_real_prusa_test_vector_with_derived_instance_id():
+    """Ground truth: tests/encode_decode/01_info.yaml in Prusa's spec repo.
+
+    Using the vector's own declared tag_uid as the scan UID reproduces the exact
+    instance_uuid the spec's own reference implementation derives for it.
+    """
+    result = httpx.post(
+        f"{URL}/api/v1/tag/scan",
+        json={
+            "uid": REAL_PRUSA_TEST01_TAG_UID_HEX,
+            "reader_id": _reader_id(),
+            "format": "openprinttag",
+            "payload_b64": REAL_PRUSA_TEST01_B64,
+        },
+    )
+    assert_httpx_success(result)
+
+    decoded = result.json()["decoded"]
+    assert decoded["material_type"] == "PLA"
+    assert decoded["brand_name"] == "Prusament"
+    assert decoded["material_name"] == "PLA Prusa Galaxy Black"
+    assert decoded["net_weight_g"] == 1012.0
+    assert decoded["empty_container_weight_g"] == 280.0
+    assert decoded["color_hex"] == "3d3e3d"
+    assert decoded["external_id"] == "bf63e92d-9ca5-53d7-9fab-ffdd0240c585"
