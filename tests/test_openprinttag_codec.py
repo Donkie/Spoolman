@@ -258,6 +258,27 @@ def test_decode_unknown_certification_falls_back_to_unknown_prefix() -> None:
     assert data.certifications == ["ul_94_v0", "unknown_999"]
 
 
+def test_decode_wrong_typed_uuid_field_is_none_not_a_crash() -> None:
+    """Regression test: a real tag truncated mid-write reproduced this.
+
+    The truncation left an otherwise-valid CBOR map where MF_INSTANCE_UUID's value had
+    been cut down to a bare int instead of a 16-byte string -- still syntactically valid
+    CBOR, just the wrong type. _parse_uuid must not assume the field is bytes.
+    """
+    raw = _build_tag({MF_INSTANCE_UUID: 12345, MF_BRAND_NAME: "Sunlu"})
+    data = decode_nfcv_memory(raw)
+
+    assert data.instance_uuid is None
+    assert data.brand_name == "Sunlu"
+
+
+def test_decode_wrong_typed_color_field_is_none_not_a_crash() -> None:
+    raw = _build_tag({MF_PRIMARY_COLOR: 12345})
+    data = decode_nfcv_memory(raw)
+
+    assert data.primary_color_hex is None
+
+
 def test_decode_missing_capability_container_magic_raises() -> None:
     raw = bytes([0x00, 0x40, 0x00, 0x01]) + bytes([0xFE])
     with pytest.raises(ValueError, match="Could not find OpenPrintTag"):
