@@ -222,6 +222,7 @@
 		<div class="titles">
 			<div class="title">
 				{filament.name}
+				<span class="idmono mono">#{filament.id}</span>
 				{#if filament.externalId}<span
 						class="ext-badge"
 						title={serverInfo.externalDbName + ' · ' + filament.externalId}>{serverInfo.externalDbName}</span
@@ -475,6 +476,11 @@
 	.title {
 		font-weight: 700;
 		font-size: 16px;
+	}
+	.idmono {
+		font-size: 12px;
+		color: var(--text-muted);
+		font-weight: 400;
 	}
 	.ext-badge {
 		font-size: 10px;
