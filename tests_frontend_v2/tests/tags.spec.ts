@@ -259,6 +259,10 @@ test("a scanned tag opens its spool once auto-navigate is switched on", async ({
   await scanUntil(request, uid, async () => {
     await expect(page).toHaveURL(new RegExp(`sel=spool(:|%3A)${id}`), { timeout: 1500 });
   });
+
+  await test.step("and says so, since the page moved without being touched", async () => {
+    await expect(page.getByRole("status").getByText(`Tag scanned: opened spool #${id},`)).toBeVisible();
+  });
 });
 
 /**
@@ -378,6 +382,9 @@ test("a tag linked to a filament opens that filament when scanned", async ({ pag
   await scanUntil(request, uid, async () => {
     await expect(page).toHaveURL(new RegExp(`sel=filament(:|%3A)${filament.id}`), { timeout: 1500 });
   });
+  await expect(
+    page.getByRole("status").getByText(`Tag scanned: opened filament ${filament.name}.`, { exact: true }),
+  ).toBeVisible();
 });
 
 /**

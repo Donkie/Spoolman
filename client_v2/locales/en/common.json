@@ -589,6 +589,8 @@
     "tags.nfc.notSupported": "This phone has no NFC, or NFC is switched off in system settings.",
     "tags.nfc.unknown": "Could not read a tag.",
     "tags.none": "No tags linked.",
+    "tags.scan.openedFilament": "Tag scanned: opened filament {{name}}.",
+    "tags.scan.openedSpool": "Tag scanned: opened spool #{{id}}, {{name}}.",
     "tags.scan.unknown": "Unknown tag {{uid}}. Open the spool it belongs to and use Add tag to link it.",
     "tags.section": "Tags",
     "tags.unlink": "Unlink",
