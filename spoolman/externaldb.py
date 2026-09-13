@@ -183,11 +183,16 @@ def get_materials_file() -> Path:
 # because mtime alone can miss a rewrite: filesystems with 1-second mtime granularity
 # report the same stamp for two writes within the same second, which would leave us
 # serving the previous catalog until the next sync.
-_filaments_cache: tuple[tuple[float, int], list[ExternalFilament]] | None = None
+_filaments_cache: tuple[tuple[float, int], list[tuple[str, ExternalFilament]]] | None = None
 
 
-def _load_filaments() -> list[ExternalFilament]:
-    """Load and parse the cached filament catalog, memoized by the file's mtime and size."""
+def _load_filaments() -> list[tuple[str, ExternalFilament]]:
+    """Load and parse the cached filament catalog, memoized by the file's mtime and size.
+
+    Each filament is paired with its lowercased search text, built once here instead of on
+    every search: on a large catalog (the community one has ~50k entries) that halves the
+    cost of a scan, and paging means a scan per page.
+    """
     global _filaments_cache  # noqa: PLW0603
     path = get_filaments_file()
     if not path.exists():
@@ -195,30 +200,26 @@ def _load_filaments() -> list[ExternalFilament]:
     stat = path.stat()
     key = (stat.st_mtime, stat.st_size)
     if _filaments_cache is None or _filaments_cache[0] != key:
-        _filaments_cache = (key, _parse_filaments_from_bytes(path.read_bytes()).root)
+        filaments = _parse_filaments_from_bytes(path.read_bytes()).root
+        _filaments_cache = (key, [(f"{f.manufacturer} {f.name} {f.material}".lower(), f) for f in filaments])
     return _filaments_cache[1]
 
 
-def search_filaments(query: str, limit: int) -> list[ExternalFilament]:
+def search_filaments(query: str, limit: int, offset: int = 0) -> tuple[list[ExternalFilament], int]:
     """Search the external filament catalog server-side.
 
     Keeps the same semantics as the client-side search it replaces: the query is split
     into whitespace-separated words and every word must appear (case-insensitively) as a
     substring of the filament's "manufacturer name material" text. Results preserve
-    catalog order and are capped at `limit`, so the entire catalog never has to be sent
-    to the client.
+    catalog order, so `offset` and `limit` page through them consistently.
+
+    Returns the requested page of matches and the total number of matches.
     """
     words = query.lower().split()
     if not words:
-        return []
-    results: list[ExternalFilament] = []
-    for filament in _load_filaments():
-        haystack = f"{filament.manufacturer} {filament.name} {filament.material}".lower()
-        if all(word in haystack for word in words):
-            results.append(filament)
-            if len(results) >= limit:
-                break
-    return results
+        return [], 0
+    matches = [filament for haystack, filament in _load_filaments() if all(word in haystack for word in words)]
+    return matches[offset : offset + limit], len(matches)
 
 
 async def _sync() -> None:
