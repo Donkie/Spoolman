@@ -204,7 +204,7 @@ def _load_filaments() -> list[tuple[str, ExternalFilament]]:
         filaments = _parse_filaments_from_bytes(path.read_bytes()).root
         _filaments_cache = (
             key,
-            [(f"{f.id} {f.manufacturer} {f.name} {f.material}".lower(), f) for f in filaments],
+            [(f"{f.manufacturer} {f.name} {f.material}".lower(), f) for f in filaments],
         )
     return _filaments_cache[1]
 
@@ -212,20 +212,29 @@ def _load_filaments() -> list[tuple[str, ExternalFilament]]:
 def search_filaments(query: str, limit: int, offset: int = 0) -> tuple[list[ExternalFilament], int]:
     """Search the external filament catalog server-side.
 
-    Text is matched word-by-word against the catalog identity fields. Weight and
-    diameter expressions are parsed separately and compared numerically, preventing
-    values such as 100 g from matching 1000 g. Results preserve catalog order, so
-    ``offset`` and ``limit`` page through them consistently.
+    Text is matched word-by-word against manufacturer, name and material. A complete
+    catalog ID is matched exactly. Weight and diameter expressions are parsed
+    separately and compared numerically, preventing values such as 100 g from matching
+    1000 g. Results preserve catalog order, so ``offset`` and ``limit`` page through
+    them consistently.
 
     Returns the requested page of matches and the total number of matches.
     """
-    parsed = parse_query(query)
-    if not parsed.terms and not parsed.weights and not parsed.diameters:
+    q = query.strip()
+    if not q:
+        return [], 0
+    parsed = parse_query(q)
+    if not parsed.numbers and not parsed.weights and not parsed.diameters:
+        exact_id_matches = [filament for _haystack, filament in _load_filaments() if filament.id.lower() == q.lower()]
+        if exact_id_matches:
+            return exact_id_matches[offset : offset + limit], len(exact_id_matches)
+    if not parsed.terms and not parsed.numbers and not parsed.weights and not parsed.diameters:
         return [], 0
     matches: list[ExternalFilament] = []
     for haystack, filament in _load_filaments():
         if (
             all(term in haystack for term in parsed.terms)
+            and all(number in (filament.weight, filament.diameter) for number in parsed.numbers)
             and all(filament.weight == weight for weight in parsed.weights)
             and all(filament.diameter == diameter for diameter in parsed.diameters)
         ):

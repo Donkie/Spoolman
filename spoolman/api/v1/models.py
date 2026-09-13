@@ -586,7 +586,8 @@ class SearchResultFilament(BaseModel):
         description=(
             "Which field matched the query: a native field name (e.g. 'name', 'material', "
             "'article_number', 'comment'), 'weight' or 'diameter' for a numeric match, 'color' "
-            "for a color-similarity match, or 'extra.<key>'."
+            "for a color-similarity match, 'id' or 'external_id' for an exact identifier match, "
+            "or 'extra.<key>'."
         ),
         examples=["color"],
     )

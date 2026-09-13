@@ -43,6 +43,7 @@ async def test_local_search_compares_weight_and_diameter_numerically() -> None:
         one_kg = filament(vendor, name="One kilogram", weight=1000, diameter=1.75)
         one_hundred_g = filament(vendor, name="One hundred grams", weight=100, diameter=1.75)
         wide = filament(vendor, name="Wide", weight=1100, diameter=2.85)
+        wide.external_id = "polymaker_wide_1100_285"
         db.add_all(
             [
                 spool(one_kg),
@@ -67,5 +68,17 @@ async def test_local_search_compares_weight_and_diameter_numerically() -> None:
         diameter_results = await search(db=db, query="2.85mm", limit=100)
         assert [match.filament.diameter for match in diameter_results.filaments] == [2.85]
         assert [match.spool.filament.diameter for match in diameter_results.spools] == [2.85]
+
+        bare_diameter_results = await search(db=db, query="2.85", limit=100)
+        assert [match.filament.diameter for match in bare_diameter_results.filaments] == [2.85]
+        assert bare_diameter_results.filaments[0].match_field == "diameter"
+
+        filament_id_results = await search(db=db, query=str(wide.id), limit=100)
+        assert filament_id_results.filaments[0].filament.id == wide.id
+        assert filament_id_results.filaments[0].match_field == "id"
+
+        external_id_results = await search(db=db, query="polymaker_wide_1100_285", limit=100)
+        assert [match.filament.id for match in external_id_results.filaments] == [wide.id]
+        assert external_id_results.filaments[0].match_field == "external_id"
 
     await engine.dispose()

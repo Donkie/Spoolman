@@ -36,6 +36,9 @@ def catalog(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     rows.insert(11, filament(101, "Polymaker", "Test 100", weight=100))
     rows.insert(12, filament(102, "Polymaker", "Test 1100", weight=1100))
     rows.insert(13, filament(103, "Polymaker", "Test 2.85", diameter=2.85))
+    numeric_id = filament(104, "Acme", "Numeric ID")
+    numeric_id["id"] = "100"
+    rows.append(numeric_id)
     path = tmp_path / "filaments.json"
     path.write_text(json.dumps(rows))
     monkeypatch.setattr(externaldb, "get_filaments_file", lambda: path)
@@ -87,11 +90,22 @@ def test_external_search_matches_filament_id() -> None:
     assert [result.id for result in results] == ["filament_100"]
 
 
+def test_external_search_does_not_add_ids_to_general_text_search() -> None:
+    assert externaldb.search_filaments("filament_", 100) == ([], 0)
+
+
 def test_external_search_compares_bare_weight_exactly() -> None:
     results, total = externaldb.search_filaments("Polymaker 100", 100)
 
     assert total == 1
     assert [result.weight for result in results] == [100]
+
+
+def test_a_numeric_catalog_id_does_not_override_a_bare_measurement() -> None:
+    results, total = externaldb.search_filaments("100", 100)
+
+    assert total == 1
+    assert [result.id for result in results] == ["filament_101"]
 
 
 def test_external_search_does_not_treat_a_unit_as_a_measurement() -> None:
@@ -105,16 +119,23 @@ def test_external_search_compares_diameter_exactly() -> None:
     assert [result.diameter for result in results] == [2.85]
 
 
+def test_external_search_matches_a_bare_number_against_either_numeric_field() -> None:
+    results, total = externaldb.search_filaments("Polymaker 1000 2.85", 100)
+
+    assert total == 1
+    assert [result.id for result in results] == ["filament_103"]
+
+
 @pytest.mark.parametrize(
     ("query", "expected"),
     [
-        ("polymaker 1kg", SearchQuery(terms=["polymaker"], weights=[1000], diameters=[])),
-        ("polymaker 1 kg", SearchQuery(terms=["polymaker"], weights=[1000], diameters=[])),
-        ("100g", SearchQuery(terms=[], weights=[100], diameters=[])),
-        ("100", SearchQuery(terms=[], weights=[100], diameters=[])),
-        ("1.75mm", SearchQuery(terms=[], weights=[], diameters=[1.75])),
-        ("1.75", SearchQuery(terms=[], weights=[], diameters=[1.75])),
-        ("#100", SearchQuery(terms=["#100"], weights=[], diameters=[])),
+        ("polymaker 1kg", SearchQuery(terms=["polymaker"], numbers=[], weights=[1000], diameters=[])),
+        ("polymaker 1 kg", SearchQuery(terms=["polymaker"], numbers=[], weights=[1000], diameters=[])),
+        ("100g", SearchQuery(terms=[], numbers=[], weights=[100], diameters=[])),
+        ("100", SearchQuery(terms=[], numbers=[100], weights=[], diameters=[])),
+        ("1.75mm", SearchQuery(terms=[], numbers=[], weights=[], diameters=[1.75])),
+        ("1.75", SearchQuery(terms=[], numbers=[1.75], weights=[], diameters=[])),
+        ("#100", SearchQuery(terms=["#100"], numbers=[], weights=[], diameters=[])),
     ],
 )
 def test_parse_query_measurements(query: str, expected: SearchQuery) -> None:
