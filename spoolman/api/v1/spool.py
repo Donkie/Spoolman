@@ -18,11 +18,12 @@ from spoolman.api.v1.models import (
     Spool,
     SpoolEvent,
     SpoolGroup,
-    SpoolTag,
+    Tag,
     TagConflictMessage,
     Vendor,
     extra_fields_request_description,
 )
+from spoolman.api.v1.tag import TagLinkParameters
 
 # Aliased: `tag` is taken by the find endpoint's query parameter, whose name is API surface.
 from spoolman.database import spool
@@ -31,7 +32,6 @@ from spoolman.database.database import get_db_session
 from spoolman.database.utils import parse_sort
 from spoolman.exceptions import ItemCreateError, SpoolMeasureError, TagConflictError
 from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
-from spoolman.tags import FORMAT_MAX_LENGTH, KNOWN_FORMATS, UID_MAX_LENGTH
 from spoolman.ws import websocket_manager
 
 logger = logging.getLogger(__name__)
@@ -850,41 +850,19 @@ async def delete(
     return Message(message="Success!")
 
 
-class SpoolTagParameters(BaseModel):
-    uid: str = Field(
-        min_length=1,
-        max_length=UID_MAX_LENGTH * 2,  # room for separators; the normalized UID is what must fit
-        description=(
-            "The tag's hardware UID, in whatever shape the reader reports it. Separators (:, -, _, "
-            "spaces) are stripped and the result is uppercased before storing, so every spelling of "
-            "one physical tag resolves to the same tag."
-        ),
-        examples=["04:a2:b3:c4:d5:e6:f7", "04A2B3C4D5E6F7"],
-    )
-    format: str | None = Field(
-        None,
-        max_length=FORMAT_MAX_LENGTH,
-        description=(
-            "What kind of tag this is. Informational; not validated against a fixed list, because new "
-            f"tag types appear faster than releases do. Commonly one of: {', '.join(KNOWN_FORMATS)}."
-        ),
-        examples=["ntag"],
-    )
-
-
 @router.post(
     "/{spool_id}/tag",
     name="Link a tag to a spool",
     description=(
         "Link a physical NFC/RFID tag to this spool, so that the tag's UID identifies it. "
-        "A tag belongs to exactly one spool; linking a UID that another spool already holds "
-        "returns 409 with that spool's id, so a client can offer to move it instead. "
+        "A tag identifies exactly one spool or filament; linking a UID that something else already "
+        "holds returns 409 with the holder's id, so a client can offer to move it instead. "
         "Re-linking a tag to the spool that already holds it succeeds and changes nothing, "
         "except that a format sent now refines one recorded earlier."
     ),
     status_code=201,
     response_model_exclude_none=True,
-    response_model=SpoolTag,
+    response_model=Tag,
     responses={
         400: {"model": Message},
         404: {"model": Message},
@@ -894,18 +872,18 @@ class SpoolTagParameters(BaseModel):
 async def link_tag(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
     spool_id: int,
-    body: SpoolTagParameters,
+    body: TagLinkParameters,
 ):
     try:
-        db_item = await tag_db.link(db=db, spool_id=spool_id, uid=body.uid, tag_format=body.format)
+        db_item = await tag_db.link_spool(db=db, spool_id=spool_id, uid=body.uid, tag_format=body.format)
     except ValueError as e:
         return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
     except TagConflictError as e:
         return JSONResponse(
             status_code=409,
-            content=TagConflictMessage(message=str(e), spool_id=e.spool_id).dict(),
+            content=TagConflictMessage(message=str(e), spool_id=e.spool_id, filament_id=e.filament_id).dict(),
         )
-    return SpoolTag.from_db(db_item)
+    return Tag.from_db(db_item)
 
 
 @router.delete(
@@ -932,7 +910,7 @@ async def unlink_tag(
     ],
 ) -> Response:
     try:
-        await tag_db.unlink(db=db, spool_id=spool_id, uid=uid)
+        await tag_db.unlink_spool(db=db, spool_id=spool_id, uid=uid)
     except ValueError as e:
         return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
     return Response(status_code=204)

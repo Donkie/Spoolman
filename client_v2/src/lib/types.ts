@@ -15,14 +15,14 @@ export type ExtraPatch = Record<string, string | null>;
 export type MultiColorDirection = 'coaxial' | 'longitudinal';
 
 /**
- * A physical NFC/RFID tag linked to a spool. The UID is the tag's hardware
- * serial, normalized by the server — always render the one it returns rather
- * than the one you sent, since any separator spelling maps to the same tag.
+ * A physical NFC/RFID tag linked to a spool or a filament. The UID is the tag's
+ * hardware serial, normalized by the server — always render the one it returns
+ * rather than the one you sent, since any separator spelling maps to the same tag.
  *
- * There is deliberately no row id on the wire: `uid` is globally unique and is
- * what you link, unlink and look up by.
+ * There is deliberately no row id on the wire: `uid` is globally unique across
+ * spools and filaments, and is what you link, unlink and look up by.
  */
-export interface SpoolTag {
+export interface Tag {
 	uid: string;
 	/** Tag hardware type, e.g. "ntag". Informational, and often absent. */
 	format?: string;
@@ -68,6 +68,8 @@ export interface Filament {
 	externalId?: string;
 	/** Human label for registration date, e.g. "Jan 14". */
 	registeredLabel: string;
+	/** Linked NFC/RFID tags. Always present; empty when the filament has none. */
+	tags: Tag[];
 	extra: Extra;
 }
 
@@ -108,15 +110,15 @@ export interface Spool {
 	archived: boolean;
 	comment: string;
 	/** Linked NFC/RFID tags. Always present; empty when the spool has none. */
-	tags: SpoolTag[];
+	tags: Tag[];
 	extra: Extra;
 }
 
 // Write shapes: a partial entity, except that `extra` may carry nulls to clear values.
 export type VendorPatch = Partial<Omit<Vendor, 'extra'>> & { extra?: ExtraPatch };
-export type FilamentPatch = Partial<Omit<Filament, 'extra'>> & { extra?: ExtraPatch };
-// Tags are not part of a spool PATCH — they are linked and unlinked through
-// their own endpoints (see api/tags.ts), so they stay out of the write shape.
+// Tags are not part of a PATCH — they are linked and unlinked through their own
+// endpoints (see api/tags.ts), so they stay out of the write shapes.
+export type FilamentPatch = Partial<Omit<Filament, 'extra' | 'tags'>> & { extra?: ExtraPatch };
 export type SpoolPatch = Partial<Omit<Spool, 'extra' | 'tags'>> & { extra?: ExtraPatch };
 
 export type EntityKind = 'spool' | 'filament' | 'vendor';

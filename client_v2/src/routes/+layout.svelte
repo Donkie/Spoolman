@@ -65,7 +65,13 @@
 			// A page you are configuring reacts to nothing — not even the toast, which
 			// during pairing would explain how to link the tag you just tapped to pair.
 			if (!isBrowsableRoute(page.route.id)) return;
-			if (!scan.spool) {
+			// A tag identifies a spool or a filament, and either opens in the inspector.
+			const hit = scan.spool
+				? { kind: 'spool' as const, id: String(scan.spool.id) }
+				: scan.filament
+					? { kind: 'filament' as const, id: scan.filament.id }
+					: null;
+			if (!hit) {
 				// An unknown tag has nowhere to navigate to, and silently ignoring it
 				// would look like the tap failed. Say what was read and where to link
 				// it — repeats coalesce, and the relay already debounces a reader that
@@ -82,7 +88,7 @@
 			// that spool. The inspector resolves a selection by id on its own, so the
 			// spool still opens when the active filters exclude it from the list behind
 			// it -- a scan answers "where is this spool", never "is it in this view".
-			openSearchResult('spool', String(scan.spool.id));
+			openSearchResult(hit.kind, hit.id);
 		});
 	});
 </script>

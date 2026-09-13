@@ -70,6 +70,14 @@ class Filament(Base):
         cascade="save-update, merge, delete, delete-orphan",
         lazy="selectin",
     )
+    # selectin like `extra` and Spool.tags. Every response carrying a filament carries its tags,
+    # a spool listing included since each spool embeds its filament, so this is one extra
+    # `WHERE filament_id IN (...)` per listing rather than a join that multiplies rows.
+    tags: Mapped[list["Tag"]] = relationship(
+        back_populates="filament",
+        cascade="save-update, merge, delete, delete-orphan",
+        lazy="selectin",
+    )
 
 
 class Spool(Base):
@@ -152,9 +160,9 @@ class Tag(Base):
 
     ## Why the target is not just `spool_id`
 
-    Only spools are tagged today. The columns are wider than that because the shapes a
-    tag might point at are not all rows, and finding that out after release would mean
-    altering a populated table's nullability on four databases:
+    Spools and filaments are tagged today. The columns are wider than that because the
+    shapes a tag might point at are not all rows, and finding that out after release would
+    mean altering a populated table's nullability on four databases:
 
     * `spool_id` / `filament_id` -- targets that ARE rows, so they are real foreign keys
       and the database keeps them honest.
@@ -183,14 +191,11 @@ class Tag(Base):
     target_type: Mapped[str] = mapped_column(String(16))
     spool_id: Mapped[int | None] = mapped_column(ForeignKey("spool.id"), index=True)
     spool: Mapped["Spool | None"] = relationship(back_populates="tags")
-    # No ORM relationship yet, deliberately. Nothing writes filament tags, and a
-    # `selectin` collection on Filament would add a query to every filament listing for
-    # rows that cannot exist. ON DELETE CASCADE keeps the database honest in the
-    # meantime; the relationship arrives with the feature that needs it.
     filament_id: Mapped[int | None] = mapped_column(
         ForeignKey("filament.id", ondelete="CASCADE"),
         index=True,
     )
+    filament: Mapped["Filament | None"] = relationship(back_populates="tags")
     # For target kinds addressed by value rather than by row -- a location name. Sized to
     # match Spool.location, which is what it would hold.
     target_value: Mapped[str | None] = mapped_column(String(64))

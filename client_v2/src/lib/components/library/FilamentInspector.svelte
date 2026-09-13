@@ -17,6 +17,7 @@
 	import ProgressBar from '../ProgressBar.svelte';
 	import SectionLabel from '../SectionLabel.svelte';
 	import ExtraFieldsSection from '../ExtraFieldsSection.svelte';
+	import TagsSection from '../TagsSection.svelte';
 	import Breadcrumbs from '../Breadcrumbs.svelte';
 	import FieldGrid from '../FieldGrid.svelte';
 	import Field from '../Field.svelte';
@@ -445,6 +446,8 @@
 			</FieldGrid>
 
 			<ExtraFieldsSection entity="filament" extra={filament.extra} onchange={extraSaver.change} manage />
+
+			<TagsSection kind="filament" id={filament.id} tags={filament.tags} />
 		</div>
 
 		<div class="col">

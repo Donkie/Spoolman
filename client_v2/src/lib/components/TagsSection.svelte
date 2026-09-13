@@ -1,5 +1,5 @@
 <script lang="ts">
-	// The NFC/RFID tags linked to a spool, listed in its inspector.
+	// The NFC/RFID tags linked to a spool or filament, listed in its inspector.
 	//
 	// A tag is identified by its hardware UID and nothing else, so there is very
 	// little to show: the UID, what kind of tag it is when the reader said, and
@@ -9,24 +9,30 @@
 	// to be typed would make one tag look like several.
 	//
 	// Adding is a quiet section action rather than another button in the inspector
-	// header: that header already carries the spool's primary actions, and linking
-	// a tag is not one of the things you do to a spool every day.
+	// header: that header already carries the primary actions, and linking a tag is
+	// not one of the things you do every day.
 	import SectionLabel from './SectionLabel.svelte';
 	import AddTagModal from './AddTagModal.svelte';
 	import ConfirmDialog from './ConfirmDialog.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Nfc from '@lucide/svelte/icons/nfc';
 	import X from '@lucide/svelte/icons/x';
-	import type { Spool, SpoolTag } from '$lib/types';
-	import { unlinkTag } from '$lib/api/tags';
+	import type { Tag } from '$lib/types';
+	import { unlinkTag, type TagKind } from '$lib/api/tags';
 	import { toasts } from '$lib/stores/toasts.svelte';
 	import { formatShortDate } from '$lib/utils/datetime';
 	import * as m from '$lib/paraglide/messages';
 
-	let { spool }: { spool: Spool } = $props();
+	interface Props {
+		/** What the tags identify, and so where links and unlinks go. */
+		kind: TagKind;
+		id: number | string;
+		tags: Tag[];
+	}
+	let { kind, id, tags }: Props = $props();
 
 	let addOpen = $state(false);
-	let pending = $state<SpoolTag | null>(null);
+	let pending = $state<Tag | null>(null);
 	let unlinking = $state(false);
 
 	async function confirmUnlink() {
@@ -34,8 +40,8 @@
 		if (!tag) return;
 		unlinking = true;
 		try {
-			await unlinkTag(spool.id, tag.uid);
-			// No local edit: unlinking emits the spool's ordinary `updated` event, and
+			await unlinkTag({ kind, id }, tag.uid);
+			// No local edit: unlinking emits the holder's ordinary `updated` event, and
 			// the list below re-renders from the cache when it arrives.
 			toasts.success(m['tags.unlinked']());
 			pending = null;
@@ -44,6 +50,10 @@
 		} finally {
 			unlinking = false;
 		}
+	}
+
+	function unlinkBody(uid: string): string {
+		return kind === 'spool' ? m['tags.unlinkBody']({ uid }) : m['tags.unlinkBodyFilament']({ uid });
 	}
 </script>
 
@@ -57,9 +67,9 @@
 	{/snippet}
 </SectionLabel>
 
-{#if spool.tags.length}
+{#if tags.length}
 	<ul class="tags">
-		{#each spool.tags as tag (tag.uid)}
+		{#each tags as tag (tag.uid)}
 			<li class="tag">
 				<Nfc size={14} class="ico" />
 				<span class="uid mono">{tag.uid}</span>
@@ -80,13 +90,13 @@
 	<div class="none">{m['tags.none']()}</div>
 {/if}
 
-<AddTagModal open={addOpen} {spool} onclose={() => (addOpen = false)} />
+<AddTagModal open={addOpen} {kind} {id} onclose={() => (addOpen = false)} />
 
 <ConfirmDialog
 	open={pending !== null}
 	busy={unlinking}
 	title={m['tags.unlinkTitle']()}
-	lines={pending ? [m['tags.unlinkBody']({ uid: pending.uid })] : []}
+	lines={pending ? [unlinkBody(pending.uid)] : []}
 	confirmLabel={unlinking ? m['tags.unlinking']() : m['tags.unlink']()}
 	onconfirm={confirmUnlink}
 	onclose={() => (pending = null)}
