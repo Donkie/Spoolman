@@ -49,7 +49,7 @@ _CANDIDATE_CAP = 200
 _MAX_TERMS = 8
 
 _MEASUREMENT_RE = re.compile(
-    r"(?<![\w.#])(?P<value>(?:\d+(?:\.\d*)?|\.\d+))\s*(?P<unit>kg|g|mm)?(?!\w)",
+    r"(?<!\S)(?P<value>(?:\d+(?:\.\d*)?|\.\d+))\s*(?P<unit>kg|g|mm)?(?!\S)",
     re.IGNORECASE,
 )
 

@@ -136,6 +136,10 @@ def test_external_search_matches_a_bare_number_against_either_numeric_field() ->
         ("1.75mm", SearchQuery(terms=[], numbers=[], weights=[], diameters=[1.75])),
         ("1.75", SearchQuery(terms=[], numbers=[1.75], weights=[], diameters=[])),
         ("#100", SearchQuery(terms=["#100"], numbers=[], weights=[], diameters=[])),
+        (
+            "Shelf-åäö-mu0fdhd3-6160",
+            SearchQuery(terms=["shelf-åäö-mu0fdhd3-6160"], numbers=[], weights=[], diameters=[]),
+        ),
     ],
 )
 def test_parse_query_measurements(query: str, expected: SearchQuery) -> None:
