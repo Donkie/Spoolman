@@ -128,7 +128,7 @@
 	<div class="head">
 		<div class="avatar">{initials}</div>
 		<div class="titles">
-			<div class="title">{vendor.name}</div>
+			<div class="title">{vendor.name} <span class="idmono mono">#{vendor.id}</span></div>
 			<div class="subtitle">
 				{m['inspector.vendorSub']({
 					count: filaments.length
@@ -228,6 +228,11 @@
 	.title {
 		font-weight: 700;
 		font-size: 16px;
+	}
+	.idmono {
+		font-size: 12px;
+		color: var(--text-muted);
+		font-weight: 400;
 	}
 	.subtitle {
 		font-size: 12px;

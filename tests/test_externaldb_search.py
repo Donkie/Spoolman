@@ -1,59 +1,52 @@
-"""External filament catalog search tests."""
+"""Tests for searching and paging through the external filament catalog."""
+
+import json
+from pathlib import Path
 
 import pytest
 
 from spoolman import externaldb
-from spoolman.externaldb import ExternalFilament
 
 
-def filament(
-    filament_id: str,
-    manufacturer: str,
-    name: str,
-    material: str,
-    weight: float,
-    diameter: float = 1.75,
-) -> ExternalFilament:
-    return ExternalFilament(
-        id=filament_id,
-        manufacturer=manufacturer,
-        name=name,
-        material=material,
-        density=1.24,
-        weight=weight,
-        diameter=diameter,
-    )
+def filament(i: int, manufacturer: str, name: str, material: str = "PLA") -> dict:
+    return {
+        "id": f"filament_{i}",
+        "manufacturer": manufacturer,
+        "name": name,
+        "material": material,
+        "density": 1.24,
+        "weight": 1000,
+        "diameter": 1.75,
+    }
 
 
 @pytest.fixture(autouse=True)
-def catalog(monkeypatch: pytest.MonkeyPatch) -> None:
-    filaments = [
-        filament(f"elegoo_pla_plawhite_{i}_175_c", "Elegoo", "PLA White", "PLA", weight)
-        for i, weight in enumerate([250, 500, 750, 1000, 1000, 1000, 1000, 1000, 1000, 3000], start=1)
-    ]
-    filaments.append(filament("polymaker_pla_polysonicblack_1000_175", "Polymaker", "Polysonic Black", "PLA", 1000))
-    monkeypatch.setattr(externaldb, "_load_filaments", lambda: filaments)
+def catalog(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    rows = [filament(i, "Elegoo", f"White {i}") for i in range(25)]
+    rows.insert(10, filament(100, "Polymaker", "PolyLite Black", "PETG"))
+    path = tmp_path / "filaments.json"
+    path.write_text(json.dumps(rows))
+    monkeypatch.setattr(externaldb, "get_filaments_file", lambda: path)
+    monkeypatch.setattr(externaldb, "_filaments_cache", None)
 
 
-def test_external_search_honors_limit() -> None:
-    assert len(externaldb.search_filaments("Elegoo PLA White", 8)) == 8
-    assert len(externaldb.search_filaments("Elegoo PLA White", 100)) == 10
+def test_pages_cover_every_match_once_in_catalog_order():
+    ids = []
+    for offset in (0, 10, 20):
+        items, total = externaldb.search_filaments("elegoo white", limit=10, offset=offset)
+        assert total == 25
+        ids += [f.id for f in items]
+    assert ids == [f"filament_{i}" for i in range(25)]
 
 
-def test_external_search_matches_weight_in_kg() -> None:
-    results = externaldb.search_filaments("Elegoo PLA White 1kg", 100)
-
-    assert len(results) == 6
-    assert all(result.weight == 1000 for result in results)
+def test_an_offset_past_the_end_is_empty_but_still_counts():
+    assert externaldb.search_filaments("elegoo", limit=10, offset=30) == ([], 25)
 
 
-def test_external_search_matches_weight_in_grams() -> None:
-    results = externaldb.search_filaments("Elegoo PLA White 250g", 100)
+def test_every_word_must_match_case_insensitively():
+    items, total = externaldb.search_filaments("POLYMAKER petg", limit=10)
+    assert ([f.id for f in items], total) == (["filament_100"], 1)
 
-    assert [result.weight for result in results] == [250]
 
-
-def test_external_search_matches_filament_id() -> None:
-    results = externaldb.search_filaments("plawhite_4_175_c", 100)
-
-    assert [result.id for result in results] == ["elegoo_pla_plawhite_4_175_c"]
+def test_a_blank_query_matches_nothing():
+    assert externaldb.search_filaments("   ", limit=10) == ([], 0)

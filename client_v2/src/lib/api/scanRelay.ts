@@ -2,7 +2,7 @@ import { wsUrl } from './config';
 import { getJson } from './http';
 import { mapSpool, mapFilament, mapVendor } from './map';
 import { inventory } from '$lib/stores/inventory.svelte';
-import type { Spool } from '$lib/types';
+import type { Filament, Spool } from '$lib/types';
 
 // The NFC/RFID scan relay: a reader taps a tag, POSTs it to /api/v1/tag/scan,
 // and the server fans that out over a websocket to whichever browsers are
@@ -40,9 +40,12 @@ export interface TagScan {
 	format?: string;
 	/** Raw tag contents, base64. Phase 1 does not decode it. */
 	payloadB64?: string;
-	/** The spool this tag is linked to, absent when the tag is unknown. Embedded
+	/** The spool this tag is linked to, absent unless a spool holds it. Embedded
 	 *  in the event in full, so acting on a scan needs no follow-up request. */
 	spool?: Spool;
+	/** The filament this tag is linked to, absent unless a filament holds it. At
+	 *  most one of `spool` and `filament` is set; neither means an unknown tag. */
+	filament?: Filament;
 }
 
 export type ScanHandler = (scan: TagScan) => void;
@@ -77,10 +80,11 @@ function pathFor(pool: ReaderPool): string {
 /**
  * Map a broadcast payload to a `TagScan`.
  *
- * The embedded spool is cached on the way past, exactly as a spool arriving from
- * any other endpoint would be: a scan that is about to open an inspector should
- * find the filament and manufacturer already there. Note that this is the only
- * thing a scan puts in the cache — the scan itself is an event, not a record.
+ * The embedded spool or filament is cached on the way past, exactly as one
+ * arriving from any other endpoint would be: a scan that is about to open an
+ * inspector should find the filament and manufacturer already there. Note that
+ * this is the only thing a scan puts in the cache — the scan itself is an event,
+ * not a record.
  */
 function toScan(payload: Json): TagScan {
 	const raw = payload.spool as Json | undefined;
@@ -93,13 +97,21 @@ function toScan(payload: Json): TagScan {
 		spool = mapSpool(raw);
 		inventory.upsertSpool(spool);
 	}
+	const rawFilament = payload.filament as Json | undefined;
+	let filament: Filament | undefined;
+	if (rawFilament) {
+		if (rawFilament.vendor) inventory.upsertVendor(mapVendor(rawFilament.vendor));
+		filament = mapFilament(rawFilament);
+		inventory.upsertFilament(filament);
+	}
 	return {
 		uid: payload.uid,
 		readerId: payload.reader_id,
 		name: payload.name ?? undefined,
 		format: payload.format ?? undefined,
 		payloadB64: payload.payload_b64 ?? undefined,
-		spool
+		spool,
+		filament
 	};
 }
 

@@ -57,6 +57,7 @@
 		price: 0,
 		comment: '',
 		registeredLabel: '',
+		tags: [],
 		extra: {}
 	};
 
@@ -515,7 +516,7 @@
 
 			<ExtraFieldsSection entity="spool" extra={spool.extra} onchange={extraSaver.change} manage />
 
-			<TagsSection {spool} />
+			<TagsSection kind="spool" id={spool.id} tags={spool.tags} />
 		</div>
 
 		<div class="col">

@@ -25,6 +25,7 @@ from spoolman.database.utils import (
 from spoolman.exceptions import ItemDeleteError, ItemNotFoundError
 from spoolman.extra_field_registry import EntityType
 from spoolman.math import delta_e, hex_to_rgb, rgb_to_lab
+from spoolman.tags import normalize_uid
 from spoolman.ws import websocket_manager
 
 
@@ -76,6 +77,10 @@ async def create(
         multi_color_direction=multi_color_direction.value if multi_color_direction is not None else None,
         external_id=external_id,
         extra=[models.FilamentField(key=k, value=v) for k, v in (extra or {}).items() if v is not None],
+        # Explicitly empty, for the reason spoolman.database.spool.create gives: a selectin
+        # collection that was never populated is unloaded after the commit, and Filament.from_db
+        # would then lazy-load it from async code and raise MissingGreenlet.
+        tags=[],
     )
     db.add(filament)
     await db.commit()
@@ -105,6 +110,7 @@ async def find(
     material: str | None = None,
     article_number: str | None = None,
     external_id: str | None = None,
+    tag: str | None = None,
     extra_field_filters: dict[str, str] | None = None,
     sort_by: dict[str, SortOrder] | None = None,
     limit: int | None = None,
@@ -130,6 +136,14 @@ async def find(
     stmt = add_where_clause_str_opt(stmt, models.Filament.material, material)
     stmt = add_where_clause_str_opt(stmt, models.Filament.article_number, article_number)
     stmt = add_where_clause_str_opt(stmt, models.Filament.external_id, external_id)
+    if tag is not None:
+        # The mirror of the spool endpoint's filter: only a tag linked to the filament itself
+        # matches, never one on its spools. `uid` is unique, so the join cannot multiply rows,
+        # and the count query below shares this statement so it stays in step. normalize_uid
+        # raises ValueError on a non-hex UID, which the endpoint turns into a 400.
+        stmt = stmt.join(models.Tag, models.Tag.filament_id == models.Filament.id).where(
+            models.Tag.uid == normalize_uid(tag),
+        )
 
     total_count = None
 

@@ -11,11 +11,19 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman.api.v1.models import EventType, Message, Spool, TagReader, TagScan, TagScanEvent
+from spoolman.api.v1.models import EventType, Filament, Message, Spool, TagReader, TagScan, TagScanEvent
+from spoolman.database import models
 from spoolman.database import tag as tag_db
 from spoolman.database.database import get_db_session
 from spoolman.scanrelay import READER_ID_PATTERN, derive_reader_id, scan_relay
-from spoolman.tags import FORMAT_MAX_LENGTH, KNOWN_FORMATS, UID_MAX_LENGTH, normalize_uid
+from spoolman.tags import (
+    FORMAT_MAX_LENGTH,
+    KNOWN_FORMATS,
+    TARGET_FILAMENT,
+    TARGET_SPOOL,
+    UID_MAX_LENGTH,
+    normalize_uid,
+)
 from spoolman.ws import scan_websocket_manager
 
 logger = logging.getLogger(__name__)
@@ -31,6 +39,30 @@ router = APIRouter(
 # constraining is size: an unbounded payload is an unbounded websocket broadcast to every
 # subscriber, from an unauthenticated endpoint.
 PAYLOAD_MAX_LENGTH = 8192
+
+
+class TagLinkParameters(BaseModel):
+    """Body for linking a tag. Spools and filaments take the same one."""
+
+    uid: str = Field(
+        min_length=1,
+        max_length=UID_MAX_LENGTH * 2,  # room for separators; the normalized UID is what must fit
+        description=(
+            "The tag's hardware UID, in whatever shape the reader reports it. Separators (:, -, _, "
+            "spaces) are stripped and the result is uppercased before storing, so every spelling of "
+            "one physical tag resolves to the same tag."
+        ),
+        examples=["04:a2:b3:c4:d5:e6:f7", "04A2B3C4D5E6F7"],
+    )
+    format: str | None = Field(
+        None,
+        max_length=FORMAT_MAX_LENGTH,
+        description=(
+            "What kind of tag this is. Informational; not validated against a fixed list, because new "
+            f"tag types appear faster than releases do. Commonly one of: {', '.join(KNOWN_FORMATS)}."
+        ),
+        examples=["ntag"],
+    )
 
 
 class TagScanParameters(BaseModel):
@@ -81,16 +113,17 @@ class TagScanParameters(BaseModel):
     "/scan",
     name="Report a tag scan",
     description=(
-        "Report that a reader has scanned a tag. Spoolman resolves the tag to a spool and returns "
+        "Report that a reader has scanned a tag. Spoolman resolves the tag to a spool or filament and returns "
         "the match, then broadcasts the scan on the tag scan websockets so a paired browser can "
         "react to it.\n\n"
         "The response is the whole integration for a device that only wants a lookup: "
-        "`matched_spool_id` is always present, null when the tag is not linked to anything. A "
-        "device may ignore the response entirely.\n\n"
+        "`matched_spool_id` and `matched_filament_id` are always present, at most one of them is "
+        "non-null, and both are null when the tag is not linked to anything. A device may ignore the "
+        "response entirely.\n\n"
         "Scans are ephemeral -- broadcast only, never stored. Repeated identical scans from the "
         "same reader within a few seconds are broadcast once, because readers re-detect a tag that "
         "is sitting still; the response is unaffected, so a de-duplicated scan never looks to the "
-        "device like a failed lookup. A scan that resolves to a different spool than the last one "
+        "device like a failed lookup. A scan that resolves to something different than the last one "
         "-- because the tag has just been linked, unlinked, or moved -- is never de-duplicated, so "
         "an agent that links a tag can re-report the scan and have the correction go out at once."
     ),
@@ -117,7 +150,9 @@ async def scan(
     except ValueError as e:
         return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
-    db_spool = await tag_db.find_spool_by_uid(db, uid)
+    target = await tag_db.find_by_uid(db, uid)
+    db_spool = target if isinstance(target, models.Spool) else None
+    db_filament = target if isinstance(target, models.Filament) else None
 
     scan_relay.register(reader_id, body.name, uid)
 
@@ -129,15 +164,24 @@ async def scan(
         payload_b64=body.payload_b64,
         matched_spool_id=db_spool.id if db_spool is not None else None,
         spool=Spool.from_db(db_spool) if db_spool is not None else None,
+        matched_filament_id=db_filament.id if db_filament is not None else None,
+        filament=Filament.from_db(db_filament) if db_filament is not None else None,
     )
 
-    if scan_relay.should_broadcast(uid, reader_id, result.matched_spool_id):
+    if db_spool is not None:
+        matched = (TARGET_SPOOL, db_spool.id)
+    elif db_filament is not None:
+        matched = (TARGET_FILAMENT, db_filament.id)
+    else:
+        matched = None
+    if scan_relay.should_broadcast(uid, reader_id, matched):
         await _broadcast(result)
 
     content = jsonable_encoder(result, exclude_none=True)
     # exclude_none strips a null match, but "no match" is the answer to the device's question
     # and it has to be able to see it. Everything else may be omitted.
     content.setdefault("matched_spool_id", None)
+    content.setdefault("matched_filament_id", None)
     return JSONResponse(content=content)
 
 

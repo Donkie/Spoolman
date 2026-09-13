@@ -1,6 +1,6 @@
 <script lang="ts">
-	// Link a physical tag to a spool, by any of the three ways a UID can reach a
-	// browser: a reader taps it and the relay delivers it, this phone reads it over
+	// Link a physical tag to a spool or filament, by any of the three ways a UID can
+	// reach a browser: a reader taps it and the relay delivers it, this phone reads it over
 	// Web NFC, or the user types it.
 	//
 	// All three converge on one input, deliberately. The UID is the whole of a
@@ -19,8 +19,18 @@
 	import Smartphone from '@lucide/svelte/icons/smartphone';
 	import Radio from '@lucide/svelte/icons/radio';
 	import History from '@lucide/svelte/icons/history';
-	import type { Spool } from '$lib/types';
-	import { linkTag, unlinkTag, findSpoolByTag, asTagConflict, isBadUid } from '$lib/api/tags';
+	import type { Filament, Spool } from '$lib/types';
+	import {
+		linkTag,
+		unlinkTag,
+		findTagHolder,
+		holderTarget,
+		asTagConflict,
+		isBadUid,
+		type TagHolder,
+		type TagKind,
+		type TagTarget
+	} from '$lib/api/tags';
 	import { scanRelay } from '$lib/api/scanRelay';
 	import { scanner } from '$lib/stores/scanner.svelte';
 	import { inventory } from '$lib/stores/inventory.svelte';
@@ -33,10 +43,13 @@
 
 	interface Props {
 		open: boolean;
-		spool: Spool;
+		/** What the tag is being linked to. */
+		kind: TagKind;
+		id: number | string;
 		onclose: () => void;
 	}
-	let { open, spool, onclose }: Props = $props();
+	let { open, kind, id, onclose }: Props = $props();
+	let target = $derived<TagTarget>({ kind, id });
 
 	let uid = $state('');
 	/** Carried through from a scan; a typed UID has no format to report. */
@@ -50,7 +63,7 @@
 		| { state: 'checking' }
 		| { state: 'free' }
 		| { state: 'here' }
-		| { state: 'taken'; spool: Spool }
+		| { state: 'taken'; holder: TagHolder }
 		| { state: 'bad' }
 		| { state: 'unknown' };
 	let lookup = $state<Lookup>({ state: 'empty' });
@@ -122,11 +135,11 @@
 		const ac = new AbortController();
 		const timer = setTimeout(async () => {
 			try {
-				const found = await findSpoolByTag(value, ac.signal);
+				const found = await findTagHolder(value, ac.signal);
 				if (ac.signal.aborted) return;
 				if (!found) lookup = { state: 'free' };
-				else if (found.id === spool.id) lookup = { state: 'here' };
-				else lookup = { state: 'taken', spool: found };
+				else if (isTarget(found)) lookup = { state: 'here' };
+				else lookup = { state: 'taken', holder: found };
 			} catch (err) {
 				if (isAbortError(err, ac.signal)) return;
 				// A UID that isn't hexadecimal is a 400 rather than an empty result, so
@@ -171,15 +184,36 @@
 		return m['tags.nfc.unknown']();
 	}
 
-	/** Describe another spool well enough to decide whether to take its tag. */
-	function describe(other: Spool): string {
+	/** Whether a holder is the very spool or filament this dialog links to. */
+	function isTarget(holder: TagHolder): boolean {
+		const held = holderTarget(holder);
+		return held.kind === target.kind && String(held.id) === String(target.id);
+	}
+
+	function nameOf(filament: Filament): string {
+		const vendor = inventory.vendorById(filament.vendorId);
+		return vendor ? filamentLabel(filament, vendor) : filament.name;
+	}
+
+	/** Describe whatever holds the tag well enough to decide whether to take it. */
+	function describe(holder: TagHolder): string {
+		if (holder.kind === 'filament') {
+			return m['tags.modal.filamentNamed']({ name: nameOf(holder.filament) });
+		}
+		const other: Spool = holder.spool;
 		const filament = inventory.filamentById(other.filamentId);
-		const vendor = filament ? inventory.vendorById(filament.vendorId) : undefined;
 		if (!filament) return m['tags.modal.spoolShort']({ id: other.id });
-		return m['tags.modal.spoolNamed']({
-			id: other.id,
-			name: vendor ? filamentLabel(filament, vendor) : filament.name
-		});
+		return m['tags.modal.spoolNamed']({ id: other.id, name: nameOf(filament) });
+	}
+
+	/** Load whatever a 409 said holds the tag, so the offer to move it can name it. */
+	async function fetchHolder(held: TagTarget): Promise<TagHolder | undefined> {
+		if (held.kind === 'spool') {
+			const spool = await spoolSource.fetchSpool(Number(held.id));
+			return spool ? { kind: 'spool', spool } : undefined;
+		}
+		const filament = await spoolSource.fetchFilament(String(held.id));
+		return filament ? { kind: 'filament', filament } : undefined;
 	}
 
 	async function submit() {
@@ -188,7 +222,7 @@
 		busy = true;
 		error = null;
 		try {
-			await linkTag(spool.id, value, format);
+			await linkTag(target, value, format);
 			toasts.success(m['tags.added']());
 			close();
 		} catch (err) {
@@ -197,8 +231,8 @@
 				// Lost a race, or the lookup never ran. Fetch the holder so the offer to
 				// move the tag can name it, and fall back to the bare id if even that
 				// fails — the offer is still valid without a name.
-				const holder = await spoolSource.fetchSpool(conflict.spoolId).catch(() => undefined);
-				lookup = holder ? { state: 'taken', spool: holder } : { state: 'unknown' };
+				const holder = await fetchHolder(conflict.holder).catch(() => undefined);
+				lookup = holder ? { state: 'taken', holder } : { state: 'unknown' };
 				error = holder ? null : conflict.message;
 			} else if (isBadUid(err)) {
 				lookup = { state: 'bad' };
@@ -211,25 +245,33 @@
 	}
 
 	/**
-	 * Take a tag off the spool that holds it and put it on this one.
+	 * Take a tag off whatever holds it and put it on this spool or filament.
 	 *
-	 * Two requests, in this order, because a tag belongs to exactly one spool and
+	 * Two requests, in this order, because a tag identifies exactly one thing and
 	 * the server will not accept the second until the first has happened. If the
 	 * link then fails the tag is left on neither, which is reported rather than
 	 * hidden: the tag still exists and can simply be linked again.
 	 */
-	async function move(from: Spool) {
+	async function move(from: TagHolder) {
 		const value = uid.trim();
 		if (!value || busy) return;
 		busy = true;
 		error = null;
 		try {
-			await unlinkTag(from.id, value);
-			await linkTag(spool.id, value, format);
-			toasts.success(m['tags.moved']({ id: from.id }));
+			await unlinkTag(holderTarget(from), value);
+			await linkTag(target, value, format);
+			toasts.success(
+				from.kind === 'spool'
+					? m['tags.moved']({ id: from.spool.id })
+					: m['tags.movedFromFilament']({ name: nameOf(from.filament) })
+			);
 			close();
 		} catch {
-			error = m['tags.modal.moveFailed']();
+			// "neither spool" is only the truth when both ends are spools.
+			error =
+				from.kind === 'spool' && target.kind === 'spool'
+					? m['tags.modal.moveFailed']()
+					: m['tags.modal.moveFailedFilament']();
 		} finally {
 			busy = false;
 		}
@@ -270,7 +312,9 @@
 			</div>
 
 			<div class="body">
-				<p class="intro">{m['tags.modal.intro']({ id: spool.id })}</p>
+				<p class="intro">
+					{kind === 'spool' ? m['tags.modal.intro']({ id }) : m['tags.modal.introFilament']()}
+				</p>
 
 				<label class="uid-label" for="add-tag-uid">{m['tags.modal.uidLabel']()}</label>
 				<input
@@ -292,9 +336,11 @@
 					{:else if lookup.state === 'free'}
 						<span class="ok">{m['tags.modal.free']()}</span>
 					{:else if lookup.state === 'here'}
-						<span class="muted">{m['tags.modal.alreadyHere']()}</span>
+						<span class="muted">
+							{kind === 'spool' ? m['tags.modal.alreadyHere']() : m['tags.modal.alreadyHereFilament']()}
+						</span>
 					{:else if lookup.state === 'taken'}
-						<span class="warn">{m['tags.modal.takenBy']({ spool: describe(lookup.spool) })}</span>
+						<span class="warn">{m['tags.modal.takenBy']({ spool: describe(lookup.holder) })}</span>
 					{:else if lookup.state === 'bad'}
 						<span class="warn">{m['tags.modal.badUid']()}</span>
 					{/if}
@@ -345,10 +391,16 @@
 			<div class="foot">
 				<Button variant="ghost" onclick={close}>{m['buttons.cancel']()}</Button>
 				{#if lookup.state === 'taken'}
-					{@const other = lookup.spool}
+					{@const other = lookup.holder}
 					<Button variant="primary" disabled={busy} onclick={() => move(other)}>
 						<Nfc size={15} />
-						{busy ? m['tags.modal.moving']() : m['tags.modal.move']({ id: other.id })}
+						{#if busy}
+							{m['tags.modal.moving']()}
+						{:else if other.kind === 'spool'}
+							{m['tags.modal.move']({ id: other.spool.id })}
+						{:else}
+							{m['tags.modal.moveHere']()}
+						{/if}
 					</Button>
 				{:else}
 					<Button

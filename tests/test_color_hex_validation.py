@@ -101,5 +101,6 @@ def test_from_db_survives_a_row_written_before_the_fix():
         multi_color_direction=None,
         external_id=None,
         extra=[],
+        tags=[],
     )
     assert Filament.from_db(item).color_hex == "FF000000"

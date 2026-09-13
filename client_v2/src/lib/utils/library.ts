@@ -158,8 +158,8 @@ function spoolIdentity(vm: SpoolVM): RowIdentity {
  * matching how rows identify a filament elsewhere. Falls back to material or the
  * id when name/vendor are blank. Used by the filament filter menu and its chips.
  */
-export function filamentLabel(filament: Filament, vendor: Vendor): string {
-	const parts = [vendor.name, filament.name].map((s) => s?.trim()).filter(Boolean);
+export function filamentLabel(filament: Filament, vendor: Vendor | undefined): string {
+	const parts = [vendor?.name, filament.name].map((s) => s?.trim()).filter(Boolean);
 	if (parts.length) return parts.join(' ');
 	return filament.material?.trim() || `#${filament.id}`;
 }

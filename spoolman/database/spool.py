@@ -332,10 +332,10 @@ def _apply_spool_filters(
     """Apply the standard spool joins and where-clauses shared by find and find_groups."""
     stmt = stmt.join(models.Spool.filament, isouter=True).join(models.Filament.vendor, isouter=True)
     if tag is not None:
-        # Spool-scoped, so it lives here and not in _apply_filament_filters: a tag is linked to a
-        # SPOOL, and a filament on its own can no more answer "which tag is on you" than it can
-        # answer "which shelf are you on". That is also why no tag filter can reach the
-        # include_empty query, which lists filaments and never calls this builder (see
+        # Spool-scoped, so it lives here and not in _apply_filament_filters: this finds the spool
+        # a tag is linked to, never the spools of a filament a tag is linked to. A filament's own
+        # tags are looked up on the filament endpoint. That is also why no tag filter can reach
+        # the include_empty query, which lists filaments and never calls this builder (see
         # find_groups); the group endpoint takes no `tag` for the same reason.
         #
         # An inner join rather than a subquery, so the list query and the count query stay

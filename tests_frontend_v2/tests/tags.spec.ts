@@ -259,6 +259,10 @@ test("a scanned tag opens its spool once auto-navigate is switched on", async ({
   await scanUntil(request, uid, async () => {
     await expect(page).toHaveURL(new RegExp(`sel=spool(:|%3A)${id}`), { timeout: 1500 });
   });
+
+  await test.step("and says so, since the page moved without being touched", async () => {
+    await expect(page.getByRole("status").getByText(`Tag scanned: opened spool #${id},`)).toBeVisible();
+  });
 });
 
 /**
@@ -337,4 +341,73 @@ test("a reader is paired by tapping a tag on it", async ({ page, request }) => {
 
   await page.getByRole("button", { name: "Use any reader" }).click();
   await expect(page.getByText(/Scans from any reader/)).toBeVisible();
+});
+
+/** Create a filament over the API, the way a reader-side agent or an import would. */
+async function createFilament(request: APIRequestContext): Promise<{ id: string; name: string }> {
+  const name = unique("Filament");
+  const res = await request.post(`${API_BASE}/filament`, { data: { name, density: 1.24, diameter: 1.75 } });
+  expect(res.ok()).toBeTruthy();
+  return { id: String((await res.json()).id), name };
+}
+
+/**
+ * A tag can identify a filament type rather than one spool of it: a sample, or a
+ * shelf label for a colour you keep several spools of. It is linked from the
+ * filament's inspector the same way, and a scan of it opens the filament.
+ */
+test("a tag linked to a filament opens that filament when scanned", async ({ page, request }) => {
+  const uid = uniqueUid();
+  const filament = await createFilament(request);
+
+  await openApp(page);
+  await page.goto(`/?sel=filament:${filament.id}`);
+  const inspector = page.locator(".insp");
+  const dialog = await openAddTag(inspector);
+
+  await test.step("the dialog says it is linking to the filament", async () => {
+    await expect(dialog.getByText("Tapping this tag on a reader will then find this filament.")).toBeVisible();
+  });
+
+  await dialog.getByLabel("Tag UID").fill(uid);
+  await expect(dialog.getByText("This tag is not linked to anything yet.")).toBeVisible();
+  await dialog.getByRole("button", { name: "Link tag" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(tagsSection(inspector).getByText(uid, { exact: true })).toBeVisible();
+
+  await navTab(page, "Settings", "Settings | Spoolman");
+  await page.getByLabel("Auto-navigate").click();
+  await navTab(page, "Library", "Library | Spoolman");
+
+  await scanUntil(request, uid, async () => {
+    await expect(page).toHaveURL(new RegExp(`sel=filament(:|%3A)${filament.id}`), { timeout: 1500 });
+  });
+  await expect(
+    page.getByRole("status").getByText(`Tag scanned: opened filament ${filament.name}.`, { exact: true }),
+  ).toBeVisible();
+});
+
+/**
+ * A tag identifies one thing across both kinds, so a tag already on a filament is
+ * offered as a move when it is linked to a spool, and the dialog names the
+ * filament it is taking it from rather than an id nobody recognises.
+ */
+test("a tag on a filament is moved to a spool, not duplicated", async ({ page, request }) => {
+  const uid = uniqueUid();
+  const filament = await createFilament(request);
+  const linked = await request.post(`${API_BASE}/filament/${filament.id}/tag`, { data: { uid } });
+  expect(linked.ok()).toBeTruthy();
+
+  await openApp(page);
+  const { inspector } = await createAndOpenSpool(page);
+  const dialog = await openAddTag(inspector);
+  await dialog.getByLabel("Tag UID").fill(uid);
+
+  await expect(dialog.getByText(`Currently linked to filament ${filament.name}`)).toBeVisible();
+  await dialog.getByRole("button", { name: "Move it here", exact: true }).click();
+  await expect(dialog).toBeHidden();
+  await expect(tagsSection(inspector).getByText(uid, { exact: true })).toBeVisible();
+
+  const after = await request.get(`${API_BASE}/filament/${filament.id}`);
+  expect((await after.json()).tags).toEqual([]);
 });

@@ -23,9 +23,9 @@ UID_MAX_LENGTH = 64
 # Mirrors the Tag.format column width.
 FORMAT_MAX_LENGTH = 32
 
-# What a tag points at, stored in `Tag.target_type`. Only TARGET_SPOOL is ever written
-# today; the other two are named here because the column exists for them, and a reserved
-# name is cheaper to honour than one invented later by two people differently.
+# What a tag points at, stored in `Tag.target_type`. TARGET_SPOOL and TARGET_FILAMENT are
+# written today; TARGET_LOCATION is named here because the column exists for it, and a
+# reserved name is cheaper to honour than one invented later by two people differently.
 #
 # TARGET_SPOOL and TARGET_FILAMENT address a row, and carry a foreign key. TARGET_LOCATION
 # addresses a value: a location is a string on a spool rather than a table, so such a tag
