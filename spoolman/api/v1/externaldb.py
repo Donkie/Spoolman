@@ -3,7 +3,7 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Response
 from fastapi.responses import FileResponse
 
 from spoolman.externaldb import (
@@ -40,6 +40,7 @@ async def filaments() -> FileResponse:
     response_model_exclude_none=True,
 )
 async def search_external_filaments(
+    response: Response,
     query: Annotated[
         str,
         Query(
@@ -51,13 +52,19 @@ async def search_external_filaments(
         int,
         Query(ge=1, le=100, description="Maximum number of results to return."),
     ] = 20,
+    offset: Annotated[
+        int,
+        Query(ge=0, description="Number of matches to skip, for paging through the results."),
+    ] = 0,
 ) -> list[ExternalFilament]:
     """Search the external filament catalog.
 
     Filters server-side so clients don't have to download the entire catalog just to
-    search it.
+    search it. The total number of matches is returned in the x-total-count header.
     """
-    return search_filaments(query, limit)
+    items, total = search_filaments(query, limit, offset)
+    response.headers["x-total-count"] = str(total)
+    return items
 
 
 @router.get(
