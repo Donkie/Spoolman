@@ -112,8 +112,11 @@
 	.rem {
 		font-size: 11px;
 		color: var(--text-2);
-		width: 44px;
+		/* A floor, not a fixed width: "987.5 g" and "10.2 kg" run past 44px and would
+		   wrap the unit onto its own line (#1124). */
+		min-width: 44px;
 		text-align: right;
+		white-space: nowrap;
 		flex: none;
 	}
 	.rem.low {
