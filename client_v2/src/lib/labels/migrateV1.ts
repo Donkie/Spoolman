@@ -133,11 +133,14 @@ function mapLayout(ps: V1PrintSettings): PrintLayout {
 		paper,
 		custom,
 		landscape: false,
+		// v1 users paired negative margins with a printer margin to pull an oversized
+		// grid cell back onto a label-sized page. Clamped, the safe-zone alone gives the
+		// same inset and the label is sized to the paper instead of that cell (#1149).
 		margin: {
-			t: ps.margin?.top ?? DEFAULT_LAYOUT.margin.t,
-			b: ps.margin?.bottom ?? DEFAULT_LAYOUT.margin.b,
-			l: ps.margin?.left ?? DEFAULT_LAYOUT.margin.l,
-			r: ps.margin?.right ?? DEFAULT_LAYOUT.margin.r
+			t: Math.max(0, ps.margin?.top ?? DEFAULT_LAYOUT.margin.t),
+			b: Math.max(0, ps.margin?.bottom ?? DEFAULT_LAYOUT.margin.b),
+			l: Math.max(0, ps.margin?.left ?? DEFAULT_LAYOUT.margin.l),
+			r: Math.max(0, ps.margin?.right ?? DEFAULT_LAYOUT.margin.r)
 		},
 		safe: {
 			t: ps.printerMargin?.top ?? 0,

@@ -141,8 +141,10 @@ export async function printLabels({ design, bindings, layout, baseUrl }: PrintJo
 		style.textContent = pageCss(`${design.label.w}mm ${design.label.h}mm`);
 	} else {
 		buildSheetPages(root, items, design, layout);
-		const page = paperSize(layout);
-		style.textContent = pageCss(`${page.w}mm ${page.h}mm`);
+		// `size: auto`, as v1 did. A fixed size makes the browser pick the orientation
+		// and (in Chromium) hide the picker, and label printer drivers disagree on which
+		// way round a roll is, so any fixed choice prints rotated for someone (#1149).
+		style.textContent = pageCss('auto');
 	}
 
 	document.body.appendChild(style);
