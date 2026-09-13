@@ -4,18 +4,20 @@ Searches spools, filaments and vendors in one call and reports, per result, whic
 field matched. The query is split on whitespace into terms and a row must match
 *every* term (each term may match a different field), so "bambu petg-cf" finds the
 PETG-CF filaments of the Bambu Lab vendor. Text matching uses case-insensitive
-``ilike`` so it works on all four supported databases. A purely numeric query also
-matches a spool by its id, and a query that is a hex code or a CSS color name runs a
-color-similarity search over filaments (reusing
+``ilike`` so it works on all four supported databases. Weight expressions in g/kg
+and diameter expressions in mm are compared numerically against spools and
+filaments. A purely numeric query also matches a spool by its id, and a query that is
+a hex code or a CSS color name runs a color-similarity search over filaments (reusing
 :func:`spoolman.database.filament.find_by_color`).
 """
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ColumnElement, and_, or_, select
+from sqlalchemy import ColumnElement, and_, func, or_, select
 from sqlalchemy.orm import InstrumentedAttribute, joinedload
 
 from spoolman.colors import resolve_color
@@ -44,6 +46,16 @@ _CANDIDATE_CAP = 200
 # Upper bound on how many whitespace-separated terms we honor, so a pathological
 # query can't turn into an arbitrarily large AND-of-ORs.
 _MAX_TERMS = 8
+
+# A unitless number needs one small piece of domain knowledge to distinguish the
+# two numeric filament fields. Filament diameters are single-digit millimetre
+# values; larger values are spool weights in grams. Explicit g/kg/mm suffixes
+# always take precedence over this inference.
+_MAX_INFERRED_DIAMETER_MM = 10
+_MEASUREMENT_RE = re.compile(
+    r"(?<![\w.#])(?P<value>(?:\d+(?:\.\d*)?|\.\d+))\s*(?P<unit>kg|g|mm)?(?!\w)",
+    re.IGNORECASE,
+)
 
 # Extra-field types whose stored value is human-readable text worth searching.
 _TEXT_EXTRA_TYPES = (ExtraFieldType.text, ExtraFieldType.choice)
@@ -98,6 +110,48 @@ class SearchResult:
     is_color_query: bool
 
 
+@dataclass(frozen=True)
+class SearchQuery:
+    """Text terms and exact numeric filters extracted from a search string."""
+
+    terms: list[str]
+    weights: list[float]
+    diameters: list[float]
+
+
+def parse_query(q: str) -> SearchQuery:
+    """Parse weights and diameters, leaving the remaining words as text terms.
+
+    Weights accept grams, kilograms, or no unit (``1000``, ``1000g``, ``1 kg``).
+    Diameters accept millimetres or an inferred unit for single-digit values
+    (``1.75``, ``1.75mm``). Measurements are removed before word splitting so
+    spaced and unspaced units have identical semantics.
+    """
+    weights: list[float] = []
+    diameters: list[float] = []
+
+    def extract(match: re.Match[str]) -> str:
+        value = float(match.group("value"))
+        unit = (match.group("unit") or "").lower()
+        if unit == "kg":
+            value *= 1000
+            target = weights
+        elif unit == "mm" or (not unit and value <= _MAX_INFERRED_DIAMETER_MM):
+            target = diameters
+        else:
+            target = weights
+        if value not in target:
+            target.append(value)
+        return " "
+
+    text = _MEASUREMENT_RE.sub(extract, q.lower())
+    return SearchQuery(
+        terms=_split_terms(text),
+        weights=weights[:_MAX_TERMS],
+        diameters=diameters[:_MAX_TERMS],
+    )
+
+
 def _split_terms(q: str) -> list[str]:
     """Lower-cased, de-duplicated search terms, in query order."""
     terms: list[str] = []
@@ -105,6 +159,11 @@ def _split_terms(q: str) -> list[str]:
         if raw not in terms:
             terms.append(raw)
     return terms[:_MAX_TERMS]
+
+
+def _numeric_match_field(query: SearchQuery) -> str:
+    """Return the numeric field used to satisfy a measurement-only query."""
+    return "weight" if query.weights else "diameter"
 
 
 def _classify_match(terms: list[str], fields: list[tuple[str, str | None, int]]) -> tuple[str, int] | None:
@@ -203,11 +262,12 @@ async def _extra_values(
 
 async def _search_spools(
     db: AsyncSession,
-    terms: list[str],
+    query: SearchQuery,
     limit: int,
     *,
     allow_archived: bool,
 ) -> list[SpoolMatch]:
+    terms = query.terms
     native_fields = (
         ("comment", models.Spool.comment),
         ("location", models.Spool.location),
@@ -219,6 +279,7 @@ async def _search_spools(
     load = (joinedload(models.Spool.filament).joinedload(models.Filament.vendor),)
     stmt = (
         select(models.Spool)
+        .join(models.Spool.filament)
         .where(
             and_(
                 *(
@@ -229,6 +290,11 @@ async def _search_spools(
                     )
                     for term in terms
                 ),
+                *(
+                    func.coalesce(models.Spool.initial_weight, models.Filament.weight) == weight
+                    for weight in query.weights
+                ),
+                *(models.Filament.diameter == diameter for diameter in query.diameters),
             ),
         )
         .options(*load)
@@ -253,7 +319,7 @@ async def _search_spools(
     for spool in rows:
         fields = [(label, getattr(spool, attr.key), _BASE_NATIVE) for label, attr in native_fields]
         fields.extend(extras.get(spool.id, []))
-        classified = _classify_match(terms, fields)
+        classified = _classify_match(terms, fields) if terms else (_numeric_match_field(query), _BASE_NATIVE)
         if classified is None:
             continue
         spools[spool.id] = spool
@@ -265,10 +331,11 @@ async def _search_spools(
 
 async def _search_filaments(
     db: AsyncSession,
-    terms: list[str],
+    query: SearchQuery,
     limit: int,
     color_hits: list[FilamentMatch],
 ) -> list[FilamentMatch]:
+    terms = query.terms
     hits: dict[int, tuple[str, int]] = {}
     filaments: dict[int, models.Filament] = {}
 
@@ -310,6 +377,8 @@ async def _search_filaments(
                     )
                     for term in terms
                 ),
+                *(models.Filament.weight == weight for weight in query.weights),
+                *(models.Filament.diameter == diameter for diameter in query.diameters),
             ),
         )
         .options(*load)
@@ -332,7 +401,7 @@ async def _search_filaments(
         fields = [(label, getattr(filament, attr.key), _BASE_NATIVE) for label, attr in native_fields]
         fields.append(("vendor.name", filament.vendor.name if filament.vendor else None, _BASE_VENDOR))
         fields.extend(extras.get(filament.id, []))
-        classified = _classify_match(terms, fields)
+        classified = _classify_match(terms, fields) if terms else (_numeric_match_field(query), _BASE_NATIVE)
         if classified is None:
             continue
         filaments[filament.id] = filament
@@ -417,7 +486,12 @@ async def _attach_filament_spools(
         match.spool_count = counts[filament_id]
 
 
-async def _search_vendors(db: AsyncSession, terms: list[str], limit: int) -> list[VendorMatch]:
+async def _search_vendors(db: AsyncSession, query: SearchQuery, limit: int) -> list[VendorMatch]:
+    # Vendors have neither a spool weight nor a filament diameter, so they cannot
+    # satisfy a query containing either numeric filter.
+    if query.weights or query.diameters:
+        return []
+    terms = query.terms
     native_fields = (
         ("name", models.Vendor.name),
         ("comment", models.Vendor.comment),
@@ -498,18 +572,20 @@ async def search(
 ) -> SearchResult:
     """Run a cross-entity search for ``query`` and return categorized, annotated results."""
     q = query.strip()
-    terms = _split_terms(q)
-    if not terms:
+    parsed = parse_query(q)
+    if not parsed.terms and not parsed.weights and not parsed.diameters:
         return SearchResult(spools=[], filaments=[], vendors=[], is_color_query=False)
 
-    color_hex = resolve_color(q)
+    # A bare three- or six-digit number is a weight, even though it also happens
+    # to be valid shorthand/full hex. A leading # still selects color search.
+    color_hex = resolve_color(q) if not parsed.weights and not parsed.diameters else None
     is_color_query = color_hex is not None
 
     color_hits = await _color_matches(db, color_hex, color_similarity_threshold, limit) if color_hex else []
 
-    spools = await _search_spools(db, terms, limit, allow_archived=allow_archived)
-    filaments = await _search_filaments(db, terms, limit, color_hits)
-    vendors = await _search_vendors(db, terms, limit)
+    spools = await _search_spools(db, parsed, limit, allow_archived=allow_archived)
+    filaments = await _search_filaments(db, parsed, limit, color_hits)
+    vendors = await _search_vendors(db, parsed, limit)
 
     # After trimming to `limit`, so we only fetch spools for filaments we return.
     await _attach_filament_spools(db, filaments, spools_per_filament, allow_archived=allow_archived)

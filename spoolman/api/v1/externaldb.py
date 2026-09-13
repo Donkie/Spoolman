@@ -44,7 +44,10 @@ async def search_external_filaments(
     query: Annotated[
         str,
         Query(
-            description="Search query, matched word-by-word against manufacturer, name, material, id and weight.",
+            description=(
+                "Search query, matched word-by-word against manufacturer, name, material and id. "
+                "Weight (g or kg) and diameter (mm) terms are matched numerically."
+            ),
             examples=["polymaker pla"],
         ),
     ],

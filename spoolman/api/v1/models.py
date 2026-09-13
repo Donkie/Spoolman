@@ -533,7 +533,8 @@ class SearchResultSpool(BaseModel):
     match_field: str = Field(
         description=(
             "Which field matched the query: a native field name (e.g. 'comment', 'location', "
-            "'lot_nr'), 'id' for an exact spool-id match, or 'extra.<key>' for an extra field."
+            "'lot_nr'), 'weight' or 'diameter' for a numeric filament-property match, 'id' for "
+            "an exact spool-id match, or 'extra.<key>' for an extra field."
         ),
         examples=["comment"],
     )
@@ -584,7 +585,8 @@ class SearchResultFilament(BaseModel):
     match_field: str = Field(
         description=(
             "Which field matched the query: a native field name (e.g. 'name', 'material', "
-            "'article_number', 'comment'), 'color' for a color-similarity match, or 'extra.<key>'."
+            "'article_number', 'comment'), 'weight' or 'diameter' for a numeric match, 'color' "
+            "for a color-similarity match, or 'extra.<key>'."
         ),
         examples=["color"],
     )
