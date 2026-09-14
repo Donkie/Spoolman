@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import Button from '$components/Button.svelte';
+	import Pagination from '$components/Pagination.svelte';
 	import NumberInput from '../NumberInput.svelte';
 	import LabelCanvas from './LabelCanvas.svelte';
 	import { labelKind, type LabelDesign } from '$lib/labels/types';
@@ -41,26 +42,28 @@
 	let saving = $state(false);
 
 	// The full inventory can be thousands of spools, so loading every one up front
-	// was an extremely heavy query. Instead preload only the latest batch — the
-	// common case when printing labels for spools you just added — and let search
-	// pull in anything older on demand.
-	const INITIAL_LIMIT = 50;
-	// …but the latest 50 isn't enough for the "Recent" quick-select once you've
-	// added more than that in the last 24h, so we keep paging (newest-first) past
-	// the first 50 while still inside the recent window. PAGE is the batch size for
-	// that extension; MAX_INITIAL caps it so a huge same-day import can't recreate
-	// the original heavy load.
+	// was an extremely heavy query. Instead the list shows one page at a time and
+	// search pulls in anything else on demand. Pages rather than infinite scroll so
+	// "All" stays honest: it adds the page you are looking at.
 	const PAGE = 100;
-	const MAX_INITIAL = 1000;
+	// "Recent" must still cover every spool added in the last 24h, past the first
+	// page too, so it has its own newest-first loader. MAX_RECENT caps it so a huge
+	// same-day import can't recreate the original heavy load.
+	const MAX_RECENT = 1000;
 	// Color-similarity threshold for the search (a query like "#ff0000" or "red"
 	// also runs a color match); matches the value used by the library picker.
 	const COLOR_THRESHOLD = 20;
 
-	// IDs of the preloaded "latest" spools, and of the current search result (null
-	// when not searching). Both index into the reactive inventory cache, so the
-	// list stays live as spools are edited or removed.
-	let baseIds = $state<number[]>([]);
+	// IDs of the current page, of the recently added spools, and of the current
+	// search result (null when not searching). All index into the reactive inventory
+	// cache, so the list stays live as spools are edited or removed.
+	let pageIds = $state<number[]>([]);
+	let recentIds = $state<number[]>([]);
 	let resultIds = $state<number[] | null>(null);
+	let pageNo = $state(1);
+	let pageSize = $state(PAGE);
+	let total = $state(0);
+	let listEl = $state<HTMLElement>();
 
 	// Spools registered within this window count as "recently added" for the
 	// one-click quick-select.
@@ -77,55 +80,71 @@
 		return Number.isNaN(t) ? s.id : t;
 	}
 
+	// The list pages in its displayed order, so the next page of "newest" holds
+	// older spools and the next page of "#" higher ids.
+	const dir = $derived(sort === 'newest' ? 'desc' : 'asc');
+
 	$effect(() => {
 		if (kind !== 'spool') return;
 		const ctrl = new AbortController();
-		void loadInitial(ctrl.signal);
+		void loadPage(dir, (pageNo - 1) * pageSize, pageSize, ctrl.signal);
 		return () => ctrl.abort();
 	});
-	async function loadInitial(signal: AbortSignal) {
+	async function loadPage(dir: 'asc' | 'desc', offset: number, limit: number, signal: AbortSignal) {
 		try {
-			// eslint-disable-next-line svelte/prefer-svelte-reactivity -- transient local, not reactive state
-			const seen = new Set<number>();
-			const ids: number[] = [];
-			let offset = 0;
-			// Load the latest INITIAL_LIMIT, then keep paging while the oldest spool
-			// of the last batch is still within the 24h window — so every spool added
-			// today lands in the list (and thus in "Recent"), not just the newest 50.
-			// Sorted by id desc, which is monotonic with registration, so once a batch
-			// reaches past the window everything below it is older too.
-			for (;;) {
-				const limit = ids.length === 0 ? INITIAL_LIMIT : PAGE;
-				const page = await spoolSource.listSpools({
-					filters: {},
-					sort: [{ field: 'id', dir: 'desc' }],
-					limit,
-					offset,
-					lowThreshold: settings.lowThreshold,
-					signal
-				});
-				for (const s of page.items) {
-					if (!seen.has(s.id)) {
-						seen.add(s.id);
-						ids.push(s.id);
-					}
-				}
-				offset += page.items.length;
-				const oldest = page.items.at(-1);
-				const more =
-					page.items.length === limit && // a full page ⇒ there may be more
-					ids.length < MAX_INITIAL && // safety cap
-					!!oldest &&
-					isRecent(oldest); // still inside the 24h window
-				if (!more) break;
-			}
-			baseIds = ids;
+			const page = await spoolSource.listSpools({
+				filters: {},
+				sort: [{ field: 'id', dir }],
+				limit,
+				offset,
+				lowThreshold: settings.lowThreshold,
+				signal
+			});
+			if (signal.aborted) return;
+			pageIds = page.items.map((s) => s.id);
+			total = page.total;
+			listEl?.scrollTo(0, 0);
 		} catch (e) {
 			// Abandoning the tab mid-load is exactly when cancelling matters most.
 			if (isAbortError(e, signal)) return;
 			console.error('Failed to load spools for printing', e);
 		} finally {
 			if (!signal.aborted) loading = false;
+		}
+	}
+
+	$effect(() => {
+		if (kind !== 'spool') return;
+		const ctrl = new AbortController();
+		void loadRecent(ctrl.signal);
+		return () => ctrl.abort();
+	});
+	async function loadRecent(signal: AbortSignal) {
+		try {
+			const ids: number[] = [];
+			let offset = 0;
+			// Page newest-first while the last spool of the batch is still within the
+			// 24h window. Sorted by id, which is monotonic with registration, so once a
+			// batch reaches past the window everything below it is older too.
+			for (;;) {
+				const page = await spoolSource.listSpools({
+					filters: {},
+					sort: [{ field: 'id', dir: 'desc' }],
+					limit: PAGE,
+					offset,
+					lowThreshold: settings.lowThreshold,
+					signal
+				});
+				ids.push(...page.items.filter(isRecent).map((s) => s.id));
+				offset += page.items.length;
+				const last = page.items.at(-1);
+				if (page.items.length < PAGE || offset >= MAX_RECENT || !last || !isRecent(last)) break;
+			}
+			// A live insert shifts the offsets, so batches can overlap.
+			recentIds = [...new Set(ids)];
+		} catch (e) {
+			if (isAbortError(e, signal)) return;
+			console.error('Failed to load recent spools for printing', e);
 		}
 	}
 
@@ -184,9 +203,9 @@
 		return `#${s.id} · ${name}${s.location ? ' · ' + s.location : ''}`;
 	}
 
-	// The active id set — search results when searching, otherwise the latest batch —
+	// The active id set — search results when searching, otherwise the current page —
 	// resolved through the reactive cache (so edits/deletes reflect) and sorted.
-	const activeIds = $derived(resultIds ?? baseIds);
+	const activeIds = $derived(resultIds ?? pageIds);
 	const visibleSpools = $derived(
 		activeIds
 			.map((id) => inventory.spoolById(id))
@@ -194,9 +213,16 @@
 			.sort((a, b) => (sort === 'newest' ? recencyKey(b) - recencyKey(a) : a.id - b.id))
 	);
 
-	// Count of currently-visible spools added in the last 24h — drives the "Recent"
-	// quick-select label and whether it's actionable.
-	const recentCount = $derived(visibleSpools.filter(isRecent).length);
+	// Spools added in the last 24h (within the results, when searching) — drive the
+	// "Recent" quick-select label and whether it's actionable.
+	const recentSpools = $derived(
+		resultIds
+			? visibleSpools.filter(isRecent)
+			: recentIds
+					.map((id) => inventory.spoolById(id))
+					.filter((s): s is Spool => !!s && !s.archived && isRecent(s))
+	);
+	const recentCount = $derived(recentSpools.length);
 
 	function toggle(id: number) {
 		// eslint-disable-next-line svelte/prefer-svelte-reactivity -- transient local; `selected` updates via reassignment below
@@ -205,11 +231,17 @@
 		else next.add(id);
 		selected = next;
 	}
+	// Quick-selects add to the selection rather than replace it, so picks carry
+	// across pages.
 	function selectAll() {
-		selected = new Set(visibleSpools.map((s) => s.id));
+		selected = new Set([...selected, ...visibleSpools.map((s) => s.id)]);
 	}
 	function selectRecent() {
-		selected = new Set(visibleSpools.filter(isRecent).map((s) => s.id));
+		selected = new Set([...selected, ...recentSpools.map((s) => s.id)]);
+	}
+	function setSort(s: 'newest' | 'id') {
+		sort = s;
+		pageNo = 1;
 	}
 	function clearAll() {
 		selected = new Set();
@@ -389,13 +421,13 @@
 			<div class="search-row">
 				<input class="search" placeholder={m['labels.searchSpools']()} bind:value={search} />
 				<div class="seg sort" title={m['labels.sortHint']()}>
-					<button class:active={sort === 'newest'} onclick={() => (sort = 'newest')}
+					<button class:active={sort === 'newest'} onclick={() => setSort('newest')}
 						>{m['labels.sortNewest']()}</button
 					>
-					<button class:active={sort === 'id'} onclick={() => (sort = 'id')}>{m['labels.sortId']()}</button>
+					<button class:active={sort === 'id'} onclick={() => setSort('id')}>{m['labels.sortId']()}</button>
 				</div>
 			</div>
-			<div class="spool-list">
+			<div class="spool-list" bind:this={listEl}>
 				{#if loading || (searching && visibleSpools.length === 0)}
 					<div class="muted">{m.loading()}…</div>
 				{:else if visibleSpools.length === 0}
@@ -410,6 +442,19 @@
 					{/each}
 				{/if}
 			</div>
+			{#if !resultIds && total > pageSize}
+				<Pagination
+					page={pageNo}
+					{pageSize}
+					{total}
+					unit={m['library.unitSpools']()}
+					onpage={(p) => (pageNo = p)}
+					onpagesize={(s) => {
+						pageSize = s;
+						pageNo = 1;
+					}}
+				/>
+			{/if}
 			<div class="count">{m['printing.spoolSelect.selectedTotal']({ count: selected.size })}</div>
 		{/if}
 	</div>
@@ -783,6 +828,13 @@
 		max-height: 340px;
 		overflow-y: auto;
 		padding: 4px;
+	}
+	/* The shared pager is styled as a list-footer bar; here it sits under a bordered
+	   box in a narrow column, so drop the bar chrome. */
+	.spools :global(.pager) {
+		padding: 0;
+		border-top: none;
+		background: none;
 	}
 	.spool-item {
 		display: flex;
