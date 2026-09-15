@@ -898,10 +898,17 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
     initial_weight = spool_info[0]
     spool_weight = spool_info[2]
     if initial_weight is None or initial_weight == 0 or spool_weight is None or spool_weight == 0:
-        # Get filament weight and spool_weight
+        # Get filament weight and spool_weight, and the vendor's empty spool weight as the
+        # level below that. The vendor is joined with an outer join on purpose: a filament
+        # without a vendor still has to return its row.
         result = await db.execute(
-            sqlalchemy.select(models.Filament.weight, models.Filament.spool_weight)
+            sqlalchemy.select(
+                models.Filament.weight,
+                models.Filament.spool_weight,
+                models.Vendor.empty_spool_weight,
+            )
             .join(models.Spool, models.Spool.filament_id == models.Filament.id)
+            .outerjoin(models.Vendor, models.Filament.vendor_id == models.Vendor.id)
             .where(models.Spool.id == spool_id),
         )
         try:
@@ -910,7 +917,10 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
             raise ItemNotFoundError("Filament not found for spool.") from exc
 
         if spool_weight is None or spool_weight == 0:
-            spool_weight = filament_info[1]
+            # The filament's tare, and failing that its vendor's. A filament's tare is only a
+            # copy of the vendor's, taken when the filament was created, so a tare the vendor
+            # was given later never reached it - the same order create() resolves it in.
+            spool_weight = filament_info[1] if filament_info[1] is not None else filament_info[2]
 
         if initial_weight is None or initial_weight == 0:
             initial_weight = filament_info[0] if filament_info[0] is not None else 0
@@ -918,7 +928,7 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
     if initial_weight is None or initial_weight == 0:
         raise SpoolMeasureError("Initial weight is not set.")
 
-    # Neither the spool nor its filament knows what an empty spool weighs. Unlike a
+    # Nothing in the chain - spool, filament, vendor - knows what an empty spool weighs. Unlike a
     # missing initial weight that is not fatal — it just means the reading is taken
     # as the filament alone — so treat the tare as zero rather than raising a
     # TypeError out of the arithmetic below (which surfaced as a bare 500).
