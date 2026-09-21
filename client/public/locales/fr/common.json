@@ -140,7 +140,7 @@
             "registered": "Enregistré",
             "first_used": "Première utilisation",
             "used_weight": "Poids utilisé",
-            "id": "ID",
+            "id": "Identifiant",
             "remaining_weight": "Poids restant",
             "price": "Prix",
             "initial_weight": "Poids initial",
@@ -238,7 +238,7 @@
             "settings_bed_temp": "Température du lit",
             "vendor": "Fabricant",
             "density": "Densité",
-            "id": "ID",
+            "id": "Identifiant",
             "color_hex": "Couleur",
             "article_number": "Numéro d'article",
             "spools": "Afficher les bobines",
@@ -314,7 +314,7 @@
             "registered": "Enregistré",
             "comment": "Commentaire",
             "name": "Nom",
-            "id": "ID",
+            "id": "Identifiant",
             "empty_spool_weight": "Poids de la bobine vide",
             "external_id": "ID externe"
         },
@@ -415,5 +415,6 @@
         "system": "Système",
         "light": "Clair",
         "dark": "Sombre"
-    }
+    },
+    "sponsor": "Soutenez-moi sur GitHub"
 }
