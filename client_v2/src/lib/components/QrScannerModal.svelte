@@ -3,7 +3,9 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { parseSpoolCode } from '$lib/utils/spoolCode';
+	import { nextCamera, rememberCamera, rememberedCamera, startingCamera } from '$lib/utils/cameraChoice';
 	import * as m from '$lib/paraglide/messages';
+	import SwitchCamera from '@lucide/svelte/icons/switch-camera';
 	import X from '@lucide/svelte/icons/x';
 
 	interface Props {
@@ -16,8 +18,50 @@
 	let error = $state<string | null>(null);
 	let starting = $state(false);
 
+	// Every camera the browser lists, filled once the scanner is running (labels
+	// are only readable after camera permission). More than one shows the switch
+	// button.
+	let cameras = $state<QrScanner.Camera[]>([]);
+	let switching = $state(false);
+	// Names the camera just switched to, so stepping through look-alike lenses
+	// ("camera 3, facing back") shows where you are. Cleared after a moment.
+	let caption = $state<string | null>(null);
+	let captionTimer: ReturnType<typeof setTimeout> | undefined;
+	// The running scanner, for the switch button. Null while starting or closed.
+	let active: QrScanner | null = null;
+
 	function close() {
 		onclose?.();
+	}
+
+	/** The deviceId of the camera actually streaming, whichever one we asked for. */
+	function streamingCameraId(): string | undefined {
+		const stream = video?.srcObject;
+		return stream instanceof MediaStream ? stream.getVideoTracks()[0]?.getSettings().deviceId : undefined;
+	}
+
+	async function switchCamera() {
+		const scanner = active;
+		const next = nextCamera(cameras, streamingCameraId());
+		if (!scanner || !next || switching) return;
+		switching = true;
+		try {
+			await scanner.setCamera(next.id);
+			if (scanner !== active) return; // closed while switching
+			// qr-scanner opens some other camera if the requested one fails, so
+			// report and remember what is actually streaming.
+			const id = streamingCameraId();
+			const index = cameras.findIndex((c) => c.id === id);
+			if (id === undefined || index < 0) return;
+			rememberCamera(id);
+			caption = `${cameras[index].label} · ${index + 1}/${cameras.length}`;
+			clearTimeout(captionTimer);
+			captionTimer = setTimeout(() => (caption = null), 2500);
+		} catch (err) {
+			console.error('QR scanner failed to switch camera:', err);
+		} finally {
+			switching = false;
+		}
 	}
 
 	// A scanned code that decodes to a Spoolman spool or filament opens it in the
@@ -60,6 +104,8 @@
 
 		error = null;
 		starting = false;
+		cameras = [];
+		caption = null;
 
 		// Insecure (non-HTTPS, non-localhost) origins don't expose the camera API
 		// at all — qr-scanner would only report a generic "camera not found", so
@@ -79,21 +125,32 @@
 		// qr-scanner is a browser-only library, so load it lazily inside the effect.
 		// A static import would drag its default export into the SSR bundle, where
 		// this client-only usage is stripped and Rollup then warns it is unused.
-		import('qr-scanner')
-			.then(({ default: QrScanner }) => {
+		Promise.all([
+			import('qr-scanner'),
+			// Only to check the remembered camera still exists; any failure just
+			// means we fall back to the rear camera.
+			navigator.mediaDevices.enumerateDevices().catch(() => [])
+		])
+			.then(async ([{ default: QrScanner }, devices]) => {
 				if (cancelled) return;
+				const ids = devices.filter((d) => d.kind === 'videoinput').map((d) => d.deviceId);
 				scanner = new QrScanner(el, onDecode, {
-					// Prefer the rear camera; ignore frames that don't decode.
-					preferredCamera: 'environment',
+					// The camera picked last time, else the rear one; ignore frames that don't decode.
+					preferredCamera: startingCamera(rememberedCamera(), ids),
 					highlightScanRegion: true,
 					highlightCodeOutline: true,
 					maxScansPerSecond: 5,
 					returnDetailedScanResult: true
 				});
-				return scanner.start();
-			})
-			.then(() => {
-				if (cancelled) scanner?.stop();
+				await scanner.start();
+				if (cancelled) {
+					scanner?.stop();
+					return;
+				}
+				active = scanner;
+				// The camera is already running, so a failed listing only costs the switch button.
+				const list = await QrScanner.listCameras().catch(() => []);
+				if (!cancelled) cameras = list;
 			})
 			.catch(async (err) => {
 				if (cancelled) return;
@@ -106,6 +163,8 @@
 
 		return () => {
 			cancelled = true;
+			active = null;
+			clearTimeout(captionTimer);
 			scanner?.destroy();
 			scanner = null;
 		};
@@ -142,6 +201,21 @@
 					<div class="msg error">{error}</div>
 				{:else if starting}
 					<div class="msg">{m['scanner.starting']()}</div>
+				{:else}
+					{#if caption}
+						<div class="msg caption" aria-live="polite">{caption}</div>
+					{/if}
+					{#if cameras.length > 1}
+						<button
+							class="switch"
+							onclick={switchCamera}
+							disabled={switching}
+							title={m['scanner.switchCamera']()}
+							aria-label={m['scanner.switchCamera']()}
+						>
+							<SwitchCamera size={20} />
+						</button>
+					{/if}
 				{/if}
 			</div>
 		</div>
@@ -228,5 +302,30 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+	}
+	.msg.caption {
+		inset: 12px 12px auto;
+	}
+	.switch {
+		position: absolute;
+		right: 12px;
+		bottom: 12px;
+		width: 44px;
+		height: 44px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #fff;
+		background: rgba(0, 0, 0, 0.55);
+		border: none;
+		border-radius: 50%;
+		cursor: pointer;
+	}
+	.switch:hover {
+		background: rgba(0, 0, 0, 0.75);
+	}
+	.switch:disabled {
+		opacity: 0.5;
+		cursor: default;
 	}
 </style>

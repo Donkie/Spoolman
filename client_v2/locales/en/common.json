@@ -435,6 +435,7 @@
     "scanner.error.unknown": "An unknown error occurred. ({{error}})",
     "scanner.error.inUse": "The camera is already in use by another application.",
     "scanner.starting": "Starting camera...",
+    "scanner.switchCamera": "Switch camera",
     "scanner.title": "QR Code Scanner",
     "search.colorHint": "Color names must be entered in English.",
     "search.moreSpools": "+{{count}} more",
