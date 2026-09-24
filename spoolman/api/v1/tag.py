@@ -176,7 +176,9 @@ async def scan(
     decoded = _decode_payload(body.format, body.payload_b64, uid)
 
     created = False
-    if db_spool is None and body.create and decoded is not None:
+    # A tag can identify a filament as well as a spool; either counts as already linked. Creating
+    # for a filament-linked tag would leave an orphan vendor/filament/spool behind when the link fails.
+    if db_spool is None and db_filament is None and body.create and decoded is not None:
         try:
             db_spool = await tag_db.create_spool_from_decoded_tag(
                 db=db,
