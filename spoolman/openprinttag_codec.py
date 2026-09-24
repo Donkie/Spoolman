@@ -351,9 +351,22 @@ def _parse_uuid(data: object) -> str | None:
 
 
 def _decode_cbor_map(raw: bytes) -> tuple[dict, int]:
-    """Decode a CBOR map from bytes, return (map, bytes_consumed)."""
+    """Decode a CBOR map from bytes, return (map, bytes_consumed).
+
+    Raises:
+        ValueError: If the bytes are not a complete CBOR map. Tag memory that was truncated
+            or corrupted can be an incomplete item (cbor2 raises its own error types, none of
+            them ValueError) or complete CBOR that just isn't a map, and callers rely on
+            this function's only failure being ValueError.
+
+    """
     buf = io.BytesIO(raw)
-    data = cbor2.load(buf)
+    try:
+        data = cbor2.load(buf)
+    except cbor2.CBORDecodeError as exc:
+        raise ValueError(f"Invalid CBOR: {exc}") from exc
+    if not isinstance(data, dict):
+        raise ValueError(f"Expected a CBOR map, got {type(data).__name__}")  # noqa: TRY004 -- ValueError is the contract
     return data, buf.tell()
 
 
@@ -505,6 +518,11 @@ def decode_nfcv_memory(raw_bytes: bytes, nfc_tag_uid: bytes | None = None) -> Op
 
     main_offset = meta.get(META_MAIN_REGION_OFFSET, meta_size)
     aux_offset = meta.get(META_AUX_REGION_OFFSET)
+
+    if not isinstance(main_offset, int) or main_offset < 0:
+        raise ValueError("Invalid main region offset in OpenPrintTag meta section")
+    if not isinstance(aux_offset, int) or aux_offset < 0:
+        aux_offset = None  # the aux section is optional; a bad offset just means there isn't one
 
     # Parse main section
     if main_offset < len(payload):

@@ -279,6 +279,41 @@ def test_decode_wrong_typed_color_field_is_none_not_a_crash() -> None:
     assert data.primary_color_hex is None
 
 
+def _wrap_payload(payload: bytes) -> bytes:
+    return _nfcv_memory(_ndef_record("application/vnd.openprinttag", payload))
+
+
+# decode_nfcv_memory documents ValueError as its only failure. Tag memory that was read
+# short, torn mid-write, or corrupted can break that in several ways, each of which used to
+# escape as a different exception type (and so surface as a 500 from /tag/scan).
+@pytest.mark.parametrize(
+    "payload",
+    [
+        pytest.param(
+            cbor2.dumps({}) + cbor2.dumps({MF_BRAND_NAME: "Sunlu", MF_MATERIAL_NAME: "PLA"})[:-3],
+            id="main-cut-mid-item",
+        ),
+        pytest.param(b"", id="empty-payload"),
+        pytest.param(cbor2.dumps(5) + cbor2.dumps({MF_BRAND_NAME: "Sunlu"}), id="meta-not-a-map"),
+        pytest.param(cbor2.dumps({}) + cbor2.dumps(5), id="main-not-a-map"),
+        pytest.param(cbor2.dumps({0: "x"}) + cbor2.dumps({MF_BRAND_NAME: "Sunlu"}), id="main-offset-not-an-int"),
+        pytest.param(cbor2.dumps({0: -4}) + cbor2.dumps({MF_BRAND_NAME: "Sunlu"}), id="main-offset-negative"),
+    ],
+)
+def test_decode_malformed_cbor_raises_value_error(payload: bytes) -> None:
+    with pytest.raises(ValueError):  # noqa: PT011 -- any message; the type is the contract
+        decode_nfcv_memory(_wrap_payload(payload))
+
+
+def test_decode_invalid_aux_offset_is_ignored() -> None:
+    """The aux section is optional, so a bad offset for it must not fail the whole decode."""
+    payload = cbor2.dumps({META_AUX_REGION_OFFSET: "x"}) + cbor2.dumps({MF_BRAND_NAME: "Sunlu"})
+    data = decode_nfcv_memory(_wrap_payload(payload))
+
+    assert data.brand_name == "Sunlu"
+    assert data.consumed_weight is None
+
+
 def test_decode_missing_capability_container_magic_raises() -> None:
     raw = bytes([0x00, 0x40, 0x00, 0x01]) + bytes([0xFE])
     with pytest.raises(ValueError, match="Could not find OpenPrintTag"):
