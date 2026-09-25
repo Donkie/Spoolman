@@ -19,6 +19,7 @@ from spoolman.database.utils import (
     escape_like,
     order_by_clauses,
     split_datetime_range_filter,
+    split_filter_terms,
 )
 from spoolman.extra_field_registry import EntityType, ExtraField, ExtraFieldType, get_extra_fields
 
@@ -345,7 +346,7 @@ def add_where_clause_extra_field(  # noqa: C901, PLR0912, PLR0915
     that live on a related entity.
     """
     conditions = []
-    for value_part in value.split(","):
+    for value_part in split_filter_terms(value):
         # Empty-string filters follow the existing string-query API semantics.
         if len(value_part) == 0:
             empty_conditions = [

@@ -137,6 +137,33 @@ def parse_nested_field(base_obj: type[models.Base], field: str) -> attributes.In
     return getattr(base_obj, fields[0])
 
 
+def split_filter_terms(value: str) -> list[str]:
+    """Split a comma-separated string filter into its terms, keeping quoted terms whole.
+
+    A term surrounded by quotes is an exact match, and its value may contain commas, e.g.
+    `"Top shelf, Rack 3",Garage` is two terms. Unquoted terms split on every comma as before.
+    A quote that does not close a term (e.g. `"a,b`) is not special, so the value splits as it always did.
+    """
+    terms = []
+    pos = 0
+    while True:
+        if value.startswith('"', pos):
+            end = value.find('",', pos + 1)
+            if end != -1:
+                terms.append(value[pos : end + 1])
+                pos = end + 2
+                continue
+            if pos < len(value) - 1 and value.endswith('"'):
+                terms.append(value[pos:])
+                return terms
+        comma = value.find(",", pos)
+        if comma == -1:
+            terms.append(value[pos:])
+            return terms
+        terms.append(value[pos:comma])
+        pos = comma + 1
+
+
 def add_where_clause_str_opt(
     stmt: Select,
     field: attributes.InstrumentedAttribute[str | None],
@@ -145,7 +172,7 @@ def add_where_clause_str_opt(
     """Add a where clause to a select statement for an optional string field."""
     if value is not None:
         conditions = []
-        for value_part in value.split(","):
+        for value_part in split_filter_terms(value):
             # If part is empty, search for empty fields
             if len(value_part) == 0:
                 conditions.append(field.is_(None))
@@ -169,7 +196,7 @@ def add_where_clause_str(
     """Add a where clause to a select statement for a string field."""
     if value is not None:
         conditions = []
-        for value_part in value.split(","):
+        for value_part in split_filter_terms(value):
             # If part is empty, search for empty fields
             if len(value_part) == 0:
                 conditions.append(field == "")
