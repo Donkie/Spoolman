@@ -16,6 +16,7 @@ SFX = uuid.uuid4().hex[:8]
 
 VENDOR_NAME = f"SearchVendor{SFX}"
 FILAMENT_NAME = f"SearchFilament{SFX}"
+FILAMENT_NAME_UNICODE = f"Червоний{SFX}"
 FILAMENT_COMMENT = f"fcomment{SFX}"
 SPOOL_LOCATION = f"SearchLoc{SFX}"
 SPOOL_COMMENT = f"scomment{SFX}"
@@ -124,6 +125,18 @@ def test_search_filament_name(data: Fixture):
     body = _search(FILAMENT_NAME)
     assert body["is_color_query"] is False
     assert _has(body["filaments"], "filament", data.filament["id"], "name")
+
+
+def test_search_filament_name_unicode():
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={"name": FILAMENT_NAME_UNICODE, "density": 1.25, "diameter": 1.75},
+    )
+    result.raise_for_status()
+    filament = result.json()
+    body = _search(FILAMENT_NAME_UNICODE.lower())
+    assert _has(body["filaments"], "filament", filament["id"], "name")
+    httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()
 
 
 def test_search_vendor_name(data: Fixture):
