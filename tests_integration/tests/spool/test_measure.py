@@ -241,3 +241,101 @@ def test_measure_spool_without_spool_weight(random_empty_filament: dict[str, Any
 
     # Clean up
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
+
+
+def test_measure_spool_vendor_tare_set_later():
+    """Test measuring a spool whose vendor was given its empty spool weight after the fact."""
+    # Setup: a vendor with no tare weight, a filament created while it still has none, and
+    # the tare added to the vendor only afterwards. A filament copies its vendor's tare when
+    # it is created, so this one holds no copy and the value exists on the vendor alone.
+    result = httpx.post(
+        f"{URL}/api/v1/vendor",
+        json={"name": "Late Tare Vendor"},
+    )
+    result.raise_for_status()
+    vendor = result.json()
+
+    result = httpx.post(
+        f"{URL}/api/v1/filament",
+        json={
+            "name": "Filament Y",
+            "vendor_id": vendor["id"],
+            "material": "PLA",
+            "density": 1.25,
+            "diameter": 1.75,
+            "weight": 1000,
+        },
+    )
+    result.raise_for_status()
+    filament = result.json()
+    assert "spool_weight" not in filament
+
+    result = httpx.patch(
+        f"{URL}/api/v1/vendor/{vendor['id']}",
+        json={"empty_spool_weight": 250},
+    )
+    result.raise_for_status()
+
+    result = httpx.post(
+        f"{URL}/api/v1/spool",
+        json={
+            "filament_id": filament["id"],
+            "initial_weight": 1000,
+        },
+    )
+    result.raise_for_status()
+    spool = result.json()
+    assert "spool_weight" not in spool
+
+    # Execute: 704 g on the scale, 250 g of which is the spool itself.
+    result = httpx.put(
+        f"{URL}/api/v1/spool/{spool['id']}/measure",
+        json={
+            "weight": 704,
+        },
+    )
+    result.raise_for_status()
+
+    # Verify
+    spool = result.json()
+    assert spool["remaining_weight"] == pytest.approx(454)
+    assert spool["used_weight"] == pytest.approx(546)
+
+    # Clean up
+    httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
+    httpx.delete(f"{URL}/api/v1/filament/{filament['id']}").raise_for_status()
+    httpx.delete(f"{URL}/api/v1/vendor/{vendor['id']}").raise_for_status()
+
+
+def test_measure_spool_vendor_without_spool_weight(random_empty_filament_empty_vendor: dict[str, Any]):
+    """Test measuring a spool whose vendor has no empty spool weight either."""
+    # Setup: the vendor exists but names no tare weight, so the chain ends without one and
+    # the reading is the filament alone. Guards the vendor lookup against a NULL column.
+    start_weight = 1000
+    result = httpx.post(
+        f"{URL}/api/v1/spool",
+        json={
+            "filament_id": random_empty_filament_empty_vendor["id"],
+            "initial_weight": start_weight,
+        },
+    )
+    result.raise_for_status()
+    spool = result.json()
+    assert "spool_weight" not in spool
+
+    # Execute
+    result = httpx.put(
+        f"{URL}/api/v1/spool/{spool['id']}/measure",
+        json={
+            "weight": 400,
+        },
+    )
+    result.raise_for_status()
+
+    # Verify
+    spool = result.json()
+    assert spool["used_weight"] == pytest.approx(600)
+    assert spool["remaining_weight"] == pytest.approx(400)
+
+    # Clean up
+    httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
