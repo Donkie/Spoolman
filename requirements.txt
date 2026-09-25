@@ -5,7 +5,7 @@ aiosqlite==0.22.1
 alembic==1.18.5
 annotated-doc==0.0.4
 annotated-types==0.7.0
-anyio==4.14.2
+anyio==4.14.1
 anysqlite==0.0.5
 async-timeout==5.0.1 ; python_full_version < '3.11'
 asyncpg==0.31.0
@@ -23,6 +23,7 @@ httpcore==1.0.9
 httptools==0.8.0 ; platform_machine != 'armv7l'
 httpx==0.28.1
 idna==3.18
+influxdb-client==1.50.0
 mako==1.3.12
 markupsafe==3.0.3
 msgpack==1.2.1
@@ -33,8 +34,11 @@ pycparser==3.0 ; implementation_name != 'PyPy' and platform_python_implementatio
 pydantic==2.13.4
 pydantic-core==2.46.4
 pymysql==1.2.0
+python-dateutil==2.9.0.post0
+reactivex==5.1.0
 scheduler==0.8.11
 setuptools==83.0.0
+six==1.17.0
 sqlalchemy==2.0.51
 sqlalchemy-cockroachdb==2.0.4
 starlette==1.3.1
@@ -42,6 +46,7 @@ tomli==2.4.1 ; python_full_version < '3.11'
 typeguard==4.5.2
 typing-extensions==4.16.0
 typing-inspection==0.4.2
+urllib3==2.7.0
 uvicorn==0.50.1
 uvloop==0.22.1 ; platform_machine != 'armv7l' and platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'
 websockets==15.0.1
