@@ -5,7 +5,7 @@ aiosqlite==0.22.1
 alembic==1.18.5
 annotated-doc==0.0.4
 annotated-types==0.7.0
-anyio==4.14.1
+anyio==4.14.2
 anysqlite==0.0.5
 async-timeout==5.0.1 ; python_full_version < '3.11'
 asyncpg==0.31.0
