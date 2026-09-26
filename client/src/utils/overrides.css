@@ -1,3 +1,45 @@
+:root {
+  /* Account for mobile safe areas once so both floating controls stay aligned. */
+  --camera-button-right: calc(24px + env(safe-area-inset-right, 0px));
+  --camera-button-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  --camera-button-size: 56px;
+  --camera-button-gap: 12px;
+  --floating-actions-baseline-nudge: 5px;
+  --floating-actions-padding-y: 8px;
+  --floating-actions-padding-x: 10px;
+  /* Keep the edit-form actions anchored off the scanner button so the two controls
+     stay visually aligned without hard-coding duplicate pixel offsets in each page. */
+  --floating-actions-right: calc(var(--camera-button-right) + var(--camera-button-size) + var(--camera-button-gap));
+  --floating-actions-bottom: calc(
+    var(--camera-button-bottom) + var(--floating-actions-baseline-nudge) - var(--floating-actions-padding-y)
+  );
+}
+
 #qty-input {
   text-align: center !important;
+}
+
+.floating-form-actions {
+  position: fixed;
+  right: var(--floating-actions-right);
+  bottom: var(--floating-actions-bottom);
+  /* Keep the actions above form content without leaving them on top of modal layers. */
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: calc(100vw - var(--floating-actions-right) - 16px);
+  padding: var(--floating-actions-padding-y) var(--floating-actions-padding-x);
+  border-radius: 10px;
+  background: rgba(17, 17, 17, 0.88);
+  backdrop-filter: blur(4px);
+}
+
+@media (max-width: 768px) {
+  .floating-form-actions {
+    right: var(--floating-actions-right);
+    bottom: var(--floating-actions-bottom);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
 }

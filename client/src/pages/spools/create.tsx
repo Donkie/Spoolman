@@ -10,7 +10,6 @@ import { ExtraFieldFormItem, ParsedExtras, StringifiedExtras } from "../../compo
 import { useSpoolmanLocations } from "../../components/otherModels";
 import { searchMatches } from "../../utils/filtering";
 import { useLocations } from "../locations/functions";
-import "../../utils/overrides.css";
 import { formatNumberOnUserInput, numberParser, numberParserAllowEmpty } from "../../utils/parsing";
 import { EntityType, useGetFields } from "../../utils/queryFields";
 import { getCurrencySymbol, useCurrency } from "../../utils/settings";
