@@ -3,9 +3,14 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { parseSpoolCode } from '$lib/utils/spoolCode';
-	import { nextCamera, rememberCamera, rememberedCamera, startingCamera } from '$lib/utils/cameraChoice';
+	import {
+		type Camera,
+		rememberCamera,
+		rememberedCamera,
+		startingCamera,
+		videoCameras
+	} from '$lib/utils/cameraChoice';
 	import * as m from '$lib/paraglide/messages';
-	import SwitchCamera from '@lucide/svelte/icons/switch-camera';
 	import X from '@lucide/svelte/icons/x';
 
 	interface Props {
@@ -18,16 +23,14 @@
 	let error = $state<string | null>(null);
 	let starting = $state(false);
 
-	// Every camera the browser lists, filled once the scanner is running (labels
-	// are only readable after camera permission). More than one shows the switch
-	// button.
-	let cameras = $state<QrScanner.Camera[]>([]);
+	// Every camera the browser lists, read once the scanner is running (labels
+	// are only readable after camera permission). More than one shows the picker.
+	let cameras = $state<Camera[]>([]);
+	// The camera the picker shows as selected: the one streaming, or the one that
+	// just failed to open.
+	let currentCamera = $state('');
 	let switching = $state(false);
-	// Names the camera just switched to, so stepping through look-alike lenses
-	// ("camera 3, facing back") shows where you are. Cleared after a moment.
-	let caption = $state<string | null>(null);
-	let captionTimer: ReturnType<typeof setTimeout> | undefined;
-	// The running scanner, for the switch button. Null while starting or closed.
+	// The running scanner, for the picker. Null while starting or closed.
 	let active: QrScanner | null = null;
 
 	function close() {
@@ -40,25 +43,27 @@
 		return stream instanceof MediaStream ? stream.getVideoTracks()[0]?.getSettings().deviceId : undefined;
 	}
 
-	async function switchCamera() {
+	async function pickCamera(id: string) {
 		const scanner = active;
-		const next = nextCamera(cameras, streamingCameraId());
-		if (!scanner || !next || switching) return;
+		if (!scanner || switching) return;
 		switching = true;
+		error = null;
 		try {
-			await scanner.setCamera(next.id);
+			await scanner.setCamera(id);
+			// After a failed open the scanner is stopped, and setCamera only
+			// restarts a running one (or does nothing for the same id), so a
+			// retry has to start it again.
+			if (!streamingCameraId()) await scanner.start();
 			if (scanner !== active) return; // closed while switching
 			// qr-scanner opens some other camera if the requested one fails, so
-			// report and remember what is actually streaming.
-			const id = streamingCameraId();
-			const index = cameras.findIndex((c) => c.id === id);
-			if (id === undefined || index < 0) return;
-			rememberCamera(id);
-			caption = `${cameras[index].label} · ${index + 1}/${cameras.length}`;
-			clearTimeout(captionTimer);
-			captionTimer = setTimeout(() => (caption = null), 2500);
+			// show and remember what is actually streaming.
+			currentCamera = streamingCameraId() ?? id;
+			rememberCamera(currentCamera);
 		} catch (err) {
+			if (scanner !== active) return;
 			console.error('QR scanner failed to switch camera:', err);
+			currentCamera = id;
+			error = await classifyStartFailure();
 		} finally {
 			switching = false;
 		}
@@ -105,7 +110,7 @@
 		error = null;
 		starting = false;
 		cameras = [];
-		caption = null;
+		currentCamera = '';
 
 		// Insecure (non-HTTPS, non-localhost) origins don't expose the camera API
 		// at all — qr-scanner would only report a generic "camera not found", so
@@ -133,7 +138,7 @@
 		])
 			.then(async ([{ default: QrScanner }, devices]) => {
 				if (cancelled) return;
-				const ids = devices.filter((d) => d.kind === 'videoinput').map((d) => d.deviceId);
+				const ids = videoCameras(devices).map((c) => c.id);
 				scanner = new QrScanner(el, onDecode, {
 					// The camera picked last time, else the rear one; ignore frames that don't decode.
 					preferredCamera: startingCamera(rememberedCamera(), ids),
@@ -148,9 +153,10 @@
 					return;
 				}
 				active = scanner;
-				// The camera is already running, so a failed listing only costs the switch button.
-				const list = await QrScanner.listCameras().catch(() => []);
-				if (!cancelled) cameras = list;
+				currentCamera = streamingCameraId() ?? '';
+				// The camera is already running, so a failed listing only costs the picker.
+				const list = await navigator.mediaDevices.enumerateDevices().catch(() => []);
+				if (!cancelled) cameras = videoCameras(list);
 			})
 			.catch(async (err) => {
 				if (cancelled) return;
@@ -164,7 +170,6 @@
 		return () => {
 			cancelled = true;
 			active = null;
-			clearTimeout(captionTimer);
 			scanner?.destroy();
 			scanner = null;
 		};
@@ -201,23 +206,24 @@
 					<div class="msg error">{error}</div>
 				{:else if starting}
 					<div class="msg">{m['scanner.starting']()}</div>
-				{:else}
-					{#if caption}
-						<div class="msg caption" aria-live="polite">{caption}</div>
-					{/if}
-					{#if cameras.length > 1}
-						<button
-							class="switch"
-							onclick={switchCamera}
-							disabled={switching}
-							title={m['scanner.switchCamera']()}
-							aria-label={m['scanner.switchCamera']()}
-						>
-							<SwitchCamera size={20} />
-						</button>
-					{/if}
 				{/if}
 			</div>
+
+			{#if cameras.length > 1}
+				<!-- Stays up after a failed switch, so another camera can be tried. -->
+				<select
+					class="camera"
+					value={currentCamera}
+					disabled={switching}
+					aria-label={m['scanner.camera']()}
+					onchange={(e) => pickCamera(e.currentTarget.value)}
+				>
+					{#each cameras as camera, i (camera.id)}
+						<option value={camera.id}>{camera.label || m['scanner.cameraNumbered']({ number: i + 1 })}</option
+						>
+					{/each}
+				</select>
+			{/if}
 		</div>
 	</div>
 {/if}
@@ -303,29 +309,16 @@
 		align-items: center;
 		justify-content: center;
 	}
-	.msg.caption {
-		inset: 12px 12px auto;
+	.camera {
+		margin: -6px 20px 20px;
+		background: var(--input-bg);
+		border: 1px solid var(--border-input);
+		border-radius: var(--radius);
+		color: var(--text);
+		padding: 7px 10px;
+		font-size: 13px;
 	}
-	.switch {
-		position: absolute;
-		right: 12px;
-		bottom: 12px;
-		width: 44px;
-		height: 44px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: #fff;
-		background: rgba(0, 0, 0, 0.55);
-		border: none;
-		border-radius: 50%;
-		cursor: pointer;
-	}
-	.switch:hover {
-		background: rgba(0, 0, 0, 0.75);
-	}
-	.switch:disabled {
-		opacity: 0.5;
-		cursor: default;
+	.camera:disabled {
+		opacity: 0.55;
 	}
 </style>
