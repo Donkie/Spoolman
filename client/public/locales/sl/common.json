@@ -248,8 +248,9 @@
             "key_not_changed": "Spremenite geslo v nekaj drugega.",
             "delete_confirm": "Zbrišem polje {{name}}?",
             "delete_confirm_description": "S tem boste izbrisali polje in vse povezane podatke za vse vnose.",
-            "description": "<p>Tukaj lahko svojim entitetam dodate dodatna polja po meri.</p><p>Ko je polje dodano, njegovega ključa ali tipa ni mogoče spremeniti, pri poljih tipa »izbira« pa ni mogoče odstraniti možnosti ali spremeniti nastavitve za večkratno izbiro. Če polje odstranite, bodo povezani podatki za vse entitete izbrisani.</p><p>Ključ je tisto, kar drugi programi uporabljajo za branje/pisanje podatkov, zato če naj bi se vaše polje po meri integriralo s programom tretje osebe, poskrbite, da ga nastavite pravilno. Privzeta vrednost se uporablja le za nove elemente.</p><p>Dodatna polja ni mogoče razvrstiti ali filtrirati v pogledih tabel.</p>",
-            "choices_missing_error": "Možnosti ni mogoče odstraniti. Manjkajo naslednje možnosti: {{choices}}"
+            "description": "<p>Tukaj lahko svojim entitetam dodate dodatna polja po meri.</p><p>Ko je polje dodano, njegovega ključa ali tipa ni mogoče spremeniti, pri poljih tipa »izbira« pa ni mogoče odstraniti možnosti ali spremeniti nastavitve za večkratno izbiro. Če polje odstranite, bodo povezani podatki za vse entitete izbrisani.</p><p>Ključ je tisto, kar drugi programi uporabljajo za branje/pisanje podatkov, zato če naj bi se vaše polje po meri integriralo s programom tretje osebe, poskrbite, da ga nastavite pravilno. Privzeta vrednost se uporablja le za nove elemente.</p><p>V preglednicah je mogoče prikazati in razvrstiti dodatna polja. Polja tipa »izbira« in »booleanska« tam omogočajo tudi možnosti filtriranja, vsi tipi dodatnih polj pa podpirajo filtriranje po praznih vrednostih.</p>",
+            "choices_missing_error": "Možnosti ni mogoče odstraniti. Manjkajo naslednje možnosti: {{choices}}",
+            "choices_reorder_hint": "Za spremembo vrstnega reda izbire, povlecite ali uporabite smerne tipke."
         }
     },
     "scanner": {
@@ -397,5 +398,12 @@
         "new_location": "Nova lokacija",
         "no_location": "Brez lokacije",
         "no_locations_help": "Na tej strani lahko kolute razvrstite po lokacijah. Za začetek dodajte nekaj kolutov."
+    },
+    "sponsor": "Sponzorirajte me na GitHubu",
+    "theme": {
+        "label": "Tema",
+        "system": "Sistem",
+        "light": "Svetla",
+        "dark": "Temna"
     }
 }
