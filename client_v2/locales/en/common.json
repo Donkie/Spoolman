@@ -427,6 +427,8 @@
     "printing.qrcode.useHTTPUrl.tooltip": "Default encodes a Spoolman-only code that only Spoolman's own scanner can read. URL encodes a normal web link that any scanner can open, built from the base URL in settings — or this site's address if that's unset.",
     "printing.spoolSelect.selectedTotal_one": "{{count}} spool selected",
     "printing.spoolSelect.selectedTotal_other": "{{count}} spools selected",
+    "scanner.camera": "Camera",
+    "scanner.cameraNumbered": "Camera {{number}}",
     "scanner.description": "Scan a Spoolman QR code to view details about the spool.",
     "scanner.error.insecureContext": "The page is not served over HTTPS.",
     "scanner.error.notAllowed": "You have not allowed access to the camera.",
