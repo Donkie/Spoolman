@@ -7,6 +7,7 @@ cross-origin form post.
 """
 
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 
 import pytest
@@ -140,3 +141,19 @@ def test_non_sqlite_database_is_skipped(backups: Path):
     result = db.backup_and_rotate(backups)
 
     assert result == database.BackupResult(None, created=False)
+
+
+def test_backup_gives_up_on_a_lock_that_never_clears(
+    db: Database,
+    db_path: Path,
+    backups: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """sqlite3's backup() retries a locked source forever, which hung the server (#1191)."""
+    monkeypatch.setattr(database, "BACKUP_LOCK_TIMEOUT_SECONDS", 0.5)
+    with closing(sqlite3.connect(db_path, isolation_level=None)) as holder:
+        holder.execute("BEGIN EXCLUSIVE")
+        with pytest.raises(sqlite3.OperationalError, match="locked"):
+            db.backup_and_rotate(backups)
+        holder.execute("ROLLBACK")
+    assert not (backups / f"{BACKUP_NAME}.pending").exists()
