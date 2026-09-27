@@ -732,6 +732,19 @@ class Info(BaseModel):
     )
     git_commit: str | None = Field(None, examples=["a1b2c3d"])
     build_date: SpoolmanDateTime | None = Field(None, examples=["2021-01-01T00:00:00Z"])
+    latest_version: str | None = Field(
+        None,
+        description=(
+            "Latest Spoolman release on GitHub. Null until the server has checked, "
+            "or if the check is disabled via SPOOLMAN_UPDATE_CHECK."
+        ),
+        examples=["0.28.0"],
+    )
+    update_available: bool = Field(
+        default=False,
+        description="True if latest_version is newer than the running version.",
+        examples=[False],
+    )
 
 
 class HealthCheck(BaseModel):
