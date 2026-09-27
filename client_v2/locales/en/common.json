@@ -167,6 +167,7 @@
     "filament.filament": "Filaments",
     "footer.documentation": "Documentation",
     "footer.reportIssue": "Report an issue",
+    "footer.updateAvailable": "v{{version}} available",
     "help.help": "Help",
     "inspector.addSpoolsOfThis": "Add spools of this",
     "inspector.adjustFailed": "Failed to adjust weight.",
