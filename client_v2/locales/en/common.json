@@ -418,6 +418,7 @@
     "printing.generic.verticalSpacing": "Vertical Spacing",
     "printing.qrcode.button": "Print Labels",
     "printing.qrcode.customUrl.caveat": "A custom URL won't scan back into Spoolman — use it to point a printed QR at an external app or a different host.",
+    "printing.qrcode.customUrl.fieldsHint": "Label fields work too, for example",
     "printing.qrcode.customUrl.hint": "Insert the spool id anywhere with the placeholder",
     "printing.qrcode.customUrl.label": "Custom URL template",
     "printing.qrcode.useHTTPUrl.label": "QR code link",

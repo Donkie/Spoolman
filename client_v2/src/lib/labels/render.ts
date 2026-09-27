@@ -91,7 +91,7 @@ export function elementToShape(el: LabelElement, ctx: RenderContext): ShapeSpec 
 			// encoding — a long URL/custom target is denser than the compact scheme.
 			const content =
 				subjectId !== undefined
-					? qrContent(el, subjectId, qrCtx)
+					? qrContent(el, subjectId, qrCtx, ctx.binding)
 					: qrTemplate(el, qrCtx).replace('{id}', '0');
 			return {
 				kind: 'qr',

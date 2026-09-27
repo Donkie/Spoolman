@@ -108,6 +108,9 @@
 				<p class="hint">
 					{m['printing.qrcode.customUrl.hint']()} <code>{'{id}'}</code>
 				</p>
+				<p class="hint">
+					{m['printing.qrcode.customUrl.fieldsHint']()} <code>{'{filament.id}'}</code>
+				</p>
 				<p class="hint">{m['printing.qrcode.customUrl.caveat']()}</p>
 			{:else}
 				<p class="hint">{m['printing.qrcode.useHTTPUrl.tooltip']()}</p>
