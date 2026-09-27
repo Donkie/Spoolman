@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { APIRequestContext, Locator, Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
 import { createSpoolViaModal, navTab, openApp, searchFor, unique } from "./helpers";
@@ -30,10 +31,7 @@ let readerCounter = 0;
  * on whether a UID is free or taken.
  */
 function uniqueUid(): string {
-  return Math.floor(Math.random() * 0xffffffff)
-    .toString(16)
-    .toUpperCase()
-    .padStart(8, "0");
+  return randomBytes(4).toString("hex").toUpperCase();
 }
 
 /**
