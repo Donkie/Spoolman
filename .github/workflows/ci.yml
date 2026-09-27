@@ -3,7 +3,13 @@ name: CI
 on:
   push:
     branches:
-      - master
+      # Every branch builds, so a fix can be handed to a bug reporter as a Docker
+      # image before it merges (see publish-images). Weblate pushes locale-only
+      # commits constantly and dependabot's branches arrive as PRs anyway, so
+      # neither is worth a full multi-arch run.
+      - "**"
+      - "!weblate*"
+      - "!dependabot/**"
     tags:
       - "v*"
   pull_request:
@@ -14,12 +20,12 @@ permissions:
   contents: read
   packages: read
 
-# A new push to a PR makes the previous run's result irrelevant, so cancel it and
-# let the new one have the runners. Gated on the event: the push triggers are
-# master and v* tags, and a cancelled tag run is a half-published release.
+# A new push makes the previous run's result irrelevant, so cancel it and let the
+# new one have the runners. Master and tags are exempt: both publish images, and a
+# cancelled run there is a half-published release.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' && !startsWith(github.ref, 'refs/tags/') }}
 
 env:
   GHCR_IMAGE: donkie/spoolman
@@ -29,6 +35,11 @@ jobs:
   # Linting
   #
   style:
+    # Same-repo branches already got a full run from the push trigger, so skip the
+    # duplicate pull_request run. Forks still need it: a fork's push fires no event
+    # here. Skipping the three jobs that have no `needs` cascades to every other
+    # job, since a skipped dependency skips its dependents.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -71,6 +82,11 @@ jobs:
   # This is done on native hardware to speed things up, vite is very slow on emulated hardware
   #
   build-client:
+    # Same-repo branches already got a full run from the push trigger, so skip the
+    # duplicate pull_request run. Forks still need it: a fork's push fires no event
+    # here. Skipping the three jobs that have no `needs` cascades to every other
+    # job, since a skipped dependency skips its dependents.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -218,6 +234,11 @@ jobs:
   # Build tester image for integration tests
   #
   build-tester:
+    # Same-repo branches already got a full run from the push trigger, so skip the
+    # duplicate pull_request run. Forks still need it: a fork's push fires no event
+    # here. Skipping the three jobs that have no `needs` cascades to every other
+    # job, since a skipped dependency skips its dependents.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -664,6 +685,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # The trailing type=ref,event=branch is what gives an unmerged branch a
+      # pullable image (ghcr.io/donkie/spoolman:my-branch) for a bug reporter to
+      # test. It is GHCR-only and skips master (already published as :edge), so
+      # Docker Hub keeps carrying nothing but :edge and tagged releases.
       - name: Extract metadata (tags, labels) for GHCR
         id: meta-ghcr
         uses: docker/metadata-action@v5.5.1
@@ -675,6 +700,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
+            type=ref,event=branch,enable=${{ github.ref_name != 'master' }}
 
       - name: Extract metadata (tags, labels) for Docker Hub
         id: meta-dh
