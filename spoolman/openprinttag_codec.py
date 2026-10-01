@@ -1,0 +1,653 @@
+"""OpenPrintTag NDEF/CBOR decoder for NFC-V (ISO 15693) tags.
+
+Decodes OpenPrintTag data from ICODE SLIX2 NFC-V tag memory.
+The data is stored as an NDEF record with MIME type application/vnd.openprinttag,
+containing CBOR-encoded sections (meta, main, aux).
+
+Based on the OpenPrintTag specification: https://specs.openprinttag.org
+"""
+
+import io
+import logging
+import uuid
+from dataclasses import dataclass
+
+import cbor2
+
+logger = logging.getLogger(__name__)
+
+OPENPRINTTAG_MIME = "application/vnd.openprinttag"
+
+# Material type enum (key -> abbreviation) from material_type_enum.yaml
+MATERIAL_TYPE_MAP: dict[int, str] = {
+    0: "PLA",
+    1: "PETG",
+    2: "TPU",
+    3: "ABS",
+    4: "ASA",
+    5: "PC",
+    6: "PCTG",
+    7: "PP",
+    8: "PA6",
+    9: "PA11",
+    10: "PA12",
+    11: "PA66",
+    12: "CPE",
+    13: "TPE",
+    14: "HIPS",
+    15: "PHA",
+    16: "PET",
+    17: "PEI",
+    18: "PBT",
+    19: "PVB",
+    20: "PVA",
+    21: "PEKK",
+    22: "PEEK",
+    23: "BVOH",
+    24: "TPC",
+    25: "PPS",
+    26: "PPSU",
+    27: "PVC",
+    28: "PEBA",
+    29: "PVDF",
+    30: "PPA",
+    31: "PCL",
+    32: "PES",
+    33: "PMMA",
+    34: "POM",
+    35: "PPE",
+    36: "PS",
+    37: "PSU",
+    38: "TPI",
+    39: "SBS",
+    40: "OBC",
+    41: "EVA",
+}
+
+# Material class enum
+MATERIAL_CLASS_MAP: dict[int, str] = {
+    0: "FFF",
+    1: "SLA",
+}
+
+# Material tags enum (key -> name) from tags_enum.yaml. Keys 18, 25, 26 are deprecated
+# and deliberately absent -- an unrecognized key (deprecated or simply newer than this
+# table) falls back to "unknown_<n>", same as material type/class.
+TAG_MAP: dict[int, str] = {
+    0: "filtration_recommended",
+    1: "biocompatible",
+    2: "antibacterial",
+    3: "air_filtering",
+    4: "abrasive",
+    5: "foaming",
+    6: "self_extinguishing",
+    7: "paramagnetic",
+    8: "radiation_shielding",
+    9: "high_temperature",
+    10: "esd_safe",
+    11: "conductive",
+    12: "blend",
+    13: "water_soluble",
+    14: "ipa_soluble",
+    15: "limonene_soluble",
+    16: "matte",
+    17: "silk",
+    19: "translucent",
+    20: "transparent",
+    21: "iridescent",
+    22: "pearlescent",
+    23: "glitter",
+    24: "glow_in_the_dark",
+    27: "temperature_color_change",
+    28: "gradual_color_change",
+    29: "coextruded",
+    30: "contains_carbon",
+    31: "contains_carbon_fiber",
+    32: "contains_carbon_nano_tubes",
+    33: "contains_glass",
+    34: "contains_glass_fiber",
+    35: "contains_kevlar",
+    36: "contains_stone",
+    37: "contains_magnetite",
+    38: "contains_organic_material",
+    39: "contains_cork",
+    40: "contains_wax",
+    41: "contains_wood",
+    42: "contains_bamboo",
+    43: "contains_pine",
+    44: "contains_ceramic",
+    45: "contains_boron_carbide",
+    46: "contains_metal",
+    47: "contains_bronze",
+    48: "contains_iron",
+    49: "contains_steel",
+    50: "contains_silver",
+    51: "contains_copper",
+    52: "contains_aluminium",
+    53: "contains_brass",
+    54: "contains_tungsten",
+    55: "imitates_wood",
+    56: "imitates_metal",
+    57: "imitates_marble",
+    58: "imitates_stone",
+    59: "lithophane",
+    60: "recycled",
+    61: "home_compostable",
+    62: "industrially_compostable",
+    63: "bio_based",
+    64: "low_outgassing",
+    65: "without_pigments",
+    66: "contains_algae",
+    67: "castable",
+    68: "contains_ptfe",
+    69: "limited_edition",
+    70: "emi_shielding",
+    71: "high_speed",
+    72: "contains_graphene",
+}
+
+# Material certifications enum (key -> name) from material_certifications_enum.yaml
+MATERIAL_CERTIFICATIONS_MAP: dict[int, str] = {
+    0: "ul_2818",
+    1: "ul_94_v0",
+    2: "ul_2904",
+}
+
+# UUID namespaces for deriving UUIDs from other fields
+UUID_NS_BRAND = uuid.UUID("5269dfb7-1559-440a-85be-aba5f3eff2d2")
+UUID_NS_MATERIAL = uuid.UUID("616fc86d-7d99-4953-96c7-46d2836b9be9")
+UUID_NS_PACKAGE = uuid.UUID("6f7d485e-db8d-4979-904e-a231cd6602b2")
+UUID_NS_INSTANCE = uuid.UUID("31062f81-b5bd-4f86-a5f8-46367e841508")
+
+# Main section field keys
+MF_INSTANCE_UUID = 0
+MF_PACKAGE_UUID = 1
+MF_MATERIAL_UUID = 2
+MF_BRAND_UUID = 3
+MF_GTIN = 4
+MF_BRAND_SPECIFIC_INSTANCE_ID = 5
+MF_MATERIAL_CLASS = 8
+MF_MATERIAL_TYPE = 9
+MF_MATERIAL_NAME = 10
+MF_BRAND_NAME = 11
+MF_MANUFACTURED_DATE = 14
+MF_NOMINAL_NETTO_FULL_WEIGHT = 16
+MF_ACTUAL_NETTO_FULL_WEIGHT = 17
+MF_EMPTY_CONTAINER_WEIGHT = 18
+MF_PRIMARY_COLOR = 19
+MF_TAGS = 28
+MF_DENSITY = 29
+MF_FILAMENT_DIAMETER = 30
+MF_MIN_PRINT_TEMPERATURE = 34
+MF_MAX_PRINT_TEMPERATURE = 35
+MF_PREHEAT_TEMPERATURE = 36
+MF_MIN_BED_TEMPERATURE = 37
+MF_MAX_BED_TEMPERATURE = 38
+MF_MIN_CHAMBER_TEMPERATURE = 39
+MF_MAX_CHAMBER_TEMPERATURE = 40
+MF_CHAMBER_TEMPERATURE = 41
+MF_CONTAINER_WIDTH = 42
+MF_CONTAINER_OUTER_DIAMETER = 43
+MF_CONTAINER_INNER_DIAMETER = 44
+MF_CONTAINER_HOLE_DIAMETER = 45
+MF_CERTIFICATIONS = 56
+MF_DRYING_TEMPERATURE = 57
+MF_DRYING_TIME = 58
+MF_PRIMARY_COLOR_LAB = 59
+MF_PRIMARY_COLOR_RAL = 60
+
+# Meta section field keys
+META_MAIN_REGION_OFFSET = 0
+META_MAIN_REGION_SIZE = 1
+META_AUX_REGION_OFFSET = 2
+META_AUX_REGION_SIZE = 3
+
+# Aux section field keys
+AUX_CONSUMED_WEIGHT = 0
+
+# NFC-V Type 5 Tag TLV block tags (ISO/IEC 15693 capability container)
+_TLV_NDEF_MESSAGE = 0x03
+_TLV_TERMINATOR = 0xFE
+_TLV_THREE_BYTE_LENGTH = 0xFF
+
+# NDEF record TNF (Type Name Format): Media-type, per RFC 2046
+_NDEF_TNF_MEDIA_TYPE = 0x02
+
+
+@dataclass
+class OpenPrintTagData:
+    """All data decoded from an OpenPrintTag NFC tag."""
+
+    # UUIDs
+    instance_uuid: str | None = None
+    package_uuid: str | None = None
+    material_uuid: str | None = None
+    brand_uuid: str | None = None
+
+    # Identifiers
+    gtin: int | None = None
+    brand_specific_instance_id: str | None = None
+
+    # Material info
+    material_class: str | None = None  # "FFF" or "SLA"
+    material_type: str | None = None  # e.g. "PLA", "PETG"
+    material_name: str | None = None  # e.g. "PLA Galaxy Black"
+    brand_name: str | None = None  # e.g. "Prusament"
+    tags: list[str] | None = None  # e.g. ["glitter", "contains_carbon_fiber"]
+    certifications: list[str] | None = None  # e.g. ["ul_2818"]
+
+    # Physical properties
+    density: float | None = None
+    filament_diameter: float | None = None  # defaults to 1.75 if absent
+
+    # Weights, in grams
+    nominal_netto_full_weight: float | None = None
+    actual_netto_full_weight: float | None = None
+    empty_container_weight: float | None = None
+    consumed_weight: float | None = None  # from aux section
+
+    # Color as hex string (without #), and as measured CIE L*a*b* / RAL, if present
+    primary_color_hex: str | None = None
+    primary_color_lab: list[float] | None = None  # [L*, a*, b*]
+    primary_color_ral: str | None = None
+
+    # Temperatures (°C)
+    min_print_temperature: int | None = None
+    max_print_temperature: int | None = None
+    preheat_temperature: int | None = None
+    min_bed_temperature: int | None = None
+    max_bed_temperature: int | None = None
+    min_chamber_temperature: int | None = None
+    max_chamber_temperature: int | None = None
+    chamber_temperature: int | None = None
+    drying_temperature: int | None = None
+    drying_time: int | None = None  # minutes
+
+    # Container dimensions (mm)
+    container_width: int | None = None
+    container_outer_diameter: int | None = None
+    container_inner_diameter: int | None = None
+    container_hole_diameter: int | None = None
+
+    # Dates
+    manufactured_date: int | None = None  # unix timestamp
+
+    # Raw NFC tag UID (for UUID derivation)
+    nfc_tag_uid: bytes | None = None
+
+    @property
+    def effective_diameter(self) -> float:
+        """Get filament diameter, defaulting to 1.75mm per spec."""
+        return self.filament_diameter if self.filament_diameter else 1.75
+
+    @property
+    def effective_weight(self) -> float | None:
+        """Get the best available net weight."""
+        return self.actual_netto_full_weight or self.nominal_netto_full_weight
+
+    @property
+    def effective_instance_uuid(self) -> str | None:
+        """Get instance UUID, deriving from tag UID if not explicit."""
+        if self.instance_uuid:
+            return self.instance_uuid
+        if self.nfc_tag_uid:
+            derived = uuid.uuid5(UUID_NS_INSTANCE, self.nfc_tag_uid)
+            return str(derived)
+        return None
+
+    @property
+    def effective_brand_uuid(self) -> str | None:
+        """Get brand UUID, deriving from brand_name if not explicit."""
+        if self.brand_uuid:
+            return self.brand_uuid
+        if self.brand_name:
+            derived = uuid.uuid5(UUID_NS_BRAND, self.brand_name.encode("utf-8"))
+            return str(derived)
+        return None
+
+    @property
+    def effective_material_uuid(self) -> str | None:
+        """Get material UUID, deriving from brand UUID + material_name if not explicit."""
+        if self.material_uuid:
+            return self.material_uuid
+        brand_uuid = self.effective_brand_uuid
+        if brand_uuid and self.material_name:
+            derived = uuid.uuid5(UUID_NS_MATERIAL, uuid.UUID(brand_uuid).bytes + self.material_name.encode("utf-8"))
+            return str(derived)
+        return None
+
+    @property
+    def effective_package_uuid(self) -> str | None:
+        """Get package UUID, deriving from brand UUID + GTIN if not explicit."""
+        if self.package_uuid:
+            return self.package_uuid
+        brand_uuid = self.effective_brand_uuid
+        if brand_uuid and self.gtin is not None:
+            derived = uuid.uuid5(UUID_NS_PACKAGE, uuid.UUID(brand_uuid).bytes + str(self.gtin).encode("utf-8"))
+            return str(derived)
+        return None
+
+
+def _parse_color_rgba(data: object) -> str | None:
+    """Convert RGBA byte string to hex color (RGB only, drop alpha).
+
+    `data` is whatever CBOR decoded the field to -- for truncated/corrupt tag memory
+    that's still syntactically valid CBOR, that can be any type, not just bytes, so the
+    type is checked before anything that assumes a byte string (starting with `len`).
+    """
+    if isinstance(data, (bytes, bytearray)) and len(data) >= 3:  # noqa: PLR2004
+        return f"{data[0]:02x}{data[1]:02x}{data[2]:02x}"
+    return None
+
+
+def _parse_uuid(data: object) -> str | None:
+    """Convert CBOR byte string to UUID string.
+
+    See `_parse_color_rgba` docstring for why `data`'s type is checked first.
+    """
+    if isinstance(data, (bytes, bytearray)) and len(data) == 16:  # noqa: PLR2004
+        return str(uuid.UUID(bytes=bytes(data)))
+    return None
+
+
+def _decode_cbor_map(raw: bytes) -> tuple[dict, int]:
+    """Decode a CBOR map from bytes, return (map, bytes_consumed).
+
+    Raises:
+        ValueError: If the bytes are not a complete CBOR map. Tag memory that was truncated
+            or corrupted can be an incomplete item (cbor2 raises its own error types, none of
+            them ValueError) or complete CBOR that just isn't a map, and callers rely on
+            this function's only failure being ValueError.
+
+    """
+    buf = io.BytesIO(raw)
+    try:
+        data = cbor2.load(buf)
+    except cbor2.CBORDecodeError as exc:
+        raise ValueError(f"Invalid CBOR: {exc}") from exc
+    if not isinstance(data, dict):
+        raise ValueError(f"Expected a CBOR map, got {type(data).__name__}")  # noqa: TRY004 -- ValueError is the contract
+    return data, buf.tell()
+
+
+def _find_ndef_payload(raw_bytes: bytes) -> bytes | None:
+    """Extract OpenPrintTag NDEF record payload from NFC-V tag memory.
+
+    Parses the capability container, walks TLV blocks to find the NDEF TLV,
+    then parses NDEF records to find the application/vnd.openprinttag record.
+    """
+    if len(raw_bytes) < 4 or raw_bytes[0] != 0xE1:  # noqa: PLR2004
+        return None
+
+    pos = 4  # skip 4-byte capability container
+
+    # Walk TLV blocks
+    while pos < len(raw_bytes):
+        if pos >= len(raw_bytes):
+            break
+        tag = raw_bytes[pos]
+        pos += 1
+
+        if tag == _TLV_TERMINATOR:
+            break
+        if tag == 0x00:  # null TLV, no length
+            continue
+
+        if pos >= len(raw_bytes):
+            break
+        tlv_len = raw_bytes[pos]
+        pos += 1
+
+        if tlv_len == _TLV_THREE_BYTE_LENGTH:
+            if pos + 2 > len(raw_bytes):
+                break
+            tlv_len = (raw_bytes[pos] << 8) | raw_bytes[pos + 1]
+            pos += 2
+
+        if tag == _TLV_NDEF_MESSAGE:
+            ndef_data = raw_bytes[pos : pos + tlv_len]
+            return _parse_ndef_records(ndef_data)
+
+        pos += tlv_len  # skip non-NDEF TLVs
+
+    return None
+
+
+def _parse_ndef_records(ndef_data: bytes) -> bytes | None:
+    """Parse NDEF message bytes and extract the OpenPrintTag record payload."""
+    try:
+        import ndef  # noqa: PLC0415
+    except ImportError:
+        # Fall back to manual NDEF parsing if ndeflib is not available
+        return _parse_ndef_manual(ndef_data)
+
+    for record in ndef.message_decoder(io.BytesIO(ndef_data)):
+        if record.type == OPENPRINTTAG_MIME:
+            return bytes(record.data)
+
+    return None
+
+
+def _read_ndef_length(ndef_data: bytes, pos: int, *, short_record: bool) -> tuple[int, int] | None:
+    """Read an NDEF length field (1 byte for a short record, 4 bytes otherwise).
+
+    Returns (length, new_pos), or None if the buffer is truncated.
+    """
+    if short_record:
+        if pos >= len(ndef_data):
+            return None
+        return ndef_data[pos], pos + 1
+    if pos + 4 > len(ndef_data):
+        return None
+    return int.from_bytes(ndef_data[pos : pos + 4], "big"), pos + 4
+
+
+def _parse_ndef_manual(ndef_data: bytes) -> bytes | None:
+    """Minimal NDEF record parser for application/vnd.openprinttag.
+
+    Handles short and standard NDEF records without requiring ndeflib.
+    """
+    pos = 0
+    while pos < len(ndef_data):
+        if pos >= len(ndef_data):
+            break
+        header = ndef_data[pos]
+        pos += 1
+
+        message_end = bool(header & 0x40)
+        short_record = bool(header & 0x10)
+        id_present = bool(header & 0x08)
+        tnf = header & 0x07
+
+        if pos >= len(ndef_data):
+            break
+        type_length = ndef_data[pos]
+        pos += 1
+
+        length_result = _read_ndef_length(ndef_data, pos, short_record=short_record)
+        if length_result is None:
+            break
+        payload_length, pos = length_result
+
+        id_length = 0
+        if id_present:
+            if pos >= len(ndef_data):
+                break
+            id_length = ndef_data[pos]
+            pos += 1
+
+        record_type = ndef_data[pos : pos + type_length]
+        pos += type_length
+
+        pos += id_length  # skip ID
+
+        payload = ndef_data[pos : pos + payload_length]
+        pos += payload_length
+
+        if tnf == _NDEF_TNF_MEDIA_TYPE and record_type == OPENPRINTTAG_MIME.encode("ascii"):
+            return bytes(payload)
+
+        if message_end:
+            break
+
+    return None
+
+
+def decode_nfcv_memory(raw_bytes: bytes, nfc_tag_uid: bytes | None = None) -> OpenPrintTagData:
+    """Decode OpenPrintTag data from raw NFC-V tag memory.
+
+    Args:
+        raw_bytes: Full tag memory dump (e.g. 320 bytes for ICODE SLIX2).
+        nfc_tag_uid: Optional NFC tag UID for instance_uuid derivation.
+
+    Returns:
+        OpenPrintTagData with all decoded fields.
+
+    Raises:
+        ValueError: If the data cannot be parsed.
+
+    """
+    payload = _find_ndef_payload(raw_bytes)
+    if payload is None:
+        raise ValueError("Could not find OpenPrintTag NDEF record in tag memory")
+
+    data = OpenPrintTagData(nfc_tag_uid=nfc_tag_uid)
+
+    # Parse meta section (first CBOR object in payload)
+    meta, meta_size = _decode_cbor_map(payload)
+
+    main_offset = meta.get(META_MAIN_REGION_OFFSET, meta_size)
+    aux_offset = meta.get(META_AUX_REGION_OFFSET)
+
+    if not isinstance(main_offset, int) or main_offset < 0:
+        raise ValueError("Invalid main region offset in OpenPrintTag meta section")
+    if not isinstance(aux_offset, int) or aux_offset < 0:
+        aux_offset = None  # the aux section is optional; a bad offset just means there isn't one
+
+    # Parse main section
+    if main_offset < len(payload):
+        main_data, _ = _decode_cbor_map(payload[main_offset:])
+        _populate_main_fields(data, main_data)
+
+    # Parse aux section if present
+    if aux_offset is not None and aux_offset < len(payload):
+        try:
+            aux_data, _ = _decode_cbor_map(payload[aux_offset:])
+            if AUX_CONSUMED_WEIGHT in aux_data:
+                data.consumed_weight = float(aux_data[AUX_CONSUMED_WEIGHT])
+        except (cbor2.CBORDecodeError, TypeError, ValueError):
+            logger.debug("Could not decode aux section")
+
+    return data
+
+
+# (main-section CBOR key, OpenPrintTagData attribute, value caster) for every field
+# that's a plain cast with no further lookup. UUIDs, the two enum-mapped fields, and
+# the color all need extra logic and are handled separately in _populate_main_fields.
+_SIMPLE_MAIN_FIELDS: list[tuple[int, str, type]] = [
+    (MF_GTIN, "gtin", int),
+    (MF_BRAND_SPECIFIC_INSTANCE_ID, "brand_specific_instance_id", str),
+    (MF_MATERIAL_NAME, "material_name", str),
+    (MF_BRAND_NAME, "brand_name", str),
+    (MF_DENSITY, "density", float),
+    (MF_FILAMENT_DIAMETER, "filament_diameter", float),
+    (MF_NOMINAL_NETTO_FULL_WEIGHT, "nominal_netto_full_weight", float),
+    (MF_ACTUAL_NETTO_FULL_WEIGHT, "actual_netto_full_weight", float),
+    (MF_EMPTY_CONTAINER_WEIGHT, "empty_container_weight", float),
+    (MF_PRIMARY_COLOR_RAL, "primary_color_ral", str),
+    (MF_MIN_PRINT_TEMPERATURE, "min_print_temperature", int),
+    (MF_MAX_PRINT_TEMPERATURE, "max_print_temperature", int),
+    (MF_PREHEAT_TEMPERATURE, "preheat_temperature", int),
+    (MF_MIN_BED_TEMPERATURE, "min_bed_temperature", int),
+    (MF_MAX_BED_TEMPERATURE, "max_bed_temperature", int),
+    (MF_MIN_CHAMBER_TEMPERATURE, "min_chamber_temperature", int),
+    (MF_MAX_CHAMBER_TEMPERATURE, "max_chamber_temperature", int),
+    (MF_CHAMBER_TEMPERATURE, "chamber_temperature", int),
+    (MF_CONTAINER_WIDTH, "container_width", int),
+    (MF_CONTAINER_OUTER_DIAMETER, "container_outer_diameter", int),
+    (MF_CONTAINER_INNER_DIAMETER, "container_inner_diameter", int),
+    (MF_CONTAINER_HOLE_DIAMETER, "container_hole_diameter", int),
+    (MF_DRYING_TEMPERATURE, "drying_temperature", int),
+    (MF_DRYING_TIME, "drying_time", int),
+    (MF_MANUFACTURED_DATE, "manufactured_date", int),
+]
+
+
+def _populate_main_uuids(data: OpenPrintTagData, main: dict) -> None:
+    """Populate the CBOR-byte-string UUID fields from the decoded main CBOR map."""
+    if MF_INSTANCE_UUID in main:
+        data.instance_uuid = _parse_uuid(main[MF_INSTANCE_UUID])
+    if MF_PACKAGE_UUID in main:
+        data.package_uuid = _parse_uuid(main[MF_PACKAGE_UUID])
+    if MF_MATERIAL_UUID in main:
+        data.material_uuid = _parse_uuid(main[MF_MATERIAL_UUID])
+    if MF_BRAND_UUID in main:
+        data.brand_uuid = _parse_uuid(main[MF_BRAND_UUID])
+
+
+def _populate_main_fields(data: OpenPrintTagData, main: dict) -> None:
+    """Populate OpenPrintTagData from the decoded main CBOR map."""
+    for key, attr, caster in _SIMPLE_MAIN_FIELDS:
+        if key in main:
+            setattr(data, attr, caster(main[key]))
+
+    _populate_main_uuids(data, main)
+
+    if MF_MATERIAL_CLASS in main:
+        data.material_class = MATERIAL_CLASS_MAP.get(main[MF_MATERIAL_CLASS], f"unknown_{main[MF_MATERIAL_CLASS]}")
+    if MF_MATERIAL_TYPE in main:
+        data.material_type = MATERIAL_TYPE_MAP.get(main[MF_MATERIAL_TYPE], f"unknown_{main[MF_MATERIAL_TYPE]}")
+
+    if MF_PRIMARY_COLOR in main:
+        data.primary_color_hex = _parse_color_rgba(main[MF_PRIMARY_COLOR])
+    if MF_PRIMARY_COLOR_LAB in main:
+        data.primary_color_lab = [float(v) for v in main[MF_PRIMARY_COLOR_LAB]]
+
+    if MF_TAGS in main:
+        data.tags = [TAG_MAP.get(t, f"unknown_{t}") for t in main[MF_TAGS]]
+    if MF_CERTIFICATIONS in main:
+        data.certifications = [MATERIAL_CERTIFICATIONS_MAP.get(c, f"unknown_{c}") for c in main[MF_CERTIFICATIONS]]
+
+
+def encode_aux_consumed_weight(payload: bytes, consumed_weight: float) -> bytes:
+    """Update the consumed_weight in the aux section of an OpenPrintTag payload.
+
+    Args:
+        payload: The original NDEF record payload (CBOR sections).
+        consumed_weight: New consumed weight in grams.
+
+    Returns:
+        Updated payload bytes with the aux section modified.
+
+    """
+    meta, _meta_size = _decode_cbor_map(payload)
+    aux_offset = meta.get(META_AUX_REGION_OFFSET)
+    if aux_offset is None:
+        raise ValueError("Tag has no aux region")
+
+    aux_size = meta.get(META_AUX_REGION_SIZE)
+    if aux_size is None:
+        # Aux extends to end of payload
+        aux_size = len(payload) - aux_offset
+
+    # Read existing aux data to preserve unknown fields. A corrupt or misaligned aux
+    # region can still decode as valid CBOR while not being a map (e.g. a stray zero
+    # byte decodes to the int 0), so the type is checked as well as the decode itself.
+    try:
+        aux_data, _ = _decode_cbor_map(payload[aux_offset : aux_offset + aux_size])
+        if not isinstance(aux_data, dict):
+            aux_data = {}
+    except (cbor2.CBORDecodeError, TypeError, ValueError):
+        aux_data = {}
+
+    aux_data[AUX_CONSUMED_WEIGHT] = consumed_weight
+
+    new_aux = cbor2.dumps(aux_data)
+    if len(new_aux) > aux_size:
+        raise ValueError(f"Encoded aux section ({len(new_aux)} bytes) exceeds region size ({aux_size} bytes)")
+
+    result = bytearray(payload)
+    # Zero the aux region, then write new data
+    result[aux_offset : aux_offset + aux_size] = b"\x00" * aux_size
+    result[aux_offset : aux_offset + len(new_aux)] = new_aux
+    return bytes(result)
