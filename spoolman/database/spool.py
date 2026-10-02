@@ -897,7 +897,7 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
 
     initial_weight = spool_info[0]
     spool_weight = spool_info[2]
-    if initial_weight is None or initial_weight == 0 or spool_weight is None or spool_weight == 0:
+    if initial_weight is None or initial_weight == 0 or spool_weight is None:
         # Get filament weight and spool_weight, and the vendor's empty spool weight as the
         # level below that. The vendor is joined with an outer join on purpose: a filament
         # without a vendor still has to return its row.
@@ -916,7 +916,7 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
         except NoResultFound as exc:
             raise ItemNotFoundError("Filament not found for spool.") from exc
 
-        if spool_weight is None or spool_weight == 0:
+        if spool_weight is None:
             # The filament's tare, and failing that its vendor's. A filament's tare is only a
             # copy of the vendor's, taken when the filament was created, so a tare the vendor
             # was given later never reached it - the same order create() resolves it in.
