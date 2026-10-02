@@ -97,7 +97,7 @@
 	{:else if field.field_type === FieldType.datetime}
 		<span class="mono">{formatDateTime(dtValue) || '—'}</span>
 	{:else if field.field_type === FieldType.boolean}
-		<span>{parsed === true ? m.yes() : m.no()}</span>
+		<span>{parsed === true ? m.yes() : parsed === false ? m.no() : '—'}</span>
 	{:else if field.field_type === FieldType.choice && field.multi_choice}
 		<span>{selected.length ? selected.join(', ') : '—'}</span>
 	{:else if field.field_type === FieldType.text}
