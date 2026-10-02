@@ -21,7 +21,7 @@ class LabelDesigns {
 		if (this.loaded) return;
 		if (this.loadPromise) return this.loadPromise;
 
-		this.loadPromise = (async () => {
+		const loadPromise = (async () => {
 			try {
 				const { designs, isSet } = await getDesignsSetting();
 				// First run (setting never written): pull the v1 client's print presets
@@ -46,7 +46,8 @@ class LabelDesigns {
 				this.loadPromise = null;
 			}
 		})();
-		return this.loadPromise;
+		this.loadPromise = loadPromise;
+		return loadPromise;
 	}
 
 	private async persist(): Promise<void> {
