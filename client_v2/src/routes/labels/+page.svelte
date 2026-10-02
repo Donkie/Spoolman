@@ -34,14 +34,14 @@
 	});
 
 	$effect(() => {
-	void labelDesigns
-		.load()
-		.then(() => {
-			if (selectedId === null && labelDesigns.designs.length > 0) {
-				selectDesign(labelDesigns.designs[0].id);
-			}
-		})
-		.catch((e) => console.error('Failed to load label designs', e));
+		void labelDesigns
+			.load()
+			.then(() => {
+				if (selectedId === null && labelDesigns.designs.length > 0) {
+					selectDesign(labelDesigns.designs[0].id);
+				}
+			})
+			.catch((e) => console.error('Failed to load label designs', e));
 	});
 
 	function clone(d: LabelDesign): LabelDesign {
