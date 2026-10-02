@@ -10,7 +10,9 @@ from typing import TYPE_CHECKING
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field
 from pydantic import ValidationError as PydanticValidationError
+from sqlalchemy import select
 
+from spoolman.database import models
 from spoolman.database import setting as db_setting
 from spoolman.exceptions import ItemNotFoundError
 from spoolman.settings import parse_setting
@@ -295,7 +297,20 @@ async def add_or_update_extra_field(db: AsyncSession, entity_type: EntityType, e
                 and extra_field.choices is not None
                 and not all(choice in extra_field.choices for choice in existing_field.choices)
             ):
-                raise ValueError("Cannot remove existing choices.")
+                removed_choices = set(existing_field.choices) - set(extra_field.choices)
+                field_table = {
+                    EntityType.vendor: models.VendorField,
+                    EntityType.filament: models.FilamentField,
+                    EntityType.spool: models.SpoolField,
+                }[entity_type]
+                stored_values = await db.execute(
+                    select(field_table.value).where(field_table.key == extra_field.key),
+                )
+                for (stored_value,) in stored_values:
+                    decoded_value = json.loads(stored_value)
+                    used_choices = set(decoded_value) if isinstance(decoded_value, list) else {decoded_value}
+                    if removed_choices & used_choices:
+                        raise ValueError("Cannot remove existing choices.")
 
     extra_fields = [field for field in extra_fields if field.key != extra_field.key]
     if len(extra_fields) >= MAX_EXTRA_FIELDS_PER_ENTITY:
