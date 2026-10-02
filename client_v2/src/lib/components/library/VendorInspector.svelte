@@ -170,8 +170,9 @@
 						step={10}
 						min={0}
 						width="200px"
-						value={vendor.emptyWeight}
+						value={vendor.emptyWeight ?? ''}
 						onchange={(v) => set({ emptyWeight: Math.round(v) })}
+						onclear={() => set({ emptyWeight: undefined })}
 					/>
 				</Field>
 				{#if vendor.externalId}
