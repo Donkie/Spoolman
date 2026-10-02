@@ -308,11 +308,7 @@ async def add_or_update_extra_field(db: AsyncSession, entity_type: EntityType, e
                 )
                 for (stored_value,) in stored_values:
                     decoded_value = json.loads(stored_value)
-                    used_choices = (
-                        set(decoded_value)
-                        if isinstance(decoded_value, list)
-                        else {decoded_value}
-                    )
+                    used_choices = set(decoded_value) if isinstance(decoded_value, list) else {decoded_value}
                     if removed_choices & used_choices:
                         raise ValueError("Cannot remove existing choices.")
 

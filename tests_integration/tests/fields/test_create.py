@@ -364,7 +364,7 @@ def test_update_field_add_choice():
 
 
 def test_update_field_remove_choice():
-    """Test updating an existing field and removing a choice, should not be allowed."""
+    """Test updating an existing field and removing an unused choice."""
     result = httpx.post(
         f"{URL}/api/v1/field/spool/mychoicefield",
         json={
@@ -387,8 +387,7 @@ def test_update_field_remove_choice():
             "multi_choice": True,
         },
     )
-    assert result.status_code == 400
-    assert result.json()["message"] == "Cannot remove existing choices."
+    assert_httpx_success(result)
 
     # Clean up
     result = httpx.delete(f"{URL}/api/v1/field/spool/mychoicefield")
