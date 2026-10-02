@@ -35,6 +35,7 @@ Spoolman is a self-hosted web service designed to help you efficiently manage yo
   * [OctoEverywhere](https://octoeverywhere.com/spoolman?source=github_spoolman)
   * [Home Assistant](https://github.com/Disane87/spoolman-homeassistant)
   * [MCP Server](https://github.com/Disane87/spoolman-mcp) - Manage your filament inventory through AI assistants like Claude using the Model Context Protocol
+  * [spoolpalette](https://rezarys.github.io/spoolpalette/) - Reads a spool export and writes a HueForge filament file, with the TD taken from a custom field
 
 **Web client preview:**
 ![The Spoolman web client, showing the spool library with a spool's details open alongside it](.github/media/client-screenshot.png)
