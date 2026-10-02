@@ -277,7 +277,7 @@
             "external_id": "Extern ID",
             "single_color": "Enkel",
             "multi_color": "Meervoudig",
-            "coaxial": "Gecoëxtrudeerde",
+            "coaxial": "Gecoëxtrudeerd",
             "longitudinal": "Longitudinaal"
         },
         "titles": {
@@ -291,11 +291,11 @@
         "filament": "Filamenten",
         "form": {
             "filament_updated": "Dit filament is bijgewerkt door iemand/iets anders sinds je deze pagina geopend hebt. Deze veranderingen worden overschreven als je op slaat!",
-            "import_external_description": "Selecteer een filament in de lijst om de details ervan automatisch in te vullen in het formulier voor het maken van filamenten. Hierdoor worden alle gegevens die u in het formulier hebt ingevoerd, overschreven.<br><br>Er wordt indien nodig automatisch een Fabrikant-object gemaakt als u op OK klikt.",
+            "import_external_description": "Selecteer een filament uit de lijst om de details automatisch aan het formulier voor het maken van filamenten toe te voegen. Hierdoor worden alle gegevens die je in het formulier ingevoerd hebt, overschreven.<br><br>Er wordt indien nodig automatisch een fabrikant-object aangemaakt als je op OK klikt.",
             "import_external": "Importeren van extern"
         },
         "buttons": {
-            "add_spool": "Spoel toevoegen"
+            "add_spool": "Spoel Toevoegen"
         }
     },
     "scanner": {
@@ -314,8 +314,8 @@
         "titles": {
             "show": "Fabrikant tonen",
             "edit": "Fabrikant bewerken",
-            "clone": "Fabrikant klonen",
-            "create": "Fabrikant maken",
+            "clone": "Fabrikant Klonen",
+            "create": "Fabrikant Aanmaken",
             "list": "Fabrikanten",
             "show_title": "[Fabrikant #{{id}}] {{name}}"
         },
@@ -324,8 +324,8 @@
             "comment": "Opmerking",
             "name": "Naam",
             "id": "ID",
-            "empty_spool_weight": "Gewicht lege spoel",
-            "external_id": "Extern ID"
+            "empty_spool_weight": "Gewicht Lege Spoel",
+            "external_id": "Externe ID"
         },
         "vendor": "Fabrikanten",
         "form": {
@@ -350,8 +350,8 @@
     "kofi": "Tip mij op Ko-fi",
     "home": {
         "home": "Thuis",
-        "welcome": "",
-        "description": ""
+        "welcome": "Welkom bij je eigen Spoolman-account!",
+        "description": "Het lijkt erop dat je nog geen spoelen hebt toegevoegd. Zie de <helpPageLink>Help-pagina</helpPageLink> voor hulp bij het opstarten."
     },
     "settings": {
         "header": "Instellingen",
@@ -373,7 +373,7 @@
             "tab": "Extra velden",
             "params": {
                 "name": "Naam",
-                "key": "Key",
+                "key": "Sleutel",
                 "field_type": "Type",
                 "unit": "Eenheid",
                 "order": "Volgorde",
@@ -398,7 +398,8 @@
             "key_not_changed": "Key niet gewijzigd.",
             "delete_confirm": "Veld {{name}} verwijderen?",
             "delete_confirm_description": "Hierdoor worden het veld en alle bijbehorende gegevens voor alle entiteiten verwijderd.",
-            "description": "<p>Hier kunt u extra aangepaste velden toevoegen aan uw entiteiten.</p><p>Zodra een veld is toegevoegd, kunt u de key of het type ervan niet wijzigen, en voor velden met keuzetypes kunt u geen keuzes verwijderen of de meervoudige velden wijzigen. Als u een veld verwijdert, worden de bijbehorende gegevens voor alle entiteiten verwijderd.</p><p>De key is hoe andere programma's de gegevens lezen/schrijven, dus of uw aangepaste veld moet worden geïntegreerd met een derde partij programma, zorg ervoor dat u het correct instelt. De standaardwaarde wordt alleen toegepast op nieuwe items.</p><p>Extra velden kunnen niet worden gesorteerd of gefilterd in de tabelweergaven.</p>"
+            "description": "<p>Hier kunt u extra aangepaste velden toevoegen aan uw entiteiten.</p><p>Zodra een veld is toegevoegd, kunt u de key of het type ervan niet wijzigen, en voor velden met keuzetypes kunt u geen keuzes verwijderen of de meervoudige velden wijzigen. Als u een veld verwijdert, worden de bijbehorende gegevens voor alle entiteiten verwijderd.</p><p>De key is hoe andere programma's de gegevens lezen/schrijven, dus of uw aangepaste veld moet worden geïntegreerd met een derde partij programma, zorg ervoor dat u het correct instelt. De standaardwaarde wordt alleen toegepast op nieuwe items.</p><p>Extra velden kunnen worden weergegeven en gesorteerd in de tabelweergaven. Keuze- en booleaanse-velden bieden daar ook filteropties, en alle typen extra velden ondersteunen het filteren op lege waarden.</p>",
+            "choices_reorder_hint": "Sleep of gebruik de pijltjestoetsen om deze keuze opnieuw te ordenen."
         },
         "settings": "Instellingen"
     },
@@ -407,5 +408,12 @@
         "no_locations_help": "Op deze pagina kunt u uw spoelen op verschillende locaties ordenen. Voeg spoelen toe om aan de slag te gaan!",
         "locations": "Locaties",
         "new_location": "Nieuwe locatie"
-    }
+    },
+    "theme": {
+        "light": "Licht",
+        "dark": "Donker",
+        "system": "Systeem",
+        "label": "Thema"
+    },
+    "sponsor": "Steun me op GitHub"
 }
