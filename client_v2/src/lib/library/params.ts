@@ -47,8 +47,8 @@ const ENTITY_KINDS: EntityKind[] = ['spool', 'filament', 'vendor'];
 /** The params that spell out how the list is laid out, as opposed to what it
  *  holds. A URL naming none of them is the one that defers to the remembered
  *  view; naming any of them describes a view of its own, which is taken whole so
- *  a stored grouping never gets spliced onto a link's sort. */
-const VIEW_PARAMS = ['group', 'sort', 'dir', 'empty'];
+ *  stored settings never get spliced onto a link's explicit view. */
+const VIEW_PARAMS = ['group', 'sort', 'dir', 'empty', 'size'];
 
 const DEFAULTS = {
 	group: 'filament' as GroupMode,
@@ -154,7 +154,7 @@ function currentState(): LibraryState {
 
 /**
  * Where entering the Library on `url` should actually land: the same view with
- * the remembered grouping and sort spelled out in the query string, or null when
+ * the remembered Library settings spelled out in the query string, or null when
  * the URL already describes a view (or there's nothing worth restoring). The
  * Library page navigates there on entry, replacing the history entry — see
  * routes/+page.svelte.
@@ -182,7 +182,8 @@ export function rememberedViewHref(url: URL): string | null {
 		group === DEFAULTS.group &&
 		stored.sortKey === DEFAULTS.sortKey &&
 		stored.sortAsc === DEFAULTS.sortAsc &&
-		stored.showEmpty === DEFAULTS.showEmpty
+		stored.showEmpty === DEFAULTS.showEmpty &&
+		(stored.pageSize ?? DEFAULTS.pageSize) === DEFAULTS.pageSize
 	) {
 		return null;
 	}
@@ -195,7 +196,8 @@ export function rememberedViewHref(url: URL): string | null {
 		group,
 		sortKey: stored.sortKey,
 		sortAsc: stored.sortAsc,
-		showEmpty: stored.showEmpty
+		showEmpty: stored.showEmpty,
+		pageSize: stored.pageSize ?? DEFAULTS.pageSize
 	});
 	return `${url.pathname}?${qs}`;
 }
@@ -217,7 +219,8 @@ function navigate(next: LibraryState, replace = false): void {
 		group: next.group,
 		sortKey: next.sortKey,
 		sortAsc: next.sortAsc,
-		showEmpty: next.showEmpty
+		showEmpty: next.showEmpty,
+		pageSize: next.pageSize
 	});
 
 	const qs = serializeState(next);
