@@ -39,7 +39,9 @@ class SubscriptionTree:
     def remove(self, path: tuple[str, ...], websocket: WebSocket) -> None:
         """Remove a websocket from the subscription tree."""
         if len(path) == 0:
-            self.subscribers.remove(websocket)
+            # A failed broadcast can already have dropped this socket before its
+            # handler receives the disconnect event. Cleanup must be idempotent.
+            self.subscribers.discard(websocket)
         elif path[0] in self.children:
             self.children[path[0]].remove(path[1:], websocket)
 
