@@ -16,7 +16,10 @@ class Settings {
 	async load() {
 		if (typeof localStorage !== 'undefined') {
 			const stored = localStorage.getItem(LOW_THRESHOLD_KEY);
-			if (stored) this.lowThreshold = Number(stored) || this.lowThreshold;
+			if (stored !== null) {
+				const threshold = Number(stored);
+				if (Number.isFinite(threshold)) this.lowThreshold = threshold;
+			}
 		}
 		try {
 			const s = await getSettings();
