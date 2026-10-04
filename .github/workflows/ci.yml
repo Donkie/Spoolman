@@ -370,6 +370,10 @@ jobs:
   test-frontend-v2:
     needs: [build-amd64]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Argos authenticates via OIDC; fork PRs get no id-token and fall back to tokenless upload.
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -397,10 +401,20 @@ jobs:
       - name: Start Spoolman
         run: docker compose -f tests_frontend_v2/docker-compose.yml up -d --wait
 
+      # Screenshots first: they seed a fixed dataset and need the database empty.
+      # The Argos reporter uploads them and posts the visual diff on the PR.
+      - name: Take client_v2 screenshots
+        env:
+          ARGOS_UPLOAD: "1"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd tests_frontend_v2
+          npx playwright test --project screenshots
+
       - name: Run client_v2 frontend integration tests
         run: |
           cd tests_frontend_v2
-          npx playwright test
+          npx playwright test --project chromium
 
       - name: Dump Spoolman logs on failure
         if: failure()
