@@ -54,7 +54,7 @@
 	// both ends of the disagreement so the number in force is never ambiguous —
 	// same treatment the spool panel gives the fields it shares with a filament.
 	let tareShadowsVendor = $derived(
-		filament.spoolWeight != null && !!vendor?.emptyWeight && filament.spoolWeight !== vendor.emptyWeight
+		filament.spoolWeight != null && vendor?.emptyWeight != null && filament.spoolWeight !== vendor.emptyWeight
 	);
 	let tareOverride = $derived(
 		tareShadowsVendor
@@ -388,7 +388,7 @@
 						unit="g"
 						step={10}
 						min={0}
-						placeholder={vendor?.emptyWeight
+						placeholder={vendor?.emptyWeight != null
 							? m['inspector.defaultFrom.manufacturer']({ value: String(vendor.emptyWeight) })
 							: '—'}
 						value={filament.spoolWeight ?? ''}

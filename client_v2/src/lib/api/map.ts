@@ -34,7 +34,7 @@ export function mapVendor(v: Json): Vendor {
 	return {
 		id: String(v.id),
 		name: v.name ?? '(unnamed manufacturer)',
-		emptyWeight: v.empty_spool_weight ?? 0,
+		emptyWeight: v.empty_spool_weight ?? undefined,
 		comment: v.comment ?? '',
 		externalId: v.external_id ?? undefined,
 		registeredLabel: formatShortDate(v.registered),
@@ -255,7 +255,7 @@ export function filamentPatchToApi(patch: FilamentPatch): Json {
 export function vendorPatchToApi(patch: VendorPatch): Json {
 	const out: Json = {};
 	if ('name' in patch) out.name = patch.name;
-	if ('emptyWeight' in patch) out.empty_spool_weight = patch.emptyWeight;
+	if ('emptyWeight' in patch) out.empty_spool_weight = patch.emptyWeight ?? null;
 	if ('comment' in patch) out.comment = patch.comment ?? '';
 	if ('extra' in patch) out.extra = patch.extra;
 	return out;
