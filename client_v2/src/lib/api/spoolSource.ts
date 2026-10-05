@@ -269,12 +269,23 @@ class HttpSpoolSource {
 			inventory.upsertVendor(mapVendor(vendors[0]));
 			vendorId = vendors[0].id;
 		} else {
-			const created = await postJson<Json>('/vendor', {
-				name: ext.manufacturer,
-				external_id: ext.manufacturer
-			});
-			inventory.upsertVendor(mapVendor(created));
-			vendorId = created.id;
+			// A manually-created vendor has no external_id, but should still be reused
+			// when its name matches the SpoolmanDB manufacturer (#1181).
+			const byName = await getJson<Json[]>('/vendor');
+			const match = byName.find(
+				(v) => (v.name ?? '').trim().toLowerCase() === ext.manufacturer.trim().toLowerCase()
+			);
+			if (match) {
+				inventory.upsertVendor(mapVendor(match));
+				vendorId = match.id;
+			} else {
+				const created = await postJson<Json>('/vendor', {
+					name: ext.manufacturer,
+					external_id: ext.manufacturer
+				});
+				inventory.upsertVendor(mapVendor(created));
+				vendorId = created.id;
+			}
 		}
 
 		const body: Json = {
