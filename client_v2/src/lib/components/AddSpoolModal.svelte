@@ -277,7 +277,7 @@
 		chosen = c;
 		netWeight = String(cWeight(c) || 1000);
 		const sw = cSpoolWeight(c);
-		spoolWeight = sw ? String(sw) : '';
+		spoolWeight = sw != null ? String(sw) : '';
 		const p = cPrice(c);
 		price = p ? String(p) : '';
 		resetSpoolForm();
@@ -387,7 +387,7 @@
 			const body: Record<string, unknown> = {
 				filament_id: filamentId,
 				initial_weight: Number(netWeight) || undefined,
-				spool_weight: Number(spoolWeight) || undefined,
+				spool_weight: spoolWeight.trim() === '' ? undefined : Number(spoolWeight),
 				price: parseFloat(price) || undefined,
 				location: location.trim() || undefined,
 				lot_nr: lot.trim() || undefined,
