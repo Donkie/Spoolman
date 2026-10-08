@@ -91,7 +91,7 @@ export function filamentDraftFrom(f: Filament, vendorName: string): FilamentDraf
 export function filamentWeightsFrom(f: Filament): FilamentWeights {
 	return {
 		weight: String(f.weight || 1000),
-		spoolWeight: f.spoolWeight ? String(f.spoolWeight) : '',
+		spoolWeight: f.spoolWeight != null ? String(f.spoolWeight) : '',
 		price: f.price ? String(f.price) : ''
 	};
 }
@@ -179,7 +179,7 @@ function num(v: string): number | undefined {
 }
 
 /**
- * Same, but treating zero as "not given". The weight/price trio is optional on a
+ * Same, but treating zero as "not given". Weight and price are optional on a
  * filament and a recorded zero says nothing a missing value doesn't, so a blank
  * and a typed 0 are sent identically rather than pinning the record to 0.
  */
@@ -202,7 +202,7 @@ export function toNewFilamentDraft(
 		density: num(draft.density) ?? 0,
 		diameter: numPos(draft.diameter) ?? Number(DEFAULT_DIAMETER),
 		weight: numPos(weights.weight),
-		spoolWeight: numPos(weights.spoolWeight),
+		spoolWeight: num(weights.spoolWeight),
 		colors: draft.colors,
 		multiColorDirection: draft.multiColorDirection,
 		nozzleTemp: numPos(draft.nozzleTemp),

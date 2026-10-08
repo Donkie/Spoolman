@@ -335,7 +335,7 @@ class HttpSpoolSource {
 			density: draft.density,
 			diameter: draft.diameter,
 			weight: draft.weight || undefined,
-			spool_weight: draft.spoolWeight || undefined,
+			spool_weight: draft.spoolWeight ?? undefined,
 			settings_extruder_temp: draft.nozzleTemp || undefined,
 			settings_bed_temp: draft.bedTemp || undefined,
 			price: draft.price || undefined,
