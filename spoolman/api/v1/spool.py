@@ -451,7 +451,8 @@ async def notify_any(
         "in-use count, total remaining weight and most recent usage. Pagination is over groups, so "
         "a group is never split and its aggregates are always complete. Uses the same filters as "
         "the spool search endpoint. The total number of matching groups is returned in the "
-        "x-total-count header."
+        "x-total-count header, and the spool count and remaining weight (grams) summed over all "
+        "matching groups in the x-total-spools and x-total-remaining-weight headers."
     ),
     response_model_exclude_none=True,
     responses={
@@ -548,12 +549,24 @@ async def find_groups(
         Query(
             title="Include Empty",
             description=(
-                "Also return matching filaments that hold no matching spools, as groups of zero, "
-                "instead of omitting them. Only valid together with group_by=filament: every "
-                "other axis is keyed by a value read off the spools themselves and so has no "
-                "empty groups to list. Filters on the spools themselves (location, lot_nr, the "
-                "date filters, spool extra fields) are rejected in combination with it, since a "
-                "filament with no spools has no value for them."
+                "Also return matching filaments (group_by=filament) or manufacturers "
+                "(group_by=vendor) that hold no matching spools, as groups of zero, instead of "
+                "omitting them. In vendor mode the group of filaments with no manufacturer is not "
+                "listed, since this mode lists manufacturers. Every other axis is keyed by a value "
+                "read off the spools themselves and so has no empty groups to list. Filters on the "
+                "spools themselves (location, lot_nr, the date filters, spool extra fields) are "
+                "rejected in combination with it, since a filament with no spools has no value for them."
+            ),
+        ),
+    ] = False,
+    preview: Annotated[
+        bool,
+        Query(
+            title="Preview",
+            description=(
+                "Attach a few members to each group: up to 5 spools (id, remaining_weight, "
+                "initial_weight) for group_by=filament, up to 4 filaments (id and colors) for "
+                "group_by=vendor. Ignored for other axes."
             ),
         ),
     ] = False,
@@ -566,7 +579,8 @@ async def find_groups(
             title="Sort",
             description=(
                 'Sort the groups by the given field. Comma-separated "field:direction" items. '
-                "Available fields: group.title, group.total_remaining, group.last_used, "
+                "Available fields: group.title, group.vendor_name (manufacturer name, groups with "
+                "no manufacturer last), group.total_remaining, group.last_used, "
                 "group.spool_count, group.in_use_count."
             ),
             examples=["group.last_used:desc"],
@@ -592,7 +606,7 @@ async def find_groups(
     spool_extra, filament_extra, vendor_extra = _parse_extra_field_filters(request.query_params)
 
     try:
-        groups, total_count = await spool.find_groups(
+        page = await spool.find_groups(
             db=db,
             group_by=group_by,
             filament_name=filament_name,
@@ -614,6 +628,7 @@ async def find_groups(
             limit=limit,
             offset=offset,
             include_empty=include_empty,
+            preview=preview,
         )
     except ValueError as e:
         return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
@@ -628,12 +643,19 @@ async def find_groups(
             last_used=group.last_used,
             filament=Filament.from_db(group.filament) if group.filament is not None else None,
             vendor=Vendor.from_db(group.vendor) if group.vendor is not None else None,
+            filament_count=group.filament_count,
+            spools=group.spools,
+            filaments=group.filaments,
         )
-        for group in groups
+        for group in page.groups
     ]
     return JSONResponse(
         content=jsonable_encoder(content, exclude_none=True),
-        headers={"x-total-count": str(total_count)},
+        headers={
+            "x-total-count": str(page.total_count),
+            "x-total-spools": str(page.total_spools),
+            "x-total-remaining-weight": str(page.total_remaining_weight),
+        },
     )
 
 

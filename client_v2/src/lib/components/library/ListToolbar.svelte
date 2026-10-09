@@ -33,6 +33,10 @@
 	// Named libraryState, not `state`, to avoid shadowing the $state rune.
 	let { libraryState }: { libraryState: LibraryState } = $props();
 
+	// The catalog sub-views (filaments, manufacturers) reuse this toolbar with the
+	// few groupings, orders and filters a list of filaments can answer.
+	let catalog = $derived(params.isCatalogView(libraryState));
+
 	type Menu = 'filter' | 'group' | 'sort' | null;
 	let open = $state<Menu>(null);
 
@@ -195,7 +199,14 @@
 				}))
 		)
 	);
-	let filterCategories = $derived([...BASE_FILTERS, ...DATE_FILTERS, ...extraFilters]);
+	let allCategories = $derived([...BASE_FILTERS, ...DATE_FILTERS, ...extraFilters]);
+	// A catalog row is a filament (or a manufacturer), so only what a filament
+	// answers is offered: no spool facts, and no filament picker in a list of them.
+	let filterCategories = $derived(
+		catalog
+			? allCategories.filter((c) => c.key !== 'filament' && !params.isSpoolScopedFilter(c.key))
+			: allCategories
+	);
 
 	// Resolve a filter prop back to the extra-field entity + definition it came from.
 	function extraFieldFor(prop: string): { entity: EntityType; def: FieldDef } | undefined {
@@ -260,7 +271,13 @@
 		close();
 	}
 
-	let sorts = $derived(sortDefs(fields.get('spool')));
+	// The orders the group endpoint can page a catalog by (params.CATALOG_SORTS).
+	const CATALOG_SORT_DEFS: SortDef[] = [
+		{ key: 'name', labelKey: m['filament.fields.name'], section: 'filament' },
+		{ key: 'remaining_weight', labelKey: m['spool.fields.remainingWeight'], section: 'spool' },
+		{ key: 'last_used', labelKey: m['spool.fields.lastUsed'], section: 'spool' }
+	];
+	let sorts = $derived(catalog ? CATALOG_SORT_DEFS : sortDefs(fields.get('spool')));
 	let activeSort = $derived(sorts.find((s) => s.key === libraryState.sortKey) ?? sorts[0]);
 
 	const groupOptions: { key: GroupMode; labelKey: () => string }[] = [
@@ -270,12 +287,19 @@
 		{ key: 'location', labelKey: m['spool.fields.location'] },
 		{ key: 'none', labelKey: m['library.groupNone'] }
 	];
+	// The filament catalog sections by manufacturer or not at all; the manufacturer
+	// catalog has nothing to group by and shows no Group control.
+	const catalogGroupOptions: typeof groupOptions = [
+		{ key: 'vendor', labelKey: m['filament.fields.vendor'] },
+		{ key: 'none', labelKey: m['library.groupNone'] }
+	];
+	let groupChoices = $derived(catalog ? catalogGroupOptions : groupOptions);
 	let groupLabel = $derived(
-		groupOptions.find((g) => g.key === libraryState.group)?.labelKey() ?? m['spool.fields.filament']
+		groupChoices.find((g) => g.key === libraryState.group)?.labelKey() ?? m['spool.fields.filament']
 	);
 
 	function chipLabel(prop: string, value: string): string {
-		const c = filterCategories.find((x) => x.key === prop);
+		const c = allCategories.find((x) => x.key === prop);
 		const label = c?.label() ?? prop;
 		// Date filters hold a range, whose value is grammar rather than something to
 		// show ("-24h.." reads as "Last 24 hours").
@@ -314,10 +338,13 @@
 		{ key: 'vendor', labelKey: m['library.section.vendor'] },
 		{ key: 'extra', labelKey: m['library.section.extra'] }
 	];
+	// Three catalog orders need no sections to find one's way through.
 	let sortSections = $derived(
-		SORT_SECTIONS.map((sec) => ({ ...sec, items: sorts.filter((s) => s.section === sec.key) })).filter(
-			(s) => s.items.length
-		)
+		catalog
+			? [{ key: 'catalog', labelKey: undefined, items: sorts }]
+			: SORT_SECTIONS.map((sec) => ({ ...sec, items: sorts.filter((s) => s.section === sec.key) })).filter(
+					(s) => s.items.length
+				)
 	);
 
 	// --- searchable menus (issue #1045) -------------------------------------
@@ -412,10 +439,12 @@
 	</div>
 
 	<div class="controls">
-		<button class="link-btn" onclick={() => toggle('group')}
-			><span class="ctrl-label">{m['library.groupBy']()}: </span>{groupLabel}
-			<ChevronDown size={13} /></button
-		>
+		{#if libraryState.view !== 'manufacturers'}
+			<button class="link-btn" onclick={() => toggle('group')}
+				><span class="ctrl-label">{m['library.groupBy']()}: </span>{groupLabel}
+				<ChevronDown size={13} /></button
+			>
+		{/if}
 		<!-- One chip, two controls (#1091): the field opens the menu, the arrow only
 		     flips the direction. Reversing an order used to mean reopening the menu
 		     and hunting down the field that was already selected. A divider and a
@@ -590,7 +619,7 @@
 
 	{#if open === 'group'}
 		<div class="menu group-menu">
-			{#each groupOptions as g (g.key)}
+			{#each groupChoices as g (g.key)}
 				<button
 					class="menu-item"
 					class:sel={libraryState.group === g.key}
@@ -617,7 +646,7 @@
 				/>
 			{/if}
 			{#each visibleSortSections as sec (sec.key)}
-				<div class="menu-title">{sec.labelKey()}</div>
+				{#if sec.labelKey}<div class="menu-title">{sec.labelKey()}</div>{/if}
 				{#each sec.items as it (it.key)}
 					<button
 						class="menu-item"

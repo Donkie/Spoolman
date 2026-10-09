@@ -12,6 +12,9 @@
 		pageSize: number;
 		total: number;
 		unit?: string;
+		/** Replaces the "1–20 of 50" range with the caller's own line, e.g. the
+		 *  catalog's "11 filaments · 23 spools · 15.1 kg". */
+		summary?: string;
 		onpage: (page: number) => void;
 		onpagesize: (size: number) => void;
 		/** When set, page controls render as real `<a href>` links (open-in-new-tab,
@@ -19,11 +22,15 @@
 		hrefFor?: (page: number) => string;
 	}
 
-	let { page, pageSize, total, unit = '', onpage, onpagesize, hrefFor }: Props = $props();
+	let { page, pageSize, total, unit = '', summary, onpage, onpagesize, hrefFor }: Props = $props();
 
 	let pageCount = $derived(Math.max(1, Math.ceil(total / pageSize)));
 	let from = $derived(total === 0 ? 0 : (page - 1) * pageSize + 1);
 	let to = $derived(Math.min(total, page * pageSize));
+	let countLabel = $derived(
+		summary ??
+			(total === 0 ? m['pagination.empty']({ unit }) : m['pagination.range']({ from, to, total, unit }))
+	);
 
 	// Windowed page numbers with 1 … n … last.
 	let pages = $derived.by(() => {
@@ -48,14 +55,7 @@
 </script>
 
 <div class="pager">
-	<span class="count">
-		{#if total === 0}{m['pagination.empty']({ unit })}{:else}{m['pagination.range']({
-				from,
-				to,
-				total,
-				unit
-			})}{/if}
-	</span>
+	<span class="count">{countLabel}</span>
 
 	<div class="spacer"></div>
 

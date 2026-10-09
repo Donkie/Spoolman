@@ -5,6 +5,7 @@ import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import Any
 
 import sqlalchemy
 from sqlalchemy import ColumnElement, case, func
@@ -13,7 +14,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 from sqlalchemy.sql.functions import coalesce
 
-from spoolman.api.v1.models import EventType, Spool, SpoolEvent
+from spoolman.api.v1.models import (
+    EventType,
+    Spool,
+    SpoolEvent,
+    SpoolGroupPreviewFilament,
+    SpoolGroupPreviewSpool,
+    _sanitize_color_hex,
+    _sanitize_multi_color_hexes,
+)
 from spoolman.database import filament, models
 from spoolman.database.extra_field_query import (
     ExtraFieldJoin,
@@ -258,6 +267,13 @@ ENTITY_GROUP_BY_TITLES = {
     "vendor": models.Vendor.name,
 }
 
+# The group key and title of the two axes include_empty can list, which select FROM the entity
+# itself (see _entities_with_their_spools_stmt) rather than reading it off the spools.
+EMPTY_GROUP_COLUMNS = {
+    "filament": (models.Filament.id, models.Filament.name),
+    "vendor": (models.Vendor.id, models.Vendor.name),
+}
+
 # Prefix marking a reference to one of the spool's extra fields rather than a built-in column.
 EXTRA_FIELD_PREFIX = "extra."
 
@@ -288,6 +304,7 @@ def _apply_filament_filters(
     stmt: sqlalchemy.Select,
     *,
     filament_id_column: ColumnElement,
+    vendor_id_column: ColumnElement = models.Filament.vendor_id,
     filament_name: str | None = None,
     filament_id: int | Sequence[int] | None = None,
     filament_material: str | None = None,
@@ -301,11 +318,14 @@ def _apply_filament_filters(
     its own, with no spool involved -- which is exactly what the query behind include_empty needs
     (see find_groups). `filament_id_column` names whichever column holds the filament's id in the
     query at hand: Spool.filament_id when selecting spools, Filament.id when selecting filaments.
+    `vendor_id_column` likewise: the vendor-listing query selects FROM Vendor, where a vendor with
+    no filaments has a NULL Filament.vendor_id, so a `vendor.id` filter must test Vendor.id there
+    or it would silently drop the very manufacturers that mode exists to list.
 
     Assumes Filament and Vendor are already joined.
     """
     stmt = add_where_clause_int(stmt, filament_id_column, filament_id)
-    stmt = add_where_clause_int_opt(stmt, models.Filament.vendor_id, vendor_id)
+    stmt = add_where_clause_int_opt(stmt, vendor_id_column, vendor_id)
     stmt = add_where_clause_str(stmt, models.Vendor.name, vendor_name)
     stmt = add_where_clause_str_opt(stmt, models.Filament.name, filament_name)
     stmt = add_where_clause_str_opt(stmt, models.Filament.material, filament_material)
@@ -439,6 +459,37 @@ class SpoolGroupResult:
     last_used: datetime | None
     filament: models.Filament | None
     vendor: models.Vendor | None
+    # Only for group_by=vendor: the number of distinct filaments behind the group.
+    filament_count: int | None = None
+    # Only with `preview` (see find_groups): a few of the group's members, for the list to draw.
+    spools: list[SpoolGroupPreviewSpool] | None = None
+    filaments: list[SpoolGroupPreviewFilament] | None = None
+
+
+def _axis_columns(group_by: str) -> tuple[ColumnElement, ...]:
+    """Extra columns only some axes select, so every other axis' SQL stays exactly as it was."""
+    if group_by == "vendor":
+        return (func.count(sqlalchemy.distinct(models.Filament.id)).label("filament_count"),)
+    return ()
+
+
+@dataclass
+class SpoolGroupsPage:
+    """One page of groups plus the totals over ALL matching groups (before pagination)."""
+
+    groups: list[SpoolGroupResult]
+    total_count: int
+    # Sums of the per-group aggregates across every matching group, not just this page, so a list
+    # can show "N spools, X g" for the whole result without fetching it.
+    total_spools: int
+    total_remaining_weight: float
+
+
+# How many members a group's `preview` carries. The list draws a row of pips / swatches per group,
+# and a few are enough to recognise the group by; the full set is one spool/filament search away.
+# Capped here (in Python, after one query) rather than in SQL, which would need a window function.
+PREVIEW_SPOOL_LIMIT = 5
+PREVIEW_FILAMENT_LIMIT = 4
 
 
 def _group_aggregates() -> tuple[ColumnElement, ColumnElement, ColumnElement, ColumnElement]:
@@ -486,15 +537,15 @@ SPOOL_SCOPED_FILTERS = ("location", "lot_nr", "first_used", "last_used", "regist
 
 
 def _reject_spool_scoped_filters(group_by: str, filters: dict[str, object]) -> None:
-    """Refuse an include_empty query that also filters on the spools themselves.
+    """Refuse an include_empty query on an unsupported axis or with filters on the spools themselves.
 
     "Which of these filaments are on Shelf A" has no answer for a filament that is nowhere: it
     would either drop every empty group (making the flag a no-op) or return the whole catalogue
-    as empty. Both are worse than saying so.
+    as empty. Both are worse than saying so. The same holds for a manufacturer.
     """
-    if group_by != "filament":
+    if group_by not in ("filament", "vendor"):
         raise ValueError(
-            f"include_empty is only supported when grouping by filament, not by '{group_by}'.",
+            f"include_empty is only supported when grouping by filament or vendor, not by '{group_by}'.",
         )
     named = [name for name in SPOOL_SCOPED_FILTERS if filters.get(name) is not None]
     if filters.get("extra_field_filters"):
@@ -506,9 +557,10 @@ def _reject_spool_scoped_filters(group_by: str, filters: dict[str, object]) -> N
         )
 
 
-def _filaments_with_their_spools_stmt(
+def _entities_with_their_spools_stmt(
     *,
-    aggregates: tuple[ColumnElement, ...],
+    group_by: str,
+    columns: tuple[ColumnElement, ...],
     allow_archived: bool,
     filament_name: str | None,
     filament_id: int | Sequence[int] | None,
@@ -517,12 +569,12 @@ def _filaments_with_their_spools_stmt(
     vendor_name: str | None,
     vendor_id: int | Sequence[int] | None,
 ) -> sqlalchemy.Select:
-    """Select every matching filament with its spools outer-joined on, aggregates and all.
+    """Select every matching filament (or vendor) with its spools outer-joined on, aggregates and all.
 
-    The inverse of the usual grouping query: it reads its rows from the filaments rather than
-    from the spools, so a filament with no spools still produces one (see find_groups'
-    include_empty). Only the FROM differs -- the caller groups, orders and pages it exactly like
-    the spool-driven query.
+    The inverse of the usual grouping query: it reads its rows from the filaments (or the
+    vendors) rather than from the spools, so an entity with no spools still produces one (see
+    find_groups' include_empty). Only the FROM differs -- the caller groups, orders and pages it
+    exactly like the spool-driven query.
     """
     # The archived rule is the one spool-level condition that reaches this query, and it has to
     # ride in the JOIN rather than the WHERE: hiding a filament's archived spools must leave the
@@ -530,15 +582,30 @@ def _filaments_with_their_spools_stmt(
     join_cond = [models.Spool.filament_id == models.Filament.id]
     if not allow_archived:
         join_cond.append(_not_archived())
-    stmt = (
-        sqlalchemy.select(models.Filament.id.label("group_key"), *aggregates)
-        .select_from(models.Filament)
-        .outerjoin(models.Spool, sqlalchemy.and_(*join_cond))
-        .join(models.Filament.vendor, isouter=True)
-    )
+    if group_by == "vendor":
+        # Vendor first, filaments and spools hanging off it by outer joins: a manufacturer with no
+        # filaments is a row of NULLs for both, which the aggregates score as zero. No FULL OUTER
+        # JOIN needed, and none available on MySQL. Filament filters then land in the WHERE and so
+        # drop a vendor with no matching filament -- "the manufacturers of these filaments".
+        stmt = (
+            sqlalchemy.select(models.Vendor.id.label("group_key"), *columns)
+            .select_from(models.Vendor)
+            .outerjoin(models.Filament, models.Filament.vendor_id == models.Vendor.id)
+            .outerjoin(models.Spool, sqlalchemy.and_(*join_cond))
+        )
+        filament_id_column, vendor_id_column = models.Filament.id, models.Vendor.id
+    else:
+        stmt = (
+            sqlalchemy.select(models.Filament.id.label("group_key"), *columns)
+            .select_from(models.Filament)
+            .outerjoin(models.Spool, sqlalchemy.and_(*join_cond))
+            .join(models.Filament.vendor, isouter=True)
+        )
+        filament_id_column, vendor_id_column = models.Filament.id, models.Filament.vendor_id
     return _apply_filament_filters(
         stmt,
-        filament_id_column=models.Filament.id,
+        filament_id_column=filament_id_column,
+        vendor_id_column=vendor_id_column,
         filament_name=filament_name,
         filament_id=filament_id,
         filament_material=filament_material,
@@ -546,6 +613,33 @@ def _filaments_with_their_spools_stmt(
         vendor_name=vendor_name,
         vendor_id=vendor_id,
     )
+
+
+def _order_groups(
+    stmt: sqlalchemy.Select,
+    order_exprs: dict[str, list[ColumnElement]],
+    sort_by: dict[str, SortOrder] | None,
+    *,
+    default_expr: ColumnElement,
+    group_col: ColumnElement,
+) -> sqlalchemy.Select:
+    """Order the groups by the requested fields, defaulting to the title, with a total-order tiebreak."""
+    applied_sort = False
+    if sort_by:
+        for fieldstr, order in sort_by.items():
+            exprs = order_exprs.get(fieldstr)
+            if exprs is None:
+                continue
+            stmt = stmt.order_by(*order_by_clauses(exprs, order))
+            applied_sort = True
+    if not applied_sort:
+        stmt = stmt.order_by(*order_by_clauses([default_expr], SortOrder.ASC))
+    # Break ties on the grouped column itself, so paging partitions the groups instead of
+    # dropping or repeating one. Every ordering above can tie -- two filaments share a name, two
+    # groups hold the same number of spools, and every empty group ties on all four aggregates --
+    # and without a total order the database may answer "the first 20" and "the next 20" from two
+    # different arrangements of the same rows.
+    return stmt.order_by(group_col.asc())
 
 
 async def find_groups(
@@ -571,7 +665,8 @@ async def find_groups(
     limit: int | None = None,
     offset: int = 0,
     include_empty: bool = False,
-) -> tuple[list[SpoolGroupResult], int]:
+    preview: bool = False,
+) -> SpoolGroupsPage:
     """Group matching spools by one axis and return per-group aggregates.
 
     Aggregation, group ordering and pagination happen in the database. Pagination is over
@@ -583,13 +678,38 @@ async def find_groups(
     The flag turns the query around to select FROM the filaments and outer-join the spools onto
     them; a filament with none still yields its row, and the aggregates above are written to come
     out as zero for it. Everything past this point -- ordering, paging, hydration -- is the same
-    code either way. Only `group_by="filament"` supports it, and only without spool-level filters
-    (see _reject_spool_scoped_filters).
+    code either way. Only `group_by="filament"` and `"vendor"` support it, and only without
+    spool-level filters (see _reject_spool_scoped_filters). For vendor it lists the manufacturers,
+    so the group of filaments with NO manufacturer (key null) does not appear in that mode.
 
-    Returns a tuple of the requested page of groups and the total number of matching groups.
+    `group_by="vendor"` groups also carry `filament_count`, the distinct filaments behind the
+    group: with include_empty every matching filament of the manufacturer, otherwise only those
+    that have a matching spool.
+
+    `preview` attaches a few members to each group on the filament and vendor axes (see
+    _attach_previews); other axes ignore it.
+
+    Returns the requested page of groups plus the totals over all matching groups.
     """
     aggregates = _group_aggregates()
     spool_count, in_use_count, total_remaining, last_used_agg = aggregates
+    columns = (*aggregates, *_axis_columns(group_by))
+    # The filters the spool-driven query applies, kept in one place because the preview query has
+    # to apply exactly the same ones.
+    spool_filters: dict[str, Any] = {
+        "filament_name": filament_name,
+        "filament_id": filament_id,
+        "filament_material": filament_material,
+        "filament_multi_color_direction": filament_multi_color_direction,
+        "vendor_name": vendor_name,
+        "vendor_id": vendor_id,
+        "location": location,
+        "lot_nr": lot_nr,
+        "allow_archived": allow_archived,
+        "first_used": first_used,
+        "last_used": last_used,
+        "registered": registered,
+    }
 
     if include_empty:
         _reject_spool_scoped_filters(
@@ -603,9 +723,10 @@ async def find_groups(
                 "extra_field_filters": extra_field_filters,
             },
         )
-        group_col, title_col = models.Filament.id, models.Filament.name
-        stmt = _filaments_with_their_spools_stmt(
-            aggregates=aggregates,
+        group_col, title_col = EMPTY_GROUP_COLUMNS[group_by]
+        stmt = _entities_with_their_spools_stmt(
+            group_by=group_by,
+            columns=columns,
             allow_archived=allow_archived,
             filament_name=filament_name,
             filament_id=filament_id,
@@ -617,19 +738,8 @@ async def find_groups(
     else:
         group_col, title_col, extra_join = await _resolve_group_by(db, group_by)
         stmt = _apply_spool_filters(
-            sqlalchemy.select(group_col.label("group_key"), *aggregates),
-            filament_name=filament_name,
-            filament_id=filament_id,
-            filament_material=filament_material,
-            filament_multi_color_direction=filament_multi_color_direction,
-            vendor_name=vendor_name,
-            vendor_id=vendor_id,
-            location=location,
-            lot_nr=lot_nr,
-            allow_archived=allow_archived,
-            first_used=first_used,
-            last_used=last_used,
-            registered=registered,
+            sqlalchemy.select(group_col.label("group_key"), *columns),
+            **spool_filters,
         )
         if extra_join is not None:
             stmt = extra_join.apply(stmt, models.Spool.id)
@@ -643,7 +753,9 @@ async def find_groups(
         )
 
     # A filament's (or its vendor's) extra fields describe the filament, so they apply either way
-    # -- reached through the spool in one query and off the filament directly in the other.
+    # -- reached through the spool in one query and off the filament directly in the other. In the
+    # vendor listing that makes them WHERE conditions on the outer-joined filament, so a vendor
+    # filter on an extra field also drops a filament-less vendor (its Filament.id is NULL).
     stmt = await apply_spool_related_extra_filters(
         db=db,
         stmt=stmt,
@@ -653,38 +765,38 @@ async def find_groups(
     )
     stmt = stmt.group_by(group_col)
 
-    # Total number of matching groups (before pagination).
-    count_stmt = sqlalchemy.select(func.count()).select_from(stmt.order_by(None).subquery())
-    total_count = (await db.execute(count_stmt)).scalar_one()
+    # Total number of matching groups (before pagination), and the sums of two aggregates over
+    # them, all from the one query over the grouped subquery. SUM of no rows is NULL, folded to zero
+    # in Python rather than with COALESCE: CockroachDB sums an INT column to DECIMAL and rejects
+    # an int or float literal as the COALESCE fallback. The sums come back as DECIMAL on
+    # PostgreSQL and CockroachDB, hence the conversions below.
+    grouped = stmt.order_by(None).subquery()
+    count_stmt = sqlalchemy.select(
+        func.count(),
+        func.sum(grouped.c.spool_count),
+        func.sum(grouped.c.total_remaining_weight),
+    ).select_from(grouped)
+    total_count, total_spools, total_remaining_sum = (await db.execute(count_stmt)).one()
 
     # Group ordering. Every option is an aggregate (or the grouped column), so no non-grouped
     # bare column is referenced — portable across SQLite, PostgreSQL, MySQL and CockroachDB.
     # Ordering by `group.last_used` ranks each group by its most recently used spool, which is
     # what a library sorted on "last used" is expected to show; groups holding nothing but
     # unused spools aggregate to NULL and belong at the bottom, hence order_by_clauses.
+    # Each option is a list: `group.vendor_name` is the manufacturer's name and then its id, so two
+    # vendors sharing a name do not interleave across pages. Aggregates, like the title, because the
+    # filament axis groups by filament and a bare Vendor column would not be grouped; a filament
+    # with no manufacturer is NULL on both and so goes last (order_by_clauses). It exists for paging
+    # filament groups in manufacturer sections.
     order_exprs = {
-        "group.spool_count": spool_count,
-        "group.in_use_count": in_use_count,
-        "group.total_remaining": total_remaining,
-        "group.last_used": last_used_agg,
-        "group.title": func.min(title_col),
+        "group.spool_count": [spool_count],
+        "group.in_use_count": [in_use_count],
+        "group.total_remaining": [total_remaining],
+        "group.last_used": [last_used_agg],
+        "group.title": [func.min(title_col)],
+        "group.vendor_name": [func.min(models.Vendor.name), func.min(models.Vendor.id)],
     }
-    applied_sort = False
-    if sort_by:
-        for fieldstr, order in sort_by.items():
-            expr = order_exprs.get(fieldstr)
-            if expr is None:
-                continue
-            stmt = stmt.order_by(*order_by_clauses([expr], order))
-            applied_sort = True
-    if not applied_sort:
-        stmt = stmt.order_by(*order_by_clauses([func.min(title_col)], SortOrder.ASC))
-    # Break ties on the grouped column itself, so paging partitions the groups instead of
-    # dropping or repeating one. Every ordering above can tie -- two filaments share a name, two
-    # groups hold the same number of spools, and every empty group ties on all four aggregates --
-    # and without a total order the database may answer "the first 20" and "the next 20" from two
-    # different arrangements of the same rows.
-    stmt = stmt.order_by(group_col.asc())
+    stmt = _order_groups(stmt, order_exprs, sort_by, default_expr=func.min(title_col), group_col=group_col)
 
     if limit is not None:
         stmt = stmt.offset(offset).limit(limit)
@@ -707,7 +819,7 @@ async def find_groups(
         vstmt = sqlalchemy.select(models.Vendor).where(models.Vendor.id.in_(keys))
         vendor_map = {v.id: v for v in (await db.execute(vstmt)).unique().scalars().all()}
 
-    return [
+    results = [
         SpoolGroupResult(
             key=row.group_key,
             spool_count=int(row.spool_count or 0),
@@ -716,9 +828,181 @@ async def find_groups(
             last_used=row.last_used,
             filament=filament_map.get(row.group_key) if group_by == "filament" else None,
             vendor=vendor_map.get(row.group_key) if group_by == "vendor" else None,
+            filament_count=int(row.filament_count or 0) if group_by == "vendor" else None,
         )
         for row in rows
-    ], total_count
+    ]
+    if preview:
+        await _attach_previews(
+            db=db,
+            group_by=group_by,
+            results=results,
+            keys=keys,
+            spool_filters=spool_filters,
+            extra_field_filters=extra_field_filters,
+            filament_extra_field_filters=filament_extra_field_filters,
+            vendor_extra_field_filters=vendor_extra_field_filters,
+        )
+    return SpoolGroupsPage(
+        groups=results,
+        total_count=total_count,
+        total_spools=int(total_spools or 0),
+        total_remaining_weight=float(total_remaining_sum or 0),
+    )
+
+
+async def _attach_previews(
+    *,
+    db: AsyncSession,
+    group_by: str,
+    results: list[SpoolGroupResult],
+    keys: list[int],
+    spool_filters: dict[str, Any],
+    extra_field_filters: dict[str, str] | None,
+    filament_extra_field_filters: dict[str, str] | None,
+    vendor_extra_field_filters: dict[str, str] | None,
+) -> None:
+    """Give each group a few of its members, from ONE query for the whole page.
+
+    The members are sliced per group in Python: the alternative, a top-N-per-group, needs a window
+    function (or a LATERAL join) that is not worth it for at most a page of groups. Only the
+    filament and vendor axes have members to show; the rest are left untouched.
+    """
+    if not keys:
+        return
+    if group_by == "filament":
+        await _attach_spool_previews(
+            db=db,
+            results=results,
+            keys=keys,
+            spool_filters=spool_filters,
+            extra_field_filters=extra_field_filters,
+            filament_extra_field_filters=filament_extra_field_filters,
+            vendor_extra_field_filters=vendor_extra_field_filters,
+        )
+    elif group_by == "vendor":
+        await _attach_filament_previews(
+            db=db,
+            results=results,
+            keys=keys,
+            spool_filters=spool_filters,
+            filament_extra_field_filters=filament_extra_field_filters,
+            vendor_extra_field_filters=vendor_extra_field_filters,
+        )
+
+
+async def _attach_spool_previews(
+    *,
+    db: AsyncSession,
+    results: list[SpoolGroupResult],
+    keys: list[int],
+    spool_filters: dict[str, Any],
+    extra_field_filters: dict[str, str] | None,
+    filament_extra_field_filters: dict[str, str] | None,
+    vendor_extra_field_filters: dict[str, str] | None,
+) -> None:
+    """Fill filament groups' `spools`."""
+    # The very same filter builder the group's aggregates went through, so a pip can never
+    # disagree with `spool_count`: whatever the group counted is what it may show. Only the
+    # columns the preview needs are selected, not whole ORM spools.
+    stmt = _apply_spool_filters(
+        sqlalchemy.select(
+            models.Spool.id,
+            models.Spool.filament_id,
+            models.Spool.initial_weight,
+            models.Spool.used_weight,
+            models.Filament.weight,
+        ),
+        **spool_filters,
+    ).where(models.Spool.filament_id.in_(keys))
+    stmt = await apply_extra_field_filters_and_sort(
+        db=db,
+        stmt=stmt,
+        base_obj=models.Spool,
+        entity_type=EntityType.spool,
+        extra_field_filters=extra_field_filters,
+        sort_by=None,
+    )
+    stmt = await apply_spool_related_extra_filters(
+        db=db,
+        stmt=stmt,
+        filament_filters=filament_extra_field_filters,
+        vendor_filters=vendor_extra_field_filters,
+        link_column=models.Spool.filament_id,
+    )
+    by_filament: dict[int, list[SpoolGroupPreviewSpool]] = {key: [] for key in keys}
+    for row in (await db.execute(stmt.order_by(models.Spool.id.asc()))).all():
+        members = by_filament[row.filament_id]
+        if len(members) >= PREVIEW_SPOOL_LIMIT:
+            continue
+        # The same fallback and clamp as Spool.from_db, so a pip matches the spool endpoint.
+        initial = row.initial_weight if row.initial_weight is not None else row.weight
+        members.append(
+            SpoolGroupPreviewSpool(
+                id=row.id,
+                initial_weight=initial,
+                remaining_weight=None if initial is None else max(initial - row.used_weight, 0),
+            ),
+        )
+    for group in results:
+        if group.key is not None:
+            group.spools = by_filament[group.key]
+
+
+async def _attach_filament_previews(
+    *,
+    db: AsyncSession,
+    results: list[SpoolGroupResult],
+    keys: list[int],
+    spool_filters: dict[str, Any],
+    filament_extra_field_filters: dict[str, str] | None,
+    vendor_extra_field_filters: dict[str, str] | None,
+) -> None:
+    """Fill vendor groups' `filaments`."""
+    # Vendor groups preview the manufacturer's filaments that match the filament-level filters.
+    # In the spool-driven mode that is any such filament of the vendor, not only those with a
+    # matching spool: the preview is a swatch strip for the manufacturer, and `filament_count`
+    # is the number that says how many actually hold stock.
+    stmt = _apply_filament_filters(
+        sqlalchemy.select(
+            models.Filament.id,
+            models.Filament.vendor_id,
+            models.Filament.color_hex,
+            models.Filament.multi_color_hexes,
+            models.Filament.multi_color_direction,
+        ).join(models.Filament.vendor, isouter=True),
+        filament_id_column=models.Filament.id,
+        filament_name=spool_filters["filament_name"],
+        filament_id=spool_filters["filament_id"],
+        filament_material=spool_filters["filament_material"],
+        filament_multi_color_direction=spool_filters["filament_multi_color_direction"],
+        vendor_name=spool_filters["vendor_name"],
+        vendor_id=spool_filters["vendor_id"],
+    ).where(models.Filament.vendor_id.in_(keys))
+    stmt = await apply_spool_related_extra_filters(
+        db=db,
+        stmt=stmt,
+        filament_filters=filament_extra_field_filters,
+        vendor_filters=vendor_extra_field_filters,
+        link_column=models.Filament.id,
+    )
+    by_vendor: dict[int, list[SpoolGroupPreviewFilament]] = {key: [] for key in keys}
+    for row in (
+        await db.execute(stmt.order_by(*order_by_clauses([models.Filament.name], SortOrder.ASC), models.Filament.id))
+    ).all():
+        members = by_vendor[row.vendor_id]
+        if len(members) < PREVIEW_FILAMENT_LIMIT:
+            members.append(
+                SpoolGroupPreviewFilament(
+                    id=row.id,
+                    color_hex=_sanitize_color_hex(row.color_hex),
+                    multi_color_hexes=_sanitize_multi_color_hexes(row.multi_color_hexes),
+                    multi_color_direction=row.multi_color_direction,
+                ),
+            )
+    for group in results:
+        if group.key is not None:
+            group.filaments = by_vendor[group.key]
 
 
 async def update(

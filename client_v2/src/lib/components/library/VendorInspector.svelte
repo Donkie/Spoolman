@@ -5,6 +5,7 @@
 	import Swatch from '../Swatch.svelte';
 	import Button from '../Button.svelte';
 	import ConfirmDialog from '../ConfirmDialog.svelte';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import EditableField from '../EditableField.svelte';
 	import NumberInput from '../NumberInput.svelte';
@@ -156,6 +157,13 @@
 		onclose={() => (confirmOpen = false)}
 	/>
 
+	{#snippet showAsList()}
+		<!-- Exact-match `vendor` chip: it appears in the list as a normal dismissable filter. -->
+		<a class="golist" href={params.catalogHref('filaments', [{ prop: 'vendor', value: vendor.name }])}
+			>{m['vendor.showAsList']()} <ChevronRight size={13} /></a
+		>
+	{/snippet}
+
 	<div class="grid">
 		<div class="col">
 			<SectionLabel>{m['filament.fields.vendor']()}</SectionLabel>
@@ -186,7 +194,8 @@
 			<ExtraFieldsSection entity="vendor" extra={vendor.extra} onchange={extraSaver.change} manage />
 		</div>
 		<div class="col">
-			<SectionLabel>{m['filament.filament']()}</SectionLabel>
+			<SectionLabel right={filaments.length ? showAsList : undefined}>{m['filament.filament']()}</SectionLabel
+			>
 			<div class="fils">
 				{#each filaments as f (f.id)}
 					<a
@@ -248,6 +257,17 @@
 		grid-template-columns: 1fr 1fr;
 		gap: 0 32px;
 		padding: 4px 20px 24px;
+	}
+	.golist {
+		display: inline-flex;
+		align-items: center;
+		gap: 2px;
+		font-size: 11px;
+		color: var(--accent-link);
+		text-decoration: none;
+	}
+	.golist:hover {
+		text-decoration: underline;
 	}
 	.fils {
 		display: flex;
