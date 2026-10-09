@@ -581,7 +581,11 @@ async def find_groups(
                 'Sort the groups by the given field. Comma-separated "field:direction" items. '
                 "Available fields: group.title, group.vendor_name (manufacturer name, groups with "
                 "no manufacturer last), group.total_remaining, group.last_used, "
-                "group.spool_count, group.in_use_count."
+                "group.spool_count, group.in_use_count, group.filament_count, any filament column "
+                "as filament.<column> (e.g. filament.material) or manufacturer column as "
+                "filament.vendor.<column> (e.g. filament.vendor.name), and extra fields as "
+                "filament.extra.<key> or filament.vendor.extra.<key>. Empty values sort last; unknown "
+                "fields are ignored."
             ),
             examples=["group.last_used:desc"],
         ),

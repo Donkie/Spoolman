@@ -1023,3 +1023,187 @@ def test_group_total_headers(vendor_groups: VendorFixture):
     assert result.headers["x-total-count"] == "0"
     assert result.headers["x-total-spools"] == "0"
     assert float(result.headers["x-total-remaining-weight"]) == 0
+
+
+# --- sorting groups by filament / manufacturer columns and extra fields ----
+
+
+def _group_keys(params: dict[str, str]) -> list[str]:
+    result = httpx.get(f"{URL}/api/v1/spool/group", params=params)
+    result.raise_for_status()
+    return [group["key"] for group in result.json()]
+
+
+def _post_filament(vendor_id: int | None, **fields: float | dict[str, str]) -> int:
+    payload = {"name": f"Sort-{uuid.uuid4().hex[:8]}", "density": 1.25, "diameter": 1.75, "weight": 1000, **fields}
+    if vendor_id is not None:
+        payload["vendor_id"] = vendor_id
+    result = httpx.post(f"{URL}/api/v1/filament", json=payload)
+    result.raise_for_status()
+    return result.json()["id"]
+
+
+@dataclass
+class SortFixture:
+    vendor_ids: list[int]  # empty_spool_weight 300, 100, unset (no filaments)
+    filament_ids: list[int]  # temps 210, 190, unset; "n" extra 10, 9, unset
+    int_key: str
+    vendor_key: str
+
+
+@pytest.fixture(scope="module")
+def sort_fixture() -> Iterable[SortFixture]:
+    """Three vendors (the last without filaments) and three filaments, each with a NULL somewhere."""
+    suffix = uuid.uuid4().hex[:8]
+    int_key = f"n_{suffix}"
+    vendor_key = f"v_{suffix}"
+    httpx.post(f"{URL}/api/v1/field/filament/{int_key}", json={"name": "N", "field_type": "integer"}).raise_for_status()
+    httpx.post(f"{URL}/api/v1/field/vendor/{vendor_key}", json={"name": "V", "field_type": "text"}).raise_for_status()
+
+    vendor_ids: list[int] = []
+    for name, weight, extra in (("B", 300, "zeta"), ("A", 100, "alpha"), ("C", None, None)):
+        payload: dict[str, Any] = {"name": f"{name}-{suffix}"}
+        if weight is not None:
+            payload["empty_spool_weight"] = weight
+        if extra is not None:
+            payload["extra"] = {vendor_key: json.dumps(extra)}
+        result = httpx.post(f"{URL}/api/v1/vendor", json=payload)
+        result.raise_for_status()
+        vendor_ids.append(result.json()["id"])
+
+    filament_ids = [
+        _post_filament(vendor_ids[0], settings_extruder_temp=210, extra={int_key: json.dumps(10)}),
+        _post_filament(vendor_ids[1], settings_extruder_temp=190, extra={int_key: json.dumps(9)}),
+        _post_filament(vendor_ids[1]),
+    ]
+    spool_ids = []
+    for filament_id, weights in zip(filament_ids, ([500, 300], [100], []), strict=True):
+        for weight in weights:
+            result = httpx.post(f"{URL}/api/v1/spool", json={"filament_id": filament_id, "remaining_weight": weight})
+            result.raise_for_status()
+            spool_ids.append(result.json()["id"])
+
+    yield SortFixture(vendor_ids=vendor_ids, filament_ids=filament_ids, int_key=int_key, vendor_key=vendor_key)
+
+    for spool_id in spool_ids:
+        httpx.delete(f"{URL}/api/v1/spool/{spool_id}")
+    for filament_id in filament_ids:
+        httpx.delete(f"{URL}/api/v1/filament/{filament_id}")
+    for vendor_id in vendor_ids:
+        httpx.delete(f"{URL}/api/v1/vendor/{vendor_id}")
+    httpx.delete(f"{URL}/api/v1/field/filament/{int_key}")
+    httpx.delete(f"{URL}/api/v1/field/vendor/{vendor_key}")
+
+
+def _fil_params(fx: SortFixture, sort: str, **extra: str) -> dict[str, str]:
+    return {
+        "group_by": "filament",
+        "filament.id": ",".join(str(i) for i in fx.filament_ids),
+        "include_empty": "true",
+        "sort": sort,
+        **extra,
+    }
+
+
+def _ids(keys: list[int]) -> list[str]:
+    return [str(k) for k in keys]
+
+
+def test_sort_by_filament_column_nulls_last(sort_fixture: SortFixture):
+    a, b, c = sort_fixture.filament_ids
+    asc = _group_keys(_fil_params(sort_fixture, "filament.settings_extruder_temp:asc"))
+    desc = _group_keys(_fil_params(sort_fixture, "filament.settings_extruder_temp:desc"))
+    assert asc == _ids([b, a, c])
+    assert desc == _ids([a, b, c])
+
+
+def test_sort_by_vendor_column_for_vendor_groups(sort_fixture: SortFixture):
+    v300, v100, _v_none = sort_fixture.vendor_ids
+    params = {
+        "group_by": "vendor",
+        "include_empty": "true",
+        "filament.vendor.id": ",".join(str(i) for i in sort_fixture.vendor_ids),
+    }
+    asc = _group_keys({**params, "sort": "filament.vendor.empty_spool_weight:asc"})
+    desc = _group_keys({**params, "sort": "filament.vendor.empty_spool_weight:desc"})
+    assert asc[:2] == _ids([v100, v300])
+    assert desc[:2] == _ids([v300, v100])
+
+
+def test_sort_by_vendor_column_includes_filamentless_vendor_last(sort_fixture: SortFixture):
+    v300, v100, v_none = sort_fixture.vendor_ids
+    result = httpx.get(
+        f"{URL}/api/v1/spool/group",
+        params={"group_by": "vendor", "include_empty": "true", "sort": "filament.vendor.empty_spool_weight:asc"},
+    )
+    result.raise_for_status()
+    keys = [g["key"] for g in result.json() if g["key"] in _ids(sort_fixture.vendor_ids)]
+    assert keys == _ids([v100, v300, v_none])
+
+
+def test_sort_by_integer_extra_field_is_numeric(sort_fixture: SortFixture):
+    a, b, c = sort_fixture.filament_ids  # 10, 9, unset
+    key = f"filament.extra.{sort_fixture.int_key}"
+    assert _group_keys(_fil_params(sort_fixture, f"{key}:asc")) == _ids([b, a, c])
+    assert _group_keys(_fil_params(sort_fixture, f"{key}:desc")) == _ids([a, b, c])
+
+
+def test_sort_by_vendor_extra_field(sort_fixture: SortFixture):
+    key = f"filament.vendor.extra.{sort_fixture.vendor_key}"
+    params = _fil_params(sort_fixture, f"{key}:asc")
+    a, b, c = sort_fixture.filament_ids
+    assert _group_keys(params) == _ids([b, c, a])  # alpha, alpha, zeta
+    assert _group_keys({**params, "sort": f"{key}:desc"}) == _ids([a, b, c])
+
+
+def test_group_filament_count_sort(sort_fixture: SortFixture):
+    v_zeta, v_alpha, _v_none = sort_fixture.vendor_ids
+    params = {
+        "group_by": "vendor",
+        "include_empty": "true",
+        "filament.vendor.id": ",".join(str(i) for i in sort_fixture.vendor_ids),
+    }
+    assert _group_keys({**params, "sort": "group.filament_count:desc"})[:2] == _ids([v_alpha, v_zeta])
+    # Valid on the filament axis too (each group holds one filament).
+    assert len(_group_keys(_fil_params(sort_fixture, "group.filament_count:asc"))) == 3
+
+
+def test_extra_field_sort_does_not_change_aggregates(sort_fixture: SortFixture):
+    """The extra-field join is at most one row per entity, so sums and counts stay the same."""
+    key = f"filament.extra.{sort_fixture.int_key}"
+    vkey = f"filament.vendor.extra.{sort_fixture.vendor_key}"
+
+    def aggregates(params: dict[str, str]) -> dict[str, tuple[int, float]]:
+        result = httpx.get(f"{URL}/api/v1/spool/group", params=params)
+        result.raise_for_status()
+        return {g["key"]: (g["spool_count"], g["total_remaining_weight"]) for g in result.json()}
+
+    ids = ",".join(str(i) for i in sort_fixture.filament_ids)
+    for include_empty in ("true", "false"):
+        base = {"group_by": "filament", "filament.id": ids, "include_empty": include_empty}
+        plain = aggregates(base)
+        assert plain[str(sort_fixture.filament_ids[0])] == (2, 800)
+        assert aggregates({**base, "sort": f"{key}:asc,{vkey}:desc"}) == plain
+
+    vendor_base = {"group_by": "vendor", "filament.vendor.id": ",".join(str(i) for i in sort_fixture.vendor_ids)}
+    for include_empty in ("true", "false"):
+        base = {**vendor_base, "include_empty": include_empty}
+        assert aggregates({**base, "sort": f"{key}:asc,{vkey}:desc"}) == aggregates(base)
+
+
+def test_unknown_extra_key_is_ignored(sort_fixture: SortFixture):
+    keys = _group_keys(_fil_params(sort_fixture, "filament.extra.nope:asc,group.title:asc"))
+    assert len(keys) == 3
+
+
+@pytest.mark.parametrize("sort", ["location:asc", "foo:asc", "filament.nope:asc", "filament.vendor.nope:desc"])
+def test_sort_by_unknown_path_is_ignored(sort_fixture: SortFixture, sort: str):
+    """A sort key that doesn't resolve is ignored, as it always was: rejecting it now would break callers."""
+    keys = _group_keys(_fil_params(sort_fixture, f"{sort},group.title:asc"))
+    assert keys == _group_keys(_fil_params(sort_fixture, "group.title:asc"))
+
+
+def test_sort_composes_vendor_name_then_field(sort_fixture: SortFixture):
+    a, b, c = sort_fixture.filament_ids  # vendors B-, A-, A-
+    sort = "group.vendor_name:asc,filament.settings_extruder_temp:desc,group.title:asc"
+    assert _group_keys(_fil_params(sort_fixture, sort)) == _ids([b, c, a])

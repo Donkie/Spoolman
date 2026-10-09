@@ -1,7 +1,7 @@
 import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 import type { EntityKind, Selection } from '$lib/types';
-import { isGroupOrderable, defaultSortAsc } from '$lib/utils/library';
+import { isGroupOrderable, defaultSortAsc, catalogSortAsc, catalogSortField } from '$lib/utils/library';
 import { isDateFilterProp, parseDateFilter } from './dateFilter';
 import { rememberedView, rememberView } from './viewPrefs';
 
@@ -31,11 +31,6 @@ export type GroupMode = 'filament' | 'vendor' | 'material' | 'location' | 'none'
 export type LibraryView = 'spools' | 'filaments' | 'manufacturers';
 export type CatalogView = Exclude<LibraryView, 'spools'>;
 
-/** The orders a catalog view offers: exactly the ones the group endpoint can
- *  page by (group.title, group.total_remaining, group.last_used). */
-export const CATALOG_SORTS = ['name', 'remaining_weight', 'last_used'] as const;
-export type CatalogSortKey = (typeof CATALOG_SORTS)[number];
-
 export interface FilterChip {
 	prop: string;
 	value: string;
@@ -47,7 +42,7 @@ export interface LibraryState {
 	/** In the filament view only `vendor` (manufacturer sections) or `none`; the
 	 *  manufacturer view is always `none`. */
 	group: GroupMode;
-	/** In a catalog view, one of {@link CATALOG_SORTS}. */
+	/** In a catalog view, a key of utils/library's catalogSortDefs. */
 	sortKey: string;
 	sortAsc: boolean;
 	filters: FilterChip[];
@@ -95,8 +90,8 @@ const LAYOUT_DEFAULTS: Record<LibraryView, Layout> = {
  * Everything not listed here — filament, material, vendor, direction, and the
  * `filament.extra.` / `filament.vendor.extra.` fields — is a fact about the
  * filament, which a filament with no spools still has. The API refuses the
- * spool-scoped ones together with include_empty, which the catalog views always
- * send and the spool view sends for "No spools" (see query.ts).
+ * spool-scoped ones together with include_empty, so the lists that ask for empty
+ * filaments stop asking while one is active (see query.ts).
  */
 export function isSpoolScopedFilter(prop: string): boolean {
 	if (prop === 'location' || prop === 'lot') return true;
@@ -162,17 +157,14 @@ export function parseLibraryState(params: URLSearchParams): LibraryState {
 	};
 
 	if (view !== 'spools') {
-		// A catalog lists filaments (or manufacturers) including those with no
-		// spools, so "No spools" is always on and a filter on the spools themselves
-		// has nothing to say about most rows; the API refuses that pairing, so a
-		// URL carrying one (hand-edited, or a chip left over from elsewhere) drops it.
-		const sort = params.get('sort') as CatalogSortKey | null;
+		// A catalog lists the filaments (or manufacturers) with no spools as well,
+		// so there is no "No spools" toggle to carry.
+		const sort = params.get('sort');
 		return {
 			...common,
 			group: view === 'filaments' && group === 'none' ? 'none' : layout.group,
-			sortKey: sort && CATALOG_SORTS.includes(sort) ? sort : layout.sortKey,
-			showEmpty: false,
-			filters: common.filters.filter((f) => !isSpoolScopedFilter(f.prop))
+			sortKey: sort && catalogSortField(view, sort) ? sort : layout.sortKey,
+			showEmpty: false
 		};
 	}
 
@@ -333,8 +325,7 @@ export function setGroup(group: GroupMode): void {
 export function setSortKey(key: string): void {
 	const s = currentState();
 	if (s.view !== 'spools') {
-		// Names read A→Z; weight and recency read biggest/newest first.
-		const sortAsc = s.sortKey === key ? !s.sortAsc : key === 'name';
+		const sortAsc = s.sortKey === key ? !s.sortAsc : catalogSortAsc(s.view, key);
 		navigate({ ...s, sortKey: key, sortAsc, page: DEFAULTS.page });
 		return;
 	}
@@ -446,7 +437,7 @@ export function libraryHref(kind: EntityKind, id: string): string {
  * Absolute (base-aware) href to a catalog view in its default layout, optionally
  * pre-filtered (e.g. one manufacturer's filaments, from its inspector). Like
  * {@link libraryHref} it carries nothing over from the current view: a catalog
- * is entered fresh, and spool-scoped filters would not survive the parse anyway.
+ * is entered fresh.
  */
 export function catalogHref(view: CatalogView, filters: FilterChip[] = []): string {
 	const fresh = parseLibraryState(new URLSearchParams());

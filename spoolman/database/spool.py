@@ -29,6 +29,7 @@ from spoolman.database.extra_field_query import (
     apply_extra_field_filters_and_sort,
     apply_spool_related_extra_filters,
     extra_field_join,
+    extra_field_sort_expr,
     extra_field_value_text,
 )
 from spoolman.database.utils import (
@@ -642,6 +643,53 @@ def _order_groups(
     return stmt.order_by(group_col.asc())
 
 
+_EXTRA_SORT_PREFIXES = (
+    ("filament.vendor.extra.", EntityType.vendor),
+    ("filament.extra.", EntityType.filament),
+)
+
+
+async def _entity_sort_exprs(
+    db: AsyncSession,
+    stmt: sqlalchemy.Select,
+    sort_by: dict[str, SortOrder] | None,
+) -> tuple[sqlalchemy.Select, dict[str, list[ColumnElement]]]:
+    """Resolve `filament.*` / `filament.vendor.*` sort keys to aggregate expressions.
+
+    Columns are wrapped in MIN() so they stay valid aggregates on every axis (the value is constant
+    within a filament group, and a vendor column within a vendor group). Extra fields are
+    outer-joined (one row per entity and key, so no aggregate changes) and ordered typed like the
+    entity endpoints do. Anything that doesn't resolve -- a key off the filament, a column or extra
+    field that doesn't exist -- is skipped, the way find_groups has always ignored a sort key it
+    doesn't know: the endpoint is released, and rejecting what it used to accept would break callers.
+    """
+    exprs: dict[str, list[ColumnElement]] = {}
+    definitions: dict[EntityType, dict[str, ExtraField]] = {}
+    for key in sort_by or {}:
+        if key.startswith("group."):
+            continue
+        extra = next(((p, t) for p, t in _EXTRA_SORT_PREFIXES if key.startswith(p)), None)
+        if extra is None:
+            if not key.startswith("filament."):
+                continue
+            try:
+                exprs[key] = [func.min(parse_nested_field(models.Spool, key))]
+            except ValueError:
+                continue
+            continue
+        prefix, entity_type = extra
+        extra_key = key.removeprefix(prefix)
+        if entity_type not in definitions:
+            definitions[entity_type] = {f.key: f for f in await get_extra_fields(db, entity_type)}
+        field = definitions[entity_type].get(extra_key)
+        if field is None:
+            continue
+        join = extra_field_join(entity_type, extra_key)
+        stmt = join.apply(stmt, models.Vendor.id if entity_type == EntityType.vendor else models.Filament.id)
+        exprs[key] = [func.min(extra_field_sort_expr(join.value, field.field_type))]
+    return stmt, exprs
+
+
 async def find_groups(
     *,
     db: AsyncSession,
@@ -795,7 +843,10 @@ async def find_groups(
         "group.last_used": [last_used_agg],
         "group.title": [func.min(title_col)],
         "group.vendor_name": [func.min(models.Vendor.name), func.min(models.Vendor.id)],
+        "group.filament_count": [func.count(sqlalchemy.distinct(models.Filament.id))],
     }
+    stmt, entity_exprs = await _entity_sort_exprs(db, stmt, sort_by)
+    order_exprs.update(entity_exprs)
     stmt = _order_groups(stmt, order_exprs, sort_by, default_expr=func.min(title_col), group_col=group_col)
 
     if limit is not None:

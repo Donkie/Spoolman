@@ -11,7 +11,13 @@
 		withinLast,
 		type DateFilterProp
 	} from '$lib/library/dateFilter';
-	import { sortDefs, filamentLabel, type FilterOption, type SortDef } from '$lib/utils/library';
+	import {
+		sortDefs,
+		catalogSortDefs,
+		filamentLabel,
+		type FilterOption,
+		type SortDef
+	} from '$lib/utils/library';
 	import { filterByQuery, matchesTerms, searchTerms } from '$lib/utils/match';
 	import MenuSearch from '../MenuSearch.svelte';
 	import Swatch from '../Swatch.svelte';
@@ -199,14 +205,7 @@
 				}))
 		)
 	);
-	let allCategories = $derived([...BASE_FILTERS, ...DATE_FILTERS, ...extraFilters]);
-	// A catalog row is a filament (or a manufacturer), so only what a filament
-	// answers is offered: no spool facts, and no filament picker in a list of them.
-	let filterCategories = $derived(
-		catalog
-			? allCategories.filter((c) => c.key !== 'filament' && !params.isSpoolScopedFilter(c.key))
-			: allCategories
-	);
+	let filterCategories = $derived([...BASE_FILTERS, ...DATE_FILTERS, ...extraFilters]);
 
 	// Resolve a filter prop back to the extra-field entity + definition it came from.
 	function extraFieldFor(prop: string): { entity: EntityType; def: FieldDef } | undefined {
@@ -271,13 +270,11 @@
 		close();
 	}
 
-	// The orders the group endpoint can page a catalog by (params.CATALOG_SORTS).
-	const CATALOG_SORT_DEFS: SortDef[] = [
-		{ key: 'name', labelKey: m['filament.fields.name'], section: 'filament' },
-		{ key: 'remaining_weight', labelKey: m['spool.fields.remainingWeight'], section: 'spool' },
-		{ key: 'last_used', labelKey: m['spool.fields.lastUsed'], section: 'spool' }
-	];
-	let sorts = $derived(catalog ? CATALOG_SORT_DEFS : sortDefs(fields.get('spool')));
+	let sorts = $derived<SortDef[]>(
+		libraryState.view === 'spools'
+			? sortDefs(fields.get('spool'))
+			: catalogSortDefs(libraryState.view, fields.get('filament'), fields.get('vendor'))
+	);
 	let activeSort = $derived(sorts.find((s) => s.key === libraryState.sortKey) ?? sorts[0]);
 
 	const groupOptions: { key: GroupMode; labelKey: () => string }[] = [
@@ -299,7 +296,7 @@
 	);
 
 	function chipLabel(prop: string, value: string): string {
-		const c = allCategories.find((x) => x.key === prop);
+		const c = filterCategories.find((x) => x.key === prop);
 		const label = c?.label() ?? prop;
 		// Date filters hold a range, whose value is grammar rather than something to
 		// show ("-24h.." reads as "Last 24 hours").
@@ -338,13 +335,10 @@
 		{ key: 'vendor', labelKey: m['library.section.vendor'] },
 		{ key: 'extra', labelKey: m['library.section.extra'] }
 	];
-	// Three catalog orders need no sections to find one's way through.
 	let sortSections = $derived(
-		catalog
-			? [{ key: 'catalog', labelKey: undefined, items: sorts }]
-			: SORT_SECTIONS.map((sec) => ({ ...sec, items: sorts.filter((s) => s.section === sec.key) })).filter(
-					(s) => s.items.length
-				)
+		SORT_SECTIONS.map((sec) => ({ ...sec, items: sorts.filter((s) => s.section === sec.key) })).filter(
+			(s) => s.items.length
+		)
 	);
 
 	// --- searchable menus (issue #1045) -------------------------------------
@@ -646,7 +640,7 @@
 				/>
 			{/if}
 			{#each visibleSortSections as sec (sec.key)}
-				{#if sec.labelKey}<div class="menu-title">{sec.labelKey()}</div>{/if}
+				<div class="menu-title">{sec.labelKey()}</div>
 				{#each sec.items as it (it.key)}
 					<button
 						class="menu-item"

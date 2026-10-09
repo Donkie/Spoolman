@@ -129,6 +129,35 @@ describe('buildCatalogQuery', () => {
 		expect(q.sort).toEqual([{ field: 'group.title', dir: 'asc' }]);
 	});
 
+	it('orders by the fields of the filament and manufacturer, custom ones too', () => {
+		const sortOf = (sortKey: string, view: LibraryState['view'] = 'filaments') =>
+			buildCatalogQuery(catalog({ view, group: 'none', sortKey, sortAsc: false })).sort[0];
+		expect(sortOf('filament.settings_extruder_temp')).toEqual({
+			field: 'filament.settings_extruder_temp',
+			dir: 'desc'
+		});
+		expect(sortOf('filament.extra.shelf')).toEqual({ field: 'filament.extra.shelf', dir: 'desc' });
+		expect(sortOf('filament.vendor.extra.country', 'manufacturers')).toEqual({
+			field: 'filament.vendor.extra.country',
+			dir: 'desc'
+		});
+		expect(sortOf('filament_count', 'manufacturers')).toEqual({ field: 'group.filament_count', dir: 'desc' });
+		// A filament's custom field means nothing to a manufacturer, nor a spool's to either.
+		expect(sortOf('filament.extra.shelf', 'manufacturers').field).toBe('group.title');
+		expect(sortOf('location').field).toBe('group.title');
+	});
+
+	it('takes any filter, leaving out the empty ones under a filter about spools', () => {
+		// "Which filaments do I have on Shelf A" is a fair question of the catalog,
+		// but a filament with no spools isn't anywhere, and the API refuses to say.
+		const filters = [{ prop: 'location', value: 'Shelf A' }];
+		expect(buildCatalogQuery(catalog({ filters }))).toMatchObject({ includeEmpty: false });
+		expect(buildVendorTotalsQuery(catalog({ filters }), ['1'])).toMatchObject({ includeEmpty: false });
+		expect(buildCatalogQuery(catalog({ filters: [{ prop: 'material', value: 'PLA' }] }))).toMatchObject({
+			includeEmpty: true
+		});
+	});
+
 	it('narrows the section totals to the manufacturers on the page', () => {
 		const filters = [{ prop: 'material', value: 'PLA' }];
 		const q = buildVendorTotalsQuery(catalog({ filters, showArchived: true }), ['1', '4']);

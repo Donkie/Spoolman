@@ -34,20 +34,17 @@
 		{
 			href: resolve('/'),
 			view: 'spools',
-			label: m['search.section.spools'],
-			sub: m['library.viewMenu.spoolsSub']
+			label: m['search.section.spools']
 		},
 		{
 			href: catalogHref('filaments'),
 			view: 'filaments',
-			label: m['filament.filament'],
-			sub: m['library.viewMenu.filamentsSub']
+			label: m['filament.filament']
 		},
 		{
 			href: catalogHref('manufacturers'),
 			view: 'manufacturers',
-			label: m['search.section.vendors'],
-			sub: m['library.viewMenu.manufacturersSub']
+			label: m['search.section.vendors']
 		}
 	] as const;
 
@@ -65,7 +62,7 @@
 	async function openMenu(focusFirst: boolean) {
 		if (split) {
 			const r = split.getBoundingClientRect();
-			const width = Math.min(300, window.innerWidth - 36);
+			const width = Math.min(220, window.innerWidth - 36);
 			menuPos = { top: r.bottom + 6, left: Math.max(12, Math.min(r.left, window.innerWidth - width - 12)) };
 		}
 		menuOpen = true;
@@ -167,10 +164,7 @@
 								<span class="mi-check" aria-hidden="true"
 									>{#if checked}<Check size={15} />{/if}</span
 								>
-								<span class="mi-text">
-									<span class="mi-label">{v.label()}</span>
-									<span class="mi-sub">{v.sub()}</span>
-								</span>
+								<span class="mi-label">{v.label()}</span>
 							</a>
 						{/snippet}
 						{@render row(views[0])}
@@ -274,7 +268,7 @@
 	.menu {
 		position: fixed;
 		z-index: 50;
-		width: 300px;
+		width: 220px;
 		max-width: calc(100vw - 36px);
 		padding: 4px 0;
 		background: var(--surface-2);
@@ -296,7 +290,7 @@
 	}
 	.mi {
 		display: flex;
-		align-items: flex-start;
+		align-items: center;
 		gap: 8px;
 		min-height: 36px;
 		padding: 8px 14px;
@@ -320,19 +314,8 @@
 		align-items: center;
 		color: var(--accent-soft);
 	}
-	.mi-text {
-		min-width: 0;
-		flex: 1;
-	}
 	.mi-label {
-		display: block;
 		font-size: 12.5px;
-	}
-	.mi-sub {
-		display: block;
-		margin-top: 1px;
-		font-size: 11px;
-		color: var(--text-dim);
 	}
 	.mi.sel .mi-label {
 		color: var(--accent-soft);
@@ -347,10 +330,6 @@
 		}
 		.mi {
 			min-height: 44px;
-			align-items: center;
-		}
-		.mi-check {
-			align-items: center;
 		}
 	}
 </style>

@@ -246,6 +246,122 @@ export const FIXED_SORTS: SortDef[] = [
 
 const FIXED_SORT_KEYS = new Set(FIXED_SORTS.map((s) => s.key));
 
+/**
+ * A sort of the filament or manufacturer list. Those page the group endpoint, so
+ * each orders whole groups: by an aggregate over their spools (`group.*`), or by
+ * a field of the filament or manufacturer, which the endpoint takes in the spool
+ * endpoint's dotted form. `key` is what the URL carries.
+ */
+export interface CatalogSortDef extends SortDef {
+	/** The group endpoint's sort field. */
+	field: string;
+	/** Reads A→Z when first picked, rather than biggest/newest first. */
+	asc?: boolean;
+}
+
+function fieldSort(
+	key: string,
+	labelKey: () => string,
+	section: SortDef['section'],
+	extra: Partial<CatalogSortDef> = {}
+): CatalogSortDef {
+	return { key, field: key, labelKey, section, ...extra };
+}
+
+const STOCK_SORTS: CatalogSortDef[] = [
+	{
+		key: 'remaining_weight',
+		field: 'group.total_remaining',
+		labelKey: m['spool.fields.remainingWeight'],
+		section: 'spool',
+		unit: 'g'
+	},
+	{ key: 'last_used', field: 'group.last_used', labelKey: m['spool.fields.lastUsed'], section: 'spool' },
+	{ key: 'spool_count', field: 'group.spool_count', labelKey: m['search.section.spools'], section: 'spool' }
+];
+
+const FILAMENT_CATALOG_SORTS: CatalogSortDef[] = [
+	...STOCK_SORTS,
+	{ key: 'name', field: 'group.title', labelKey: m['filament.fields.name'], section: 'filament', asc: true },
+	fieldSort('filament.id', m['filament.fields.id'], 'filament'),
+	fieldSort('filament.material', m['filament.fields.material'], 'filament', { asc: true }),
+	fieldSort('filament.color_hex', m['filament.fields.colorHex'], 'filament', { asc: true }),
+	fieldSort('filament.diameter', m['filament.fields.diameter'], 'filament', { unit: 'mm' }),
+	fieldSort('filament.density', m['filament.fields.density'], 'filament'),
+	fieldSort('filament.settings_extruder_temp', m['filament.fields.settingsExtruderTemp'], 'filament', {
+		unit: '°C'
+	}),
+	fieldSort('filament.settings_bed_temp', m['filament.fields.settingsBedTemp'], 'filament', { unit: '°C' }),
+	fieldSort('filament.weight', m['filament.fields.weight'], 'filament', { unit: 'g' }),
+	fieldSort('filament.spool_weight', m['filament.fields.spoolWeight'], 'filament', { unit: 'g' }),
+	fieldSort('filament.price', m['filament.fields.price'], 'filament'),
+	fieldSort('filament.article_number', m['filament.fields.articleNumber'], 'filament', { asc: true }),
+	fieldSort('filament.external_id', m['filament.fields.externalId'], 'filament', { asc: true }),
+	fieldSort('filament.registered', m['filament.fields.registered'], 'filament'),
+	fieldSort('filament.vendor.name', m['filament.fields.vendor'], 'vendor', { asc: true })
+];
+
+const VENDOR_CATALOG_SORTS: CatalogSortDef[] = [
+	...STOCK_SORTS,
+	{
+		key: 'filament_count',
+		field: 'group.filament_count',
+		labelKey: m['filament.filament'],
+		section: 'filament'
+	},
+	{ key: 'name', field: 'group.title', labelKey: m['vendor.fields.name'], section: 'vendor', asc: true },
+	fieldSort('filament.vendor.id', m['vendor.fields.id'], 'vendor'),
+	fieldSort('filament.vendor.empty_spool_weight', m['vendor.fields.emptySpoolWeight'], 'vendor', {
+		unit: 'g'
+	}),
+	fieldSort('filament.vendor.external_id', m['vendor.fields.externalId'], 'vendor', { asc: true }),
+	fieldSort('filament.vendor.registered', m['vendor.fields.registered'], 'vendor')
+];
+
+const FILAMENT_EXTRA = 'filament.extra.';
+const VENDOR_EXTRA = 'filament.vendor.extra.';
+
+/**
+ * Every sort a catalog view offers: the stock aggregates, the entity's own
+ * fields and its custom fields. The filament list can also order by the
+ * manufacturer's fields, since every filament has (at most) one.
+ */
+export function catalogSortDefs(
+	view: 'filaments' | 'manufacturers',
+	filamentFields: FieldDef[] = [],
+	vendorFields: FieldDef[] = []
+): CatalogSortDef[] {
+	const extra = (prefix: string, defs: FieldDef[], section: SortDef['section']) =>
+		defs.map((f) => fieldSort(prefix + f.key, () => f.name, section, { unit: f.unit ?? undefined }));
+	return view === 'filaments'
+		? [
+				...FILAMENT_CATALOG_SORTS,
+				...extra(VENDOR_EXTRA, vendorFields, 'vendor'),
+				...extra(FILAMENT_EXTRA, filamentFields, 'extra')
+			]
+		: [...VENDOR_CATALOG_SORTS, ...extra(VENDOR_EXTRA, vendorFields, 'extra')];
+}
+
+/**
+ * The group endpoint's sort field for a catalog sort key, or undefined when the
+ * key isn't one the view offers (a stale or hand-edited URL). Custom-field keys
+ * are taken on their prefix: which fields exist is only known once the field
+ * registry has loaded, and the endpoint skips a key it doesn't know.
+ */
+export function catalogSortField(view: 'filaments' | 'manufacturers', key: string): string | undefined {
+	const fixed = view === 'filaments' ? FILAMENT_CATALOG_SORTS : VENDOR_CATALOG_SORTS;
+	const def = fixed.find((s) => s.key === key);
+	if (def) return def.field;
+	if (key.startsWith(VENDOR_EXTRA) || (view === 'filaments' && key.startsWith(FILAMENT_EXTRA))) return key;
+	return undefined;
+}
+
+/** Default direction for a freshly picked catalog sort. */
+export function catalogSortAsc(view: 'filaments' | 'manufacturers', key: string): boolean {
+	const fixed = view === 'filaments' ? FILAMENT_CATALOG_SORTS : VENDOR_CATALOG_SORTS;
+	return fixed.find((s) => s.key === key)?.asc ?? false;
+}
+
 // The sort key that reduces to each grouping axis's own title. Grouping by X and
 // sorting by X's name are the same operation on the group list, so this key maps
 // to the backend's `group.title` (alphabetical) ordering for that axis.

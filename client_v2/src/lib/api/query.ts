@@ -1,6 +1,6 @@
 import type { GroupField, GroupQuery, GroupSummary, SortField, SpoolQuery } from './types';
-import { isSpoolScopedFilter, type CatalogSortKey, type LibraryState } from '$lib/library/params';
-import { resolveSortField, resolveGroupSortField } from '$lib/utils/library';
+import { isSpoolScopedFilter, type CatalogView, type LibraryState } from '$lib/library/params';
+import { resolveSortField, resolveGroupSortField, catalogSortField } from '$lib/utils/library';
 import { settings } from '$lib/stores/settings.svelte';
 
 // Translates the URL-borne LibraryState into concrete /spool and /spool/group
@@ -65,34 +65,38 @@ export function buildGroupQuery(state: LibraryState, signal?: AbortSignal): Grou
 	};
 }
 
-// The catalog sorts and the group aggregates they order by.
-const CATALOG_SORT_FIELD: Record<CatalogSortKey, string> = {
-	name: 'group.title',
-	remaining_weight: 'group.total_remaining',
-	last_used: 'group.last_used'
-};
+/**
+ * Whether a catalog page lists the filaments (or manufacturers) with no spools
+ * too. It does unless a filter asks about the spools themselves: a filament with
+ * none can't be on Shelf A, and the API refuses the pairing (see wantsEmptyGroups).
+ */
+function catalogIncludesEmpty(state: LibraryState): boolean {
+	return !state.filters.some((f) => isSpoolScopedFilter(f.prop));
+}
 
 /**
- * Page of a catalog sub-view: one group per filament (or manufacturer), every
- * one of them listed, spools or not, with the preview the row draws from.
+ * Page of a catalog sub-view: one group per filament (or manufacturer), those
+ * with no spools included (see catalogIncludesEmpty), with the preview the row
+ * draws from.
  */
 export function buildCatalogQuery(state: LibraryState, signal?: AbortSignal): GroupQuery {
-	const field = CATALOG_SORT_FIELD[state.sortKey as CatalogSortKey] ?? 'group.title';
+	const field = catalogSortField(state.view as CatalogView, state.sortKey) ?? 'group.title';
 	const sort: SortField[] = [{ field, dir: state.sortAsc ? 'asc' : 'desc' }];
 	// Manufacturer sections are runs of consecutive rows (see library/catalog), so
 	// the manufacturer has to lead the order or a section would break apart.
 	if (state.view === 'filaments' && state.group === 'vendor') {
 		sort.unshift({ field: 'group.vendor_name', dir: 'asc' });
 	}
-	// Weight and recency tie a lot (every filament with no spools has 0 g and was
-	// never used), so the name settles those ties instead of the database's whim.
+	// Most orders tie a lot (every filament with no spools has 0 g and was never
+	// used; many share a material), so the name settles ties instead of the
+	// database's whim.
 	if (field !== 'group.title') sort.push({ field: 'group.title', dir: 'asc' });
 	return {
 		field: state.view === 'manufacturers' ? 'vendor' : 'filament',
 		filters: currentFilters(state),
 		sort,
 		allowArchived: state.showArchived,
-		includeEmpty: true,
+		includeEmpty: catalogIncludesEmpty(state),
 		preview: true,
 		limit: state.pageSize,
 		offset: (state.page - 1) * state.pageSize,
@@ -104,8 +108,8 @@ export function buildCatalogQuery(state: LibraryState, signal?: AbortSignal): Gr
 /**
  * The aggregates behind the manufacturer section headers on one page of the
  * filament catalog: the same filters, narrowed to the manufacturers on screen.
- * Including the empty ones is what makes the filament count cover filaments
- * with no spools, which the rows under the header do.
+ * Including the empty ones whenever the page does is what makes the filament
+ * count cover the same filaments as the rows under the header.
  */
 export function buildVendorTotalsQuery(
 	state: LibraryState,
@@ -117,7 +121,7 @@ export function buildVendorTotalsQuery(
 		filters: { ...currentFilters(state), vendorId: vendorIds },
 		sort: [],
 		allowArchived: state.showArchived,
-		includeEmpty: true,
+		includeEmpty: catalogIncludesEmpty(state),
 		limit: vendorIds.length,
 		offset: 0,
 		lowThreshold: settings.lowThreshold,

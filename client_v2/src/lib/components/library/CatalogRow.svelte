@@ -49,6 +49,7 @@
 </script>
 
 <a class="row" class:selected {href} data-sveltekit-keepfocus data-sveltekit-noscroll>
+	<span class="id mono">#{group.key}</span>
 	{#if kind === 'filament'}
 		<Swatch colors={group.colors} direction={group.direction} size={24} radius={6} />
 	{:else}
@@ -66,8 +67,6 @@
 			<!-- The name gives way first; the badge and the id stay whole. -->
 			<span class="name" use:truncTitle>{group.title}</span>
 			{#if group.badge}<MaterialBadge label={group.badge} />{/if}
-			<!-- F# / M#, so a filament's or manufacturer's id never reads as a spool's #. -->
-			<span class="id mono">{kind === 'filament' ? 'F' : 'M'}#{group.key}</span>
 		</span>
 		<!-- Labels dim, values bright, one line ending in an ellipsis. -->
 		<span class="details" use:truncTitle>
@@ -180,11 +179,12 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
+	/* Same id column as the spool rows. */
 	.id {
 		flex: none;
-		margin-left: auto;
+		width: 36px;
 		font-size: 11px;
-		color: var(--text-faint);
+		color: var(--text-muted);
 	}
 	.details {
 		display: block;

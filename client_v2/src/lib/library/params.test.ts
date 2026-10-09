@@ -164,26 +164,36 @@ describe('catalog views', () => {
 		expect(parseLibraryState(new URLSearchParams('view=colours')).view).toBe('spools');
 	});
 
-	it('only takes the groupings and sorts the catalog can page by', async () => {
+	it('only takes the groupings and sorts the view offers', async () => {
 		const { parseLibraryState } = await load();
 		expect(
 			parseLibraryState(new URLSearchParams('view=filaments&group=none&sort=last_used&dir=desc'))
 		).toMatchObject({ group: 'none', sortKey: 'last_used', sortAsc: false });
-		// A spool-only grouping or sort is not an option here, and the manufacturer
-		// list has nothing to group by at all.
+		expect(parseLibraryState(new URLSearchParams('view=filaments&sort=filament.extra.shelf'))).toMatchObject({
+			sortKey: 'filament.extra.shelf'
+		});
+		// A spool-only grouping or sort is not an option here, a filament's custom
+		// field is not one in the manufacturer list, and that list has nothing to
+		// group by at all.
 		expect(parseLibraryState(new URLSearchParams('view=filaments&group=location&sort=price'))).toMatchObject({
 			group: 'vendor',
 			sortKey: 'name'
 		});
-		expect(parseLibraryState(new URLSearchParams('view=manufacturers&group=vendor')).group).toBe('none');
+		expect(
+			parseLibraryState(new URLSearchParams('view=manufacturers&group=vendor&sort=filament.extra.shelf'))
+		).toMatchObject({ group: 'none', sortKey: 'name' });
 	});
 
-	it('drops filters on the spools themselves, which the API refuses here', async () => {
+	it('keeps filters on the spools themselves', async () => {
 		const { parseLibraryState } = await load();
 		const state = parseLibraryState(
-			new URLSearchParams('view=filaments&f=material%3APLA&f=location%3AShelf&f=extra.shelf%3AA&empty=1')
+			new URLSearchParams('view=filaments&f=material%3APLA&f=location%3AShelf&empty=1')
 		);
-		expect(state.filters).toEqual([{ prop: 'material', value: 'PLA' }]);
+		expect(state.filters).toEqual([
+			{ prop: 'material', value: 'PLA' },
+			{ prop: 'location', value: 'Shelf' }
+		]);
+		// Filaments with no spools are always listed here, so there's no toggle to carry.
 		expect(state.showEmpty).toBe(false);
 	});
 
