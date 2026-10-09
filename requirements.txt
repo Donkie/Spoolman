@@ -46,7 +46,7 @@ tomli==2.4.1 ; python_full_version < '3.11'
 typeguard==4.5.2
 typing-extensions==4.16.0
 typing-inspection==0.4.2
-urllib3==2.7.0
+urllib3==2.8.0
 uvicorn==0.50.1
 uvloop==0.22.1 ; platform_machine != 'armv7l' and platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'
 websockets==15.0.1
