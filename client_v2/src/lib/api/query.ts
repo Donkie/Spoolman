@@ -1,4 +1,4 @@
-import type { GroupField, GroupQuery, GroupSummary, SortField, SpoolQuery } from './types';
+import type { GroupField, GroupQuery, GroupSummary, Page, SortField, SpoolQuery } from './types';
 import { isSpoolScopedFilter, type CatalogView, type LibraryState } from '$lib/library/params';
 import { resolveSortField, resolveGroupSortField, catalogSortField } from '$lib/utils/library';
 import { settings } from '$lib/stores/settings.svelte';
@@ -169,4 +169,21 @@ export function buildFlatSpoolQuery(state: LibraryState, signal?: AbortSignal): 
 		lowThreshold: settings.lowThreshold,
 		signal
 	};
+}
+
+/**
+ * Every row of a paged list, fetched `size` at a time: for views that need the
+ * whole set (every dashboard card, every spool of one filament) without asking
+ * the server for all of it in one response.
+ */
+export async function allPages<T>(
+	size: number,
+	fetchPage: (offset: number) => Promise<Page<T>>
+): Promise<T[]> {
+	const all: T[] = [];
+	for (;;) {
+		const page = await fetchPage(all.length);
+		all.push(...page.items);
+		if (page.items.length < size || all.length >= page.total) return all;
+	}
 }
