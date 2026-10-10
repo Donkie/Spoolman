@@ -131,3 +131,89 @@ describe('parseLibraryState', () => {
 		});
 	});
 });
+
+// The filament and manufacturer lists are sub-views of the Library, picked by
+// `view`. They are entered fresh every time (the Library tab always lands on
+// spools), so the spool view's remembered layout must never leak into them, and
+// each has its own defaults that the URL omits.
+describe('catalog views', () => {
+	async function load() {
+		vi.resetModules();
+		stub(GROUPED_BY_LOCATION);
+		return import('./params');
+	}
+
+	it('defaults to manufacturer sections, alphabetical', async () => {
+		const { parseLibraryState } = await load();
+		expect(parseLibraryState(new URLSearchParams('view=filaments'))).toMatchObject({
+			view: 'filaments',
+			group: 'vendor',
+			sortKey: 'name',
+			sortAsc: true
+		});
+		expect(parseLibraryState(new URLSearchParams('view=manufacturers'))).toMatchObject({
+			view: 'manufacturers',
+			group: 'none',
+			sortKey: 'name',
+			sortAsc: true
+		});
+	});
+
+	it('falls back to spools for an unknown view', async () => {
+		const { parseLibraryState } = await load();
+		expect(parseLibraryState(new URLSearchParams('view=colours')).view).toBe('spools');
+	});
+
+	it('only takes the groupings and sorts the view offers', async () => {
+		const { parseLibraryState } = await load();
+		expect(
+			parseLibraryState(new URLSearchParams('view=filaments&group=none&sort=last_used&dir=desc'))
+		).toMatchObject({ group: 'none', sortKey: 'last_used', sortAsc: false });
+		expect(parseLibraryState(new URLSearchParams('view=filaments&sort=filament.extra.shelf'))).toMatchObject({
+			sortKey: 'filament.extra.shelf'
+		});
+		// A spool-only grouping or sort is not an option here, a filament's custom
+		// field is not one in the manufacturer list, and that list has nothing to
+		// group by at all.
+		expect(parseLibraryState(new URLSearchParams('view=filaments&group=location&sort=price'))).toMatchObject({
+			group: 'vendor',
+			sortKey: 'name'
+		});
+		expect(
+			parseLibraryState(new URLSearchParams('view=manufacturers&group=vendor&sort=filament.extra.shelf'))
+		).toMatchObject({ group: 'none', sortKey: 'name' });
+	});
+
+	it('keeps filters on the spools themselves', async () => {
+		const { parseLibraryState } = await load();
+		const state = parseLibraryState(
+			new URLSearchParams('view=filaments&f=material%3APLA&f=location%3AShelf&empty=1')
+		);
+		expect(state.filters).toEqual([
+			{ prop: 'material', value: 'PLA' },
+			{ prop: 'location', value: 'Shelf' }
+		]);
+		// Filaments with no spools are always listed here, so there's no toggle to carry.
+		expect(state.showEmpty).toBe(false);
+	});
+
+	it('is left alone by the remembered spool view', async () => {
+		expect(await hrefFor(GROUPED_BY_LOCATION, '?view=filaments')).toBeNull();
+		expect(await hrefFor(GROUPED_BY_LOCATION, '?view=manufacturers&sel=vendor:3')).toBeNull();
+	});
+
+	it('links to a fresh catalog, omitting its own defaults', async () => {
+		const { catalogHref } = await load();
+		expect(catalogHref('filaments')).toBe('/?view=filaments');
+		expect(catalogHref('filaments', [{ prop: 'vendor', value: 'Prusa:ment' }])).toBe(
+			'/?view=filaments&f=vendor%3APrusa%253Ament'
+		);
+		expect(catalogHref('manufacturers')).toBe('/?view=manufacturers');
+	});
+
+	it('keeps the view when a row is selected', async () => {
+		const { parseLibraryState, selectHrefFromState } = await load();
+		const state = parseLibraryState(new URLSearchParams('view=filaments&group=none'));
+		expect(selectHrefFromState(state, 'filament', '7')).toBe('?view=filaments&group=none&sel=filament%3A7');
+	});
+});

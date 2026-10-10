@@ -1,7 +1,6 @@
 import type { GroupField, GroupQuery, GroupSummary, SortField, SpoolQuery } from './types';
-import type { LibraryState } from '$lib/library/params';
-import { resolveSortField, resolveGroupSortField } from '$lib/utils/library';
-import { isDateFilterProp } from '$lib/library/dateFilter';
+import { isSpoolScopedFilter, type CatalogView, type LibraryState } from '$lib/library/params';
+import { resolveSortField, resolveGroupSortField, catalogSortField } from '$lib/utils/library';
 import { settings } from '$lib/stores/settings.svelte';
 
 // Translates the URL-borne LibraryState into concrete /spool and /spool/group
@@ -18,22 +17,6 @@ function currentFilters(state: LibraryState): Record<string, string[]> {
 	const filters: Record<string, string[]> = {};
 	for (const f of state.filters) (filters[f.prop] ??= []).push(f.value);
 	return filters;
-}
-
-/**
- * Filter props that describe a SPOOL rather than the filament it is of.
- *
- * The distinction only matters for empty filament groups (see includeEmpty
- * below). Everything not listed here — filament, material, vendor, direction,
- * and the `filament.extra.` / `filament.vendor.extra.` fields — is a fact about
- * the filament, which a filament with no spools still has.
- */
-function isSpoolScopedFilter(prop: string): boolean {
-	if (prop === 'location' || prop === 'lot') return true;
-	if (isDateFilterProp(prop)) return true;
-	// `extra.<key>` is the spool's own custom field; the filament's and the
-	// vendor's are prefixed, so a bare `extra.` is the spool-scoped one.
-	return prop.startsWith('extra.');
 }
 
 /**
@@ -77,6 +60,70 @@ export function buildGroupQuery(state: LibraryState, signal?: AbortSignal): Grou
 		includeEmpty: wantsEmptyGroups(state),
 		limit: state.pageSize,
 		offset: (state.page - 1) * state.pageSize,
+		lowThreshold: settings.lowThreshold,
+		signal
+	};
+}
+
+/**
+ * Whether a catalog page lists the filaments (or manufacturers) with no spools
+ * too. It does unless a filter asks about the spools themselves: a filament with
+ * none can't be on Shelf A, and the API refuses the pairing (see wantsEmptyGroups).
+ */
+function catalogIncludesEmpty(state: LibraryState): boolean {
+	return !state.filters.some((f) => isSpoolScopedFilter(f.prop));
+}
+
+/**
+ * Page of a catalog sub-view: one group per filament (or manufacturer), those
+ * with no spools included (see catalogIncludesEmpty), with the preview the row
+ * draws from.
+ */
+export function buildCatalogQuery(state: LibraryState, signal?: AbortSignal): GroupQuery {
+	const field = catalogSortField(state.view as CatalogView, state.sortKey) ?? 'group.title';
+	const sort: SortField[] = [{ field, dir: state.sortAsc ? 'asc' : 'desc' }];
+	// Manufacturer sections are runs of consecutive rows (see library/catalog), so
+	// the manufacturer has to lead the order or a section would break apart.
+	if (state.view === 'filaments' && state.group === 'vendor') {
+		sort.unshift({ field: 'group.vendor_name', dir: 'asc' });
+	}
+	// Most orders tie a lot (every filament with no spools has 0 g and was never
+	// used; many share a material), so the name settles ties instead of the
+	// database's whim.
+	if (field !== 'group.title') sort.push({ field: 'group.title', dir: 'asc' });
+	return {
+		field: state.view === 'manufacturers' ? 'vendor' : 'filament',
+		filters: currentFilters(state),
+		sort,
+		allowArchived: state.showArchived,
+		includeEmpty: catalogIncludesEmpty(state),
+		preview: true,
+		limit: state.pageSize,
+		offset: (state.page - 1) * state.pageSize,
+		lowThreshold: settings.lowThreshold,
+		signal
+	};
+}
+
+/**
+ * The aggregates behind the manufacturer section headers on one page of the
+ * filament catalog: the same filters, narrowed to the manufacturers on screen.
+ * Including the empty ones whenever the page does is what makes the filament
+ * count cover the same filaments as the rows under the header.
+ */
+export function buildVendorTotalsQuery(
+	state: LibraryState,
+	vendorIds: string[],
+	signal?: AbortSignal
+): GroupQuery {
+	return {
+		field: 'vendor',
+		filters: { ...currentFilters(state), vendorId: vendorIds },
+		sort: [],
+		allowArchived: state.showArchived,
+		includeEmpty: catalogIncludesEmpty(state),
+		limit: vendorIds.length,
+		offset: 0,
 		lowThreshold: settings.lowThreshold,
 		signal
 	};

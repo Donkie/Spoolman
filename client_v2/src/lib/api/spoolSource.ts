@@ -64,7 +64,11 @@ const FILTER_PARAM: Record<string, string> = {
 	vendor: 'filament.vendor.name',
 	direction: 'filament.multi_color_direction',
 	location: 'location',
-	lot: 'lot_nr'
+	lot: 'lot_nr',
+	// Not in the filter menu, which picks manufacturers by name: the manufacturer
+	// inspector's "Show as a list" filters by id, so two of the same name stay
+	// apart, and the filament list narrows its section totals the same way.
+	vendorId: 'filament.vendor.id'
 };
 
 // Filters whose values are passed through verbatim rather than double-quoted for
@@ -72,7 +76,8 @@ const FILTER_PARAM: Record<string, string> = {
 // an int and would reject if quoted. `direction` is passed verbatim so its empty
 // value (single-color = no direction) hits the backend's NULL-match branch, which
 // quoting would turn into an exact match on the literal empty string instead.
-const UNQUOTED_FILTERS = new Set(['filament', 'direction']);
+// `vendorId` is numeric like `filament`.
+const UNQUOTED_FILTERS = new Set(['filament', 'direction', 'vendorId']);
 
 // A filter prop is either one of the fixed categories above or an extra-field
 // filter whose prop is already the query param the backend expects — `extra.<key>`
@@ -167,11 +172,12 @@ class HttpSpoolSource {
 			limit: query.limit,
 			offset: query.offset,
 			allow_archived: query.allowArchived ? 'true' : undefined,
-			include_empty: query.includeEmpty ? 'true' : undefined
+			include_empty: query.includeEmpty ? 'true' : undefined,
+			preview: query.preview ? 'true' : undefined
 		};
 		applyFilters(params, query.filters);
 
-		const { items, total } = await getList('/spool/group', params, query.signal);
+		const { items, total, totalSpools, totalRemaining } = await getList('/spool/group', params, query.signal);
 		for (const g of items as Json[]) {
 			if (g.filament) {
 				inventory.upsertFilament(mapFilament(g.filament));
@@ -179,7 +185,7 @@ class HttpSpoolSource {
 			}
 			if (g.vendor) inventory.upsertVendor(mapVendor(g.vendor));
 		}
-		return { items: (items as Json[]).map(mapGroup), total };
+		return { items: (items as Json[]).map(mapGroup), total, totalSpools, totalRemaining };
 	}
 
 	async listSpools(query: SpoolQuery): Promise<Page<Spool>> {

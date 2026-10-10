@@ -11,7 +11,13 @@
 		withinLast,
 		type DateFilterProp
 	} from '$lib/library/dateFilter';
-	import { sortDefs, filamentLabel, type FilterOption, type SortDef } from '$lib/utils/library';
+	import {
+		sortDefs,
+		catalogSortDefs,
+		filamentLabel,
+		type FilterOption,
+		type SortDef
+	} from '$lib/utils/library';
 	import { filterByQuery, matchesTerms, searchTerms } from '$lib/utils/match';
 	import MenuSearch from '../MenuSearch.svelte';
 	import Swatch from '../Swatch.svelte';
@@ -32,6 +38,10 @@
 
 	// Named libraryState, not `state`, to avoid shadowing the $state rune.
 	let { libraryState }: { libraryState: LibraryState } = $props();
+
+	// The catalog sub-views (filaments, manufacturers) reuse this toolbar with the
+	// few groupings, orders and filters a list of filaments can answer.
+	let catalog = $derived(params.isCatalogView(libraryState));
 
 	type Menu = 'filter' | 'group' | 'sort' | null;
 	let open = $state<Menu>(null);
@@ -260,7 +270,11 @@
 		close();
 	}
 
-	let sorts = $derived(sortDefs(fields.get('spool')));
+	let sorts = $derived<SortDef[]>(
+		libraryState.view === 'spools'
+			? sortDefs(fields.get('spool'))
+			: catalogSortDefs(libraryState.view, fields.get('filament'), fields.get('vendor'))
+	);
 	let activeSort = $derived(sorts.find((s) => s.key === libraryState.sortKey) ?? sorts[0]);
 
 	const groupOptions: { key: GroupMode; labelKey: () => string }[] = [
@@ -270,8 +284,15 @@
 		{ key: 'location', labelKey: m['spool.fields.location'] },
 		{ key: 'none', labelKey: m['library.groupNone'] }
 	];
+	// The filament catalog sections by manufacturer or not at all; the manufacturer
+	// catalog has nothing to group by and shows no Group control.
+	const catalogGroupOptions: typeof groupOptions = [
+		{ key: 'vendor', labelKey: m['filament.fields.vendor'] },
+		{ key: 'none', labelKey: m['library.groupNone'] }
+	];
+	let groupChoices = $derived(catalog ? catalogGroupOptions : groupOptions);
 	let groupLabel = $derived(
-		groupOptions.find((g) => g.key === libraryState.group)?.labelKey() ?? m['spool.fields.filament']
+		groupChoices.find((g) => g.key === libraryState.group)?.labelKey() ?? m['spool.fields.filament']
 	);
 
 	function chipLabel(prop: string, value: string): string {
@@ -280,6 +301,11 @@
 		// Date filters hold a range, whose value is grammar rather than something to
 		// show ("-24h.." reads as "Last 24 hours").
 		if (isDateFilterProp(prop)) return `${label}: ${rangeLabel(value)}`;
+		// A manufacturer picked by id (the inspector's "Show as a list"): its name,
+		// so the chip reads like the by-name Manufacturer chip the menu makes.
+		if (prop === 'vendorId') {
+			return `${m['filament.fields.vendor']()}: ${inventory.vendorById(value)?.name ?? '#' + value}`;
+		}
 		// Filament filters store the numeric id; show the filament's name instead.
 		if (prop === 'filament') {
 			const fil = inventory.filamentById(value);
@@ -375,7 +401,12 @@
 <div
 	class="toolbar"
 	onclick={(e) => e.stopPropagation()}
-	onkeydown={(e) => e.stopPropagation()}
+	onkeydown={(e) => {
+		e.stopPropagation();
+		// A menu opened by a click leaves focus on its button, out here rather than
+		// in the menu, so this is where Escape has to close it.
+		if (e.key === 'Escape' && open) close();
+	}}
 	role="toolbar"
 	tabindex="-1"
 >
@@ -412,10 +443,12 @@
 	</div>
 
 	<div class="controls">
-		<button class="link-btn" onclick={() => toggle('group')}
-			><span class="ctrl-label">{m['library.groupBy']()}: </span>{groupLabel}
-			<ChevronDown size={13} /></button
-		>
+		{#if libraryState.view !== 'manufacturers'}
+			<button class="link-btn" onclick={() => toggle('group')}
+				><span class="ctrl-label">{m['library.groupBy']()}: </span>{groupLabel}
+				<ChevronDown size={13} /></button
+			>
+		{/if}
 		<!-- One chip, two controls (#1091): the field opens the menu, the arrow only
 		     flips the direction. Reversing an order used to mean reopening the menu
 		     and hunting down the field that was already selected. A divider and a
@@ -590,7 +623,7 @@
 
 	{#if open === 'group'}
 		<div class="menu group-menu">
-			{#each groupOptions as g (g.key)}
+			{#each groupChoices as g (g.key)}
 				<button
 					class="menu-item"
 					class:sel={libraryState.group === g.key}

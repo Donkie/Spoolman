@@ -1,7 +1,7 @@
 import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 import type { EntityKind, Selection } from '$lib/types';
-import { isGroupOrderable, defaultSortAsc } from '$lib/utils/library';
+import { isGroupOrderable, defaultSortAsc, catalogSortAsc, catalogSortField } from '$lib/utils/library';
 import { isDateFilterProp, parseDateFilter } from './dateFilter';
 import { rememberedView, rememberView } from './viewPrefs';
 
@@ -22,14 +22,27 @@ import { rememberedView, rememberView } from './viewPrefs';
 
 export type GroupMode = 'filament' | 'vendor' | 'material' | 'location' | 'none';
 
+/**
+ * Which list the Library shows. Spools is the Library proper; the other two are
+ * the power-user catalog sub-views, reached from the Library tab's menu, the
+ * search panel and the manufacturer inspector. The view is never remembered:
+ * opening the Library always lands on spools.
+ */
+export type LibraryView = 'spools' | 'filaments' | 'manufacturers';
+export type CatalogView = Exclude<LibraryView, 'spools'>;
+
 export interface FilterChip {
 	prop: string;
 	value: string;
 }
 
 export interface LibraryState {
+	view: LibraryView;
 	selection: Selection | null;
+	/** In the filament view only `vendor` (manufacturer sections) or `none`; the
+	 *  manufacturer view is always `none`. */
 	group: GroupMode;
+	/** In a catalog view, a key of utils/library's catalogSortDefs. */
 	sortKey: string;
 	sortAsc: boolean;
 	filters: FilterChip[];
@@ -43,12 +56,13 @@ export interface LibraryState {
 
 const GROUP_MODES: GroupMode[] = ['filament', 'vendor', 'material', 'location', 'none'];
 const ENTITY_KINDS: EntityKind[] = ['spool', 'filament', 'vendor'];
+const VIEWS: LibraryView[] = ['spools', 'filaments', 'manufacturers'];
 
 /** The params that spell out how the list is laid out, as opposed to what it
  *  holds. A URL naming none of them is the one that defers to the remembered
  *  view; naming any of them describes a view of its own, which is taken whole so
  *  a stored grouping never gets spliced onto a link's sort. */
-const VIEW_PARAMS = ['group', 'sort', 'dir', 'empty'];
+const VIEW_PARAMS = ['view', 'group', 'sort', 'dir', 'empty'];
 
 const DEFAULTS = {
 	group: 'filament' as GroupMode,
@@ -59,6 +73,33 @@ const DEFAULTS = {
 	page: 1,
 	pageSize: 20
 };
+
+type Layout = Pick<LibraryState, 'group' | 'sortKey' | 'sortAsc'>;
+
+/** Each view's default layout: what an untouched URL for it means, and so what
+ *  serialisation omits. The catalogs read alphabetically, with sections. */
+const LAYOUT_DEFAULTS: Record<LibraryView, Layout> = {
+	spools: { group: DEFAULTS.group, sortKey: DEFAULTS.sortKey, sortAsc: DEFAULTS.sortAsc },
+	filaments: { group: 'vendor', sortKey: 'name', sortAsc: true },
+	manufacturers: { group: 'none', sortKey: 'name', sortAsc: true }
+};
+
+/**
+ * Filter props that describe a SPOOL rather than the filament it is of.
+ *
+ * Everything not listed here — filament, material, vendor, direction, and the
+ * `filament.extra.` / `filament.vendor.extra.` fields — is a fact about the
+ * filament, which a filament with no spools still has. The API refuses the
+ * spool-scoped ones together with include_empty, so the lists that ask for empty
+ * filaments stop asking while one is active (see query.ts).
+ */
+export function isSpoolScopedFilter(prop: string): boolean {
+	if (prop === 'location' || prop === 'lot') return true;
+	if (isDateFilterProp(prop)) return true;
+	// `extra.<key>` is the spool's own custom field; the filament's and the
+	// vendor's are prefixed, so a bare `extra.` is the spool-scoped one.
+	return prop.startsWith('extra.');
+}
 
 function parseFilters(raw: string[]): FilterChip[] {
 	return (
@@ -92,6 +133,9 @@ function parsePositiveInt(value: string | null, fallback: number): number {
  * would be served stale after that preference changed (see rememberedViewHref).
  */
 export function parseLibraryState(params: URLSearchParams): LibraryState {
+	const rawView = params.get('view') as LibraryView | null;
+	const view = rawView && VIEWS.includes(rawView) ? rawView : 'spools';
+	const layout = LAYOUT_DEFAULTS[view];
 	const group = params.get('group') as GroupMode | null;
 
 	const sel = params.get('sel');
@@ -99,17 +143,11 @@ export function parseLibraryState(params: URLSearchParams): LibraryState {
 	const kind = si > 0 ? (sel!.slice(0, si) as EntityKind) : null;
 	const selection = kind && ENTITY_KINDS.includes(kind) ? { kind, id: sel!.slice(si + 1) } : null;
 
-	const rawGroup = group && GROUP_MODES.includes(group) ? group : DEFAULTS.group;
-	const sortKey = params.get('sort') ?? DEFAULTS.sortKey;
-	const sortAsc = params.get('dir') === 'asc';
-	// Enforce the grouped-view invariant: a group can only be ordered by a
-	// group-orderable sort. A hand-crafted or stale URL pairing a grouping with a
-	// per-spool sort renders flat, honouring the more specific sort intent. (Our
-	// own mutators never emit such a pairing — see setSortKey/setGroup.)
-	return {
+	const dir = params.get('dir');
+	const sortAsc = dir === null ? layout.sortAsc : dir === 'asc';
+	const common = {
+		view,
 		selection,
-		group: isGroupOrderable(sortKey, rawGroup) ? rawGroup : 'none',
-		sortKey,
 		sortAsc,
 		filters: parseFilters(params.getAll('f')),
 		showArchived: params.get('arch') === '1',
@@ -117,6 +155,35 @@ export function parseLibraryState(params: URLSearchParams): LibraryState {
 		page: parsePositiveInt(params.get('page'), DEFAULTS.page),
 		pageSize: parsePositiveInt(params.get('size'), DEFAULTS.pageSize)
 	};
+
+	if (view !== 'spools') {
+		// A catalog lists the filaments (or manufacturers) with no spools as well,
+		// so there is no "No spools" toggle to carry.
+		const sort = params.get('sort');
+		return {
+			...common,
+			group: view === 'filaments' && group === 'none' ? 'none' : layout.group,
+			sortKey: sort && catalogSortField(view, sort) ? sort : layout.sortKey,
+			showEmpty: false
+		};
+	}
+
+	const rawGroup = group && GROUP_MODES.includes(group) ? group : DEFAULTS.group;
+	const sortKey = params.get('sort') ?? DEFAULTS.sortKey;
+	// Enforce the grouped-view invariant: a group can only be ordered by a
+	// group-orderable sort. A hand-crafted or stale URL pairing a grouping with a
+	// per-spool sort renders flat, honouring the more specific sort intent. (Our
+	// own mutators never emit such a pairing — see setSortKey/setGroup.)
+	return {
+		...common,
+		group: isGroupOrderable(sortKey, rawGroup) ? rawGroup : 'none',
+		sortKey
+	};
+}
+
+/** Whether `state` is one of the catalog sub-views rather than the spool list. */
+export function isCatalogView(state: LibraryState): boolean {
+	return state.view !== 'spools';
 }
 
 /**
@@ -131,9 +198,11 @@ export function isSelected(params: URLSearchParams, kind: EntityKind, id: string
 /** Encode Library state back to a canonical query string (no leading `?`). */
 function serializeState(s: LibraryState): string {
 	const p = new URLSearchParams();
-	if (s.group !== DEFAULTS.group) p.set('group', s.group);
-	if (s.sortKey !== DEFAULTS.sortKey) p.set('sort', s.sortKey);
-	if (s.sortAsc !== DEFAULTS.sortAsc) p.set('dir', s.sortAsc ? 'asc' : 'desc');
+	const layout = LAYOUT_DEFAULTS[s.view];
+	if (s.view !== 'spools') p.set('view', s.view);
+	if (s.group !== layout.group) p.set('group', s.group);
+	if (s.sortKey !== layout.sortKey) p.set('sort', s.sortKey);
+	if (s.sortAsc !== layout.sortAsc) p.set('dir', s.sortAsc ? 'asc' : 'desc');
 	// Encode prop and value separately so a `:` inside either (locations, lot
 	// numbers) survives the round-trip.
 	for (const f of s.filters) {
@@ -212,13 +281,16 @@ function navigate(next: LibraryState, replace = false): void {
 	// setSortKey so it always matches the view actually shown, including
 	// setGroup's fallback to the default sort. Back/forward doesn't come through
 	// here: stepping through history replays old views without redefining what
-	// "the Library" means next time it's opened fresh.
-	rememberView({
-		group: next.group,
-		sortKey: next.sortKey,
-		sortAsc: next.sortAsc,
-		showEmpty: next.showEmpty
-	});
+	// "the Library" means next time it's opened fresh. Only the spool view is
+	// remembered; a catalog's layout means nothing to the spool list.
+	if (next.view === 'spools') {
+		rememberView({
+			group: next.group,
+			sortKey: next.sortKey,
+			sortAsc: next.sortAsc,
+			showEmpty: next.showEmpty
+		});
+	}
 
 	const qs = serializeState(next);
 	// Both targets are base-path-independent: a bare `?query` resolves against the
@@ -235,6 +307,11 @@ function navigate(next: LibraryState, replace = false): void {
 
 export function setGroup(group: GroupMode): void {
 	const s = currentState();
+	// Every catalog sort orders sections and rows alike, so nothing to reconcile.
+	if (s.view !== 'spools') {
+		navigate({ ...s, group, page: DEFAULTS.page });
+		return;
+	}
 	// A group can only be ordered three ways; if the active sort isn't one of
 	// them, fall back to the default group ordering so the new view is coherent
 	// rather than silently sorting only within groups.
@@ -247,6 +324,11 @@ export function setGroup(group: GroupMode): void {
 /** Pick a sort key; re-selecting the active key flips its direction. */
 export function setSortKey(key: string): void {
 	const s = currentState();
+	if (s.view !== 'spools') {
+		const sortAsc = s.sortKey === key ? !s.sortAsc : catalogSortAsc(s.view, key);
+		navigate({ ...s, sortKey: key, sortAsc, page: DEFAULTS.page });
+		return;
+	}
 	const sortAsc = s.sortKey === key ? !s.sortAsc : defaultSortAsc(key);
 	// A per-spool ranking can't order groups, so switch to the flat list where
 	// the ranking is actually visible instead of reordering only within groups.
@@ -349,6 +431,17 @@ export function pageHrefFromState(state: LibraryState, page: number): string {
  */
 export function libraryHref(kind: EntityKind, id: string): string {
 	return `${resolve('/')}?sel=${kind}:${id}`;
+}
+
+/**
+ * Absolute (base-aware) href to a catalog view in its default layout, optionally
+ * pre-filtered (e.g. one manufacturer's filaments, from its inspector). Like
+ * {@link libraryHref} it carries nothing over from the current view: a catalog
+ * is entered fresh.
+ */
+export function catalogHref(view: CatalogView, filters: FilterChip[] = []): string {
+	const fresh = parseLibraryState(new URLSearchParams());
+	return `${resolve('/')}?${serializeState({ ...fresh, ...LAYOUT_DEFAULTS[view], view, filters })}`;
 }
 
 /**

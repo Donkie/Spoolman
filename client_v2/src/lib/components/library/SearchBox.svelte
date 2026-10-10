@@ -6,9 +6,11 @@
 	import Swatch from '../Swatch.svelte';
 	import MaterialBadge from '../MaterialBadge.svelte';
 	import Factory from '@lucide/svelte/icons/factory';
+	import List from '@lucide/svelte/icons/list';
+	import { goto } from '$app/navigation';
 	import { searchAll } from '$lib/api/search';
 	import type { SearchResults } from '$lib/api/types';
-	import { openSearchResult, searchResultHref } from '$lib/library/params';
+	import { catalogHref, openSearchResult, searchResultHref } from '$lib/library/params';
 	import { truncTitle } from '$lib/actions/truncated';
 	import { page } from '$app/state';
 	import { inventory } from '$lib/stores/inventory.svelte';
@@ -100,14 +102,30 @@
 	});
 
 	interface FlatItem {
-		kind: EntityKind;
+		/** 'browse' rows are plain links to a catalog list, not entities. */
+		kind: EntityKind | 'browse';
 		id: string;
+		href?: string;
 		/** Unique per row. A spool can be both its own result and a pill under a
 		 *  filament, so kind+id alone would highlight two rows at once. */
 		key: string;
 	}
 
-	let flat = $derived<FlatItem[]>(
+	const browseFilaments = {
+		kind: 'browse',
+		id: 'filaments',
+		href: catalogHref('filaments'),
+		key: 'browse:filaments'
+	} as const;
+	const browseManufacturers = {
+		kind: 'browse',
+		id: 'manufacturers',
+		href: catalogHref('manufacturers'),
+		key: 'browse:manufacturers'
+	} as const;
+	let emptyQuery = $derived(query.trim().length === 0);
+
+	let resultItems = $derived<FlatItem[]>(
 		results
 			? [
 					...results.spools.map((m) => ({
@@ -134,8 +152,18 @@
 			: []
 	);
 
-	let hasResults = $derived(flat.length > 0);
-	let showPanel = $derived(open && query.trim().length > 0);
+	let hasResults = $derived(resultItems.length > 0);
+	// Browse links sit last so they never displace the first result under Enter,
+	// and are reachable by the same arrow keys.
+	let flat = $derived<FlatItem[]>(
+		emptyQuery
+			? [browseFilaments, browseManufacturers]
+			: hasResults
+				? [...resultItems, browseFilaments, browseManufacturers]
+				: []
+	);
+	// Focused-but-empty shows the hint and the browse links instead of nothing.
+	let showPanel = $derived(open);
 
 	// Each result is a real `<a href>` (see searchResultHref) so it opens in a new
 	// tab / copies its address like any link. Close and clear the panel afterwards.
@@ -158,6 +186,13 @@
 		dismiss();
 	}
 
+	// Arrowing past the panel's fold must bring the row along; the browse links
+	// sit last, so without this they'd be picked while out of sight.
+	$effect(() => {
+		if (activeIndex < 0) return;
+		wrapper?.querySelector('.panel .active')?.scrollIntoView({ block: 'nearest' });
+	});
+
 	function onKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') {
 			open = false;
@@ -174,7 +209,10 @@
 			if (activeIndex >= 0 && activeIndex < flat.length) {
 				e.preventDefault();
 				const item = flat[activeIndex];
-				chooseByKey(item.kind, item.id);
+				if (item.kind === 'browse') {
+					goto(item.href!);
+					dismiss();
+				} else chooseByKey(item.kind, item.id);
 			}
 		}
 	}
@@ -248,7 +286,30 @@
 				</div>
 			{/if}
 
-			{#if loading && !results}
+			{#if emptyQuery}
+				<p class="empty-hint">{m['search.hint']()}</p>
+				<div class="section-label">{m['library.viewMenu.browse']()}</div>
+				<a
+					class="result"
+					class:active={activeIndex === indexOf(browseFilaments.key)}
+					href={browseFilaments.href}
+					data-sveltekit-noscroll
+					onclick={onResultClick}
+				>
+					<span class="vendor-icon" aria-hidden="true"><List size={14} /></span>
+					<span class="text"><span class="title">{m['library.catalog.allFilaments']()}</span></span>
+				</a>
+				<a
+					class="result"
+					class:active={activeIndex === indexOf(browseManufacturers.key)}
+					href={browseManufacturers.href}
+					data-sveltekit-noscroll
+					onclick={onResultClick}
+				>
+					<span class="vendor-icon" aria-hidden="true"><Factory size={14} /></span>
+					<span class="text"><span class="title">{m['library.catalog.allManufacturers']()}</span></span>
+				</a>
+			{:else if loading && !results}
 				<div class="msg">{m['search.searching']()}</div>
 			{:else if errored}
 				<div class="msg">{m['library.apiError']()}</div>
@@ -377,6 +438,21 @@
 						</a>
 					{/each}
 				{/if}
+
+				<div class="foot">
+					{m['search.browseAll']()}
+					<a
+						href={browseFilaments.href}
+						class:active={activeIndex === indexOf(browseFilaments.key)}
+						onclick={onResultClick}>{m['library.catalog.unitFilaments']()}</a
+					>
+					·
+					<a
+						href={browseManufacturers.href}
+						class:active={activeIndex === indexOf(browseManufacturers.key)}
+						onclick={onResultClick}>{m['library.catalog.unitManufacturers']()}</a
+					>
+				</div>
 			{/if}
 		</div>
 	{/if}
@@ -441,6 +517,31 @@
 		letter-spacing: 0.06em;
 		color: var(--text-muted);
 		padding: 8px 12px 4px;
+	}
+	.empty-hint {
+		margin: 0;
+		padding: 8px 12px 6px;
+		font-size: 12px;
+		line-height: 1.45;
+		color: var(--text-dim);
+	}
+	.foot {
+		margin-top: 4px;
+		padding: 8px 12px 4px;
+		border-top: 1px solid var(--border-soft);
+		font-size: 11.5px;
+		color: var(--text-dim);
+	}
+	.foot a {
+		color: var(--accent-link);
+		text-decoration: none;
+		padding: 2px 3px;
+		border-radius: 3px;
+	}
+	.foot a:hover,
+	.foot a.active {
+		text-decoration: underline;
+		background: var(--surface-2);
 	}
 	.msg {
 		padding: 18px 12px;

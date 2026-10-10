@@ -481,6 +481,39 @@ class Spool(BaseModel):
         )
 
 
+class SpoolGroupPreviewSpool(BaseModel):
+    """One spool in a filament group's preview: just enough to draw a fill-level pip."""
+
+    id: int = Field(description="Spool ID.", examples=[3])
+    remaining_weight: float | None = Field(
+        None,
+        description="Remaining filament weight in grams, as on the spool. Null when the initial weight is unknown.",
+        examples=[750.0],
+    )
+    initial_weight: float | None = Field(
+        None,
+        description="Initial filament weight in grams, falling back to the filament's weight. Null when unknown.",
+        examples=[1000.0],
+    )
+
+
+class SpoolGroupPreviewFilament(BaseModel):
+    """One filament in a vendor group's preview: just enough to draw a color swatch."""
+
+    id: int = Field(description="Filament ID.", examples=[7])
+    color_hex: str | None = Field(None, description="Hexadecimal color code of the filament.", examples=["FF0000"])
+    multi_color_hexes: str | None = Field(
+        None,
+        description="Comma-separated color codes of a multi-color filament.",
+        examples=["FF0000,00FF00"],
+    )
+    multi_color_direction: MultiColorDirection | None = Field(
+        None,
+        description="Type of multi-color filament. Only set if multi_color_hexes is set.",
+        examples=["coaxial"],
+    )
+
+
 class SpoolGroup(BaseModel):
     """A group of spools with server-computed aggregates.
 
@@ -523,6 +556,30 @@ class SpoolGroup(BaseModel):
     vendor: Vendor | None = Field(
         None,
         description="The vendor, embedded for group_by=vendor.",
+    )
+    filament_count: int | None = Field(
+        None,
+        description=(
+            "Only for group_by=vendor: the number of distinct filaments in the group. With "
+            "include_empty=true that is every matching filament of the manufacturer, including "
+            "those with no spools; otherwise it is the number of distinct filaments among the "
+            "matching spools."
+        ),
+        examples=[4],
+    )
+    spools: list[SpoolGroupPreviewSpool] | None = Field(
+        None,
+        description=(
+            "Only with preview=true and group_by=filament: up to 5 of the group's matching spools, by "
+            "ascending ID. They are exactly the spools counted in spool_count."
+        ),
+    )
+    filaments: list[SpoolGroupPreviewFilament] | None = Field(
+        None,
+        description=(
+            "Only with preview=true and group_by=vendor: up to 4 of the manufacturer's filaments that "
+            "match the filament filters, by name then ID, whether or not they have matching spools."
+        ),
     )
 
 

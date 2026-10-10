@@ -172,7 +172,18 @@ export function mapGroup(g: Json): GroupSummary {
 		totalRemaining: g.total_remaining_weight ?? 0,
 		hasStock: (g.spool_count ?? 0) > 0,
 		lastUsedLabel: formatDurationShort(g.last_used),
-		lastUsedSort: 0
+		lastUsedSort: 0,
+		filamentCount: g.filament_count ?? undefined,
+		previewSpools: (g.spools as Json[] | undefined)?.map((s) => ({
+			id: String(s.id),
+			remaining: s.remaining_weight ?? null,
+			initial: s.initial_weight ?? null
+		})),
+		previewFilaments: (g.filaments as Json[] | undefined)?.map((f) => ({
+			id: String(f.id),
+			colors: colorsFromApi(f),
+			direction: f.multi_color_direction ?? undefined
+		}))
 	};
 }
 

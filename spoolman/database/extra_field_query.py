@@ -516,6 +516,19 @@ async def find_extra_field_values(
     return sorted(values)
 
 
+def extra_field_sort_expr(value: ColumnElement, field_type: ExtraFieldType) -> ColumnElement:
+    """Turn a stored extra-field value into the expression to order by, typed so numbers sort numerically."""
+    if field_type == ExtraFieldType.integer:
+        return sqlalchemy.cast(value, sqlalchemy.Integer)
+    if field_type == ExtraFieldType.float:
+        return sqlalchemy.cast(value, sqlalchemy.Float)
+    if field_type in (ExtraFieldType.integer_range, ExtraFieldType.float_range):
+        cast_type = sqlalchemy.Integer if field_type == ExtraFieldType.integer_range else sqlalchemy.Float
+        # Use dialect-specific JSON first-element extraction, then cast to numeric.
+        return sqlalchemy.cast(_JsonArrayFirstElement(value), cast_type)
+    return value
+
+
 def add_order_by_extra_field(
     stmt: Select,
     base_obj: type[models.Base],
@@ -540,16 +553,7 @@ def add_order_by_extra_field(
         .correlate(base_obj)
     )
 
-    if field_type == ExtraFieldType.integer:
-        sort_expr = sqlalchemy.cast(value_subq, sqlalchemy.Integer)
-    elif field_type == ExtraFieldType.float:
-        sort_expr = sqlalchemy.cast(value_subq, sqlalchemy.Float)
-    elif field_type in (ExtraFieldType.integer_range, ExtraFieldType.float_range):
-        cast_type = sqlalchemy.Integer if field_type == ExtraFieldType.integer_range else sqlalchemy.Float
-        # Use dialect-specific JSON first-element extraction, then cast to numeric.
-        sort_expr = sqlalchemy.cast(_JsonArrayFirstElement(value_subq), cast_type)
-    else:
-        sort_expr = value_subq
+    sort_expr = extra_field_sort_expr(value_subq, field_type)
 
     # A spool that has no value for the field yields NULL here, and "not filled in" belongs at
     # the bottom of the list in both directions -- see order_by_clauses.
