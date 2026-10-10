@@ -65,8 +65,9 @@ const FILTER_PARAM: Record<string, string> = {
 	direction: 'filament.multi_color_direction',
 	location: 'location',
 	lot: 'lot_nr',
-	// Not a chip: the filament catalog narrows its section totals to the
-	// manufacturers on the page by id (see buildVendorTotalsQuery).
+	// Not in the filter menu, which picks manufacturers by name: the manufacturer
+	// inspector's "Show as a list" filters by id, so two of the same name stay
+	// apart, and the filament list narrows its section totals the same way.
 	vendorId: 'filament.vendor.id'
 };
 

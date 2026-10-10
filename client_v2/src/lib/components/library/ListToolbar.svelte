@@ -301,6 +301,11 @@
 		// Date filters hold a range, whose value is grammar rather than something to
 		// show ("-24h.." reads as "Last 24 hours").
 		if (isDateFilterProp(prop)) return `${label}: ${rangeLabel(value)}`;
+		// A manufacturer picked by id (the inspector's "Show as a list"): its name,
+		// so the chip reads like the by-name Manufacturer chip the menu makes.
+		if (prop === 'vendorId') {
+			return `${m['filament.fields.vendor']()}: ${inventory.vendorById(value)?.name ?? '#' + value}`;
+		}
 		// Filament filters store the numeric id; show the filament's name instead.
 		if (prop === 'filament') {
 			const fil = inventory.filamentById(value);
@@ -396,7 +401,12 @@
 <div
 	class="toolbar"
 	onclick={(e) => e.stopPropagation()}
-	onkeydown={(e) => e.stopPropagation()}
+	onkeydown={(e) => {
+		e.stopPropagation();
+		// A menu opened by a click leaves focus on its button, out here rather than
+		// in the menu, so this is where Escape has to close it.
+		if (e.key === 'Escape' && open) close();
+	}}
 	role="toolbar"
 	tabindex="-1"
 >

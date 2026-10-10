@@ -158,8 +158,8 @@
 	/>
 
 	{#snippet showAsList()}
-		<!-- Exact-match `vendor` chip: it appears in the list as a normal dismissable filter. -->
-		<a class="golist" href={params.catalogHref('filaments', [{ prop: 'vendor', value: vendor.name }])}
+		<!-- By id, not name, so a namesake manufacturer stays out; it shows as a normal dismissable chip. -->
+		<a class="golist" href={params.catalogHref('filaments', [{ prop: 'vendorId', value: vendor.id }])}
 			>{m['vendor.showAsList']()} <ChevronRight size={13} /></a
 		>
 	{/snippet}

@@ -18,9 +18,9 @@
 	import { weightAuto } from '$lib/utils/format';
 	import * as m from '$lib/paraglide/messages';
 
-	// The filament and manufacturer catalogs (docs/design/filament-list): sub-views
-	// of the Library that page the group endpoint the way FilamentList does, one
-	// row per filament or manufacturer, spools or not.
+	// The filament and manufacturer catalogs: sub-views of the Library that page
+	// the group endpoint the way FilamentList does, one row per filament or
+	// manufacturer, spools or not.
 	let { libraryState }: { libraryState: LibraryState } = $props();
 
 	let view = $derived(libraryState.view as CatalogView);

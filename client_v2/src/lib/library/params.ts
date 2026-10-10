@@ -24,9 +24,9 @@ export type GroupMode = 'filament' | 'vendor' | 'material' | 'location' | 'none'
 
 /**
  * Which list the Library shows. Spools is the Library proper; the other two are
- * the power-user catalog sub-views (docs/design/filament-list), reached from the
- * Library tab's menu, the search panel and the manufacturer inspector. The view
- * is never remembered: opening the Library always lands on spools.
+ * the power-user catalog sub-views, reached from the Library tab's menu, the
+ * search panel and the manufacturer inspector. The view is never remembered:
+ * opening the Library always lands on spools.
  */
 export type LibraryView = 'spools' | 'filaments' | 'manufacturers';
 export type CatalogView = Exclude<LibraryView, 'spools'>;

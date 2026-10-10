@@ -1,8 +1,8 @@
 import type { GroupSummary, SpoolPreview } from '$lib/api/types';
 
-// Pure helpers behind the catalog sub-views' rows (docs/design/filament-list):
-// how a page of filament groups splits into manufacturer sections, and how a
-// filament's preview spools draw as fill pips.
+// Pure helpers behind the catalog sub-views' rows: how a page of filament groups
+// splits into manufacturer sections, and how a filament's preview spools draw as
+// fill pips.
 
 /** A run of filaments sharing one manufacturer, under one section header. */
 export interface CatalogSection {

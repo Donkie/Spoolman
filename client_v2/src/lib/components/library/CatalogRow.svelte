@@ -15,10 +15,10 @@
 	import { page } from '$app/state';
 	import * as m from '$lib/paraglide/messages';
 
-	// One row of a catalog sub-view: a filament (docs/design/filament-list,
-	// RowAnatomy) or a manufacturer. Both share the anatomy — picture, a name line,
-	// one details line, a fixed stock column — so nothing a user types or a
-	// translation spells out can widen the list: every text truncates in place.
+	// One row of a catalog sub-view: a filament or a manufacturer. Both share the
+	// anatomy — picture, a name line, one details line, a fixed stock column — so
+	// nothing a user types or a translation spells out can widen the list: every
+	// text truncates in place.
 	interface Props {
 		/** A filament or vendor group from the catalog query. */
 		group: GroupSummary;
