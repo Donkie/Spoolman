@@ -1012,8 +1012,13 @@
 	 * scrolling it to the bottom fetches the next page. */
 	.card-body {
 		/* Single source of truth for the height cap: the reserved min-height (set inline from
-		 * the spool count) is clamped to this too, so it never exceeds max-height. */
-		--card-body-cap: min(52vh, 420px);
+		 * the spool count) is clamped to this too, so it never exceeds max-height.
+		 *
+		 * A single row of cards reaches down to the footer (#1242). The 1000px ceiling is
+		 * not cosmetic: the next page only loads when the body is scrolled, so the body
+		 * must stay shorter than one page of chips (PAGE × CHIP_H, about 1500px) or a tall
+		 * screen would show the first page with no scrollbar and never fetch the rest. */
+		--card-body-cap: clamp(min(52vh, 420px), 100dvh - 240px, 1000px);
 		display: flex;
 		flex-direction: column;
 		gap: 6px;
@@ -1126,6 +1131,11 @@
 	@media (max-width: 860px) {
 		.ctrl-label {
 			display: none;
+		}
+		/* Cards stack on a touch screen, and a body nearly as tall as the screen would
+		 * swallow the swipes meant for scrolling the page past it. */
+		.card-body {
+			--card-body-cap: min(52vh, 420px);
 		}
 	}
 	/* Phone: keep the controls together on the first row (title · group-by · new group)
