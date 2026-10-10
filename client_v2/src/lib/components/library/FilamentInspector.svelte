@@ -8,6 +8,7 @@
 	import ConfirmDialog from '../ConfirmDialog.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Copy from '@lucide/svelte/icons/copy';
+	import QrCode from '@lucide/svelte/icons/qr-code';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Square from '@lucide/svelte/icons/square';
 	import SquareCheck from '@lucide/svelte/icons/square-check';
@@ -23,6 +24,7 @@
 	import Field from '../Field.svelte';
 	import VendorSection from './VendorSection.svelte';
 	import ChangeVendorModal from './ChangeVendorModal.svelte';
+	import OpenSpoolQrModal from './OpenSpoolQrModal.svelte';
 	import OverrideMark from './OverrideMark.svelte';
 	import type { Filament, Spool } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
@@ -165,6 +167,7 @@
 	// first), and it carries the empty-spool weight this filament may be inheriting,
 	// so it gets a dialog that says what will happen instead of a debounced autosave.
 	let changeVendorOpen = $state(false);
+	let openSpoolQrOpen = $state(false);
 
 	let confirmLines = $derived(
 		plan.allowed
@@ -237,6 +240,9 @@
 			<Button onclick={() => ui.openAddModal(filament.id)}
 				><Plus size={15} /> {m['inspector.addSpoolsOfThis']()}</Button
 			>
+			<Button variant="outline" onclick={() => (openSpoolQrOpen = true)} title="OpenSpool QR"
+				><QrCode size={15} /> OpenSpool QR</Button
+			>
 			<!-- Duplicating and deleting are occasional, so they sit apart as quiet icons
 			     and leave the end of the row to the one action this panel is really for.
 			     Buying the same filament in another colour is common enough to stay a
@@ -278,6 +284,8 @@
 		current={vendor}
 		onclose={() => (changeVendorOpen = false)}
 	/>
+
+	<OpenSpoolQrModal open={openSpoolQrOpen} {filament} {vendor} onclose={() => (openSpoolQrOpen = false)} />
 
 	<SectionLabel>
 		<span style="padding-left:20px"
