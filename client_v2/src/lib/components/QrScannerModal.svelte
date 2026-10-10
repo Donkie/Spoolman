@@ -147,6 +147,9 @@
 					maxScansPerSecond: 5,
 					returnDetailedScanResult: true
 				});
+				// Also decode light-on-dark labels (#1165). The jsQR worker used where
+				// BarcodeDetector is missing (Firefox) only tries dark-on-light by default.
+				scanner.setInversionMode('both');
 				await scanner.start();
 				if (cancelled) {
 					scanner?.stop();
