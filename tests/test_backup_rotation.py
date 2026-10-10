@@ -157,3 +157,33 @@ def test_backup_gives_up_on_a_lock_that_never_clears(
             db.backup_and_rotate(backups)
         holder.execute("ROLLBACK")
     assert not (backups / f"{BACKUP_NAME}.pending").exists()
+
+
+def test_backup_needs_no_lock_on_the_target(db: Database, backups: Path, monkeypatch: pytest.MonkeyPatch):
+    """Backup folders on network shares often refuse file locks, which failed every backup (#1246).
+
+    Simulate that by holding an exclusive lock on the target from the moment it is created.
+    """
+    monkeypatch.setattr(database, "BACKUP_LOCK_TIMEOUT_SECONDS", 0.5)
+    pending = backups / f"{BACKUP_NAME}.pending"
+    real_connect = sqlite3.connect
+    holders: list[sqlite3.Connection] = []
+
+    def connect(*args: object, **kwargs: object) -> sqlite3.Connection:
+        conn = real_connect(*args, **kwargs)
+        if pending.exists() and not holders:
+            holders.append(real_connect(pending, isolation_level=None))
+            holders[0].execute("BEGIN EXCLUSIVE")
+        return conn
+
+    monkeypatch.setattr(sqlite3, "connect", connect)
+    try:
+        result = db.backup_and_rotate(backups)
+    finally:
+        for holder in holders:
+            holder.close()
+
+    assert holders, "the target was never locked, so this test proves nothing"
+    assert result.created is True
+    with closing(real_connect(backups / BACKUP_NAME)) as conn:
+        assert conn.execute("SELECT note FROM spool").fetchall() == [("original",)]

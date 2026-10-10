@@ -152,7 +152,9 @@ class Database:
             busy_since = busy_since or time.monotonic()
             if time.monotonic() - busy_since > BACKUP_LOCK_TIMEOUT_SECONDS:
                 raise sqlite3.OperationalError(
-                    f"Database stayed locked for over {BACKUP_LOCK_TIMEOUT_SECONDS} seconds, giving up on the backup.",
+                    f"Database {self.connection_url.database} stayed locked for over "
+                    f"{BACKUP_LOCK_TIMEOUT_SECONDS} seconds, giving up on the backup. "
+                    "Is another program holding it open?",
                 )
 
         if self.connection_url.database == target_path:
@@ -164,9 +166,12 @@ class Database:
         # transaction manager that commits on exit, it does not close the connection. Leaving the
         # handles open leaks them on every backup, and on Windows it makes the caller's unlink/move
         # of the file we just wrote fail with "used by another process" (POSIX unlink hides this).
+        # nolock=1: the target is a scratch file nothing else opens, so it needs no file locks. Backup
+        # folders on network shares often refuse SQLite's locks (CIFS without nobrl, NFS without
+        # lockd), which failed every backup with a "locked" database that was not locked at all (#1246).
         with (
             closing(sqlite3.connect(self.connection_url.database)) as src,
-            closing(sqlite3.connect(target_path)) as dst,
+            closing(sqlite3.connect(f"{Path(target_path).absolute().as_uri()}?nolock=1", uri=True)) as dst,
         ):
             src.backup(dst, pages=1, progress=progress)
 
