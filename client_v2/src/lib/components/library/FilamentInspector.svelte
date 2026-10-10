@@ -34,6 +34,7 @@
 	import { pct, weightAuto } from '$lib/utils/format';
 	import { usageLabel } from '$lib/utils/library';
 	import { spoolSource } from '$lib/api/spoolSource';
+	import { allPages } from '$lib/api/query';
 	import { isAbortError } from '$lib/api/http';
 	import { classifyDeleteFailure, planFilamentDelete } from '$lib/library/deletion';
 	import { toasts } from '$lib/stores/toasts.svelte';
@@ -80,6 +81,7 @@
 	// fetch's own cache upsert (which replaces the `filament` prop object) doesn't
 	// re-trigger this effect in an infinite loop.
 	let filamentId = $derived(filament.id);
+	const SPOOL_PAGE = 100;
 	let spools = $state<Spool[]>([]);
 	// Bumped by live spool events so adding/removing/editing a spool refetches
 	// this filament's list (the fetch below is server-ordered, not read from the
@@ -96,24 +98,33 @@
 		const id = filamentId;
 		const archived = showArchived;
 		void revision; // refetch on live spool events
-		let cancelled = false;
-		spoolSource
-			.listSpools({
+		const ctrl = new AbortController();
+		// Every spool, not the first page: the count and total above are read off
+		// this list. That renders all of them; a filament with thousands of spools
+		// would want a "show more" here and the group endpoint's totals for the header.
+		allPages(SPOOL_PAGE, (offset) =>
+			spoolSource.listSpools({
 				filters: {},
-				sort: [{ field: 'last_used', dir: 'desc' }],
+				sort: [
+					{ field: 'last_used', dir: 'desc' },
+					{ field: 'id', dir: 'asc' }
+				],
 				groupScope: { field: 'filament', key: id },
 				allowArchived: archived,
-				limit: 100,
-				offset: 0,
-				lowThreshold: settings.lowThreshold
+				limit: SPOOL_PAGE,
+				offset,
+				lowThreshold: settings.lowThreshold,
+				signal: ctrl.signal
 			})
-			.then((page) => {
-				if (!cancelled) spools = page.items;
+		)
+			.then((items) => {
+				// A spool used mid-load moves up the sort and can turn up on two pages.
+				if (!ctrl.signal.aborted) spools = [...new Map(items.map((s) => [s.id, s])).values()];
 			})
-			.catch((e) => console.error('Failed to load filament spools', e));
-		return () => {
-			cancelled = true;
-		};
+			.catch((e) => {
+				if (!isAbortError(e, ctrl.signal)) console.error('Failed to load filament spools', e);
+			});
+		return () => ctrl.abort();
 	});
 
 	const saver = makeSaver<string, Partial<Filament>>((id, patch) =>
