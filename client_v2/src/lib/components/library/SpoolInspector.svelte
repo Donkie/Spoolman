@@ -124,7 +124,7 @@
 	let serverLocations = $state<string[]>([]);
 	$effect(() => {
 		spoolSource
-			.locations()
+			.locationChoices()
 			.then((l) => (serverLocations = l))
 			.catch(() => {});
 	});
