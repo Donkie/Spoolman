@@ -4,6 +4,7 @@ import logging
 import os
 import subprocess
 import sys
+import tempfile
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -458,9 +459,9 @@ def get_build_date() -> datetime | None:
 def can_write_to_data_dir() -> bool:
     """Check if the data directory is writable."""
     try:
-        test_file = get_data_dir().joinpath("test.txt")
-        test_file.touch()
-        test_file.unlink()
+        # A uniquely named file, so the check can never clobber one of the user's own.
+        with tempfile.NamedTemporaryFile(dir=get_data_dir()):
+            pass
     except:  # noqa: E722
         return False
     return True
