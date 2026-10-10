@@ -16,7 +16,7 @@
         "cancel": "取消",
         "confirm": "您確定嗎？",
         "continue": "繼續",
-        "filter": "過濾器",
+        "filter": "篩選",
         "clear": "清除",
         "refresh": "重新整理",
         "show": "檢視",
@@ -61,8 +61,8 @@
     "printing": {
         "generic": {
             "title": "列印中",
-            "description": "調整以下設定以獲得所需的列印佈局。請注意，列表機和您的操作系統可能會套用自己的邊距和縮放比例，因此可能需要進行一些反覆測試才能達到理想效果。在實際標籤上列印之前，先在普通紙上測試。",
-            "helpMargin": "邊距應配置為與您的標籤紙和列表機相符，調整這些將影響整個網格的大小。",
+            "description": "調整以下設定以取得所需的列印版面。請注意，印表機與作業系統可能會套用自己的邊距和縮放比例，因此可能需要多次測試。列印實際標籤前，請先使用一般紙張測試。",
+            "helpMargin": "邊距應設定為與您的標籤紙和印表機相符，調整這些將影響整個網格的大小。",
             "rows": "列",
             "paperSize": "紙張大小",
             "customSize": "自訂",
@@ -70,7 +70,7 @@
             "showBorder": "顯示外框",
             "previewScale": "預覽縮放比例",
             "skipItems": "跳過項目",
-            "itemCopies": "項目複製",
+            "itemCopies": "每項份數",
             "contentSettings": "內容設定",
             "layoutSettings": "佈局設定",
             "horizontalSpacing": "水平間距",
@@ -100,7 +100,7 @@
             "columns": "欄",
             "verticalSpacing": "垂直間距",
             "marginTop": "上邊界",
-            "helpPrinterMargin": "安全區域應設定為列表機能列印的距離紙張的邊界，更改此選項不影響整個網格。"
+            "helpPrinterMargin": "安全區域應設定為印表機能列印的距離紙張的邊界，更改此選項不影響整個網格。"
         },
         "qrcode": {
             "title": "標籤列印中",
@@ -110,7 +110,7 @@
             "textSize": "標籤文字大小",
             "showContent": "列印標籤",
             "useHTTPUrl": {
-                "label": "QR碼連結",
+                "label": "QR 碼連結",
                 "preview": "預覽：",
                 "options": {
                     "default": "預設",
@@ -131,11 +131,11 @@
             "showArchived": "檢視已封存",
             "noSpoolsSelected": "您尚未選擇任何料盤。",
             "selectAll": "選擇/取消全選",
-            "selectedTotal_other": "已選擇 {{count}} 個料盤"
+            "selectedTotal_other": "已選擇 {{count}} 個線軸"
         }
     },
     "scanner": {
-        "description": "掃描Spoolman的QR碼以檢視關於料盤的詳細資料。",
+        "description": "掃描 Spoolman QR 碼以檢視線軸的詳細資料。",
         "error": {
             "notAllowed": "您未被允許存取攝影機。",
             "streamApiNotSupported": "瀏覽器不支援MediaStream API。",
@@ -144,10 +144,10 @@
             "insecureContext": "此頁面未通過 HTTPS 提供服務。",
             "unknown": "發生未知的錯誤。({{error}})"
         },
-        "title": "掃描QR碼"
+        "title": "QR 碼掃描器"
     },
     "spool": {
-        "spool": "料盤",
+        "spool": "線軸",
         "fields": {
             "id": "ID",
             "filament": "線材",
@@ -346,7 +346,7 @@
         "general": {
             "tab": "一般",
             "currency": {
-                "label": "貨幣設定標籤"
+                "label": "貨幣"
             },
             "base_url": {
                 "tooltip": "生成 QR 碼等功能時使用的基本 URL。",
@@ -394,5 +394,6 @@
         "no_location": "未設定位置",
         "no_locations_help": "這個頁面讓您將料盤按位置進行整理，請從增加一些線盤來開始！",
         "new_location": "新增位置"
-    }
+    },
+    "sponsor": "在 GitHub 上贊助專案"
 }
