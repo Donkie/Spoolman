@@ -41,6 +41,24 @@ def make_metrics_app() -> Callable:
 
 metrics_app = make_asgi_app()
 
+# The label sets each gauge was last given, so the next refresh knows which ones are gone.
+_published: dict[Gauge, set[tuple]] = {}
+
+
+def _publish(gauge: Gauge, values: dict[tuple, float]) -> None:
+    """Make a gauge hold exactly these label sets, dropping any left from an earlier refresh.
+
+    Without the drop, an archived or deleted spool (or a deleted filament) kept being exported
+    until restart. The new values are set before the stale ones are removed rather than
+    clearing first: /metrics is served from a worker thread, so a scrape can land mid-refresh,
+    and this way it never sees a series that is still live go missing.
+    """
+    for labels, value in values.items():
+        gauge.labels(*labels).set(value)
+    for labels in _published.get(gauge, set()) - values.keys():
+        gauge.remove(*labels)
+    _published[gauge] = set(values)
+
 
 async def spool_metrics(db: AsyncSession) -> None:
     """Get metrics by Spools from DB and write to prometheus.
@@ -57,12 +75,19 @@ async def spool_metrics(db: AsyncSession) -> None:
     )
     rows = await db.execute(stmt)
     result = list(rows.unique().scalars().all())
+    price: dict[tuple, float] = {}
+    initial_weight: dict[tuple, float] = {}
+    used_weight: dict[tuple, float] = {}
     for row in result:
+        labels = (str(row.id), str(row.filament_id))
         if row.price is not None:
-            SPOOL_PRICE.labels(str(row.id), str(row.filament_id)).set(row.price)
+            price[labels] = row.price
         if row.initial_weight is not None:
-            SPOOL_INITIAL_WEIGHT.labels(str(row.id), str(row.filament_id)).set(row.initial_weight)
-        SPOOL_USED_WEIGHT.labels(str(row.id), str(row.filament_id)).set(row.used_weight)
+            initial_weight[labels] = row.initial_weight
+        used_weight[labels] = row.used_weight
+    _publish(SPOOL_PRICE, price)
+    _publish(SPOOL_INITIAL_WEIGHT, initial_weight)
+    _publish(SPOOL_USED_WEIGHT, used_weight)
 
 
 async def filament_metrics(db: AsyncSession) -> None:
@@ -79,18 +104,20 @@ async def filament_metrics(db: AsyncSession) -> None:
     )
     rows = await db.execute(stmt)
     result = list(rows.unique().scalars().all())
+    info: dict[tuple, float] = {}
+    density: dict[tuple, float] = {}
+    diameter: dict[tuple, float] = {}
+    weight: dict[tuple, float] = {}
     for row in result:
         vendor_name = "-"
         if row.vendor is not None:
             vendor_name = row.vendor.name
-        FILAMENT_INFO.labels(
-            str(row.id),
-            vendor_name,
-            row.name,
-            row.material,
-            row.color_hex,
-        ).set(1)
-        FILAMENT_DENSITY.labels(str(row.id)).set(row.density)
-        FILAMENT_DIAMETER.labels(str(row.id)).set(row.diameter)
+        info[(str(row.id), vendor_name, row.name, row.material, row.color_hex)] = 1
+        density[(str(row.id),)] = row.density
+        diameter[(str(row.id),)] = row.diameter
         if row.weight is not None:
-            FILAMENT_WEIGHT.labels(str(row.id)).set(row.weight)
+            weight[(str(row.id),)] = row.weight
+    _publish(FILAMENT_INFO, info)
+    _publish(FILAMENT_DENSITY, density)
+    _publish(FILAMENT_DIAMETER, diameter)
+    _publish(FILAMENT_WEIGHT, weight)
