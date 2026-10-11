@@ -169,3 +169,51 @@ test("a filament's extra fields can be filled in while creating it", async ({ pa
     await expect(page.getByText(fieldKey, { exact: true })).toHaveCount(0);
   }
 });
+
+test("a typed zero tare overrides the filament's spool weight", async ({ page, request }) => {
+  const API_BASE =
+    process.env.SPOOLMAN_API_URL ??
+    `${process.env.SPOOLMAN_BASE_URL ?? "http://localhost:8001"}/api/v1`;
+  const filamentName = unique("ZeroTare");
+  const created = await request.post(`${API_BASE}/filament`, {
+    data: {
+      name: filamentName,
+      material: "PLA",
+      density: 1.24,
+      diameter: 1.75,
+      weight: 1000,
+      spool_weight: 200,
+      price: 20,
+    },
+  });
+  expect(created.ok()).toBeTruthy();
+  const filament = await created.json();
+  let spoolId: number | undefined;
+
+  try {
+    await openApp(page);
+    const dialog = await openAddSpoolModal(page);
+    await dialog.locator("input.search-big").fill(filamentName);
+    await dialog.locator(".res-item").filter({ hasText: filamentName }).first().click();
+    await numberField(dialog, "Spool Weight").fill("0");
+    await numberField(dialog, "Price").fill("0");
+    const saved = page.waitForResponse(
+      (r) => r.request().method() === "POST" && new URL(r.url()).pathname.endsWith("/spool"),
+    );
+    await dialog.getByRole("button", { name: "Add 1 spool", exact: true }).click();
+    const response = await saved;
+    expect(response.ok()).toBeTruthy();
+    spoolId = (await response.json()).id;
+    await expect(dialog).toBeHidden();
+
+    const stored = await request.get(`${API_BASE}/spool/${spoolId}`);
+    expect(stored.ok()).toBeTruthy();
+    expect(await stored.json()).toMatchObject({
+      spool_weight: 0,
+      price: 0,
+    });
+  } finally {
+    if (spoolId !== undefined) await request.delete(`${API_BASE}/spool/${spoolId}`);
+    await request.delete(`${API_BASE}/filament/${filament.id}`);
+  }
+});
