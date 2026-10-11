@@ -261,7 +261,7 @@ class HttpSpoolSource {
 	 */
 	async importExternalFilament(ext: ExternalFilament): Promise<Filament> {
 		// Already imported?
-		const existing = await getJson<Json[]>('/filament', { external_id: ext.id });
+		const existing = await getJson<Json[]>('/filament', { external_id: quote(ext.id) });
 		if (existing.length) {
 			if (existing[0].vendor) inventory.upsertVendor(mapVendor(existing[0].vendor));
 			const f = mapFilament(existing[0]);
@@ -269,19 +269,14 @@ class HttpSpoolSource {
 			return f;
 		}
 
-		// Get-or-create the vendor (matched by external_id = manufacturer name).
-		let vendorId: number;
-		const vendors = await getJson<Json[]>('/vendor', { external_id: ext.manufacturer });
+		// Match the vendor by external_id first, then by name.
+		let vendorId: number | undefined;
+		const vendors = await getJson<Json[]>('/vendor', { external_id: quote(ext.manufacturer) });
 		if (vendors.length) {
 			inventory.upsertVendor(mapVendor(vendors[0]));
 			vendorId = vendors[0].id;
 		} else {
-			const created = await postJson<Json>('/vendor', {
-				name: ext.manufacturer,
-				external_id: ext.manufacturer
-			});
-			inventory.upsertVendor(mapVendor(created));
-			vendorId = created.id;
+			vendorId = await this.getOrCreateVendor(ext.manufacturer, undefined, ext.manufacturer);
 		}
 
 		const body: Json = {
@@ -312,10 +307,10 @@ class HttpSpoolSource {
 	/**
 	 * Find a vendor by (case-insensitive) name or create it; returns its id.
 	 *
-	 * `extra` only applies to a vendor this call creates — matching an existing
+	 * `extra` and `externalId` only apply to a vendor this call creates — matching an existing
 	 * name links that record, it never edits it.
 	 */
-	async getOrCreateVendor(name: string, extra?: Extra): Promise<number | undefined> {
+	async getOrCreateVendor(name: string, extra?: Extra, externalId?: string): Promise<number | undefined> {
 		const trimmed = name.trim();
 		if (!trimmed) return undefined;
 		const all = await getJson<Json[]>('/vendor');
@@ -326,6 +321,7 @@ class HttpSpoolSource {
 		}
 		const created = await postJson<Json>('/vendor', {
 			name: trimmed,
+			external_id: externalId,
 			extra: extra && Object.keys(extra).length ? extra : undefined
 		});
 		inventory.upsertVendor(mapVendor(created));
