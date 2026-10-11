@@ -6,6 +6,16 @@ import { filterDecimalInsertion, isPartialDecimal, normalizeDecimal, parseDecima
 // number may reach the API.
 
 describe('parseDecimal', () => {
+	it.each([
+		['', undefined],
+		['   ', undefined],
+		['0', 0],
+		['0,5', 0.5],
+		['garbage', undefined]
+	])('converts optional API input %j to %s', (raw, expected) => {
+		expect(parseDecimal(raw) ?? undefined).toBe(expected);
+	});
+
 	it('reads a decimal point', () => {
 		expect(parseDecimal('1.75')).toBe(1.75);
 	});

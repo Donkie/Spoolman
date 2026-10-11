@@ -6,7 +6,7 @@ on:
       # Every branch builds, so a fix can be handed to a bug reporter as a Docker
       # image before it merges (see publish-images). Weblate pushes locale-only
       # commits constantly and dependabot's branches arrive as PRs anyway, so
-      # neither is worth a full multi-arch run.
+      # bot branches skip push runs and are built by the pull_request run instead.
       - "**"
       - "!weblate*"
       - "!dependabot/**"
@@ -36,10 +36,10 @@ jobs:
   #
   style:
     # Same-repo branches already got a full run from the push trigger, so skip the
-    # duplicate pull_request run. Forks still need it: a fork's push fires no event
-    # here. Skipping the three jobs that have no `needs` cascades to every other
-    # job, since a skipped dependency skips its dependents.
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    # duplicate pull_request run. Bot branches excluded above still need it, as do
+    # forks, whose pushes fire no event here. Skipping the three jobs with no `needs`
+    # cascades to every other job, since a skipped dependency skips its dependents.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository || startsWith(github.head_ref, 'dependabot/') || startsWith(github.head_ref, 'weblate') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -83,10 +83,10 @@ jobs:
   #
   build-client:
     # Same-repo branches already got a full run from the push trigger, so skip the
-    # duplicate pull_request run. Forks still need it: a fork's push fires no event
-    # here. Skipping the three jobs that have no `needs` cascades to every other
-    # job, since a skipped dependency skips its dependents.
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    # duplicate pull_request run. Bot branches excluded above still need it, as do
+    # forks, whose pushes fire no event here. Skipping the three jobs with no `needs`
+    # cascades to every other job, since a skipped dependency skips its dependents.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository || startsWith(github.head_ref, 'dependabot/') || startsWith(github.head_ref, 'weblate') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -235,10 +235,10 @@ jobs:
   #
   build-tester:
     # Same-repo branches already got a full run from the push trigger, so skip the
-    # duplicate pull_request run. Forks still need it: a fork's push fires no event
-    # here. Skipping the three jobs that have no `needs` cascades to every other
-    # job, since a skipped dependency skips its dependents.
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    # duplicate pull_request run. Bot branches excluded above still need it, as do
+    # forks, whose pushes fire no event here. Skipping the three jobs with no `needs`
+    # cascades to every other job, since a skipped dependency skips its dependents.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository || startsWith(github.head_ref, 'dependabot/') || startsWith(github.head_ref, 'weblate') }}
     runs-on: ubuntu-latest
     permissions:
       packages: write
