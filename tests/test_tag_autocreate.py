@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from spoolman.database import models
 from spoolman.database.tag import create_spool_from_decoded_tag, find_spool_by_uid
 from spoolman.exceptions import ItemCreateError, TagConflictError
-from spoolman.tag_decode import DecodedTag
+from spoolman.tags.decode import DecodedTag
 
 
 @pytest_asyncio.fixture

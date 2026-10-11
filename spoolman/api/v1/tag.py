@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman import tag_decode
+from spoolman.tags import decode as tag_decode
 from spoolman.api.v1.models import EventType, Filament, Message, Spool, TagDecodedInfo, TagReader, TagScan, TagScanEvent
 from spoolman.database import models
 from spoolman.database import tag as tag_db
