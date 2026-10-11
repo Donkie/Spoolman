@@ -1,5 +1,5 @@
 import { argosScreenshot } from "@argos-ci/playwright";
-import type { APIRequestContext, Page } from "@playwright/test";
+import type { APIRequestContext, Page, Request } from "@playwright/test";
 import { test, expect } from "./fixtures";
 import { expectAppShell } from "./helpers";
 
@@ -97,10 +97,35 @@ const PAGES = [
   { path: "/spool/show/2", name: "spool detail" },
 ];
 
+// The app shell (logo) paints before any data arrives, and Argos only waits for
+// aria-busy, fonts and images, so shoot only once the API has been quiet for a
+// moment. Otherwise the first shot of a page catches it mid-load (an empty
+// Library list) and the Registered blanking in snap() misses fields not yet rendered.
+async function gotoSettled(page: Page, path: string): Promise<void> {
+  let inflight = 0;
+  let quietSince = 0;
+  const isApi = (r: Request) => r.url().includes("/api/v1/");
+  const finished = (r: Request) => {
+    if (!isApi(r)) return;
+    inflight--;
+    quietSince = Date.now();
+  };
+  page.on("request", (r) => {
+    if (isApi(r)) inflight++;
+  });
+  page.on("requestfinished", finished);
+  page.on("requestfailed", finished);
+  await page.goto(path);
+  await expectAppShell(page);
+  quietSince = Math.max(quietSince, Date.now());
+  await expect
+    .poll(() => inflight === 0 && Date.now() - quietSince >= 300, { intervals: [50], timeout: 15_000 })
+    .toBe(true);
+}
+
 for (const { path, name } of PAGES) {
   test(`screenshot: ${name}`, async ({ page }) => {
-    await page.goto(path);
-    await expectAppShell(page);
+    await gotoSettled(page, path);
     await snap(page, name);
   });
 }

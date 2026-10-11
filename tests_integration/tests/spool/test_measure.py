@@ -243,6 +243,41 @@ def test_measure_spool_without_spool_weight(random_empty_filament: dict[str, Any
     httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
 
 
+def test_measure_spool_zero_spool_weight(random_filament: dict[str, Any]):
+    """Test measuring a spool whose own empty spool weight is explicitly 0."""
+    # Setup: a refill wound on no spool. The filament (and its vendor) know a tare weight,
+    # but the spool's own 0 is a real value and must not fall back to theirs.
+    assert random_filament["spool_weight"] > 0
+    result = httpx.post(
+        f"{URL}/api/v1/spool",
+        json={
+            "filament_id": random_filament["id"],
+            "initial_weight": 1000,
+            "spool_weight": 0,
+        },
+    )
+    result.raise_for_status()
+    spool = result.json()
+    assert spool["spool_weight"] == 0
+
+    # Execute
+    result = httpx.put(
+        f"{URL}/api/v1/spool/{spool['id']}/measure",
+        json={
+            "weight": 400,
+        },
+    )
+    result.raise_for_status()
+
+    # Verify
+    spool = result.json()
+    assert spool["used_weight"] == pytest.approx(600)
+    assert spool["remaining_weight"] == pytest.approx(400)
+
+    # Clean up
+    httpx.delete(f"{URL}/api/v1/spool/{spool['id']}").raise_for_status()
+
+
 def test_measure_spool_vendor_tare_set_later():
     """Test measuring a spool whose vendor was given its empty spool weight after the fact."""
     # Setup: a vendor with no tare weight, a filament created while it still has none, and

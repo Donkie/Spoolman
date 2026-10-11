@@ -140,7 +140,7 @@
 			fields.ensure('filament');
 			fields.ensure('vendor');
 			spoolSource
-				.locations()
+				.locationChoices()
 				.then((l) => (locations = l))
 				.catch(() => {});
 			if (presetFilamentId) {

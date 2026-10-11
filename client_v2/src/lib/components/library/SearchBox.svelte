@@ -16,6 +16,7 @@
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { fields } from '$lib/stores/fields.svelte';
 	import { weightAuto } from '$lib/utils/format';
+	import { parseDecimal } from '$lib/utils/numeric';
 	import type { EntityKind } from '$lib/types';
 	import * as m from '$lib/paraglide/messages';
 
@@ -33,8 +34,9 @@
 
 	function loadThreshold(): number {
 		if (typeof localStorage === 'undefined') return DEFAULT_THRESHOLD;
-		const n = Number(localStorage.getItem(THRESHOLD_KEY));
-		return Number.isFinite(n) && n > 0 ? n : DEFAULT_THRESHOLD;
+		// 0 is a real choice on the slider (exact colour only), so keep it.
+		const n = parseDecimal(localStorage.getItem(THRESHOLD_KEY));
+		return n !== null && n >= 0 ? n : DEFAULT_THRESHOLD;
 	}
 
 	let query = $state('');

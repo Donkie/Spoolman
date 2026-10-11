@@ -27,6 +27,7 @@ import { filamentLabel, type FilterOption } from '$lib/utils/library';
 import type { EntityType } from './fields';
 import { type ExternalFilament } from './external';
 import { searchAll } from './search';
+import { loadLayout } from '$lib/dashboard/layout';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Json = Record<string, any>;
@@ -537,6 +538,16 @@ class HttpSpoolSource {
 	}
 	async locations(): Promise<string[]> {
 		return getJson<string[]>('/location');
+	}
+	/**
+	 * Locations to offer when placing a spool. GET /location only knows the ones that
+	 * hold a spool right now, so the empty ones kept as dashboard cards (an idle
+	 * toolhead, a new shelf) are added from the saved layout, as the old client did
+	 * with its `locations` setting (#1261).
+	 */
+	async locationChoices(): Promise<string[]> {
+		const [inUse, layout] = await Promise.all([this.locations(), loadLayout().catch(() => null)]);
+		return [...new Set([...inUse, ...(layout?.groups.location ?? [])])].filter(Boolean).sort();
 	}
 	/**
 	 * Replace one value of one spool field wherever it occurs, in a single request. Works for
