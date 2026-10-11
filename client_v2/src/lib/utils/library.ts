@@ -139,9 +139,11 @@ export function rowIdentity(vm: SpoolVM, ctx: RowContext): RowIdentity {
 
 /**
  * Distinguish spools of one and the same filament. They're identical except for
- * how they've been used — and #id, fill, weight and location already sit in their
- * own columns — so there's nothing to make a bold title out of. The usage status
- * is all the row claims; the inspector has the rest.
+ * how they've been used and which lot they came from — #id, fill, weight and
+ * location already sit in their own columns — so there's nothing to make a bold
+ * title out of. The usage status leads, since every row can say it; the lot
+ * number follows when there is one (#1173), and a long one is what the ellipsis
+ * cuts, with the full text on hover. The inspector has the rest.
  *
  * The comment deliberately stays out of it. It reads like a label on the handful
  * of spools whose owner treats it as one, but it's a free-form textarea: people
@@ -150,7 +152,11 @@ export function rowIdentity(vm: SpoolVM, ctx: RowContext): RowIdentity {
  * truncates the usage status — the one thing every row can say — to make room.
  */
 function spoolIdentity(vm: SpoolVM): RowIdentity {
-	return { title: '', sub: vm.rightLabel };
+	const lot = vm.spool.lot.trim();
+	return {
+		title: '',
+		sub: lot ? `${vm.rightLabel} · ${m['spool.fields.lotNr']()} ${lot}` : vm.rightLabel
+	};
 }
 
 /**

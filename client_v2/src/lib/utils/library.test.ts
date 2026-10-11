@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupUnusedByFilament, usageLabel } from './library';
+import { groupUnusedByFilament, rowIdentity, usageLabel } from './library';
 import type { SpoolVM } from './library';
 import { mapSpool } from '$lib/api/map';
 
@@ -88,4 +88,36 @@ describe('groupUnusedByFilament', () => {
 	it('handles an empty pile', () => {
 		expect(groupUnusedByFilament([])).toEqual([]);
 	});
+});
+
+describe('rowIdentity', () => {
+	const vm = (lot: string, unused = false): SpoolVM =>
+		({
+			spool: { lot, unused },
+			filament: { name: 'Galaxy Black', material: 'PLA', diameter: 1.75 },
+			vendor: { name: 'Prusament' },
+			rightLabel: unused ? 'unused' : 'used 3 days ago'
+		}) as SpoolVM;
+
+	it('shows the trimmed lot alongside usage in filament groups', () => {
+		expect(rowIdentity(vm('  LOT-2026-0915-A7  '), 'filament')).toEqual({
+			title: '',
+			sub: 'used 3 days ago · Lot Nr LOT-2026-0915-A7'
+		});
+	});
+
+	it('shows the lot for individual unused spools too', () => {
+		expect(rowIdentity(vm('24A-1187', true), 'filament').sub).toBe('unused · Lot Nr 24A-1187');
+	});
+
+	it.each(['', '   '])('keeps usage alone for a blank lot (%j)', (lot) => {
+		expect(rowIdentity(vm(lot), 'filament')).toEqual({ title: '', sub: 'used 3 days ago' });
+	});
+
+	it.each(['flat', 'vendor', 'material', 'location'] as const)(
+		'keeps the identity unchanged in %s rows',
+		(context) => {
+			expect(rowIdentity(vm('LOT-2026-0915-A7'), context)).toEqual(rowIdentity(vm(''), context));
+		}
+	);
 });
