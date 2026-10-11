@@ -40,3 +40,30 @@ describe('locationChoices', () => {
 		expect(await spoolSource.locationChoices()).toEqual(['Shelf']);
 	});
 });
+
+describe('createFilament', () => {
+	it.each([undefined, 0, 0.5])('sends optional numeric values unchanged: %s', async (value) => {
+		const fetch = vi.fn(async (_url: string, init: RequestInit) => {
+			const body = JSON.parse(init.body as string);
+			expect(body.spool_weight).toBe(value);
+			expect(body.price).toBe(value);
+			expect(body.settings_extruder_temp).toBe(value);
+			expect(body.settings_bed_temp).toBe(value);
+			return Response.json({ id: 1, ...body });
+		});
+		vi.stubGlobal('fetch', fetch);
+		await spoolSource.createFilament({
+			name: 'Test',
+			vendorName: '',
+			material: 'PLA',
+			density: 1.24,
+			diameter: 1.75,
+			colors: [],
+			spoolWeight: value,
+			price: value,
+			nozzleTemp: value,
+			bedTemp: value
+		});
+		expect(fetch).toHaveBeenCalledOnce();
+	});
+});
