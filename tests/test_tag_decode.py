@@ -10,14 +10,14 @@ import uuid
 import cbor2
 import pytest
 
-from spoolman.openprinttag_codec import (
+from spoolman.tags.openprinttag import (
     META_AUX_REGION_OFFSET,
     MF_BRAND_NAME,
     MF_MATERIAL_TYPE,
     MF_NOMINAL_NETTO_FULL_WEIGHT,
     MF_PRIMARY_COLOR,
 )
-from spoolman.tag_decode import (
+from spoolman.tags.decode import (
     DecodedTag,
     approximate_density,
     decode,
@@ -153,7 +153,7 @@ def test_density_or_fallback_uses_pla_equivalent_when_none() -> None:
 
 def test_any_codec_failure_is_a_soft_fail(monkeypatch: pytest.MonkeyPatch) -> None:
     """Best effort is a contract: a codec that raises something other than ValueError must not reach the scan."""
-    from spoolman import openprinttag_codec, tag_decode  # noqa: PLC0415
+    from spoolman.tags import decode as tag_decode, openprinttag as openprinttag_codec  # noqa: PLC0415
 
     def boom(*_args: object, **_kwargs: object) -> None:
         raise TypeError("a list where a number goes")
@@ -166,7 +166,7 @@ def test_odd_length_uid_still_decodes_without_an_instance_uid(monkeypatch: pytes
     """normalize_uid accepts an odd number of hex digits; fromhex does not. The scan must not 500."""
     import base64  # noqa: PLC0415
 
-    from spoolman import tag_decode  # noqa: PLC0415
+    from spoolman.tags import decode as tag_decode  # noqa: PLC0415
     from spoolman.api.v1 import tag as tag_api  # noqa: PLC0415
 
     seen = {}

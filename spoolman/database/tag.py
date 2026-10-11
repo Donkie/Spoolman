@@ -27,7 +27,7 @@ from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman import tag_decode
+from spoolman.tags import decode as tag_decode
 from spoolman.api.v1.models import EventType
 from spoolman.database import filament, models, spool, vendor
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError, TagConflictError

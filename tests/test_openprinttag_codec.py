@@ -13,7 +13,7 @@ import uuid
 import cbor2
 import pytest
 
-from spoolman.openprinttag_codec import (
+from spoolman.tags.openprinttag import (
     AUX_CONSUMED_WEIGHT,
     META_AUX_REGION_OFFSET,
     META_AUX_REGION_SIZE,

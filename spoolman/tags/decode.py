@@ -109,7 +109,7 @@ def decode(tag_format: str | None, payload: bytes, uid_bytes: bytes | None = Non
 def _decode_openprinttag(payload: bytes, uid_bytes: bytes | None) -> DecodedTag | None:
     # Imported here, not at module level: cbor2 is only needed when a payload actually arrives,
     # so a missing or broken cbor2 must not stop the server from starting.
-    from spoolman import openprinttag_codec  # noqa: PLC0415
+    from spoolman.tags import openprinttag as openprinttag_codec  # noqa: PLC0415
 
     try:
         data = openprinttag_codec.decode_nfcv_memory(payload, nfc_tag_uid=uid_bytes)
