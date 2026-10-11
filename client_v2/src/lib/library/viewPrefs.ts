@@ -16,12 +16,12 @@
 // cache, one URL per distinct view — depends on the address bar being the whole
 // truth about what's on screen.
 //
-// Only grouping and sort are remembered, plus the one toggle that ADDS rows
-// (showEmpty). Filters, search and archived-visibility hide spools, and a hidden
-// filter silently restored days later reads as missing data rather than as a
-// preference. Showing filaments you own no spools of cannot produce that
-// confusion -- restoring it can only put more on screen, never less -- so it is
-// remembered while the hiding toggles still are not.
+// Only grouping and sort are remembered, plus toggles that ADD information
+// (showEmpty adds rows, showLotNumbers adds text). Filters, search and archived-
+// visibility hide spools, and a hidden filter silently restored days later reads
+// as missing data rather than as a preference. Showing empty filaments or lot
+// numbers cannot produce that confusion -- restoring them can only put more on
+// screen, never less -- so they are remembered while the hiding toggles are not.
 
 const KEY = 'spoolman-v2-library-view';
 
@@ -35,6 +35,7 @@ export interface StoredView {
 	sortKey: string;
 	sortAsc: boolean;
 	showEmpty: boolean;
+	showLotNumbers: boolean;
 }
 
 /** Rebuild a stored view from its JSON, or null if there isn't a usable one. */
@@ -43,15 +44,15 @@ export function parseStoredView(raw: string | null): StoredView | null {
 	try {
 		const parsed: unknown = JSON.parse(raw);
 		if (typeof parsed !== 'object' || parsed === null) return null;
-		const { group, sort, asc, empty } = parsed as Record<string, unknown>;
+		const { group, sort, asc, empty, lots } = parsed as Record<string, unknown>;
 		if (typeof group !== 'string' || typeof sort !== 'string' || typeof asc !== 'boolean') {
 			return null;
 		}
-		// `empty` arrived after this key shipped, so an entry written by an older
-		// build simply has no such field. Treating that as "off" keeps those
+		// `empty` and `lots` arrived after this key shipped, so an entry written
+		// by an older build simply has no such fields. Treating that as "off" keeps those
 		// entries valid; rejecting them would throw away a grouping the user
 		// picked long ago the first time they loaded a new version.
-		return { group, sortKey: sort, sortAsc: asc, showEmpty: empty === true };
+		return { group, sortKey: sort, sortAsc: asc, showEmpty: empty === true, showLotNumbers: lots === true };
 	} catch {
 		// Corrupt entry: the shipped view is no worse than what a first-time
 		// visitor gets.
@@ -80,7 +81,8 @@ export function rememberView(view: StoredView): void {
 		prev.group === view.group &&
 		prev.sortKey === view.sortKey &&
 		prev.sortAsc === view.sortAsc &&
-		prev.showEmpty === view.showEmpty
+		prev.showEmpty === view.showEmpty &&
+		prev.showLotNumbers === view.showLotNumbers
 	) {
 		// Selecting a spool or turning a page navigates too; only the changes that
 		// actually move the view are worth a synchronous localStorage write.
@@ -109,7 +111,8 @@ function write(view: StoredView): void {
 				group: view.group,
 				sort: view.sortKey,
 				asc: view.sortAsc,
-				empty: view.showEmpty
+				empty: view.showEmpty,
+				lots: view.showLotNumbers
 			})
 		);
 	} catch {

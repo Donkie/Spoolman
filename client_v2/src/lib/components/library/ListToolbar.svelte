@@ -366,6 +366,9 @@
 	let noSpoolsMatches = $derived(
 		libraryState.group === 'filament' && matchesTerms(m['buttons.showNoSpools'](), searchTerms(menuQuery))
 	);
+	let lotNumbersMatches = $derived(
+		libraryState.view === 'spools' && matchesTerms(m['buttons.showLotNumbers'](), searchTerms(menuQuery))
+	);
 	// An option's secondary text is on screen, so it has to be searchable: typing
 	// "petg" against a list that visibly says PETG must not come back empty.
 	let visibleOptions = $derived(
@@ -524,7 +527,28 @@
 						<span class="mi-label">{m['buttons.showNoSpools']()}</span>
 					</button>
 				{/if}
-				{#if !archivedMatches && !noSpoolsMatches && !visibleCategories.length}
+				{#if lotNumbersMatches}
+					{#if visibleCategories.length && !archivedMatches && !noSpoolsMatches}<div
+							class="menu-sep"
+						></div>{/if}
+					<button
+						class="menu-item"
+						role="menuitemcheckbox"
+						aria-checked={libraryState.showLotNumbers}
+						onclick={() => {
+							params.setShowLotNumbers(!libraryState.showLotNumbers);
+							close();
+						}}
+					>
+						<span class="mi-check"
+							>{#if libraryState.showLotNumbers}<SquareCheck size={15} />{:else}<Square
+									size={15}
+								/>{/if}</span
+						>
+						<span class="mi-label">{m['buttons.showLotNumbers']()}</span>
+					</button>
+				{/if}
+				{#if !archivedMatches && !noSpoolsMatches && !lotNumbersMatches && !visibleCategories.length}
 					<div class="menu-item"><span class="mi-label mi-meta">{m['search.noResults']()}</span></div>
 				{/if}
 			{:else}

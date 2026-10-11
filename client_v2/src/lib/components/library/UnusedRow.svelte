@@ -14,9 +14,10 @@
 		indent?: number;
 		/** Listing context, forwarded to the expanded per-instance rows. */
 		context?: RowContext;
+		showLotNumbers?: boolean;
 	}
 
-	let { unused, showSwatch = false, indent = 14, context = 'flat' }: Props = $props();
+	let { unused, showSwatch = false, indent = 14, context = 'flat', showLotNumbers = false }: Props = $props();
 
 	// Unused spools (never drawn from — used_weight 0) of one filament are
 	// collapsed into a single summary row. Clicking can't know *which* instance
@@ -109,7 +110,7 @@
 		{#each unused as vm (vm.spool.id)}
 			<!-- Divider-mode instances align with the sibling used rows (same indent)
 			     so the divider reads as the header for the section beneath it. -->
-			<SpoolRow {vm} {showSwatch} indent={asDivider ? indent : indent + 14} {context} />
+			<SpoolRow {vm} {showSwatch} indent={asDivider ? indent : indent + 14} {context} {showLotNumbers} />
 		{/each}
 	</div>
 {/if}

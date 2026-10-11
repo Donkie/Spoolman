@@ -90,6 +90,7 @@ test.beforeAll(async ({ request }) => {
 
 const PAGES = [
   { path: "/", name: "library" },
+  { path: "/?lots=1", name: "library with lot numbers" },
   { path: "/dashboard", name: "dashboard" },
   { path: "/labels", name: "labels" },
   { path: "/settings", name: "settings" },

@@ -22,6 +22,7 @@ function state(over: Partial<LibraryState> = {}): LibraryState {
 		filters: [],
 		showArchived: false,
 		showEmpty: true,
+		showLotNumbers: false,
 		page: 1,
 		pageSize: 20,
 		...over

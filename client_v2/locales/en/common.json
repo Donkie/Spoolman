@@ -62,6 +62,7 @@
     "buttons.filter": "Filter",
     "buttons.save": "Save",
     "buttons.showArchived": "Show Archived",
+    "buttons.showLotNumbers": "Show lot numbers",
     "buttons.showNoSpools": "Show filaments with no spools",
     "buttons.unArchive": "Unarchive",
     "changeFilament.adoptWeight": "Set this spool’s full weight to {{full}}",
