@@ -40,3 +40,84 @@ describe('locationChoices', () => {
 		expect(await spoolSource.locationChoices()).toEqual(['Shelf']);
 	});
 });
+
+describe('importExternalFilament', () => {
+	const ext = {
+		id: 'Prusa_PLA',
+		manufacturer: 'Prusa',
+		name: 'PLA',
+		material: 'PLA',
+		density: 1.24,
+		diameter: 1.75,
+		weight: 1000
+	};
+	type ApiVendor = { id: number; name: string; external_id?: string };
+
+	function serveImport(vendors: ApiVendor[], filamentIds: string[] = []) {
+		const fetch = vi.fn(async (url: string, init?: RequestInit) => {
+			const parsed = new URL(url);
+			const resource = parsed.pathname.split('/').pop();
+			if (init?.method === 'POST') {
+				const body = JSON.parse(init.body as string);
+				if (resource === 'vendor') {
+					const vendor = { id: 100, ...body };
+					vendors.push(vendor);
+					return Response.json(vendor);
+				}
+				return Response.json({ id: 200, ...body, vendor: vendors.find((v) => v.id === body.vendor_id) });
+			}
+			const rows =
+				resource === 'vendor' ? vendors : filamentIds.map((external_id, i) => ({ id: i + 1, external_id }));
+			const term = parsed.searchParams.get('external_id');
+			if (term === null) return Response.json(rows);
+			return Response.json(
+				rows.filter((row) =>
+					term.startsWith('"') && term.endsWith('"')
+						? row.external_id === term.slice(1, -1)
+						: row.external_id?.toLowerCase().includes(term.toLowerCase())
+				)
+			);
+		});
+		vi.stubGlobal('fetch', fetch);
+		return fetch;
+	}
+
+	it('reuses a hand-made vendor with the same name in different case without editing it', async () => {
+		const vendor = { id: 10, name: 'pRUSA' };
+		const fetch = serveImport([vendor]);
+		expect((await spoolSource.importExternalFilament(ext)).vendorId).toBe('10');
+		expect(vendor).toEqual({ id: 10, name: 'pRUSA' });
+		expect(fetch.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1);
+		expect(fetch.mock.calls.every(([, init]) => !['PATCH', 'PUT'].includes(init?.method ?? ''))).toBe(true);
+	});
+
+	it('prefers an exact external_id over a matching name', async () => {
+		const fetch = serveImport([
+			{ id: 10, name: 'Prusa' },
+			{ id: 20, name: 'Renamed manufacturer', external_id: 'Prusa' }
+		]);
+		expect((await spoolSource.importExternalFilament(ext)).vendorId).toBe('20');
+		expect(fetch.mock.calls.map(([url]) => new URL(url).searchParams.get('external_id'))).toEqual([
+			'"Prusa_PLA"',
+			'"Prusa"',
+			null
+		]);
+	});
+
+	it('does not reuse substring external_ids for vendors or filaments', async () => {
+		const vendors = [{ id: 10, name: 'Prusament', external_id: 'Prusament' }];
+		const fetch = serveImport(vendors, ['Prusa_PLA_Plus']);
+		const imported = await spoolSource.importExternalFilament(ext);
+		expect(imported.id).toBe('200');
+		expect(imported.vendorId).toBe('100');
+		expect(vendors[1]).toEqual({ id: 100, name: 'Prusa', external_id: 'Prusa' });
+		expect(fetch.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(2);
+	});
+
+	it('returns an already imported filament without creating anything', async () => {
+		const fetch = serveImport([], [ext.id]);
+		expect((await spoolSource.importExternalFilament(ext)).id).toBe('1');
+		expect(fetch).toHaveBeenCalledTimes(1);
+		expect(new URL(fetch.mock.calls[0][0]).searchParams.get('external_id')).toBe('"Prusa_PLA"');
+	});
+});
