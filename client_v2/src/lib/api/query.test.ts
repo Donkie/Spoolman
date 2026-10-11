@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildCatalogQuery, buildGroupQuery, buildVendorTotalsQuery } from './query';
+import { allPages, buildCatalogQuery, buildGroupQuery, buildVendorTotalsQuery } from './query';
 import type { LibraryState } from '$lib/library/params';
 
 // A filament with no spools is the one you need to re-order, and grouping by
@@ -169,5 +169,37 @@ describe('buildCatalogQuery', () => {
 			offset: 0
 		});
 		expect(q.filters).toEqual({ material: ['PLA'], vendorId: ['1', '4'] });
+	});
+});
+
+// The dashboard and the filament inspector used to stop at their first page
+// (1000 groups, 100 spools) and show the rest as if it didn't exist.
+describe('allPages', () => {
+	const rows = Array.from({ length: 25 }, (_, i) => i);
+	const pager = (size: number) => {
+		const offsets: number[] = [];
+		const fetchPage = async (offset: number) => {
+			offsets.push(offset);
+			return { items: rows.slice(offset, offset + size), total: rows.length };
+		};
+		return { offsets, fetchPage };
+	};
+
+	it('keeps fetching until it has every row', async () => {
+		const { offsets, fetchPage } = pager(10);
+		expect(await allPages(10, fetchPage)).toEqual(rows);
+		expect(offsets).toEqual([0, 10, 20]);
+	});
+
+	it('stops after one request when the first page holds everything', async () => {
+		const { offsets, fetchPage } = pager(100);
+		expect(await allPages(100, fetchPage)).toEqual(rows);
+		expect(offsets).toEqual([0]);
+	});
+
+	it('stops on an exact multiple without asking for an empty page', async () => {
+		const { offsets, fetchPage } = pager(5);
+		expect(await allPages(5, fetchPage)).toHaveLength(25);
+		expect(offsets).toEqual([0, 5, 10, 15, 20]);
 	});
 });
