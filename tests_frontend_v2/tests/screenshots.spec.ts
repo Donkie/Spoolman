@@ -129,3 +129,26 @@ for (const { path, name } of PAGES) {
     await snap(page, name);
   });
 }
+
+test("screenshot: filament print picker", async ({ page }) => {
+  // A fixed catalog shows the pager without changing the shared seed.
+  await page.route("**/api/v1/filament?*", async (route) => {
+    const url = new URL(route.request().url());
+    const offset = Number(url.searchParams.get("offset") ?? 0);
+    const limit = Number(url.searchParams.get("limit"));
+    const filaments = Array.from({ length: 101 }, (_, i) => ({
+      id: 101 - i, name: `Print filament ${101 - i}`, material: "PLA", diameter: 1.75, density: 1.24,
+    }));
+    await route.fulfill({ json: filaments.slice(offset, offset + limit), headers: { "X-Total-Count": "101" } });
+  });
+  await gotoSettled(page, "/labels");
+  await page.getByRole("button", { name: "New", exact: true }).click();
+  await page.getByRole("button", { name: "Filament", exact: true }).click();
+  await page.getByRole("button", { name: "Print", exact: true }).click();
+  const picker = page.locator(".print-panel .col.spools");
+  await expect(picker.locator(".spool-item")).toHaveCount(100);
+  await expect(picker.getByRole("button", { name: "Next page" })).toBeEnabled();
+  await snap(page, "filament print picker");
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Delete", exact: true }).click();
+});

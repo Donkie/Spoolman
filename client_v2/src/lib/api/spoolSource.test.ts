@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('./config', () => ({ API_BASE: 'http://spoolman.test/api/v1' }));
 
+import { inventory } from '$lib/stores/inventory.svelte';
 import { spoolSource } from './spoolSource';
 
 // GET /location only knows locations that hold a spool, so an idle toolhead set up
@@ -65,5 +66,44 @@ describe('createFilament', () => {
 			bedTemp: value
 		});
 		expect(fetch).toHaveBeenCalledOnce();
+	});
+});
+
+describe('listFilamentPage', () => {
+	it.each(['asc', 'desc'] as const)(
+		'requests a bounded page in %s order and caches its relations',
+		async (dir) => {
+			const fetch = vi.fn(async () =>
+				Response.json([{ id: 1201, name: 'Page filament', vendor: { id: 1201, name: 'Page vendor' } }], {
+					headers: { 'X-Total-Count': '1500' }
+				})
+			);
+			vi.stubGlobal('fetch', fetch);
+			const signal = new AbortController().signal;
+			const page = await spoolSource.listFilamentPage({
+				sort: [{ field: 'id', dir }],
+				limit: 100,
+				offset: 100,
+				signal
+			});
+			expect(fetch).toHaveBeenCalledExactlyOnceWith(
+				`http://spoolman.test/api/v1/filament?sort=id%3A${dir}&limit=100&offset=100`,
+				{ signal }
+			);
+			expect(page.total).toBe(1500);
+			expect(page.items.map((f) => f.id)).toEqual(['1201']);
+			expect(inventory.filamentById('1201')).toEqual(page.items[0]);
+			expect(inventory.vendorById('1201')?.name).toBe('Page vendor');
+		}
+	);
+
+	it('keeps the preview batch API returning an array', async () => {
+		const fetch = vi.fn(async () => Response.json([{ id: 1, name: 'Preview' }]));
+		vi.stubGlobal('fetch', fetch);
+		expect((await spoolSource.listFilaments(8)).map((f) => f.id)).toEqual(['1']);
+		expect(fetch).toHaveBeenCalledExactlyOnceWith(
+			'http://spoolman.test/api/v1/filament?sort=id%3Adesc&limit=8&offset=0',
+			{ signal: undefined }
+		);
 	});
 });
