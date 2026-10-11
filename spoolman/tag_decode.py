@@ -15,7 +15,6 @@ a scan's core contract (resolve a UID) must never fail because enrichment of it 
 import logging
 from dataclasses import dataclass
 
-from spoolman import openprinttag_codec
 from spoolman.tags import normalize_format
 
 logger = logging.getLogger(__name__)
@@ -40,6 +39,7 @@ class DecodedTag:
     empty_container_weight_g: float | None = None  # tare weight of the spool itself
     consumed_weight_g: float | None = None  # already used, per the tag -- shown, never applied automatically
     external_id: str | None = None  # a stable id for the specific roll/instance, if the tag carries one
+    material_class: str | None = None  # "FFF" or "SLA"; only FFF tags can create a filament
 
 
 # Approximate densities (g/cm^3) for common materials, used only as a fallback when a
@@ -96,12 +96,21 @@ def decode(tag_format: str | None, payload: bytes, uid_bytes: bytes | None = Non
 
     """
     fmt = normalize_format(tag_format)
-    if fmt == "openprinttag":
-        return _decode_openprinttag(payload, uid_bytes)
+    try:
+        if fmt == "openprinttag":
+            return _decode_openprinttag(payload, uid_bytes)
+    except Exception:  # noqa: BLE001 -- best effort by contract, see the module docstring
+        # Best effort by contract: whatever a hostile or damaged tag does to the codec, the
+        # scan carries on as if the payload were not decodable.
+        logger.warning("Could not decode %s payload", fmt, exc_info=True)
     return None
 
 
 def _decode_openprinttag(payload: bytes, uid_bytes: bytes | None) -> DecodedTag | None:
+    # Imported here, not at module level: cbor2 is only needed when a payload actually arrives,
+    # so a missing or broken cbor2 must not stop the server from starting.
+    from spoolman import openprinttag_codec  # noqa: PLC0415
+
     try:
         data = openprinttag_codec.decode_nfcv_memory(payload, nfc_tag_uid=uid_bytes)
     except ValueError:
@@ -109,6 +118,7 @@ def _decode_openprinttag(payload: bytes, uid_bytes: bytes | None) -> DecodedTag 
         return None
 
     return DecodedTag(
+        material_class=data.material_class,
         material_type=data.material_type,
         material_name=data.material_name,
         brand_name=data.brand_name,

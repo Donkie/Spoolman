@@ -19,16 +19,18 @@ constraint that is real on three databases out of four.
 """
 
 import logging
+import math
 from datetime import datetime
 
 import sqlalchemy
+from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman import tag_decode
 from spoolman.api.v1.models import EventType
 from spoolman.database import filament, models, spool, vendor
-from spoolman.exceptions import ItemNotFoundError, TagConflictError
+from spoolman.exceptions import ItemCreateError, ItemNotFoundError, TagConflictError
 from spoolman.tags import TARGET_FILAMENT, TARGET_SPOOL, normalize_format, normalize_uid
 
 logger = logging.getLogger(__name__)
@@ -258,6 +260,12 @@ async def _find_vendor_by_exact_name(db: AsyncSession, name: str) -> models.Vend
     return None
 
 
+def _check_finite(*values: float | None) -> None:
+    """Refuse NaN and infinity: CBOR can carry them, and they are not storable or serializable."""
+    if any(v is not None and not math.isfinite(v) for v in values):
+        raise ItemCreateError("Decoded tag contains a non-finite number.")
+
+
 async def create_spool_from_decoded_tag(
     *,
     db: AsyncSession,
@@ -288,6 +296,36 @@ async def create_spool_from_decoded_tag(
     """
     uid = normalize_uid(uid)
 
+    # Everything is validated before the first write. Vendor, filament and spool are committed
+    # one by one, so a value the response models reject would leave rows behind that break
+    # GET /filament and GET /spool until someone deletes them by hand.
+    density = decoded.density_g_cm3 or tag_decode.density_or_fallback(decoded.material_type)
+    diameter = decoded.diameter_mm or 1.75
+    used_weight = decoded.consumed_weight_g or 0
+    _check_finite(density, diameter, decoded.net_weight_g, decoded.empty_container_weight_g, used_weight)
+    try:
+        # Local import: the API modules import this one, so importing them at module level
+        # would be circular.
+        from spoolman.api.v1.filament import FilamentParameters  # noqa: PLC0415
+        from spoolman.api.v1.spool import SpoolParameters  # noqa: PLC0415
+        from spoolman.api.v1.vendor import VendorParameters  # noqa: PLC0415
+
+        if decoded.brand_name:
+            VendorParameters(name=decoded.brand_name)
+        FilamentParameters(
+            density=density,
+            diameter=diameter,
+            material=decoded.material_type,
+            name=decoded.material_name,
+            weight=decoded.net_weight_g,
+            spool_weight=decoded.empty_container_weight_g,
+            color_hex=decoded.color_hex,
+            external_id=decoded.external_id,
+        )
+        SpoolParameters(filament_id=1, used_weight=used_weight)
+    except ValidationError as e:
+        raise ItemCreateError(f"Decoded tag values are not storable: {e}") from e
+
     vendor_item = None
     if decoded.brand_name:
         vendor_item = await _find_vendor_by_exact_name(db, decoded.brand_name)
@@ -296,8 +334,8 @@ async def create_spool_from_decoded_tag(
 
     filament_item = await filament.create(
         db=db,
-        density=decoded.density_g_cm3 or tag_decode.density_or_fallback(decoded.material_type),
-        diameter=decoded.diameter_mm or 1.75,
+        density=density,
+        diameter=diameter,
         material=decoded.material_type,
         name=decoded.material_name,
         vendor_id=vendor_item.id if vendor_item is not None else None,
@@ -310,7 +348,7 @@ async def create_spool_from_decoded_tag(
     spool_item = await spool.create(
         db=db,
         filament_id=filament_item.id,
-        used_weight=decoded.consumed_weight_g or 0,
+        used_weight=used_weight,
     )
 
     await link_spool(db=db, spool_id=spool_item.id, uid=uid, tag_format=tag_format)

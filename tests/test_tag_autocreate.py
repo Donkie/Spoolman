@@ -14,11 +14,12 @@ from collections.abc import AsyncGenerator
 
 import pytest
 import pytest_asyncio
+import sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from spoolman.database import models
 from spoolman.database.tag import create_spool_from_decoded_tag, find_spool_by_uid
-from spoolman.exceptions import TagConflictError
+from spoolman.exceptions import ItemCreateError, TagConflictError
 from spoolman.tag_decode import DecodedTag
 
 
@@ -191,3 +192,46 @@ async def test_a_second_create_for_an_already_linked_uid_conflicts(db: AsyncSess
             tag_format="openprinttag",
             decoded=DecodedTag(material_type="PETG"),
         )
+
+
+async def _row_counts(db: AsyncSession) -> tuple[int, int, int]:
+    """Count vendors, filaments and spools, to prove a rejected create wrote nothing."""
+    counts = [
+        (await db.execute(sqlalchemy.select(sqlalchemy.func.count()).select_from(model))).scalar_one()
+        for model in (models.Vendor, models.Filament, models.Spool)
+    ]
+    return counts[0], counts[1], counts[2]
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        pytest.param({"material_name": "x" * 300}, id="name-too-long"),
+        pytest.param({"brand_name": "y" * 300}, id="brand-too-long"),
+        pytest.param({"density_g_cm3": -1.0}, id="negative-density"),
+        pytest.param({"density_g_cm3": float("nan")}, id="nan-density"),
+        pytest.param({"net_weight_g": float("inf")}, id="infinite-weight"),
+        pytest.param({"consumed_weight_g": -5.0}, id="negative-consumed-weight"),
+    ],
+)
+@pytest.mark.asyncio
+async def test_invalid_decoded_values_are_rejected_before_any_write(db: AsyncSession, overrides: dict):
+    fields = {
+        "material_type": "PLA",
+        "material_name": "PLA",
+        "brand_name": "Vendor",
+        "diameter_mm": 1.75,
+        "density_g_cm3": 1.24,
+        "net_weight_g": 1000.0,
+        "empty_container_weight_g": 140.0,
+    }
+    fields.update(overrides)
+    decoded = DecodedTag(**fields)
+
+    with pytest.raises(ItemCreateError):
+        await create_spool_from_decoded_tag(db=db, uid=_uid(), tag_format="openprinttag", decoded=decoded)
+
+    # The point of validating first: no vendor, filament or spool row survives the rejection,
+    # so the list endpoints keep working.
+    assert await _row_counts(db) == (0, 0, 0)
+    assert await find_spool_by_uid(db, _uid()) is None
