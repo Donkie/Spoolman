@@ -1,15 +1,14 @@
 """Decode a scanned tag's raw payload into fields the rest of Spoolman understands.
 
 `POST /tag/scan` (spoolman/api/v1/tag.py) accepts a `format` and a raw `payload_b64` but,
-on its own, never looks inside them -- that split is deliberate (see spoolman/tags.py): the
-scan-relay layer only ever needs a UID. This module is where "Spoolman owns the codec" gets
-exercised: format-specific decoding lives in its own codec module (openprinttag_codec.py and,
-as later PRs add them, tigertag_codec.py / qidi_codec.py), and `decode()` is the one place
-that knows which codec answers for which format string.
+on its own, never looks inside them -- that split is deliberate (see spoolman/tags/__init__.py):
+the scan-relay layer only ever needs a UID. Format-specific decoding lives in one module per
+format (openprinttag.py here, more later), and `decode()` is the one place that knows which
+module answers for which format string.
 
-Decoding is best-effort and pure: no database, no FastAPI, mirrors tags.py in that regard.
-An unrecognized format or a payload that fails to parse returns None rather than raising --
-a scan's core contract (resolve a UID) must never fail because enrichment of it didn't work.
+Decoding is best-effort and pure: no database, no FastAPI. An unrecognized format or a payload
+that fails to parse returns None rather than raising -- a scan's core contract (resolve a UID)
+must never fail because enrichment of it didn't work.
 """
 
 import logging
@@ -22,24 +21,28 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class DecodedTag:
-    """Tag contents normalized to the fields Spoolman's data model cares about.
+    """Tag contents named after the fields of the rest of the API.
 
-    Deliberately flatter than any one codec's own dataclass (e.g. OpenPrintTagData): this is
-    the shape every format's decode eventually funnels into, so the wiring in tag.py and
-    database/tag.py never has to know which codec produced it.
+    Deliberately flatter than any one codec's own dataclass: every format's decode funnels into
+    this shape, so the wiring in tag.py and database/tag.py never has to know which codec
+    produced it.
     """
 
-    material_type: str | None = None
-    material_name: str | None = None
-    brand_name: str | None = None
-    color_hex: str | None = None
-    diameter_mm: float | None = None
-    density_g_cm3: float | None = None
-    net_weight_g: float | None = None  # full net filament weight, before any use
-    empty_container_weight_g: float | None = None  # tare weight of the spool itself
-    consumed_weight_g: float | None = None  # already used, per the tag -- shown, never applied automatically
-    external_id: str | None = None  # a stable id for the specific roll/instance, if the tag carries one
     material_class: str | None = None  # "FFF" or "SLA"; only FFF tags can create a filament
+    material: str | None = None  # e.g. "PLA"
+    name: str | None = None  # e.g. "PLA Galaxy Black"
+    vendor_name: str | None = None  # e.g. "Prusament"
+    article_number: str | None = None  # vendor GTIN, as text
+    color_hex: str | None = None
+    diameter: float | None = None
+    density: float | None = None
+    weight: float | None = None  # nominal full net weight of the filament, in grams
+    initial_weight: float | None = None  # measured net weight on this roll, in grams
+    spool_weight: float | None = None  # tare weight of the empty spool, in grams
+    used_weight: float | None = None  # already used, per the tag -- shown, never applied automatically
+    extruder_temp: int | None = None  # print temperature, °C
+    bed_temp: int | None = None  # bed temperature, °C
+    instance_uuid: str | None = None  # identifies this roll, not the product
 
 
 # Approximate densities (g/cm^3) for common materials, used only as a fallback when a
@@ -68,16 +71,16 @@ APPROXIMATE_DENSITY_BY_MATERIAL: dict[str, float] = {
 _FALLBACK_DENSITY = 1.24
 
 
-def approximate_density(material_type: str | None) -> float | None:
-    """Look up a rough density for a material type, or None if it is not in the table."""
-    if material_type is None:
+def approximate_density(material: str | None) -> float | None:
+    """Look up a rough density for a material, or None if it is not in the table."""
+    if material is None:
         return None
-    return APPROXIMATE_DENSITY_BY_MATERIAL.get(material_type.upper())
+    return APPROXIMATE_DENSITY_BY_MATERIAL.get(material.upper())
 
 
-def density_or_fallback(material_type: str | None) -> float:
-    """Approximate density for a material type, or the PLA-equivalent fallback."""
-    return approximate_density(material_type) or _FALLBACK_DENSITY
+def density_or_fallback(material: str | None) -> float:
+    """Approximate density for a material, or the PLA-equivalent fallback."""
+    return approximate_density(material) or _FALLBACK_DENSITY
 
 
 def decode(tag_format: str | None, payload: bytes, uid_bytes: bytes | None = None) -> DecodedTag | None:
@@ -85,14 +88,15 @@ def decode(tag_format: str | None, payload: bytes, uid_bytes: bytes | None = Non
 
     Args:
         tag_format: The format string as reported by the scanning agent, e.g. "openprinttag".
-            Matched case-insensitively via the same normalization `tags.py` uses for storage.
+            Matched case-insensitively via the same normalization the storage layer uses.
         payload: The tag's raw contents.
-        uid_bytes: The tag's UID as raw bytes, if available. Some formats (OpenPrintTag) can
-            derive an instance identifier from it when the tag itself doesn't carry one.
+        uid_bytes: The tag's UID as raw bytes, if available. Some formats (OpenPrintTag) derive
+            the instance identifier from it when the tag itself doesn't carry one.
 
     Returns:
-        DecodedTag | None: The decoded fields, or None if the format is unknown or the
-        payload could not be parsed as that format.
+        DecodedTag | None: The decoded fields, or None if the format is unknown or the payload
+        could not be decoded. Never raises: whatever a hostile or damaged payload does to a
+        codec, the scan carries on as if the payload were not decodable.
 
     """
     fmt = normalize_format(tag_format)
@@ -100,8 +104,6 @@ def decode(tag_format: str | None, payload: bytes, uid_bytes: bytes | None = Non
         if fmt == "openprinttag":
             return _decode_openprinttag(payload, uid_bytes)
     except Exception:  # noqa: BLE001 -- best effort by contract, see the module docstring
-        # Best effort by contract: whatever a hostile or damaged tag does to the codec, the
-        # scan carries on as if the payload were not decodable.
         logger.warning("Could not decode %s payload", fmt, exc_info=True)
     return None
 
@@ -117,16 +119,25 @@ def _decode_openprinttag(payload: bytes, uid_bytes: bytes | None) -> DecodedTag 
         logger.debug("Could not decode payload as OpenPrintTag", exc_info=True)
         return None
 
+    # Print and bed temperatures come as a range. Use the upper end: it is the value a
+    # profile is normally set to, and it is still inside the range the vendor specifies.
+    extruder_temp = data.max_print_temperature or data.min_print_temperature
+    bed_temp = data.max_bed_temperature or data.min_bed_temperature
+
     return DecodedTag(
         material_class=data.material_class,
-        material_type=data.material_type,
-        material_name=data.material_name,
-        brand_name=data.brand_name,
+        material=data.material_type,
+        name=data.material_name,
+        vendor_name=data.brand_name,
+        article_number=str(data.gtin) if data.gtin is not None else None,
         color_hex=data.primary_color_hex,
-        diameter_mm=data.effective_diameter,
-        density_g_cm3=data.density,
-        net_weight_g=data.effective_weight,
-        empty_container_weight_g=data.empty_container_weight,
-        consumed_weight_g=data.consumed_weight,
-        external_id=data.effective_instance_uuid,
+        diameter=data.effective_diameter,
+        density=data.density,
+        weight=data.nominal_netto_full_weight,
+        initial_weight=data.actual_netto_full_weight,
+        spool_weight=data.empty_container_weight,
+        used_weight=data.consumed_weight,
+        extruder_temp=extruder_temp,
+        bed_temp=bed_temp,
+        instance_uuid=data.effective_instance_uuid,
     )

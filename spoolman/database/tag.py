@@ -27,11 +27,11 @@ from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman.tags import decode as tag_decode
 from spoolman.api.v1.models import EventType
 from spoolman.database import filament, models, spool, vendor
 from spoolman.exceptions import ItemCreateError, ItemNotFoundError, TagConflictError
 from spoolman.tags import TARGET_FILAMENT, TARGET_SPOOL, normalize_format, normalize_uid
+from spoolman.tags import decode as tag_decode
 
 logger = logging.getLogger(__name__)
 
@@ -266,6 +266,27 @@ def _check_finite(*values: float | None) -> None:
         raise ItemCreateError("Decoded tag contains a non-finite number.")
 
 
+async def _find_filament_for_product(
+    db: AsyncSession,
+    decoded: tag_decode.DecodedTag,
+    vendor_item: models.Vendor | None,
+) -> models.Filament | None:
+    """Find the filament this product already has, so a new roll reuses it.
+
+    A filament is the product (vendor, name, material), not one roll: the tag's instance UUID
+    identifies the roll, and is deliberately not used here. Without a name or a material there
+    is no product to match, so nothing is reused.
+    """
+    if decoded.name is None or decoded.material is None:
+        return None
+    stmt = sqlalchemy.select(models.Filament).where(
+        models.Filament.name == decoded.name,
+        models.Filament.material == decoded.material,
+        models.Filament.vendor_id == (vendor_item.id if vendor_item is not None else None),
+    )
+    return (await db.execute(stmt)).scalars().first()
+
+
 async def create_spool_from_decoded_tag(
     *,
     db: AsyncSession,
@@ -273,11 +294,14 @@ async def create_spool_from_decoded_tag(
     tag_format: str | None,
     decoded: tag_decode.DecodedTag,
 ) -> models.Spool:
-    """Create a vendor/filament/spool from a decoded tag's contents and link the tag to it.
+    """Create a spool from a decoded tag and link the tag to it, reusing the filament if it exists.
 
     Only ever called for a UID that `find_spool_by_uid` just reported as unknown, from an
     opt-in path (see spoolman/api/v1/tag.py) -- this function does not check that itself, so
     a caller that skips the check can create a duplicate spool for an already-linked tag.
+
+    The nominal weight belongs to the filament, the measured weight of this roll to the spool's
+    initial weight, and the weight the tag says is already used is shown but never applied.
 
     Args:
         db: Database session.
@@ -289,6 +313,7 @@ async def create_spool_from_decoded_tag(
         models.Spool: The newly created spool, linked to the tag.
 
     Raises:
+        ItemCreateError: If the decoded values are not storable. Nothing is written in that case.
         TagConflictError: If another request linked this UID first. The spool this function
             created still exists (auto-create is not transactional with the link) -- callers
             should fall back to `find_spool_by_uid` and treat the race as an ordinary match.
@@ -299,56 +324,62 @@ async def create_spool_from_decoded_tag(
     # Everything is validated before the first write. Vendor, filament and spool are committed
     # one by one, so a value the response models reject would leave rows behind that break
     # GET /filament and GET /spool until someone deletes them by hand.
-    density = decoded.density_g_cm3 or tag_decode.density_or_fallback(decoded.material_type)
-    diameter = decoded.diameter_mm or 1.75
-    used_weight = decoded.consumed_weight_g or 0
-    _check_finite(density, diameter, decoded.net_weight_g, decoded.empty_container_weight_g, used_weight)
+    density = decoded.density or tag_decode.density_or_fallback(decoded.material)
+    diameter = decoded.diameter or 1.75
+    _check_finite(density, diameter, decoded.weight, decoded.initial_weight, decoded.spool_weight)
     try:
-        # Local import: the API modules import this one, so importing them at module level
+        # Local imports: the API modules import this one, so importing them at module level
         # would be circular.
         from spoolman.api.v1.filament import FilamentParameters  # noqa: PLC0415
         from spoolman.api.v1.spool import SpoolParameters  # noqa: PLC0415
         from spoolman.api.v1.vendor import VendorParameters  # noqa: PLC0415
 
-        if decoded.brand_name:
-            VendorParameters(name=decoded.brand_name)
+        if decoded.vendor_name:
+            VendorParameters(name=decoded.vendor_name)
         FilamentParameters(
             density=density,
             diameter=diameter,
-            material=decoded.material_type,
-            name=decoded.material_name,
-            weight=decoded.net_weight_g,
-            spool_weight=decoded.empty_container_weight_g,
+            material=decoded.material,
+            name=decoded.name,
+            weight=decoded.weight,
+            spool_weight=decoded.spool_weight,
             color_hex=decoded.color_hex,
-            external_id=decoded.external_id,
+            article_number=decoded.article_number,
+            settings_extruder_temp=decoded.extruder_temp,
+            settings_bed_temp=decoded.bed_temp,
         )
-        SpoolParameters(filament_id=1, used_weight=used_weight)
+        SpoolParameters(filament_id=1, initial_weight=decoded.initial_weight, spool_weight=decoded.spool_weight)
     except ValidationError as e:
         raise ItemCreateError(f"Decoded tag values are not storable: {e}") from e
 
     vendor_item = None
-    if decoded.brand_name:
-        vendor_item = await _find_vendor_by_exact_name(db, decoded.brand_name)
+    if decoded.vendor_name:
+        vendor_item = await _find_vendor_by_exact_name(db, decoded.vendor_name)
         if vendor_item is None:
-            vendor_item = await vendor.create(db=db, name=decoded.brand_name)
+            vendor_item = await vendor.create(db=db, name=decoded.vendor_name)
 
-    filament_item = await filament.create(
-        db=db,
-        density=density,
-        diameter=diameter,
-        material=decoded.material_type,
-        name=decoded.material_name,
-        vendor_id=vendor_item.id if vendor_item is not None else None,
-        weight=decoded.net_weight_g,
-        spool_weight=decoded.empty_container_weight_g,
-        color_hex=decoded.color_hex,
-        external_id=decoded.external_id,
-    )
+    filament_item = await _find_filament_for_product(db, decoded, vendor_item)
+    if filament_item is None:
+        filament_item = await filament.create(
+            db=db,
+            density=density,
+            diameter=diameter,
+            material=decoded.material,
+            name=decoded.name,
+            vendor_id=vendor_item.id if vendor_item is not None else None,
+            weight=decoded.weight,
+            spool_weight=decoded.spool_weight,
+            article_number=decoded.article_number,
+            color_hex=decoded.color_hex,
+            settings_extruder_temp=decoded.extruder_temp,
+            settings_bed_temp=decoded.bed_temp,
+        )
 
     spool_item = await spool.create(
         db=db,
         filament_id=filament_item.id,
-        used_weight=used_weight,
+        initial_weight=decoded.initial_weight,
+        spool_weight=decoded.spool_weight,
     )
 
     await link_spool(db=db, spool_id=spool_item.id, uid=uid, tag_format=tag_format)
