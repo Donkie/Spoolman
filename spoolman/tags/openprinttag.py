@@ -14,6 +14,7 @@ Based on the OpenPrintTag specification: https://specs.openprinttag.org
 
 import io
 import logging
+import math
 import uuid
 from dataclasses import dataclass
 
@@ -407,6 +408,22 @@ def decode_nfcv_memory(raw_bytes: bytes, nfc_tag_uid: bytes | None = None) -> Op
     return data
 
 
+def _number(value: object) -> float:
+    """Read a CBOR number as a float. Anything else makes the whole tag undecodable.
+
+    A list, a string, a boolean, an integer too large to be a physical measurement, NaN and
+    infinity are all refused here, rather than being stored or silently dropped.
+    """
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError(f"Expected a number, got {type(value).__name__}")
+    if isinstance(value, int) and abs(value) > 2**53:
+        raise ValueError("Integer too large to be a physical measurement")
+    result = float(value)
+    if not math.isfinite(result):
+        raise ValueError("Expected a finite number")
+    return result
+
+
 # (main-section CBOR key, OpenPrintTagData attribute, value caster) for every field that is a
 # plain cast with no further lookup. UUIDs, the enum-mapped fields and the color are handled
 # separately in _populate_main_fields.
@@ -414,11 +431,11 @@ _SIMPLE_MAIN_FIELDS: list[tuple[int, str, type]] = [
     (MF_GTIN, "gtin", int),
     (MF_MATERIAL_NAME, "material_name", str),
     (MF_BRAND_NAME, "brand_name", str),
-    (MF_DENSITY, "density", float),
-    (MF_FILAMENT_DIAMETER, "filament_diameter", float),
-    (MF_NOMINAL_NETTO_FULL_WEIGHT, "nominal_netto_full_weight", float),
-    (MF_ACTUAL_NETTO_FULL_WEIGHT, "actual_netto_full_weight", float),
-    (MF_EMPTY_CONTAINER_WEIGHT, "empty_container_weight", float),
+    (MF_DENSITY, "density", _number),
+    (MF_FILAMENT_DIAMETER, "filament_diameter", _number),
+    (MF_NOMINAL_NETTO_FULL_WEIGHT, "nominal_netto_full_weight", _number),
+    (MF_ACTUAL_NETTO_FULL_WEIGHT, "actual_netto_full_weight", _number),
+    (MF_EMPTY_CONTAINER_WEIGHT, "empty_container_weight", _number),
     (MF_MIN_PRINT_TEMPERATURE, "min_print_temperature", int),
     (MF_MAX_PRINT_TEMPERATURE, "max_print_temperature", int),
     (MF_MIN_BED_TEMPERATURE, "min_bed_temperature", int),

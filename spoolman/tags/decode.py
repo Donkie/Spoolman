@@ -12,6 +12,7 @@ must never fail because enrichment of it didn't work.
 """
 
 import logging
+import math
 from dataclasses import dataclass
 
 from spoolman.tags import normalize_format
@@ -83,6 +84,13 @@ def density_or_fallback(material: str | None) -> float:
     return approximate_density(material) or _FALLBACK_DENSITY
 
 
+def _finite(value: float | None) -> float | None:
+    """Drop NaN and infinity: CBOR can carry them, but JSON cannot, and neither is storable."""
+    if value is None or math.isfinite(value):
+        return value
+    return None
+
+
 def decode(tag_format: str | None, payload: bytes, uid_bytes: bytes | None = None) -> DecodedTag | None:
     """Decode a tag's raw payload for a known format.
 
@@ -131,12 +139,12 @@ def _decode_openprinttag(payload: bytes, uid_bytes: bytes | None) -> DecodedTag 
         vendor_name=data.brand_name,
         article_number=str(data.gtin) if data.gtin is not None else None,
         color_hex=data.primary_color_hex,
-        diameter=data.effective_diameter,
-        density=data.density,
-        weight=data.nominal_netto_full_weight,
-        initial_weight=data.actual_netto_full_weight,
-        spool_weight=data.empty_container_weight,
-        used_weight=data.consumed_weight,
+        diameter=_finite(data.effective_diameter),
+        density=_finite(data.density),
+        weight=_finite(data.nominal_netto_full_weight),
+        initial_weight=_finite(data.actual_netto_full_weight),
+        spool_weight=_finite(data.empty_container_weight),
+        used_weight=_finite(data.consumed_weight),
         extruder_temp=extruder_temp,
         bed_temp=bed_temp,
         instance_uuid=data.effective_instance_uuid,

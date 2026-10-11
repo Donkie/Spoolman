@@ -261,7 +261,7 @@ async def _find_vendor_by_exact_name(db: AsyncSession, name: str) -> models.Vend
 
 
 def _check_finite(*values: float | None) -> None:
-    """Refuse NaN and infinity: CBOR can carry them, and they are not storable or serializable."""
+    """Refuse NaN and infinity: they are not storable, and not JSON either."""
     if any(v is not None and not math.isfinite(v) for v in values):
         raise ItemCreateError("Decoded tag contains a non-finite number.")
 
