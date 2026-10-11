@@ -64,6 +64,7 @@
     "buttons.filter": "Filtruj",
     "buttons.save": "Zapisz",
     "buttons.showArchived": "Pokaż zarchiwizowane",
+    "buttons.showLotNumbers": "Pokaż numery partii",
     "buttons.showNoSpools": "Pokaż filamenty bez szpul",
     "buttons.unArchive": "Przywróć",
     "changeFilament.action": "Zmień",
