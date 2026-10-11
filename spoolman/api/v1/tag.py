@@ -178,7 +178,10 @@ async def scan(
     created = False
     # A tag can identify a filament as well as a spool; either counts as already linked. Creating
     # for a filament-linked tag would leave an orphan vendor/filament/spool behind when the link fails.
-    if db_spool is None and db_filament is None and body.create and decoded is not None:
+    # Only FFF tags create: an SLA tag describes a resin bottle, and the filament model has no
+    # place for one. Validation of the decoded values happens inside create, before any write.
+    creatable = decoded is not None and decoded.material_class == "FFF"
+    if db_spool is None and db_filament is None and body.create and creatable:
         try:
             db_spool = await tag_db.create_spool_from_decoded_tag(
                 db=db,
@@ -240,7 +243,13 @@ def _decode_payload(tag_format: str | None, payload_b64: str | None, uid: str) -
         raw = base64.b64decode(payload_b64, validate=True)
     except binascii.Error:
         return None
-    return tag_decode.decode(tag_format, raw, uid_bytes=bytes.fromhex(uid))
+    try:
+        # normalize_uid accepts an odd number of hex digits, which fromhex rejects. The UID only
+        # feeds the instance-id derivation, so without one the decode still proceeds.
+        uid_bytes: bytes | None = bytes.fromhex(uid)
+    except ValueError:
+        uid_bytes = None
+    return tag_decode.decode(tag_format, raw, uid_bytes=uid_bytes)
 
 
 def _decoded_response(decoded: tag_decode.DecodedTag | None) -> TagDecodedInfo | None:
