@@ -22,7 +22,6 @@ httpcore==1.0.9
 httptools==0.9.0 ; platform_machine != 'armv7l'
 httpx==0.28.1
 idna==3.20
-influxdb-client==1.50.0
 mako==1.4.3
 markupsafe==3.0.4
 msgpack==1.2.3
@@ -35,11 +34,8 @@ pycparser==3.11 ; implementation_name != 'PyPy' and platform_python_implementati
 pydantic==2.14.0
 pydantic-core==2.50.0
 pymysql==1.2.3
-python-dateutil==2.9.0.post0
-reactivex==5.1.0
 scheduler==0.8.11
 setuptools==83.0.0
-six==1.17.0
 sqlalchemy==2.0.54
 sqlalchemy-cockroachdb==2.0.4
 starlette==1.7.0
@@ -47,7 +43,6 @@ tomli==2.5.0 ; python_full_version < '3.11'
 typeguard==4.6.0
 typing-extensions==4.16.0
 typing-inspection==0.4.4
-urllib3==2.8.0
 uvicorn==0.54.0
 uvloop==0.23.0 ; platform_machine != 'armv7l' and platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'
 websockets==15.0.1
