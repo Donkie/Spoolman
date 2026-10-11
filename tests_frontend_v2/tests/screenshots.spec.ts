@@ -56,7 +56,7 @@ async function seed(request: APIRequestContext): Promise<void> {
 
   const spools = [
     { filament_id: ids[0], used_weight: 0, location: "Shelf A" },
-    { filament_id: ids[0], used_weight: 640, location: "Printer 1", first_used: USED_AT, last_used: USED_AT },
+    { filament_id: ids[0], used_weight: 640, lot_nr: "LOT-2026-0915-A7", location: "Printer 1", first_used: USED_AT, last_used: USED_AT },
     { filament_id: ids[1], used_weight: 120, location: "Shelf A", first_used: USED_AT, last_used: USED_AT },
     { filament_id: ids[2], used_weight: 910, location: "Dry box", first_used: USED_AT, last_used: USED_AT },
     { filament_id: ids[3], used_weight: 0, location: "Shelf B" },
@@ -90,6 +90,7 @@ test.beforeAll(async ({ request }) => {
 
 const PAGES = [
   { path: "/", name: "library" },
+  { path: "/?lots=1", name: "library with lot numbers" },
   { path: "/dashboard", name: "dashboard" },
   { path: "/labels", name: "labels" },
   { path: "/settings", name: "settings" },

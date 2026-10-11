@@ -217,3 +217,22 @@ describe('catalog views', () => {
 		expect(selectHrefFromState(state, 'filament', '7')).toBe('?view=filaments&group=none&sel=filament%3A7');
 	});
 });
+
+describe('lot number visibility', () => {
+	it('parses off by default, opt-in on spools, and off in catalogs', async () => {
+		const { parseLibraryState, selectHrefFromState } = await import('./params');
+		expect(parseLibraryState(new URLSearchParams()).showLotNumbers).toBe(false);
+		const state = parseLibraryState(new URLSearchParams('lots=1'));
+		expect(state.showLotNumbers).toBe(true);
+		expect(selectHrefFromState(state, 'spool', '7')).toBe('?lots=1&sel=spool%3A7');
+		for (const view of ['filaments', 'manufacturers']) {
+			expect(parseLibraryState(new URLSearchParams(`view=${view}&lots=1`)).showLotNumbers).toBe(false);
+		}
+	});
+
+	it('restores the preference and lets an explicit URL win', async () => {
+		const stored = '{"group":"filament","sort":"last_used","asc":false,"lots":true}';
+		expect(await hrefFor(stored, '')).toBe('/?lots=1');
+		expect(await hrefFor(stored, '?lots=0')).toBeNull();
+	});
+});

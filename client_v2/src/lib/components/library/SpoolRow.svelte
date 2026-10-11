@@ -16,11 +16,12 @@
 		indent?: number;
 		/** Listing context — drops whatever the enclosing group already implies. */
 		context?: RowContext;
+		showLotNumbers?: boolean;
 	}
 
-	let { vm, showSwatch = false, indent = 14, context = 'flat' }: Props = $props();
+	let { vm, showSwatch = false, indent = 14, context = 'flat', showLotNumbers = false }: Props = $props();
 
-	let identity = $derived(rowIdentity(vm, context));
+	let identity = $derived(rowIdentity(vm, context, showLotNumbers));
 	let selected = $derived(params.isSelected(page.url.searchParams, 'spool', String(vm.spool.id)));
 </script>
 
