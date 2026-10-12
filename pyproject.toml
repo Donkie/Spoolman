@@ -32,7 +32,7 @@ dependencies = [
     # (setuptools-rust) instead of plain setuptools/C. PyPI ships no armv7 wheel for any
     # cbor2 version, so armv7 always builds from sdist, and the build image (see the
     # greenlet/armv7 patchelf step in the Dockerfile) has a C toolchain but no Rust one.
-    "cbor2>=5.4,<6",
+    "cbor2>=5.9,<6",
 ]
 requires-python = ">=3.10"
 

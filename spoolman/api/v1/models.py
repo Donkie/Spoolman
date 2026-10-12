@@ -691,29 +691,39 @@ class SearchResults(BaseModel):
 class TagDecodedInfo(BaseModel):
     """A best-effort read of a scanned tag's own contents, for a format Spoolman can decode.
 
-    Purely informational. Nothing here is applied to any spool automatically -- in
-    particular `consumed_weight_g` is shown so a person can act on it, but a tag's
-    self-reported usage is never trusted enough to silently overwrite tracked weight.
-    Confirm it via a `measure` or `use` call on the matched spool if it should.
+    Purely informational. Nothing here is applied to any spool automatically -- in particular
+    `used_weight` is shown so a person can act on it, but a tag's self-reported usage is never
+    trusted enough to silently overwrite tracked weight. Confirm it via a `measure` or `use`
+    call on the matched spool if it should.
+
+    Field names follow the rest of the API; they are part of a released endpoint, so renaming
+    them later would be a breaking change.
     """
 
-    material_type: str | None = Field(None, examples=["PLA"])
-    material_name: str | None = Field(None, examples=["PLA Galaxy Black"])
-    brand_name: str | None = Field(None, examples=["Prusament"])
+    material_class: str | None = Field(None, examples=["FFF"], description="FFF (filament) or SLA (resin).")
+    material: str | None = Field(None, examples=["PLA"])
+    name: str | None = Field(None, examples=["PLA Galaxy Black"])
+    vendor_name: str | None = Field(None, examples=["Prusament"])
+    article_number: str | None = Field(None, examples=["8435008400000"], description="Vendor GTIN, as text.")
     color_hex: str | None = Field(None, examples=["1122FF"])
-    diameter_mm: float | None = Field(None, examples=[1.75])
-    density_g_cm3: float | None = Field(None, examples=[1.24])
-    net_weight_g: float | None = Field(
+    diameter: float | None = Field(None, examples=[1.75])
+    density: float | None = Field(None, examples=[1.24])
+    weight: float | None = Field(
         None,
-        description="Full net filament weight the tag reports, before any use.",
+        description="Nominal full net weight of the filament, in grams.",
         examples=[1000.0],
     )
-    empty_container_weight_g: float | None = Field(
+    initial_weight: float | None = Field(
         None,
-        description="Tare weight of the empty spool, if the tag carries one.",
+        description="Measured net weight on this roll, in grams, if the tag carries one.",
+        examples=[998.5],
+    )
+    spool_weight: float | None = Field(
+        None,
+        description="Tare weight of the empty spool, in grams, if the tag carries one.",
         examples=[140.0],
     )
-    consumed_weight_g: float | None = Field(
+    used_weight: float | None = Field(
         None,
         description=(
             "Weight already used from this spool, per the tag. Informational only -- see the "
@@ -721,9 +731,11 @@ class TagDecodedInfo(BaseModel):
         ),
         examples=[123.4],
     )
-    external_id: str | None = Field(
+    extruder_temp: int | None = Field(None, description="Print temperature in °C.", examples=[215])
+    bed_temp: int | None = Field(None, description="Bed temperature in °C.", examples=[60])
+    instance_uuid: str | None = Field(
         None,
-        description="A stable id for this specific roll/instance, if the tag carries or implies one.",
+        description="Identifies this specific roll. Not the product, and not stored on the filament.",
     )
 
 

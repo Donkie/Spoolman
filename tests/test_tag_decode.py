@@ -8,19 +8,22 @@ cases are that module's job, not this one's.
 import uuid
 
 import cbor2
+import pytest
 
-from spoolman.openprinttag_codec import (
+from spoolman.tags import decode as tag_decode
+from spoolman.tags import openprinttag as openprinttag_codec
+from spoolman.tags.decode import (
+    DecodedTag,
+    approximate_density,
+    decode,
+    density_or_fallback,
+)
+from spoolman.tags.openprinttag import (
     META_AUX_REGION_OFFSET,
     MF_BRAND_NAME,
     MF_MATERIAL_TYPE,
     MF_NOMINAL_NETTO_FULL_WEIGHT,
     MF_PRIMARY_COLOR,
-)
-from spoolman.tag_decode import (
-    DecodedTag,
-    approximate_density,
-    decode,
-    density_or_fallback,
 )
 
 
@@ -74,16 +77,16 @@ def test_decode_dispatches_openprinttag() -> None:
     result = decode("openprinttag", raw)
 
     assert result == DecodedTag(
-        material_type="PLA",
-        material_name=None,
-        brand_name="Prusament",
+        material="PLA",
+        name=None,
+        vendor_name="Prusament",
         color_hex="112233",
-        diameter_mm=1.75,  # spec default, not set on this tag
-        density_g_cm3=None,
-        net_weight_g=1000.0,
-        empty_container_weight_g=None,
-        consumed_weight_g=None,
-        external_id=None,
+        diameter=1.75,  # spec default, not set on this tag
+        density=None,
+        weight=1000.0,
+        spool_weight=None,
+        used_weight=None,
+        instance_uuid=None,
     )
 
 
@@ -114,9 +117,9 @@ def test_decode_derives_external_id_from_uid_when_tag_has_no_instance_uuid() -> 
     with_uid = decode("openprinttag", raw, uid_bytes=uid_bytes)
 
     assert without_uid is not None
-    assert without_uid.external_id is None
+    assert without_uid.instance_uuid is None
     assert with_uid is not None
-    assert with_uid.external_id == str(uuid.uuid5(uuid.UUID("31062f81-b5bd-4f86-a5f8-46367e841508"), uid_bytes))
+    assert with_uid.instance_uuid == str(uuid.uuid5(uuid.UUID("31062f81-b5bd-4f86-a5f8-46367e841508"), uid_bytes))
 
 
 # --- density fallback --------------------------------------------------------------
@@ -148,3 +151,31 @@ def test_density_or_fallback_uses_pla_equivalent_when_unknown() -> None:
 
 def test_density_or_fallback_uses_pla_equivalent_when_none() -> None:
     assert density_or_fallback(None) == approximate_density("PLA")
+
+
+def test_any_codec_failure_is_a_soft_fail(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Best effort is a contract: a codec that raises something other than ValueError must not reach the scan."""
+
+    def boom(*_args: object, **_kwargs: object) -> None:
+        raise TypeError("a list where a number goes")
+
+    monkeypatch.setattr(openprinttag_codec, "decode_nfcv_memory", boom)
+    assert tag_decode.decode("openprinttag", b"\x00", uid_bytes=b"\x04\xa2") is None
+
+
+def test_odd_length_uid_still_decodes_without_an_instance_uid(monkeypatch: pytest.MonkeyPatch) -> None:
+    """normalize_uid accepts an odd number of hex digits; fromhex does not. The scan must not 500."""
+    import base64  # noqa: PLC0415
+
+    from spoolman.api.v1 import tag as tag_api  # noqa: PLC0415
+    from spoolman.tags import decode as tag_decode  # noqa: PLC0415
+
+    seen = {}
+
+    def fake_decode(_tag_format: str, _raw: bytes, uid_bytes: bytes | None = None) -> None:
+        seen["uid_bytes"] = uid_bytes
+
+    monkeypatch.setattr(tag_decode, "decode", fake_decode)
+    payload_b64 = base64.b64encode(b"\x00").decode()
+    assert tag_api._decode_payload("openprinttag", payload_b64, "ABC") is None  # noqa: SLF001
+    assert seen["uid_bytes"] is None

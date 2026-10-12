@@ -9,7 +9,7 @@ added there for this).
 
 import cbor2
 
-# Mirrors spoolman.openprinttag_codec's field keys for the handful of fields these tests
+# Mirrors spoolman.tags.openprinttag's field keys for the handful of fields these tests
 # populate. Not the full set -- see that module for the complete key vocabulary.
 MF_MATERIAL_TYPE = 9
 MF_MATERIAL_NAME = 10

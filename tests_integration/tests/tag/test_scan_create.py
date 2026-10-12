@@ -58,6 +58,7 @@ def test_create_true_on_an_unmatched_decodable_tag_creates_and_links_a_spool():
     uid = _uid()
     payload = _payload_b64(
         {
+            8: 0,  # material_class: FFF, required for create
             MF_MATERIAL_TYPE: MATERIAL_TYPE_PLA,
             MF_BRAND_NAME: "Prusament",
             MF_NOMINAL_NETTO_FULL_WEIGHT: 1000.0,

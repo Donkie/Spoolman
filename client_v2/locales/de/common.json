@@ -278,7 +278,6 @@
     "labels.hintNowrap": "Text bleibt in einer Zeile; alles, was über die Breite hinausgeht, wird abgeschnitten.",
     "labels.hintSwatch": "Wird mit den Filamentfarbe(n) der Spule zum Druckzeitpunkt gefüllt.",
     "labels.hintWrap": "Umhülle ein Feld, um es zu verbergen, wenn es leer ist:",
-    "labels.imageDesc": "",
     "labels.imageZipNote": "Mehr als {{threshold}} Etiketten werden als eine einzige zip Datei geliefert.",
     "labels.insertField": "Feld hinzufügen",
     "labels.kind.qr": "QR Code",

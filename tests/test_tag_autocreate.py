@@ -14,12 +14,13 @@ from collections.abc import AsyncGenerator
 
 import pytest
 import pytest_asyncio
+import sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from spoolman.database import models
 from spoolman.database.tag import create_spool_from_decoded_tag, find_spool_by_uid
-from spoolman.exceptions import TagConflictError
-from spoolman.tag_decode import DecodedTag
+from spoolman.exceptions import ItemCreateError, TagConflictError
+from spoolman.tags.decode import DecodedTag
 
 
 @pytest_asyncio.fixture
@@ -42,16 +43,16 @@ def _uid(suffix: str = "1") -> str:
 @pytest.mark.asyncio
 async def test_creates_spool_filament_and_vendor(db: AsyncSession):
     decoded = DecodedTag(
-        material_type="PLA",
-        material_name="PLA Galaxy Black",
-        brand_name="Prusament",
+        material="PLA",
+        name="PLA Galaxy Black",
+        vendor_name="Prusament",
         color_hex="112233",
-        diameter_mm=1.75,
-        density_g_cm3=1.24,
-        net_weight_g=1000.0,
-        empty_container_weight_g=140.0,
-        consumed_weight_g=None,
-        external_id="some-instance-uuid",
+        diameter=1.75,
+        density=1.24,
+        weight=1000.0,
+        spool_weight=140.0,
+        used_weight=None,
+        instance_uuid="some-instance-uuid",
     )
 
     spool = await create_spool_from_decoded_tag(db=db, uid=_uid(), tag_format="openprinttag", decoded=decoded)
@@ -63,7 +64,7 @@ async def test_creates_spool_filament_and_vendor(db: AsyncSession):
     assert spool.filament.density == pytest.approx(1.24)
     assert spool.filament.weight == pytest.approx(1000.0)
     assert spool.filament.spool_weight == pytest.approx(140.0)
-    assert spool.filament.external_id == "some-instance-uuid"
+    assert spool.filament.external_id is None  # the roll id lives on the tag, not the product
     assert spool.filament.vendor is not None
     assert spool.filament.vendor.name == "Prusament"
 
@@ -71,7 +72,7 @@ async def test_creates_spool_filament_and_vendor(db: AsyncSession):
 @pytest.mark.asyncio
 async def test_links_the_tag_so_a_later_lookup_matches(db: AsyncSession):
     uid = _uid()
-    decoded = DecodedTag(material_type="PLA")
+    decoded = DecodedTag(material="PLA")
 
     spool = await create_spool_from_decoded_tag(db=db, uid=uid, tag_format="openprinttag", decoded=decoded)
 
@@ -82,7 +83,7 @@ async def test_links_the_tag_so_a_later_lookup_matches(db: AsyncSession):
 
 @pytest.mark.asyncio
 async def test_no_brand_name_creates_no_vendor(db: AsyncSession):
-    decoded = DecodedTag(material_type="PLA", brand_name=None)
+    decoded = DecodedTag(material="PLA", vendor_name=None)
 
     spool = await create_spool_from_decoded_tag(db=db, uid=_uid(), tag_format="openprinttag", decoded=decoded)
 
@@ -95,13 +96,13 @@ async def test_reuses_an_existing_vendor_with_an_exact_name_match(db: AsyncSessi
         db=db,
         uid=_uid("1"),
         tag_format="openprinttag",
-        decoded=DecodedTag(material_type="PLA", brand_name="Prusament"),
+        decoded=DecodedTag(material="PLA", vendor_name="Prusament"),
     )
     second = await create_spool_from_decoded_tag(
         db=db,
         uid=_uid("2"),
         tag_format="openprinttag",
-        decoded=DecodedTag(material_type="PETG", brand_name="Prusament"),
+        decoded=DecodedTag(material="PETG", vendor_name="Prusament"),
     )
 
     assert first.filament.vendor is not None
@@ -116,13 +117,13 @@ async def test_does_not_substring_match_an_existing_vendor(db: AsyncSession):
         db=db,
         uid=_uid("1"),
         tag_format="openprinttag",
-        decoded=DecodedTag(material_type="PLA", brand_name="Prusa"),
+        decoded=DecodedTag(material="PLA", vendor_name="Prusa"),
     )
     longer = await create_spool_from_decoded_tag(
         db=db,
         uid=_uid("2"),
         tag_format="openprinttag",
-        decoded=DecodedTag(material_type="PLA", brand_name="Prusament"),
+        decoded=DecodedTag(material="PLA", vendor_name="Prusament"),
     )
 
     assert short.filament.vendor is not None
@@ -133,42 +134,42 @@ async def test_does_not_substring_match_an_existing_vendor(db: AsyncSession):
 
 @pytest.mark.asyncio
 async def test_uses_decoded_density_when_present(db: AsyncSession):
-    decoded = DecodedTag(material_type="ABS", density_g_cm3=1.05)
+    decoded = DecodedTag(material="ABS", density=1.05)
     spool = await create_spool_from_decoded_tag(db=db, uid=_uid(), tag_format="openprinttag", decoded=decoded)
     assert spool.filament.density == pytest.approx(1.05)
 
 
 @pytest.mark.asyncio
 async def test_falls_back_to_the_material_table_density_when_tag_omits_it(db: AsyncSession):
-    decoded = DecodedTag(material_type="ABS", density_g_cm3=None)
+    decoded = DecodedTag(material="ABS", density=None)
     spool = await create_spool_from_decoded_tag(db=db, uid=_uid(), tag_format="openprinttag", decoded=decoded)
     assert spool.filament.density == pytest.approx(1.04)  # ABS in the approximate-density table
 
 
 @pytest.mark.asyncio
 async def test_falls_back_to_the_pla_equivalent_density_for_an_unknown_material(db: AsyncSession):
-    decoded = DecodedTag(material_type=None, density_g_cm3=None)
+    decoded = DecodedTag(material=None, density=None)
     spool = await create_spool_from_decoded_tag(db=db, uid=_uid(), tag_format="openprinttag", decoded=decoded)
     assert spool.filament.density == pytest.approx(1.24)
 
 
 @pytest.mark.asyncio
 async def test_defaults_diameter_to_175_when_the_tag_omits_it(db: AsyncSession):
-    decoded = DecodedTag(material_type="PLA", diameter_mm=None)
+    decoded = DecodedTag(material="PLA", diameter=None)
     spool = await create_spool_from_decoded_tag(db=db, uid=_uid(), tag_format="openprinttag", decoded=decoded)
     assert spool.filament.diameter == pytest.approx(1.75)
 
 
 @pytest.mark.asyncio
-async def test_consumed_weight_becomes_used_weight_on_the_spool(db: AsyncSession):
-    decoded = DecodedTag(material_type="PLA", consumed_weight_g=123.4)
+async def test_consumed_weight_is_shown_but_never_applied_to_the_spool(db: AsyncSession):
+    decoded = DecodedTag(material="PLA", used_weight=123.4)
     spool = await create_spool_from_decoded_tag(db=db, uid=_uid(), tag_format="openprinttag", decoded=decoded)
-    assert spool.used_weight == pytest.approx(123.4)
+    assert not spool.used_weight  # shown on the decoded tag, never applied
 
 
 @pytest.mark.asyncio
 async def test_no_consumed_weight_means_a_fresh_spool(db: AsyncSession):
-    decoded = DecodedTag(material_type="PLA", consumed_weight_g=None)
+    decoded = DecodedTag(material="PLA", used_weight=None)
     spool = await create_spool_from_decoded_tag(db=db, uid=_uid(), tag_format="openprinttag", decoded=decoded)
     assert spool.used_weight == 0
 
@@ -181,7 +182,7 @@ async def test_a_second_create_for_an_already_linked_uid_conflicts(db: AsyncSess
         db=db,
         uid=uid,
         tag_format="openprinttag",
-        decoded=DecodedTag(material_type="PLA"),
+        decoded=DecodedTag(material="PLA"),
     )
 
     with pytest.raises(TagConflictError):
@@ -189,5 +190,81 @@ async def test_a_second_create_for_an_already_linked_uid_conflicts(db: AsyncSess
             db=db,
             uid=uid,
             tag_format="openprinttag",
-            decoded=DecodedTag(material_type="PETG"),
+            decoded=DecodedTag(material="PETG"),
         )
+
+
+async def _row_counts(db: AsyncSession) -> tuple[int, int, int]:
+    """Count vendors, filaments and spools, to prove a rejected create wrote nothing."""
+    counts = [
+        (await db.execute(sqlalchemy.select(sqlalchemy.func.count()).select_from(model))).scalar_one()
+        for model in (models.Vendor, models.Filament, models.Spool)
+    ]
+    return counts[0], counts[1], counts[2]
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        pytest.param({"name": "x" * 300}, id="name-too-long"),
+        pytest.param({"vendor_name": "y" * 300}, id="brand-too-long"),
+        pytest.param({"density": -1.0}, id="negative-density"),
+        pytest.param({"density": float("nan")}, id="nan-density"),
+        pytest.param({"weight": float("inf")}, id="infinite-weight"),
+        pytest.param({"initial_weight": -5.0}, id="negative-initial-weight"),
+    ],
+)
+@pytest.mark.asyncio
+async def test_invalid_decoded_values_are_rejected_before_any_write(db: AsyncSession, overrides: dict):
+    fields = {
+        "material": "PLA",
+        "name": "PLA",
+        "vendor_name": "Vendor",
+        "diameter": 1.75,
+        "density": 1.24,
+        "weight": 1000.0,
+        "spool_weight": 140.0,
+    }
+    fields.update(overrides)
+    decoded = DecodedTag(**fields)
+
+    with pytest.raises(ItemCreateError):
+        await create_spool_from_decoded_tag(db=db, uid=_uid(), tag_format="openprinttag", decoded=decoded)
+
+    # The point of validating first: no vendor, filament or spool row survives the rejection,
+    # so the list endpoints keep working.
+    assert await _row_counts(db) == (0, 0, 0)
+    assert await find_spool_by_uid(db, _uid()) is None
+
+
+@pytest.mark.asyncio
+async def test_a_second_roll_of_the_same_product_reuses_the_filament(db: AsyncSession):
+    product = {"material": "PLA", "name": "PLA Galaxy Black", "vendor_name": "Prusament", "weight": 1000.0}
+    first = await create_spool_from_decoded_tag(
+        db=db, uid=_uid("1"), tag_format="openprinttag", decoded=DecodedTag(**product, instance_uuid="roll-a")
+    )
+    second = await create_spool_from_decoded_tag(
+        db=db, uid=_uid("2"), tag_format="openprinttag", decoded=DecodedTag(**product, instance_uuid="roll-b")
+    )
+
+    assert second.filament_id == first.filament_id
+    assert await _row_counts(db) == (1, 1, 2)
+
+
+@pytest.mark.asyncio
+async def test_nominal_weight_goes_on_the_filament_and_measured_weight_on_the_spool(db: AsyncSession):
+    decoded = DecodedTag(material="PLA", name="PLA", weight=1000.0, initial_weight=998.5, spool_weight=140.0)
+    spool = await create_spool_from_decoded_tag(db=db, uid=_uid(), tag_format="openprinttag", decoded=decoded)
+
+    assert spool.filament.weight == pytest.approx(1000.0)
+    assert spool.initial_weight == pytest.approx(998.5)
+
+
+@pytest.mark.asyncio
+async def test_article_number_and_temperatures_fill_the_filament_settings(db: AsyncSession):
+    decoded = DecodedTag(material="PLA", name="PLA", article_number="8435008400000", extruder_temp=215, bed_temp=60)
+    spool = await create_spool_from_decoded_tag(db=db, uid=_uid(), tag_format="openprinttag", decoded=decoded)
+
+    assert spool.filament.article_number == "8435008400000"
+    assert spool.filament.settings_extruder_temp == 215
+    assert spool.filament.settings_bed_temp == 60

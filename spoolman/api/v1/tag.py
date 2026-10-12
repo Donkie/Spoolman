@@ -13,7 +13,6 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman import tag_decode
 from spoolman.api.v1.models import EventType, Filament, Message, Spool, TagDecodedInfo, TagReader, TagScan, TagScanEvent
 from spoolman.database import models
 from spoolman.database import tag as tag_db
@@ -28,6 +27,7 @@ from spoolman.tags import (
     UID_MAX_LENGTH,
     normalize_uid,
 )
+from spoolman.tags import decode as tag_decode
 from spoolman.ws import scan_websocket_manager
 
 logger = logging.getLogger(__name__)
@@ -178,7 +178,10 @@ async def scan(
     created = False
     # A tag can identify a filament as well as a spool; either counts as already linked. Creating
     # for a filament-linked tag would leave an orphan vendor/filament/spool behind when the link fails.
-    if db_spool is None and db_filament is None and body.create and decoded is not None:
+    # Only FFF tags create: an SLA tag describes a resin bottle, and the filament model has no
+    # place for one. Validation of the decoded values happens inside create, before any write.
+    creatable = decoded is not None and decoded.material_class == "FFF"
+    if db_spool is None and db_filament is None and body.create and creatable:
         try:
             db_spool = await tag_db.create_spool_from_decoded_tag(
                 db=db,
@@ -240,23 +243,34 @@ def _decode_payload(tag_format: str | None, payload_b64: str | None, uid: str) -
         raw = base64.b64decode(payload_b64, validate=True)
     except binascii.Error:
         return None
-    return tag_decode.decode(tag_format, raw, uid_bytes=bytes.fromhex(uid))
+    try:
+        # normalize_uid accepts an odd number of hex digits, which fromhex rejects. The UID only
+        # feeds the instance-id derivation, so without one the decode still proceeds.
+        uid_bytes: bytes | None = bytes.fromhex(uid)
+    except ValueError:
+        uid_bytes = None
+    return tag_decode.decode(tag_format, raw, uid_bytes=uid_bytes)
 
 
 def _decoded_response(decoded: tag_decode.DecodedTag | None) -> TagDecodedInfo | None:
     if decoded is None:
         return None
     return TagDecodedInfo(
-        material_type=decoded.material_type,
-        material_name=decoded.material_name,
-        brand_name=decoded.brand_name,
+        material_class=decoded.material_class,
+        material=decoded.material,
+        name=decoded.name,
+        vendor_name=decoded.vendor_name,
+        article_number=decoded.article_number,
         color_hex=decoded.color_hex,
-        diameter_mm=decoded.diameter_mm,
-        density_g_cm3=decoded.density_g_cm3,
-        net_weight_g=decoded.net_weight_g,
-        empty_container_weight_g=decoded.empty_container_weight_g,
-        consumed_weight_g=decoded.consumed_weight_g,
-        external_id=decoded.external_id,
+        diameter=decoded.diameter,
+        density=decoded.density,
+        weight=decoded.weight,
+        initial_weight=decoded.initial_weight,
+        spool_weight=decoded.spool_weight,
+        used_weight=decoded.used_weight,
+        extruder_temp=decoded.extruder_temp,
+        bed_temp=decoded.bed_temp,
+        instance_uuid=decoded.instance_uuid,
     )
 
 
