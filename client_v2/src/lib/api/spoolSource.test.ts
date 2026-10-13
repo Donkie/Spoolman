@@ -188,3 +188,59 @@ describe('listFilamentPage', () => {
 		);
 	});
 });
+
+// A material value commonly carries a sub-type after its family name ("PLA Basic",
+// "PETG HF"). Picking the family has to cover every sub-type, so the material filter
+// goes out unquoted and the backend partial-matches it; quoting would demand one
+// exact string and "PLA" would miss "PLA Basic".
+describe('material filter', () => {
+	// Collect the request URLs so a test can read the material param back.
+	function serveSpools() {
+		const urls: string[] = [];
+		const fetch = vi.fn(async (url: string) => {
+			urls.push(url);
+			return Response.json([], { headers: { 'X-Total-Count': '0' } });
+		});
+		vi.stubGlobal('fetch', fetch);
+		return urls;
+	}
+
+	const materialParam = (urls: string[]) => new URL(urls[0]).searchParams.get('filament.material');
+
+	it('is sent unquoted so a family covers its sub-types', async () => {
+		const urls = serveSpools();
+		await spoolSource.listSpools({
+			filters: { material: ['PLA'] },
+			sort: [],
+			limit: 50,
+			offset: 0,
+			lowThreshold: 0
+		});
+		expect(materialParam(urls)).toBe('PLA');
+	});
+
+	it('stays unquoted when scoping to a material group', async () => {
+		const urls = serveSpools();
+		await spoolSource.listSpools({
+			filters: {},
+			sort: [],
+			groupScope: { field: 'material', key: 'PLA' },
+			limit: 50,
+			offset: 0,
+			lowThreshold: 0
+		});
+		expect(materialParam(urls)).toBe('PLA');
+	});
+
+	it('leaves the other string filters quoted for an exact match', async () => {
+		const urls = serveSpools();
+		await spoolSource.listSpools({
+			filters: { location: ['Shelf'] },
+			sort: [],
+			limit: 50,
+			offset: 0,
+			lowThreshold: 0
+		});
+		expect(new URL(urls[0]).searchParams.get('location')).toBe('"Shelf"');
+	});
+});

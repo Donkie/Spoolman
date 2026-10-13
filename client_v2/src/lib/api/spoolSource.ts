@@ -78,7 +78,12 @@ const FILTER_PARAM: Record<string, string> = {
 // value (single-color = no direction) hits the backend's NULL-match branch, which
 // quoting would turn into an exact match on the literal empty string instead.
 // `vendorId` is numeric like `filament`.
-const UNQUOTED_FILTERS = new Set(['filament', 'direction', 'vendorId']);
+//
+// `material` is passed verbatim so the backend's partial match applies. A material
+// value commonly carries a sub-type after its family name ("PLA Basic", "PETG HF"),
+// and picking the family has to cover every sub-type; quoting would demand one
+// exact string, so "PLA" would miss "PLA Basic".
+const UNQUOTED_FILTERS = new Set(['filament', 'direction', 'vendorId', 'material']);
 
 // A filter prop is either one of the fixed categories above or an extra-field
 // filter whose prop is already the query param the backend expects — `extra.<key>`
@@ -135,7 +140,9 @@ function scopeParams(params: QueryParams, scope: SpoolQuery['groupScope']) {
 			params['filament.vendor.id'] = scope.key === '' ? '-1' : scope.key;
 			break;
 		case 'material':
-			params['filament.material'] = exact(scope.key);
+			// Unquoted, so the partial match applies: the header of a "PLA" group
+			// also scopes to "PLA Basic" and friends.
+			params['filament.material'] = scope.key;
 			break;
 		case 'location':
 			params['location'] = exact(scope.key);
