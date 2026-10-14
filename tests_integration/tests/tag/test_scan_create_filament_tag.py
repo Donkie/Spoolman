@@ -19,7 +19,10 @@ def test_create_true_does_not_act_on_a_tag_linked_to_a_filament(random_filament:
     httpx.post(f"{URL}/api/v1/filament/{random_filament['id']}/tag", json={"uid": uid}).raise_for_status()
     spools_before = len(httpx.get(f"{URL}/api/v1/spool").json())
 
-    payload = base64.b64encode(build_openprinttag({MF_MATERIAL_TYPE: MATERIAL_TYPE_PLA, MF_BRAND_NAME: "Prusament"}))
+    # 8: material_class FFF, so create would act if the guard were missing
+    payload = base64.b64encode(
+        build_openprinttag({8: 0, MF_MATERIAL_TYPE: MATERIAL_TYPE_PLA, MF_BRAND_NAME: "Prusament"})
+    )
     result = httpx.post(
         f"{URL}/api/v1/tag/scan",
         json={

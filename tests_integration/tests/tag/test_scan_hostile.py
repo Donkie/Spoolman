@@ -73,14 +73,28 @@ def _assert_list_endpoints_still_work() -> None:
         assert_httpx_success(httpx.get(f"{URL}{path}"))
 
 
+def _row_counts() -> tuple[int, int, int]:
+    """Rows in vendor, filament and spool, from the list endpoints' total counts."""
+    counts = []
+    for path in ("/api/v1/vendor", "/api/v1/filament", "/api/v1/spool"):
+        response = httpx.get(f"{URL}{path}")
+        assert_httpx_success(response)
+        counts.append(int(response.headers["x-total-count"]))
+    return counts[0], counts[1], counts[2]
+
+
 @pytest.mark.parametrize("override", _HOSTILE_VALUES)
 def test_hostile_values_with_create_true_create_nothing_and_keep_the_lists_working(override: dict[int, Any]):
+    before = _row_counts()
     result = _scan({**_BASE_MAIN, **override}, create=True)
     assert_httpx_success(result)
     body = result.json()
 
     assert body.get("created") is not True
     assert "spool" not in body
+    # A refused value is not echoed back either: the tag reads as undecodable.
+    assert "decoded" not in body
+    assert _row_counts() == before
     _assert_list_endpoints_still_work()
 
 
@@ -125,3 +139,30 @@ def test_nan_is_not_serialized_in_a_response():
     assert_httpx_success(result)
     decoded = result.json().get("decoded") or {}
     assert not any(isinstance(v, float) and math.isnan(v) for v in decoded.values())
+
+
+def test_nested_shared_references_are_refused_without_expanding():
+    """A deeply nested CBOR value must come back as undecodable, not allocate its expansion."""
+    nested: Any = 1
+    for _ in range(20):
+        nested = [nested]
+    result = _scan({**_BASE_MAIN, MF_MATERIAL_NAME: nested}, create=True)
+    assert_httpx_success(result)
+    assert "decoded" not in result.json()
+    _assert_list_endpoints_still_work()
+
+
+def test_non_ascii_payload_scans_instead_of_erroring():
+    """Non-ASCII text is not base64. The scan must answer as usual, not return a 500."""
+    response = httpx.post(
+        f"{URL}/api/v1/tag/scan",
+        json={
+            "uid": uuid.uuid4().hex[:14].upper(),
+            "reader_id": f"reader-{uuid.uuid4().hex[:8]}",
+            "format": "openprinttag",
+            "payload_b64": "pagé==",
+        },
+    )
+    assert_httpx_success(response)
+    assert "decoded" not in response.json()
+    _assert_list_endpoints_still_work()
