@@ -34,7 +34,9 @@ export const languages: Record<string, LanguageMeta> = {
 	ta: { name: 'தமிழ்', code: 'ta-IN' },
 	th: { name: 'ไทย', code: 'th-TH' },
 	lt: { name: 'Lietuvių', code: 'lt-LT' },
-	tr: { name: 'Türkçe', code: 'tr-TR' }
+	tr: { name: 'Türkçe', code: 'tr-TR' },
+	sl: { name: 'Slovenščina', code: 'sl-SI' },
+	ko: { name: '한국어', code: 'ko-KR' }
 };
 
 export const languageCodes = Object.keys(languages);
