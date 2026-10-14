@@ -53,9 +53,9 @@ def test_scan_decodes_a_known_format(random_filament: dict[str, Any]):  # noqa: 
     assert_httpx_success(result)
 
     decoded = result.json()["decoded"]
-    assert decoded["material_type"] == "PLA"
-    assert decoded["brand_name"] == "Prusament"
-    assert decoded["net_weight_g"] == 1000.0
+    assert decoded["material"] == "PLA"
+    assert decoded["vendor_name"] == "Prusament"
+    assert decoded["weight"] == 1000.0
     assert decoded["color_hex"] == "112233"
 
 
@@ -107,7 +107,7 @@ def test_scan_decodes_even_when_the_tag_is_already_matched(random_filament: dict
 
         body = scan.json()
         assert body["matched_spool_id"] == spool["id"]
-        assert body["decoded"]["material_type"] == "PLA"
+        assert body["decoded"]["material"] == "PLA"
         assert body["created"] is False
     finally:
         httpx.delete(f"{URL}/api/v1/spool/{spool['id']}")
@@ -133,11 +133,11 @@ def test_scan_decodes_a_real_prusa_sample_tag():
     assert_httpx_success(result)
 
     decoded = result.json()["decoded"]
-    assert decoded["material_type"] == "PLA"
-    assert decoded["brand_name"] == "Prusament"
-    assert decoded["material_name"] == "PLA Galaxy Black"
-    assert decoded["net_weight_g"] == 1012.0
-    assert decoded["empty_container_weight_g"] == 100.0
+    assert decoded["material"] == "PLA"
+    assert decoded["vendor_name"] == "Prusament"
+    assert decoded["name"] == "PLA Galaxy Black"
+    assert decoded["initial_weight"] == 1012.0
+    assert decoded["spool_weight"] == 100.0
     assert decoded["color_hex"] == "3d3e3d"
 
 
@@ -159,10 +159,10 @@ def test_scan_decodes_a_real_prusa_test_vector_with_derived_instance_id():
     assert_httpx_success(result)
 
     decoded = result.json()["decoded"]
-    assert decoded["material_type"] == "PLA"
-    assert decoded["brand_name"] == "Prusament"
-    assert decoded["material_name"] == "PLA Prusa Galaxy Black"
-    assert decoded["net_weight_g"] == 1012.0
-    assert decoded["empty_container_weight_g"] == 280.0
+    assert decoded["material"] == "PLA"
+    assert decoded["vendor_name"] == "Prusament"
+    assert decoded["name"] == "PLA Prusa Galaxy Black"
+    assert decoded["initial_weight"] == 1012.0
+    assert decoded["spool_weight"] == 280.0
     assert decoded["color_hex"] == "3d3e3d"
-    assert decoded["external_id"] == "bf63e92d-9ca5-53d7-9fab-ffdd0240c585"
+    assert decoded["instance_uuid"] == "bf63e92d-9ca5-53d7-9fab-ffdd0240c585"
