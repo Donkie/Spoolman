@@ -54,8 +54,8 @@ async def flatten_sqlalchemy_object(obj: models.Base, parent_key: str = "", sep:
             if attr == "tags":
                 # A collection, like `extra`, so it needs collapsing into a cell rather
                 # than being left as a list of ORM objects: CSV would write their repr and
-                # JSON would stringify them. A spool's tags have no keys to spread across
-                # columns, so they become one comma-separated list of UIDs.
+                # JSON would stringify them. Tags, a spool's or a filament's, have no keys to
+                # spread across columns, so they become one comma-separated list of UIDs.
                 fields[f"{parent_key}tags"] = ",".join(v.uid for v in value)
                 continue
 

@@ -1,6 +1,7 @@
 import type {
 	Filament,
 	FilamentPatch,
+	Tag,
 	MultiColorDirection,
 	Spool,
 	SpoolPatch,
@@ -41,6 +42,20 @@ export function mapVendor(v: Json): Vendor {
 	};
 }
 
+/**
+ * A spool's or filament's tags. The API always sends `tags`, but an entity that
+ * predates a server upgrade mid-session (or a fixture) may not, so an absent one
+ * reads as none. `format` is omitted rather than nulled when unset — the API
+ * excludes nulls — which is why it maps to undefined instead of being tested for null.
+ */
+function mapTags(tags: unknown): Tag[] {
+	return ((tags ?? []) as Json[]).map((t) => ({
+		uid: t.uid,
+		format: t.format ?? undefined,
+		added: t.added
+	}));
+}
+
 export function mapFilament(f: Json): Filament {
 	return {
 		id: String(f.id),
@@ -60,6 +75,7 @@ export function mapFilament(f: Json): Filament {
 		comment: f.comment ?? '',
 		externalId: f.external_id ?? undefined,
 		registeredLabel: formatShortDate(f.registered),
+		tags: mapTags(f.tags),
 		extra: f.extra ?? {}
 	};
 }
@@ -96,15 +112,7 @@ export function mapSpool(s: Json): Spool {
 		registeredLabel: formatShortDate(s.registered),
 		archived: s.archived ?? false,
 		comment: s.comment ?? '',
-		// The API always sends `tags`, but a spool that predates a server upgrade
-		// mid-session (or a fixture) may not, so an absent one reads as none.
-		// `format` is omitted rather than nulled when unset — the API excludes
-		// nulls — which is why it maps to undefined instead of being tested for null.
-		tags: ((s.tags ?? []) as Json[]).map((t) => ({
-			uid: t.uid,
-			format: t.format ?? undefined,
-			added: t.added
-		})),
+		tags: mapTags(s.tags),
 		extra: s.extra ?? {}
 	};
 }
@@ -164,7 +172,18 @@ export function mapGroup(g: Json): GroupSummary {
 		totalRemaining: g.total_remaining_weight ?? 0,
 		hasStock: (g.spool_count ?? 0) > 0,
 		lastUsedLabel: formatDurationShort(g.last_used),
-		lastUsedSort: 0
+		lastUsedSort: 0,
+		filamentCount: g.filament_count ?? undefined,
+		previewSpools: (g.spools as Json[] | undefined)?.map((s) => ({
+			id: String(s.id),
+			remaining: s.remaining_weight ?? null,
+			initial: s.initial_weight ?? null
+		})),
+		previewFilaments: (g.filaments as Json[] | undefined)?.map((f) => ({
+			id: String(f.id),
+			colors: colorsFromApi(f),
+			direction: f.multi_color_direction ?? undefined
+		}))
 	};
 }
 

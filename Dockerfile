@@ -1,16 +1,25 @@
 FROM python:3.14-slim-bookworm AS python-builder
 
+# A multi-platform build runs this stage once per platform in parallel. Each gets
+# its own uv cache: wheels are per-platform anyway, and one shared cache made the
+# platforms queue on uv's cache lock until the slow emulated armv7 sync pushed the
+# others past uv's 300 s lock timeout whenever uv.lock changed.
+ARG TARGETARCH
+ARG TARGETVARIANT
+
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
 ENV UV_NO_DEV=1
 ENV UV_PYTHON_DOWNLOADS=0
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+# No python3-dev: the base image already ships the 3.14 headers, and python3-dev
+# would pull in Debian's whole python3.11 stack. patchelf is for armv7, see below.
+RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
-    python3-dev \
     libpq-dev \
     libffi-dev \
+    patchelf \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -19,10 +28,23 @@ RUN pip install --no-cache-dir uv
 
 # Install dependencies
 WORKDIR /home/app/spoolman
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,id=uv-${TARGETARCH}${TARGETVARIANT},target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked --no-install-project
+    uv sync --locked --no-install-project \
+    && uv cache prune --ci
+
+# greenlet ships no 32-bit ARM wheel, so on armv7 it is compiled from source.
+# setuptools links the C++ extension with gcc, which leaves libstdc++ out of the
+# .so's NEEDED list, and it then crashes at import with an undefined libstdc++
+# typeinfo symbol, taking startup down during the DB migration. Add libstdc++ to
+# the NEEDED list so the loader pulls it in. Only armv7 is affected; amd64 and
+# arm64 use a correctly linked prebuilt wheel. Done before the app is copied in so
+# the layer stays cached across source-only changes.
+RUN if [ "$(uname -m)" = "armv7l" ]; then \
+        patchelf --add-needed libstdc++.so.6 \
+            "$(find /home/app/spoolman/.venv -name '_greenlet*.so')"; \
+    fi
 
 # Copy and install app. No --chown here: the "app" user only exists in the
 # runner stage, and Podman (unlike Docker/BuildKit) refuses to resolve it. Final
@@ -30,21 +52,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY migrations /home/app/spoolman/migrations
 COPY spoolman /home/app/spoolman/spoolman
 COPY alembic.ini README.md uv.lock pyproject.toml /home/app/spoolman/
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked
-
-# greenlet ships no 32-bit ARM wheel, so on armv7 it is compiled from source.
-# setuptools links the C++ extension with gcc, which leaves libstdc++ out of the
-# .so's NEEDED list, and it then crashes at import with an undefined libstdc++
-# typeinfo symbol, taking startup down during the DB migration. Add libstdc++ to
-# the NEEDED list so the loader pulls it in. Only armv7 is affected; amd64 and
-# arm64 use a correctly linked prebuilt wheel.
-RUN if [ "$(uname -m)" = "armv7l" ]; then \
-        apt-get update && apt-get install -y --no-install-recommends patchelf \
-        && patchelf --add-needed libstdc++.so.6 \
-            "$(find /home/app/spoolman/.venv -name '_greenlet*.so')" \
-        && apt-get clean && rm -rf /var/lib/apt/lists/*; \
-    fi
+RUN --mount=type=cache,id=uv-${TARGETARCH}${TARGETVARIANT},target=/root/.cache/uv \
+    uv sync --locked \
+    && uv cache prune --ci
 
 FROM python:3.14-slim-bookworm AS python-runner
 

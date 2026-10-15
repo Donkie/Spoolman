@@ -12,6 +12,9 @@
 		pageSize: number;
 		total: number;
 		unit?: string;
+		/** Replaces the "1–20 of 50" range with the caller's own line, e.g. the
+		 *  catalog's "11 filaments · 23 spools · 15.1 kg". */
+		summary?: string;
 		onpage: (page: number) => void;
 		onpagesize: (size: number) => void;
 		/** When set, page controls render as real `<a href>` links (open-in-new-tab,
@@ -19,11 +22,15 @@
 		hrefFor?: (page: number) => string;
 	}
 
-	let { page, pageSize, total, unit = '', onpage, onpagesize, hrefFor }: Props = $props();
+	let { page, pageSize, total, unit = '', summary, onpage, onpagesize, hrefFor }: Props = $props();
 
 	let pageCount = $derived(Math.max(1, Math.ceil(total / pageSize)));
 	let from = $derived(total === 0 ? 0 : (page - 1) * pageSize + 1);
 	let to = $derived(Math.min(total, page * pageSize));
+	let countLabel = $derived(
+		summary ??
+			(total === 0 ? m['pagination.empty']({ unit }) : m['pagination.range']({ from, to, total, unit }))
+	);
 
 	// Windowed page numbers with 1 … n … last.
 	let pages = $derived.by(() => {
@@ -48,73 +55,66 @@
 </script>
 
 <div class="pager">
-	<span class="count">
-		{#if total === 0}{m['pagination.empty']({ unit })}{:else}{m['pagination.range']({
-				from,
-				to,
-				total,
-				unit
-			})}{/if}
-	</span>
+	<span class="count">{countLabel}</span>
 
-	<div class="spacer"></div>
-
-	{#if pageCount > 1}
-		<div class="nums">
-			{#if hrefFor && page > 1}
-				<a
-					class="pg nav"
-					href={hrefFor(page - 1)}
-					data-sveltekit-keepfocus
-					data-sveltekit-noscroll
-					aria-label={m['pagination.prev']()}><ChevronLeft size={16} /></a
-				>
-			{:else}
-				<button
-					class="pg nav"
-					disabled={page <= 1}
-					onclick={() => go(page - 1)}
-					aria-label={m['pagination.prev']()}><ChevronLeft size={16} /></button
-				>
-			{/if}
-			{#each pages as p, i (i)}
-				{#if p === '…'}
-					<span class="ellipsis">…</span>
-				{:else if hrefFor && p !== page}
-					<a class="pg" href={hrefFor(p)} data-sveltekit-keepfocus data-sveltekit-noscroll>{p}</a>
+	<div class="controls">
+		{#if pageCount > 1}
+			<div class="nums">
+				{#if hrefFor && page > 1}
+					<a
+						class="pg nav"
+						href={hrefFor(page - 1)}
+						data-sveltekit-keepfocus
+						data-sveltekit-noscroll
+						aria-label={m['pagination.prev']()}><ChevronLeft size={16} /></a
+					>
 				{:else}
-					<button class="pg" class:active={p === page} onclick={() => go(p)}>{p}</button>
+					<button
+						class="pg nav"
+						disabled={page <= 1}
+						onclick={() => go(page - 1)}
+						aria-label={m['pagination.prev']()}><ChevronLeft size={16} /></button
+					>
 				{/if}
-			{/each}
-			{#if hrefFor && page < pageCount}
-				<a
-					class="pg nav"
-					href={hrefFor(page + 1)}
-					data-sveltekit-keepfocus
-					data-sveltekit-noscroll
-					aria-label={m['pagination.next']()}><ChevronRight size={16} /></a
-				>
-			{:else}
-				<button
-					class="pg nav"
-					disabled={page >= pageCount}
-					onclick={() => go(page + 1)}
-					aria-label={m['pagination.next']()}><ChevronRight size={16} /></button
-				>
-			{/if}
-		</div>
-	{/if}
+				{#each pages as p, i (i)}
+					{#if p === '…'}
+						<span class="ellipsis">…</span>
+					{:else if hrefFor && p !== page}
+						<a class="pg" href={hrefFor(p)} data-sveltekit-keepfocus data-sveltekit-noscroll>{p}</a>
+					{:else}
+						<button class="pg" class:active={p === page} onclick={() => go(p)}>{p}</button>
+					{/if}
+				{/each}
+				{#if hrefFor && page < pageCount}
+					<a
+						class="pg nav"
+						href={hrefFor(page + 1)}
+						data-sveltekit-keepfocus
+						data-sveltekit-noscroll
+						aria-label={m['pagination.next']()}><ChevronRight size={16} /></a
+					>
+				{:else}
+					<button
+						class="pg nav"
+						disabled={page >= pageCount}
+						onclick={() => go(page + 1)}
+						aria-label={m['pagination.next']()}><ChevronRight size={16} /></button
+					>
+				{/if}
+			</div>
+		{/if}
 
-	<select
-		class="size"
-		value={pageSize}
-		onchange={(e) => onpagesize(Number(e.currentTarget.value))}
-		aria-label={m['pagination.pageSize']()}
-	>
-		{#each sizes as s (s)}
-			<option value={s}>{m['pagination.perPage']({ size: s })}</option>
-		{/each}
-	</select>
+		<select
+			class="size"
+			value={pageSize}
+			onchange={(e) => onpagesize(Number(e.currentTarget.value))}
+			aria-label={m['pagination.pageSize']()}
+		>
+			{#each sizes as s (s)}
+				<option value={s}>{m['pagination.perPage']({ size: s })}</option>
+			{/each}
+		</select>
+	</div>
 </div>
 
 <style>
@@ -130,11 +130,16 @@
 		color: var(--text-dim);
 		flex-wrap: wrap;
 	}
-	.spacer {
-		flex: 1;
-	}
 	.count {
 		white-space: nowrap;
+	}
+	/* Page numbers and page size wrap as one, so a long count line (the catalog's
+	   summary on a phone) never strands the page-size picker on a line alone. */
+	.controls {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-left: auto;
 	}
 	.nums {
 		display: flex;

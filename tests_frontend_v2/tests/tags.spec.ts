@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { APIRequestContext, Locator, Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
 import { createSpoolViaModal, navTab, openApp, searchFor, unique } from "./helpers";
@@ -7,11 +8,10 @@ import { createSpoolViaModal, navTab, openApp, searchFor, unique } from "./helpe
  *
  * The whole feature is reachable without any NFC hardware, which is the point of
  * the reader contract being a plain `POST /api/v1/tag/scan`: these tests are a
- * reader. What they cannot cover is Web NFC — reading a tag with the phone
- * running the browser — because there is no way to present a physical tag to a
- * headless Chromium. That path is verified by hand on an Android device; the
- * control is absent rather than disabled everywhere else, which is itself
- * asserted below.
+ * reader. Web NFC — reading a tag with the phone running the browser — has no
+ * emulation in Chromium, so those tests install a stand-in `NDEFReader` (see
+ * `fakeWebNfc`). That covers our side of the API, not Chrome's: gesture and
+ * background-tab behaviour still want one check on a real Android phone.
  */
 
 /**
@@ -31,10 +31,7 @@ let readerCounter = 0;
  * on whether a UID is free or taken.
  */
 function uniqueUid(): string {
-  return Math.floor(Math.random() * 0xffffffff)
-    .toString(16)
-    .toUpperCase()
-    .padStart(8, "0");
+  return randomBytes(4).toString("hex").toUpperCase();
 }
 
 /**
@@ -259,6 +256,10 @@ test("a scanned tag opens its spool once auto-navigate is switched on", async ({
   await scanUntil(request, uid, async () => {
     await expect(page).toHaveURL(new RegExp(`sel=spool(:|%3A)${id}`), { timeout: 1500 });
   });
+
+  await test.step("and says so, since the page moved without being touched", async () => {
+    await expect(page.getByRole("status").getByText(`Tag scanned: opened spool #${id},`)).toBeVisible();
+  });
 });
 
 /**
@@ -337,4 +338,217 @@ test("a reader is paired by tapping a tag on it", async ({ page, request }) => {
 
   await page.getByRole("button", { name: "Use any reader" }).click();
   await expect(page.getByText(/Scans from any reader/)).toBeVisible();
+});
+
+/** Create a filament over the API, the way a reader-side agent or an import would. */
+async function createFilament(request: APIRequestContext): Promise<{ id: string; name: string }> {
+  const name = unique("Filament");
+  const res = await request.post(`${API_BASE}/filament`, { data: { name, density: 1.24, diameter: 1.75 } });
+  expect(res.ok()).toBeTruthy();
+  return { id: String((await res.json()).id), name };
+}
+
+/**
+ * A tag can identify a filament type rather than one spool of it: a sample, or a
+ * shelf label for a colour you keep several spools of. It is linked from the
+ * filament's inspector the same way, and a scan of it opens the filament.
+ */
+test("a tag linked to a filament opens that filament when scanned", async ({ page, request }) => {
+  const uid = uniqueUid();
+  const filament = await createFilament(request);
+
+  await openApp(page);
+  await page.goto(`/?sel=filament:${filament.id}`);
+  const inspector = page.locator(".insp");
+  const dialog = await openAddTag(inspector);
+
+  await test.step("the dialog says it is linking to the filament", async () => {
+    await expect(dialog.getByText("Tapping this tag on a reader will then find this filament.")).toBeVisible();
+  });
+
+  await dialog.getByLabel("Tag UID").fill(uid);
+  await expect(dialog.getByText("This tag is not linked to anything yet.")).toBeVisible();
+  await dialog.getByRole("button", { name: "Link tag" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(tagsSection(inspector).getByText(uid, { exact: true })).toBeVisible();
+
+  await navTab(page, "Settings", "Settings | Spoolman");
+  await page.getByLabel("Auto-navigate").click();
+  await navTab(page, "Library", "Library | Spoolman");
+
+  await scanUntil(request, uid, async () => {
+    await expect(page).toHaveURL(new RegExp(`sel=filament(:|%3A)${filament.id}`), { timeout: 1500 });
+  });
+  await expect(
+    page.getByRole("status").getByText(`Tag scanned: opened filament ${filament.name}.`, { exact: true }),
+  ).toBeVisible();
+});
+
+/**
+ * A tag identifies one thing across both kinds, so a tag already on a filament is
+ * offered as a move when it is linked to a spool, and the dialog names the
+ * filament it is taking it from rather than an id nobody recognises.
+ */
+test("a tag on a filament is moved to a spool, not duplicated", async ({ page, request }) => {
+  const uid = uniqueUid();
+  const filament = await createFilament(request);
+  const linked = await request.post(`${API_BASE}/filament/${filament.id}/tag`, { data: { uid } });
+  expect(linked.ok()).toBeTruthy();
+
+  await openApp(page);
+  const { inspector } = await createAndOpenSpool(page);
+  const dialog = await openAddTag(inspector);
+  await dialog.getByLabel("Tag UID").fill(uid);
+
+  await expect(dialog.getByText(`Currently linked to filament ${filament.name}`)).toBeVisible();
+  await dialog.getByRole("button", { name: "Move it here", exact: true }).click();
+  await expect(dialog).toBeHidden();
+  await expect(tagsSection(inspector).getByText(uid, { exact: true })).toBeVisible();
+
+  const after = await request.get(`${API_BASE}/filament/${filament.id}`);
+  expect((await after.json()).tags).toEqual([]);
+});
+
+/**
+ * Stand in for Web NFC, which headless Chromium doesn't have. Implements exactly
+ * the surface client_v2 touches: `new NDEFReader()`, `scan({ signal })` and the
+ * `reading` event, plus the `nfc` permission so the "granted later" path can be
+ * driven. `scan()` rejects until permission is granted, like Chrome does without
+ * a user gesture. Must be called before the page loads.
+ */
+async function fakeWebNfc(page: Page, opts: { permission: "granted" | "prompt" }): Promise<void> {
+  await page.addInitScript(({ permission }) => {
+    let state = permission;
+    const status = new EventTarget();
+    Object.defineProperties(status, { name: { value: "nfc" }, state: { get: () => state } });
+    const query = navigator.permissions.query.bind(navigator.permissions);
+    navigator.permissions.query = (desc) =>
+      desc.name === ("nfc" as PermissionName) ? Promise.resolve(status as PermissionStatus) : query(desc);
+
+    const readers = new Set<EventTarget>();
+    class FakeNDEFReader extends EventTarget {
+      async scan({ signal }: { signal?: AbortSignal } = {}) {
+        if (state !== "granted") throw new DOMException("NFC permission not granted", "NotAllowedError");
+        readers.add(this);
+        signal?.addEventListener("abort", () => readers.delete(this));
+      }
+    }
+    Object.assign(window, {
+      NDEFReader: FakeNDEFReader,
+      __nfc: {
+        /** Present a tag to every scanning reader; returns how many heard it. */
+        tap(uid: string): number {
+          for (const r of readers) r.dispatchEvent(Object.assign(new Event("reading"), { serialNumber: uid }));
+          return readers.size;
+        },
+        grant() {
+          state = "granted";
+          status.dispatchEvent(new Event("change"));
+        },
+      },
+    });
+  }, opts);
+}
+
+/** What `fakeWebNfc` leaves on `window` for the test to drive. */
+type NfcWindow = { __nfc: { tap(uid: string): number; grant(): void } };
+
+/** Tap a tag against the phone, once something on the page is actually scanning. */
+async function phoneTap(page: Page, uid: string): Promise<void> {
+  await expect
+    .poll(() => page.evaluate((u) => (window as unknown as NfcWindow).__nfc.tap(u), uid))
+    .toBeGreaterThan(0);
+}
+
+/** Auto-navigate on before load, as a returning user who switched it on would have it. */
+async function withAutoNavigate(page: Page): Promise<void> {
+  await page.addInitScript(() => window.localStorage.setItem("spoolman-v2-scanner-auto-navigate", "true"));
+}
+
+/** A spool with a tag on it, made over the API. */
+async function taggedSpool(request: APIRequestContext, uid: string): Promise<string> {
+  const filament = await createFilament(request);
+  const res = await request.post(`${API_BASE}/spool`, { data: { filament_id: Number(filament.id) } });
+  expect(res.ok()).toBeTruthy();
+  const id = String((await res.json()).id);
+  expect((await request.post(`${API_BASE}/spool/${id}/tag`, { data: { uid } })).ok()).toBeTruthy();
+  return id;
+}
+
+/**
+ * Holding a tag against the phone the app is open on is the same as tapping it
+ * on a reader: with auto-navigate on, its spool opens — and on a phone, where
+ * the inspector is a bottom sheet, that means the sheet slides up.
+ */
+test("a tag read by the phone's own NFC opens its spool in the drawer", async ({ page, request }) => {
+  const uid = uniqueUid();
+  const id = await taggedSpool(request, uid);
+
+  await page.setViewportSize({ width: 393, height: 851 });
+  await fakeWebNfc(page, { permission: "granted" });
+  await withAutoNavigate(page);
+  await openApp(page);
+
+  await phoneTap(page, uid);
+  await expect(page).toHaveURL(new RegExp(`sel=spool(:|%3A)${id}`));
+  await expect(page.locator(".insp")).toBeInViewport();
+  await expect(page.getByRole("status").getByText(`Tag scanned: opened spool #${id},`)).toBeVisible();
+});
+
+test("an unknown tag read by the phone reports itself instead of navigating", async ({ page }) => {
+  const uid = uniqueUid();
+  await fakeWebNfc(page, { permission: "granted" });
+  await withAutoNavigate(page);
+  await openApp(page);
+
+  const before = page.url();
+  await phoneTap(page, uid);
+  await expect(page.getByText(new RegExp(`Unknown tag ${uid}`))).toBeVisible();
+  expect(page.url()).toBe(before);
+});
+
+/**
+ * Chrome only starts a scan unprompted once NFC is allowed. Before that, the page
+ * must pick up listening the moment permission is granted, not wait for a reload.
+ */
+test("phone NFC starts listening once permission is granted", async ({ page, request }) => {
+  const uid = uniqueUid();
+  const id = await taggedSpool(request, uid);
+  await fakeWebNfc(page, { permission: "prompt" });
+  await withAutoNavigate(page);
+  await openApp(page);
+
+  const heard = await page.evaluate((u) => (window as unknown as NfcWindow).__nfc.tap(u), uid);
+  expect(heard).toBe(0);
+
+  await page.evaluate(() => (window as unknown as NfcWindow).__nfc.grant());
+  await phoneTap(page, uid);
+  await expect(page).toHaveURL(new RegExp(`sel=spool(:|%3A)${id}`));
+});
+
+/**
+ * The link-tag dialog reads the phone's NFC for itself, and the tap it is waiting
+ * for must fill it in — not also be treated as a stray scan of an unknown tag.
+ */
+test("reading a tag with the phone fills the link dialog, and only the dialog", async ({ page, request }) => {
+  const uid = uniqueUid();
+  const filament = await createFilament(request);
+  const res = await request.post(`${API_BASE}/spool`, { data: { filament_id: Number(filament.id) } });
+  const id = String((await res.json()).id);
+
+  await fakeWebNfc(page, { permission: "granted" });
+  await withAutoNavigate(page);
+  await openApp(page);
+  await page.goto(`/?sel=spool:${id}`);
+  const inspector = page.locator(".insp");
+  const dialog = await openAddTag(inspector);
+  await dialog.getByRole("button", { name: "Read a tag with this phone" }).click();
+
+  await phoneTap(page, uid);
+  await expect(dialog.getByLabel("Tag UID")).toHaveValue(uid);
+  await expect(page.getByText(new RegExp(`Unknown tag ${uid}`))).toHaveCount(0);
+
+  await dialog.getByRole("button", { name: "Link tag" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(tagsSection(inspector).getByText(uid, { exact: true })).toBeVisible();
 });

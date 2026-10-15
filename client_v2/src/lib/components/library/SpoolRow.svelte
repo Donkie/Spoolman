@@ -16,11 +16,12 @@
 		indent?: number;
 		/** Listing context — drops whatever the enclosing group already implies. */
 		context?: RowContext;
+		showLotNumbers?: boolean;
 	}
 
-	let { vm, showSwatch = false, indent = 14, context = 'flat' }: Props = $props();
+	let { vm, showSwatch = false, indent = 14, context = 'flat', showLotNumbers = false }: Props = $props();
 
-	let identity = $derived(rowIdentity(vm, context));
+	let identity = $derived(rowIdentity(vm, context, showLotNumbers));
 	let selected = $derived(params.isSelected(page.url.searchParams, 'spool', String(vm.spool.id)));
 </script>
 
@@ -112,8 +113,11 @@
 	.rem {
 		font-size: 11px;
 		color: var(--text-2);
-		width: 44px;
+		/* A floor, not a fixed width: "987.5 g" and "10.2 kg" run past 44px and would
+		   wrap the unit onto its own line (#1124). */
+		min-width: 44px;
 		text-align: right;
+		white-space: nowrap;
 		flex: none;
 	}
 	.rem.low {

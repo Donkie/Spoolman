@@ -3,7 +3,13 @@ name: CI
 on:
   push:
     branches:
-      - master
+      # Every branch builds, so a fix can be handed to a bug reporter as a Docker
+      # image before it merges (see publish-images). Weblate pushes locale-only
+      # commits constantly and dependabot's branches arrive as PRs anyway, so
+      # bot branches skip push runs and are built by the pull_request run instead.
+      - "**"
+      - "!weblate*"
+      - "!dependabot/**"
     tags:
       - "v*"
   pull_request:
@@ -14,12 +20,12 @@ permissions:
   contents: read
   packages: read
 
-# A new push to a PR makes the previous run's result irrelevant, so cancel it and
-# let the new one have the runners. Gated on the event: the push triggers are
-# master and v* tags, and a cancelled tag run is a half-published release.
+# A new push makes the previous run's result irrelevant, so cancel it and let the
+# new one have the runners. Master and tags are exempt: both publish images, and a
+# cancelled run there is a half-published release.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' && !startsWith(github.ref, 'refs/tags/') }}
 
 env:
   GHCR_IMAGE: donkie/spoolman
@@ -29,6 +35,11 @@ jobs:
   # Linting
   #
   style:
+    # Same-repo branches already got a full run from the push trigger, so skip the
+    # duplicate pull_request run. Bot branches excluded above still need it, as do
+    # forks, whose pushes fire no event here. Skipping the three jobs with no `needs`
+    # cascades to every other job, since a skipped dependency skips its dependents.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository || startsWith(github.head_ref, 'dependabot/') || startsWith(github.head_ref, 'weblate') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -71,6 +82,11 @@ jobs:
   # This is done on native hardware to speed things up, vite is very slow on emulated hardware
   #
   build-client:
+    # Same-repo branches already got a full run from the push trigger, so skip the
+    # duplicate pull_request run. Bot branches excluded above still need it, as do
+    # forks, whose pushes fire no event here. Skipping the three jobs with no `needs`
+    # cascades to every other job, since a skipped dependency skips its dependents.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository || startsWith(github.head_ref, 'dependabot/') || startsWith(github.head_ref, 'weblate') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -218,6 +234,11 @@ jobs:
   # Build tester image for integration tests
   #
   build-tester:
+    # Same-repo branches already got a full run from the push trigger, so skip the
+    # duplicate pull_request run. Bot branches excluded above still need it, as do
+    # forks, whose pushes fire no event here. Skipping the three jobs with no `needs`
+    # cascades to every other job, since a skipped dependency skips its dependents.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository || startsWith(github.head_ref, 'dependabot/') || startsWith(github.head_ref, 'weblate') }}
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -349,6 +370,10 @@ jobs:
   test-frontend-v2:
     needs: [build-amd64]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Argos authenticates via OIDC; fork PRs get no id-token and fall back to tokenless upload.
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -376,10 +401,20 @@ jobs:
       - name: Start Spoolman
         run: docker compose -f tests_frontend_v2/docker-compose.yml up -d --wait
 
+      # Screenshots first: they seed a fixed dataset and need the database empty.
+      # The Argos reporter uploads them and posts the visual diff on the PR.
+      - name: Take client_v2 screenshots
+        env:
+          ARGOS_UPLOAD: "1"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd tests_frontend_v2
+          npx playwright test --project screenshots
+
       - name: Run client_v2 frontend integration tests
         run: |
           cd tests_frontend_v2
-          npx playwright test
+          npx playwright test --project chromium
 
       - name: Dump Spoolman logs on failure
         if: failure()
@@ -494,7 +529,27 @@ jobs:
         uses: docker/setup-qemu-action@v3.2.0
 
       - name: Set up Docker Buildx
+        id: buildx
         uses: docker/setup-buildx-action@v3.6.1
+
+      # Keep uv's cache of wheels built from source (asyncpg, greenlet, ...) across
+      # runs. They have no armv7 wheels, and compiling them under QEMU is ~9 of the
+      # ~11 minutes of a build that misses the layer cache (lockfile or base image
+      # changed). The Dockerfile prunes the cache down to just those wheels, so it's
+      # small enough to save on every run and always restore the newest one.
+      - name: Cache uv wheels
+        uses: actions/cache@v4
+        with:
+          path: uv-cache
+          key: uv-cache-armv7-${{ github.run_id }}
+          restore-keys: uv-cache-armv7-
+
+      - name: Inject uv cache into BuildKit
+        uses: reproducible-containers/buildkit-cache-dance@v3.4.0
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          cache-map: |
+            { "uv-cache": "/root/.cache/uv" }
 
       - name: Log in to the Github Container registry
         uses: docker/login-action@v3.3.0
@@ -644,6 +699,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # The trailing type=ref,event=branch is what gives an unmerged branch a
+      # pullable image (ghcr.io/donkie/spoolman:my-branch) for a bug reporter to
+      # test. It is GHCR-only and skips master (already published as :edge), so
+      # Docker Hub keeps carrying nothing but :edge and tagged releases.
       - name: Extract metadata (tags, labels) for GHCR
         id: meta-ghcr
         uses: docker/metadata-action@v5.5.1
@@ -655,6 +714,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
+            type=ref,event=branch,enable=${{ github.ref_name != 'master' }}
 
       - name: Extract metadata (tags, labels) for Docker Hub
         id: meta-dh

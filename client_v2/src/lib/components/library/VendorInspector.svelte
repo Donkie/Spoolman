@@ -5,6 +5,7 @@
 	import Swatch from '../Swatch.svelte';
 	import Button from '../Button.svelte';
 	import ConfirmDialog from '../ConfirmDialog.svelte';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import EditableField from '../EditableField.svelte';
 	import NumberInput from '../NumberInput.svelte';
@@ -128,7 +129,7 @@
 	<div class="head">
 		<div class="avatar">{initials}</div>
 		<div class="titles">
-			<div class="title">{vendor.name}</div>
+			<div class="title">{vendor.name} <span class="idmono mono">#{vendor.id}</span></div>
 			<div class="subtitle">
 				{m['inspector.vendorSub']({
 					count: filaments.length
@@ -155,6 +156,13 @@
 		onconfirm={remove}
 		onclose={() => (confirmOpen = false)}
 	/>
+
+	{#snippet showAsList()}
+		<!-- By id, not name, so a namesake manufacturer stays out; it shows as a normal dismissable chip. -->
+		<a class="golist" href={params.catalogHref('filaments', [{ prop: 'vendorId', value: vendor.id }])}
+			>{m['vendor.showAsList']()} <ChevronRight size={13} /></a
+		>
+	{/snippet}
 
 	<div class="grid">
 		<div class="col">
@@ -186,7 +194,8 @@
 			<ExtraFieldsSection entity="vendor" extra={vendor.extra} onchange={extraSaver.change} manage />
 		</div>
 		<div class="col">
-			<SectionLabel>{m['filament.filament']()}</SectionLabel>
+			<SectionLabel right={filaments.length ? showAsList : undefined}>{m['filament.filament']()}</SectionLabel
+			>
 			<div class="fils">
 				{#each filaments as f (f.id)}
 					<a
@@ -229,6 +238,11 @@
 		font-weight: 700;
 		font-size: 16px;
 	}
+	.idmono {
+		font-size: 12px;
+		color: var(--text-muted);
+		font-weight: 400;
+	}
 	.subtitle {
 		font-size: 12px;
 		color: var(--text-muted);
@@ -243,6 +257,17 @@
 		grid-template-columns: 1fr 1fr;
 		gap: 0 32px;
 		padding: 4px 20px 24px;
+	}
+	.golist {
+		display: inline-flex;
+		align-items: center;
+		gap: 2px;
+		font-size: 11px;
+		color: var(--accent-link);
+		text-decoration: none;
+	}
+	.golist:hover {
+		text-decoration: underline;
 	}
 	.fils {
 		display: flex;

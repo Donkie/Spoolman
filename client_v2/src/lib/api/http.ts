@@ -76,6 +76,15 @@ async function ensureOk(res: Response, method: string, path: string): Promise<Re
 export interface RawPage {
 	items: unknown[];
 	total: number;
+	/** The group endpoint's totals across every page, when it sends them. */
+	totalSpools?: number;
+	totalRemaining?: number;
+}
+
+function numberHeader(res: Response, name: string): number | undefined {
+	const header = res.headers.get(name);
+	const n = header != null && header !== '' ? Number(header) : NaN;
+	return Number.isNaN(n) ? undefined : n;
 }
 
 // Reads take an optional AbortSignal so a view can cancel what it no longer needs
@@ -91,9 +100,12 @@ export async function getList(
 ): Promise<RawPage> {
 	const res = await ensureOk(await fetch(API_BASE + path + queryString(params), { signal }), 'GET', path);
 	const items = (await res.json()) as unknown[];
-	const header = res.headers.get('x-total-count');
-	const total = header != null && header !== '' ? Number(header) : items.length;
-	return { items, total: Number.isNaN(total) ? items.length : total };
+	return {
+		items,
+		total: numberHeader(res, 'x-total-count') ?? items.length,
+		totalSpools: numberHeader(res, 'x-total-spools'),
+		totalRemaining: numberHeader(res, 'x-total-remaining-weight')
+	};
 }
 
 export async function getJson<T = unknown>(

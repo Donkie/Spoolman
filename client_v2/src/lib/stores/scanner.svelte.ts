@@ -80,8 +80,8 @@ class ScannerState {
 	 *  rather than an unconfigured state: most people have exactly one reader, and
 	 *  pairing only starts to matter once there are two. */
 	pairedReaderId = $state<string | null>(null);
-	/** Whether a scan matching a spool navigates this browser to it. Off by
-	 *  default — a page that navigates itself unasked is hostile. */
+	/** Whether a scan matching a spool or filament navigates this browser to it.
+	 *  Off by default — a page that navigates itself unasked is hostile. */
 	autoNavigate = $state(false);
 
 	/**

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { asset } from '$app/paths';
 	import SpoolInspector from './SpoolInspector.svelte';
 	import FilamentInspector from './FilamentInspector.svelte';
@@ -6,7 +7,6 @@
 	import type { Selection } from '$lib/types';
 	import { inventory } from '$lib/stores/inventory.svelte';
 	import { spoolSource } from '$lib/api/spoolSource';
-	import { isAbortError } from '$lib/api/http';
 	import * as m from '$lib/paraglide/messages';
 
 	let { selection }: { selection: Selection | null } = $props();
@@ -30,17 +30,24 @@
 	// across runs to stop a genuine miss / 404 from re-fetching every tick.
 	let attempted = '';
 	let loading = $state(false);
+	// The effect follows the selection by value, not by object. Arriving on the
+	// Library rewrites the URL to restore the remembered view (see +page.svelte),
+	// which parses the same selection into a new object; following the object
+	// re-ran the effect mid-fetch and its cleanup aborted the request (#1243).
+	let key = $derived(sel ? `${sel.kind}:${sel.id}` : '');
 	$effect(() => {
-		const s = sel;
-		if (!s || found) return;
-		const key = `${s.kind}:${s.id}`;
-		if (attempted === key) return;
-		attempted = key;
+		const k = key;
+		if (!k || found) return;
+		if (attempted === k) return;
+		attempted = k;
 		loading = true;
 
+		const s = untrack(() => sel)!;
 		const ctrl = new AbortController();
+		let pending = true;
 		const done = (err?: unknown) => {
-			if (isAbortError(err, ctrl.signal)) return; // superseded selection; leave loading for the next run
+			if (ctrl.signal.aborted) return; // superseded; the run that aborted it owns `loading`
+			pending = false;
 			if (err) console.warn('deep-link fetch failed', err);
 			loading = false;
 		};
@@ -52,7 +59,12 @@
 					: spoolSource.fetchVendor(s.id, ctrl.signal);
 		p.then(() => done()).catch(done);
 
-		return () => ctrl.abort();
+		return () => {
+			// Cancelled before it answered: forget the attempt, so whichever run
+			// comes next asks again instead of waiting on a request that is gone.
+			if (pending) attempted = '';
+			ctrl.abort();
+		};
 	});
 </script>
 

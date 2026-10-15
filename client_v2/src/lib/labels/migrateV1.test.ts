@@ -140,6 +140,26 @@ describe('presetToDesign', () => {
 		expect(d.layout.columns).toBeGreaterThanOrEqual(1);
 	});
 
+	it('clamps v1 negative margins so the label matches the paper (#1149)', () => {
+		// A real preset: -20mm margins with a 1.5mm printer margin on a 62x34 roll.
+		// Carried over raw, the derived label came out 102x74.
+		const d = presetToDesign({
+			labelSettings: {
+				printSettings: {
+					paperSize: 'custom',
+					customPaperSize: { width: 62, height: 34 },
+					columns: 1,
+					rows: 1,
+					margin: { top: -20, bottom: -20, left: -20, right: -20 },
+					printerMargin: { top: 1.5, bottom: 1.5, left: 1.5, right: 1.5 }
+				}
+			}
+		});
+		expect(d.layout.margin).toEqual({ t: 0, b: 0, l: 0, r: 0 });
+		expect(d.layout.safe).toEqual({ t: 1.5, b: 1.5, l: 1.5, r: 1.5 });
+		expect(d.label).toEqual({ w: 62, h: 34 });
+	});
+
 	it('omits the QR element when v1 had the QR turned off', () => {
 		const d = presetToDesign({ labelSettings: { showQRCodeMode: 'no' } });
 		expect(d.elements.some((e) => e.type === 'qr')).toBe(false);

@@ -17,6 +17,17 @@ export function paperSize(layout: PrintLayout): { w: number; h: number } {
 	return layout.landscape ? { w: base.h, h: base.w } : { w: base.w, h: base.h };
 }
 
+/**
+ * A layout's page margins, clamped to zero. A negative margin anchors the grid
+ * off the paper (so labels get clipped away) and inflates the safe-zone inset in
+ * print.ts — v1 presets allowed down to -20mm, so old saved layouts still carry
+ * negative values. Clamp on read rather than trusting the stored numbers.
+ */
+export function layoutMargin(layout: PrintLayout): { t: number; b: number; l: number; r: number } {
+	const { t, b, l, r } = layout.margin;
+	return { t: Math.max(0, t), b: Math.max(0, b), l: Math.max(0, l), r: Math.max(0, r) };
+}
+
 /** 1 inch = 25.4 mm. */
 export const MM_PER_INCH = 25.4;
 
@@ -53,8 +64,9 @@ export interface SheetGrid {
  */
 export function sheetGrid(layout: PrintLayout, label: { w: number; h: number }): SheetGrid {
 	const page = paperSize(layout);
-	const usableW = page.w - layout.margin.l - layout.margin.r;
-	const usableH = page.h - layout.margin.t - layout.margin.b;
+	const margin = layoutMargin(layout);
+	const usableW = page.w - margin.l - margin.r;
+	const usableH = page.h - margin.t - margin.b;
 	// Fall back to an auto column fit for older saved layouts that predate `columns`.
 	const cols =
 		layout.columns && layout.columns > 0

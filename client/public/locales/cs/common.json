@@ -60,8 +60,8 @@
     "printing": {
         "generic": {
             "title": "Probíhá tisk",
-            "description": "Níže uvedeným nastavením dosáhnete požadovaného rozložení tisku. Mějte na paměti, že tiskárny a váš operační systém mohou použít vlastní okraje a měřítka, takže možná budete muset provést několik pokusů a omylů, než bude vše správně nastaveno. Před tiskem na skutečné štítky si to vyzkoušejte na kousku běžného papíru.",
-            "helpMargin": "Okraje by měly být nastaveny tak, aby odpovídaly papíru na štítky a tiskárně, jejich změna ovlivní velikost celé mřížky.",
+            "description": "Níže uvedeným nastavením dosáhnete požadovaného rozložení tisku. Mějte na paměti, že tiskárny a váš operační systém mohou použít vlastní okraje a měřítka, takže možná budete muset provést několik pokusů a omylů, než bude vše správně nastaveno. Před tiskem na skutečné etikety si to vyzkoušejte na listu běžného papíru.",
+            "helpMargin": "Okraje by měly být nastaveny tak, aby odpovídaly listu etiket a tiskárně, jejich změna ovlivní velikost celé mřížky.",
             "helpPrinterMargin": "Bezpečná zóna by měla být nastavena tak, jak blízko okraje papíru může tiskárna tisknout, jejich změna neovlivní celou mřížku.",
             "print": "Tisk",
             "columns": "Sloupce",
@@ -102,16 +102,16 @@
             "saveAsImage": "Uložit jako obrázek"
         },
         "qrcode": {
-            "button": "Tisk štítků",
-            "title": "Tisk štítku",
+            "button": "Tisk etiket",
+            "title": "Tisk etikety",
             "spoolWeight": "Hmotnost cívky: {{weight}}",
             "lotNr": "Číslo šarže: {{lot}}",
             "bedTemp": "BT: {{temp}}",
             "extruderTemp": "ET: {{temp}}",
-            "textSize": "Velikost textu štítku",
+            "textSize": "Velikost textu etikety",
             "showSpoolmanIcon": "Zobrazit ikonu Spoolman",
             "showVendor": "Výrobce",
-            "showContent": "Tisk štítku",
+            "showContent": "Tisk etikety",
             "showLotNr": "Číslo šarže",
             "showSpoolWeight": "Hmotnost cívky",
             "showTemperatures": "Teploty",
@@ -127,7 +127,7 @@
                 },
                 "preview": "Náhled:"
             },
-            "template": "Šablona štítku",
+            "template": "Šablona etikety",
             "templateHelp": "Pomocí {} vložíte hodnoty objektu cívky jako text. Například, {id} bude nahrazeno ID cívky nebo {filament.material} bude nahrazeno materiálem cívky. Pokud hodnota chybí, bude nahrazena znakem „?“. K odstranění této hodnoty lze použít druhou sadu {}. Kromě toho bude odstraněn jakýkoli text mezi sadami {}, pokud hodnota chybí. Například {Lot Nr: {lot_nr}} zobrazí popisek pouze v případě, že cívka má číslo šarže. Text uzavřete dvojitou hvězdičkou **, aby byl tučný. Kliknutím na tlačítko zobrazíte seznam všech dostupných značek.",
             "showQRCode": "Tisk QR kódu",
             "showQRCodeMode": {
@@ -138,7 +138,7 @@
         },
         "spoolSelect": {
             "title": "Vybrat cívky",
-            "description": "Vyberte cívky, pro které chcete tisknout štítky.",
+            "description": "Vyberte cívky, pro které chcete tisknout etikety.",
             "showArchived": "Zobrazit archivované",
             "noSpoolsSelected": "Nevybrali jste žádné cívky.",
             "selectAll": "Vybrat/odebrat vše",

@@ -11,6 +11,8 @@ export interface Info {
 	external_db_name: string;
 	git_commit?: string;
 	build_date?: string;
+	latest_version?: string | null;
+	update_available?: boolean;
 }
 
 export function getInfo(): Promise<Info> {

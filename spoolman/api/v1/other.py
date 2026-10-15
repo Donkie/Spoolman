@@ -131,7 +131,7 @@ class RenameLocationBody(BaseModel):
 
 
 @router.patch(
-    "/location/{location}",
+    "/location/{location:path}",
     name="Rename location",
     description="Rename a spool location. All spools in this location will be moved to the new location.",
     response_model_exclude_none=True,

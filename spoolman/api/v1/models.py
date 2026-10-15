@@ -91,19 +91,24 @@ class TagConflictMessage(Message):
     """A tag UID is already linked to something else.
 
     Subclasses Message so the `message` key is where it is in every other error body, and
-    adds the conflicting spool's ID so a client can offer to move the tag there instead of
-    making the user go and find it.
+    adds the holder's ID so a client can offer to move the tag here instead of making the
+    user go and find it.
 
-    `spool_id` is optional because a tag identifies one thing and that thing is not always
-    a spool -- see `models.Tag`. It is absent when the UID is held by something else, in
-    which case `message` still says what; a client that cannot offer "move it here" without
-    an id should fall back to reporting the message.
+    At most one of `spool_id` and `filament_id` is set, naming whichever holds the tag. Both
+    are null when the holder is not a row (see `models.Tag`), in which case `message` still
+    says what; a client that cannot offer "move it here" without an id should fall back to
+    reporting the message.
     """
 
     spool_id: int | None = Field(
         None,
         description="The spool the tag is already linked to, if it is a spool that holds it.",
         examples=[42],
+    )
+    filament_id: int | None = Field(
+        None,
+        description="The filament the tag is already linked to, if it is a filament that holds it.",
+        examples=[7],
     )
 
 
@@ -177,6 +182,32 @@ class MultiColorDirection(Enum):
 
     COAXIAL = "coaxial"
     LONGITUDINAL = "longitudinal"
+
+
+class Tag(BaseModel):
+    """A physical NFC/RFID tag linked to a spool or a filament."""
+
+    uid: str = Field(
+        description=(
+            "The tag's hardware UID, normalized to uppercase hexadecimal with separators "
+            "stripped. Unique across everything tagged: one tag identifies exactly one spool or filament."
+        ),
+        examples=["04A2B3C4D5E6F7"],
+    )
+    format: str | None = Field(
+        None,
+        description=(
+            "What kind of tag this is, e.g. openprinttag, ntag, bambu, tigertag. "
+            "Informational, free-form, and not validated against a fixed list."
+        ),
+        examples=["ntag"],
+    )
+    added: SpoolmanDateTime = Field(description="When the tag was linked. UTC Timezone.")
+
+    @staticmethod
+    def from_db(item: models.Tag) -> "Tag":
+        """Create a new Pydantic tag object from a database tag object."""
+        return Tag(uid=item.uid, format=item.format, added=item.added)
 
 
 class Filament(BaseModel):
@@ -273,6 +304,14 @@ class Filament(BaseModel):
     extra: dict[str, str] = Field(
         description=_extra_fields_description("filament"),
     )
+    tags: list[Tag] = Field(
+        default_factory=list,
+        description=(
+            "NFC/RFID tags that identify this filament type itself, rather than one spool of it. "
+            "A tag identifies exactly one spool or filament, so a tag listed here is on no spool. "
+            "Empty if none are linked."
+        ),
+    )
 
     @staticmethod
     def from_db(item: models.Filament) -> "Filament":
@@ -299,33 +338,8 @@ class Filament(BaseModel):
             ),
             external_id=item.external_id,
             extra={field.key: field.value for field in item.extra},
+            tags=[Tag.from_db(tag) for tag in item.tags],
         )
-
-
-class SpoolTag(BaseModel):
-    """A physical NFC/RFID tag linked to a spool."""
-
-    uid: str = Field(
-        description=(
-            "The tag's hardware UID, normalized to uppercase hexadecimal with separators "
-            "stripped. Unique across all spools: one tag identifies exactly one spool."
-        ),
-        examples=["04A2B3C4D5E6F7"],
-    )
-    format: str | None = Field(
-        None,
-        description=(
-            "What kind of tag this is, e.g. openprinttag, ntag, bambu, tigertag. "
-            "Informational, free-form, and not validated against a fixed list."
-        ),
-        examples=["ntag"],
-    )
-    added: SpoolmanDateTime = Field(description="When the tag was linked to the spool. UTC Timezone.")
-
-    @staticmethod
-    def from_db(item: models.Tag) -> "SpoolTag":
-        """Create a new Pydantic spool tag object from a database spool tag object."""
-        return SpoolTag(uid=item.uid, format=item.format, added=item.added)
 
 
 class Spool(BaseModel):
@@ -408,7 +422,7 @@ class Spool(BaseModel):
     extra: dict[str, str] = Field(
         description=_extra_fields_description("spool"),
     )
-    tags: list[SpoolTag] = Field(
+    tags: list[Tag] = Field(
         default_factory=list,
         description=(
             "NFC/RFID tags linked to this spool. A spool can carry more than one tag, e.g. when a "
@@ -463,8 +477,41 @@ class Spool(BaseModel):
             comment=item.comment,
             archived=item.archived if item.archived is not None else False,
             extra={field.key: field.value for field in item.extra},
-            tags=[SpoolTag.from_db(tag) for tag in item.tags],
+            tags=[Tag.from_db(tag) for tag in item.tags],
         )
+
+
+class SpoolGroupPreviewSpool(BaseModel):
+    """One spool in a filament group's preview: just enough to draw a fill-level pip."""
+
+    id: int = Field(description="Spool ID.", examples=[3])
+    remaining_weight: float | None = Field(
+        None,
+        description="Remaining filament weight in grams, as on the spool. Null when the initial weight is unknown.",
+        examples=[750.0],
+    )
+    initial_weight: float | None = Field(
+        None,
+        description="Initial filament weight in grams, falling back to the filament's weight. Null when unknown.",
+        examples=[1000.0],
+    )
+
+
+class SpoolGroupPreviewFilament(BaseModel):
+    """One filament in a vendor group's preview: just enough to draw a color swatch."""
+
+    id: int = Field(description="Filament ID.", examples=[7])
+    color_hex: str | None = Field(None, description="Hexadecimal color code of the filament.", examples=["FF0000"])
+    multi_color_hexes: str | None = Field(
+        None,
+        description="Comma-separated color codes of a multi-color filament.",
+        examples=["FF0000,00FF00"],
+    )
+    multi_color_direction: MultiColorDirection | None = Field(
+        None,
+        description="Type of multi-color filament. Only set if multi_color_hexes is set.",
+        examples=["coaxial"],
+    )
 
 
 class SpoolGroup(BaseModel):
@@ -509,6 +556,30 @@ class SpoolGroup(BaseModel):
     vendor: Vendor | None = Field(
         None,
         description="The vendor, embedded for group_by=vendor.",
+    )
+    filament_count: int | None = Field(
+        None,
+        description=(
+            "Only for group_by=vendor: the number of distinct filaments in the group. With "
+            "include_empty=true that is every matching filament of the manufacturer, including "
+            "those with no spools; otherwise it is the number of distinct filaments among the "
+            "matching spools."
+        ),
+        examples=[4],
+    )
+    spools: list[SpoolGroupPreviewSpool] | None = Field(
+        None,
+        description=(
+            "Only with preview=true and group_by=filament: up to 5 of the group's matching spools, by "
+            "ascending ID. They are exactly the spools counted in spool_count."
+        ),
+    )
+    filaments: list[SpoolGroupPreviewFilament] | None = Field(
+        None,
+        description=(
+            "Only with preview=true and group_by=vendor: up to 4 of the manufacturer's filaments that "
+            "match the filament filters, by name then ID, whether or not they have matching spools."
+        ),
     )
 
 
@@ -655,12 +726,27 @@ class TagScan(BaseModel):
     )
     matched_spool_id: int | None = Field(
         None,
-        description="The spool this tag is linked to, or null if the tag is not known to Spoolman.",
+        description=(
+            "The spool this tag is linked to, or null if it is not linked to a spool: either the tag "
+            "is not known to Spoolman, or it identifies a filament (see matched_filament_id)."
+        ),
         examples=[42],
     )
     spool: Spool | None = Field(
         None,
-        description="The matched spool, so a client needs no follow-up request. Null if the tag is unknown.",
+        description="The matched spool, so a client needs no follow-up request. Null unless a spool matched.",
+    )
+    matched_filament_id: int | None = Field(
+        None,
+        description=(
+            "The filament this tag is linked to, or null if it is not linked to a filament. A tag "
+            "linked to a spool leaves this null; that spool's filament is inside `spool`."
+        ),
+        examples=[7],
+    )
+    filament: Filament | None = Field(
+        None,
+        description="The matched filament, so a client needs no follow-up request. Null unless a filament matched.",
     )
 
 
@@ -703,6 +789,19 @@ class Info(BaseModel):
     )
     git_commit: str | None = Field(None, examples=["a1b2c3d"])
     build_date: SpoolmanDateTime | None = Field(None, examples=["2021-01-01T00:00:00Z"])
+    latest_version: str | None = Field(
+        None,
+        description=(
+            "Latest Spoolman release on GitHub. Null until the server has checked, "
+            "or if the check is disabled via SPOOLMAN_UPDATE_CHECK."
+        ),
+        examples=["0.28.0"],
+    )
+    update_available: bool = Field(
+        default=False,
+        description="True if latest_version is newer than the running version.",
+        examples=[False],
+    )
 
 
 class HealthCheck(BaseModel):

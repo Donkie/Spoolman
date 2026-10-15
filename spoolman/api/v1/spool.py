@@ -18,11 +18,12 @@ from spoolman.api.v1.models import (
     Spool,
     SpoolEvent,
     SpoolGroup,
-    SpoolTag,
+    Tag,
     TagConflictMessage,
     Vendor,
     extra_fields_request_description,
 )
+from spoolman.api.v1.tag import TagLinkParameters
 
 # Aliased: `tag` is taken by the find endpoint's query parameter, whose name is API surface.
 from spoolman.database import spool
@@ -31,7 +32,6 @@ from spoolman.database.database import get_db_session
 from spoolman.database.utils import parse_sort
 from spoolman.exceptions import ItemCreateError, SpoolMeasureError, TagConflictError
 from spoolman.extra_fields import EntityType, get_extra_fields, validate_extra_field_dict
-from spoolman.tags import FORMAT_MAX_LENGTH, KNOWN_FORMATS, UID_MAX_LENGTH
 from spoolman.ws import websocket_manager
 
 logger = logging.getLogger(__name__)
@@ -451,7 +451,8 @@ async def notify_any(
         "in-use count, total remaining weight and most recent usage. Pagination is over groups, so "
         "a group is never split and its aggregates are always complete. Uses the same filters as "
         "the spool search endpoint. The total number of matching groups is returned in the "
-        "x-total-count header."
+        "x-total-count header, and the spool count and remaining weight (grams) summed over all "
+        "matching groups in the x-total-spools and x-total-remaining-weight headers."
     ),
     response_model_exclude_none=True,
     responses={
@@ -548,12 +549,24 @@ async def find_groups(
         Query(
             title="Include Empty",
             description=(
-                "Also return matching filaments that hold no matching spools, as groups of zero, "
-                "instead of omitting them. Only valid together with group_by=filament: every "
-                "other axis is keyed by a value read off the spools themselves and so has no "
-                "empty groups to list. Filters on the spools themselves (location, lot_nr, the "
-                "date filters, spool extra fields) are rejected in combination with it, since a "
-                "filament with no spools has no value for them."
+                "Also return matching filaments (group_by=filament) or manufacturers "
+                "(group_by=vendor) that hold no matching spools, as groups of zero, instead of "
+                "omitting them. In vendor mode the group of filaments with no manufacturer is not "
+                "listed, since this mode lists manufacturers. Every other axis is keyed by a value "
+                "read off the spools themselves and so has no empty groups to list. Filters on the "
+                "spools themselves (location, lot_nr, the date filters, spool extra fields) are "
+                "rejected in combination with it, since a filament with no spools has no value for them."
+            ),
+        ),
+    ] = False,
+    preview: Annotated[
+        bool,
+        Query(
+            title="Preview",
+            description=(
+                "Attach a few members to each group: up to 5 spools (id, remaining_weight, "
+                "initial_weight) for group_by=filament, up to 4 filaments (id and colors) for "
+                "group_by=vendor. Ignored for other axes."
             ),
         ),
     ] = False,
@@ -566,8 +579,13 @@ async def find_groups(
             title="Sort",
             description=(
                 'Sort the groups by the given field. Comma-separated "field:direction" items. '
-                "Available fields: group.title, group.total_remaining, group.last_used, "
-                "group.spool_count, group.in_use_count."
+                "Available fields: group.title, group.vendor_name (manufacturer name, groups with "
+                "no manufacturer last), group.total_remaining, group.last_used, "
+                "group.spool_count, group.in_use_count, group.filament_count, any filament column "
+                "as filament.<column> (e.g. filament.material) or manufacturer column as "
+                "filament.vendor.<column> (e.g. filament.vendor.name), and extra fields as "
+                "filament.extra.<key> or filament.vendor.extra.<key>. Empty values sort last; unknown "
+                "fields are ignored."
             ),
             examples=["group.last_used:desc"],
         ),
@@ -592,7 +610,7 @@ async def find_groups(
     spool_extra, filament_extra, vendor_extra = _parse_extra_field_filters(request.query_params)
 
     try:
-        groups, total_count = await spool.find_groups(
+        page = await spool.find_groups(
             db=db,
             group_by=group_by,
             filament_name=filament_name,
@@ -614,6 +632,7 @@ async def find_groups(
             limit=limit,
             offset=offset,
             include_empty=include_empty,
+            preview=preview,
         )
     except ValueError as e:
         return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
@@ -628,12 +647,19 @@ async def find_groups(
             last_used=group.last_used,
             filament=Filament.from_db(group.filament) if group.filament is not None else None,
             vendor=Vendor.from_db(group.vendor) if group.vendor is not None else None,
+            filament_count=group.filament_count,
+            spools=group.spools,
+            filaments=group.filaments,
         )
-        for group in groups
+        for group in page.groups
     ]
     return JSONResponse(
         content=jsonable_encoder(content, exclude_none=True),
-        headers={"x-total-count": str(total_count)},
+        headers={
+            "x-total-count": str(page.total_count),
+            "x-total-spools": str(page.total_spools),
+            "x-total-remaining-weight": str(page.total_remaining_weight),
+        },
     )
 
 
@@ -850,41 +876,19 @@ async def delete(
     return Message(message="Success!")
 
 
-class SpoolTagParameters(BaseModel):
-    uid: str = Field(
-        min_length=1,
-        max_length=UID_MAX_LENGTH * 2,  # room for separators; the normalized UID is what must fit
-        description=(
-            "The tag's hardware UID, in whatever shape the reader reports it. Separators (:, -, _, "
-            "spaces) are stripped and the result is uppercased before storing, so every spelling of "
-            "one physical tag resolves to the same tag."
-        ),
-        examples=["04:a2:b3:c4:d5:e6:f7", "04A2B3C4D5E6F7"],
-    )
-    format: str | None = Field(
-        None,
-        max_length=FORMAT_MAX_LENGTH,
-        description=(
-            "What kind of tag this is. Informational; not validated against a fixed list, because new "
-            f"tag types appear faster than releases do. Commonly one of: {', '.join(KNOWN_FORMATS)}."
-        ),
-        examples=["ntag"],
-    )
-
-
 @router.post(
     "/{spool_id}/tag",
     name="Link a tag to a spool",
     description=(
         "Link a physical NFC/RFID tag to this spool, so that the tag's UID identifies it. "
-        "A tag belongs to exactly one spool; linking a UID that another spool already holds "
-        "returns 409 with that spool's id, so a client can offer to move it instead. "
+        "A tag identifies exactly one spool or filament; linking a UID that something else already "
+        "holds returns 409 with the holder's id, so a client can offer to move it instead. "
         "Re-linking a tag to the spool that already holds it succeeds and changes nothing, "
         "except that a format sent now refines one recorded earlier."
     ),
     status_code=201,
     response_model_exclude_none=True,
-    response_model=SpoolTag,
+    response_model=Tag,
     responses={
         400: {"model": Message},
         404: {"model": Message},
@@ -894,18 +898,18 @@ class SpoolTagParameters(BaseModel):
 async def link_tag(  # noqa: ANN201
     db: Annotated[AsyncSession, Depends(get_db_session)],
     spool_id: int,
-    body: SpoolTagParameters,
+    body: TagLinkParameters,
 ):
     try:
-        db_item = await tag_db.link(db=db, spool_id=spool_id, uid=body.uid, tag_format=body.format)
+        db_item = await tag_db.link_spool(db=db, spool_id=spool_id, uid=body.uid, tag_format=body.format)
     except ValueError as e:
         return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
     except TagConflictError as e:
         return JSONResponse(
             status_code=409,
-            content=TagConflictMessage(message=str(e), spool_id=e.spool_id).dict(),
+            content=TagConflictMessage(message=str(e), spool_id=e.spool_id, filament_id=e.filament_id).dict(),
         )
-    return SpoolTag.from_db(db_item)
+    return Tag.from_db(db_item)
 
 
 @router.delete(
@@ -932,7 +936,7 @@ async def unlink_tag(
     ],
 ) -> Response:
     try:
-        await tag_db.unlink(db=db, spool_id=spool_id, uid=uid)
+        await tag_db.unlink_spool(db=db, spool_id=spool_id, uid=uid)
     except ValueError as e:
         return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
     return Response(status_code=204)

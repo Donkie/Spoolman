@@ -1,10 +1,12 @@
 """SQLAlchemy database setup."""
 
+import asyncio
 import datetime
 import filecmp
 import logging
 import shutil
 import sqlite3
+import threading
 import time
 from collections.abc import AsyncGenerator
 from contextlib import closing
@@ -13,7 +15,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 from scheduler.asyncio.scheduler import Scheduler
-from sqlalchemy import URL
+from sqlalchemy import URL, event
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from spoolman import env
@@ -29,6 +31,20 @@ MIN_SECONDS_BETWEEN_ROTATIONS = 5 * 60
 
 # Name of the newest backup. Older ones get a .1 ... .N suffix.
 BACKUP_NAME = "spoolman.db"
+
+# sqlite3's backup() retries forever while the source is locked. Give up after this long, so a lock
+# that never clears fails the backup loudly instead of hanging it (#1191).
+BACKUP_LOCK_TIMEOUT_SECONDS = 60
+
+
+def _unicode_lower(value: str | None) -> str | None:
+    """Lowercase SQLite text using Python's Unicode support."""
+    return value.lower() if value is not None else None
+
+
+def _register_sqlite_functions(connection: sqlite3.Connection, _: object) -> None:
+    """Replace SQLite's ASCII-only lower function for each pooled connection."""
+    connection.create_function("lower", 1, _unicode_lower, deterministic=True)
 
 
 class BackupResult(NamedTuple):
@@ -87,6 +103,7 @@ class Database:
         # Monotonic timestamp of the last rotation, for the rate limit. Process-local, which is
         # fine: Spoolman is single-instance, and a restart erring towards one extra backup is safe.
         self._last_rotation: float | None = None
+        self._backup_lock = threading.Lock()
 
     def is_file_based_sqlite(self) -> bool:
         """Return True if the database is file based."""
@@ -124,6 +141,8 @@ class Database:
             pool_pre_ping=True,
             **connection_options,
         )
+        if self.connection_url.drivername == "sqlite+aiosqlite":
+            event.listen(self.engine.sync_engine, "connect", _register_sqlite_functions)
         self.session_maker = async_sessionmaker(self.engine, autocommit=False, autoflush=True, expire_on_commit=False)
 
     def backup(self, target_path: str | PathLike[str]) -> None:
@@ -133,8 +152,21 @@ class Database:
 
         logger.info("Backing up SQLite database to %s", target_path)
 
-        def progress(_: int, remaining: int, total: int) -> None:
-            logger.info("Copied %d of %d pages.", total - remaining, total)
+        busy_since: float | None = None
+
+        def progress(status: int, remaining: int, total: int) -> None:
+            nonlocal busy_since
+            if status not in (sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED):
+                busy_since = None
+                logger.debug("Copied %d of %d pages.", total - remaining, total)
+                return
+            busy_since = busy_since or time.monotonic()
+            if time.monotonic() - busy_since > BACKUP_LOCK_TIMEOUT_SECONDS:
+                raise sqlite3.OperationalError(
+                    f"Database {self.connection_url.database} stayed locked for over "
+                    f"{BACKUP_LOCK_TIMEOUT_SECONDS} seconds, giving up on the backup. "
+                    "Is another program holding it open?",
+                )
 
         if self.connection_url.database == target_path:
             raise ValueError("Cannot backup database to itself.")
@@ -145,9 +177,12 @@ class Database:
         # transaction manager that commits on exit, it does not close the connection. Leaving the
         # handles open leaks them on every backup, and on Windows it makes the caller's unlink/move
         # of the file we just wrote fail with "used by another process" (POSIX unlink hides this).
+        # nolock=1: the target is a scratch file nothing else opens, so it needs no file locks. Backup
+        # folders on network shares often refuse SQLite's locks (CIFS without nobrl, NFS without
+        # lockd), which failed every backup with a "locked" database that was not locked at all (#1246).
         with (
             closing(sqlite3.connect(self.connection_url.database)) as src,
-            closing(sqlite3.connect(target_path)) as dst,
+            closing(sqlite3.connect(f"{Path(target_path).absolute().as_uri()}?nolock=1", uri=True)) as dst,
         ):
             src.backup(dst, pages=1, progress=progress)
 
@@ -190,7 +225,11 @@ class Database:
             logger.info("Skipping backup as the database is not SQLite.")
             return BackupResult(None, created=False)
 
-        backup_folder = Path(backup_folder)
+        # Backups run in worker threads, so a manual one can overlap the scheduled one.
+        with self._backup_lock:
+            return self._backup_and_rotate(Path(backup_folder), num_backups)
+
+    def _backup_and_rotate(self, backup_folder: Path, num_backups: int) -> BackupResult:
         backup_folder.mkdir(parents=True, exist_ok=True)
         newest = backup_folder.joinpath(BACKUP_NAME)
 
@@ -249,7 +288,8 @@ async def backup_global_db(num_backups: int = 5) -> BackupResult:
     """
     if __db is None:
         raise RuntimeError("DB is not setup.")
-    return __db.backup_and_rotate(env.get_backups_dir(), num_backups=num_backups)
+    # Off the event loop: the copy is blocking, and can wait on a lock held by our own connection.
+    return await asyncio.to_thread(__db.backup_and_rotate, env.get_backups_dir(), num_backups=num_backups)
 
 
 async def _backup_task() -> BackupResult:
@@ -257,7 +297,7 @@ async def _backup_task() -> BackupResult:
     logger.info("Performing scheduled database backup.")
     if __db is None:
         raise RuntimeError("DB is not setup.")
-    return __db.backup_and_rotate(env.get_backups_dir(), num_backups=5)
+    return await asyncio.to_thread(__db.backup_and_rotate, env.get_backups_dir(), num_backups=5)
 
 
 async def _metrics() -> None:

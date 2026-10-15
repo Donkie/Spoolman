@@ -16,6 +16,14 @@
 		Spoolman
 		{#if info}
 			v{info.version}{#if info.git_commit}<span class="commit"> ({info.git_commit})</span>{/if}
+			{#if info.update_available && info.latest_version}
+				<a
+					class="update"
+					href="https://github.com/Donkie/Spoolman/releases/tag/v{info.latest_version}"
+					target="_blank"
+					rel="noopener noreferrer">{m['footer.updateAvailable']({ version: info.latest_version })}</a
+				>
+			{/if}
 		{/if}
 		·
 		<a href="https://github.com/Donkie/Spoolman">{m['footer.documentation']()}</a>
@@ -55,6 +63,11 @@
 	}
 	.commit {
 		color: var(--text-faint);
+	}
+	.update {
+		margin-left: 4px;
+		color: var(--accent);
+		font-weight: 600;
 	}
 	.sponsor {
 		flex: none;

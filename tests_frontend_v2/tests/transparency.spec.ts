@@ -55,7 +55,7 @@ test("a filament's colour can be made translucent, and stays translucent", async
   await test.step("the swatch shows the transparency rather than a washed-out colour", async () => {
     // A translucent colour is layered over a checkerboard so it doesn't read as
     // a different, lighter colour.
-    const swatch = page.locator(".swatch").first();
+    const swatch = page.locator(".head .swatch");
     await expect(swatch).toHaveAttribute("style", /conic-gradient/);
   });
 

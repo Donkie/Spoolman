@@ -57,6 +57,7 @@
 		price: 0,
 		comment: '',
 		registeredLabel: '',
+		tags: [],
 		extra: {}
 	};
 
@@ -123,7 +124,7 @@
 	let serverLocations = $state<string[]>([]);
 	$effect(() => {
 		spoolSource
-			.locations()
+			.locationChoices()
 			.then((l) => (serverLocations = l))
 			.catch(() => {});
 	});
@@ -515,7 +516,7 @@
 
 			<ExtraFieldsSection entity="spool" extra={spool.extra} onchange={extraSaver.change} manage />
 
-			<TagsSection {spool} />
+			<TagsSection kind="spool" id={spool.id} tags={spool.tags} />
 		</div>
 
 		<div class="col">

@@ -9,13 +9,13 @@ Doing it in a Pydantic validator would read better but would only cover callers 
 arrive over HTTP -- and the unique constraint is worthless if any other path (an
 importer, a migration backfill, a future tag codec) can write a differently-shaped UID.
 
-It is also the one place that decides what a tag points at. `models.Tag` can address
-things that are not spools -- and things that are not rows at all, such as a location --
-but only spool tags are written today, so `link` sets `target_type` and every read here
-is explicit about wanting a spool rather than assuming the tag it found is one. The
-database has no CHECK enforcing "exactly one target": no migration in this tree uses one
-and MySQL below 8.0.16 silently ignores them, so a single enforced write path is worth
-more than a constraint that is real on three databases out of four.
+It is also the one place that decides what a tag points at. A tag identifies a spool or a
+filament today, and `models.Tag` can address more than that -- including things that are
+not rows at all, such as a location -- so `target_type` is set from the thing being linked
+and every read here says which kind it found rather than assuming. The database has no
+CHECK enforcing "exactly one target": no migration in this tree uses one and MySQL below
+8.0.16 silently ignores them, so a single enforced write path is worth more than a
+constraint that is real on three databases out of four.
 """
 
 import logging
@@ -26,11 +26,15 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from spoolman.api.v1.models import EventType
-from spoolman.database import models, spool
+from spoolman.database import filament, models, spool
 from spoolman.exceptions import ItemNotFoundError, TagConflictError
-from spoolman.tags import TARGET_SPOOL, normalize_format, normalize_uid
+from spoolman.tags import TARGET_FILAMENT, TARGET_SPOOL, normalize_format, normalize_uid
 
 logger = logging.getLogger(__name__)
+
+# The row kinds a tag can be linked to. Both carry a `tags` collection and an `id`, which is
+# all the shared link and unlink paths below need from them.
+Target = models.Spool | models.Filament
 
 
 async def _get_tag_by_uid(db: AsyncSession, uid: str) -> models.Tag | None:
@@ -39,22 +43,100 @@ async def _get_tag_by_uid(db: AsyncSession, uid: str) -> models.Tag | None:
     return (await db.execute(stmt)).scalar_one_or_none()
 
 
+def _target_type(target: Target) -> str:
+    return TARGET_SPOOL if isinstance(target, models.Spool) else TARGET_FILAMENT
+
+
+def _holds(tag: models.Tag, target: Target) -> bool:
+    """Whether `tag` is linked to exactly this target.
+
+    Compared on the foreign key for the target's own kind, so spool 7 and filament 7 are never
+    mistaken for each other: the other kind's column is null on the tag.
+    """
+    held = tag.spool_id if isinstance(target, models.Spool) else tag.filament_id
+    return held == target.id
+
+
+async def _changed(target: Target) -> None:
+    """Emit the target's ordinary `updated` event; its tags are part of its payload."""
+    if isinstance(target, models.Spool):
+        await spool.spool_changed(target, EventType.UPDATED)
+    else:
+        await filament.filament_changed(target, EventType.UPDATED)
+
+
 def _conflict(uid: str, existing: models.Tag) -> TagConflictError:
     """Describe a UID that is already spoken for.
 
-    Only spool tags are written today, so the second branch is unreachable in practice --
-    but the table is deliberately able to hold other kinds (see `models.Tag`), and a
-    conflict that reported a spool id of `None` would be worse than one that says plainly
-    what holds the tag. The id is included only when there genuinely is one, which is what
-    lets a client offer "move it here" and fall back to reporting the message otherwise.
+    The holder's id is included when there is one, which is what lets a client offer "move it
+    here". A kind addressed by value (a location) has no id, and the message says what holds
+    the tag instead.
     """
     if existing.spool_id is not None:
-        return TagConflictError(f"Tag {uid} is already linked to spool {existing.spool_id}.", existing.spool_id)
-    target = existing.target_value if existing.target_value is not None else existing.filament_id
-    return TagConflictError(f"Tag {uid} is already linked to {existing.target_type} {target}.")
+        return TagConflictError(
+            f"Tag {uid} is already linked to spool {existing.spool_id}.",
+            spool_id=existing.spool_id,
+        )
+    if existing.filament_id is not None:
+        return TagConflictError(
+            f"Tag {uid} is already linked to filament {existing.filament_id}.",
+            filament_id=existing.filament_id,
+        )
+    return TagConflictError(f"Tag {uid} is already linked to {existing.target_type} {existing.target_value}.")
 
 
-async def link(
+async def _link(db: AsyncSession, target: Target, uid: str, tag_format: str | None) -> models.Tag:
+    """Link an already-normalized UID to a loaded spool or filament. See `link_spool`."""
+    existing = await _get_tag_by_uid(db, uid)
+    if existing is not None:
+        if not _holds(existing, target):
+            raise _conflict(uid, existing)
+        if tag_format is not None and existing.format != tag_format:
+            existing.format = tag_format
+            await db.commit()
+            await _changed(target)
+        return existing
+
+    tag = models.Tag(
+        uid=uid,
+        target_type=_target_type(target),
+        format=tag_format,
+        added=datetime.utcnow().replace(microsecond=0),
+    )
+    target.tags.append(tag)
+    try:
+        await db.commit()
+    except IntegrityError:
+        # Two clients linked the same UID at the same time and the unique index caught
+        # the loser. The database, not the read above, is what makes "one tag, one thing"
+        # true; report the winner the same way a sequential conflict is reported.
+        await db.rollback()
+        winner = await _get_tag_by_uid(db, uid)
+        if winner is None:
+            raise
+        raise _conflict(uid, winner) from None
+
+    await _changed(target)
+    return tag
+
+
+async def _unlink(db: AsyncSession, target: Target, uid: str) -> None:
+    """Unlink an already-normalized UID from a loaded spool or filament. See `unlink_spool`."""
+    for tag in target.tags:
+        if tag.uid == uid:
+            # delete-orphan on the relationship turns this into the DELETE.
+            target.tags.remove(tag)
+            break
+    else:
+        raise ItemNotFoundError(f"{_target_type(target).capitalize()} {target.id} has no tag with UID {uid}.")
+
+    # Commit before notifying so the change is durable and visible to subsequent
+    # requests; post-commit notification must be the last, infallible step.
+    await db.commit()
+    await _changed(target)
+
+
+async def link_spool(
     *,
     db: AsyncSession,
     spool_id: int,
@@ -78,49 +160,36 @@ async def link(
 
     Raises:
         ItemNotFoundError: If no spool with that ID exists.
-        TagConflictError: If the UID is already linked to a different spool.
+        TagConflictError: If the UID is already linked to anything else, spool or filament.
         ValueError: If the UID or format is not valid.
 
     """
     uid = normalize_uid(uid)
     tag_format = normalize_format(tag_format)
-
-    db_spool = await spool.get_by_id(db, spool_id)
-
-    existing = await _get_tag_by_uid(db, uid)
-    if existing is not None:
-        if existing.spool_id != spool_id:
-            raise _conflict(uid, existing)
-        if tag_format is not None and existing.format != tag_format:
-            existing.format = tag_format
-            await db.commit()
-            await spool.spool_changed(db_spool, EventType.UPDATED)
-        return existing
-
-    tag = models.Tag(
-        uid=uid,
-        target_type=TARGET_SPOOL,
-        format=tag_format,
-        added=datetime.utcnow().replace(microsecond=0),
-    )
-    db_spool.tags.append(tag)
-    try:
-        await db.commit()
-    except IntegrityError:
-        # Two clients linked the same UID at the same time and the unique index caught
-        # the loser. The database, not the read above, is what makes "one tag, one spool"
-        # true; report the winner the same way a sequential conflict is reported.
-        await db.rollback()
-        winner = await _get_tag_by_uid(db, uid)
-        if winner is None:
-            raise
-        raise _conflict(uid, winner) from None
-
-    await spool.spool_changed(db_spool, EventType.UPDATED)
-    return tag
+    return await _link(db, await spool.get_by_id(db, spool_id), uid, tag_format)
 
 
-async def unlink(*, db: AsyncSession, spool_id: int, uid: str) -> None:
+async def link_filament(
+    *,
+    db: AsyncSession,
+    filament_id: int,
+    uid: str,
+    tag_format: str | None = None,
+) -> models.Tag:
+    """Link a physical tag to a filament. Same rules as `link_spool`, across both kinds.
+
+    Raises:
+        ItemNotFoundError: If no filament with that ID exists.
+        TagConflictError: If the UID is already linked to anything else, spool or filament.
+        ValueError: If the UID or format is not valid.
+
+    """
+    uid = normalize_uid(uid)
+    tag_format = normalize_format(tag_format)
+    return await _link(db, await filament.get_by_id(db, filament_id), uid, tag_format)
+
+
+async def unlink_spool(*, db: AsyncSession, spool_id: int, uid: str) -> None:
     """Unlink a tag from a spool.
 
     Args:
@@ -134,40 +203,41 @@ async def unlink(*, db: AsyncSession, spool_id: int, uid: str) -> None:
 
     """
     uid = normalize_uid(uid)
-
-    db_spool = await spool.get_by_id(db, spool_id)
-    for tag in db_spool.tags:
-        if tag.uid == uid:
-            # delete-orphan on the relationship turns this into the DELETE.
-            db_spool.tags.remove(tag)
-            break
-    else:
-        raise ItemNotFoundError(f"Spool {spool_id} has no tag with UID {uid}.")
-
-    # Commit before notifying so the change is durable and visible to subsequent
-    # requests; post-commit notification must be the last, infallible step.
-    await db.commit()
-    await spool.spool_changed(db_spool, EventType.UPDATED)
+    await _unlink(db, await spool.get_by_id(db, spool_id), uid)
 
 
-async def find_spool_by_uid(db: AsyncSession, uid: str) -> models.Spool | None:
-    """Find the spool a tag UID is linked to, or None if the tag is unknown.
+async def unlink_filament(*, db: AsyncSession, filament_id: int, uid: str) -> None:
+    """Unlink a tag from a filament. Same rules as `unlink_spool`.
+
+    Raises:
+        ItemNotFoundError: If the filament does not exist, or does not hold that tag.
+        ValueError: If the UID is not valid.
+
+    """
+    uid = normalize_uid(uid)
+    await _unlink(db, await filament.get_by_id(db, filament_id), uid)
+
+
+async def find_by_uid(db: AsyncSession, uid: str) -> Target | None:
+    """Find the spool or filament a tag UID is linked to, or None if the tag is unknown.
 
     Args:
         db: Database session.
         uid: The tag UID in any shape; normalized here.
 
     Returns:
-        models.Spool | None: The spool holding that tag.
+        models.Spool | models.Filament | None: Whatever holds that tag.
 
     Raises:
         ValueError: If the UID is not valid.
 
     """
     tag = await _get_tag_by_uid(db, normalize_uid(uid))
-    # A known tag that points at something other than a spool is not a spool match, and
-    # answering with one would be a lie. `spool_id` carries that on its own: it is null
-    # for every other kind of target.
-    if tag is None or tag.spool_id is None:
+    if tag is None:
         return None
-    return await spool.get_by_id(db, tag.spool_id)
+    if tag.spool_id is not None:
+        return await spool.get_by_id(db, tag.spool_id)
+    if tag.filament_id is not None:
+        return await filament.get_by_id(db, tag.filament_id)
+    # A kind addressed by value (a location) resolves to no row, and nothing reads those yet.
+    return None

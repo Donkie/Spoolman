@@ -29,15 +29,15 @@ def test_first_scan_broadcasts(relay: ScanRelay):
 
 def test_repeat_within_the_window_is_suppressed(relay: ScanRelay):
     """A reader re-reads a tag that is sitting still; subscribers should see one event."""
-    relay.should_broadcast("04A2", "desk", 7, now=T0)
-    assert relay.should_broadcast("04A2", "desk", 7, now=T0 + timedelta(seconds=1)) is False
-    assert relay.should_broadcast("04A2", "desk", 7, now=T0 + timedelta(seconds=2.9)) is False
+    relay.should_broadcast("04A2", "desk", ("spool", 7), now=T0)
+    assert relay.should_broadcast("04A2", "desk", ("spool", 7), now=T0 + timedelta(seconds=1)) is False
+    assert relay.should_broadcast("04A2", "desk", ("spool", 7), now=T0 + timedelta(seconds=2.9)) is False
 
 
 def test_repeat_after_the_window_broadcasts_again(relay: ScanRelay):
     """Tapping the same tag again later is a new scan, not a duplicate."""
-    relay.should_broadcast("04A2", "desk", 7, now=T0)
-    assert relay.should_broadcast("04A2", "desk", 7, now=T0 + timedelta(seconds=4)) is True
+    relay.should_broadcast("04A2", "desk", ("spool", 7), now=T0)
+    assert relay.should_broadcast("04A2", "desk", ("spool", 7), now=T0 + timedelta(seconds=4)) is True
 
 
 def test_debounce_is_per_uid_and_per_reader(relay: ScanRelay):
@@ -55,7 +55,7 @@ def test_a_changed_match_is_not_a_repeat(relay: ScanRelay):
     looked like a duplicate of the first and the browser kept showing "unknown tag".
     """
     assert relay.should_broadcast("04A2", "desk", None, now=T0) is True
-    assert relay.should_broadcast("04A2", "desk", 7, now=T0 + timedelta(seconds=1)) is True
+    assert relay.should_broadcast("04A2", "desk", ("spool", 7), now=T0 + timedelta(seconds=1)) is True
 
 
 def test_a_repeat_of_an_unlinked_tag_is_still_suppressed(relay: ScanRelay):
@@ -67,19 +67,25 @@ def test_a_repeat_of_an_unlinked_tag_is_still_suppressed(relay: ScanRelay):
 def test_repeats_of_the_corrected_match_are_suppressed(relay: ScanRelay):
     """A tag left sitting on the reader after being linked is still one event, not a stream."""
     relay.should_broadcast("04A2", "desk", None, now=T0)
-    relay.should_broadcast("04A2", "desk", 7, now=T0 + timedelta(seconds=1))
-    assert relay.should_broadcast("04A2", "desk", 7, now=T0 + timedelta(seconds=1.5)) is False
+    relay.should_broadcast("04A2", "desk", ("spool", 7), now=T0 + timedelta(seconds=1))
+    assert relay.should_broadcast("04A2", "desk", ("spool", 7), now=T0 + timedelta(seconds=1.5)) is False
 
 
 def test_losing_a_match_is_also_a_change(relay: ScanRelay):
     """Unlinking is the same event in reverse: the browser has to hear it lost its spool."""
-    relay.should_broadcast("04A2", "desk", 7, now=T0)
+    relay.should_broadcast("04A2", "desk", ("spool", 7), now=T0)
     assert relay.should_broadcast("04A2", "desk", None, now=T0 + timedelta(seconds=1)) is True
 
 
 def test_a_tag_moved_to_another_spool_is_a_change(relay: ScanRelay):
-    relay.should_broadcast("04A2", "desk", 7, now=T0)
-    assert relay.should_broadcast("04A2", "desk", 8, now=T0 + timedelta(seconds=1)) is True
+    relay.should_broadcast("04A2", "desk", ("spool", 7), now=T0)
+    assert relay.should_broadcast("04A2", "desk", ("spool", 8), now=T0 + timedelta(seconds=1)) is True
+
+
+def test_a_spool_and_a_filament_with_the_same_id_are_different_matches(relay: ScanRelay):
+    """Spool 7 and filament 7 are different answers, so a tag moving between them is a change."""
+    relay.should_broadcast("04A2", "desk", ("spool", 7), now=T0)
+    assert relay.should_broadcast("04A2", "desk", ("filament", 7), now=T0 + timedelta(seconds=1)) is True
 
 
 def test_debounce_entries_are_pruned(relay: ScanRelay):

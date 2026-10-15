@@ -1,4 +1,5 @@
 import { getSettings, setSetting, parseSetting } from '$lib/api/settings';
+import { parseDecimal } from '$lib/utils/numeric';
 
 // Server-backed user settings (currency, round_prices, base_url) plus one
 // client-only preference (low-stock threshold, persisted to localStorage — the
@@ -15,8 +16,9 @@ class Settings {
 
 	async load() {
 		if (typeof localStorage !== 'undefined') {
-			const stored = localStorage.getItem(LOW_THRESHOLD_KEY);
-			if (stored) this.lowThreshold = Number(stored) || this.lowThreshold;
+			// 0 g is a real threshold, so `||` can't stand in for "nothing stored".
+			const stored = parseDecimal(localStorage.getItem(LOW_THRESHOLD_KEY));
+			if (stored !== null && stored >= 0) this.lowThreshold = stored;
 		}
 		try {
 			const s = await getSettings();

@@ -43,8 +43,9 @@ export interface QrElement extends BaseElement {
 	 */
 	encoding: 'scheme' | 'url' | 'custom';
 	/**
-	 * Template used when `encoding === 'custom'`. Must contain an `{id}`
-	 * placeholder, which is replaced with the spool id. Ignored otherwise.
+	 * Template used when `encoding === 'custom'`. `{id}` is replaced with the
+	 * label's subject id, and label fields like `{filament.id}` are resolved too.
+	 * Ignored otherwise.
 	 */
 	urlTemplate?: string;
 	/** Draw the Spoolman logo in the centre of the code. */

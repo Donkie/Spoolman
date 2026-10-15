@@ -93,12 +93,20 @@ def new_uid() -> str:
     return "04" + "".join(f"{random.randrange(256):02X}" for _ in range(6))
 
 
-def describe(spool: dict) -> str:
-    """Name a spool the way the UI would, so a tap is recognisable at a glance."""
-    filament = spool.get("filament") or {}
+def filament_label(filament: dict) -> str:
+    """Name a filament the way the UI would: vendor and name, falling back to the material."""
     vendor = (filament.get("vendor") or {}).get("name")
     parts = [p for p in (vendor, filament.get("name")) if p]
-    label = " ".join(parts) or filament.get("material") or "unnamed filament"
+    return " ".join(parts) or filament.get("material") or "unnamed filament"
+
+
+def describe_filament(filament: dict) -> str:
+    return f"filament #{filament['id']} — {filament_label(filament)}"
+
+
+def describe(spool: dict) -> str:
+    """Name a spool the way the UI would, so a tap is recognisable at a glance."""
+    label = filament_label(spool.get("filament") or {})
     remaining = spool.get("remaining_weight")
     weight = f", {remaining:.0f} g left" if isinstance(remaining, (int, float)) else ""
     return f"spool #{spool['id']} — {label}{weight}"
@@ -127,23 +135,28 @@ def tap(api: Api, uid: str, reader_id: str, name: str | None, tag_format: str | 
         print(f"  rejected ({e.status}): {message}")
         return
 
-    # `matched_spool_id` is always present in the HTTP response, null when unknown —
-    # that is the published device contract, and it is what a real reader keys off.
-    if scan.get("matched_spool_id") is None:
-        print(f"  {uid} — unknown tag, no spool has it")
-    else:
+    # `matched_spool_id` and `matched_filament_id` are always present in the HTTP response,
+    # null when that kind did not match — that is the published device contract, and it is
+    # what a real reader keys off.
+    if scan.get("matched_spool_id") is not None:
         print(f"  {uid} — {describe(scan['spool'])}")
+    elif scan.get("matched_filament_id") is not None:
+        print(f"  {uid} — {describe_filament(scan['filament'])}")
+    else:
+        print(f"  {uid} — unknown tag, nothing has it")
 
 
 def show_tagged(api: Api) -> None:
     """List the tags already linked, so there is something known to tap."""
     spools = api.get("/spool", {"allow_archived": "true"})
-    rows = [(t["uid"], s) for s in spools for t in s.get("tags", [])]
+    filaments = api.get("/filament", {})
+    rows = [(t["uid"], describe(s)) for s in spools for t in s.get("tags", [])]
+    rows += [(t["uid"], describe_filament(f)) for f in filaments for t in f.get("tags", [])]
     if not rows:
-        print("  nothing is tagged yet — link one in a spool's inspector, or press 'n' for a blank tag")
+        print("  nothing is tagged yet — link one in an inspector, or press 'n' for a blank tag")
         return
-    for uid, spool in rows:
-        print(f"  {uid}  {describe(spool)}")
+    for uid, label in rows:
+        print(f"  {uid}  {label}")
 
 
 def interactive(api: Api, reader_id: str, name: str | None, tag_format: str | None) -> int:

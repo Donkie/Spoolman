@@ -36,6 +36,18 @@ def _spool_with_tag(filament_id: int, uid: str) -> Iterator[dict[str, Any]]:
         httpx.delete(f"{URL}/api/v1/spool/{spool['id']}")
 
 
+@contextmanager
+def _filament_with_tag(uid: str) -> Iterator[dict[str, Any]]:
+    result = httpx.post(f"{URL}/api/v1/filament", json={"density": 1.24, "diameter": 1.75})
+    assert_httpx_success(result)
+    filament = result.json()
+    try:
+        httpx.post(f"{URL}/api/v1/filament/{filament['id']}/tag", json={"uid": uid}).raise_for_status()
+        yield filament
+    finally:
+        httpx.delete(f"{URL}/api/v1/filament/{filament['id']}")
+
+
 def test_scan_of_a_known_tag_returns_the_spool(random_filament: dict[str, Any]):
     """The lookup a device makes on every tap, answered in one round trip."""
     uid = _uid()
@@ -88,6 +100,44 @@ def test_scan_finds_an_archived_spool(random_filament: dict[str, Any]):
         assert scan.json()["matched_spool_id"] == spool["id"]
     finally:
         httpx.delete(f"{URL}/api/v1/spool/{spool['id']}")
+
+
+def test_scan_of_a_filament_tag_returns_the_filament():
+    """A tag on a filament resolves to the filament, and says plainly that no spool matched."""
+    uid = _uid()
+    with _filament_with_tag(uid) as filament:
+        result = httpx.post(f"{URL}/api/v1/tag/scan", json={"uid": uid, "reader_id": _reader_id()})
+        assert_httpx_success(result)
+
+        body = result.json()
+        assert body["matched_filament_id"] == filament["id"]
+        assert body["filament"]["id"] == filament["id"]
+        # A device that only knows about spools still gets its always-present answer.
+        assert "matched_spool_id" in body
+        assert body["matched_spool_id"] is None
+        assert body.get("spool") is None
+
+
+def test_scan_of_a_spool_tag_reports_no_filament_match(random_filament: dict[str, Any]):
+    """A spool's tag matches the spool only. Its filament is inside `spool`, not a second match."""
+    uid = _uid()
+    with _spool_with_tag(random_filament["id"], uid) as spool:
+        result = httpx.post(f"{URL}/api/v1/tag/scan", json={"uid": uid, "reader_id": _reader_id()})
+        assert_httpx_success(result)
+
+        body = result.json()
+        assert body["matched_spool_id"] == spool["id"]
+        assert "matched_filament_id" in body
+        assert body["matched_filament_id"] is None
+        assert body.get("filament") is None
+
+
+def test_scan_of_an_unknown_tag_reports_no_filament_match():
+    """`matched_filament_id` is always present too, so a device can check either without guarding."""
+    result = httpx.post(f"{URL}/api/v1/tag/scan", json={"uid": _uid(), "reader_id": _reader_id()})
+    assert_httpx_success(result)
+    assert "matched_filament_id" in result.json()
+    assert result.json()["matched_filament_id"] is None
 
 
 @pytest.mark.parametrize("bad", ["not-a-uid", "04A2B3G4", "!!!"])

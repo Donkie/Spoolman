@@ -8,6 +8,7 @@
 	import { settings } from '$lib/stores/settings.svelte';
 	import { fields } from '$lib/stores/fields.svelte';
 	import { spoolSource } from '$lib/api/spoolSource';
+	import { allPages } from '$lib/api/query';
 	import { live, type LiveEvent } from '$lib/api/live';
 	import { isAbortError } from '$lib/api/http';
 	import { mapSpool } from '$lib/api/map';
@@ -36,6 +37,8 @@
 	const FLIP = 160;
 	/** Spools fetched per request when filling (or extending) a card. */
 	const PAGE = 30;
+	/** Groups fetched per request when listing the cards. */
+	const GROUP_PAGE = 1000;
 	/** Distance from the bottom of a card's list at which the next page is fetched. */
 	const SCROLL_MARGIN = 120;
 	/** The unassigned card's key: no value for the grouped-by field. */
@@ -170,20 +173,24 @@
 		// controller for a later view.
 		const signal = pageAbort.signal;
 		try {
-			const page = await spoolSource.listGroups({
-				field: fieldKey,
-				filters: {},
-				sort: [{ field: 'group.title', dir: 'asc' }],
-				limit: 1000,
-				offset: 0,
-				lowThreshold: settings.lowThreshold,
-				signal
-			});
+			// Every group gets a card, so page through all of them rather than stopping at
+			// the first page; a group past it would never show up at all.
+			const groups = await allPages(GROUP_PAGE, (offset) =>
+				spoolSource.listGroups({
+					field: fieldKey,
+					filters: {},
+					sort: [{ field: 'group.title', dir: 'asc' }],
+					limit: GROUP_PAGE,
+					offset,
+					lowThreshold: settings.lowThreshold,
+					signal
+				})
+			);
 			// A NULL value and an empty-string one are distinct rows to the database but the
 			// same "unassigned" card here, so counts are summed by key.
 			// eslint-disable-next-line svelte/prefer-svelte-reactivity -- transient local, not reactive state
 			const totals = new Map<string, number>();
-			for (const g of page.items) totals.set(g.key, (totals.get(g.key) ?? 0) + g.spoolCount);
+			for (const g of groups) totals.set(g.key, (totals.get(g.key) ?? 0) + g.spoolCount);
 
 			for (const [key, total] of totals) {
 				const b = bucket(key);
@@ -1012,8 +1019,13 @@
 	 * scrolling it to the bottom fetches the next page. */
 	.card-body {
 		/* Single source of truth for the height cap: the reserved min-height (set inline from
-		 * the spool count) is clamped to this too, so it never exceeds max-height. */
-		--card-body-cap: min(52vh, 420px);
+		 * the spool count) is clamped to this too, so it never exceeds max-height.
+		 *
+		 * A single row of cards reaches down to the footer (#1242). The 1000px ceiling is
+		 * not cosmetic: the next page only loads when the body is scrolled, so the body
+		 * must stay shorter than one page of chips (PAGE × CHIP_H, about 1500px) or a tall
+		 * screen would show the first page with no scrollbar and never fetch the rest. */
+		--card-body-cap: clamp(min(52vh, 420px), 100dvh - 240px, 1000px);
 		display: flex;
 		flex-direction: column;
 		gap: 6px;
@@ -1126,6 +1138,11 @@
 	@media (max-width: 860px) {
 		.ctrl-label {
 			display: none;
+		}
+		/* Cards stack on a touch screen, and a body nearly as tall as the screen would
+		 * swallow the swipes meant for scrolling the page past it. */
+		.card-body {
+			--card-body-cap: min(52vh, 420px);
 		}
 	}
 	/* Phone: keep the controls together on the first row (title · group-by · new group)

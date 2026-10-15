@@ -20,7 +20,15 @@ export default defineConfig({
   // The tests share one Spoolman instance, so keep them serial to avoid
   // cross-test interference in the shared database.
   workers: 1,
-  reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : [["list"]],
+  // Argos uploads only from the CI screenshots step; any other run would upload
+  // an empty build and show every screen as removed.
+  reporter: process.env.CI
+    ? [
+        ["list"],
+        ["html", { open: "never" }],
+        ["@argos-ci/playwright/reporter", { uploadToArgos: !!process.env.ARGOS_UPLOAD }],
+      ]
+    : [["list"]],
   use: {
     baseURL,
     // Pin the browser locale so date/number formatting is deterministic. The
@@ -30,9 +38,21 @@ export default defineConfig({
     screenshot: "only-on-failure",
     video: "on-first-retry",
   },
+  // The screenshots project seeds a fixed dataset and needs an empty database,
+  // so CI runs it first on its own; see tests/screenshots.spec.ts.
   projects: [
     {
+      name: "screenshots",
+      testMatch: "screenshots.spec.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        // Argos-recommended flags for stable font rendering across runs.
+        launchOptions: { args: ["--disable-lcd-text", "--font-render-hinting=none"] },
+      },
+    },
+    {
       name: "chromium",
+      testIgnore: "screenshots.spec.ts",
       use: { ...devices["Desktop Chrome"] },
     },
   ],

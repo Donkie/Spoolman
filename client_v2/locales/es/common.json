@@ -1,8 +1,11 @@
 {
     "add.addAndNew": "",
+    "add.addN_many": "Añadir {{count}} bobinas",
+    "add.addN_one": "Añadir {{count}} bobina",
+    "add.addN_other": "Añadir {{count}} bobinas",
     "add.adding": "",
-    "add.advanced": "",
-    "add.advancedNote": "",
+    "add.advanced": "Especificaciones Avanzadas",
+    "add.advancedNote": "densidad, diámetro, temperaturas (autorrellenado desde material)",
     "add.change": "",
     "add.count": "",
     "add.createNew": "",

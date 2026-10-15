@@ -461,6 +461,32 @@ def test_find_spools_by_empty_and_filled_location(spools: Fixture):
     assert_lists_compatible(spools_result, (spools.spools[0], spools.spools[3], spools.spools[4]))
 
 
+def test_find_spools_by_quoted_location_with_comma(random_filament: dict[str, Any]):
+    """A quoted term is matched whole, even when it contains the comma that separates terms (#1169)."""
+    locations = ["Top shelf, Rack 3", "Top shelf", "Rack 3", "Garage"]
+    spool_ids: list[int] = []
+    for location in locations:
+        result = httpx.post(f"{URL}/api/v1/spool", json={"filament_id": random_filament["id"], "location": location})
+        result.raise_for_status()
+        spool_ids.append(result.json()["id"])
+
+    def find(location: str) -> set[int]:
+        result = httpx.get(
+            f"{URL}/api/v1/spool", params={"filament.id": str(random_filament["id"]), "location": location}
+        )
+        result.raise_for_status()
+        return {spool["id"] for spool in result.json()}
+
+    try:
+        assert find('"Top shelf, Rack 3"') == {spool_ids[0]}
+        assert find('"Top shelf, Rack 3","Garage"') == {spool_ids[0], spool_ids[3]}
+        # Unquoted terms still split on every comma.
+        assert find("Top shelf,Garage") == {spool_ids[0], spool_ids[1], spool_ids[3]}
+    finally:
+        for spool_id in spool_ids:
+            httpx.delete(f"{URL}/api/v1/spool/{spool_id}").raise_for_status()
+
+
 def test_find_spools_by_lot_nr(spools: Fixture):
     # Execute
     result = httpx.get(

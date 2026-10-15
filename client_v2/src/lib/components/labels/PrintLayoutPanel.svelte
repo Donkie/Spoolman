@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import Button from '$components/Button.svelte';
+	import Pagination from '$components/Pagination.svelte';
 	import NumberInput from '../NumberInput.svelte';
 	import LabelCanvas from './LabelCanvas.svelte';
-	import { labelKind, type LabelDesign } from '$lib/labels/types';
+	import { labelKind, type LabelKind, type LabelDesign } from '$lib/labels/types';
 	import type { LabelBinding } from '$lib/labels/template';
-	import { PAPER_NAMES, paperSize, sheetGrid } from '$lib/labels/paper';
+	import { PAPER_NAMES, layoutMargin, paperSize, sheetGrid } from '$lib/labels/paper';
 	import { printLabels, exportLabels, ZIP_THRESHOLD } from '$lib/labels/print';
 	import { EXPORT_FORMATS, resolveExportFormat } from '$lib/labels/export';
 	import { spoolSource } from '$lib/api/spoolSource';
@@ -32,7 +33,7 @@
 
 	let selected = $state<Set<number>>(new Set(untrack(() => preselected)));
 	let search = $state('');
-	// Default to newest-first so spools you just added sit at the top of the list —
+	// Default to newest-first so items you just added sit at the top of the list,
 	// the common case when printing labels for a fresh batch.
 	let sort = $state<'newest' | 'id'>('newest');
 	let loading = $state(true);
@@ -40,27 +41,31 @@
 	let printing = $state(false);
 	let saving = $state(false);
 
-	// The full inventory can be thousands of spools, so loading every one up front
-	// was an extremely heavy query. Instead preload only the latest batch — the
-	// common case when printing labels for spools you just added — and let search
-	// pull in anything older on demand.
-	const INITIAL_LIMIT = 50;
-	// …but the latest 50 isn't enough for the "Recent" quick-select once you've
-	// added more than that in the last 24h, so we keep paging (newest-first) past
-	// the first 50 while still inside the recent window. PAGE is the batch size for
-	// that extension; MAX_INITIAL caps it so a huge same-day import can't recreate
-	// the original heavy load.
+	// The full inventory can be thousands of spools or filaments, so loading it all
+	// up front was an extremely heavy query. Instead the list shows one page at a time and
+	// search pulls in anything else on demand. Pages rather than infinite scroll so
+	// "All" stays honest: it adds the page you are looking at.
 	const PAGE = 100;
-	const MAX_INITIAL = 1000;
+	// "Recent" must still cover every spool added in the last 24h, past the first
+	// page too, so it has its own newest-first loader. MAX_RECENT caps it so a huge
+	// same-day import can't recreate the original heavy load.
+	const MAX_RECENT = 1000;
 	// Color-similarity threshold for the search (a query like "#ff0000" or "red"
 	// also runs a color match); matches the value used by the library picker.
 	const COLOR_THRESHOLD = 20;
 
-	// IDs of the preloaded "latest" spools, and of the current search result (null
-	// when not searching). Both index into the reactive inventory cache, so the
-	// list stays live as spools are edited or removed.
-	let baseIds = $state<number[]>([]);
+	// IDs of the current page, of the recently added spools, and of the current
+	// search result (null when not searching). All index into the reactive inventory
+	// cache, so the list stays live as spools are edited or removed.
+	let pageIds = $state<number[]>([]);
+	let pageFIds = $state<string[]>([]);
+	let resultFIds = $state<string[] | null>(null);
+	let recentIds = $state<number[]>([]);
 	let resultIds = $state<number[] | null>(null);
+	let pageNo = $state(1);
+	let pageSize = $state(PAGE);
+	let total = $state(0);
+	let listEl = $state<HTMLElement>();
 
 	// Spools registered within this window count as "recently added" for the
 	// one-click quick-select.
@@ -77,80 +82,111 @@
 		return Number.isNaN(t) ? s.id : t;
 	}
 
+	// The list pages in its displayed order, so the next page of "newest" holds
+	// older spools and the next page of "#" higher ids.
+	const dir = $derived(sort === 'newest' ? 'desc' : 'asc');
+
 	$effect(() => {
-		if (kind !== 'spool') return;
+		void kind;
+		untrack(() => (pageNo = 1));
+	});
+
+	$effect(() => {
 		const ctrl = new AbortController();
-		void loadInitial(ctrl.signal);
+		void loadPage(kind, dir, (pageNo - 1) * pageSize, pageSize, ctrl.signal);
 		return () => ctrl.abort();
 	});
-	async function loadInitial(signal: AbortSignal) {
+	async function loadPage(
+		kind: LabelKind,
+		dir: 'asc' | 'desc',
+		offset: number,
+		limit: number,
+		signal: AbortSignal
+	) {
+		loading = true;
 		try {
-			// eslint-disable-next-line svelte/prefer-svelte-reactivity -- transient local, not reactive state
-			const seen = new Set<number>();
-			const ids: number[] = [];
-			let offset = 0;
-			// Load the latest INITIAL_LIMIT, then keep paging while the oldest spool
-			// of the last batch is still within the 24h window — so every spool added
-			// today lands in the list (and thus in "Recent"), not just the newest 50.
-			// Sorted by id desc, which is monotonic with registration, so once a batch
-			// reaches past the window everything below it is older too.
-			for (;;) {
-				const limit = ids.length === 0 ? INITIAL_LIMIT : PAGE;
-				const page = await spoolSource.listSpools({
-					filters: {},
-					sort: [{ field: 'id', dir: 'desc' }],
-					limit,
-					offset,
-					lowThreshold: settings.lowThreshold,
-					signal
-				});
-				for (const s of page.items) {
-					if (!seen.has(s.id)) {
-						seen.add(s.id);
-						ids.push(s.id);
-					}
-				}
-				offset += page.items.length;
-				const oldest = page.items.at(-1);
-				const more =
-					page.items.length === limit && // a full page ⇒ there may be more
-					ids.length < MAX_INITIAL && // safety cap
-					!!oldest &&
-					isRecent(oldest); // still inside the 24h window
-				if (!more) break;
-			}
-			baseIds = ids;
+			const query = { sort: [{ field: 'id', dir }], limit, offset, signal };
+			const page =
+				kind === 'filament'
+					? await spoolSource.listFilamentPage(query)
+					: await spoolSource.listSpools({ ...query, filters: {}, lowThreshold: settings.lowThreshold });
+			if (signal.aborted) return;
+			if (kind === 'filament') pageFIds = (page.items as Filament[]).map((f) => f.id);
+			else pageIds = (page.items as Spool[]).map((s) => s.id);
+			total = page.total;
+			listEl?.scrollTo(0, 0);
 		} catch (e) {
 			// Abandoning the tab mid-load is exactly when cancelling matters most.
 			if (isAbortError(e, signal)) return;
-			console.error('Failed to load spools for printing', e);
+			console.error(`Failed to load ${kind}s for printing`, e);
 		} finally {
 			if (!signal.aborted) loading = false;
 		}
 	}
 
-	// Search hits the backend rather than filtering the preloaded slice, so spools
+	$effect(() => {
+		if (kind !== 'spool') return;
+		const ctrl = new AbortController();
+		void loadRecent(ctrl.signal);
+		return () => ctrl.abort();
+	});
+	async function loadRecent(signal: AbortSignal) {
+		try {
+			const ids: number[] = [];
+			let offset = 0;
+			// Page newest-first while the last spool of the batch is still within the
+			// 24h window. Sorted by id, which is monotonic with registration, so once a
+			// batch reaches past the window everything below it is older too.
+			for (;;) {
+				const page = await spoolSource.listSpools({
+					filters: {},
+					sort: [{ field: 'id', dir: 'desc' }],
+					limit: PAGE,
+					offset,
+					lowThreshold: settings.lowThreshold,
+					signal
+				});
+				ids.push(...page.items.filter(isRecent).map((s) => s.id));
+				offset += page.items.length;
+				const last = page.items.at(-1);
+				if (page.items.length < PAGE || offset >= MAX_RECENT || !last || !isRecent(last)) break;
+			}
+			// A live insert shifts the offsets, so batches can overlap.
+			recentIds = [...new Set(ids)];
+		} catch (e) {
+			if (isAbortError(e, signal)) return;
+			console.error('Failed to load recent spools for printing', e);
+		}
+	}
+
+	// Search hits the backend rather than filtering the preloaded slice, so entities
 	// outside the latest batch stay findable. Debounced, and superseded queries are
 	// aborted on cleanup.
 	$effect(() => {
-		if (kind !== 'spool') return;
-		const q = search.trim();
+		const searchKind = kind;
+		const q = (searchKind === 'filament' ? fSearch : search).trim();
 		if (!q) {
 			resultIds = null;
+			resultFIds = null;
 			searching = false;
 			return;
 		}
 		searching = true;
 		const ctrl = new AbortController();
-		const timer = setTimeout(() => void runSearch(q, ctrl.signal), 250);
+		const timer = setTimeout(() => void runSearch(searchKind, q, ctrl.signal), 250);
 		return () => {
 			clearTimeout(timer);
 			ctrl.abort();
 		};
 	});
-	async function runSearch(q: string, signal: AbortSignal) {
+	async function runSearch(kind: LabelKind, q: string, signal: AbortSignal) {
 		try {
 			const { spools, filaments } = await searchAll(q, COLOR_THRESHOLD, signal);
+			if (signal.aborted) return;
+			if (kind === 'filament') {
+				resultFIds = filaments.map((m) => m.entity.id);
+				return;
+			}
 			// eslint-disable-next-line svelte/prefer-svelte-reactivity -- transient local, not reactive state
 			const ids = new Set<number>(spools.map((m) => m.entity.id));
 			// The /search spool pass only matches spool-native fields, so also pull
@@ -168,10 +204,10 @@
 				});
 				for (const s of page.items) ids.add(s.id);
 			}
-			resultIds = [...ids];
+			if (!signal.aborted) resultIds = [...ids];
 		} catch (e) {
 			if (isAbortError(e, signal)) return;
-			console.error('Spool search failed', e);
+			console.error(`${kind} search failed`, e);
 		} finally {
 			if (!signal.aborted) searching = false;
 		}
@@ -184,9 +220,9 @@
 		return `#${s.id} · ${name}${s.location ? ' · ' + s.location : ''}`;
 	}
 
-	// The active id set — search results when searching, otherwise the latest batch —
+	// The active id set — search results when searching, otherwise the current page —
 	// resolved through the reactive cache (so edits/deletes reflect) and sorted.
-	const activeIds = $derived(resultIds ?? baseIds);
+	const activeIds = $derived(resultIds ?? pageIds);
 	const visibleSpools = $derived(
 		activeIds
 			.map((id) => inventory.spoolById(id))
@@ -194,9 +230,16 @@
 			.sort((a, b) => (sort === 'newest' ? recencyKey(b) - recencyKey(a) : a.id - b.id))
 	);
 
-	// Count of currently-visible spools added in the last 24h — drives the "Recent"
-	// quick-select label and whether it's actionable.
-	const recentCount = $derived(visibleSpools.filter(isRecent).length);
+	// Spools added in the last 24h (within the results, when searching) — drive the
+	// "Recent" quick-select label and whether it's actionable.
+	const recentSpools = $derived(
+		resultIds
+			? visibleSpools.filter(isRecent)
+			: recentIds
+					.map((id) => inventory.spoolById(id))
+					.filter((s): s is Spool => !!s && !s.archived && isRecent(s))
+	);
+	const recentCount = $derived(recentSpools.length);
 
 	function toggle(id: number) {
 		// eslint-disable-next-line svelte/prefer-svelte-reactivity -- transient local; `selected` updates via reassignment below
@@ -205,11 +248,17 @@
 		else next.add(id);
 		selected = next;
 	}
+	// Quick-selects add to the selection rather than replace it, so picks carry
+	// across pages.
 	function selectAll() {
-		selected = new Set(visibleSpools.map((s) => s.id));
+		selected = new Set([...selected, ...visibleSpools.map((s) => s.id)]);
 	}
 	function selectRecent() {
-		selected = new Set(visibleSpools.filter(isRecent).map((s) => s.id));
+		selected = new Set([...selected, ...recentSpools.map((s) => s.id)]);
+	}
+	function setSort(s: 'newest' | 'id') {
+		sort = s;
+		pageNo = 1;
 	}
 	function clearAll() {
 		selected = new Set();
@@ -222,27 +271,8 @@
 	}
 
 	// --- Filament selection (filament labels) ------------------------------------
-	// Filament catalogs are small enough to load in one page and filter client-side,
-	// so the filament picker is simpler than the spool one: no incremental paging,
-	// no backend search, no "recent" window.
 	let selectedF = $state<Set<string>>(new Set());
 	let fSearch = $state('');
-	let fLoading = $state(true);
-
-	$effect(() => {
-		if (kind !== 'filament') return;
-		const ctrl = new AbortController();
-		fLoading = true;
-		spoolSource
-			.listFilaments(1000, ctrl.signal)
-			.catch((e) => {
-				if (!isAbortError(e, ctrl.signal)) console.error('Failed to load filaments for printing', e);
-			})
-			.finally(() => {
-				if (!ctrl.signal.aborted) fLoading = false;
-			});
-		return () => ctrl.abort();
-	});
 
 	function filamentLabel(f: Filament): string {
 		const v = inventory.vendorById(f.vendorId);
@@ -250,16 +280,12 @@
 		return `#${f.id} · ${name}${f.material ? ' · ' + f.material : ''}`;
 	}
 
-	const visibleFilaments = $derived.by(() => {
-		const q = fSearch.trim().toLowerCase();
-		return inventory.filaments
-			.filter((f) => {
-				if (!q) return true;
-				const v = inventory.vendorById(f.vendorId);
-				return `${f.name} ${f.material} ${v?.name ?? ''}`.toLowerCase().includes(q);
-			})
-			.sort((a, b) => a.name.localeCompare(b.name));
-	});
+	const visibleFilaments = $derived(
+		(resultFIds ?? pageFIds)
+			.map((id) => inventory.filamentById(id))
+			.filter((f): f is Filament => !!f)
+			.sort((a, b) => (sort === 'newest' ? Number(b.id) - Number(a.id) : Number(a.id) - Number(b.id)))
+	);
 
 	function toggleF(id: string) {
 		// eslint-disable-next-line svelte/prefer-svelte-reactivity -- transient local; `selectedF` updates via reassignment below
@@ -269,7 +295,7 @@
 		selectedF = next;
 	}
 	function selectAllF() {
-		selectedF = new Set(visibleFilaments.map((f) => f.id));
+		selectedF = new Set([...selectedF, ...visibleFilaments.map((f) => f.id)]);
 	}
 	function clearAllF() {
 		selectedF = new Set();
@@ -328,7 +354,9 @@
 	}
 
 	function setMargin(k: 't' | 'b' | 'l' | 'r', v: number) {
-		layout.margin = { ...layout.margin, [k]: v };
+		// Negative margins anchor the grid off the paper: the labels get clipped and
+		// the safe-zone inset (safe - margin) balloons past the label itself.
+		layout.margin = { ...layout.margin, [k]: Math.max(0, v) };
 	}
 	function setSafe(k: 't' | 'b' | 'l' | 'r', v: number) {
 		layout.safe = { ...layout.safe, [k]: Math.max(0, v) };
@@ -339,12 +367,22 @@
 	// the design (the button only touches width, per its label).
 	function fitLabelWidth() {
 		const page = paperSize(layout);
-		const usableW = page.w - layout.margin.l - layout.margin.r;
+		const margin = layoutMargin(layout);
+		const usableW = page.w - margin.l - margin.r;
 		const cols = Math.max(1, Math.round(layout.columns));
 		const w = (usableW - (cols - 1) * layout.spacing.h) / cols;
 		if (w > 0) design.label = { ...design.label, w: Math.round(w * 10) / 10 };
 	}
 </script>
+
+{#snippet sortControls()}
+	<div class="seg sort" title={kind === 'spool' ? m['labels.sortHint']() : undefined}>
+		<button class:active={sort === 'newest'} onclick={() => setSort('newest')}
+			>{m['labels.sortNewest']()}</button
+		>
+		<button class:active={sort === 'id'} onclick={() => setSort('id')}>{m['labels.sortId']()}</button>
+	</div>
+{/snippet}
 
 <div class="print-panel">
 	<div class="col spools">
@@ -352,15 +390,16 @@
 			<div class="col-head">
 				<span>{m['filament.filament']()}</span>
 				<div class="mini-actions">
-					<button onclick={selectAllF}>{m['labels.selectAllShort']()}</button>
+					<button onclick={selectAllF} disabled={loading || searching}>{m['labels.selectAllShort']()}</button>
 					<button onclick={clearAllF}>{m['labels.selectNoneShort']()}</button>
 				</div>
 			</div>
 			<div class="search-row">
 				<input class="search" placeholder={m['labels.searchFilaments']()} bind:value={fSearch} />
+				{@render sortControls()}
 			</div>
-			<div class="spool-list">
-				{#if fLoading && visibleFilaments.length === 0}
+			<div class="spool-list" bind:this={listEl}>
+				{#if loading || (searching && visibleFilaments.length === 0)}
 					<div class="muted">{m.loading()}…</div>
 				{:else if visibleFilaments.length === 0}
 					<div class="muted">{m['labels.noFilaments']()}</div>
@@ -379,7 +418,7 @@
 			<div class="col-head">
 				<span>{m['spool.spool']()}</span>
 				<div class="mini-actions">
-					<button onclick={selectAll}>{m['labels.selectAllShort']()}</button>
+					<button onclick={selectAll} disabled={loading || searching}>{m['labels.selectAllShort']()}</button>
 					<button onclick={selectRecent} disabled={recentCount === 0} title={m['labels.selectRecentHint']()}
 						>{m['labels.selectRecentShort']({ count: recentCount })}</button
 					>
@@ -388,14 +427,9 @@
 			</div>
 			<div class="search-row">
 				<input class="search" placeholder={m['labels.searchSpools']()} bind:value={search} />
-				<div class="seg sort" title={m['labels.sortHint']()}>
-					<button class:active={sort === 'newest'} onclick={() => (sort = 'newest')}
-						>{m['labels.sortNewest']()}</button
-					>
-					<button class:active={sort === 'id'} onclick={() => (sort = 'id')}>{m['labels.sortId']()}</button>
-				</div>
+				{@render sortControls()}
 			</div>
-			<div class="spool-list">
+			<div class="spool-list" bind:this={listEl}>
 				{#if loading || (searching && visibleSpools.length === 0)}
 					<div class="muted">{m.loading()}…</div>
 				{:else if visibleSpools.length === 0}
@@ -411,6 +445,19 @@
 				{/if}
 			</div>
 			<div class="count">{m['printing.spoolSelect.selectedTotal']({ count: selected.size })}</div>
+		{/if}
+		{#if !(kind === 'filament' ? resultFIds : resultIds) && total > pageSize}
+			<Pagination
+				page={pageNo}
+				{pageSize}
+				{total}
+				unit={kind === 'filament' ? m['library.catalog.unitFilaments']() : m['library.unitSpools']()}
+				onpage={(p) => (pageNo = p)}
+				onpagesize={(s) => {
+					pageSize = s;
+					pageNo = 1;
+				}}
+			/>
 		{/if}
 	</div>
 
@@ -515,6 +562,7 @@
 				<label class="fld"
 					>{m['printing.generic.marginTop']()}<NumberInput
 						dense
+						min={0}
 						unit="mm"
 						value={layout.margin.t}
 						onchange={(v) => setMargin('t', v)}
@@ -523,6 +571,7 @@
 				<label class="fld"
 					>{m['printing.generic.marginBottom']()}<NumberInput
 						dense
+						min={0}
 						unit="mm"
 						value={layout.margin.b}
 						onchange={(v) => setMargin('b', v)}
@@ -531,6 +580,7 @@
 				<label class="fld"
 					>{m['printing.generic.marginLeft']()}<NumberInput
 						dense
+						min={0}
 						unit="mm"
 						value={layout.margin.l}
 						onchange={(v) => setMargin('l', v)}
@@ -539,6 +589,7 @@
 				<label class="fld"
 					>{m['printing.generic.marginRight']()}<NumberInput
 						dense
+						min={0}
 						unit="mm"
 						value={layout.margin.r}
 						onchange={(v) => setMargin('r', v)}
@@ -783,6 +834,13 @@
 		max-height: 340px;
 		overflow-y: auto;
 		padding: 4px;
+	}
+	/* The shared pager is styled as a list-footer bar; here it sits under a bordered
+	   box in a narrow column, so drop the bar chrome. */
+	.spools :global(.pager) {
+		padding: 0;
+		border-top: none;
+		background: none;
 	}
 	.spool-item {
 		display: flex;

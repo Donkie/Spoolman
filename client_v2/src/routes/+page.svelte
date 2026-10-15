@@ -1,11 +1,12 @@
 <script lang="ts">
 	import FilamentList from '$components/library/FilamentList.svelte';
+	import CatalogList from '$components/library/CatalogList.svelte';
 	import Inspector from '$components/library/Inspector.svelte';
 	import DetailPane from '$components/DetailPane.svelte';
 	import Splitter from '$components/Splitter.svelte';
 	import { afterNavigate, goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { clearSelection, rememberedViewHref } from '$lib/library/params';
+	import { clearSelection, isCatalogView, rememberedViewHref } from '$lib/library/params';
 	import {
 		listWidth,
 		clampListWidth,
@@ -64,7 +65,13 @@
 <div class="library" style="--list-w: {width}px" bind:clientWidth={available}>
 	<!-- Left list: front and centre; on mobile it fills the screen. -->
 	<div class="list-pane">
-		<FilamentList libraryState={data.state} />
+		<!-- The filament and manufacturer catalogs are sub-views of the same page:
+		     the URL's `view` picks the list, the inspector beside it stays the same. -->
+		{#if isCatalogView(data.state)}
+			<CatalogList libraryState={data.state} />
+		{:else}
+			<FilamentList libraryState={data.state} />
+		{/if}
 	</div>
 
 	<!-- The divider between the two panes is also the handle that moves it. -->

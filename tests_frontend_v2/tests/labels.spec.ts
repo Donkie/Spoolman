@@ -172,3 +172,60 @@ test("the label designer and print panel render without console errors", async (
 
   expect(consoleErrors, `console errors:\n${consoleErrors.join("\n")}`).toHaveLength(0);
 });
+
+test("filament printing preserves page selections across backend searches", async ({ page }) => {
+  const filaments = Array.from({ length: 1101 }, (_, i) => ({
+    id: 1101 - i, name: `Picker filament ${1101 - i}`, material: "PLA", diameter: 1.75, density: 1.24,
+  }));
+  const requests: URL[] = [];
+  await page.route("**/api/v1/filament?*", async (route) => {
+    const url = new URL(route.request().url());
+    requests.push(url);
+    const offset = Number(url.searchParams.get("offset") ?? 0);
+    const limit = Number(url.searchParams.get("limit"));
+    const ordered = url.searchParams.get("sort") === "id:asc" ? [...filaments].reverse() : filaments;
+    await route.fulfill({ json: ordered.slice(offset, offset + limit), headers: { "X-Total-Count": "1101" } });
+  });
+  await page.route("**/api/v1/search?*", async (route) => {
+    const url = new URL(route.request().url());
+    expect(url.searchParams.get("q")).toBe("outside loaded pages");
+    expect(url.searchParams.get("color_similarity_threshold")).toBe("20");
+    await route.fulfill({ json: { filaments: [{ filament: filaments[1100], match_field: "comment" }] } });
+  });
+  await openApp(page);
+  await navTab(page, "Labels", "Labels | Spoolman");
+  await page.getByLabel("Select label design").selectOption({ label: designName });
+  await page.getByRole("button", { name: "Filament", exact: true }).click();
+  await page.getByRole("button", { name: "Print", exact: true }).click();
+
+  const picker = page.locator(".print-panel .col.spools");
+  const rows = picker.locator(".spool-item input");
+  await expect(rows).toHaveCount(100);
+  await picker.getByRole("button", { name: "All", exact: true }).click();
+  await expect(picker.getByText("100 filaments selected", { exact: true })).toBeVisible();
+  await picker.getByRole("button", { name: "Next page" }).click();
+  await expect(picker.locator(".spool-item").first()).toContainText("#1001");
+  await expect(rows).toHaveCount(100);
+  await picker.getByRole("button", { name: "All", exact: true }).click();
+  await expect(picker.getByText("200 filaments selected", { exact: true })).toBeVisible();
+
+  await picker.getByPlaceholder("Search filaments...").fill("outside loaded pages");
+  await expect(rows).toHaveCount(1);
+  await expect(picker.locator(".spool-item")).toContainText("#1 ·");
+  await picker.getByRole("button", { name: "All", exact: true }).click();
+  await expect(picker.getByText("201 filaments selected", { exact: true })).toBeVisible();
+  await picker.getByPlaceholder("Search filaments...").fill("");
+  await expect(rows).toHaveCount(100);
+  await expect(picker.locator(".spool-item input:checked")).toHaveCount(100);
+  await picker.getByRole("button", { name: "Previous page" }).click();
+  await expect(picker.locator(".spool-item").first()).toContainText("#1101");
+  await expect(picker.locator(".spool-item input:checked")).toHaveCount(100);
+  await picker.getByRole("button", { name: "#", exact: true }).click();
+  await expect(picker.locator(".spool-item").first()).toContainText("#1 ·");
+  await expect(picker.getByText("201 filaments selected", { exact: true })).toBeVisible();
+
+  // LabelDesigner still loads preview batches; picker requests stay bounded.
+  const pages = requests.filter((url) => url.searchParams.get("limit") !== "1000");
+  expect(pages.some((url) => url.searchParams.get("offset") === "100")).toBe(true);
+  expect(pages.every((url) => url.searchParams.get("limit") === "100")).toBe(true);
+});

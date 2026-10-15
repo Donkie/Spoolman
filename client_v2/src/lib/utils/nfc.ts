@@ -75,48 +75,66 @@ function reasonFor(err: unknown): NfcErrorReason {
 /**
  * Wait for one tag to be tapped and resolve with its UID.
  *
- * The UID arrives in whatever spelling the platform uses (Chrome's is
- * colon-separated lowercase) and is passed on untouched — normalization belongs
- * to the server, which does it for every reader rather than for this one.
- *
  * Scanning continues until a tag is read or `signal` aborts, so callers must
  * always pass one and abort it when their dialog closes; otherwise the radio
  * keeps running behind a screen nobody is looking at.
  *
- * Rejects with an `NfcError` carrying a reason, or with the abort's own reason
- * when cancelled — check `signal.aborted` before reporting anything.
+ * Rejects like `watchTagUids`.
  */
 export function readTagUid(signal: AbortSignal): Promise<string> {
+	return new Promise<string>((resolve, reject) => watchTagUids(signal, resolve, reject));
+}
+
+/**
+ * Call `onUid` with the UID of every tag tapped until `signal` aborts.
+ *
+ * The UID arrives in whatever spelling the platform uses (Chrome's is
+ * colon-separated lowercase) and is passed on untouched — normalization belongs
+ * to the server, which does it for every reader rather than for this one.
+ *
+ * `onError` gets an `NfcError` carrying a reason, or the abort's own reason when
+ * cancelled — check `signal.aborted` before reporting anything. Without a user
+ * gesture, starting only succeeds if NFC permission was already granted; it
+ * fails with `notAllowed` instead of prompting.
+ */
+export function watchTagUids(
+	signal: AbortSignal,
+	onUid: (uid: string) => void,
+	onError: (err: unknown) => void
+): void {
 	if (typeof window === 'undefined' || !('NDEFReader' in window)) {
-		return Promise.reject(new NfcError('unsupported'));
+		onError(new NfcError('unsupported'));
+		return;
 	}
-	if (!window.isSecureContext) return Promise.reject(new NfcError('insecureContext'));
+	if (!window.isSecureContext) {
+		onError(new NfcError('insecureContext'));
+		return;
+	}
+
+	if (signal.aborted) {
+		onError(signal.reason);
+		return;
+	}
 
 	const Ctor = (window as unknown as { NDEFReader: NDEFReaderCtor }).NDEFReader;
-	return new Promise<string>((resolve, reject) => {
-		if (signal.aborted) {
-			reject(signal.reason);
-			return;
-		}
-		let reader: NDEFReaderLike;
-		try {
-			reader = new Ctor();
-		} catch (err) {
-			reject(new NfcError(reasonFor(err)));
-			return;
-		}
+	let reader: NDEFReaderLike;
+	try {
+		reader = new Ctor();
+	} catch (err) {
+		onError(new NfcError(reasonFor(err)));
+		return;
+	}
 
-		signal.addEventListener('abort', () => reject(signal.reason), { once: true });
-		reader.addEventListener('reading', (ev) => resolve(ev.serialNumber));
-		// A tag that came and went before it could be read. Not fatal and not worth
-		// reporting: the user's next tap is the retry, and the scan is still live.
-		reader.addEventListener('readingerror', () => {});
+	signal.addEventListener('abort', () => onError(signal.reason), { once: true });
+	reader.addEventListener('reading', (ev) => onUid(ev.serialNumber));
+	// A tag that came and went before it could be read. Not fatal and not worth
+	// reporting: the user's next tap is the retry, and the scan is still live.
+	reader.addEventListener('readingerror', () => {});
 
-		// scan() is what raises the permission prompt, so its rejection is the one
-		// that carries a reason worth showing.
-		reader.scan({ signal }).catch((err) => {
-			if (signal.aborted) return; // our own cancellation, already rejected above
-			reject(new NfcError(reasonFor(err)));
-		});
+	// scan() is what raises the permission prompt, so its rejection is the one
+	// that carries a reason worth showing.
+	reader.scan({ signal }).catch((err) => {
+		if (signal.aborted) return; // our own cancellation, already reported above
+		onError(new NfcError(reasonFor(err)));
 	});
 }

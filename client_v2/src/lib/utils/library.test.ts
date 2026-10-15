@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupUnusedByFilament, usageLabel } from './library';
+import { groupUnusedByFilament, rowIdentity, usageLabel } from './library';
 import type { SpoolVM } from './library';
 import { mapSpool } from '$lib/api/map';
 
@@ -87,5 +87,47 @@ describe('groupUnusedByFilament', () => {
 
 	it('handles an empty pile', () => {
 		expect(groupUnusedByFilament([])).toEqual([]);
+	});
+});
+
+describe('rowIdentity', () => {
+	const vm = (lot: string, unused = false): SpoolVM =>
+		({
+			spool: { lot, unused },
+			filament: { name: 'Galaxy Black', material: 'PLA', diameter: 1.75 },
+			vendor: { name: 'Prusament' },
+			rightLabel: unused ? 'unused' : 'used 3 days ago'
+		}) as SpoolVM;
+
+	const contexts = ['flat', 'filament', 'vendor', 'material', 'location'] as const;
+	const subs = ['PLA · 1.75 mm', 'used 3 days ago', 'PLA · 1.75 mm', '1.75 mm', 'PLA · 1.75 mm'];
+
+	it.each(contexts)('defaults to master text in %s rows', (context) => {
+		expect(rowIdentity(vm('LOT'), context)).toEqual({
+			title: context === 'filament' ? '' : context === 'vendor' ? 'Galaxy Black' : 'Prusament Galaxy Black',
+			sub: subs[contexts.indexOf(context)]
+		});
+	});
+
+	it.each(contexts)('appends the trimmed lot when enabled in %s rows', (context) => {
+		const identity = rowIdentity(vm(''), context);
+		expect(rowIdentity(vm('  LOT-2026-0915-A7  '), context, true)).toEqual({
+			...identity,
+			sub: `${identity.sub} · Lot Nr LOT-2026-0915-A7`
+		});
+	});
+
+	it.each(contexts)('adds nothing for blank lots in %s rows', (context) => {
+		for (const lot of ['', '   ']) {
+			expect(rowIdentity(vm(lot), context, true)).toEqual(rowIdentity(vm(lot), context));
+		}
+	});
+
+	it('shows the lot for individual unused spools too', () => {
+		expect(rowIdentity(vm('24A-1187', true), 'filament', true).sub).toBe('unused · Lot Nr 24A-1187');
+	});
+
+	it('omits the separator when the existing secondary text is empty', () => {
+		expect(rowIdentity({ ...vm('LOT'), rightLabel: '' }, 'filament', true).sub).toBe('Lot Nr LOT');
 	});
 });

@@ -45,6 +45,27 @@ export interface GroupSummary {
 	lastUsedLabel: string;
 	/** Numeric recency for group ordering (higher = more recent). */
 	lastUsedSort: number;
+	/** Vendor groups only: how many filaments the group spans — every matching
+	 *  filament of the manufacturer when includeEmpty, else those with spools. */
+	filamentCount?: number;
+	/** Filament groups, with GroupQuery.preview: the first few spools (by id). */
+	previewSpools?: SpoolPreview[];
+	/** Vendor groups, with GroupQuery.preview: the first few filaments (by name). */
+	previewFilaments?: FilamentPreview[];
+}
+
+/** Just enough of a spool to draw its fill pip. Grams; null when unknown. */
+export interface SpoolPreview {
+	id: string;
+	remaining: number | null;
+	initial: number | null;
+}
+
+/** Just enough of a filament to draw its swatch. */
+export interface FilamentPreview {
+	id: string;
+	colors: string[];
+	direction?: MultiColorDirection;
 }
 
 export interface GroupScope {
@@ -74,9 +95,11 @@ export interface GroupQuery {
 	sort: SortField[];
 	/** Include archived spools in the group aggregates (default: excluded). */
 	allowArchived?: boolean;
-	/** List matching filaments that hold no matching spools as groups of zero
-	 *  (filament grouping only; see buildGroupQuery). */
+	/** List matching filaments (filament grouping) or manufacturers (vendor
+	 *  grouping) that hold no matching spools, as groups of zero. */
 	includeEmpty?: boolean;
+	/** Attach previewSpools / previewFilaments to filament / vendor groups. */
+	preview?: boolean;
 	limit: number;
 	offset: number;
 	lowThreshold: number;
@@ -88,6 +111,10 @@ export interface Page<T> {
 	items: T[];
 	/** Total matching rows across all pages (from X-Total-Count). */
 	total: number;
+	/** Group pages only: spools and remaining grams summed over ALL matching
+	 *  groups, not just this page (X-Total-Spools / X-Total-Remaining-Weight). */
+	totalSpools?: number;
+	totalRemaining?: number;
 }
 
 // --- cross-entity search (GET /search) -----------------------------------
