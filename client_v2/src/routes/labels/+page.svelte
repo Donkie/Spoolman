@@ -34,11 +34,14 @@
 	});
 
 	$effect(() => {
-		void labelDesigns.load().then(() => {
-			if (selectedId === null && labelDesigns.designs.length > 0) {
-				selectDesign(labelDesigns.designs[0].id);
-			}
-		});
+		void labelDesigns
+			.load()
+			.then(() => {
+				if (selectedId === null && labelDesigns.designs.length > 0) {
+					selectDesign(labelDesigns.designs[0].id);
+				}
+			})
+			.catch((e) => console.error('Failed to load label designs', e));
 	});
 
 	function clone(d: LabelDesign): LabelDesign {
@@ -56,9 +59,13 @@
 	const dirty = $derived(working !== null && JSON.stringify(working) !== savedSnapshot);
 
 	async function newDesign() {
-		const d = await labelDesigns.create();
-		selectDesign(d.id);
-		tab = 'design';
+		try {
+			const d = await labelDesigns.create();
+			selectDesign(d.id);
+			tab = 'design';
+		} catch (e) {
+			console.error('Failed to create label design', e);
+		}
 	}
 	async function duplicate() {
 		if (!selectedId) return;
