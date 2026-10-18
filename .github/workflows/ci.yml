@@ -372,7 +372,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      # Argos authenticates via OIDC; fork PRs get no id-token and fall back to tokenless upload.
+      # Argos authenticates via OIDC. Fork PRs get no id-token and the project disallows
+      # tokenless uploads, so they take the screenshots without uploading them.
       id-token: write
     steps:
       - name: Checkout
@@ -405,7 +406,7 @@ jobs:
       # The Argos reporter uploads them and posts the visual diff on the PR.
       - name: Take client_v2 screenshots
         env:
-          ARGOS_UPLOAD: "1"
+          ARGOS_UPLOAD: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && '1' || '' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd tests_frontend_v2
