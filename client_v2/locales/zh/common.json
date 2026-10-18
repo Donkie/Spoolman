@@ -271,7 +271,6 @@
     "labels.hintNowrap": "文本保持单行显示，超出宽度的部分将被截断。",
     "labels.hintSwatch": "打印时会自动填充为该耗材卷对应的颜色。",
     "labels.hintWrap": "将字段包裹在条件语句中，以便在为空时隐藏：",
-    "labels.imageDesc": "",
     "labels.imageZipNote": "当标签数量超过 {{threshold}} 个时，将打包为 ZIP 压缩包下载。",
     "labels.insertField": "插入变量字段",
     "labels.kind.qr": "二维码",
