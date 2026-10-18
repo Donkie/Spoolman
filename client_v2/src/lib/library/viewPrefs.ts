@@ -16,12 +16,15 @@
 // cache, one URL per distinct view — depends on the address bar being the whole
 // truth about what's on screen.
 //
-// Only grouping and sort are remembered, plus toggles that ADD information
-// (showEmpty adds rows, showLotNumbers adds text). Filters, search and archived-
+// Only grouping and sort are remembered, the page size (a layout choice that
+// hides nothing, it just sets how many rows load at once), plus toggles that ADD
+// information (showEmpty adds rows, showLotNumbers adds text). Filters, search and archived-
 // visibility hide spools, and a hidden filter silently restored days later reads
 // as missing data rather than as a preference. Showing empty filaments or lot
 // numbers cannot produce that confusion -- restoring them can only put more on
 // screen, never less -- so they are remembered while the hiding toggles are not.
+
+const DEFAULT_PAGE_SIZE = 20;
 
 const KEY = 'spoolman-v2-library-view';
 
@@ -36,6 +39,7 @@ export interface StoredView {
 	sortAsc: boolean;
 	showEmpty: boolean;
 	showLotNumbers: boolean;
+	pageSize: number;
 }
 
 /** Rebuild a stored view from its JSON, or null if there isn't a usable one. */
@@ -44,15 +48,23 @@ export function parseStoredView(raw: string | null): StoredView | null {
 	try {
 		const parsed: unknown = JSON.parse(raw);
 		if (typeof parsed !== 'object' || parsed === null) return null;
-		const { group, sort, asc, empty, lots } = parsed as Record<string, unknown>;
+		const { group, sort, asc, empty, lots, size } = parsed as Record<string, unknown>;
 		if (typeof group !== 'string' || typeof sort !== 'string' || typeof asc !== 'boolean') {
 			return null;
 		}
-		// `empty` and `lots` arrived after this key shipped, so an entry written
+		// `empty`, `lots` and `size` arrived after this key shipped, so an entry written
 		// by an older build simply has no such fields. Treating that as "off" keeps those
 		// entries valid; rejecting them would throw away a grouping the user
 		// picked long ago the first time they loaded a new version.
-		return { group, sortKey: sort, sortAsc: asc, showEmpty: empty === true, showLotNumbers: lots === true };
+		return {
+			group,
+			sortKey: sort,
+			sortAsc: asc,
+			showEmpty: empty === true,
+			showLotNumbers: lots === true,
+			// An absent or unusable size is the default, not a reason to drop the entry.
+			pageSize: typeof size === 'number' && Number.isInteger(size) && size > 0 ? size : DEFAULT_PAGE_SIZE
+		};
 	} catch {
 		// Corrupt entry: the shipped view is no worse than what a first-time
 		// visitor gets.
@@ -82,7 +94,8 @@ export function rememberView(view: StoredView): void {
 		prev.sortKey === view.sortKey &&
 		prev.sortAsc === view.sortAsc &&
 		prev.showEmpty === view.showEmpty &&
-		prev.showLotNumbers === view.showLotNumbers
+		prev.showLotNumbers === view.showLotNumbers &&
+		prev.pageSize === view.pageSize
 	) {
 		// Selecting a spool or turning a page navigates too; only the changes that
 		// actually move the view are worth a synchronous localStorage write.
@@ -112,7 +125,8 @@ function write(view: StoredView): void {
 				sort: view.sortKey,
 				asc: view.sortAsc,
 				empty: view.showEmpty,
-				lots: view.showLotNumbers
+				lots: view.showLotNumbers,
+				size: view.pageSize
 			})
 		);
 	} catch {
