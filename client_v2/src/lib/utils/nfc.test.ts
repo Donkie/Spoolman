@@ -39,4 +39,12 @@ describe('readTagUid', () => {
 		await expect(promise).rejects.toBeDefined();
 		expect(scanSignal?.aborted).toBe(true);
 	});
+
+	it('does not start the reader when the caller already aborted', async () => {
+		vi.stubGlobal('window', { NDEFReader: FakeReader, isSecureContext: true });
+		const caller = new AbortController();
+		caller.abort();
+		await expect(readTagUid(caller.signal)).rejects.toBeDefined();
+		expect(scanSignal).toBeUndefined();
+	});
 });

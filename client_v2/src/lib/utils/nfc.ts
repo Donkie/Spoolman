@@ -81,20 +81,18 @@ function reasonFor(err: unknown): NfcErrorReason {
  * Rejects like `watchTagUids`.
  */
 export function readTagUid(signal: AbortSignal): Promise<string> {
-	// Our own controller, so the reader can be stopped once a UID arrives.
-	const scan = new AbortController();
-	const stop = () => scan.abort(signal.reason);
-	signal.addEventListener('abort', stop, { once: true });
+	// Our own controller, so the reader stops once a UID arrives.
+	const done = new AbortController();
 	return new Promise<string>((resolve, reject) =>
 		watchTagUids(
-			scan.signal,
+			AbortSignal.any([signal, done.signal]),
 			(uid) => {
 				resolve(uid); // before abort, which would reject
-				scan.abort();
+				done.abort();
 			},
 			reject
 		)
-	).finally(() => signal.removeEventListener('abort', stop));
+	);
 }
 
 /**
