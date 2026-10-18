@@ -58,6 +58,11 @@ the previous one. Both ship in every release and talk to the same API, so your d
 untouched either way — but please [report the problem](https://github.com/Donkie/Spoolman/issues)
 so it can be fixed.
 
+## One-Click Deploy
+
+<a href="https://repocloud.io/details/Spoolman/"><img src="https://d16t0pc4846x52.cloudfront.net/deploylobe.svg" alt="Deploy on RepoCloud" height="42"></a>
+<a href="https://railway.com/deploy/spoolman"><img src="https://railway.com/button.svg" alt="Deploy on Railway" height="42"></a>
+
 ## Sponsors
 Spoolman is developed and maintained in my spare time. If it is useful to you, consider [sponsoring the project](https://github.com/sponsors/Donkie).
 
