@@ -359,6 +359,23 @@ def test_deeply_nested_cbor_is_refused_before_it_can_expand() -> None:
         _decode_cbor_map(cbor2.dumps({0: nested}))
 
 
+def test_shared_reference_chain_is_refused_by_depth_cap() -> None:
+    """Each level reuses the level below twice (CBOR tags 28/29): small on the wire, huge when expanded."""
+    shared: object = 1
+    for _ in range(20):
+        shared = [shared, shared]
+    payload = cbor2.dumps({0: shared}, value_sharing=True)
+    assert len(payload) < 200  # the sharing is what keeps it small
+    with pytest.raises(ValueError, match="Invalid CBOR"):
+        _decode_cbor_map(payload)
+
+
+def test_zero_filament_diameter_is_kept_not_defaulted_to_175() -> None:
+    """A tag stating 0 must reach the database layer as 0, which refuses it, not as a plausible 1.75."""
+    raw = _build_tag({MF_FILAMENT_DIAMETER: 0})
+    assert decode_nfcv_memory(raw).effective_diameter == 0
+
+
 def test_overlong_text_field_makes_the_tag_undecodable() -> None:
     raw = _build_tag({MF_BRAND_NAME: "x" * 2000})
     with pytest.raises(TypeError):

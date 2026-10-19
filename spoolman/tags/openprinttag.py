@@ -159,8 +159,12 @@ class OpenPrintTagData:
 
     @property
     def effective_diameter(self) -> float:
-        """Get filament diameter, defaulting to 1.75mm per spec."""
-        return self.filament_diameter if self.filament_diameter else 1.75
+        """Get filament diameter, defaulting to 1.75mm per spec.
+
+        A tag that states 0 keeps 0: the database layer refuses it, which is the decision point.
+        Defaulting here would turn a bad value into a plausible one.
+        """
+        return self.filament_diameter if self.filament_diameter is not None else 1.75
 
     @property
     def effective_instance_uuid(self) -> str | None:

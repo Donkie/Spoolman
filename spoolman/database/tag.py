@@ -308,12 +308,18 @@ async def _discard_created(
     create (a reused filament, an existing vendor) are never touched.
     """
     await db.rollback()
-    if spool_id is not None:
-        await spool.delete(db, spool_id)
-    if filament_id is not None:
-        await filament.delete(db, filament_id)
-    if vendor_id is not None:
-        await vendor.delete(db, vendor_id)
+    for label, row_id, delete in (
+        ("spool", spool_id, spool.delete),
+        ("filament", filament_id, filament.delete),
+        ("vendor", vendor_id, vendor.delete),
+    ):
+        if row_id is None:
+            continue
+        # A failed delete must not replace the error that caused the rollback: log it and carry on.
+        try:
+            await delete(db, row_id)
+        except Exception:
+            logger.exception("Could not remove %s %s after a failed tag create; check it manually", label, row_id)
 
 
 async def create_spool_from_decoded_tag(

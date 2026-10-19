@@ -48,6 +48,7 @@ _HOSTILE_VALUES: list[Any] = [
     pytest.param({MF_DENSITY: float("nan")}, id="density-is-nan"),
     pytest.param({MF_DENSITY: float("inf")}, id="density-is-infinite"),
     pytest.param({MF_DENSITY: -1.0}, id="density-is-negative"),
+    pytest.param({MF_FILAMENT_DIAMETER: 0}, id="diameter-is-zero"),
     pytest.param({MF_MATERIAL_TYPE: [1, 2]}, id="material-type-is-a-list"),
     pytest.param({MF_NOMINAL_NETTO_FULL_WEIGHT: float("inf")}, id="weight-is-infinite"),
     pytest.param({_ACTUAL_NETTO_FULL_WEIGHT: float("nan")}, id="measured-weight-is-nan"),
