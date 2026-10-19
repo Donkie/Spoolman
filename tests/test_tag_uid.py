@@ -61,7 +61,7 @@ def test_rejects_uid_longer_than_the_column():
     """An over-long UID is a 400, not a database error."""
     normalize_uid("A" * UID_MAX_LENGTH)  # the limit itself is fine
     with pytest.raises(ValueError, match="at most"):
-        normalize_uid("A" * (UID_MAX_LENGTH + 1))
+        normalize_uid("A" * (UID_MAX_LENGTH + 2))  # even, so the odd-length check does not fire first
 
 
 def test_separators_do_not_count_towards_the_length_limit():

@@ -247,8 +247,9 @@ def _decode_payload(tag_format: str | None, payload_b64: str | None, uid: str) -
         # ValueError: non-ASCII text is not base64 at all, and must not turn the scan into a 500.
         return None
     try:
-        # normalize_uid accepts an odd number of hex digits, which fromhex rejects. The UID only
-        # feeds the instance-id derivation, so without one the decode still proceeds.
+        # normalize_uid rejects odd-length UIDs before this point, so fromhex only fails on input
+        # from other callers. The UID only feeds the instance-id derivation, so without one the
+        # decode still proceeds.
         uid_bytes: bytes | None = bytes.fromhex(uid)
     except ValueError:
         uid_bytes = None
