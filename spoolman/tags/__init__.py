@@ -86,8 +86,6 @@ def normalize_uid(uid: str) -> str:
         raise ValueError("A tag UID must contain a whole number of bytes (an even number of hex characters).")
     if len(normalized) > UID_MAX_LENGTH:
         raise ValueError(f"A tag UID can be at most {UID_MAX_LENGTH} hex characters.")
-    if len(normalized) % 2:
-        raise ValueError("A tag UID must contain a whole number of bytes (an even number of hex characters).")
     return normalized
 
 
