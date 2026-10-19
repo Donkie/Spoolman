@@ -285,6 +285,7 @@
     "labels.hintNowrap": "Le texte reste sur une seule ligne ; ce qui dépasse la largeur est coupé.",
     "labels.hintSwatch": "Rempli avec la ou les couleurs du filament de la bobine au moment de l’impression.",
     "labels.hintWrap": "Encadrez un champ pour le masquer lorsqu’il est vide :",
+    "labels.imageDesc": "",
     "labels.imageZipNote": "Au-delà de {{threshold}} étiquettes, le tout est livré dans un seul fichier zip.",
     "labels.insertField": "Insérer un champ",
     "labels.kind.qr": "QR code",

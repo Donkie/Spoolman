@@ -80,8 +80,8 @@ export function filamentDraftFrom(f: Filament, vendorName: string): FilamentDraf
 		multiColorDirection: undefined,
 		density: String(f.density),
 		diameter: String(f.diameter),
-		nozzleTemp: f.nozzleTemp ? String(f.nozzleTemp) : '',
-		bedTemp: f.bedTemp ? String(f.bedTemp) : '',
+		nozzleTemp: f.nozzleTemp != null ? String(f.nozzleTemp) : '',
+		bedTemp: f.bedTemp != null ? String(f.bedTemp) : '',
 		articleNumber: '',
 		comment: f.comment
 	};
@@ -91,8 +91,8 @@ export function filamentDraftFrom(f: Filament, vendorName: string): FilamentDraf
 export function filamentWeightsFrom(f: Filament): FilamentWeights {
 	return {
 		weight: String(f.weight || 1000),
-		spoolWeight: f.spoolWeight ? String(f.spoolWeight) : '',
-		price: f.price ? String(f.price) : ''
+		spoolWeight: f.spoolWeight != null ? String(f.spoolWeight) : '',
+		price: f.price != null ? String(f.price) : ''
 	};
 }
 
@@ -178,15 +178,6 @@ function num(v: string): number | undefined {
 	return parseDecimal(v) ?? undefined;
 }
 
-/**
- * Same, but treating zero as "not given". The weight/price trio is optional on a
- * filament and a recorded zero says nothing a missing value doesn't, so a blank
- * and a typed 0 are sent identically rather than pinning the record to 0.
- */
-function numPos(v: string): number | undefined {
-	return num(v) || undefined;
-}
-
 /** Turn a validated draft into the body {@link spoolSource.createFilament} expects. */
 export function toNewFilamentDraft(
 	draft: FilamentDraft,
@@ -200,14 +191,14 @@ export function toNewFilamentDraft(
 		// Both are required and > 0 by the time this runs, so the fallbacks below are
 		// only there to keep the types honest.
 		density: num(draft.density) ?? 0,
-		diameter: numPos(draft.diameter) ?? Number(DEFAULT_DIAMETER),
-		weight: numPos(weights.weight),
-		spoolWeight: numPos(weights.spoolWeight),
+		diameter: num(draft.diameter) ?? Number(DEFAULT_DIAMETER),
+		weight: num(weights.weight) || undefined,
+		spoolWeight: num(weights.spoolWeight),
 		colors: draft.colors,
 		multiColorDirection: draft.multiColorDirection,
-		nozzleTemp: numPos(draft.nozzleTemp),
-		bedTemp: numPos(draft.bedTemp),
-		price: numPos(weights.price),
+		nozzleTemp: num(draft.nozzleTemp),
+		bedTemp: num(draft.bedTemp),
+		price: num(weights.price),
 		articleNumber: draft.articleNumber.trim() || undefined,
 		comment: draft.comment.trim() || undefined,
 		extra

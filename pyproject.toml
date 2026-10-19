@@ -24,8 +24,7 @@ dependencies = [
     "httpx~=0.28",
     "hishel~=0.1",
     "aiomysql[rsa]~=0.3",
-    "influxdb-client>=1.50.0",
-    # spoolman.database.tag imports spoolman.tag_decode, which imports the OpenPrintTag
+    # spoolman.database.tag imports spoolman.tags.decode, which imports the OpenPrintTag
     # codec unconditionally to decode POST /tag/scan payloads -- that module is on the
     # import path of every startup, not just tests, so this has to be a real dependency.
     # Capped below 6: cbor2 6.x moved its accelerated extension to a Rust build

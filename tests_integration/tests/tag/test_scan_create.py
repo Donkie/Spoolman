@@ -100,7 +100,7 @@ def test_create_true_on_an_already_matched_tag_does_not_recreate(random_filament
     try:
         httpx.post(f"{URL}/api/v1/spool/{spool['id']}/tag", json={"uid": uid}).raise_for_status()
 
-        payload = _payload_b64({MF_MATERIAL_TYPE: MATERIAL_TYPE_PLA})
+        payload = _payload_b64({8: 0, MF_MATERIAL_TYPE: MATERIAL_TYPE_PLA})  # 8: material_class FFF
         scan = httpx.post(
             f"{URL}/api/v1/tag/scan",
             json={

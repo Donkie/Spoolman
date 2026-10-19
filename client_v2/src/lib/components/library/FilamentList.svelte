@@ -138,7 +138,7 @@
 			{/each}
 		{:else}
 			{#each flatVMs as vm (vm.spool.id)}
-				<SpoolRow {vm} showSwatch indent={14} />
+				<SpoolRow showLotNumbers={libraryState.showLotNumbers} {vm} showSwatch indent={14} />
 			{/each}
 		{/if}
 

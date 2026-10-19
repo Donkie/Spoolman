@@ -71,7 +71,7 @@ test("the filter menu searches its properties, archived included", async ({ page
   await searchBox(menu).fill("lot");
   // A substring match, not a fuzzy one: "Location" contains those letters in
   // order but not together, and must not be offered here.
-  expect(await itemLabels(menu)).toEqual(["Lot Nr"]);
+  expect(await itemLabels(menu)).toEqual(["Lot Nr", "Show lot numbers"]);
 
   // "Show Archived" is a filter like any other and answers to the same box.
   await searchBox(menu).fill("arch");
@@ -100,4 +100,22 @@ test("the group menu is short enough to need no search box", async ({ page }) =>
 
   await expect(menu.getByRole("button", { name: "None (flat)" })).toBeVisible();
   await expect(searchBox(menu)).toHaveCount(0);
+});
+
+test("lot numbers toggle is searchable and updates the URL", async ({ page }) => {
+  await openApp(page);
+  let menu = await openToolbarMenu(page, "Filter");
+  await searchBox(menu).fill("show lot");
+  const toggle = menu.getByRole("menuitemcheckbox", { name: "Show lot numbers" });
+  await expect(toggle).toHaveAttribute("aria-checked", "false");
+  await toggle.click();
+  await expect(menu).toBeHidden();
+  await expect(page).toHaveURL(/lots=1/);
+  menu = await openToolbarMenu(page, "Filter");
+  await expect(menu.getByRole("menuitemcheckbox", { name: "Show lot numbers" })).toHaveAttribute("aria-checked", "true");
+  await searchBox(menu).fill("arch");
+  await expect(menu.getByRole("menuitemcheckbox", { name: "Show lot numbers" })).toHaveCount(0);
+  await searchBox(menu).fill("show lot");
+  await menu.getByRole("menuitemcheckbox", { name: "Show lot numbers" }).click();
+  await expect(page).not.toHaveURL(/lots=1/);
 });

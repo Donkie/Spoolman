@@ -203,20 +203,32 @@ class HttpSpoolSource {
 		return { items: cacheSpools(items), total };
 	}
 
-	/**
-	 * Load a batch of filaments for the label picker/preview, newest first, and
-	 * cache them. Filament catalogs are far smaller than spool inventories, so a
-	 * single generous page covers virtually every library; the label picker also
-	 * has a search box for anything past the cap.
-	 */
-	async listFilaments(limit = 1000, signal?: AbortSignal): Promise<Filament[]> {
-		const items = await getJson<Json[]>('/filament', { limit, sort: 'id:desc' }, signal);
-		const filaments = items.map((f) => {
+	/** Load and cache one page of filaments, including the catalog total. */
+	async listFilamentPage(
+		query: Pick<SpoolQuery, 'sort' | 'limit' | 'offset' | 'signal'>
+	): Promise<Page<Filament>> {
+		const { items, total } = await getList(
+			'/filament',
+			{ sort: sortParam(query.sort), limit: query.limit, offset: query.offset },
+			query.signal
+		);
+		const filaments = (items as Json[]).map((f) => {
 			if (f.vendor) inventory.upsertVendor(mapVendor(f.vendor));
 			return mapFilament(f);
 		});
 		inventory.upsertFilaments(filaments);
-		return filaments;
+		return { items: filaments, total };
+	}
+
+	/** Load a batch for label previews, newest first. */
+	async listFilaments(limit = 1000, signal?: AbortSignal): Promise<Filament[]> {
+		const { items } = await this.listFilamentPage({
+			sort: [{ field: 'id', dir: 'desc' }],
+			limit,
+			offset: 0,
+			signal
+		});
+		return items;
 	}
 
 	async searchFilaments(query: string, limit = 8): Promise<Filament[]> {
@@ -261,7 +273,7 @@ class HttpSpoolSource {
 	 */
 	async importExternalFilament(ext: ExternalFilament): Promise<Filament> {
 		// Already imported?
-		const existing = await getJson<Json[]>('/filament', { external_id: ext.id });
+		const existing = await getJson<Json[]>('/filament', { external_id: quote(ext.id) });
 		if (existing.length) {
 			if (existing[0].vendor) inventory.upsertVendor(mapVendor(existing[0].vendor));
 			const f = mapFilament(existing[0]);
@@ -269,19 +281,14 @@ class HttpSpoolSource {
 			return f;
 		}
 
-		// Get-or-create the vendor (matched by external_id = manufacturer name).
-		let vendorId: number;
-		const vendors = await getJson<Json[]>('/vendor', { external_id: ext.manufacturer });
+		// Match the vendor by external_id first, then by name.
+		let vendorId: number | undefined;
+		const vendors = await getJson<Json[]>('/vendor', { external_id: quote(ext.manufacturer) });
 		if (vendors.length) {
 			inventory.upsertVendor(mapVendor(vendors[0]));
 			vendorId = vendors[0].id;
 		} else {
-			const created = await postJson<Json>('/vendor', {
-				name: ext.manufacturer,
-				external_id: ext.manufacturer
-			});
-			inventory.upsertVendor(mapVendor(created));
-			vendorId = created.id;
+			vendorId = await this.getOrCreateVendor(ext.manufacturer, undefined, ext.manufacturer);
 		}
 
 		const body: Json = {
@@ -312,10 +319,10 @@ class HttpSpoolSource {
 	/**
 	 * Find a vendor by (case-insensitive) name or create it; returns its id.
 	 *
-	 * `extra` only applies to a vendor this call creates — matching an existing
+	 * `extra` and `externalId` only apply to a vendor this call creates — matching an existing
 	 * name links that record, it never edits it.
 	 */
-	async getOrCreateVendor(name: string, extra?: Extra): Promise<number | undefined> {
+	async getOrCreateVendor(name: string, extra?: Extra, externalId?: string): Promise<number | undefined> {
 		const trimmed = name.trim();
 		if (!trimmed) return undefined;
 		const all = await getJson<Json[]>('/vendor');
@@ -326,6 +333,7 @@ class HttpSpoolSource {
 		}
 		const created = await postJson<Json>('/vendor', {
 			name: trimmed,
+			external_id: externalId,
 			extra: extra && Object.keys(extra).length ? extra : undefined
 		});
 		inventory.upsertVendor(mapVendor(created));
@@ -342,10 +350,10 @@ class HttpSpoolSource {
 			density: draft.density,
 			diameter: draft.diameter,
 			weight: draft.weight || undefined,
-			spool_weight: draft.spoolWeight || undefined,
-			settings_extruder_temp: draft.nozzleTemp || undefined,
-			settings_bed_temp: draft.bedTemp || undefined,
-			price: draft.price || undefined,
+			spool_weight: draft.spoolWeight,
+			settings_extruder_temp: draft.nozzleTemp,
+			settings_bed_temp: draft.bedTemp,
+			price: draft.price,
 			article_number: draft.articleNumber || undefined,
 			comment: draft.comment || undefined,
 			extra: draft.extra && Object.keys(draft.extra).length ? draft.extra : undefined,

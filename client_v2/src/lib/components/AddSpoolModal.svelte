@@ -20,6 +20,7 @@
 	import { ExternalSearch } from '$lib/api/externalSearch.svelte';
 	import { roundGrams, weightAuto } from '$lib/utils/format';
 	import { numErr } from '$lib/utils/validate';
+	import { parseDecimal } from '$lib/utils/numeric';
 	import {
 		FILAMENT_ADVANCED_KEYS,
 		FILAMENT_FIELD_ORDER,
@@ -277,9 +278,9 @@
 		chosen = c;
 		netWeight = String(cWeight(c) || 1000);
 		const sw = cSpoolWeight(c);
-		spoolWeight = sw ? String(sw) : '';
+		spoolWeight = sw != null ? String(sw) : '';
 		const p = cPrice(c);
-		price = p ? String(p) : '';
+		price = p != null ? String(p) : '';
 		resetSpoolForm();
 		step = 2;
 	}
@@ -382,24 +383,24 @@
 			}
 
 			const n = countN;
-			const net = Number(netWeight) || 0;
-			const spool = Number(spoolWeight) || 0;
+			const net = parseDecimal(netWeight) ?? 0;
+			const spool = parseDecimal(spoolWeight) ?? 0;
 			const body: Record<string, unknown> = {
 				filament_id: filamentId,
-				initial_weight: Number(netWeight) || undefined,
-				spool_weight: Number(spoolWeight) || undefined,
-				price: parseFloat(price) || undefined,
+				initial_weight: parseDecimal(netWeight) ?? undefined,
+				spool_weight: parseDecimal(spoolWeight) ?? undefined,
+				price: parseDecimal(price) ?? undefined,
 				location: location.trim() || undefined,
 				lot_nr: lot.trim() || undefined,
 				comment: comment.trim() || undefined
 			};
-			if (fillMode === 'used') body.used_weight = Number(fillWeight) || 0;
-			else if (fillMode === 'remaining') body.remaining_weight = Number(fillWeight) || 0;
-			else if (fillMode === 'measured')
+			if (fillMode === 'used') body.used_weight = parseDecimal(fillWeight) ?? undefined;
+			else if (fillMode === 'remaining') body.remaining_weight = parseDecimal(fillWeight) ?? undefined;
+			else if (fillMode === 'measured' && parseDecimal(fillWeight) !== null)
 				// Rounded, because this subtraction is where float dust gets born: weighing a full
 				// 1000 g spool on a 128.11 g core gives 1000 + 128.11 − 1128.11 = 2.3e-13, and a
 				// spool created with that much used is not an unused spool any more (#986).
-				body.used_weight = roundGrams(Math.max(0, net + spool - (Number(fillWeight) || 0)));
+				body.used_weight = roundGrams(Math.max(0, net + spool - (parseDecimal(fillWeight) ?? 0)));
 			if (firstUsed) body.first_used = firstUsed;
 			if (lastUsed) body.last_used = lastUsed;
 			if (Object.keys(extraValues).length) body.extra = extraValues;
@@ -440,9 +441,9 @@
 			// Cross-check the fill amount against the net/empty-spool weights above.
 			// Only applies the upper bound when those weights are themselves valid so
 			// we don't cascade an unrelated error into this field.
-			const netN = Number(netWeight);
-			const netValid = netWeight.trim() !== '' && Number.isFinite(netN) && netN > 0;
-			const spoolN = Number.isFinite(Number(spoolWeight)) ? Number(spoolWeight) : 0;
+			const netN = parseDecimal(netWeight);
+			const netValid = netN !== null && netN > 0;
+			const spoolN = parseDecimal(spoolWeight) ?? 0;
 			if (fillMode === 'measured') {
 				// Weight on the scale = filament left + empty spool, so it can be at most
 				// net+spool (full) and at least the empty-spool weight (nothing left).
@@ -725,8 +726,8 @@
 										<button
 											type="button"
 											class="preset"
-											class:on={Number(netWeight) === preset}
-											aria-pressed={Number(netWeight) === preset}
+											class:on={parseDecimal(netWeight) === preset}
+											aria-pressed={parseDecimal(netWeight) === preset}
 											onclick={() => (netWeight = String(preset))}>{weightAuto(preset)}</button
 										>
 									{/each}

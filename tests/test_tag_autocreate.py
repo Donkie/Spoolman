@@ -268,3 +268,63 @@ async def test_article_number_and_temperatures_fill_the_filament_settings(db: As
     assert spool.filament.article_number == "8435008400000"
     assert spool.filament.settings_extruder_temp == 215
     assert spool.filament.settings_bed_temp == 60
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        pytest.param({"density": 0.0}, id="zero-density"),
+        pytest.param({"diameter": 0.0}, id="zero-diameter"),
+        pytest.param({"diameter": 1e-200}, id="diameter-tiny"),
+        pytest.param({"diameter": 1e308}, id="diameter-huge"),
+    ],
+)
+@pytest.mark.asyncio
+async def test_zero_or_out_of_range_values_are_refused_not_defaulted(db: AsyncSession, overrides: dict):
+    fields = {"material": "PLA", "name": "PLA", "vendor_name": "Vendor", "density": 1.24, "diameter": 1.75}
+    fields.update(overrides)
+
+    with pytest.raises(ItemCreateError):
+        await create_spool_from_decoded_tag(db=db, uid=_uid(), tag_format="openprinttag", decoded=DecodedTag(**fields))
+
+    assert await _row_counts(db) == (0, 0, 0)
+
+
+@pytest.mark.asyncio
+async def test_missing_density_and_diameter_still_fall_back(db: AsyncSession):
+    decoded = DecodedTag(material="PLA", name="PLA")
+    spool = await create_spool_from_decoded_tag(db=db, uid=_uid(), tag_format="openprinttag", decoded=decoded)
+
+    assert spool.filament.diameter == pytest.approx(1.75)
+    assert spool.filament.density == pytest.approx(1.24)
+
+
+@pytest.mark.asyncio
+async def test_same_name_but_other_diameter_or_weight_is_a_new_filament(db: AsyncSession):
+    base = {"material": "PLA", "name": "PLA Black", "vendor_name": "Vendor"}
+    first = await create_spool_from_decoded_tag(
+        db=db, uid=_uid("1"), tag_format="openprinttag", decoded=DecodedTag(**base, diameter=1.75, weight=1000.0)
+    )
+    other_diameter = await create_spool_from_decoded_tag(
+        db=db, uid=_uid("2"), tag_format="openprinttag", decoded=DecodedTag(**base, diameter=2.85, weight=1000.0)
+    )
+    other_weight = await create_spool_from_decoded_tag(
+        db=db, uid=_uid("3"), tag_format="openprinttag", decoded=DecodedTag(**base, diameter=1.75, weight=500.0)
+    )
+
+    assert other_diameter.filament_id != first.filament_id
+    assert other_weight.filament_id != first.filament_id
+
+
+@pytest.mark.asyncio
+async def test_a_failure_partway_leaves_no_rows_behind(db: AsyncSession, monkeypatch: pytest.MonkeyPatch):
+    async def fail_link(**_kwargs: object) -> None:
+        raise RuntimeError("link failed after the spool was written")
+
+    monkeypatch.setattr("spoolman.database.tag.link_spool", fail_link)
+    decoded = DecodedTag(material="PLA", name="PLA", vendor_name="Vendor", weight=1000.0)
+
+    with pytest.raises(RuntimeError):
+        await create_spool_from_decoded_tag(db=db, uid=_uid(), tag_format="openprinttag", decoded=decoded)
+
+    assert await _row_counts(db) == (0, 0, 0)

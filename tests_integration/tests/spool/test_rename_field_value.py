@@ -5,6 +5,7 @@ import uuid
 from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 import pytest
@@ -177,3 +178,29 @@ def test_rename_location_rejects_too_long_a_value():
     """The location column is 64 characters, so an over-long value is a 400 and not a crash."""
     result = httpx.patch(rename_url("location"), json={"value": "Bottom", "new_value": "x" * 65})
     assert result.status_code == 400
+
+
+def test_rename_location_with_slash(random_filament: dict[str, Any]):
+    """Renaming a slash-containing location moves every spool to the new location."""
+    old_location = "Shelf 1/2"
+    new_location = "Shelf 3/4"
+    spool_ids = []
+    for location in (old_location, old_location, "Other shelf"):
+        result = httpx.post(
+            f"{URL}/api/v1/spool",
+            json={"filament_id": random_filament["id"], "location": location},
+        )
+        result.raise_for_status()
+        spool_ids.append(result.json()["id"])
+
+    try:
+        result = httpx.patch(
+            f"{URL}/api/v1/location/{quote(old_location, safe='')}",
+            json={"name": new_location},
+        )
+        result.raise_for_status()
+        assert result.json() == new_location
+        assert [_spool(spool_id)["location"] for spool_id in spool_ids] == [new_location, new_location, "Other shelf"]
+    finally:
+        for spool_id in spool_ids:
+            httpx.delete(f"{URL}/api/v1/spool/{spool_id}").raise_for_status()

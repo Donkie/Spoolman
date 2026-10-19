@@ -21,6 +21,7 @@ from spoolman.tags.decode import (
 from spoolman.tags.openprinttag import (
     META_AUX_REGION_OFFSET,
     MF_BRAND_NAME,
+    MF_FILAMENT_DIAMETER,
     MF_MATERIAL_TYPE,
     MF_NOMINAL_NETTO_FULL_WEIGHT,
     MF_PRIMARY_COLOR,
@@ -179,3 +180,9 @@ def test_odd_length_uid_still_decodes_without_an_instance_uid(monkeypatch: pytes
     payload_b64 = base64.b64encode(b"\x00").decode()
     assert tag_api._decode_payload("openprinttag", payload_b64, "ABC") is None  # noqa: SLF001
     assert seen["uid_bytes"] is None
+
+
+def test_zero_diameter_reaches_decoded_tag_as_zero() -> None:
+    """The codec must not turn a stated 0 into the 1.75 default before the database refuses it."""
+    raw = _build_openprinttag({MF_FILAMENT_DIAMETER: 0})
+    assert decode("openprinttag", raw).diameter == 0.0

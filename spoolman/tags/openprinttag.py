@@ -79,10 +79,11 @@ MATERIAL_CLASS_MAP: dict[int, str] = {
 }
 
 # UUID namespaces for deriving UUIDs from other fields
-UUID_NS_BRAND = uuid.UUID("5269dfb7-1559-440a-85be-aba5f3eff2d2")
-UUID_NS_MATERIAL = uuid.UUID("616fc86d-7d99-4953-96c7-46d2836b9be9")
-UUID_NS_PACKAGE = uuid.UUID("6f7d485e-db8d-4979-904e-a231cd6602b2")
 UUID_NS_INSTANCE = uuid.UUID("31062f81-b5bd-4f86-a5f8-46367e841508")
+
+# Nesting depth allowed in a tag's CBOR. OpenPrintTag needs three or four levels; the library's
+# default of 400 lets shared references nest until a small tag expands to megabytes.
+_MAX_CBOR_DEPTH = 8
 
 # Meta section field keys
 META_MAIN_REGION_OFFSET = 0
@@ -90,9 +91,6 @@ META_AUX_REGION_OFFSET = 2
 
 # Main section field keys (only the ones decoded below)
 MF_INSTANCE_UUID = 0
-MF_PACKAGE_UUID = 1
-MF_MATERIAL_UUID = 2
-MF_BRAND_UUID = 3
 MF_GTIN = 4
 MF_MATERIAL_CLASS = 8
 MF_MATERIAL_TYPE = 9
@@ -125,11 +123,8 @@ _NDEF_TNF_MEDIA_TYPE = 0x02
 class OpenPrintTagData:
     """The decoded fields of an OpenPrintTag NFC tag that Spoolman reads."""
 
-    # UUIDs
+    # UUID of this roll, if the tag carries one
     instance_uuid: str | None = None
-    package_uuid: str | None = None
-    material_uuid: str | None = None
-    brand_uuid: str | None = None
 
     # Identifiers
     gtin: int | None = None
@@ -164,13 +159,12 @@ class OpenPrintTagData:
 
     @property
     def effective_diameter(self) -> float:
-        """Get filament diameter, defaulting to 1.75mm per spec."""
-        return self.filament_diameter if self.filament_diameter else 1.75
+        """Get filament diameter, defaulting to 1.75mm per spec.
 
-    @property
-    def effective_weight(self) -> float | None:
-        """Get the best available net weight."""
-        return self.actual_netto_full_weight or self.nominal_netto_full_weight
+        A tag that states 0 keeps 0: the database layer refuses it, which is the decision point.
+        Defaulting here would turn a bad value into a plausible one.
+        """
+        return self.filament_diameter if self.filament_diameter is not None else 1.75
 
     @property
     def effective_instance_uuid(self) -> str | None:
@@ -179,38 +173,6 @@ class OpenPrintTagData:
             return self.instance_uuid
         if self.nfc_tag_uid:
             derived = uuid.uuid5(UUID_NS_INSTANCE, self.nfc_tag_uid)
-            return str(derived)
-        return None
-
-    @property
-    def effective_brand_uuid(self) -> str | None:
-        """Get brand UUID, deriving from brand_name if not explicit."""
-        if self.brand_uuid:
-            return self.brand_uuid
-        if self.brand_name:
-            derived = uuid.uuid5(UUID_NS_BRAND, self.brand_name.encode("utf-8"))
-            return str(derived)
-        return None
-
-    @property
-    def effective_material_uuid(self) -> str | None:
-        """Get material UUID, deriving from brand UUID + material_name if not explicit."""
-        if self.material_uuid:
-            return self.material_uuid
-        brand_uuid = self.effective_brand_uuid
-        if brand_uuid and self.material_name:
-            derived = uuid.uuid5(UUID_NS_MATERIAL, uuid.UUID(brand_uuid).bytes + self.material_name.encode("utf-8"))
-            return str(derived)
-        return None
-
-    @property
-    def effective_package_uuid(self) -> str | None:
-        """Get package UUID, deriving from brand UUID + GTIN if not explicit."""
-        if self.package_uuid:
-            return self.package_uuid
-        brand_uuid = self.effective_brand_uuid
-        if brand_uuid and self.gtin is not None:
-            derived = uuid.uuid5(UUID_NS_PACKAGE, uuid.UUID(brand_uuid).bytes + str(self.gtin).encode("utf-8"))
             return str(derived)
         return None
 
@@ -249,7 +211,7 @@ def _decode_cbor_map(raw: bytes) -> tuple[dict, int]:
     """
     buf = io.BytesIO(raw)
     try:
-        data = cbor2.load(buf)
+        data = cbor2.CBORDecoder(buf, max_depth=_MAX_CBOR_DEPTH).decode()
     except cbor2.CBORDecodeError as exc:
         raise ValueError(f"Invalid CBOR: {exc}") from exc
     if not isinstance(data, dict):
@@ -360,6 +322,19 @@ def _parse_ndef_records(ndef_data: bytes) -> bytes | None:
     return None
 
 
+_NFC_V_UID_LENGTH = 8
+_NFC_V_UID_LEAD_BYTE = 0xE0
+
+
+def _spec_order_uid(uid: bytes | None) -> bytes | None:
+    """Return an 8-byte NFC-V UID in specification order, which starts with E0."""
+    if uid is None or len(uid) != _NFC_V_UID_LENGTH:
+        return uid
+    if uid[-1] == _NFC_V_UID_LEAD_BYTE and uid[0] != _NFC_V_UID_LEAD_BYTE:
+        return uid[::-1]
+    return uid
+
+
 def decode_nfcv_memory(raw_bytes: bytes, nfc_tag_uid: bytes | None = None) -> OpenPrintTagData:
     """Decode OpenPrintTag data from raw NFC-V tag memory.
 
@@ -378,7 +353,7 @@ def decode_nfcv_memory(raw_bytes: bytes, nfc_tag_uid: bytes | None = None) -> Op
     if payload is None:
         raise ValueError("Could not find OpenPrintTag NDEF record in tag memory")
 
-    data = OpenPrintTagData(nfc_tag_uid=nfc_tag_uid)
+    data = OpenPrintTagData(nfc_tag_uid=_spec_order_uid(nfc_tag_uid))
 
     # Parse meta section (first CBOR object in payload)
     meta, meta_size = _decode_cbor_map(payload)
@@ -427,32 +402,55 @@ def _number(value: object) -> float:
 # (main-section CBOR key, OpenPrintTagData attribute, value caster) for every field that is a
 # plain cast with no further lookup. UUIDs, the enum-mapped fields and the color are handled
 # separately in _populate_main_fields.
-_SIMPLE_MAIN_FIELDS: list[tuple[int, str, type]] = [
-    (MF_GTIN, "gtin", int),
-    (MF_MATERIAL_NAME, "material_name", str),
-    (MF_BRAND_NAME, "brand_name", str),
+# Text is capped at the codec level: a crafted tag must not be able to make decoding allocate much.
+# Create also checks the real column limits, so a name that is too long is refused, not stored.
+_MAX_TEXT_LENGTH = 1024
+_INT32_MIN, _INT32_MAX = -(2**31), 2**31 - 1
+_GTIN_MAX = 2**63 - 1
+
+
+def _text(value: object) -> str:
+    """Read a CBOR text string. Byte strings, numbers and nested values are refused."""
+    if not isinstance(value, str) or len(value) > _MAX_TEXT_LENGTH:
+        raise TypeError("Expected a text string of reasonable length")
+    return value
+
+
+def _int_between(value: object, low: int, high: int) -> int:
+    """Read a CBOR integer in range. Booleans, floats, bignums and out-of-range values are refused."""
+    if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
+        raise TypeError("Expected an integer in range")
+    return value
+
+
+def _int32(value: object) -> int:
+    return _int_between(value, _INT32_MIN, _INT32_MAX)
+
+
+def _gtin(value: object) -> int:
+    return _int_between(value, 0, _GTIN_MAX)
+
+
+_SIMPLE_MAIN_FIELDS: list[tuple[int, str, object]] = [
+    (MF_GTIN, "gtin", _gtin),
+    (MF_MATERIAL_NAME, "material_name", _text),
+    (MF_BRAND_NAME, "brand_name", _text),
     (MF_DENSITY, "density", _number),
     (MF_FILAMENT_DIAMETER, "filament_diameter", _number),
     (MF_NOMINAL_NETTO_FULL_WEIGHT, "nominal_netto_full_weight", _number),
     (MF_ACTUAL_NETTO_FULL_WEIGHT, "actual_netto_full_weight", _number),
     (MF_EMPTY_CONTAINER_WEIGHT, "empty_container_weight", _number),
-    (MF_MIN_PRINT_TEMPERATURE, "min_print_temperature", int),
-    (MF_MAX_PRINT_TEMPERATURE, "max_print_temperature", int),
-    (MF_MIN_BED_TEMPERATURE, "min_bed_temperature", int),
-    (MF_MAX_BED_TEMPERATURE, "max_bed_temperature", int),
+    (MF_MIN_PRINT_TEMPERATURE, "min_print_temperature", _int32),
+    (MF_MAX_PRINT_TEMPERATURE, "max_print_temperature", _int32),
+    (MF_MIN_BED_TEMPERATURE, "min_bed_temperature", _int32),
+    (MF_MAX_BED_TEMPERATURE, "max_bed_temperature", _int32),
 ]
 
 
 def _populate_main_uuids(data: OpenPrintTagData, main: dict) -> None:
-    """Populate the CBOR-byte-string UUID fields from the decoded main CBOR map."""
+    """Populate the roll's own UUID from the decoded main CBOR map."""
     if MF_INSTANCE_UUID in main:
         data.instance_uuid = _parse_uuid(main[MF_INSTANCE_UUID])
-    if MF_PACKAGE_UUID in main:
-        data.package_uuid = _parse_uuid(main[MF_PACKAGE_UUID])
-    if MF_MATERIAL_UUID in main:
-        data.material_uuid = _parse_uuid(main[MF_MATERIAL_UUID])
-    if MF_BRAND_UUID in main:
-        data.brand_uuid = _parse_uuid(main[MF_BRAND_UUID])
 
 
 def _populate_main_fields(data: OpenPrintTagData, main: dict) -> None:

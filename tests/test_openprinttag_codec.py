@@ -17,7 +17,6 @@ from spoolman.tags.openprinttag import (
     AUX_CONSUMED_WEIGHT,
     META_AUX_REGION_OFFSET,
     MF_BRAND_NAME,
-    MF_BRAND_UUID,
     MF_DENSITY,
     MF_FILAMENT_DIAMETER,
     MF_GTIN,
@@ -25,19 +24,15 @@ from spoolman.tags.openprinttag import (
     MF_MATERIAL_CLASS,
     MF_MATERIAL_NAME,
     MF_MATERIAL_TYPE,
-    MF_MATERIAL_UUID,
     MF_MAX_BED_TEMPERATURE,
     MF_MAX_PRINT_TEMPERATURE,
     MF_MIN_BED_TEMPERATURE,
     MF_MIN_PRINT_TEMPERATURE,
     MF_NOMINAL_NETTO_FULL_WEIGHT,
-    MF_PACKAGE_UUID,
     MF_PRIMARY_COLOR,
-    UUID_NS_BRAND,
     UUID_NS_INSTANCE,
-    UUID_NS_MATERIAL,
-    UUID_NS_PACKAGE,
     OpenPrintTagData,
+    _decode_cbor_map,
     _parse_ndef_records,
     decode_nfcv_memory,
 )
@@ -112,56 +107,6 @@ def _build_tag(main: dict, aux: dict | None = None) -> bytes:
 
 
 # --- decode_nfcv_memory ---------------------------------------------------------
-
-
-def test_decode_full_tag_all_fields() -> None:
-    instance_uuid = uuid.uuid4()
-    brand_uuid = uuid.uuid4()
-    material_uuid = uuid.uuid4()
-    package_uuid = uuid.uuid4()
-
-    main = {
-        MF_INSTANCE_UUID: instance_uuid.bytes,
-        MF_PACKAGE_UUID: package_uuid.bytes,
-        MF_MATERIAL_UUID: material_uuid.bytes,
-        MF_BRAND_UUID: brand_uuid.bytes,
-        MF_GTIN: 1234567890123,
-        MF_MATERIAL_CLASS: 0,  # FFF
-        MF_MATERIAL_TYPE: 0,  # PLA
-        MF_MATERIAL_NAME: "PLA Galaxy Black",
-        MF_BRAND_NAME: "Prusament",
-        MF_NOMINAL_NETTO_FULL_WEIGHT: 1000.0,
-        MF_PRIMARY_COLOR: bytes([0x11, 0x22, 0x33, 0xFF]),
-        MF_DENSITY: 1.24,
-        MF_FILAMENT_DIAMETER: 1.75,
-        MF_MIN_PRINT_TEMPERATURE: 210,
-        MF_MAX_PRINT_TEMPERATURE: 230,
-        MF_MIN_BED_TEMPERATURE: 60,
-        MF_MAX_BED_TEMPERATURE: 70,
-    }
-    aux = {AUX_CONSUMED_WEIGHT: 123.4}
-
-    raw = _build_tag(main, aux)
-    data = decode_nfcv_memory(raw, nfc_tag_uid=b"\x04\xa2\xb3\xc4")
-
-    assert data.instance_uuid == str(instance_uuid)
-    assert data.package_uuid == str(package_uuid)
-    assert data.material_uuid == str(material_uuid)
-    assert data.brand_uuid == str(brand_uuid)
-    assert data.gtin == 1234567890123
-    assert data.material_class == "FFF"
-    assert data.material_type == "PLA"
-    assert data.material_name == "PLA Galaxy Black"
-    assert data.brand_name == "Prusament"
-    assert data.nominal_netto_full_weight == 1000.0
-    assert data.primary_color_hex == "112233"
-    assert data.density == 1.24
-    assert data.filament_diameter == 1.75
-    assert data.min_print_temperature == 210
-    assert data.max_print_temperature == 230
-    assert data.min_bed_temperature == 60
-    assert data.max_bed_temperature == 70
-    assert data.consumed_weight == 123.4
 
 
 def test_decode_minimal_tag_leaves_optional_fields_none() -> None:
@@ -293,16 +238,6 @@ def test_decode_handles_three_byte_tlv_length_and_long_ndef_record() -> None:
 # --- OpenPrintTagData computed properties ----------------------------------------
 
 
-def test_effective_weight_prefers_actual_over_nominal() -> None:
-    data = OpenPrintTagData(nominal_netto_full_weight=1000.0, actual_netto_full_weight=987.0)
-    assert data.effective_weight == 987.0
-
-
-def test_effective_weight_falls_back_to_nominal() -> None:
-    data = OpenPrintTagData(nominal_netto_full_weight=1000.0)
-    assert data.effective_weight == 1000.0
-
-
 def test_effective_diameter_defaults_to_175_when_absent() -> None:
     assert OpenPrintTagData().effective_diameter == 1.75
 
@@ -327,61 +262,6 @@ def test_effective_instance_uuid_none_when_nothing_to_derive_from() -> None:
     assert OpenPrintTagData().effective_instance_uuid is None
 
 
-def test_effective_brand_uuid_derives_from_brand_name() -> None:
-    data = OpenPrintTagData(brand_name="Prusament")
-    assert data.effective_brand_uuid == str(uuid.uuid5(UUID_NS_BRAND, b"Prusament"))
-
-
-def test_effective_brand_uuid_prefers_explicit_value() -> None:
-    explicit = str(uuid.uuid4())
-    data = OpenPrintTagData(brand_uuid=explicit, brand_name="Prusament")
-    assert data.effective_brand_uuid == explicit
-
-
-def test_effective_material_uuid_derives_from_brand_uuid_and_material_name() -> None:
-    data = OpenPrintTagData(brand_name="Prusament", material_name="PLA Galaxy Black")
-    brand_uuid = uuid.UUID(data.effective_brand_uuid)
-    expected = uuid.uuid5(UUID_NS_MATERIAL, brand_uuid.bytes + b"PLA Galaxy Black")
-    assert data.effective_material_uuid == str(expected)
-
-
-def test_effective_material_uuid_prefers_explicit_value() -> None:
-    explicit = str(uuid.uuid4())
-    data = OpenPrintTagData(material_uuid=explicit, brand_name="Prusament", material_name="PLA Galaxy Black")
-    assert data.effective_material_uuid == explicit
-
-
-def test_effective_material_uuid_none_without_brand_or_material_name() -> None:
-    assert OpenPrintTagData().effective_material_uuid is None
-    assert OpenPrintTagData(brand_name="Prusament").effective_material_uuid is None
-
-
-def test_effective_package_uuid_derives_from_brand_uuid_and_gtin() -> None:
-    data = OpenPrintTagData(brand_name="Prusament", gtin=8594173675001)
-    brand_uuid = uuid.UUID(data.effective_brand_uuid)
-    expected = uuid.uuid5(UUID_NS_PACKAGE, brand_uuid.bytes + b"8594173675001")
-    assert data.effective_package_uuid == str(expected)
-
-
-def test_effective_package_uuid_prefers_explicit_value() -> None:
-    explicit = str(uuid.uuid4())
-    data = OpenPrintTagData(package_uuid=explicit, brand_name="Prusament", gtin=8594173675001)
-    assert data.effective_package_uuid == explicit
-
-
-def test_effective_package_uuid_none_without_brand_or_gtin() -> None:
-    assert OpenPrintTagData().effective_package_uuid is None
-    assert OpenPrintTagData(brand_name="Prusament").effective_package_uuid is None
-
-
-# --- Real Prusa fixtures ---------------------------------------------------------
-# See tests/fixtures/openprinttag/README.md for provenance. Unlike every test above,
-# these dumps are not built by this project's own encoder -- they're real OpenPrintTag
-# wire data taken from Prusa's spec repo, so they're the actual proof that this codec
-# reads a real tag, not just its own idea of one (in particular: real tags use the
-# long-form NDEF record + 3-byte TLV length, which _build_tag never exercises).
-
-
 def test_decode_real_prusa_sample_tag() -> None:
     raw = (_FIXTURES_DIR / "prusa_sample_tag.bin").read_bytes()
     data = decode_nfcv_memory(raw)
@@ -398,6 +278,47 @@ def test_decode_real_prusa_sample_tag() -> None:
     assert data.min_bed_temperature == 40
     assert data.max_bed_temperature == 60
     assert data.instance_uuid == "473bb8cd-e129-45b8-9fcf-da1c3add9c47"
+
+
+def test_decode_full_tag_all_fields() -> None:
+    instance_uuid = uuid.uuid4()
+
+    main = {
+        MF_INSTANCE_UUID: instance_uuid.bytes,
+        MF_GTIN: 1234567890123,
+        MF_MATERIAL_CLASS: 0,  # FFF
+        MF_MATERIAL_TYPE: 0,  # PLA
+        MF_MATERIAL_NAME: "PLA Galaxy Black",
+        MF_BRAND_NAME: "Prusament",
+        MF_NOMINAL_NETTO_FULL_WEIGHT: 1000.0,
+        MF_PRIMARY_COLOR: bytes([0x11, 0x22, 0x33, 0xFF]),
+        MF_DENSITY: 1.24,
+        MF_FILAMENT_DIAMETER: 1.75,
+        MF_MIN_PRINT_TEMPERATURE: 210,
+        MF_MAX_PRINT_TEMPERATURE: 230,
+        MF_MIN_BED_TEMPERATURE: 60,
+        MF_MAX_BED_TEMPERATURE: 70,
+    }
+    aux = {AUX_CONSUMED_WEIGHT: 123.4}
+
+    raw = _build_tag(main, aux)
+    data = decode_nfcv_memory(raw, nfc_tag_uid=b"\x04\xa2\xb3\xc4")
+
+    assert data.instance_uuid == str(instance_uuid)
+    assert data.gtin == 1234567890123
+    assert data.material_class == "FFF"
+    assert data.material_type == "PLA"
+    assert data.material_name == "PLA Galaxy Black"
+    assert data.brand_name == "Prusament"
+    assert data.nominal_netto_full_weight == 1000.0
+    assert data.primary_color_hex == "112233"
+    assert data.density == 1.24
+    assert data.filament_diameter == 1.75
+    assert data.min_print_temperature == 210
+    assert data.max_print_temperature == 230
+    assert data.min_bed_temperature == 60
+    assert data.max_bed_temperature == 70
+    assert data.consumed_weight == 123.4
 
 
 def test_decode_real_prusa_test_vector_01() -> None:
@@ -426,7 +347,47 @@ def test_decode_real_prusa_test_vector_01() -> None:
     assert data.min_bed_temperature == 40
     assert data.max_bed_temperature == 60
 
-    assert data.effective_brand_uuid == "ae5ff34e-298e-50c9-8f77-92a97fb30b09"
-    assert data.effective_material_uuid == "1aaca54a-431f-5601-adf5-85dd018f487f"
-    assert data.effective_package_uuid == "6e0aece2-1daf-5f2a-ba20-697968ec7d14"
     assert data.effective_instance_uuid == "bf63e92d-9ca5-53d7-9fab-ffdd0240c585"
+
+
+def test_deeply_nested_cbor_is_refused_before_it_can_expand() -> None:
+    """Shared references nested level by level grow a small tag into megabytes unless depth is capped."""
+    nested: object = 1
+    for _ in range(20):
+        nested = [nested]
+    with pytest.raises(ValueError, match="Invalid CBOR"):
+        _decode_cbor_map(cbor2.dumps({0: nested}))
+
+
+def test_shared_reference_chain_is_refused_by_depth_cap() -> None:
+    """Each level reuses the level below twice (CBOR tags 28/29): small on the wire, huge when expanded."""
+    shared: object = 1
+    for _ in range(20):
+        shared = [shared, shared]
+    payload = cbor2.dumps({0: shared}, value_sharing=True)
+    assert len(payload) < 200  # the sharing is what keeps it small
+    with pytest.raises(ValueError, match="Invalid CBOR"):
+        _decode_cbor_map(payload)
+
+
+def test_zero_filament_diameter_is_kept_not_defaulted_to_175() -> None:
+    """A tag stating 0 must reach the database layer as 0, which refuses it, not as a plausible 1.75."""
+    raw = _build_tag({MF_FILAMENT_DIAMETER: 0})
+    assert decode_nfcv_memory(raw).effective_diameter == 0
+
+
+def test_overlong_text_field_makes_the_tag_undecodable() -> None:
+    raw = _build_tag({MF_BRAND_NAME: "x" * 2000})
+    with pytest.raises(TypeError):
+        decode_nfcv_memory(raw)
+
+
+def test_uid_reported_with_e0_last_is_read_in_specification_order() -> None:
+    """The spec writes the NFC-V UID starting with E0; some readers report it reversed."""
+    spec_order = bytes.fromhex("E0040108660715E3")
+    reader_order = spec_order[::-1]
+    raw = _build_tag({MF_BRAND_NAME: "Sunlu"})
+
+    data = decode_nfcv_memory(raw, nfc_tag_uid=reader_order)
+
+    assert data.effective_instance_uuid == str(uuid.uuid5(UUID_NS_INSTANCE, spec_order))

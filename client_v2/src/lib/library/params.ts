@@ -50,6 +50,8 @@ export interface LibraryState {
 	showArchived: boolean;
 	/** Also list filaments you hold no spools of, when grouping by filament. */
 	showEmpty: boolean;
+	/** Append lot numbers to spool row secondary text. */
+	showLotNumbers: boolean;
 	page: number;
 	pageSize: number;
 }
@@ -62,7 +64,7 @@ const VIEWS: LibraryView[] = ['spools', 'filaments', 'manufacturers'];
  *  holds. A URL naming none of them is the one that defers to the remembered
  *  view; naming any of them describes a view of its own, which is taken whole so
  *  a stored grouping never gets spliced onto a link's sort. */
-const VIEW_PARAMS = ['view', 'group', 'sort', 'dir', 'empty'];
+const VIEW_PARAMS = ['view', 'group', 'sort', 'dir', 'empty', 'lots'];
 
 const DEFAULTS = {
 	group: 'filament' as GroupMode,
@@ -70,6 +72,7 @@ const DEFAULTS = {
 	sortAsc: false,
 	showArchived: false,
 	showEmpty: false,
+	showLotNumbers: false,
 	page: 1,
 	pageSize: 20
 };
@@ -152,6 +155,7 @@ export function parseLibraryState(params: URLSearchParams): LibraryState {
 		filters: parseFilters(params.getAll('f')),
 		showArchived: params.get('arch') === '1',
 		showEmpty: params.get('empty') === '1',
+		showLotNumbers: params.get('lots') === '1',
 		page: parsePositiveInt(params.get('page'), DEFAULTS.page),
 		pageSize: parsePositiveInt(params.get('size'), DEFAULTS.pageSize)
 	};
@@ -164,7 +168,8 @@ export function parseLibraryState(params: URLSearchParams): LibraryState {
 			...common,
 			group: view === 'filaments' && group === 'none' ? 'none' : layout.group,
 			sortKey: sort && catalogSortField(view, sort) ? sort : layout.sortKey,
-			showEmpty: false
+			showEmpty: false,
+			showLotNumbers: false
 		};
 	}
 
@@ -210,6 +215,7 @@ function serializeState(s: LibraryState): string {
 	}
 	if (s.showArchived !== DEFAULTS.showArchived) p.set('arch', s.showArchived ? '1' : '0');
 	if (s.showEmpty !== DEFAULTS.showEmpty) p.set('empty', s.showEmpty ? '1' : '0');
+	if (s.showLotNumbers !== DEFAULTS.showLotNumbers) p.set('lots', s.showLotNumbers ? '1' : '0');
 	if (s.page !== DEFAULTS.page) p.set('page', String(s.page));
 	if (s.pageSize !== DEFAULTS.pageSize) p.set('size', String(s.pageSize));
 	if (s.selection) p.set('sel', `${s.selection.kind}:${s.selection.id}`);
@@ -251,7 +257,8 @@ export function rememberedViewHref(url: URL): string | null {
 		group === DEFAULTS.group &&
 		stored.sortKey === DEFAULTS.sortKey &&
 		stored.sortAsc === DEFAULTS.sortAsc &&
-		stored.showEmpty === DEFAULTS.showEmpty
+		stored.showEmpty === DEFAULTS.showEmpty &&
+		stored.showLotNumbers === DEFAULTS.showLotNumbers
 	) {
 		return null;
 	}
@@ -264,7 +271,8 @@ export function rememberedViewHref(url: URL): string | null {
 		group,
 		sortKey: stored.sortKey,
 		sortAsc: stored.sortAsc,
-		showEmpty: stored.showEmpty
+		showEmpty: stored.showEmpty,
+		showLotNumbers: stored.showLotNumbers
 	});
 	return `${url.pathname}?${qs}`;
 }
@@ -288,7 +296,8 @@ function navigate(next: LibraryState, replace = false): void {
 			group: next.group,
 			sortKey: next.sortKey,
 			sortAsc: next.sortAsc,
-			showEmpty: next.showEmpty
+			showEmpty: next.showEmpty,
+			showLotNumbers: next.showLotNumbers
 		});
 	}
 
@@ -370,6 +379,10 @@ export function setFilter(prop: string, value: string): void {
 
 export function setShowEmpty(showEmpty: boolean): void {
 	navigate({ ...currentState(), showEmpty, page: DEFAULTS.page });
+}
+
+export function setShowLotNumbers(showLotNumbers: boolean): void {
+	navigate({ ...currentState(), showLotNumbers, page: DEFAULTS.page });
 }
 
 export function setShowArchived(showArchived: boolean): void {

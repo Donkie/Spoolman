@@ -115,7 +115,16 @@ export interface RowIdentity {
  * only causes truncation — so we drop it and surface the part that actually
  * distinguishes this spool instead.
  */
-export function rowIdentity(vm: SpoolVM, ctx: RowContext): RowIdentity {
+export function rowIdentity(vm: SpoolVM, ctx: RowContext, showLotNumbers = false): RowIdentity {
+	const identity = contextualIdentity(vm, ctx);
+	const lot = showLotNumbers ? vm.spool.lot.trim() : '';
+	if (lot) {
+		identity.sub = [identity.sub, `${m['spool.fields.lotNr']()} ${lot}`].filter(Boolean).join(' · ');
+	}
+	return identity;
+}
+
+function contextualIdentity(vm: SpoolVM, ctx: RowContext): RowIdentity {
 	const { vendor, filament } = vm;
 	const dims = `${filament.material} · ${filament.diameter} mm`;
 	switch (ctx) {
@@ -139,9 +148,12 @@ export function rowIdentity(vm: SpoolVM, ctx: RowContext): RowIdentity {
 
 /**
  * Distinguish spools of one and the same filament. They're identical except for
- * how they've been used — and #id, fill, weight and location already sit in their
- * own columns — so there's nothing to make a bold title out of. The usage status
- * is all the row claims; the inspector has the rest.
+ * how they've been used and which lot they came from — #id, fill, weight and
+ * location already sit in their own columns — so there's nothing to make a bold
+ * title out of. The usage status leads, since every row can say it; the lot
+ * number joins only when the user turns it on and there is one (#1173). A long
+ * lot is what the ellipsis cuts, with the full text on hover. The inspector has
+ * the rest.
  *
  * The comment deliberately stays out of it. It reads like a label on the handful
  * of spools whose owner treats it as one, but it's a free-form textarea: people

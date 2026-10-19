@@ -195,7 +195,9 @@ async def scan(
             # ordinary match rather than surfacing a conflict for a create nobody asked to see.
             db_spool = await tag_db.find_spool_by_uid(db, uid)
         except ItemCreateError:
-            logger.exception("Failed to auto-create a spool from decoded tag %s", uid)
+            logger.warning("Refused to auto-create a spool from decoded tag %s", uid, exc_info=True)
+            # Values we refused to store must not reach the client either: report the tag as undecodable.
+            decoded = None
 
     scan_relay.register(reader_id, body.name, uid)
 
@@ -241,7 +243,8 @@ def _decode_payload(tag_format: str | None, payload_b64: str | None, uid: str) -
         return None
     try:
         raw = base64.b64decode(payload_b64, validate=True)
-    except binascii.Error:
+    except (binascii.Error, ValueError):
+        # ValueError: non-ASCII text is not base64 at all, and must not turn the scan into a 500.
         return None
     try:
         # normalize_uid accepts an odd number of hex digits, which fromhex rejects. The UID only

@@ -182,15 +182,33 @@
 	/>
 	{#if !collapsed && !noSpools}
 		{#each inUse as vm (vm.spool.id)}
-			<SpoolRow {vm} {showSwatch} indent={26} context={group.field} />
+			<SpoolRow
+				showLotNumbers={libraryState.showLotNumbers}
+				{vm}
+				{showSwatch}
+				indent={26}
+				context={group.field}
+			/>
 		{/each}
 		{#each unusedByFilament as unused (unused[0].spool.id)}
 			{#if unused.length === 1}
 				<!-- A lone unused spool gains nothing from a collapsing header — it just
 				     adds a click and a row — so render it inline like the used spools. -->
-				<SpoolRow vm={unused[0]} {showSwatch} indent={26} context={group.field} />
+				<SpoolRow
+					showLotNumbers={libraryState.showLotNumbers}
+					vm={unused[0]}
+					{showSwatch}
+					indent={26}
+					context={group.field}
+				/>
 			{:else}
-				<UnusedRow {unused} {showSwatch} indent={26} context={group.field} />
+				<UnusedRow
+					showLotNumbers={libraryState.showLotNumbers}
+					{unused}
+					{showSwatch}
+					indent={26}
+					context={group.field}
+				/>
 			{/if}
 		{/each}
 		{#if moreCount > 0}
