@@ -64,7 +64,7 @@ const VIEWS: LibraryView[] = ['spools', 'filaments', 'manufacturers'];
  *  holds. A URL naming none of them is the one that defers to the remembered
  *  view; naming any of them describes a view of its own, which is taken whole so
  *  a stored grouping never gets spliced onto a link's sort. */
-const VIEW_PARAMS = ['view', 'group', 'sort', 'dir', 'empty', 'lots'];
+const VIEW_PARAMS = ['view', 'group', 'sort', 'dir', 'empty', 'lots', 'size'];
 
 const DEFAULTS = {
 	group: 'filament' as GroupMode,
@@ -229,7 +229,7 @@ function currentState(): LibraryState {
 
 /**
  * Where entering the Library on `url` should actually land: the same view with
- * the remembered grouping and sort spelled out in the query string, or null when
+ * the remembered grouping, sort and page size spelled out in the query string, or null when
  * the URL already describes a view (or there's nothing worth restoring). The
  * Library page navigates there on entry, replacing the history entry — see
  * routes/+page.svelte.
@@ -258,7 +258,8 @@ export function rememberedViewHref(url: URL): string | null {
 		stored.sortKey === DEFAULTS.sortKey &&
 		stored.sortAsc === DEFAULTS.sortAsc &&
 		stored.showEmpty === DEFAULTS.showEmpty &&
-		stored.showLotNumbers === DEFAULTS.showLotNumbers
+		stored.showLotNumbers === DEFAULTS.showLotNumbers &&
+		stored.pageSize === DEFAULTS.pageSize
 	) {
 		return null;
 	}
@@ -272,7 +273,8 @@ export function rememberedViewHref(url: URL): string | null {
 		sortKey: stored.sortKey,
 		sortAsc: stored.sortAsc,
 		showEmpty: stored.showEmpty,
-		showLotNumbers: stored.showLotNumbers
+		showLotNumbers: stored.showLotNumbers,
+		pageSize: stored.pageSize
 	});
 	return `${url.pathname}?${qs}`;
 }
@@ -297,7 +299,8 @@ function navigate(next: LibraryState, replace = false): void {
 			sortKey: next.sortKey,
 			sortAsc: next.sortAsc,
 			showEmpty: next.showEmpty,
-			showLotNumbers: next.showLotNumbers
+			showLotNumbers: next.showLotNumbers,
+			pageSize: next.pageSize
 		});
 	}
 
