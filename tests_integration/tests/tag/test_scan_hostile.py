@@ -107,11 +107,10 @@ def test_hostile_values_without_create_still_scan_normally(override: dict[int, A
     _assert_list_endpoints_still_work()
 
 
-def test_odd_length_uid_scans_instead_of_erroring():
-    """normalize_uid accepts an odd number of hex digits; decoding must not turn that into a 500."""
+def test_odd_length_uid_is_refused_with_400():
+    """normalize_uid rejects an odd number of hex digits, so the scan answers 400 rather than decoding."""
     result = _scan(_BASE_MAIN, uid="ABC")
-    assert_httpx_success(result)
-    assert result.json()["uid"] == "ABC"
+    assert result.status_code == 400
     _assert_list_endpoints_still_work()
 
 

@@ -84,14 +84,15 @@ def validate_extra_field_value(field: ExtraFieldParameters, value: str) -> None:
         if not isinstance(data, str):
             raise ValueError("Value is not a string.")
     elif field.field_type == ExtraFieldType.integer:
-        if not isinstance(data, int):
+        # Python bool is a subclass of int, but JSON true/false are not integer values.
+        if not isinstance(data, int) or isinstance(data, bool):
             raise ValueError("Value is not an integer.")
     elif field.field_type == ExtraFieldType.integer_range:
         if not isinstance(data, list):
             raise ValueError("Value is not a list.")
         if len(data) != 2:  # noqa: PLR2004
             raise ValueError("Value list must have exactly two values.")
-        if not all(isinstance(item, int) or item is None for item in data):
+        if not all((isinstance(item, int) and not isinstance(item, bool)) or item is None for item in data):
             raise ValueError("Value list must contain only integers or null.")
     elif field.field_type == ExtraFieldType.float:
         if not isinstance(data, (float, int)) or isinstance(data, bool):

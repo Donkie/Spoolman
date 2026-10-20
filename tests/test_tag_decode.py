@@ -165,7 +165,7 @@ def test_any_codec_failure_is_a_soft_fail(monkeypatch: pytest.MonkeyPatch) -> No
 
 
 def test_odd_length_uid_still_decodes_without_an_instance_uid(monkeypatch: pytest.MonkeyPatch) -> None:
-    """normalize_uid accepts an odd number of hex digits; fromhex does not. The scan must not 500."""
+    """A UID that fromhex rejects must not turn the decode into a 500. normalize_uid stops odd lengths earlier."""
     import base64  # noqa: PLC0415
 
     from spoolman.api.v1 import tag as tag_api  # noqa: PLC0415
