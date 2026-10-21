@@ -376,7 +376,7 @@ def decode_nfcv_memory(raw_bytes: bytes, nfc_tag_uid: bytes | None = None) -> Op
         try:
             aux_data, _ = _decode_cbor_map(payload[aux_offset:])
             if AUX_CONSUMED_WEIGHT in aux_data:
-                data.consumed_weight = float(aux_data[AUX_CONSUMED_WEIGHT])
+                data.consumed_weight = _number(aux_data[AUX_CONSUMED_WEIGHT])
         except (cbor2.CBORDecodeError, TypeError, ValueError):
             logger.debug("Could not decode aux section")
 
