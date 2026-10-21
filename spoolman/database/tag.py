@@ -271,6 +271,22 @@ def _check_finite(*values: float | None) -> None:
 _MIN_DIAMETER_MM = 0.5
 _MAX_DIAMETER_MM = 5.0
 
+# Density in g/cm3. Covers every material in APPROXIMATE_DENSITY_BY_MATERIAL, including
+# heavily metal-filled composites, with margin. Same reasoning as diameter: a value outside
+# this range breaks length_from_weight's weight/density division when the spool is read back.
+_MIN_DENSITY_G_CM3 = 0.5
+_MAX_DENSITY_G_CM3 = 10.0
+
+# Weight in grams. 50kg is well over twice the heaviest real spool; same length-math concern.
+_MIN_WEIGHT_G = 1.0
+_MAX_WEIGHT_G = 50000.0
+
+
+def _check_in_range(label: str, value: float | None, low: float, high: float) -> None:
+    """Refuse a value outside a sane physical range. None (field not on the tag) passes."""
+    if value is not None and not low <= value <= high:
+        raise ItemCreateError(f"Decoded {label} {value} is outside the supported range.")
+
 
 async def _find_filament_for_product(
     db: AsyncSession,
@@ -360,8 +376,11 @@ async def create_spool_from_decoded_tag(
     density = decoded.density if decoded.density is not None else tag_decode.density_or_fallback(decoded.material)
     diameter = decoded.diameter if decoded.diameter is not None else 1.75
     _check_finite(density, diameter, decoded.weight, decoded.initial_weight, decoded.spool_weight)
-    if not _MIN_DIAMETER_MM <= diameter <= _MAX_DIAMETER_MM:
-        raise ItemCreateError(f"Decoded diameter {diameter} mm is outside the supported range.")
+    _check_in_range("diameter", diameter, _MIN_DIAMETER_MM, _MAX_DIAMETER_MM)
+    _check_in_range("density", density, _MIN_DENSITY_G_CM3, _MAX_DENSITY_G_CM3)
+    _check_in_range("weight", decoded.weight, _MIN_WEIGHT_G, _MAX_WEIGHT_G)
+    _check_in_range("initial_weight", decoded.initial_weight, _MIN_WEIGHT_G, _MAX_WEIGHT_G)
+    _check_in_range("spool_weight", decoded.spool_weight, _MIN_WEIGHT_G, _MAX_WEIGHT_G)
 
     # Everything is validated before the first write. Vendor, filament and spool are committed
     # one by one, so a value the response models reject would leave rows behind that break
