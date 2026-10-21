@@ -88,14 +88,32 @@ def _conflict(uid: str, existing: models.Tag) -> TagConflictError:
     return TagConflictError(f"Tag {uid} is already linked to {existing.target_type} {existing.target_value}.")
 
 
-async def _link(db: AsyncSession, target: Target, uid: str, tag_format: str | None) -> models.Tag:
-    """Link an already-normalized UID to a loaded spool or filament. See `link_spool`."""
+async def _link(
+    db: AsyncSession,
+    target: Target,
+    uid: str,
+    tag_format: str | None,
+    *,
+    commit: bool = True,
+) -> models.Tag:
+    """Link an already-normalized UID to a loaded spool or filament. See `link_spool`.
+
+    commit=False flushes instead of committing and skips the changed event, for a caller
+    that is batching this write into a larger transaction (see
+    spoolman.database.tag.create_spool_from_decoded_tag) and will commit and notify once,
+    itself, when everything has succeeded. The IntegrityError handling below is unchanged
+    either way: flush raises the same error a commit would, and rolling back also undoes
+    whatever else this transaction flushed earlier -- which is the point, for that caller.
+    """
     existing = await _get_tag_by_uid(db, uid)
     if existing is not None:
         if not _holds(existing, target):
             raise _conflict(uid, existing)
         if tag_format is not None and existing.format != tag_format:
             existing.format = tag_format
+            if not commit:
+                await db.flush()
+                return existing
             await db.commit()
             await _changed(target)
         return existing
@@ -108,6 +126,9 @@ async def _link(db: AsyncSession, target: Target, uid: str, tag_format: str | No
     )
     target.tags.append(tag)
     try:
+        if not commit:
+            await db.flush()
+            return tag
         await db.commit()
     except IntegrityError:
         # Two clients linked the same UID at the same time and the unique index caught
@@ -145,6 +166,7 @@ async def link_spool(
     spool_id: int,
     uid: str,
     tag_format: str | None = None,
+    commit: bool = True,
 ) -> models.Tag:
     """Link a physical tag to a spool.
 
@@ -157,6 +179,7 @@ async def link_spool(
         spool_id: The spool to link the tag to.
         uid: The tag UID in any shape; normalized here.
         tag_format: Optional tag format name, e.g. "ntag".
+        commit: See `_link`. False for a caller batching this into a larger transaction.
 
     Returns:
         models.Tag: The linked tag.
@@ -169,7 +192,7 @@ async def link_spool(
     """
     uid = normalize_uid(uid)
     tag_format = normalize_format(tag_format)
-    return await _link(db, await spool.get_by_id(db, spool_id), uid, tag_format)
+    return await _link(db, await spool.get_by_id(db, spool_id), uid, tag_format, commit=commit)
 
 
 async def link_filament(
@@ -334,32 +357,6 @@ async def _find_filament_for_product(
     return None
 
 
-async def _discard_created(
-    db: AsyncSession,
-    spool_id: int | None,
-    filament_id: int | None,
-    vendor_id: int | None,
-) -> None:
-    """Remove the rows one create call made, newest first, so a refused or failed scan leaves nothing.
-
-    Each create commits on its own, so a rollback alone cannot undo them. Rows this call did not
-    create (a reused filament, an existing vendor) are never touched.
-    """
-    await db.rollback()
-    for label, row_id, delete in (
-        ("spool", spool_id, spool.delete),
-        ("filament", filament_id, filament.delete),
-        ("vendor", vendor_id, vendor.delete),
-    ):
-        if row_id is None:
-            continue
-        # A failed delete must not replace the error that caused the rollback: log it and carry on.
-        try:
-            await delete(db, row_id)
-        except Exception:
-            logger.exception("Could not remove %s %s after a failed tag create; check it manually", label, row_id)
-
-
 async def create_spool_from_decoded_tag(
     *,
     db: AsyncSession,
@@ -387,8 +384,9 @@ async def create_spool_from_decoded_tag(
 
     Raises:
         ItemCreateError: If the decoded values are not storable. Nothing is written in that case.
-        TagConflictError: If another request linked this UID first. The rows this call created
-            are removed again, and callers should fall back to `find_spool_by_uid`.
+        TagConflictError: If another request linked this UID first. Vendor, filament, spool and
+            tag are one transaction here, so the rollback alone undoes everything this call
+            flushed; callers should fall back to `find_spool_by_uid`.
 
     """
     uid = normalize_uid(uid)
@@ -404,9 +402,7 @@ async def create_spool_from_decoded_tag(
     _check_in_range("initial_weight", decoded.initial_weight, _MIN_WEIGHT_G, _MAX_WEIGHT_G)
     _check_in_range("spool_weight", decoded.spool_weight, _MIN_WEIGHT_G, _MAX_WEIGHT_G)
 
-    # Everything is validated before the first write. Vendor, filament and spool are committed
-    # one by one, so a value the response models reject would leave rows behind that break
-    # GET /filament and GET /spool until someone deletes them by hand.
+    # Everything is validated before the first write.
     try:
         # Local imports: the API modules import this one, so importing them at module level
         # would be circular.
@@ -432,14 +428,19 @@ async def create_spool_from_decoded_tag(
     except ValidationError as e:
         raise ItemCreateError(f"Decoded tag values are not storable: {e}") from e
 
-    vendor_id = filament_id = spool_id = None
+    # Vendor, filament, spool and the tag link are flushed, not committed, so a value a later
+    # step refuses (or a concurrent request winning a UID race) rolls back everything this call
+    # flushed in one step -- no manual per-row cleanup, no window where another request can
+    # reuse a row that then gets deleted out from under it. Events are sent only after the one
+    # commit below, and only for rows this call actually created.
+    vendor_created = filament_created = False
     try:
         vendor_item = None
         if decoded.vendor_name:
             vendor_item = await _find_vendor_by_exact_name(db, decoded.vendor_name)
             if vendor_item is None:
-                vendor_item = await vendor.create(db=db, name=decoded.vendor_name)
-                vendor_id = vendor_item.id
+                vendor_item = await vendor.create(db=db, name=decoded.vendor_name, commit=False)
+                vendor_created = True
 
         filament_item = await _find_filament_for_product(db, decoded, vendor_item, diameter)
         if filament_item is None:
@@ -456,21 +457,29 @@ async def create_spool_from_decoded_tag(
                 color_hex=decoded.color_hex,
                 settings_extruder_temp=decoded.extruder_temp,
                 settings_bed_temp=decoded.bed_temp,
+                commit=False,
             )
-            filament_id = filament_item.id
+            filament_created = True
 
         spool_item = await spool.create(
             db=db,
             filament_id=filament_item.id,
             initial_weight=decoded.initial_weight,
             spool_weight=decoded.spool_weight,
+            commit=False,
         )
-        spool_id = spool_item.id
 
-        await link_spool(db=db, spool_id=spool_item.id, uid=uid, tag_format=tag_format)
+        await link_spool(db=db, spool_id=spool_item.id, uid=uid, tag_format=tag_format, commit=False)
+        await db.commit()
     except BaseException:
-        await _discard_created(db, spool_id, filament_id, vendor_id)
+        await db.rollback()
         raise
+
+    if vendor_created:
+        await vendor.vendor_changed(vendor_item, EventType.ADDED)
+    if filament_created:
+        await filament.filament_changed(filament_item, EventType.ADDED)
+    await spool.spool_changed(spool_item, EventType.ADDED)
     return spool_item
 
 
