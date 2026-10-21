@@ -288,6 +288,20 @@ def _check_in_range(label: str, value: float | None, low: float, high: float) ->
         raise ItemCreateError(f"Decoded {label} {value} is outside the supported range.")
 
 
+# Tolerances for matching an existing filament's diameter/weight against a decoded tag.
+# Both columns are plain floats, single precision on MySQL/MariaDB, so an exact `==` never
+# hits there even for the same nominal value (e.g. 2.85 round-trips imprecisely).
+_DIAMETER_MATCH_TOLERANCE_MM = 0.01
+_WEIGHT_MATCH_TOLERANCE_G = 1.0
+
+
+def _matches(candidate_value: float | None, target_value: float | None, tolerance: float) -> bool:
+    """Whether two optional floats are the same value, within tolerance. None matches only None."""
+    if candidate_value is None or target_value is None:
+        return candidate_value is None and target_value is None
+    return math.isclose(candidate_value, target_value, abs_tol=tolerance)
+
+
 async def _find_filament_for_product(
     db: AsyncSession,
     decoded: tag_decode.DecodedTag,
@@ -296,9 +310,10 @@ async def _find_filament_for_product(
 ) -> models.Filament | None:
     """Find the filament this product already has, so a new roll reuses it.
 
-    A filament is one product: vendor, name, material, diameter and nominal weight together. The
-    tag's instance UUID identifies the roll and is deliberately not used here. Without a name or a
-    material there is no product to match, so nothing is reused.
+    A filament is one product: vendor, name, material, color, diameter and nominal weight
+    together. The tag's instance UUID identifies the roll and is deliberately not used here.
+    Without a name or a material there is no product to match, so nothing is reused. Diameter
+    and weight are compared with a tolerance rather than SQL equality -- see the constants above.
     """
     if decoded.name is None or decoded.material is None:
         return None
@@ -306,10 +321,17 @@ async def _find_filament_for_product(
         models.Filament.name == decoded.name,
         models.Filament.material == decoded.material,
         models.Filament.vendor_id == (vendor_item.id if vendor_item is not None else None),
-        models.Filament.diameter == diameter,
-        models.Filament.weight == decoded.weight,
+        models.Filament.color_hex == decoded.color_hex,
     )
-    return (await db.execute(stmt)).scalars().first()
+    candidates = (await db.execute(stmt)).scalars().all()
+    for candidate in candidates:
+        if _matches(candidate.diameter, diameter, _DIAMETER_MATCH_TOLERANCE_MM) and _matches(
+            candidate.weight,
+            decoded.weight,
+            _WEIGHT_MATCH_TOLERANCE_G,
+        ):
+            return candidate
+    return None
 
 
 async def _discard_created(
