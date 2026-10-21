@@ -194,6 +194,38 @@ async def test_a_second_create_for_an_already_linked_uid_conflicts(db: AsyncSess
         )
 
 
+@pytest.mark.asyncio
+async def test_losing_a_uid_race_leaves_no_orphan_rows(db: AsyncSession):
+    """Two scans of the same new tag racing to create: the loser's own rows must not survive.
+
+    Vendor, filament, spool and the tag link are flushed, not committed, and share one
+    commit -- so when the link step loses the race (the winner's tag row already holds
+    this UID), the rollback undoes everything this call flushed in one step, not a
+    per-row compensating delete.
+    """
+    uid = _uid()
+    winner = await create_spool_from_decoded_tag(
+        db=db,
+        uid=uid,
+        tag_format="openprinttag",
+        decoded=DecodedTag(material="PLA", name="PLA", vendor_name="Vendor"),
+    )
+    before = await _row_counts(db)
+
+    with pytest.raises(TagConflictError):
+        await create_spool_from_decoded_tag(
+            db=db,
+            uid=uid,
+            tag_format="openprinttag",
+            decoded=DecodedTag(material="PETG", name="PETG", vendor_name="OtherVendor"),
+        )
+
+    assert await _row_counts(db) == before
+    found = await find_spool_by_uid(db, uid)
+    assert found is not None
+    assert found.id == winner.id
+
+
 async def _row_counts(db: AsyncSession) -> tuple[int, int, int]:
     """Count vendors, filaments and spools, to prove a rejected create wrote nothing."""
     counts = [
@@ -314,6 +346,36 @@ async def test_same_name_but_other_diameter_or_weight_is_a_new_filament(db: Asyn
 
     assert other_diameter.filament_id != first.filament_id
     assert other_weight.filament_id != first.filament_id
+
+
+@pytest.mark.asyncio
+async def test_small_diameter_and_weight_differences_still_reuse_the_filament(db: AsyncSession):
+    """Both columns are single precision on MySQL/MariaDB; exact equality would never match there."""
+    base = {"material": "PLA", "name": "PLA Black", "vendor_name": "Vendor"}
+    first = await create_spool_from_decoded_tag(
+        db=db, uid=_uid("1"), tag_format="openprinttag", decoded=DecodedTag(**base, diameter=1.75, weight=1000.0)
+    )
+    close_enough = await create_spool_from_decoded_tag(
+        db=db,
+        uid=_uid("2"),
+        tag_format="openprinttag",
+        decoded=DecodedTag(**base, diameter=1.751, weight=1000.5),
+    )
+
+    assert close_enough.filament_id == first.filament_id
+
+
+@pytest.mark.asyncio
+async def test_same_name_but_other_color_is_a_new_filament(db: AsyncSession):
+    base = {"material": "PLA", "name": "PLA", "vendor_name": "Vendor", "diameter": 1.75, "weight": 1000.0}
+    red = await create_spool_from_decoded_tag(
+        db=db, uid=_uid("1"), tag_format="openprinttag", decoded=DecodedTag(**base, color_hex="FF0000")
+    )
+    black = await create_spool_from_decoded_tag(
+        db=db, uid=_uid("2"), tag_format="openprinttag", decoded=DecodedTag(**base, color_hex="000000")
+    )
+
+    assert black.filament_id != red.filament_id
 
 
 @pytest.mark.asyncio

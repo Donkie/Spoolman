@@ -48,6 +48,8 @@ _HOSTILE_VALUES: list[Any] = [
     pytest.param({MF_DENSITY: float("nan")}, id="density-is-nan"),
     pytest.param({MF_DENSITY: float("inf")}, id="density-is-infinite"),
     pytest.param({MF_DENSITY: -1.0}, id="density-is-negative"),
+    pytest.param({MF_DENSITY: 5e-324}, id="density-is-a-denormal-near-zero"),
+    pytest.param({MF_NOMINAL_NETTO_FULL_WEIGHT: 1e308}, id="weight-is-absurdly-large"),
     pytest.param({MF_FILAMENT_DIAMETER: 0}, id="diameter-is-zero"),
     pytest.param({MF_MATERIAL_TYPE: [1, 2]}, id="material-type-is-a-list"),
     pytest.param({MF_NOMINAL_NETTO_FULL_WEIGHT: float("inf")}, id="weight-is-infinite"),
@@ -130,6 +132,48 @@ def test_a_valid_tag_with_create_true_still_creates_one_roll_and_reuses_the_fila
     finally:
         _delete_created_spool(created)
         _delete_created_spool(second.json()["spool"])
+    _assert_list_endpoints_still_work()
+
+
+def test_filament_reuse_tolerates_small_diameter_and_weight_differences():
+    """Different readings of the same real-world roll (float rounding) must not create a duplicate."""
+    product = {**_BASE_MAIN, MF_BRAND_NAME: f"Vendor {uuid.uuid4().hex[:8]}"}
+    first = _scan(product, create=True)
+    assert_httpx_success(first)
+    created = first.json()["spool"]
+
+    nearby = {
+        **product,
+        MF_FILAMENT_DIAMETER: 1.751,  # within the 0.01mm matching tolerance
+        MF_NOMINAL_NETTO_FULL_WEIGHT: 1000.5,  # within the 1g matching tolerance
+    }
+    try:
+        second = _scan(nearby, create=True)
+        assert_httpx_success(second)
+        assert second.json()["created"] is True
+        assert second.json()["spool"]["filament"]["id"] == created["filament"]["id"]
+    finally:
+        _delete_created_spool(created)
+        _delete_created_spool(second.json()["spool"])
+    _assert_list_endpoints_still_work()
+
+
+def test_filament_reuse_does_not_merge_different_colors():
+    """Same vendor/name/material, different color: must be two filaments, not one."""
+    product = {**_BASE_MAIN, MF_BRAND_NAME: f"Vendor {uuid.uuid4().hex[:8]}"}
+    red = _scan(product, create=True)
+    assert_httpx_success(red)
+    red_spool = red.json()["spool"]
+
+    black = {**product, MF_PRIMARY_COLOR: bytes([0x00, 0x00, 0x00])}
+    try:
+        black_result = _scan(black, create=True)
+        assert_httpx_success(black_result)
+        black_spool = black_result.json()["spool"]
+        assert black_spool["filament"]["id"] != red_spool["filament"]["id"]
+    finally:
+        _delete_created_spool(red_spool)
+        _delete_created_spool(black_spool)
     _assert_list_endpoints_still_work()
 
 
