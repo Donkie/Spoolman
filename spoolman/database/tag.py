@@ -294,11 +294,15 @@ def _check_finite(*values: float | None) -> None:
 _MIN_DIAMETER_MM = 0.5
 _MAX_DIAMETER_MM = 5.0
 
-# Density in g/cm3. Covers every material in APPROXIMATE_DENSITY_BY_MATERIAL, plus real
-# sinterable metal-fill filaments (bronze/steel MIM feedstock at ~92-95% metal loading,
-# ~7.7-8.9 g/cm3), with margin. Same reasoning as diameter: a value outside this range
-# breaks length_from_weight's weight/density division when the spool is read back.
-_MIN_DENSITY_G_CM3 = 0.5
+# Density in g/cm3. Upper end covers every material in APPROXIMATE_DENSITY_BY_MATERIAL, plus
+# real sinterable metal-fill filaments (bronze/steel MIM feedstock at ~92-95% metal loading,
+# ~7.7-8.9 g/cm3), with margin. Lower end leaves room below PP (~0.90, the lowest common
+# spooled material) for niche pre-foamed filament stock -- itself foamed before spooling, not
+# the LW/foaming filaments whose agent expands at the nozzle: those still spool at normal
+# density, since this field describes the strand on the spool, not the printed part. Same
+# reasoning as diameter: a value outside this range breaks length_from_weight's weight/density
+# division when the spool is read back.
+_MIN_DENSITY_G_CM3 = 0.3
 _MAX_DENSITY_G_CM3 = 10.0
 
 # Weight in grams. 50kg is well over twice the heaviest real spool; same length-math concern.
