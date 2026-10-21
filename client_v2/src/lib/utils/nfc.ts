@@ -75,14 +75,24 @@ function reasonFor(err: unknown): NfcErrorReason {
 /**
  * Wait for one tag to be tapped and resolve with its UID.
  *
- * Scanning continues until a tag is read or `signal` aborts, so callers must
- * always pass one and abort it when their dialog closes; otherwise the radio
- * keeps running behind a screen nobody is looking at.
+ * The scan stops itself after the first tag. `signal` cancels it earlier, so
+ * callers should still abort it when their dialog closes.
  *
  * Rejects like `watchTagUids`.
  */
 export function readTagUid(signal: AbortSignal): Promise<string> {
-	return new Promise<string>((resolve, reject) => watchTagUids(signal, resolve, reject));
+	// Our own controller, so the reader stops once a UID arrives.
+	const done = new AbortController();
+	return new Promise<string>((resolve, reject) =>
+		watchTagUids(
+			AbortSignal.any([signal, done.signal]),
+			(uid) => {
+				resolve(uid); // before abort, which would reject
+				done.abort();
+			},
+			reject
+		)
+	);
 }
 
 /**
