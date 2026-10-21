@@ -294,9 +294,10 @@ def _check_finite(*values: float | None) -> None:
 _MIN_DIAMETER_MM = 0.5
 _MAX_DIAMETER_MM = 5.0
 
-# Density in g/cm3. Covers every material in APPROXIMATE_DENSITY_BY_MATERIAL, including
-# heavily metal-filled composites, with margin. Same reasoning as diameter: a value outside
-# this range breaks length_from_weight's weight/density division when the spool is read back.
+# Density in g/cm3. Covers every material in APPROXIMATE_DENSITY_BY_MATERIAL, plus real
+# sinterable metal-fill filaments (bronze/steel MIM feedstock at ~92-95% metal loading,
+# ~7.7-8.9 g/cm3), with margin. Same reasoning as diameter: a value outside this range
+# breaks length_from_weight's weight/density division when the spool is read back.
 _MIN_DENSITY_G_CM3 = 0.5
 _MAX_DENSITY_G_CM3 = 10.0
 
