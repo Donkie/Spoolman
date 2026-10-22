@@ -33,8 +33,8 @@ export interface Tag {
 export interface Vendor {
 	id: string;
 	name: string;
-	/** Empty spool weight in grams. */
-	emptyWeight: number;
+	/** Empty spool weight in grams, or undefined when the tare is unknown. */
+	emptyWeight?: number;
 	comment: string;
 	/** SpoolmanDB id if this vendor was imported from the external database. */
 	externalId?: string;
