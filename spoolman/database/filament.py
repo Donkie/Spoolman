@@ -49,8 +49,14 @@ async def create(
     multi_color_direction: MultiColorDirection | None = None,
     external_id: str | None = None,
     extra: dict[str, str | None] | None = None,
+    commit: bool = True,
 ) -> models.Filament:
-    """Add a new filament to the database."""
+    """Add a new filament to the database.
+
+    commit=False flushes instead of committing and skips the added event, for a caller that
+    is batching this write into a larger transaction (see spoolman.database.tag) and will
+    commit and notify once, itself, when everything has succeeded.
+    """
     vendor_item: models.Vendor | None = None
     if vendor_id is not None:
         vendor_item = await vendor.get_by_id(db, vendor_id)
@@ -83,6 +89,9 @@ async def create(
         tags=[],
     )
     db.add(filament)
+    if not commit:
+        await db.flush()
+        return filament
     await db.commit()
     await filament_changed(filament, EventType.ADDED)
     return filament
