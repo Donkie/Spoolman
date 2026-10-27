@@ -151,8 +151,15 @@ def _read_argument(buf: bytes, pos: int, info: int) -> tuple[int, int]:
 
 
 def _skip_simple_argument(buf: bytes, pos: int, info: int) -> int:
-    """Major type 7 (float/simple/break): the argument is never a length, just bytes to skip."""
-    if info < 24 or info == _INDEFINITE_LENGTH:  # noqa: PLR2004 -- literal simple value, or a lone break byte
+    """Major type 7 (float/simple): the argument is never a length, just bytes to skip.
+
+    A break byte (0xFF) never gets here when it is legitimate: _reject_in_indefinite_container
+    consumes it before recursing. One that does arrive is stray, and the walk must not treat it as
+    an item: it would end the walk early, past a tag that cbor2 could still go on to read.
+    """
+    if info == _INDEFINITE_LENGTH:
+        raise CborRejectedError("Unexpected CBOR break")
+    if info < 24:  # noqa: PLR2004 -- the literal-value cutoff, not a tunable
         return pos
     size = _ARGUMENT_SIZE_BY_INFO.get(info)
     if size is None:

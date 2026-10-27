@@ -25,6 +25,7 @@ from .._openprinttag_fixtures import (
     MF_NOMINAL_NETTO_FULL_WEIGHT,
     MF_PRIMARY_COLOR,
     build_openprinttag,
+    build_openprinttag_from_payload,
 )
 from ..conftest import URL, assert_httpx_success
 from .test_scan_create import _delete_created_spool
@@ -216,4 +217,40 @@ def test_non_ascii_payload_scans_instead_of_erroring():
     )
     assert_httpx_success(response)
     assert "decoded" not in response.json()
+    _assert_list_endpoints_still_work()
+
+
+def _shared_reference_bomb(levels: int) -> bytes:
+    """Build a flat list of shareable arrays (CBOR tags 28/29) ending in a malformed tag 260.
+
+    Each array refers twice to the one before, so the object graph doubles per level at constant
+    nesting depth: a depth cap never trips. cbor2 formats repr(value) of it into the error message
+    for the malformed tag, inside decode(), before any validation here can run. About 300 bytes of
+    this fit on one SLIX2 tag and took the API down.
+    """
+    steps = "".join(f"d81c82d81d{k - 1:02x}d81d{k - 1:02x}" for k in range(1, levels))
+    return bytes.fromhex("9f" + "d81c8100" + steps + f"d9010481d81d{levels - 1:02x}" + "ff")
+
+
+@pytest.mark.parametrize("create", [None, True])
+def test_shared_reference_bomb_is_refused_before_cbor2_expands_it(create: bool | None):  # noqa: FBT001
+    """Semantic tags are refused outright, so the scan answers quickly and the lists keep working."""
+    before = _row_counts()
+    payload = b"\xa0" + _shared_reference_bomb(14)  # empty meta, then a main section made of the bomb
+    body: dict[str, Any] = {
+        "uid": uuid.uuid4().hex[:14].upper(),
+        "reader_id": f"reader-{uuid.uuid4().hex[:8]}",
+        "format": "openprinttag",
+        "payload_b64": base64.b64encode(build_openprinttag_from_payload(payload)).decode("ascii"),
+    }
+    if create is not None:
+        body["create"] = create
+
+    result = httpx.post(f"{URL}/api/v1/tag/scan", json=body, timeout=10)
+
+    assert_httpx_success(result)
+    assert result.elapsed.total_seconds() < 5  # the bomb took seconds and gigabytes before the guard
+    assert "decoded" not in result.json()
+    assert result.json().get("created") is not True
+    assert _row_counts() == before
     _assert_list_endpoints_still_work()
