@@ -14,7 +14,8 @@ describe('parseStoredView', () => {
 			sortKey: 'name',
 			sortAsc: true,
 			showEmpty: false,
-			showLotNumbers: false
+			showLotNumbers: false,
+			pageSize: 20
 		});
 	});
 
@@ -24,7 +25,8 @@ describe('parseStoredView', () => {
 			sortKey: 'name',
 			sortAsc: true,
 			showEmpty: true,
-			showLotNumbers: false
+			showLotNumbers: false,
+			pageSize: 20
 		});
 	});
 
@@ -57,7 +59,8 @@ describe('parseStoredView', () => {
 			sortKey: 'name',
 			sortAsc: false,
 			showEmpty: false,
-			showLotNumbers: false
+			showLotNumbers: false,
+			pageSize: 20
 		});
 	});
 });
@@ -72,7 +75,14 @@ it('round-trips the lot number preference through storage', () => {
 			stored = value;
 		}
 	});
-	const view = { group: 'filament', sortKey: 'name', sortAsc: true, showEmpty: false, showLotNumbers: true };
+	const view = {
+		group: 'filament',
+		sortKey: 'name',
+		sortAsc: true,
+		showEmpty: false,
+		showLotNumbers: true,
+		pageSize: 20
+	};
 	rememberView(view);
 	expect(parseStoredView(stored)).toEqual(view);
 	rememberView({ ...view, showLotNumbers: false });
@@ -83,4 +93,13 @@ it('defaults lot numbers off for an old stored view with empty enabled', () => {
 	expect(parseStoredView('{"group":"filament","sort":"name","asc":true,"empty":true}')?.showLotNumbers).toBe(
 		false
 	);
+});
+
+it('round-trips the page size and defaults it for old or invalid entries', () => {
+	const old = '{"group":"filament","sort":"name","asc":true';
+	expect(parseStoredView(`${old},"size":100}`)?.pageSize).toBe(100);
+	expect(parseStoredView(`${old}}`)?.pageSize).toBe(20);
+	expect(parseStoredView(`${old},"size":"100"}`)?.pageSize).toBe(20);
+	expect(parseStoredView(`${old},"size":0}`)?.pageSize).toBe(20);
+	expect(parseStoredView(`${old},"size":2.5}`)?.pageSize).toBe(20);
 });

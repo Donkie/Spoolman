@@ -236,3 +236,21 @@ describe('lot number visibility', () => {
 		expect(await hrefFor(stored, '?lots=0')).toBeNull();
 	});
 });
+
+describe('page size', () => {
+	const DEFAULT_VIEW = '{"group":"filament","sort":"last_used","asc":false';
+
+	it('restores a stored page size on a bare URL', async () => {
+		expect(await hrefFor(`${DEFAULT_VIEW},"size":100}`, '')).toBe('/?size=100');
+	});
+
+	it('lets an explicit URL page size win', async () => {
+		expect(await hrefFor(`${DEFAULT_VIEW},"size":100}`, '?size=50')).toBeNull();
+	});
+
+	it('falls back to the default for an old stored view or an invalid size', async () => {
+		expect(await hrefFor(`${DEFAULT_VIEW}}`, '')).toBeNull();
+		expect(await hrefFor(`${DEFAULT_VIEW},"size":"100"}`, '')).toBeNull();
+		expect(await hrefFor(`${DEFAULT_VIEW},"size":-5}`, '')).toBeNull();
+	});
+});
