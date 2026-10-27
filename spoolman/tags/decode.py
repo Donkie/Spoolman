@@ -84,8 +84,10 @@ def decode_one_cbor_item(raw: bytes, *, max_depth: int) -> tuple[object, int]:
     """
     import cbor2  # noqa: PLC0415 -- deferred: see the module import note on cbor2 in openprinttag.py
 
-    _reject_semantic_tags(raw, 0, 0)
-    buf = io.BytesIO(raw)
+    # Hand cbor2 only the bytes the walk covered: whatever follows the first item (the main and aux
+    # sections, in a tag's payload) is never in front of cbor2 at all, not merely left unread.
+    end = _reject_semantic_tags(raw, 0, 0)
+    buf = io.BytesIO(raw[:end])
     try:
         value = cbor2.CBORDecoder(buf, max_depth=max_depth).decode()
     except cbor2.CBORDecodeError as exc:
