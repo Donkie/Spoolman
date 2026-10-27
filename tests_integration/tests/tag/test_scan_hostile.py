@@ -11,6 +11,7 @@ import math
 import uuid
 from typing import Any
 
+import cbor2
 import httpx
 import pytest
 
@@ -50,6 +51,12 @@ _HOSTILE_VALUES: list[Any] = [
     pytest.param({MF_DENSITY: -1.0}, id="density-is-negative"),
     pytest.param({MF_DENSITY: 5e-324}, id="density-is-a-denormal-near-zero"),
     pytest.param({MF_NOMINAL_NETTO_FULL_WEIGHT: 1e308}, id="weight-is-absurdly-large"),
+    # A CBOR semantic tag (major type 6). cbor2 can validate a tag's argument and build its
+    # error message with repr(value) -- unbounded if value is a shared-reference graph -- before
+    # any validation of ours runs, even at constant nesting depth. The fix refuses every
+    # semantic tag outright; this is the shape, not the exploit payload itself (see
+    # tests/test_openprinttag_codec.py for the direct unit coverage of the decode-time guard).
+    pytest.param({MF_DENSITY: cbor2.CBORTag(260, b"\x01\x02\x03\x04")}, id="density-is-a-semantic-tag"),
     pytest.param({MF_FILAMENT_DIAMETER: 0}, id="diameter-is-zero"),
     pytest.param({MF_MATERIAL_TYPE: [1, 2]}, id="material-type-is-a-list"),
     pytest.param({MF_NOMINAL_NETTO_FULL_WEIGHT: float("inf")}, id="weight-is-infinite"),

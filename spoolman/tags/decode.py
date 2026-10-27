@@ -11,6 +11,7 @@ that fails to parse returns None rather than raising -- a scan's core contract (
 must never fail because enrichment of it didn't work.
 """
 
+import io
 import logging
 import math
 from dataclasses import dataclass
@@ -18,6 +19,163 @@ from dataclasses import dataclass
 from spoolman.tags import normalize_format
 
 logger = logging.getLogger(__name__)
+
+
+class CborRejectedError(ValueError):
+    """A payload was refused before cbor2 ever saw it, or cbor2 itself refused it."""
+
+
+# CBOR major types (top 3 bits of a head byte) and the additional-info values (bottom 5 bits)
+# that need special handling. See RFC 8949 section 3.
+_MAJOR_UNSIGNED_INT = 0
+_MAJOR_NEGATIVE_INT = 1
+_MAJOR_BYTE_STRING = 2
+_MAJOR_TEXT_STRING = 3
+_MAJOR_ARRAY = 4
+_MAJOR_MAP = 5
+_MAJOR_TAG = 6
+_MAJOR_FLOAT_SIMPLE = 7
+_INDEFINITE_LENGTH = 31
+_BREAK_BYTE = 0xFF
+_ARGUMENT_SIZE_BY_INFO = {24: 1, 25: 2, 26: 4, 27: 8}
+
+# Backstop against the scanner's own recursion, not a real limit: a legitimate tag never gets
+# close, and every level of recursion consumes at least one byte of a payload that is at most a
+# few hundred bytes long, so this is reached only by a hand-crafted adversarial payload.
+_MAX_SCAN_DEPTH = 64
+
+
+def decode_one_cbor_item(raw: bytes, *, max_depth: int) -> tuple[object, int]:
+    """Decode exactly one top-level CBOR item, refusing semantic tags before cbor2 sees them.
+
+    Every per-format codec in this package (openprinttag.py, and whatever comes after it) must
+    call this instead of cbor2 directly, so each one inherits the same guard rather than
+    reimplementing it.
+
+    cbor2 -- including its C extension -- resolves semantic tags (major type 6) internally, and
+    some of them (e.g. 260, ipaddress) validate their argument and raise on a bad one. Building
+    that exception's message calls repr() on the decoded value. repr() has no notion of CBOR's
+    own value-sharing (tags 28/29): a tag can wrap a graph that shares the same sub-object many
+    times over, which is cheap to hold (the real Python objects are shared, not copied), but
+    repr() prints it out in full every time, so its output size is exponential in the sharing
+    depth. That string gets built inside cbor2's own error path -- before .decode() returns and
+    before any validation of ours runs -- so a few hundred bytes on the wire can force a
+    multi-gigabyte allocation with no decoded value and no exception for us to intervene on.
+    Real OpenPrintTag payloads carry no semantic tags at all, so refusing every one of them,
+    not just 28/29/260, costs nothing on the happy path and closes the whole class at once.
+
+    This walks CBOR item heads by hand instead, with no cbor2 call and no value built, so it
+    cannot be tricked into the same trap it exists to prevent. It has to match exactly the one
+    top-level item cbor2.decode() would otherwise parse, including indefinite-length containers,
+    or a tag hiding past where this stops looking would still reach cbor2 unblocked.
+
+    Args:
+        raw: Bytes to decode. Only the first CBOR item is consumed; trailing bytes are ignored,
+            same as cbor2.CBORDecoder.decode().
+        max_depth: Passed straight through to cbor2, once this has cleared the payload of tags.
+
+    Returns:
+        (value, bytes_consumed).
+
+    Raises:
+        CborRejectedError: The payload contains a semantic tag, is malformed, or cbor2 itself refused
+            it. Always this one type, regardless of cause.
+
+    """
+    import cbor2  # noqa: PLC0415 -- deferred: see the module import note on cbor2 in openprinttag.py
+
+    _reject_semantic_tags(raw, 0, 0)
+    buf = io.BytesIO(raw)
+    try:
+        value = cbor2.CBORDecoder(buf, max_depth=max_depth).decode()
+    except cbor2.CBORDecodeError as exc:
+        raise CborRejectedError(str(exc)) from exc
+    return value, buf.tell()
+
+
+def _reject_semantic_tags(buf: bytes, pos: int, depth: int) -> int:
+    """Walk one CBOR item's head(s), raising CborRejectedError on a semantic tag. Return the end position."""
+    if depth > _MAX_SCAN_DEPTH:
+        raise CborRejectedError("CBOR nested too deep")
+    if pos >= len(buf):
+        raise CborRejectedError("Truncated CBOR")
+    head = buf[pos]
+    major = head >> 5
+    info = head & 0x1F
+    pos += 1
+
+    if major == _MAJOR_TAG:
+        raise CborRejectedError("CBOR semantic tags are not supported")
+
+    if major == _MAJOR_FLOAT_SIMPLE:
+        return _skip_simple_argument(buf, pos, info)
+
+    if info == _INDEFINITE_LENGTH:
+        if major not in (_MAJOR_BYTE_STRING, _MAJOR_TEXT_STRING, _MAJOR_ARRAY, _MAJOR_MAP):
+            raise CborRejectedError("Invalid indefinite length for major type")
+        return _reject_in_indefinite_container(buf, pos, major, depth)
+
+    length, pos = _read_argument(buf, pos, info)
+    return _skip_definite_item(buf, pos, major, length, depth)
+
+
+def _skip_definite_item(buf: bytes, pos: int, major: int, length: int, depth: int) -> int:
+    """Skip a definite-length item's content, given its already-read major type and length/value."""
+    if major in (_MAJOR_UNSIGNED_INT, _MAJOR_NEGATIVE_INT):
+        return pos
+    if major in (_MAJOR_BYTE_STRING, _MAJOR_TEXT_STRING):
+        end = pos + length
+        if end > len(buf):
+            raise CborRejectedError("Truncated CBOR string")
+        return end
+    if major == _MAJOR_ARRAY:
+        for _ in range(length):
+            pos = _reject_semantic_tags(buf, pos, depth + 1)
+        return pos
+    # major == _MAJOR_MAP: a key and a value per entry, each one more level deep.
+    for _ in range(length * 2):
+        pos = _reject_semantic_tags(buf, pos, depth + 1)
+    return pos
+
+
+def _read_argument(buf: bytes, pos: int, info: int) -> tuple[int, int]:
+    """Read the length/value argument that follows a non-simple CBOR head byte."""
+    if info < 24:  # noqa: PLR2004 -- the literal-value cutoff, not a tunable
+        return info, pos
+    size = _ARGUMENT_SIZE_BY_INFO.get(info)
+    if size is None:
+        raise CborRejectedError("Reserved CBOR additional info")
+    if pos + size > len(buf):
+        raise CborRejectedError("Truncated CBOR")
+    return int.from_bytes(buf[pos : pos + size], "big"), pos + size
+
+
+def _skip_simple_argument(buf: bytes, pos: int, info: int) -> int:
+    """Major type 7 (float/simple/break): the argument is never a length, just bytes to skip."""
+    if info < 24 or info == _INDEFINITE_LENGTH:  # noqa: PLR2004 -- literal simple value, or a lone break byte
+        return pos
+    size = _ARGUMENT_SIZE_BY_INFO.get(info)
+    if size is None:
+        raise CborRejectedError("Reserved CBOR additional info")
+    if pos + size > len(buf):
+        raise CborRejectedError("Truncated CBOR")
+    return pos + size
+
+
+def _reject_in_indefinite_container(buf: bytes, pos: int, major: int, depth: int) -> int:
+    """Walk an indefinite-length container's items until the break byte (0xFF)."""
+    while True:
+        if pos >= len(buf):
+            raise CborRejectedError("Truncated CBOR")
+        if buf[pos] == _BREAK_BYTE:
+            return pos + 1
+        if major == _MAJOR_MAP:
+            pos = _reject_semantic_tags(buf, pos, depth + 1)  # key
+            pos = _reject_semantic_tags(buf, pos, depth + 1)  # value
+        elif major == _MAJOR_ARRAY:
+            pos = _reject_semantic_tags(buf, pos, depth + 1)
+        else:  # byte/text string: each chunk is one definite-length item of the same major type
+            pos = _reject_semantic_tags(buf, pos, depth)
 
 
 @dataclass

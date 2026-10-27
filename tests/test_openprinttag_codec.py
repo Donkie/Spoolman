@@ -370,6 +370,39 @@ def test_shared_reference_chain_is_refused_by_depth_cap() -> None:
         _decode_cbor_map(payload)
 
 
+def test_semantic_tag_is_refused_even_though_it_is_too_shallow_to_trip_the_depth_cap() -> None:
+    """A tag can sit two levels deep and still be the start of a real attack; depth alone won't catch that.
+
+    cbor2 validates some tags' arguments (e.g. 260, ipaddress) and on a bad one builds its error
+    message with repr(value). repr() isn't sharing-aware, so a tag wrapping a cheap
+    shared-reference graph can make that one repr() call -- inside cbor2's own error path, before
+    any of our code runs -- allocate gigabytes from a few hundred bytes on the wire, no matter how
+    shallow the tag itself sits. The fix refuses every semantic tag outright, so this is
+    deliberately shallow (map -> tag, two levels) to prove depth isn't what's catching it.
+    """
+    payload = cbor2.dumps({0: cbor2.CBORTag(260, b"\x01\x02\x03\x04")})
+    with pytest.raises(ValueError, match="Invalid CBOR"):
+        _decode_cbor_map(payload)
+
+
+def test_semantic_tag_nested_inside_an_array_is_refused() -> None:
+    """A tag doesn't have to be the top-level value to matter; it has to be found wherever it sits."""
+    payload = cbor2.dumps({0: [1, 2, cbor2.CBORTag(0, "2021-01-01T00:00:00Z")]})
+    with pytest.raises(ValueError, match="Invalid CBOR"):
+        _decode_cbor_map(payload)
+
+
+def test_semantic_tag_nested_inside_an_indefinite_length_array_is_refused() -> None:
+    """cbor2.dumps never emits indefinite-length items, so this is hand-built to exercise that path.
+
+    {0: [1, Tag(999, 0)]}, with the inner array encoded as indefinite-length (0x9f ... 0xff)
+    instead of definite-length, since a real tag reader could hand either shape to the decoder.
+    """
+    payload = bytes.fromhex("a1009f01d903e700ff")
+    with pytest.raises(ValueError, match="Invalid CBOR"):
+        _decode_cbor_map(payload)
+
+
 def test_zero_filament_diameter_is_kept_not_defaulted_to_175() -> None:
     """A tag stating 0 must reach the database layer as 0, which refuses it, not as a plausible 1.75."""
     raw = _build_tag({MF_FILAMENT_DIAMETER: 0})

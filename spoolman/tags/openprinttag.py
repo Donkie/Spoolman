@@ -12,13 +12,12 @@ drifts out of date. Add a field here together with the code that uses it.
 Based on the OpenPrintTag specification: https://specs.openprinttag.org
 """
 
-import io
 import logging
 import math
 import uuid
 from dataclasses import dataclass
 
-import cbor2
+from spoolman.tags import decode as tags_decode
 
 logger = logging.getLogger(__name__)
 
@@ -204,19 +203,18 @@ def _decode_cbor_map(raw: bytes) -> tuple[dict, int]:
 
     Raises:
         ValueError: If the bytes are not a complete CBOR map. Tag memory that was truncated
-            or corrupted can be an incomplete item (cbor2 raises its own error types, none of
-            them ValueError) or complete CBOR that just isn't a map, and callers rely on
-            this function's only failure being ValueError.
+            or corrupted can be an incomplete item, or complete CBOR that just isn't a map, and
+            callers rely on this function's only failure being ValueError (tags_decode raises its
+            own CborRejectedError for everything else, which this turns into one).
 
     """
-    buf = io.BytesIO(raw)
     try:
-        data = cbor2.CBORDecoder(buf, max_depth=_MAX_CBOR_DEPTH).decode()
-    except cbor2.CBORDecodeError as exc:
+        data, consumed = tags_decode.decode_one_cbor_item(raw, max_depth=_MAX_CBOR_DEPTH)
+    except tags_decode.CborRejectedError as exc:
         raise ValueError(f"Invalid CBOR: {exc}") from exc
     if not isinstance(data, dict):
         raise ValueError(f"Expected a CBOR map, got {type(data).__name__}")  # noqa: TRY004 -- ValueError is the contract
-    return data, buf.tell()
+    return data, consumed
 
 
 def _find_ndef_payload(raw_bytes: bytes) -> bytes | None:
@@ -377,7 +375,7 @@ def decode_nfcv_memory(raw_bytes: bytes, nfc_tag_uid: bytes | None = None) -> Op
             aux_data, _ = _decode_cbor_map(payload[aux_offset:])
             if AUX_CONSUMED_WEIGHT in aux_data:
                 data.consumed_weight = _number(aux_data[AUX_CONSUMED_WEIGHT])
-        except (cbor2.CBORDecodeError, TypeError, ValueError):
+        except (TypeError, ValueError):
             logger.debug("Could not decode aux section")
 
     return data
