@@ -8,11 +8,12 @@ has to be empty. Exits non-zero if any check fails.
 
 cockroachdb builds the schema Spoolman had before the fix, at the revision before the ID
 migrations, so every ID comes from unique_rowid(). It seeds the tables with huge, boundary and
-small IDs, referencing each other in every way the models allow. It kills the upgrade at several
-points, checking each time that the database is exactly as before or cleanly renumbered, then
-finishes it and checks every row and reference by natural key. Rerunning the migrations, and
-recovering from rows written after a downgrade, are checked too. Finally it writes a manifest for
-tests_upgrade, which checks the result over the REST API once Spoolman has started up.
+small IDs, referencing each other in every way the models allow, and saves spool orders the way
+the web UI does. It kills the upgrade at several points, checking each time that the database is
+exactly as before or cleanly renumbered, then finishes it and checks every row and reference by
+natural key. Rerunning the migrations, and recovering from rows written after a downgrade, are
+checked too. Finally it writes a manifest for tests_upgrade, which checks the result over the REST
+API once Spoolman has started up.
 
 untouched runs the ID migrations up and down on sqlite, postgres or mariadb and checks that they
 change nothing there but the alembic version.
@@ -74,13 +75,31 @@ UNTOUCHED_IDS = {"sqlite": UNSAFE_ID + 1, "postgresql": 2**31 - 1, "mysql": 2**3
 # Has a tag and an extra field but no spools, so the tester can delete it.
 DELETABLE_FILAMENT = "filament without spools"
 
+# The custom spool orders the web UI saves in two settings, by natural key. None is a spool that
+# has been deleted since, which stays in the saved order, with an unsafe ID here. Spool 0 has a
+# safe ID, spool 1 is at 2^53 + 1, spool 2 at 2^63 - 1 and the others are from unique_rowid().
+SPOOL_ORDERS = {
+    "locations_spoolorders": {
+        "shelf 1": ["spool 8", "spool 1", "spool 15"],
+        "shelf 2": ["spool 2", None, "spool 9"],
+        "shelf 0": ["spool 7", "spool 0"],
+        "Regál ü": [],
+    },
+    "dashboard_spoolorders": {
+        "location": {"shelf 1": ["spool 15", "spool 1", "spool 8"]},
+        "extra.slot": {"": ["spool 5", "spool 0", "spool 2"]},
+    },
+}
+DELETED_SPOOL_ID = 2**60 + 12345
+
 # Kill points in the upgrade from PREVIOUS: (BEFORE or AFTER, statement prefix, N), the revision
 # the database must be at afterwards, and the tables that must already have their new ID default.
-# The first three are in the renumbering transaction. The last two are in the sequence migration,
+# The first four are in the renumbering transaction. The last two are in the sequence migration,
 # after the renumbering committed, where each statement commits on its own.
 KILLS = (
     (("after", "INSERT INTO vendor ", 1), PREVIOUS, ()),  # vendors copied, nothing repointed yet
     (("after", "UPDATE tag SET filament_id", 1), PREVIOUS, ()),  # halfway through the references
+    (("after", "UPDATE setting SET", 1), PREVIOUS, ()),  # one of the spool orders rewritten
     (("before", "UPDATE alembic_version", 1), PREVIOUS, ()),  # renumbered, not yet stamped
     (("before", "ALTER TABLE spool ALTER COLUMN id SET DEFAULT", 1), RENUMBER, ("vendor", "filament")),
     (("before", "UPDATE alembic_version", 1), RENUMBER, ("vendor", "filament", "spool", "tag")),  # not yet stamped
@@ -187,6 +206,25 @@ def seed_rows(pinned: dict[str, dict[int, int]]) -> dict[str, list[dict[str, Any
     }
 
 
+def js_number(number: int) -> int:
+    """Get the number the web UI saves for an ID: the nearest double, in JavaScript's shortest digits."""
+    return int(Decimal(repr(float(number))))
+
+
+def spool_orders(spool_ids: dict[str, int]) -> dict[str, str]:
+    """Get the spool order settings the way the web UI saves them, for the given spool IDs."""
+
+    def saved(order: Any) -> Any:  # noqa: ANN401
+        if isinstance(order, dict):
+            return {key: saved(item) for key, item in order.items()}
+        return [js_number(DELETED_SPOOL_ID if key is None else spool_ids[key]) for key in order]
+
+    # Like JSON.stringify().
+    return {
+        key: json.dumps(saved(order), separators=(",", ":"), ensure_ascii=False) for key, order in SPOOL_ORDERS.items()
+    }
+
+
 def tables(conn: sa.Connection) -> dict[str, sa.TableClause]:
     """Get every table except alembic's own, with its columns as they are in the database."""
     inspector = sa.inspect(conn)
@@ -224,6 +262,10 @@ def seed(conn: sa.Connection, pinned: dict[str, dict[int, int]]) -> None:
                 conn.execute(table_of[name].insert(), group)
         if name in NATURAL_KEYS:
             ids[name] = {key: id_ for id_, key in conn.execute(sa.text(f"SELECT id, {NATURAL_KEYS[name]} FROM {name}"))}
+    conn.execute(
+        table_of["setting"].insert(),
+        [{"key": key, "value": value, "last_updated": REGISTERED} for key, value in spool_orders(ids["spool"]).items()],
+    )
 
 
 def plain(value: Any) -> Any:  # noqa: ANN401
@@ -255,6 +297,8 @@ def snapshot(conn: sa.Connection) -> Snapshot:
             for column, parent in reference_of[name].items():
                 if row[column] is not None:
                     natural_row[column] = keys[parent][row[column]]
+            if name == "setting" and row["key"] in SPOOL_ORDERS:
+                natural_row["value"] = "spool IDs, checked by check_upgraded"
             natural_rows.append(natural_row)
         natural[name] = sorted(natural_rows, key=lambda row: json.dumps(row, sort_keys=True))
     ids = {name: {key: id_ for id_, key in by_id.items()} for name, by_id in keys.items()}
@@ -341,6 +385,9 @@ def check_upgraded(engine: sa.Engine, before: Snapshot, schema: list[str]) -> No
         after = snapshot(conn)
         same(after.natural, before.natural, "rows and references by natural key")
         same(after.ids, renumbered(before.ids), "IDs")
+        setting = sa.table("setting", sa.column("key"), sa.column("value"))
+        saved = conn.execute(sa.select(setting.c.key, setting.c.value).where(setting.c.key.in_(SPOOL_ORDERS))).all()
+        same(dict(saved), spool_orders(renumbered(before.ids)["spool"]), "spool orders")
         same(cockroachdb_schema(conn), schema, "schema apart from the ID defaults")
         for name, default in id_defaults(conn).items():
             same(default, sequence_default(name), f"{name}.id default")
@@ -445,6 +492,7 @@ def cockroachdb(manifest: Path) -> None:
                 "ids": final.ids,
                 "rows": final.natural,
                 "deletable_filament": DELETABLE_FILAMENT,
+                "spool_orders": SPOOL_ORDERS,
             },
         ),
     )

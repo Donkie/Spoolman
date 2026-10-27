@@ -6,6 +6,7 @@ REST API, and read every response the way the web UI's JavaScript does, so an ID
 shows up here just like it did in #797.
 """
 
+import json
 from typing import Any
 
 import httpx
@@ -103,6 +104,22 @@ def test_tag_scans_find_the_renumbered_rows(manifest: dict[str, Any]):
             manifest["ids"]["spool"].get(row["spool_id"]),
             manifest["ids"]["filament"].get(row["filament_id"]),
         )
+
+
+def test_saved_spool_orders_lead_to_the_same_spools(manifest: dict[str, Any]):
+    """The custom spool orders the web UI saved still put the same spools in the same order."""
+    # The web UI looks the saved IDs up among the IDs of the spools it listed.
+    listed = {item["id"]: item["comment"] for item in js_json(httpx.get(f"{URL}/api/v1/spool?allow_archived=true"))}
+
+    def spools(order: Any) -> Any:  # noqa: ANN401
+        if isinstance(order, dict):
+            return {key: spools(item) for key, item in order.items()}
+        return [listed.get(spool_id) for spool_id in order]
+
+    for key, order in manifest["spool_orders"].items():
+        # The setting is JSON text, which the web UI parses into JavaScript numbers as well.
+        text = js_json(httpx.get(f"{URL}/api/v1/setting/{key}"))["value"]
+        assert spools(json.loads(text, parse_int=lambda digits: int(float(digits)))) == order, key
 
 
 # The tests from here on change rows, so they have to run after the ones above, which compare
