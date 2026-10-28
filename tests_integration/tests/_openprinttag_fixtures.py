@@ -63,6 +63,16 @@ def build_openprinttag(main: dict, aux: dict | None = None) -> bytes:
     return _nfcv_memory(ndef)
 
 
+def build_openprinttag_from_payload(payload: bytes) -> bytes:
+    """Wrap an already-built CBOR payload (meta, then main) in an NFC-V memory dump.
+
+    For payloads cbor2 itself cannot or should not encode, such as the shared-reference bomb in
+    test_scan_hostile.py. The payload must fit one short NDEF record.
+    """
+    ndef = _ndef_short_record("application/vnd.openprinttag", payload)
+    return _nfcv_memory(ndef)
+
+
 # Real (not synthetic) OpenPrintTag dumps, base64 of the raw NFC-V memory image, taken
 # from Prusa's own spec repo (github.com/OpenPrintTag/openprinttag-specification, MIT
 # licensed) rather than built by build_openprinttag() above -- see

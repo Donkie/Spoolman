@@ -84,8 +84,10 @@ def decode_one_cbor_item(raw: bytes, *, max_depth: int) -> tuple[object, int]:
     """
     import cbor2  # noqa: PLC0415 -- deferred: see the module import note on cbor2 in openprinttag.py
 
-    _reject_semantic_tags(raw, 0, 0)
-    buf = io.BytesIO(raw)
+    # Hand cbor2 only the bytes the walk covered: whatever follows the first item (the main and aux
+    # sections, in a tag's payload) is never in front of cbor2 at all, not merely left unread.
+    end = _reject_semantic_tags(raw, 0, 0)
+    buf = io.BytesIO(raw[:end])
     try:
         value = cbor2.CBORDecoder(buf, max_depth=max_depth).decode()
     except cbor2.CBORDecodeError as exc:
@@ -151,8 +153,15 @@ def _read_argument(buf: bytes, pos: int, info: int) -> tuple[int, int]:
 
 
 def _skip_simple_argument(buf: bytes, pos: int, info: int) -> int:
-    """Major type 7 (float/simple/break): the argument is never a length, just bytes to skip."""
-    if info < 24 or info == _INDEFINITE_LENGTH:  # noqa: PLR2004 -- literal simple value, or a lone break byte
+    """Major type 7 (float/simple): the argument is never a length, just bytes to skip.
+
+    A break byte (0xFF) never gets here when it is legitimate: _reject_in_indefinite_container
+    consumes it before recursing. One that does arrive is stray, and the walk must not treat it as
+    an item: it would end the walk early, past a tag that cbor2 could still go on to read.
+    """
+    if info == _INDEFINITE_LENGTH:
+        raise CborRejectedError("Unexpected CBOR break")
+    if info < 24:  # noqa: PLR2004 -- the literal-value cutoff, not a tunable
         return pos
     size = _ARGUMENT_SIZE_BY_INFO.get(info)
     if size is None:
