@@ -254,7 +254,7 @@
             "name": "Name des Filaments um es von anderen Typen des gleichen Herstellers zu unterscheiden. Sollte z.B. die Farbe enthalten.",
             "material": "z.B. PLA, ABS, PETG, etc.",
             "price": "Preis einer vollen Spule in der im System konfigurierten Währung.",
-            "weight": "Das Gewicht einer vollen Spule (Nettogewicht). Sollte nicht das Gewicht der Spule, sondern nur dass des Filaments auf der Spule enthalten. Entspricht normalerweise dem Gewicht, das auf der Spule aufgedruckt ist.",
+            "weight": "Das Gewicht einer vollen Spule (Nettogewicht). Sollte nicht das Gewicht der Spule, sondern nur das des Filaments auf der Spule enthalten. Entspricht normalerweise dem Gewicht, das auf der Spule aufgedruckt ist.",
             "spool_weight": "Das Gewicht der leeren Spule. Wird verwendet, um das gemessene Gewicht der Spule zu berechnen.",
             "article_number": "z.B. EAN, UPC o.Ä.",
             "multi_color_direction": "Filamente können auf zwei Arten mehrere Farben haben: entweder durch Koextrusion, wie bei zweifarbigen Filamenten mit konsistenten Mehrfarben, oder durch Farbveränderungen in Längsrichtung, wie bei Gradient-Filamenten, die die Farben entlang der Spule verschieben."
@@ -388,17 +388,18 @@
                 "choice": "Auswahl",
                 "integer_range": "Ganzzahlbereich",
                 "boolean": "Wahr/Falsch",
-                "float_range": "Float-Bereich",
+                "float_range": "Dezimalzahlbereich",
                 "datetime": "Datum und Uhrzeit"
             },
             "boolean_true": "Ja",
             "boolean_false": "Nein",
             "delete_confirm": "Feld {{name}} entfernen?",
-            "description": "<p>Hier können Sie zusätzliche benutzerdefinierte Felder zu Ihren Elementen hinzufügen.</p><p>Nach dem Hinzufügen eines Feldes können Sie dessen Schlüssel oder Typ nicht mehr ändern, und bei Auswahlfeldern können Sie keine Auswahlmöglichkeiten entfernen oder den Mehrfachauswahlstatus ändern. Wenn Sie ein Feld entfernen, werden die zugehörigen Daten für alle Elemente gelöscht.</p><p>Der Schlüssel ist derjenige, unter dem andere Programme die Daten lesen/schreiben, wenn Ihr benutzerdefiniertes Feld also mit einem Programm eines Drittanbieters integriert werden soll, stellen Sie sicher, dass Sie ihn richtig einstellen. Der Standardwert wird nur auf neue Elemente angewendet.</p><p>Zusätzliche Felder können in den Tabellenansichten nicht sortiert oder gefiltert werden.</p>",
+            "description": "<p>Hier können Sie zusätzliche benutzerdefinierte Felder zu Ihren Elementen hinzufügen.</p><p>Nach dem Hinzufügen eines Feldes können Sie dessen Schlüssel oder Typ nicht mehr ändern, und bei Auswahlfeldern können Sie keine Auswahlmöglichkeiten entfernen oder den Mehrfachauswahlstatus ändern. Wenn Sie ein Feld entfernen, werden die zugehörigen Daten für alle Elemente gelöscht.</p><p>Der Schlüssel ist derjenige, unter dem andere Programme die Daten lesen/schreiben, wenn Ihr benutzerdefiniertes Feld also mit einem Programm eines Drittanbieters integriert werden soll, stellen Sie sicher, dass Sie ihn richtig einstellen. Der Standardwert wird nur auf neue Elemente angewendet.</p><p>Extra Felder können in den Tabellenansichten angezeigt und sortiert werden. Auswahl- und boolesche Felder tauchen ebenfalls in den Filteroptionen auf, und alle extra Feldtypen unterstützen das Filtern für leere Werte.</p>",
             "choices_missing_error": "Du kannst die Auswahl nicht entfernen. Folgende Auswahlmöglichkeiten fehlen: {{choices}}",
             "key_not_changed": "Bitte ändere den Schlüssel auf einen anderen Wert.",
             "delete_confirm_description": "Dieses Feld und alle damit verbundenen Einträge werden gelöscht.",
-            "non_unique_key_error": "Der Schlüssel muss einzigartig sein."
+            "non_unique_key_error": "Der Schlüssel muss einzigartig sein.",
+            "choices_reorder_hint": "Ziehen oder benutze die Pfeiltasten, um diese Auswahl neu zu ordnen."
         },
         "settings": "Einstellungen"
     },
@@ -408,5 +409,11 @@
         "locations": "Orte",
         "new_location": "Neuer Ort"
     },
-    "sponsor": "Unterstütze mich auf GitHub"
+    "sponsor": "Unterstütze mich auf GitHub",
+    "theme": {
+        "label": "Schema",
+        "system": "System",
+        "light": "Hell",
+        "dark": "Dunkel"
+    }
 }
