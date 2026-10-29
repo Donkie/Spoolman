@@ -333,7 +333,7 @@
     "labels.tabDesign": "Design",
     "labels.tabPrint": "Drucken",
     "labels.textTemplate": "Text / Vorlage",
-    "labels.typeFilament": "'Filamen",
+    "labels.typeFilament": "Filament",
     "labels.typeHint": "Filament-Etiketten lassen spool-only-Felder weg, und ihr QR-Code verlinkt zum Filament statt zu einer Spule.",
     "labels.typeSpool": "Spule",
     "labels.unknownFilament": "Unbekanntes Filament",
