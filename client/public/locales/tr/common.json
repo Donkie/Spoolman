@@ -99,7 +99,7 @@
             "deleteSettings": "Mevcut Kayıtlı Etiketi Sil",
             "deleteSettingsConfirm": "Mevcut kayıtlı etiketi silmek istediğinizden emin misiniz?",
             "settingsName": "Kayıtlı Etiket Adı",
-            "saveSetting": "Kaydet",
+            "saveSetting": "Ön ayarları kaydet",
             "saveAsImage": "Resim olarak kaydet"
         },
         "qrcode": {
