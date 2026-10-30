@@ -1285,7 +1285,7 @@ async def measure(db: AsyncSession, spool_id: int, weight: float) -> models.Spoo
     weight_to_use = current_use - weight
 
     # If the measured weight is less than the empty weight, use the rest of the spool
-    if (initial_gross_weight - weight_to_use) < spool_weight:
+    if weight < spool_weight:
         weight_to_use = current_use - spool_weight
 
     return await use_weight(db, spool_id, weight_to_use)
