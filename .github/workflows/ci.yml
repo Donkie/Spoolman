@@ -402,10 +402,11 @@ jobs:
         run: docker compose -f tests_frontend_v2/docker-compose.yml up -d --wait
 
       # Screenshots first: they seed a fixed dataset and need the database empty.
-      # The Argos reporter uploads them and posts the visual diff on the PR.
+      # The Argos reporter uploads them and posts the visual diff on the PR. Not on
+      # tags: Argos needs a branch, and master already uploaded the same commit.
       - name: Take client_v2 screenshots
         env:
-          ARGOS_UPLOAD: "1"
+          ARGOS_UPLOAD: ${{ !startsWith(github.ref, 'refs/tags/') && '1' || '' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd tests_frontend_v2
