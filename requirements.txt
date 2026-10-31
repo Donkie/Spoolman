@@ -2,7 +2,7 @@
 #    uv export --no-dev --no-annotate --no-hashes --frozen -o requirements.txt
 aiomysql==0.3.2
 aiosqlite==0.22.1
-alembic==1.20.0
+alembic==1.20.1
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1
@@ -10,12 +10,12 @@ anysqlite==0.0.5
 async-timeout==5.0.1 ; python_full_version < '3.11'
 asyncpg==0.32.0
 cbor2==5.9.0
-certifi==2026.7.22
+certifi==2026.10.23
 cffi==2.1.1 ; platform_python_implementation != 'PyPy'
 click==8.5.0
 cryptography==50.0.2
 exceptiongroup==1.3.1 ; python_full_version < '3.11'
-fastapi==0.143.0
+fastapi==0.162.0
 greenlet==3.5.6
 h11==0.16.0
 hishel==0.1.5
@@ -25,21 +25,23 @@ httpx==0.28.1
 idna==3.20
 mako==1.4.3
 markupsafe==3.0.4
-msgpack==1.2.3
-opentelemetry-api==1.45.1
+msgpack==1.2.4
+opentelemetry-api==1.45.2
 platformdirs==4.12.4 ; python_full_version < '3.11'
-platformdirs==4.13.0 ; python_full_version >= '3.11'
+platformdirs==4.14.0 ; python_full_version >= '3.11'
 prometheus-client==0.26.0
 psycopg2-binary==2.9.13
-pycparser==3.11 ; implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
-pydantic==2.14.0
-pydantic-core==2.50.0
+pycparser==3.11 ; python_full_version < '3.11' and implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
+pycparser==3.12 ; python_full_version >= '3.11' and implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
+pydantic==2.14.2
+pydantic-core==2.50.2
 pymysql==1.2.3
 scheduler==0.8.11
-setuptools==83.0.0
+setuptools==84.2.1
 sqlalchemy==2.0.54
 sqlalchemy-cockroachdb==2.0.4
-starlette==1.7.0
+starlette==1.7.0 ; python_full_version < '3.11'
+starlette==1.10.0 ; python_full_version >= '3.11'
 tomli==2.5.0 ; python_full_version < '3.11'
 typeguard==4.6.0
 typing-extensions==4.16.0

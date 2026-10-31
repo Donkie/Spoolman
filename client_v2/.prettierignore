@@ -15,6 +15,7 @@ src/lib/paraglide
 project.inlang/.meta.json
 project.inlang/README.md
 project.inlang/cache
+project.inlang/.lix
 
 # Local scratch notes (gitignored, never reaches CI — don't fail the local hook)
 docs
