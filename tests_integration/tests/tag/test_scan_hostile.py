@@ -11,6 +11,7 @@ import math
 import uuid
 from typing import Any
 
+import cbor2
 import httpx
 import pytest
 
@@ -24,6 +25,7 @@ from .._openprinttag_fixtures import (
     MF_NOMINAL_NETTO_FULL_WEIGHT,
     MF_PRIMARY_COLOR,
     build_openprinttag,
+    build_openprinttag_from_payload,
 )
 from ..conftest import URL, assert_httpx_success
 from .test_scan_create import _delete_created_spool
@@ -50,6 +52,12 @@ _HOSTILE_VALUES: list[Any] = [
     pytest.param({MF_DENSITY: -1.0}, id="density-is-negative"),
     pytest.param({MF_DENSITY: 5e-324}, id="density-is-a-denormal-near-zero"),
     pytest.param({MF_NOMINAL_NETTO_FULL_WEIGHT: 1e308}, id="weight-is-absurdly-large"),
+    # A CBOR semantic tag (major type 6). cbor2 can validate a tag's argument and build its
+    # error message with repr(value) -- unbounded if value is a shared-reference graph -- before
+    # any validation of ours runs, even at constant nesting depth. The fix refuses every
+    # semantic tag outright; this is the shape, not the exploit payload itself (see
+    # tests/test_openprinttag_codec.py for the direct unit coverage of the decode-time guard).
+    pytest.param({MF_DENSITY: cbor2.CBORTag(260, b"\x01\x02\x03\x04")}, id="density-is-a-semantic-tag"),
     pytest.param({MF_FILAMENT_DIAMETER: 0}, id="diameter-is-zero"),
     pytest.param({MF_MATERIAL_TYPE: [1, 2]}, id="material-type-is-a-list"),
     pytest.param({MF_NOMINAL_NETTO_FULL_WEIGHT: float("inf")}, id="weight-is-infinite"),
@@ -209,4 +217,40 @@ def test_non_ascii_payload_scans_instead_of_erroring():
     )
     assert_httpx_success(response)
     assert "decoded" not in response.json()
+    _assert_list_endpoints_still_work()
+
+
+def _shared_reference_bomb(levels: int) -> bytes:
+    """Build a flat list of shareable arrays (CBOR tags 28/29) ending in a malformed tag 260.
+
+    Each array refers twice to the one before, so the object graph doubles per level at constant
+    nesting depth: a depth cap never trips. cbor2 formats repr(value) of it into the error message
+    for the malformed tag, inside decode(), before any validation here can run. About 300 bytes of
+    this fit on one SLIX2 tag and took the API down.
+    """
+    steps = "".join(f"d81c82d81d{k - 1:02x}d81d{k - 1:02x}" for k in range(1, levels))
+    return bytes.fromhex("9f" + "d81c8100" + steps + f"d9010481d81d{levels - 1:02x}" + "ff")
+
+
+@pytest.mark.parametrize("create", [None, True])
+def test_shared_reference_bomb_is_refused_before_cbor2_expands_it(create: bool | None):  # noqa: FBT001
+    """Semantic tags are refused outright, so the scan answers quickly and the lists keep working."""
+    before = _row_counts()
+    payload = b"\xa0" + _shared_reference_bomb(14)  # empty meta, then a main section made of the bomb
+    body: dict[str, Any] = {
+        "uid": uuid.uuid4().hex[:14].upper(),
+        "reader_id": f"reader-{uuid.uuid4().hex[:8]}",
+        "format": "openprinttag",
+        "payload_b64": base64.b64encode(build_openprinttag_from_payload(payload)).decode("ascii"),
+    }
+    if create is not None:
+        body["create"] = create
+
+    result = httpx.post(f"{URL}/api/v1/tag/scan", json=body, timeout=10)
+
+    assert_httpx_success(result)
+    assert result.elapsed.total_seconds() < 5  # the bomb took seconds and gigabytes before the guard
+    assert "decoded" not in result.json()
+    assert result.json().get("created") is not True
+    assert _row_counts() == before
     _assert_list_endpoints_still_work()

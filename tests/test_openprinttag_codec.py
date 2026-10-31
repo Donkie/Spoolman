@@ -13,6 +13,7 @@ import uuid
 import cbor2
 import pytest
 
+from spoolman.tags import decode as tags_decode
 from spoolman.tags.openprinttag import (
     AUX_CONSUMED_WEIGHT,
     META_AUX_REGION_OFFSET,
@@ -368,6 +369,105 @@ def test_shared_reference_chain_is_refused_by_depth_cap() -> None:
     assert len(payload) < 200  # the sharing is what keeps it small
     with pytest.raises(ValueError, match="Invalid CBOR"):
         _decode_cbor_map(payload)
+
+
+def test_semantic_tag_is_refused_even_though_it_is_too_shallow_to_trip_the_depth_cap() -> None:
+    """A tag can sit two levels deep and still be the start of a real attack; depth alone won't catch that.
+
+    cbor2 validates some tags' arguments (e.g. 260, ipaddress) and on a bad one builds its error
+    message with repr(value). repr() isn't sharing-aware, so a tag wrapping a cheap
+    shared-reference graph can make that one repr() call -- inside cbor2's own error path, before
+    any of our code runs -- allocate gigabytes from a few hundred bytes on the wire, no matter how
+    shallow the tag itself sits. The fix refuses every semantic tag outright, so this is
+    deliberately shallow (map -> tag, two levels) to prove depth isn't what's catching it.
+    """
+    payload = cbor2.dumps({0: cbor2.CBORTag(260, b"\x01\x02\x03\x04")})
+    with pytest.raises(ValueError, match="Invalid CBOR"):
+        _decode_cbor_map(payload)
+
+
+def test_semantic_tag_nested_inside_an_array_is_refused() -> None:
+    """A tag doesn't have to be the top-level value to matter; it has to be found wherever it sits."""
+    payload = cbor2.dumps({0: [1, 2, cbor2.CBORTag(0, "2021-01-01T00:00:00Z")]})
+    with pytest.raises(ValueError, match="Invalid CBOR"):
+        _decode_cbor_map(payload)
+
+
+def test_semantic_tag_nested_inside_an_indefinite_length_array_is_refused() -> None:
+    """cbor2.dumps never emits indefinite-length items, so this is hand-built to exercise that path.
+
+    {0: [1, Tag(999, 0)]}, with the inner array encoded as indefinite-length (0x9f ... 0xff)
+    instead of definite-length, since a real tag reader could hand either shape to the decoder.
+    """
+    payload = bytes.fromhex("a1009f01d903e700ff")
+    with pytest.raises(ValueError, match="Invalid CBOR"):
+        _decode_cbor_map(payload)
+
+
+def shared_reference_bomb(levels: int) -> bytes:
+    """Build a flat list of shareable arrays that each refer twice to the one before.
+
+    The graph doubles per level at constant nesting depth (RFC 8746, tags 28 and 29) and ends in a
+    malformed tag 260, whose error message cbor2 builds from repr(value). It is only ever fed to
+    the guard, never to cbor2: the point is that it is refused first.
+    """
+    steps = "".join(f"d81c82d81d{k - 1:02x}d81d{k - 1:02x}" for k in range(1, levels))
+    return bytes.fromhex("9f" + "d81c8100" + steps + f"d9010481d81d{levels - 1:02x}" + "ff")
+
+
+@pytest.mark.parametrize(
+    "hex_payload",
+    [
+        pytest.param("a1d81c0000", id="tag-as-a-map-key"),
+        pytest.param("a100" + "7fd81c616161ff", id="tag-inside-an-indefinite-text-chunk"),
+        pytest.param("a1005fd81c4101ff", id="tag-inside-an-indefinite-bytes-chunk"),
+        pytest.param("bfd81c0000ff", id="tag-as-a-key-in-an-indefinite-map"),
+        pytest.param("ff", id="stray-break-at-the-top-level"),
+        pytest.param("a100" + "81ff", id="stray-break-in-a-definite-array"),
+        pytest.param("a100" + "81ffd81c00", id="stray-break-in-an-array-followed-by-a-tag"),
+        pytest.param("a100" + "ff", id="stray-break-as-a-map-value"),
+    ],
+)
+def test_guard_refuses_tags_and_stray_breaks_wherever_they_hide(hex_payload: str) -> None:
+    with pytest.raises(ValueError, match="Invalid CBOR"):
+        _decode_cbor_map(bytes.fromhex(hex_payload))
+
+
+def _cbor2_must_not_see_tags(fp: object, *args: object, **kwargs: object) -> cbor2.CBORDecoder:
+    """Stand in for CBORDecoder: behave normally, but fail if cbor2 is handed a tag 28 or 29."""
+    data = fp.getvalue()  # type: ignore[attr-defined]
+    assert b"\xd8\x1c" not in data
+    assert b"\xd8\x1d" not in data
+    return _REAL_CBOR_DECODER(fp, *args, **kwargs)  # type: ignore[arg-type]
+
+
+_REAL_CBOR_DECODER = cbor2.CBORDecoder
+
+
+@pytest.mark.parametrize("levels", [4, 14, 20])
+def test_shared_reference_bomb_never_reaches_cbor2(monkeypatch: pytest.MonkeyPatch, levels: int) -> None:
+    """Refuse tags 28/29 before cbor2: it would format their exponential expansion into an error message.
+
+    A malformed tag 260 makes cbor2 build that message inside decode(), before any of our validation.
+    Refusing the tags first is the only thing that stops it, so cbor2 must not be handed the bytes.
+    """
+    monkeypatch.setattr(cbor2, "CBORDecoder", _cbor2_must_not_see_tags)
+    with pytest.raises(ValueError, match="Invalid CBOR"):
+        _decode_cbor_map(shared_reference_bomb(levels))
+
+
+def test_shared_reference_bomb_in_the_main_section_makes_the_tag_undecodable(monkeypatch: pytest.MonkeyPatch) -> None:
+    raw = _nfcv_memory(_ndef_record("application/vnd.openprinttag", cbor2.dumps({}) + shared_reference_bomb(14)))
+    monkeypatch.setattr(cbor2, "CBORDecoder", _cbor2_must_not_see_tags)
+
+    with pytest.raises(ValueError, match="Invalid CBOR"):
+        decode_nfcv_memory(raw)
+    assert tags_decode.decode("openprinttag", raw) is None
+
+
+def test_real_prusa_dumps_still_decode_with_the_guard_in_place() -> None:
+    for name in ("prusa_sample_tag.bin", "prusa_test01_data.bin"):
+        assert decode_nfcv_memory((_FIXTURES_DIR / name).read_bytes()).material_class == "FFF"
 
 
 def test_zero_filament_diameter_is_kept_not_defaulted_to_175() -> None:
