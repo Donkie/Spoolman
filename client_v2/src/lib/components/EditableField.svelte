@@ -2,6 +2,7 @@
 	/* eslint-disable svelte/no-navigation-without-resolve --
 	   The href below is an external absolute URL out of the user's own field value;
 	   there is no deploy base path to resolve it against. */
+	import { untrack } from 'svelte';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import { getFieldLabelId } from './fieldLabel';
 	import { extractUrls } from '$lib/utils/links';
@@ -27,18 +28,44 @@
 	// Named by the enclosing <Field>'s label cell when there is one; see fieldLabel.ts.
 	const labelId = getFieldLabelId();
 
-	let urls = $derived(linkify ? extractUrls(String(value ?? '')) : []);
+	// What the user typed is kept as a draft and shown in place of `value` until they
+	// leave the box. The autosave's response (and its websocket echo) carries the text
+	// as it was when the PATCH went out, so writing that back would eat whatever was
+	// typed since (#1307). So an incoming value that is one we sent leaves the draft
+	// alone; anything else (another entity selected, someone else's edit) replaces it.
+	let draft = $state<string | null>(null);
+	// eslint-disable-next-line svelte/prefer-svelte-reactivity -- only read alongside the draft, which is the reactive part
+	const sent = new Set<string>();
+	const external = $derived(String(value ?? ''));
+	$effect(() => {
+		const incoming = external;
+		untrack(() => {
+			if (draft !== null && !sent.has(incoming)) reset();
+		});
+	});
+	function reset() {
+		draft = null;
+		sent.clear();
+	}
+	function onInput(v: string) {
+		draft = v;
+		sent.add(v);
+		oninput?.(v);
+	}
+
+	let urls = $derived(linkify ? extractUrls(draft ?? external) : []);
 </script>
 
 <span class="row">
 	<input
 		class="edit"
 		class:mono
-		{value}
+		value={draft ?? external}
 		{placeholder}
 		aria-label={ariaLabel}
 		aria-labelledby={ariaLabel ? undefined : labelId}
-		oninput={(e) => oninput?.(e.currentTarget.value)}
+		oninput={(e) => onInput(e.currentTarget.value)}
+		onblur={reset}
 	/>
 	{#each urls as url (url)}
 		<a
