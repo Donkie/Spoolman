@@ -1,6 +1,8 @@
 """Tag scan relay endpoints."""
 
 import asyncio
+import base64
+import binascii
 import logging
 from datetime import datetime
 from typing import Annotated
@@ -11,10 +13,11 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from spoolman.api.v1.models import EventType, Filament, Message, Spool, TagReader, TagScan, TagScanEvent
+from spoolman.api.v1.models import EventType, Filament, Message, Spool, TagDecodedInfo, TagReader, TagScan, TagScanEvent
 from spoolman.database import models
 from spoolman.database import tag as tag_db
 from spoolman.database.database import get_db_session
+from spoolman.exceptions import ItemCreateError, TagConflictError
 from spoolman.scanrelay import READER_ID_PATTERN, derive_reader_id, scan_relay
 from spoolman.tags import (
     FORMAT_MAX_LENGTH,
@@ -24,6 +27,7 @@ from spoolman.tags import (
     UID_MAX_LENGTH,
     normalize_uid,
 )
+from spoolman.tags import decode as tag_decode
 from spoolman.ws import scan_websocket_manager
 
 logger = logging.getLogger(__name__)
@@ -104,8 +108,18 @@ class TagScanParameters(BaseModel):
         max_length=PAYLOAD_MAX_LENGTH,
         description=(
             "The tag's raw contents, base64-encoded, if the agent read them. Accepted and carried "
-            "into the broadcast untouched; Spoolman does not decode tag contents."
+            "into the broadcast untouched. If `format` names a format Spoolman knows how to read, "
+            "it is also decoded server-side and returned in `decoded`."
         ),
+    )
+    create: bool = Field(
+        default=False,
+        description=(
+            "If the tag is not linked to anything and its contents decode successfully, create a "
+            "spool from the decoded contents and link this tag to it. Off by default -- a plain scan "
+            "never creates anything. Never overwrites or relinks an already-matched tag."
+        ),
+        examples=[False],
     )
 
 
@@ -125,7 +139,12 @@ class TagScanParameters(BaseModel):
         "is sitting still; the response is unaffected, so a de-duplicated scan never looks to the "
         "device like a failed lookup. A scan that resolves to something different than the last one "
         "-- because the tag has just been linked, unlinked, or moved -- is never de-duplicated, so "
-        "an agent that links a tag can re-report the scan and have the correction go out at once."
+        "an agent that links a tag can re-report the scan and have the correction go out at once.\n\n"
+        "If `format` and `payload_b64` are given and Spoolman knows how to read that format, the "
+        "payload is also decoded and returned in `decoded` -- see its own description for what is, "
+        "and is not, done with it automatically. Setting `create: true` additionally allows an "
+        "unmatched tag to create and link a spool from that decoded data (see `create`'s "
+        "description)."
     ),
     responses={
         200: {"model": TagScan},
@@ -154,6 +173,32 @@ async def scan(
     db_spool = target if isinstance(target, models.Spool) else None
     db_filament = target if isinstance(target, models.Filament) else None
 
+    decoded = _decode_payload(body.format, body.payload_b64, uid)
+
+    created = False
+    # A tag can identify a filament as well as a spool; either counts as already linked. Creating
+    # for a filament-linked tag would leave an orphan vendor/filament/spool behind when the link fails.
+    # Only FFF tags create: an SLA tag describes a resin bottle, and the filament model has no
+    # place for one. Validation of the decoded values happens inside create, before any write.
+    creatable = decoded is not None and decoded.material_class == "FFF"
+    if db_spool is None and db_filament is None and body.create and creatable:
+        try:
+            db_spool = await tag_db.create_spool_from_decoded_tag(
+                db=db,
+                uid=uid,
+                tag_format=body.format,
+                decoded=decoded,
+            )
+            created = True
+        except TagConflictError:
+            # Lost a race with a concurrent scan of the same tag; report the winner as an
+            # ordinary match rather than surfacing a conflict for a create nobody asked to see.
+            db_spool = await tag_db.find_spool_by_uid(db, uid)
+        except ItemCreateError:
+            logger.warning("Refused to auto-create a spool from decoded tag %s", uid, exc_info=True)
+            # Values we refused to store must not reach the client either: report the tag as undecodable.
+            decoded = None
+
     scan_relay.register(reader_id, body.name, uid)
 
     result = TagScan(
@@ -166,6 +211,8 @@ async def scan(
         spool=Spool.from_db(db_spool) if db_spool is not None else None,
         matched_filament_id=db_filament.id if db_filament is not None else None,
         filament=Filament.from_db(db_filament) if db_filament is not None else None,
+        decoded=_decoded_response(decoded),
+        created=created,
     )
 
     if db_spool is not None:
@@ -183,6 +230,52 @@ async def scan(
     content.setdefault("matched_spool_id", None)
     content.setdefault("matched_filament_id", None)
     return JSONResponse(content=content)
+
+
+def _decode_payload(tag_format: str | None, payload_b64: str | None, uid: str) -> tag_decode.DecodedTag | None:
+    """Decode a scan's payload, if both a format and a payload were given.
+
+    Soft-fails on everything: a missing field, invalid base64, an unknown format or an
+    unparseable payload for a known one all return None. Decoding is enrichment of a scan,
+    never a reason to fail one -- see the class docstring on TagDecodedInfo.
+    """
+    if tag_format is None or payload_b64 is None:
+        return None
+    try:
+        raw = base64.b64decode(payload_b64, validate=True)
+    except (binascii.Error, ValueError):
+        # ValueError: non-ASCII text is not base64 at all, and must not turn the scan into a 500.
+        return None
+    try:
+        # normalize_uid rejects odd-length UIDs before this point, so fromhex only fails on input
+        # from other callers. The UID only feeds the instance-id derivation, so without one the
+        # decode still proceeds.
+        uid_bytes: bytes | None = bytes.fromhex(uid)
+    except ValueError:
+        uid_bytes = None
+    return tag_decode.decode(tag_format, raw, uid_bytes=uid_bytes)
+
+
+def _decoded_response(decoded: tag_decode.DecodedTag | None) -> TagDecodedInfo | None:
+    if decoded is None:
+        return None
+    return TagDecodedInfo(
+        material_class=decoded.material_class,
+        material=decoded.material,
+        name=decoded.name,
+        vendor_name=decoded.vendor_name,
+        article_number=decoded.article_number,
+        color_hex=decoded.color_hex,
+        diameter=decoded.diameter,
+        density=decoded.density,
+        weight=decoded.weight,
+        initial_weight=decoded.initial_weight,
+        spool_weight=decoded.spool_weight,
+        used_weight=decoded.used_weight,
+        extruder_temp=decoded.extruder_temp,
+        bed_temp=decoded.bed_temp,
+        instance_uuid=decoded.instance_uuid,
+    )
 
 
 async def _broadcast(result: TagScan) -> None:

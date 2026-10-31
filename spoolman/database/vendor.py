@@ -32,8 +32,14 @@ async def create(
     empty_spool_weight: float | None = None,
     external_id: str | None = None,
     extra: dict[str, str | None] | None = None,
+    commit: bool = True,
 ) -> models.Vendor:
-    """Add a new vendor to the database."""
+    """Add a new vendor to the database.
+
+    commit=False flushes instead of committing and skips the added event, for a caller that
+    is batching this write into a larger transaction (see spoolman.database.tag) and will
+    commit and notify once, itself, when everything has succeeded.
+    """
     vendor = models.Vendor(
         name=name,
         registered=datetime.utcnow().replace(microsecond=0),
@@ -43,6 +49,9 @@ async def create(
         extra=[models.VendorField(key=k, value=v) for k, v in (extra or {}).items() if v is not None],
     )
     db.add(vendor)
+    if not commit:
+        await db.flush()
+        return vendor
     await db.commit()
     await vendor_changed(vendor, EventType.ADDED)
     return vendor
