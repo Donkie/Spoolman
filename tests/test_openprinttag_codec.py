@@ -36,6 +36,7 @@ from spoolman.tags.openprinttag import (
     _decode_cbor_map,
     _parse_ndef_records,
     decode_nfcv_memory,
+    uuid5_bytes,
 )
 
 _FIXTURES_DIR = pathlib.Path(__file__).parent / "fixtures" / "openprinttag"
@@ -256,7 +257,7 @@ def test_effective_instance_uuid_prefers_explicit_value() -> None:
 def test_effective_instance_uuid_derives_from_tag_uid_when_absent() -> None:
     tag_uid = b"\x04\xa2\xb3\xc4\xd5\xe6\xf7"
     data = OpenPrintTagData(nfc_tag_uid=tag_uid)
-    assert data.effective_instance_uuid == str(uuid.uuid5(UUID_NS_INSTANCE, tag_uid))
+    assert data.effective_instance_uuid == str(uuid5_bytes(UUID_NS_INSTANCE, tag_uid))
 
 
 def test_effective_instance_uuid_none_when_nothing_to_derive_from() -> None:
@@ -492,4 +493,4 @@ def test_uid_reported_with_e0_last_is_read_in_specification_order() -> None:
 
     data = decode_nfcv_memory(raw, nfc_tag_uid=reader_order)
 
-    assert data.effective_instance_uuid == str(uuid.uuid5(UUID_NS_INSTANCE, spec_order))
+    assert data.effective_instance_uuid == str(uuid5_bytes(UUID_NS_INSTANCE, spec_order))

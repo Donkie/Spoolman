@@ -25,6 +25,7 @@ from spoolman.tags.openprinttag import (
     MF_MATERIAL_TYPE,
     MF_NOMINAL_NETTO_FULL_WEIGHT,
     MF_PRIMARY_COLOR,
+    uuid5_bytes,
 )
 
 
@@ -120,7 +121,7 @@ def test_decode_derives_external_id_from_uid_when_tag_has_no_instance_uuid() -> 
     assert without_uid is not None
     assert without_uid.instance_uuid is None
     assert with_uid is not None
-    assert with_uid.instance_uuid == str(uuid.uuid5(uuid.UUID("31062f81-b5bd-4f86-a5f8-46367e841508"), uid_bytes))
+    assert with_uid.instance_uuid == str(uuid5_bytes(uuid.UUID("31062f81-b5bd-4f86-a5f8-46367e841508"), uid_bytes))
 
 
 # --- density fallback --------------------------------------------------------------

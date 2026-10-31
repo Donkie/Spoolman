@@ -12,6 +12,7 @@ drifts out of date. Add a field here together with the code that uses it.
 Based on the OpenPrintTag specification: https://specs.openprinttag.org
 """
 
+import hashlib
 import logging
 import math
 import uuid
@@ -171,9 +172,13 @@ class OpenPrintTagData:
         if self.instance_uuid:
             return self.instance_uuid
         if self.nfc_tag_uid:
-            derived = uuid.uuid5(UUID_NS_INSTANCE, self.nfc_tag_uid)
-            return str(derived)
+            return str(uuid5_bytes(UUID_NS_INSTANCE, self.nfc_tag_uid))
         return None
+
+
+def uuid5_bytes(namespace: uuid.UUID, name: bytes) -> uuid.UUID:
+    """uuid.uuid5 over a bytes name, which the stdlib only accepts from Python 3.12."""
+    return uuid.UUID(bytes=hashlib.sha1(namespace.bytes + name, usedforsecurity=False).digest()[:16], version=5)
 
 
 def _parse_color_rgba(data: object) -> str | None:
