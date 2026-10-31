@@ -36,7 +36,7 @@ pydantic==2.14.0
 pydantic-core==2.50.0
 pymysql==1.2.3
 scheduler==0.8.11
-setuptools==83.0.0
+setuptools==84.1.0
 sqlalchemy==2.0.54
 sqlalchemy-cockroachdb==2.0.4
 starlette==1.7.0
