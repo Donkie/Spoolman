@@ -68,12 +68,13 @@
 	});
 </script>
 
+<!-- Keyed by entity so a new selection never inherits an unsaved field draft. -->
 {#if spool}
-	<SpoolInspector {spool} />
+	{#key spool.id}<SpoolInspector {spool} />{/key}
 {:else if filament}
-	<FilamentInspector {filament} />
+	{#key filament.id}<FilamentInspector {filament} />{/key}
 {:else if vendor}
-	<VendorInspector {vendor} />
+	{#key vendor.id}<VendorInspector {vendor} />{/key}
 {:else if sel && loading}
 	<div class="empty">
 		<p>{m['inspector.loading']()}</p>

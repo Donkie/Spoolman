@@ -40,29 +40,20 @@
 	}
 	// The numeric fields are text inputs guarded by `numericInput` so a decimal comma
 	// is accepted and letters can't be typed at all; `parseDecimal` reads either
-	// separator. What the user typed is kept in `drafts` and shown back for as long as
-	// it means the same number as the stored value — otherwise emitting "1," (which
-	// stores 1) would immediately rewrite the box to "1" and eat the comma mid-typing —
-	// or the stored value is one typed earlier in this edit: the autosave's response
-	// carries the number as it was when the PATCH went out (#1307, as in EditableField).
+	// separator. What the user typed is kept in `drafts` and shown back until they
+	// leave the box: emitting "1," (which stores 1) would otherwise rewrite the box to
+	// "1" and eat the comma mid-typing, and autosave responses and live updates carry
+	// the number as the server had it a moment ago (#1307, as in EditableField).
 	let drafts = $state<Record<string, string>>({});
-	const sent: Record<string, Set<number | null>> = {};
 	function shown(key: string, stored: unknown): string {
-		const value = stored === undefined || stored === null ? '' : String(stored);
-		const draft = drafts[key];
-		if (draft === undefined) return value;
-		const n = parseDecimal(value);
-		return n === parseDecimal(draft) || sent[key]?.has(n) ? draft : value;
+		return drafts[key] ?? (stored === undefined || stored === null ? '' : String(stored));
 	}
 	function typed(key: string, raw: string): string {
 		drafts[key] = raw;
-		// eslint-disable-next-line svelte/prefer-svelte-reactivity -- only read alongside the draft, which is the reactive part
-		(sent[key] ??= new Set()).add(parseDecimal(raw));
 		return raw;
 	}
 	function left(key: string) {
 		delete drafts[key];
-		delete sent[key];
 	}
 
 	function onInt(v: string) {
