@@ -188,3 +188,19 @@ describe('listFilamentPage', () => {
 		);
 	});
 });
+
+describe('vendorNames', () => {
+	it('lists a name shared by two vendors once', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () =>
+				Response.json([
+					{ id: 1, name: 'Polymaker', registered: '2024-01-01T00:00:00Z', extra: {} },
+					{ id: 2, name: 'Polymaker', registered: '2024-01-01T00:00:00Z', extra: {} },
+					{ id: 3, name: 'Prusament', registered: '2024-01-01T00:00:00Z', extra: {} }
+				])
+			)
+		);
+		expect(await spoolSource.vendorNames()).toEqual(['Polymaker', 'Prusament']);
+	});
+});

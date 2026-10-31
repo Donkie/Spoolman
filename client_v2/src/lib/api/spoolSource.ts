@@ -575,7 +575,8 @@ class HttpSpoolSource {
 	}
 	async vendorNames(): Promise<string[]> {
 		const vendors = await this.listVendors();
-		return vendors.map((v) => v.name).filter(Boolean);
+		// Vendor names aren't unique, and callers key their lists by name (#1306).
+		return [...new Set(vendors.map((v) => v.name).filter(Boolean))];
 	}
 }
 
