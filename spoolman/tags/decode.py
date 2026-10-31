@@ -183,8 +183,14 @@ def _reject_in_indefinite_container(buf: bytes, pos: int, major: int, depth: int
             pos = _reject_semantic_tags(buf, pos, depth + 1)  # value
         elif major == _MAJOR_ARRAY:
             pos = _reject_semantic_tags(buf, pos, depth + 1)
-        else:  # byte/text string: each chunk is one definite-length item of the same major type
-            pos = _reject_semantic_tags(buf, pos, depth)
+        else:
+            # Byte/text string: each chunk must be a definite-length string of the same major type
+            # (RFC 8949 3.2.3). Walking anything else at the same depth would let nested
+            # indefinite strings recurse past _MAX_SCAN_DEPTH into a RecursionError.
+            chunk_head = buf[pos]
+            if chunk_head >> 5 != major or chunk_head & 0x1F == _INDEFINITE_LENGTH:
+                raise CborRejectedError("Invalid chunk in indefinite-length string")
+            pos = _reject_semantic_tags(buf, pos, depth + 1)
 
 
 @dataclass

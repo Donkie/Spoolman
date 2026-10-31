@@ -426,6 +426,8 @@ def shared_reference_bomb(levels: int) -> bytes:
         pytest.param("a100" + "81ff", id="stray-break-in-a-definite-array"),
         pytest.param("a100" + "81ffd81c00", id="stray-break-in-an-array-followed-by-a-tag"),
         pytest.param("a100" + "ff", id="stray-break-as-a-map-value"),
+        pytest.param("a100" + "5f7f6161ffff", id="text-chunk-inside-an-indefinite-bytes-string"),
+        pytest.param("a100" + "5f" * 2000, id="nested-indefinite-strings-past-the-scan-depth"),
     ],
 )
 def test_guard_refuses_tags_and_stray_breaks_wherever_they_hide(hex_payload: str) -> None:
