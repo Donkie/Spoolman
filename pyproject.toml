@@ -33,7 +33,7 @@ dependencies = [
     # greenlet/armv7 patchelf step in the Dockerfile) has a C toolchain but no Rust one.
     "cbor2>=5.9,<6",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.15"
 
 [dependency-groups]
 dev = [
