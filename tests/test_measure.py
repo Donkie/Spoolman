@@ -42,3 +42,29 @@ async def test_measure_tare(spool_weight: float | None, expected_used: float) ->
         assert result.used_weight == pytest.approx(expected_used)
 
     await engine.dispose()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("reading", [150, 0])
+async def test_measure_below_tare_after_use(reading: float) -> None:
+    """A reading under the empty spool weight uses up the spool, however much was used before."""
+    engine = create_async_engine("sqlite+aiosqlite://", poolclass=StaticPool)
+    async with engine.begin() as conn:
+        await conn.run_sync(models.Base.metadata.create_all)
+
+    async with AsyncSession(engine, expire_on_commit=False) as db:
+        now = datetime(2026, 1, 1, tzinfo=timezone.utc).replace(tzinfo=None)  # stored naive, as UTC
+        filament = models.Filament(registered=now, density=1.24, diameter=1.75, weight=1000)
+        item = models.Spool(filament=filament, registered=now, initial_weight=1000, spool_weight=200, used_weight=0)
+        db.add(item)
+        await db.commit()
+
+    async with AsyncSession(engine, expire_on_commit=False) as db:
+        result = await spool.measure(db, item.id, 700)
+        assert result.used_weight == pytest.approx(500)
+
+    async with AsyncSession(engine, expire_on_commit=False) as db:
+        result = await spool.measure(db, item.id, reading)
+        assert result.used_weight == pytest.approx(1000)
+
+    await engine.dispose()
