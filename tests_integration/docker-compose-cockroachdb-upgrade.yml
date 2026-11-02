@@ -1,0 +1,58 @@
+# Upgrades a CockroachDB set up the way Spoolman did it before #797 was fixed, with 64-bit
+# unique_rowid() IDs everywhere, and checks that nothing was lost on the way.
+#
+# The spoolman container runs upgrade/harness.py before it starts Spoolman. The harness builds
+# the old schema, seeds it, kills the upgrade at several points and finishes it, checking the
+# database after each step. Spoolman only starts if all of that passed, so a failing harness
+# exits the container and fails the run. The tester then checks the renumbered rows over the
+# REST API the web UI uses, using the manifest the harness leaves on the shared volume.
+version: '3.9'
+services:
+  db:
+    image: cockroachdb/cockroach:v23.1.2
+    command: start-single-node --insecure
+    environment:
+      - COCKROACH_USER=john
+      - COCKROACH_DATABASE=spoolman
+      - TZ=Asia/Seoul
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8080/health?ready=1"
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+  spoolman:
+    image: donkie/spoolman:test
+    entrypoint: ["sh", "-c", "python /upgrade/harness.py cockroachdb && exec /home/app/spoolman/entrypoint.sh"]
+    environment:
+      - SPOOLMAN_DB_TYPE=cockroachdb
+      - SPOOLMAN_DB_HOST=db
+      - SPOOLMAN_DB_PORT=26257
+      - SPOOLMAN_DB_NAME=spoolman
+      - SPOOLMAN_DB_USERNAME=john
+      - SPOOLMAN_LOGGING_LEVEL=INFO
+      - TZ=Europe/Stockholm
+      # So the harness can import spoolman like alembic does.
+      - PYTHONPATH=/home/app/spoolman
+    volumes:
+      - ./upgrade:/upgrade:ro
+      - manifest:/manifest
+    depends_on:
+      db:
+        condition: service_healthy
+  tester:
+    image: donkie/spoolman-tester:latest
+    volumes:
+      - ./tests_upgrade:/tester/tests
+      - manifest:/manifest:ro
+    environment:
+      - DB_TYPE=cockroachdb
+    depends_on:
+      - spoolman
+volumes:
+  manifest:

@@ -1,0 +1,59 @@
+# Runs the CockroachDB ID migrations on every other database and checks that they change
+# nothing there apart from the alembic version. Each database is upgraded from the revision
+# before them with data in it, then downgraded again, and compared to a snapshot of its rows,
+# schema and ID counters every time.
+#
+# The runner is the only container that exits, so its exit code is the result of the run.
+version: '3.9'
+services:
+  postgres:
+    image: postgres:11-alpine
+    environment:
+      - POSTGRES_PASSWORD=abc
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1s
+      timeout: 5s
+      retries: 30
+  mariadb:
+    image: mariadb:latest
+    environment:
+      - MARIADB_USER=john
+      - MARIADB_RANDOM_ROOT_PASSWORD=yes
+      - MARIADB_PASSWORD=abc
+      - MARIADB_DATABASE=spoolman
+      - MARIADB_MYSQL_LOCALHOST_USER=true
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/usr/local/bin/healthcheck.sh",
+          "--su-mysql",
+          "--connect",
+          "--innodb_initialized"
+        ]
+      interval: 1s
+      timeout: 5s
+      retries: 30
+  runner:
+    image: donkie/spoolman:test
+    # One harness run per database, configured the same way Spoolman would be.
+    entrypoint:
+      - sh
+      - -ec
+      - |
+        SPOOLMAN_DB_TYPE=sqlite SPOOLMAN_DIR_DATA=/tmp/sqlite python /upgrade/harness.py untouched
+        SPOOLMAN_DB_TYPE=postgres SPOOLMAN_DB_HOST=postgres SPOOLMAN_DB_PORT=5432 SPOOLMAN_DB_NAME=postgres \
+          SPOOLMAN_DB_USERNAME=postgres SPOOLMAN_DB_PASSWORD=abc python /upgrade/harness.py untouched
+        SPOOLMAN_DB_TYPE=mysql SPOOLMAN_DB_HOST=mariadb SPOOLMAN_DB_PORT=3306 SPOOLMAN_DB_NAME=spoolman \
+          SPOOLMAN_DB_USERNAME=john SPOOLMAN_DB_PASSWORD=abc python /upgrade/harness.py untouched
+    environment:
+      # So the harness can import spoolman like alembic does.
+      - PYTHONPATH=/home/app/spoolman
+    volumes:
+      - ./upgrade:/upgrade:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mariadb:
+        condition: service_healthy

@@ -26,7 +26,14 @@ if __name__ == "__main__":
         targets = sys.argv[1:]
         # Check that all targets are valid
         for target in targets:
-            if target not in ["postgres", "sqlite", "mariadb", "cockroachdb"]:
+            if target not in [
+                "postgres",
+                "sqlite",
+                "mariadb",
+                "cockroachdb",
+                "cockroachdb-upgrade",
+                "other-dbs-upgrade",
+            ]:
                 print(f"Unknown target: {target}")
                 sys.exit(1)
     else:
@@ -36,6 +43,8 @@ if __name__ == "__main__":
             "sqlite",
             "mariadb",
             "cockroachdb",
+            "cockroachdb-upgrade",
+            "other-dbs-upgrade",
         ]
 
     for target in targets:
