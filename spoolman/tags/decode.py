@@ -352,5 +352,7 @@ def _decode_tigertag(payload: bytes) -> DecodedTag | None:
         material_class="FFF",
         color_hex=data.color_hex,
         diameter=data.diameter_mm or None,
-        weight=float(data.weight) or None,
+        # weight_grams is None both when the tag has no weight and when it reports one in a
+        # unit other than grams (e.g. kilograms) -- either way, not a usable weight in grams.
+        weight=float(data.weight_grams) if data.weight_grams else None,
     )
