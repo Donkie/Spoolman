@@ -173,7 +173,7 @@ def test_scan_decodes_a_real_prusa_test_vector_with_derived_instance_id():
 
 
 def test_scan_decodes_a_tigertag():
-    payload = base64.b64encode(build_tigertag(id_diameter=1, weight=1000, color_hex="112233")).decode("ascii")
+    payload = base64.b64encode(build_tigertag(id_diameter=56, weight=1000, color_hex="112233")).decode("ascii")
     result = httpx.post(
         f"{URL}/api/v1/tag/scan",
         json={"uid": _uid(), "reader_id": _reader_id(), "format": "tigertag", "payload_b64": payload},
