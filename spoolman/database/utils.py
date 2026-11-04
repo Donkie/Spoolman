@@ -54,6 +54,8 @@ def order_by_clauses(
     NULLS LAST, which MySQL and MariaDB do not support, whereas ``expr IS NULL`` sorts
     false-before-true on all four supported databases.
 
+    Lowercase only text so eSUN sorts before Sunlu (#459), without converting numeric or date keys.
+
     Args:
         exprs: The expressions to sort by, in priority order. A field usually contributes
             one; a couple (e.g. `filament.combined_name`) expand to several.
@@ -66,7 +68,8 @@ def order_by_clauses(
     clauses: list[Any] = []
     for expr in exprs:
         clauses.append(expr.is_(None).asc())
-        clauses.append(expr.asc() if order == SortOrder.ASC else expr.desc())
+        sort_expr = sqlalchemy.func.lower(expr) if isinstance(expr.type, sqlalchemy.String) else expr
+        clauses.append(sort_expr.asc() if order == SortOrder.ASC else sort_expr.desc())
     return clauses
 
 
