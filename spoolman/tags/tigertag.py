@@ -1,9 +1,12 @@
-"""TigerTag NTAG213 binary encoder/decoder.
+"""TigerTag NTAG213 binary decoder.
 
-Implements the TigerTag Maker format for encoding/decoding filament data
-to/from NTAG213 NFC chips (144 bytes user memory, pages 4-39).
-
-Based on the TigerTag RFID Guide specification.
+Decodes the TigerTag Maker/+ format from NTAG213 NFC chips (144 bytes user memory,
+pages 4-39). Byte offsets below are verified against the normative table in
+TigerTag-Project/TigerTag-RFID-Guide's README and the offsets its own
+`Sample code/parse_tigertag.py` reference parser reads, which agree exactly. Only the
+fields something downstream actually reads are decoded; the rest of the spec
+(Color 2/3, tag index/count, HueForge TD, Measure Available, the ECDSA signature) is
+left for a later PR, same scope discipline as the OpenPrintTag codec.
 """
 
 import logging
@@ -27,12 +30,17 @@ TIGERTAG_MAGIC_NUMBERS = {TIGERTAG_MAKER_V1, TIGERTAG_PRO_V1}
 _RGB_HEX_LEN = 6
 _RGBA_HEX_LEN = 8
 
-# TigerTag diameter IDs. 1/2 are the common Maker values; 56/57 are equivalent
-# IDs seen from some product/API sources for the same two diameters.
-_DIAMETER_ID_175 = 1
-_DIAMETER_ID_285 = 2
-_DIAMETER_ID_175_ALT = 56
-_DIAMETER_ID_285_ALT = 57
+# TigerTag diameter IDs, from the spec repo's database/id_diameter.json (and confirmed by
+# every worked example in its README): 56 (0x38) = 1.75mm, 221 (0xDD) = 2.85mm. No other
+# values are defined -- a tag using anything else has an id this codec doesn't recognize.
+_DIAMETER_ID_175 = 56
+_DIAMETER_ID_285 = 221
+
+# Measure unit IDs, from the spec repo's database/id_measure_unit.json. The "Measure" field
+# (see decode_ntag213) is only grams when this is 21 -- the README's own Polymaker example
+# uses 35 (kilograms) for the same field, so the raw value can't be trusted as grams on its
+# own. Other defined units (mg, ml, cl, L, m^3, mm, cm, m, m^2) aren't grams either.
+_UNIT_ID_GRAMS = 21
 
 
 def is_tigertag(magic: int) -> bool:
@@ -59,8 +67,12 @@ class TigerTagData:
     color_b: int = 0  # 1 byte
     color_a: int = 255  # 1 byte
 
-    # Spool properties
-    weight: int = 0  # net weight in grams
+    # Spool properties. `weight` is the raw "Measure" value -- only trustable as grams when
+    # `id_unit` says so, see `weight_grams`. Defaults to grams, the overwhelmingly common
+    # real-world case (and the spec repo's own first worked example), so constructing a
+    # TigerTagData without specifying a unit behaves the way every caller already expects.
+    weight: int = 0
+    id_unit: int = _UNIT_ID_GRAMS  # 1 byte - measure unit ID (database/id_measure_unit.json)
 
     # Temperature settings
     nozzle_temp: int = 0  # nozzle temp min in °C
@@ -72,7 +84,6 @@ class TigerTagData:
 
     # Metadata
     timestamp: int = 0  # 4 bytes - seconds since 2000-01-01 GMT
-    emoji: int = 0  # 4 bytes - emoji codepoint
 
     # User message - 28 bytes UTF-8
     user_message: str = ""
@@ -99,14 +110,26 @@ class TigerTagData:
     @property
     def diameter_mm(self) -> float:
         """Get diameter in mm from the diameter ID."""
-        if self.id_diameter in (_DIAMETER_ID_175, _DIAMETER_ID_175_ALT):
+        if self.id_diameter == _DIAMETER_ID_175:
             return 1.75
-        if self.id_diameter in (_DIAMETER_ID_285, _DIAMETER_ID_285_ALT):
+        if self.id_diameter == _DIAMETER_ID_285:
             return 2.85
         return 0.0
 
+    @property
+    def weight_grams(self) -> int | None:
+        """The measured weight in grams, or None if the tag reports it in some other unit.
 
-# TigerTag binary format (big-endian, 36-byte header):
+        `weight` is the raw "Measure" field -- the spec also carries a measure *unit* ID
+        alongside it (database/id_measure_unit.json: 21=g, but also mg/kg/ml/cl/L/m^3/mm/
+        cm/m/m^2), and a real tag can use any of them -- the README's own worked example
+        for a Polymaker TigerTag+ tag reports its weight in kilograms, not grams. Rather
+        than guess a conversion, a non-gram tag is treated as not carrying a usable weight.
+        """
+        return self.weight if self.id_unit == _UNIT_ID_GRAMS else None
+
+
+# TigerTag binary format (big-endian, 36-byte header), per the spec repo's byte table:
 #
 # Offset  Size  Format  Field
 # 0       4     >I      id_tigertag
@@ -118,28 +141,24 @@ class TigerTagData:
 # 13      1     B       id_diameter
 # 14      2     >H      id_brand
 # 16      4     >I      color_rgba (R<<24 | G<<16 | B<<8 | A)
-# 20      4     >I      weight_unit (weight<<8 | unit_id)
+# 20      4     >I      measure_unit (measure<<8 | id_unit)
 # 24      2     >H      nozzle_temp_min
 # 26      2     >H      nozzle_temp_max
 # 28      1     B       drying_temp
 # 29      1     B       drying_time (hours)
-# 30      2     >H      reserved (0)
+# 30      1     B       bed_temp_min
+# 31      1     B       bed_temp_max
 # 32      4     >I      timestamp
 #
-# After header:
-# 36      1     B       bed_temp_min
-# 37      1     B       bed_temp_max
-# 38-53   16    -       reserved
-# 54      4     >I      emoji
-# 58      28    UTF-8   user_message
-# 86-143  58    -       signature / reserved
+# After the header (optional; not written by every tool, so length-guarded on read):
+# 36-47   12    -       Color 2/3, tag index, HueForge TD, reserved -- not decoded here
+# 48      28    UTF-8   user_message
+# 76-143  68    -       Measure Available, reserved, ECDSA signature -- not decoded here
 
-_HEADER_FMT = ">II HBB BBH I I HH BBH I"
+_HEADER_FMT = ">II HBB BBH I I HH BBBB I"
 _HEADER_SIZE = struct.calcsize(_HEADER_FMT)  # 36 bytes
 _USER_MESSAGE_SIZE = 28
-_USER_MESSAGE_OFFSET = 58
-_EMOJI_OFFSET = 54
-_BED_TEMP_OFFSET = 36
+_USER_MESSAGE_OFFSET = 48
 
 
 def decode_ntag213(raw_bytes: bytes) -> TigerTagData:
@@ -171,9 +190,11 @@ def decode_ntag213(raw_bytes: bytes) -> TigerTagData:
     color_b = (color_val >> 8) & 0xFF
     color_a = color_val & 0xFF
 
-    # Unpack weight + unit: weight in upper 24 bits, unit_id in lower 8
-    weight_unit = values[9]
-    weight = (weight_unit >> 8) & 0xFFFFFF
+    # Unpack measure + unit: measure in upper 24 bits, id_unit in lower 8. Whether `measure`
+    # means grams depends on id_unit -- see TigerTagData.weight_grams.
+    measure_unit = values[9]
+    weight = (measure_unit >> 8) & 0xFFFFFF
+    id_unit = measure_unit & 0xFF
 
     data = TigerTagData(
         id_tigertag=values[0],
@@ -189,24 +210,17 @@ def decode_ntag213(raw_bytes: bytes) -> TigerTagData:
         color_b=color_b,
         color_a=color_a,
         weight=weight,
+        id_unit=id_unit,
         nozzle_temp=values[10],
         nozzle_temp_max=values[11],
         drying_temp=values[12],
         drying_duration=values[13],
-        # index 14 is reserved
-        timestamp=values[15],
+        bed_temp=values[14],
+        bed_temp_max=values[15],
+        timestamp=values[16],
     )
 
-    # Read bed temp (uint8 each) at offset 36-37
-    if len(raw_bytes) > _BED_TEMP_OFFSET + 1:
-        data.bed_temp = raw_bytes[_BED_TEMP_OFFSET]
-        data.bed_temp_max = raw_bytes[_BED_TEMP_OFFSET + 1]
-
-    # Read emoji at offset 54
-    if len(raw_bytes) >= _EMOJI_OFFSET + 4:
-        data.emoji = struct.unpack_from(">I", raw_bytes, _EMOJI_OFFSET)[0]
-
-    # Read user message at offset 58
+    # Read user message at offset 48 (28 bytes, optional region)
     if len(raw_bytes) >= _USER_MESSAGE_OFFSET + _USER_MESSAGE_SIZE:
         msg_bytes = raw_bytes[_USER_MESSAGE_OFFSET : _USER_MESSAGE_OFFSET + _USER_MESSAGE_SIZE]
         null_idx = msg_bytes.find(b"\x00")
@@ -215,54 +229,3 @@ def decode_ntag213(raw_bytes: bytes) -> TigerTagData:
         data.user_message = msg_bytes.decode("utf-8", errors="replace")
 
     return data
-
-
-def encode_ntag213(data: TigerTagData) -> bytes:
-    """Encode TigerTagData into raw bytes for NTAG213 user memory.
-
-    Returns:
-        bytes: 144 bytes to write to NTAG213 pages 4-39.
-
-    """
-    # Pack color as RGBA uint32: R<<24 | G<<16 | B<<8 | A
-    color_val = (data.color_r << 24) | (data.color_g << 16) | (data.color_b << 8) | data.color_a
-
-    # Pack weight + unit_id: weight<<8 | unit (unit=1 for grams)
-    weight_unit = ((data.weight & 0xFFFFFF) << 8) | 1
-
-    header = struct.pack(
-        _HEADER_FMT,
-        data.id_tigertag,
-        data.id_product,
-        data.id_material,
-        data.id_aspect,  # aspect_1
-        0,  # aspect_2
-        data.id_type,
-        data.id_diameter,
-        data.id_brand,
-        color_val,
-        weight_unit,
-        data.nozzle_temp,
-        data.nozzle_temp_max,
-        data.drying_temp,
-        data.drying_duration,
-        0,  # reserved
-        data.timestamp,
-    )
-
-    # Build full 144-byte payload
-    payload = bytearray(NTAG213_USER_BYTES)
-    payload[: len(header)] = header
-
-    # Bed temp at offset 36-37
-    payload[_BED_TEMP_OFFSET] = data.bed_temp & 0xFF
-    payload[_BED_TEMP_OFFSET + 1] = data.bed_temp_max & 0xFF
-
-    # Emoji at offset 54
-    struct.pack_into(">I", payload, _EMOJI_OFFSET, data.emoji)
-
-    # User message at offset 58 (28 bytes, null-padded)
-    msg_bytes = data.user_message.encode("utf-8")[:_USER_MESSAGE_SIZE]
-    payload[_USER_MESSAGE_OFFSET : _USER_MESSAGE_OFFSET + len(msg_bytes)] = msg_bytes
-
-    return bytes(payload)
