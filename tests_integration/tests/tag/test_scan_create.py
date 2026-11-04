@@ -151,7 +151,7 @@ def test_create_true_on_an_unmatched_tigertag_creates_and_links_a_spool_without_
     created (no addon needed to make a usable spool), just without a name.
     """
     uid = _uid()
-    payload = base64.b64encode(build_tigertag(id_diameter=1, weight=1000, color_hex="112233")).decode("ascii")
+    payload = base64.b64encode(build_tigertag(id_diameter=56, weight=1000, color_hex="112233")).decode("ascii")
 
     result = httpx.post(
         f"{URL}/api/v1/tag/scan",
