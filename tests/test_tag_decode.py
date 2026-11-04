@@ -27,7 +27,8 @@ from spoolman.tags.openprinttag import (
     MF_PRIMARY_COLOR,
     uuid5_bytes,
 )
-from spoolman.tags.tigertag import TIGERTAG_INIT, TIGERTAG_MAKER_V1, TigerTagData, encode_ntag213
+from spoolman.tags.tigertag import TIGERTAG_INIT, TIGERTAG_MAKER_V1, TigerTagData
+from tests.test_tigertag_codec import encode_ntag213
 
 
 def _cbor_payload(main: dict, aux: dict | None = None) -> bytes:
@@ -129,7 +130,7 @@ def test_decode_dispatches_tigertag() -> None:
     raw = encode_ntag213(
         TigerTagData(
             id_tigertag=TIGERTAG_MAKER_V1,
-            id_diameter=1,
+            id_diameter=56,  # 0x38, the spec's real 1.75mm id
             weight=1000,
             color_r=0x11,
             color_g=0x22,
@@ -177,6 +178,14 @@ def test_decode_tigertag_unknown_diameter_is_none_not_zero() -> None:
 
 def test_decode_tigertag_zero_weight_is_none() -> None:
     raw = encode_ntag213(TigerTagData(id_tigertag=TIGERTAG_MAKER_V1, weight=0))
+    result = decode("tigertag", raw)
+    assert result is not None
+    assert result.weight is None
+
+
+def test_decode_tigertag_non_gram_unit_is_none_not_a_scaled_value() -> None:
+    """A tag reporting its weight in kilograms must not be read as that many grams."""
+    raw = encode_ntag213(TigerTagData(id_tigertag=TIGERTAG_MAKER_V1, weight=1000, id_unit=35))  # 35 = kilograms
     result = decode("tigertag", raw)
     assert result is not None
     assert result.weight is None
