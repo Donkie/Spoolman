@@ -539,7 +539,11 @@
 							<div class="res-note">{m['add.noCatalog']()}</div>
 						{:else}
 							{#each localResults as f (f.id)}
-								<button class="res-item" onclick={() => choose({ source: 'catalog', filament: f })}>
+								<button
+									class="res-item"
+									title="{f.name} ({vendorName(f)} · {f.material})"
+									onclick={() => choose({ source: 'catalog', filament: f })}
+								>
 									<Swatch colors={f.colors} direction={f.multiColorDirection} size={18} radius={5} />
 									<div class="res-name">
 										<span class="rn">{f.name}</span>
@@ -549,7 +553,7 @@
 									     otherwise identical entries, so it sits outside the truncating
 									     .res-name. A catalog filament may have no weight recorded (0). -->
 									{#if f.weight}
-										<span class="res-weight">{weightAuto(f.weight)}</span>
+										<span class="res-weight">{weightAuto(f.weight)} · {f.diameter} mm</span>
 									{/if}
 									<span class="tag in-catalog">{m['add.inCatalog']()}</span>
 								</button>
@@ -567,7 +571,11 @@
 							</div>
 						{:else}
 							{#each extSearch.items as ext (ext.id)}
-								<button class="res-item" onclick={() => choose({ source: 'external', ext })}>
+								<button
+									class="res-item"
+									title="{ext.name} ({ext.manufacturer} · {ext.material})"
+									onclick={() => choose({ source: 'external', ext })}
+								>
 									<Swatch
 										colors={externalColors(ext)}
 										direction={externalDirection(ext)}
@@ -583,7 +591,7 @@
 									     outside .res-name so the ellipsis can never eat the one field that
 									     tells two matching results apart. -->
 									{#if ext.weight}
-										<span class="res-weight">{weightAuto(ext.weight)}</span>
+										<span class="res-weight">{weightAuto(ext.weight)} · {ext.diameter} mm</span>
 									{/if}
 									<span class="tag external">{serverInfo.externalDbName}</span>
 								</button>
