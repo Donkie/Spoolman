@@ -104,6 +104,9 @@
 	function cWeight(c: Choice) {
 		return c.source === 'catalog' ? c.filament.weight : c.ext.weight;
 	}
+	function cDiameter(c: Choice) {
+		return c.source === 'catalog' ? c.filament.diameter : c.ext.diameter;
+	}
 	function cSpoolWeight(c: Choice): number | undefined {
 		if (c.source === 'external') return c.ext.spool_weight;
 		return c.filament.spoolWeight ?? inventory.vendorById(c.filament.vendorId)?.emptyWeight;
@@ -650,7 +653,7 @@
 								     it stays put even if the Weight field below is edited for this spool. -->
 								<div class="cs">
 									{cVendor(chosen)} · {cMaterial(chosen)}{cWeight(chosen)
-										? ' · ' + weightAuto(cWeight(chosen))
+										? ' · ' + weightAuto(cWeight(chosen)) + ' · ' + cDiameter(chosen) + ' mm'
 										: ''}
 								</div>
 							</div>
