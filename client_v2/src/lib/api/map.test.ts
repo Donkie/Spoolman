@@ -1,5 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { filamentPatchToApi, mapSpool, spoolPatchToApi } from './map';
+import { filamentPatchToApi, mapSpool, mapVendor, spoolPatchToApi, vendorPatchToApi } from './map';
+
+describe('vendor empty spool weight', () => {
+	it('preserves absent and null as unknown', () => {
+		expect(mapVendor({ id: 1 }).emptyWeight).toBeUndefined();
+		expect(mapVendor({ id: 1, empty_spool_weight: null }).emptyWeight).toBeUndefined();
+	});
+	it('preserves recorded zero and positive weights', () => {
+		expect(mapVendor({ id: 1, empty_spool_weight: 0 }).emptyWeight).toBe(0);
+		expect(mapVendor({ id: 1, empty_spool_weight: 250 }).emptyWeight).toBe(250);
+	});
+	it('clears with null and omits untouched weight', () => {
+		expect(vendorPatchToApi({ emptyWeight: undefined })).toEqual({ empty_spool_weight: null });
+		expect(vendorPatchToApi({ emptyWeight: 0 })).toEqual({ empty_spool_weight: 0 });
+		expect(vendorPatchToApi({ name: 'Renamed' })).toEqual({ name: 'Renamed' });
+	});
+});
 
 // The client models a spool's filament as a string id (ids are strings across the
 // reactive cache), but PATCH /spool/{id} takes a number and rejects an explicit
