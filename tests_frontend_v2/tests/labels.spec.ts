@@ -22,6 +22,7 @@ const spool = {
   locationName: unique("LabelShelf"),
 };
 const designName = unique("Design");
+const existingDesignName = unique("ExistingDesign");
 
 test.describe.configure({ mode: "serial" });
 
@@ -34,12 +35,13 @@ test.afterAll(async ({ browser }) => {
     await navTab(page, "Labels", "Labels | Spoolman");
 
     const select = page.getByLabel("Select label design");
-    if ((await select.locator(`option:text-is("${designName}")`).count()) === 0) return;
-
-    await select.selectOption({ label: designName });
-    page.once("dialog", (dialog) => dialog.accept());
-    await page.getByRole("button", { name: "Delete", exact: true }).click();
-    await expect(select.locator(`option:text-is("${designName}")`)).toHaveCount(0);
+    for (const name of [designName, existingDesignName]) {
+      if ((await select.locator(`option:text-is("${name}")`).count()) === 0) continue;
+      await select.selectOption({ label: name });
+      page.once("dialog", (dialog) => dialog.accept());
+      await page.getByRole("button", { name: "Delete", exact: true }).click();
+      await expect(select.locator(`option:text-is("${name}")`)).toHaveCount(0);
+    }
   } finally {
     await page.close();
   }
@@ -54,8 +56,29 @@ test("create a label design and persist it to the server", async ({ page }) => {
 
   await navTab(page, "Labels", "Labels | Spoolman");
 
-  await test.step("create and name a design", async () => {
+  await page.getByRole("button", { name: "New", exact: true }).click();
+  await page.getByPlaceholder("Design name").fill(existingDesignName);
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Saved", exact: true })).toBeVisible();
+  let releaseLoad!: () => void;
+  let loadArrived!: () => void;
+  const held = new Promise<void>((resolve) => { loadArrived = resolve; });
+  const gate = new Promise<void>((resolve) => { releaseLoad = resolve; });
+  await page.route("**/api/v1/setting/label_designs", async (route) => {
+    if (route.request().method() !== "GET") return route.continue();
+    loadArrived();
+    await gate;
+    await route.continue();
+  }, { times: 1 });
+  try {
+    await page.reload();
+    await held;
     await page.getByRole("button", { name: "New", exact: true }).click();
+  } finally {
+    releaseLoad();
+  }
+
+  await test.step("create and name a design", async () => {
 
     // A fresh design starts from a working template rather than a blank canvas.
     const nameField = page.getByPlaceholder("Design name");
@@ -76,6 +99,7 @@ test("create a label design and persist it to the server", async ({ page }) => {
     await expect(page.getByLabel("Select label design").locator(`option:text-is("${designName}")`)).toHaveCount(
       1,
     );
+    await expect(page.getByLabel("Select label design").locator(`option:text-is("${existingDesignName}")`)).toHaveCount(1);
   });
 });
 
