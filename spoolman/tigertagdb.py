@@ -39,8 +39,25 @@ class TigerTagMaterial(BaseModel):
     density: float | None = None
 
 
+class _TigerTagProductFilament(BaseModel):
+    """The nested detail block the single-product endpoint (`product/get`) returns.
+
+    The bulk endpoint (`product/get/all`, used for the synced cache) puts material and
+    weight at the top level instead -- `TigerTagProduct.material`/`.measure` cover that
+    shape. Confirmed against the live API: the two endpoints disagree on this.
+    """
+
+    material: str | None = None
+    grams: float | None = None
+
+
 class TigerTagProduct(BaseModel):
-    """A filament product from the TigerTag API."""
+    """A filament product from the TigerTag API.
+
+    `product/get/all` (bulk) and `product/get` (single, live tag lookup) disagree on
+    where material and weight live -- see `_TigerTagProductFilament`. `resolved_material`/
+    `resolved_weight_g` read whichever shape actually populated the response.
+    """
 
     id: int
     product_type: str | None = None
@@ -51,6 +68,25 @@ class TigerTagProduct(BaseModel):
     color_info: dict | None = None
     measure: str | None = None
     sku: str | None = None
+    filament: _TigerTagProductFilament | None = None
+
+    @property
+    def resolved_material(self) -> str | None:
+        """The material name, from whichever endpoint shape this response came from."""
+        if self.material is not None:
+            return self.material
+        return self.filament.material if self.filament is not None else None
+
+    @property
+    def resolved_weight_g(self) -> float | None:
+        """The weight in grams, if the single-product shape's `filament.grams` has it.
+
+        None when it doesn't (including the bulk shape, which has no such field) --
+        callers fall back to parsing the top-level `measure` string in that case.
+        """
+        if self.filament is not None and self.filament.grams is not None:
+            return float(self.filament.grams)
+        return None
 
 
 def _parse_weight_from_measure(measure: str | None) -> float:
@@ -71,9 +107,11 @@ def _parse_weight_from_measure(measure: str | None) -> float:
 def _to_external_filament(product: TigerTagProduct) -> ExternalFilament:
     """Convert a TigerTag product into an ExternalFilament."""
     manufacturer = product.brand or "Unknown"
-    material = product.material or "Unknown"
+    material = product.resolved_material or "Unknown"
     name = product.title or f"{manufacturer} {material}"
-    weight = _parse_weight_from_measure(product.measure)
+    weight = product.resolved_weight_g
+    if weight is None:
+        weight = _parse_weight_from_measure(product.measure)
 
     # Clean up color hex - remove leading # and alpha channel if present
     color_hex = None
