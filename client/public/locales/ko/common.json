@@ -35,7 +35,7 @@
     "notifications": {
         "success": "성공",
         "error": "오류 (상태 코드: {{statusCode}})",
-        "saveSuccessful": "저장 완료!",
+        "saveSuccessful": "저장했습니다.",
         "validationError": "검증 오류: {{error}}",
         "undoable": "{{seconds}}초 이내에 되돌릴 수 있습니다.",
         "createSuccess": "{{resource}} 생성 완료",
@@ -47,11 +47,11 @@
         "importProgress": "가져오기: {{processed}}/{{total}}"
     },
     "kofi": "Ko-fi로 개발 지원",
-    "loading": "로딩",
+    "loading": "불러오는 중",
     "version": "버전",
     "unknown": "알 수 없음",
-    "yes": "네",
-    "no": "아니오",
+    "yes": "예",
+    "no": "아니요",
     "tags": {
         "clone": "복제"
     },
@@ -65,7 +65,7 @@
             "columns": "열",
             "rows": "행",
             "paperSize": "종이 크기",
-            "customSize": "커스텀",
+            "customSize": "사용자 지정",
             "dimensions": "치수",
             "showBorder": "테두리 보이기",
             "contentSettings": "내용 설정",
@@ -92,11 +92,11 @@
             "saveSetting": "프리셋 저장",
             "saveAsImage": "그림으로 저장",
             "skipItems": "항목 건너뛰기",
-            "itemCopies": "항목 복사본 수",
-            "description": "아래 설정을 조정하여 원하는 인쇄 레이아웃을 얻으십시오. 프린터와 운영체제(OS)가 자체 여백 및 크기 조정을 적용할 수 있으므로, 완벽하게 맞출 때까지 몇 번의 시행착오가 필요할 수 있습니다. 실제 라벨에 인쇄하기 전에 일반 용지에 테스트 인쇄를 해보십시오.",
-            "helpMargin": "여백은 라벨 용지와 프린터에 맞게 설정해야 하며, 이를 변경하면 전체 그리드 크기에 영향을 미칩니다.",
+            "itemCopies": "항목별 매수",
+            "description": "아래 설정을 조정해 원하는 인쇄 레이아웃을 맞추세요. 프린터와 운영체제가 자체 여백과 배율을 적용할 수 있어서 몇 번 시험해 봐야 할 수 있습니다. 라벨에 인쇄하기 전에 일반 용지로 먼저 시험해 보세요.",
+            "helpMargin": "여백은 라벨 용지와 프린터에 맞게 설정하세요. 값을 바꾸면 전체 격자 크기가 달라집니다.",
             "previewScale": "미리보기 배율",
-            "helpPrinterMargin": "안전구역은 프린터가 용지 가장자리에서 얼마나 가까운 위치까지 인쇄할 수 있는지를 설정하는 것이며, 이 값을 변경해도 전체 격자에는 영향을 미치지 않습니다.",
+            "helpPrinterMargin": "안전구역은 프린터가 용지 가장자리에 얼마나 가깝게 인쇄할 수 있는지에 맞춰 설정하세요. 값을 바꿔도 전체 격자 크기는 달라지지 않습니다.",
             "printerMarginLeft": "안전구역 왼쪽",
             "printerMarginRight": "안전구역 오른쪽",
             "printerMarginTop": "안전구역 위쪽",
@@ -136,10 +136,10 @@
     },
     "scanner": {
         "title": "QR 코드 스캐너",
-        "description": "Spoolman QR 코드를 스캔하여 스풀에 대한 세부 정보를 확인하세요.",
+        "description": "Spoolman QR 코드를 스캔하면 스풀 정보를 볼 수 있습니다.",
         "error": {
             "notAllowed": "카메라 접근 권한을 허용하지 않았습니다.",
-            "insecureContext": "해당 페이지는 HTTPS를 통해 제공되지 않습니다.",
+            "insecureContext": "이 페이지는 HTTPS로 연결되지 않았습니다.",
             "streamApiNotSupported": "브라우저가 MediaStream API를 지원하지 않습니다.",
             "notReadable": "카메라를 읽을 수 없습니다.",
             "notFound": "카메라를 찾을 수 없습니다.",
@@ -155,7 +155,7 @@
             "filament_internal": "내부",
             "filament_external": "외부",
             "price": "가격",
-            "material": "재료",
+            "material": "재질",
             "weight_to_use": "중량",
             "used_weight": "사용 중량",
             "remaining_weight": "남은 무게",
@@ -170,7 +170,7 @@
             "last_used": "최종 사용",
             "registered": "등록됨",
             "archived": "보관됨",
-            "comment": "주석"
+            "comment": "메모"
         },
         "fields_help": {
             "price": "전체 스풀 가격. 설정되지 않은 경우 필라멘트 가격이 대신 적용됩니다.",
@@ -219,15 +219,15 @@
             "vendor_name": "제조사",
             "vendor": "제조사",
             "name": "이름",
-            "material": "재료",
+            "material": "재질",
             "price": "가격",
             "density": "밀도",
             "diameter": "직경",
-            "weight": "중량",
+            "weight": "무게",
             "spool_weight": "스풀 중량",
             "article_number": "제품 번호",
             "registered": "등록됨",
-            "comment": "주석",
+            "comment": "메모",
             "settings_extruder_temp": "압출기 온도",
             "settings_bed_temp": "베드 온도",
             "color_hex": "색상",
@@ -272,7 +272,7 @@
             "empty_spool_weight": "빈 스풀 중량",
             "external_id": "외부 ID",
             "registered": "등록됨",
-            "comment": "주석"
+            "comment": "메모"
         },
         "fields_help": {
             "empty_spool_weight": "이 제조사의 빈 스풀 중량."
@@ -401,5 +401,6 @@
         "system": "시스템",
         "light": "라이트",
         "dark": "다크"
-    }
+    },
+    "sponsor": "GitHub에서 후원하기"
 }
