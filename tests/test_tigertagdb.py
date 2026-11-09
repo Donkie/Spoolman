@@ -61,6 +61,32 @@ def test_to_external_filament_strips_leading_hash_and_keeps_rgb_only_color() -> 
     assert ext.color_hex == "aabbcc"
 
 
+def test_to_external_filament_resolves_material_and_weight_from_nested_filament_block() -> None:
+    """Real shape of GET product/get (the live, single-tag lookup `lookup_product_by_tag` uses).
+
+    Checked 2026-11-09 against api.tigertag.io/api:tigertag/product/get?uid=123456789&product_id=10
+    (Polymaker PolyTerra Artic Teal): unlike product/get/all's bulk shape -- still flat, see
+    test_to_external_filament_full_product -- this one nests material and weight under
+    "filament" instead of putting them at the top level. Trimmed to the fields that matter here.
+    """
+    product = TigerTagProduct(
+        id=10,
+        brand="Polymaker",
+        title="Polymaker - PolyTerra™ - Artic Teal - 1.75 mm - 1000 g",
+        color="#89D9D9FF",
+        filament={
+            "material": "PLA",
+            "grams": 1000,
+        },
+    )
+    ext = _to_external_filament(product)
+
+    assert ext.manufacturer == "Polymaker"
+    assert ext.material == "PLA"
+    assert ext.weight == 1000.0
+    assert ext.color_hex == "89D9D9"
+
+
 def test_to_external_filament_defaults_when_fields_missing() -> None:
     product = TigerTagProduct(id=1)
     ext = _to_external_filament(product)
@@ -153,12 +179,20 @@ async def test_lookup_product_by_tag_disabled_makes_no_request(monkeypatch: pyte
 
 @pytest.mark.asyncio
 async def test_lookup_product_by_tag_success(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Uses the real nested-filament shape this endpoint actually returns.
+
+    See test_to_external_filament_resolves_material_and_weight_from_nested_filament_block
+    for where/when that was checked against the live API.
+    """
     monkeypatch.setattr(tigertagdb, "is_tigertag_enabled", lambda: True)
 
     def _handler(request: httpx.Request) -> httpx.Response:
         assert request.url.params["uid"] == "04A2B3C4"
         assert request.url.params["product_id"] == "28"
-        return httpx.Response(200, json={"id": 28, "brand": "Rosa3D", "material": "PLA"})
+        return httpx.Response(
+            200,
+            json={"id": 28, "brand": "Rosa3D", "filament": {"material": "PLA", "grams": 1000}},
+        )
 
     _mock_client(monkeypatch, _handler)
 
@@ -166,6 +200,8 @@ async def test_lookup_product_by_tag_success(monkeypatch: pytest.MonkeyPatch) ->
     assert ext is not None
     assert ext.id == "tigertag_28"
     assert ext.manufacturer == "Rosa3D"
+    assert ext.material == "PLA"
+    assert ext.weight == 1000.0
 
 
 @pytest.mark.asyncio
