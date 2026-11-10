@@ -284,6 +284,8 @@ def decode(tag_format: str | None, payload: bytes, uid_bytes: bytes | None = Non
     try:
         if fmt == "openprinttag":
             return _decode_openprinttag(payload, uid_bytes)
+        if fmt == "tigertag":
+            return _decode_tigertag(payload)
     except Exception:  # noqa: BLE001 -- best effort by contract, see the module docstring
         logger.warning("Could not decode %s payload", fmt, exc_info=True)
     return None
@@ -321,4 +323,36 @@ def _decode_openprinttag(payload: bytes, uid_bytes: bytes | None) -> DecodedTag 
         extruder_temp=extruder_temp,
         bed_temp=bed_temp,
         instance_uuid=data.effective_instance_uuid,
+    )
+
+
+def _decode_tigertag(payload: bytes) -> DecodedTag | None:
+    # Imported here for the same reason as openprinttag above: the dependency should only be
+    # paid for when a tigertag payload actually arrives.
+    from spoolman.tags import tigertag as tigertag_codec  # noqa: PLC0415
+
+    try:
+        data = tigertag_codec.decode_ntag213(payload)
+    except ValueError:
+        logger.debug("Could not decode payload as TigerTag", exc_info=True)
+        return None
+
+    if not tigertag_codec.is_tigertag(data.id_tigertag):
+        # Wrong magic number -- either not a TigerTag at all, or a blank/Init tag with
+        # nothing written to it yet. Either way there's nothing usable to surface.
+        return None
+
+    # id_material/id_brand are TigerTag's own catalog IDs, not names -- resolving them needs
+    # the optional external-DB addon (a separate, off-by-default PR), so material/name/
+    # vendor_name stay unset here rather than surfacing a bare number. Likewise id_product is a
+    # catalog SKU, not a per-roll identifier, so it's not a safe instance_uuid.
+    # TigerTag (NTAG213 "Maker"/"+") only ever tags filament spools, so material_class is
+    # always "FFF" -- unlike OpenPrintTag, there is no resin variant of this format.
+    return DecodedTag(
+        material_class="FFF",
+        color_hex=data.color_hex,
+        diameter=data.diameter_mm or None,
+        # weight_grams is None both when the tag has no weight and when it reports one in a
+        # unit other than grams (e.g. kilograms) -- either way, not a usable weight in grams.
+        weight=float(data.weight_grams) if data.weight_grams else None,
     )
