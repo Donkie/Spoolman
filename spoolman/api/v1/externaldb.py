@@ -1,11 +1,13 @@
 """External database API."""
 
+import json
 import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Query, Response
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 
+from spoolman.env import is_tigertag_enabled
 from spoolman.externaldb import (
     ExternalFilament,
     ExternalMaterial,
@@ -29,9 +31,23 @@ logger = logging.getLogger(__name__)
     response_model_exclude_none=True,
     response_model=list[ExternalFilament],
 )
-async def filaments() -> FileResponse:
-    """Get all external filaments."""
-    return FileResponse(path=get_filaments_file(), media_type="application/json")
+async def filaments() -> FileResponse | JSONResponse:
+    """Get all external filaments.
+
+    When the optional TigerTag add-on is enabled, its synced catalog is merged in
+    alongside the default SpoolmanDB catalog. Import stays lazy so a deployment that
+    never enables the add-on never loads its module.
+    """
+    if not is_tigertag_enabled():
+        return FileResponse(path=get_filaments_file(), media_type="application/json")
+
+    from spoolman.tigertagdb import get_tigertag_filaments_file  # noqa: PLC0415
+
+    combined = json.loads(get_filaments_file().read_bytes())
+    tigertag_path = get_tigertag_filaments_file()
+    if tigertag_path.exists():
+        combined.extend(json.loads(tigertag_path.read_bytes()))
+    return JSONResponse(content=combined)
 
 
 @router.get(
