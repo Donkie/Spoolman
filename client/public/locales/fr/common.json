@@ -28,10 +28,10 @@
             "useHTTPUrl": {
                 "tooltip": "Utilise un lien privé qui ne marchera que si il est scanné depuis Spoolman (défaut). URL utilises soit l'URL spécifiée dans les options soit l'URL de la page actuelle si ce n'est pas défini.",
                 "options": {
-                    "default": "Défaut",
+                    "default": "Par défaut",
                     "url": "URL"
                 },
-                "preview": "Prévisualisation :",
+                "preview": "Aperçu :",
                 "label": "Lien du QR code"
             }
         },
@@ -45,20 +45,20 @@
                 "border": "Bordure"
             },
             "printerMarginTop": "Zone de sécurité en haut",
-            "customSize": "Personnaliser",
+            "customSize": "Personnalisé",
             "title": "Impression",
             "contentSettings": "Paramètres du contenu",
             "marginRight": "Marge droite",
             "printerMarginRight": "Zone de sécurité à droite",
-            "helpPrinterMargin": "La zone de sécurité doit être définie en fonction de la proximité du bord du papier que votre imprimante peut imprimer, la modification de ces paramètres n'affectera pas l'ensemble de la grille.",
+            "helpPrinterMargin": "La zone de sécurité doit correspondre à la distance du bord du papier à laquelle votre imprimante peut imprimer ; la modifier ne change pas l’ensemble de la grille.",
             "previewScale": "Échelle de prévisualisation",
-            "helpMargin": "Les marges doivent être configurées en fonction de votre papier à étiquettes et de votre imprimante, leur modification aura une incidence sur la taille de l'ensemble de la grille.",
+            "helpMargin": "Les marges doivent être configurées en fonction de votre papier à étiquettes et de votre imprimante ; les modifier change la taille de toute la grille.",
             "marginTop": "Marge supérieure",
-            "skipItems": "Articles ignorés",
+            "skipItems": "Ignorer des cases",
             "layoutSettings": "Paramètres de mise en page",
             "paperSize": "Format du papier",
             "columns": "Colonnes",
-            "description": "Ajustez les paramètres ci-dessous pour obtenir la mise en page d'impression souhaitée. Gardez à l'esprit que les imprimantes et votre système d'exploitation peuvent appliquer leurs propres marges et mises à l'échelle, il se peut donc que vous deviez faire quelques essais avant que tout soit correct. Testez-le sur une feuille de papier ordinaire avant d'imprimer les étiquettes en elles mêmes.",
+            "description": "Ajustez les paramètres ci-dessous pour obtenir la mise en page d’impression souhaitée. Gardez à l’esprit que les imprimantes et votre système d’exploitation peuvent appliquer leurs propres marges et mises à l’échelle : il vous faudra peut-être quelques essais avant que tout soit correct. Faites un test sur une feuille de papier ordinaire avant d’imprimer sur les vraies étiquettes.",
             "marginBottom": "Marge inférieure",
             "horizontalSpacing": "Espacement horizontal",
             "marginLeft": "Marge gauche",
@@ -74,7 +74,7 @@
             "deleteSettingsConfirm": "Êtes-vous sûr de vouloir supprimer ce préréglage ?",
             "settingsName": "Nom du préréglage",
             "saveAsImage": "Enregistrer comme image",
-            "itemCopies": "Nombre d'articles",
+            "itemCopies": "Exemplaires",
             "duplicateSettings": "Dupliquer",
             "saveSetting": "Enregistrer les préréglages"
         },
@@ -133,7 +133,7 @@
             "filament_name": "Filament",
             "comment": "Commentaire",
             "filament": "Filament",
-            "location": "Localisation",
+            "location": "Emplacement",
             "used_length": "Longueur utilisée",
             "archived": "Archivé",
             "remaining_length": "Longueur restante",
@@ -193,9 +193,9 @@
         "create": "Créer",
         "save": "Enregistrer",
         "show": "Voir",
-        "filter": "Filtre",
-        "cancel": "Abandonner",
-        "edit": "Editer",
+        "filter": "Filtrer",
+        "cancel": "Annuler",
+        "edit": "Modifier",
         "showArchived": "Afficher les archives",
         "archive": "Archiver",
         "hideColumns": "Masquer les colonnes",
@@ -274,20 +274,20 @@
         "edit": "Editer"
     },
     "scanner": {
-        "title": "Scanner de code QR",
+        "title": "Scanner de QR code",
         "error": {
-            "insecureContext": "La page n'est pas servie par HTTPS.",
+            "insecureContext": "La page n’est pas servie en HTTPS.",
             "notReadable": "L'appareil photo n'est pas lisible.",
-            "notAllowed": "Vous n'avez pas autorisé l'accès à l'appareil photo.",
-            "unknown": "Une erreur inconnue s'est produite. ({{error}})",
-            "notFound": "Aucun appareil photo n'a été trouvé.",
-            "streamApiNotSupported": "Le navigateur ne prend pas en charge l'API MediaStream."
+            "notAllowed": "Vous n’avez pas autorisé l’accès à la caméra.",
+            "unknown": "Une erreur inconnue s’est produite. ({{error}})",
+            "notFound": "Aucune caméra n’a été trouvée.",
+            "streamApiNotSupported": "Le navigateur ne prend pas en charge l’API MediaStream."
         },
-        "description": "Scannez un code QR de Spoolman pour afficher les détails de la bobine."
+        "description": "Scannez un QR code Spoolman pour afficher les détails de la bobine."
     },
     "notifications": {
         "deleteSuccess": "Suppression réussie {{resource}}",
-        "error": "Erreur (status code : {{statusCode}})",
+        "error": "Erreur (code d’état : {{statusCode}})",
         "editError": "Erreur lors de l'édition {{resource}} (status code : {{statusCode}})",
         "undoable": "Vous avez {{seconds}} secondes pour annuler.",
         "importProgress": "Importation : {{processed}}/{{total}}",
@@ -296,7 +296,7 @@
         "editSuccess": "Édité avec succès {{resource}}",
         "deleteError": "Erreur lors de la suppression de {{resource}} (status code : {{statusCode}})",
         "createSuccess": "Création réussie de {{resource}}",
-        "saveSuccessful": "Sauvegarde réussie !",
+        "saveSuccessful": "Enregistrement réussi !",
         "validationError": "Erreur de validation : {{error}}"
     },
     "no": "Non",
