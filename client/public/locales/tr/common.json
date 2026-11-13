@@ -395,5 +395,12 @@
         "new_location": "Yeni Konum",
         "no_location": "Konum Yok",
         "no_locations_help": "Bu sayfa, makaralarınızı konumlara göre düzenlemenizi sağlar. Başlamak için birkaç makara ekleyin!"
-    }
+    },
+    "theme": {
+        "label": "Tema",
+        "system": "Sistem",
+        "light": "Açık",
+        "dark": "Koyu"
+    },
+    "sponsor": "Beni GitHub'da destekle"
 }
