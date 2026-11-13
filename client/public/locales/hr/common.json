@@ -1,0 +1,122 @@
+{
+    "buttons": {
+        "archive": "Arhiviraj",
+        "cancel": "Odustani",
+        "clear": "Očisti",
+        "delete": "Izbriši",
+        "edit": "Uredi",
+        "filter": "Filtriraj",
+        "save": "Spremi",
+        "showArchived": "Prikaži arhivirane",
+        "unArchive": "Vrati iz arhive"
+    },
+    "filament": {
+        "fields": {
+            "coaxial": "Koekstrudirano",
+            "comment": "Napomena",
+            "density": "Gustoća",
+            "diameter": "Promjer",
+            "id": "ID",
+            "longitudinal": "Uzdužno",
+            "material": "Materijal",
+            "name": "Naziv",
+            "price": "Cijena",
+            "registered": "Zabilježeno",
+            "vendor": "Proizvođač",
+            "weight": "Težina"
+        },
+        "filament": "Filamenti"
+    },
+    "help": {
+        "help": "Pomoć"
+    },
+    "loading": "Učitavanje",
+    "no": "Ne",
+    "notifications": {
+        "error": "Pogreška (statusni kod: {{statusCode}})",
+        "saveSuccessful": "Spremanje uspjelo!"
+    },
+    "printing": {
+        "generic": {
+            "columns": "Stupci",
+            "customSize": "Prilagođeno",
+            "description": "Namjesti postavke ispod da dobiješ željeni raspored ispisa. Imaj na umu da pisači i operacijski sustav mogu dodati vlastite margine i skaliranje, pa će možda trebati nekoliko pokušaja dok sve ne sjedne. Isprobaj na običnom papiru prije nego ispišeš na prave naljepnice.",
+            "dimensions": "Dimenzije",
+            "helpMargin": "Margine treba uskladiti s papirom za naljepnice i pisačem; njihova promjena mijenja veličinu cijele mreže.",
+            "helpPrinterMargin": "Sigurnu zonu postavi na to koliko blizu rubu papira tvoj pisač može ispisivati; njezina promjena ne utječe na cijelu mrežu.",
+            "horizontalSpacing": "Vodoravni razmak",
+            "itemCopies": "Kopija po stavci",
+            "marginBottom": "Donja margina",
+            "marginLeft": "Lijeva margina",
+            "marginRight": "Desna margina",
+            "marginTop": "Gornja margina",
+            "paperSize": "Veličina papira",
+            "printerMarginBottom": "Sigurna zona dolje",
+            "printerMarginLeft": "Sigurna zona lijevo",
+            "printerMarginRight": "Sigurna zona desno",
+            "printerMarginTop": "Sigurna zona gore",
+            "skipItems": "Preskoči stavke",
+            "verticalSpacing": "Okomiti razmak"
+        },
+        "qrcode": {
+            "button": "Ispiši naljepnice",
+            "useHTTPUrl": {
+                "label": "Poveznica QR koda",
+                "options": {
+                    "default": "Zadano",
+                    "url": "URL"
+                },
+                "preview": "Pretpregled:"
+            }
+        },
+        "spoolSelect": {
+            "selectedTotal_one": "Odabran {{count}} kolut",
+            "selectedTotal_few": "Odabrana {{count}} koluta",
+            "selectedTotal_other": "Odabrano {{count}} kolutova"
+        }
+    },
+    "scanner": {
+        "description": "Skeniraj Spoolmanov QR kod da vidiš pojedinosti o kolutu.",
+        "error": {
+            "insecureContext": "Stranica se ne poslužuje preko HTTPS-a.",
+            "notAllowed": "Nisi dopustio pristup kameri.",
+            "notFound": "Kamera nije pronađena.",
+            "streamApiNotSupported": "Preglednik ne podržava MediaStream API.",
+            "unknown": "Došlo je do nepoznate pogreške. ({{error}})"
+        },
+        "title": "Skener QR kodova"
+    },
+    "settings": {
+        "general": {
+            "currency": {
+                "label": "Valuta"
+            },
+            "tab": "Općenito"
+        },
+        "header": "Postavke"
+    },
+    "sponsor": "Podrži me na GitHubu",
+    "spool": {
+        "fields": {
+            "archived": "Arhivirano",
+            "comment": "Napomena",
+            "filament": "Filament",
+            "id": "ID",
+            "location": "Lokacija",
+            "material": "Materijal",
+            "price": "Cijena",
+            "registered": "Zabilježeno"
+        },
+        "spool": "Kolutovi"
+    },
+    "unknown": "Nepoznato",
+    "vendor": {
+        "fields": {
+            "comment": "Napomena",
+            "id": "ID",
+            "name": "Naziv",
+            "registered": "Zabilježeno"
+        }
+    },
+    "yes": "Da"
+}
