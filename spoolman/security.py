@@ -7,18 +7,30 @@ someone we trust?" and "is this a hostname we answer to?".
 The second is a separate axis and is documented on :func:`is_allowed_host`; the rest of this
 docstring is about the first.
 
-The answer is driven entirely by ``SPOOLMAN_CORS_ORIGIN``, which is already an operator-declared
-origin allowlist. An operator who allowlists an origin for CORS has declared it trusted to make
-credentialed cross-origin requests, so refusing that same origin here would break the very
-deployment CORS was configured for. Deliberately no second environment variable: two variables
-answering one question would drift apart, and there is nothing a second one could express that
-this one cannot.
+The answer is driven by one origin allowlist with two sources: ``SPOOLMAN_CORS_ORIGIN``, and the
+``cors_origins`` setting that the web UI edits. An operator who allowlists an origin for CORS has
+declared it trusted to make credentialed cross-origin requests, so refusing that same origin here
+would break the very deployment CORS was configured for. Deliberately no second environment
+variable: two variables answering one question would drift apart, and there is nothing a second
+one could express that this one cannot.
 
-Three cases, in the operator's terms:
+The setting exists so that adding a Fluidd or Mainsail instance does not take a restart and
+access to the server's environment. It is the weaker of the two sources, because it can be
+written through the API this module guards:
+
+* It only ever adds to the environment's list, and cannot hold ``*``. Turning the origin checks
+  off stays a decision for whoever controls the server's environment.
+* Only this instance's own origin may change it; see :func:`trusted_origins_change_refusal`.
+  Otherwise any origin trusted once could go on to trust others.
+* Its hostnames are not added to the ones this instance answers to; see
+  :func:`get_allowed_hostnames`.
+
+Three cases for the environment variable, in the operator's terms:
 
 * Unset -- the case for nearly every deployment -- means "same-origin only". Non-browser clients
   such as Moonraker and OctoPrint send no ``Origin`` at all and are unaffected.
-* A list of origins means "these, plus my own". This is the same declaration CORS already needs.
+* A list of origins means "these, plus my own, plus the ones in the ``cors_origins`` setting".
+  This is the same declaration CORS already needs.
 * ``*`` means "I do not want origin checks", and is honoured as such: it is what an operator
   reaches for to opt out, so quietly reinterpreting it as something narrower would only leave
   them with no way to say what they meant. Debug mode implies the same thing. Both are logged
@@ -377,6 +389,10 @@ def get_allowed_hostnames() -> set[str]:
     That is ``SPOOLMAN_ALLOWED_HOSTS``, plus the hostnames inside ``SPOOLMAN_CORS_ORIGIN`` -- an
     operator who declared an origin has necessarily declared the hostname inside it, so a
     deployment that already configured CORS needs no second variable.
+
+    The origins in the ``cors_origins`` setting are left out on purpose. They can be written
+    through the API, so counting them would let a page that reached this instance under a rebound
+    name add that name here and make the hole permanent.
 
     Returns:
         set[str]: The hostname patterns. Empty when nothing was configured.
