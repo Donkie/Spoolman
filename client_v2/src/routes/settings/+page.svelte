@@ -4,6 +4,7 @@
 	import SettingRow from '$components/settings/SettingRow.svelte';
 	import ExtraFieldsManager from '$components/settings/ExtraFieldsManager.svelte';
 	import ScannerSettings from '$components/settings/ScannerSettings.svelte';
+	import CorsOriginsSettings from '$components/settings/CorsOriginsSettings.svelte';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { theme, type ThemePref } from '$lib/stores/theme.svelte';
@@ -172,6 +173,14 @@
 		</div>
 		<ScannerSettings />
 
+		<div class="sec-label">{m['settings.network.tab']()}</div>
+		<div class="subtitle sub2">
+			<p>{m['settings.network.description.intro']()}</p>
+			<p class="warn">{m['settings.network.description.warning']()}</p>
+			<p>{m['settings.network.description.env']()}</p>
+		</div>
+		<CorsOriginsSettings />
+
 		<div class="sec-label" id={EXTRA_FIELDS_ANCHOR}>{m['settings.extraFields.tab']()}</div>
 		<div class="subtitle sub2">
 			<p>{m['settings.extraFields.description.intro']()}</p>
@@ -205,6 +214,9 @@
 	.sub2 {
 		margin-bottom: 10px;
 		line-height: 1.5;
+	}
+	.warn {
+		color: var(--danger-soft);
 	}
 	.doclink {
 		display: inline-flex;
