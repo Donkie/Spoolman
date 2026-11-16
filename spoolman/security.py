@@ -29,11 +29,14 @@ by also accepting ``X-Forwarded-Host``; see :func:`is_trusted_request`.
 """
 
 import ipaddress
+import json
 import logging
+from collections.abc import Iterable
 from functools import cache
 from typing import TYPE_CHECKING
 from urllib.parse import urlsplit
 
+from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import HTTPConnection
 from starlette.responses import JSONResponse
 
@@ -45,6 +48,10 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 WILDCARD_ORIGIN = "*"
+
+CORS_ORIGINS_SETTING = "cors_origins"
+
+_setting_origins: frozenset[str] = frozenset()
 
 # Methods that can change state. Safe methods are left alone: the same-origin policy already
 # stops a cross-origin page from reading their responses, and OPTIONS must stay reachable for
@@ -156,6 +163,11 @@ def trusts_all_origins() -> bool:
     return False
 
 
+def _env_trusted_origins() -> set[str]:
+    """Get the normalized origins declared in ``SPOOLMAN_CORS_ORIGIN``, without the wildcard."""
+    return {origin for origin in env.get_cors_origin() or [] if origin != WILDCARD_ORIGIN}
+
+
 def get_trusted_origins() -> set[str]:
     """Get the set of normalized origins the operator has explicitly declared trusted.
 
@@ -165,7 +177,76 @@ def get_trusted_origins() -> set[str]:
         set[str]: The trusted origins. Empty when nothing was configured.
 
     """
-    return {origin for origin in env.get_cors_origin() or [] if origin != WILDCARD_ORIGIN}
+    return _env_trusted_origins() | _setting_origins
+
+
+def set_setting_origins(origins: Iterable[str]) -> None:
+    """Replace the origins trusted through the ``cors_origins`` setting."""
+    global _setting_origins  # noqa: PLW0603
+    _setting_origins = frozenset(origins)
+
+
+def validate_origin(entry: str) -> str:
+    """Validate and normalize one origin entered in the ``cors_origins`` setting."""
+    origin = env.normalize_origin(entry)
+    if origin == WILDCARD_ORIGIN:
+        raise ValueError(
+            f"'{WILDCARD_ORIGIN}' turns the origin checks off entirely, so it can only be set by the server's "
+            "administrator, with the SPOOLMAN_CORS_ORIGIN environment variable.",
+        )
+    invalid = ValueError(
+        f"{entry.strip()!r} is not an origin. Write it as scheme://host[:port], e.g. http://fluidd.local:8080.",
+    )
+    parts = urlsplit(origin)
+    try:
+        _ = parts.port
+    except ValueError:
+        raise invalid from None
+    if (
+        parts.scheme not in _DEFAULT_PORTS
+        or not parts.hostname
+        or parts.username is not None
+        or parts.path
+        or parts.query
+        or parts.fragment
+    ):
+        raise invalid
+    return origin
+
+
+def parse_cors_origins_setting(value: str) -> list[str]:
+    """Validate and normalize the JSON value of the ``cors_origins`` setting."""
+    entries = json.loads(value)
+    if not isinstance(entries, list) or not all(isinstance(entry, str) for entry in entries):
+        raise ValueError(f"Setting {CORS_ORIGINS_SETTING} must be a list of strings.")
+    origins: list[str] = []
+    for entry in entries:
+        origin = validate_origin(entry)
+        if origin not in origins:
+            origins.append(origin)
+    return origins
+
+
+def trusted_origins_change_refusal(connection: HTTPConnection) -> str | None:
+    """Determine whether a request may change the ``cors_origins`` setting, and why not."""
+    if trusts_all_origins():
+        return None
+    headers = connection.headers
+    origin = headers.get("origin")
+    if origin is None or not origin.strip():
+        return None
+    host = headers.get("host", "")
+    forwarded_host = headers.get("x-forwarded-host")
+
+    authority = _authority(env.normalize_origin(origin))
+    if not authority or authority not in _own_hosts(host, forwarded_host):
+        return "Trusted origins can only be changed from Spoolman's own web UI."
+    if not all(_is_allowed_hostname(claimed) for claimed in _claimed_hosts(host, forwarded_host)):
+        return (
+            "Trusted origins cannot be changed through a public hostname that SPOOLMAN_ALLOWED_HOSTS does not list. "
+            "List it there, or reach Spoolman by its IP address or local hostname."
+        )
+    return None
 
 
 def is_trusted_origin(origin: str | None, host: str, forwarded_host: str | None = None) -> bool:
@@ -302,7 +383,7 @@ def get_allowed_hostnames() -> set[str]:
 
     """
     patterns = set(env.get_allowed_hosts() or [])
-    return patterns | {_hostname(_authority(origin)) for origin in get_trusted_origins()} - {""}
+    return patterns | {_hostname(_authority(origin)) for origin in _env_trusted_origins()} - {""}
 
 
 def is_host_checking_enabled() -> bool:
@@ -495,7 +576,7 @@ class TrustedOriginMiddleware:
         """Close the connection, and log enough for an operator to see why."""
         logger.warning(
             "Refused a %s from an untrusted origin. Origin: %r, Host: %r, X-Forwarded-Host: %r, path: %r. "
-            "If this was you, add the origin to SPOOLMAN_CORS_ORIGIN.",
+            "If this was you, add the origin to the trusted origins in the settings, or to SPOOLMAN_CORS_ORIGIN.",
             "websocket handshake" if scope["type"] == "websocket" else scope["method"] + " request",
             connection.headers.get("origin"),
             connection.headers.get("host"),
@@ -512,8 +593,19 @@ class TrustedOriginMiddleware:
             content={
                 "message": (
                     "Request refused: it came from an origin this Spoolman instance does not trust. "
-                    "Set SPOOLMAN_CORS_ORIGIN if this origin should be allowed."
+                    "If this origin should be allowed, add it to the trusted origins in Spoolman's settings, "
+                    "or to SPOOLMAN_CORS_ORIGIN."
                 ),
             },
         )
         await response(scope, receive, send)
+
+
+class TrustedOriginCORSMiddleware(CORSMiddleware):
+    """CORS middleware that allows whatever :func:`get_trusted_origins` currently trusts."""
+
+    def is_allowed_origin(self, origin: str) -> bool:
+        """Determine whether to answer this origin's cross-origin requests."""
+        if self.allow_all_origins:
+            return True
+        return env.normalize_origin(origin) in get_trusted_origins()

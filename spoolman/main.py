@@ -1,5 +1,6 @@
 """Main entrypoint to the server."""
 
+import contextlib
 import logging
 import subprocess
 from logging.handlers import TimedRotatingFileHandler
@@ -13,10 +14,11 @@ from fastapi.responses import PlainTextResponse, RedirectResponse, Response
 from prometheus_client import generate_latest
 from scheduler.asyncio.scheduler import Scheduler
 
-from spoolman import env, externaldb, security, update_check
+from spoolman import env, externaldb, security, settings, update_check
 from spoolman.api.v1.router import app as v1_app
 from spoolman.client import SinglePageApplication, render_config_js
-from spoolman.database import database
+from spoolman.database import database, setting
+from spoolman.exceptions import ItemNotFoundError
 from spoolman.prometheus.metrics import registry
 
 # Define a console logger
@@ -143,42 +145,36 @@ def add_trusted_host_middleware() -> None:
 
 def add_cors_middleware() -> None:
     """Add CORS middleware to the FastAPI app based on environment settings."""
-    origins = []
-    if env.is_debug_mode():
-        logger.warning("Running in debug mode, allowing all origins.")
-        origins = ["*"]
-    elif env.is_cors_defined():
+    cors_kwargs = {
+        "allow_methods": ["*"],
+        "allow_headers": ["*"],
+        "expose_headers": ["X-Total-Count", "X-Total-Spools", "X-Total-Remaining-Weight"],
+    }
+
+    if env.is_debug_mode() or security.WILDCARD_ORIGIN in (env.get_cors_origin() or []):
+        if env.is_debug_mode():
+            logger.warning("Running in debug mode, allowing all origins.")
+        # Starlette resolves allow_origins=["*"] with allow_credentials=True by echoing the caller's
+        # origin back and setting Access-Control-Allow-Credentials, which tells the browser it may
+        # send cookies to any site that asks. Spoolman has no cookies of its own, but plenty of
+        # instances sit behind a reverse proxy that does the authentication with one -- and there,
+        # this combination lets any website the user visits make authenticated requests as them.
+        logger.warning("Allowing all CORS origins, so credentialed cross-origin requests are refused.")
+        app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, **cors_kwargs)
+        return
+
+    if env.is_cors_defined():
         cors_origins = env.get_cors_origin()
         if cors_origins:
             # Log the raw value alongside the parsed one so a typo in the operator's list is visible.
             logger.info("CORS origins defined: %s (parsed from %r)", cors_origins, env.get_cors_origin_raw())
-            origins = cors_origins
         else:
             logger.warning(
-                "SPOOLMAN_CORS_ORIGIN is set to %r but contains no origins, no CORS will be applied.",
+                "SPOOLMAN_CORS_ORIGIN is set to %r but contains no origins.",
                 env.get_cors_origin_raw(),
             )
 
-    if not origins:
-        return
-
-    # Starlette resolves allow_origins=["*"] with allow_credentials=True by echoing the caller's
-    # origin back and setting Access-Control-Allow-Credentials, which tells the browser it may
-    # send cookies to any site that asks. Spoolman has no cookies of its own, but plenty of
-    # instances sit behind a reverse proxy that does the authentication with one -- and there,
-    # this combination lets any website the user visits make authenticated requests as them.
-    allow_credentials = security.WILDCARD_ORIGIN not in origins
-    if not allow_credentials:
-        logger.warning("Allowing all CORS origins, so credentialed cross-origin requests are refused.")
-
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=allow_credentials,
-        allow_methods=["*"],
-        allow_headers=["*"],
-        expose_headers=["X-Total-Count", "X-Total-Spools", "X-Total-Remaining-Weight"],
-    )
+    app.add_middleware(security.TrustedOriginCORSMiddleware, allow_credentials=True, **cors_kwargs)
 
 
 # Order matters: middleware added last is outermost. CORS wraps both guards, so that a legitimate
@@ -201,6 +197,25 @@ def add_file_logging() -> None:
     access_handlers = logging.getLogger("uvicorn.access").handlers
     if access_handlers:
         logging.getLogger("uvicorn.access").addHandler(file_handler)
+
+
+async def load_trusted_origins_setting() -> None:
+    """Load the trusted origins stored in the cors_origins setting."""
+    definition = settings.parse_setting(security.CORS_ORIGINS_SETTING)
+    value: str | None = None
+    async for db in database.get_db_session():
+        with contextlib.suppress(ItemNotFoundError):
+            value = (await setting.get(db, definition)).value
+    if value is None:
+        return
+    try:
+        origins = security.parse_cors_origins_setting(value)
+    except ValueError:
+        logger.exception("Ignoring the stored trusted origins setting, which is invalid: %r", value)
+        return
+    security.set_setting_origins(origins)
+    if origins:
+        logger.info("Trusted origins from settings: %s", origins)
 
 
 @app.on_event("startup")
@@ -232,6 +247,8 @@ async def startup() -> None:
     # See: https://github.com/sqlalchemy/alembic/discussions/1155
     project_root = Path(__file__).parent.parent
     subprocess.run(["alembic", "upgrade", "head"], check=True, cwd=project_root)  # noqa: ASYNC221, S607
+
+    await load_trusted_origins_setting()
 
     # Setup scheduler
     schedule = Scheduler()
