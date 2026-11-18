@@ -239,6 +239,13 @@ async def startup() -> None:
     externaldb.schedule_tasks(schedule)
     update_check.schedule_tasks(schedule)
 
+    # Optional TigerTag external database add-on: only imported when enabled, so a
+    # deployment that never sets SPOOLMAN_TIGERTAG_ENABLED never loads it.
+    if env.is_tigertag_enabled():
+        from spoolman import tigertagdb  # noqa: PLC0415
+
+        tigertagdb.schedule_tasks(schedule)
+
     logger.info("Startup complete.")
 
     if env.is_docker() and not env.is_data_dir_mounted():
