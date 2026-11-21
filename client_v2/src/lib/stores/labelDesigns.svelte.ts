@@ -15,30 +15,39 @@ function uid(): string {
 class LabelDesigns {
 	designs = $state<LabelDesign[]>([]);
 	loaded = $state(false);
+	private loadPromise: Promise<void> | null = null;
 
 	async load(): Promise<void> {
 		if (this.loaded) return;
-		try {
-			const { designs, isSet } = await getDesignsSetting();
-			// First run (setting never written): pull the v1 client's print presets
-			// across so upgrading users keep their labels. Only persist when there was
-			// something to import, so a genuinely new user still starts empty.
-			if (!isSet) {
-				const imported = await importV1Presets();
-				if (imported.length > 0) {
-					this.designs = imported;
-					await this.persist();
+		if (this.loadPromise) return this.loadPromise;
+
+		const loadPromise = (async () => {
+			try {
+				const { designs, isSet } = await getDesignsSetting();
+				// First run (setting never written): pull the v1 client's print presets
+				// across so upgrading users keep their labels. Only persist when there was
+				// something to import, so a genuinely new user still starts empty.
+				if (!isSet) {
+					const imported = await importV1Presets();
+					if (imported.length > 0) {
+						this.designs = imported;
+						await this.persist();
+					} else {
+						this.designs = designs;
+					}
 				} else {
 					this.designs = designs;
 				}
-			} else {
-				this.designs = designs;
+				this.loaded = true;
+			} catch (e) {
+				console.error('Failed to load label designs', e);
+				throw e;
+			} finally {
+				this.loadPromise = null;
 			}
-		} catch (e) {
-			console.error('Failed to load label designs', e);
-		} finally {
-			this.loaded = true;
-		}
+		})();
+		this.loadPromise = loadPromise;
+		return loadPromise;
 	}
 
 	private async persist(): Promise<void> {
@@ -47,6 +56,7 @@ class LabelDesigns {
 
 	/** Create and persist a fresh design; returns it. */
 	async create(): Promise<LabelDesign> {
+		await this.load();
 		const design = newDesign(uid());
 		this.designs = [...this.designs, design];
 		await this.persist();
@@ -55,6 +65,7 @@ class LabelDesigns {
 
 	/** Insert or replace a design by id, then persist. */
 	async save(design: LabelDesign): Promise<void> {
+		await this.load();
 		const idx = this.designs.findIndex((d) => d.id === design.id);
 		if (idx === -1) this.designs = [...this.designs, design];
 		else this.designs = this.designs.map((d) => (d.id === design.id ? design : d));
@@ -63,6 +74,7 @@ class LabelDesigns {
 
 	/** Duplicate a design under a new id/name; returns the copy. */
 	async duplicate(id: string): Promise<LabelDesign | undefined> {
+		await this.load();
 		const src = this.designs.find((d) => d.id === id);
 		if (!src) return undefined;
 		const copy: LabelDesign = {
@@ -76,6 +88,7 @@ class LabelDesigns {
 	}
 
 	async remove(id: string): Promise<void> {
+		await this.load();
 		this.designs = this.designs.filter((d) => d.id !== id);
 		await this.persist();
 	}
