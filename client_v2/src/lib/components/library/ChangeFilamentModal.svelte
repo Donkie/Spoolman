@@ -439,6 +439,7 @@
 								{@const isCurrent = f.id === current.id}
 								<button
 									class="res-item"
+									title="{f.name} ({vendorName(f)} · {f.material})"
 									class:sel={chosen?.source === 'catalog' && chosen.filament.id === f.id}
 									disabled={isCurrent}
 									onclick={() => (chosen = { source: 'catalog', filament: f })}
@@ -449,7 +450,7 @@
 										<span class="rs">{vendorName(f)} · {f.material}</span>
 									</div>
 									{#if f.weight}
-										<span class="res-weight">{weightAuto(f.weight)}</span>
+										<span class="res-weight">{weightAuto(f.weight)} · {f.diameter} mm</span>
 									{/if}
 									<span class="tag" class:in-catalog={!isCurrent} class:cur={isCurrent}
 										>{isCurrent ? m['changeFilament.current']() : m['add.inCatalog']()}</span
@@ -471,6 +472,7 @@
 							{#each extSearch.items as ext (ext.id)}
 								<button
 									class="res-item"
+									title="{ext.name} ({ext.manufacturer} · {ext.material})"
 									class:sel={chosen?.source === 'external' && chosen.ext.id === ext.id}
 									onclick={() => (chosen = { source: 'external', ext })}
 								>
@@ -485,7 +487,7 @@
 										<span class="rs">{ext.manufacturer} · {ext.material}</span>
 									</div>
 									{#if ext.weight}
-										<span class="res-weight">{weightAuto(ext.weight)}</span>
+										<span class="res-weight">{weightAuto(ext.weight)} · {ext.diameter} mm</span>
 									{/if}
 									<span class="tag external">{serverInfo.externalDbName}</span>
 								</button>

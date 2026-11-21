@@ -104,6 +104,9 @@
 	function cWeight(c: Choice) {
 		return c.source === 'catalog' ? c.filament.weight : c.ext.weight;
 	}
+	function cDiameter(c: Choice) {
+		return c.source === 'catalog' ? c.filament.diameter : c.ext.diameter;
+	}
 	function cSpoolWeight(c: Choice): number | undefined {
 		if (c.source === 'external') return c.ext.spool_weight;
 		return c.filament.spoolWeight ?? inventory.vendorById(c.filament.vendorId)?.emptyWeight;
@@ -539,7 +542,11 @@
 							<div class="res-note">{m['add.noCatalog']()}</div>
 						{:else}
 							{#each localResults as f (f.id)}
-								<button class="res-item" onclick={() => choose({ source: 'catalog', filament: f })}>
+								<button
+									class="res-item"
+									title="{f.name} ({vendorName(f)} · {f.material})"
+									onclick={() => choose({ source: 'catalog', filament: f })}
+								>
 									<Swatch colors={f.colors} direction={f.multiColorDirection} size={18} radius={5} />
 									<div class="res-name">
 										<span class="rn">{f.name}</span>
@@ -549,7 +556,7 @@
 									     otherwise identical entries, so it sits outside the truncating
 									     .res-name. A catalog filament may have no weight recorded (0). -->
 									{#if f.weight}
-										<span class="res-weight">{weightAuto(f.weight)}</span>
+										<span class="res-weight">{weightAuto(f.weight)} · {f.diameter} mm</span>
 									{/if}
 									<span class="tag in-catalog">{m['add.inCatalog']()}</span>
 								</button>
@@ -567,7 +574,11 @@
 							</div>
 						{:else}
 							{#each extSearch.items as ext (ext.id)}
-								<button class="res-item" onclick={() => choose({ source: 'external', ext })}>
+								<button
+									class="res-item"
+									title="{ext.name} ({ext.manufacturer} · {ext.material})"
+									onclick={() => choose({ source: 'external', ext })}
+								>
 									<Swatch
 										colors={externalColors(ext)}
 										direction={externalDirection(ext)}
@@ -583,7 +594,7 @@
 									     outside .res-name so the ellipsis can never eat the one field that
 									     tells two matching results apart. -->
 									{#if ext.weight}
-										<span class="res-weight">{weightAuto(ext.weight)}</span>
+										<span class="res-weight">{weightAuto(ext.weight)} · {ext.diameter} mm</span>
 									{/if}
 									<span class="tag external">{serverInfo.externalDbName}</span>
 								</button>
@@ -642,7 +653,7 @@
 								     it stays put even if the Weight field below is edited for this spool. -->
 								<div class="cs">
 									{cVendor(chosen)} · {cMaterial(chosen)}{cWeight(chosen)
-										? ' · ' + weightAuto(cWeight(chosen))
+										? ' · ' + weightAuto(cWeight(chosen)) + ' · ' + cDiameter(chosen) + ' mm'
 										: ''}
 								</div>
 							</div>
