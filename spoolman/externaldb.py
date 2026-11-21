@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field, RootModel
 from scheduler.asyncio.scheduler import Scheduler
 
 from spoolman import filecache
+from spoolman.database.search import parse_query
 from spoolman.env import get_cache_dir
 
 logger = logging.getLogger(__name__)
@@ -201,24 +202,43 @@ def _load_filaments() -> list[tuple[str, ExternalFilament]]:
     key = (stat.st_mtime, stat.st_size)
     if _filaments_cache is None or _filaments_cache[0] != key:
         filaments = _parse_filaments_from_bytes(path.read_bytes()).root
-        _filaments_cache = (key, [(f"{f.manufacturer} {f.name} {f.material}".lower(), f) for f in filaments])
+        _filaments_cache = (
+            key,
+            [(f"{f.manufacturer} {f.name} {f.material}".lower(), f) for f in filaments],
+        )
     return _filaments_cache[1]
 
 
 def search_filaments(query: str, limit: int, offset: int = 0) -> tuple[list[ExternalFilament], int]:
     """Search the external filament catalog server-side.
 
-    Keeps the same semantics as the client-side search it replaces: the query is split
-    into whitespace-separated words and every word must appear (case-insensitively) as a
-    substring of the filament's "manufacturer name material" text. Results preserve
-    catalog order, so `offset` and `limit` page through them consistently.
+    Text is matched word-by-word against manufacturer, name and material. A complete
+    catalog ID is matched exactly. Weight and diameter expressions are parsed
+    separately and compared numerically, preventing values such as 100 g from matching
+    1000 g. Results preserve catalog order, so ``offset`` and ``limit`` page through
+    them consistently.
 
     Returns the requested page of matches and the total number of matches.
     """
-    words = query.lower().split()
-    if not words:
+    q = query.strip()
+    if not q:
         return [], 0
-    matches = [filament for haystack, filament in _load_filaments() if all(word in haystack for word in words)]
+    parsed = parse_query(q)
+    if not parsed.numbers and not parsed.weights and not parsed.diameters:
+        exact_id_matches = [filament for _haystack, filament in _load_filaments() if filament.id.lower() == q.lower()]
+        if exact_id_matches:
+            return exact_id_matches[offset : offset + limit], len(exact_id_matches)
+    if not parsed.terms and not parsed.numbers and not parsed.weights and not parsed.diameters:
+        return [], 0
+    matches: list[ExternalFilament] = []
+    for haystack, filament in _load_filaments():
+        if (
+            all(term in haystack for term in parsed.terms)
+            and all(number in (filament.weight, filament.diameter) for number in parsed.numbers)
+            and all(filament.weight == weight for weight in parsed.weights)
+            and all(filament.diameter == diameter for diameter in parsed.diameters)
+        ):
+            matches.append(filament)
     return matches[offset : offset + limit], len(matches)
 
 
