@@ -27,7 +27,7 @@ class Inventory {
 			this.vendorById(f.vendorId) ?? {
 				id: '?',
 				name: '?',
-				emptyWeight: 0,
+				emptyWeight: undefined,
 				comment: '',
 				registeredLabel: '',
 				extra: {}

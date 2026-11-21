@@ -106,7 +106,7 @@
 	// that matters, silently — say so. A filament that has its own tare keeps it and
 	// is unaffected, and its own field is right there in the inspector, so there is
 	// nothing to decide and nothing to report.
-	let nextEmpty = $derived(chosen?.kind === 'vendor' ? chosen.vendor.emptyWeight : 0);
+	let nextEmpty = $derived(chosen?.kind === 'vendor' ? (chosen.vendor.emptyWeight ?? 0) : 0);
 	let currentEmpty = $derived(current?.emptyWeight ?? 0);
 	let tareMoves = $derived(chosen != null && filament.spoolWeight == null && nextEmpty !== currentEmpty);
 
@@ -178,7 +178,7 @@
 						{#if current}
 							{@render card(
 								current.name,
-								current.emptyWeight
+								current.emptyWeight != null
 									? m['changeVendor.emptySpool']({ value: `${current.emptyWeight} g` })
 									: m['changeVendor.noEmptySpool'](),
 								initials(current.name)
@@ -193,7 +193,7 @@
 						{#if chosen?.kind === 'vendor'}
 							{@render card(
 								chosen.vendor.name,
-								chosen.vendor.emptyWeight
+								chosen.vendor.emptyWeight != null
 									? m['changeVendor.emptySpool']({ value: `${chosen.vendor.emptyWeight} g` })
 									: m['changeVendor.noEmptySpool'](),
 								initials(chosen.vendor.name)
@@ -240,7 +240,7 @@
 								<div class="res-name">
 									<span class="rn">{v.name}</span>
 								</div>
-								{#if v.emptyWeight}
+								{#if v.emptyWeight != null}
 									<span class="res-weight">{v.emptyWeight} g</span>
 								{/if}
 								{#if isCurrent}<span class="tag cur">{m['changeVendor.current']()}</span>{/if}
