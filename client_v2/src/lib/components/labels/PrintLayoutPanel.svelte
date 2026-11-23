@@ -811,6 +811,7 @@
 	.seg.sort button {
 		padding: 6px 9px;
 		font-size: 11.5px;
+		white-space: nowrap;
 	}
 	.search,
 	.fld select {
