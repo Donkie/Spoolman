@@ -54,11 +54,11 @@
             "previewScale": "Visningsstørrelse",
             "helpMargin": "Margener bør indstilles til at matche din printer og papir. Ændringer her vil have indflydelse på hele layoutet.",
             "marginTop": "Top margen",
-            "skipItems": "Spring over",
+            "skipItems": "Spring emner over",
             "layoutSettings": "Layoutindstillinger",
             "paperSize": "Papirstørrelse",
             "columns": "Kolonner",
-            "description": "Redigér nedenstående indstillinger for at opnå det ønskede layout. Husk på at printere og dit operativsystem kan tilføje deres egne margener og skalering, så det kan kræve et par forsøg, før alt er korrekt. Test på et stykke almindeligt papir, før du udskriver på etiketter.",
+            "description": "Finjuster indstillingerne herunder for at få det ønskede udskriftslayout. Husk, at printere og dit operativsystem kan anvende egne margener og skalering, så du muligvis må prøve dig frem, før alt sidder rigtigt. Test på et almindeligt ark papir, før du udskriver på de faktiske etiketter.",
             "marginBottom": "Bund margen",
             "horizontalSpacing": "Horisontal afstand",
             "marginLeft": "Venstre margen",
@@ -73,7 +73,7 @@
             "deleteSettings": "Slet nuværende forudindstilling",
             "deleteSettingsConfirm": "Er du sikker på, at du vil slette denne forudindstilling?",
             "settingsName": "Forudindstillingsnavn",
-            "itemCopies": "Kopier",
+            "itemCopies": "Kopier pr. emne",
             "duplicateSettings": "Duplikér",
             "saveSetting": "Gem forudindstillinger",
             "saveAsImage": "Gem som Billede"
@@ -235,16 +235,16 @@
             "name": "Navn",
             "price": "Pris",
             "settings_bed_temp": "Printpladetemperatur",
-            "vendor": "Producent",
+            "vendor": "Fabrikant",
             "density": "Massefylde",
             "id": "ID",
             "color_hex": "Farve",
             "article_number": "Produktnummer",
             "spools": "Vis spoler",
             "external_id": "Eksternt ID",
-            "longitudinal": "Langsgående",
+            "longitudinal": "Længdegående",
             "multi_color": "Flerfarvet",
-            "coaxial": "Koaksialt",
+            "coaxial": "Koaksial",
             "single_color": "Enkeltfarvet"
         },
         "titles": {
@@ -407,5 +407,6 @@
         "no_location": "Ingen lokation",
         "locations": "Lokationer",
         "no_locations_help": "Denne side lader dig organisere dine spoler i lokationer, tilføj nogle spoler for at komme i gang!"
-    }
+    },
+    "sponsor": "Sponsorer mig på GitHub"
 }
