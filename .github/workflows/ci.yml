@@ -288,7 +288,9 @@ jobs:
     needs: [build-amd64, build-tester]
     strategy:
       matrix:
-        dbtype: ["postgres", "sqlite", "mariadb", "cockroachdb"]
+        # The -upgrade entries don't run the regular suite. They upgrade a database from before
+        # the CockroachDB ID migrations and check the result, see the comments in their compose files.
+        dbtype: ["postgres", "sqlite", "mariadb", "cockroachdb", "cockroachdb-upgrade", "other-dbs-upgrade"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
