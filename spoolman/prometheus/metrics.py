@@ -4,7 +4,7 @@ import logging
 from collections.abc import Callable
 
 import sqlalchemy
-from prometheus_client import REGISTRY, Gauge, make_asgi_app
+from prometheus_client import REGISTRY, Gauge, Info, make_asgi_app
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager
 
@@ -29,6 +29,8 @@ FILAMENT_INFO = Gauge(
 FILAMENT_DENSITY = Gauge(f"{PREFIX}_filament_density", "Density of filament gram/cm3", ["filament_id"])
 FILAMENT_DIAMETER = Gauge(f"{PREFIX}_filament_diameter", "Diameter of filament", ["filament_id"])
 FILAMENT_WEIGHT = Gauge(f"{PREFIX}_filament_weight", "Net weight of filament", ["filament_id"])
+
+BUILD_INFO = Info(f"{PREFIX}_build", "Spoolman build information")
 
 logger = logging.getLogger(__name__)
 
