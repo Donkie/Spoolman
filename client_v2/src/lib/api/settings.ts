@@ -15,10 +15,10 @@ export function getSettings(signal?: AbortSignal): Promise<SettingsMap> {
 	return getJson<SettingsMap>('/setting/', {}, signal);
 }
 
-export async function setSetting(key: string, value: unknown): Promise<void> {
+export function setSetting(key: string, value: unknown): Promise<SettingResponse> {
 	// The endpoint's body param is itself a JSON-encoded string, so the request
 	// body must be the value double-encoded (postJson adds the outer encode).
-	await postJson(`/setting/${key}`, JSON.stringify(value));
+	return postJson<SettingResponse>(`/setting/${key}`, JSON.stringify(value));
 }
 
 /** Parse a SettingResponse's JSON-encoded value, falling back on error. */

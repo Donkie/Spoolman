@@ -11,6 +11,7 @@ class Settings {
 	currency = $state('EUR');
 	roundPrices = $state(false);
 	baseUrl = $state('');
+	corsOrigins = $state<string[]>([]);
 	lowThreshold = $state(150);
 	loaded = $state(false);
 
@@ -25,6 +26,7 @@ class Settings {
 			this.currency = parseSetting(s.currency, 'EUR');
 			this.roundPrices = parseSetting(s.round_prices, false);
 			this.baseUrl = parseSetting(s.base_url, '');
+			this.corsOrigins = parseSetting(s.cors_origins, []);
 		} catch (e) {
 			console.error('Failed to load settings', e);
 		} finally {
@@ -43,6 +45,10 @@ class Settings {
 	async setBaseUrl(v: string) {
 		this.baseUrl = v;
 		await setSetting('base_url', v);
+	}
+	async setCorsOrigins(origins: string[]) {
+		const stored = await setSetting('cors_origins', origins);
+		this.corsOrigins = parseSetting(stored, origins);
 	}
 	setLowThreshold(v: number) {
 		this.lowThreshold = v;

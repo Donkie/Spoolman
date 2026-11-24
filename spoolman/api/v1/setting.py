@@ -1,6 +1,7 @@
 """Vendor related endpoints."""
 
 import asyncio
+import json
 import logging
 from typing import Annotated
 
@@ -8,6 +9,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Request, WebSocket,
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from spoolman import security
 from spoolman.api.v1.models import Message, SettingEvent, SettingResponse
 from spoolman.database import setting
 from spoolman.database.database import get_db_session
@@ -187,6 +189,7 @@ async def notify(
     dependencies=[Depends(require_json_content_type)],
 )
 async def update(
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db_session)],
     key: str,
     body: Annotated[str, Body(media_type="application/json")],
@@ -196,6 +199,14 @@ async def update(
     except ValueError as e:
         return JSONResponse(status_code=404, content=Message(message=str(e)).dict())
 
+    is_cors_origins = key == security.CORS_ORIGINS_SETTING
+    if is_cors_origins:
+        refusal = security.trusted_origins_change_refusal(request)
+        if refusal is not None:
+            logger.warning("Refused a change to the trusted origins: %s", refusal)
+            return JSONResponse(status_code=403, content=Message(message=refusal).dict())
+
+    origins: list[str] = []
     if body and body != "null":
         try:
             definition.validate_type(body)
@@ -203,6 +214,9 @@ async def update(
             # response depend on. Writing a malformed one through here used to be accepted and then
             # wedged GET /field/{entity} into a permanent 500, so validate the shape up front.
             validate_extra_field_setting(key, body)
+            if is_cors_origins:
+                origins = security.parse_cors_origins_setting(body)
+                body = json.dumps(origins)
         except ValueError as e:
             return JSONResponse(status_code=400, content=Message(message=str(e)).dict())
 
@@ -221,6 +235,9 @@ async def update(
     # The registry caches extra fields in memory and is otherwise only refreshed by the /field
     # endpoints, so without this the two paths disagree until the next restart.
     invalidate_extra_field_cache(key)
+    if is_cors_origins:
+        security.set_setting_origins(origins)
+        logger.info("Trusted origins from settings are now: %s", origins)
 
     # Get the new value of the setting.
     try:
