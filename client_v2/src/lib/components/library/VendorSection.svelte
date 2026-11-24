@@ -74,7 +74,9 @@
 			help={m['vendor.fieldsHelp.emptySpoolWeight']()}
 			mono
 		>
-			<span class:shadowed={emptyWeightShadowedBy}>{vendor.emptyWeight} g</span>
+			<span class:shadowed={emptyWeightShadowedBy}
+				>{vendor.emptyWeight == null ? '—' : `${vendor.emptyWeight} g`}</span
+			>
 			{#if emptyWeightShadowedBy}<OverrideMark label={emptyWeightShadowedBy} />{/if}
 		</Field>
 		{#if vendor.externalId}
