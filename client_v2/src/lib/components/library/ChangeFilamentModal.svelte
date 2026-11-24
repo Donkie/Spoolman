@@ -180,17 +180,20 @@
 
 	// --- search -------------------------------------------------------------
 	let searchTimer: ReturnType<typeof setTimeout> | undefined;
+	let searchGeneration = 0;
 	function onSearch(v: string) {
 		query = v;
+		const generation = ++searchGeneration;
 		clearTimeout(searchTimer);
-		searchTimer = setTimeout(runSearch, 250);
+		searchTimer = setTimeout(() => runSearch(v, generation), 250);
 	}
-	async function runSearch() {
+	async function runSearch(searchQuery = query, generation = ++searchGeneration) {
 		searching = true;
 		const [local] = await Promise.allSettled([
-			spoolSource.searchFilaments(query.trim()),
-			extSearch.search(query)
+			spoolSource.searchFilaments(searchQuery.trim()),
+			extSearch.search(searchQuery)
 		]);
+		if (generation !== searchGeneration) return;
 		localResults = local.status === 'fulfilled' ? local.value : [];
 		searching = false;
 	}
@@ -214,6 +217,11 @@
 			fields.ensure('vendor');
 		} else if (!open) {
 			initialized = false;
+			clearTimeout(searchTimer);
+			searchTimer = undefined;
+			searchGeneration++;
+			extSearch.clear();
+			searching = false;
 		}
 	});
 
