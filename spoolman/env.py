@@ -573,3 +573,46 @@ def is_legacy_client_enabled() -> bool:
     raise ValueError(
         f"Failed to parse SPOOLMAN_LEGACY_CLIENT variable: Unknown value '{legacy_client}'.",
     )
+
+
+def is_tigertag_enabled() -> bool:
+    """Get whether the TigerTag external database add-on is enabled.
+
+    Off by default: this talks to a third-party service (api.tigertag.io) on a
+    schedule, which nothing in core should do without an explicit opt-in.
+
+    Returns:
+        bool: Whether the TigerTag database add-on is enabled.
+
+    """
+    enabled = os.getenv("SPOOLMAN_TIGERTAG_ENABLED", "FALSE").upper()
+    if enabled in {"FALSE", "0"}:
+        return False
+    if enabled in {"TRUE", "1"}:
+        return True
+    raise ValueError(
+        f"Failed to parse SPOOLMAN_TIGERTAG_ENABLED variable: Unknown value '{enabled}'.",
+    )
+
+
+def get_tigertag_api_url() -> str:
+    """Get the TigerTag API base URL from environment variables.
+
+    Returns:
+        str: The TigerTag API base URL.
+
+    """
+    return os.getenv("SPOOLMAN_TIGERTAG_API_URL", "https://api.tigertag.io/api:tigertag/")
+
+
+def get_tigertag_sync_interval() -> int:
+    """Get the TigerTag catalog sync interval, in seconds, from environment variables.
+
+    A value of 0 disables periodic re-sync; the catalog is still fetched once at
+    startup.
+
+    Returns:
+        int: The sync interval in seconds.
+
+    """
+    return int(os.getenv("SPOOLMAN_TIGERTAG_SYNC_INTERVAL", "3600"))

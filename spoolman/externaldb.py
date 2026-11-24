@@ -89,6 +89,13 @@ class ExternalFilament(BaseModel):
     )
     pattern: Pattern | None = Field(default=None, description="Pattern of the filament.", examples=[Pattern.MARBLE])
     translucent: bool = Field(default=False, description="Whether the filament is translucent.")
+    source: str | None = Field(
+        default=None,
+        description="Which catalog this entry came from, if not the default SpoolmanDB. "
+        "Unset for SpoolmanDB entries; set by optional add-ons that merge in their own catalog, "
+        "e.g. 'tigertag'.",
+        examples=["tigertag"],
+    )
     glow: bool = Field(default=False, description="Whether the filament is glow-in-the-dark.")
 
 
