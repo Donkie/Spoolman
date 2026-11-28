@@ -1385,4 +1385,17 @@
 			font-size: 12.5px;
 		}
 	}
+
+	/* iOS browsers zoom the page when a field under 16px is focused. Only on touch devices
+	   running iOS: -webkit-touch-callout is supported by iOS WebKit alone. Covers this
+	   dialog's own fields (search, Lot number, Comment); Combobox and NumberInput handle theirs. */
+	@media (pointer: coarse) {
+		@supports (-webkit-touch-callout: none) {
+			.search-big,
+			.form input,
+			.form textarea {
+				font-size: 16px;
+			}
+		}
+	}
 </style>

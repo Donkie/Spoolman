@@ -187,4 +187,14 @@
 		padding: 4px 6px;
 		font-size: 11.5px;
 	}
+
+	/* iOS browsers zoom the page when a field under 16px is focused. Only on touch devices
+	   running iOS: -webkit-touch-callout is supported by iOS WebKit alone. */
+	@media (pointer: coarse) {
+		@supports (-webkit-touch-callout: none) {
+			.size {
+				font-size: 16px;
+			}
+		}
+	}
 </style>
