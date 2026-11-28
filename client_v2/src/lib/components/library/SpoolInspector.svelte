@@ -460,7 +460,7 @@
 				<Field label={m['spool.fields.weight']()} help={m['spool.fieldsHelp.weight']()}>
 					<NumberInput
 						dense
-						width="285px"
+						width="min(285px, 100%)"
 						unit="g"
 						step={50}
 						min={0}
@@ -474,7 +474,7 @@
 				<Field label={m['spool.fields.spoolWeight']()} help={m['spool.fieldsHelp.spoolWeight']()}>
 					<NumberInput
 						dense
-						width="285px"
+						width="min(285px, 100%)"
 						unit="g"
 						step={10}
 						min={0}
@@ -490,7 +490,7 @@
 				<Field label={m['spool.fields.price']()} help={m['spool.fieldsHelp.price']()}>
 					<NumberInput
 						dense
-						width="285px"
+						width="min(285px, 100%)"
 						unit={settings.currencySymbol}
 						min={0}
 						placeholder={m['inspector.defaultFrom.filament']({
