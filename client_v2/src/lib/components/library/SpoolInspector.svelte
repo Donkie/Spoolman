@@ -581,7 +581,9 @@
 					mono>{filament.articleNumber || '—'}</Field
 				>
 				{#if filament.externalId}
-					<Field label={m['filament.fields.externalId']()} mono>{filament.externalId}</Field>
+					<Field label={m['filament.fields.externalId']()} mono
+						><span class="ext-id">{filament.externalId}</span></Field
+					>
 				{/if}
 				<Field label={m['filament.fields.registered']()}>{filament.registeredLabel}</Field>
 				<Field label={m['filament.fields.comment']()}><LinkedText text={filament.comment} /></Field>
@@ -781,6 +783,11 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 14px;
+	}
+	/* External IDs are long unbroken strings; let them wrap instead of forcing the
+	   panel to scroll sideways. */
+	.ext-id {
+		overflow-wrap: break-word;
 	}
 
 	@container (max-width: 760px) {
