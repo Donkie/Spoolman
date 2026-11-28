@@ -265,4 +265,16 @@
 	.cbx-opt.sel {
 		color: var(--accent);
 	}
+
+	/* iOS browsers zoom the page when a field under 16px is focused, which also throws the
+	   dropdown out of place. Only on touch devices running iOS: -webkit-touch-callout is
+	   supported by iOS WebKit alone. */
+	@media (pointer: coarse) {
+		@supports (-webkit-touch-callout: none) {
+			.cbx,
+			.cbx.underline {
+				font-size: 16px;
+			}
+		}
+	}
 </style>
