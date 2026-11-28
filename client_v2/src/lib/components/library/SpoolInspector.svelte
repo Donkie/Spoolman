@@ -460,7 +460,7 @@
 				<Field label={m['spool.fields.weight']()} help={m['spool.fieldsHelp.weight']()}>
 					<NumberInput
 						dense
-						width="285px"
+						width="min(285px, 100%)"
 						unit="g"
 						step={50}
 						min={0}
@@ -474,7 +474,7 @@
 				<Field label={m['spool.fields.spoolWeight']()} help={m['spool.fieldsHelp.spoolWeight']()}>
 					<NumberInput
 						dense
-						width="285px"
+						width="min(285px, 100%)"
 						unit="g"
 						step={10}
 						min={0}
@@ -490,7 +490,7 @@
 				<Field label={m['spool.fields.price']()} help={m['spool.fieldsHelp.price']()}>
 					<NumberInput
 						dense
-						width="285px"
+						width="min(285px, 100%)"
 						unit={settings.currencySymbol}
 						min={0}
 						placeholder={m['inspector.defaultFrom.filament']({
@@ -581,7 +581,9 @@
 					mono>{filament.articleNumber || '—'}</Field
 				>
 				{#if filament.externalId}
-					<Field label={m['filament.fields.externalId']()} mono>{filament.externalId}</Field>
+					<Field label={m['filament.fields.externalId']()} mono
+						><span class="ext-id">{filament.externalId}</span></Field
+					>
 				{/if}
 				<Field label={m['filament.fields.registered']()}>{filament.registeredLabel}</Field>
 				<Field label={m['filament.fields.comment']()}><LinkedText text={filament.comment} /></Field>
@@ -781,6 +783,11 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 14px;
+	}
+	/* External IDs are long unbroken strings; let them wrap instead of forcing the
+	   panel to scroll sideways. */
+	.ext-id {
+		overflow-wrap: break-word;
 	}
 
 	@container (max-width: 760px) {

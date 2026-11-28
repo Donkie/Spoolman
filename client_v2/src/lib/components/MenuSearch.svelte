@@ -93,4 +93,14 @@
 	input::placeholder {
 		color: var(--text-faint);
 	}
+
+	/* iOS browsers zoom the page when a field under 16px is focused. Only on touch devices
+	   running iOS: -webkit-touch-callout is supported by iOS WebKit alone. */
+	@media (pointer: coarse) {
+		@supports (-webkit-touch-callout: none) {
+			input {
+				font-size: 16px;
+			}
+		}
+	}
 </style>

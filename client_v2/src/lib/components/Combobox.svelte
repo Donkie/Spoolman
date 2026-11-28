@@ -40,8 +40,11 @@
 	let highlight = $state(-1);
 	let inputEl = $state<HTMLInputElement>();
 	let listEl = $state<HTMLUListElement>();
-	// Dropdown is position:fixed and anchored to the input's rect so it never gets
-	// clipped by scrollable/overflow-hidden ancestors (e.g. the modal body).
+	// Dropdown is portaled to <body> and anchored to the input's rect so it never gets
+	// clipped by scrollable/overflow-hidden ancestors (e.g. the modal body). It is
+	// position:absolute in page coordinates (rect + scroll offset) rather than fixed in
+	// viewport ones: when the iOS keyboard opens, Safari scrolls the page and shifts the
+	// visual viewport, and a fixed list was left stranded far above its field.
 	let rect = $state({ top: 0, left: 0, width: 0 });
 
 	// True while the user is actively typing, false when the list was just opened
@@ -59,7 +62,7 @@
 	function reposition() {
 		if (!inputEl) return;
 		const r = inputEl.getBoundingClientRect();
-		rect = { top: r.bottom, left: r.left, width: r.width };
+		rect = { top: r.bottom + window.scrollY, left: r.left + window.scrollX, width: r.width };
 	}
 
 	function openList() {
@@ -138,13 +141,20 @@
 			if (inputEl?.contains(t) || listEl?.contains(t)) return;
 			close();
 		};
+		// The visual viewport moves as the on-screen keyboard opens, often without any
+		// window scroll/resize event, so follow it too.
+		const vv = window.visualViewport;
 		window.addEventListener('pointerdown', onPointer, true);
 		window.addEventListener('scroll', reposition, true);
 		window.addEventListener('resize', reposition);
+		vv?.addEventListener('resize', reposition);
+		vv?.addEventListener('scroll', reposition);
 		return () => {
 			window.removeEventListener('pointerdown', onPointer, true);
 			window.removeEventListener('scroll', reposition, true);
 			window.removeEventListener('resize', reposition);
+			vv?.removeEventListener('resize', reposition);
+			vv?.removeEventListener('scroll', reposition);
 		};
 	});
 </script>
@@ -235,7 +245,7 @@
 	}
 
 	.cbx-list {
-		position: fixed;
+		position: absolute;
 		z-index: 3000;
 		margin: 4px 0 0;
 		padding: 4px;
@@ -264,5 +274,17 @@
 	}
 	.cbx-opt.sel {
 		color: var(--accent);
+	}
+
+	/* iOS browsers zoom the page when a field under 16px is focused, which also throws the
+	   dropdown out of place. Only on touch devices running iOS: -webkit-touch-callout is
+	   supported by iOS WebKit alone. */
+	@media (pointer: coarse) {
+		@supports (-webkit-touch-callout: none) {
+			.cbx,
+			.cbx.underline {
+				font-size: 16px;
+			}
+		}
 	}
 </style>

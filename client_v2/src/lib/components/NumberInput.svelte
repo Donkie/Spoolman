@@ -295,4 +295,16 @@
 			width: 32px;
 		}
 	}
+
+	/* The 16px above only applies at phone widths. iOS browsers zoom on any focused field
+	   under 16px, so cover iOS touch devices at every width too (an iPad's wide layout).
+	   -webkit-touch-callout is supported by iOS WebKit alone. */
+	@media (pointer: coarse) {
+		@supports (-webkit-touch-callout: none) {
+			.ni input,
+			.ni.dense input {
+				font-size: 16px;
+			}
+		}
+	}
 </style>

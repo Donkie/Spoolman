@@ -383,4 +383,14 @@
 			padding: 14px 10px;
 		}
 	}
+
+	/* iOS browsers zoom the page when a field under 16px is focused. Only on touch devices
+	   running iOS: -webkit-touch-callout is supported by iOS WebKit alone. */
+	@media (pointer: coarse) {
+		@supports (-webkit-touch-callout: none) {
+			.preview-bar select {
+				font-size: 16px;
+			}
+		}
+	}
 </style>
